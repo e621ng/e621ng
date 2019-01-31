@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Run: curl -L -s https://raw.githubusercontent.com/zwagoth/e621ng/master/INSTALL.debian -o install.sh ; chmod +x install.sh ; ./install.sh
+
+export RUBY_VERSION=2.5.3
+export GITHUB_INSTALL_SCRIPTS=https://raw.githubusercontent.com/zwagoth/e621ng/master/script/install
+export VIPS_VERSION=8.7.0
+
+verlte() {
+  [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+verlt() {
+  [ "$1" = "$2" ] && return 1 || verlte $1 $2
+}
+
+# Install packages
+echo "* Installing packages..."
+
+if [ -n "$(uname -a | grep Ubuntu)" ] ; then
+  LIBSSL_DEV_PKG=libssl-dev
+else
+  LIBSSL_DEV_PKG=$( verlt `lsb_release -sr` 9.0 && echo libssl-dev || echo libssl1.0-dev )
+fi
+sudo apt-get update
+sudo apt-get -y install $LIBSSL_DEV_PKG build-essential automake libxml2-dev libxslt-dev ncurses-dev sudo libreadline-dev flex bison ragel memcached libmemcached-dev git curl libcurl4-openssl-dev sendmail-bin sendmail nginx ssh coreutils ffmpeg mkvtoolnix
+sudo apt-get -y install libpq-dev postgresql-client postgresql postgresql-server-dev-10
+sudo apt-get -y install liblcms2-dev libjpeg-turbo8-dev libexpat1-dev libgif-dev libpng-dev libexif-dev
+
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+curl -sSL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get update
+sudo apt-get -y install nodejs yarn
+sudo apt-get remove cmdtest
+
+if [ $? -ne 0 ]; then
+  echo "* Error installing packages; aborting"
+  exit 1
+fi
+
+# compile and install libvips (the version in apt is too old)
+cd /tmp
+wget -q https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz
+tar xzf vips-$VIPS_VERSION.tar.gz
+cd vips-$VIPS_VERSION
+./configure --prefix=/usr
+sudo make install
+sudo ldconfig
+
+# Set up Postgres
+export PG_VERSION=`pg_config --version | egrep -o '[0-9]{1,}\.[0-9]{1,}'`
+if verlte 9.5 $PG_VERSION ; then
+	# only do this on postgres 9.5 and above
+	git clone https://github.com/r888888888/test_parser.git /tmp/test_parser
+	cd /tmp/test_parser
+	sudo make install
+fi
+
+# Install rbenv
+echo "* Installing rbenv..."
+cd /tmp
+git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
+touch ~/.bash_profile
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
+echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+mkdir -p ~/.rbenv/plugins
+git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+rbenv install $RUBY_VERSION
+rbenv global $RUBY_VERSION
+
+# Generate secret token and secret key
+echo "* Generating secret keys..."
+mkdir ~/.danbooru/
+openssl rand -hex 32 > ~/.danbooru/secret_token
+openssl rand -hex 32 > ~/.danbooru/session_secret_key
+chmod 600 ~/.danbooru/*
+
+# Install gems
+echo "* Installing gems..."
+gem install --no-ri --no-rdoc bundler
+
+echo "* Install configuration scripts..."
+
+# Update PostgreSQL
+curl -L -s $GITHUB_INSTALL_SCRIPTS/postgresql_hba_conf -o /etc/postgresql/$PG_VERSION/main/pg_hba.conf
+/etc/init.d/postgresql restart
+sudo -u postgres createuser -s danbooru
+sudo -u postgres createdb danbooru2
+
+# Setup nginx
+curl -L -s $GITHUB_INSTALL_SCRIPTS/nginx.danbooru.conf -o /etc/nginx/sites-enabled/danbooru.conf
+sed -i -e "s/__hostname__/$HOSTNAME/g" /etc/nginx/sites-enabled/danbooru.conf
+/etc/init.d/nginx restart
+
+echo "* Clone the repo into your home folder."
+echo "* Copy the database.yml and danbooru_local_config.rb templates from the "
+echo "* scripts/install folder into the config folder and edit them to your needs."
+echo "* Remember to add 'user: danbooru' to the database yml file for development roles."
+echo "* You can then run a server locally without having to deal with deploys"
+echo "* by running the following command:"
+echo "*"
+echo "*   bundle install"
+echo "*   yarn install"
+echo "*   RAILS_ENV=development bundle exec rake db:migrate"
+echo "*   bundle exec rails server"
+echo "*"
+echo "* Run RAILS_ENV=development bundle exec rake db:seed after you have"
+echo "* created a new user!"
+echo "*"
+echo "* This will start a web process running on port 3000 that you can"
+echo "* connect to. This is useful for development and testing purposes."
+echo "* If something breaks post about it on the Github. Good luck!"
+

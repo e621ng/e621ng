@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Run: curl -L -s https://raw.githubusercontent.com/r888888888/danbooru/master/INSTALL.debian -o install.sh ; chmod +x install.sh ; ./install.sh
+# Run: curl -L -s https://raw.githubusercontent.com/zwagoth/e621ng/master/INSTALL.debian -o install.sh ; chmod +x install.sh ; ./install.sh
 
-export RUBY_VERSION=2.5.1
-export GITHUB_INSTALL_SCRIPTS=https://raw.githubusercontent.com/r888888888/danbooru/master/script/install
+export RUBY_VERSION=2.5.3
+export GITHUB_INSTALL_SCRIPTS=https://raw.githubusercontent.com/zwagoth/e621ng/master/script/install
 export VIPS_VERSION=8.7.0
 
 if [[ "$(whoami)" != "root" ]] ; then
@@ -97,25 +97,26 @@ fi
 # Install rbenv
 echo "* Installing rbenv..."
 cd /tmp
-sudo -u danbooru git clone git://github.com/sstephenson/rbenv.git ~danbooru/.rbenv
-sudo -u danbooru touch ~danbooru/.bash_profile
+sudo -i -u danbooru git clone git://github.com/sstephenson/rbenv.git ~danbooru/.rbenv
+sudo -i -u danbooru touch ~danbooru/.bash_profile
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~danbooru/.bash_profile
 echo 'eval "$(rbenv init -)"' >> ~danbooru/.bash_profile
-sudo -u danbooru mkdir -p ~danbooru/.rbenv/plugins
-sudo -u danbooru git clone git://github.com/sstephenson/ruby-build.git ~danbooru/.rbenv/plugins/ruby-build
-sudo -u danbooru bash -l -c "rbenv install $RUBY_VERSION"
-sudo -u danbooru bash -l -c "rbenv global $RUBY_VERSION"
+sudo -i -u danbooru mkdir -p ~danbooru/.rbenv/plugins
+sudo -i -u danbooru git clone git://github.com/sstephenson/ruby-build.git ~danbooru/.rbenv/plugins/ruby-build
+sudo -i -u danbooru bash -l -c "rbenv install $RUBY_VERSION"
+sudo -i -u danbooru bash -l -c "rbenv global $RUBY_VERSION"
 
 # Generate secret token and secret key
 echo "* Generating secret keys..."
-sudo -u danbooru mkdir ~danbooru/.danbooru/
-sudo -u danbooru sh -c 'openssl rand -hex 32 > ~danbooru/.danbooru/secret_token'
-sudo -u danbooru sh -c 'openssl rand -hex 32 > ~danbooru/.danbooru/session_secret_key'
+sudo -i -u danbooru mkdir ~danbooru/.danbooru/
+openssl rand -hex 32 > ~danbooru/.danbooru/secret_token
+openssl rand -hex 32 > ~danbooru/.danbooru/session_secret_key
+chown danbooru:danbooru ~danbooru/.danbooru/*
 chmod 600 ~danbooru/.danbooru/*
 
 # Install gems
 echo "* Installing gems..."
-sudo -u danbooru bash -l -c 'gem install --no-ri --no-rdoc bundler'
+sudo -i -u danbooru bash -l -c 'gem install --no-ri --no-rdoc bundler'
 
 echo "* Install configuration scripts..."
 
@@ -123,7 +124,7 @@ echo "* Install configuration scripts..."
 curl -L -s $GITHUB_INSTALL_SCRIPTS/postgresql_hba_conf -o /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 /etc/init.d/postgresql restart
 sudo -u postgres createuser -s danbooru
-sudo -u danbooru createdb danbooru2
+sudo -i -u danbooru createdb danbooru2
 
 # Setup nginx
 curl -L -s $GITHUB_INSTALL_SCRIPTS/nginx.danbooru.conf -o /etc/nginx/sites-enabled/danbooru.conf
@@ -138,7 +139,7 @@ echo "* Enter a new password for the danbooru account"
 passwd danbooru
 
 echo "* Setting up SSH keys for the danbooru account"
-sudo -u danbooru ssh-keygen
+sudo -i -u danbooru ssh-keygen
 
 mkdir -p /var/www/danbooru2/shared/config
 mkdir -p /var/www/danbooru2/shared/data
@@ -149,7 +150,7 @@ curl -L -s $GITHUB_INSTALL_SCRIPTS/database.yml.templ -o /var/www/danbooru2/shar
 curl -L -s $GITHUB_INSTALL_SCRIPTS/danbooru_local_config.rb.templ -o /var/www/danbooru2/shared/config/danbooru_local_config.rb
 
 echo "* Almost done! You are now ready to deploy Danbooru onto this server."
-echo "* Log into Github and fork https://github.com/r888888888/danbooru into"
+echo "* Log into Github and fork https://github.com/zwagoth/e621ng into"
 echo "* your own repository. Clone your fork onto your local development"
 echo "* machine and modify the following files:"
 echo "*"
@@ -178,3 +179,4 @@ echo "*"
 echo "* This will start a web process running on port 3000 that you can"
 echo "* connect to. This is useful for development and testing purposes."
 echo "* If something breaks post about it on the Danbooru Github. Good luck!"
+
