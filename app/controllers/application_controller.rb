@@ -50,13 +50,8 @@ class ApplicationController < ActionController::Base
 
   def api_check
     if !CurrentUser.is_anonymous? && !request.get? && !request.head?
-      if CurrentUser.user.token_bucket.nil?
-        TokenBucket.create_default(CurrentUser.user)
-        CurrentUser.user.reload
-      end
-
       throttled = CurrentUser.user.token_bucket.throttled?
-      headers["X-Api-Limit"] = CurrentUser.user.token_bucket.token_count.to_s
+      headers["X-Api-Limit"] = CurrentUser.user.token_bucket.cached_count.to_s
 
       if throttled
         respond_to do |format|
