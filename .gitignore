@@ -31,3 +31,4 @@ test/reports
 yarn-debug.log*
 .yarn-integrity
 public/packs
+.idea
