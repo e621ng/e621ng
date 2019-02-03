@@ -638,6 +638,66 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
+      context "with locked tags" do
+        context "without aliases or implications" do
+          setup do
+            @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
+            @tags = @post.tag_array
+          end
+
+          should "add missing tags" do
+            assert(@tags.include?("abc"))
+            assert(@tags.include?("bcd"))
+            assert(@tags.include?("test_tag"))
+          end
+
+          should "remove included tags" do
+            assert(!@tags.include?("def"))
+            assert(!@tags.include?("what"))
+          end
+        end
+
+        context 'with aliases' do
+          setup do
+            FactoryBot.create(:tag_alias, :antecedent_name => "abc", :consequent_name => "xyz")
+            FactoryBot.create(:tag_alias, :antecedent_name => "def", :consequent_name => "what")
+            @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
+            @tags = @post.tag_array
+          end
+
+          should "add missing tags" do
+            assert(@tags.include?("xyz"))
+            assert(!@tags.include?("abc"))
+            assert(@tags.include?("bcd"))
+            assert(@tags.include?("test_tag"))
+          end
+
+          should "remove included tags" do
+            assert(!@tags.include?("def"))
+            assert(!@tags.include?("what"))
+          end
+        end
+
+        context 'with implications' do
+          setup do
+            FactoryBot.create(:tag_implication, :antecedent_name => "abc", :consequent_name => "what")
+            @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
+            @tags = @post.tag_array
+          end
+
+          should "add missing tags" do
+            assert(@tags.include?("abc"))
+            assert(@tags.include?("bcd"))
+            assert(@tags.include?("test_tag"))
+          end
+
+          should "remove included tags" do
+            assert(!@tags.include?("def"))
+            assert(!@tags.include?("what"))
+          end
+        end
+      end
+
       context "tagged with a valid tag" do
         subject { @post }
 
