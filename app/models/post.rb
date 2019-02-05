@@ -695,25 +695,51 @@ class Post < ApplicationRecord
     def normalize_tags
       if !locked_tags.nil? && locked_tags.strip.blank?
         update_attribute(:locked_tags, nil)
+      elsif locked_tags.present?
+        locked = Tag.scan_tags(locked_tags.downcase)
+        to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
+        to_remove = to_remove.map {|x| x[1..-1]}
+        @locked_to_remove = TagAlias.to_aliased(to_remove)
+        @locked_to_add = TagAlias.to_aliased(to_add)
       end
+
       normalized_tags = Tag.scan_tags(tag_string)
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
       normalized_tags = filter_metatags(normalized_tags)
       normalized_tags = remove_negated_tags(normalized_tags)
-      normalized_tags = apply_locked_tags(normalized_tags, :remove)
-      normalized_tags = apply_locked_tags(normalized_tags, :add)
       normalized_tags = TagAlias.to_aliased(normalized_tags)
+      normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = remove_invalid_tags(normalized_tags)
       normalized_tags = Tag.convert_cosplay_tags(normalized_tags)
       normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
-      normalized_tags = apply_locked_tags(normalized_tags, :remove) # Prevent adding locked tags through implications or aliases.
+      normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq.sort
       normalized_tags = Tag.create_for_list(normalized_tags)
       set_tag_string(normalized_tags.join(" "))
+    end
+
+    def apply_locked_tags(tags, to_add, to_remove)
+      if to_remove
+        overlap = tags & to_remove
+        n = overlap.size
+        if n
+          self.warnings[:base] << "Forcefully removed #{n} locked #{n == 1 ? "tag" : "tags"}: #{overlap.join(", ")}"
+        end
+        tags -= to_remove
+      end
+      if to_add
+        missing = to_add - tags
+        n = missing.size
+        if n
+          self.warnings[:base] << "Forcefully added #{n} locked #{n == 1 ? "tag" : "tags"}: #{missing.join(", ")}"
+        end
+        tags += to_add
+      end
+      tags
     end
 
     def remove_invalid_tags(tags)
@@ -723,21 +749,6 @@ class Post < ApplicationRecord
       end
       tags - invalid_tags
     end
-
-    def apply_locked_tags(tags, phase)
-      return tags if locked_tags.nil?
-      @locked_tags ||= Tag.scan_tags(locked_tags.downcase)
-      to_remove, to_add = @locked_tags.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1]}
-      @locked_to_remove ||= TagAlias.to_aliased(to_remove)
-      @locked_to_add ||= TagAlias.to_aliased(to_add)
-      if phase == :add
-        return tags + to_add
-      else
-        return tags - to_remove
-      end
-    end
-
 
     def remove_negated_tags(tags)
       @negated_tags, tags = tags.partition {|x| x =~ /\A-/i}
@@ -1950,7 +1961,6 @@ class Post < ApplicationRecord
   def reload(options = nil)
     super
     reset_tag_array_cache
-    @locked_tags = nil
     @locked_to_add = nil
     @locked_to_remove = nil
     @pools = nil
