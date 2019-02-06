@@ -103,7 +103,6 @@ class User < ApplicationRecord
   has_one :api_key
   has_one :dmail_filter
   has_one :super_voter
-  has_one :token_bucket
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
   has_many :saved_searches
@@ -457,6 +456,10 @@ class User < ApplicationRecord
   module LimitMethods
     extend Memoist
 
+    def token_bucket
+      @token_bucket ||= UserThrottle.new({prefix: "thtl:", duration: 1.minute}, self)
+    end
+
     def max_saved_searches
       if is_platinum?
         1_000
@@ -617,7 +620,7 @@ class User < ApplicationRecord
     end
 
     def remaining_api_limit
-      token_bucket.try(:token_count) || api_burst_limit
+      token_bucket.uncached_count
     end
 
     def statement_timeout
