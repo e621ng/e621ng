@@ -54,6 +54,9 @@ class UploadsController < ApplicationController
     @service = UploadService.new(upload_params)
     @upload = @service.start!
 
+    if @upload.invalid?
+      flash[:notice] = @upload.errors.full_messages.join("; ")
+    end
     if @service.warnings.any?
       flash[:notice] = @service.warnings.join(".\n \n")
     end

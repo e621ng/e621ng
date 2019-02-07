@@ -4,7 +4,7 @@ class UploadWhitelist < ApplicationRecord
 
   validates_presence_of :pattern
   validates_uniqueness_of :pattern
-  validates_format_of :pattern, with: /\A[a-zA-Z0-9.%\-*\/?&]+\z/
+  validates_format_of :pattern, with: /\A[a-zA-Z0-9.%:\-*\/?&]+\z/
   after_create do |rec|
     ModAction.log("#{CurrentUser.name} created upload whitelist #{rec.pattern}", :upload_whitelist_create)
   end
@@ -27,14 +27,26 @@ class UploadWhitelist < ApplicationRecord
     q = super
 
     if params[:pattern].present?
-      q = q.where("pattern ILIKE ?", params[:pattern])
+      q = q.where("pattern ILIKE ?", params[:pattern].to_escaped_for_sql_like)
     end
 
     if params[:note].present?
-      q = q.where("note ILIKE ?", params[:note])
+      q = q.where("note ILIKE ?", params[:note].to_escaped_for_sql_like)
     end
 
-    q.apply_default_order(params)
+    params[:order] ||= params.delete(:sort)
+    case params[:order]
+    when "note"
+      q = q.order("upload_whitelists.note")
+    when "pattern"
+      q = q.order("upload_whitelists.pattern")
+    when "updated_at"
+      q = q.order("upload_whitelists.updated_at desc")
+    else
+      q = q.apply_default_order(params)
+    end
+
+    q
   end
 
   def self.is_whitelisted?(url, options = {})
@@ -51,6 +63,6 @@ class UploadWhitelist < ApplicationRecord
         return [x.allowed, x.reason]
       end
     end
-    [false, "not found"]
+    [false, "not in whitelist"]
   end
 end

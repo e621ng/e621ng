@@ -39,7 +39,7 @@ class UploadService
 
     params[:rating] ||= "q"
     params[:tag_string] ||= "tagme"
-    @upload = Upload.create!(params)
+    @upload = Upload.create(params)
 
     begin
       if @upload.invalid?

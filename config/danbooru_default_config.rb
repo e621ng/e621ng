@@ -794,7 +794,7 @@ module Danbooru
     end
 
     def bypass_upload_whitelist?(user)
-      false #user.is_admin?
+      user.is_admin?
     end
   end
 

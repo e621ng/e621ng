@@ -1,0 +1,7 @@
+<%= simple_form_for(:search, url: upload_whitelists_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
+  <%= f.input :pattern, label: "Pattern", hint: "Use * for wildcard", input_html: { value: params[:search][:pattern]} %>
+  <%= f.input :note, label: "Note", as: "string", input_html: { value: params[:search][:note] } %>
+  <%= f.input :reason, label: "Ban Reason", input_html: { value: params[:search][:reason] } %>
+  <%= f.input :order, collection: [["Recently created", "id"], ["Last updated", "updated_at"], ["Pattern", "pattern"], ["Note", "note"]], selected: params[:search][:order] %>
+  <%= f.submit "Search" %>
+<% end %>

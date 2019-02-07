@@ -62,6 +62,7 @@ class Upload < ApplicationRecord
   before_validation :initialize_attributes, on: :create
   before_validation :assign_rating_from_tags
   validate :uploader_is_not_limited, on: :create
+  validate :source_is_whitelisted, on: :create
   # validates :source, format: { with: /\Ahttps?/ }, if: ->(record) {record.file.blank?}, on: :create
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: true
   validates :md5, confirmation: true, if: -> (rec) { rec.md5_confirmation.present? }
@@ -260,6 +261,16 @@ class Upload < ApplicationRecord
     else
       return true
     end
+  end
+
+  def source_is_whitelisted
+    return true if source_url.nil?
+    valid, reason = UploadWhitelist.is_whitelisted?(source_url)
+    if !valid
+      self.errors.add(:source, "is not whitelisted: #{reason}")
+      return false
+    end
+    true
   end
 
   def assign_rating_from_tags

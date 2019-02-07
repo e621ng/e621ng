@@ -37,6 +37,8 @@ module Downloads
       errors[:base] << "URL must not be blank" if url.blank?
       errors[:base] << "'#{url}' is not a valid url" if !url.host.present?
       errors[:base] << "'#{url}' is not a valid url. Did you mean 'http://#{url}'?" if !url.scheme.in?(%w[http https])
+      valid, reason = UploadWhitelist.is_whitelisted?(url)
+      errors[:base] << "'#{url}' is not whitelisted and can't be direct downloaded: #{reason}" if !valid
     end
 
     def http_get_streaming(url, file: Tempfile.new(binmode: true), headers: {}, max_size: Danbooru.config.max_file_size)
