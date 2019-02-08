@@ -105,32 +105,50 @@ class Comment < ApplicationRecord
 
   module VoteMethods
     def vote!(val)
-      numerical_score = val == "up" ? 1 : -1
-      vote = votes.create!(:score => numerical_score)
+      ckey = "cvote:#{CurrentUser.id}:#{id}"
+      raise CommentVote::Error.new("You are already voting") if !Cache.get(ckey).nil?
+      Cache.put(ckey, true, 30)
+      CommentVote.transaction do
+        numerical_score = val == "up" ? 1 : -1
+        vote = votes.create(:score => numerical_score)
 
-      if vote.is_positive?
-        update_column(:score, score + 1)
-      elsif vote.is_negative?
-        update_column(:score, score - 1)
+        if vote.invalid?
+          Cache.delete(ckey)
+          raise CommentVote::Error.new(vote.errors.full_messages.join(", "))
+        end
+
+        if vote.is_positive?
+          update_column(:score, score + 1)
+        elsif vote.is_negative?
+          update_column(:score, score - 1)
+        end
+
+        Cache.delete(ckey)
+        return vote
       end
-
-      return vote
     end
 
     def unvote!
-      vote = votes.where("user_id = ?", CurrentUser.user.id).first
+      ckey = "cvote:#{CurrentUser.id}:#{id}"
+      raise CommentVote::Error.new("You are already voting") if !Cache.get(ckey).nil?
+      Cache.put(ckey, true, 30)
+      CommentVote.transaction do
+        vote = votes.where("user_id = ?", CurrentUser.user.id).first
 
-      if vote
-        if vote.is_positive?
-          update_column(:score, score - 1)
+        if vote
+          if vote.is_positive?
+            update_column(:score, score - 1)
+          else
+            update_column(:score, score + 1)
+          end
+
+          vote.destroy
         else
-          update_column(:score, score + 1)
+          Cache.delete(ckey)
+          raise CommentVote::Error.new("You have not voted for this comment")
         end
-
-        vote.destroy
-      else
-        raise CommentVote::Error.new("You have not voted for this comment")
       end
+      Cache.delete(ckey)
     end
   end
 
