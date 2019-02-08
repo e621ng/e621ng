@@ -1,0 +1,41 @@
+<div id="c-upload-whitelists">
+  <div id="a-index">
+    <%= render "search" %>
+    <h1>Upload Whitelists</h1>
+
+    <table class="striped" width="100%">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>Note</th>
+          <th>Hidden</th>
+          <th>Allowed</th>
+          <th>Ban Reason</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @whitelists.each do |whitelist| %>
+          <tr>
+            <td><%= whitelist.pattern %></td>
+            <td><%= whitelist.note %></td>
+            <td><%= whitelist.hidden ? "Yes" : "No" %></td>
+            <td><%= whitelist.allowed ? "Yes" : "No" %></td>
+            <td><%= whitelist.reason %></td>
+            <td><%= link_to "Edit", edit_upload_whitelist_path(whitelist) %></td>
+            <td><%= link_to "Delete", upload_whitelist_path(whitelist), :remote => true, method: :delete, data: {confirm: "Do your really want to delete #{whitelist.pattern}?"} %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@whitelists) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Upload Whitelists - <%= Danbooru.config.app_name %>
+<% end %>

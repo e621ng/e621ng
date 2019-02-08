@@ -91,13 +91,30 @@ Upload.update_scale = function() {
   }
 }
 
+Upload.showWhitelistWarning = function(allowed, reason, domain) {
+  if (allowed) {
+    $("#whitelist-warning").addClass("whitelist-warning-allowed").removeClass("whitelist-warning-disallowed");
+    $("#whitelist-warning").html("Uploads from <span style='font-weight:bold'>" + domain + "</span> are permitted!");
+  } else {
+    $("#whitelist-warning").removeClass("whitelist-warning-allowed").addClass("whitelist-warning-disallowed");
+    $("#whitelist-warning").html("Uploads from <span style='font-weight:bold'>" + domain + "</span> are not permitted: " + reason + " (<a href='/upload_whitelists'>View whitelisted domains</a>)");
+  }
+  $("#whitelist-warning").show();
+}
+
 Upload.fetch_data_manual = function(e) {
   var url = $("#upload_source,#post_source").val();
   var ref = $("#upload_referer_url").val();
 
+  if(!url.length)
+    $("#whitelist-warning").hide();
+
   if (/^https?:\/\//.test(url)) {
     $("#source-info").addClass("loading");
     $.get("/source.js", { url: url, ref: ref }).always(resp => $("#source-info").removeClass("loading"));
+    $.get("/upload_whitelists/is_allowed.json", { url: url }).always(function(resp) {
+      Upload.showWhitelistWarning(resp.is_allowed, resp.reason, resp.domain);
+    });
   }
 
   e.preventDefault();

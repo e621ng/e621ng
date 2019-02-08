@@ -154,6 +154,11 @@ Rails.application.routes.draw do
     resource :visit, :controller => "forum_topic_visits"
   end
   resources :ip_bans
+  resources :upload_whitelists do
+    collection do
+      get :is_allowed
+    end
+  end
   resource :iqdb_queries, :only => [:show]  do
     collection do
       get :preview

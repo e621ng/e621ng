@@ -792,6 +792,10 @@ module Danbooru
 
     def redis_url
     end
+
+    def bypass_upload_whitelist?(user)
+      user.is_admin?
+    end
   end
 
   class EnvironmentConfiguration
