@@ -1133,25 +1133,40 @@ class Post < ApplicationRecord
     end
 
     def vote!(vote, voter = CurrentUser.user)
-      unless voter.is_voter?
-        raise PostVote::Error.new("You do not have permission to vote")
-      end
+      ckey = "vote:#{voter.id}:#{id}"
+      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
+      Cache.put(ckey, true, 30)
+      PostVote.transaction do
+        unless voter.is_voter?
+          Cache.delete(ckey)
+          raise PostVote::Error.new("You do not have permission to vote")
+        end
 
-      unless can_be_voted_by?(voter)
-        raise PostVote::Error.new("You have already voted for this post")
-      end
+        unless can_be_voted_by?(voter)
+          Cache.delete(ckey)
+          raise PostVote::Error.new("You have already voted for this post")
+        end
 
-      votes.create!(user: voter, vote: vote)
-      reload # PostVote.create modifies our score. Reload to get the new score.
+        votes.create!(user: voter, vote: vote)
+        reload # PostVote.create modifies our score. Reload to get the new score.
+      end
+      Cache.delete(ckey)
     end
 
     def unvote!(voter = CurrentUser.user)
-      if can_be_voted_by?(voter)
-        raise PostVote::Error.new("You have not voted for this post")
-      else
-        votes.where(user: voter).destroy_all
-        reload
+      ckey = "vote:#{voter.id}:#{id}"
+      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
+      Cache.put(ckey, true, 30)
+      PostVote.transaction do
+        if can_be_voted_by?(voter)
+          Cache.delete(ckey)
+          raise PostVote::Error.new("You have not voted for this post")
+        else
+          votes.where(user: voter).destroy_all
+          reload
+        end
       end
+      Cache.delete(ckey)
     end
   end
 

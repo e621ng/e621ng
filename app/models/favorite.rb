@@ -6,12 +6,17 @@ class Favorite < ApplicationRecord
   scope :for_user, ->(user_id) {where("user_id % 100 = #{user_id.to_i % 100} and user_id = #{user_id.to_i}")}
 
   def self.add(post:, user:)
+    ckey = "fav:#{user.id}:#{post.id}"
+    raise Error.new("You are already favoriting") if !Cache.get(ckey).nil?
+    Cache.put(ckey, true, 30)
     Favorite.transaction do
       User.where(:id => user.id).select("id").lock("FOR UPDATE NOWAIT").first
 
       if user.favorite_count >= user.favorite_limit
+        Cache.delete(ckey)
         raise Error, "You can only keep up to #{user.favorite_limit} favorites. Upgrade your account to save more."
       elsif Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post.id).exists?
+        Cache.delete(ckey)
         raise Error, "You have already favorited this post"
       end
 
@@ -21,9 +26,13 @@ class Favorite < ApplicationRecord
       User.where(:id => user.id).update_all("favorite_count = favorite_count + 1")
       user.favorite_count += 1
     end
+    Cache.delete(ckey)
   end
 
   def self.remove(user:, post: nil, post_id: nil)
+    ckey = "fav:#{user.id}:#{post.id}"
+    raise Error.new("You are already favoriting") if !Cache.get(ckey).nil?
+    Cache.put(ckey, true, 30)
     Favorite.transaction do
       if post && post_id.nil?
         post_id = post.id
@@ -31,7 +40,10 @@ class Favorite < ApplicationRecord
 
       User.where(:id => user.id).select("id").lock("FOR UPDATE NOWAIT").first
 
-      return unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
+      unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
+        Cache.delete(ckey)
+        return
+      end
       Favorite.for_user(user.id).where(post_id: post_id).delete_all
       Post.where(:id => post_id).update_all("fav_count = fav_count - 1")
       post.delete_user_from_fav_string(user.id) if post
@@ -39,5 +51,6 @@ class Favorite < ApplicationRecord
       user.favorite_count -= 1
       post.fav_count -= 1 if post
     end
+    Cache.delete(ckey)
   end
 end
