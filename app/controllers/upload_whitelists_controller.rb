@@ -49,7 +49,9 @@ class UploadWhitelistsController < ApplicationController
           reason: 'invalid domain'
       }
     end
-    respond_with(@whitelist)
+    respond_with(@whitelist) do |format|
+      format.json { render json: @whitelist }
+    end
   end
 
   private
