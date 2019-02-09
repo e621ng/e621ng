@@ -293,6 +293,21 @@ class UserTest < ActiveSupport::TestCase
       end
     end
 
+    context "that might have a banned email" do
+      setup do
+        @blacklist = EmailBlacklist.create(domain: ".xyz", reason: "what", creator_id: @user.id)
+      end
+
+      should "not validate" do
+        CurrentUser.scoped(nil, "127.0.0.2") do
+          @user = FactoryBot.build(:user)
+          @user.email = "what@mine.xyz"
+          @user.save
+          assert_equal(["Email address may not be used"], @user.errors.full_messages)
+        end
+      end
+    end
+
     context "when searched by name" do
       should "match wildcards" do
         user1 = FactoryBot.create(:user, :name => "foo")
