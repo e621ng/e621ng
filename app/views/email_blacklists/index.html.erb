@@ -1,0 +1,35 @@
+<div id="c-email-blacklists">
+  <div id="a-index">
+    <%= render "search" %>
+    <h1>Email Blacklists</h1>
+
+    <table class="striped" width="100%">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Domain</th>
+          <th>Ban Reason</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @blacklists.each do |blacklist| %>
+          <tr>
+            <td><%= link_to_user(blacklist.creator) %></td>
+            <td><%= blacklist.domain %></td>
+            <td><%= blacklist.reason %></td>
+            <td><%= link_to "Delete", email_blacklist_path(blacklist), :remote => true, method: :delete, data: {confirm: "Do your really want to delete #{blacklist.domain}?"} %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@blacklists) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Email Blacklists - <%= Danbooru.config.app_name %>
+<% end %>

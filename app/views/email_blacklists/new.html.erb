@@ -1,0 +1,19 @@
+<div id="c-email-blacklist">
+  <div id="a-new">
+    <h1>New Email Blacklist</h1>
+
+    <%= error_messages_for "blacklist" %>
+
+    <%= simple_form_for(@blacklist) do |f| %>
+      <%= f.input :domain, label: "Domain", as: :string %>
+      <%= f.input :reason, label: "Ban Reason", as: :string %>
+      <%= f.button :submit, "Submit" %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  New Email Blacklist - <%= Danbooru.config.app_name %>
+<% end %>

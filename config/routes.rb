@@ -159,6 +159,7 @@ Rails.application.routes.draw do
       get :is_allowed
     end
   end
+  resources :email_blacklists
   resource :iqdb_queries, :only => [:show]  do
     collection do
       get :preview

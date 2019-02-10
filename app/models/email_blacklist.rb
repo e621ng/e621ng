@@ -13,6 +13,34 @@ class EmailBlacklist < ApplicationRecord
     banned_domains.count {|x| domain.end_with?(x)} > 0
   end
 
+  def self.search(params)
+    q = super
+
+    q = q.includes(:creator)
+
+    if params[:domain].present?
+      q = q.where("domain ILIKE ?", params[:domain].to_escaped_for_sql_like)
+    end
+
+    if params[:reason].present?
+      q = q.where("reason ILIKE ?", params[:reason].to_escaped_for_sql_like)
+    end
+
+    params[:order] ||= params.delete(:sort)
+    case params[:order]
+    when "reason"
+      q = q.order("email_blacklists.reason")
+    when "domain"
+      q = q.order("email_blacklists.domain")
+    when "updated_at"
+      q = q.order("email_blacklists.updated_at desc")
+    else
+      q = q.apply_default_order(params)
+    end
+
+    q
+  end
+
   def invalidate_cache
     Cache.delete('banned_emails')
   end
