@@ -1,0 +1,6 @@
+<%= simple_form_for(:search, url: email_blacklists_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
+  <%= f.input :pattern, label: "Domain", hint: "Use * for wildcard", input_html: { value: params[:search][:domain]} %>
+  <%= f.input :reason, label: "Ban Reason", input_html: { value: params[:search][:reason] } %>
+  <%= f.input :order, collection: [["Recently created", "id"], ["Last updated", "updated_at"], ["Domain", "domain"], ["Reason", "reason"]], selected: params[:search][:order] %>
+  <%= f.submit "Search" %>
+<% end %>
