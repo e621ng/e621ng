@@ -16,6 +16,13 @@ class EmailBlacklistTest < ActiveSupport::TestCase
     block = EmailBlacklist.create(creator: @user, domain: '.xyz', reason: 'test')
 
     assert(EmailBlacklist.is_banned?('spam@what.xyz'))
-    assert(!EmailBlacklist.is_banned?('good@angelic.com'))
+    assert_equal(false, EmailBlacklist.is_banned?('good@angelic.com'))
+  end
+
+  should "detect email by mx" do
+    block = EmailBlacklist.create(creator: @user, domain: 'google.com', reason: 'test')
+
+    assert(EmailBlacklist.is_banned?('spam@e621.net'))
+    assert_equal(false, EmailBlacklist.is_banned?('what@me.xynzs'))
   end
 end

@@ -6,11 +6,12 @@ class EmailBlacklist < ApplicationRecord
   after_destroy :invalidate_cache
 
   def self.is_banned?(email)
-    domain = email.split('@').last.strip.downcase
+    email_domain = email.split('@').last.strip.downcase
     banned_domains = Cache.get('banned_emails', 1.hour) do
       all().map {|x| x.domain.strip.downcase}.flatten
     end
-    banned_domains.count {|x| domain.end_with?(x)} > 0
+    return true if get_mx_records(email_domain).count {|x| banned_domains.count {|y| x.ends_with?(y)} > 0} > 0
+    banned_domains.count {|x| email_domain.end_with?(x)} > 0
   end
 
   def self.search(params)
@@ -39,6 +40,12 @@ class EmailBlacklist < ApplicationRecord
     end
 
     q
+  end
+
+  def self.get_mx_records(domain)
+    Resolv::DNS.open do |dns|
+      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).map {|x| x.exchange.to_s }.flatten
+    end
   end
 
   def invalidate_cache
