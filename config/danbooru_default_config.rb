@@ -124,6 +124,14 @@ module Danbooru
       "sample-"
     end
 
+    def protected_path_prefix
+      "deleted"
+    end
+
+    def protected_file_secret
+      "abc123"
+    end
+
     # When calculating statistics based on the posts table, gather this many posts to sample from.
     def post_sample_size
       300
