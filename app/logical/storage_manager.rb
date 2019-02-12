@@ -3,11 +3,15 @@ class StorageManager
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
 
-  attr_reader :base_url, :base_dir, :hierarchical, :tagged_filenames, :large_image_prefix
+  attr_reader :base_url, :base_dir, :hierarchical, :tagged_filenames, :large_image_prefix, :base_url_protected, :base_dir_protected
 
-  def initialize(base_url: default_base_url, base_dir: DEFAULT_BASE_DIR, hierarchical: false, tagged_filenames: Danbooru.config.enable_seo_post_urls, large_image_prefix: Danbooru.config.large_image_prefix)
+  def initialize(base_url: default_base_url, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
+                 tagged_filenames: Danbooru.config.enable_seo_post_urls, large_image_prefix: Danbooru.config.large_image_prefix,
+                 protected_prefix: Danbooru.config.protected_path_prefix)
     @base_url = base_url.chomp("/")
+    @base_url_protected = "#{@base_url}/#{protected_prefix}"
     @base_dir = base_dir
+    @base_dir_protected = "#{@base_dir}/#{protected_prefix}"
     @hierarchical = hierarchical
     @tagged_filenames = tagged_filenames
     @large_image_prefix = large_image_prefix
@@ -48,21 +52,44 @@ class StorageManager
     open(file_path(post.md5, post.file_ext, type))
   end
 
+  def move_file_delete(post)
+    raise NotImplementedError, "move_file_delete not implemented"
+  end
+
+  def move_file_undelete(post)
+    raise NotImplementedError, "move_file_undelete not implemented"
+  end
+
+  def protected_params(url, post)
+    user_id = CurrentUser.id
+    ip = CurrentUser.ip_addr
+    time = (Time.now + 15.minute).to_i
+    secret = Danbooru.config.protected_file_secret
+    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')
+    "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
+  end
+
   def file_url(post, type, tagged_filenames: false)
     subdir = subdir_for(post.md5)
     file = file_name(post.md5, post.file_ext, type)
     seo_tags = seo_tags(post) if tagged_filenames
+    base = post.protect_file? ? base_url_protected : base_url
 
-    if type == :preview && !post.has_preview?
+    url = if type == :preview && !post.has_preview?
       "#{root_url}/images/download-preview.png"
     elsif type == :preview
-      "#{base_url}/preview/#{subdir}#{file}"
+      "#{base}/preview/#{subdir}#{file}"
     elsif type == :crop
-      "#{base_url}/crop/#{subdir}#{file}"
+      "#{base}/crop/#{subdir}#{file}"
     elsif type == :large && post.has_large?
-      "#{base_url}/sample/#{subdir}#{seo_tags}#{file}"
+      "#{base}/sample/#{subdir}#{seo_tags}#{file}"
     else
-      "#{base_url}/#{subdir}#{seo_tags}#{post.md5}.#{post.file_ext}"
+      "#{base}/#{subdir}#{seo_tags}#{post.md5}.#{post.file_ext}"
+    end
+    if post.protect_file?
+      "#{url}#{protected_params(url, post)}" if post.protect_file?
+    else
+      url
     end
   end
 
@@ -72,20 +99,21 @@ class StorageManager
     origin
   end
 
-  def file_path(post_or_md5, file_ext, type)
+  def file_path(post_or_md5, file_ext, type, protected=false)
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
     subdir = subdir_for(md5)
     file = file_name(md5, file_ext, type)
+    base = protected ? base_dir_protected : base_dir
 
     case type
     when :preview
-      "#{base_dir}/preview/#{subdir}#{file}"
+      "#{base}/preview/#{subdir}#{file}"
     when :crop
-      "#{base_dir}/crop/#{subdir}#{file}"
+      "#{base}/crop/#{subdir}#{file}"
     when :large
-      "#{base_dir}/sample/#{subdir}#{file}"
+      "#{base}/sample/#{subdir}#{file}"
     when :original
-      "#{base_dir}/#{subdir}#{file}"
+      "#{base}/#{subdir}#{file}"
     end
   end
 
@@ -105,11 +133,7 @@ class StorageManager
   end
 
   def subdir_for(md5)
-    if hierarchical
-      "#{md5[0..1]}/#{md5[2..3]}/"
-    else
-      ""
-    end
+    hierarchical ? "#{md5[0..1]}/#{md5[2..3]}/" : ""
   end
 
   def seo_tags(post)

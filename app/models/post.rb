@@ -96,6 +96,14 @@ class Post < ApplicationRecord
       Post.delete_files(id, md5, file_ext, force: true)
     end
 
+    def move_files_on_delete
+      Danbooru.config.storage_manager.move_file_delete(self)
+    end
+
+    def move_files_on_undelete
+      Danbooru.config.storage_manager.move_file_undelete(self)
+    end
+
     def distribute_files(file, sample_file, preview_file)
       storage_manager.store_file(file, self, :original)
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
@@ -1374,6 +1382,10 @@ class Post < ApplicationRecord
       end
     end
 
+    def protect_file?
+      is_banned || is_deleted
+    end
+
     def ban!
       update_column(:is_banned, true)
       ModAction.log("banned post ##{id}",:post_ban)
@@ -1399,6 +1411,8 @@ class Post < ApplicationRecord
           is_flagged: false,
           is_banned: is_banned || options[:ban] || has_tag?("banned_artist")
         )
+
+        move_files_on_delete
 
         # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
         give_favorites_to_parent(options) if options[:move_favorites]
@@ -1427,6 +1441,8 @@ class Post < ApplicationRecord
       self.approver_id = CurrentUser.id
       flags.each {|x| x.resolve!}
       save
+      move_files_on_undelete
+      approvals.create(user: CurrentUser.user)
       ModAction.log("undeleted post ##{id}",:post_undelete)
     end
 
