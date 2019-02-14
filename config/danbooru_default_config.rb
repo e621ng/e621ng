@@ -462,7 +462,7 @@ module Danbooru
     end
 
     def can_user_see_post?(user, post)
-      return false if (post.is_deleted? || post.is_banned?) && !user.is_moderator?
+      return false if post.is_deleted? && !user.is_moderator?
       if is_user_restricted?(user) && is_post_restricted?(post)
         false
       else

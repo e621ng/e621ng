@@ -32,7 +32,6 @@ class Post < ApplicationRecord
   before_save :update_tag_post_counts
   before_save :set_tag_counts
   before_save :set_pool_category_pseudo_tags
-  before_create :autoban
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -316,12 +315,6 @@ class Post < ApplicationRecord
     def disapproved_by?(user)
       PostDisapproval.where(:user_id => user.id, :post_id => id).exists?
     end
-
-    def autoban
-      if has_tag?("banned_artist")
-        self.is_banned = true
-      end
-    end
   end
 
   module PresenterMethods
@@ -334,7 +327,6 @@ class Post < ApplicationRecord
       flags << "pending" if is_pending?
       flags << "flagged" if is_flagged?
       flags << "deleted" if is_deleted?
-      flags << "banned" if is_banned?
       flags.join(" ")
     end
 
@@ -1380,17 +1372,7 @@ class Post < ApplicationRecord
     end
 
     def protect_file?
-      is_banned || is_deleted
-    end
-
-    def ban!
-      update_column(:is_banned, true)
-      ModAction.log("banned post ##{id}",:post_ban)
-    end
-
-    def unban!
-      update_column(:is_banned, false)
-      ModAction.log("unbanned post ##{id}",:post_unban)
+      is_deleted?
     end
 
     def delete!(reason, options = {})
@@ -1405,8 +1387,7 @@ class Post < ApplicationRecord
         update(
           is_deleted: true,
           is_pending: false,
-          is_flagged: false,
-          is_banned: is_banned || options[:ban] || has_tag?("banned_artist")
+          is_flagged: false
         )
 
         move_files_on_delete
@@ -1944,14 +1925,9 @@ class Post < ApplicationRecord
     !Danbooru.config.can_user_see_post?(CurrentUser.user, self)
   end
 
-  def banblocked?
-    is_banned? && !CurrentUser.is_gold?
-  end
-
   def visible?
     return false if safeblocked?
     return false if levelblocked?
-    return false if banblocked?
     return true
   end
 

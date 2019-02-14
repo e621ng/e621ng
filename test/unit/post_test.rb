@@ -160,15 +160,6 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "with the banned_artist tag" do
-        should "also ban the post" do
-          post = FactoryBot.create(:post, :tag_string => "banned_artist")
-          post.delete!("test")
-          post.reload
-          assert(post.is_banned?)
-        end
-      end
-
       context "that is still in cooldown after being flagged" do
         should "succeed" do
           post = FactoryBot.create(:post)
@@ -583,20 +574,6 @@ class PostTest < ActiveSupport::TestCase
           @post.update_attributes(:tag_string => "aaa bbb ccc ddd")
           @post.reload
           assert_equal("aaa bbb ccc ddd", @post.tag_string)
-        end
-      end
-
-      context "with a banned artist" do
-        setup do
-          CurrentUser.scoped(FactoryBot.create(:admin_user)) do
-            @artist = FactoryBot.create(:artist)
-            @artist.ban!
-          end
-          @post = FactoryBot.create(:post, :tag_string => @artist.name)
-        end
-
-        should "ban the post" do
-          assert_equal(true, @post.is_banned?)
         end
       end
 
@@ -2133,14 +2110,12 @@ class PostTest < ActiveSupport::TestCase
       pending = FactoryBot.create(:post, is_pending: true)
       flagged = FactoryBot.create(:post, is_flagged: true)
       deleted = FactoryBot.create(:post, is_deleted: true)
-      banned  = FactoryBot.create(:post, is_banned: true)
-      all = [banned, deleted, flagged, pending]
+      all = [deleted, flagged, pending]
 
       assert_tag_match([flagged, pending], "status:modqueue")
       assert_tag_match([pending], "status:pending")
       assert_tag_match([flagged], "status:flagged")
       assert_tag_match([deleted], "status:deleted")
-      assert_tag_match([banned],  "status:banned")
       assert_tag_match([], "status:active")
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
@@ -2149,7 +2124,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all - [pending], "-status:pending")
       assert_tag_match(all - [flagged], "-status:flagged")
       assert_tag_match(all - [deleted], "-status:deleted")
-      assert_tag_match(all - [banned],  "-status:banned")
       assert_tag_match(all, "-status:active")
     end
 
@@ -2162,17 +2136,6 @@ class PostTest < ActiveSupport::TestCase
       FactoryBot.create(:post_disapproval, post: disapproved, reason: "disinterest")
 
       assert_tag_match([pending, flagged], "status:unmoderated")
-    end
-
-    should "respect the 'Deleted post filter' option when using the status:banned metatag" do
-      deleted = FactoryBot.create(:post, is_deleted: true, is_banned: true)
-      undeleted = FactoryBot.create(:post, is_banned: true)
-
-      CurrentUser.hide_deleted_posts = true
-      assert_tag_match([undeleted], "status:banned")
-
-      CurrentUser.hide_deleted_posts = false
-      assert_tag_match([undeleted, deleted], "status:banned")
     end
 
     should "return posts for the filetype:<ext> metatag" do

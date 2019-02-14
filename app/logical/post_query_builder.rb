@@ -161,10 +161,8 @@ class PostQueryBuilder
       relation = relation.where("posts.is_pending = TRUE OR posts.is_flagged = TRUE")
     elsif q[:status] == "deleted"
       relation = relation.where("posts.is_deleted = TRUE")
-    elsif q[:status] == "banned"
-      relation = relation.where("posts.is_banned = TRUE")
     elsif q[:status] == "active"
-      relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_banned = FALSE AND posts.is_flagged = FALSE")
+      relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE")
     elsif q[:status] == "unmoderated"
       relation = relation.merge(Post.pending_or_flagged.available_for_moderation)
     elsif q[:status] == "all" || q[:status] == "any"
@@ -177,10 +175,8 @@ class PostQueryBuilder
       relation = relation.where("posts.is_pending = FALSE AND posts.is_flagged = FALSE")
     elsif q[:status_neg] == "deleted"
       relation = relation.where("posts.is_deleted = FALSE")
-    elsif q[:status_neg] == "banned"
-      relation = relation.where("posts.is_banned = FALSE")
     elsif q[:status_neg] == "active"
-      relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_banned = TRUE OR posts.is_flagged = TRUE")
+      relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_flagged = TRUE")
     end
 
     if hide_deleted_posts?(q)

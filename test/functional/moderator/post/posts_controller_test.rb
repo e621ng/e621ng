@@ -93,32 +93,6 @@ module Moderator
             assert_equal(false, ::Post.exists?(@post.id))
           end
         end
-
-        context "confirm_ban action" do
-          should "render" do
-            get_auth confirm_ban_moderator_post_post_path(@post), @admin
-            assert_response :success
-          end
-        end
-
-        context "ban action" do
-          should "render" do
-            post_auth ban_moderator_post_post_path(@post), @admin, params: { commit: "Ban", format: "js" }
-
-            assert_response :success
-            assert_equal(true, @post.reload.is_banned?)
-          end
-        end
-
-        context "unban action" do
-          should "render" do
-            @post.ban!
-            post_auth unban_moderator_post_post_path(@post), @admin, params: { format: "js" }
-
-            assert_redirected_to(@post)
-            assert_equal(false, @post.reload.is_banned?)
-          end
-        end
       end
     end
   end
