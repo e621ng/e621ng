@@ -443,6 +443,7 @@ CREATE TABLE public.advertisement_hits (
 --
 
 CREATE SEQUENCE public.advertisement_hits_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -481,6 +482,7 @@ CREATE TABLE public.advertisements (
 --
 
 CREATE SEQUENCE public.advertisements_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -512,6 +514,7 @@ CREATE TABLE public.amazon_backups (
 --
 
 CREATE SEQUENCE public.amazon_backups_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -543,6 +546,7 @@ CREATE TABLE public.anti_voters (
 --
 
 CREATE SEQUENCE public.anti_voters_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -575,6 +579,7 @@ CREATE TABLE public.api_keys (
 --
 
 CREATE SEQUENCE public.api_keys_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -622,6 +627,7 @@ CREATE TABLE public.artist_commentaries (
 --
 
 CREATE SEQUENCE public.artist_commentaries_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -659,6 +665,7 @@ CREATE TABLE public.artist_commentary_versions (
 --
 
 CREATE SEQUENCE public.artist_commentary_versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -693,6 +700,7 @@ CREATE TABLE public.artist_urls (
 --
 
 CREATE SEQUENCE public.artist_urls_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -718,12 +726,12 @@ CREATE TABLE public.artist_versions (
     updater_id integer NOT NULL,
     updater_ip_addr inet NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    other_names text[] DEFAULT '{}'::text[] NOT NULL,
     group_name character varying DEFAULT ''::character varying NOT NULL,
-    urls text[] DEFAULT '{}'::text[] NOT NULL,
     is_banned boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    other_names text[] DEFAULT '{}'::text[] NOT NULL,
+    urls text[] DEFAULT '{}'::text[] NOT NULL
 );
 
 
@@ -732,6 +740,7 @@ CREATE TABLE public.artist_versions (
 --
 
 CREATE SEQUENCE public.artist_versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -756,10 +765,10 @@ CREATE TABLE public.artists (
     creator_id integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_banned boolean DEFAULT false NOT NULL,
-    other_names text[] DEFAULT '{}'::text[] NOT NULL,
     group_name character varying DEFAULT ''::character varying NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    other_names text[] DEFAULT '{}'::text[] NOT NULL
 );
 
 
@@ -768,6 +777,7 @@ CREATE TABLE public.artists (
 --
 
 CREATE SEQUENCE public.artists_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -802,6 +812,7 @@ CREATE TABLE public.bans (
 --
 
 CREATE SEQUENCE public.bans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -839,6 +850,7 @@ CREATE TABLE public.bulk_update_requests (
 --
 
 CREATE SEQUENCE public.bulk_update_requests_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -872,6 +884,7 @@ CREATE TABLE public.comment_votes (
 --
 
 CREATE SEQUENCE public.comment_votes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -913,6 +926,7 @@ CREATE TABLE public.comments (
 --
 
 CREATE SEQUENCE public.comments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -952,6 +966,7 @@ CREATE TABLE public.delayed_jobs (
 --
 
 CREATE SEQUENCE public.delayed_jobs_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -984,6 +999,7 @@ CREATE TABLE public.dmail_filters (
 --
 
 CREATE SEQUENCE public.dmail_filters_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1024,6 +1040,7 @@ CREATE TABLE public.dmails (
 --
 
 CREATE SEQUENCE public.dmails_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1036,6 +1053,39 @@ CREATE SEQUENCE public.dmails_id_seq
 --
 
 ALTER SEQUENCE public.dmails_id_seq OWNED BY public.dmails.id;
+
+
+--
+-- Name: email_blacklists; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.email_blacklists (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    domain character varying NOT NULL,
+    creator_id integer NOT NULL,
+    reason character varying NOT NULL
+);
+
+
+--
+-- Name: email_blacklists_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.email_blacklists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: email_blacklists_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.email_blacklists_id_seq OWNED BY public.email_blacklists.id;
 
 
 --
@@ -1059,6 +1109,7 @@ CREATE TABLE public.favorite_groups (
 --
 
 CREATE SEQUENCE public.favorite_groups_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2089,6 +2140,7 @@ INHERITS (public.favorites);
 --
 
 CREATE SEQUENCE public.favorites_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2158,6 +2210,7 @@ CREATE TABLE public.forum_posts (
 --
 
 CREATE SEQUENCE public.forum_posts_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2190,6 +2243,7 @@ CREATE TABLE public.forum_subscriptions (
 --
 
 CREATE SEQUENCE public.forum_subscriptions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2223,6 +2277,7 @@ CREATE TABLE public.forum_topic_visits (
 --
 
 CREATE SEQUENCE public.forum_topic_visits_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2263,6 +2318,7 @@ CREATE TABLE public.forum_topics (
 --
 
 CREATE SEQUENCE public.forum_topics_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2296,6 +2352,7 @@ CREATE TABLE public.ip_bans (
 --
 
 CREATE SEQUENCE public.ip_bans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2330,6 +2387,7 @@ CREATE TABLE public.janitor_trials (
 --
 
 CREATE SEQUENCE public.janitor_trials_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2363,6 +2421,7 @@ CREATE TABLE public.mod_actions (
 --
 
 CREATE SEQUENCE public.mod_actions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2396,6 +2455,7 @@ CREATE TABLE public.news_updates (
 --
 
 CREATE SEQUENCE public.news_updates_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2437,6 +2497,7 @@ CREATE TABLE public.note_versions (
 --
 
 CREATE SEQUENCE public.note_versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2477,6 +2538,7 @@ CREATE TABLE public.notes (
 --
 
 CREATE SEQUENCE public.notes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2508,6 +2570,7 @@ CREATE TABLE public.pixiv_ugoira_frame_data (
 --
 
 CREATE SEQUENCE public.pixiv_ugoira_frame_data_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2545,6 +2608,7 @@ CREATE TABLE public.pools (
 --
 
 CREATE SEQUENCE public.pools_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2579,6 +2643,7 @@ CREATE TABLE public.post_appeals (
 --
 
 CREATE SEQUENCE public.post_appeals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2611,6 +2676,7 @@ CREATE TABLE public.post_approvals (
 --
 
 CREATE SEQUENCE public.post_approvals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2645,6 +2711,7 @@ CREATE TABLE public.post_disapprovals (
 --
 
 CREATE SEQUENCE public.post_disapprovals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2680,6 +2747,7 @@ CREATE TABLE public.post_flags (
 --
 
 CREATE SEQUENCE public.post_flags_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2724,6 +2792,7 @@ CREATE TABLE public.post_replacements (
 --
 
 CREATE SEQUENCE public.post_replacements_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2766,6 +2835,7 @@ CREATE TABLE public.post_votes (
 --
 
 CREATE SEQUENCE public.post_votes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2821,13 +2891,13 @@ CREATE TABLE public.posts (
     image_height integer NOT NULL,
     parent_id integer,
     has_children boolean DEFAULT false NOT NULL,
-    is_banned boolean DEFAULT false NOT NULL,
     pixiv_id integer,
     last_commented_at timestamp without time zone,
     has_active_children boolean DEFAULT false,
     bit_flags bigint DEFAULT 0 NOT NULL,
     tag_count_meta integer DEFAULT 0 NOT NULL,
-    keeper_data text
+    locked_tags text,
+    is_banned boolean DEFAULT false NOT NULL
 );
 
 
@@ -2836,6 +2906,7 @@ CREATE TABLE public.posts (
 --
 
 CREATE SEQUENCE public.posts_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2869,6 +2940,7 @@ CREATE TABLE public.saved_searches (
 --
 
 CREATE SEQUENCE public.saved_searches_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2909,6 +2981,7 @@ CREATE TABLE public.super_voters (
 --
 
 CREATE SEQUENCE public.super_voters_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2948,6 +3021,7 @@ CREATE TABLE public.tag_aliases (
 --
 
 CREATE SEQUENCE public.tag_aliases_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2970,7 +3044,6 @@ CREATE TABLE public.tag_implications (
     id integer NOT NULL,
     antecedent_name character varying NOT NULL,
     consequent_name character varying NOT NULL,
-    descendant_names text[] DEFAULT '{}'::text[] NOT NULL,
     creator_id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
     forum_topic_id integer,
@@ -2978,7 +3051,8 @@ CREATE TABLE public.tag_implications (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     approver_id integer,
-    forum_post_id integer
+    forum_post_id integer,
+    descendant_names text[] DEFAULT '{}'::text[]
 );
 
 
@@ -2987,6 +3061,7 @@ CREATE TABLE public.tag_implications (
 --
 
 CREATE SEQUENCE public.tag_implications_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3024,6 +3099,7 @@ CREATE TABLE public.tag_subscriptions (
 --
 
 CREATE SEQUENCE public.tag_subscriptions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3060,6 +3136,7 @@ CREATE TABLE public.tags (
 --
 
 CREATE SEQUENCE public.tags_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3083,6 +3160,41 @@ CREATE UNLOGGED TABLE public.token_buckets (
     last_touched_at timestamp without time zone NOT NULL,
     token_count real NOT NULL
 );
+
+
+--
+-- Name: upload_whitelists; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.upload_whitelists (
+    id bigint NOT NULL,
+    pattern character varying NOT NULL,
+    note character varying,
+    reason character varying,
+    allowed boolean DEFAULT true NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: upload_whitelists_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.upload_whitelists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: upload_whitelists_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.upload_whitelists_id_seq OWNED BY public.upload_whitelists.id;
 
 
 --
@@ -3124,6 +3236,7 @@ CREATE TABLE public.uploads (
 --
 
 CREATE SEQUENCE public.uploads_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3159,6 +3272,7 @@ CREATE TABLE public.user_feedback (
 --
 
 CREATE SEQUENCE public.user_feedback_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3196,6 +3310,7 @@ CREATE TABLE public.user_name_change_requests (
 --
 
 CREATE SEQUENCE public.user_name_change_requests_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3228,6 +3343,7 @@ CREATE TABLE public.user_password_reset_nonces (
 --
 
 CREATE SEQUENCE public.user_password_reset_nonces_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3286,6 +3402,7 @@ furry -rating:s'::text,
 --
 
 CREATE SEQUENCE public.users_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3324,6 +3441,7 @@ CREATE TABLE public.wiki_page_versions (
 --
 
 CREATE SEQUENCE public.wiki_page_versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3362,6 +3480,7 @@ CREATE TABLE public.wiki_pages (
 --
 
 CREATE SEQUENCE public.wiki_pages_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3493,6 +3612,13 @@ ALTER TABLE ONLY public.dmail_filters ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.dmails ALTER COLUMN id SET DEFAULT nextval('public.dmails_id_seq'::regclass);
+
+
+--
+-- Name: email_blacklists id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_blacklists ALTER COLUMN id SET DEFAULT nextval('public.email_blacklists_id_seq'::regclass);
 
 
 --
@@ -4392,6 +4518,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: upload_whitelists id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_whitelists ALTER COLUMN id SET DEFAULT nextval('public.upload_whitelists_id_seq'::regclass);
+
+
+--
 -- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4582,6 +4715,14 @@ ALTER TABLE ONLY public.dmail_filters
 
 ALTER TABLE ONLY public.dmails
     ADD CONSTRAINT dmails_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: email_blacklists email_blacklists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_blacklists
+    ADD CONSTRAINT email_blacklists_pkey PRIMARY KEY (id);
 
 
 --
@@ -4814,6 +4955,14 @@ ALTER TABLE ONLY public.tag_subscriptions
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: upload_whitelists upload_whitelists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_whitelists
+    ADD CONSTRAINT upload_whitelists_pkey PRIMARY KEY (id);
 
 
 --
@@ -7542,6 +7691,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20181130004740'),
 ('20181202172145'),
 ('20190109210822'),
-('20190129012253');
+('20190129012253'),
+('20190202155518'),
+('20190206023508'),
+('20190209212716'),
+('20190214040324');
 
 
