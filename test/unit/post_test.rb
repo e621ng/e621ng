@@ -1668,13 +1668,7 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should "decrement the post's score for gold users" do
-        assert_difference("@post.score", -1) do
-          @post.remove_favorite!(@user)
-        end
-      end
-
-      should "not decrement the post's score for basic users" do
+      should "not decrement the post's score" do
         @member = FactoryBot.create(:user)
 
         assert_no_difference("@post.score") { @post.add_favorite!(@member) }
@@ -1710,12 +1704,7 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should "increment the post's score for gold users" do
-        @post.add_favorite!(@user)
-        assert_equal(1, @post.score)
-      end
-
-      should "not increment the post's score for basic users" do
+      should "not increment the post's score" do
         @member = FactoryBot.create(:user)
         @post.add_favorite!(@member)
         assert_equal(0, @post.score)
@@ -1771,12 +1760,6 @@ class PostTest < ActiveSupport::TestCase
 
         assert_equal(3, @parent.fav_count)
         assert_equal(3, @parent.favorites.count)
-      end
-
-      should "create a vote for each user who can vote" do
-        assert(@parent.votes.where(user: @gold1).exists?)
-        assert(@parent.votes.where(user: @supervoter1).exists?)
-        assert_equal(4, @parent.score)
       end
     end
   end
