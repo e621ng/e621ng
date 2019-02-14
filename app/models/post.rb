@@ -1007,7 +1007,6 @@ class Post < ApplicationRecord
 
     def add_favorite!(user)
       Favorite.add(post: self, user: user)
-      vote!("up", user) if user.is_voter?
     rescue PostVote::Error
     end
 
@@ -1017,7 +1016,6 @@ class Post < ApplicationRecord
 
     def remove_favorite!(user)
       Favorite.remove(post: self, user: user)
-      unvote!(user) if user.is_voter?
     rescue PostVote::Error
     end
 
@@ -1050,7 +1048,6 @@ class Post < ApplicationRecord
       Favorite.where(post_id: id).delete_all
       user_ids = fav_string.scan(/\d+/)
       User.where(:id => user_ids).update_all("favorite_count = favorite_count - 1")
-      PostVote.where(post_id: id).delete_all
     end
 
     def remove_from_fav_groups
