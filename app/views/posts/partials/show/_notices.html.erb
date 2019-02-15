@@ -6,12 +6,6 @@
   </div>
 <% end %>
 
-<% if post.is_banned? %>
-  <div class="ui-corner-all ui-state-highlight notice notice-deleted">
-    The artist requested removal of this page
-  </div>
-<% end %>
-
 <% if post.is_deleted? %>
   <div class="ui-corner-all ui-state-highlight notice notice-deleted">
     <% if post.flags.any? %>

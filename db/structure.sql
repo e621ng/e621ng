@@ -2896,8 +2896,7 @@ CREATE TABLE public.posts (
     has_active_children boolean DEFAULT false,
     bit_flags bigint DEFAULT 0 NOT NULL,
     tag_count_meta integer DEFAULT 0 NOT NULL,
-    locked_tags text,
-    is_banned boolean DEFAULT false NOT NULL
+    locked_tags text
 );
 
 
@@ -7695,6 +7694,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190202155518'),
 ('20190206023508'),
 ('20190209212716'),
-('20190214040324');
+('20190214040324'),
+('20190214090126');
 
 

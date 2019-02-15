@@ -46,27 +46,6 @@ module Moderator
       def confirm_ban
         @post = ::Post.find(params[:id])
       end
-
-      def ban
-        @post = ::Post.find(params[:id])
-        if params[:commit] == "Ban"
-          @post.ban!
-        end
-
-        respond_to do |fmt|
-          fmt.html do
-            redirect_to(post_path(@post), :notice => "Post was banned")
-          end
-
-          fmt.js
-        end
-      end
-
-      def unban
-        @post = ::Post.find(params[:id])
-        @post.unban!
-        redirect_to(post_path(@post), :notice => "Post was unbanned")
-      end
     end
   end
 end

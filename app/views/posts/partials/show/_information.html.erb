@@ -39,11 +39,7 @@
       Flagged
     <% end %>
 
-    <% if post.is_banned? %>
-      Banned
-    <% end %>
-
-    <% if !post.is_pending? && !post.is_deleted? && !post.is_banned? %>
+    <% if !post.is_pending? && !post.is_deleted? %>
       Active
     <% end %>
   </li>
