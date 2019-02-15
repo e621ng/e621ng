@@ -94,16 +94,12 @@ module PostSets
       posts.select { |p| !p.visible? }
     end
 
-    def banned_posts
-      posts.select { |p| p.banblocked? }
-    end
-
     def censored_posts
-      posts.select { |p| p.levelblocked? && !p.banblocked? }
+      posts.select { |p| p.levelblocked? }
     end
 
     def safe_posts
-      posts.select { |p| p.safeblocked? && !p.levelblocked? && !p.banblocked? }
+      posts.select { |p| p.safeblocked? && !p.levelblocked? }
     end
 
     def per_page
