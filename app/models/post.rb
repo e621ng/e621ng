@@ -695,7 +695,7 @@ class Post < ApplicationRecord
       if to_remove
         overlap = tags & to_remove
         n = overlap.size
-        if n
+        if n > 0
           self.warnings[:base] << "Forcefully removed #{n} locked #{n == 1 ? "tag" : "tags"}: #{overlap.join(", ")}"
         end
         tags -= to_remove
@@ -703,7 +703,7 @@ class Post < ApplicationRecord
       if to_add
         missing = to_add - tags
         n = missing.size
-        if n
+        if n > 0
           self.warnings[:base] << "Forcefully added #{n} locked #{n == 1 ? "tag" : "tags"}: #{missing.join(", ")}"
         end
         tags += to_add
@@ -1860,7 +1860,7 @@ class Post < ApplicationRecord
 
       if unremoved_tags.present?
         unremoved_tags_list = unremoved_tags.map { |t| "[[#{t}]]" }.to_sentence
-        self.warnings[:base] << "#{unremoved_tags_list} could not be removed. Check for implications and try again"
+        self.warnings[:base] << "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again"
       end
     end
 
