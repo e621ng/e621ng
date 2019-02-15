@@ -11,7 +11,7 @@ class PostPresenter < Presenter
       return ""
     end
 
-    if !post.visible?
+    if post.safeblocked?
       return ""
     end
 
@@ -48,7 +48,12 @@ class PostPresenter < Presenter
       post.preview_file_url
     end
 
-    locals[:preview_url] = post.preview_file_url
+    locals[:cropped_url] = Danbooru.config.deleted_preview_url if post.deleteblocked?
+    locals[:preview_url] = if post.deleteblocked?
+                             Danbooru.config.deleted_preview_url
+                           else
+                             post.preview_file_url
+                           end
 
     locals[:alt_text] = post.tag_string
 

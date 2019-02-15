@@ -5,10 +5,6 @@
 
   <% if post_set.hidden_posts.present? %>
     <div class="tn hidden-posts-notice">
-      <% if post_set.censored_posts.present? %>
-        <%= post_set.censored_posts.size %> post(s) on this page require a <%= link_to "Gold account", new_user_upgrade_path %> to view (<%= link_to "learn more", wiki_pages_path(title: "help:censored_tags") %>).<br>
-      <% end %>
-
       <% if post_set.safe_posts.present? %>
         <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "Danbooru", "https://danbooru.donmai.us" %> or disable safe mode to view (<%= link_to "learn more", wiki_pages_path(title: "help:user_settings") %>).<br>
       <% end %>

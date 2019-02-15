@@ -1921,13 +1921,13 @@ class Post < ApplicationRecord
     CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|toddler|diaper|tentacle|rape|bestiality|beastiality|lolita|loli|nude|shota|pussy|penis"))
   end
 
-  def levelblocked?
+  def deleteblocked?
     !Danbooru.config.can_user_see_post?(CurrentUser.user, self)
   end
 
   def visible?
     return false if safeblocked?
-    return false if levelblocked?
+    return false if deleteblocked?
     return true
   end
 
