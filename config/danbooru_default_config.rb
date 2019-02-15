@@ -132,6 +132,10 @@ module Danbooru
       "abc123"
     end
 
+    def deleted_preview_url
+      "/images/deleted-preview.png"
+    end
+
     # When calculating statistics based on the posts table, gather this many posts to sample from.
     def post_sample_size
       300

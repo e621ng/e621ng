@@ -1171,7 +1171,7 @@ class Post < ApplicationRecord
     def fast_count(tags = "", timeout: 1_000, raise_on_timeout: false, skip_cache: false)
       tags = tags.to_s
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" if CurrentUser.hide_deleted_posts? && !Tag.has_metatag?(tags, "status", "-status")
+      tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       tags = Tag.normalize_query(tags)
 
       # optimize some cases. these are just estimates but at these
@@ -1332,7 +1332,7 @@ class Post < ApplicationRecord
 
     def has_visible_children?
       return true if has_active_children?
-      return true if has_children? && CurrentUser.user.show_deleted_children?
+      return true if has_children? && CurrentUser.is_approver?
       return true if has_children? && is_deleted?
       return false
     end
@@ -1921,13 +1921,13 @@ class Post < ApplicationRecord
     CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|toddler|diaper|tentacle|rape|bestiality|beastiality|lolita|loli|nude|shota|pussy|penis"))
   end
 
-  def levelblocked?
+  def deleteblocked?
     !Danbooru.config.can_user_see_post?(CurrentUser.user, self)
   end
 
   def visible?
     return false if safeblocked?
-    return false if levelblocked?
+    return false if deleteblocked?
     return true
   end
 

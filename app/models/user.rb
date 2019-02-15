@@ -29,7 +29,6 @@ class User < ApplicationRecord
   # - enable_post_navigation (disabled by 700)
   # - new_post_navigation_layout (disabled by 1364)
   # - enable_sequential_post_navigation (disabled by 680)
-  # - hide_deleted_posts (enabled by 1904)
   # - disable_categorized_saved_searches (enabled by 2291)
   # - disable_tagged_filenames (enabled by 387)
   # - enable_recent_searches (enabled by 499)
@@ -43,10 +42,8 @@ class User < ApplicationRecord
     new_post_navigation_layout
     enable_privacy_mode
     enable_sequential_post_navigation
-    hide_deleted_posts
     style_usernames
     enable_auto_complete
-    show_deleted_children
     has_saved_searches
     can_approve_posts
     can_upload_free

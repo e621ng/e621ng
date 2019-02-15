@@ -111,7 +111,7 @@ class PostQueryBuilder
     return false if CurrentUser.admin_mode?
     return false if q[:status].in?(%w[deleted active any all])
     return false if q[:status_neg].in?(%w[deleted active any all])
-    return CurrentUser.user.hide_deleted_posts?
+    true
   end
 
   def build
