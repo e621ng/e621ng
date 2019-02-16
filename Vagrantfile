@@ -1,0 +1,25 @@
+Vagrant.configure('2') do |config|
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+
+  config.vm.box = 'debian/stretch64'
+  config.vm.box_version = '9.4.0'
+
+  config.vm.provider 'virtualbox' do |v|
+    v.cpus = 2
+    v.memory = 1280
+  end
+
+  VAGRANT_COMMAND = ARGV[0]
+  config.ssh.username = 'danbooru' if VAGRANT_COMMAND == 'ssh'
+
+  config.vm.define 'default' do |node|
+    node.vm.hostname = 'e621.lc'
+    node.vm.network :private_network, ip: '192.168.64.78'
+  end
+
+  config.vm.synced_folder '.', '/vagrant', type: 'nfs'
+
+  config.vm.provision 'shell', path: 'vagrant/install.sh'
+end
+

@@ -1,0 +1,12 @@
+[Unit]
+Description=Danbooru
+After=network.target
+
+[Service]
+Type=simple
+User=danbooru
+WorkingDirectory=/home/danbooru/danbooru
+ExecStart=/bin/bash -c 'source /etc/profile.d/chruby.sh;/home/danbooru/danbooru/bin/bundle exec foreman start'
+
+[Install]
+WantedBy=vagrant.mount
