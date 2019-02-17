@@ -18,7 +18,11 @@ Vagrant.configure('2') do |config|
     node.vm.network :private_network, ip: '192.168.64.78'
   end
 
-  config.vm.synced_folder '.', '/vagrant'
+  if Vagrant::Util::Platform.windows?
+    config.vm.synced_folder '.', '/vagrant', type: 'virtualbox'
+  else
+    config.vm.synced_folder '.', '/vagrant', type: 'nfs'
+  end
 
   config.vm.provision 'shell', path: 'vagrant/install.sh'
 end

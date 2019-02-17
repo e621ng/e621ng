@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-script_log(){
+script_log() {
     echo -e "[setup.sh] >>> $@"
 }
 

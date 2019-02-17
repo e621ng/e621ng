@@ -66,8 +66,8 @@ sudo apt-get update
 if ! install_packages \
       build-essential automake libxml2-dev libxslt-dev yarn nginx ncurses-dev \
       libreadline-dev flex bison ragel memcached libmemcached-dev git curl \
-      libcurl4-openssl-dev sendmail-bin sendmail nginx ssh ffmpeg \
-      mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev \
+      libcurl4-openssl-dev sendmail-bin sendmail nginx ssh libglib2.0-dev \
+      mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev ffmpeg \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
       nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
     >&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
