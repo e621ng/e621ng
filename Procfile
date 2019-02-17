@@ -1,4 +1,4 @@
-unicorn: bin/rails server -p 3000
+unicorn: bin/rails server -p 9000
 jobs: bin/rake jobs:work
 recommender: bundle exec ruby script/mock_services/recommender.rb
 iqdbs: bundle exec ruby script/mock_services/iqdbs.rb

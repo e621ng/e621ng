@@ -1,3 +1,27 @@
+## Installation (Easy mode - For development environments)
+#### Prerequisites
+ * Latest version of VirtualBox and the VM Extension Pack ([download](https://www.virtualbox.org/wiki/Downloads))
+ * Latest version of Vagrant ([download](https://www.vagrantup.com))
+
+#### Installation
+1. Download and install the prerequisites
+2. Open Command Prompt/Terminal and run the following commands:
+   ```
+   vagrant plugin install vagrant-hostmanager  
+   vagrant plugin install vagrant-bindfs  
+   vagrant plugin install vagrant-vbguest
+   ```
+3. Download and extract the repo
+4. `cd` into the repo using Command Prompt/Terminal
+5. Run the following command:
+     `vagrant up`
+5. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
+   By the time you get back the install will surely have completed.<sup>1</sup>
+6. ???
+7. Profit!
+
+<sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
+
 ## Installation
 
 It is recommended that you install Danbooru on a Debian-based system
