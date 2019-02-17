@@ -38,7 +38,7 @@ dropdb danbooru2_test
 script_log "Creating config files..."
 sed -s "s/url: <%= .* %>/host: localhost/g" script/install/database.yml.templ > config/database.yml
 cp script/install/danbooru_local_config.rb.templ config/danbooru_local_config.rb
-mkdir ~/.danbooru/
+mkdir -p ~/.danbooru/
 openssl rand -hex 32 > ~/.danbooru/secret_token
 openssl rand -hex 32 > ~/.danbooru/session_secret_key
 chmod 600 ~/.danbooru/*

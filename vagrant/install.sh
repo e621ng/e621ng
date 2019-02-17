@@ -69,7 +69,8 @@ if ! install_packages \
       libcurl4-openssl-dev sendmail-bin sendmail nginx ssh libglib2.0-dev \
       mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev ffmpeg \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
-      nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
+      libexpat1-dev nodejs optipng redis-server postgresql-server-dev-11 \
+      liblcms2-dev libjpeg62-turbo-dev libgif-dev libpng-dev libexif-dev; then
     >&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
     exit 1
 fi
@@ -125,13 +126,27 @@ if ! type chruby >/dev/null 2>&1; then
 fi" > $CHRUBY_PATH
 fi
 
-script_log "Linking libvips library..."
-ln -s /usr/lib/x86_64-linux-gnu/libvips.so.42 /usr/lib/libvips.so
+script_log "Installing libvips..."
+if ! which vipsthumbnail >/dev/null; then
+    VIPS_VERSION=8.7.0
+    pushd .
+    cd /tmp
+    wget -q https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz
+    tar xf vips-$VIPS_VERSION.tar.gz
+    cd vips-$VIPS_VERSION
+    ./configure --prefix=/usr
+    make install
+    ldconfig
+    popd
+    rm -fr /tmp/vips-$VIPS_VERSION.tar.gz /tmp/vips-$VIPS_VERSION
+fi
+
+script_log "Stopping danbooru systemd service..."
+service danbooru stop 2>/dev/null
 
 SETUP_SCRIPT=/vagrant/vagrant/ruby-setup.sh
 chmod a+x $SETUP_SCRIPT
 sudo -u danbooru bash -c "$SETUP_SCRIPT '$APP_DIR' '$CHRUBY_PATH'"
-
 
 NGINX_CONFIG_PATH=/etc/nginx/conf.d/danbooru.conf
 NGINX_DEFAULT_CONFIG_PATH=/etc/nginx/conf.d/default.conf
@@ -146,9 +161,6 @@ if [ -f "$NGINX_DEFAULT_CONFIG_PATH" ]; then
 fi
 
 service nginx restart
-
-script_log "Stopping danbooru systemd service..."
-service danbooru stop 2>/dev/null
 
 script_log "Copying systemd unit file..."
 cp $APP_DIR/vagrant/danbooru.service /lib/systemd/system/
