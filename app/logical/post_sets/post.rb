@@ -130,21 +130,20 @@ module PostSets
     end
 
     def posts
-      if tag_array.any? {|x| x =~ /^-?source:.*\*.*pixiv/} && !CurrentUser.user.is_builder?
-        raise SearchError.new("Your search took too long to execute and was canceled")
-      end
+      #if tag_array.any? {|x| x =~ /^-?source:.*\*.*pixiv/} && !CurrentUser.user.is_builder?
+      #  raise SearchError.new("Your search took too long to execute and was canceled")
+      #end
 
       @posts ||= begin
-        @post_count = get_post_count()
-
         if is_random?
-          temp = get_random_posts()
+          temp = get_random_posts
         elsif raw
           temp = ::Post.raw_tag_match(tag_string).order("posts.id DESC").where("true /* PostSets::Post#posts:1 */").paginate(page, :count => post_count, :limit => per_page)
         else
           temp = ::Post.tag_match(tag_string, read_only).where("true /* PostSets::Post#posts:2 */").paginate(page, :count => post_count, :limit => per_page)
         end
-        temp.each # hack to force rails to eager load
+
+        @post_count = temp.total_count
         temp
       end
     end

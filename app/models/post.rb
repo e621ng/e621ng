@@ -885,6 +885,7 @@ class Post < ApplicationRecord
           end
         end
       end
+
     end
 
     def apply_pre_metatags
@@ -966,6 +967,7 @@ class Post < ApplicationRecord
       self.fav_count = array.size
       update_column(:fav_string, fav_string)
       update_column(:fav_count, fav_count)
+      update_index
     end
 
     def favorited_by?(user_id = CurrentUser.id)
@@ -988,15 +990,21 @@ class Post < ApplicationRecord
 
     def add_favorite!(user)
       Favorite.add(post: self, user: user)
+      reload
+      update_index
     rescue PostVote::Error
     end
 
     def delete_user_from_fav_string(user_id)
       update_column(:fav_string, fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip)
+      reload
+      update_index
     end
 
     def remove_favorite!(user)
       Favorite.remove(post: self, user: user)
+      reload
+      update_index
     rescue PostVote::Error
     end
 
@@ -1105,6 +1113,8 @@ class Post < ApplicationRecord
         set_pool_category_pseudo_tags
         update_column(:pool_string, pool_string) unless new_record?
         pool.add!(self)
+        reload
+        update_index
       end
     end
 
@@ -1117,6 +1127,8 @@ class Post < ApplicationRecord
         set_pool_category_pseudo_tags
         update_column(:pool_string, pool_string) unless new_record?
         pool.remove!(self)
+        reload
+        update_index
       end
     end
 
@@ -1161,6 +1173,7 @@ class Post < ApplicationRecord
 
         votes.create!(user: voter, vote: vote)
         reload # PostVote.create modifies our score. Reload to get the new score.
+        update_index
       end
       Cache.delete(ckey)
     end
@@ -1176,6 +1189,7 @@ class Post < ApplicationRecord
         else
           votes.where(user: voter).destroy_all
           reload
+          update_index
         end
       end
       Cache.delete(ckey)
@@ -1248,6 +1262,7 @@ class Post < ApplicationRecord
       if post.changes_saved?
         args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
         post.update_columns(args)
+        post.update_index
       end
     end
 
