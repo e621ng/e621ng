@@ -19,7 +19,7 @@ class TagCorrection
   end
 
   def fix!
-    tag.delay(:queue => "default").fix_post_count
+    TagPostCountJob.perform_later(tag.id)
     tag.update_category_cache
   end
 end

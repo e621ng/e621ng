@@ -24,6 +24,7 @@ module Danbooru
     config.log_tags = [->(req) {"PID:#{Process.pid}"}]
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
+    config.active_job.queue_adapter = :sidekiq
 
     if Rails.env.production? && Danbooru.config.ssl_options.present?
       config.ssl_options = Danbooru.config.ssl_options

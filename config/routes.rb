@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
 
+  require 'sidekiq/web'
+  Sidekiq::Web.set :session_secret, Rails.application.credentials[:secret_key_base]
+  mount Sidekiq::Web => '/sidekiq'
+
   namespace :admin do
     resources :users, :only => [:edit, :update]
     resource  :alias_and_implication_import, :only => [:new, :create]

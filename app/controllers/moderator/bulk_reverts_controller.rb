@@ -15,7 +15,7 @@ module Moderator
         @bulk_revert.preview
         render action: "new"
       else
-        @bulk_revert.delay(:queue => "default", :priority => 15).process(CurrentUser.user, @constraints)
+        BulkRevertJob.perform_later(CurrentUser.id, @constraints)
         flash[:notice] = "Reverts queued"
         redirect_to new_moderator_bulk_revert_path
       end
