@@ -63,26 +63,30 @@ fi
 echo "deb http://http.debian.net/debian stretch-backports main" | sudo tee /etc/apt/sources.list.d/stretch-backports.list
 sudo apt-get update
 
-if ! package_installed postgresql-11; then
-    script_log "Installing PostgreSQL..."
-    install_packages git postgresql-11 postgresql-server-dev-11
-    sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
-	git clone https://github.com/r888888888/test_parser.git /tmp/test_parser
-	cd /tmp/test_parser
-    make install
-    service postgresql restart
-fi
-
 if ! install_packages \
       build-essential automake libxml2-dev libxslt-dev yarn nginx ncurses-dev \
       libreadline-dev flex bison ragel memcached libmemcached-dev git curl \
       libcurl4-openssl-dev sendmail-bin sendmail nginx ssh coreutils ffmpeg \
-      mkvtoolnix cmake ffmpeg gifsicle git inkscape libcurl4-openssl-dev \
-      libicu-dev libjpeg-progs libopencv-dev libpq-dev libreadline-dev \
-      libxml2-dev nodejs optipng redis-server libvips-tools; then
+      mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev \
+      libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
+      l nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
 	>&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
 	exit 1
 fi
+
+script_log "Setting up postgres..."
+sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
+
+if [ ! -f /usr/lib/postgresql/11/lib/test_parser.so ]
+    script_log "Building test_parser..."
+    pushd
+    git clone https://github.com/r888888888/test_parser.git /tmp/test_parser
+    make install
+    popd
+    rm -fr /tmp/test_parser
+fi
+
+service postgresql restart
 
 script_log "Creating danbooru postgres user..."
 sudo -u postgres createuser -s danbooru
