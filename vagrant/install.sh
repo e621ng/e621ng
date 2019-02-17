@@ -37,7 +37,7 @@ if ! grep danbooru /etc/passwd >/dev/null; then
     usermod -aG vagrant,www-data danbooru
 fi
 
-if ! package_installed postgresql-9.6; then
+if ! package_installed postgresql-11; then
     add_key https://www.postgresql.org/media/keys/ACCC4CF8.asc
     echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     script_log "PostgreSQL repository added"
@@ -69,7 +69,7 @@ if ! package_installed nginx; then
     install_packages nginx
 fi
 
-if ! package_installed postgresql-9.6; then
+if ! package_installed postgresql-11; then
     script_log "Installing PostgreSQL..."
     install_packages postgresql-11
     sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
