@@ -45,13 +45,12 @@ fi
 
 if ! package_installed nginx; then
     add_key http://nginx.org/keys/nginx_signing.key
-	  echo "deb http://nginx.org/packages/debian/ stretch nginx" > /etc/apt/sources.list.d/nginx.list
+	echo "deb http://nginx.org/packages/debian/ stretch nginx" > /etc/apt/sources.list.d/nginx.list
     script_log "nginx repository added"
 fi
 
 if ! package_installed nodejs; then
-    install_packages curl
-    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - >/dev/null 2>&1
+    wget -qO - https://deb.nodesource.com/setup_10.x | sudo -E bash - >/dev/null 2>&1
     script_log "Node.js repository added"
 fi
 
@@ -64,25 +63,18 @@ fi
 echo "deb http://http.debian.net/debian stretch-backports main" | sudo tee /etc/apt/sources.list.d/stretch-backports.list
 sudo apt-get update
 
-if ! package_installed nginx; then
-    script_log "Installing nginx..."
-    install_packages nginx
-fi
-
 if ! package_installed postgresql-11; then
     script_log "Installing PostgreSQL..."
-    install_packages postgresql-11
+    install_packages git postgresql-11 postgresql-server-dev-11
     sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
+	git clone https://github.com/r888888888/test_parser.git /tmp/test_parser
+	cd /tmp/test_parser
+    make install
     service postgresql restart
 fi
 
-if ! package_installed yarn; then
-    script_log "Installing yarn..."
-    install_packages yarn
-fi
-
 if ! install_packages \
-      build-essential automake libxml2-dev libxslt-dev ncurses-dev \
+      build-essential automake libxml2-dev libxslt-dev yarn nginx ncurses-dev \
       libreadline-dev flex bison ragel memcached libmemcached-dev git curl \
       libcurl4-openssl-dev sendmail-bin sendmail nginx ssh coreutils ffmpeg \
       mkvtoolnix cmake ffmpeg gifsicle git inkscape libcurl4-openssl-dev \
@@ -92,7 +84,7 @@ if ! install_packages \
 	exit 1
 fi
 
-script_log "Creating danbooru Postgres user..."
+script_log "Creating danbooru postgres user..."
 sudo -u postgres createuser -s danbooru
 
 if ! type ruby-install >/dev/null 2>&1; then
