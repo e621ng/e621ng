@@ -8,23 +8,23 @@ sed -i -e 's/\(AcceptEnv LANG LC_\*\)/#\1/' /etc/ssh/sshd_config
 service sshd restart
 
 package_installed() {
-	if dpkg-query -f '${binary:Package}\n' -W | grep "$1" &>/dev/null; then
-		return 0;
-	else
-		return 1;
-	fi
+    if dpkg-query -f '${binary:Package}\n' -W | grep "$1" &>/dev/null; then
+        return 0;
+    else
+        return 1;
+    fi
 }
 
 add_key() {
-	wget -qO - "$1" | sudo apt-key add - &>/dev/null
+    wget -qO - "$1" | sudo apt-key add - &>/dev/null
 }
 
 install_packages() {
-	sudo apt-get install -y $@
+    sudo apt-get install -y $@
 }
 
 script_log() {
-	echo "[install.sh] >>> $@"
+    echo "[install.sh] >>> $@"
 }
 
 if ! grep danbooru /etc/passwd >/dev/null; then
@@ -45,7 +45,7 @@ fi
 
 if ! package_installed nginx; then
     add_key http://nginx.org/keys/nginx_signing.key
-	echo "deb http://nginx.org/packages/debian/ stretch nginx" > /etc/apt/sources.list.d/nginx.list
+    echo "deb http://nginx.org/packages/debian/ stretch nginx" > /etc/apt/sources.list.d/nginx.list
     script_log "nginx repository added"
 fi
 
@@ -70,8 +70,8 @@ if ! install_packages \
       mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
       l nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
-	>&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
-	exit 1
+    >&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
+    exit 1
 fi
 
 script_log "Setting up postgres..."

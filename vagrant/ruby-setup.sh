@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 script_log(){
-	echo -e "[setup.sh] >>> $@"
+    echo -e "[setup.sh] >>> $@"
 }
 
 APP_DIR=$1
@@ -42,12 +42,6 @@ mkdir ~/.danbooru/
 openssl rand -hex 32 > ~/.danbooru/secret_token
 openssl rand -hex 32 > ~/.danbooru/session_secret_key
 chmod 600 ~/.danbooru/*
-
-# Remove test_parser
-#perl -0777 -i -pe "s/CREATE FUNCTION public.testprs.*?RETURNS .*?\n    LANGUAGE c STRICT\n    AS.*?;//gs" db/structure.sql
-#perl -0777 -i -pe "s/CREATE TEXT SEARCH PARSER.*?;//gs" db/structure.sql
-#perl -0777 -i -pe "s/CREATE TEXT SEARCH CONFIGURATION.*?;//gs" db/structure.sql
-#perl -0777 -i -pe "s/ALTER TEXT SEARCH CONFIGURATION.*?;//gs" db/structure.sql
 
 script_log "Running yarn..."
 yarn install
