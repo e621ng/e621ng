@@ -37,6 +37,13 @@ if ! grep danbooru /etc/passwd >/dev/null; then
     usermod -aG vagrant,www-data danbooru
 fi
 
+if ! package_installed elasticsearch; then
+    install_packages apt-transport-https default-jre-headless
+    add_key https://packages.elastic.co/GPG-KEY-elasticsearch
+    echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" > /etc/apt/sources.list.d/elasticsearch-6.x.list
+    script_log "Elasticsearch repository added"
+fi
+
 if ! package_installed postgresql-11; then
     add_key https://www.postgresql.org/media/keys/ACCC4CF8.asc
     echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
@@ -70,10 +77,16 @@ if ! install_packages \
       mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev ffmpeg \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
       libexpat1-dev nodejs optipng redis-server postgresql-server-dev-11 \
-      liblcms2-dev libjpeg62-turbo-dev libgif-dev libpng-dev libexif-dev; then
-    >&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
+      liblcms2-dev libjpeg62-turbo-dev libgif-dev libpng-dev libexif-dev \
+      elasticsearch; then
+    >&2 script_log "Installation of dependencies failed, please see the errors above and re-run \`vagrant provision\`"
     exit 1
 fi
+
+script_log "Setting up elasticsearch..."
+sed -i -e 's/\(-Xm[sx]\)1g/\1256m/' /etc/elasticsearch/jvm.options
+systemctl enable elasticsearch 2>/dev/null
+service elasticsearch start
 
 script_log "Setting up postgres..."
 sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
