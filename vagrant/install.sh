@@ -66,10 +66,10 @@ sudo apt-get update
 if ! install_packages \
       build-essential automake libxml2-dev libxslt-dev yarn nginx ncurses-dev \
       libreadline-dev flex bison ragel memcached libmemcached-dev git curl \
-      libcurl4-openssl-dev sendmail-bin sendmail nginx ssh coreutils ffmpeg \
+      libcurl4-openssl-dev sendmail-bin sendmail nginx ssh ffmpeg \
       mkvtoolnix cmake ffmpeg git postgresql-11 libcurl4-openssl-dev \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
-      l nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
+      nodejs optipng redis-server libvips-tools postgresql-server-dev-11; then
     >&2 script_log "Installation of other dependencies failed, please see the errors above and re-run \`vagrant provision\`"
     exit 1
 fi
@@ -77,10 +77,11 @@ fi
 script_log "Setting up postgres..."
 sed -i -e 's/md5/trust/' /etc/postgresql/11/main/pg_hba.conf
 
-if [ ! -f /usr/lib/postgresql/11/lib/test_parser.so ]
+if [ ! -f /usr/lib/postgresql/11/lib/test_parser.so ]; then
     script_log "Building test_parser..."
-    pushd
+    pushd .
     git clone https://github.com/r888888888/test_parser.git /tmp/test_parser
+    cd /tmp/test_parser
     make install
     popd
     rm -fr /tmp/test_parser
