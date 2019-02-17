@@ -18,7 +18,7 @@ Vagrant.configure('2') do |config|
     node.vm.network :private_network, ip: '192.168.64.78'
   end
 
-  config.vm.synced_folder '.', '/vagrant', type: 'nfs'
+  config.vm.synced_folder '.', '/vagrant'
 
   config.vm.provision 'shell', path: 'vagrant/install.sh'
 end
