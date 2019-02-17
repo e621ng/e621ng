@@ -156,6 +156,7 @@ if [ -f "$NGINX_CONFIG_PATH" ]; then
 fi
 sudo ln -s $APP_DIR/script/install/nginx.danbooru.conf "$NGINX_CONFIG_PATH"
 sed -i -e 's/__hostname__/e621.lc/' "$NGINX_CONFIG_PATH"
+sed -i -e 's/root \/var\/www\/danbooru\/current\/public;/root \/home\/danbooru\/danbooru\/public;/' "$NGINX_CONFIG_PATH"
 if [ -f "$NGINX_DEFAULT_CONFIG_PATH" ]; then
     rm "$NGINX_DEFAULT_CONFIG_PATH"
 fi
