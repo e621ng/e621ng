@@ -26,6 +26,7 @@ class SavedSearch < ApplicationRecord
             post_ids.merge(sub_ids)
             redis.expire(redis_key, REDIS_EXPIRY)
           else
+            SavedSearchJob.perform_later(query)
             SavedSearch.delay(queue: "default").populate(query)
           end
         end

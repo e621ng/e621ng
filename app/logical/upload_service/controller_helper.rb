@@ -5,7 +5,7 @@ class UploadService
 
       if Utils.is_downloadable?(url) && file.nil?
         # this gets called from UploadsController#new so we need to preprocess async
-        Preprocessor.new(source: url, referer_url: ref).delay(priority: -1, queue: "default").delayed_start(CurrentUser.id)
+        UploadPreprocessJob.perform_later(CurrentUser.id, {source: uri, referer_url: ref})
 
         begin
           download = Downloads::File.new(url, ref)
