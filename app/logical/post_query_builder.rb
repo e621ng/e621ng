@@ -508,6 +508,6 @@ class PostQueryBuilder
       _source: false,
     }
 
-    Post.__elasticsearch__.search(search_body).records
+    Post.__elasticsearch__.search(search_body)
   end
 end

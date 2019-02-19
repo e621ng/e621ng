@@ -140,7 +140,10 @@ module PostSets
         elsif raw
           temp = ::Post.raw_tag_match(tag_string).order("posts.id DESC").where("true /* PostSets::Post#posts:1 */").paginate(page, :count => post_count, :limit => per_page)
         else
-          temp = ::Post.tag_match(tag_string, read_only).where("true /* PostSets::Post#posts:2 */").paginate(page, :count => post_count, :limit => per_page)
+          # TODO: .records is not 1:1 with ActiveRecord, so we lose our extension methods if we turn this into an enumerator
+          # It would make this much faster if this was materialized into a typed collection with the required extensions for pagination
+          # without trying to load it from the DB each time.
+          temp = ::Post.tag_match(tag_string, read_only).paginate(page, :count => post_count, :limit => per_page).records
         end
 
         @post_count = temp.total_count
