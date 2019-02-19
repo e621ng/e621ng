@@ -494,6 +494,14 @@ class PostQueryBuilder
 
       order.push({ _score: :desc })
 
+    when "random"
+      must.push({ function_score: {
+        query: { match_all: {} },
+        random_score: {},
+      }})
+
+      order.push({ _score: :desc })
+
     else
       order.push({ id: :desc })
     end

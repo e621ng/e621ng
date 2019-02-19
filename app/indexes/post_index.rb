@@ -119,9 +119,9 @@ module PostIndex
 
         # Special handling for votes to do it with one query
         vote_ids = conn.execute(votes_sql).values.map do |pid, uids, scores|
-          uids   = uids[1..-2].split(",")
-          scores = scores[1..-2].split(",")
-          [pids, uids.zip(scores)]
+          uids   = uids[1..-2].split(",").map(&:to_i)
+          scores = scores[1..-2].split(",").map(&:to_i)
+          [pid.to_i, uids.zip(scores)]
         end
 
         upvote_ids   = vote_ids.map { |pid, user| [pid, user.map { |uid, s| s > 0 }] }.to_h
