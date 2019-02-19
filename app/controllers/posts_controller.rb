@@ -75,7 +75,7 @@ class PostsController < ApplicationController
   end
 
   def random
-    @post = Post.tag_match(params[:tags]).random
+    @post = Post.tag_match(params[:tags]).limit(50).records.random
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, :tags => params[:tags]) }

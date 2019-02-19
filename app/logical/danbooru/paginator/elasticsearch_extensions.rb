@@ -62,7 +62,6 @@ module Danbooru
       end
 
       def paginate(page, options = {})
-        Rails.logger.warn("[PAGINATE] Paginate #{page} #{options.inspect} #{search.definition.inspect}")
         @paginator_options = options
 
         if use_sequential_paginator?(page)
@@ -87,7 +86,8 @@ module Danbooru
       end
 
       def paginate_sequential_before(before_id = nil)
-        search.definition.update(size: records_per_page + 1, sort: [{id: :desc}])
+        search.definition.update(size: records_per_page + 1)
+        search.definition[:body].update(sort: [{id: :desc}])
 
 
         if before_id.to_i > 0
@@ -101,7 +101,8 @@ module Danbooru
       end
 
       def paginate_sequential_after(after_id)
-        search.definition.update(size: records_per_page + 1, sort: [{id: :asc}])
+        search.definition.update(size: records_per_page + 1)
+        search.definition[:body].update(sort: [{id: :asc}])
         search.definition[:body][:query][:bool][:must] << ({range: {id: {gt: after_id.to_i}}})
         extend(SequentialPaginator)
         @sequential_paginator_mode = :after
@@ -125,6 +126,11 @@ module Danbooru
 
       def records_per_page
         option_for(:limit).to_i
+      end
+
+      def limit(count)
+        search.definition.update(size: count)
+        self
       end
 
       # When paginating large tables, we want to avoid doing an expensive count query

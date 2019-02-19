@@ -124,8 +124,9 @@ module PostSets
     end
 
     def get_random_posts
+      posts = ::Post.tag_match(tag_string).records
       per_page.times.inject([]) do |all, x|
-        all << ::Post.tag_match(tag_string).random
+        all << posts.random
       end.compact.uniq
     end
 
