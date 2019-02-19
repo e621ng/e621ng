@@ -3,6 +3,7 @@ require 'test_helper'
 class SavedSearchTest < ActiveSupport::TestCase
   def setup
     super
+    Sidekiq::Testing::inline!
     @user = FactoryBot.create(:user)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
@@ -12,6 +13,7 @@ class SavedSearchTest < ActiveSupport::TestCase
 
   def teardown
     super
+    Sidekiq::Testing::fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end

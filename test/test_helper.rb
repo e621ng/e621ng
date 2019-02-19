@@ -13,6 +13,9 @@ require 'rails/test_help'
 require 'cache'
 require 'webmock/minitest'
 
+require 'sidekiq/testing'
+Sidekiq::Testing::fake!
+
 Dir[File.expand_path(File.dirname(__FILE__) + "/factories/*.rb")].each {|file| require file}
 Dir[File.expand_path(File.dirname(__FILE__) + "/test_helpers/*.rb")].each {|file| require file}
 
@@ -130,7 +133,5 @@ class ActionDispatch::IntegrationTest
     Cache.clear
   end
 end
-
-Delayed::Worker.delay_jobs = false
 
 Rails.application.load_seed

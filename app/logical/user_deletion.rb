@@ -3,15 +3,6 @@ class UserDeletion
 
   attr_reader :user, :password
 
-  def self.remove_favorites_for(user_id)
-    user = User.find(user_id)
-    Post.without_timeout do
-      Post.raw_tag_match("fav:#{user_id}").where("true /* UserDeletion.remove_favorites_for */").find_each do |post|
-        Favorite.remove(post: post, user: user)
-      end
-    end
-  end
-
   def initialize(user, password)
     @user = user
     @password = password
@@ -20,21 +11,15 @@ class UserDeletion
   def delete!
     validate
     clear_user_settings
-    remove_favorites
-    clear_saved_searches
-    rename
     reset_password
     create_mod_action
+    UserDeletionJob.perform_later(user.id)
   end
 
 private
   
   def create_mod_action
     ModAction.log("user ##{user.id} deleted",:user_delete)
-  end
-
-  def clear_saved_searches
-    SavedSearch.where(user_id: user.id).destroy_all
   end
 
   def clear_user_settings
@@ -53,25 +38,6 @@ private
     user.password = random
     user.password_confirmation = random
     user.old_password = password
-    user.save!
-  end
-
-  def remove_favorites
-    UserDeletion.delay(:queue => "default").remove_favorites_for(user.id)
-  end
-
-  def rename
-    name = "user_#{user.id}"
-    n = 0
-    while User.where(:name => name).exists? && (n < 10)
-      name += "~"
-    end
-
-    if n == 10
-      raise ValidationError.new("New name could not be found")
-    end
-
-    user.name = name
     user.save!
   end
 

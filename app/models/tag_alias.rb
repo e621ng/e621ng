@@ -27,7 +27,7 @@ class TagAlias < TagRelationship
     def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
-        delay(:queue => "default").process!(update_topic: update_topic)
+        TagAliasJob.perform_later(id, update_topic)
       end
     end
   end

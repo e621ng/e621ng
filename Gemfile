@@ -10,8 +10,6 @@ gem "pg"
 gem "dalli", :platforms => :ruby
 gem "memcache-client", :platforms => [:mswin, :mingw, :x64_mingw]
 gem "tzinfo-data", :platforms => [:mswin, :mingw, :x64_mingw]
-gem "delayed_job"
-gem "delayed_job_active_record"
 gem "simple_form"
 gem "mechanize"
 gem "whenever", :require => false
@@ -51,6 +49,10 @@ gem 'ptools'
 gem 'jquery-rails'
 gem 'webpacker', '>= 4.0.x'
 gem 'retriable'
+gem 'sidekiq'
+# bookmarks for later, if they are needed
+# gem 'sidekiq-worker-killer'
+# gem 'sidekiq-unique-jobs'
 gem 'redis'
 
 # needed for looser jpeg header compat

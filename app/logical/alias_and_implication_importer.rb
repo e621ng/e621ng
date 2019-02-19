@@ -156,7 +156,7 @@ private
           tag_implication.reject!(update_topic: false)
 
         when :mass_update
-          Delayed::Job.enqueue(Moderator::TagBatchChange.new(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr), :queue => "default")
+          TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
 
         when :change_category
           tag = Tag.find_by_name(token[1])
