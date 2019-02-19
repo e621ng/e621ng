@@ -24,16 +24,16 @@ module Indexable
   end
 
   def update_index(defer: true, priority: :high)
-    # if defer
-    #   if priority == :high
-    #     IndexUpdateJob.perform_later(self.class.to_s, id)
-    #   elsif priority == :rebuild
-    #     IndexRebuildJob.perform_later(self.class.to_s, id)
-    #   else
-    #     raise ArgumentError, 'No such priority known'
-    #   end
-    # else
+    if defer
+      if priority == :high
+        IndexUpdateJob.perform_later(self.class.to_s, id)
+      elsif priority == :rebuild
+        IndexRebuildJob.perform_later(self.class.to_s, id)
+      else
+        raise ArgumentError, 'No such priority known'
+      end
+    else
       __elasticsearch__.index_document
-    # end
+    end
   end
 end
