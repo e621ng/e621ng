@@ -1,6 +1,15 @@
 require 'test_helper'
 
 class UploadsControllerTest < ActionDispatch::IntegrationTest
+
+  setup do
+    Sidekiq::Testing::inline!
+  end
+
+  teardown do
+    Sidekiq::Testing::fake!
+  end
+
   context "The uploads controller" do
     setup do
       @user = create(:contributor_user)
@@ -37,7 +46,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
         post_auth preprocess_uploads_path, @user, params: {:upload => {:source => "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg", :file => file}}
         assert_response :success
-        Delayed::Worker.new.work_off
         assert_equal("ecef68c44edb8a0d6a3070b5f8e8ee76", Upload.last.md5)
       end
     end
@@ -58,7 +66,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
         should "prefer the file" do
           get_auth new_upload_path, @user, params: {url: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
-          Delayed::Worker.new.work_off
           file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
           assert_difference(-> { Post.count }) do
             post_auth uploads_path, @user, params: {upload: {file: file, tag_string: "aaa", rating: "q", source: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}}
@@ -77,7 +84,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         should "trigger the preprocessor" do
           assert_difference(-> { Upload.preprocessed.count }, 1) do
             get_auth new_upload_path, @user, params: {:url => @source, :ref => @ref}
-            Delayed::Worker.new.work_off
           end
         end
       end
@@ -97,7 +103,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
           skip "Twitter keys are not set" unless Danbooru.config.twitter_api_key
           get_auth new_upload_path, @user, params: {:url => @source}
           assert_response :success
-          Delayed::Worker.new.work_off
           upload = Upload.last
           assert_equal(@source, upload.source)
         end
@@ -112,7 +117,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         should "trigger the preprocessor" do
           assert_difference(-> { Upload.preprocessed.count }, 1) do
             get_auth new_upload_path, @user, params: {:url => @source, :ref => @ref}
-            Delayed::Worker.new.work_off
           end
         end
       end

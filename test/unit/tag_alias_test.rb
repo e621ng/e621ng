@@ -1,6 +1,14 @@
 require 'test_helper'
 
 class TagAliasTest < ActiveSupport::TestCase
+  setup do
+    Sidekiq::Testing::inline!
+  end
+
+  teardown do
+    Sidekiq::Testing::fake!
+  end
+
   context "A tag alias" do
     setup do
       @admin = FactoryBot.create(:admin_user)

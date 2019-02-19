@@ -3,6 +3,6 @@ class TagImplicationJob < ApplicationJob
 
   def perform(*args)
     ti = TagImplication.find(args[0])
-    ti.process!(args[1])
+    ti.process!(update_topic: args[1])
   end
 end

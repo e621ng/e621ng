@@ -1,6 +1,15 @@
 require 'test_helper'
 
 class TagImplicationTest < ActiveSupport::TestCase
+
+  setup do
+    Sidekiq::Testing::inline!
+  end
+
+  teardown do
+    Sidekiq::Testing::fake!
+  end
+
   context "A tag implication" do
     setup do
       user = FactoryBot.create(:admin_user)

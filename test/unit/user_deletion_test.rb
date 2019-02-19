@@ -1,6 +1,14 @@
 require 'test_helper'
 
 class UserDeletionTest < ActiveSupport::TestCase
+  setup do
+    Sidekiq::Testing::inline!
+  end
+
+  teardown do
+    Sidekiq::Testing::fake!
+  end
+
   context "an invalid user deletion" do
     context "for an invalid password" do
       setup do

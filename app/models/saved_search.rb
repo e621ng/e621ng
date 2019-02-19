@@ -27,7 +27,6 @@ class SavedSearch < ApplicationRecord
             redis.expire(redis_key, REDIS_EXPIRY)
           else
             SavedSearchJob.perform_later(query)
-            SavedSearch.delay(queue: "default").populate(query)
           end
         end
         post_ids.to_a.sort.last(QUERY_LIMIT)
