@@ -181,14 +181,14 @@ module Danbooru
 
     # Users cannot search for more than X regular tags at a time.
     def base_tag_query_limit
-      6
+      20
     end
 
     def tag_query_limit
       if CurrentUser.user.present?
         CurrentUser.user.tag_query_limit
       else
-        base_tag_query_limit * 2
+        base_tag_query_limit
       end
     end
 
