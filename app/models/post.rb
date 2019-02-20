@@ -308,9 +308,13 @@ class Post < ApplicationRecord
 
 
     def approve!(approver = CurrentUser.user)
-      approvals.create(user: approver)
-      post.flags.each(&:resolve!)
-      post.update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+      approval = nil
+      transaction do
+        approval = approvals.create(user: approver)
+        flags.each(&:resolve!)
+        self.update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+      end
+      approval
     end
   end
 
