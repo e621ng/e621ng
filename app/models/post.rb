@@ -3,7 +3,6 @@ require 'google/apis/pubsub_v1'
 
 class Post < ApplicationRecord
   class ApprovalError < Exception ; end
-  class DisapprovalError < Exception ; end
   class RevertError < Exception ; end
   class SearchError < Exception ; end
   class DeletionError < Exception ; end
@@ -54,7 +53,6 @@ class Post < ApplicationRecord
   has_many :comments, -> {includes(:creator, :updater).order("comments.id")}, :dependent => :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
-  has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
   has_many :favorites
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
@@ -281,7 +279,7 @@ class Post < ApplicationRecord
 
   module ApprovalMethods
     def is_approvable?(user = CurrentUser.user)
-      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?) && uploader != user && !approved_by?(user)
+      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?) && uploader != user
     end
 
     def flag!(reason, options = {})
@@ -304,16 +302,15 @@ class Post < ApplicationRecord
       end
     end
 
-    def approve!(approver = CurrentUser.user)
-      approvals.create(user: approver)
-    end
-
     def approved_by?(user)
       approver == user || approvals.where(user: user).exists?
     end
 
-    def disapproved_by?(user)
-      PostDisapproval.where(:user_id => user.id, :post_id => id).exists?
+
+    def approve!(approver = CurrentUser.user)
+      approvals.create(user: approver)
+      post.flags.each(&:resolve!)
+      post.update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
     end
   end
 
@@ -1407,10 +1404,8 @@ class Post < ApplicationRecord
         return false
       end
 
-      if !CurrentUser.is_admin? 
-        if approved_by?(CurrentUser.user)
-          raise ApprovalError.new("You have previously approved this post and cannot undelete it")
-        elsif uploader_id == CurrentUser.id
+      if !CurrentUser.is_admin?
+        if uploader_id == CurrentUser.id
           raise ApprovalError.new("You cannot undelete a post you uploaded")
         end
       end
@@ -1649,12 +1644,6 @@ class Post < ApplicationRecord
       relation
     end
 
-    def with_approval_stats
-      relation = left_outer_joins(:approvals).group(:id).select("posts.*")
-      relation = relation.select("COUNT(post_approvals.id) AS approval_count")
-      relation
-    end
-
     def with_replacement_stats
       relation = left_outer_joins(:replacements).group(:id).select("posts.*")
       relation = relation.select("COUNT(post_replacements.id) AS replacement_count")
@@ -1723,14 +1712,7 @@ class Post < ApplicationRecord
     def available_for_moderation(hidden = false, user = CurrentUser.user)
       return none if user.is_anonymous?
 
-      approved_posts = user.post_approvals.select(:post_id)
-      disapproved_posts = user.post_disapprovals.select(:post_id)
-
-      if hidden.present?
-        where("posts.uploader_id = ? OR posts.id IN (#{approved_posts.to_sql}) OR posts.id IN (#{disapproved_posts.to_sql})", user.id)
-      else
-        where.not(uploader: user).where.not(id: approved_posts).where.not(id: disapproved_posts)
-      end
+      where.not(uploader: user)
     end
 
     def raw_tag_match(tag)
