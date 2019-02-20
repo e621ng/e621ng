@@ -54,7 +54,7 @@ module PostIndex
       end
     end
 
-    base.extend ClassMethods
+    base.__elasticsearch__.extend ClassMethods
   end
 
   module ClassMethods
@@ -127,26 +127,31 @@ module PostIndex
         upvote_ids   = vote_ids.map { |pid, user| [pid, user.map { |uid, s| s > 0 }] }.to_h
         downvote_ids = vote_ids.map { |pid, user| [pid, user.map { |uid, s| s < 0 }] }.to_h
 
+        empty = []
         batch.map! do |p|
           index_options = {
-            comment_count: comment_counts[p.id],
-            pools:         pool_ids[p.id],
-            # sets:          set_ids[p.id],
-            faves:         fave_ids[p.id],
-            upvotes:       upvote_ids[p.id],
-            downvotes:     downvote_ids[p.id],
-            children:      child_ids[p.id]
+            comment_count: comment_counts[p.id] || 0,
+            pools:         pool_ids[p.id]       || empty,
+            # sets:          set_ids[p.id]        || empty,
+            faves:         fave_ids[p.id]       || empty,
+            upvotes:       upvote_ids[p.id]     || empty,
+            downvotes:     downvote_ids[p.id]   || empty,
+            children:      child_ids[p.id]      || empty,
           }
 
           {
             index: {
               _id:  p.id,
-              data: p.as_indexed_json(index_options)
+              data: p.as_indexed_json(index_options),
             }
           }
         end
 
-        client.bulk(index: index_name, type: document_type, body: batch)
+        client.bulk({
+          index: index_name,
+          type:  document_type,
+          body:  batch,
+        })
       end
     end
   end
