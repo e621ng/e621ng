@@ -1752,7 +1752,8 @@ class Post < ApplicationRecord
     end
 
     def raw_tag_match(tag)
-      PostQueryBuilder.new(tags: tag.split(" ")).build
+      tags = {related: tag.split(' '), include: [], exclude: []}
+      PostQueryBuilder.new(tag_count: 1, tags: tags).build
     end
 
     def tag_match(query, read_only = false)

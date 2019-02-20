@@ -134,12 +134,9 @@ module PostSets
         if is_random?
           temp = get_random_posts
         elsif raw
-          temp = ::Post.raw_tag_match(tag_string).order("posts.id DESC").where("true /* PostSets::Post#posts:1 */").paginate(page, :count => post_count, :limit => per_page)
+          temp = ::Post.raw_tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)
         else
-          # TODO: .records is not 1:1 with ActiveRecord, so we lose our extension methods if we turn this into an enumerator
-          # It would make this much faster if this was materialized into a typed collection with the required extensions for pagination
-          # without trying to load it from the DB each time.
-          temp = ::Post.tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page).records
+          temp = ::Post.tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)
         end
 
         @post_count = temp.total_count

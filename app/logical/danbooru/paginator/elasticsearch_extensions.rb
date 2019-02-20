@@ -1,73 +1,74 @@
+require 'active_support/core_ext/module'
 module Danbooru
   module Paginator
-    module ElasticsearchExtensions
-      attr_reader :records_per_page, :total_entries
+    class PaginatedArray < Array
+      attr_internal_accessor :records_per_page, :total_count, :sequential_paginator_mode, :current_page, :orig_size
 
-      module SequentialPaginator
-        attr_reader :sequential_paginator_mode
+      def initialize(orig_array, options = {})
+        @_current_page = options[:current_page]
+        @_records_per_page = options[:per_page]
+        @_total_count = options[:total]
+        real_array = orig_array || []
+        @_orig_size = real_array.size
+        if options[:mode] == :sequential
+          @_sequential_paginator_mode = options[:seq_mode]
 
-        def is_first_page?
-          if sequential_paginator_mode == :before
-            false
+          real_array = orig_array.first(records_per_page)
+
+          if @_sequential_paginator_mode == :before
+            super(real_array)
           else
-            size <= records_per_page
+            super(real_array.reverse)
           end
+        else
+          super(real_array)
         end
-
-        def is_last_page?
-          if sequential_paginator_mode == :after
-            false
-          else
-            size <= records_per_page
-          end
-        end
-
-        # TODO: Some shim here for this that works along side the elasticsearch-models record system.
-        # XXX Hack: in sequential pagination we fetch one more record than we need
-        # so that we can tell when we're on the first or last page. Here we override
-        # a rails internal method to discard that extra record. See #2044, #3642.
-        # def records
-        #   if sequential_paginator_mode == :before
-        #     super.first(records_per_page)
-        #   else
-        #     super.first(records_per_page).reverse
-        #   end
-        # end
       end
 
-      module NumberedPaginator
-        attr_reader :current_page
-
-        def is_first_page?
+      def is_first_page?
+        if sequential_paginator_mode
+          sequential_paginator_mode == :before ? false : orig_size <= records_per_page
+        else
           current_page == 1
         end
+      end
 
-        def is_last_page?
+      def is_last_page?
+        if sequential_paginator_mode
+          sequential_paginator_mode == :after ? false : orig_size <= records_per_page
+        else
           current_page >= total_pages
         end
+      end
 
-        def total_pages
-          if records_per_page > 0
-            (total_count.to_f / records_per_page).ceil
-          else
-            1
-          end
+      def total_pages
+        if records_per_page > 0
+          (total_count.to_f / records_per_page).ceil
+        else
+          1
         end
       end
+    end
 
-      def self.included(base)
-        methods = [:current_page, :records_per_page, :total_pages, :total_count, :is_first_page?, :is_last_page?]
-        Elasticsearch::Model::Response::Results.__send__ :delegate, *methods, to: :response
-        Elasticsearch::Model::Response::Records.__send__ :delegate, *methods, to: :response
-      end
+    module ElasticsearchExtensions
+      attr_reader :records_per_page, :total_entries, :current_page, :sequential_paginator_mode
 
       def paginate(page, options = {})
         @paginator_options = options
 
-        if use_sequential_paginator?(page)
-          paginate_sequential(page)
+        sequential = use_sequential_paginator?(page)
+        paginated = if sequential
+                      paginate_sequential(page)
+                    else
+                      paginate_numbered(page)
+                    end
+
+        new_opts = {mode: (sequential ? :sequential : :numbered), seq_mode: sequential_paginator_mode,
+                    per_page: records_per_page, total: total_count, current_page: current_page}
+        if options[:results] == :results
+          PaginatedArray.new(paginated.results, new_opts)
         else
-          paginate_numbered(page)
+          PaginatedArray.new(paginated.records.to_a, new_opts)
         end
       end
 
@@ -94,8 +95,7 @@ module Danbooru
           search.definition[:body][:query][:bool][:must] << ({range: {id: {lt: before_id.to_i}}})
         end
 
-        extend(SequentialPaginator)
-        @sequential_paaginator_mode = :before
+        @sequential_paginator_mode = :before
 
         self
       end
@@ -104,7 +104,6 @@ module Danbooru
         search.definition.update(size: records_per_page + 1)
         search.definition[:body].update(sort: [{id: :asc}])
         search.definition[:body][:query][:bool][:must] << ({range: {id: {gt: after_id.to_i}}})
-        extend(SequentialPaginator)
         @sequential_paginator_mode = :after
 
         self
@@ -117,7 +116,6 @@ module Danbooru
           raise ::Danbooru::Paginator::PaginationError.new("You cannot go beyond page #{Danbooru.config.max_numbered_pages}. Please narrow your search terms.")
         end
 
-        extend(NumberedPaginator)
         search.definition.update(size: records_per_page, from: (page - 1) * records_per_page)
         @current_page = page
 
