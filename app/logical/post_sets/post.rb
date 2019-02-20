@@ -1,7 +1,7 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 200
-    attr_reader :tag_array, :page, :raw, :random, :post_count, :format, :read_only
+    attr_reader :tag_array, :page, :raw, :random, :post_count, :format
 
     def initialize(tags, page = 1, per_page = nil, options = {})
       @tag_array = Tag.scan_query(tags)
@@ -10,7 +10,6 @@ module PostSets
       @raw = options[:raw].present?
       @random = options[:random].present?
       @format = options[:format] || "html"
-      @read_only = options[:read_only]
     end
 
     def tag_string
@@ -131,10 +130,6 @@ module PostSets
     end
 
     def posts
-      #if tag_array.any? {|x| x =~ /^-?source:.*\*.*pixiv/} && !CurrentUser.user.is_builder?
-      #  raise SearchError.new("Your search took too long to execute and was canceled")
-      #end
-
       @posts ||= begin
         if is_random?
           temp = get_random_posts
@@ -144,7 +139,7 @@ module PostSets
           # TODO: .records is not 1:1 with ActiveRecord, so we lose our extension methods if we turn this into an enumerator
           # It would make this much faster if this was materialized into a typed collection with the required extensions for pagination
           # without trying to load it from the DB each time.
-          temp = ::Post.tag_match(tag_string, read_only).paginate(page, :count => post_count, :limit => per_page).records
+          temp = ::Post.tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page).records
         end
 
         @post_count = temp.total_count

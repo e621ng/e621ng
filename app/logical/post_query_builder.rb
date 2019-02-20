@@ -183,9 +183,6 @@ class PostQueryBuilder
         { term: { deleted: false } },
         { term: { flagged: false } },
       ])
-    elsif q[:status] == "unmoderated"
-      fail ArgumentError, "unhandled case unmoderated"
-      # relation = relation.merge(Post.pending_or_flagged.available_for_moderation)
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
@@ -350,13 +347,6 @@ class PostQueryBuilder
 
     add_tag_string_search_relation(q[:tags], must)
 
-    if q[:ordpool].present?
-      fail ArgumentError, "pool ordering unimplemented"
-      #pool_id = q[:ordpool].to_i
-      #pool_posts = Pool.joins("CROSS JOIN unnest(pools.post_ids) WITH ORDINALITY AS row(post_id, pool_index)").where(id: pool_id).select(:post_id, :pool_index)
-      #relation = relation.joins("JOIN (#{pool_posts.to_sql}) pool_posts ON pool_posts.post_id = posts.id").order("pool_posts.pool_index ASC")
-    end
-
     if q[:favgroups_neg].present?
       q[:favgroups_neg].each do |favgroup_rec|
         favgroup_id = favgroup_rec.to_i
@@ -383,13 +373,6 @@ class PostQueryBuilder
 
     if q[:downvote].present?
       must.push({ term: { downvoter_ids: q[:downvote].to_i } })
-    end
-
-    if q[:ordfav].present?
-      fail ArgumentError, "favorite ordering unimplemented"
-      #user_id = q[:ordfav].to_i
-      #relation = relation.joins("INNER JOIN favorites ON favorites.post_id = posts.id")
-      #relation = relation.where("favorites.user_id % 100 = ? and favorites.user_id = ?", user_id % 100, user_id).order("favorites.id DESC")
     end
 
     if q[:order] == "rank"

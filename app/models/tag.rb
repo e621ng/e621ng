@@ -98,11 +98,6 @@ class Tag < ApplicationRecord
       end
 
       def increment_post_counts(tag_names)
-        if Rails.env.production? && tag_names.include?("breasts")
-          trace = Kernel.caller.grep(/danbooru/).reject {|x| x =~ /bundle/}.map {|x| x.sub(/\/var\/www\/danbooru2\/releases\/\d+\//, "")}.join("\n").slice(0, 4095)
-          ::NewRelic::Agent.record_custom_event("increment_post_counts", user_id: CurrentUser.id, pid: Process.pid, stacktrace: trace, hash: Cache.hash(tag_names))
-        end
-
         Tag.where(:name => tag_names).update_all("post_count = post_count + 1")
       end
 
@@ -510,119 +505,6 @@ class Tag < ApplicationRecord
             user_id = User.name_to_id(g2)
             q[:uploader_id] = user_id unless user_id.blank?
 
-          when "-approver"
-            if g2 == "none"
-              q[:approver_id] = "any"
-            elsif g2 == "any"
-              q[:approver_id] = "none"
-            else
-              q[:approver_id_neg] ||= []
-              user_id = User.name_to_id(g2)
-              q[:approver_id_neg] << user_id unless user_id.blank?
-            end
-
-          when "approver"
-            if g2 == "none"
-              q[:approver_id] = "none"
-            elsif g2 == "any"
-              q[:approver_id] = "any"
-            else
-              user_id = User.name_to_id(g2)
-              q[:approver_id] = user_id unless user_id.blank?
-            end
-
-          when "flagger"
-            q[:flagger_ids] ||= []
-
-            if g2 == "none"
-              q[:flagger_ids] << "none"
-            elsif g2 == "any"
-              q[:flagger_ids] << "any"
-            else
-              user_id = User.name_to_id(g2)
-              q[:flagger_ids] << user_id unless user_id.blank?
-            end
-
-          when "-flagger"
-            if g2 == "none"
-              q[:flagger_ids] ||= []
-              q[:flagger_ids] << "any"
-            elsif g2 == "any"
-              q[:flagger_ids] ||= []
-              q[:flagger_ids] << "none"
-            else
-              q[:flagger_ids_neg] ||= []
-              user_id = User.name_to_id(g2)
-              q[:flagger_ids_neg] << user_id unless user_id.blank?
-            end
-
-          when "appealer"
-            q[:appealer_ids] ||= []
-
-            if g2 == "none"
-              q[:appealer_ids] << "none"
-            elsif g2 == "any"
-              q[:appealer_ids] << "any"
-            else
-              user_id = User.name_to_id(g2)
-              q[:appealer_ids] << user_id unless user_id.blank?
-            end
-
-          when "-appealer"
-            if g2 == "none"
-              q[:appealer_ids] ||= []
-              q[:appealer_ids] << "any"
-            elsif g2 == "any"
-              q[:appealer_ids] ||= []
-              q[:appealer_ids] << "none"
-            else
-              q[:appealer_ids_neg] ||= []
-              user_id = User.name_to_id(g2)
-              q[:appealer_ids_neg] << user_id unless user_id.blank?
-            end
-
-          when "commenter", "comm"
-            q[:commenter_ids] ||= []
-
-            if g2 == "none"
-              q[:commenter_ids] << "none"
-            elsif g2 == "any"
-              q[:commenter_ids] << "any"
-            else
-              user_id = User.name_to_id(g2)
-              q[:commenter_ids] << user_id unless user_id.blank?
-            end
-
-          when "noter"
-            q[:noter_ids] ||= []
-
-            if g2 == "none"
-              q[:noter_ids] << "none"
-            elsif g2 == "any"
-              q[:noter_ids] << "any"
-            else
-              user_id = User.name_to_id(g2)
-              q[:noter_ids] << user_id unless user_id.blank?
-            end
-
-          when "noteupdater"
-            q[:note_updater_ids] ||= []
-            user_id = User.name_to_id(g2)
-            q[:note_updater_ids] << user_id unless user_id.blank?
-
-          when "artcomm"
-            q[:artcomm_ids] ||= []
-            user_id = User.name_to_id(g2)
-            q[:artcomm_ids] << user_id unless user_id.blank?
-
-          when "disapproval"
-            q[:disapproval] ||= []
-            q[:disapproval] << g2
-
-          when "-disapproval"
-            q[:disapproval_neg] ||= []
-            q[:disapproval_neg] << g2
-
           when "-pool"
             if g2.downcase == "none"
               q[:pool] = "any"
@@ -652,21 +534,6 @@ class Tag < ApplicationRecord
               q[:tags][:related] << "pool:#{Pool.name_to_id(g2)}"
             end
 
-          when "ordpool"
-            pool_id = Pool.name_to_id(g2)
-            q[:tags][:related] << "pool:#{pool_id}"
-            q[:ordpool] = pool_id
-
-          when "set"
-            post_set_id = PostSet.name_to_id(g2)
-            post_set = PostSet.find(post_set_id)
-
-            unless post_set.can_view?(CurrentUser.user)
-              raise User::PrivilegeError
-            end
-
-            q[:tags][:related] << "set:#{post_set_id}"
-
           when "-set"
             post_set_id = PostSet.name_to_id(g2)
             post_set = PostSet.find(post_set_id)
@@ -693,17 +560,6 @@ class Tag < ApplicationRecord
             end
 
             q[:tags][:related] << "fav:#{User.name_to_id(g2)}"
-
-          when "ordfav"
-            user_id = User.name_to_id(g2)
-            favuser = User.find(user_id)
-
-            if favuser.hide_favorites?
-              raise User::PrivilegeError.new
-            end
-
-            q[:tags][:related] << "fav:#{user_id}"
-            q[:ordfav] = user_id
 
           when "search"
             q[:saved_searches] ||= []
