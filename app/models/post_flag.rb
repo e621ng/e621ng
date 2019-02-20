@@ -2,8 +2,7 @@ class PostFlag < ApplicationRecord
   class Error < Exception ; end
 
   module Reasons
-    UNAPPROVED = "Unapproved in three days"
-    REJECTED = "Unapproved in three days after returning to moderation queue%"
+    UNAPPROVED = "Unapproved in 30 days"
     BANNED = "Artist requested removal"
   end
 
@@ -92,15 +91,13 @@ class PostFlag < ApplicationRecord
 
       case params[:category]
       when "normal"
-        q = q.where("reason NOT IN (?) AND reason NOT LIKE ?", [Reasons::UNAPPROVED, Reasons::BANNED], Reasons::REJECTED)
+        q = q.where("reason NOT IN (?)", [Reasons::UNAPPROVED, Reasons::BANNED])
       when "unapproved"
         q = q.where(reason: Reasons::UNAPPROVED)
       when "banned"
         q = q.where(reason: Reasons::BANNED)
-      when "rejected"
-        q = q.where("reason LIKE ?", Reasons::REJECTED)
       when "deleted"
-        q = q.where("reason = ? OR reason LIKE ?", Reasons::UNAPPROVED, Reasons::REJECTED)
+        q = q.where("reason = ? OR reason LIKE ?", Reasons::UNAPPROVED)
       when "duplicate"
         q = q.duplicate
       end
@@ -130,8 +127,6 @@ class PostFlag < ApplicationRecord
     case reason
     when Reasons::UNAPPROVED
       :unapproved
-    when /#{Reasons::REJECTED.gsub("%", ".*")}/
-      :rejected
     when Reasons::BANNED
       :banned
     else
