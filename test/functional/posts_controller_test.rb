@@ -56,18 +56,6 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           assert_response 401
         end
       end
-      
-      context "using the password_hash parameter" do
-        should "succeed for password matches" do
-          get posts_path, params: {:format => "json", :login => @user.name, :password_hash => User.sha1("password")}
-          assert_response :success
-        end
-        
-        # should "fail for password mismatches" do
-        #   get posts_path, {:format => "json", :login => @user.name, :password_hash => "bad"}
-        #   assert_response 403
-        # end
-      end
     end
 
     context "index action" do
