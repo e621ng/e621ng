@@ -18,8 +18,6 @@ class SessionLoader
       load_for_test(Thread.current[:test_user_id])
     elsif session[:user_id]
       load_session_user
-    elsif cookie_password_hash_valid?
-      load_cookie_user
     else
       load_session_for_api
     end
@@ -46,12 +44,8 @@ private
   def load_session_for_api
     if request.authorization
       authenticate_basic_auth
-      
     elsif params[:login].present? && params[:api_key].present?
       authenticate_api_key(params[:login], params[:api_key])
-      
-    elsif params[:login].present? && params[:password_hash].present?
-      authenticate_legacy_api_key(params[:login], params[:password_hash])
     end
   end
   
@@ -68,27 +62,10 @@ private
       raise AuthenticationFailure.new
     end
   end
-  
-  def authenticate_legacy_api_key(name, password_hash)
-    CurrentUser.user = User.authenticate_hash(name, password_hash)
-
-    if CurrentUser.user.nil?
-      raise AuthenticationFailure.new
-    end
-  end
 
   def load_session_user
     user = User.find_by_id(session[:user_id])
     CurrentUser.user = user if user
-  end
-
-  def load_cookie_user
-    CurrentUser.user = User.find_by_name(cookies.signed[:user_name])
-    session[:user_id] = CurrentUser.user.id
-  end
-
-  def cookie_password_hash_valid?
-    cookies[:password_hash] && cookies.signed[:user_name] && User.authenticate_cookie_hash(cookies.signed[:user_name], cookies[:password_hash])
   end
 
   def update_last_logged_in_at

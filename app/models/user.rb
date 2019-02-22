@@ -176,10 +176,6 @@ class User < ApplicationRecord
       BCrypt::Password.new(bcrypt_password_hash)
     end
 
-    def bcrypt_cookie_password_hash
-      bcrypt_password_hash.slice(20, 100)
-    end
-
     def encrypt_password_on_create
       self.password_hash = ""
       self.bcrypt_password_hash = User.bcrypt(password)
@@ -189,13 +185,17 @@ class User < ApplicationRecord
       return if password.blank?
       return if old_password.blank?
 
-      if bcrypt_password == User.sha1(old_password)
+      if bcrypt_password == old_password
         self.bcrypt_password_hash = User.bcrypt(password)
         return true
       else
         errors[:old_password] << "is incorrect"
         return false
       end
+    end
+
+    def upgrade_password(pass)
+      self.update_columns(password_hash: '', bcrypt_password_hash: User.bcrypt(pass))
     end
 
     def reset_password
@@ -224,7 +224,15 @@ class User < ApplicationRecord
 
     module ClassMethods
       def authenticate(name, pass)
-        authenticate_hash(name, sha1(pass))
+        user = find_by_name(name)
+        if user && user.password_hash && PBKDF2.validate_password(pass, user.password_hash)
+          user.upgrade_password(pass)
+          user
+        elsif user && user.bcrypt_password_hash && user.bcrypt_password == pass
+          user
+        else
+          nil
+        end
       end
 
       def authenticate_api_key(name, api_key)
@@ -236,30 +244,8 @@ class User < ApplicationRecord
         nil
       end
 
-      def authenticate_hash(name, hash)
-        user = find_by_name(name)
-        if user && user.bcrypt_password == hash
-          user
-        else
-          nil
-        end
-      end
-
-      def authenticate_cookie_hash(name, hash)
-        user = find_by_name(name)
-        if user && user.bcrypt_cookie_password_hash == hash
-          user
-        else
-          nil
-        end
-      end
-
       def bcrypt(pass)
-        BCrypt::Password.create(sha1(pass))
-      end
-
-      def sha1(pass)
-        Digest::SHA1.hexdigest("#{Danbooru.config.password_salt}--#{pass}--")
+        BCrypt::Password.create(pass)
       end
     end
   end
