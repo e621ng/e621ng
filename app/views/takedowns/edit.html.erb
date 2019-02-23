@@ -1,0 +1,372 @@
+<div id="c-takedowns">
+  <div id="c-edit">
+    <h2>Takedown #<%= @takedown.id %></h2>
+    <div class='section'>
+      <table style="margin-bottom:0px;">
+        <tr>
+          <td><span class='title'>Source</span></td>
+          <td>
+            <% if !@takedown.reason_hidden || current_user.is_admin? || @show_instructions %>
+              <% if @takedown.source.match(/^https?:\/\//i) %>
+                <a href='<%= h @takedown.source %>'><%= h @takedown.source %></a>
+              <% else %>
+                <a href='<%= h "http://" + @takedown.source %>'><%= h @takedown.source %></a>
+              <% end %>
+            <% else %>
+              <span class="redtext">[Source hidden by submitter]</span>
+            <% end %>
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class='title'>Reason</span></td>
+          <% if !@takedown.reason_hidden || current_user.is_admin? || @show_instructions %>
+            <td><%= h @takedown.reason %>
+              <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span>
+              <% end %></td>
+          <% else %>
+            <td><span class="redtext">[Reason hidden by submitter]</span></td>
+          <% end %>
+        </tr>
+
+        <tr>
+          <td colspan="2">&nbsp;</td>
+        </tr>
+
+        <% if current_user.is_admin? %>
+          <tr>
+            <td><span class='title'>Vericode</span></td>
+            <td><%= @takedown.vericode %></td>
+          </tr>
+
+          <tr>
+            <td><span class='title'>Email</span></td>
+            <td><a href="mailto:<%= h @takedown.email %>"><%= h @takedown.email %></a></td>
+          </tr>
+
+          <tr>
+            <td><span class='title'>IP Addr</span></td>
+            <td><%= ip_to_link(@takedown.ip_addr) %></td>
+          </tr>
+
+          <tr>
+            <td><span class='title'>User</span></td>
+            <td><%= link_to_if(@takedown.user, @takedown.user_name, controller: :user, action: :show, id: @takedown.user ? @takedown.user.id : 0) %></td>
+          </tr>
+
+          <tr>
+            <td colspan="2">&nbsp;</td>
+          </tr>
+        <% end %>
+
+        <tr>
+          <td><span class='title'>Created</span></td>
+          <td style="cursor:help;" title="<%= @takedown.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.created_at) %>
+            ago
+          </td>
+        </tr>
+
+        <% if @takedown.created_at != @takedown.updated_at %>
+          <tr>
+            <td><span class='title'>Handled</span></td>
+            <td style="cursor:help;" title="<%= @takedown.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.updated_at) %>
+              ago
+            </td>
+          </tr>
+        <% end %>
+
+        <tr>
+          <td><span class='title'>Status</span></td>
+          <td>
+            <% if @takedown.status == "pending" %>
+              Pending
+            <% elsif @takedown.status == "inactive" %>
+              Inactive
+            <% elsif @takedown.status == "partial" %>
+              <span class='yellowtext'>Partially Approved</span>
+            <% elsif @takedown.status == "denied" %>
+              <span class='redtext'>Denied</span>
+            <% elsif @takedown.status == "approved" %>
+              <span class='greentext'>Approved</span>
+            <% end %>
+          </td>
+        </tr>
+
+        <% if @takedown.status != "pending" %>
+          <tr>
+            <td><span class='title'>Approver</span></td>
+
+            <td><%= link_to User.find(@takedown.approver).name, {controller: "user", action: "show", id: @takedown.approver} %></td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <% if !@takedown.notes.blank? && @takedown.notes.downcase != "none" %>
+      <h3>Admin notes</h3>
+      <div class="section">
+        <% if !@takedown.reason_hidden || current_user.is_admin? %>
+          <%= format_text(@takedown.notes) %>
+          <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span>
+          <% end %>
+        <% else %>
+          <span class="redtext">[Admin notes hidden]</span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @show_instructions || current_user.is_admin? %>
+      <% if !@takedown.instructions.blank? %>
+        <h3>Special instructions</h3>
+        <div class="section">
+          <%= h @takedown.instructions %>
+        </div>
+      <% end %>
+
+      <% if @takedown.status == "pending" && !current_user.is_admin? && !@takedown.takedown_posts.blank? %>
+        <div class='section'>
+          <p>The following posts are up for dispute:</p>
+          <% @takedown.kept_posts.each do |post| %>
+            <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}) %><br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "inactive" && !@takedown.takedown_posts.blank? %>
+        <div class='section sect_grey'>
+          <p style="margin-bottom:0px;">This takedown request has been marked as inactive as the submitter has not
+            responded in a reasonable time frame. It will be handled once the submitter responds.</p>
+          <% if !current_user.is_admin? %>
+            <br>
+            <p>The following posts are up for dispute:</p>
+            <% @takedown.kept_posts.each do |post| %>
+              <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}) %><br>
+            <% end %>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "denied" %>
+        <div class='section sect_red'>
+          <p>The request has been denied. The following posts were not removed:</p>
+          <% @takedown.kept_posts.each do |post| %>
+            <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}) %><br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "partial" %>
+        <div class='section sect_green'>
+          <p>The request has been partially approved. The following posts were removed:</p>
+          <% @takedown.deleted_posts.each do |post| %>
+            <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}, class: "takedown_post_deleted") %>
+            <br>
+          <% end %>
+        </div>
+
+        <div class='section sect_red'>
+          <p>The following posts were kept:</p>
+          <% @takedown.kept_posts.each do |post| %>
+            <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}, class: "takedown_post_kept") %>
+            <br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "approved" %>
+        <div class='section sect_green'>
+          <p>The request has been approved. The following posts were removed:</p>
+          <% @takedown.deleted_posts.each do |post| %>
+            <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}) %><br>
+          <% end %>
+        </div>
+      <% end %>
+    <% elsif !current_user.is_admin? %>
+      <div class="section">
+        Post lists and special instructions are not visible to users.
+      </div>
+    <% end %>
+
+    <% if current_user.is_admin? %>
+      <% form_tag(controller: "takedown", action: "update") do %>
+        <%= hidden_field_tag "id", @takedown.id %>
+
+        <h2>Post list</h2>
+        <div id="takedown-posts" class="section">
+          <%= check_box_tag "process_takedown", true, true %>
+          <label for="process_takedown">Process takedown and delete posts</label>
+          <br><br>
+
+          <label for="takedown_post_delete_reason">Post deletion reason</label><br>
+          <%= text_field_tag "delete_reason", "Artist requested removal", {size: 80} %>
+          <br><br>
+
+          <div id="takedown-keepall" class="takedown-post-label takedown-postall-label takedown-post-keep">Keep all
+          </div>
+          <div id="takedown-deleteall" class="takedown-post-label takedown-postall-label takedown-post-delete">Delete
+            all
+          </div>
+          <br><br>
+
+          <div id="takedown-post-buttons">
+            <% @takedown.takedown_posts.each do |post| %>
+              <% if post.post %>
+                <div id="takedown-post-<%= post.post_id %>" data-post-id="<%= post.post_id %>" class="takedown-post">
+                  <div class="takedown-post-label takedown-post-remove" title="Remove this post from the takedown">X</div>
+                  <label for="takedown_posts_<%= post.post_id %>" class="takedown-post-label"><%= check_box "takedown_posts", post.post_id, checked: post.status == "deleted" %>
+                    <span>Keep</span></label>
+
+                  <span class="<%= post.post.status == 'deleted' ? 'redtext' : 'greentext' %>">
+                <%= link_to("post ##{post.post_id}", {controller: "post", action: "show", id: post.post_id}) %>
+              </span>
+                </div>
+              <% else %>
+                <div id="takedown-post-<%= post.post_id %>" data-post-id="<%= post.post_id %>" class="takedown-post">
+                  <div class="takedown-post-label takedown-post-remove" title="Remove this post from the takedown">X</div>
+                  Post <%= post.post_id %> was destroyed or not found.
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <label for="takedown-add-posts-tags">Add posts with tags:</label><br>
+          <%= text_field_tag "takedown-add-posts-tags", "", size: 40 %>
+          <%= button_to_function "Add", "Takedown.add_posts_by_tags_preview(#{@takedown.id}, jQuery('#takedown-add-posts-tags').val());", id: "takedown-add-posts-tags-preview", disabled: true %>
+          <%= button_to_function "Confirm", "Takedown.add_posts_by_tags(#{@takedown.id}, jQuery('#takedown-add-posts-tags').val());", id: "takedown-add-posts-tags-confirm" %>
+          <%= button_to_function "Cancel", "Takedown.add_posts_by_tags_cancel();", id: "takedown-add-posts-tags-cancel" %>
+          <div id="takedown-add-posts-tags-warning"></div>
+          <br><br>
+
+          <label for="takedown-add-posts-ids">Add post IDs to takedown (space-separated):</label><br>
+          <%= text_field_tag "takedown-add-posts-ids", "", size: 40 %>
+          <%= button_to_function "Add", "Takedown.add_posts_by_ids(#{@takedown.id}, jQuery('#takedown-add-posts-ids').val())", id: "takedown-add-posts-ids-submit", disabled: true %>
+        </div>
+
+        <h2>Update</h2>
+        <div class='section'>
+          <table style="margin-bottom:0px;">
+            <% if @takedown.status == "pending" || @takedown.status == "inactive" %>
+              <tr>
+                <td><label for="status">Status</label></td>
+                <td><%= select_tag "takedown[status]", options_for_select([["Pending", "pending"], ["Inactive", "inactive"]], @takedown.status) %>
+                  <span id="post-status-select"></span></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td><label for="takedown_notes">Admin notes</label></td>
+              <td>
+                <textarea id="takedown_notes" rows="6" name="takedown[notes]" cols="62"><%= @takedown.notes %></textarea>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan='2'><%= check_box "takedown", "reason_hidden", checked: @takedown.reason_hidden %>
+                <label for="takedown_reason_hidden">Hide Reason?
+                  (Currently
+                  <% if !@takedown.reason_hidden %><span class='greentext'>not hidden</span>
+                  <% else %><span class='redtext'>hidden</span>
+                  <% end %>)
+                </label></td>
+            </tr>
+          </table>
+        </div>
+
+        <%= submit_tag "Submit", value: "Update" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>
+
+<script type="text/javascript">
+    jQuery(function () {
+        jQuery("body").on("change", "[id^='takedown_posts_']", function () {
+            // Update labels when checkboxes are changed
+            var label = jQuery("label[for=" + jQuery(this).attr("id") + "]");
+            if (jQuery(this).prop("checked"))
+                label.removeClass("takedown-post-keep").addClass("takedown-post-delete").find("> span").html("Delete");
+            else
+                label.removeClass("takedown-post-delete").addClass("takedown-post-keep").find("> span").html("Keep");
+
+            // Update text next to status dropdown based on kept/deleted post count
+            var kept_count = jQuery("label.takedown-post-keep").length;
+            var deleted_count = jQuery("label.takedown-post-delete").length;
+
+            if (kept_count == 0) { // None are kept, so takedown status will be 'approved'
+                jQuery("#post-status-select").html("Status will be set to Approved");
+            } else if (deleted_count == 0) { // None are deleted, so takedown status will be 'denied'
+                jQuery("#post-status-select").html("Status will be set to Denied");
+            } else { // Some kept, some deleted, so takedown status will be 'partial'
+                jQuery("#post-status-select").html("Status will be set to Partially Approved");
+            }
+        });
+
+        var originalHeight = jQuery("#takedown-posts").height();
+        // Toggle post list div based on 'process takedown' checkbox state
+        jQuery("#process_takedown").change(function () {
+            if (jQuery(this).prop("checked")) {
+                // Animate to the original height since jquery can't animate to 'auto', then set height back to auto after the animation finishes
+                jQuery("#takedown-posts").animate({
+                    height: originalHeight,
+                }, 500, function () {
+                    jQuery(this).css("height", "auto");
+                });
+
+                jQuery("#takedown_status").attr("disabled", true);
+                jQuery("#post-status-select").fadeIn();
+            } else {
+                originalHeight = jQuery("#takedown-posts").height();
+                jQuery("#takedown-posts").animate({
+                    height: 20,
+                }, 500);
+
+                jQuery("#takedown_status").attr("disabled", false);
+                jQuery("#post-status-select").fadeOut();
+            }
+        });
+
+        // Delete all
+        jQuery("#takedown-deleteall").click(function () {
+            jQuery("[id^='takedown_posts_']").each(function () {
+                jQuery(this).prop("checked", true).trigger("change");
+            });
+        });
+
+        // Keep all
+        jQuery("#takedown-keepall").click(function () {
+            jQuery("[id^='takedown_posts_']").each(function () {
+                jQuery(this).prop("checked", false).trigger("change");
+            });
+        });
+
+        // Remove post
+        jQuery("body").on("click", ".takedown-post-remove", function () {
+            Takedown.remove_post(<%= @takedown.id %>, jQuery(this).parent().data("post-id"));
+        });
+
+        // Enable/disable add-post input submit buttons if input is filled/blank
+        jQuery("#takedown-add-posts-tags").keyup(function (e) {
+            jQuery("#takedown-add-posts-tags-preview").prop("disabled", jQuery(this).val().length == 0)
+        });
+        jQuery("#takedown-add-posts-ids").keyup(function (e) {
+            jQuery("#takedown-add-posts-ids-submit").prop("disabled", jQuery(this).val().length == 0)
+        });
+
+        // Handle enter keys in add-post inputs
+        jQuery("#takedown-add-posts-tags").keydown(function (e) {
+            if (e.keyCode == 13) {
+                jQuery("#takedown-add-posts-tags-preview:enabled").click();
+                e.preventDefault();
+                return false;
+            }
+        });
+        jQuery("#takedown-add-posts-ids").keydown(function (e) {
+            if (e.keyCode == 13) {
+                jQuery("#takedown-add-posts-ids-submit:enabled").click();
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Trigger change event for elements to run their update handlers
+        jQuery("#process_takedown").trigger("change");
+        jQuery("[id^='takedown_posts_']").trigger("change");
+    });
+</script>

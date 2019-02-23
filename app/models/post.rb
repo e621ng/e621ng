@@ -1377,7 +1377,7 @@ class Post < ApplicationRecord
     end
 
     def delete!(reason, options = {})
-      if is_status_locked?
+      if is_status_locked? && !options.fetch(:force, false)
         self.errors.add(:is_status_locked, "; cannot delete post")
         return false
       end

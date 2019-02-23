@@ -40,6 +40,10 @@ module Danbooru
       "webmaster@#{server_host}"
     end
 
+    def takedown_email
+      "management@#{server_host}"
+    end
+
     # System actions, such as sending automated dmails, will be performed with
     # this account. This account must have Moderator privileges.
     #

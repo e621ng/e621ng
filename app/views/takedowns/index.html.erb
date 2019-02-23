@@ -1,0 +1,62 @@
+<div id="c-takedowns">
+  <div id="a-index">
+    <%#= render 'search', path: takedowns_path %>
+    <table class="striped" width="100%">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Source</th>
+        <% if CurrentUser.is_admin? %>
+          <th>Email</th>
+          <th>IP Address</th>
+        <% end %>
+        <th>Status</th>
+        <th>>Post count</th>
+        <th>Date</th>
+        <th width="5%"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @takedowns.each do |takedown| %>
+        <%= content_tag(:tr, id: "takedown-#{takedown.id}") do %>
+          <td><%= link_to takedown.id, takedown_path(takedown) %></td>
+          <td>
+            <% if !takedown.reason_hidden || CurrentUser.is_admin? %>
+              <% if takedown.source.match(/\Ahttps?:\/\//i) %>
+                <%= link_to takedown.source, takedown.source %>
+              <% else %>
+                <%= link_to takedown.source, "https://#{takedown.source}" %>
+              <% end %>
+            <% else %>
+              <span class="redtext">(Source hidden)</span>
+            <% end %>
+          </td>
+
+          <% if CurrentUser.is_admin? %>
+            <td><%= takedown.email %></td>
+            <td><%= takedown.ip_addr %></td>
+          <% end %>
+
+          <%= pretty_status(takedown.status) %>
+
+          <td><%= takedown.post_count %></td>
+
+          <td><%= time_ago_in_words_tagged takedown.created_at %></td>
+          <% if Currentuser.is_admin? %>
+<!--            <td><%#= link_to_function "Delete", "if (confirm('Do you really want to delete this takedown?')) {Takedown.destroy(#{takedown.id})}" %></td>-->
+          <% end %>
+          </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@takedowns) %>
+  </div>
+</div>
+
+<%= render "takedowns/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Takedowns - <%= Danbooru.config.app_name %>
+<% end %>

@@ -1,0 +1,9 @@
+<% content_for(:secondary_links) do %>
+  <menu>
+    <%= subnav_link_to "Listing", takedowns_path %>
+    <%= subnav_link_to "New", new_takedown_path %>
+    <% if CurrentUser.is_admin? && params[:action] == 'show' %>
+      <%= subnav_link_to 'Delete', {action: 'destroy', id: @takedown.id}, confirm: 'Are you sure you want to dele this takedown?' %>
+    <% end %>
+  </menu>
+<% end %>
