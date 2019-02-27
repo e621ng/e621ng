@@ -1,0 +1,55 @@
+<% unless params[:show] %><div id='searchform_hide'><%= link_to_function "Show Search Options", "$j('#searchform').fadeIn('fast'); $('searchform_hide').hide();" %></div><% end %>
+<div class='section' style='width:400px;<% unless params[:show] %>display:none;<% end %>' id='searchform'>
+  <% unless params[:show] %><%= link_to_function "Hide Search Options", "$j('#searchform').fadeOut('fast'); $('searchform_hide').show();" %><% end %>
+  <% form_tag({action: "index"}, method: :get) do %>
+    <table class='nomargin'>
+      <tr><td><label for="source">Source</label></td><td><%= text_field_tag "source", params[:source], style: "width:195px"%></td></tr>
+      <tr><td><label for="reason">Reason</label></td><td><%= text_field_tag "reason", params[:reason], style: "width:195px"%></td></tr>
+      <tr><td><label for="notes">Admin Response</label></td><td><%= text_field_tag "notes", params[:notes], style: "width:195px"%></td></tr>
+
+      <% if current_user.is_admin? %>
+        <tr><td><label for="reason_hidden">Reason hidden?</label></td><td>
+          <%= select_tag "reason_hidden", options_for_select([
+                                                                 ["Any", "any"],
+                                                                 ["Yes", "true"],
+                                                                 ["No", "false"],
+                                                             ], params[:reason_hidden]), style: "width:200px;" %>
+        </td></tr>
+
+        <tr><td><label for="instructions">Instructions</label></td><td><%= text_field_tag "instructions", params[:instructions], style: "width:195px"%></td></tr>
+        <tr><td><label for="post_id">Post ID</label></td><td><%= text_field_tag "post_id", params[:post_id], style: "width:195px"%></td></tr>
+        <tr><td><label for="email">Email</label></td><td><%= text_field_tag "email", params[:email], style: "width:195px"%></td></tr>
+        <tr><td><label for="ip_addr">IP Address</label></td><td><%= text_field_tag "ip_addr", params[:ip_addr], style: "width:195px"%></td></tr>
+        <tr><td><label for="vericode">Vericode</label></td><td><%= text_field_tag "vericode", params[:vericode], style: "width:195px"%></td></tr>
+      <% end %>
+
+      <tr><td><label for="status">Status</label></td><td>
+        <%= select_tag "status", options_for_select([
+                                                        ["Any", "any"],
+                                                        ["Pending", "pending"],
+                                                        ["Inactive", "inactive"],
+                                                        ["Denied", "denied"],
+                                                        ["Partially Approved", "partial"],
+                                                        ["Approved", "approved"]
+                                                    ], params[:status]), style: "width:200px;" %>
+      </td></tr>
+      <tr><td><label for="order">Order</label></td><td>
+        <%= select_tag "order", options_for_select([
+                                                       ["Date", "date"],
+                                                       ["Source", "source"],
+                                                       ["Email", "email"],
+                                                       ["IP Address", "ip_addr"],
+                                                       ["Status", "status"],
+                                                       ["Post count", "post_count"]
+                                                   ], params[:order]), style: "width:200px;" %>
+      </td></tr>
+      <tr><td colspan="2"><%= submit_tag "Search", name: nil %></td></tr>
+    </table>
+    <% if params[:show] %>
+      <input type='hidden' name='show' value='1'/>
+    <% end %>
+  <% end %>
+</div>
+<% if params[:source] || params[:reason] || params[:notes] || params[:reason_hidden] || params[:instructions] || params[:post_id] || params[:email] || params[:ip_addr] || params[:vericode] || params[:status] || params[:order] %>
+  <script type='text/javascript'>$('searchform_hide').hide(); $('searchform').show();</script>
+<% end %>

@@ -1802,6 +1802,50 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: takedowns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.takedowns (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    creator_id integer,
+    creator_ip_addr inet NOT NULL,
+    approver_id integer,
+    status character varying DEFAULT 'pending'::character varying,
+    vericode character varying NOT NULL,
+    source character varying,
+    email character varying,
+    reason text,
+    reason_hidden boolean DEFAULT false NOT NULL,
+    notes text DEFAULT 'none'::text NOT NULL,
+    instructions text,
+    post_ids text DEFAULT ''::text,
+    del_post_ids text DEFAULT ''::text,
+    post_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: takedowns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.takedowns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: takedowns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.takedowns_id_seq OWNED BY public.takedowns.id;
+
+
+--
 -- Name: token_buckets; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2461,6 +2505,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: takedowns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.takedowns ALTER COLUMN id SET DEFAULT nextval('public.takedowns_id_seq'::regclass);
+
+
+--
 -- Name: upload_whitelists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2890,6 +2941,14 @@ ALTER TABLE ONLY public.tag_subscriptions
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: takedowns takedowns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.takedowns
+    ADD CONSTRAINT takedowns_pkey PRIMARY KEY (id);
 
 
 --
@@ -4242,6 +4301,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190214040324'),
 ('20190214090126'),
 ('20190220025517'),
-('20190220041928');
+('20190220041928'),
+('20190222082952');
 
 

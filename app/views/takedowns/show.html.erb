@@ -1,0 +1,180 @@
+<div id="c-takedowns">
+  <div id="c-show">
+    <% if @show_instructions && (!@takedown.completed?) %>
+      <div class='box-section sect_red'>
+        <div style="font-size:2rem;margin-top:0;margin-bottom:1rem;">Wait! You're not done yet!</div>
+        <p>Your verification code is <span class='takedown-vericode'><%= @takedown.vericode %></span></p>
+        <p>Your takedown request has been successfully created. Using the gallery account that you specified below as the "source", <span style="font-weight:bold;">please send your verification code via PM/note to</span>:</p>
+
+        <ul>
+          <% Danbooru.config.takedown_links.each do |link| %>
+            <li><%= link_to link, link %></li>
+          <% end %>
+          <li>Or via email from your personal website (e.g. from me@mywebsite.com to <%= Danbooru.config.takedown_email %>)</li>
+        </ul>
+
+        <p>Once you send the verification code, we can process your takedown. This step is necessary in order to confirm that you are who you claim to be.</p>
+        <p>Bookmark this page to be able to access your verification code later, as it will not appear when viewing the takedown otherwise.</p>
+      </div>
+    <% end %>
+
+    <h2>Takedown #<%= @takedown.id %></h2>
+    <div class='box-section'>
+      <table style="margin-bottom:0px;">
+        <tr>
+          <td><label>Source</label></td>
+          <td>
+            <% if !@takedown.reason_hidden  || CurrentUser.is_admin? || @show_instructions %>
+              <% if @takedown.source.match(/^https?:\/\//i) %>
+                <%= link_to @takedown.source, @takedown.source, rel: "noopener noreferrer nofollow" %>
+              <% else %>
+                <%= link_to @takedown.source, "https://#{@takedown.source}", rel: "noopener noreferrer nofollow" %>
+              <% end %>
+            <% else %>
+              <span class="redtext">[Source hidden by submitter]</span>
+            <% end %>
+          </td>
+        </tr>
+
+        <tr>
+          <td><label>Reason</label></td>
+          <% if !@takedown.reason_hidden || CurrentUser.is_admin? || @show_instructions %>
+            <td><%= h @takedown.reason %>
+              <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %></td>
+          <% else %>
+            <td><span class="redtext">[Reason hidden by submitter]</span></td>
+          <% end %>
+        </tr>
+
+        <tr><td colspan="2">&nbsp;</td></tr>
+
+        <% if CurrentUser.is_admin? %>
+          <tr>
+            <td><label>Vericode</label></td>
+            <td><%= @takedown.vericode %></td>
+          </tr>
+
+          <tr>
+            <td><label>Email</label></td>
+            <td><%= link_to @takedown.email, "mailto:#{@takedown.email}", rel: "noopener noreferrer nofollow" %></td>
+          </tr>
+
+          <tr>
+            <td><label>IP Addr</label></td>
+            <td><%= link_to_ip(@takedown.creator_ip_addr) %></td>
+          </tr>
+
+          <tr>
+            <td><label>User</label></td>
+            <td><%= link_to_user @takedown.creator %></td>
+          </tr>
+
+          <tr><td colspan="2">&nbsp;</td></tr>
+        <% end %>
+
+        <tr>
+          <td><label>Created</label></td>
+          <td style="cursor:help;" title="<%= @takedown.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.created_at) %> ago</td>
+        </tr>
+
+        <% if @takedown.created_at != @takedown.updated_at %>
+          <tr>
+            <td><label>Handled</label></td>
+            <td style="cursor:help;" title="<%= @takedown.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.updated_at) %> ago</td>
+          </tr>
+        <% end %>
+
+        <tr>
+          <td><label>Status</label></td>
+          <%= pretty_status(@takedown) %>
+        </tr>
+
+        <% if @takedown.status != "pending" %>
+          <tr>
+            <td><label>Approver</label></td>
+
+            <td><%= link_to_user @takedown.approver %></td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <% if !@takedown.notes.blank? && @takedown.notes.downcase != "none" %>
+      <h3>Admin notes</h3>
+      <div class="box-section">
+        <% if !@takedown.reason_hidden || CurrentUser.is_admin? %>
+          <%= format_text(@takedown.notes) %>
+          <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %>
+        <% else %>
+          <span class="redtext">[Admin notes hidden]</span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @show_instructions || CurrentUser.is_admin? %>
+      <% if !@takedown.instructions.blank? %>
+        <h3>Special instructions</h3>
+        <div class="box-section">
+          <%= h @takedown.instructions %>
+        </div>
+      <% end %>
+
+      <% if @takedown.status == "pending" && !@takedown.kept_post_array.blank? %>
+        <div class='box-section'>
+          <p>The following posts are up for dispute:</p>
+          <% @takedown.actual_kept_posts.each do |post| %>
+            <%= link_to("post ##{post.id}", post_path(post)) %><br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "inactive" && !@takedown.takedown_posts.blank? %>
+        <div class='box-section sect_grey'>
+          <p style="margin-bottom:0px;">This takedown request has been marked as inactive as the submitter has not responded in a reasonable time frame. It will be handled once the submitter responds.</p>
+            <br>
+            <p>The following posts are up for dispute:</p>
+            <% @takedown.actual_kept_posts.each do |post| %>
+              <%= link_to("post ##{post.id}", post_path(post)) %><br>
+            <% end %>
+        </div>
+
+      <% elsif @takedown.status == "denied" %>
+        <div class='box-section sect_red'>
+          <p>The request has been denied. The following posts were not removed:</p>
+          <% @takedown.actual_kept_posts.each do |post| %>
+            <%= link_to("post ##{post.id}", post_path(post)) %><br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "partial" %>
+        <div class='box-section sect_green'>
+          <p>The request has been partially approved. The following posts were removed:</p>
+          <% @takedown.actual_deleted_posts.each do |post| %>
+            <%= link_to("post ##{post.id}", post_path(post), class: "takedown_post_deleted") %><br>
+          <% end %>
+        </div>
+
+        <div class='box-section sect_red'>
+          <p>The following posts were kept:</p>
+          <% @takedown.actual_kept_posts.each do |post| %>
+            <%= link_to("post ##{post.id}", post_path(post), class: "takedown_post_kept") %><br>
+          <% end %>
+        </div>
+
+      <% elsif @takedown.status == "approved" %>
+        <div class='box-section sect_green'>
+          <p>The request has been approved. The following posts were removed:</p>
+          <% @takedown.actual_deleted_posts.each do |post| %>
+            <%= link_to("post ##{post.id}", post_path(post)) %><br>
+          <% end %>
+        </div>
+      <% end %>
+    <% elsif !CurrentUser.is_admin? %>
+      <div class="box-section">
+        Post lists and special instructions are not visible to users.
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>

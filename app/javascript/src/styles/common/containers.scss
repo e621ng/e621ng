@@ -1,0 +1,19 @@
+@import "../base/000_vars.scss";
+
+.box-section {
+  background-color: $menu-color;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.box-section.sect_green {
+  background-color: $success_color;
+}
+
+.box-section.sect_grey {
+  background-color: $grey_color;
+}
+
+.box-section.sect_red {
+  background-color: $error_color;
+}

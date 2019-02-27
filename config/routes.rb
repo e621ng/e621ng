@@ -74,6 +74,17 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :takedowns do
+    collection do
+      post :count_matching_posts
+    end
+    member do
+      post :add_by_ids
+      post :add_by_tags
+      post :remove_by_ids
+    end
+  end
+
   resources :artists do
     member do
       put :revert

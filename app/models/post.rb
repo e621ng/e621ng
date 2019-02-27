@@ -346,7 +346,7 @@ class Post < ApplicationRecord
 
     def normalized_source
       case source
-      when %r{\Ahttps?://img\d+\.pixiv\.net/img/[^\/]+/(\d+)}i, 
+      when %r{\Ahttps?://img\d+\.pixiv\.net/img/[^\/]+/(\d+)}i,
            %r{\Ahttps?://i\d\.pixiv\.net/img\d+/img/[^\/]+/(\d+)}i
         "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{$1}"
 
@@ -355,7 +355,7 @@ class Post < ApplicationRecord
            %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/img-zip-ugoira/img/(?:\d+\/)+(\d+)_ugoira\d+x\d+\.zip}i
         "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{$1}"
 
-      when %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/(\d+)\?e=\d+&h=[a-f0-9]+}i, 
+      when %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/(\d+)\?e=\d+&h=[a-f0-9]+}i,
            %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/[a-f0-9]+/\d+/(\d+)}i
         "https://seiga.nicovideo.jp/seiga/im#{$1}"
 
@@ -432,7 +432,7 @@ class Post < ApplicationRecord
         subdomain = $1
         filename = $2
         "http://#{subdomain}.wikia.com/wiki/File:#{filename}"
-        
+
       when %r{\Ahttps?://vignette(?:\d*)\.wikia\.nocookie\.net/([^/]+)/images/[a-f0-9]/[a-f0-9]{2}/([^/]+)}i
         subdomain = $1
         filename = $2
@@ -448,34 +448,34 @@ class Post < ApplicationRecord
 
       when %r{\Ahttp://jpg\.nijigen-daiaru\.com/(\d+)}i
         "http://nijigen-daiaru.com/book.php?idb=#{$1}"
-        
+
       when %r{\Ahttps?://sozai\.doujinantena\.com/contents_jpg/([a-f0-9]{32})/}i
         "http://doujinantena.com/page.php?id=#{$1}"
 
       when %r{\Ahttp://rule34-(?:data-\d{3}|images)\.paheal\.net/(?:_images/)?([a-f0-9]{32})}i
         "https://rule34.paheal.net/post/list/md5:#{$1}/1"
-        
+
       when %r{\Ahttp://shimmie\.katawa-shoujo\.com/image/(\d+)}i
         "https://shimmie.katawa-shoujo.com/post/view/#{$1}"
-        
+
       when %r{\Ahttp://(?:(?:(?:img\d?|cdn)\.)?rule34\.xxx|img\.booru\.org/(?:rule34|r34))(?:/(?:img/rule34|r34))?/{1,2}images/\d+/(?:[a-f0-9]{32}|[a-f0-9]{40})\.}i
         "https://rule34.xxx/index.php?page=post&s=list&md5=#{md5}"
-        
+
       when %r{\Ahttps?://(?:s3\.amazonaws\.com/imgly_production|img\.ly/system/uploads)/((?:\d{3}/){3}|\d+/)}i
         imgly_id = $1
         imgly_id = imgly_id.gsub(/[^0-9]/, '')
         base_62 = imgly_id.to_i.encode62
         "https://img.ly/#{base_62}"
-        
+
       when %r{(\Ahttp://.+)/diarypro/d(?:ata/upfile/|iary\.cgi\?mode=image&upfile=)(\d+)}i
         base_url = $1
         entry_no = $2
         "#{base_url}/diarypro/diary.cgi?no=#{entry_no}"
-        
+
       # XXX site is defunct
       when %r{\Ahttp://i(?:\d)?\.minus\.com/(?:i|j)([^\.]{12,})}i
         "http://minus.com/i/#{$1}"
-        
+
       when %r{\Ahttps?://pic0[1-4]\.nijie\.info/nijie_picture/(?:diff/main/)?\d+_(\d+)_(?:\d+{10}|\d+_\d+{14})}i
         "https://nijie.info/view.php?id=#{$1}"
 
@@ -503,7 +503,7 @@ class Post < ApplicationRecord
       # https://gfee_li.artstation.com/projects/asuka-7
       when %r{\Ahttps?://\w+\.artstation.com/(?:artwork|projects)/(?<project_id>[a-z0-9-]+)\z/}i
         "https://www.artstation.com/artwork/#{$~[:project_id]}"
-        
+
       when %r{\Ahttps?://(?:o|image-proxy-origin)\.twimg\.com/\d/proxy\.jpg\?t=(\w+)&}i
         str = Base64.decode64($1)
         url = URI.extract(str, ['http', 'https'])
@@ -1377,7 +1377,7 @@ class Post < ApplicationRecord
     end
 
     def delete!(reason, options = {})
-      if is_status_locked?
+      if is_status_locked? && !options.fetch(:force, false)
         self.errors.add(:is_status_locked, "; cannot delete post")
         return false
       end
@@ -1402,8 +1402,8 @@ class Post < ApplicationRecord
       end
     end
 
-    def undelete!
-      if is_status_locked?
+    def undelete!(options = {})
+      if is_status_locked? && !options.fetch(:force, false)
         self.errors.add(:is_status_locked, "; cannot undelete post")
         return false
       end
@@ -1420,7 +1420,9 @@ class Post < ApplicationRecord
       save
       move_files_on_undelete
       approvals.create(user: CurrentUser.user)
-      ModAction.log("undeleted post ##{id}",:post_undelete)
+      unless options[:without_mod_action]
+        ModAction.log("undeleted post ##{id}", :post_undelete)
+      end
     end
 
     def replace!(params)
@@ -1740,7 +1742,7 @@ class Post < ApplicationRecord
       end
     end
   end
-  
+
   module PixivMethods
     def parse_pixiv_id
       self.pixiv_id = nil
@@ -1875,7 +1877,7 @@ class Post < ApplicationRecord
       end
     end
   end
-  
+
   include FileMethods
   include ImageMethods
   include ApprovalMethods
