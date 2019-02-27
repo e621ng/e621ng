@@ -11,7 +11,7 @@
           <th>IP Address</th>
         <% end %>
         <th>Status</th>
-        <th>>Post count</th>
+        <th>Post count</th>
         <th>Date</th>
         <th width="5%"></th>
       </tr>
@@ -34,16 +34,16 @@
 
           <% if CurrentUser.is_admin? %>
             <td><%= takedown.email %></td>
-            <td><%= takedown.ip_addr %></td>
+            <td><%= link_to_ip takedown.creator_ip_addr %></td>
           <% end %>
 
-          <%= pretty_status(takedown.status) %>
+          <%= pretty_status(takedown) %>
 
           <td><%= takedown.post_count %></td>
 
           <td><%= time_ago_in_words_tagged takedown.created_at %></td>
-          <% if Currentuser.is_admin? %>
-<!--            <td><%#= link_to_function "Delete", "if (confirm('Do you really want to delete this takedown?')) {Takedown.destroy(#{takedown.id})}" %></td>-->
+          <% if CurrentUser.is_admin? %>
+            <td><%= link_to "Delete", takedown_path(takedown), method: :delete, remote: true, data: {confirm: 'Are you sure you want to delete this takedown?'} %></td>
           <% end %>
           </tr>
         <% end %>

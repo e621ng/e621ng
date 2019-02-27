@@ -1,0 +1,68 @@
+@import "../base/000_vars.scss";
+
+div#c-takedowns {
+  .takedown-vericode {
+    border-radius: 2px;
+    padding: 5px;
+    font-weight: bold;
+    cursor: default;
+  }
+
+  .takedown-instructions-header {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  #takedown-posts {
+    overflow: hidden;
+  }
+
+  #takedown-add-posts-tags-warning {
+    display: none;
+  }
+
+  #takedown-add-posts-tags-confirm, #takedown-add-posts-tags-cancel {
+    display: none;
+    background-color: #FFEB7E;
+  }
+
+  #takedown-post-buttons {
+    margin-bottom: 20px;
+  }
+
+  .takedown-post-label {
+    display: inline-block;
+    height: 20px;
+    width: 80px;
+    vertical-align: middle;
+    line-height: 20px;
+    margin-bottom: 2px;
+    margin-right: 5px;
+    cursor: pointer;
+  }
+
+  .takedown-postall-label {
+    text-align: center;
+  }
+
+  .takedown-post-label span {
+    position: relative;
+    top: -2px;
+  }
+
+  .takedown-post-remove {
+    width: 20px;
+    background-color: $error_color;
+    text-align: center;
+  }
+
+  .takedown-post-keep {
+    background-color: $success_color;
+  }
+
+  .takedown-post-delete {
+    background-color: $error_color;
+  }
+}

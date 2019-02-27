@@ -81,7 +81,7 @@ Rails.application.routes.draw do
     member do
       post :add_by_ids
       post :add_by_tags
-      post :remove_by_id
+      post :remove_by_ids
     end
   end
 

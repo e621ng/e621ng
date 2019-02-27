@@ -1,6 +1,6 @@
 class Takedown < ApplicationRecord
   belongs_to_creator
-  belongs_to :approver
+  belongs_to :approver, class_name: "User", optional: true
   before_validation :initialize_fields, on: :create
   before_validation :normalize_post_ids
   validates_presence_of :email
@@ -45,11 +45,13 @@ class Takedown < ApplicationRecord
     def valid_posts_or_instructions
       errors[:base] << "You must provide post ids or instructions." if post_array.size <= 0 && instructions.blank?
     end
+
     def can_create_takedown
       return if creator.is_mod?
       errors[:base] << "You have created a takedown too recently" if self.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
       errors[:base] << "You have created a takedown too recently" if self.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr, 5.minutes.ago).count > 0
     end
+
     def validate_number_of_posts
       if post_array.size > 5_000
         self.errors.add(:base, "You can only have 5000 posts in a takedown.")
@@ -59,21 +61,49 @@ class Takedown < ApplicationRecord
     end
   end
 
-  module AddPostMethods
+  module AccessMethods
+    def can_edit?(user)
+      user.is_admin?
+    end
+
+    def can_delete?(user)
+      user.is_admin?
+    end
+  end
+
+  module ModifyPostMethods
     def add_posts_by_ids!(ids)
+      added_ids = []
       with_lock do
-        self.post_ids = (post_array + ids.scan(/\d+/).uniq).join(' ')
+        self.post_ids = (post_array + ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        added_ids = self.post_array - self.post_array_was
         save!
       end
+      added_ids
     end
 
     def add_posts_by_tags!(tag_string)
-      new_ids = Post.tag_match(tag_string).limit(1000).map(&:id)
-      add_posts_by_ids!(new_ids)
+      added_ids = []
+      CurrentUser.without_safe_mode do
+        new_ids = Post.tag_match(tag_string).limit(1000).map(&:id)
+        added_ids = add_posts_by_ids!(new_ids.join(' '))
+      end
+      added_ids
+    end
+
+    def remove_posts_by_ids!(ids)
+      with_lock do
+        self.post_ids = (post_array - ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        save!
+      end
     end
   end
 
   module PostMethods
+    def should_delete(id)
+      del_post_array.include?(id)
+    end
+
     def normalize_post_ids
       self.post_ids = post_ids.scan(/\d+/).uniq.join(' ')
     end
@@ -91,23 +121,31 @@ class Takedown < ApplicationRecord
     end
 
     def self.validated_posts(ids)
-      Post.select(:id).where(id: ids).map {|x| x.id}.to_set
+      Post.select(:id).where(id: ids).map {|x| x.id}
     end
 
     def del_post_array
-      @del_post_array ||= del_post_ids.scan(/\d+/).map(&:to_i).to_set
+      del_post_ids.scan(/\d+/).map(&:to_i)
     end
 
     def actual_deleted_posts
-      Post.where(id: del_post_array)
+      @actual_deleted_posts ||= Post.where(id: del_post_array)
     end
 
     def post_array
-      @post_array ||= post_ids.scan(/\d+/).map(&:to_i).to_set
+      post_ids.scan(/\d+/).map(&:to_i)
+    end
+
+    def post_array_was
+      post_ids_was.scan(/\d+/).map(&:to_i)
+    end
+
+    def actual_posts
+      @actual_posts ||= Post.where(id: post_array)
     end
 
     def actual_kept_posts
-      Post.where(id: kept_post_array)
+      @actual_kept_posts ||= Post.where(id: kept_post_array)
     end
 
     def kept_post_array
@@ -115,9 +153,8 @@ class Takedown < ApplicationRecord
     end
 
     def clear_cached_arrays
-      @post_array = nil
-      @del_post_array = nil
-      @kept_post_array = nil
+      @actual_posts = @actual_deleted_posts = @actual_kept_posts = nil
+      @post_array = @del_post_array = @kept_post_array = nil
     end
 
     def update_post_count
@@ -129,7 +166,20 @@ class Takedown < ApplicationRecord
   end
 
   module ProcessMethods
+    def apply_posts(posts)
+      to_del = []
+      posts.each do |post_id, keep|
+        if keep == '1'
+          to_del << post_id
+        end
+      end
+      to_del.map!(&:to_i)
+      self.del_post_ids = to_del
+    end
 
+    def process!(approver, del_reason)
+      TakedownJob.perform_later(id, approver.id, del_reason)
+    end
   end
 
   module SearchMethods
@@ -181,8 +231,8 @@ class Takedown < ApplicationRecord
     end
 
     def calculated_status
-      kept_count = kept_posts_array.size
-      deleted_count = del_posts_array.size
+      kept_count = kept_post_array.size
+      deleted_count = del_post_array.size
 
       if kept_count == 0 # All were deleted, so it was approved
         "approved"
@@ -197,6 +247,8 @@ class Takedown < ApplicationRecord
   include PostMethods
   include ValidationMethods
   include StatusMethods
+  include ModifyPostMethods
   include ProcessMethods
   include SearchMethods
+  include AccessMethods
 end
