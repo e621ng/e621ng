@@ -1,0 +1,29 @@
+<%#= render partial: "search" %>
+<div id="c-blips">
+  <div id="a-index">
+    <div id="blip-list">
+      <% if @blips.empty? %>
+        <h4>No blips</h4>
+      <% else %>
+        <% @blips.each do |blip| %>
+          <% if blip.visible_to?(CurrentUser.user) %>
+            <div class="response-list">
+              <%= render partial: "blips/partials/show/blip", locals: {blip: blip} %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <div id='preview' class='section' style="width:600px; margin:1em 0; display:none;"></div>
+
+      <%= render "form", blip: Blip.new %>
+
+      <div id="paginator">
+        <%= numbered_paginator(@blips) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>

@@ -1,0 +1,43 @@
+@import "../base/000_vars.scss";
+
+div#c-blips {
+  article.blip {
+    margin-bottom: 2em;
+    word-wrap: break-word;
+    padding: 5px;
+    background: $menu_color;
+
+    div.author {
+      width: 12em;
+      float: left;
+      overflow: hidden;
+      margin-right: 1em;
+
+      h1 {
+        display: block;
+        font-size: $h3_size;
+      }
+    }
+
+    div.content {
+      margin-left: 13em;
+      min-width: 17em;
+
+      menu {
+        li {
+          margin-right: 1em;
+        }
+      }
+    }
+  }
+}
+
+
+form.edit_blip div.input.boolean {
+  display: inline-block;
+
+  label {
+    font-weight: normal;
+    vertical-align: initial;
+  }
+}
