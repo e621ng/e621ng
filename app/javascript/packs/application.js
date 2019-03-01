@@ -45,5 +45,7 @@ export { default as Utility } from '../src/javascripts/utility.js';
 export { default as Ugoira } from '../src/javascripts/ugoira.js';
 
 import Takedown from '../src/javascripts/takedowns.js';
-
 window.Takedown = Takedown;
+
+import Blip from '../src/javascripts/blips.js';
+window.Blip = Blip;

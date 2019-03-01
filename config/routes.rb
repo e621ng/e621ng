@@ -346,6 +346,12 @@ Rails.application.routes.draw do
       get :diff
     end
   end
+  resources :blips do
+    member do
+      post :hide
+      post :unhide
+    end
+  end
 
   # aliases
   resources :wpages, :controller => "wiki_pages"

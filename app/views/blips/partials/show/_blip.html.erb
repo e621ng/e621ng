@@ -1,0 +1,61 @@
+<% if blip.visible_to?(CurrentUser.user) %>
+  <article class="blip">
+    <div class="author">
+      <h1>
+        <%= link_to_user blip.creator %>
+        <% if blip.is_hidden %>
+          (hidden)
+        <% end %>
+
+        <%#= avatar_for(blip.creator) %>
+      </h1>
+      <p>
+        <span class="date" title="<%= blip.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= link_to time_ago_in_words(blip.created_at) + " ago", blip_path(blip) %></span>
+      </p>
+    </div>
+    <div class="content">
+      <% if blip.response? %>
+        <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
+      <% end %>
+      <div class="body prose">
+        <%= format_text(blip.body) %>
+      </div>
+
+      <menu>
+        <li><%= tag.a "Respond", href: '#', onclick: "Blip.quote(#{blip.id})" %></li>
+        <% if blip.can_edit?(CurrentUser.user) %>
+          <li><%= link_to "Edit", edit_blip_path(blip) %></li>
+        <% end %>
+        <li><%= tag.a "@", href: '#', onclick: "Blip.atme(#{blip.id})" %></li>
+
+        <% if !blip.is_hidden %>
+          <% if blip.can_hide?(CurrentUser.user) %>
+            <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
+          <% else %>
+            <!--              | <%#= link_to "Report", {controller: "ticket", action: "new", type: "blip", disp_id: blip.id}, class: "" %>-->
+          <% end %>
+        <% elsif CurrentUser.is_moderator? %>
+          <li><%= link_to "Unhide", unhide_blip_path(blip), data: {confirm: "Are you sure you want to unhide this blip?"}, method: :post %></li>
+        <% end %>
+
+        <% if CurrentUser.is_moderator? %>
+          <li><%= link_to "Delete", blip_path(blip), data: {confirm: "Are you sure you want to delete this blip?"}, method: :delete %></li>
+          <!--            | <%#= link_to "View Edits", controller: "edit_history", action: "show", id: blip.id, type: "Blip" %>-->
+        <% end %>
+
+        <% if blip.has_responses? %>
+          <li><%= link_to "View Responses", blip_path(blip) %></li>
+        <% end %>
+
+        <% if CurrentUser.is_moderator? %>
+          <li>|</li>
+          <li>
+            <strong>IP</strong>
+            <span><%= link_to_ip blip.creator_ip_addr %></span>
+          </li>
+        <% end %>
+      </menu>
+    </div>
+    <div class="clearfix"></div>
+  </article>
+<% end %>

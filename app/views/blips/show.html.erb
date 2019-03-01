@@ -1,0 +1,30 @@
+<div id="c-blips">
+  <div id="a-show">
+    <div id="blip" class="response-list">
+      <% unless params[:page].to_i > 1 %>
+        <%= render partial: "blips/partials/show/blip", locals: {blip: @blip} %>
+      <% end %>
+      <h4>Responses</h4>
+      <% unless @children.nil? %>
+        <% @children.each do |c| %>
+          <% next unless c.visible_to?(CurrentUser.user) %>
+          <%= render partial: "blips/partials/show/blip", locals: {blip: c} %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% if CurrentUser.is_anonymous? %>
+        <h5 id="respond-link"><%= link_to "Login to respond &raquo;", controller: "user", action: "login", url: request.request_uri %></h5>
+    <% else %>
+        <%= render "form", blip: @blip.responses.new %>
+    <% end %>
+
+    <% unless @children.nil? %>
+      <div id="paginator">
+        <%= numbered_paginator(@children) %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>

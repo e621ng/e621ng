@@ -515,6 +515,42 @@ ALTER SEQUENCE public.bans_id_seq OWNED BY public.bans.id;
 
 
 --
+-- Name: blips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.blips (
+    id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    creator_id integer NOT NULL,
+    body character varying NOT NULL,
+    response_to integer,
+    is_hidden boolean DEFAULT false,
+    body_index tsvector NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: blips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.blips_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: blips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.blips_id_seq OWNED BY public.blips.id;
+
+
+--
 -- Name: bulk_update_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2267,6 +2303,13 @@ ALTER TABLE ONLY public.bans ALTER COLUMN id SET DEFAULT nextval('public.bans_id
 
 
 --
+-- Name: blips id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blips ALTER COLUMN id SET DEFAULT nextval('public.blips_id_seq'::regclass);
+
+
+--
 -- Name: bulk_update_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2661,6 +2704,14 @@ ALTER TABLE ONLY public.artists
 
 ALTER TABLE ONLY public.bans
     ADD CONSTRAINT bans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blips blips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blips
+    ADD CONSTRAINT blips_pkey PRIMARY KEY (id);
 
 
 --
@@ -3195,6 +3246,13 @@ CREATE INDEX index_bans_on_expires_at ON public.bans USING btree (expires_at);
 --
 
 CREATE INDEX index_bans_on_user_id ON public.bans USING btree (user_id);
+
+
+--
+-- Name: index_blips_on_body_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_blips_on_body_index ON public.blips USING gin (body_index);
 
 
 --
@@ -4052,6 +4110,13 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: blips trigger_blips_on_update; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_blips_on_update BEFORE INSERT OR UPDATE ON public.blips FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
+
+
+--
 -- Name: comments trigger_comments_on_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4302,6 +4367,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190214090126'),
 ('20190220025517'),
 ('20190220041928'),
-('20190222082952');
+('20190222082952'),
+('20190228144206');
 
 
