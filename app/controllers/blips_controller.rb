@@ -7,7 +7,7 @@ class BlipsController < ApplicationController
   rescue_from BlipTooOld, with: :blip_too_old
 
   def index
-    @blips = Blip.search(search_params).paginate(params[:page], limit: params[:limit])
+    @blips = Blip.visible.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@blips)
   end
 
@@ -15,7 +15,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_privilege(@blip)
     @parent = @blip.response_to
-    @children = Blip.where('response_to = ?', @blip.id).paginate(params[:page])
+    @children = Blip.visible.where('response_to = ?', @blip.id).paginate(params[:page])
     respond_with(@blip)
   end
 

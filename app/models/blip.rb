@@ -57,6 +57,10 @@ class Blip < ApplicationRecord
   end
 
   module SearchMethods
+    def visible(user = CurrentUser.user)
+      where('is_hidden = ?', false) unless user.is_moderator?
+    end
+
     def for_creator(user_id)
       user_id.present? ? where("creator_id = ?", user_id) : none
     end
