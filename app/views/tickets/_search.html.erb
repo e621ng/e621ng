@@ -1,0 +1,35 @@
+<div id='searchform_hide'>
+  <%= link_to_function "Show Search Options", "$('#searchform').fadeIn('fast'); $('#searchform_hide').hide();" %>
+</div>
+<%= simple_form_for(:search, method: :get, defaults: {required: false}, html: {id: 'searchform', class: "inline-form"}) do |f| %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :creator_name, label: "Reporter", hint: "Use * for wildcard", input_html: {value: params[:search][:creator_name]} %>
+    <%= f.input :creator_id, label: "Reporter ID", input_html: {value: params[:search][:creator_id]} %>
+    <%= f.input :accused_name, label: "Accused", input_html: {value: params[:search][:accused_name]} %>
+  <% end %>
+  <%= f.input :type, collection: [
+      ["Any", "any"],
+      ["User complaint", "user"],
+      ["Private message complaint", "dmail"],
+      ["Comment complaint", "comment"],
+      ["Forum post complaint", "forum"],
+      ["Blip complaint", "blip"],
+      ["Wiki complaint", "wiki"],
+      ["Username change", "namechange"],
+      ["Pool complaint", "pool"],
+      ["Set complaint", "set"],
+      ["Post complaint", "post"]
+  ], selected: params[:search][:type] %>
+  <%= f.input :status, collection: [
+      ["Any", "any"],
+      ["Approved/investigated", "approved"],
+      ["Under investigation", "partial"],
+      ["Pending", "pending"],
+      ["Denied", "denied"]
+  ], selected: params[:search][:status] %>
+  <%= f.submit "Search" %>
+<% end %>
+<% if params[:name] || params[:type] || params[:status] %>
+  <script type='text/javascript'>$('#searchform_hide').hide();
+  $('#searchform').show();</script>
+<% end %>

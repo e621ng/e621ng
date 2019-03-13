@@ -1,0 +1,6 @@
+<% if (@wiki = WikiPage.find_by_id(@ticket.disp_id)) %>
+    <tr>
+      <td><span class='title'>Reported Wiki Page</span></td>
+      <td><%= fast_link_to("#{@wiki.title}", controller: "wiki", action: "show", title: @wiki.title) %></td>
+    </tr>
+<% end %>

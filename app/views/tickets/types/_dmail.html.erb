@@ -1,0 +1,13 @@
+<tr>
+  <td><span class='title'>Reported Message</span></td>
+  <td>
+    <% if @ticket.can_see_details?(CurrentUser) %>
+      <% @dmail = @ticket.dmail %>
+      <%= fast_link_to("Message", controller: "dmail", action: "show", id: @ticket.disp_id) %> sent from
+      <%= fast_link_to(@dmail.from_name, controller: "user", action: "show", id: @dmail.from_id) %> to
+      <%= fast_link_to(@dmail.to_name, controller: "user", action: "show", id: @dmail.to_id) %>
+    <% else %>
+      <span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span>
+    <% end %>
+  </td>
+</tr>

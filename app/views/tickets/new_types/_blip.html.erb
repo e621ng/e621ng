@@ -1,0 +1,12 @@
+<% unless @ticket.blip %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That blip does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <h4>You are reporting the following blip:</h4>
+      <div class="author"><%= link_to_user(@ticket.blip.creator) %></div>
+      <span class="date" title="Posted on <%= @ticket.blip.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.blip.created_at) %> ago</span>
+      <br /><br />
+      <%= format_text(@ticket.blip.body) %>
+    </div>
+<% end %>

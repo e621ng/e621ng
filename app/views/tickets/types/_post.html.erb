@@ -1,0 +1,6 @@
+<% if (@post = Post.find_by_id(@ticket.disp_id)) %>
+    <tr>
+      <td><span class='title'>Reported Post</span></td>
+      <td><%= thumb(@post, dtext: true, blacklist: false) %></td>
+    </tr>
+<% end %>

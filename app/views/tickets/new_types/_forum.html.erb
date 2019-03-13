@@ -1,0 +1,16 @@
+<% unless ForumPost.find_by_id(params[:disp_id]) %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That forum post does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @forum = ForumPost.find_by_id(params[:disp_id]) %>
+      <h4>You are reporting the following forum post:</h4>
+      <% if (@forum.creator.id) %>
+          <div class='author'><%= fast_link_to(@forum.creator.name, controller: "forum", action: "show", id: @forum.creator.id) %></div>
+      <% else %>
+          <div class='author'><%= h User.find_name(@forum.user_id) %></div>
+      <% end %>
+      <span class="date" title="Posted on <%= @forum.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@forum.created_at) %> ago</span>
+      <%= format_text(@forum.body, mode: :forum, userlevel: @forum.creator.level) %>
+    </div>
+<% end %>

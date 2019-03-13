@@ -35,10 +35,6 @@ class Blip < ApplicationRecord
     def method_attributes
       super + [:creator_name]
     end
-
-    def creator_name
-      User.id_to_name(creator_id)
-    end
   end
 
   module PermissionsMethods
@@ -57,8 +53,12 @@ class Blip < ApplicationRecord
   end
 
   module SearchMethods
-    def visible(user = CurrentUser.user)
-      where('is_hidden = ?', false) unless user.is_moderator?
+    def visible(user = CurrentUser)
+      if user.is_moderator?
+        where('is_hidden = ?', false)
+      else
+        where('1=1')
+      end
     end
 
     def for_creator(user_id)

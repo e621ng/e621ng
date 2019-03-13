@@ -1,0 +1,16 @@
+<% if (@forum = ForumPost.find_by_id(@ticket.disp_id)) %>
+    <tr>
+      <td><span class='title'>Reported Forum Post</span></td>
+      <td>
+        <% if @forum.parent.nil? %>
+            <%= fast_link_to("Post by #{@forum.creator.name} in '#{@forum.title}'", controller: "forum", action: "show", id: @ticket.disp_id) %>
+        <% else %>
+            <%= fast_link_to("Post by #{@forum.creator.name} in '#{@forum.parent.title}'", controller: "forum", action: "show", id: @ticket.disp_id) %>
+        <% end %></td>
+    </tr>
+<% else %>
+    <tr>
+      <td><span class='title'>Reported Forum Post</span></td>
+      <td><span class='redtext'>Forum post has been deleted</span></td>
+    </tr>
+<% end %>

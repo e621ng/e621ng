@@ -205,6 +205,10 @@ class Comment < ApplicationRecord
     creator_id == user.id || user.is_moderator?
   end
 
+  def visible_to?(user)
+    is_deleted? == false || (creator_id == user.id || user.is_moderator?)
+  end
+
   def hidden_attributes
     super + [:body_index]
   end

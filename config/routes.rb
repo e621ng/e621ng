@@ -74,6 +74,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :tickets do
+    member do
+      post :claim
+      post :unclaim
+    end
+  end
+
   resources :takedowns do
     collection do
       post :count_matching_posts

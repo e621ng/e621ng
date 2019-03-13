@@ -1,0 +1,135 @@
+<div id="c-tickets">
+  <div id="a-show">
+    <div class='section'>
+      <h3><%= @ticket.type_title %> Ticket</h3>
+
+      <table>
+        <% if @ticket.qtype == "namechange" %>
+          <tr>
+            <td><span class='title'>Original Name</span></td>
+            <td><%= link_to h(@ticket.oldname), controller: "user", action: "show", id: @ticket.user_id %></td>
+          </tr>
+        <% elsif @ticket.can_see_username?(CurrentUser) %>
+          <tr>
+            <td><span class='title'>Requested by</span></td>
+            <td><%= link_to_user @ticket.creator %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <td><span class="title">Created</span></td>
+          <td style="cursor:help;" title="<%= @ticket.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.created_at) %> ago</td>
+        </tr>
+        <tr>
+          <td><span class="title">Updated</span></td>
+          <td style="cursor:help;" title="<%= @ticket.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.updated_at) %> ago</td>
+        </tr>
+        <% if CurrentUser.is_admin? %>
+          <tr>
+            <td><span class="title">Claimed By</span></td>
+            <% if @ticket.claimant.nil? %>
+              <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
+            <% else %>
+              <td id="claimed_by"><%= @ticket.claimant.name %>
+                <% if @ticket.claimant.id == CurrentUser.id %> | <%= link_to 'Unclaim', unclaim_ticket_path(@ticket), method: :post %><% end %></td>
+            <% end %>
+          </tr>
+        <% end %>
+        <tr>
+          <td><span class='title'>Status</span></td>
+          <td class="<%= @ticket.status %>-ticket"><%= pretty_ticket_status(@ticket) %></td>
+        </tr>
+
+        <% if CurrentUser.is_admin? %>
+          <tr>
+            <td><span class='title'>IP</span></td>
+            <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
+          </tr>
+        <% end %>
+
+        <%= render partial: "tickets/types/#{@ticket.qtype}" %>
+
+        <tr>
+          <% if (@ticket.qtype == "namechange") %>
+            <td><span class='title'>Desired Name</span></td>
+          <% else %>
+            <td><span class='title'>Reason</span></td>
+          <% end %>
+
+          <% if @ticket.can_see_reason?(CurrentUser) %>
+            <td><%= format_text(@ticket.reason) %></td>
+          <% else %>
+            <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
+          <% end %>
+        </tr>
+
+        <% if(!@ticket.response.blank?) %>
+          <tr>
+            <td><span class='title'>Handled by</span></td>
+            <% if (!@ticket.handler.nil?)%>
+              <td><%= link_to_user @ticket.handler %></td>
+            <% else %>
+              <td>Unknown</td>
+            <% end %>
+          </tr>
+
+          <tr>
+            <td><span class='title'>Response</span></td>
+            <% if @ticket.can_see_response?(CurrentUser) %>
+              <td><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
+            <% else %>
+              <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <% if CurrentUser.is_admin? %>
+      <%= simple_form_for(@ticket) do |f| %>
+        <div class='section'>
+          <% if (@ticket.qtype == "namechange") %>
+            <table>
+              <tr>
+                <% if @ticket.status == "pending" %>
+                  <td colspan="2"><input type="checkbox" name="no_username_change" id="no_username_change"/> <label for="no_username_change">Don't automatically change username to <span class='yellowtext'><%= @ticket.reason %></span> (use <%= fast_link_to("this form", controller: "user", action: "change_username", id: @ticket.user_id, newname: @ticket.reason) %>)</label></td>
+                <% else %>
+                  <td colspan="2">Ticket has already been approved/denied, so no automatic username change will happen.<br /><%= fast_link_to("Username change form", controller: "user", action: "change_username", id: @ticket.user_id, newname: @ticket.reason) %></td>
+                <% end %>
+              </tr>
+              <tr>
+                <td><span class='title'>Status</span></td>
+                <td>
+                  <select name="ticket[status]">
+                    <option value="approved">Approved</option>
+                    <option value="denied">Denied</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td><span class='title'>Reason</span></td>
+                <td><%= text_field "ticket", "response", size: 50, value: "Username changed" %></td>
+              </tr>
+            </table>
+            <%= submit_tag "Submit" %>
+          <% else %>
+            <table>
+              <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
+              <tr>
+                <td><%= dtext_field "ticket", "response", :classes => "autocomplete-mentions", :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %></td>
+              </tr>
+            </table>
+            <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
+            <%= f.button :submit, "Submit" %>
+            <%= dtext_preview_button "ticket", "response", :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:title) do %>
+  <%= @ticket.type_title %>
+<% end %>
+
+<% render partial: 'secondary_links' %>

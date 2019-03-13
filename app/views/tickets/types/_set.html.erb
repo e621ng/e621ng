@@ -1,0 +1,6 @@
+<% if (@set = PostSet.find_by_id(@ticket.disp_id)) %>
+    <tr>
+      <td><span class='title'>Reported Set</span></td>
+      <td><%= fast_link_to(@set.name, controller: "set", action: "show", id: @set.id) %></td>
+    </tr>
+<% end %>

@@ -1,0 +1,16 @@
+<% unless Pool.find_by_id(params[:disp_id]) %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That pool does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @pool = Pool.find_by_id(params[:disp_id]) %>
+      <h4>You are reporting the following pool:</h4>
+      <div class='page'><%= fast_link_to(@pool.name, controller: "pool", action: "show", id: @pool.id) %></div>
+      <% if (@pool.user_id) %>
+          <div class='author'><%= fast_link_to(@pool.user.name, controller: "user", action: "show", id: @pool.user_id) %></div>
+      <% else %>
+          <div class='author'><%= h User.find_name(@pool.user_id) %></div>
+      <% end %>
+      <span class="date" title="Created on <%= @pool.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@pool.created_at) %> ago</span>
+    </div>
+<% end %>

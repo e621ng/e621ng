@@ -1,0 +1,12 @@
+<% unless WikiPage.find_by_id(params[:disp_id]) %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That wiki page does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @wiki = WikiPage.find_by_id(params[:disp_id]) %>
+      <h4>You are reporting the following wiki page:</h4>
+      <div class='page'><%= fast_link_to(@wiki.title, controller: "wiki", action: "show", title: @wiki.title) %></div>
+      <span class="date" title="Posted on <%= @wiki.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@wiki.created_at) %> ago</span>
+      <%= format_text(@wiki.body, mode: :wiki, userlevel: '50') %>
+    </div>
+<% end %>

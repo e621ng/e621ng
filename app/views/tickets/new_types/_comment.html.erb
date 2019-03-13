@@ -1,0 +1,13 @@
+<% unless @ticket.comment %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That comment does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @comment = @ticket.comment %>
+      <h4>You are reporting the following comment:</h4>
+      <div class="author"><%= link_to_user @comment.creator %></div>
+      <span class="date" title="Posted on <%= @comment.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@comment.created_at) %> ago</span>
+      <br /><br />
+      <%= format_text(@comment.body) %>
+    </div>
+<% end %>

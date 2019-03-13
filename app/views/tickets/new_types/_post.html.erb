@@ -1,0 +1,23 @@
+<% unless Post.find_by_id params[:disp_id] %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That post does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @post = Post.find_by_id params[:disp_id] %>
+      You are reporting <%= thumb(@post, dtext: true, blacklist: false) %>
+    </div>
+
+    <div class='section' style='width:80em;'>
+      <p class="nomargin">Reason:
+        <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>
+        <span id="post_reason_description">You must select a reason.</span>
+      </p>
+      <script>
+        var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json %>;
+        $('ticket_report_reason').onchange = function(e) {
+            var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
+            jQuery('#post_reason_description').text(description);
+        };
+      </script>
+    </div>
+<% end %>

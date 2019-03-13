@@ -1,0 +1,16 @@
+<% unless Dmail.find_by_id(params[:disp_id]) && Dmail.find_by_id(params[:disp_id]).to_id == current_user.id %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That message does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @dmail = Dmail.find_by_id(params[:disp_id]) %>
+      <h4>You are reporting the following private message:</h4>
+      <% if (@dmail.from_id) %>
+          <div class='author'><%= fast_link_to(@dmail.from_name, controller: "user", action: "show", id: @dmail.from_id) %></div>
+      <% else %>
+          <div class='author'><%= h User.find_name(@dmail.user_id) %></div>
+      <% end %>
+      <span class="date" title="Sent on <%= @dmail.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@dmail.created_at) %> ago</span>
+      <%= format_text(@dmail.body, mode: :dmail) %>
+    </div>
+<% end %>
