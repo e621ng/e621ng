@@ -47,6 +47,10 @@
           <li><%= link_to "View Responses", blip_path(blip) %></li>
         <% end %>
 
+        <% if CurrentUser.is_member? %>
+          <li><%= link_to "Report", new_ticket_path(disp_id: blip.id, type: 'blip') %></li>
+        <% end %>
+
         <% if CurrentUser.is_moderator? %>
           <li>|</li>
           <li>

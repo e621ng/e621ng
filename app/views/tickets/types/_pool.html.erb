@@ -1,6 +1,6 @@
-<% if (@pool = Pool.find_by_id(@ticket.disp_id)) %>
+<% if @ticket.pool %>
     <tr>
       <td><span class='title'>Reported Pool</span></td>
-      <td><%= fast_link_to(@pool.name, controller: "pool", action: "show", id: @pool.id) %></td>
+      <td><%= fast_link_to(@ticket.pool.name, controller: "pools", id: @ticket.pool.id) %></td>
     </tr>
 <% end %>

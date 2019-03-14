@@ -133,12 +133,12 @@ class Dmail < ApplicationRecord
     def hidden_attributes
       super + [:message_index]
     end
-    
+
     def method_attributes
       super + [:key]
     end
   end
-  
+
   module SearchMethods
     def sent_by(user)
       where("dmails.from_id = ? AND dmails.owner_id != ?", user.id, user.id)
@@ -256,13 +256,8 @@ class Dmail < ApplicationRecord
       to.update(has_mail: true, unread_dmail_count: to.dmails.unread.count)
     end
   end
-  
-  def key
-    verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.email_key, serializer: JSON, digest: "SHA256")
-    verifier.generate("#{title} #{body}")
-  end
-  
-  def visible_to?(user, key)
-    owner_id == user.id || (user.is_moderator? && key == self.key)
+
+  def visible_to?(user)
+    owner_id == user.id || (user.is_admin? && (to.is_admin? || from.is_admin? || Ticket.exists?(qtype: 'dmail', disp_id: id)))
   end
 end

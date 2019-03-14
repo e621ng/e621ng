@@ -7,6 +7,7 @@ class CreateTickets < ActiveRecord::Migration[5.2]
       t.string :qtype, null: false
       t.string :status, null: false, default: "pending"
       t.string :reason
+      t.string :report_reason
       t.string :response, null: false, default: ''
       t.integer :handler_id, null: false, default: 0
       t.integer :claimant_id

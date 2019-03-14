@@ -5,13 +5,13 @@
     <%= subnav_link_to "Listing", wiki_pages_path %>
 
     <%= subnav_link_to "Search", search_wiki_pages_path %>
-    
+
     <% if CurrentUser.is_member? %>
       <%= subnav_link_to "New", new_wiki_page_path %>
     <% end %>
-    
+
     <%= subnav_link_to "Help", wiki_pages_path(:search => {:title => "help:wiki"}) %>
-    
+
     <% if @wiki_page && @wiki_page.new_record? && @wiki_page.try(:tag).present? %>
       <li>|</li>
 
@@ -30,6 +30,10 @@
 
       <% if CurrentUser.is_builder? && !@wiki_page.is_deleted? %>
         <%= subnav_link_to "Delete", wiki_page_path(@wiki_page), :remote => true, :method => :delete, :"data-shortcut" => "shift+d", :"data-confirm" => "Are you sure you want to delete this wiki page?" %>
+      <% end %>
+
+      <% if CurrentUser.is_member? %>
+        <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, type: 'wiki') %>
       <% end %>
 
     <% elsif @wiki_page_version %>

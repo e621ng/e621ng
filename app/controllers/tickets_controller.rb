@@ -17,8 +17,8 @@ class TicketsController < ApplicationController
   def create
     @ticket = Ticket.create(ticket_params)
     if @ticket.valid?
-      flash[:success] = 'Ticket created'
-      redirect_back(fallback_location: tickets_path())
+      flash[:notice] = 'Ticket created'
+      redirect_to(tickets_path())
     else
       respond_with(@ticket)
     end
@@ -71,14 +71,14 @@ class TicketsController < ApplicationController
       return
     end
     @ticket.unclaim!
-    flash[:success] = 'Claim removed.'
+    flash[:notice] = 'Claim removed.'
     redirect_to ticket_path(@ticket)
   end
 
   private
 
   def ticket_params
-    params.require(:ticket).permit(%i[qtype disp_id reason force_claim])
+    params.require(:ticket).permit(%i[qtype disp_id reason report_reason])
   end
 
   def update_ticket_params

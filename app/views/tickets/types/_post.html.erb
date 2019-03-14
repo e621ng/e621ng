@@ -1,6 +1,6 @@
-<% if (@post = Post.find_by_id(@ticket.disp_id)) %>
+<% if @ticket.post %>
     <tr>
       <td><span class='title'>Reported Post</span></td>
-      <td><%= thumb(@post, dtext: true, blacklist: false) %></td>
+      <td><%= PostPresenter.preview(@ticket.post) %></td>
     </tr>
 <% end %>

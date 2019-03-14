@@ -1495,6 +1495,40 @@ ALTER SEQUENCE public.post_replacements_id_seq OWNED BY public.post_replacements
 
 
 --
+-- Name: post_report_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_report_reasons (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    reason character varying NOT NULL,
+    creator_id integer NOT NULL,
+    creator_ip_addr inet,
+    description character varying NOT NULL
+);
+
+
+--
+-- Name: post_report_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_report_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_report_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_report_reasons_id_seq OWNED BY public.post_report_reasons.id;
+
+
+--
 -- Name: post_updates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1893,6 +1927,7 @@ CREATE TABLE public.tickets (
     qtype character varying NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
     reason character varying,
+    report_reason character varying,
     response character varying DEFAULT ''::character varying NOT NULL,
     handler_id integer DEFAULT 0 NOT NULL,
     claimant_id integer,
@@ -2542,6 +2577,13 @@ ALTER TABLE ONLY public.post_replacements ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: post_report_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_report_reasons ALTER COLUMN id SET DEFAULT nextval('public.post_report_reasons_id_seq'::regclass);
+
+
+--
 -- Name: post_votes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2977,6 +3019,14 @@ ALTER TABLE ONLY public.post_flags
 
 ALTER TABLE ONLY public.post_replacements
     ADD CONSTRAINT post_replacements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_report_reasons post_report_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_report_reasons
+    ADD CONSTRAINT post_report_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -4434,6 +4484,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190220041928'),
 ('20190222082952'),
 ('20190228144206'),
-('20190305165101');
+('20190305165101'),
+('20190313221440');
 
 

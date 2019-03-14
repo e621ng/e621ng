@@ -3,9 +3,9 @@
   <td>
     <% if @ticket.can_see_details?(CurrentUser) %>
       <% @dmail = @ticket.dmail %>
-      <%= fast_link_to("Message", controller: "dmail", action: "show", id: @ticket.disp_id) %> sent from
-      <%= fast_link_to(@dmail.from_name, controller: "user", action: "show", id: @dmail.from_id) %> to
-      <%= fast_link_to(@dmail.to_name, controller: "user", action: "show", id: @dmail.to_id) %>
+      <%= link_to "Message", dmail_path(@ticket.dmail) %>
+      sent from <%= link_to_user @ticket.dmail.from %> to
+      <%= link_to_user @ticket.dmail.to %>
     <% else %>
       <span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span>
     <% end %>

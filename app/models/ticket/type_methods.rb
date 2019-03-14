@@ -13,6 +13,8 @@ module TicketTypes
     def self.after_extended(m)
       m.class_eval do
         attr_accessor :no_name_change
+        validate :validate_on_create, on: :create
+        before_save :before_save
       end
       m.oldname = m.user.name if m.oldname.blank?
       m.no_name_change = false
@@ -87,10 +89,17 @@ module TicketTypes
     def can_see_username?(user)
       true
     end
+
+    def can_create_for?(user)
+      false # use other name change system now, not tickets
+    end
   end
 
   module ForumType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -120,9 +129,9 @@ module TicketTypes
       forum.visible?(user)
     end
 
-    def can_see_details?(current_user)
-      if forum and forum.category
-        forum.category.can_view <= current_user.level
+    def can_see_details?(user)
+      if forum
+        forum.visible?(user)
       else
         true
       end
@@ -131,6 +140,9 @@ module TicketTypes
 
   module CommentType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -163,6 +175,9 @@ module TicketTypes
 
   module DmailType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -171,7 +186,7 @@ module TicketTypes
     end
 
     def validate_on_create
-      unless dmail and dmail.to_id == user_id
+      unless dmail and dmail.to_id == creator_id
         errors.add :dmail, "does not exist"
       end
     end
@@ -182,31 +197,34 @@ module TicketTypes
     end
 
     def dmail
-      @dmail = begin
+      @dmail ||= begin
         ::Dmail.find(disp_id) unless disp_id.nil?
       rescue
       end
     end
 
     def can_create_for?(user)
-      dmail.visible_to?(user, nil)
+      dmail.visible_to?(user)
     end
 
-    def can_see_details?(current_user)
-      current_user.is_admin? || (current_user.id == user_id)
+    def can_see_details?(user)
+      user.is_admin? || (user.id == creator_id)
     end
 
-    def can_see_reason?(current_user)
-      can_see_details?(current_user)
+    def can_see_reason?(user)
+      can_see_details?(user)
     end
 
-    def can_see_response?(current_user)
-      can_see_details?(current_user)
+    def can_see_response?(user)
+      can_see_details?(user)
     end
   end
 
   module WikiType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -232,13 +250,16 @@ module TicketTypes
       end
     end
 
-    def can_creator_for?(user)
+    def can_create_for?(user)
       true
     end
   end
 
   module PoolType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -271,6 +292,9 @@ module TicketTypes
 
   module SetType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -303,6 +327,9 @@ module TicketTypes
 
   module PostType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -314,7 +341,7 @@ module TicketTypes
       if post.nil?
         errors.add :post, "does not exist"
       end
-      if report_reason.nil?
+      if report_reason.blank?
         errors.add :report_reason, "does not exist"
       end
     end
@@ -342,6 +369,9 @@ module TicketTypes
 
   module BlipType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -374,6 +404,9 @@ module TicketTypes
 
   module UserType
     def self.after_extended(m)
+      m.class_eval do
+        validate :validate_on_create, on: :create
+      end
       m
     end
 
@@ -398,17 +431,21 @@ module TicketTypes
       rescue
       end
     end
-
-    def can_see_details?(current_user)
-      current_user.is_admin? || current_user.id == creator_id
+    
+    def can_create_for?(user)
+      true
     end
 
-    def can_see_reason?(current_user)
-      can_see_details?(current_user)
+    def can_see_details?(user)
+      user.is_admin? || user.id == creator_id
     end
 
-    def can_see_response?(current_user)
-      can_see_details?(current_user)
+    def can_see_reason?(user)
+      can_see_details?(user)
+    end
+
+    def can_see_response?(user)
+      can_see_details?(user)
     end
   end
 end
