@@ -13,11 +13,11 @@
         <span id="post_reason_description">You must select a reason.</span>
       </p>
       <script>
-        var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json %>;
-        $('#ticket_report_reason').onchange = function(e) {
+        var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json.html_safe %>;
+        $('#ticket_report_reason').on('change', function(e) {
             var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
             $('#post_reason_description').text(description);
-        };
+        });
       </script>
     </div>
 <% end %>

@@ -1,0 +1,16 @@
+<div id="c-post-report-reasons">
+  <div id="c-edit">
+    <h1>Edit Post Report Reason</h1>
+
+    <div>
+      <%= simple_form_for(@reason) do |f| %>
+        <%= f.input :reason, as: :string %>
+        <%= f.input :description, as: :string %>
+        <%= f.button :submit, "Edit" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>

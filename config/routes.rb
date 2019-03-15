@@ -359,6 +359,7 @@ Rails.application.routes.draw do
       post :unhide
     end
   end
+  resources :post_report_reasons
 
   # aliases
   resources :wpages, :controller => "wiki_pages"

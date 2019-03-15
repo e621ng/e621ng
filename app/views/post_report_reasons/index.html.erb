@@ -1,0 +1,30 @@
+<div id="c-post-report-reasons">
+  <div id="a-index">
+    <h1>Post Report Reasons</h1>
+
+    <table class='rounded' style='width:100%;'>
+      <thead>
+      <tr>
+        <th></th>
+        <th>Creator</th>
+        <th>Date</th>
+        <th>Reason</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @reasons.each do |report_reason| %>
+        <tr id="blacklisted-domain-<%= report_reason.id %>">
+          <td><%= link_to "Delete", post_report_reason_path(report_reason), method: :delete, data: {confirm: "Do you really want to delete this reason?"} %></td>
+          <td><%= link_to_user report_reason.creator %></td>
+          <td><%= report_reason.updated_at.strftime("%b %d, %Y %I:%M %p") %></td>
+          <td><%= link_to(report_reason.reason, edit_post_report_reason_path(report_reason)) %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>
