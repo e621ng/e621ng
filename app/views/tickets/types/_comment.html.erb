@@ -1,0 +1,14 @@
+<% if @ticket.comment %>
+  <tr>
+    <td><span class='title'>Reported Comment</span></td>
+    <td>
+      <%= fast_link_to("Comment by #{@ticket.comment.creator_name}", comment_path(@ticket.comment)) %> on
+      <%= fast_link_to("post ##{@ticket.comment.post_id}", post_path(@ticket.comment.post_id)) %>
+    </td>
+  </tr>
+<% else %>
+  <tr>
+    <td><span class='title'>Reported Comment</span></td>
+    <td><span class='redtext'>Comment has been deleted</span></td>
+  </tr>
+<% end %>

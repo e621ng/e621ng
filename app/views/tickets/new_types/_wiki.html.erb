@@ -1,0 +1,12 @@
+<% unless @ticket.wiki %>
+    <% @found_item = false %>
+    <div class='section' style='width:80em;'>That wiki page does not exist.</div>
+<% else %>
+    <div class='section' style='width:80em;'>
+      <% @wiki = @ticket.wiki %>
+      <h4>You are reporting the following wiki page:</h4>
+      <div class='page'><%= link_to_wiki @wiki.title %></div>
+      <span class="date" title="Posted on <%= @wiki.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@wiki.created_at) %> ago</span>
+      <%= format_text(@wiki.body) %>
+    </div>
+<% end %>

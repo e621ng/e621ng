@@ -18,11 +18,11 @@
 
         <%= render "update_notice", record: comment %>
       </div>
-      
+
       <% if CurrentUser.is_member? %>
         <menu>
           <% if @post || @posts %>
-            <li><%= link_to "Reply", new_comment_path(id: comment, comment: { post_id: comment.post_id }), class: "reply-link", remote: true %></li>
+            <li><%= link_to "Reply", new_comment_path(id: comment, comment: {post_id: comment.post_id}), class: "reply-link", remote: true %></li>
             <% if comment.editable_by?(CurrentUser.user) %>
               <% if comment.is_deleted? %>
                 <li><%= link_to "Undelete", undelete_comment_path(comment.id), :method => :post, :remote => true %></li>
@@ -34,6 +34,9 @@
             <li id="comment-vote-up-link-for-<%= comment.id %>"><%= link_to "Vote up", comment_votes_path(:comment_id => comment.id, :score => "up"), :method => :post, :remote => true %></li>
             <li id="comment-vote-down-link-for-<%= comment.id %>"><%= link_to "Vote down", comment_votes_path(:comment_id => comment.id, :score => "down"), :method => :post, :remote => true %></li>
             <li style="display: none;" id="comment-unvote-link-for-<%= comment.id %>" class="unvote-comment-link"><%= link_to "Unvote", comment_votes_path(:comment_id => comment.id), :method => :delete, :remote => true %></li>
+            <% if CurrentUser.is_member? %>
+              <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
+            <% end %>
             <% if CurrentUser.is_moderator? %>
               <li>|</li>
               <li>

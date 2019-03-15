@@ -1,0 +1,6 @@
+<% if @ticket.post %>
+    <tr>
+      <td><span class='title'>Reported Post</span></td>
+      <td><%= PostPresenter.preview(@ticket.post) %></td>
+    </tr>
+<% end %>

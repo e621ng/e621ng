@@ -1,8 +1,8 @@
 <% if CurrentUser.user.try(:is_builder?) && @exception.present? %>
-    <h1><%= @exception.class.to_s %> exception raised</h1>
+  <h1><%= @exception.class.to_s %> exception raised</h1>
 
-    <p><%= @exception.message.dup.force_encoding("utf-8") %></p>
-    <%= render "static/backtrace", backtrace: @exception.backtrace %>
+  <p><%= @exception.message.dup.force_encoding("utf-8") %></p>
+  <%= render "static/backtrace", backtrace: @exception.backtrace %>
 <% elsif @error_message %>
   <p><%= @error_message %></p>
 <% else %>

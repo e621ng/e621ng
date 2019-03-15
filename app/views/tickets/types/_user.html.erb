@@ -1,0 +1,8 @@
+<tr>
+  <td><span class='title'>Reported User</span></td>
+  <% if @ticket.can_see_details?(CurrentUser.user) %>
+      <td><%= link_to_user(@ticket.accused) %></td>
+  <% else %>
+      <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
+  <% end %>
+</tr>

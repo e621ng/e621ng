@@ -249,6 +249,6 @@ class Takedown < ApplicationRecord
   include StatusMethods
   include ModifyPostMethods
   include ProcessMethods
-  include SearchMethods
+  extend SearchMethods
   include AccessMethods
 end

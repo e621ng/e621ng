@@ -68,6 +68,10 @@ module ApplicationHelper
     raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
   end
 
+  def link_to_function(text, function, **options)
+    tag.a text, href: '#', onclick: function, **options
+  end
+
   def format_text(text, **options)
     raw DTextRagel.parse(text, **options)
   rescue DTextRagel::Error => e

@@ -1,0 +1,14 @@
+<% unless @ticket.pool %>
+  <% @found_item = false %>
+  <div class='section' style='width:80em;'>That pool does not exist.</div>
+<% else %>
+  <div class='section' style='width:80em;'>
+    <% @pool = @ticket.pool %>
+    <h4>You are reporting the following pool:</h4>
+    <div class='page'><%= fast_link_to(@pool.name, controller: "pools", id: @pool.id) %></div>
+    <div class='author'><%= link_to_user(@pool.creator) %></div>
+    <span class="date" title="Created on <%= @pool.created_at.strftime("%b %d, %Y %I:%M %p") %>">
+      <%= time_ago_in_words(@pool.created_at) %>ago
+    </span>
+  </div>
+<% end %>
