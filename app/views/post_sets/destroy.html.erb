@@ -1,0 +1,10 @@
+<h3>Delete Set</h3>
+
+<div class='section' style='width:500px;'>
+	<% form_tag(action: "destroy") do %>
+		<p>Are you sure you wish to delete "<%= h(@set.name) %>"?</p>
+		<%= submit_tag "Yes" %> <%= button_to_function "No", "history.back()" %>
+	<% end %>
+</div>
+
+<%= render partial: "footer" %>

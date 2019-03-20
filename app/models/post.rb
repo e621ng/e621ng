@@ -1061,6 +1061,32 @@ class Post < ApplicationRecord
     end
   end
 
+  module SetMethods
+    def post_sets
+      @post_sets ||= begin
+        return PostSet.none if pool_string.blank?
+        post_set_ids = pool_string.scan(/\d+/)
+        PostSet.where(id: post_set_ids)
+      end
+    end
+
+    def add_set!(set, force = false)
+      with_lock do
+        self.pool_string = "#{pool_string} set:#{set.id}".strip
+        update_column(:pool_string, pool_string) unless new_record?
+      end
+      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
+    end
+
+    def remove_set!(set)
+      with_lock do
+        self.pool_string = pool_string.gsub(/(?:\A| )set:#{set.id}(?:\Z| )/, " ").strip
+        update_column(:pool_string, pool_string) unless new_record?
+      end
+      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
+    end
+  end
+
   module PoolMethods
     def pools
       @pools ||= begin
@@ -1886,6 +1912,7 @@ class Post < ApplicationRecord
   include FavoriteMethods
   include UploaderMethods
   include PoolMethods
+  include SetMethods
   include VoteMethods
   extend CountMethods
   include ParentMethods

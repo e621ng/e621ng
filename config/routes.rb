@@ -360,6 +360,25 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_sets do
+    collection do
+      get :atom
+    end
+    member do
+      get :maintainers
+      get :post_list
+      post :update_posts
+      post :add_posts
+      post :remove_posts
+    end
+  end
+  resources :post_set_maintainers do
+    member do
+      post :approve
+      post :block
+      post :deny
+    end
+  end
 
   # aliases
   resources :wpages, :controller => "wiki_pages"

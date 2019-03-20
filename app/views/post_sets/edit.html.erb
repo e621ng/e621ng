@@ -1,0 +1,38 @@
+<div id="a-set">
+  <div id="c-edit">
+    <h2>Editing <span class="set-name"><%= @set.name %></span></h2>
+
+    <% if @can_edit %>
+      <div class='section'>
+        <%= simple_form_for(@set) do |f| %>
+          <%= f.input :name, as: :string, input_html: {onkeyup: 'fillShortName()'} %>
+
+          <%= f.input :shortname, label: 'Short Name', as: :string, input_html: {onchange: 'shortNameChanged()'},
+                      hint: "The short name is used for the set's metatag name. Can only contain letters, numbers, and underscores
+                and must contain at least one letter or underscore. <a href=\"/post?tags=set%3Aexample\">set:example</a>".html_safe %>
+          <%= dtext_field "post_set", "description", :classes => "autocomplete-mentions", :input_id => "set_description", :preview_id => "dtext-preview" %>
+
+          <%= f.input :is_public, label: 'Public', hint: "Private sets are only visible to you. Public sets are visible to anyone, but only you and users you
+                  assign as maintainers can edit the set. Only accounts three days or older can make public sets." %>
+
+          <%= f.input :transfer_on_delete, label: 'Transfer on Deletion', hint: 'If "Transfer on Delete" is enabled, when a post is deleted from the site, its parent (if any) will be
+                  added to this set in its place. Disable if you want posts to simply be removed from this set with no
+                  replacement.' %>
+          <%= f.button :submit, "Update" %>
+          <%= dtext_preview_button :post_set, :body, :input_id => "set_description", :preview_id => "dtext-preview" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @set.is_owner?(CurrentUser) %>
+      <%= link_to "&raquo; Click here to edit maintainers.".html_safe, maintainers_post_set_path(@set) %><br/>
+    <% end %>
+
+    <% if @set.is_owner?(CurrentUser) || @set.is_maintainer?(CurrentUser) %>
+      <%= link_to "&raquo; Click here to add/remove posts.".html_safe, post_list_post_set_path(@set) %><br/>
+    <% end %>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>

@@ -35,6 +35,13 @@ class ApplicationRecord < ActiveRecord::Base
         where.not("#{qualified_column_for(attr)} ~ ?", "(?e)" + value)
       end
 
+      def attribute_exact_matches(attribute, value, **options)
+        return all unless value.present?
+
+        column = qualified_column_for_attribute(attribute)
+        where("#{column} = ?", value)
+      end
+
       def attribute_matches(attribute, value, **options)
         return all if value.nil?
 

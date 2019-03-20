@@ -11,7 +11,7 @@ module PostSetPresenters
       html = ""
 
       if pools.empty?
-        return template.render("post_sets/blank")
+        return template.render("posts/blank")
       end
 
       pools.each do |pool|

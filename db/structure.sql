@@ -1529,6 +1529,78 @@ ALTER SEQUENCE public.post_report_reasons_id_seq OWNED BY public.post_report_rea
 
 
 --
+-- Name: post_set_maintainers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_set_maintainers (
+    id bigint NOT NULL,
+    post_set_id integer NOT NULL,
+    user_id integer NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_set_maintainers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_set_maintainers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_set_maintainers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_set_maintainers_id_seq OWNED BY public.post_set_maintainers.id;
+
+
+--
+-- Name: post_sets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_sets (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    shortname character varying NOT NULL,
+    description text DEFAULT ''::text,
+    is_public boolean DEFAULT false NOT NULL,
+    transfer_on_delete boolean DEFAULT false NOT NULL,
+    creator_id integer NOT NULL,
+    creator_ip_addr inet,
+    post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
+    post_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_sets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_sets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_sets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_sets_id_seq OWNED BY public.post_sets.id;
+
+
+--
 -- Name: post_updates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2208,7 +2280,8 @@ furry -rating:s'::text,
     custom_style text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
-    unread_dmail_count integer DEFAULT 0 NOT NULL
+    unread_dmail_count integer DEFAULT 0 NOT NULL,
+    set_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2581,6 +2654,20 @@ ALTER TABLE ONLY public.post_replacements ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.post_report_reasons ALTER COLUMN id SET DEFAULT nextval('public.post_report_reasons_id_seq'::regclass);
+
+
+--
+-- Name: post_set_maintainers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_set_maintainers ALTER COLUMN id SET DEFAULT nextval('public.post_set_maintainers_id_seq'::regclass);
+
+
+--
+-- Name: post_sets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_sets ALTER COLUMN id SET DEFAULT nextval('public.post_sets_id_seq'::regclass);
 
 
 --
@@ -3027,6 +3114,22 @@ ALTER TABLE ONLY public.post_replacements
 
 ALTER TABLE ONLY public.post_report_reasons
     ADD CONSTRAINT post_report_reasons_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_set_maintainers post_set_maintainers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_set_maintainers
+    ADD CONSTRAINT post_set_maintainers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_sets post_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_sets
+    ADD CONSTRAINT post_sets_pkey PRIMARY KEY (id);
 
 
 --
@@ -4485,6 +4588,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190222082952'),
 ('20190228144206'),
 ('20190305165101'),
-('20190313221440');
+('20190313221440'),
+('20190317024446');
 
 

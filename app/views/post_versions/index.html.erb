@@ -5,7 +5,7 @@
     <p>Recent updates may not have been processed yet. The most recently processed version was <%= time_ago_in_words_tagged(PostArchive.maximum(:updated_at)) %>.</p>
 
     <% if @post_versions.length == 0 %>
-      <%= render "post_sets/blank" %>
+      <%= render "posts/blank" %>
     <% else %>
       <% if params.dig(:search, :post_id).present? %>
         <%= render "revert_listing" %>

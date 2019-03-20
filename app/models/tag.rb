@@ -18,7 +18,7 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote filetype -filetype flagger
-    -flagger appealer -appealer disapproval -disapproval
+    -flagger appealer -appealer disapproval -disapproval set -set
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -656,6 +656,25 @@ class Tag < ApplicationRecord
             pool_id = Pool.name_to_id(g2)
             q[:tags][:related] << "pool:#{pool_id}"
             q[:ordpool] = pool_id
+
+          when "set"
+            post_set_id = PostSet.name_to_id(g2)
+            post_set = PostSet.find(post_set_id)
+
+            unless post_set.can_view?(CurrentUser.user)
+              raise User::PrivilegeError
+            end
+
+            q[:tags][:related] << "set:#{post_set_id}"
+
+          when "-set"
+            post_set_id = PostSet.name_to_id(g2)
+            post_set = PostSet.find(post_set_id)
+
+            unless post_set.can_view?(CurrentUser.user)
+              raise User::PrivilegeError
+            end
+            q[:tags][:exclude] << "set:#{post_set_id}"
 
           when "-favgroup"
             favgroup_id = FavoriteGroup.name_to_id(g2)

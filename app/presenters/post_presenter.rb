@@ -36,8 +36,8 @@ class PostPresenter < Presenter
     if options[:pool_id]
       locals[:link_params]["pool_id"] = options[:pool_id]
     end
-    if options[:favgroup_id]
-      locals[:link_params]["favgroup_id"] = options[:favgroup_id]
+    if options[:post_set_id]
+      locals[:link_params]["post_set_id"] = options[:post_set_id]
     end
 
     locals[:tooltip] = "#{post.tag_string} rating:#{post.rating} score:#{post.score}"
@@ -160,12 +160,12 @@ class PostPresenter < Presenter
   end
 
   def has_nav_links?(template)
-    has_sequential_navigation?(template.params) || @post.pools.undeleted.any? || @post.favorite_groups(active_id=template.params[:favgroup_id]).any?
+    has_sequential_navigation?(template.params) || @post.pools.undeleted.any? || @post.post_sets.visible.any?
   end
 
   def has_sequential_navigation?(params)
     return false if Tag.has_metatag?(params[:q], :order, :ordfav, :ordpool)
-    return false if params[:pool_id].present? || params[:favgroup_id].present?
+    return false if params[:pool_id].present? || params[:post_set_id].present?
     return CurrentUser.user.enable_sequential_post_navigation 
   end
 end

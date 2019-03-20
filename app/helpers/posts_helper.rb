@@ -23,7 +23,7 @@ module PostsHelper
 
   def missed_post_search_count_js
     return nil unless post_search_counts_enabled?
-    
+
     if params[:ms] == "1" && @post_set.post_count == 0 && @post_set.is_single_tag?
       session_id = session.id
       verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.reportbooru_key, serializer: JSON, digest: "SHA256")
@@ -34,7 +34,7 @@ module PostsHelper
 
   def post_search_count_js
     return nil unless post_search_counts_enabled?
-    
+
     if action_name == "index" && params[:page].nil?
       tags = Tag.scan_query(params[:tags]).sort.join(" ")
 
@@ -143,8 +143,15 @@ module PostsHelper
   def is_pool_selected?(pool)
     return false if params.has_key?(:q)
     return false if params.has_key?(:favgroup_id)
-    return false if !params.has_key?(:pool_id)
+    return false unless params.has_key?(:pool_id)
     return params[:pool_id].to_i == pool.id
+  end
+
+  def is_post_set_selected?(post_set)
+    return false if params.has_key?(:q)
+    return false if params.has_key?(:pool_id)
+    return false unless params.has_key?(:post_set_id)
+    return params[:post_set_id].to_i == post_set.id
   end
 
   def show_tag_change_notice?
