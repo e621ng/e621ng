@@ -824,25 +824,6 @@ class PostTest < ActiveSupport::TestCase
           end
         end
 
-        context "for a favgroup" do
-          setup do
-            @favgroup = FactoryBot.create(:favorite_group, creator: @user)
-            @post = FactoryBot.create(:post, :tag_string => "aaa favgroup:#{@favgroup.id}")
-          end
-
-          should "add the post to the favgroup" do
-            assert_equal(1, @favgroup.reload.post_count)
-            assert_equal(true, !!@favgroup.contains?(@post.id))
-          end
-
-          should "remove the post from the favgroup" do
-            @post.update(:tag_string => "-favgroup:#{@favgroup.id}")
-
-            assert_equal(0, @favgroup.reload.post_count)
-            assert_equal(false, !!@favgroup.contains?(@post.id))
-          end
-        end
-
         context "for a pool" do
           setup do
             mock_pool_archive_service!
@@ -1967,15 +1948,6 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([child], "child:none")
       assert_tag_match([parent], "child:any")
-    end
-
-    should "return posts for the favgroup:<name> metatag" do
-      favgroups = FactoryBot.create_list(:favorite_group, 2, creator: CurrentUser.user)
-      posts = favgroups.map { |g| FactoryBot.create(:post, tag_string: "favgroup:#{g.name}") }
-
-      assert_tag_match([posts[0]], "favgroup:#{favgroups[0].name}")
-      assert_tag_match([posts[1]], "-favgroup:#{favgroups[0].name}")
-      assert_tag_match([], "-favgroup:#{favgroups[0].name} -favgroup:#{favgroups[1].name}")
     end
 
     should "return posts for the user:<name> metatag" do

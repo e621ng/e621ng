@@ -195,7 +195,7 @@ Post.nav_prev = function(e) {
   } else if ($(".paginator a[rel~=prev]").length) {
     location.href = $("a[rel~=prev]").attr("href");
   } else {
-    href = $("#pool-nav li.pool-selected-true a[rel~=prev], #favgroup-nav a.active[rel~=prev]").attr("href");
+    href = $("#pool-nav li.pool-selected-true a[rel~=prev], #set-nav a.active[rel~=prev]").attr("href");
     if (href) {
       location.href = href;
     }
@@ -213,7 +213,7 @@ Post.nav_next = function(e) {
   } else if ($(".paginator a[rel~=next]").length) {
     location.href = $(".paginator a[rel~=next]").attr("href");
   } else {
-    href = $("#pool-nav li.pool-selected-true a[rel~=next], #favgroup-nav a.active[rel~=next]").attr("href");
+    href = $("#pool-nav li.pool-selected-true a[rel~=next], #set-nav a.active[rel~=next]").attr("href");
     if (href) {
       location.href = href;
     }

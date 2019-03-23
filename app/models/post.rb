@@ -814,7 +814,7 @@ class Post < ApplicationRecord
     def filter_metatags(tags)
       @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
       tags = apply_categorization_metatags(tags)
-      @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|fav|-fav|child|-child|-favgroup|favgroup|upvote|downvote):/i}
+      @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|fav|-fav|child|-child|upvote|downvote):/i}
       apply_pre_metatags
       return tags
     end
@@ -878,23 +878,6 @@ class Post < ApplicationRecord
           Post.numeric_attribute_matches(:id, $1).where.not(id: id).limit(10).each do |post|
             post.update!(parent_id: id)
           end
-
-        when /^-favgroup:(\d+)$/i
-          favgroup = FavoriteGroup.where("id = ?", $1.to_i).for_creator(CurrentUser.user.id).first
-          favgroup.remove!(id) if favgroup
-
-        when /^-favgroup:(.+)$/i
-          favgroup = FavoriteGroup.named($1).for_creator(CurrentUser.user.id).first
-          favgroup.remove!(id) if favgroup
-
-        when /^favgroup:(\d+)$/i
-          favgroup = FavoriteGroup.where("id = ?", $1.to_i).for_creator(CurrentUser.user.id).first
-          favgroup.add!(id) if favgroup
-
-        when /^favgroup:(.+)$/i
-          favgroup = FavoriteGroup.named($1).for_creator(CurrentUser.user.id).first
-          favgroup.add!(id) if favgroup
-
         end
       end
     end
@@ -1020,31 +1003,10 @@ class Post < ApplicationRecord
       ordered_users
     end
 
-    def favorite_groups(active_id=nil)
-      @favorite_groups ||= begin
-        groups = []
-
-        if active_id.present?
-          active_group = FavoriteGroup.where(:id => active_id.to_i).first
-          groups << active_group if active_group && active_group.contains?(self.id)
-        end
-
-        groups += CurrentUser.user.favorite_groups.select do |favgroup|
-          favgroup.contains?(self.id)
-        end
-
-        groups.uniq
-      end
-    end
-
     def remove_from_favorites
       Favorite.where(post_id: id).delete_all
       user_ids = fav_string.scan(/\d+/)
       User.where(:id => user_ids).update_all("favorite_count = favorite_count - 1")
-    end
-
-    def remove_from_fav_groups
-      FavoriteGroup.delay.purge_post(id)
     end
   end
 
@@ -1390,7 +1352,7 @@ class Post < ApplicationRecord
           update_children_on_destroy
           decrement_tag_post_counts
           remove_from_all_pools
-          remove_from_fav_groups
+          remove_from_post_sets
           remove_from_favorites
           destroy
           update_parent_on_destroy
@@ -1952,7 +1914,7 @@ class Post < ApplicationRecord
     @locked_to_add = nil
     @locked_to_remove = nil
     @pools = nil
-    @favorite_groups = nil
+    @post_sets = nil
     @tag_categories = nil
     @typed_tags = nil
     self

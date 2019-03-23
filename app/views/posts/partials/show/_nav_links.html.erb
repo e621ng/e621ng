@@ -11,9 +11,5 @@
     <% if post.post_sets.visible.any? %>
       <%= render "posts/partials/show/post_set_list", post: post, post_sets: post.post_sets.visible.selected_first(params[:post_set_id]).limit(5) %>
     <% end %>
-
-    <% if post.favorite_groups(active_id = params[:favgroup_id]).any? %>
-      <%= render "posts/partials/show/favorite_groups", :post => post %>
-    <% end %>
   </div>
 <% end %>

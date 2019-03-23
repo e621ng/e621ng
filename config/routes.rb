@@ -147,12 +147,6 @@ Rails.application.routes.draw do
   end
   resource  :dtext_preview, :only => [:create]
   resources :favorites, :only => [:index, :create, :destroy]
-  resources :favorite_groups do
-    member do
-      put :add_post
-    end
-    resource :order, :only => [:edit], :controller => "favorite_group_orders"
-  end
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
     member do

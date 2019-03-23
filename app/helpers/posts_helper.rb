@@ -142,7 +142,7 @@ module PostsHelper
 
   def is_pool_selected?(pool)
     return false if params.has_key?(:q)
-    return false if params.has_key?(:favgroup_id)
+    return false if params.has_key?(:post_set_id)
     return false unless params.has_key?(:pool_id)
     return params[:pool_id].to_i == pool.id
   end

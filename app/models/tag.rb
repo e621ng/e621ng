@@ -14,7 +14,7 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater artcomm
-    -pool pool ordpool -favgroup favgroup -fav fav ordfav md5 -rating rating
+    -pool pool ordpool -fav fav ordfav md5 -rating rating
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote filetype -filetype flagger
@@ -675,28 +675,6 @@ class Tag < ApplicationRecord
               raise User::PrivilegeError
             end
             q[:tags][:exclude] << "set:#{post_set_id}"
-
-          when "-favgroup"
-            favgroup_id = FavoriteGroup.name_to_id(g2)
-            favgroup = FavoriteGroup.find(favgroup_id)
-
-            if !favgroup.viewable_by?(CurrentUser.user)
-              raise User::PrivilegeError.new
-            end
-
-            q[:favgroups_neg] ||= []
-            q[:favgroups_neg] << favgroup_id
-
-          when "favgroup"
-            favgroup_id = FavoriteGroup.name_to_id(g2)
-            favgroup = FavoriteGroup.find(favgroup_id)
-
-            if !favgroup.viewable_by?(CurrentUser.user)
-              raise User::PrivilegeError.new
-            end
-
-            q[:favgroups] ||= []
-            q[:favgroups] << favgroup_id
 
           when "-fav"
             favuser = User.find_by_name(g2)

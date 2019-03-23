@@ -82,18 +82,6 @@ module PostSets
       ::PostSet.find_by_shortname(post_set_name)
     end
 
-    def favgroup_name
-      @favgroup_name ||= Tag.has_metatag?(tag_array, :favgroup)
-    end
-
-    def has_favgroup?
-      is_single_tag? && favgroup_name && favgroup
-    end
-
-    def favgroup
-      ::FavoriteGroup.find_by_name(favgroup_name)
-    end
-
     def has_deleted?
       tag_string !~ /status/ && ::Post.tag_match("#{tag_string} status:deleted").where("true /* PostSets::Post#has_deleted */").exists?
     end

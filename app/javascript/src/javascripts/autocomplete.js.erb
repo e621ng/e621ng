@@ -148,9 +148,6 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "ordpool":
         Autocomplete.pool_source(term, resp, metatag);
         break;
-      case "favgroup":
-        Autocomplete.favorite_group_source(term, resp, metatag);
-        break;
       case "search":
         Autocomplete.saved_search_source(term, resp);
         break;
@@ -468,26 +465,6 @@ Autocomplete.pool_source = function(term, resp, metatag) {
           value: (metatag ? (metatag + ":" + pool.name) : pool.name),
           post_count: pool.post_count,
           category: pool.category
-        };
-      }));
-    }
-  });
-}
-
-Autocomplete.favorite_group_source = function(term, resp, metatag) {
-  return $.ajax({
-    url: "/favorite_groups.json",
-    data: {
-      "search[name_matches]": term,
-      "limit": 10
-    },
-    method: "get",
-    success: function(data) {
-      resp($.map(data, function(favgroup) {
-        return {
-          label: favgroup.name.replace(/_/g, " "),
-          value: metatag + ":" + favgroup.name,
-          post_count: favgroup.post_count
         };
       }));
     }
