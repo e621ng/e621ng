@@ -2,11 +2,16 @@ require 'danbooru/has_bit_flags'
 require 'google/apis/pubsub_v1'
 
 class Post < ApplicationRecord
-  class ApprovalError < Exception ; end
-  class RevertError < Exception ; end
-  class SearchError < Exception ; end
-  class DeletionError < Exception ; end
-  class TimeoutError < Exception ; end
+  class ApprovalError < Exception;
+  end
+  class RevertError < Exception;
+  end
+  class SearchError < Exception;
+  end
+  class DeletionError < Exception;
+  end
+  class TimeoutError < Exception;
+  end
 
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated check_translation translation_request reverse_translation]
@@ -18,7 +23,7 @@ class Post < ApplicationRecord
   before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
-  validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) { "duplicate: #{Post.find_by_md5(obj.md5).id}"}
+  validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
   validate :tag_names_are_valid
   validate :added_tags_are_valid
@@ -59,7 +64,7 @@ class Post < ApplicationRecord
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning, :view_count
 
   if PostArchive.enabled?
-    has_many :versions, -> { Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC") }, :class_name => "PostArchive", :dependent => :destroy
+    has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
   end
 
   module FileMethods
@@ -347,16 +352,16 @@ class Post < ApplicationRecord
     def normalized_source
       case source
       when %r{\Ahttps?://img\d+\.pixiv\.net/img/[^\/]+/(\d+)}i,
-           %r{\Ahttps?://i\d\.pixiv\.net/img\d+/img/[^\/]+/(\d+)}i
+          %r{\Ahttps?://i\d\.pixiv\.net/img\d+/img/[^\/]+/(\d+)}i
         "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{$1}"
 
       when %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/img-(?:master|original)/img/(?:\d+\/)+(\d+)_p}i,
-           %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/c/\d+x\d+/img-master/img/(?:\d+\/)+(\d+)_p}i,
-           %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/img-zip-ugoira/img/(?:\d+\/)+(\d+)_ugoira\d+x\d+\.zip}i
+          %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/c/\d+x\d+/img-master/img/(?:\d+\/)+(\d+)_p}i,
+          %r{\Ahttps?://(?:i\d+\.pixiv\.net|i\.pximg\.net)/img-zip-ugoira/img/(?:\d+\/)+(\d+)_ugoira\d+x\d+\.zip}i
         "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{$1}"
 
       when %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/(\d+)\?e=\d+&h=[a-f0-9]+}i,
-           %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/[a-f0-9]+/\d+/(\d+)}i
+          %r{\Ahttps?://lohas\.nicoseiga\.jp/priv/[a-f0-9]+/\d+/(\d+)}i
         "https://seiga.nicovideo.jp/seiga/im#{$1}"
 
       when %r{\Ahttps?://(?:d3j5vwomefv46c|dn3pm25xmtlyu)\.cloudfront\.net/photos/large/(\d+)\.}i
@@ -364,24 +369,24 @@ class Post < ApplicationRecord
         base_36_id = base_10_id.to_s(36)
         "https://twitpic.com/#{base_36_id}"
 
-      # http://orig12.deviantart.net/9b69/f/2017/023/7/c/illustration___tokyo_encount_oei__by_melisaongmiqin-dawi58s.png
-      # http://pre15.deviantart.net/81de/th/pre/f/2015/063/5/f/inha_by_inhaestudios-d8kfzm5.jpg
-      # http://th00.deviantart.net/fs71/PRE/f/2014/065/3/b/goruto_by_xyelkiltrox-d797tit.png
-      # http://th04.deviantart.net/fs70/300W/f/2009/364/4/d/Alphes_Mimic___Rika_by_Juriesute.png
-      # http://fc02.deviantart.net/fs48/f/2009/186/2/c/Animation_by_epe_tohri.swf
-      # http://fc08.deviantart.net/files/f/2007/120/c/9/Cool_Like_Me_by_47ness.jpg
-      # http://fc08.deviantart.net/images3/i/2004/088/8/f/Blackrose_for_MuzicFreq.jpg
-      # http://img04.deviantart.net/720b/i/2003/37/9/6/princess_peach.jpg
+        # http://orig12.deviantart.net/9b69/f/2017/023/7/c/illustration___tokyo_encount_oei__by_melisaongmiqin-dawi58s.png
+        # http://pre15.deviantart.net/81de/th/pre/f/2015/063/5/f/inha_by_inhaestudios-d8kfzm5.jpg
+        # http://th00.deviantart.net/fs71/PRE/f/2014/065/3/b/goruto_by_xyelkiltrox-d797tit.png
+        # http://th04.deviantart.net/fs70/300W/f/2009/364/4/d/Alphes_Mimic___Rika_by_Juriesute.png
+        # http://fc02.deviantart.net/fs48/f/2009/186/2/c/Animation_by_epe_tohri.swf
+        # http://fc08.deviantart.net/files/f/2007/120/c/9/Cool_Like_Me_by_47ness.jpg
+        # http://fc08.deviantart.net/images3/i/2004/088/8/f/Blackrose_for_MuzicFreq.jpg
+        # http://img04.deviantart.net/720b/i/2003/37/9/6/princess_peach.jpg
       when %r{\Ahttps?://(?:(?:fc|th|pre|orig|img|prnt)\d{2}|origin-orig)\.deviantart\.net/.+/(?<title>[a-z0-9_]+)_by_(?<artist>[a-z0-9_]+)-d(?<id>[a-z0-9]+)\.}i
         artist = $~[:artist].dasherize
         title = $~[:title].titleize.strip.squeeze(" ").tr(" ", "-")
         id = $~[:id].to_i(36)
         "https://www.deviantart.com/#{artist}/art/#{title}-#{id}"
 
-      # http://prnt00.deviantart.net/9b74/b/2016/101/4/468a9d89f52a835d4f6f1c8caca0dfb2-pnjfbh.jpg
-      # http://fc00.deviantart.net/fs71/f/2013/234/d/8/d84e05f26f0695b1153e9dab3a962f16-d6j8jl9.jpg
-      # http://th04.deviantart.net/fs71/PRE/f/2013/337/3/5/35081351f62b432f84eaeddeb4693caf-d6wlrqs.jpg
-      # http://fc09.deviantart.net/fs22/o/2009/197/3/7/37ac79eaeef9fb32e6ae998e9a77d8dd.jpg
+        # http://prnt00.deviantart.net/9b74/b/2016/101/4/468a9d89f52a835d4f6f1c8caca0dfb2-pnjfbh.jpg
+        # http://fc00.deviantart.net/fs71/f/2013/234/d/8/d84e05f26f0695b1153e9dab3a962f16-d6j8jl9.jpg
+        # http://th04.deviantart.net/fs71/PRE/f/2013/337/3/5/35081351f62b432f84eaeddeb4693caf-d6wlrqs.jpg
+        # http://fc09.deviantart.net/fs22/o/2009/197/3/7/37ac79eaeef9fb32e6ae998e9a77d8dd.jpg
       when %r{\Ahttps?://(?:fc|th|pre|orig|img|prnt)\d{2}\.deviantart\.net/.+/[a-f0-9]{32}-d(?<id>[a-z0-9]+)\.}i
         id = $~[:id].to_i(36)
         "https://deviantart.com/deviation/#{id}"
@@ -389,8 +394,8 @@ class Post < ApplicationRecord
       when %r{\Ahttp://www\.karabako\.net/images(?:ub)?/karabako_(\d+)(?:_\d+)?\.}i
         "http://www.karabako.net/post/view/#{$1}"
 
-      # XXX http://twipple.jp is defunct
-      # http://p.twpl.jp/show/orig/myRVs
+        # XXX http://twipple.jp is defunct
+        # http://p.twpl.jp/show/orig/myRVs
       when %r{\Ahttp://p\.twpl\.jp/show/(?:large|orig)/([a-z0-9]+)}i
         "http://p.twipple.jp/#{$1}"
 
@@ -422,9 +427,9 @@ class Post < ApplicationRecord
       when %r{\Ahttp://static[1-6]?\.minitokyo\.net/(?:downloads|view)/(?:\d{2}/){2}(\d+)}i
         "http://gallery.minitokyo.net/download/#{$1}"
 
-      # https://gelbooru.com//images/ee/5c/ee5c9a69db9602c95debdb9b98fb3e3e.jpeg
-      # http://simg.gelbooru.com//images/2003/edd1d2b3881cf70c3acf540780507531.png
-      # https://simg3.gelbooru.com//samples/0b/3a/sample_0b3ae5e225072b8e391c827cb470d29c.jpg
+        # https://gelbooru.com//images/ee/5c/ee5c9a69db9602c95debdb9b98fb3e3e.jpeg
+        # http://simg.gelbooru.com//images/2003/edd1d2b3881cf70c3acf540780507531.png
+        # https://simg3.gelbooru.com//samples/0b/3a/sample_0b3ae5e225072b8e391c827cb470d29c.jpg
       when %r{\Ahttps?://(?:\w+\.)?gelbooru\.com//?(?:images|samples)/(?:\d+|\h\h/\h\h)/(?:sample_)?(?<md5>\h{32})\.}i
         "https://gelbooru.com/index.php?page=post&s=list&md5=#{$~[:md5]}"
 
@@ -472,24 +477,24 @@ class Post < ApplicationRecord
         entry_no = $2
         "#{base_url}/diarypro/diary.cgi?no=#{entry_no}"
 
-      # XXX site is defunct
+        # XXX site is defunct
       when %r{\Ahttp://i(?:\d)?\.minus\.com/(?:i|j)([^\.]{12,})}i
         "http://minus.com/i/#{$1}"
 
       when %r{\Ahttps?://pic0[1-4]\.nijie\.info/nijie_picture/(?:diff/main/)?\d+_(\d+)_(?:\d+{10}|\d+_\d+{14})}i
         "https://nijie.info/view.php?id=#{$1}"
 
-      # http://ayase.yande.re/image/2d0d229fd8465a325ee7686fcc7f75d2/yande.re%20192481%20animal_ears%20bunny_ears%20garter_belt%20headphones%20mitha%20stockings%20thighhighs.jpg
-      # https://yuno.yande.re/image/1764b95ae99e1562854791c232e3444b/yande.re%20281544%20cameltoe%20erect_nipples%20fundoshi%20horns%20loli%20miyama-zero%20sarashi%20sling_bikini%20swimsuits.jpg
-      # https://files.yande.re/image/2a5d1d688f565cb08a69ecf4e35017ab/yande.re%20349790%20breast_hold%20kurashima_tomoyasu%20mahouka_koukou_no_rettousei%20naked%20nipples.jpg
-      # https://files.yande.re/sample/0d79447ce2c89138146f64ba93633568/yande.re%20290757%20sample%20seifuku%20thighhighs%20tsukudani_norio.jpg
+        # http://ayase.yande.re/image/2d0d229fd8465a325ee7686fcc7f75d2/yande.re%20192481%20animal_ears%20bunny_ears%20garter_belt%20headphones%20mitha%20stockings%20thighhighs.jpg
+        # https://yuno.yande.re/image/1764b95ae99e1562854791c232e3444b/yande.re%20281544%20cameltoe%20erect_nipples%20fundoshi%20horns%20loli%20miyama-zero%20sarashi%20sling_bikini%20swimsuits.jpg
+        # https://files.yande.re/image/2a5d1d688f565cb08a69ecf4e35017ab/yande.re%20349790%20breast_hold%20kurashima_tomoyasu%20mahouka_koukou_no_rettousei%20naked%20nipples.jpg
+        # https://files.yande.re/sample/0d79447ce2c89138146f64ba93633568/yande.re%20290757%20sample%20seifuku%20thighhighs%20tsukudani_norio.jpg
       when %r{\Ahttps?://(?:[^.]+\.)?yande\.re/(?:image|jpeg|sample)/\h{32}/yande\.re%20(?<post_id>\d+)}i
         "https://yande.re/post/show/#{$~[:post_id]}"
 
-      # https://yande.re/jpeg/0c9ec0ffcaa40470093cb44c3fd40056/yande.re%2064649%20animal_ears%20cameltoe%20fixme%20nekomimi%20nipples%20ryohka%20school_swimsuit%20see_through%20shiraishi_nagomi%20suzuya%20swimsuits%20tail%20thighhighs.jpg
-      # https://yande.re/jpeg/22577d2344fe694cf47f80563031b3cd.jpg
-      # https://yande.re/image/b4b1d11facd1700544554e4805d47bb6/.png
-      # https://yande.re/sample/ceb6a12e87945413a95b90fada406f91/.jpg
+        # https://yande.re/jpeg/0c9ec0ffcaa40470093cb44c3fd40056/yande.re%2064649%20animal_ears%20cameltoe%20fixme%20nekomimi%20nipples%20ryohka%20school_swimsuit%20see_through%20shiraishi_nagomi%20suzuya%20swimsuits%20tail%20thighhighs.jpg
+        # https://yande.re/jpeg/22577d2344fe694cf47f80563031b3cd.jpg
+        # https://yande.re/image/b4b1d11facd1700544554e4805d47bb6/.png
+        # https://yande.re/sample/ceb6a12e87945413a95b90fada406f91/.jpg
       when %r{\Ahttps?://(?:[^.]+\.)?yande\.re/(?:image|jpeg|sample)/(?<md5>\h{32})(?:/yande\.re.*|/?\.(?:jpg|png))\z}i
         "https://yande.re/post?tags=md5:#{$~[:md5]}"
 
@@ -499,8 +504,8 @@ class Post < ApplicationRecord
       when %r{\Ahttps?://(?:[^.]+\.)?konachan\.com/(?:image|jpeg|sample)/(?<md5>\h{32})(?:/Konachan\.com%20-%20.*|/?\.(?:jpg|png))\z}i
         "https://konachan.com/post?tags=md5:#{$~[:md5]}"
 
-      # https://gfee_li.artstation.com/projects/XPGOD
-      # https://gfee_li.artstation.com/projects/asuka-7
+        # https://gfee_li.artstation.com/projects/XPGOD
+        # https://gfee_li.artstation.com/projects/asuka-7
       when %r{\Ahttps?://\w+\.artstation.com/(?:artwork|projects)/(?<project_id>[a-z0-9-]+)\z/}i
         "https://www.artstation.com/artwork/#{$~[:project_id]}"
 
@@ -512,33 +517,33 @@ class Post < ApplicationRecord
           if (url =~ /^https?:\/\/twitpic.com\/show\/large\/[a-z0-9]+/i)
             url.gsub!(/show\/large\//, "")
             index = url.rindex('.')
-            url = url[0..index-1]
+            url = url[0..index - 1]
           end
           url
         else
           source
         end
 
-      # http://art59.photozou.jp/pub/212/1986212/photo/118493247_org.v1534644005.jpg
-      # http://kura3.photozou.jp/pub/794/1481794/photo/161537258_org.v1364829097.jpg
+        # http://art59.photozou.jp/pub/212/1986212/photo/118493247_org.v1534644005.jpg
+        # http://kura3.photozou.jp/pub/794/1481794/photo/161537258_org.v1364829097.jpg
       when %r{\Ahttps?://\w+\.photozou\.jp/pub/\d+/(?<artist_id>\d+)/photo/(?<photo_id>\d+)_.*$}i
         "https://photozou.jp/photo/show/#{$~[:artist_id]}/#{$~[:photo_id]}"
 
-      # http://img.toranoana.jp/popup_img/04/0030/09/76/040030097695-2p.jpg
-      # http://img.toranoana.jp/popup_img18/04/0010/22/87/040010228714-1p.jpg
-      # http://img.toranoana.jp/popup_blimg/04/0030/08/30/040030083068-1p.jpg
-      # https://ecdnimg.toranoana.jp/ec/img/04/0030/65/34/040030653417-6p.jpg
+        # http://img.toranoana.jp/popup_img/04/0030/09/76/040030097695-2p.jpg
+        # http://img.toranoana.jp/popup_img18/04/0010/22/87/040010228714-1p.jpg
+        # http://img.toranoana.jp/popup_blimg/04/0030/08/30/040030083068-1p.jpg
+        # https://ecdnimg.toranoana.jp/ec/img/04/0030/65/34/040030653417-6p.jpg
       when %r{\Ahttps?://(\w+\.)?toranoana\.jp/(?:popup_(?:bl)?img\d*|ec/img)/\d{2}/\d{4}/\d{2}/\d{2}/(?<work_id>\d+)}i
         "https://ec.toranoana.jp/tora_r/ec/item/#{$~[:work_id]}/"
 
-      # https://a.hitomi.la/galleries/907838/1.png
-      # https://0a.hitomi.la/galleries/1169701/23.png
-      # https://aa.hitomi.la/galleries/990722/003_01_002.jpg
-      # https://la.hitomi.la/galleries/1054851/001_main_image.jpg
+        # https://a.hitomi.la/galleries/907838/1.png
+        # https://0a.hitomi.la/galleries/1169701/23.png
+        # https://aa.hitomi.la/galleries/990722/003_01_002.jpg
+        # https://la.hitomi.la/galleries/1054851/001_main_image.jpg
       when %r{\Ahttps?://\w+\.hitomi\.la/galleries/(?<gallery_id>\d+)/(?<image_id>\d+)\w*\.[a-z]+\z}i
         "https://hitomi.la/reader/#{$~[:gallery_id]}.html##{$~[:image_id].to_i}"
 
-      # https://aa.hitomi.la/galleries/883451/t_rena1g.png
+        # https://aa.hitomi.la/galleries/883451/t_rena1g.png
       when %r{\Ahttps?://\w+\.hitomi\.la/galleries/(?<gallery_id>\d+)/\w*\.[a-z]+\z}i
         "https://hitomi.la/galleries/#{$~[:gallery_id]}.html"
 
@@ -600,17 +605,17 @@ class Post < ApplicationRecord
       end
     end
 
-    def set_tag_count(category,tagcount)
-      self.send("tag_count_#{category}=",tagcount)
+    def set_tag_count(category, tagcount)
+      self.send("tag_count_#{category}=", tagcount)
     end
 
     def inc_tag_count(category)
-      set_tag_count(category,self.send("tag_count_#{category}") + 1)
+      set_tag_count(category, self.send("tag_count_#{category}") + 1)
     end
 
     def set_tag_counts(disable_cache = true)
       self.tag_count = 0
-      TagCategory.categories.each {|x| set_tag_count(x,0)}
+      TagCategory.categories.each {|x| set_tag_count(x, 0)}
       categories = Tag.categories_for(tag_array, :disable_caching => disable_cache)
       categories.each_value do |category|
         self.tag_count += 1
@@ -715,7 +720,7 @@ class Post < ApplicationRecord
     def remove_invalid_tags(tags)
       invalid_tags = Tag.invalid_cosplay_tags(tags)
       if invalid_tags.present?
-        self.warnings[:base] << "The root tag must be a character tag: #{invalid_tags.map {|tag| "[b]#{tag}[/b]" }.join(", ")}"
+        self.warnings[:base] << "The root tag must be a character tag: #{invalid_tags.map {|tag| "[b]#{tag}[/b]"}.join(", ")}"
       end
       tags - invalid_tags
     end
@@ -905,13 +910,13 @@ class Post < ApplicationRecord
           self.rating = $1
 
         when /^(-?)locked:notes?$/i
-          self.is_note_locked = ($1 != "-" ) if CurrentUser.is_builder?
+          self.is_note_locked = ($1 != "-") if CurrentUser.is_builder?
 
         when /^(-?)locked:rating$/i
-          self.is_rating_locked = ($1 != "-" ) if CurrentUser.is_builder?
+          self.is_rating_locked = ($1 != "-") if CurrentUser.is_builder?
 
         when /^(-?)locked:status$/i
-          self.is_status_locked = ($1 != "-" ) if CurrentUser.is_admin?
+          self.is_status_locked = ($1 != "-") if CurrentUser.is_admin?
 
         end
       end
@@ -1032,7 +1037,12 @@ class Post < ApplicationRecord
       end
     end
 
+    def belongs_to_post_set(set)
+      pool_string =~ /(?:\A| )set:#{set.id}(?:\z| )/
+    end
+
     def add_set!(set, force = false)
+      return if belongs_to_post_set(set) && !force
       with_lock do
         self.pool_string = "#{pool_string} set:#{set.id}".strip
         update_column(:pool_string, pool_string) unless new_record?
@@ -1042,10 +1052,26 @@ class Post < ApplicationRecord
 
     def remove_set!(set)
       with_lock do
-        self.pool_string = pool_string.gsub(/(?:\A| )set:#{set.id}(?:\Z| )/, " ").strip
+        self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
         update_column(:pool_string, pool_string) unless new_record?
       end
       # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
+    end
+
+    def give_post_sets_to_parent
+      transaction do
+        post_sets.find_each do |set|
+          set.remove([id])
+          set.add([parent.id]) if parent_id.present? && set.transfer_on_delete
+          set.save!
+        end
+      end
+    end
+
+    def remove_from_post_sets
+      post_sets.find_each do |set|
+        set.remove!(self)
+      end
     end
   end
 
@@ -1220,7 +1246,7 @@ class Post < ApplicationRecord
     def fix_post_counts(post)
       post.set_tag_counts(false)
       if post.changes_saved?
-        args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}",post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
+        args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
         post.update_columns(args)
       end
     end
@@ -1289,7 +1315,7 @@ class Post < ApplicationRecord
       siblings = children[1..-1]
 
       eldest.update(parent_id: nil)
-      Post.where(id: siblings).find_each { |p| p.update(parent_id: eldest.id) }
+      Post.where(id: siblings).find_each {|p| p.update(parent_id: eldest.id)}
       # Post.where(id: siblings).update(parent_id: eldest.id) # XXX rails 5
     end
 
@@ -1311,7 +1337,7 @@ class Post < ApplicationRecord
       end
 
       unless options[:without_mod_action]
-        ModAction.log("moved favorites from post ##{id} to post ##{parent.id}",:post_move_favorites)
+        ModAction.log("moved favorites from post ##{id} to post ##{parent.id}", :post_move_favorites)
       end
     end
 
@@ -1332,7 +1358,7 @@ class Post < ApplicationRecord
 
     def children_ids
       if has_children?
-        children.map{|p| p.id}.join(' ')
+        children.map {|p| p.id}.join(' ')
       end
     end
   end
@@ -1346,7 +1372,7 @@ class Post < ApplicationRecord
 
       transaction do
         Post.without_timeout do
-          ModAction.log("permanently deleted post ##{id}",:post_permanent_delete)
+          ModAction.log("permanently deleted post ##{id}", :post_permanent_delete)
 
           give_favorites_to_parent
           update_children_on_destroy
@@ -1374,18 +1400,19 @@ class Post < ApplicationRecord
         flag!(reason, is_deletion: true)
 
         update(
-          is_deleted: true,
-          is_pending: false,
-          is_flagged: false
+            is_deleted: true,
+            is_pending: false,
+            is_flagged: false
         )
 
         move_files_on_delete
 
         # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
         give_favorites_to_parent(options) if options[:move_favorites]
+        give_post_sets_to_parent
 
         unless options[:without_mod_action]
-          ModAction.log("deleted post ##{id}, reason: #{reason}",:post_delete)
+          ModAction.log("deleted post ##{id}, reason: #{reason}", :post_delete)
         end
       end
     end
@@ -1530,7 +1557,7 @@ class Post < ApplicationRecord
     end
 
     def associated_attributes
-      [ :pixiv_ugoira_frame_data ]
+      [:pixiv_ugoira_frame_data]
     end
 
     def as_json(options = {})
@@ -1542,22 +1569,22 @@ class Post < ApplicationRecord
 
     def legacy_attributes
       hash = {
-        "has_comments" => last_commented_at.present?,
-        "parent_id" => parent_id,
-        "status" => status,
-        "has_children" => has_children?,
-        "created_at" => created_at.to_formatted_s(:db),
-        "has_notes" => has_notes?,
-        "rating" => rating,
-        "author" => uploader_name,
-        "creator_id" => uploader_id,
-        "width" => image_width,
-        "source" => source,
-        "score" => score,
-        "tags" => tag_string,
-        "height" => image_height,
-        "file_size" => file_size,
-        "id" => id
+          "has_comments" => last_commented_at.present?,
+          "parent_id" => parent_id,
+          "status" => status,
+          "has_children" => has_children?,
+          "created_at" => created_at.to_formatted_s(:db),
+          "has_notes" => has_notes?,
+          "rating" => rating,
+          "author" => uploader_name,
+          "creator_id" => uploader_id,
+          "width" => image_width,
+          "source" => source,
+          "score" => score,
+          "tags" => tag_string,
+          "height" => image_height,
+          "file_size" => file_size,
+          "id" => id
       }
 
       if visible?
@@ -1806,20 +1833,20 @@ class Post < ApplicationRecord
     end
 
     def added_tags_are_valid
-      new_tags = added_tags.select { |t| t.post_count <= 0 }
-      new_general_tags = new_tags.select { |t| t.category == Tag.categories.general }
-      new_artist_tags = new_tags.select { |t| t.category == Tag.categories.artist }
-      repopulated_tags = new_tags.select { |t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta) && (t.created_at < 1.hour.ago) }
+      new_tags = added_tags.select {|t| t.post_count <= 0}
+      new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
+      new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
+      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta) && (t.created_at < 1.hour.ago)}
 
       if new_general_tags.present?
         n = new_general_tags.size
-        tag_wiki_links = new_general_tags.map { |tag| "[[#{tag.name}]]" }
+        tag_wiki_links = new_general_tags.map {|tag| "[[#{tag.name}]]"}
         self.warnings[:base] << "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}"
       end
 
       if repopulated_tags.present?
         n = repopulated_tags.size
-        tag_wiki_links = repopulated_tags.map { |tag| "[[#{tag.name}]]" }
+        tag_wiki_links = repopulated_tags.map {|tag| "[[#{tag.name}]]"}
         self.warnings[:base] << "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}"
       end
 
@@ -1835,7 +1862,7 @@ class Post < ApplicationRecord
       unremoved_tags = tag_array & attempted_removed_tags
 
       if unremoved_tags.present?
-        unremoved_tags_list = unremoved_tags.map { |t| "[[#{t}]]" }.to_sentence
+        unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
         self.warnings[:base] << "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again"
       end
     end
@@ -1844,7 +1871,7 @@ class Post < ApplicationRecord
       return if !new_record?
       return if source !~ %r!\Ahttps?://!
       return if has_tag?("artist_request") || has_tag?("official_art")
-      return if tags.any? { |t| t.category == Tag.categories.artist }
+      return if tags.any? {|t| t.category == Tag.categories.artist}
       return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
 
       self.warnings[:base] << "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help"
@@ -1852,7 +1879,7 @@ class Post < ApplicationRecord
 
     def has_copyright_tag
       return if !new_record?
-      return if has_tag?("copyright_request") || tags.any? { |t| t.category == Tag.categories.copyright }
+      return if has_tag?("copyright_request") || tags.any? {|t| t.category == Tag.categories.copyright}
 
       self.warnings[:base] << "Copyright tag is required. Consider adding [[copyright request]] or [[original]]"
     end
@@ -1860,7 +1887,7 @@ class Post < ApplicationRecord
     def has_enough_tags
       return if !new_record?
 
-      if tags.count { |t| t.category == Tag.categories.general } < 10
+      if tags.count {|t| t.category == Tag.categories.general} < 10
         self.warnings[:base] << "Uploads must have at least 10 general tags. Read [[howto:tag]] for guidelines on tagging your uploads"
       end
     end

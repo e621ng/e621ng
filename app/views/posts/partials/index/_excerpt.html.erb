@@ -57,7 +57,7 @@
   <% elsif post_set.has_post_set? %>
     <h4>
       Set:
-      <%= link_to post_set.post_set.ame, post_set_path(post_set.post_set) %>
+      <%= link_to post_set.post_set.name, post_set_path(post_set.post_set) %>
     </h4>
     Creator: <%= link_to_user post_set.post_set.creator %>
   <% else %>

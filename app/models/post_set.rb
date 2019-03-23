@@ -33,6 +33,7 @@ class PostSet < ApplicationRecord
   after_update :send_maintainer_public_dmails
   before_destroy :send_maintainer_destroy_dmails
   before_save :update_post_count
+  after_save :synchronize, if: :saved_change_to_post_ids?
 
   def self.name_to_id(name)
     if name =~ /^\d+$/
@@ -124,7 +125,7 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || user_id == user.id || user.is_admin?
+      is_public || creator_id == user.id || user.is_admin?
     end
 
     def can_edit?(user)
@@ -177,10 +178,7 @@ class PostSet < ApplicationRecord
     end
 
     def remove(ids)
-      ids.each do |id|
-        next if contains?(id)
-        self.post_ids = post_ids - [id]
-      end
+      self.post_ids = post_ids - ids
     end
 
     def remove!(post)
