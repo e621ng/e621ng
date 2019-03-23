@@ -16,7 +16,7 @@ module PostSetPresenters
       html = ""
 
       if posts.empty?
-        return template.render("post_sets/blank")
+        return template.render("posts/blank")
       end
 
       posts.each do |post|

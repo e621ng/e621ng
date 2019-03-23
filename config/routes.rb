@@ -147,12 +147,6 @@ Rails.application.routes.draw do
   end
   resource  :dtext_preview, :only => [:create]
   resources :favorites, :only => [:index, :create, :destroy]
-  resources :favorite_groups do
-    member do
-      put :add_post
-    end
-    resource :order, :only => [:edit], :controller => "favorite_group_orders"
-  end
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
     member do
@@ -360,6 +354,25 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_sets do
+    collection do
+      get :atom
+    end
+    member do
+      get :maintainers
+      get :post_list
+      post :update_posts
+      post :add_posts
+      post :remove_posts
+    end
+  end
+  resources :post_set_maintainers do
+    member do
+      post :approve
+      post :block
+      post :deny
+    end
+  end
 
   # aliases
   resources :wpages, :controller => "wiki_pages"

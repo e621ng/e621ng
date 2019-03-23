@@ -1,0 +1,29 @@
+<% unless params[:show] %><div id='searchform_hide'><%= link_to_function "Show Search Options", "$j('#searchform').fadeIn('fast'); $('searchform_hide').hide();" %></div><% end %>
+<div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;<% end %>'>
+  <% unless params[:show] %><%= link_to_function "Hide Search Options", "$j('#searchform').fadeOut('fast'); $('searchform_hide').show();" %><% end %>
+  <% form_tag({action: "index"}, method: :get) do %>
+    <table class='nomargin'>
+      <tr><td><label for="name">Name</label></td>	<td><%= text_field_tag "name", params[:name], style: "width:195px"%></td></tr>
+      <tr><td><label for="name">Short Name</label></td>	<td><%= text_field_tag "shortname", params[:shortname], style: "width:195px"%></td></tr>
+      <tr><td><label for="name">Username</label></td>	<td><%= text_field_tag "username", params[:username], style: "width:195px"%></td></tr>
+
+      <tr><td><label for="type">Order</label></td>	<td>
+        <%= select_tag "order", options_for_select([
+                                                       ["Name", "name"],
+                                                       ["Short Name", "shortname"],
+                                                       ["Creator", "creator"],
+                                                       ["Post Count", "postcount"],
+                                                       ["Created", "created"],
+                                                       ["Updated", "updated"]
+                                                   ], params[:order]), style: "width:200px;" %>
+      </td></tr>
+      <tr><td colspan="2"><%= submit_tag "Search", name: nil %></td></tr>
+    </table>
+    <% if params[:show] %>
+      <input type='hidden' name='show' value='1'/>
+    <% end %>
+  <% end %>
+</div>
+<% if params[:name] || params[:type] || params[:status] %>
+  <script type='text/javascript'>$('searchform_hide').hide(); $('searchform').show();</script>
+<% end %>

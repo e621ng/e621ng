@@ -1,0 +1,60 @@
+<div id="c-sets">
+  <div id="a-index">
+    <%= render partial: 'search' %>
+
+    <h2>Sets</h2>
+
+    <div id="set-index">
+      <table width="100%" class="rounded">
+        <thead>
+        <tr>
+          <th width="30%"><%= link_to "Name", action: "index", order: "username" %></th>
+          <th width="20%"><%= link_to "Short Name", action: "index", order: "shortname" %></th>
+          <th width="15%">Creator</th>
+          <th width="5%"><%= link_to "Posts", action: "index", order: "postcount" %></th>
+          <th width="10%"><%= link_to "Created", action: "index", order: "created" %></th>
+          <th width="10%"><%= link_to "Updated", action: "index", order: "updated" %></th>
+          <th width="10%">Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @sets.each do |s| %>
+          <tr>
+            <td><%= link_to s.name, post_set_path(s) %></td>
+            <td><%= link_to s.shortname, posts_path(tags: "set:#{s.shortname}") %></td>
+            <td><%= link_to_user s.creator %></td>
+            <td><%= s.post_count %></td>
+            <td><span class="date" title="<%= s.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(s.created_at) + " ago" %></span></td>
+            <td><span class="date" title="<%= s.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(s.updated_at) + " ago" %></span></td>
+            <td>
+              <% if s.is_public %>
+                <div class='set-status set-status-public' title='This set is public'>Public</div>
+              <% else %>
+                <div class='set-status set-status-private' title='This set is private and only visible to you'>Private</div>
+              <% end %>
+
+              <% if s.is_owner?(CurrentUser.user) %>
+                <div class='set-status set-status-owner' title='You own this set'>Owner</div>
+              <% elsif s.is_maintainer?(CurrentUser.user) %>
+                <div class='set-status set-status-maintainer' title='You are a maintainer of this set and can add and remove posts. Click to view invites'><%= link_to "Maint.", controller: "post_set_maintainers", action: "index" %></div>
+              <% elsif s.is_invited?(CurrentUser.user) %>
+                <div class='set-status set-status-invited' title='You have been invited to maintain this set. Click to view invites'><%= link_to "Invited", controller: "post_set_maintainers", action: "index" %></div>
+              <% elsif s.is_blocked?(CurrentUser.user) %>
+                <div class='set-status set-status-blocked' title='You have blocked the owner of this set from inviting you to maintain it. Click to view invites'><%= link_to "Blocked", controller: "post_set_maintainers", action: "index" %></div>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="paginator">
+      <%= numbered_paginator(@sets) %>
+    </div>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>

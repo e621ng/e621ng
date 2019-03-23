@@ -1,0 +1,74 @@
+<div id="c-set-maintainer">
+  <div id="a-index">
+    <h2>Pending Invites</h2>
+    <table class="rounded nomargin" width="600px" style="margin-bottom:30px;">
+      <thead>
+      <th width="55%"><%= link_to "Set", action: "index", order: "set" %></th>
+      <th width="20%"><%= link_to "Status", action: "index", order: "status" %></th>
+      <th width="25%"></th>
+      </thead>
+      <tbody>
+      <% @invites.where(status: 'pending').each do |m| %>
+        <% if m.post_set.is_public %>
+          <tr>
+            <td><%= link_to m.post_set.name, post_set_path(m.post_set) %></td>
+            <td><%= m.status.capitalize %></td>
+            <td>
+              <%= link_to "Accept", approve_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Are you sure you want to accept this invite?' %>
+              <%= link_to "Ignore", deny_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Are you sure you want to ignore this invite?' %>
+              <%= link_to "Block", block_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Aer you sure you want to ignore and block future invites for this set?' %>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+
+    <h2>Approved Invites</h2>
+    <table class="rounded nomargin" width="600px" style="margin-bottom:30px;">
+      <thead>
+      <th width="55%"><%= link_to "Set", action: "index", order: "set" %></th>
+      <th width="20%"><%= link_to "Status", action: "index", order: "status" %></th>
+      <th width="25%"></th>
+      </thead>
+      <tbody>
+      <% @invites.where(status: 'approved').each do |m| %>
+        <% if m.post_set.is_public %>
+          <tr>
+            <td><%= link_to m.post_set.name, post_set_path(m.post_set) %></td>
+            <td><%= m.status.capitalize %></td>
+            <td>
+              <%= link_to "Remove", deny_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Are you sure you want to remove yourself as maintainer of this set?' %>
+              <%= link_to "Block", block_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Aer you sure you want to remove yourself and block future invites for this set?' %>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+
+    <h2>Blocked Invites</h2>
+    <table class="rounded nomargin" width="600px">
+      <thead>
+      <th width="55%"><%= link_to "Set", action: "index", order: "set" %></th>
+      <th width="20%"><%= link_to "Status", action: "index", order: "status" %></th>
+      <th width="25%"></th>
+      </thead>
+      <tbody>
+      <% @invites.where(status: 'blocked').each do |m| %>
+        <% if m.post_set.is_public %>
+          <tr>
+            <td><%= link_to m.post_set.name, post_set_path(m.post_set) %></td>
+            <td><%= m.status.capitalize %></td>
+            <td>
+              <%= link_to "Unblock", deny_post_set_maintainer_path(m), remote: true, method: :post, 'data-confirm': 'Are you sure you want to unblock invites for this set?' %>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%= render partial: "post_sets/secondary_links" %>

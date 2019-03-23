@@ -85,6 +85,10 @@ class ApplicationController < ActionController::Base
       puts "---"
     end
 
+    if Rails.env.development?
+      Rails.logger.error("<<< \n #{exception.class} exception thrown: #{exception.message}\n#{exception.backtrace.join("\n")}\n<<<")
+    end
+
     if exception.is_a?(::ActiveRecord::StatementInvalid) && exception.to_s =~ /statement timeout/
       if Rails.env.production?
         NewRelic::Agent.notice_error(exception, :uri => request.original_url, :referer => request.referer, :request_params => params, :custom_params => {:user_id => CurrentUser.user.id, :user_ip_addr => CurrentUser.ip_addr})

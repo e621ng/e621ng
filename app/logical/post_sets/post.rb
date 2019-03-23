@@ -70,16 +70,16 @@ module PostSets
       ::Pool.find_by_name(pool_name)
     end
 
-    def favgroup_name
-      @favgroup_name ||= Tag.has_metatag?(tag_array, :favgroup)
+    def post_set_name
+      @post_set_name ||= Tag.has_metatag?(tag_array, :set)
     end
 
-    def has_favgroup?
-      is_single_tag? && favgroup_name && favgroup
+    def has_post_set?
+      is_single_tag? && post_set_name && post_set
     end
 
-    def favgroup
-      ::FavoriteGroup.find_by_name(favgroup_name)
+    def post_set
+      ::PostSet.find_by_shortname(post_set_name)
     end
 
     def has_deleted?

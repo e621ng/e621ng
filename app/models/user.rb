@@ -104,7 +104,7 @@ class User < ApplicationRecord
   has_many :saved_searches
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.created_at desc")}
-  has_many :favorite_groups, -> {order(name: :asc)}, foreign_key: :creator_id
+  has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
   has_many :favorites, ->(rec) {where("user_id % 100 = #{rec.id % 100} and user_id = #{rec.id}").order("id desc")}
   belongs_to :inviter, class_name: "User", optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -575,16 +575,6 @@ class User < ApplicationRecord
       end
     end
 
-    def favorite_group_limit
-      if is_platinum?
-        10
-      elsif is_gold?
-        5
-      else
-        3
-      end
-    end
-
     def api_regen_multiplier
       # regen this amount per second
       if is_platinum?
@@ -644,7 +634,7 @@ class User < ApplicationRecord
           :favorite_tags, :blacklisted_tags, :time_zone, :per_page,
           :custom_style, :favorite_count,
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
-          :statement_timeout, :favorite_group_limit, :favorite_limit,
+          :statement_timeout, :favorite_limit,
           :tag_query_limit, :can_comment_vote?, :can_remove_from_pools?,
           :is_comment_limited?, :can_comment?, :can_upload?, :max_saved_searches,
         ]
@@ -658,7 +648,7 @@ class User < ApplicationRecord
       [
         :wiki_page_version_count, :artist_version_count,
         :artist_commentary_version_count, :pool_version_count,
-        :forum_post_count, :comment_count, :favorite_group_count,
+        :forum_post_count, :comment_count,
         :appeal_count, :flag_count, :positive_feedback_count,
         :neutral_feedback_count, :negative_feedback_count, :upload_limit,
         :max_upload_limit
@@ -699,10 +689,6 @@ class User < ApplicationRecord
 
     def comment_count
       Comment.for_creator(id).count
-    end
-
-    def favorite_group_count
-      favorite_groups.count
     end
 
     def appeal_count
