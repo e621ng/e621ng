@@ -536,6 +536,21 @@ class Tag < ApplicationRecord
               q[:tags][:related] << "pool:#{Pool.name_to_id(g2)}"
             end
 
+          when "ordpool"
+            pool_id = Pool.name_to_id(g2)
+            q[:tags][:related] << "pool:#{pool_id}"
+            q[:ordpool] = pool_id
+
+          when "set"
+            post_set_id = PostSet.name_to_id(g2)
+            post_set = PostSet.find(post_set_id)
+
+            unless post_set.can_view?(CurrentUser.user)
+              raise User::PrivilegeError
+            end
+
+            q[:tags][:related] << "set:#{post_set_id}"
+
           when "-set"
             post_set_id = PostSet.name_to_id(g2)
             post_set = PostSet.find(post_set_id)
