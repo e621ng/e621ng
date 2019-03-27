@@ -1056,6 +1056,40 @@ ALTER SEQUENCE public.forum_topics_id_seq OWNED BY public.forum_topics.id;
 
 
 --
+-- Name: help_pages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.help_pages (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    name character varying NOT NULL,
+    wiki_page character varying NOT NULL,
+    related character varying,
+    title character varying
+);
+
+
+--
+-- Name: help_pages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.help_pages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: help_pages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.help_pages_id_seq OWNED BY public.help_pages.id;
+
+
+--
 -- Name: ip_bans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2566,6 +2600,13 @@ ALTER TABLE ONLY public.forum_topics ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: help_pages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.help_pages ALTER COLUMN id SET DEFAULT nextval('public.help_pages_id_seq'::regclass);
+
+
+--
 -- Name: ip_bans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3010,6 +3051,14 @@ ALTER TABLE ONLY public.forum_topic_visits
 
 ALTER TABLE ONLY public.forum_topics
     ADD CONSTRAINT forum_topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: help_pages help_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.help_pages
+    ADD CONSTRAINT help_pages_pkey PRIMARY KEY (id);
 
 
 --
@@ -4589,6 +4638,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190228144206'),
 ('20190305165101'),
 ('20190313221440'),
-('20190317024446');
+('20190317024446'),
+('20190324111703');
 
 

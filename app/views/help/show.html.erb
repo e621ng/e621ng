@@ -1,0 +1,14 @@
+<div id="c-help">
+  <div id="a-show">
+    <%= render partial: "sidebar" %>
+    <section id="content">
+      <div style="margin-bottom: 1em;">
+        <h1><%= "Help: #{HelpPage.title(@help.name)}" %></h1>
+        <%= format_text(@wiki_page.body) %>
+      </div>
+    </section>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>
+<%= render partial: "related" %>

@@ -1,0 +1,46 @@
+<div id="c-help">
+  <div id="a-index">
+    <%= render partial: "sidebar" %>
+    <%= render partial: "secondary_links" %>
+
+    <% if CurrentUser.is_admin? %>
+      <section id="content">
+        <h2>Help Entries</h2>
+        <div>
+          <table id="help-table" class="valign rounded" style="width:800px;">
+            <thead>
+            <tr>
+              <th style="width:15%"></th>
+              <th style="width:15%">Name</th>
+              <th style="width:15%">Wiki Page</th>
+              <th style="width:30%">Related Pages</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @help_pages.each do |help| %>
+              <% help.title ||= help.name.titleize %>
+              <tr>
+                <td>
+                  <%= link_to "Edit", edit_help_page_path(help) %> |
+                  <%= link_to "Delete", help_page_path(help), remote: true, method: :delete, 'data-confirm': "Are you sure you want to delete this entry?" %>
+                </td>
+
+                <td><%= link_to "#{HelpPage.title(help.name)}", help_page_path(id: help.name) %></td>
+                <td><%= link_to help.wiki_page, wiki_pages_path(title: help.wiki_page) %></td>
+                <td>
+                  <% @related = help.related.split(", ") %>
+                  <% if @related.present? %>
+                    <% @related.each do |related| %>
+                      <%= link_to HelpPage.title(related), help_page_path(name: related) %><%= ", " unless related == @related.last %>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</div>

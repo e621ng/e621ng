@@ -169,6 +169,7 @@ Rails.application.routes.draw do
     end
     resource :visit, :controller => "forum_topic_visits"
   end
+  resources :help_pages, controller: "help", path: "help"
   resources :ip_bans
   resources :upload_whitelists do
     collection do
