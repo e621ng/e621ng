@@ -1,0 +1,10 @@
+<div id="c-help">
+  <div id="a-new">
+    <h2>New Help Entry</h2>
+    <%= simple_form_for(@help) do |f| %>
+      <%= render partial: "form", locals: {f: f} %>
+    <% end %>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>

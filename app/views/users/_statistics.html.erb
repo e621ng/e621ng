@@ -164,7 +164,7 @@
           <th>API Key</th>
           <td>
             <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
-            (<%= link_to "help", wiki_pages_path(title: "help:api") %>)
+            (<%= link_to "help", help_page_path(id: "api") %>)
           </td>
         </tr>
 

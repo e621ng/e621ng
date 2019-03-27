@@ -1,0 +1,5 @@
+<%= f.input :name, hint: "This is the link for the help page (e.g., <code>tag_scripts</code> for <code>help/show/tag_scripts</code>).".html_safe %>
+<%= f.input :title, hint: 'This is for adding custom titles. If left blank the name field will be used instead.' %>
+<%= f.input :wiki_page, hint: 'The wiki page you want to display.' %>
+<%= f.input :related, hint: 'The related help pages you want to link to. They show up at the top of this help page.' %>
+<%= f.button :submit, "Save" %>

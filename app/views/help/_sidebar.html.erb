@@ -1,0 +1,15 @@
+<aside id="sidebar">
+  <h1>Help Index</h1>
+  <div style="width:240px">
+    <ul class="link-page">
+      <% HelpPage.help_index.each do |page| %>
+        <% if params[:name] == page.name %>
+          <li id="active">&raquo; <%= HelpPage.title(page.name) %></li>
+        <% else %>
+          <li><%= link_to "&raquo;".html_safe + " #{HelpPage.title(page.name)}", help_page_path(id: page.name) %></li>
+        <% end %>
+      <% end %>
+    </ul>
+  </div>
+</aside>
+
