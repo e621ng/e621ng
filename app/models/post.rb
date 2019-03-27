@@ -1055,7 +1055,7 @@ class Post < ApplicationRecord
         self.pool_string = "#{pool_string} set:#{set.id}".strip
         update_column(:pool_string, pool_string) unless new_record?
       end
-      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
+      update_index
     end
 
     def remove_set!(set)
@@ -1063,7 +1063,7 @@ class Post < ApplicationRecord
         self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
         update_column(:pool_string, pool_string) unless new_record?
       end
-      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
+      update_index
     end
 
     def give_post_sets_to_parent
@@ -1641,7 +1641,7 @@ class Post < ApplicationRecord
 
     def sample(query, sample_size)
       CurrentUser.without_safe_mode do
-        tag_match(query).reorder(:md5).limit(sample_size)
+        tag_match(query).records.reorder(:md5).limit(sample_size)
       end
     end
 

@@ -89,8 +89,8 @@ module PostIndex
         SQL
         sets_sql = <<-SQL
           SELECT post_id, array_agg(set_id) FROM (
-            SELECT id as set_id, unnest(post_ids) AS post_id FROM sets
-            WHERE post_id @> '{#{post_ids}}'
+            SELECT id as set_id, unnest(post_ids) AS post_id FROM post_sets
+            WHERE post_ids @> '{#{post_ids}}'
           ) t GROUP BY post_id
         SQL
         faves_sql = <<-SQL
@@ -113,7 +113,7 @@ module PostIndex
         conn = ApplicationRecord.connection
         comment_counts = conn.execute(comments_sql).values.to_h
         pool_ids       = conn.execute(pools_sql).values.map(&array_parse).to_h
-        # set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
+        set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
         fave_ids       = conn.execute(faves_sql).values.map(&array_parse).to_h
         child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
 
@@ -132,7 +132,7 @@ module PostIndex
           index_options = {
             comment_count: comment_counts[p.id] || 0,
             pools:         pool_ids[p.id]       || empty,
-            # sets:          set_ids[p.id]        || empty,
+            sets:          set_ids[p.id]        || empty,
             faves:         fave_ids[p.id]       || empty,
             upvotes:       upvote_ids[p.id]     || empty,
             downvotes:     downvote_ids[p.id]   || empty,
@@ -180,7 +180,7 @@ module PostIndex
       file_size:    file_size,
       parent:       parent_id,
       pools:        options[:pools]     || Pool.where("post_ids @> '{?}'", id).pluck(:id),
-      # sets:         options[:sets]      || Set.where("post_ids @> '{?}'", id).pluck(:id),
+      sets:         options[:sets]      || PostSet.where("post_ids @> '{?}'", id).pluck(:id),
       faves:        options[:faves]     || Favorite.where(post_id: id).pluck(:user_id),
       upvotes:      options[:upvotes]   || PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
       downvotes:    options[:downvotes] || PostVote.where(post_id: id).where("score < 0").pluck(:user_id),

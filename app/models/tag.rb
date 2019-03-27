@@ -508,6 +508,7 @@ class Tag < ApplicationRecord
             q[:uploader_id] = user_id unless user_id.blank?
 
           when "-pool"
+            q[:pools_neg] ||= []
             if g2.downcase == "none"
               q[:pool] = "any"
             elsif g2.downcase == "any"
@@ -516,11 +517,15 @@ class Tag < ApplicationRecord
               q[:tags][:exclude] << "pool:series"
             elsif g2.downcase == "collection"
               q[:tags][:exclude] << "pool:collection"
+            elsif g2.include?("*")
+              pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
+              q[:pools_neg] += pool_ids
             else
-              q[:tags][:exclude] << "pool:#{Pool.name_to_id(g2)}"
+              q[:pools_neg] << Pool.name_to_id(g2)
             end
 
           when "pool"
+            q[:pools] ||= []
             if g2.downcase == "none"
               q[:pool] = "none"
             elsif g2.downcase == "any"
@@ -530,10 +535,10 @@ class Tag < ApplicationRecord
             elsif g2.downcase == "collection"
               q[:tags][:related] << "pool:collection"
             elsif g2.include?("*")
-              pool_ids = Pool.search(name_matches: g2, order: "post_count").limit(Danbooru.config.tag_query_limit).pluck(:id)
-              q[:tags][:include] += pool_ids.map { |id| "pool:#{id}" }
+              pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
+              q[:pools] += pool_ids
             else
-              q[:tags][:related] << "pool:#{Pool.name_to_id(g2)}"
+              q[:pools] << Pool.name_to_id(g2)
             end
 
           when "ordpool"
@@ -542,6 +547,7 @@ class Tag < ApplicationRecord
             q[:ordpool] = pool_id
 
           when "set"
+            q[:sets] ||= []
             post_set_id = PostSet.name_to_id(g2)
             post_set = PostSet.find(post_set_id)
 
@@ -549,16 +555,18 @@ class Tag < ApplicationRecord
               raise User::PrivilegeError
             end
 
-            q[:tags][:related] << "set:#{post_set_id}"
+            q[:sets] << post_set_id
 
           when "-set"
+            q[:sets_neg] ||= []
             post_set_id = PostSet.name_to_id(g2)
             post_set = PostSet.find(post_set_id)
 
             unless post_set.can_view?(CurrentUser.user)
               raise User::PrivilegeError
             end
-            q[:tags][:exclude] << "set:#{post_set_id}"
+
+            q[:sets_neg] << post_set_id
 
           when "-fav"
             favuser = User.find_by_name(g2)
@@ -583,7 +591,7 @@ class Tag < ApplicationRecord
             q[:saved_searches] << g2
 
           when "md5"
-            q[:md5] = g2.downcase.split(/,/)
+            q[:md5] = g2.downcase.split(/,/)[0..99]
 
           when "-rating"
             q[:rating_negated] = g2.downcase
