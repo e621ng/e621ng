@@ -26,7 +26,7 @@ module Indexable
   def update_index(defer: true, priority: :high)
     if defer
       if priority == :high
-        IndexUpdateJob.perform_later(self.class.to_s, id)
+        IndexUpdateJob.perform_async(self.class.to_s, id)
       elsif priority == :rebuild
         IndexRebuildJob.perform_later(self.class.to_s, id)
       else

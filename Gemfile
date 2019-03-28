@@ -52,10 +52,11 @@ gem 'retriable'
 gem 'sidekiq'
 # bookmarks for later, if they are needed
 # gem 'sidekiq-worker-killer'
-# gem 'sidekiq-unique-jobs'
+gem 'sidekiq-unique-jobs'
 gem 'redis'
 
 gem 'elasticsearch-model'
+gem 'elasticsearch-rails'
 
 # needed for looser jpeg header compat
 gem 'ruby-imagespec', :require => "image_spec", :git => "https://github.com/r888888888/ruby-imagespec.git", :branch => "exif-fixes"

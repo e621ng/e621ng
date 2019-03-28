@@ -185,9 +185,9 @@ class PostQueryBuilder
     elsif q[:status] == "deleted"
       must.push({term: {deleted: true}})
     elsif q[:status] == "active"
-      must.push(should({term: {pending: false}},
-                       {term: {deleted: false}},
-                       {term: {flagged: false}}))
+      must.push([{term: {pending: false}},
+                 {term: {deleted: false}},
+                 {term: {flagged: false}}])
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
@@ -443,6 +443,11 @@ class PostQueryBuilder
       order.push({commented_at: {order: :desc, missing: :_last}})
       order.push({id: :desc})
 
+    when "comment_bump"
+      must.push({exists: {field: 'comment_bumped_at'}})
+      order.push({comment_bumped_at: {order: :desc, missing: :_last}})
+      order.push({id: :desc})
+
     when "comment_asc", "comm_asc"
       order.push({commented_at: {order: :asc, missing: :_last}})
       order.push({id: :asc})
@@ -502,10 +507,19 @@ class PostQueryBuilder
       order.push({_score: :desc})
 
     when "random"
-      must.push({function_score: {
-          query: {match_all: {}},
-          random_score: {},
-      }})
+      if q[:random].present?
+        must.push({function_score: {
+            query: {match_all: {}},
+            random_score: {seed: q[:random].to_i},
+            boost_mode: :replace
+        }})
+      else
+        must.push({function_score: {
+            query: {match_all: {}},
+            random_score: {},
+            boost_mode: :replace
+        }})
+      end
 
       order.push({_score: :desc})
 

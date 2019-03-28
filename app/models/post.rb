@@ -965,9 +965,7 @@ class Post < ApplicationRecord
       array = fav_string.split.uniq
       self.fav_string = array.join(" ")
       self.fav_count = array.size
-      update_column(:fav_string, fav_string)
-      update_column(:fav_count, fav_count)
-      update_index
+      update_columns(fav_string: fav_string, fav_count: fav_count)
     end
 
     def favorited_by?(user_id = CurrentUser.id)
@@ -991,20 +989,17 @@ class Post < ApplicationRecord
     def add_favorite!(user)
       Favorite.add(post: self, user: user)
       reload
-      update_index
     rescue PostVote::Error
     end
 
     def delete_user_from_fav_string(user_id)
       update_column(:fav_string, fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip)
       reload
-      update_index
     end
 
     def remove_favorite!(user)
       Favorite.remove(post: self, user: user)
       reload
-      update_index
     rescue PostVote::Error
     end
 
@@ -1055,7 +1050,6 @@ class Post < ApplicationRecord
         self.pool_string = "#{pool_string} set:#{set.id}".strip
         update_column(:pool_string, pool_string) unless new_record?
       end
-      update_index
     end
 
     def remove_set!(set)
@@ -1063,7 +1057,6 @@ class Post < ApplicationRecord
         self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
         update_column(:pool_string, pool_string) unless new_record?
       end
-      update_index
     end
 
     def give_post_sets_to_parent
@@ -1114,7 +1107,6 @@ class Post < ApplicationRecord
         update_column(:pool_string, pool_string) unless new_record?
         pool.add!(self)
         reload
-        update_index
       end
     end
 
@@ -1128,7 +1120,6 @@ class Post < ApplicationRecord
         update_column(:pool_string, pool_string) unless new_record?
         pool.remove!(self)
         reload
-        update_index
       end
     end
 
@@ -1237,8 +1228,8 @@ class Post < ApplicationRecord
     end
 
     def fast_count_search(tags, timeout:, raise_on_timeout:)
-      count = PostReadOnly.with_timeout(timeout, nil, tags: tags) do
-        PostReadOnly.tag_match(tags).count
+      count = Post.with_timeout(timeout, nil, tags: tags) do
+        Post.tag_match(tags).count_only
       end
 
       if count.nil?
@@ -1262,7 +1253,6 @@ class Post < ApplicationRecord
       if post.changes_saved?
         args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
         post.update_columns(args)
-        post.update_index
       end
     end
 
@@ -1977,12 +1967,14 @@ class Post < ApplicationRecord
   def update_column(name, value)
     ret = super(name, value)
     notify_pubsub
+    update_index
     ret
   end
 
   def update_columns(attributes)
     ret = super(attributes)
     notify_pubsub
+    update_index
     ret
   end
 end

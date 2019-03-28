@@ -4,16 +4,17 @@ module PostIndex
   def self.included(base)
     base.settings index: { number_of_shards: 5, number_of_replicas: 1 } do
       mappings dynamic: false, _all: { enabled: false } do
-        indexes :created_at,    type: 'date'
-        indexes :updated_at,    type: 'date'
-        indexes :commented_at,  type: 'date'
-        indexes :noted_at,      type: 'date'
-        indexes :id,            type: 'integer'
-        indexes :up_score,      type: 'integer'
-        indexes :down_score,    type: 'integer'
-        indexes :score,         type: 'integer'
-        indexes :fav_count,     type: 'integer'
-        indexes :tag_count,     type: 'integer'
+        indexes :created_at,        type: 'date'
+        indexes :updated_at,        type: 'date'
+        indexes :commented_at,      type: 'date'
+        indexes :comment_bumped_at, type: 'date'
+        indexes :noted_at,          type: 'date'
+        indexes :id,                type: 'integer'
+        indexes :up_score,          type: 'integer'
+        indexes :down_score,        type: 'integer'
+        indexes :score,             type: 'integer'
+        indexes :fav_count,         type: 'integer'
+        indexes :tag_count,         type: 'integer'
 
         indexes :tag_count_general,   type: 'integer'
         indexes :tag_count_artist,    type: 'integer'
@@ -158,16 +159,17 @@ module PostIndex
 
   def as_indexed_json(options = {})
     {
-      created_at:   created_at,
-      updated_at:   updated_at,
-      commented_at: last_commented_at,
-      noted_at:     last_noted_at,
-      id:           id,
-      up_score:     up_score,
-      down_score:   down_score,
-      score:        score,
-      fav_count:    fav_count,
-      tag_count:    tag_count,
+      created_at:        created_at,
+      updated_at:        updated_at,
+      commented_at:      last_commented_at,
+      comment_bumped_at: last_comment_bumped_at,
+      noted_at:          last_noted_at,
+      id:                id,
+      up_score:          up_score,
+      down_score:        down_score,
+      score:             score,
+      fav_count:         fav_count,
+      tag_count:         tag_count,
 
       tag_count_general:   tag_count_general,
       tag_count_artist:    tag_count_artist,

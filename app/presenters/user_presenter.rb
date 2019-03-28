@@ -72,7 +72,8 @@ class UserPresenter
   end
 
   def favorites
-    Post.tag_match("ordfav:#{user.name}").limit(6)
+    ids = Favorite.select(:post_id).where(user_id: user.id).order(id: :desc).limit(6).map(&:post_id)
+    Post.where(id: ids)
   end
 
   def has_favorites?

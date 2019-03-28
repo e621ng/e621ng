@@ -81,10 +81,6 @@ module PostSets
       ::PostSet.find_by_shortname(post_set_name)
     end
 
-    def has_deleted?
-      tag_string !~ /status/ && ::Post.tag_match("#{tag_string} status:deleted").where("true /* PostSets::Post#has_deleted */").exists?
-    end
-
     def has_explicit?
       posts.any? {|x| x.rating == "e"}
     end
@@ -122,18 +118,9 @@ module PostSets
       end
     end
 
-    def get_random_posts
-      posts = ::Post.tag_match(tag_string).records
-      per_page.times.inject([]) do |all, x|
-        all << posts.random
-      end.compact.uniq
-    end
-
     def posts
       @posts ||= begin
-        if is_random?
-          temp = get_random_posts
-        elsif raw
+        if raw
           temp = ::Post.raw_tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)
         else
           temp = ::Post.tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)

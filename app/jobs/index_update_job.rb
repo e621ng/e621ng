@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-class IndexUpdateJob < ApplicationJob
-  queue_as :high_prio
+class IndexUpdateJob
+  include Sidekiq::Worker
+  sidekiq_options queue: 'high_prio', lock: :until_executed, unique_args: ->(args) { args[1] }
 
   def perform(klass, id)
     obj = klass.constantize.find(id)

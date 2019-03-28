@@ -426,7 +426,7 @@ class Artist < ApplicationRecord
           ti.destroy if ti
 
           begin
-            Post.tag_match(name).where("true /* Artist.unban */").each do |post|
+            Post.tag_match(name).records.each do |post|
               fixed_tags = post.tag_string.sub(/(?:\A| )banned_artist(?:\Z| )/, " ").strip
               post.update_attributes(:tag_string => fixed_tags)
             end

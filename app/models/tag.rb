@@ -18,7 +18,7 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote filetype -filetype flagger
-    -flagger appealer -appealer disapproval -disapproval set -set
+    -flagger appealer -appealer disapproval -disapproval set -set random
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -117,7 +117,7 @@ class Tag < ApplicationRecord
     end
 
     def real_post_count
-      @real_post_count ||= Post.raw_tag_match(name).results.total
+      @real_post_count ||= Post.raw_tag_match(name).count_only
     end
 
     def fix_post_count
@@ -667,6 +667,9 @@ class Tag < ApplicationRecord
 
           when "child"
             q[:child] = g2.downcase
+
+          when "random"
+            q[:random] = g2.to_i
 
           when "order"
             g2 = g2.downcase

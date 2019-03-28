@@ -162,6 +162,16 @@ module Danbooru
 
         results.total
       end
+
+      def exists?
+        search.definition.update(from: 0, size: 0, terminate_after: 1)
+        results.total > 0
+      end
+
+      def count_only
+        search.definition.update(from: 0, size: 0)
+        response.total
+      end
     end
   end
 end

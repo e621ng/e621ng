@@ -6,7 +6,7 @@
   <% end %>
 
   <% if @posts.empty? %>
-    <%= render "post_sets/blank" %>
+    <%= render "posts/blank" %>
   <% end %>
 
   <% @posts.select {|x| x.visible?}.each do |post| %>

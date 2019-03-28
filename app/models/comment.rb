@@ -172,28 +172,33 @@ class Comment < ApplicationRecord
   end
 
   def update_last_commented_at_on_create
-    Post.where(:id => post_id).update_all(:last_commented_at => created_at)
+    post = Post.find(post_id)
+    return unless post
+    post.update_column(:last_commented_at, created_at)
     if Comment.where("post_id = ?", post_id).count <= Danbooru.config.comment_threshold && !do_not_bump_post?
-      Post.where(:id => post_id).update_all(:last_comment_bumped_at => created_at)
+      post.update_column(:last_comment_bumped_at, created_at)
     end
+    post.update_index
     true
   end
 
   def update_last_commented_at_on_destroy
+    post = Post.find(post_id)
+    return unless post
     other_comments = Comment.where("post_id = ? and id <> ?", post_id, id).order("id DESC")
     if other_comments.count == 0
-      Post.where(:id => post_id).update_all(:last_commented_at => nil)
+      post.update_columns(:last_commented_at => nil)
     else
-      Post.where(:id => post_id).update_all(:last_commented_at => other_comments.first.created_at)
+      post.update_columns(:last_commented_at => other_comments.first.created_at)
     end
 
     other_comments = other_comments.where("do_not_bump_post = FALSE")
     if other_comments.count == 0
-      Post.where(:id => post_id).update_all(:last_comment_bumped_at => nil)
+      post.update_columns(:last_comment_bumped_at => nil)
     else
-      Post.where(:id => post_id).update_all(:last_comment_bumped_at => other_comments.first.created_at)
+      post.update_columns(:last_comment_bumped_at => other_comments.first.created_at)
     end
-
+    post.update_index
     true
   end
 

@@ -135,6 +135,7 @@ GEM
       activesupport (> 3)
       elasticsearch (> 1)
       hashie
+    elasticsearch-rails (6.0.0)
     elasticsearch-transport (6.1.0)
       faraday
       multi_json
@@ -361,6 +362,10 @@ GEM
       rack (>= 1.5.0)
       rack-protection (>= 1.5.0)
       redis (>= 3.3.5, < 5)
+    sidekiq-unique-jobs (6.0.12)
+      concurrent-ruby (~> 1.0, >= 1.0.5)
+      sidekiq (>= 4.0, < 7.0)
+      thor (~> 0)
     signet (0.8.1)
       addressable (~> 2.3)
       faraday (~> 0.9)
@@ -479,6 +484,7 @@ DEPENDENCIES
   dotenv-rails
   dtext_rb!
   elasticsearch-model
+  elasticsearch-rails
   factory_bot
   ffaker
   foreman
@@ -516,6 +522,7 @@ DEPENDENCIES
   shoulda-context
   shoulda-matchers
   sidekiq
+  sidekiq-unique-jobs
   simple_form
   simplecov
   sinatra

@@ -6,6 +6,8 @@ Bundler.require(*Rails.groups)
 require_relative "danbooru_default_config"
 require_relative "danbooru_local_config"
 
+require 'elasticsearch/rails/instrumentation'
+
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
