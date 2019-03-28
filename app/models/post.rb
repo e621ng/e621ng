@@ -1741,6 +1741,10 @@ class Post < ApplicationRecord
       where.not(uploader: user)
     end
 
+    def sql_raw_tag_match(tag)
+      where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag.to_escaped_for_tsquery)
+    end
+
     def raw_tag_match(tag)
       tags = {related: tag.split(' '), include: [], exclude: []}
       PostQueryBuilder.new(tag_count: 1, tags: tags).build

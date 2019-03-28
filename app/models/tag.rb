@@ -169,7 +169,7 @@ class Tag < ApplicationRecord
 
     def update_category_post_counts
       Post.with_timeout(30_000, nil, {:tags => name}) do
-        Post.raw_tag_match(name).records.each do |post|
+        Post.sql_raw_tag_match(name).find_each do |post|
           post.reload
           post.set_tag_counts(false)
           args = TagCategory.categories.map {|x| ["tag_count_#{x}",post.send("tag_count_#{x}")]}.to_h.update(:tag_count => post.tag_count)

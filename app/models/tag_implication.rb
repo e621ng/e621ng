@@ -153,7 +153,7 @@ class TagImplication < TagRelationship
 
     def update_posts
       Post.without_timeout do
-        Post.raw_tag_match(antecedent_name).records.find_each do |post|
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
           fixed_tags = "#{post.tag_string} #{descendant_names_string}".strip
           CurrentUser.scoped(creator, creator_ip_addr) do
             post.update_attributes(

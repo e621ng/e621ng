@@ -165,7 +165,7 @@ module Danbooru
 
       def exists?
         search.definition.update(from: 0, size: 0, terminate_after: 1)
-        results.total > 0
+        response['hits']['total'] > 0
       end
 
       def count_only
