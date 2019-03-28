@@ -170,7 +170,7 @@ module Danbooru
 
       def count_only
         search.definition.update(from: 0, size: 0)
-        response.total
+        response['hits']['total']
       end
     end
   end
