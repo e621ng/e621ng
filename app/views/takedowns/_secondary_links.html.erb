@@ -2,7 +2,7 @@
   <menu>
     <%= subnav_link_to "Listing", takedowns_path %>
     <%= subnav_link_to "New", new_takedown_path %>
-    <% if @takedown && @takedown.can_edit?(CurrentUser.user) %>
+    <% if @takedown && !@takedown.new_record? && @takedown.can_edit?(CurrentUser.user) %>
       <%= subnav_link_to "Edit", edit_takedown_path(@takedown) %>
     <% end %>
     <% if @takedown && !@takedown.new_record? && @takedown.can_delete?(CurrentUser.user) %>

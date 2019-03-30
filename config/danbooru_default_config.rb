@@ -44,7 +44,7 @@ module Danbooru
       "management@#{server_host}"
     end
 
-    def takedowns_links
+    def takedown_links
       []
     end
 
