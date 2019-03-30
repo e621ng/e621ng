@@ -257,14 +257,17 @@ class PostQueryBuilder
     end
 
     if q[:sets]
-      q[:sets].each do |s|
-        must.push({term: {sets: s}})
-      end
+      must.concat(q[:sets].map {|x| {term: {sets: x}}})
     end
     if q[:sets_neg]
-      q[:sets_neg].each do |s|
-        must_not.push({term: {sets: s}})
-      end
+      must_not.concat(q[:sets_neg].map {|x| {term: {sets: x}}})
+    end
+
+    if q[:fav_ids]
+      must.concat(q[:fav_ids].map {|x| {term: {faves: x}}})
+    end
+    if q[:fav_ids_neg]
+      must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
     end
 
     if q[:saved_searches]
@@ -273,7 +276,7 @@ class PostQueryBuilder
     end
 
     if q[:uploader_id_neg]
-      must_not.push({term: {uploader_id: q[:uploader_id_neg].to_i}})
+      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader_id: x.to_i}}})
     end
 
     if q[:uploader_id]
@@ -281,7 +284,7 @@ class PostQueryBuilder
     end
 
     if q[:approver_id_neg]
-      must_not.push({term: {approver_id: q[:approver_id_neg].to_i}})
+      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver_id: x.to_i}}})
     end
 
     if q[:approver_id]
@@ -510,7 +513,7 @@ class PostQueryBuilder
       if q[:random].present?
         must.push({function_score: {
             query: {match_all: {}},
-            random_score: {seed: q[:random].to_i},
+            random_score: {seed: q[:random].to_i, field: 'id'},
             boost_mode: :replace
         }})
       else

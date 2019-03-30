@@ -10,7 +10,7 @@ class Tag < ApplicationRecord
   ]
 
   # allow e.g. `deleted_comments` as a synonym for `deleted_comment_count`
-  COUNT_METATAG_SYNONYMS = COUNT_METATAGS.map { |str| str.delete_suffix("_count").pluralize }
+  COUNT_METATAG_SYNONYMS = COUNT_METATAGS.map {|str| str.delete_suffix("_count").pluralize}
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater artcomm
@@ -18,7 +18,7 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote filetype -filetype flagger
-    -flagger appealer -appealer disapproval -disapproval set -set random
+    -flagger appealer -appealer disapproval -disapproval set -set randseed
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -41,9 +41,9 @@ class Tag < ApplicationRecord
     random
     custom
   ] +
-  COUNT_METATAGS +
-  COUNT_METATAG_SYNONYMS.flat_map { |str| [str, "#{str}_asc"] } +
-  TagCategory.short_name_list.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }
+      COUNT_METATAGS +
+      COUNT_METATAG_SYNONYMS.flat_map {|str| [str, "#{str}_asc"]} +
+      TagCategory.short_name_list.flat_map {|str| ["#{str}tags", "#{str}tags_asc"]}
 
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
   has_one :artist, :foreign_key => "name", :primary_key => "name"
@@ -61,12 +61,12 @@ class Tag < ApplicationRecord
   module ApiMethods
     def to_legacy_json
       return {
-        "name" => name,
-        "id" => id,
-        "created_at" => created_at.try(:strftime, "%Y-%m-%d %H:%M"),
-        "count" => post_count,
-        "type" => category,
-        "ambiguous" => false
+          "name" => name,
+          "id" => id,
+          "created_at" => created_at.try(:strftime, "%Y-%m-%d %H:%M"),
+          "count" => post_count,
+          "type" => category,
+          "ambiguous" => false
       }.to_json
     end
   end
@@ -172,7 +172,7 @@ class Tag < ApplicationRecord
         Post.sql_raw_tag_match(name).find_each do |post|
           post.reload
           post.set_tag_counts(false)
-          args = TagCategory.categories.map {|x| ["tag_count_#{x}",post.send("tag_count_#{x}")]}.to_h.update(:tag_count => post.tag_count)
+          args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update(:tag_count => post.tag_count)
           Post.where(:id => post.id).update_all(args)
           post.reload
           post.update_index
@@ -276,7 +276,7 @@ class Tag < ApplicationRecord
 
     def normalize_query(query, sort: true)
       tags = Tag.scan_query(query.to_s)
-      tags = tags.map { |t| Tag.normalize_name(t) }
+      tags = tags.map {|t| Tag.normalize_name(t)}
       tags = TagAlias.to_aliased(tags)
       tags = tags.sort if sort
       tags = tags.uniq
@@ -343,7 +343,7 @@ class Tag < ApplicationRecord
         object =~ /\A(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\Z/i
 
         if $1 && $2.to_f != 0.0
-         ($1.to_f / $2.to_f).round(2)
+          ($1.to_f / $2.to_f).round(2)
         else
           object.to_f.round(2)
         end
@@ -355,13 +355,13 @@ class Tag < ApplicationRecord
         unit = $2
 
         conversion_factor = case unit
-        when /m/i
-          1024 * 1024
-        when /k/i
-          1024
-        else
-          1
-        end
+                            when /m/i
+                              1024 * 1024
+                            when /k/i
+                              1024
+                            else
+                              1
+                            end
 
         (size * conversion_factor).to_i
       end
@@ -477,7 +477,7 @@ class Tag < ApplicationRecord
       return nil if tags.blank?
 
       tags = scan_query(tags.to_str) if tags.respond_to?(:to_str)
-      tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) { $1 }.first
+      tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
     end
 
     def parse_query(query, options = {})
@@ -486,9 +486,9 @@ class Tag < ApplicationRecord
       q[:tag_count] = 0
 
       q[:tags] = {
-        :related => [],
-        :include => [],
-        :exclude => []
+          :related => [],
+          :include => [],
+          :exclude => []
       }
 
       scan_query(query).each do |token|
@@ -506,6 +506,27 @@ class Tag < ApplicationRecord
           when "user"
             user_id = User.name_to_id(g2)
             q[:uploader_id] = user_id unless user_id.blank?
+
+          when "-approver"
+            if g2 == "none"
+              q[:approver_id] = "any"
+            elsif g2 == "any"
+              q[:approver_id] = "none"
+            else
+              q[:approver_id_neg] ||= []
+              user_id = User.name_to_id(g2)
+              q[:approver_id_neg] << user_id unless user_id.blank?
+            end
+
+          when "approver"
+            if g2 == "none"
+              q[:approver_id] = "none"
+            elsif g2 == "any"
+              q[:approver_id] = "any"
+            else
+              user_id = User.name_to_id(g2)
+              q[:approver_id] = user_id unless user_id.blank?
+            end
 
           when "-pool"
             q[:pools_neg] ||= []
@@ -569,22 +590,24 @@ class Tag < ApplicationRecord
             q[:sets_neg] << post_set_id
 
           when "-fav"
+            q[:fav_ids_neg] ||= []
             favuser = User.find_by_name(g2)
 
             if favuser.hide_favorites?
               raise User::PrivilegeError.new
             end
 
-            q[:tags][:exclude] << "fav:#{User.name_to_id(g2)}"
+            q[:fav_ids_neg] << favuser.id
 
           when "fav"
+            q[:fav_ids] ||= []
             favuser = User.find_by_name(g2)
 
             if favuser.hide_favorites?
               raise User::PrivilegeError.new
             end
 
-            q[:tags][:related] << "fav:#{User.name_to_id(g2)}"
+            q[:fav_ids] << favuser.id
 
           when "search"
             q[:saved_searches] ||= []
@@ -668,7 +691,7 @@ class Tag < ApplicationRecord
           when "child"
             q[:child] = g2.downcase
 
-          when "random"
+          when "randseed"
             q[:random] = g2.to_i
 
           when "order"
@@ -704,13 +727,17 @@ class Tag < ApplicationRecord
             end
 
           when "upvote"
-            if CurrentUser.user.is_moderator?
+            if CurrentUser.is_moderator?
               q[:upvote] = User.name_to_id(g2)
+            elsif Currentuser.is_member?
+              q[:upvote] = CurrentUser.id
             end
 
           when "downvote"
-            if CurrentUser.user.is_moderator?
+            if CurrentUser.is_moderator?
               q[:downvote] = User.name_to_id(g2)
+            elsif CurrentUser.is_member?
+              q[:downvote] = CurrentUser.id
             end
 
           when *COUNT_METATAGS
@@ -878,16 +905,16 @@ class Tag < ApplicationRecord
       wildcard_name = name + '*'
 
       query1 = Tag.select("tags.name, tags.post_count, tags.category, null AS antecedent_name")
-        .search(:name_matches => wildcard_name, :order => "count").limit(10)
+                   .search(:name_matches => wildcard_name, :order => "count").limit(10)
 
       query2 = TagAlias.select("tags.name, tags.post_count, tags.category, tag_aliases.antecedent_name")
-        .joins("INNER JOIN tags ON tags.name = tag_aliases.consequent_name")
-        .where("tag_aliases.antecedent_name LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
-        .active
-        .where("tags.name NOT LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
-        .where("tag_aliases.post_count > 0")
-        .order("tag_aliases.post_count desc")
-        .limit(20) # Get 20 records even though only 10 will be displayed in case some duplicates get filtered out.
+                   .joins("INNER JOIN tags ON tags.name = tag_aliases.consequent_name")
+                   .where("tag_aliases.antecedent_name LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
+                   .active
+                   .where("tags.name NOT LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
+                   .where("tag_aliases.post_count > 0")
+                   .order("tag_aliases.post_count desc")
+                   .limit(20) # Get 20 records even though only 10 will be displayed in case some duplicates get filtered out.
 
       sql_query = "((#{query1.to_sql}) UNION ALL (#{query2.to_sql})) AS unioned_query"
       tags = Tag.select("DISTINCT ON (name, post_count) *").from(sql_query).order("post_count desc").limit(10)
@@ -901,16 +928,16 @@ class Tag < ApplicationRecord
   end
 
   def self.convert_cosplay_tags(tags)
-    cosplay_tags,other_tags = tags.partition {|tag| tag.match(/\A(.+)_\(cosplay\)\Z/) }
-    cosplay_tags.grep(/\A(.+)_\(cosplay\)\Z/) { "#{TagAlias.to_aliased([$1]).first}_(cosplay)" } + other_tags
+    cosplay_tags, other_tags = tags.partition {|tag| tag.match(/\A(.+)_\(cosplay\)\Z/)}
+    cosplay_tags.grep(/\A(.+)_\(cosplay\)\Z/) {"#{TagAlias.to_aliased([$1]).first}_(cosplay)"} + other_tags
   end
 
   def self.invalid_cosplay_tags(tags)
-    tags.grep(/\A(.+)_\(cosplay\)\Z/) {|match| [match,TagAlias.to_aliased([$1]).first] }.
-      select do |name|
-        tag = Tag.find_by_name(name[1])
-        !tag.nil? && tag.category != Tag.categories.character
-      end.map {|tag| tag[0]}
+    tags.grep(/\A(.+)_\(cosplay\)\Z/) {|match| [match, TagAlias.to_aliased([$1]).first]}.
+        select do |name|
+      tag = Tag.find_by_name(name[1])
+      !tag.nil? && tag.category != Tag.categories.character
+    end.map {|tag| tag[0]}
   end
 
   def editable_by?(user)

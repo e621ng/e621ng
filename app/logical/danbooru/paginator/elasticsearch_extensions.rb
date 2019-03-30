@@ -164,12 +164,12 @@ module Danbooru
       end
 
       def exists?
-        search.definition.update(from: 0, size: 0, terminate_after: 1)
+        search.definition.update(from: 0, size: 1, terminate_after: 1, sort: '_doc', _source: false, track_total_hits: false)
         response['hits']['total'] > 0
       end
 
       def count_only
-        search.definition.update(from: 0, size: 0)
+        search.definition.update(from: 0, size: 0, sort: '_doc', _source: false)
         response['hits']['total']
       end
     end
