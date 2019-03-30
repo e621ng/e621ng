@@ -395,11 +395,16 @@ class PostQueryBuilder
     end
 
     if q[:upvote].present?
-      must.push({term: {upvoter_ids: q[:upvote].to_i}})
+      must.push({term: {upvotes: q[:upvote].to_i}})
     end
 
     if q[:downvote].present?
-      must.push({term: {downvoter_ids: q[:downvote].to_i}})
+      must.push({term: {downvotes: q[:downvote].to_i}})
+    end
+
+    if q[:voted].present?
+      must.push(should({term: {upvotes: q[:voted].to_i}},
+                       {term: {downvotes: q[:voted].to_i}}))
     end
 
     if q[:order] == "rank"

@@ -17,7 +17,7 @@ class Tag < ApplicationRecord
     -pool pool ordpool -fav fav ordfav md5 -rating rating
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
-    child pixiv_id pixiv search upvote downvote filetype -filetype flagger
+    child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
     -flagger appealer -appealer disapproval -disapproval set -set randseed
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
@@ -738,6 +738,13 @@ class Tag < ApplicationRecord
               q[:downvote] = User.name_to_id(g2)
             elsif CurrentUser.is_member?
               q[:downvote] = CurrentUser.id
+            end
+
+          when "voted"
+            if CurrentUser.is_moderator?
+              q[:voted] = User.name_to_id(g2)
+            elsif CurrentUser.is_member?
+              q[:voted] = CurrentUser.id
             end
 
           when *COUNT_METATAGS
