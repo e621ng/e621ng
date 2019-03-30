@@ -18,23 +18,23 @@ class Post < ApplicationRecord
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
-  before_validation :normalize_tags
+  before_validation :normalize_tags, if: :tag_string_changed?
   before_validation :strip_source
   before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
-  validate :tag_names_are_valid
-  validate :added_tags_are_valid
-  validate :removed_tags_are_valid
-  validate :has_artist_tag
-  validate :has_copyright_tag
-  validate :has_enough_tags
+  validate :tag_names_are_valid, if: :tag_string_changed?
+  validate :added_tags_are_valid, if: :tag_string_changed?
+  validate :removed_tags_are_valid, if: :tag_string_changed?
+  validate :has_artist_tag, if: :tag_string_changed?
+  validate :has_copyright_tag, if: :tag_string_changed?
+  validate :has_enough_tags, if: :tag_string_changed?
   validate :post_is_not_its_own_parent
   validate :updater_can_change_rating
-  before_save :update_tag_post_counts
-  before_save :set_tag_counts
+  before_save :update_tag_post_counts, if: :tag_string_changed?
+  before_save :set_tag_counts, if: :tag_string_changed?
   before_save :set_pool_category_pseudo_tags
   after_save :create_version
   after_save :update_parent_on_save
@@ -965,7 +965,6 @@ class Post < ApplicationRecord
       array = fav_string.split.uniq
       self.fav_string = array.join(" ")
       self.fav_count = array.size
-      update_columns(fav_string: fav_string, fav_count: fav_count)
     end
 
     def favorited_by?(user_id = CurrentUser.id)
@@ -975,8 +974,8 @@ class Post < ApplicationRecord
     alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
-      update_column(:fav_string, (fav_string + " fav:#{user_id}").strip)
-      clean_fav_string! if clean_fav_string?
+      self.fav_string = (fav_string + " fav:#{user_id}").strip
+      clean_fav_string!
     end
 
     def add_favorite(user)
@@ -993,8 +992,8 @@ class Post < ApplicationRecord
     end
 
     def delete_user_from_fav_string(user_id)
-      update_column(:fav_string, fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip)
-      reload
+      self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
+      clean_fav_string!
     end
 
     def remove_favorite!(user)
@@ -1150,40 +1149,42 @@ class Post < ApplicationRecord
     def vote!(vote, voter = CurrentUser.user)
       ckey = "vote:#{voter.id}:#{id}"
       raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      Cache.put(ckey, true, 30)
-      PostVote.transaction do
-        unless voter.is_voter?
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You do not have permission to vote")
-        end
+      begin
+        Cache.put(ckey, true, 30)
+        PostVote.transaction do
+          unless voter.is_voter?
+            raise PostVote::Error.new("You do not have permission to vote")
+          end
 
-        unless can_be_voted_by?(voter)
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You have already voted for this post")
-        end
+          unless can_be_voted_by?(voter)
+            raise PostVote::Error.new("You have already voted for this post")
+          end
 
-        votes.create!(user: voter, vote: vote)
-        reload # PostVote.create modifies our score. Reload to get the new score.
-        update_index
+          votes.create!(user: voter, vote: vote)
+          reload # PostVote.create modifies our score. Reload to get the new score.
+        end
+      ensure
+        Cache.delete(ckey)
       end
-      Cache.delete(ckey)
     end
 
     def unvote!(voter = CurrentUser.user)
       ckey = "vote:#{voter.id}:#{id}"
       raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      Cache.put(ckey, true, 30)
-      PostVote.transaction do
-        if can_be_voted_by?(voter)
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You have not voted for this post")
-        else
-          votes.where(user: voter).destroy_all
-          reload
-          update_index
+      begin
+        Cache.put(ckey, true, 30)
+        PostVote.transaction do
+          if can_be_voted_by?(voter)
+            Cache.delete(ckey)
+            raise PostVote::Error.new("You have not voted for this post")
+          else
+            votes.where(user: voter).destroy_all
+            reload
+          end
         end
+      ensure
+        Cache.delete(ckey)
       end
-      Cache.delete(ckey)
     end
   end
 
@@ -1971,14 +1972,12 @@ class Post < ApplicationRecord
   def update_column(name, value)
     ret = super(name, value)
     notify_pubsub
-    update_index
     ret
   end
 
   def update_columns(attributes)
     ret = super(attributes)
     notify_pubsub
-    update_index
     ret
   end
 end

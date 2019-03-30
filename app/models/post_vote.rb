@@ -38,18 +38,30 @@ class PostVote < ApplicationRecord
   end
 
   def update_post_on_create
-    if score > 0
-      Post.where(:id => post_id).update_all("score = score + #{score}, up_score = up_score + #{score}")
-    else
-      Post.where(:id => post_id).update_all("score = score + #{score}, down_score = down_score + #{score}")
+    post = Post.find(post_id)
+    return unless post
+    post.with_lock do
+      post.score += score
+      if score > 0
+        post.up_score += score
+      else
+        post.down_score += score
+      end
+      post.save
     end
   end
 
   def update_post_on_destroy
-    if score > 0
-      Post.where(:id => post_id).update_all("score = score - #{score}, up_score = up_score - #{score}")
-    else
-      Post.where(:id => post_id).update_all("score = score - #{score}, down_score = down_score - #{score}")
+    post = Post.find(post_id)
+    return unless post
+    post.with_lock do
+      post.score -= score
+      if score > 0
+        post.up_score -= score
+      else
+        post.down_score -= score
+      end
+      post.save
     end
   end
 

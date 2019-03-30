@@ -4,7 +4,7 @@ class Favorite < ApplicationRecord
 
   belongs_to :post
   belongs_to :user
-  scope :for_user, ->(user_id) {where("user_id % 100 = #{user_id.to_i % 100} and user_id = #{user_id.to_i}")}
+  scope :for_user, ->(user_id) {where("user_id = #{user_id.to_i}")}
 
   def self.add(post:, user:)
     ckey = "fav:#{user.id}:#{post.id}"
@@ -27,9 +27,11 @@ class Favorite < ApplicationRecord
         raise Error, "You have already favorited this post"
       end
 
-      Favorite.create!(:user_id => user.id, :post_id => post.id)
-      Post.where(:id => post.id).update_all("fav_count = fav_count + 1")
-      post.append_user_to_fav_string(user.id)
+      post.with_lock do
+        Favorite.create!(:user_id => user.id, :post_id => post.id)
+        post.append_user_to_fav_string(user.id)
+        post.save
+      end
       User.where(:id => user.id).update_all("favorite_count = favorite_count + 1")
       user.favorite_count += 1
     end
@@ -51,18 +53,21 @@ class Favorite < ApplicationRecord
       if post && post_id.nil?
         post_id = post.id
       end
+      post = Post.find(post_id) unless post
 
       User.where(:id => user.id).select("id").lock("FOR UPDATE NOWAIT").first
 
       unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
         return
       end
-      Favorite.for_user(user.id).where(post_id: post_id).delete_all
-      Post.where(:id => post_id).update_all("fav_count = fav_count - 1")
-      post.delete_user_from_fav_string(user.id) if post
+
+      post.with_lock do
+        Favorite.for_user(user.id).where(post_id: post.id).delete_all
+        post.delete_user_from_fav_string(user.id)
+        post.save
+      end
       User.where(:id => user.id).update_all("favorite_count = favorite_count - 1")
       user.favorite_count -= 1
-      post.fav_count -= 1 if post
     end
   end
 end
