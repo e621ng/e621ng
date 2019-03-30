@@ -15,7 +15,10 @@ module Moderator
         end
 
         ::Post.without_timeout do
-          @posts = ::Post.includes(:uploader).order("posts.id asc").pending_or_flagged.available_for_moderation(params[:hidden]).tag_match(params[:query]).paginate(params[:page], :limit => per_page)
+          tags = params[:query] || ''
+          tags += " -user:#{CurrentUser.id}" if params[:hidden]
+          tags += " status:modqueue order:id_asc"
+          @posts = ::Post.tag_match(tags).paginate(params[:page], limit: per_page, includes: [:uploader])
           @posts.each # hack to force rails to eager load
         end
         respond_with(@posts)

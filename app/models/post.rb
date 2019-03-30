@@ -1750,7 +1750,7 @@ class Post < ApplicationRecord
       PostQueryBuilder.new(tag_count: 1, tags: tags).build
     end
 
-    def tag_match(query, read_only = false)
+    def tag_match(query)
       PostQueryBuilder.new(query).build
     end
   end

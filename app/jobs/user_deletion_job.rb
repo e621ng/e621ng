@@ -11,10 +11,9 @@ class UserDeletionJob < ApplicationJob
   end
 
   def remove_favorites(user)
-    Post.without_timeout do
-      # TODO: Move to elasticsearch, raw_tag_match is not the right choice here, as this is not part of tags.
-      Post.raw_tag_match("fav:#{user.id}").where("true /* UserDeletion.remove_favorites_for */").find_each do |post|
-        Favorite.remove(post: post, user: user)
+    Favorite.without_timeout do
+      Favorite.for_user(user.id).includes(:post).find_each do |fav|
+        Favorite.remove!(post: fav.post, user: user)
       end
     end
   end

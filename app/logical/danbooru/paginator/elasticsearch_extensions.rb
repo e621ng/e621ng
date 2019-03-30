@@ -68,7 +68,7 @@ module Danbooru
         if options[:results] == :results
           PaginatedArray.new(paginated.results, new_opts)
         else
-          PaginatedArray.new(paginated.records.to_a, new_opts)
+          PaginatedArray.new(paginated.records(includes: options[:includes]).to_a, new_opts)
         end
       end
 
