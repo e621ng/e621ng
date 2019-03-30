@@ -92,7 +92,6 @@ class PostSetsController < ApplicationController
     @set = PostSet.find(params[:id])
     check_edit_access(@set)
     @set.update(update_posts_params)
-    @set.synchronize!
     flash[:notice] = @set.valid? ? 'Set posts updated.' : @set.errors.full_messages.join('; ')
 
     redirect_back(fallback_location: post_list_post_set_path(@set))

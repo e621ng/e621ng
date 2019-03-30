@@ -1047,14 +1047,12 @@ class Post < ApplicationRecord
       return if belongs_to_post_set(set) && !force
       with_lock do
         self.pool_string = "#{pool_string} set:#{set.id}".strip
-        update_column(:pool_string, pool_string) unless new_record?
       end
     end
 
     def remove_set!(set)
       with_lock do
         self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
-        update_column(:pool_string, pool_string) unless new_record?
       end
     end
 
@@ -1103,9 +1101,7 @@ class Post < ApplicationRecord
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
         set_pool_category_pseudo_tags
-        update_column(:pool_string, pool_string) unless new_record?
         pool.add!(self)
-        reload
       end
     end
 
@@ -1116,9 +1112,7 @@ class Post < ApplicationRecord
       with_lock do
         self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
         set_pool_category_pseudo_tags
-        update_column(:pool_string, pool_string) unless new_record?
         pool.remove!(self)
-        reload
       end
     end
 
