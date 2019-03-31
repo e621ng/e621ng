@@ -13,7 +13,7 @@ class UserDeletionJob < ApplicationJob
   def remove_favorites(user)
     Favorite.without_timeout do
       Favorite.for_user(user.id).includes(:post).find_each do |fav|
-        Favorite.remove!(post: fav.post, user: user)
+        FavoriteManager.remove!(user: user, post: post)
       end
     end
   end

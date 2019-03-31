@@ -7,13 +7,7 @@ class PostVote < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
   validates_presence_of :post_id, :user_id, :score
-  validates_inclusion_of :score, :in => [SuperVoter::MAGNITUDE, 1, -1, -SuperVoter::MAGNITUDE]
-  after_create :update_post_on_create
-  after_destroy :update_post_on_destroy
-
-  def self.prune!
-    where("created_at < ?", 90.days.ago).delete_all
-  end
+  validates_inclusion_of :score, :in => [SuperVoter::MAGNITUDE, 1, 0, -1, -SuperVoter::MAGNITUDE]
 
   def self.positive_user_ids
     select_values_sql("select user_id from post_votes where score > 0 group by user_id having count(*) > 100")
@@ -34,34 +28,8 @@ class PostVote < ApplicationRecord
       self.score = magnitude
     elsif vote == "down"
       self.score = -magnitude
-    end
-  end
-
-  def update_post_on_create
-    post = Post.find(post_id)
-    return unless post
-    post.with_lock do
-      post.score += score
-      if score > 0
-        post.up_score += score
-      else
-        post.down_score += score
-      end
-      post.save
-    end
-  end
-
-  def update_post_on_destroy
-    post = Post.find(post_id)
-    return unless post
-    post.with_lock do
-      post.score -= score
-      if score > 0
-        post.up_score -= score
-      else
-        post.down_score -= score
-      end
-      post.save
+    elsif vote == "locked"
+      self.score = 0
     end
   end
 

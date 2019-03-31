@@ -861,13 +861,13 @@ class Post < ApplicationRecord
           add_pool!(pool) if pool
 
         when /^fav:(.+)$/i
-          add_favorite!(CurrentUser.user)
+          FavoriteManager.add!(user: CurrentUser.user, post: self)
 
         when /^-fav:(.+)$/i
-          remove_favorite!(CurrentUser.user)
+          FavoriteManager.remove!(user: CurrentUser.user, post: self)
 
         when /^(up|down)vote:(.+)$/i
-          vote!($1)
+          VoteManager.vote!(user: CurrentUser.user, post: self, score: $1)
 
         when /^child:none$/i
           children.each do |post|
@@ -978,28 +978,9 @@ class Post < ApplicationRecord
       clean_fav_string!
     end
 
-    def add_favorite(user)
-      add_favorite!(user)
-      true
-    rescue Favorite::Error
-      false
-    end
-
-    def add_favorite!(user)
-      Favorite.add(post: self, user: user)
-      reload
-    rescue PostVote::Error
-    end
-
     def delete_user_from_fav_string(user_id)
       self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
       clean_fav_string!
-    end
-
-    def remove_favorite!(user)
-      Favorite.remove(post: self, user: user)
-      reload
-    rescue PostVote::Error
     end
 
     # users who favorited this post, ordered by users who favorited it first
@@ -1138,47 +1119,6 @@ class Post < ApplicationRecord
   module VoteMethods
     def can_be_voted_by?(user)
       !PostVote.exists?(:user_id => user.id, :post_id => id)
-    end
-
-    def vote!(vote, voter = CurrentUser.user)
-      ckey = "vote:#{voter.id}:#{id}"
-      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      begin
-        Cache.put(ckey, true, 30)
-        PostVote.transaction do
-          unless voter.is_voter?
-            raise PostVote::Error.new("You do not have permission to vote")
-          end
-
-          unless can_be_voted_by?(voter)
-            raise PostVote::Error.new("You have already voted for this post")
-          end
-
-          votes.create!(user: voter, vote: vote)
-          reload # PostVote.create modifies our score. Reload to get the new score.
-        end
-      ensure
-        Cache.delete(ckey)
-      end
-    end
-
-    def unvote!(voter = CurrentUser.user)
-      ckey = "vote:#{voter.id}:#{id}"
-      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      begin
-        Cache.put(ckey, true, 30)
-        PostVote.transaction do
-          if can_be_voted_by?(voter)
-            Cache.delete(ckey)
-            raise PostVote::Error.new("You have not voted for this post")
-          else
-            votes.where(user: voter).destroy_all
-            reload
-          end
-        end
-      ensure
-        Cache.delete(ckey)
-      end
     end
   end
 
@@ -1327,14 +1267,13 @@ class Post < ApplicationRecord
     end
 
     def give_favorites_to_parent(options = {})
+      TransferFavoritesJob.perform_later(id, CurrentUser.id, options[:without_mod_action])
+    end
+
+    def give_favorites_to_parent!(options = {})
       return if parent.nil?
 
-      transaction do
-        favorites.each do |fav|
-          remove_favorite!(fav.user)
-          parent.add_favorite(fav.user)
-        end
-      end
+      FavoriteManager.give_to_parent!(self)
 
       unless options[:without_mod_action]
         ModAction.log("moved favorites from post ##{id} to post ##{parent.id}", :post_move_favorites)
