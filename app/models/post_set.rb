@@ -174,6 +174,7 @@ class PostSet < ApplicationRecord
       with_lock do
         update(post_ids: post_ids + [post.id])
         post.add_set!(self, true)
+        post.save
       end
     end
 
@@ -187,6 +188,7 @@ class PostSet < ApplicationRecord
       with_lock do
         update(post_ids: post_ids - [post.id])
         post.remove_set!(self)
+        post.save
       end
     end
 
@@ -233,13 +235,15 @@ class PostSet < ApplicationRecord
       removed = post_ids_before - post_ids
 
       added_posts = Post.where(id: added)
-      added_posts.each do |post|
+      added_posts.find_each do |post|
         post.add_set!(self, true)
+        post.save
       end
 
       removed_posts = Post.where(id: removed)
-      removed_posts.each do |post|
+      removed_posts.find_each do |post|
         post.remove_set!(self)
+        post.save
       end
 
       normalize_post_ids

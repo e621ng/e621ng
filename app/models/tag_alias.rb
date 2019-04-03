@@ -161,7 +161,7 @@ class TagAlias < TagRelationship
 
   def update_posts
     Post.without_timeout do
-      Post.raw_tag_match(antecedent_name).find_each do |post|
+      Post.sql_raw_tag_match(antecedent_name).find_each do |post|
         escaped_antecedent_name = Regexp.escape(antecedent_name)
         fixed_tags = post.tag_string.sub(/(?:\A| )#{escaped_antecedent_name}(?:\Z| )/, " #{consequent_name} ").strip
         CurrentUser.scoped(creator, creator_ip_addr) do

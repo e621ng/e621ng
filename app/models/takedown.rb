@@ -85,7 +85,7 @@ class Takedown < ApplicationRecord
     def add_posts_by_tags!(tag_string)
       added_ids = []
       CurrentUser.without_safe_mode do
-        new_ids = Post.tag_match(tag_string).limit(1000).map(&:id)
+        new_ids = Post.tag_match(tag_string).limit(1000).results.map(&:id)
         added_ids = add_posts_by_ids!(new_ids.join(' '))
       end
       added_ids

@@ -199,6 +199,7 @@ class Pool < ApplicationRecord
     with_lock do
       update(post_ids: post_ids + [post.id])
       post.add_pool!(self, true)
+      post.save
     end
   end
 
@@ -210,6 +211,7 @@ class Pool < ApplicationRecord
       reload
       update(post_ids: post_ids - [post.id])
       post.remove_pool!(self)
+      post.save
     end
   end
 
@@ -238,11 +240,13 @@ class Pool < ApplicationRecord
     added.each do |post_id|
       post = Post.find(post_id)
       post.add_pool!(self, true)
+      post.save
     end
 
     removed.each do |post_id|
       post = Post.find(post_id)
       post.remove_pool!(self)
+      post.save
     end
 
     normalize_post_ids

@@ -6,6 +6,8 @@ Bundler.require(*Rails.groups)
 require_relative "danbooru_default_config"
 require_relative "danbooru_local_config"
 
+require 'elasticsearch/rails/instrumentation'
+
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -15,7 +17,7 @@ module Danbooru
     config.filter_parameters += [:password]
     config.assets.enabled = true
     config.assets.version = '1.0'
-    config.autoload_paths += %W(#{config.root}/app/presenters #{config.root}/app/logical #{config.root}/app/mailers)
+    config.autoload_paths += %W(#{config.root}/app/presenters #{config.root}/app/logical #{config.root}/app/mailers #{config.root}/app/indexes)
     config.plugins = [:all]
     config.time_zone = 'UTC'
     config.action_mailer.delivery_method = :smtp

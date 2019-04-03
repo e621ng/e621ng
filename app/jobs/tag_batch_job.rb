@@ -24,7 +24,7 @@ class TagBatchJob < ApplicationJob
   end
 
   def estimate_update_count
-    PostReadOnly.tag_match(@antecedent).count
+    ::Post.tag_match(@antecedent).count
   end
 
   def migrate_posts(normalized_antecedent, normalized_consequent)

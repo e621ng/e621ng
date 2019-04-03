@@ -18,23 +18,23 @@ class Post < ApplicationRecord
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
-  before_validation :normalize_tags
+  before_validation :normalize_tags, if: :tag_string_changed?
   before_validation :strip_source
   before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
-  validate :tag_names_are_valid
-  validate :added_tags_are_valid
-  validate :removed_tags_are_valid
-  validate :has_artist_tag
-  validate :has_copyright_tag
-  validate :has_enough_tags
+  validate :tag_names_are_valid, if: :tag_string_changed?
+  validate :added_tags_are_valid, if: :tag_string_changed?
+  validate :removed_tags_are_valid, if: :tag_string_changed?
+  validate :has_artist_tag, if: :tag_string_changed?
+  validate :has_copyright_tag, if: :tag_string_changed?
+  validate :has_enough_tags, if: :tag_string_changed?
   validate :post_is_not_its_own_parent
   validate :updater_can_change_rating
-  before_save :update_tag_post_counts
-  before_save :set_tag_counts
+  before_save :update_tag_post_counts, if: :tag_string_changed?
+  before_save :set_tag_counts, if: :tag_string_changed?
   before_save :set_pool_category_pseudo_tags
   after_save :create_version
   after_save :update_parent_on_save
@@ -861,13 +861,13 @@ class Post < ApplicationRecord
           add_pool!(pool) if pool
 
         when /^fav:(.+)$/i
-          add_favorite!(CurrentUser.user)
+          FavoriteManager.add!(user: CurrentUser.user, post: self)
 
         when /^-fav:(.+)$/i
-          remove_favorite!(CurrentUser.user)
+          FavoriteManager.remove!(user: CurrentUser.user, post: self)
 
         when /^(up|down)vote:(.+)$/i
-          vote!($1)
+          VoteManager.vote!(user: CurrentUser.user, post: self, score: $1)
 
         when /^child:none$/i
           children.each do |post|
@@ -885,6 +885,7 @@ class Post < ApplicationRecord
           end
         end
       end
+
     end
 
     def apply_pre_metatags
@@ -964,8 +965,6 @@ class Post < ApplicationRecord
       array = fav_string.split.uniq
       self.fav_string = array.join(" ")
       self.fav_count = array.size
-      update_column(:fav_string, fav_string)
-      update_column(:fav_count, fav_count)
     end
 
     def favorited_by?(user_id = CurrentUser.id)
@@ -975,29 +974,13 @@ class Post < ApplicationRecord
     alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
-      update_column(:fav_string, (fav_string + " fav:#{user_id}").strip)
-      clean_fav_string! if clean_fav_string?
-    end
-
-    def add_favorite(user)
-      add_favorite!(user)
-      true
-    rescue Favorite::Error
-      false
-    end
-
-    def add_favorite!(user)
-      Favorite.add(post: self, user: user)
-    rescue PostVote::Error
+      self.fav_string = (fav_string + " fav:#{user_id}").strip
+      clean_fav_string!
     end
 
     def delete_user_from_fav_string(user_id)
-      update_column(:fav_string, fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip)
-    end
-
-    def remove_favorite!(user)
-      Favorite.remove(post: self, user: user)
-    rescue PostVote::Error
+      self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
+      clean_fav_string!
     end
 
     # users who favorited this post, ordered by users who favorited it first
@@ -1045,17 +1028,13 @@ class Post < ApplicationRecord
       return if belongs_to_post_set(set) && !force
       with_lock do
         self.pool_string = "#{pool_string} set:#{set.id}".strip
-        update_column(:pool_string, pool_string) unless new_record?
       end
-      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
     end
 
     def remove_set!(set)
       with_lock do
         self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
-        update_column(:pool_string, pool_string) unless new_record?
       end
-      # TODO: Add some indexing step here to trigger an index update when elasticsearch is merged
     end
 
     def give_post_sets_to_parent
@@ -1103,7 +1082,6 @@ class Post < ApplicationRecord
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
         set_pool_category_pseudo_tags
-        update_column(:pool_string, pool_string) unless new_record?
         pool.add!(self)
       end
     end
@@ -1115,7 +1093,6 @@ class Post < ApplicationRecord
       with_lock do
         self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
         set_pool_category_pseudo_tags
-        update_column(:pool_string, pool_string) unless new_record?
         pool.remove!(self)
       end
     end
@@ -1142,43 +1119,6 @@ class Post < ApplicationRecord
   module VoteMethods
     def can_be_voted_by?(user)
       !PostVote.exists?(:user_id => user.id, :post_id => id)
-    end
-
-    def vote!(vote, voter = CurrentUser.user)
-      ckey = "vote:#{voter.id}:#{id}"
-      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      Cache.put(ckey, true, 30)
-      PostVote.transaction do
-        unless voter.is_voter?
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You do not have permission to vote")
-        end
-
-        unless can_be_voted_by?(voter)
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You have already voted for this post")
-        end
-
-        votes.create!(user: voter, vote: vote)
-        reload # PostVote.create modifies our score. Reload to get the new score.
-      end
-      Cache.delete(ckey)
-    end
-
-    def unvote!(voter = CurrentUser.user)
-      ckey = "vote:#{voter.id}:#{id}"
-      raise PostVote::Error.new('You are already voting') if !Cache.get(ckey).nil?
-      Cache.put(ckey, true, 30)
-      PostVote.transaction do
-        if can_be_voted_by?(voter)
-          Cache.delete(ckey)
-          raise PostVote::Error.new("You have not voted for this post")
-        else
-          votes.where(user: voter).destroy_all
-          reload
-        end
-      end
-      Cache.delete(ckey)
     end
   end
 
@@ -1223,8 +1163,8 @@ class Post < ApplicationRecord
     end
 
     def fast_count_search(tags, timeout:, raise_on_timeout:)
-      count = PostReadOnly.with_timeout(timeout, nil, tags: tags) do
-        PostReadOnly.tag_match(tags).count
+      count = Post.with_timeout(timeout, nil, tags: tags) do
+        Post.tag_match(tags).count_only
       end
 
       if count.nil?
@@ -1327,14 +1267,13 @@ class Post < ApplicationRecord
     end
 
     def give_favorites_to_parent(options = {})
+      TransferFavoritesJob.perform_later(id, CurrentUser.id, options[:without_mod_action])
+    end
+
+    def give_favorites_to_parent!(options = {})
       return if parent.nil?
 
-      transaction do
-        favorites.each do |fav|
-          remove_favorite!(fav.user)
-          parent.add_favorite(fav.user)
-        end
-      end
+      FavoriteManager.give_to_parent!(self)
 
       unless options[:without_mod_action]
         ModAction.log("moved favorites from post ##{id} to post ##{parent.id}", :post_move_favorites)
@@ -1626,7 +1565,7 @@ class Post < ApplicationRecord
 
     def sample(query, sample_size)
       CurrentUser.without_safe_mode do
-        tag_match(query).reorder(:md5).limit(sample_size)
+        tag_match(query).records.reorder(:md5).limit(sample_size)
       end
     end
 
@@ -1736,25 +1675,17 @@ class Post < ApplicationRecord
       where.not(uploader: user)
     end
 
-    def raw_tag_match(tag)
+    def sql_raw_tag_match(tag)
       where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag.to_escaped_for_tsquery)
     end
 
-    def tag_match(query, read_only = false)
-      if query =~ /status:deleted.status:deleted/
-        # temp fix for degenerate crawlers
-        raise ActiveRecord::RecordNotFound
-      end
+    def raw_tag_match(tag)
+      tags = {related: tag.split(' '), include: [], exclude: []}
+      PostQueryBuilder.new(tag_count: 1, tags: tags).build
+    end
 
-      if read_only
-        begin
-          PostQueryBuilder.new(query, read_only: true).build
-        rescue PG::ConnectionBad
-          PostQueryBuilder.new(query).build
-        end
-      else
-        PostQueryBuilder.new(query).build
-      end
+    def tag_match(query)
+      PostQueryBuilder.new(query).build
     end
   end
 
@@ -1914,6 +1845,8 @@ class Post < ApplicationRecord
   include IqdbMethods
   include ValidationMethods
   include Danbooru::HasBitFlags
+  include Indexable
+  include PostIndex
 
   BOOLEAN_ATTRIBUTES = %w(
     has_embedded_notes

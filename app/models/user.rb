@@ -556,13 +556,7 @@ class User < ApplicationRecord
     end
 
     def tag_query_limit
-      if is_platinum?
-        Danbooru.config.base_tag_query_limit * 2
-      elsif is_gold?
-        Danbooru.config.base_tag_query_limit
-      else
-        2
-      end
+      40
     end
 
     def favorite_limit

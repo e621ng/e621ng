@@ -3642,17 +3642,10 @@ CREATE INDEX index_favorite_groups_on_lower_name ON public.favorite_groups USING
 
 
 --
--- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_favorites_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_favorites_on_post_id ON public.favorites USING btree (post_id);
-
-
---
--- Name: index_favorites_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+CREATE UNIQUE INDEX index_favorites_on_user_id_and_post_id ON public.favorites USING btree (user_id, post_id);
 
 
 --
@@ -3964,17 +3957,10 @@ CREATE INDEX index_post_replacements_on_post_id ON public.post_replacements USIN
 
 
 --
--- Name: index_post_votes_on_post_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_post_votes_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_post_votes_on_post_id ON public.post_votes USING btree (post_id);
-
-
---
--- Name: index_post_votes_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_id);
+CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes USING btree (user_id, post_id);
 
 
 --
@@ -4639,6 +4625,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190305165101'),
 ('20190313221440'),
 ('20190317024446'),
-('20190324111703');
+('20190324111703'),
+('20190331193644');
 
 
