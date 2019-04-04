@@ -291,6 +291,7 @@ Rails.application.routes.draw do
       get :autocomplete
     end
   end
+  resources :tag_type_versions
   resources :tag_aliases do
     resource :correction, :controller => "tag_alias_corrections"
     member do

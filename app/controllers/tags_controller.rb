@@ -49,7 +49,7 @@ class TagsController < ApplicationController
 
 private
   def check_privilege(tag)
-    raise User::PrivilegeError unless tag.editable_by?(CurrentUser.user)
+    raise User::PrivilegeError unless tag.category_editable_by?(CurrentUser.user)
   end
 
   def tag_params
