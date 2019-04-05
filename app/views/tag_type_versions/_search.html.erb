@@ -1,0 +1,34 @@
+<% unless params[:show] %>
+  <div id='searchform_hide'><%= link_to_function "Show Search Options", "$('#searchform').fadeIn('fast'); $('#searchform_hide').hide();" %></div>
+<% end %>
+<div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;
+  <% end %>'>
+  <% unless params[:show] %><%= link_to_function "Hide Search Options", "$('#searchform').fadeOut('fast'); $('#searchform_hide').show();" %>
+  <% end %>
+  <%= form_tag({action: "index"}, method: :get) do %>
+    <table class='search'>
+      <tr>
+        <td><label for="tag">Tag</label></td>
+        <td><%= text_field_tag "search[tag]", params[:search][:tag] %></td>
+      </tr>
+      <tr>
+        <td><label for="name">Username</label></td>
+        <td><%= text_field_tag "search[user_name]", params[:search][:user_name], style: "width:195px" %></td>
+      </tr>
+      <tr>
+        <td><label for="user_id">User ID</label></td>
+        <td><%= text_field_tag "search[user_id]", params[:search][:user_id], style: "width:195px" %></td>
+      </tr>
+      <tr>
+        <td colspan="2"><%= submit_tag "Search" %></td>
+      </tr>
+    </table>
+    <% if params[:show] %>
+      <input type='hidden' name='show' value='1'/>
+    <% end %>
+  <% end %>
+</div>
+<% if params[:search].present? %>
+  <script type='text/javascript'>$('#searchform_hide').hide();
+  $('#searchform').show();</script>
+<% end %>

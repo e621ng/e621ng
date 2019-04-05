@@ -1941,6 +1941,41 @@ ALTER SEQUENCE public.tag_subscriptions_id_seq OWNED BY public.tag_subscriptions
 
 
 --
+-- Name: tag_type_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tag_type_versions (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    old_type integer NOT NULL,
+    new_type integer NOT NULL,
+    is_locked boolean NOT NULL,
+    tag_id integer NOT NULL,
+    creator_id integer NOT NULL
+);
+
+
+--
+-- Name: tag_type_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tag_type_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tag_type_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tag_type_versions_id_seq OWNED BY public.tag_type_versions.id;
+
+
+--
 -- Name: tags; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2761,6 +2796,13 @@ ALTER TABLE ONLY public.tag_subscriptions ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: tag_type_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_type_versions ALTER COLUMN id SET DEFAULT nextval('public.tag_type_versions_id_seq'::regclass);
+
+
+--
 -- Name: tags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3243,6 +3285,14 @@ ALTER TABLE ONLY public.tag_implications
 
 ALTER TABLE ONLY public.tag_subscriptions
     ADD CONSTRAINT tag_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tag_type_versions tag_type_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_type_versions
+    ADD CONSTRAINT tag_type_versions_pkey PRIMARY KEY (id);
 
 
 --
@@ -4174,6 +4224,20 @@ CREATE INDEX index_tag_subscriptions_on_name ON public.tag_subscriptions USING b
 
 
 --
+-- Name: index_tag_type_versions_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_type_versions_on_creator_id ON public.tag_type_versions USING btree (creator_id);
+
+
+--
+-- Name: index_tag_type_versions_on_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_type_versions_on_tag_id ON public.tag_type_versions USING btree (tag_id);
+
+
+--
 -- Name: index_tags_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4626,6 +4690,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190313221440'),
 ('20190317024446'),
 ('20190324111703'),
-('20190331193644');
+('20190331193644'),
+('20190403174011');
 
 

@@ -55,8 +55,7 @@ class Tag < ApplicationRecord
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates_inclusion_of :category, in: TagCategory.category_ids
 
-  before_save :update_category_cache, if: :category_changed?
-  before_save :update_category_post_counts, if: :category_changed?
+  before_save :update_category, if: :category_changed?
 
   module ApiMethods
     def to_legacy_json
@@ -157,6 +156,10 @@ class Tag < ApplicationRecord
           end
         end
       end
+
+      def category_for_value(value)
+        TagCategory.reverse_mapping.fetch(value, "unknown category").capitalize
+      end
     end
 
     def self.included(m)
@@ -167,21 +170,37 @@ class Tag < ApplicationRecord
       TagCategory.reverse_mapping[category].capitalize
     end
 
-    def update_category_post_counts
+    def update_category_post_counts!
       Post.with_timeout(30_000, nil, {:tags => name}) do
         Post.sql_raw_tag_match(name).find_each do |post|
-          post.reload
           post.set_tag_counts(false)
           args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update(:tag_count => post.tag_count)
           Post.where(:id => post.id).update_all(args)
-          post.reload
           post.update_index
         end
       end
     end
 
+    def update_category_post_counts
+      UpdateTagCategoryJob.perform_later(id)
+    end
+
     def update_category_cache
       Cache.put("tc:#{Cache.hash(name)}", category, 3.hours)
+    end
+
+    def update_category
+      update_category_cache
+      update_category_post_counts
+      write_category_change_entry unless new_record?
+    end
+
+    def write_category_change_entry
+      TagTypeVersion.create(creator_id: CurrentUser.id,
+                            tag_id: id,
+                            old_type: category_was.to_i,
+                            new_type: category.to_i,
+                            is_locked: is_locked?)
     end
   end
 
@@ -233,6 +252,10 @@ class Tag < ApplicationRecord
       names.map {|x| find_or_create_by_name(x).name}
     end
 
+    def find_by_normalized_name(name)
+      find_by_name(normalize_name(name))
+    end
+
     def find_or_create_by_name(name, creator: CurrentUser.user)
       name = normalize_name(name)
       category = nil
@@ -253,7 +276,7 @@ class Tag < ApplicationRecord
           # next few lines if the category is changed.
           tag.update_category_cache
 
-          if tag.editable_by?(creator)
+          if tag.category_editable_by_implicit?(creator)
             tag.update(category: category_id)
           end
         end
@@ -947,11 +970,19 @@ class Tag < ApplicationRecord
     end.map {|tag| tag[0]}
   end
 
-  def editable_by?(user)
-    return true if user.is_admin?
-    return true if !is_locked? && user.is_builder? && post_count < 1_000
-    return true if !is_locked? && user.is_member? && post_count < 50
-    return false
+  def category_editable_by_implicit?(user)
+    return false unless user.is_builder?
+    return false if is_locked?
+    return false if post_count >= Danbooru.config.tag_type_change_cutoff
+    true
+  end
+
+  def category_editable_by?(user)
+    return false if user.nil? or !user.is_member?
+    return false if is_locked? && !user.is_moderator?
+    return true if post_count < Danbooru.config.tag_type_change_cutoff
+    return true if user.is_moderator?
+    false
   end
 
   include ApiMethods
