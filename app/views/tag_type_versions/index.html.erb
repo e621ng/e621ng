@@ -23,8 +23,8 @@
             </td>
             <td><%= link_to_user change.creator %></td>
 
-            <td><a class="<%= "tag-type-#{change.old_type}" %>"><%= Tag.category_for_value(change.old_type) || 'Unknown type' %></a></td>
-            <td><a class="<%= "tag-type-#{change.new_type}" %>"><%= Tag.category_for_value(change.new_type) || 'Unknown type' %></a></td>
+            <td><a class="<%= "tag-type-#{change.old_type}" %>"><%= Tag.category_for_value(change.old_type) %></a></td>
+            <td><a class="<%= "tag-type-#{change.new_type}" %>"><%= Tag.category_for_value(change.new_type) %></a></td>
             <td><%= change.is_locked %></td>
           </tr>
         <% end %>

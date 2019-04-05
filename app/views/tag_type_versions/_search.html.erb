@@ -5,8 +5,8 @@
   <% end %>'>
   <% unless params[:show] %><%= link_to_function "Hide Search Options", "$('#searchform').fadeOut('fast'); $('#searchform_hide').show();" %>
   <% end %>
-  <% form_tag({action: "index"}, method: :get) do %>
-    <table class='nomargin'>
+  <%= form_tag({action: "index"}, method: :get) do %>
+    <table class='search'>
       <tr>
         <td><label for="tag">Tag</label></td>
         <td><%= text_field_tag "search[tag]", params[:search][:tag] %></td>

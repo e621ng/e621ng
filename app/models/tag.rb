@@ -55,7 +55,7 @@ class Tag < ApplicationRecord
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates_inclusion_of :category, in: TagCategory.category_ids
 
-  before_save :update_category if :category_changed?
+  before_save :update_category, if: :category_changed?
 
   module ApiMethods
     def to_legacy_json
@@ -158,7 +158,7 @@ class Tag < ApplicationRecord
       end
 
       def category_for_value(value)
-        TagCategory.reverse_mapping.fetch(value).capitalize
+        TagCategory.reverse_mapping.fetch(value, "unknown category").capitalize
       end
     end
 
