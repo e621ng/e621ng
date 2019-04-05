@@ -93,6 +93,27 @@ class PoolsController < ApplicationController
     end
   end
 
+  def import_posts
+    @pool = Pool.find(params[:id])
+    params[:import][:post_ids].each do |id|
+      @pool.add(id.to_i)
+    end
+    @pool.save
+    flash[:notice] = @pool.valid? ? "Posts imported" : @pool.errors.full_messages.join('; ')
+    respond_with(@pool)
+  end
+
+  def import
+    @pool = Pool.find(params[:id])
+    respond_with(@pool)
+  end
+
+  def import_preview
+    @pool = Pool.find(params[:id])
+    @posts = Post.tag_match(params[:tags]).limit(500).records
+    respond_with(@pool)
+  end
+
   private
 
   def pool_params

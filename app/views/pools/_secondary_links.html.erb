@@ -11,6 +11,7 @@
       <%= subnav_link_to "Posts", posts_path(:tags => "pool:#{@pool.id}") %>
       <% if CurrentUser.is_member? %>
         <%= subnav_link_to "Edit", edit_pool_path(@pool), "data-shortcut": "e" %>
+        <%= subnav_link_to "Import", import_pool_path(@pool), "data-shortcut": "i" %>
       <% end %>
       <% if @pool.deletable_by?(CurrentUser.user) %>
         <% if @pool.is_deleted? %>
