@@ -1,5 +1,6 @@
 class Pool < ApplicationRecord
-  class RevertError < Exception ; end
+  class RevertError < Exception;
+  end
 
   array_attribute :post_ids, parse: /\d+/, cast: :to_i
   belongs_to_creator
@@ -10,6 +11,7 @@ class Pool < ApplicationRecord
   validate :updater_can_change_category
   validate :updater_can_remove_posts
   validate :updater_can_edit_deleted
+  validate :validate_number_of_posts
   before_validation :normalize_post_ids
   before_validation :normalize_name
   after_save :update_category_pseudo_tags_for_posts_async
@@ -185,11 +187,20 @@ class Pool < ApplicationRecord
   end
 
   def create_mod_action_for_delete
-    ModAction.log("deleted pool ##{id} (name: #{name})",:pool_delete)
+    ModAction.log("deleted pool ##{id} (name: #{name})", :pool_delete)
   end
 
   def create_mod_action_for_undelete
-    ModAction.log("undeleted pool ##{id} (name: #{name})",:pool_undelete)
+    ModAction.log("undeleted pool ##{id} (name: #{name})", :pool_undelete)
+  end
+
+  def validate_number_of_posts
+    if post_ids.size > 1_000
+      errors.add(:base, "Pools can have up to 1,000 posts each")
+      false
+    else
+      true
+    end
   end
 
   def add!(post)
@@ -201,6 +212,13 @@ class Pool < ApplicationRecord
       post.add_pool!(self, true)
       post.save
     end
+  end
+
+  def add(id)
+    return if contains?(id)
+    return if is_deleted?
+
+    self.post_ids << id
   end
 
   def remove!(post)
@@ -220,13 +238,10 @@ class Pool < ApplicationRecord
     limit = options[:limit] || Danbooru.config.posts_per_page
     slice = post_ids.slice(offset, limit)
     if slice && slice.any?
-      slice.map do |id|
-        begin
-          Post.find(id)
-        rescue ActiveRecord::RecordNotFound
-          # swallow
-        end
-      end.compact
+      # This hack is here to work around posts that are not found but present in the pool id list.
+      # Previously there was an N+1 post lookup loop.
+      posts = Hash[Post.where(id: slice).map {|p| [p.id, p]}]
+      slice.map {|id| posts[id]}.compact
     else
       []
     end
@@ -237,14 +252,12 @@ class Pool < ApplicationRecord
     added = post_ids - post_ids_before
     removed = post_ids_before - post_ids
 
-    added.each do |post_id|
-      post = Post.find(post_id)
+    Post.where(id: added).find_each do |post|
       post.add_pool!(self, true)
       post.save
     end
 
-    removed.each do |post_id|
-      post = Post.find(post_id)
+    Post.where(id: removed).find_each do |post|
       post.remove_pool!(self)
       post.save
     end

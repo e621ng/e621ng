@@ -53,12 +53,12 @@ div#c-pools {
   }
 }
 
-div#c-pool-orders, div#c-favorite-group-orders {
+div#c-pool-orders, div#c-pool-import, div#c-favorite-group-orders {
   h1 {
     font-size: $h2_size;
   }
 
-  div#a-edit {
+  div#a-edit, div#a-import {
     ul.ui-sortable {
       list-style-type: none;
 

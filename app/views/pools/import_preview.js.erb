@@ -1,0 +1,22 @@
+var posts = <%= @posts.map do |p|
+  "<li class=\"ui-state-default\" id=\"import[post_ids]_#{p.id}\">" + PostPresenter.preview(p) + '</li>'
+ end.to_json.html_safe
+%>;
+$("#sortable-posts").html(posts);
+if ($("#sortable-posts.ui-sortable").length)
+  $("#sortable-posts").sortable("destroy");
+$("#sortable-posts").sortable({
+  placeholeder: "ui-state-placeholder"
+});
+$("#sortable-posts").disableSelection();
+
+$("#importing-form").off("submit").submit(function (e) {
+  e.preventDefault();
+  $.ajax({
+    type: "post",
+    url: e.target.action,
+    data: $("#sortable-posts").sortable("serialize") + "&" + $(e.target).serialize()
+  }).done(function() {
+    window.location.assign("<%= pool_path(@pool) %>");
+  });
+})

@@ -1,0 +1,34 @@
+<div id="c-pool-import">
+  <div id="a-import">
+    <h4>Pool Import: <%= h(@pool.pretty_name) %></h4>
+
+    <p>You can perform a tag search and import all the matching posts into this pool.</p>
+
+    <div class='section'>
+      <%= form_tag import_preview_pool_path(@pool), method: :get, remote: true do %>
+        <%= text_field_tag "tags", params[:tags], size: 50 %> <%= submit_tag "Search" %>
+      <% end %>
+    </div>
+
+    <div>
+      <ul id="sortable-posts">
+
+      </ul>
+      <%= simple_form_for(@pool, method: :post, url: import_posts_pool_path(@pool), :html => {:id => "importing-form"}) do |f| %>
+        <%= submit_tag "Import" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  function removePost(id) {
+    if ($("#delete-mode").checked) {
+      $("#posts_" + id).remove();
+      $("#p" + id).remove();
+      return false;
+    } else {
+      return true;
+    }
+  }
+</script>
+<%= render partial: 'secondary_links' %>
