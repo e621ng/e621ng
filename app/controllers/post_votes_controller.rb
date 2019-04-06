@@ -1,5 +1,6 @@
 class PostVotesController < ApplicationController
   before_action :voter_only
+  before_action :admin_only, only: [:index, :lock, :delete]
   skip_before_action :api_check
 
   def create
@@ -16,5 +17,25 @@ class PostVotesController < ApplicationController
   rescue PostVote::Error => x
     @error = x
     render status: 500
+  end
+
+  def index
+    @post_votes = PostVote.includes(:user).search(params).paginate(params[:page], limit: 100)
+  end
+
+  def lock
+    ids = params[:ids].split(/,/)
+
+    ids.each do |id|
+      VoteManager.lock!(id)
+    end
+  end
+
+  def delete
+    ids = params[:ids].split(/,/)
+
+    ids.each do |id|
+      VoteManager.admin_unvote!(id)
+    end
   end
 end
