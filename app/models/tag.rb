@@ -18,7 +18,8 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
-    -flagger appealer -appealer disapproval -disapproval set -set randseed
+    -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
+    -upvote -downvote
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -768,6 +769,27 @@ class Tag < ApplicationRecord
               q[:voted] = User.name_to_id(g2)
             elsif CurrentUser.is_member?
               q[:voted] = CurrentUser.id
+            end
+
+          when "-voted"
+            if CurrentUser.is_moderator?
+              q[:neg_voted] = User.name_to_id(g2)
+            elsif CurrentUser.is_member?
+              q[:neg_voted] = CurrentUser.id
+            end
+
+          when "-upvote"
+            if CurrentUser.is_moderator?
+              q[:neg_upvote] = User.name_to_id(g2)
+            elsif Currentuser.is_member?
+              q[:neg_upvote] = CurrentUser.id
+            end
+
+          when "-downvote"
+            if CurrentUser.is_moderator?
+              q[:neg_downvote] = User.name_to_id(g2)
+            elsif CurrentUser.is_member?
+              q[:neg_downvote] = CurrentUser.id
             end
 
           when *COUNT_METATAGS
