@@ -125,6 +125,12 @@ Rails.application.routes.draw do
       post :undelete
     end
   end
+  resources :comment_votes, only: [:index, :delete, :lock] do
+    collection do
+      post :lock
+      post :delete
+    end
+  end
   resources :counts do
     collection do
       get :posts

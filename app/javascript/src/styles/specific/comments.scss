@@ -36,6 +36,21 @@ div.comments-for-post {
             margin-right: 1em;
           }
         }
+
+        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+      }
+
+      .score-positive {
+        color: $green_color;
+      }
+      .score-negative {
+        color: $red_color;
+      }
+      .score-neutral {
+        color: $dark_grey_color
       }
     }
 
