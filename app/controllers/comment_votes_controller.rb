@@ -8,7 +8,9 @@ class CommentVotesController < ApplicationController
   def create
     @comment = Comment.find(params[:comment_id])
     @comment_vote = VoteManager.comment_vote!(comment: @comment, user: CurrentUser.user, score: params[:score])
-    VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user) if @comment_vote == :need_unvote
+    if @comment_vote == :need_unvote
+      VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
+    end
     @comment.reload
   rescue CommentVote::Error, ActiveRecord::RecordInvalid => x
     @error = x
@@ -28,42 +30,18 @@ class CommentVotesController < ApplicationController
   end
 
   def lock
-    ids = params[:id].split(/,/)
+    ids = params[:ids].split(/,/)
 
     ids.each do |id|
-      VoteManager.lock_comment!(id)
-      @vote = CommentVote.find(id)
-      if @vote.score == nil
-        @vote.score = 0 # Fix unrecorded score.
-      end
-
-      @comment = Comment.find(@vote.comment_id)
-      @comment.score -= @vote.score
-      @comment.save
-
-      @vote.score = 0
-      @vote.save
+      VoteManager.comment_lock!(id)
     end
-
-    respond_to_success('Votes locked at 0', action: 'index')
   end
 
   def delete
-    ids = params[:id].split(/,/)
+    ids = params[:ids].split(/,/)
 
     ids.each do |id|
-      @vote = CommentVote.find(id)
-      if @vote.score == nil
-        @vote.score = 0 # Fix unrecorded score.
-      end
-
-      @comment = Comment.find(@vote.comment_id)
-      @comment.score -= @vote.score
-      @comment.save
-
-      @vote.destroy
+      VoteManager.admin_comment_unvote!(id)
     end
-
-    respond_to_success('Votes deleted', action: 'index')
   end
 end

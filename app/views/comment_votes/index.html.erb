@@ -17,7 +17,8 @@
       </table>
     </div>
 
-    <table class='striped' style='width:70%;' id='votes'>
+    <table class="striped" id='votes'>
+      <thead>
       <tr>
         <th style='width:8%;'>ID</th>
         <th style='width:8%;'>Comment</th>
@@ -26,62 +27,73 @@
         <th style='width:10%;'>Vote</th>
         <th style='width:16%;'>Created</th>
         <th style='width:17%;'>Updated</th>
-<!--        <th>IP</th>-->
+        <th>IP</th>
       </tr>
+      </thead>
+      <tbody>
       <% @comment_votes.each do |vote| %>
-        <tr id="r<%= vote.id %>" >
+        <tr id="r<%= vote.id %>">
           <td><%= vote.id %></td>
           <td><%= link_to vote.comment_id, comment_path(vote.comment) %></td>
           <td><%= mod_link_to_user vote.comment.creator, :negative %></td>
           <td><%= mod_link_to_user vote.user, :negative %></td>
-          <td><% if vote.score == 1 %><span class='greentext'>Up</span><% elsif vote.score == 0 %><span class='yellowtext'>Locked</span><% elsif vote.score == nil %>Unrecorded<% else %><span class='redtext'>Down</span><% end %></td>
-          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago</td>
-          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %> ago</td>
-<!--          <td><%#= link_to_ip vote.ip_addr %></td>-->
+          <td>
+            <% if vote.score == 1 %><span class='greentext'>Up</span>
+            <% elsif vote.score == 0 %><span class='yellowtext'>Locked</span>
+            <% elsif vote.score == nil %>Unrecorded
+            <% else %><span class='redtext'>Down</span>
+            <% end %></td>
+          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %>ago
+          </td>
+          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %>ago
+          </td>
+          <td><%= link_to_ip vote.user_ip_addr %></td>
         </tr>
       <% end %>
+      </tbody>
     </table>
-    <br />
-    <%= button_to_function "Lock Votes", "CommentVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user from voting on the image again<br />
+    <br/>
+    <%= button_to_function "Lock Votes", "CommentVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user
+    from voting on the image again<br/>
     <%= button_to_function "Delete Votes", "CommentVotes.delete()", id: "undo" %> Remove the votes
 
     <script type="text/javascript">
-      $(function() {
-        $("#votes").on('click', 'tbody tr', function(evt) {
+      $(function () {
+        $("#votes").on('click', 'tbody tr', function (evt) {
           $(this).toggleClass('selected');
         });
       });
 
       function selectedVotes() {
-        return $("#votes>tbody>tr.selected").map(function() {
+        return $("#votes>tbody>tr.selected").map(function () {
           return $(this).attr('id').substr(1);
         }).get();
       }
 
       CommentVotes = {};
-      CommentVotes.lock = function() {
+      CommentVotes.lock = function () {
         const votes = selectedVotes();
-        if(!votes.length) return;
+        if (!votes.length) return;
         $.ajax({
           url: '/comment_votes/lock.json',
           method: "post",
           data: {
             ids: votes.join(',')
           }
-        }).done(function() {
+        }).done(function () {
           $(window).trigger('danbooru:notice', 'Comment votes locked.');
         });
       };
-      CommentVotes.delete = function() {
+      CommentVotes.delete = function () {
         const votes = selectedVotes();
-        if(!votes.length) return;
+        if (!votes.length) return;
         $.ajax({
           url: '/comment_votes/delete.json',
           method: "post",
           data: {
             ids: votes.join(',')
           }
-        }).done(function() {
+        }).done(function () {
           $(window).trigger('danbooru:notice', 'Comment votes deleted.');
         });
       };

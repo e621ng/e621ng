@@ -137,6 +137,7 @@ module ApplicationHelper
   end
 
   def link_to_ip(ip)
+    return '(none)' unless ip
     link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
   end
 

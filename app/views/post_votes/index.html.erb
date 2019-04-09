@@ -17,7 +17,8 @@
       </table>
     </div>
 
-    <table class='striped' style='width:70%;' id='votes'>
+    <table class='striped' id='votes'>
+      <thead>
       <tr>
         <th style='width:8%;'>ID</th>
         <th style='width:8%;'>Post</th>
@@ -25,61 +26,71 @@
         <th style='width:10%;'>Vote</th>
         <th style='width:16%;'>Created</th>
         <th style='width:17%;'>Updated</th>
-<!--        <th>IP</th>-->
+        <th>IP</th>
       </tr>
+      </thead>
+      <tbody>
       <% @post_votes.each do |vote| %>
-        <tr id="r<%= vote.id %>" >
+        <tr id="r<%= vote.id %>">
           <td><%= vote.id %></td>
           <td><%= link_to vote.post_id, post_path(id: vote.post_id) %></td>
           <td><%= mod_link_to_user vote.user, :negative %></td>
-          <td><% if vote.score == 1 %><span class='greentext'>Up</span><% elsif vote.score == 0 %><span class='yellowtext'>Locked</span><% else %><span class='redtext'>Down</span><% end %></td>
-          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago</td>
-          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %> ago</td>
-<!--          <td><%#= link_to_ip vote.ip_addr %></td>-->
+          <td>
+            <% if vote.score == 1 %><span class='greentext'>Up</span>
+            <% elsif vote.score == 0 %><span class='yellowtext'>Locked</span>
+            <% else %><span class='redtext'>Down</span>
+            <% end %></td>
+          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %>ago
+          </td>
+          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %>ago
+          </td>
+          <td><%= link_to_ip vote.user_ip_addr %></td>
         </tr>
+        </tbody>
       <% end %>
-    </table>
-    <br />
-    <%= button_to_function "Lock Votes", "PostVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user from voting on the image again<br />
+      </table>
+    <br/>
+    <%= button_to_function "Lock Votes", "PostVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user from
+    voting on the image again<br/>
     <%= button_to_function "Delete Votes", "PostVotes.delete()", id: "undo" %> Remove the votes
 
     <script type="text/javascript">
-      $(function() {
-        $("#votes").on('click', 'tbody tr', function(evt) {
+      $(function () {
+        $("#votes").on('click', 'tbody tr', function (evt) {
           $(this).toggleClass('selected');
         });
       });
 
       function selectedVotes() {
-        return $("#votes>tbody>tr.selected").map(function() {
+        return $("#votes>tbody>tr.selected").map(function () {
           return $(this).attr('id').substr(1);
         }).get();
       }
 
       PostVotes = {};
-      PostVotes.lock = function() {
+      PostVotes.lock = function () {
         const votes = selectedVotes();
-        if(!votes.length) return;
+        if (!votes.length) return;
         $.ajax({
           url: '/post_votes/lock.json',
           method: "post",
           data: {
             ids: votes.join(',')
           }
-        }).done(function() {
+        }).done(function () {
           $(window).trigger('danbooru:notice', 'Post votes locked.');
         });
       };
-      PostVotes.delete = function() {
+      PostVotes.delete = function () {
         const votes = selectedVotes();
-        if(!votes.length) return;
+        if (!votes.length) return;
         $.ajax({
           url: '/post_votes/delete.json',
           method: "post",
           data: {
             ids: votes.join(',')
           }
-        }).done(function() {
+        }).done(function () {
           $(window).trigger('danbooru:notice', 'Post votes deleted.');
         });
       };

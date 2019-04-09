@@ -2,9 +2,7 @@ class VoteManager
   def self.vote!(user:, post:, score: "locked")
     # TODO retry on ActiveRecord::TransactionisloationConflict?
     begin
-      unless user.is_voter?
-        raise PostVote::Error.new("You do not have permission to vote")
-      end
+      raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
       PostVote.transaction(isolation: :serializable) do
         vote = post.votes.create!(user: user, vote: score)
         vote_cols = "score = score + #{vote.score}"
@@ -52,15 +50,12 @@ class VoteManager
   end
 
   def self.comment_vote!(user:, comment:, score:)
+    @vote = nil
     # TODO retry on ActiveRecord::TransactionisloationConflict?
     score = score_modifier = score.to_i
     begin
-      unless [1, -1].include?(score)
-        raise CommentVote::Error.new("Invalid vote")
-      end
-      unless user.is_voter?
-        raise CommentVote::Error.new("You do not have permission to vote")
-      end
+      raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
+      raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
       CommentVote.transaction(isolation: :serializable) do
         old_vote = comment.votes.where(user_id: user.id).first
         if old_vote
@@ -88,6 +83,21 @@ class VoteManager
       comment.votes.where(user: user).delete_all
       Comment.where(id: comment.id).update_all("score = score - #{vote.score}")
     end
+  end
+
+  def self.comment_lock!(id)
+    CommentVote.transaction(isolation: :serializable) do
+      vote = CommentVote.find_by(id: id)
+      return unless vote
+      comment = vote.comment
+      Comment.where(id: comment.id).update_all("score = score - #{vote.score}")
+      vote.update_column(:score, 0)
+    end
+  end
+
+  def self.admin_comment_unvote!(id)
+    vote = CommentVote.find_by(id: id)
+    comment_unvote!(comment: vote.comment, user: vote.user, force: true) if vote
   end
 
   private

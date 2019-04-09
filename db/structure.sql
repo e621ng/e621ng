@@ -598,7 +598,8 @@ CREATE TABLE public.comment_votes (
     user_id integer NOT NULL,
     score integer NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_ip_addr inet
 );
 
 
@@ -1653,7 +1654,8 @@ CREATE TABLE public.post_votes (
     user_id integer NOT NULL,
     score integer NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_ip_addr inet
 );
 
 
@@ -4691,6 +4693,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190317024446'),
 ('20190324111703'),
 ('20190331193644'),
-('20190403174011');
+('20190403174011'),
+('20190409195837');
 
 

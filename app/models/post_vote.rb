@@ -23,6 +23,7 @@ class PostVote < ApplicationRecord
 
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
+    self.user_ip_addr ||= CurrentUser.ip_addr
 
     if vote == "up"
       self.score = 1
