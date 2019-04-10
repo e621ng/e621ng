@@ -24,6 +24,9 @@
       <% if (post.is_flagged? || post.is_deleted?) && post.appeals.any? %>
         <li><strong>Appeals</strong>: <%= post_appeal_reasons(post) %></li>
       <% end %>
+      <li>
+        <strong>Hidden</strong>: <%= render "post_disapprovals/compact_counts", :disapprovals => post.disapprovals, :post => post %>
+      </li>
       <li><strong>Source</strong>: <%= post.source %></li>
       <% if post.has_active_pools? %>
         <li><strong>Pools</strong>: <%= render "pools/inline_list", pools: post.pools.undeleted %></li>

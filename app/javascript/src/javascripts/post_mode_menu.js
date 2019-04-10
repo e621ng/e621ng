@@ -169,6 +169,8 @@ PostModeMenu.click = function(e) {
     Post.update(post_id, {"post[is_note_locked]": "1"});
   } else if (s === 'approve') {
     Post.approve(post_id);
+  } else if (s === 'ban') {
+    Post.ban(post_id);
   } else if (s === "tag-script") {
     var current_script_id = Cookie.get("current_tag_script_id");
     var tag_script = Cookie.get("tag-script-" + current_script_id);

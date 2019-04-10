@@ -2,16 +2,12 @@ require 'danbooru/has_bit_flags'
 require 'google/apis/pubsub_v1'
 
 class Post < ApplicationRecord
-  class ApprovalError < Exception;
-  end
-  class RevertError < Exception;
-  end
-  class SearchError < Exception;
-  end
-  class DeletionError < Exception;
-  end
-  class TimeoutError < Exception;
-  end
+  class ApprovalError < Exception ; end
+  class DisapprovalError < Exception ; end
+  class RevertError < Exception ; end
+  class SearchError < Exception ; end
+  class DeletionError < Exception ; end
+  class TimeoutError < Exception ; end
 
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated check_translation translation_request reverse_translation]
@@ -58,6 +54,7 @@ class Post < ApplicationRecord
   has_many :comments, -> {includes(:creator, :updater).order("comments.id")}, :dependent => :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
+  has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
   has_many :favorites
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
@@ -316,6 +313,10 @@ class Post < ApplicationRecord
       approvals.create(user: approver)
       post.flags.each(&:resolve!)
       post.update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+    end
+
+    def disapproved_by?(user)
+      PostDisapproval.where(:user_id => user.id, :post_id => id).exists?
     end
   end
 
@@ -1602,6 +1603,12 @@ class Post < ApplicationRecord
     def with_appeal_stats
       relation = left_outer_joins(:appeals).group(:id).select("posts.*")
       relation = relation.select("COUNT(post_appeals.id) AS appeal_count")
+      relation
+    end
+
+    def with_approval_stats
+      relation = left_outer_joins(:approvals).group(:id).select("posts.*")
+      relation = relation.select("COUNT(post_approvals.id) AS approval_count")
       relation
     end
 

@@ -405,6 +405,18 @@ class PostTest < ActiveSupport::TestCase
           CurrentUser.user = @mod
         end
 
+        context "by the approver" do
+          setup do
+            @post.update_attribute(:approver_id, @mod.id)
+          end
+
+          should "not be permitted" do
+            assert_raises(::Post::ApprovalError) do
+              @post.undelete!
+            end
+          end
+        end
+
         context "by the uploader" do
           setup do
             @post.update_attribute(:uploader_id, @mod.id)
@@ -486,6 +498,11 @@ class PostTest < ActiveSupport::TestCase
           @user2 = FactoryBot.create(:moderator_user, :name => "yyy")
           @post = FactoryBot.create(:post, :approver_id => @user.id)
           @post.flag!("bad")
+        end
+
+        should "not allow person X to reapprove that post" do
+          approval = @post.approve!(@user)
+          assert_includes(approval.errors.full_messages, "You have previously approved this post and cannot approve it again")
         end
 
         should "allow person Y to approve the post" do
@@ -2080,8 +2097,10 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for the status:unmoderated metatag" do
       flagged = FactoryBot.create(:post, is_flagged: true)
       pending = FactoryBot.create(:post, is_pending: true)
+      disapproved = FactoryBot.create(:post, is_pending: true)
 
       FactoryBot.create(:post_flag, post: flagged)
+      FactoryBot.create(:post_disapproval, post: disapproved, reason: "disinterest")
 
       assert_tag_match([pending, flagged], "status:unmoderated")
     end
@@ -2245,6 +2264,24 @@ class PostTest < ActiveSupport::TestCase
 
         assert_tag_match([upvoted],   "upvote:#{CurrentUser.name}")
         assert_tag_match([downvoted], "downvote:#{CurrentUser.name}")
+      end
+    end
+
+    should "return posts for a disapproval:<type> metatag" do
+      CurrentUser.scoped(FactoryBot.create(:mod_user)) do
+        pending     = FactoryBot.create(:post, is_pending: true)
+        disapproved = FactoryBot.create(:post, is_pending: true)
+        disapproval = FactoryBot.create(:post_disapproval, post: disapproved, reason: "disinterest")
+
+        assert_tag_match([pending],     "disapproval:none")
+        assert_tag_match([disapproved], "disapproval:any")
+        assert_tag_match([disapproved], "disapproval:disinterest")
+        assert_tag_match([],            "disapproval:breaks_rules")
+
+        assert_tag_match([disapproved],          "-disapproval:none")
+        assert_tag_match([pending],              "-disapproval:any")
+        assert_tag_match([pending],              "-disapproval:disinterest")
+        assert_tag_match([disapproved, pending], "-disapproval:breaks_rules")
       end
     end
 

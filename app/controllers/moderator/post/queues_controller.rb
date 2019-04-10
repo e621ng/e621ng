@@ -18,7 +18,7 @@ module Moderator
           tags = params[:query] || ''
           tags += " -user:#{CurrentUser.id}" if params[:hidden]
           tags += " status:modqueue order:id_asc"
-          @posts = ::Post.tag_match(tags).paginate(params[:page], limit: per_page, includes: [:uploader])
+          @posts = ::Post.tag_match(tags).paginate(params[:page], limit: per_page, includes: [:disapprovals, :uploader])
           @posts.each # hack to force rails to eager load
         end
         respond_with(@posts)
@@ -28,7 +28,7 @@ module Moderator
         cookies.permanent[:moderated] = Time.now.to_i
 
         ::Post.without_timeout do
-          @posts = ::Post.includes(:uploader).order("posts.id asc").pending_or_flagged.available_for_moderation(false).reorder("random()").limit(RANDOM_COUNT)
+          @posts = ::Post.includes(:disapprovals, :uploader).order("posts.id asc").pending_or_flagged.available_for_moderation(false).reorder("random()").limit(RANDOM_COUNT)
           @posts.each # hack to force rails to eager load
 
           if @posts.empty?
