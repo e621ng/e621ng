@@ -37,10 +37,4 @@ class PostDisapproval < ApplicationRecord
       )
     end
   end
-
-  def create_downvote
-    if %w(breaks_rules poor_quality).include?(reason)
-      PostVote.create(:score => -1, :post_id => post_id)
-    end
-  end
 end
