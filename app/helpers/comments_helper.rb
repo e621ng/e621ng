@@ -1,6 +1,5 @@
 module CommentsHelper
-  def comment_vote_block(comment)
-    vote = comment.own_vote
+  def comment_vote_block(comment, vote)
     voted = !vote.nil?
     vote_score = voted ? vote.score : 0
     comment_score = comment.score

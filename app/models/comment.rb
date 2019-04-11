@@ -8,8 +8,6 @@ class Comment < ApplicationRecord
   belongs_to_creator
   belongs_to_updater
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
-  # XXX HACK WTF TODO: This association may not be up to date if CurrentUser changes at runtime.
-  has_one :own_vote, -> { where(user_id: CurrentUser.id) }, class_name: "CommentVote"
   after_create :update_last_commented_at_on_create
   after_update(:if => ->(rec) {(!rec.is_deleted? || !rec.saved_change_to_is_deleted?) && CurrentUser.id != rec.creator_id}) do |rec|
     ModAction.log("comment ##{rec.id} updated by #{CurrentUser.name}",:comment_update)

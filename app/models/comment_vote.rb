@@ -11,6 +11,12 @@ class CommentVote < ApplicationRecord
   validate :validate_comment_can_be_down_voted
   validates_inclusion_of :score, :in => [-1, 0, 1], :message => "must be 1 or -1"
 
+
+  def self.for_comments_and_user(comment_ids, user_id)
+    return {} unless user_id
+    CommentVote.where(comment_id: comment_ids, user_id: user_id).index_by(&:comment_id)
+  end
+
   def validate_user_can_vote
     if !user.can_comment_vote?
       errors.add :base, "You cannot vote on more than 10 comments per hour"

@@ -32,7 +32,7 @@
               <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
             <% end %>
             <li>|</li>
-            <%= comment_vote_block(comment) %>
+            <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
             <% if CurrentUser.is_admin? %>
               <li><%= link_to "(List)", controller: 'comment_votes', comment_id: comment.id %></li>
             <% end %>
