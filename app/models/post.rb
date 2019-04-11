@@ -1120,6 +1120,11 @@ class Post < ApplicationRecord
     def can_be_voted_by?(user)
       !PostVote.exists?(:user_id => user.id, :post_id => id)
     end
+
+    def own_vote(user = CurrentUser.user)
+      return nil unless user
+      votes.where('user_id = ?', user.id).first
+    end
   end
 
   module CountMethods

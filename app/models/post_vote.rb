@@ -3,7 +3,6 @@ class PostVote < ApplicationRecord
 
   belongs_to :post
   belongs_to :user
-  attr_accessor :vote
 
   after_initialize :initialize_attributes, if: :new_record?
   validates_presence_of :post_id, :user_id, :score
@@ -24,14 +23,6 @@ class PostVote < ApplicationRecord
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
     self.user_ip_addr ||= CurrentUser.ip_addr
-
-    if vote == "up"
-      self.score = 1
-    elsif vote == "down"
-      self.score = -1
-    elsif vote == "locked"
-      self.score = 0
-    end
   end
 
   module SearchMethods

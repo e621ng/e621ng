@@ -21,7 +21,6 @@ module CommentsHelper
                       class: confirm_score_class(vote_score, -1),
                       id: "comment-vote-down-#{comment.id}")
     score_tag = tag.li(comment.score, class: "comment-score #{score_class(comment_score)}", id: "comment-score-#{comment.id}")
-    # (CurrentUser.id != comment.creator_id ? up_tag : ''.html_safe) + score_tag + (CurrentUser.id != comment.creator_id ? down_tag : ''.html_safe)
     up_tag + score_tag + down_tag
   end
 end

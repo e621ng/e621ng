@@ -5,7 +5,10 @@ class PostVotesController < ApplicationController
 
   def create
     @post = Post.find(params[:post_id])
-    VoteManager.vote!(post: @post, user: CurrentUser.user, score: params[:score])
+    @post_vote = VoteManager.vote!(post: @post, user: CurrentUser.user, score: params[:score])
+    if @post_vote == :need_unvote
+      VoteManager.unvote!(post: @post, user: CurrentUser.user)
+    end
   rescue PostVote::Error, ActiveRecord::RecordInvalid => x
     @error = x
     render status: 500

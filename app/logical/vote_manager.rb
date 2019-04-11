@@ -1,15 +1,30 @@
 class VoteManager
-  def self.vote!(user:, post:, score: "locked")
-    # TODO retry on ActiveRecord::TransactionisloationConflict?
+  def self.vote!(user:, post:, score:)
+    @vote = nil
+    score = score_modifier = score.to_i
+    # TODO retry on ActiveRecord::TransactionIsloationConflict?
     begin
+      raise PostVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
       PostVote.transaction(isolation: :serializable) do
-        vote = post.votes.create!(user: user, vote: score)
-        vote_cols = "score = score + #{vote.score}"
+        old_vote = post.votes.where(user_id: user.id).first
+        if old_vote
+          raise PostVote::Error.new("Vote is locked") if old_vote.score == 0
+          if old_vote.score == score
+            return :need_unvote
+          else
+            score_modifier *= 2
+          end
+          old_vote.destroy
+        end
+        @vote = vote = post.votes.create!(user: user, score: score)
+        vote_cols = "score = score + #{score_modifier}"
         if vote.score > 0
           vote_cols += ", up_score = up_score + #{vote.score}"
+          vote_cols += ", down_score = down_score - #{old_vote.score}" if old_vote
         else
           vote_cols += ", down_score = down_score + #{vote.score}"
+          vote_cols += ", up_score = up_score - #{old_vote.score}" if old_vote
         end
         Post.where(id: post.id).update_all(vote_cols)
         post.reload
@@ -18,6 +33,7 @@ class VoteManager
     rescue ActiveRecord::RecordNotUnique
       raise PostVote::Error.new("You have already voted for this post")
     end
+    @vote
   end
 
   def self.unvote!(user:, post:, force: false)
@@ -51,7 +67,7 @@ class VoteManager
 
   def self.comment_vote!(user:, comment:, score:)
     @vote = nil
-    # TODO retry on ActiveRecord::TransactionisloationConflict?
+    # TODO retry on ActiveRecord::TransactionIsloationConflict?
     score = score_modifier = score.to_i
     begin
       raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
@@ -59,6 +75,7 @@ class VoteManager
       CommentVote.transaction(isolation: :serializable) do
         old_vote = comment.votes.where(user_id: user.id).first
         if old_vote
+          raise CommentVote::Error.new("Vote is locked") if old_vote.score == 0
           if old_vote.score == score
             return :need_unvote
           else
