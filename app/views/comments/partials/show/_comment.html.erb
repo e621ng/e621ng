@@ -31,12 +31,13 @@
               <% end %>
               <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
             <% end %>
-            <li id="comment-vote-up-link-for-<%= comment.id %>"><%= link_to "Vote up", comment_votes_path(:comment_id => comment.id, :score => "up"), :method => :post, :remote => true %></li>
-            <li id="comment-vote-down-link-for-<%= comment.id %>"><%= link_to "Vote down", comment_votes_path(:comment_id => comment.id, :score => "down"), :method => :post, :remote => true %></li>
-            <li style="display: none;" id="comment-unvote-link-for-<%= comment.id %>" class="unvote-comment-link"><%= link_to "Unvote", comment_votes_path(:comment_id => comment.id), :method => :delete, :remote => true %></li>
-            <% if CurrentUser.is_member? %>
-              <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
+            <li>|</li>
+            <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
+            <% if CurrentUser.is_admin? %>
+              <li><%= link_to "(List)", controller: 'comment_votes', comment_id: comment.id %></li>
             <% end %>
+            <li>|</li>
+            <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
             <% if CurrentUser.is_moderator? %>
               <li>|</li>
               <li>

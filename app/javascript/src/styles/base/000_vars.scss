@@ -31,6 +31,10 @@ $grey_color: hsl(0, 0%, 90%); // Light grey
 $error_color: hsl(0, 100%, 95%); // light red
 $success_color: hsl(120, 100%, 95%); // light green
 
+$red_color: #e45f5f;
+$green_color: #3e9e49;
+$dark_grey_color: hsl(0, 0%, 50%);
+
 @mixin animated-icon {
   content: "►";
   position: absolute;

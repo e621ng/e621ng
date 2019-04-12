@@ -406,6 +406,18 @@ class PostQueryBuilder
       must.push(should({term: {upvotes: q[:voted].to_i}},
                        {term: {downvotes: q[:voted].to_i}}))
     end
+    if q[:neg_upvote].present?
+      must_not.push({term: {upvotes: q[:neg_upvote].to_i}})
+    end
+
+    if q[:neg_downvote].present?
+      must_not.push({term: {downvotes: q[:neg_downvote].to_i}})
+    end
+
+    if q[:neg_voted].present?
+      must_not.concat([{term: {upvotes: q[:neg_voted].to_i}},
+                       {term: {downvotes: q[:neg_voted].to_i}}])
+    end
 
     if q[:order] == "rank"
       must.push({range: {score: {gt: 0}}})

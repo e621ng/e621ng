@@ -98,7 +98,7 @@ module PostsHelper
   end
 
   def post_favlist(post)
-    post.favorited_users.reverse_each.map{|user| link_to_user(user)}.join(", ").html_safe
+    post.favorited_users.reverse_each.map {|user| link_to_user(user)}.join(", ").html_safe
   end
 
   def has_parent_message(post, parent_post_set)
@@ -162,6 +162,32 @@ module PostsHelper
 
   def nav_params_for(page)
     query_params = params.except(:controller, :action, :id).merge(page: page).permit!
-    { params: query_params }
+    {params: query_params}
+  end
+
+  def post_vote_block(post, vote)
+    voted = !vote.nil?
+    vote_score = voted ? vote.score : 0
+    post_score = post.score
+
+    def score_class(score)
+      return 'score-neutral' if score == 0
+      score > 0 ? 'score-positive' : 'score-negative'
+    end
+
+    def confirm_score_class(score, want)
+      return 'score-neutral' if score != want || score == 0
+      score_class(score)
+    end
+
+    up_tag = tag.span(tag.a('&#x25B2;'.html_safe, class: 'post-vote-up-link', 'data-id': post.id),
+                    class: confirm_score_class(vote_score, 1),
+                    id: "post-vote-up-#{post.id}")
+    down_tag = tag.span(tag.a('&#x25BC;'.html_safe, class: 'post-vote-down-link', 'data-id': post.id),
+                      class: confirm_score_class(vote_score, -1),
+                      id: "post-vote-down-#{post.id}")
+    vote_block = tag.span(" (vote ".html_safe + up_tag +  "/" + down_tag + ")")
+    score_tag = tag.span(post.score, class: "post-score #{score_class(post_score)}", id: "post-score-#{post.id}", title: "#{post.up_score} up/#{post.down_score} down")
+    score_tag + (CurrentUser.is_voter? ? vote_block : '')
   end
 end

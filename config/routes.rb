@@ -7,8 +7,8 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :users, :only => [:edit, :update]
-    resource  :alias_and_implication_import, :only => [:new, :create]
-    resource  :dashboard, :only => [:show]
+    resource :alias_and_implication_import, :only => [:new, :create]
+    resource :dashboard, :only => [:show]
   end
   namespace :moderator do
     resource :bulk_revert, :only => [:new, :create]
@@ -125,6 +125,12 @@ Rails.application.routes.draw do
       post :undelete
     end
   end
+  resources :comment_votes, only: [:index, :delete, :lock] do
+    collection do
+      post :lock
+      post :delete
+    end
+  end
   resources :counts do
     collection do
       get :posts
@@ -146,7 +152,7 @@ Rails.application.routes.draw do
       post :mark_all_as_read
     end
   end
-  resource  :dtext_preview, :only => [:create]
+  resource :dtext_preview, :only => [:create]
   resources :favorites, :only => [:index, :create, :destroy]
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
@@ -178,7 +184,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists
-  resource :iqdb_queries, :only => [:show]  do
+  resource :iqdb_queries, :only => [:show] do
     collection do
       get :preview
       get :check, to: redirect {|path_params, req| "/iqdb_queries?#{req.query_string}"}
@@ -218,7 +224,7 @@ Rails.application.routes.draw do
     end
     resource :order, :only => [:edit], :controller => "pool_orders"
   end
-  resource  :pool_element, :only => [:create, :destroy] do
+  resource :pool_element, :only => [:create, :destroy] do
     collection do
       get :all_select
     end
@@ -229,12 +235,12 @@ Rails.application.routes.draw do
     end
   end
   resources :post_replacements, :only => [:index, :new, :create, :update]
-    resources :posts, :only => [:index, :show, :update] do
+  resources :posts, :only => [:index, :show, :update] do
     resources :events, :only => [:index], :controller => "post_events"
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
     resource :artist_commentary, :only => [:index, :show] do
-      collection { put :create_or_update }
-      member { put :revert }
+      collection {put :create_or_update}
+      member {put :revert}
     end
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
     collection do
@@ -247,6 +253,12 @@ Rails.application.routes.draw do
       put :mark_as_translated
     end
     get :similar, :to => "iqdb_queries#index"
+  end
+  resources :post_votes, only: [:index, :delete, :lock] do
+    collection do
+      post :lock
+      post :delete
+    end
   end
   resources :post_appeals
   resources :post_flags

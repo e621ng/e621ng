@@ -48,6 +48,7 @@ class CommentsController < ApplicationController
 
   def show
     @comment = Comment.find(params[:id])
+    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
     respond_with(@comment)
   end
 
@@ -69,13 +70,15 @@ private
   def index_for_post
     @post = Post.find(params[:post_id])
     @comments = @post.comments
+    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     render :action => "index_for_post"
   end
 
   def index_by_post
     tags = params[:tags] || ""
     @posts = Post.tag_match(tags + " order:comment_bump").paginate(params[:page], :limit => 5, :search_count => params[:search])
-    @posts.each # hack to force rails to eager load
+    comment_ids = @posts.flat_map {|post| post.comments.visible(CurrentUser.user).recent.reverse.map(&:id)} if CurrentUser.id
+    @comment_votes = CommentVote.for_comments_and_user(comment_ids || [], CurrentUser.id)
     respond_with(@posts) do |format|
       format.xml do
         render :xml => @posts.to_xml(:root => "posts")
@@ -85,6 +88,7 @@ private
 
   def index_by_comment
     @comments = Comment.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     respond_with(@comments) do |format|
       format.atom do
         @comments = @comments.includes(:post, :creator).load

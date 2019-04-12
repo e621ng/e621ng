@@ -1,0 +1,107 @@
+<div id="c-comment-votes">
+  <div id="a-index">
+    <div class='section'>
+      <table class="search">
+        <%= form_tag({action: "index"}, method: :get) do %>
+          <tr>
+            <td><label for="user_name">User</label></td>
+            <td><%= text_field_tag "user_name", params[:user_name], id: "user_name", size: 25 %> <%= submit_tag "Search" %></td>
+          </tr>
+        <% end %>
+        <%= form_tag({action: "index"}, method: :get) do %>
+          <tr>
+            <td><label for="post_id">Comment ID</label></td>
+            <td><%= text_field_tag "comment_id", params[:post_id], id: "comment_id", size: 25 %> <%= submit_tag "Search" %></td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <table class="striped" id='votes'>
+      <thead>
+      <tr>
+        <th style='width:8%;'>ID</th>
+        <th style='width:8%;'>Comment</th>
+        <th>Comment User</th>
+        <th style='width:40%;'>User</th>
+        <th style='width:10%;'>Vote</th>
+        <th style='width:16%;'>Created</th>
+        <th style='width:17%;'>Updated</th>
+        <th>IP</th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @comment_votes.each do |vote| %>
+        <tr id="r<%= vote.id %>">
+          <td><%= vote.id %></td>
+          <td><%= link_to vote.comment_id, comment_path(vote.comment) %></td>
+          <td><%= mod_link_to_user vote.comment.creator, :negative %></td>
+          <td><%= mod_link_to_user vote.user, :negative %></td>
+          <td>
+            <% if vote.score == 1 %><span class='greentext'>Up</span>
+            <% elsif vote.score == 0 %><span class='yellowtext'>Locked</span>
+            <% elsif vote.score == nil %>Unrecorded
+            <% else %><span class='redtext'>Down</span>
+            <% end %></td>
+          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %>ago
+          </td>
+          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %>ago
+          </td>
+          <td><%= link_to_ip vote.user_ip_addr %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+    <br/>
+    <%= button_to_function "Lock Votes", "CommentVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user
+    from voting on the image again<br/>
+    <%= button_to_function "Delete Votes", "CommentVotes.delete()", id: "undo" %> Remove the votes
+
+    <script type="text/javascript">
+      $(function () {
+        $("#votes").on('click', 'tbody tr', function (evt) {
+          $(this).toggleClass('selected');
+        });
+      });
+
+      function selectedVotes() {
+        return $("#votes>tbody>tr.selected").map(function () {
+          return $(this).attr('id').substr(1);
+        }).get();
+      }
+
+      CommentVotes = {};
+      CommentVotes.lock = function () {
+        const votes = selectedVotes();
+        if (!votes.length) return;
+        $.ajax({
+          url: '/comment_votes/lock.json',
+          method: "post",
+          data: {
+            ids: votes.join(',')
+          }
+        }).done(function () {
+          $(window).trigger('danbooru:notice', 'Comment votes locked.');
+        });
+      };
+      CommentVotes.delete = function () {
+        const votes = selectedVotes();
+        if (!votes.length) return;
+        $.ajax({
+          url: '/comment_votes/delete.json',
+          method: "post",
+          data: {
+            ids: votes.join(',')
+          }
+        }).done(function () {
+          $(window).trigger('danbooru:notice', 'Comment votes deleted.');
+        });
+      };
+    </script>
+
+    <div id="paginator">
+      <%= sequential_paginator(@comment_votes) %>
+    </div>
+  </div>
+</div>
+

@@ -1,11 +1,27 @@
 <% if @error %>
-  $(window).trigger("danbooru:error", "<%= j @error.to_s %>");
-<% elsif @comment_vote.errors.any? %>
-  $(window).trigger("danbooru:error", "<%= j @comment_vote.errors.full_messages.join('; ') %>");
-<% elsif @comment_vote.is_negative? %>
-  $(".comment[data-comment-id=<%= @comment.id %>]").remove();
+$(window).trigger("danbooru:error", "<%= j @error.to_s %>");
+<% elsif @comment_vote != :need_unvote && @comment_vote.errors.any? %>
+$(window).trigger("danbooru:error", "<%= j @comment_vote.errors.full_messages.join('; ') %>");
+<% else %>
+(function(){
+  const scoreClasses = 'score-neutral score-positive score-negative';
+  const commentID = "<%= @comment.id %>";
+  const commentScore = <%= @comment.score %>;
+  const ourScore = <%= @comment_vote != :need_unvote ? @comment_vote.score : 0 %>;
+  function scoreToClass(score) {
+    if(score == 0) return 'score-neutral';
+    return score > 0 ? 'score-positive' : 'score-negative';
+  }
+  $("#comment-score-"+commentID).removeClass(scoreClasses);
+  $("#comment-vote-up-"+commentID).removeClass(scoreClasses);
+  $("#comment-vote-down-"+commentID).removeClass(scoreClasses);
+  $('#comment-score-'+commentID).text("<%= @comment.score %>");
+  $(window).trigger('danbooru:notice', 'Vote saved');
+  $("#comment-score-"+commentID).addClass(scoreToClass(commentScore));
+  $('#comment-vote-up-'+commentID).addClass(ourScore > 0 ? 'score-positive' : 'score-neutral');
+  $('#comment-vote-down-'+commentID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');
+})();
 <% end %>
 
-$("#comment-vote-up-link-for-<%= @comment.id %>").hide();
-$("#comment-vote-down-link-for-<%= @comment.id %>").hide();
-$("#comment-unvote-link-for-<%= @comment.id %>").show();
+
+

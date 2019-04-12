@@ -16,6 +16,10 @@ table.striped {
       &:hover {
         background-color: $highlight_color;
       }
+
+      &.selected {
+        background-color: $highlight_color;
+      }
     }
   }
 

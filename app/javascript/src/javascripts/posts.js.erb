@@ -29,6 +29,7 @@ Post.initialize_all = function() {
     this.initialize_post_image_resize_to_window_link();
     this.initialize_similar();
     this.initialize_gestures();
+    this.initialize_voting();
 
     if ((Utility.meta("always-resize-images") === "true") || (Utility.meta("viewport") && (window.screen.width <= 660))) {
       $("#image-resize-to-window-link").click();
@@ -46,6 +47,11 @@ Post.initialize_all = function() {
   $(window).on('danbooru:initialize_saved_seraches', () => {
     Post.initialize_saved_searches();
   });
+}
+
+Post.initialize_voting = function() {
+  $(document).on("click.danbooru.post", '.post-vote-up-link', Post.vote_up);
+  $(document).on("click.danbooru.post", ".post-vote-down-link", Post.vote_down);
 }
 
 Post.initialize_gestures = function() {
@@ -622,6 +628,29 @@ Post.update_tag_count = function(event) {
     klass = "meh";
   }
   $("#tags-container .options #face").removeClass().addClass(`far fa-${klass}`);
+}
+
+Post.vote_up = function (e) {
+  var id = $(e.target).attr('data-id');
+  Post.vote(id, 1);
+}
+
+Post.vote_down = function (e) {
+  var id = $(e.target).attr('data-id');
+  Post.vote(id, -1);
+}
+
+Post.vote = function (id, score) {
+  $.ajax({
+    method: 'POST',
+    url: `/posts/${id}/votes`,
+    data: {
+      score: score
+    },
+    headers: {
+      accept: '*/*;q=0.5,text/javascript'
+    }
+  });
 }
 
 $(document).ready(function() {
