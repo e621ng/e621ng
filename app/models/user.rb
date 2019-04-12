@@ -90,6 +90,8 @@ class User < ApplicationRecord
   #after_create :notify_sock_puppets
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
   has_many :posts, :foreign_key => "uploader_id"
+  has_many :post_approvals, :dependent => :destroy
+  has_many :post_disapprovals, :dependent => :destroy
   has_many :post_votes
   has_many :post_archives
   has_many :note_versions
