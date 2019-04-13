@@ -1166,10 +1166,11 @@ ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
 CREATE TABLE public.mod_actions (
     id integer NOT NULL,
     creator_id integer NOT NULL,
-    description text NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    category integer
+    category integer,
+    "values" text,
+    action character varying DEFAULT 'unknown_action'::character varying NOT NULL
 );
 
 
@@ -4758,6 +4759,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190331193644'),
 ('20190403174011'),
 ('20190409195837'),
-('20190410022203');
+('20190410022203'),
+('20190413055451');
 
 
