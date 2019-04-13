@@ -6,13 +6,13 @@ class UploadWhitelist < ApplicationRecord
   validates_uniqueness_of :pattern
   validates_format_of :pattern, with: /\A[a-zA-Z0-9.%:\-*\/?&]+\z/
   after_create do |rec|
-    ModAction.log("#{CurrentUser.name} created upload whitelist #{rec.pattern}", :upload_whitelist_create)
+    ModAction.log(:upload_whitelist_create, {pattern: rec.pattern, note: rec.note})
   end
   after_save do |rec|
-    ModAction.log("#{CurrentUser.name} updated upload whitelist for #{rec.pattern_was} to #{rec.pattern}", :upload_whitelist_update)
+    ModAction.log(:upload_whitelist_update, {pattern: rec.pattern, note: rec.note, old_pattern: rec.pattern_before_save})
   end
   after_destroy do |rec|
-    ModAction.log("#{CurrentUser.name} deleted upload whitelist for #{rec.pattern}", :upload_whitelist_delete)
+    ModAction.log(:upload_whitelist_delete, {pattern: rec.pattern, note: rec.note})
   end
 
   def clean_pattern

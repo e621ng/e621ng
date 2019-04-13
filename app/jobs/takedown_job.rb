@@ -6,9 +6,11 @@ class TakedownJob < ApplicationJob
     @takedown = Takedown.find(args[0])
     @approver = User.find(args[1])
     @takedown.approver_id = @approver.id
+    CurrentUser.as(@approver) do
+      ModAction.log(:takedown_process, {takedown_id: @takedown.id})
+    end
 
     CurrentUser.as_system do
-      ModAction.log("process takedown #{@takedown.id}", :process_takedown)
       @takedown.status = @takedown.calculated_status
       @takedown.save!
       @takedown.actual_posts.each do |p|

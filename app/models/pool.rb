@@ -187,11 +187,11 @@ class Pool < ApplicationRecord
   end
 
   def create_mod_action_for_delete
-    ModAction.log("deleted pool ##{id} (name: #{name})", :pool_delete)
+    ModAction.log(:pool_delete, {pool_id: id, pool_name: name, user_id: creator_id})
   end
 
   def create_mod_action_for_undelete
-    ModAction.log("undeleted pool ##{id} (name: #{name})", :pool_undelete)
+    ModAction.log(:pool_undelete, {pool_id: id, pool_name: name, user_id: creator_id})
   end
 
   def validate_number_of_posts

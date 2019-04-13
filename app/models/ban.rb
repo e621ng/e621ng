@@ -126,10 +126,10 @@ class Ban < ApplicationRecord
   end
 
   def create_ban_mod_action
-    ModAction.log(%{Banned <@#{user_name}> for #{humanized_duration}: #{reason}}, :user_ban)
+    ModAction.log(:user_ban, {duration: duration, reason: reason, user_id: user_id})
   end
 
   def create_unban_mod_action
-    ModAction.log(%{Unbanned <@#{user_name}>}, :user_unban)
+    ModAction.log(:user_unban, {user_id: user_id})
   end
 end

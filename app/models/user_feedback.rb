@@ -8,11 +8,14 @@ class UserFeedback < ApplicationRecord
   validate :creator_is_gold
   validate :user_is_not_creator
   after_create :create_dmail, unless: :disable_dmail_notification
-  after_update(:if => ->(rec) { CurrentUser.id != rec.creator_id}) do |rec|
-    ModAction.log(%{#{CurrentUser.name} updated user feedback for "#{rec.user_name}":/users/#{rec.user_id}},:user_feedback_update)
+  after_create do |rec|
+    ModAction.log(:user_feedback_create, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
   end
-  after_destroy(:if => ->(rec) { CurrentUser.id != rec.creator_id}) do |rec|
-    ModAction.log(%{#{CurrentUser.name} deleted user feedback for "#{rec.user_name}":/users/#{rec.user_id}},:user_feedback_delete)
+  after_update do |rec|
+    ModAction.log(:user_feedback_update, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+  end
+  after_destroy do |rec|
+    ModAction.log(:user_feedback_delete, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
   end
 
   module SearchMethods
@@ -108,7 +111,7 @@ class UserFeedback < ApplicationRecord
       return true
     end
   end
-  
+
   def user_is_not_creator
     if user_id == creator_id
       errors[:creator] << "cannot submit feedback for yourself"

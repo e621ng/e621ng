@@ -435,7 +435,7 @@ class Artist < ApplicationRecord
           end
 
           update_column(:is_banned, false)
-          ModAction.log("unbanned artist ##{id}",:artist_unban)
+          ModAction.log(:artist_unban, {artist_id: id})
         end
       end
     end
@@ -450,7 +450,7 @@ class Artist < ApplicationRecord
           end
 
           update_column(:is_banned, true)
-          ModAction.log("banned artist ##{id}",:artist_ban)
+          ModAction.log(:artist_ban, {artist_id: id})
         end
       end
     end

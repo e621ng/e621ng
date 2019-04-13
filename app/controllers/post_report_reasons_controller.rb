@@ -16,7 +16,7 @@ class PostReportReasonsController < ApplicationController
     @reason = PostReportReason.find(params[:id])
     PostReportReason.transaction do
       @reason.destroy
-      ModAction.log("deleted report reason #{@reason.reason} by #{CurrentUser.id}", :delete_report_reason)
+      ModAction.log(:report_reason_delete, {reason: @reason.reason, user_id: @reason.creator_id})
     end
     respond_with(@reason)
   end
@@ -24,7 +24,7 @@ class PostReportReasonsController < ApplicationController
   def create
     PostReportReason.transaction do
       @reason = PostReportReason.create(reason_params)
-      ModAction.log("Created new report reason #{@reason.reason} by #{CurrentUser.id}", :new_report_reason) if @reason.valid?
+      ModAction.log(:report_reason_create, {reason: @reason.reason})
     end
     flash[:notice] = @reason.valid? ? "Post report reason created" : @reason.errors.full_messages.join("; ")
     redirect_to post_report_reasons_path
@@ -38,7 +38,7 @@ class PostReportReasonsController < ApplicationController
     @reason = PostReportReason.find(params[:id])
     PostReportReason.transaction do
       @reason.update(reason_params)
-      ModAction.log("Updated report reason #{@reason.reason} by #{CurrentUser.id}", :update_report_reason) if @reason.valid?
+      ModAction.log(:report_reason_update, {reason: @reason.reason, reason_was: @reason.reason_before_last_save}) if @reason.valid?
     end
     flash[:notice] = @reason.valid? ? 'Post report reason updated' : @reason.errors.full_messages.join('; ')
     redirect_to post_report_reasons_path

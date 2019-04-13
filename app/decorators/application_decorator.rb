@@ -1,8 +1,4 @@
 class ApplicationDecorator < Draper::Decorator
-  # Define methods for all decorated objects.
-  # Helpers are accessed through `helpers` (aka `h`). For example:
-  #
-  #   def percent_amount
-  #     h.number_to_percentage object.amount, precision: 2
-  #   end
+  # NOTE: This is required for correct serialization of member models, otherwise hidden_attributes is ignored!!!
+  delegate :as_json, :to_xml, :serializable_hash
 end

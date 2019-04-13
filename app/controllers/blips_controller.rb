@@ -30,7 +30,7 @@ class BlipsController < ApplicationController
     check_edit_privilege(@blip)
     Blip.transaction do
       @blip.update(blip_params(:update))
-      ModAction.log("Edited blip ##{@blip.id}", :edited_blip)
+      ModAction.log(:blip_update, {blip_id: @blip.id, user_id: @blip.creator_id})
     end
     flash[:notice] = 'Blip updated'
     respond_with(@blip)
@@ -42,7 +42,7 @@ class BlipsController < ApplicationController
 
     Blip.transaction do
       @blip.update(is_hidden: true)
-      ModAction.log("Hid blip ##{@blip.id}", :hide_blip)
+      ModAction.log(:blip_hide, {blip_id: @blip.id, user_id: @blip.creator_id})
     end
     respond_with(@blip)
   end
@@ -51,7 +51,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     Blip.transaction do
       @blip.update(is_hidden: false)
-      ModAction.log("Unhide blip ##{@blip.id}", :unhide_blip)
+      ModAction.log(:blip_unhide, {blip_id: @blip.id, user_id: @blip.creator_id})
     end
     respond_with(@blip)
   end
@@ -59,7 +59,7 @@ class BlipsController < ApplicationController
   def destroy
     @blip = Blip.find(params[:id])
 
-    ModAction.log("Deleted Blip ##{@blip.id}", :delete_blip)
+    ModAction.log(:blip_delete, {blip_id: @blip.id, user_id: @blip.creator_id})
     @blip.destroy
     flash[:notice] = 'Blip deleted'
     respond_with(@blip) do |format|

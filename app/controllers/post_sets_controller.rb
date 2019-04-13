@@ -67,11 +67,11 @@ class PostSetsController < ApplicationController
 
     if CurrentUser.is_admin? && !@set.is_owner?(CurrentUser.user)
       if @set.saved_change_to_is_public?
-        ModAction.log("User ##{CurrentUser.id} marked set ##{@set.id} as private", :set_mark_private)
+        ModAction.log(:set_mark_private, {set_id: @set.id, user_id: @set.creator_id})
       end
 
       if @set.saved_change_to_watched_attribute?
-        ModAction.log("Admin ##{CurrentUser.id} edited set ##{@set.id}", :set_edit)
+        Modaction.log(:set_update, {set_id: @set.id, user_id: @set.creator_id})
       end
     end
 
@@ -101,6 +101,9 @@ class PostSetsController < ApplicationController
     @set = PostSet.find(params[:id])
     unless @set.is_owner?(CurrentUser.user) || CurrentUser.is_admin?
       raise User::PrivilegeError
+    end
+    if CurrentUser.is_admin?
+      ModAction.log(:set_delete, {set_id: @set.id, user_id: @set.user_id})
     end
     @set.destroy
     respond_with(@set)

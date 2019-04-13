@@ -1278,7 +1278,7 @@ class Post < ApplicationRecord
       FavoriteManager.give_to_parent!(self)
 
       unless options[:without_mod_action]
-        ModAction.log("moved favorites from post ##{id} to post ##{parent.id}", :post_move_favorites)
+        ModAction.log(:post_move_favorites, {post_id: id, parent_id: parent_id})
       end
     end
 
@@ -1313,7 +1313,7 @@ class Post < ApplicationRecord
 
       transaction do
         Post.without_timeout do
-          ModAction.log("permanently deleted post ##{id}", :post_permanent_delete)
+          ModAction.log(:post_destroy, {post_id: id})
 
           give_favorites_to_parent
           update_children_on_destroy
@@ -1353,7 +1353,7 @@ class Post < ApplicationRecord
         give_post_sets_to_parent
 
         unless options[:without_mod_action]
-          ModAction.log("deleted post ##{id}, reason: #{reason}", :post_delete)
+          ModAction.log(:post_delete, {post_id: id, reason: reason})
         end
       end
     end
@@ -1377,7 +1377,7 @@ class Post < ApplicationRecord
       move_files_on_undelete
       approvals.create(user: CurrentUser.user)
       unless options[:without_mod_action]
-        ModAction.log("undeleted post ##{id}", :post_undelete)
+        ModAction.log(:post_undelete, {post_id: id})
       end
     end
 

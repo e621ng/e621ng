@@ -1,7 +1,6 @@
 class ModAction < ApplicationRecord
   belongs_to :creator, :class_name => "User"
   before_validation :initialize_creator, :on => :create
-  serialize :values, Hash
   validates_presence_of :creator_id
 
   #####DIVISIONS#####
@@ -53,11 +52,9 @@ class ModAction < ApplicationRecord
       bulk_revert: 1001,
       other: 2000
   }
-
+  
   def self.search(params)
     q = super
-
-    q = q.attribute_matches(:description, params[:description_matches])
 
     if params[:creator_id].present?
       q = q.where("creator_id = ?", params[:creator_id].to_i)
@@ -74,12 +71,17 @@ class ModAction < ApplicationRecord
     q.apply_default_order(params)
   end
 
+
   def category_id
     self.class.categories[category]
   end
 
   def method_attributes
     super + [:category_id]
+  end
+
+  def hidden_attributes
+    super + [:values]
   end
 
   def self.log(cat = :other, details = {})

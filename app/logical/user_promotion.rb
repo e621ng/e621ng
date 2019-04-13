@@ -33,7 +33,7 @@ class UserPromotion
     if options.has_key?(:no_flagging)
       user.no_flagging = options[:no_flagging]
     end
-    
+
     user.inviter_id = promoter.id
 
     create_user_feedback unless options[:is_upgrade]
@@ -44,27 +44,33 @@ class UserPromotion
   end
 
 private
-  
+
   def create_mod_actions
-    if old_can_approve_posts != user.can_approve_posts?
-      ModAction.log("\"#{promoter.name}\":/users/#{promoter.id} changed approval privileges for \"#{user.name}\":/users/#{user.id} from #{old_can_approve_posts} to [b]#{user.can_approve_posts?}[/b]",:user_approval_privilege)
+    added = []
+    removed = []
+
+    def flag_check(added, removed, flag, friendly_name)
+      user_flag = user.send("#{flag}?")
+      if self.send("old_#{flag}") != user_flag
+        if user_flag
+          added << friendly_name
+        else
+          removed << friendly_name
+        end
+      end
     end
 
-    if old_can_upload_free != user.can_upload_free?
-      ModAction.log("\"#{promoter.name}\":/users/#{promoter.id} changed unlimited upload privileges for \"#{user.name}\":/users/#{user.id} from #{old_can_upload_free} to [b]#{user.can_upload_free?}[/b]",:user_upload_privilege)
-    end
+    flag_check(added, removed, "can_approve_posts", "approve posts")
+    flag_check(added, removed, "can_upload_free", "unlimited upload slots")
+    flag_check(added, removed, "no_flagging", "flag ban")
+    flag_check(added, removed, "no_feedback", "feedback_ban")
 
-    if old_no_flagging != user.no_flagging?
-      ModAction.log("\"#{promoter.name}\":/users/#{promoter.id} changed banned from flagging for \"#{user.name}\":/users/#{user.id} from #{old_no_flagging} to [b]#{user.no_flagging?}[/b]",:user_approval_privilege)
-    end
-
-    if old_no_feedback != user.no_feedback?
-      ModAction.log("\"#{promoter.name}\":/users/#{promoter.id} changed banned from feedback for \"#{user.name}\":/users/#{user.id} from #{old_no_feedback} to [b]#{user.no_feedback?}[/b]",:user_approval_privilege)
+    if added || removed
+      ModAction.log(:user_flags_change, {user_id: user.id, added: added, removed: removed})
     end
 
     if user.level_changed?
-      category = options[:is_upgrade] ? :user_account_upgrade : :user_level_change
-      ModAction.log(%{"#{user.name}":/users/#{user.id} level changed #{user.level_string_was} -> #{user.level_string}}, category)
+      ModAction.log(:user_level_change, {user_id: user.id, level: user.level_string, level_was: user.level_string_was})
     end
   end
 

@@ -8,30 +8,54 @@ class ModActionDecorator < ApplicationDecorator
   def format_description
     vals = object.values
 
-    if vals[:user_id]
-      user = "\"#{User.id_to_pretty_name(vals[:user_id])}\":/users/#{vals[:user_id]}"
-    elsif vals[:username]
-      user = "\"#{vals[:username]}\":/users/?name=#{vals[:username]}"
+    if vals['user_id']
+      user = "\"#{User.id_to_pretty_name(vals['user_id'])}\":/users/#{vals['user_id']}"
+    elsif vals['username']
+      user = "\"#{vals['username']}\":/users/?name=#{vals['username']}"
     end
 
     case object.action
-    when "deleted_pool"
-      "Deleted pool ##{vals[:pool_id]}"
-    when "completed_takedown"
-      "Completed takedown ##{vals[:takedown_id]}"
-    when "modified_ticket"
-      "Modified ticket ##{vals[:ticket_id]}"
-    when "claim_ticket"
-      "Claimed ticket ##{vals[:ticket_id]}"
-    when "unclaim_ticket"
-      "Unclaimed ticket ##{vals[:ticket_id]}"
+      ### Pools ###
+    when "pool_delete"
+      "Deleted pool ##{vals['pool_id']}(named #{vals['pool_name']}) by #{user}"
+    when "pool_undelete"
+      "Undeleted pool ##{vals['pool_id']}(named #{vals['pool_name']}) by #{user}"
+
+      ### Takedowns ###
+    when "takedown_process"
+      "Completed takedown ##{vals['takedown_id']}"
+
+      ### IP Ban ###
+    when "ip_ban_create"
+      "Created ip ban"
+    when "ip_ban_deleted"
+      "Removed ip ban"
+
+      ### Ticket ###
+    when "ticket_update"
+      "Modified ticket ##{vals['ticket_id']}"
+    when "ticket_claim"
+      "Claimed ticket ##{vals['ticket_id']}"
+    when "ticket_unclaim"
+      "Unclaimed ticket ##{vals['ticket_id']}"
+
+      ### Artist ###
+    when "artist_ban"
+      "Marked artist ##{vals['artist_id']} as DNP"
+    when "artist_unban"
+      "Marked artist ##{vals['artist_id']} as no longer DNP"
 
       ### User ###
+
+    when "user_delete"
+      "Deleted user #{user}"
+    when "user_delete"
+      "Deleted user #{user}"
     when "user_ban"
-      if vals[:duration] == "permanent"
+      if vals['duration'] == "permanent"
         "Permanently banned #{user}"
-      elsif vals[:duration]
-        "Banned #{user} for #{vals[:duration]} #{vals[:duration] == 1 ? "day" : "days"}"
+      elsif vals['duration']
+        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
       else
         "Banned #{user}"
       end
@@ -42,193 +66,241 @@ class ModActionDecorator < ApplicationDecorator
       "Edited #{user}"
     when "changed_user_blacklist"
       "Edited blacklist of #{user}"
-    when "changed_user_level"
-      "Changed #{user} to #{vals[:level]}"
+    when "user_level_change"
+      "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
+    when "user_flags_change"
+      "Changed #{user} flags. Added: #{vals['added'].join(', ')}. Removed: #{vals['removed'].join(', ')}"
     when "changed_user_text"
       "Changed profile text of #{user}"
+    when "user_name_change"
+      "Changed named of #{user} from #{vals['old_name']} to #{vals['new_naame']}"
 
       ### User Record ###
 
+    when "user_feedback_create"
+      "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_update"
+      "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+    when "user_feedback_delete"
+      "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+      ### Legacy User Record ###
     when "created_positive_record"
-      "Created positive record ##{vals[:record_id]} for #{user} with reason: #{vals[:reason]}"
+      "Created positive record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "created_neutral_record"
-      "Created neutral record ##{vals[:record_id]} for #{user} with reason: #{vals[:reason]}"
+      "Created neutral record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "created_negative_record"
-      "Created negative record ##{vals[:record_id]} for #{user} with reason: #{vals[:reason]}"
-    when "edited_record"
-      "Edited #{vals[:type]} record ##{vals[:record_id]} for #{user} to: #{vals[:reason]}"
-    when "deleted_record"
-      "Deleted #{vals[:type]} record ##{vals[:record_id]} for #{user} with reason: #{vals[:reason]}"
+      "Created negative record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
 
       ### Post ###
 
-    when "deleted_post"
-      "Deleted post ##{vals[:post_id]}"
-    when "undeleted_post"
-      "Undeleted post ##{vals[:post_id]}"
-    when "destroyed_post"
-      "Destroyed post ##{vals[:post_id]}"
-    when "rating_locked"
-      "Post rating was #{vals[:locked] ? 'locked' : 'unlocked'} on post ##{vals[:post_id]}"
+    when "post_move_favorites"
+      "Moves favorites from post ##{vals['post_id']} to post ##{vals['parent_id']}"
+    when "post_delete"
+      "Deleted post ##{vals['post_id']} with reason: #{vals['reason']}"
+    when "post_undelete"
+      "Undeleted post ##{vals['post_id']}"
+    when "post_destroy"
+      "Destroyed post ##{vals['post_id']}"
+    when "post_rating_lock"
+      "Post rating was #{vals['locked'] ? 'locked' : 'unlocked'} on post ##{vals['post_id']}"
 
       ### Set ###
 
-    when "made_set_private"
-      "Made set ##{vals[:set_id]} by #{user} private"
-    when "edited_set"
-      "Edited set ##{vals[:set_id]} by #{user}"
+    when "set_mark_private"
+      "Made set ##{vals['set_id']} by #{user} private"
+    when "set_update"
+      "Edited set ##{vals['set_id']} by #{user}"
+    when "set_delete"
+      "Deleted set ##{vals['set_id']} by #{user}"
 
       ### Comment ###
 
-    when "edited_comment"
-      "Edited comment ##{vals[:comment_id]} by #{user}"
-    when "deleted_comment"
-      if vals[:username]
-        "Deleted comment ##{vals[:comment_id]} by #{user}"
+    when "comment_update"
+      "Edited comment ##{vals['comment_id']} by #{user}"
+    when "comment_delete"
+      if vals['username']
+        "Deleted comment ##{vals['comment_id']} by #{user}"
       else
-        "Deleted comment ##{vals[:comment_id]}"
+        "Deleted comment ##{vals['comment_id']}"
       end
-    when "hid_comment"
-      "Hid comment ##{vals[:comment_id]} by #{user}"
-    when "unhid_comment"
-      "Unhid comment ##{vals[:comment_id]} by #{user}"
+      # TODO: Not currently implemented
+    when "comment_hide"
+      "Hid comment ##{vals['comment_id']} by #{user}"
+    when "comment_unhide"
+      "Unhid comment ##{vals['comment_id']} by #{user}"
 
       ### Forum Post ###
 
-    when "deleted_forum_post"
-      "Deleted forum ##{vals[:forum_post_id]} by #{user}"
-    when "edited_forum_post"
-      "Edited forum ##{vals[:forum_post_id]} by #{user}"
-    when "hid_forum_post"
-      "Hid forum ##{vals[:forum_post_id]} by #{user}"
-    when "unhid_forum_post"
-      "Unhid forum ##{vals[:forum_post_id]} by #{user}"
-    when "stickied_forum_post"
-      "Stickied forum ##{vals[:forum_post_id]} by #{user}"
-    when "unstickied_forum_post"
-      "Unstickied forum ##{vals[:forum_post_id]} by #{user}"
-    when "locked_forum_post"
-      "Locked forum ##{vals[:forum_post_id]} by #{user}"
-    when "unlocked_forum_post"
-      "Unlocked forum ##{vals[:forum_post_id]} by #{user}"
+    when "forum_post_delete"
+      "Deleted forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+    when "forum_post_update"
+      "Edited forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+    when "forum_post_hide"
+      "Hid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+    when "forum_post_unhide"
+      "Unhid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+    when "forum_topic_hide"
+      "Hid forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_unhide"
+      "Unhid forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_stick"
+      "Stickied forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_unstick"
+      "Unstickied forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_lock"
+      "Locked forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_unlock"
+      "Unlocked forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
 
       ### Forum Category ###
 
     when "created_forum_category"
-      "Created forum category ##{vals[:forum_category_id]}"
+      "Created forum category ##{vals['forum_category_id']}"
     when "edited_forum_category"
-      "Edited forum category ##{vals[:forum_category_id]}"
+      "Edited forum category ##{vals['forum_category_id']}"
     when "deleted_forum_category"
-      "Deleted forum category ##{vals[:forum_category_id]}"
+      "Deleted forum category ##{vals['forum_category_id']}"
 
       ### Blip ###
 
-    when "edited_blip"
-      "Edited blip ##{vals[:blip_id]} by #{user}"
-    when "deleted_blip"
-      if vals[:username]
-        "Deleted blip ##{vals[:blip_id]} by #{user}"
+    when "blip_update"
+      "Edited blip ##{vals['blip_id']} by #{user}"
+    when "blip_delete"
+      if vals['username']
+        "Deleted blip ##{vals['blip_id']} by #{user}"
       else
-        "Deleted blip ##{vals[:blip_id]}"
+        "Deleted blip ##{vals['blip_id']}"
       end
-    when "hid_blip"
-      if vals[:username]
-        "Hid blip ##{vals[:blip_id]} by #{user}"
+    when "blip_hide"
+      if vals['username']
+        "Hid blip ##{vals['blip_id']} by #{user}"
       else
-        "Hid blip ##{vals[:blip_id]}"
+        "Hid blip ##{vals['blip_id']}"
       end
-    when "unhid_blip"
-      "Unhid blip ##{vals[:blip_id]} by #{user}"
+    when "blip_unhide"
+      "Unhid blip ##{vals['blip_id']} by #{user}"
 
       ### Alias ###
 
-    when "created_alias"
-      "Created tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "approved_alias"
-      "Approved tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "deleted_alias"
-      "Deleted tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "edited_alias"
-      "Edited tag alias ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+    when "tag_alias_create"
+      if vals[:tag1]
+        "Created tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+        "Created tag alias #{vals['alias_desc']}"
+      end
+    when "tag_alias_approve"
+      if vals[:tag1]
+        "Approved tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+      end
+    when "tag_alias_delete"
+      if vals[:tag1]
+        "Deleted tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+      end
+    when "tag_alias_update"
+      if vals[:tag1]
+        "Edited tag alias ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+        "Updated tag alias #{vals['alias_desc']}\n#{vals['change_desc']}"
+      end
 
       ### Implication ###
 
-    when "created_implication"
-      "Created tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "approved_implication"
-      "Approved tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "deleted_implication"
-      "Deleted tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-    when "edited_implication"
-      "Edited tag implication ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+    when "tag_implication_create"
+      if vals[:tag1]
+        "Created tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+        "Created tag implicaiton #{vals['implication_desc']}"
+      end
+    when "tag_implication_approve"
+      if vals[:tag1]
+        "Approved tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+      end
+    when "tag_implicaton_delete"
+      if vals[:tag1]
+        "Deleted tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+      end
+    when "tag_implication_update"
+      if vals[:tag1]
+        "Edited tag implication ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+      else
+        "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
+      end
 
       ### Flag Reason ###
 
     when "created_flag_reason"
-      "Created flag reason ##{vals[:flag_reason_id]} (#{vals[:flag_reason]})"
+      "Created flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
     when "edited_flag_reason"
-      "Edited flag reason ##{vals[:flag_reason_id]} (#{vals[:flag_reason]})"
+      "Edited flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
     when "deleted_flag_reason"
-      "Deleted flag reason ##{vals[:flag_reason_id]} (#{vals[:flag_reason]})"
+      "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
+
+      ### Post Report Reasons ###
+
+    when "report_reason_create"
+      "Created post report reason #{vals['reason']}"
+    when "report_reason_update"
+      "Edited post report reason #{vals['reason_was']} to #{vals['reason']}"
+    when "report_reason_delete"
+      "Deleted post report reason #{vals['reason']} by #{user}"
 
       ### Whitelist ###
 
-    when "created_upload_whitelist"
-      if vals[:hidden] && options[:userlevel] < 50
+    when "upload_whitelist_create"
+      if vals['hidden'] && !CurrentUser.is_admin?
         "Created whitelist entry"
       else
-        "Created whitelist entry '#{options[:userlevel] == 50 ? vals[:pattern] : vals[:note]}'"
+        "Created whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
       end
 
-    when "edited_upload_whitelist"
-      if vals[:hidden] && options[:userlevel] < 50
+    when "upload_whitelist_update"
+      if vals['hidden'] && !CurrentUser.is_admin?
         "Edited whitelist entry"
       else
-        if vals[:old_pattern] && vals[:old_pattern] != vals[:pattern] && options[:userlevel] == 50
-          "Edited whitelist entry '#{vals[:pattern]}' -> '#{vals[:old_pattern]}'"
+        if vals['old_pattern'] && vals['old_pattern'] != vals['pattern'] && CurrentUser.is_admin?
+          "Edited whitelist entry '#{vals['pattern']}' -> '#{vals['old_pattern']}'"
         else
-          "Edited whitelist entry '#{options[:userlevel] == 50 ? vals[:pattern] : vals[:note]}'"
+          "Edited whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
         end
       end
 
-    when "deleted_upload_whitelist"
-      if vals[:hidden] && options[:userlevel] < 50
+    when "upload_whitelist_delete"
+      if vals['hidden'] && !CurrentUser.is_admin?
         "Deleted whitelist entry"
       else
-        "Deleted whitelist entry '#{options[:userlevel] == 50 ? vals[:pattern] : vals[:note]}'"
+        "Deleted whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
       end
 
       ### Help ###
 
-    when "created_help_entry"
-      "Created help entry \"#{vals[:name]}\":/help/show/#{vals[:name]} ([[#{vals[:wiki_page]}]])"
-    when "edited_help_entry"
-      "Edited help entry \"#{vals[:name]}\":/help/show/#{vals[:name]} ([[#{vals[:wiki_page]}]])"
-    when "deleted_help_entry"
-      "Deleted help entry \"#{vals[:name]}\":/help/show/#{vals[:name]} ([[#{vals[:wiki_page]}]])"
+    when "help_create"
+      "Created help entry \"#{vals['name']}\":/help/show/#{vals['name']} ([[#{vals['wiki_page']}]])"
+    when "help_update"
+      "Edited help entry \"#{vals['name']}\":/help/show/#{vals['name']} ([[#{vals['wiki_page']}]])"
+    when "help_delete"
+      "Deleted help entry \"#{vals['name']}\":/help/show/#{vals['name']} ([[#{vals['wiki_page']}]])"
 
       ### Wiki ###
 
     when "deleted_wiki_page"
-      "Deleted wiki page [[#{vals[:wiki_page]}]]"
+      "Deleted wiki page [[#{vals['wiki_page']}]]"
     when "locked_wiki_page"
-      "Locked wiki page [[#{vals[:wiki_page]}]]"
+      "Locked wiki page [[#{vals['wiki_page']}]]"
     when "unlocked_wiki_page"
-      "Unlocked wiki page [[#{vals[:wiki_page]}]]"
+      "Unlocked wiki page [[#{vals['wiki_page']}]]"
     when "renamed_wiki_page"
-      "Renamed wiki page ([[#{vals[:old_title]}]] → [[#{vals[:new_title]}]])"
+      "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
+
+    when "bulk_revert"
+      "Processed bulk revert for #{vals['constraints']} by #{user}"
+
+
     else
-      "Unknown action #{object.action}: #{object.values.inspect}"
+      CurrentUser.is_admin? ? "Unknown action #{object.action}: #{object.values.inspect}" : "Unknown action #{object.action}"
     end
   end
-
-  # Define presentation-specific methods here. Helpers are accessed through
-  # `helpers` (aka `h`). You can override attributes, for example:
-  #
-  #   def created_at
-  #     helpers.content_tag :span, class: 'time' do
-  #       object.created_at.strftime("%a %m/%d/%y")
-  #     end
-  #   end
-
 end
