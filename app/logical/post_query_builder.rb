@@ -1,10 +1,6 @@
 class PostQueryBuilder
   attr_accessor :query_string, :read_only
 
-  SEARCHABLE_COUNT_METATAGS = [
-      :comment_count,
-  ].freeze
-
   def initialize(query_string, read_only: false)
     @query_string = query_string
     @read_only = read_only
@@ -16,31 +12,32 @@ class PostQueryBuilder
     case arr[0]
     when :eq
       if arr[1].is_a?(Time)
-        relation.concat([
-                            {range: {field => {gte: arr[1].beginning_of_day}}},
-                            {range: {field => {lte: arr[1].end_of_day}}},
-                        ])
+        relation.where("#{field} between ? and ?", arr[1].beginning_of_day, arr[1].end_of_day)
       else
-        relation.push({term: {field => arr[1]}})
+        relation.where(["#{field} = ?", arr[1]])
       end
-    when :gt
-      relation.push({range: {field => {gt: arr[1]}}})
-    when :gte
-      relation.push({range: {field => {gte: arr[1]}}})
-    when :lt
-      relation.push({range: {field => {lt: arr[1]}}})
-    when :lte
-      relation.push({range: {field => {lte: arr[1]}}})
-    when :in
-      relation.push({terms: {field => arr[1]}})
-    when :between
-      relation.concat([
-                          {range: {field => {gte: arr[1]}}},
-                          {range: {field => {lte: arr[2]}}},
-                      ])
-    end
 
-    relation
+    when :gt
+      relation.where(["#{field} > ?", arr[1]])
+
+    when :gte
+      relation.where(["#{field} >= ?", arr[1]])
+
+    when :lt
+      relation.where(["#{field} < ?", arr[1]])
+
+    when :lte
+      relation.where(["#{field} <= ?", arr[1]])
+
+    when :in
+      relation.where(["#{field} in (?)", arr[1]])
+
+    when :between
+      relation.where(["#{field} BETWEEN ? AND ?", arr[1], arr[2]])
+
+    else
+      relation
+    end
   end
 
   def escape_string_for_tsquery(array)
@@ -50,30 +47,42 @@ class PostQueryBuilder
   end
 
   def add_tag_string_search_relation(tags, relation)
-    should = tags[:include].map {|x| {term: {tags: x}}}
-    must = tags[:related].map {|x| {term: {tags: x}}}
-    must_not = tags[:exclude].map {|x| {term: {tags: x}}}
+    tag_query_sql = []
 
-    relation.push({bool: {
-        should: should,
-        must: must,
-        must_not: must_not,
-    }})
+    if tags[:include].any?
+      tag_query_sql << "(" + escape_string_for_tsquery(tags[:include]).join(" | ") + ")"
+    end
+
+    if tags[:related].any?
+      tag_query_sql << "(" + escape_string_for_tsquery(tags[:related]).join(" & ") + ")"
+    end
+
+    if tags[:exclude].any?
+      tag_query_sql << "!(" + escape_string_for_tsquery(tags[:exclude]).join(" | ") + ")"
+    end
+
+    if tag_query_sql.any?
+      relation = relation.where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag_query_sql.join(" & "))
+    end
+
+    relation
   end
 
-  def saved_search_relation(saved_searches, should)
+  def add_saved_search_relation(saved_searches, relation)
     if SavedSearch.enabled?
-      saved_searches.map do |saved_search|
+      saved_searches.each do |saved_search|
         if saved_search == "all"
           post_ids = SavedSearch.post_ids_for(CurrentUser.id)
         else
           post_ids = SavedSearch.post_ids_for(CurrentUser.id, label: saved_search)
         end
 
-        post_ids = [] if post_ids.empty?
-        should.push({terms: {id: post_ids}})
+        post_ids = [0] if post_ids.empty?
+        relation = relation.where("posts.id": post_ids)
       end
     end
+
+    relation
   end
 
   def table_for_metatag(metatag)
@@ -88,7 +97,7 @@ class PostQueryBuilder
     metatags = q.keys
     metatags << q[:order].remove(/_(asc|desc)\z/i) if q[:order].present?
 
-    tables = metatags.map {|metatag| table_for_metatag(metatag.to_s)}
+    tables = metatags.map { |metatag| table_for_metatag(metatag.to_s) }
     tables.compact.uniq
   end
 
@@ -105,281 +114,331 @@ class PostQueryBuilder
     true
   end
 
-  def sql_like_to_elastic(query)
-    # First escape any existing wildcard characters
-    # in the term
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      (\*|\?)    # single asterisk or question mark
-    /x, '\\\\\1')
-
-    # Then replace any unescaped SQL LIKE characters
-    # with a Kleene star
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      %          # single percent sign
-    /x, '*')
-
-    # Collapse runs of wildcards for efficiency
-    query = query.gsub(/(?:\*)+\*/, '*')
-
-    {wildcard: {source: query}}
-  end
-
   def build
-    def should(*args)
-      {bool: {should: args}}
-    end
-
-    if query_string.is_a?(Hash)
-      q = query_string
-    else
+    unless query_string.is_a?(Hash)
       q = Tag.parse_query(query_string)
     end
+
+    relation = read_only ? PostReadOnly.all : Post.all
 
     if q[:tag_count].to_i > Danbooru.config.tag_query_limit
       raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
     end
 
-    must = [] # These terms are ANDed together
-    must_not = [] # These terms are NOT ANDed together
-    order = []
-
     if CurrentUser.safe_mode?
-      must.push({term: {rating: "s"}})
+      relation = relation.where("posts.rating = 's'")
     end
 
-    add_range_relation(q[:post_id], :id, must)
-    add_range_relation(q[:mpixels], :mpixels, must)
-    add_range_relation(q[:ratio], :aspect_ratio, must)
-    add_range_relation(q[:width], :width, must)
-    add_range_relation(q[:height], :height, must)
-    add_range_relation(q[:score], :score, must)
-    add_range_relation(q[:fav_count], :fav_count, must)
-    add_range_relation(q[:filesize], :file_size, must)
-    add_range_relation(q[:date], :created_at, must)
-    add_range_relation(q[:age], :created_at, must)
-
+    relation = add_joins(q, relation)
+    relation = add_range_relation(q[:post_id], "posts.id", relation)
+    relation = add_range_relation(q[:mpixels], "posts.image_width * posts.image_height / 1000000.0", relation)
+    relation = add_range_relation(q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)", relation)
+    relation = add_range_relation(q[:width], "posts.image_width", relation)
+    relation = add_range_relation(q[:height], "posts.image_height", relation)
+    relation = add_range_relation(q[:score], "posts.score", relation)
+    relation = add_range_relation(q[:fav_count], "posts.fav_count", relation)
+    relation = add_range_relation(q[:filesize], "posts.file_size", relation)
+    relation = add_range_relation(q[:date], "posts.created_at", relation)
+    relation = add_range_relation(q[:age], "posts.created_at", relation)
     TagCategory.categories.each do |category|
-      add_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}", must)
+      relation = add_range_relation(q["#{category}_tag_count".to_sym], "posts.tag_count_#{category}", relation)
     end
+    relation = add_range_relation(q[:post_tag_count], "posts.tag_count", relation)
 
-    add_range_relation(q[:post_tag_count], :tag_count, must)
-
-    SEARCHABLE_COUNT_METATAGS.each do |column|
-      add_range_relation(q[column], column, must)
+    Tag::COUNT_METATAGS.each do |column|
+      relation = add_range_relation(q[column.to_sym], "posts.#{column}", relation)
     end
 
     if q[:md5]
-      must.push(should(*(q[:md5].map {|m| {term: {md5: m}}})))
+      relation = relation.where("posts.md5": q[:md5])
     end
 
     if q[:status] == "pending"
-      must.push({term: {pending: true}})
+      relation = relation.where("posts.is_pending = TRUE")
     elsif q[:status] == "flagged"
-      must.push({term: {flagged: true}})
+      relation = relation.where("posts.is_flagged = TRUE")
     elsif q[:status] == "modqueue"
-      must.push(should({term: {pending: true}}, {term: {flagged: true}}))
+      relation = relation.where("posts.is_pending = TRUE OR posts.is_flagged = TRUE")
     elsif q[:status] == "deleted"
-      must.push({term: {deleted: true}})
+      relation = relation.where("posts.is_deleted = TRUE")
     elsif q[:status] == "active"
-      must.push([{term: {pending: false}},
-                 {term: {deleted: false}},
-                 {term: {flagged: false}}])
+      relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE")
+    elsif q[:status] == "unmoderated"
+      relation = relation.merge(Post.pending_or_flagged.available_for_moderation)
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
-      must.push({term: {pending: false}})
+      relation = relation.where("posts.is_pending = FALSE")
     elsif q[:status_neg] == "flagged"
-      must.push({term: {flagged: false}})
+      relation = relation.where("posts.is_flagged = FALSE")
     elsif q[:status_neg] == "modqueue"
-      must.concat([
-                      {term: {pending: false}},
-                      {term: {flagged: false}},
-                  ])
+      relation = relation.where("posts.is_pending = FALSE AND posts.is_flagged = FALSE")
     elsif q[:status_neg] == "deleted"
-      must.push({term: {deleted: false}})
+      relation = relation.where("posts.is_deleted = FALSE")
     elsif q[:status_neg] == "active"
-      must.push(should({term: {pending: true}},
-                       {term: {deleted: true}},
-                       {term: {flagged: true}}))
+      relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_flagged = TRUE")
     end
 
     if hide_deleted_posts?(q)
-      must.push({term: {deleted: false}})
+      relation = relation.where("posts.is_deleted = FALSE")
     end
 
     if q[:filetype]
-      must.push({term: {file_ext: q[:filetype]}})
+      relation = relation.where("posts.file_ext": q[:filetype])
     end
 
     if q[:filetype_neg]
-      must_not.push({term: {file_ext: q[:filetype_neg]}})
+      relation = relation.where.not("posts.file_ext": q[:filetype_neg])
     end
 
+    # The SourcePattern SQL function replaces Pixiv sources with "pixiv/[suffix]", where
+    # [suffix] is everything past the second-to-last slash in the URL.  It leaves non-Pixiv
+    # URLs unchanged.  This is to ease database load for Pixiv source searches.
     if q[:source]
       if q[:source] == "none%"
-        must_not.push({exists: {field: :source}})
+        relation = relation.where("posts.source = ''")
       elsif q[:source] == "http%"
-        must.push({prefix: {source: "http"}})
+        relation = relation.where("(lower(posts.source) like ?)", "http%")
+      elsif q[:source] =~ /^(?:https?:\/\/)?%\.?pixiv(?:\.net(?:\/img)?)?(?:%\/img\/|%\/|(?=%$))(.+)$/i
+        relation = relation.where("SourcePattern(lower(posts.source)) LIKE lower(?) ESCAPE E'\\\\'", "pixiv/" + $1)
       else
-        must.push(sql_like_to_elastic(q[:source]))
+        relation = relation.where("SourcePattern(lower(posts.source)) LIKE SourcePattern(lower(?)) ESCAPE E'\\\\'", q[:source])
       end
     end
 
     if q[:source_neg]
       if q[:source_neg] == "none%"
-        relation.push({exists: {field: :source}})
+        relation = relation.where("posts.source != ''")
       elsif q[:source_neg] == "http%"
-        must_not.push({prefix: {source: "http"}})
+        relation = relation.where("(lower(posts.source) not like ?)", "http%")
+      elsif q[:source_neg] =~ /^(?:https?:\/\/)?%\.?pixiv(?:\.net(?:\/img)?)?(?:%\/img\/|%\/|(?=%$))(.+)$/i
+        relation = relation.where("SourcePattern(lower(posts.source)) NOT LIKE lower(?) ESCAPE E'\\\\'", "pixiv/" + $1)
       else
-        must_not.push(sql_like_to_elastic(q[:source_neg]))
+        relation = relation.where("SourcePattern(lower(posts.source)) NOT LIKE SourcePattern(lower(?)) ESCAPE E'\\\\'", q[:source_neg])
       end
     end
 
     if q[:pool] == "none"
-      must_not.push({exists: {field: :pools}})
+      relation = relation.where("posts.pool_string = ''")
     elsif q[:pool] == "any"
-      must.push({exists: {field: :pools}})
-    end
-
-    if q[:pools]
-      q[:pools].each do |p|
-        must.push({term: {pools: p}})
-      end
-    end
-    if q[:pools_neg]
-      q[:pools_neg].each do |p|
-        must_not.push({term: {pools: p}})
-      end
-    end
-
-    if q[:sets]
-      must.concat(q[:sets].map {|x| {term: {sets: x}}})
-    end
-    if q[:sets_neg]
-      must_not.concat(q[:sets_neg].map {|x| {term: {sets: x}}})
-    end
-
-    if q[:fav_ids]
-      must.concat(q[:fav_ids].map {|x| {term: {faves: x}}})
-    end
-    if q[:fav_ids_neg]
-      must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
+      relation = relation.where("posts.pool_string != ''")
     end
 
     if q[:saved_searches]
-      # TODO
-      # saved_search_relation(q[:saved_searches], should)
+      relation = add_saved_search_relation(q[:saved_searches], relation)
     end
 
     if q[:uploader_id_neg]
-      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader_id: x.to_i}}})
+      relation = relation.where.not("posts.uploader_id": q[:uploader_id_neg])
     end
 
     if q[:uploader_id]
-      must.push({term: {uploader_id: q[:uploader_id].to_i}})
+      relation = relation.where("posts.uploader_id": q[:uploader_id])
     end
 
     if q[:approver_id_neg]
-      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver_id: x.to_i}}})
+      relation = relation.where.not("posts.approver_id": q[:approver_id_neg])
     end
 
     if q[:approver_id]
       if q[:approver_id] == "any"
-        must.push({exists: {field: :approver_id}})
+        relation = relation.where("posts.approver_id is not null")
       elsif q[:approver_id] == "none"
-        must_not.push({exists: {field: :approver_id}})
+        relation = relation.where("posts.approver_id is null")
       else
-        must.push({term: {approver_id: q[:approver_id].to_i}})
+        relation = relation.where("posts.approver_id": q[:approver_id])
+      end
+    end
+
+    if q[:disapproval]
+      q[:disapproval].each do |disapproval|
+        disapprovals = CurrentUser.user.post_disapprovals.select(:post_id)
+
+        if disapproval.in?(%w[none false])
+          relation = relation.where.not("posts.id": disapprovals)
+        elsif disapproval.in?(%w[any all true])
+          relation = relation.where("posts.id": disapprovals)
+        else
+          relation = relation.where("posts.id": disapprovals.where(reason: disapproval))
+        end
+      end
+    end
+
+    if q[:disapproval_neg]
+      q[:disapproval_neg].each do |disapproval|
+        disapprovals = CurrentUser.user.post_disapprovals.select(:post_id)
+
+        if disapproval.in?(%w[none false])
+          relation = relation.where("posts.id": disapprovals)
+        elsif disapproval.in?(%w[any all true])
+          relation = relation.where.not("posts.id": disapprovals)
+        else
+          relation = relation.where.not("posts.id": disapprovals.where(reason: disapproval))
+        end
+      end
+    end
+
+    if q[:flagger_ids_neg]
+      q[:flagger_ids_neg].each do |flagger_id|
+        if CurrentUser.can_view_flagger?(flagger_id)
+          post_ids = PostFlag.unscoped.search({:creator_id => flagger_id, :category => "normal"}).reorder("").select {|flag| flag.not_uploaded_by?(CurrentUser.id)}.map {|flag| flag.post_id}.uniq
+          if post_ids.any?
+            relation = relation.where.not("posts.id": post_ids)
+          end
+        end
+      end
+    end
+
+    if q[:flagger_ids]
+      q[:flagger_ids].each do |flagger_id|
+        if flagger_id == "any"
+          relation = relation.where('EXISTS (' + PostFlag.unscoped.search({:category => "normal"}).where('post_id = posts.id').reorder('').select('1').to_sql + ')')
+        elsif flagger_id == "none"
+          relation = relation.where('NOT EXISTS (' + PostFlag.unscoped.search({:category => "normal"}).where('post_id = posts.id').reorder('').select('1').to_sql + ')')
+        elsif CurrentUser.can_view_flagger?(flagger_id)
+          post_ids = PostFlag.unscoped.search({:creator_id => flagger_id, :category => "normal"}).reorder("").select {|flag| flag.not_uploaded_by?(CurrentUser.id)}.map {|flag| flag.post_id}.uniq
+          relation = relation.where("posts.id": post_ids)
+        end
+      end
+    end
+
+    if q[:appealer_ids_neg]
+      q[:appealer_ids_neg].each do |appealer_id|
+        relation = relation.where.not("posts.id":  PostAppeal.unscoped.where(creator_id: appealer_id).select(:post_id).distinct)
+      end
+    end
+
+    if q[:appealer_ids]
+      q[:appealer_ids].each do |appealer_id|
+        if appealer_id == "any"
+          relation = relation.where('EXISTS (' + PostAppeal.unscoped.where('post_id = posts.id').select('1').to_sql + ')')
+        elsif appealer_id == "none"
+          relation = relation.where('NOT EXISTS (' + PostAppeal.unscoped.where('post_id = posts.id').select('1').to_sql + ')')
+        else
+          relation = relation.where("posts.id": PostAppeal.unscoped.where(creator_id: appealer_id).select(:post_id).distinct)
+        end
+      end
+    end
+
+    if q[:commenter_ids]
+      q[:commenter_ids].each do |commenter_id|
+        if commenter_id == "any"
+          relation = relation.where("posts.last_commented_at is not null")
+        elsif commenter_id == "none"
+          relation = relation.where("posts.last_commented_at is null")
+        else
+          relation = relation.where("posts.id": Comment.unscoped.where(creator_id: commenter_id).select(:post_id).distinct)
+        end
+      end
+    end
+
+    if q[:noter_ids]
+      q[:noter_ids].each do |noter_id|
+        if noter_id == "any"
+          relation = relation.where("posts.last_noted_at is not null")
+        elsif noter_id == "none"
+          relation = relation.where("posts.last_noted_at is null")
+        else
+          relation = relation.where("posts.id": Note.unscoped.where(creator_id: noter_id).select("post_id").distinct)
+        end
+      end
+    end
+
+    if q[:note_updater_ids]
+      q[:note_updater_ids].each do |note_updater_id|
+        relation = relation.where("posts.id": NoteVersion.unscoped.where(updater_id: note_updater_id).select("post_id").distinct)
+      end
+    end
+
+    if q[:artcomm_ids]
+      q[:artcomm_ids].each do |artcomm_id|
+        relation = relation.where("posts.id": ArtistCommentaryVersion.unscoped.where(updater_id: artcomm_id).select("post_id").distinct)
       end
     end
 
     if q[:post_id_negated]
-      must_not.push({term: {id: q[:post_id_negated].to_i}})
+      relation = relation.where("posts.id <> ?", q[:post_id_negated])
     end
 
     if q[:parent] == "none"
-      must_not.push({exists: {field: :parent_id}})
+      relation = relation.where("posts.parent_id IS NULL")
     elsif q[:parent] == "any"
-      must.push({exists: {field: :parent_id}})
+      relation = relation.where("posts.parent_id IS NOT NULL")
     elsif q[:parent]
-      must.push(should({term: {id: q[:parent].to_i}},
-                       {term: {parent_id: q[:parent].to_i}}))
+      relation = relation.where("(posts.id = ? or posts.parent_id = ?)", q[:parent].to_i, q[:parent].to_i)
     end
 
     if q[:parent_neg_ids]
       neg_ids = q[:parent_neg_ids].map(&:to_i)
       neg_ids.delete(0)
       if neg_ids.present?
-        # Negated version of the above
-        must_not.push({bool: {
-            should: [
-                {term: {id: q[:parent].to_i}},
-                {term: {parent_id: q[:parent].to_i}},
-            ],
-        }})
+        relation = relation.where("posts.id not in (?) and (posts.parent_id is null or posts.parent_id not in (?))", neg_ids, neg_ids)
       end
     end
 
     if q[:child] == "none"
-      must.push({term: {has_children: false}})
+      relation = relation.where("posts.has_children = FALSE")
     elsif q[:child] == "any"
-      must.push({term: {has_children: true}})
+      relation = relation.where("posts.has_children = TRUE")
     end
 
     if q[:pixiv_id]
       if q[:pixiv_id] == "any"
-        must.push({exists: {field: :pixiv_id}})
+        relation = relation.where("posts.pixiv_id IS NOT NULL")
       elsif q[:pixiv_id] == "none"
-        must_not.push({exists: {field: :pixiv_id}})
+        relation = relation.where("posts.pixiv_id IS NULL")
       else
-        must.push({term: {pixiv_id: q[:pixiv_id].to_i}})
+        relation = add_range_relation(q[:pixiv_id], "posts.pixiv_id", relation)
       end
     end
 
-    if q[:rating] =~ /\Aq/
-      must.push({term: {rating: "q"}})
-    elsif q[:rating] =~ /\As/
-      must.push({term: {rating: "s"}})
-    elsif q[:rating] =~ /\Ae/
-      must.push({term: {rating: "e"}})
+    if q[:rating] =~ /^q/
+      relation = relation.where("posts.rating = 'q'")
+    elsif q[:rating] =~ /^s/
+      relation = relation.where("posts.rating = 's'")
+    elsif q[:rating] =~ /^e/
+      relation = relation.where("posts.rating = 'e'")
     end
 
-    if q[:rating_negated] =~ /\Aq/
-      must_not.push({term: {rating: "q"}})
-    elsif q[:rating_negated] =~ /\As/
-      must_not.push({term: {rating: "s"}})
-    elsif q[:rating_negated] =~ /\Ae/
-      must_not.push({term: {rating: "e"}})
+    if q[:rating_negated] =~ /^q/
+      relation = relation.where("posts.rating <> 'q'")
+    elsif q[:rating_negated] =~ /^s/
+      relation = relation.where("posts.rating <> 's'")
+    elsif q[:rating_negated] =~ /^e/
+      relation = relation.where("posts.rating <> 'e'")
     end
 
     if q[:locked] == "rating"
-      must.push({term: {rating_locked: true}})
+      relation = relation.where("posts.is_rating_locked = TRUE")
     elsif q[:locked] == "note" || q[:locked] == "notes"
-      must.push({term: {note_locked: true}})
+      relation = relation.where("posts.is_note_locked = TRUE")
     elsif q[:locked] == "status"
-      must.push({term: {status_locked: true}})
+      relation = relation.where("posts.is_status_locked = TRUE")
     end
 
     if q[:locked_negated] == "rating"
-      must.push({term: {rating_locked: false}})
+      relation = relation.where("posts.is_rating_locked = FALSE")
     elsif q[:locked_negated] == "note" || q[:locked_negated] == "notes"
-      must.push({term: {note_locked: false}})
+      relation = relation.where("posts.is_note_locked = FALSE")
     elsif q[:locked_negated] == "status"
-      must.push({term: {status_locked: false}})
+      relation = relation.where("posts.is_status_locked = FALSE")
     end
 
-    add_tag_string_search_relation(q[:tags], must)
+    relation = add_tag_string_search_relation(q[:tags], relation)
+
+    if q[:ordpool].present?
+      pool_id = q[:ordpool].to_i
+
+      pool_posts = Pool.joins("CROSS JOIN unnest(pools.post_ids) WITH ORDINALITY AS row(post_id, pool_index)").where(id: pool_id).select(:post_id, :pool_index)
+      relation = relation.joins("JOIN (#{pool_posts.to_sql}) pool_posts ON pool_posts.post_id = posts.id").order("pool_posts.pool_index ASC")
+    end
 
     if q[:favgroups_neg].present?
       q[:favgroups_neg].each do |favgroup_rec|
         favgroup_id = favgroup_rec.to_i
         favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
         if favgroup
-          must_not.push({terms: {id: favgroup.post_id_array}})
+          relation = relation.where.not("posts.id": favgroup.post_id_array)
         end
       end
     end
@@ -389,174 +448,154 @@ class PostQueryBuilder
         favgroup_id = favgroup_rec.to_i
         favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
         if favgroup
-          must.push({terms: {id: favgroup.post_id_array}})
+          relation = relation.where("posts.id": favgroup.post_id_array)
         end
       end
     end
 
     if q[:upvote].present?
-      must.push({term: {upvotes: q[:upvote].to_i}})
+      user_id = q[:upvote]
+      post_ids = PostVote.where(:user_id => user_id).where("score > 0").limit(400).pluck(:post_id)
+      relation = relation.where("posts.id": post_ids)
     end
 
     if q[:downvote].present?
-      must.push({term: {downvotes: q[:downvote].to_i}})
+      user_id = q[:downvote]
+      post_ids = PostVote.where(:user_id => user_id).where("score < 0").limit(400).pluck(:post_id)
+      relation = relation.where("posts.id": post_ids)
     end
 
-    if q[:voted].present?
-      must.push(should({term: {upvotes: q[:voted].to_i}},
-                       {term: {downvotes: q[:voted].to_i}}))
-    end
-    if q[:neg_upvote].present?
-      must_not.push({term: {upvotes: q[:neg_upvote].to_i}})
+    if q[:ordfav].present?
+      user_id = q[:ordfav].to_i
+      relation = relation.joins("INNER JOIN favorites ON favorites.post_id = posts.id")
+      relation = relation.where("favorites.user_id % 100 = ? and favorites.user_id = ?", user_id % 100, user_id).order("favorites.id DESC")
     end
 
-    if q[:neg_downvote].present?
-      must_not.push({term: {downvotes: q[:neg_downvote].to_i}})
-    end
-
-    if q[:neg_voted].present?
-      must_not.concat([{term: {upvotes: q[:neg_voted].to_i}},
-                       {term: {downvotes: q[:neg_voted].to_i}}])
+    # HACK: if we're using a date: or age: metatag, default to ordering by
+    # created_at instead of id so that the query will use the created_at index.
+    if q[:date].present? || q[:age].present?
+      case q[:order]
+      when "id", "id_asc"
+        q[:order] = "created_at_asc"
+      when "id_desc", nil
+        q[:order] = "created_at_desc"
+      end
     end
 
     if q[:order] == "rank"
-      must.push({range: {score: {gt: 0}}})
-      must.push({range: {created_at: {gte: 2.days.ago}}})
-    elsif q[:order] == "landscape" || q[:order] == "portrait" ||
-        q[:order] == "mpixels" || q[:order] == "mpixels_desc"
-      must.push({exists: {field: :width}})
-      must.push({exists: {field: :height}})
+      relation = relation.where("posts.score > 0 and posts.created_at >= ?", 2.days.ago)
+    elsif q[:order] == "landscape" || q[:order] == "portrait"
+      relation = relation.where("posts.image_width IS NOT NULL and posts.image_height IS NOT NULL")
     end
 
     case q[:order]
     when "id", "id_asc"
-      order.push({id: :asc})
+      relation = relation.order("posts.id ASC")
 
     when "id_desc"
-      order.push({id: :desc})
+      relation = relation.order("posts.id DESC")
 
     when "score", "score_desc"
-      order.concat([{score: :desc}, {id: :desc}])
+      relation = relation.order("posts.score DESC, posts.id DESC")
 
     when "score_asc"
-      order.concat([{score: :asc}, {id: :asc}])
+      relation = relation.order("posts.score ASC, posts.id ASC")
 
     when "favcount"
-      order.concat([{fav_count: :desc}, {id: :desc}])
+      relation = relation.order("posts.fav_count DESC, posts.id DESC")
 
     when "favcount_asc"
-      order.concat([{fav_count: :asc}, {id: :asc}])
+      relation = relation.order("posts.fav_count ASC, posts.id ASC")
 
     when "created_at", "created_at_desc"
-      order.push({created_at: :desc})
+      relation = relation.order("posts.created_at DESC")
 
     when "created_at_asc"
-      order.push({created_at: :asc})
+      relation = relation.order("posts.created_at ASC")
 
     when "change", "change_desc"
-      order.concat([{updated_at: :desc}, {id: :desc}])
+      relation = relation.order("posts.updated_at DESC, posts.id DESC")
 
     when "change_asc"
-      order.concat([{updated_at: :asc}, {id: :asc}])
+      relation = relation.order("posts.updated_at ASC, posts.id ASC")
 
     when "comment", "comm"
-      order.push({commented_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
-
-    when "comment_bump"
-      must.push({exists: {field: 'comment_bumped_at'}})
-      order.push({comment_bumped_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
+      relation = relation.order("posts.last_commented_at DESC NULLS LAST, posts.id DESC")
 
     when "comment_asc", "comm_asc"
-      order.push({commented_at: {order: :asc, missing: :_last}})
-      order.push({id: :asc})
+      relation = relation.order("posts.last_commented_at ASC NULLS LAST, posts.id ASC")
+
+    when "comment_bumped"
+      relation = relation.order("posts.last_comment_bumped_at DESC NULLS LAST")
+
+    when "comment_bumped_asc"
+      relation = relation.order("posts.last_comment_bumped_at ASC NULLS FIRST")
 
     when "note"
-      order.push({noted_at: {order: :desc, missing: :_last}})
+      relation = relation.order("posts.last_noted_at DESC NULLS LAST")
 
     when "note_asc"
-      order.push({noted_at: {order: :asc, missing: :_first}})
+      relation = relation.order("posts.last_noted_at ASC NULLS FIRST")
+
+    when "artcomm"
+      relation = relation.joins("INNER JOIN artist_commentaries ON artist_commentaries.post_id = posts.id")
+      relation = relation.order("artist_commentaries.updated_at DESC")
+
+    when "artcomm_asc"
+      relation = relation.joins("INNER JOIN artist_commentaries ON artist_commentaries.post_id = posts.id")
+      relation = relation.order("artist_commentaries.updated_at ASC")
 
     when "mpixels", "mpixels_desc"
-      order.push({mpixels: :desc})
+      relation = relation.where(Arel.sql("posts.image_width is not null and posts.image_height is not null"))
+      # Use "w*h/1000000", even though "w*h" would give the same result, so this can use
+      # the posts_mpixels index.
+      relation = relation.order(Arel.sql("posts.image_width * posts.image_height / 1000000.0 DESC"))
 
     when "mpixels_asc"
-      order.push({mpixels: :asc})
+      relation = relation.where("posts.image_width is not null and posts.image_height is not null")
+      relation = relation.order(Arel.sql("posts.image_width * posts.image_height / 1000000.0 ASC"))
 
     when "portrait"
-      order.push({aspect_ratio: :asc})
+      relation = relation.order(Arel.sql("1.0 * posts.image_width / GREATEST(1, posts.image_height) ASC"))
 
     when "landscape"
-      order.push({aspect_ratio: :desc})
+      relation = relation.order(Arel.sql("1.0 * posts.image_width / GREATEST(1, posts.image_height) DESC"))
 
     when "filesize", "filesize_desc"
-      order.push({file_size: :desc})
+      relation = relation.order("posts.file_size DESC")
 
     when "filesize_asc"
-      order.push({file_size: :asc})
+      relation = relation.order("posts.file_size ASC")
 
-    when /\A(?<column>#{SEARCHABLE_COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
-      column = Regexp.last_match[:column]
-      direction = Regexp.last_match[:direction] || "desc"
-      order.concat([{column => direction}, {id: direction}])
+    when /\A(?<column>#{Tag::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+      column = $~[:column]
+      direction = $~[:direction] || "desc"
+      relation = relation.order(column => direction, :id => direction)
 
     when "tagcount", "tagcount_desc"
-      order.push({tag_count: :desc})
+      relation = relation.order("posts.tag_count DESC")
 
     when "tagcount_asc"
-      order.push({tag_count: :asc})
+      relation = relation.order("posts.tag_count ASC")
 
     when /(#{TagCategory.short_name_regex})tags(?:\Z|_desc)/
-      order.push({"tag_count_#{TagCategory.short_name_mapping[$1]}" => :desc})
+      relation = relation.order("posts.tag_count_#{TagCategory.short_name_mapping[$1]} DESC")
 
     when /(#{TagCategory.short_name_regex})tags_asc/
-      order.push({"tag_count_#{TagCategory.short_name_mapping[$1]}" => :asc})
+      relation = relation.order("posts.tag_count_#{TagCategory.short_name_mapping[$1]} ASC")
 
     when "rank"
-      must.push({function_score: {
-          query: {match_all: {}},
-          script_score: {
-              script: {
-                  params: {log3: Math.log(3), date2005_05_24: 1116936000},
-                  source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].date.millis / 1000 - params.date2005_05_24) / 35000",
-              },
-          },
-      }})
+      relation = relation.order(Arel.sql("log(3, posts.score) + (extract(epoch from posts.created_at) - extract(epoch from timestamp '2005-05-24')) / 35000 DESC"))
 
-      order.push({_score: :desc})
-
-    when "random"
-      if q[:random].present?
-        must.push({function_score: {
-            query: {match_all: {}},
-            random_score: {seed: q[:random].to_i, field: 'id'},
-            boost_mode: :replace
-        }})
-      else
-        must.push({function_score: {
-            query: {match_all: {}},
-            random_score: {},
-            boost_mode: :replace
-        }})
+    when "custom"
+      if q[:post_id].present? && q[:post_id][0] == :in
+        relation = relation.find_ordered(q[:post_id][1])
       end
 
-      order.push({_score: :desc})
-
     else
-      order.push({id: :desc})
+      relation = relation.order("posts.id DESC")
     end
 
-    if must.empty?
-      must.push({match_all: {}})
-    end
-
-    search_body = {
-        query: {bool: {must: must, must_not: must_not}},
-        sort: order,
-        _source: false,
-    }
-
-    Post.__elasticsearch__.search(search_body)
+    relation
   end
 end

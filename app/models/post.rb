@@ -1689,11 +1689,11 @@ class Post < ApplicationRecord
 
     def raw_tag_match(tag)
       tags = {related: tag.split(' '), include: [], exclude: []}
-      PostQueryBuilder.new(tag_count: 1, tags: tags).build
+      ElasticPostQueryBuilder.new(tag_count: 1, tags: tags).build
     end
 
     def tag_match(query)
-      PostQueryBuilder.new(query).build
+      ElasticPostQueryBuilder.new(query).build
     end
   end
 
