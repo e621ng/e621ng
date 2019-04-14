@@ -1169,7 +1169,7 @@ CREATE TABLE public.mod_actions (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     category integer,
-    "values" text,
+    "values" json,
     action character varying DEFAULT 'unknown_action'::character varying NOT NULL
 );
 
