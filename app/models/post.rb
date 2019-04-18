@@ -1866,6 +1866,8 @@ class Post < ApplicationRecord
   BOOLEAN_ATTRIBUTES = %w(
     has_embedded_notes
     has_cropped
+    hide_from_anonymous
+    hide_from_search_engines
   )
   has_bit_flags BOOLEAN_ATTRIBUTES
 
@@ -1877,7 +1879,12 @@ class Post < ApplicationRecord
     !Danbooru.config.can_user_see_post?(CurrentUser.user, self)
   end
 
+  def loginblocked?
+    CurrentUser.is_anonymous?
+  end
+
   def visible?
+    return false if loginblocked?
     return false if safeblocked?
     return false if deleteblocked?
     return true

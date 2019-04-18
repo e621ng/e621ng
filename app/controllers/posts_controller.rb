@@ -128,7 +128,7 @@ private
       has_embedded_notes
     ]
     permitted_params += %i[is_rating_locked is_note_locked] if CurrentUser.is_builder?
-    permitted_params += %i[is_status_locked locked_tags] if CurrentUser.is_admin?
+    permitted_params += %i[is_status_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end
