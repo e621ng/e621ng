@@ -53,6 +53,10 @@
         <%= f.label :is_rating_locked, "Rating" %>
 
         <% if CurrentUser.is_admin? %>
+          <%= f.check_box :hide_from_anonymous %>
+          <%= f.label :hide_from_anonymous, "Hide from Anon." %>
+          <%= f.check_box :hide_from_search_engines %>
+          <%= f.label :hide_from_search_engines, "Hide from search engines" %>
           <%= f.check_box :is_status_locked %>
           <%= f.label :is_status_locked, "Status" %>
         <% end %>

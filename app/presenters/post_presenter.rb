@@ -11,7 +11,7 @@ class PostPresenter < Presenter
       return ""
     end
 
-    if post.safeblocked?
+    if post.loginblocked? || post.safeblocked?
       return ""
     end
 
