@@ -126,6 +126,12 @@ GEM
     dotenv-rails (2.4.0)
       dotenv (= 2.4.0)
       railties (>= 3.2, < 6.0)
+    draper (3.1.0)
+      actionpack (>= 5.0)
+      activemodel (>= 5.0)
+      activemodel-serializers-xml (>= 1.0)
+      activesupport (>= 5.0)
+      request_store (>= 1.0)
     elasticsearch (6.1.0)
       elasticsearch-api (= 6.1.0)
       elasticsearch-transport (= 6.1.0)
@@ -329,6 +335,8 @@ GEM
     ref (2.0.0)
     representable (2.3.0)
       uber (~> 0.0.7)
+    request_store (1.4.1)
+      rack (>= 1.4)
     responders (2.4.0)
       actionpack (>= 4.2.0, < 5.3)
       railties (>= 4.2.0, < 5.3)
@@ -482,6 +490,7 @@ DEPENDENCIES
   dalli
   diff-lcs
   dotenv-rails
+  draper
   dtext_rb!
   elasticsearch-model
   elasticsearch-rails

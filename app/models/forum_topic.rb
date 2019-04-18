@@ -25,7 +25,7 @@ class ForumTopic < ApplicationRecord
   accepts_nested_attributes_for :original_post
   after_update :update_orignal_post
   after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
-    ModAction.log("locked forum topic ##{id} (title: #{title})",:forum_topic_lock)
+    ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, user_id: rec.creator_id})
   end
 
   module CategoryMethods
@@ -152,11 +152,11 @@ class ForumTopic < ApplicationRecord
   end
 
   def create_mod_action_for_delete
-    ModAction.log("deleted forum topic ##{id} (title: #{title})",:forum_topic_delete)
+    ModAction.log(:forum_topic_hide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
   def create_mod_action_for_undelete
-    ModAction.log("undeleted forum topic ##{id} (title: #{title})",:forum_topic_undelete)
+    ModAction.log(:forum_topic_unhide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
   def initialize_is_deleted

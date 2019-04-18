@@ -19,6 +19,7 @@ gem 'net-sftp'
 gem 'term-ansicolor', :require => "term/ansicolor"
 gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
+gem 'draper'
 gem 'statistics2'
 gem 'capistrano', '~> 3.10'
 gem 'capistrano-rails'

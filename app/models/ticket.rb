@@ -170,14 +170,14 @@ class Ticket < ApplicationRecord
   module ClaimMethods
     def claim!(user = CurrentUser)
       transaction do
-        ModAction.log("Ticket ##{id} claimed by ##{user.id}", :claim_ticket)
+        ModAction.log(:ticket_claim, {ticket_id: id})
         update_attribute(:claimant_id, user.id)
       end
     end
 
     def unclaim!(user = CurrentUser)
       transaction do
-        ModAction.log("Ticket ##{id} unclaimed by ##{user.id}", :unclaim_ticket)
+        ModAction.log(:ticket_unclaim, {ticket_id: id})
         update_attribute(:claimant_id, nil)
       end
     end
@@ -201,7 +201,7 @@ class Ticket < ApplicationRecord
     end
 
     def log_update
-      ModAction.log("Ticket ##{id} updated by #{CurrentUser.id}", :update_ticket)
+      ModAction.log(:ticket_update, {ticket_id: id})
     end
   end
 

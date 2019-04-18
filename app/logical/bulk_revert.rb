@@ -6,8 +6,8 @@ class BulkRevert
 
   def process(creator, constraints = {})
     @constraints = constraints
-    
-    ModAction.log("Processed bulk revert for #{constraints.inspect} by #{creator.name}",:bulk_revert)
+
+    ModAction.log(:bulk_revert, {constraints: constraints.inspect, user_id: creator.id})
 
     CurrentUser.scoped(creator) do
       ApplicationRecord.without_timeout do
