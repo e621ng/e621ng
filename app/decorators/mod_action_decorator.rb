@@ -49,8 +49,6 @@ class ModActionDecorator < ApplicationDecorator
 
     when "user_delete"
       "Deleted user #{user}"
-    when "user_delete"
-      "Deleted user #{user}"
     when "user_ban"
       if vals['duration'] == "permanent"
         "Permanently banned #{user}"
@@ -62,14 +60,14 @@ class ModActionDecorator < ApplicationDecorator
     when "user_unban"
       "Unbanned #{user}"
 
-    when "edited_user"
-      "Edited #{user}"
-    when "changed_user_blacklist"
-      "Edited blacklist of #{user}"
     when "user_level_change"
       "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
     when "user_flags_change"
       "Changed #{user} flags. Added: #{vals['added'].join(', ')}. Removed: #{vals['removed'].join(', ')}"
+    when "edited_user"
+      "Edited #{user}"
+    when "changed_user_blacklist"
+      "Edited blacklist of #{user}"
     when "changed_user_text"
       "Changed profile text of #{user}"
     when "user_name_change"
@@ -285,14 +283,15 @@ class ModActionDecorator < ApplicationDecorator
       "Deleted help entry \"#{vals['name']}\":/help/show/#{vals['name']} ([[#{vals['wiki_page']}]])"
 
       ### Wiki ###
-
-    when "deleted_wiki_page"
+    when "wiki_page_delete"
       "Deleted wiki page [[#{vals['wiki_page']}]]"
-    when "locked_wiki_page"
+    when "wiki_page_undelete"
+      "Undeleted wiki page [[#{vals['wiki_page']}"
+    when "wiki_page_lock"
       "Locked wiki page [[#{vals['wiki_page']}]]"
-    when "unlocked_wiki_page"
+    when "wiki_page_unlock"
       "Unlocked wiki page [[#{vals['wiki_page']}]]"
-    when "renamed_wiki_page"
+    when "wiki_page_rename"
       "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
 
     when "bulk_revert"

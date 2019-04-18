@@ -32,6 +32,7 @@ class Post < ApplicationRecord
   before_save :update_tag_post_counts, if: :tag_string_changed?
   before_save :set_tag_counts, if: :tag_string_changed?
   before_save :set_pool_category_pseudo_tags
+  before_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -1735,6 +1736,12 @@ class Post < ApplicationRecord
 
     def remove_iqdb_async
       Post.remove_iqdb(id)
+    end
+  end
+
+  module RatingMethods
+    def create_rating_lock_mod_action
+      ModAction.log(:post_rating_lock, {locked: is_rating_locked?, post_id: id})
     end
   end
 
