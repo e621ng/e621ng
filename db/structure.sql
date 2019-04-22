@@ -879,6 +879,40 @@ ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
 
 
 --
+-- Name: forum_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.forum_categories (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    cat_order integer,
+    can_view integer DEFAULT 20 NOT NULL,
+    can_create integer DEFAULT 20 NOT NULL,
+    can_reply integer DEFAULT 20 NOT NULL
+);
+
+
+--
+-- Name: forum_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.forum_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forum_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.forum_categories_id_seq OWNED BY public.forum_categories.id;
+
+
+--
 -- Name: forum_post_votes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2637,6 +2671,13 @@ ALTER TABLE ONLY public.favorites ALTER COLUMN id SET DEFAULT nextval('public.fa
 
 
 --
+-- Name: forum_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_categories ALTER COLUMN id SET DEFAULT nextval('public.forum_categories_id_seq'::regclass);
+
+
+--
 -- Name: forum_post_votes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3097,6 +3138,14 @@ ALTER TABLE ONLY public.favorite_groups
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forum_categories forum_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_categories
+    ADD CONSTRAINT forum_categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -4760,6 +4809,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190403174011'),
 ('20190409195837'),
 ('20190410022203'),
-('20190413055451');
+('20190413055451'),
+('20190418093745');
 
 

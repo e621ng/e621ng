@@ -8,11 +8,11 @@ class ForumPostsController < ApplicationController
   def new
     if params[:topic_id]
       @forum_topic = ForumTopic.find(params[:topic_id]) 
-      raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
+      raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user) && @forum_topic.can_reply?(CurrentUser.user)
     end
     if params[:post_id]
       quoted_post = ForumPost.find(params[:post_id])
-      raise User::PrivilegeError.new unless quoted_post.topic.visible?(CurrentUser.user)
+      raise User::PrivilegeError.new unless quoted_post.topic.visible?(CurrentUser.user) && quoted_post.topic.can_reply?(CurrentUser.user)
     end
     @forum_post = ForumPost.new_reply(params)
     respond_with(@forum_post)

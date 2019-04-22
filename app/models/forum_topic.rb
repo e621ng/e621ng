@@ -13,15 +13,17 @@ class ForumTopic < ApplicationRecord
 
   belongs_to_creator
   belongs_to_updater
+  belongs_to :category, class_name: "ForumCategory", foreign_key: :category_id
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
   before_validation :initialize_is_deleted, :on => :create
   validates_presence_of :title, :creator_id
   validates_associated :original_post
-  validates_inclusion_of :category_id, :in => CATEGORIES.keys
+  validates_associated :category
   validates_inclusion_of :min_level, :in => MIN_LEVELS.values
   validates :title, :length => {:maximum => 255}
+  validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
   after_update :update_orignal_post
   after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
@@ -32,21 +34,21 @@ class ForumTopic < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def categories
-        CATEGORIES.values
-      end
-
-      def reverse_category_mapping
-        @reverse_category_mapping ||= CATEGORIES.invert
-      end
-
       def for_category_id(cid)
         where(:category_id => cid)
       end
     end
 
     def category_name
-      CATEGORIES[category_id]
+      return '(Unknown)' unless category
+      category.name
+    end
+
+    def category_allows_creation
+      if category && !category.can_create_within?(creator)
+        errors[:category] << "doesn't allow new topics"
+        return false
+      end
     end
   end
 
@@ -56,7 +58,7 @@ class ForumTopic < ApplicationRecord
     end
 
     def permitted
-      where("min_level <= ?", CurrentUser.level)
+      where("min_level <= ?", CurrentUser.level).joins(:category).where('forum_categories.can_view <= ?', CurrentUser.level)
     end
 
     def sticky_first
@@ -148,7 +150,11 @@ class ForumTopic < ApplicationRecord
   end
 
   def visible?(user)
-    user.level >= min_level
+    user.level >= min_level && user.level >= category.can_view
+  end
+
+  def can_reply?(user = CurrentUser.user)
+    user.level >= category.can_reply
   end
 
   def create_mod_action_for_delete

@@ -17,6 +17,7 @@ class ForumPost < ApplicationRecord
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
   validate :topic_is_not_restricted, :on => :create
+  validate :category_allows_replies, on: :create
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
@@ -154,6 +155,13 @@ class ForumPost < ApplicationRecord
   def topic_is_not_restricted
     if topic && !topic.visible?(creator)
       errors[:topic] << "is restricted"
+      return false
+    end
+  end
+
+  def category_allows_replies
+    if topic && !topic.can_rely?(creator)
+      errors[:topic] << "does not allow replies"
       return false
     end
   end
