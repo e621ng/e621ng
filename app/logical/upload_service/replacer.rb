@@ -1,7 +1,8 @@
 class UploadService
   class Replacer
     extend Memoist
-    class Error < Exception; end
+    class Error < Exception;
+    end
 
     attr_reader :post, :replacement
 
@@ -82,20 +83,32 @@ class UploadService
     end
 
     def process!
-      preprocessor = Preprocessor.new(
-        rating: post.rating,
-        tag_string: replacement.tags,
-        source: replacement.replacement_url,
-        file: replacement.replacement_file,
-        replaced_post: post,
-        original_post_id: post.id
+      upload = Upload.create(
+          rating: post.rating,
+          tag_string: replacement.tags,
+          source: replacement.replacement_url,
+          file: replacement.replacement_file,
+          replaced_post: post,
+          original_post_id: post.id
       )
-      upload = preprocessor.start!
-      raise Error, upload.status if upload.is_errored?
-      upload = preprocessor.finish!(upload)
-      raise Error, upload.status if upload.is_errored?
+
+      begin
+        if upload.invalid? || upload.is_errored?
+          raise Error, upload.status
+        end
+
+        upload.update(status: "processing")
+
+        upload.file = Utils.get_file_for_upload(upload, file: upload.file)
+        Utils.process_file(upload, upload.file)
+
+        upload.save!
+      rescue Exception => x
+        upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
+        raise Error, upload.status
+      end
       md5_changed = upload.md5 != post.md5
-      
+
       replacement.replacement_url = find_replacement_url(replacement, upload)
 
       if md5_changed
@@ -132,7 +145,7 @@ class UploadService
     end
 
     def rescale_notes(post)
-      x_scale = post.image_width.to_f  / post.image_width_was.to_f
+      x_scale = post.image_width.to_f / post.image_width_was.to_f
       y_scale = post.image_height.to_f / post.image_height_was.to_f
 
       post.notes.each do |note|
@@ -148,9 +161,9 @@ class UploadService
       end
 
       PixivUgoiraFrameData.create(
-        post_id: post.id,
-        data: upload.context["ugoira"]["frame_data"],
-        content_type: upload.context["ugoira"]["content_type"]
+          post_id: post.id,
+          data: upload.context["ugoira"]["frame_data"],
+          content_type: upload.context["ugoira"]["content_type"]
       )
     end
   end

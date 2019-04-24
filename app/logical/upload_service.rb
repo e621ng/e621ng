@@ -8,14 +8,6 @@ class UploadService
     @params = params
   end
 
-  def delayed_start(uploader_id)
-    CurrentUser.as(uploader_id) do
-      start!
-    end
-  rescue ActiveRecord::RecordNotUnique
-    return
-  end
-
   def start!
     params[:tag_string] ||= "tagme"
     @upload = Upload.create(params)
