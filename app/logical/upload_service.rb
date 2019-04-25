@@ -1,5 +1,3 @@
-require 'upload_service/controller_helper'
-require 'upload_service/preprocessor'
 require 'upload_service/replacer'
 require 'upload_service/utils'
 
@@ -10,34 +8,7 @@ class UploadService
     @params = params
   end
 
-  def delayed_start(uploader_id)
-    CurrentUser.as(uploader_id) do
-      start!
-    end
-  rescue ActiveRecord::RecordNotUnique
-    return
-  end
-
   def start!
-    preprocessor = Preprocessor.new(params)
-
-    if preprocessor.in_progress?
-      UploadProcessJob.set(wait: 5.seconds).perform_later(self, CurrentUser.id)
-      return preprocessor.predecessor
-    end
-
-    if preprocessor.completed?
-      @upload = preprocessor.finish!
-
-      begin
-        create_post_from_upload(@upload)
-      rescue Exception => x
-        @upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
-      end
-      return @upload
-    end
-
-    params[:rating] ||= "q"
     params[:tag_string] ||= "tagme"
     @upload = Upload.create(params)
 
@@ -90,10 +61,6 @@ class UploadService
     end
 
     upload.update(status: "completed", post_id: @post.id)
-
-    # if @post.is_pending? && Automod::UpdateDynamoDbJob.enabled?
-    #   Delayed::Job.enqueue(Automod::UpdateDynamoDbJob.new(@post.id), run_at: 84.hours.from_now, queue: "default")
-    # end
 
     @post
   end
