@@ -5,8 +5,7 @@ let Upload = {};
 Upload.initialize_all = function() {
   if ($("#c-uploads,#c-posts").length) {
     this.initialize_enter_on_tags();
-    $("#upload_source").on("change.danbooru", Upload.fetch_data_manual);
-    // TODO: This fires off when the editor is first displayed on the post page?
+    $("#upload_direct_url").on("change.danbooru", Upload.fetch_data_manual);
     $(document).on("click.danbooru", "#fetch-data-manual", Upload.fetch_data_manual);
   }
 
@@ -41,7 +40,7 @@ Upload.initialize_submit = function() {
 
 Upload.validate_upload = function (e) {
   var error_messages = [];
-  if (($("#upload_file").val() === "") && !/^https?:\/\//i.test($("#upload_source").val()) && $("#upload_md5_confirmation").val() === "") {
+  if (($("#upload_file").val() === "") && !/^https?:\/\//i.test($("#upload_direct_url").val()) && $("#upload_md5_confirmation").val() === "") {
     error_messages.push("Must choose file or specify source");
   }
   if (!$("#upload_rating_s").prop("checked") && !$("#upload_rating_q").prop("checked") && !$("#upload_rating_e").prop("checked") &&
@@ -60,8 +59,8 @@ Upload.validate_upload = function (e) {
 }
 
 Upload.initialize_iqdb_source = function() {
-  if (/^https?:\/\//.test($("#upload_source").val())) {
-    $.get("/iqdb_queries", {"url": $("#upload_source").val()}).done(function(html) {$("#iqdb-similar").html(html)});
+  if (/^https?:\/\//.test($("#upload_direct_url").val())) {
+    $.get("/iqdb_queries", {"url": $("#upload_direct_url").val()}).done(function(html) {$("#iqdb-similar").html(html)});
   }
 }
 
@@ -77,7 +76,7 @@ Upload.initialize_enter_on_tags = function() {
 
 Upload.initialize_similar = function() {
   $("#similar-button").on("click.danbooru", function(e) {
-    $.get("/iqdb_queries", {"url": $("#upload_source").val()}).done(function(html) {$("#iqdb-similar").html(html).show()});
+    $.get("/iqdb_queries", {"url": $("#upload_direct_url").val()}).done(function(html) {$("#iqdb-similar").html(html).show()});
     e.preventDefault();
   });
 }
@@ -104,7 +103,7 @@ Upload.showWhitelistWarning = function(allowed, reason, domain) {
 }
 
 Upload.fetch_data_manual = function(e) {
-  var url = $("#upload_source,#post_source").val();
+  var url = $("#upload_direct_url").val();
   var ref = $("#upload_referer_url").val();
 
   if(!url.length)

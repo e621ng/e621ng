@@ -6,9 +6,7 @@ class UploadsController < ApplicationController
   def new
     @source = Sources::Strategies.find(params[:url], params[:ref]) if params[:url].present?
     @upload_notice_wiki = WikiPage.titled(Danbooru.config.upload_notice_wiki_page).first
-    @upload, @remote_size = UploadService::ControllerHelper.prepare(
-      url: params[:url], ref: params[:ref]
-    )
+    @upload = Upload.new
     respond_with(@upload)
   end
 
@@ -61,7 +59,7 @@ class UploadsController < ApplicationController
 
   def upload_params
     permitted_params = %i[
-      file source tag_string rating status parent_id artist_commentary_title
+      file direct_url source tag_string rating status parent_id artist_commentary_title
       artist_commentary_desc include_artist_commentary referer_url
       md5_confirmation as_pending
     ]

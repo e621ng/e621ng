@@ -208,12 +208,12 @@ class UploadService
 
     def get_file_for_upload(upload, file: nil)
       return file if file.present?
-      raise RuntimeError, "No file or source URL provided" if upload.source_url.blank?
+      raise RuntimeError, "No file or source URL provided" if upload.direct_url_parsed.blank?
 
       attempts = 0
 
       begin
-        download = Downloads::File.new(upload.source_url, upload.referer_url)
+        download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
         file, strategy = download.download!
 
         if !DanbooruImageResizer.validate_shell(file)

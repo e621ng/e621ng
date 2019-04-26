@@ -323,7 +323,8 @@ class Post < ApplicationRecord
 
   module SourceMethods
     def source_array
-      self.source.split("\n")
+      return [] if source.blank?
+      source.split("\n")
     end
 
     def strip_source

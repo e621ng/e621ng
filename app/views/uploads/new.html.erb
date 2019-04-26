@@ -36,11 +36,16 @@
         </div>
 
         <div class="input">
-          <%= f.label :source %>
-          <%= f.text_field :source, :size => 50, :value => params[:url] %>
+          <%= f.label :direct_url %>
+          <%= f.text_field :direct_url, size: 50, value: params[:url] %>
           <%= button_tag "Similar", :id => "similar-button", :type => "button", :class => "ui-button ui-widget ui-corner-all sub" %>
           <div id="whitelist-warning"></div>
           <span class="hint">You can enter a URL to have <%= Danbooru.config.app_name %> automatically download and process it</span>
+        </div>
+
+        <div class="input">
+          <%= f.label :source, "Sources" %>
+          <%= f.text_area :source, size: "60x5", value: params[:url] %>
         </div>
 
         <div class="input">
