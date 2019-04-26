@@ -70,24 +70,24 @@ module PostsHelper
     render("users/common_searches", user: user, sig: sig)
   end
 
-  def post_source_tag(post)
-    if post.source =~ %r!\Ahttp://img\d+\.pixiv\.net/img/([^\/]+)/!i
+  def post_source_tag(source)
+
+    if source =~ %r!\Ahttp://img\d+\.pixiv\.net/img/([^\/]+)/!i
       text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
       source_search = "source:pixiv/#{$1}/"
-    elsif post.source =~ %r!\Ahttp://i\d\.pixiv\.net/img\d+/img/([^\/]+)/!i
+    elsif source =~ %r!\Ahttp://i\d\.pixiv\.net/img\d+/img/([^\/]+)/!i
       text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
       source_search = "source:pixiv/#{$1}/"
-    elsif post.source =~ %r{\Ahttps?://}i
-      text = post.normalized_source.sub(/\Ahttps?:\/\/(?:www\.)?/i, "")
-      text = truncate(text, length: 20)
-      source_search = "source:#{post.source.sub(/[^\/]*$/, "")}"
+    elsif source =~ %r{\Ahttps?://}i
+      text = source.sub(/\Ahttps?:\/\/(?:www\.)?/i, "")
+      source_search = "source:#{source.sub(/[^\/]*$/, "")}"
     end
 
     # Only allow http:// and https:// links. Disallow javascript: links.
-    if post.normalized_source =~ %r!\Ahttps?://!i
-      source_link = link_to(text, post.normalized_source)
+    if source =~ %r!\Ahttps?://!i
+      source_link = fast_link_to(text, source, target: "_blank", rel: 'nofollow noreferrer noopener')
     else
-      source_link = truncate(post.source, :length => 100)
+      source_link = source
     end
 
     if CurrentUser.is_builder? && !source_search.blank?

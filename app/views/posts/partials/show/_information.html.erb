@@ -16,7 +16,11 @@
       (<span itemprop="width"><%= post.image_width %></span>x<span itemprop="height"><%= post.image_height %></span>)
     <% end %>
   </li>
-  <li>Source: <%= post_source_tag(post) %></li>
+  <li class="source-links">Source:
+    <% post.source_array.each do |source| %>
+      <div class="source-link"><%= post_source_tag(source) %></div>
+    <% end %>
+  </li>
   <li>Rating: <%= post.pretty_rating %></li>
   <li>Score: <%= post_vote_block(post, post.own_vote) %>
   <% if CurrentUser.is_admin? %><span><%= link_to "(votes)", controller: :post_votes, post_id: post.id%></span><% end %>

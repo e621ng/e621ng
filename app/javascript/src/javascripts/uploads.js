@@ -6,6 +6,7 @@ Upload.initialize_all = function() {
   if ($("#c-uploads,#c-posts").length) {
     this.initialize_enter_on_tags();
     $("#upload_source").on("change.danbooru", Upload.fetch_data_manual);
+    // TODO: This fires off when the editor is first displayed on the post page?
     $(document).on("click.danbooru", "#fetch-data-manual", Upload.fetch_data_manual);
   }
 

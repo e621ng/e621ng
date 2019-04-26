@@ -172,6 +172,21 @@ body[data-user-can-approve-posts="true"] .post-preview {
 }
 
 div#c-posts {
+  .source-link {
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:190px;
+  }
+  .source-link:hover {
+    overflow:visible;
+    height:auto;
+    z-index:2;
+    position: relative;
+    max-width:none;
+  }
+
+
   .fav-buttons {
     font-size: 14pt;
     margin: 0.5em 0;

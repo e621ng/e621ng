@@ -16,7 +16,7 @@ class Post < ApplicationRecord
   before_validation :merge_old_changes
   before_validation :normalize_tags, if: :tag_string_changed?
   before_validation :strip_source
-  before_validation :parse_pixiv_id
+  #before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
@@ -321,6 +321,36 @@ class Post < ApplicationRecord
     end
   end
 
+  module SourceMethods
+    def source_array
+      self.source.split("\n")
+    end
+
+    def strip_source
+      self.source = "" if source.blank?
+
+      self.source.gsub!(/\r\n?/, "\n") # Normalize newlines
+      self.source.gsub!(/%0A/i, "\n")  # Handle accidentally-encoded %0As from api calls (which would normally insert a literal %0A into the source)
+      sources = self.source.split(/(?:\r)?\n/)
+      gallery_sources = []
+      submission_sources = []
+      direct_sources = []
+      additional_sources = []
+
+      sources.map! do |src|
+        src.unicode_normalize!(:nfc)
+        src = src.try(:strip)
+        alternate = Sources::Alternates.find(src)
+        gallery_sources << alternate.gallery_url if alternate.gallery_url
+        submission_sources << alternate.submission_url if alternate.submission_url
+        direct_sources << alternate.submission_url if alternate.direct_url
+        additional_sources += alternate.additional_urls if alternate.additional_urls
+        alternate.original_url
+      end
+      self.source = (sources + submission_sources + gallery_sources + direct_sources + additional_sources).compact.reject{ |e| e.strip.empty? }.uniq.first(10).join("\n")
+    end
+  end
+
   module PresenterMethods
     def presenter
       @presenter ||= PostPresenter.new(self)
@@ -348,6 +378,7 @@ class Post < ApplicationRecord
     end
 
     def normalized_source
+      source = source_array.fetch(0, "")
       case source
       when %r{\Ahttps?://img\d+\.pixiv\.net/img/[^\/]+/(\d+)}i,
           %r{\Ahttps?://i\d\.pixiv\.net/img\d+/img/[^\/]+/(\d+)}i
@@ -551,6 +582,7 @@ class Post < ApplicationRecord
     end
 
     def source_domain
+      source = source_array.fetch(0, "")
       return "" unless source =~ %r!\Ahttps?://!i
 
       url = Addressable::URI.parse(normalized_source)
@@ -1842,6 +1874,7 @@ class Post < ApplicationRecord
   include FileMethods
   include ImageMethods
   include ApprovalMethods
+  include SourceMethods
   include PresenterMethods
   include TagMethods
   include FavoriteMethods
@@ -1900,10 +1933,6 @@ class Post < ApplicationRecord
     @tag_categories = nil
     @typed_tags = nil
     self
-  end
-
-  def strip_source
-    self.source = source.try(:strip)
   end
 
   def mark_as_translated(params)

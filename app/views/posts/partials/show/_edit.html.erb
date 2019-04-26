@@ -71,8 +71,7 @@
 
   <div class="input">
     <%= f.label :source %>
-    <%= f.text_field :source %>
-    <%= button_tag "Similar", :id => "similar-button", :type => "button", :class => "ui-button ui-widget ui-corner-all sub" %>
+    <%= f.text_area :source, size: '60x5', spellcheck: false %>
   </div>
 
   <% if Danbooru.config.iqdbs_server %>
@@ -99,7 +98,7 @@
 
     <div>
       <%= f.label :locked_tags, "Locked Tags" %>
-      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || "") %>
+      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
     </div>
   </div>
   
