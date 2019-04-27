@@ -1,0 +1,20 @@
+@import "../base/000_vars.scss";
+
+#c-edit-history {
+  .edit-item {
+    display: flex;
+    &>div {
+      margin-right: 1em;
+      display: inline-block;
+    }
+  }
+
+  ins {
+    background-color: $success_color;
+    font-weight: bold;
+  }
+  del {
+    background-color: $error_color;
+    font-weight: bold;
+  }
+}

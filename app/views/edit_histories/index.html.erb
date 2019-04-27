@@ -1,0 +1,37 @@
+<div id="c-edit-history">
+  <div id="a-index">
+    <h1>Recent Edits</h1>
+
+    <table class='striped' style='width:100%;'>
+      <thead>
+      <tr>
+        <th></th>
+        <th>Type</th>
+        <th>Date</th>
+        <th>IP Address</th>
+        <th>Editor</th>
+        <th>Body</th>
+        <th>Subject</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @edit_history.each do |edit| %>
+        <tr id="edit-<%= edit.id %>">
+          <td><%= link_to "Show", action: "show", id: edit.versionable_id, type: edit.versionable_type %></td>
+          <td><%= edit.versionable_type %></td>
+          <td><%= edit.updated_at.strftime("%b %d, %Y %I:%M %p") %></td>
+          <td><%= link_to_ip edit.ip_addr %></td>
+          <td><%= link_to_user edit.user %></td>
+          <td><%= edit.body[0..30] %></td>
+          <td><%= edit.subject&[0..30] %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <div id="paginator">
+      <%= numbered_paginator(@edit_history) %>
+    </div>
+  </div>
+</div>

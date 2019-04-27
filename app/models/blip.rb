@@ -1,4 +1,5 @@
 class Blip < ApplicationRecord
+  simple_versioning
   belongs_to_creator
   validates_presence_of :body
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true

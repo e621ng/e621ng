@@ -40,6 +40,7 @@
             <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
             <% if CurrentUser.is_moderator? %>
               <li>|</li>
+              <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
               <li>
                 <strong>IP</strong>
                 <span><%= link_to_ip comment.creator_ip_addr %></span>

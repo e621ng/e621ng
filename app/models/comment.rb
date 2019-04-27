@@ -1,6 +1,7 @@
 class Comment < ApplicationRecord
   include Mentionable
 
+  simple_versioning
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
   validates_presence_of :body, :message => "has no content"

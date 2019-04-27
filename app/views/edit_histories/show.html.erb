@@ -1,0 +1,26 @@
+<div id="c-edit-history">
+  <div id="a-show">
+    <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
+
+    <div class="response-list" id="edit-history">
+      <% @edits.each_with_index do |edit, idx| %>
+        <div class="edit-item box-section">
+          <div class="author">
+            <h6><%= link_to_user edit.user %></h6>
+            <span class="date" title="<%= time_ago_in_words(edit.created_at) + " ago" %>"><%= edit.created_at.strftime("%b %d, %Y %I:%M %p") %></span>
+            <div><%= link_to_ip edit.ip_addr %></div>
+          </div>
+          <div class="content">
+            <div class="body">
+              <% if edit.version > 1 %>
+                <%= edit.diff(@edits[idx-1]) %>
+              <% else %>
+                <%= edit.body %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
