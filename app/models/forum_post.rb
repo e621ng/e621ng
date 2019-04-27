@@ -1,6 +1,7 @@
 class ForumPost < ApplicationRecord
   include Mentionable
 
+  simple_versioning
   attr_readonly :topic_id
   belongs_to_creator
   belongs_to_updater
@@ -160,7 +161,7 @@ class ForumPost < ApplicationRecord
   end
 
   def category_allows_replies
-    if topic && !topic.can_rely?(creator)
+    if topic && !topic.can_reply?(creator)
       errors[:topic] << "does not allow replies"
       return false
     end

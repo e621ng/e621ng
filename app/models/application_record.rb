@@ -241,6 +241,60 @@ class ApplicationRecord < ActiveRecord::Base
     end
   end
 
+  concerning :SimpleVersioningMethods do
+    class_methods do
+      def simple_versioning(options = {})
+        cattr_accessor :versioning_body_column, :versioning_ip_column, :versioning_user_column, :versioning_subject_column
+        self.versioning_body_column = options[:body_column] || "body"
+        self.versioning_subject_column = options[:subject_column]
+        self.versioning_ip_column = options[:ip_column] || "creator_ip_addr"
+        self.versioning_user_column = options[:user_column] || "creator_id"
+
+        class_eval do
+          has_many :versions, class_name: 'EditHistory', as: :versionable
+          after_update :save_version, if: :should_version_change
+
+          define_method :should_version_change do
+            if self.versioning_subject_column
+              return true if send "saved_change_to_#{self.versioning_subject_column}?"
+            end
+            send "saved_change_to_#{self.versioning_body_column}?"
+          end
+
+          define_method :save_version do
+            EditHistory.transaction do
+              our_next_version = next_version
+              if our_next_version == 0
+                our_next_version += 1
+                new = EditHistory.new
+                new.versionable = self
+                new.version = 1
+                new.ip_addr = self.send self.versioning_ip_column
+                new.body = self.send "#{self.versioning_body_column}_before_last_save"
+                new.user_id = self.send self.versioning_user_column
+                new.subject = self.send "#{self.versioning_subject_column}_before_last_save" if self.versioning_subject_column
+                new.created_at = self.created_at
+                new.save
+              end
+
+              version = EditHistory.new
+              version.version = our_next_version + 1
+              version.versionable = self
+              version.ip_addr = CurrentUser.ip_addr
+              version.body = self.send self.versioning_body_column
+              version.user_id = CurrentUser.id
+              version.save
+            end
+          end
+
+          define_method :next_version do
+            versions.count
+          end
+        end
+      end
+    end
+  end
+
   concerning :UserMethods do
     class_methods do
       def belongs_to_creator(options = {})

@@ -780,6 +780,43 @@ ALTER SEQUENCE public.dmails_id_seq OWNED BY public.dmails.id;
 
 
 --
+-- Name: edit_histories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.edit_histories (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    body text NOT NULL,
+    subject text,
+    versionable_type character varying(100) NOT NULL,
+    versionable_id integer NOT NULL,
+    version integer NOT NULL,
+    ip_addr inet NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+--
+-- Name: edit_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.edit_histories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: edit_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.edit_histories_id_seq OWNED BY public.edit_histories.id;
+
+
+--
 -- Name: email_blacklists; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -958,7 +995,8 @@ CREATE TABLE public.forum_posts (
     text_index tsvector NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    creator_ip_addr inet
 );
 
 
@@ -1066,7 +1104,8 @@ CREATE TABLE public.forum_topics (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     category_id integer DEFAULT 0 NOT NULL,
-    min_level integer DEFAULT 0 NOT NULL
+    min_level integer DEFAULT 0 NOT NULL,
+    creator_ip_addr inet
 );
 
 
@@ -2650,6 +2689,13 @@ ALTER TABLE ONLY public.dmails ALTER COLUMN id SET DEFAULT nextval('public.dmail
 
 
 --
+-- Name: edit_histories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.edit_histories ALTER COLUMN id SET DEFAULT nextval('public.edit_histories_id_seq'::regclass);
+
+
+--
 -- Name: email_blacklists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3114,6 +3160,14 @@ ALTER TABLE ONLY public.dmail_filters
 
 ALTER TABLE ONLY public.dmails
     ADD CONSTRAINT dmails_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: edit_histories edit_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.edit_histories
+    ADD CONSTRAINT edit_histories_pkey PRIMARY KEY (id);
 
 
 --
@@ -3776,6 +3830,20 @@ CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_i
 --
 
 CREATE INDEX index_dmails_on_owner_id ON public.dmails USING btree (owner_id);
+
+
+--
+-- Name: index_edit_histories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_edit_histories_on_user_id ON public.edit_histories USING btree (user_id);
+
+
+--
+-- Name: index_edit_histories_on_versionable_id_and_versionable_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON public.edit_histories USING btree (versionable_id, versionable_type);
 
 
 --
@@ -4810,6 +4878,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190409195837'),
 ('20190410022203'),
 ('20190413055451'),
-('20190418093745');
+('20190418093745'),
+('20190427163107'),
+('20190427181805');
 
 

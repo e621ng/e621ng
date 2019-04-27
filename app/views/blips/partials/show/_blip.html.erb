@@ -53,6 +53,7 @@
 
         <% if CurrentUser.is_moderator? %>
           <li>|</li>
+          <li><%= link_to "Show Edits", edit_history_path(id: blip.id, type: 'Blip') %></li>
           <li>
             <strong>IP</strong>
             <span><%= link_to_ip blip.creator_ip_addr %></span>

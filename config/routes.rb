@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
   end
+  resources :edit_histories
   namespace :moderator do
     resource :bulk_revert, :only => [:new, :create]
     resource :dashboard, :only => [:show]
