@@ -197,7 +197,7 @@ module PostIndex
       md5:      md5,
       rating:   rating,
       file_ext: file_ext,
-      source:   source.downcase.presence,
+      source:   source_array,
 
       rating_locked:  is_rating_locked,
       note_locked:    is_note_locked,

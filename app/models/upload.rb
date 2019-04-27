@@ -55,14 +55,15 @@ class Upload < ApplicationRecord
   end
 
 
-  attr_accessor :as_pending, :replaced_post, :file
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
   before_validation :initialize_attributes, on: :create
   before_validation :assign_rating_from_tags
+  before_validation :fixup_source, on: :create
   validate :uploader_is_not_limited, on: :create
-  validate :source_is_whitelisted, on: :create
+  validate :direct_url_is_whitelisted, on: :create
   # validates :source, format: { with: /\Ahttps?/ }, if: ->(record) {record.file.blank?}, on: :create
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validates :md5, confirmation: true, if: -> (rec) { rec.md5_confirmation.present? }
@@ -135,8 +136,8 @@ class Upload < ApplicationRecord
     end
   end
 
-  module SourceMethods
-    def source=(source)
+  module DirectURLMethods
+    def direct_url=(source)
       source = source.unicode_normalize(:nfc)
 
       # percent encode unicode characters in urls
@@ -147,9 +148,9 @@ class Upload < ApplicationRecord
       super(source)
     end
 
-    def source_url
-      return nil unless source =~ %r!\Ahttps?://!i
-      Addressable::URI.heuristic_parse(source) rescue nil
+    def direct_url_parsed
+      return nil unless direct_url =~ %r!\Ahttps?://!i
+      Addressable::URI.heuristic_parse(direct_url) rescue nil
     end
   end
 
@@ -251,7 +252,7 @@ class Upload < ApplicationRecord
   include VideoMethods
   extend SearchMethods
   include ApiMethods
-  include SourceMethods
+  include DirectURLMethods
 
   def uploader_is_not_limited
     if !uploader.can_upload?
@@ -262,9 +263,9 @@ class Upload < ApplicationRecord
     end
   end
 
-  def source_is_whitelisted
-    return true if source_url.nil?
-    valid, reason = UploadWhitelist.is_whitelisted?(source_url)
+  def direct_url_is_whitelisted
+    return true if direct_url_parsed.nil?
+    valid, reason = UploadWhitelist.is_whitelisted?(direct_url_parsed)
     if !valid
       self.errors.add(:source, "is not whitelisted: #{reason}")
       return false
@@ -275,6 +276,13 @@ class Upload < ApplicationRecord
   def assign_rating_from_tags
     if rating = Tag.has_metatag?(tag_string, :rating)
       self.rating = rating.downcase.first
+    end
+  end
+
+  def fixup_source
+    if direct_url_parsed.present?
+      canonical = Sources::Strategies.find(direct_url_parsed, referer_url).canonical_url
+      self.source += "\n#{canonical}" if canonical
     end
   end
 
