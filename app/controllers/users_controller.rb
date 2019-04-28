@@ -83,7 +83,7 @@ class UsersController < ApplicationController
 
   def user_params(context)
     permitted_params = %i[
-      password old_password password_confirmation email
+      password old_password password_confirmation
       comment_threshold default_image_size favorite_tags blacklisted_tags
       time_zone per_page custom_style
 
@@ -97,7 +97,8 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params << :name if context == :create
+    permitted_params += [:profile_about, :profile_artinfo, :email] if CurrentUser.is_member? # Prevent editing when blocked
+    permitted_params += [:name, :email] if context == :create
     permitted_params << :level if CurrentUser.is_admin?
 
     params.require(:user).permit(permitted_params)

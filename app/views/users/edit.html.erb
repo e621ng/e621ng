@@ -36,6 +36,10 @@
           </p>
         </div>
 
+        <%= f.input :profile_about, label: "About Me" %>
+
+        <%= f.input :profile_artinfo, label: "Commission Info" %>
+
         <%= f.input :time_zone, :include_blank => false %>
 
         <%= f.input :receive_email_notifications, :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
