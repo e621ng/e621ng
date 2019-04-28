@@ -2,6 +2,14 @@
 
 div#c-users {
   div#a-show {
+    .about-section {
+      display: flex;
+      .about-piece {
+        flex-grow: 1;
+        margin: 0 1em;
+      }
+    }
+
     div.box {
       h2, h3 {
         color: #333;

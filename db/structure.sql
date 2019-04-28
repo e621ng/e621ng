@@ -2460,7 +2460,9 @@ furry -rating:s'::text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
-    set_count integer DEFAULT 0 NOT NULL
+    set_count integer DEFAULT 0 NOT NULL,
+    profile_about text,
+    profile_artinfo text
 );
 
 
@@ -4880,6 +4882,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190413055451'),
 ('20190418093745'),
 ('20190427163107'),
-('20190427181805');
+('20190427181805'),
+('20190428132152');
 
 

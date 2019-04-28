@@ -3,6 +3,7 @@
     <h1><%= link_to_user @user %></h1>
 
     <%= render "statistics", :presenter => @presenter, :user => @user %>
+    <%= render "about", presenter: @presenter, user: @user %>
 
     <% if !CurrentUser.is_admin? && !@user.enable_privacy_mode? || CurrentUser.id == @user.id %>
       <%= render "posts/partials/common/inline_blacklist" %>
