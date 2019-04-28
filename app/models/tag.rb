@@ -192,7 +192,7 @@ class Tag < ApplicationRecord
 
     def update_category
       update_category_cache
-      update_category_post_counts
+      update_category_post_counts unless new_record?
       write_category_change_entry unless new_record?
     end
 
