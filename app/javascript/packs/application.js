@@ -43,6 +43,7 @@ export { default as Shortcuts } from '../src/javascripts/shortcuts.js';
 export { default as Upload } from '../src/javascripts/uploads.js';
 export { default as Utility } from '../src/javascripts/utility.js';
 export { default as Ugoira } from '../src/javascripts/ugoira.js';
+export { default as Thumbnails } from '../src/javascripts/thumbnails.js';
 
 import Takedown from '../src/javascripts/takedowns.js';
 window.Takedown = Takedown;

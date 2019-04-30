@@ -1559,6 +1559,7 @@ class Post < ApplicationRecord
       if visible?
         hash['md5'] = md5
         hash['preview_url'] = preview_file_url
+        hash['cropped_url'] = crop_file_url
       end
       hash
     end

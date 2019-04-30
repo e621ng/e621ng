@@ -137,7 +137,7 @@ Blacklist.apply = function () {
 }
 
 Blacklist.posts = function () {
-  return $(".post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .user-avatar");
+  return $(".post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail");
 }
 
 Blacklist.post_match = function (post, entry) {
