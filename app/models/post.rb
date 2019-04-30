@@ -1542,6 +1542,25 @@ class Post < ApplicationRecord
       super(options)
     end
 
+    def minimal_attributes
+      hash = {
+          'status': status,
+          'id': id,
+          'rating': rating,
+          'width': width,
+          'height': height,
+          'tags': tag_string,
+          'score': score,
+          'uploader_id': uploader_id
+      }
+
+      if visible?
+        hash['md5'] = md5
+        hash['preview_url'] = preview_file_url
+      end
+      hash
+    end
+
     def legacy_attributes
       hash = {
           "has_comments" => last_commented_at.present?,
