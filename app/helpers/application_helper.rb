@@ -240,7 +240,9 @@ module ApplicationHelper
     end.to_h
   end
 
-  def user_avatar(post_id)
+  def user_avatar(user)
+    return "" if user.nil?
+    post_id = user.avatar_id
     return "" unless post_id
     DeferredPosts.add(post_id)
     tag.div (tag.img class: 'thumb-img placeholder', src: '/images/thumb-preview.png', height: 100, width: 100), class: 'post-thumb placeholder', id: "tp-#{post_id}", 'data-id': post_id

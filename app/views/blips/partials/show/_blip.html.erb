@@ -1,6 +1,7 @@
 <% if blip.visible_to?(CurrentUser.user) %>
   <article class="blip">
     <div class="author">
+      <%= user_avatar(blip.creator) %>
       <h1>
         <%= link_to_user blip.creator %>
         <% if blip.is_hidden %>

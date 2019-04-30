@@ -209,9 +209,9 @@ Blacklist.initialize_all = function () {
 }
 
 $(document).ready(function () {
-  if ($("#blacklist-box").length === 0) {
-    return;
-  }
+  // if ($("#blacklist-box").length === 0) {
+  //   return;
+  // }
 
   Blacklist.initialize_all();
 });

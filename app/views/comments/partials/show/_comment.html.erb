@@ -2,7 +2,7 @@
   <a name="comment-<%= comment.id %>"></a>
   <article class="comment <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>" data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>" data-creator="<%= comment.creator_name %>" data-is-sticky="<%= comment.is_sticky %>">
     <div class="author">
-      <%= user_avatar(comment.creator.avatar_id) %>
+      <%= user_avatar(comment.creator) %>
       <h1>
         <%= link_to_user comment.creator %>
         <% if comment.is_deleted? %>

@@ -31,7 +31,7 @@ Thumbnails.initialize = function () {
     p.attr('class', blacklisted ? "post-thumbnail blacklisted blacklisted-active" : "post-thumbnail");
     const img = $('<img>');
     img.attr('src', postData.preview_url);
-    img.attr({height: 100, width: 100, title: postData.tags, alt: postData.tags, class: 'post-thumbnail-img'});
+    img.attr({height: postData.preview_height, width: postData.preview_width, title: postData.tags, alt: postData.tags, class: 'post-thumbnail-img'});
     const link = $('<a>');
     link.attr('href', `/posts/${postData.id}`);
     link.append(img);
