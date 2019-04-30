@@ -1545,10 +1545,12 @@ class Post < ApplicationRecord
     def minimal_attributes
       hash = {
           'status': status,
+          'flags': status_flags,
+          'file_ext': file_ext,
           'id': id,
           'rating': rating,
-          'width': width,
-          'height': height,
+          'width': image_width,
+          'height': image_height,
           'tags': tag_string,
           'score': score,
           'uploader_id': uploader_id

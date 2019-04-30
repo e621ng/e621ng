@@ -2,7 +2,7 @@ class DeferredPosts
   KEY = :deferred_posts
 
   def self.add(post_id)
-    raise ArgumentError.new "post id must be a number" if post_id.nil? || !post_id.respond_to?(:to_id)
+    raise ArgumentError.new "post id must be a number" if post_id.nil? || !post_id.respond_to?(:to_i)
     posts = RequestStore[KEY] || []
     posts << post_id.to_i
     RequestStore[KEY] = posts
@@ -20,6 +20,7 @@ class DeferredPosts
   def self.dump
     post_ids = RequestStore[KEY] || []
     post_ids.uniq!
+    return {} if post_ids.size == 0
     post_hash = {}
     posts = Post.where(id: post_ids)
     posts.find_each do |p|
