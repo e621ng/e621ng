@@ -2462,7 +2462,8 @@ furry -rating:s'::text,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
     set_count integer DEFAULT 0 NOT NULL,
     profile_about text,
-    profile_artinfo text
+    profile_artinfo text,
+    avatar_id integer
 );
 
 
@@ -4883,6 +4884,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190418093745'),
 ('20190427163107'),
 ('20190427181805'),
-('20190428132152');
+('20190428132152'),
+('20190430120155');
 
 

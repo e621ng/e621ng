@@ -109,6 +109,7 @@ class User < ApplicationRecord
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
   has_many :favorites, ->(rec) {where("user_id % 100 = #{rec.id % 100} and user_id = #{rec.id}").order("id desc")}
   belongs_to :inviter, class_name: "User", optional: true
+  belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
 
   module BanMethods

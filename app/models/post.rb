@@ -222,6 +222,17 @@ class Post < ApplicationRecord
       image_width.present? && image_height.present?
     end
 
+    def preview_dimensions(max_px = Danbooru.config.small_image_width)
+      height = width = max_px
+      dimension_ratio = image_width.to_f / image_height
+      if dimension_ratio > 1
+        height = (width / dimension_ratio).to_i
+      else
+        width = (height * dimension_ratio).to_i
+      end
+      [height, width]
+    end
+
     def has_ugoira_webm?
       true
     end
@@ -1540,6 +1551,31 @@ class Post < ApplicationRecord
       options[:include] ||= []
       options[:include] += associated_attributes
       super(options)
+    end
+
+    def minimal_attributes
+      preview_dims = preview_dimensions
+      hash = {
+          status: status,
+          flags: status_flags,
+          file_ext: file_ext,
+          id: id,
+          rating: rating,
+          preview_width: preview_dims[1],
+          width: image_width,
+          preview_height: preview_dims[0],
+          height: image_height,
+          tags: tag_string,
+          score: score,
+          uploader_id: uploader_id
+      }
+
+      if visible?
+        hash[:md5] = md5
+        hash[:preview_url] = preview_file_url
+        hash[:cropped_url] = crop_file_url
+      end
+      hash
     end
 
     def legacy_attributes

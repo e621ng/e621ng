@@ -520,6 +520,7 @@ DEPENDENCIES
   rakismet
   recaptcha
   redis
+  request_store
   responders
   retriable
   ruby-imagespec!

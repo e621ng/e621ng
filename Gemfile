@@ -55,6 +55,7 @@ gem 'sidekiq'
 # gem 'sidekiq-worker-killer'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
+gem 'request_store'
 
 gem 'elasticsearch-model'
 gem 'elasticsearch-rails'
