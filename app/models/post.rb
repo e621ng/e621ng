@@ -1914,7 +1914,7 @@ class Post < ApplicationRecord
   end
 
   def loginblocked?
-    CurrentUser.is_anonymous?
+    CurrentUser.is_anonymous? && hide_from_anonymous?
   end
 
   def visible?
