@@ -1556,24 +1556,24 @@ class Post < ApplicationRecord
     def minimal_attributes
       preview_dims = preview_dimensions
       hash = {
-          'status': status,
-          'flags': status_flags,
-          'file_ext': file_ext,
-          'id': id,
-          'rating': rating,
-          'preview_width': preview_dims[1],
-          'width': image_width,
-          'preview_height': preview_dims[0],
-          'height': image_height,
-          'tags': tag_string,
-          'score': score,
-          'uploader_id': uploader_id
+          status: status,
+          flags: status_flags,
+          file_ext: file_ext,
+          id: id,
+          rating: rating,
+          preview_width: preview_dims[1],
+          width: image_width,
+          preview_height: preview_dims[0],
+          height: image_height,
+          tags: tag_string,
+          score: score,
+          uploader_id: uploader_id
       }
 
       if visible?
-        hash['md5'] = md5
-        hash['preview_url'] = preview_file_url
-        hash['cropped_url'] = crop_file_url
+        hash[:md5] = md5
+        hash[:preview_url] = preview_file_url
+        hash[:cropped_url] = crop_file_url
       end
       hash
     end
