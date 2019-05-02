@@ -8,18 +8,18 @@ GIT
       googleauth (~> 0.5.0)
 
 GIT
-  remote: https://github.com/r888888888/dtext_rb.git
-  revision: 073b369bf90217ab86fdef3d0f88a96e10343d37
-  specs:
-    dtext_rb (1.9.2)
-      nokogiri (~> 1.8)
-
-GIT
   remote: https://github.com/r888888888/ruby-imagespec.git
   revision: 2dab9811f4abb4fbaeea66feb42e388ba545b2d8
   branch: exif-fixes
   specs:
     ruby-imagespec (0.3.1)
+
+GIT
+  remote: https://github.com/zwagoth/dtext_rb.git
+  revision: 197f3d66d11ebdf4876b6e15817d4f8aa6fca5da
+  specs:
+    dtext_rb (1.10.0)
+      nokogiri (~> 1.8)
 
 GEM
   remote: https://rubygems.org/
@@ -265,9 +265,9 @@ GEM
     net-ssh (4.2.0)
     newrelic_rpm (5.0.0.342)
     nio4r (2.3.1)
-    nokogiri (1.10.1)
+    nokogiri (1.10.3)
       mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.1-x64-mingw32)
+    nokogiri (1.10.3-x64-mingw32)
       mini_portile2 (~> 2.4.0)
     nokogumbo (1.5.0)
       nokogiri

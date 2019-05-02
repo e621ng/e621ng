@@ -169,7 +169,7 @@ Blacklist.post_match_object = function (post, entry) {
   tags.push(`uploaderid:${post.uploader_id}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
-  $.each(post.flags.match(/\S+/g) || [], function (i, ev) {
+  $.each(post.flags.match(/\S+/g) || [], function (i, v) {
     tags.push(`status:${v}`);
   });
 
