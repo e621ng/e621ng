@@ -23,11 +23,11 @@
       </div>
 
       <menu>
-        <li><%= tag.a "Respond", href: '#', onclick: "Blip.quote(#{blip.id})" %></li>
+        <li><%= tag.a "Respond", href: '#', onclick: "Danbooru.Blip.quote(#{blip.id})" %></li>
         <% if blip.can_edit?(CurrentUser.user) %>
           <li><%= link_to "Edit", edit_blip_path(blip) %></li>
         <% end %>
-        <li><%= tag.a "@", href: '#', onclick: "Blip.atme(#{blip.id})" %></li>
+        <li><%= tag.a "@", href: '#', onclick: "Danbooru.Blip.atme(#{blip.id})" %></li>
 
         <% if !blip.is_hidden %>
           <% if blip.can_hide?(CurrentUser.user) %>

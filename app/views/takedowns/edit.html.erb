@@ -130,15 +130,15 @@
 
         <label for="takedown-add-posts-tags">Add posts with tags:</label><br>
         <%= text_field_tag "takedown-add-posts-tags", "", size: 40 %>
-        <%= button_tag "Add", onclick: "Takedown.add_posts_by_tags_preview(#{@takedown.id});", id: "takedown-add-posts-tags-preview", type: :button, disabled: true %>
-        <%= button_tag "Confirm", onclick: "Takedown.add_posts_by_tags(#{@takedown.id});", id: "takedown-add-posts-tags-confirm", type: :button %>
-        <%= button_tag "Cancel", onclick: "Takedown.add_posts_by_tags_cancel();", id: "takedown-add-posts-tags-cancel", type: :button %>
+        <%= button_tag "Add", onclick: "Danbooru.Takedown.add_posts_by_tags_preview(#{@takedown.id});", id: "takedown-add-posts-tags-preview", type: :button, disabled: true %>
+        <%= button_tag "Confirm", onclick: "Danbooru.Takedown.add_posts_by_tags(#{@takedown.id});", id: "takedown-add-posts-tags-confirm", type: :button %>
+        <%= button_tag "Cancel", onclick: "Danbooru.Takedown.add_posts_by_tags_cancel();", id: "takedown-add-posts-tags-cancel", type: :button %>
         <div id="takedown-add-posts-tags-warning"></div>
         <br><br>
 
         <label for="takedown-add-posts-ids">Add post IDs to takedown (space-separated):</label><br>
         <%= text_field_tag "takedown-add-posts-ids", "", size: 40 %>
-        <%= button_tag "Add", onclick: "Takedown.add_posts_by_ids(#{@takedown.id})", id: "takedown-add-posts-ids-submit", disabled: true %>
+        <%= button_tag "Add", onclick: "Danbooru.Takedown.add_posts_by_ids(#{@takedown.id})", id: "takedown-add-posts-ids-submit", disabled: true %>
       </div>
 
       <h2>Update</h2>
@@ -216,7 +216,7 @@
 
         // Remove post
         $("body").on("click", ".takedown-post-remove", function () {
-            Takedown.remove_post(<%= @takedown.id %>, $(this).parent().data("post-id"));
+            Danbooru.Takedown.remove_post(<%= @takedown.id %>, $(this).parent().data("post-id"));
         });
 
         // Enable/disable add-post input submit buttons if input is filled/blank
