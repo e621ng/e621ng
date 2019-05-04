@@ -23,9 +23,9 @@
           <td>
             <% if !takedown.reason_hidden || CurrentUser.is_admin? %>
               <% if takedown.source.match(/\Ahttps?:\/\//i) %>
-                <%= link_to takedown.source, takedown.source %>
+                <%= link_to takedown.source, takedown.source, rel: "noopener noreferrer nofollow" %>
               <% else %>
-                <%= link_to takedown.source, "https://#{takedown.source}" %>
+                <%= link_to takedown.source, "https://#{takedown.source}", rel: "noopener noreferrer nofollow" %>
               <% end %>
             <% else %>
               <span class="redtext">(Source hidden)</span>
