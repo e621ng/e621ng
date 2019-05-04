@@ -28,7 +28,8 @@
   <meta name="disable-post-tooltips" content="<%= CurrentUser.disable_post_tooltips? %>">
   <%= tag.meta name: "disable-mobile-gestures", content: CurrentUser.disable_mobile_gestures? %>
   <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="/vendor/jquery-3.4.1.min.js" integrity="sha384-v/CvOfYoICV4azK6zXTy9qXP6UwbdbFVuxd2Lorpes7n5YVsaU1bQqIalcktKchl" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
   <%= javascript_pack_tag "application" %>
   <%= stylesheet_pack_tag "application" %>
   <% if CurrentUser.user.custom_style.present? %>
@@ -68,12 +69,6 @@
     "url" : "<%= root_url %>"
   }
   </script>
-  <% if request.domain =~ /donmai\.us/ %>
-    <!-- this is only usable on danbooru.donmai.us -->
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-zhaLg9HKxTxDljOPXpWHGn91XMDH+sYAWRSgvzHes290/ISyrNicGrd6BInTnx3L" crossorigin="anonymous">
-  <% else %>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-  <% end %>
   <script>
     if (typeof window.Danbooru !== "object") {
       window.Danbooru = {};
