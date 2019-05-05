@@ -1,0 +1,228 @@
+<template id="checkbox-template">
+  <button class="toggle-button" :class="{active: value}" @click="value = !value">{{check.name}}</button>
+</template>
+<template id="post-creator">
+  <div class="flex-grid-outer">
+    <div class="col box-section" style="flex: 2 0 0;">
+      <div class="the_secret_switch" @click="normalMode = !normalMode"></div>
+      <% unless @upload.new_record? %>
+        <div class="box-section" style="margin-bottom: 1rem;">
+          <p>This post was already uploaded
+            (<%= link_to "post ##{@upload.id}", {action: "show", id: @upload.id}, target: "_blank" %>).</p>
+        </div>
+      <% end %>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_file">Image</label>
+        </div>
+        <div class="col2">
+          <div v-if="!disableFileUpload">
+            <label>File:
+              <input type="file" ref="post_file" @change="updatePreview" :disabled="disableFileUpload"/>
+            </label>
+            <button @click="clearFile" v-show="disableURLUpload">Clear</button>
+          </div>
+          <div v-if="!disableURLUpload">
+            <div class="box-section sect_red" v-if="badDirectURL">
+              The direct URL entered has the following problem: {{ directURLProblem }}<br>
+              You should review <a href="/wiki/show/howto:sites_and_sources">the sourcing guide</a>.
+            </div>
+            <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
+              <input type="text" size="50" v-model="uploadURL" @keyup="updatePreview" :disabled="disableURLUpload"/>
+            </label>
+            <div id="whitelist-warning" v-show="whitelist.visible" :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
+              <span v-if="whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are permitted.</span>
+              <span v-if="!whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are not permitted. (<a href='/upload_whitelist'>View whitelisted domains</a>)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="box-section upload_preview_container in-editor below-upload">
+        <div class="upload_preview_dims">{{ previewDimensions }}</div>
+        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"/>
+      </div>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_sources">Sources</label>
+          <div>You should include: A link to the artists page where this was obtained, and a link to the submission page
+            where this image was obtained. No available source should ONLY be used if the content has never been posted
+            online anywhere else.
+          </div>
+        </div>
+        <div class="col2">
+          <div class="box-section sect_red" v-show="showErrors && sourceWarning">A source must be provided or you must
+            select that there
+            is no available source.
+          </div>
+          <div v-if="!noSource">
+            <image-source :last="i === (sources.length-1)" :index="i" v-model="sources[i]" v-for="s, i in sources"
+                          @delete="removeSource(i)" @add="addSource" :key="i"></image-source>
+          </div>
+          <div>
+            <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/> No available source
+              / I am the source.</label>
+          </div>
+        </div>
+      </div>
+      <template v-if="normalMode">
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label" for="names">Artists</label>
+          </div>
+          <div class="col2">
+            <div>
+            <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
+                      placeholder="Ex: artist_name etc."></textarea>
+            </div>
+            <div class="flex-wrap">
+              <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.artist" @set="setCheck"
+                              :key="check.name"></image-checkbox>
+            </div>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label" for="post_sex_tags">Characters</label>
+            <div>Select (and write in) all that apply. Character sex is based only on what is visible in the image.
+              Outside information or other images should not be used when deciding what tags are used.
+            </div>
+          </div>
+          <div class="col2">
+            <div class="flex-wrap">
+              <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.sex" @set="setCheck"
+                              :key="check.name"></image-checkbox>
+            </div>
+            <hr>
+            <div class="flex-wrap">
+              <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.count" @set="setCheck"
+                              :key="check.name"></image-checkbox>
+            </div>
+            <hr>
+            <div class="flex-wrap">
+              <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.pairing" @set="setCheck"
+                              :key="check.name"></image-checkbox>
+            </div>
+            <textarea class="tag-textarea" rows="2" v-model="tagEntries.sex" id="post_sexes"
+                      placeholder="Ex: character_name solo_focus etc."></textarea>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label">Body Types and Species</label>
+          </div>
+          <div class="col2">
+            <div class="flex-wrap">
+              <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.body" @set="setCheck"
+                              :key="check.name"></image-checkbox>
+            </div>
+            <textarea class="tag-textarea" rows="2" v-model="tagEntries.bodyType" id="post_bodyTypes"
+                      placeholder="Ex: bear dragon hyena rat newt etc."></textarea>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label">Contentious Content</label>
+            <div>
+              These allow users to find or blacklist content with ease. Make sure that you are tagging these upon
+              initial upload.
+            </div>
+          </div>
+          <div class="col2">
+          <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2"
+                    placeholder="Ex: cub young gore scat watersports diaper my_little_pony vore not_furry rape etc."></textarea>
+          </div>
+        </div>
+      </template>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_rating_questionable">Rating</label>
+          <div>Explicit tags include sex, pussy, penis, masturbation, fellatio, etc.
+            (<%= link_to "help", help_pages_path(title: 'ratings'), target: "_blank" %>)
+          </div>
+        </div>
+        <div class="col2">
+          <div class="box-section sect_red" v-if="showErrors && invalidRating">
+            You must select an appropriate rating for this image.
+          </div>
+          <div>
+            <template v-if="!safe">
+              <button class="toggle-button" :class="{active: rating==='e'}" @click="rating = 'e'">Explicit</button>
+              <button class="toggle-button" :class="{active: rating==='q'}" @click="rating = 'q'">Questionable</button>
+            </template>
+            <button class="toggle-button" :class="{active: rating==='s'}" @click="rating = 's'">Safe</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex-grid come-together-now">
+        <div class="col">
+          <label class="section-label" for="post_tags">Other Tags</label>
+          <div>
+            Separate tags with spaces. (<%= link_to "help", help_pages_path(title: 'tags'), target: "_blank" %>)
+          </div>
+        </div>
+        <div class="col2">
+          <div class="box-section upload_preview_container in-editor">
+            <div class="upload_preview_dims">{{ previewDimensions }}</div>
+            <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"/>
+          </div>
+          <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
+            You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count towards this
+            total.
+          </div>
+          <div v-show="!preview.show">
+            <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5" ref="otherTags"></textarea>
+          </div>
+          <div v-show="preview.show">
+            <tag-preview :tags="preview.tags" :loading="preview.loading" @close="previewFinalTags"></tag-preview>
+          </div>
+          <div class="related-tag-functions">
+            <a href="#" @click.prevent="findRelated">Related Tags</a> |
+            <a href="#" @click.prevent="findRelated('artist')">Related Artists</a> |
+            <a href="#" @click.prevent="findRelated('char')">Related Characters</a> |
+            <a href="#" @click.prevent="findRelated('copyright')">Related Copyrights</a> |
+            <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
+          </div>
+        </div>
+      </div>
+      <div class="flex-grid border-bottom over-me">
+        <related-tags :tags="tagsArray" :related="relatedTags" :loading="loadingRelated" @tag-active="pushTag"></related-tags>
+      </div>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Parent Post ID</label>
+        </div>
+        <div class="col2">
+          <input type="number" v-model.number="parentID" placeholder="Ex. 12345"/>
+        </div>
+      </div>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_description">Description</label>
+        </div>
+        <div class="col2">
+          <textarea class="tag-textarea" id="post_description" v-model="description" rows="5"></textarea>
+        </div>
+      </div>
+      <div class="flex-grid">
+        <div class="col"></div>
+        <div class="col2">
+          <div class="box-section sect_red" v-show="preventUpload && showErrors">
+            Unmet requirements above prevent the submission of the post.
+          </div>
+          <div class="box-section sect_green" v-show="submitting">
+            Submitting your post, please wait.
+          </div>
+          <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">{{ submitting ? 'Uploading...' :
+            'Upload' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
+      <div class="upload_preview_container in-sidebar">
+        <div class="upload_preview_dims">{{ previewDimensions }}</div>
+        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;" @load="updatePreviewDims" @error="previewError"/>
+      </div>
+    </div>
+  </div>
+</template>

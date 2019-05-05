@@ -1,0 +1,178 @@
+<style>
+  .toggle-button {
+    box-sizing: border-box;
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: center;
+    user-select: none;
+    padding: .175em .5rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    margin-right: 5px;
+  }
+
+  .toggle-button.active {
+    background-color: #FDF5D9;
+  }
+
+  .flex-grid-outer {
+    display: flex;
+    padding: 10px 0;
+  }
+
+  .upload_preview_container.in-editor {
+    display: none;
+  }
+
+  .upload_preview_container.in-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+
+  .flex-grid {
+    display: flex;
+    padding: 10px 0;
+  }
+
+  .flex-wrap {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .col {
+    flex: 1 0 0;
+    margin-right: 5px;
+  }
+
+  .col2 {
+    flex: 2 1 0;
+  }
+
+  .border-bottom {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  }
+
+  .section-label {
+    white-space: normal;
+  }
+
+  .come-together-now {
+    padding-bottom: 0;
+  }
+
+  .over-me {
+    padding-top: 0;
+  }
+
+  .related-section {
+    display: flex;
+    flex-direction: row;
+    flex: 0 1 10%;
+    padding: 5px 10px;
+  }
+
+  .related-items {
+    display: flex;
+    flex-direction: column;
+    margin: 0 -5px;
+    padding: 0 5px;
+  }
+
+  .related-item {
+    padding: 0 5px;
+    max-width: 140px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .related-title {
+    padding: 0 5px;
+    font-weight: bold;
+  }
+
+  .tag-active {
+    background: rgb(0, 111, 250);
+    color: white;
+  }
+
+  .tag-preview {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: rgba(1, 1, 1, 0.15);
+    border-radius: 2px;
+    padding: 3px;
+    margin-right: 5px;
+    box-sizing: border-box;
+  }
+
+  .tag-preview-alias {
+    background-color: rgba(150, 0, 0, 0.25);
+  }
+
+  .tag-preview-implication {
+    background-color: rgba(0, 150, 0, 0.25);
+  }
+
+  .tag-textarea {
+    display: inline-block; /* Why were we even unsetting this? It breaks EVERYTHING. */
+    font-size: 1rem;
+    width: 100%;
+    resize: vertical;
+  }
+
+  /* Need to override this so it shows up at all. */
+  #whitelist-warning {
+    display: block;
+    float: none;
+  }
+
+  @media only screen and (orientation: portrait), (max-width: 1100px) {
+    #preview-sidebar {
+      display: none;
+    }
+
+    .upload_preview_container.in-editor {
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    .upload_preview_container.in-sidebar {
+      display: none;
+    }
+
+    .upload_preview_dims {
+      text-align: center;
+    }
+
+    .upload_preview_img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      max-height: 500px;
+    }
+
+    .below-upload > .upload_preview_img {
+      max-height: 150px;
+    }
+
+    .related-section {
+      flex: 0 1 50%;
+    }
+
+    .flex-grid {
+      flex-direction: column;
+    }
+
+    input {
+      max-width: 90%;
+    }
+
+  }
+
+  .the_secret_switch {
+    height: 10px;
+    width: 100%;
+  }
+</style>

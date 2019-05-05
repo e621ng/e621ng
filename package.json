@@ -10,7 +10,8 @@
     "qtip2": "^3.0.3",
     "rails-erb-loader": "^5.4.2",
     "script-loader": "^0.7.2",
-    "webpack-cli": "^3.0.8"
+    "webpack-cli": "^3.0.8",
+    "vue": "^2.6.10"
   },
   "devDependencies": {
     "eslint": "^5.3.0",

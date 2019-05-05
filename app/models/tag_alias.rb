@@ -41,7 +41,7 @@ class TagAlias < TagRelationship
           nil
         end
         ForumUpdater.new(
-          forum_topic, 
+          forum_topic,
           forum_post: post,
           expected_title: TagAliasRequest.topic_title(antecedent_name, consequent_name),
           skip_update: !TagRelationship::SUPPORT_HARD_CODED
@@ -178,7 +178,7 @@ class TagAlias < TagRelationship
 
   def rename_wiki_and_artist
     antecedent_wiki = WikiPage.titled(antecedent_name).first
-    if antecedent_wiki.present? 
+    if antecedent_wiki.present?
       if WikiPage.titled(consequent_name).blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
           antecedent_wiki.update(title: consequent_name, skip_secondary_validations: true)

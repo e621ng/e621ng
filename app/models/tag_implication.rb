@@ -201,8 +201,8 @@ class TagImplication < TagRelationship
         nil
       end
       ForumUpdater.new(
-        forum_topic, 
-        forum_post: post, 
+        forum_topic,
+        forum_post: post,
         expected_title: TagImplicationRequest.topic_title(antecedent_name, consequent_name),
         skip_update: !TagRelationship::SUPPORT_HARD_CODED
       )
