@@ -72,7 +72,7 @@ class User < ApplicationRecord
   validates_uniqueness_of :email, :case_sensitive => false, :if => ->(rec) { rec.email.present? && rec.saved_change_to_email? }
   validate :validate_email_address_allowed, on: [:create, :save], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.saved_change_to_email?) }
   validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
-  validates_inclusion_of :default_image_size, :in => %w(large original)
+  validates_inclusion_of :default_image_size, :in => %w(large fit original)
   validates_inclusion_of :per_page, :in => 1..100
   validates_confirmation_of :password
   validates_presence_of :email, :if => ->(rec) { rec.new_record? && Danbooru.config.enable_email_verification?}

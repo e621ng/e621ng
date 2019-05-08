@@ -25,8 +25,7 @@ Post.initialize_all = function() {
     this.initialize_post_relationship_previews();
     this.initialize_favlist();
     this.initialize_post_sections();
-    this.initialize_post_image_resize_links();
-    this.initialize_post_image_resize_to_window_link();
+    this.initialize_resize();
     this.initialize_similar();
     this.initialize_gestures();
     this.initialize_voting();
@@ -333,6 +332,23 @@ Post.expand_image = function(e) {
   Note.Box.scale_all();
   $image.data("scale-factor", 1);
   e.preventDefault();
+}
+
+Post.fit_window = function() {
+  const $image = $("#image");
+  $image.removeAttr('height', 'width');
+  $image.addClass("fit-window");
+  Post.resize_ugoira_controls();
+  Note.Box.scale_all();
+}
+
+Post.initialize_resize = function() {
+  this.initialize_post_image_resize_links();
+  this.initialize_post_image_resize_to_window_link();
+  if(Utility.meta("default-image-size") === "fit") {
+    Post.fit_window();
+    $(window).on('resize', Post.fit_window);
+  }
 }
 
 Post.initialize_post_image_resize_links = function() {

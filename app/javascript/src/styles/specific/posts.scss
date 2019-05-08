@@ -561,3 +561,9 @@ textarea[data-autocomplete="tag-edit"] {
     width: 100%;
   }
 }
+
+#image {
+  &.fit-window {
+    max-width: 100%;
+  }
+}
