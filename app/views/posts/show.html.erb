@@ -48,17 +48,22 @@
         <%= render "posts/partials/show/embedded", post: @post %>
       <% end -%>
 
-      <% if CurrentUser.is_member? %>
-        <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-          <%= form_tag(favorites_path(post_id: @post.id), method: "post", id: "add-fav-button", "data-remote": true) do %>
-            <%= button_tag tag.i(class: "far fa-heart"), class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
-          <% end %>
+      <section id="image-extra-controls" style="display: flex;">
+        <% if CurrentUser.is_member? %>
+          <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
+            <%= form_tag(favorites_path(post_id: @post.id), method: "post", id: "add-fav-button", "data-remote": true) do %>
+              <%= button_tag tag.i(class: "far fa-heart"), class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
+            <% end %>
 
-          <%= form_tag(favorite_path(@post.id), method: "delete", id: "remove-fav-button", "data-remote": true) do %>
-            <%= button_tag tag.i(class: "fas fa-heart"), class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
+            <%= form_tag(favorite_path(@post.id), method: "delete", id: "remove-fav-button", "data-remote": true) do %>
+              <%= button_tag tag.i(class: "fas fa-heart"), class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
+            <% end %>
           <% end %>
         <% end %>
-      <% end %>
+        <div id="image-resize-cycle">
+          <a style="cursor: pointer;" onclick="Danbooru.Post.resize_cycle_mode();">Change Size Mode(<span id="current-image-resize-mode"></span>)</a>
+        </div>
+      </section>
 
       <section id="mark-as-translated-section" style="display: none;">
         <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>

@@ -1,6 +1,4 @@
 <ul>
-  <li><%= link_to "Resize to window", "#", :id => "image-resize-to-window-link" %></li>
-
   <% if CurrentUser.is_member? %>
     <li><%= link_to "Favorite", favorites_path(:post_id => post.id), :remote => true, :method => :post, :id => "add-to-favorites", :"data-shortcut" => "f", style: ("display: none;" if @post.is_favorited?) %></li>
     <li><%= link_to "Unfavorite", favorite_path(post), :remote => true, :method => :delete, :id => "remove-from-favorites", :"data-shortcut" => "shift+f", style: ("display: none;" if !@post.is_favorited?) %></li>

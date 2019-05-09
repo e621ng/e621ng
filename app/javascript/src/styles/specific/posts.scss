@@ -189,7 +189,6 @@ div#c-posts {
 
   .fav-buttons {
     font-size: 14pt;
-    margin: 0.5em 0;
 
     i {
       margin-right: 0.1em;
@@ -559,5 +558,21 @@ textarea[data-autocomplete="tag-edit"] {
   textarea {
     font-size: 1em;
     width: 100%;
+  }
+}
+
+#image {
+  &.fit-window {
+    max-width: 100%;
+  }
+}
+
+section#image-extra-controls {
+  display: flex;
+  align-items: center;
+  div {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-right: 0.5em;
   }
 }
