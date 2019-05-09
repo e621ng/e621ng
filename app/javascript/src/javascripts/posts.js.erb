@@ -402,8 +402,15 @@ Post.resize_sample = function() {
   });
 }
 
+Post.set_size_mode = function(mode) {
+  const modeMap = {large: "Sample", fit: "Scale To Fit", original: "Original"};
+  Post.resizeMode = mode;
+  $('#current-image-resize-mode').text(modeMap[mode] || "?Unknown?");
+}
+
+
 Post.initialize_resize = function() {
-  Post.resizeMode = Utility.meta("default-image-size");
+  Post.set_size_mode(Utility.meta("default-image-size"));
   this.initialize_change_resize_mode_link();
   if(Post.resizeMode === "fit") {
     Post.resize_fit();
@@ -418,13 +425,13 @@ Post.resize_cycle_mode = function(e) {
   if(Post.resizeMode === "large") {
     Post.resize_fit();
     $(window).on('resize', Post.resize_fit);
-    Post.resizeMode = "fit";
+    Post.set_size_mode("fit");
   } else if (Post.resizeMode === "fit") {
     Post.resize_original();
-    Post.resizeMode = "original";
+    Post.set_size_mode("original");
   } else {
     Post.resize_sample();
-    Post.resizeMode = "large";
+    Post.set_size_mode("large");
   }
 }
 
