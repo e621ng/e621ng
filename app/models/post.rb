@@ -1782,24 +1782,20 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def iqdb_sqs_service
-        SqsService.new(Danbooru.config.aws_sqs_iqdb_url)
-      end
-
       def iqdb_enabled?
-        Danbooru.config.aws_sqs_iqdb_url.present?
+        Danbooru.config.iqdb_enabled?
       end
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          iqdb_sqs_service.send_message("remove\n#{post_id}")
+          IQDBRemoveJob.perform_async(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        Post.iqdb_sqs_service.send_message("update\n#{id}\n#{preview_file_url}")
+        IQDBUpdateJob.perform_async(post_id, preview_file_url)
       end
     end
 

@@ -5,7 +5,7 @@ class PostArchive < ApplicationRecord
   belongs_to_updater counter_cache: "post_update_count"
 
   def self.enabled?
-    Rails.env.test? || Danbooru.config.aws_sqs_archives_url.present?
+    Rails.env.test? || Danbooru.config.post_archive_enabled?
   end
 
   establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
@@ -58,28 +58,20 @@ class PostArchive < ApplicationRecord
     extend ActiveSupport::Concern
 
     class_methods do
-      def sqs_service
-        SqsService.new(Danbooru.config.aws_sqs_archives_url)
-      end
-
       def queue(post)
-        # queue updates to sqs so that if archives goes down for whatever reason it won't
-        # block post updates
         raise NotImplementedError.new("Archive service is not configured") if !enabled?
-
-        json = {
-          "post_id" => post.id,
-          "rating" => post.rating,
-          "parent_id" => post.parent_id,
-          "source" => post.source,
-          "updater_id" => CurrentUser.id,
-          "updater_ip_addr" => CurrentUser.ip_addr.to_s,
-          "updated_at" => post.updated_at.try(:iso8601),
-          "created_at" => post.created_at.try(:iso8601),
-          "tags" => post.tag_string
+        json_post = {
+            "post_id" => post.id,
+            "rating" => post.rating,
+            "parent_id" => post.parent_id,
+            "source" => post.source,
+            "updater_id" => CurrentUser.id,
+            "updater_ip_addr" => CurrentUser.ip_addr.to_s,
+            "updated_at" => post.updated_at.try(:iso8601),
+            "created_at" => post.created_at.try(:iso8601),
+            "tags" => post.tag_string
         }
-        msg = "add post version\n#{json.to_json}"
-        sqs_service.send_message(msg, message_group_id: "post:#{post.id}")
+        AddPostVersionJob.perform_async(post.id, json_post)
       end
     end
   end
