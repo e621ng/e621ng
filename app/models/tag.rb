@@ -835,14 +835,15 @@ class Tag < ApplicationRecord
       key = Cache.hash(name)
 
       if Cache.get("urt:#{key}").nil? && should_update_related?
-        if post_count < COSINE_SIMILARITY_RELATED_TAG_THRESHOLD
-          TagUpdateRelatedJob.perform_later(id)
-        else
-          sqs = SqsService.new(Danbooru.config.aws_sqs_reltagcalc_url)
-          sqs.send_message("calculate #{name}")
-          self.related_tags_updated_at = Time.now
-          save
-        end
+        # if post_count < COSINE_SIMILARITY_RELATED_TAG_THRESHOLD
+        TagUpdateRelatedJob.perform_later(id)
+        # TODO: Part of reportbooru
+        # else
+        #   sqs = SqsService.new(Danbooru.config.aws_sqs_reltagcalc_url)
+        #   sqs.send_message("calculate #{name}")
+        #   self.related_tags_updated_at = Time.now
+        #   save
+        # end
 
         Cache.put("urt:#{key}", true, 600) # mutex to prevent redundant updates
       end
