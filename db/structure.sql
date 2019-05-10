@@ -1417,6 +1417,51 @@ ALTER SEQUENCE public.pixiv_ugoira_frame_data_id_seq OWNED BY public.pixiv_ugoir
 
 
 --
+-- Name: pool_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pool_versions (
+    id bigint NOT NULL,
+    pool_id integer NOT NULL,
+    post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
+    added_post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
+    removed_post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
+    updater_id integer,
+    updater_ip_addr inet,
+    description text,
+    description_changed boolean DEFAULT false NOT NULL,
+    name text,
+    name_changed boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    is_active boolean DEFAULT true NOT NULL,
+    "boolean" boolean DEFAULT false NOT NULL,
+    is_deleted boolean DEFAULT false NOT NULL,
+    category character varying,
+    version integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: pool_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pool_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pool_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pool_versions_id_seq OWNED BY public.pool_versions.id;
+
+
+--
 -- Name: pools; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1750,6 +1795,53 @@ ALTER SEQUENCE public.post_sets_id_seq OWNED BY public.post_sets.id;
 CREATE UNLOGGED TABLE public.post_updates (
     post_id integer
 );
+
+
+--
+-- Name: post_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_versions (
+    id bigint NOT NULL,
+    post_id integer NOT NULL,
+    tags text NOT NULL,
+    added_tags text[] DEFAULT '{}'::text[] NOT NULL,
+    removed_tags text[] DEFAULT '{}'::text[] NOT NULL,
+    locked_tags text,
+    added_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
+    removed_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
+    updater_id integer,
+    updater_ip_addr inet,
+    updated_at timestamp without time zone NOT NULL,
+    rating character varying(1),
+    rating_changed boolean DEFAULT false NOT NULL,
+    parent_id integer,
+    parent_changed boolean DEFAULT false NOT NULL,
+    source text,
+    source_changed boolean DEFAULT false NOT NULL,
+    description text,
+    description_changed boolean DEFAULT false NOT NULL,
+    version integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: post_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_versions_id_seq OWNED BY public.post_versions.id;
 
 
 --
@@ -2818,6 +2910,13 @@ ALTER TABLE ONLY public.pixiv_ugoira_frame_data ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: pool_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pool_versions ALTER COLUMN id SET DEFAULT nextval('public.pool_versions_id_seq'::regclass);
+
+
+--
 -- Name: pools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2878,6 +2977,13 @@ ALTER TABLE ONLY public.post_set_maintainers ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.post_sets ALTER COLUMN id SET DEFAULT nextval('public.post_sets_id_seq'::regclass);
+
+
+--
+-- Name: post_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_versions ALTER COLUMN id SET DEFAULT nextval('public.post_versions_id_seq'::regclass);
 
 
 --
@@ -3310,6 +3416,14 @@ ALTER TABLE ONLY public.pixiv_ugoira_frame_data
 
 
 --
+-- Name: pool_versions pool_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pool_versions
+    ADD CONSTRAINT pool_versions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: pools pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3379,6 +3493,14 @@ ALTER TABLE ONLY public.post_set_maintainers
 
 ALTER TABLE ONLY public.post_sets
     ADD CONSTRAINT post_sets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_versions post_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_versions
+    ADD CONSTRAINT post_versions_pkey PRIMARY KEY (id);
 
 
 --
@@ -4053,6 +4175,27 @@ CREATE UNIQUE INDEX index_pixiv_ugoira_frame_data_on_post_id ON public.pixiv_ugo
 
 
 --
+-- Name: index_pool_versions_on_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pool_versions_on_pool_id ON public.pool_versions USING btree (pool_id);
+
+
+--
+-- Name: index_pool_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pool_versions_on_updater_id ON public.pool_versions USING btree (updater_id);
+
+
+--
+-- Name: index_pool_versions_on_updater_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pool_versions_on_updater_ip_addr ON public.pool_versions USING btree (updater_ip_addr);
+
+
+--
 -- Name: index_pools_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4190,6 +4333,34 @@ CREATE INDEX index_post_replacements_on_creator_id ON public.post_replacements U
 --
 
 CREATE INDEX index_post_replacements_on_post_id ON public.post_replacements USING btree (post_id);
+
+
+--
+-- Name: index_post_versions_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_post_id ON public.post_versions USING btree (post_id);
+
+
+--
+-- Name: index_post_versions_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updated_at ON public.post_versions USING btree (updated_at);
+
+
+--
+-- Name: index_post_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updater_id ON public.post_versions USING btree (updater_id);
+
+
+--
+-- Name: index_post_versions_on_updater_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updater_ip_addr ON public.post_versions USING btree (updater_ip_addr);
 
 
 --
@@ -4885,6 +5056,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190427163107'),
 ('20190427181805'),
 ('20190428132152'),
-('20190430120155');
+('20190430120155'),
+('20190510184237'),
+('20190510184245');
 
 

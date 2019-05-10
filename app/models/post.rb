@@ -61,9 +61,7 @@ class Post < ApplicationRecord
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning, :view_count
 
-  if PostArchive.enabled?
-    has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
-  end
+  has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
   module FileMethods
     extend ActiveSupport::Concern
@@ -1444,7 +1442,7 @@ class Post < ApplicationRecord
     end
 
     def saved_change_to_watched_attributes?
-      saved_change_to_rating? || saved_change_to_source? || saved_change_to_parent_id? || saved_change_to_tag_string?
+      saved_change_to_rating? || saved_change_to_source? || saved_change_to_parent_id? || saved_change_to_tag_string? || saved_change_to_locked_tags?
     end
 
     def merge_version?
@@ -1454,7 +1452,7 @@ class Post < ApplicationRecord
 
     def create_new_version
       User.where(id: CurrentUser.id).update_all("post_update_count = post_update_count + 1")
-      PostArchive.queue(self) if PostArchive.enabled?
+      PostArchive.create_from_post(self)
     end
 
     def revert_to(target)

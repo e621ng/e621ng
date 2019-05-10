@@ -1,6 +1,5 @@
 class PostVersionsController < ApplicationController
   before_action :member_only
-  before_action :check_availabililty
   respond_to :html, :xml, :json
 
   def index
@@ -24,14 +23,6 @@ class PostVersionsController < ApplicationController
 
     respond_with(@post_version) do |format|
       format.js
-    end
-  end
-
-  private
-
-  def check_availabililty
-    if !PostArchive.enabled?
-      raise NotImplementedError.new("Archive service is not configured. Post versions are not saved.")
     end
   end
 end

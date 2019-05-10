@@ -4,11 +4,10 @@ class PostArchive < ApplicationRecord
   belongs_to :post
   belongs_to_updater counter_cache: "post_update_count"
 
-  def self.enabled?
-    Rails.env.test? || Danbooru.config.post_archive_enabled?
-  end
+  before_validation :fill_version, on: :create
+  before_validation :fill_changes, on: :create
 
-  establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
+  #establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
   self.table_name = "post_versions"
 
   def self.check_for_retry(msg)
@@ -54,33 +53,59 @@ class PostArchive < ApplicationRecord
     end
   end
 
-  module ArchiveServiceMethods
-    extend ActiveSupport::Concern
+  extend SearchMethods
 
-    class_methods do
-      def queue(post)
-        raise NotImplementedError.new("Archive service is not configured") if !enabled?
-        json_post = {
-            "post_id" => post.id,
-            "rating" => post.rating,
-            "parent_id" => post.parent_id,
-            "source" => post.source,
-            "updater_id" => CurrentUser.id,
-            "updater_ip_addr" => CurrentUser.ip_addr.to_s,
-            "updated_at" => post.updated_at.try(:iso8601),
-            "created_at" => post.created_at.try(:iso8601),
-            "tags" => post.tag_string
-        }
-        AddPostVersionJob.perform_async(post.id, json_post)
-      end
-    end
+  def self.create_from_post(post)
+    self.create({
+                    post_id: post.id,
+                    rating: post.rating,
+                    parent_id: post.parent_id,
+                    source: post.source,
+                    updater_id: CurrentUser.id,
+                    updater_ip_addr: CurrentUser.ip_addr,
+                    tags: post.tag_string,
+                    locked_tags: post.locked_tags
+                })
   end
 
-  extend SearchMethods
-  include ArchiveServiceMethods
+  def self.find_previous(post_id, updated_at)
+    where("post_id = ? and updated_at < ?", post_id, updated_at).order("id desc").first
+  end
+
+  def self.calculate_version(post_id)
+    1 + where("post_id = ?", post_id).maximum(:version).to_i
+  end
+
+  def fill_version
+    self.version = PostArchive.calculate_version (self.post_id)
+  end
+
+  def fill_changes
+    prev = previous
+
+    if prev
+      self.added_tags = tag_array - prev.tag_array
+      self.removed_tags = prev.tag_array - tag_array
+      self.added_locked_tags = locked_tag_array - prev.locked_tag_array
+      self.removed_locked_tags = prev.locked_tag_array - locked_tag_array
+    else
+      self.added_tags = tag_array
+      self.removed_tags = []
+      self.added_locked_tags = locked_tag_array
+      self.removed_locked_tags = []
+    end
+
+    self.rating_changed = prev.nil? || rating != prev.try(:rating)
+    self.parent_changed = prev.nil? || parent_id != prev.try(:parent_id)
+    self.source_changed = prev.nil? || source != prev.try(:source)
+  end
 
   def tag_array
     tags.split
+  end
+
+  def locked_tag_array
+    (locked_tags || "").split
   end
 
   def presenter
@@ -96,7 +121,7 @@ class PostArchive < ApplicationRecord
     # HACK: if all the post versions for this post have already been preloaded,
     # we can use that to avoid a SQL query.
     if association(:post).loaded? && post && post.association(:versions).loaded?
-      post.versions.sort_by(&:version).reverse.find { |v| v.version < version }
+      post.versions.sort_by(&:version).reverse.find {|v| v.version < version}
     else
       PostArchive.where("post_id = ? and version < ?", post_id, version).order("version desc").first
     end
@@ -132,21 +157,21 @@ class PostArchive < ApplicationRecord
     removed_tags = old_tags - new_tags
 
     return {
-      :added_tags => added_tags,
-      :removed_tags => removed_tags,
-      :obsolete_added_tags => added_tags - latest_tags,
-      :obsolete_removed_tags => removed_tags & latest_tags,
-      :unchanged_tags => new_tags & old_tags,
+        :added_tags => added_tags,
+        :removed_tags => removed_tags,
+        :obsolete_added_tags => added_tags - latest_tags,
+        :obsolete_removed_tags => removed_tags & latest_tags,
+        :unchanged_tags => new_tags & old_tags,
     }
   end
-  
+
   def changes
     delta = {
-      :added_tags => added_tags,
-      :removed_tags => removed_tags,
-      :obsolete_removed_tags => [],
-      :obsolete_added_tags => [],
-      :unchanged_tags => []
+        :added_tags => added_tags,
+        :removed_tags => removed_tags,
+        :obsolete_removed_tags => [],
+        :obsolete_added_tags => [],
+        :unchanged_tags => []
     }
 
     return delta if post.nil?
