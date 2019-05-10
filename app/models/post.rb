@@ -14,23 +14,23 @@ class Post < ApplicationRecord
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
-  before_validation :normalize_tags, if: :tag_string_changed?
+  before_validation :normalize_tags, if: :should_process_tags?
   before_validation :strip_source
   #before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
-  validate :tag_names_are_valid, if: :tag_string_changed?
-  validate :added_tags_are_valid, if: :tag_string_changed?
-  validate :removed_tags_are_valid, if: :tag_string_changed?
-  validate :has_artist_tag, if: :tag_string_changed?
-  validate :has_copyright_tag, if: :tag_string_changed?
-  validate :has_enough_tags, if: :tag_string_changed?
+  validate :tag_names_are_valid, if: :should_process_tags?
+  validate :added_tags_are_valid, if: :should_process_tags?
+  validate :removed_tags_are_valid, if: :should_process_tags?
+  validate :has_artist_tag, if: :should_process_tags?
+  validate :has_copyright_tag, if: :should_process_tags?
+  validate :has_enough_tags, if: :should_process_tags?
   validate :post_is_not_its_own_parent
   validate :updater_can_change_rating
-  before_save :update_tag_post_counts, if: :tag_string_changed?
-  before_save :set_tag_counts, if: :tag_string_changed?
+  before_save :update_tag_post_counts, if: :should_process_tags?
+  before_save :set_tag_counts, if: :should_process_tags?
   before_save :set_pool_category_pseudo_tags
   before_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
   after_save :create_version
@@ -603,6 +603,10 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    def should_process_tags?
+      tag_string_changed? || locked_tags_changed?
+    end
+
     def tag_array
       @tag_array ||= Tag.scan_tags(tag_string)
     end
