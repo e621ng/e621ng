@@ -676,7 +676,6 @@ class User < ApplicationRecord
     end
 
     def pool_version_count
-      return nil unless PoolArchive.enabled?
       PoolArchive.for_user(id).count
     end
 

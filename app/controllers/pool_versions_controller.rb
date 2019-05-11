@@ -1,6 +1,6 @@
 class PoolVersionsController < ApplicationController
   respond_to :html, :xml, :json
-  before_action :check_availabililty
+  before_action :member_only
 
   def index
     if params[:search] && params[:search][:pool_id].present?
@@ -22,14 +22,6 @@ class PoolVersionsController < ApplicationController
       @other_version = PoolArchive.find(params[:other_id])
     else
       @other_version = @pool_version.previous
-    end
-  end
-
-private
-
-  def check_availabililty
-    if !PoolArchive.enabled?
-      raise NotImplementedError.new("Archive service is not configured. Pool versions are not saved.")
     end
   end
 end

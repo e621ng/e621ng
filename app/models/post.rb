@@ -1456,7 +1456,7 @@ class Post < ApplicationRecord
 
     def create_new_version
       User.where(id: CurrentUser.id).update_all("post_update_count = post_update_count + 1")
-      PostArchive.create_from_post(self)
+      PostArchive.queue(self)
     end
 
     def revert_to(target)

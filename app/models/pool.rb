@@ -126,11 +126,7 @@ class Pool < ApplicationRecord
   end
 
   def versions
-    if PoolArchive.enabled?
-      PoolArchive.where("pool_id = ?", id).order("id asc")
-    else
-      raise "Archive service not configured"
-    end
+    PoolArchive.where("pool_id = ?", id).order("id asc")
   end
 
   def is_series?
@@ -302,11 +298,7 @@ class Pool < ApplicationRecord
   end
 
   def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
-    if PoolArchive.enabled?
-      PoolArchive.queue(self, updater, updater_ip_addr)
-    else
-      Rails.logger.warn("Archive service is not configured. Pool versions will not be saved.")
-    end
+    PoolArchive.queue(self, updater, updater_ip_addr)
   end
 
   def last_page

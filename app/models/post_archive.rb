@@ -55,7 +55,7 @@ class PostArchive < ApplicationRecord
 
   extend SearchMethods
 
-  def self.create_from_post(post)
+  def self.queue(post)
     self.create({
                     post_id: post.id,
                     rating: post.rating,
@@ -66,10 +66,6 @@ class PostArchive < ApplicationRecord
                     tags: post.tag_string,
                     locked_tags: post.locked_tags
                 })
-  end
-
-  def self.find_previous(post_id, updated_at)
-    where("post_id = ? and updated_at < ?", post_id, updated_at).order("id desc").first
   end
 
   def self.calculate_version(post_id)
