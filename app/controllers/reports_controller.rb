@@ -24,9 +24,9 @@ class ReportsController < ApplicationController
   def down_voting_post_create
     user_id = CurrentUser.id
     post_id = params[:post_id].to_i
-    sqs = SqsService.new(Danbooru.config.aws_sqs_async_reports)
-    sqs.send_message("targetedpostdownvoting-#{user_id}-#{post_id}")
-    flash[:notice] = "You will be messaged when the report has finished generating"
+    # TODO: Stubbed out because AWS SQS was removed, but not sure if anyone will use this or not.
+    # flash[:notice] = "You will be messaged when the report has finished generating"
+    flash[:notice] = "Not implemented right now"
     redirect_to reports_down_voting_post_path
   end
 end
