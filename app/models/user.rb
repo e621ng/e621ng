@@ -303,7 +303,7 @@ class User < ApplicationRecord
 
         when Levels::ADMIN
           "Admin"
-          
+
         else
           ""
         end
@@ -391,7 +391,7 @@ class User < ApplicationRecord
       if per_page.nil? || !is_gold?
         self.per_page = Danbooru.config.posts_per_page
       end
-      
+
       return true
     end
 
@@ -522,8 +522,7 @@ class User < ApplicationRecord
 
     def used_upload_slots
       uploaded_count = Post.for_user(id).where("created_at >= ?", 23.hours.ago).count
-      uploaded_comic_count = Post.for_user(id).tag_match("comic").where("created_at >= ?", 23.hours.ago).count / 3
-      uploaded_count - uploaded_comic_count
+      uploaded_count
     end
     memoize :used_upload_slots
 
@@ -816,7 +815,7 @@ class User < ApplicationRecord
       if params[:current_user_first].to_s.truthy? && !CurrentUser.is_anonymous?
         q = q.order("id = #{CurrentUser.user.id.to_i} desc")
       end
-      
+
       case params[:order]
       when "name"
         q = q.order("name")
