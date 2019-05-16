@@ -2,7 +2,8 @@ class BulkRevert
   BIG_QUERY_LIMIT = 5_000
   attr_reader :constraints
 
-  class ConstraintTooGeneralError < Exception ; end
+  class ConstraintTooGeneralError < Exception;
+  end
 
   def process(creator, constraints = {})
     @constraints = constraints
@@ -26,42 +27,30 @@ class BulkRevert
     @_preview ||= find_post_versions
   end
 
-  def query_gbq(user_id, added_tags, removed_tags, min_version_id, max_version_id)
-    GoogleBigQuery::PostVersion.new.find(user_id, added_tags, removed_tags, min_version_id, max_version_id, BIG_QUERY_LIMIT)
-  end
-
   def find_post_versions
-    q = PostArchive.where("true")
-
     if constraints[:user_name]
       constraints[:user_id] = User.find_by_name(constraints[:user_name]).try(:id)
     end
 
-    if constraints[:user_id]
-      q = q.where("post_versions.updater_id = ?", constraints[:user_id])
-    end
+    must = []
+    must << {term: {updater_id: constraints[:user_id]}} if constraints[:user_id]
+    version_range = {range: {version: {}}}
+    version_range[:range][:version][:gte] = constraints[:min_version_id].to_i if constraints[:min_version_id]
+    version_range[:range][:version][:lte] = constraints[:max_version_id].to_i if constraints[:max_version_id]
+    must << version_range if constraints[:min_version_id] || constraints[:max_version_id]
+    must = must + constraints[:added_tags].split.map |x| {term: {tags_added: x}} if constraints[:added_tags]
+    must = must + constraints[:removed_tags].split.map |x| {terms: {tags_removed: x}} if constraints[:removed_tags]
+    q = PostArchive.__elasticsearch__.search({
+                                             query: {bool: {filter: must}},
+                                             sort: {id: :desc},
+                                             size: BIG_QUERY_LIMIT + 1,
+                                             from: 0,
+                                             _source: false,
+                                         })
 
-    if constraints[:added_tags] || constraints[:removed_tags]
-      hash = CityHash.hash64("#{constraints[:added_tags]} #{constraints{removed_tags}} #{constraints[:min_version_id]} #{constraints[:max_version_id]}").to_s(36)
-      sub_ids = Cache.get("br/fpv/#{hash}", 300) do
-        query_gbq(constraints[:user_id], constraints[:added_tags], constraints[:removed_tags], constraints[:min_version_id], constraints[:max_version_id])
-      end
 
-      if sub_ids.size >= BIG_QUERY_LIMIT
-        raise ConstraintTooGeneralError.new
-      end
+    raise ConstraintTooGeneralError.new if q.results.total > BIG_QUERY_LIMIT
 
-      q = q.where("post_versions.id in (?)", sub_ids)
-    end
-
-    if constraints[:min_version_id].present?
-      q = q.where("post_versions.id >= ?", constraints[:min_version_id])
-    end
-
-    if constraints[:max_version_id].present?
-      q = q.where("post_versions.id <= ?", constraints[:max_version_id])
-    end
-
-    q
+    q.records
   end
 end

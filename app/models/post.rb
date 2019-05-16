@@ -1,5 +1,4 @@
 require 'danbooru/has_bit_flags'
-require 'google/apis/pubsub_v1'
 
 class Post < ApplicationRecord
   class ApprovalError < Exception ; end
@@ -1476,9 +1475,7 @@ class Post < ApplicationRecord
     end
 
     def notify_pubsub
-      return unless Danbooru.config.google_api_project
-
-      # PostUpdate.insert(id)
+      # NOTE: Left as a potentially useful hook into post updating.
     end
   end
 

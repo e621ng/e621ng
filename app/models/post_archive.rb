@@ -54,6 +54,8 @@ class PostArchive < ApplicationRecord
   end
 
   extend SearchMethods
+  include Indexable
+  include PostVersionIndex
 
   def self.queue(post)
     self.create({
