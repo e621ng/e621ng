@@ -19,8 +19,8 @@ class BulkRevert
     end
   end
 
-  def initialize
-    @constraints = {}
+  def initialize(constraints = {})
+    @constraints = constraints
   end
 
   def preview
@@ -33,15 +33,15 @@ class BulkRevert
     end
 
     must = []
-    must << {term: {updater_id: constraints[:user_id]}} if constraints[:user_id]
+    must.push({term: {updater_id: constraints[:user_id]}}) if constraints[:user_id]
     version_range = {range: {version: {}}}
-    version_range[:range][:version][:gte] = constraints[:min_version_id].to_i if constraints[:min_version_id]
-    version_range[:range][:version][:lte] = constraints[:max_version_id].to_i if constraints[:max_version_id]
-    must << version_range if constraints[:min_version_id] || constraints[:max_version_id]
-    must = must + constraints[:added_tags].split.map |x| {term: {tags_added: x}} if constraints[:added_tags]
-    must = must + constraints[:removed_tags].split.map |x| {terms: {tags_removed: x}} if constraints[:removed_tags]
+    version_range[:range][:version][:gte] = constraints[:min_version_id].to_i if constraints[:min_version_id].present?
+    version_range[:range][:version][:lte] = constraints[:max_version_id].to_i if constraints[:max_version_id].present?
+    must.push(version_range) if constraints[:min_version_id].present? || constraints[:max_version_id].present?
+    must = must + constraints[:added_tags].split.map {|x| {term: {tags_added: x}}} if constraints[:added_tags]
+    must = must + constraints[:removed_tags].split.map {|x| {term: {tags_removed: x}}} if constraints[:removed_tags]
     q = PostArchive.__elasticsearch__.search({
-                                             query: {bool: {filter: must}},
+                                             query: {bool: {must: must}},
                                              sort: {id: :desc},
                                              size: BIG_QUERY_LIMIT + 1,
                                              from: 0,
@@ -51,6 +51,6 @@ class BulkRevert
 
     raise ConstraintTooGeneralError.new if q.results.total > BIG_QUERY_LIMIT
 
-    q.records
+    q.records(includes: [:post, :updater])
   end
 end

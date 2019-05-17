@@ -9,7 +9,7 @@ module Moderator
     end
 
     def create
-      @bulk_revert = BulkRevert.new
+      @bulk_revert = BulkRevert.new(@constraints)
 
       if params[:commit] == "Test"
         @bulk_revert.preview
@@ -24,7 +24,7 @@ module Moderator
   private
 
     def init_constraints
-      @constraints = params[:constraints] || {}
+      @constraints = params.fetch(:constraints, {}).permit(%w[user_name user_id added_tags removed_tags min_version_id max_version_id])
     end
 
     def tag_constraint_too_general

@@ -6,6 +6,6 @@ class BulkRevertJob < ApplicationJob
     constraints = args[1]
 
     reverter = BulkRevert.new
-    reverter.perform(user, constraints)
+    reverter.process(user, constraints)
   end
 end
