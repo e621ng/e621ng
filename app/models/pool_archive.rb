@@ -1,12 +1,10 @@
 class PoolArchive < ApplicationRecord
 
   belongs_to :updater, :class_name => "User"
+  before_validation :fill_version, on: :create
+  before_validation :fill_changes, on: :create
 
-  def self.enabled?
-    Danbooru.config.aws_sqs_archives_url.present?
-  end
-
-  establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
+  #establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
   self.table_name = "pool_versions"
 
   module SearchMethods
@@ -39,30 +37,41 @@ class PoolArchive < ApplicationRecord
 
   extend SearchMethods
 
-  def self.sqs_service
-    SqsService.new(Danbooru.config.aws_sqs_archives_url)
+  def self.queue(pool, updater, updater_ip_addr)
+    self.create({
+                    pool_id: pool.id,
+                    post_ids: pool.post_ids,
+                    updater_id: updater.id,
+                    updater_ip_addr: updater_ip_addr,
+                    description: pool.description,
+                    name: pool.name,
+                    is_active: pool.is_active?,
+                    is_deleted: pool.is_deleted?,
+                    category: pool.category
+                })
   end
 
-  def self.queue(pool, updater, updater_ip_addr)
-    # queue updates to sqs so that if archives goes down for whatever reason it won't
-    # block pool updates
-    raise NotImplementedError.new("Archive service is not configured.") if !enabled?
+  def self.calculate_version(pool_id)
+    1 + where("pool_id = ?", pool_id).maximum(:version).to_i
+  end
 
-    json = {
-      pool_id: pool.id,
-      post_ids: pool.post_ids,
-      updater_id: updater.id,
-      updater_ip_addr: updater_ip_addr.to_s,
-      created_at: pool.created_at.try(:iso8601),
-      updated_at: pool.updated_at.try(:iso8601),
-      description: pool.description,
-      name: pool.name,
-      is_active: pool.is_active?,
-      is_deleted: pool.is_deleted?,
-      category: pool.category
-    }
-    msg = "add pool version\n#{json.to_json}"
-    sqs_service.send_message(msg, message_group_id: "pool:#{pool.id}")
+  def fill_version
+    self.version = PoolArchive.calculate_version(self.pool_id)
+  end
+
+  def fill_changes
+      prev = previous
+
+      if prev
+        self.added_post_ids = post_ids - prev.post_ids
+        self.removed_post_ids = prev.post_ids - post_ids
+      else
+        self.added_post_ids = post_ids
+        self.removed_post_ids = []
+      end
+
+      self.description_changed = prev.nil? || description != prev.try(:description)
+      self.name_changed = prev.nil? || name != prev.try(:name)
   end
 
   def build_diff(other = nil)
@@ -74,8 +83,8 @@ class PoolArchive < ApplicationRecord
       diff[:removed_post_ids] = removed_post_ids
       diff[:added_desc] = description
     else
-      diff[:added_post_ids] = post_ids - prev.post_ids
-      diff[:removed_post_ids] = prev.post_ids - post_ids
+      diff[:added_post_ids] = added_post_ids
+      diff[:removed_post_ids] = removed_post_ids
       diff[:added_desc] = description
       diff[:removed_desc] = prev.description
     end

@@ -61,9 +61,7 @@
         <li><h1>Pools</h1></li>
         <li><%= link_to("Help", help_page_path(id: "pools")) %></li>
         <li><%= link_to("Listing", pools_path) %></li>
-        <% if PoolArchive.enabled? %>
-          <li><%= link_to("Changes", pool_versions_path) %></li>
-        <% end %>
+        <li><%= link_to("Changes", pool_versions_path) %></li>
       </ul>
       <ul>
         <li><h1>Reports</h1></li>

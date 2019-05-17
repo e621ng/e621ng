@@ -14,23 +14,23 @@ class Post < ApplicationRecord
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
-  before_validation :normalize_tags, if: :tag_string_changed?
+  before_validation :normalize_tags, if: :should_process_tags?
   before_validation :strip_source
   #before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
-  validate :tag_names_are_valid, if: :tag_string_changed?
-  validate :added_tags_are_valid, if: :tag_string_changed?
-  validate :removed_tags_are_valid, if: :tag_string_changed?
-  validate :has_artist_tag, if: :tag_string_changed?
-  validate :has_copyright_tag, if: :tag_string_changed?
-  validate :has_enough_tags, if: :tag_string_changed?
+  validate :tag_names_are_valid, if: :should_process_tags?
+  validate :added_tags_are_valid, if: :should_process_tags?
+  validate :removed_tags_are_valid, if: :should_process_tags?
+  validate :has_artist_tag, if: :should_process_tags?
+  validate :has_copyright_tag, if: :should_process_tags?
+  validate :has_enough_tags, if: :should_process_tags?
   validate :post_is_not_its_own_parent
   validate :updater_can_change_rating
-  before_save :update_tag_post_counts, if: :tag_string_changed?
-  before_save :set_tag_counts, if: :tag_string_changed?
+  before_save :update_tag_post_counts, if: :should_process_tags?
+  before_save :set_tag_counts, if: :should_process_tags?
   before_save :set_pool_category_pseudo_tags
   before_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
   after_save :create_version
@@ -61,9 +61,7 @@ class Post < ApplicationRecord
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning, :view_count
 
-  if PostArchive.enabled?
-    has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
-  end
+  has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
   module FileMethods
     extend ActiveSupport::Concern
@@ -605,6 +603,10 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    def should_process_tags?
+      tag_string_changed? || locked_tags_changed?
+    end
+
     def tag_array
       @tag_array ||= Tag.scan_tags(tag_string)
     end
@@ -1444,7 +1446,7 @@ class Post < ApplicationRecord
     end
 
     def saved_change_to_watched_attributes?
-      saved_change_to_rating? || saved_change_to_source? || saved_change_to_parent_id? || saved_change_to_tag_string?
+      saved_change_to_rating? || saved_change_to_source? || saved_change_to_parent_id? || saved_change_to_tag_string? || saved_change_to_locked_tags?
     end
 
     def merge_version?
@@ -1454,7 +1456,7 @@ class Post < ApplicationRecord
 
     def create_new_version
       User.where(id: CurrentUser.id).update_all("post_update_count = post_update_count + 1")
-      PostArchive.queue(self) if PostArchive.enabled?
+      PostArchive.queue(self)
     end
 
     def revert_to(target)
@@ -1782,24 +1784,20 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def iqdb_sqs_service
-        SqsService.new(Danbooru.config.aws_sqs_iqdb_url)
-      end
-
       def iqdb_enabled?
-        Danbooru.config.aws_sqs_iqdb_url.present?
+        Danbooru.config.iqdb_enabled?
       end
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          iqdb_sqs_service.send_message("remove\n#{post_id}")
+          IQDBRemoveJob.perform_async(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        Post.iqdb_sqs_service.send_message("update\n#{id}\n#{preview_file_url}")
+        IQDBUpdateJob.perform_async(post_id, preview_file_url)
       end
     end
 
