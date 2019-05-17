@@ -5,11 +5,12 @@ module Reports
     def initialize(tag, query_type)
       @tag = tag
 
-      if query_type == "added"
-        @query = GoogleBigQuery::PostVersion.new.find_added(tag)
-      else
-        @query = GoogleBigQuery::PostVersion.new.find_removed(tag)
-      end
+      # TODO: Convert to Elasticsearch
+      # if query_type == "added"
+      #   @query = GoogleBigQuery::PostVersion.new.find_added(tag)
+      # else
+      #   @query = GoogleBigQuery::PostVersion.new.find_removed(tag)
+      # end
     end
 
     def mock_version(row)
