@@ -1435,7 +1435,6 @@ CREATE TABLE public.pool_versions (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     is_active boolean DEFAULT true NOT NULL,
-    "boolean" boolean DEFAULT false NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
     category character varying,
     version integer DEFAULT 1 NOT NULL

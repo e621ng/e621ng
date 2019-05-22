@@ -13,8 +13,8 @@ class AddPoolVersions < ActiveRecord::Migration[5.2]
         t.boolean  "name_changed", :default => false, :null => false
         t.datetime "created_at"
         t.datetime "updated_at"
-        t.boolean  "is_active", :boolean, :default => true, :null => false
-        t.boolean  "is_deleted", :boolean, :default => false, :null => false
+        t.boolean  "is_active", :default => true, :null => false
+        t.boolean  "is_deleted", :default => false, :null => false
         t.string   "category"
         t.integer  "version", :default => 1, :null => false
       end
