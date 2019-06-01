@@ -36,10 +36,6 @@
     </aside>
 
     <section id="content">
-      <% if @post.presenter.has_nav_links?(self) %>
-        <%= render "posts/partials/show/nav_links", :post => @post, :position => "top" %>
-      <% end %>
-
       <%= render "posts/partials/show/notices", :post => @post %>
 
       <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
