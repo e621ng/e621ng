@@ -90,7 +90,7 @@ class UsersController < ApplicationController
       receive_email_notifications enable_keyboard_navigation
       enable_privacy_mode
       style_usernames
-      enable_auto_complete disable_categorized_saved_searches disable_tagged_filenames
+      enable_auto_complete disable_tagged_filenames
       enable_recent_searches disable_cropped_thumbnails disable_mobile_gestures
       enable_safe_mode disable_responsive_mode disable_post_tooltips
       enable_recommended_posts opt_out_tracking

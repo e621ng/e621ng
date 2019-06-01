@@ -26,7 +26,6 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - disable_categorized_saved_searches (enabled by 2291)
   # - disable_tagged_filenames (enabled by 387)
   # - enable_recent_searches (enabled by 499)
   # - disable_cropped_thumbnails (enabled by 22)
@@ -41,7 +40,6 @@ class User < ApplicationRecord
     has_saved_searches
     can_approve_posts
     can_upload_free
-    disable_categorized_saved_searches
     is_super_voter
     disable_tagged_filenames
     enable_recent_searches
