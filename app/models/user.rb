@@ -26,7 +26,6 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - enable_recent_searches (enabled by 499)
   # - disable_cropped_thumbnails (enabled by 22)
   BOOLEAN_ATTRIBUTES = %w(
     is_banned
@@ -40,7 +39,6 @@ class User < ApplicationRecord
     can_approve_posts
     can_upload_free
     is_super_voter
-    enable_recent_searches
     disable_cropped_thumbnails
     disable_mobile_gestures
     enable_safe_mode

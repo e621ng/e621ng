@@ -83,8 +83,6 @@
           <span class="hint">A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.</span>
         </div>
 
-        <%= f.input :enable_recent_searches, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
-
         <%= f.input :favorite_tags, :label => "Frequent tags", :hint => "A list of tags that you use often. They will appear when using the list of Related Tags.", :input_html => { :rows => 5, :data => { :autocomplete => "tag-query" } } %>
 
         <%= f.input :disable_responsive_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false, :hint => "Disable alternative layout for mobile and tablet" %>

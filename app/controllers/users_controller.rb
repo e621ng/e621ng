@@ -91,7 +91,7 @@ class UsersController < ApplicationController
       enable_privacy_mode
       style_usernames
       enable_auto_complete
-      enable_recent_searches disable_cropped_thumbnails disable_mobile_gestures
+      disable_cropped_thumbnails disable_mobile_gestures
       enable_safe_mode disable_responsive_mode disable_post_tooltips
       enable_recommended_posts opt_out_tracking
     ]
