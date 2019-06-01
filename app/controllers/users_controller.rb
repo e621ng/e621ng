@@ -87,7 +87,7 @@ class UsersController < ApplicationController
       comment_threshold default_image_size favorite_tags blacklisted_tags
       time_zone per_page custom_style
 
-      receive_email_notifications enable_post_navigation
+      receive_email_notifications enable_keyboard_navigation
       new_post_navigation_layout enable_privacy_mode
       enable_sequential_post_navigation style_usernames
       enable_auto_complete disable_categorized_saved_searches disable_tagged_filenames

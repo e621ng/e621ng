@@ -62,7 +62,7 @@
       <fieldset id="advanced-settings-section">
         <%= f.input :style_usernames, :as => :select, :label => "Colored usernames", :hint => "Color each user's name depending on their level", :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 
-        <%= f.input :enable_post_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]] %>
+        <%= f.input :enable_keyboard_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]] %>
 
         <%= f.input :enable_sequential_post_navigation, :as => :select, :label => "Enable slideshow mode", :hint => "Show prev/next links when viewing a post", :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 

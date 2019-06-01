@@ -26,7 +26,6 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - enable_post_navigation (disabled by 700)
   # - new_post_navigation_layout (disabled by 1364)
   # - enable_sequential_post_navigation (disabled by 680)
   # - disable_categorized_saved_searches (enabled by 2291)
@@ -37,7 +36,7 @@ class User < ApplicationRecord
     is_banned
     has_mail
     receive_email_notifications
-    enable_post_navigation
+    enable_keyboard_navigation
     new_post_navigation_layout
     enable_privacy_mode
     enable_sequential_post_navigation
@@ -881,7 +880,7 @@ class User < ApplicationRecord
 
   def initialize_attributes
     self.last_ip_addr ||= CurrentUser.ip_addr
-    self.enable_post_navigation = true
+    self.enable_keyboard_navigation = true
     self.new_post_navigation_layout = true
     self.enable_sequential_post_navigation = true
     self.enable_auto_complete = true

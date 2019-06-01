@@ -18,7 +18,7 @@
   <% if flash[:notice] =~ /error/i %>
     <meta name="errors" content="true">
   <% end %>
-  <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_post_navigation %>">
+  <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
   <meta name="new-post-navigation-layout" content="<%= CurrentUser.user.new_post_navigation_layout %>">
   <meta name="default-image-size" content="<%= CurrentUser.user.default_image_size %>">
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
@@ -101,12 +101,12 @@
 
   <header id="top">
     <h1><%= link_to Danbooru.config.app_name, "/" %></h1>
-    
+
     <div id="maintoggle">
       <a href="#"><i id="maintoggle-on" class="fas fa-bars"></i></a>
       <a href="#"><i id="maintoggle-off" class="fas fa-times" style="display: none;"></i></a>
     </div>
-    
+
     <nav id="nav">
       <%= render "layouts/main_links" %>
       <%= yield :secondary_links %>
