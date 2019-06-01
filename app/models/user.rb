@@ -26,7 +26,6 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - enable_sequential_post_navigation (disabled by 680)
   # - disable_categorized_saved_searches (enabled by 2291)
   # - disable_tagged_filenames (enabled by 387)
   # - enable_recent_searches (enabled by 499)
@@ -37,7 +36,6 @@ class User < ApplicationRecord
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
-    enable_sequential_post_navigation
     style_usernames
     enable_auto_complete
     has_saved_searches
@@ -879,7 +877,6 @@ class User < ApplicationRecord
   def initialize_attributes
     self.last_ip_addr ||= CurrentUser.ip_addr
     self.enable_keyboard_navigation = true
-    self.enable_sequential_post_navigation = true
     self.enable_auto_complete = true
   end
 
