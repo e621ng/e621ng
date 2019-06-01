@@ -123,7 +123,6 @@ class SavedSearch < ApplicationRecord
     end
   end
 
-  attr_accessor :disable_labels
   belongs_to :user
   validates :query, presence: true
   validate :validate_count
@@ -149,9 +148,5 @@ class SavedSearch < ApplicationRecord
     if user.saved_searches.count == 0
       user.update(has_saved_searches: false)
     end
-  end
-
-  def disable_labels=(value)
-    CurrentUser.update(disable_categorized_saved_searches: true) if value.to_s.truthy?
   end
 end

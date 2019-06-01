@@ -32,14 +32,10 @@
         </section>
 
       <% end %>
-      
+
     </aside>
 
     <section id="content">
-      <% if @post.presenter.has_nav_links?(self) %>
-        <%= render "posts/partials/show/nav_links", :post => @post, :position => "top" %>
-      <% end %>
-
       <%= render "posts/partials/show/notices", :post => @post %>
 
       <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
@@ -162,7 +158,6 @@
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">
   <meta name="post-has-embedded-notes" content="<%= @post.has_embedded_notes? %>">
-  <meta name="always-resize-images" content="<%= CurrentUser.user.always_resize_images? %>">
   <%= tag.meta name: "og:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
 
   <% if @post.visible? %>

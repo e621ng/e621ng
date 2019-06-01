@@ -18,13 +18,11 @@
   <% if flash[:notice] =~ /error/i %>
     <meta name="errors" content="true">
   <% end %>
-  <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_post_navigation %>">
-  <meta name="new-post-navigation-layout" content="<%= CurrentUser.user.new_post_navigation_layout %>">
+  <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
   <meta name="default-image-size" content="<%= CurrentUser.user.default_image_size %>">
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
   <meta name="style-usernames" content="<%= CurrentUser.user.style_usernames? %>">
   <meta name="last-forum-read-at" content="<%= CurrentUser.user.last_forum_read_at %>">
-  <meta name="disable-labeled-saved-searches" content="<%= CurrentUser.disable_categorized_saved_searches? %>">
   <meta name="disable-post-tooltips" content="<%= CurrentUser.disable_post_tooltips? %>">
   <%= tag.meta name: "disable-mobile-gestures", content: CurrentUser.disable_mobile_gestures? %>
   <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
@@ -81,17 +79,6 @@
       console.warn("Danbooru.error will be deprecated. Use $(window).trigger('danbooru:error', msg) instead.")
       $(window).trigger("danbooru:error", msg);
     }
-    window._paq = window._paq || [];
-    <% if CurrentUser.is_member? && !CurrentUser.opt_out_tracking? %>
-      window._paq.push(["setUserId", '<%= CurrentUser.id %>']);
-    <% end %>
-    window._paq.push(["setDomains", "*.donmai.us"]);
-    <% if !CurrentUser.opt_out_tracking? %>
-      window._paq.push(["setCustomVariable", 1, "level", <%= CurrentUser.level %>, "visit"]);
-      window._paq.push(["setCustomVariable", 2, "age", <%= ((Time.now - CurrentUser.created_at) / 1.year).to_i %>, "visit"]);
-      window._paq.push(["setCustomVariable", 3, "postUpdateCount", <%= CurrentUser.post_update_count.to_i / 100 %>, "visit"]);
-      window._paq.push(["setCustomVariable", 4, "favoriteCount", <%= CurrentUser.favorite_count.to_i / 100 %>, "visit"]);
-    <% end %>
   </script>
   <%= yield :html_header %>
   <%= raw Danbooru.config.custom_html_header_content %>
@@ -101,12 +88,12 @@
 
   <header id="top">
     <h1><%= link_to Danbooru.config.app_name, "/" %></h1>
-    
+
     <div id="maintoggle">
       <a href="#"><i id="maintoggle-on" class="fas fa-bars"></i></a>
       <a href="#"><i id="maintoggle-off" class="fas fa-times" style="display: none;"></i></a>
     </div>
-    
+
     <nav id="nav">
       <%= render "layouts/main_links" %>
       <%= yield :secondary_links %>

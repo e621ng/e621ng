@@ -114,12 +114,3 @@
 <% content_for(:page_title) do %>
   Upgrade - <%= Danbooru.config.app_name %>
 <% end %>
-
-<% content_for(:html_header) do %>
-  <script>
-    $(function() {
-      window._paq = window._paq || [];
-      window._paq.push(['trackEvent', 'accounts', 'viewAccountUpgrade']);
-    });
-  </script>
-<% end %>

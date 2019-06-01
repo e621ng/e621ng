@@ -30,10 +30,6 @@ Post.initialize_all = function() {
     this.initialize_similar();
     this.initialize_gestures();
     this.initialize_voting();
-
-    if ((Utility.meta("always-resize-images") === "true") || (Utility.meta("viewport") && (window.screen.width <= 660))) {
-      $("#image-resize-to-window-link").click();
-    }
   }
 
   if ($("#c-posts #a-show, #c-uploads #a-new").length) {
@@ -632,10 +628,6 @@ Post.initialize_saved_searches = function() {
 
   $("#save-search").on("click.danbooru", function(e) {
     $("#save-search-dialog #saved_search_query").val($("#tags").val());
-
-    if (Utility.meta("disable-labeled-saved-searches") === "false") {
-      $("#save-search-dialog").dialog("open");
-    } else {
       $.post(
         "/saved_searches.js",
         {
@@ -644,7 +636,6 @@ Post.initialize_saved_searches = function() {
           }
         }
       );
-    }
 
     e.preventDefault();
   });

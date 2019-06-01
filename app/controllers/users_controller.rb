@@ -87,13 +87,12 @@ class UsersController < ApplicationController
       comment_threshold default_image_size favorite_tags blacklisted_tags
       time_zone per_page custom_style
 
-      receive_email_notifications always_resize_images enable_post_navigation
-      new_post_navigation_layout enable_privacy_mode
-      enable_sequential_post_navigation style_usernames
-      enable_auto_complete disable_categorized_saved_searches disable_tagged_filenames
-      enable_recent_searches disable_cropped_thumbnails disable_mobile_gestures
+      receive_email_notifications enable_keyboard_navigation
+      enable_privacy_mode
+      style_usernames
+      enable_auto_complete
+      disable_cropped_thumbnails disable_mobile_gestures
       enable_safe_mode disable_responsive_mode disable_post_tooltips
-      enable_recommended_posts opt_out_tracking
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]

@@ -26,38 +26,23 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - enable_post_navigation (disabled by 700)
-  # - new_post_navigation_layout (disabled by 1364)
-  # - enable_sequential_post_navigation (disabled by 680)
-  # - disable_categorized_saved_searches (enabled by 2291)
-  # - disable_tagged_filenames (enabled by 387)
-  # - enable_recent_searches (enabled by 499)
   # - disable_cropped_thumbnails (enabled by 22)
   BOOLEAN_ATTRIBUTES = %w(
     is_banned
     has_mail
     receive_email_notifications
-    always_resize_images
-    enable_post_navigation
-    new_post_navigation_layout
+    enable_keyboard_navigation
     enable_privacy_mode
-    enable_sequential_post_navigation
     style_usernames
     enable_auto_complete
     has_saved_searches
     can_approve_posts
     can_upload_free
-    disable_categorized_saved_searches
-    is_super_voter
-    disable_tagged_filenames
-    enable_recent_searches
     disable_cropped_thumbnails
     disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
     disable_post_tooltips
-    enable_recommended_posts
-    opt_out_tracking
     no_flagging
     no_feedback
   )
@@ -321,7 +306,6 @@ class User < ApplicationRecord
         self.level = Levels::ADMIN
         self.can_approve_posts = true
         self.can_upload_free = true
-        self.is_super_voter = true
       else
         self.level = Levels::MEMBER
       end
@@ -380,7 +364,7 @@ class User < ApplicationRecord
     end
 
     def is_voter?
-      is_gold? || is_super_voter?
+      is_member?
     end
 
     def is_approver?
@@ -619,7 +603,7 @@ class User < ApplicationRecord
       list = super + [
         :id, :created_at, :name, :inviter_id, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
-        :is_banned, :can_approve_posts, :can_upload_free, :is_super_voter,
+        :is_banned, :can_approve_posts, :can_upload_free,
         :level_string,
       ]
 
@@ -786,7 +770,7 @@ class User < ApplicationRecord
       bitprefs_include = nil
       bitprefs_exclude = nil
 
-      [:can_approve_posts, :can_upload_free, :is_super_voter].each do |x|
+      [:can_approve_posts, :can_upload_free].each do |x|
         if params[x].present?
           attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
           if params[x].to_s.truthy?
@@ -882,11 +866,8 @@ class User < ApplicationRecord
 
   def initialize_attributes
     self.last_ip_addr ||= CurrentUser.ip_addr
-    self.enable_post_navigation = true
-    self.new_post_navigation_layout = true
-    self.enable_sequential_post_navigation = true
+    self.enable_keyboard_navigation = true
     self.enable_auto_complete = true
-    self.always_resize_images = true
   end
 
   def presenter

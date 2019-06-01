@@ -1,7 +1,7 @@
 class SavedSearchesController < ApplicationController
   before_action :check_availability
   respond_to :html, :xml, :json, :js
-  
+
   def index
     @saved_searches = saved_searches.order("id")
 
@@ -55,6 +55,6 @@ class SavedSearchesController < ApplicationController
   end
 
   def saved_search_params
-    params.fetch(:saved_search, {}).permit(%i[query label_string disable_labels])
+    params.fetch(:saved_search, {}).permit(%i[query label_string])
   end
 end
