@@ -26,7 +26,6 @@ class User < ApplicationRecord
   ]
 
   # candidates for removal:
-  # - disable_tagged_filenames (enabled by 387)
   # - enable_recent_searches (enabled by 499)
   # - disable_cropped_thumbnails (enabled by 22)
   BOOLEAN_ATTRIBUTES = %w(
@@ -41,7 +40,6 @@ class User < ApplicationRecord
     can_approve_posts
     can_upload_free
     is_super_voter
-    disable_tagged_filenames
     enable_recent_searches
     disable_cropped_thumbnails
     disable_mobile_gestures
