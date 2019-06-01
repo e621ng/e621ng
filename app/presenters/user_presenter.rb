@@ -36,10 +36,6 @@ class UserPresenter
       permissions << "unrestricted uploads"
     end
 
-    if user.is_super_voter?
-      permissions << "super voter"
-    end
-
     permissions.join(", ")
   end
 
@@ -161,7 +157,7 @@ class UserPresenter
       []
     end
   end
-  
+
   def previous_names(template)
     user.user_name_change_requests.map { |req| template.link_to req.original_name, req }.join(", ").html_safe
   end

@@ -38,7 +38,6 @@ class User < ApplicationRecord
     has_saved_searches
     can_approve_posts
     can_upload_free
-    is_super_voter
     disable_cropped_thumbnails
     disable_mobile_gestures
     enable_safe_mode
@@ -309,7 +308,6 @@ class User < ApplicationRecord
         self.level = Levels::ADMIN
         self.can_approve_posts = true
         self.can_upload_free = true
-        self.is_super_voter = true
       else
         self.level = Levels::MEMBER
       end
@@ -368,7 +366,7 @@ class User < ApplicationRecord
     end
 
     def is_voter?
-      is_gold? || is_super_voter?
+      is_member?
     end
 
     def is_approver?
@@ -607,7 +605,7 @@ class User < ApplicationRecord
       list = super + [
         :id, :created_at, :name, :inviter_id, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
-        :is_banned, :can_approve_posts, :can_upload_free, :is_super_voter,
+        :is_banned, :can_approve_posts, :can_upload_free,
         :level_string,
       ]
 
@@ -774,7 +772,7 @@ class User < ApplicationRecord
       bitprefs_include = nil
       bitprefs_exclude = nil
 
-      [:can_approve_posts, :can_upload_free, :is_super_voter].each do |x|
+      [:can_approve_posts, :can_upload_free].each do |x|
         if params[x].present?
           attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
           if params[x].to_s.truthy?
