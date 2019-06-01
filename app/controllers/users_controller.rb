@@ -93,7 +93,7 @@ class UsersController < ApplicationController
       enable_auto_complete
       disable_cropped_thumbnails disable_mobile_gestures
       enable_safe_mode disable_responsive_mode disable_post_tooltips
-      enable_recommended_posts opt_out_tracking
+      opt_out_tracking
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]

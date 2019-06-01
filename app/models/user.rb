@@ -43,7 +43,6 @@ class User < ApplicationRecord
     enable_safe_mode
     disable_responsive_mode
     disable_post_tooltips
-    enable_recommended_posts
     opt_out_tracking
     no_flagging
     no_feedback
