@@ -4,10 +4,10 @@
 
     <%= simple_form_for @user do |f| %>
       <h2 id="edit-options">
-        <%= link_to "Basic", "#basic-settings", :class => "active" %> 
-        | <%= link_to "Advanced", "#advanced-settings" %> 
+        <%= link_to "Basic", "#basic-settings", :class => "active" %>
+        | <%= link_to "Advanced", "#advanced-settings" %>
         <% if CurrentUser.user.id == @user.id %>
-          | <%= link_to "Change password", edit_user_password_path(:user_id => @user.id), :id => "change-password" %> 
+          | <%= link_to "Change password", edit_user_password_path(:user_id => @user.id), :id => "change-password" %>
           | <%= link_to "Delete account", maintenance_user_deletion_path, :id => "delete-account" %>
         <% end %>
       </h2>
@@ -15,7 +15,7 @@
       <fieldset id="basic-settings-section">
         <div class="input">
           <label>Name</label>
-          
+
           <% if CurrentUser.user.is_gold? %>
             <p><%= link_to "Request a name change", new_user_name_change_request_path %></p>
           <% else %>
@@ -31,7 +31,7 @@
             <% else %>
               <em>blank</em>
             <% end %>
-            &ndash; 
+            &ndash;
             <%= link_to "Change your email", new_maintenance_user_email_change_path %>
           </p>
         </div>
@@ -49,20 +49,18 @@
         <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default" %>
 
         <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, or show resized #{Danbooru.config.large_image_width} pixel sample version", :label => "Default image width", :collection => [["850px", "large"], ["scale to fit", "fit"], ["original", "original"]], :include_blank => false %>
-        
+
         <% if CurrentUser.user.is_gold? %>
           <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (1..100), :include_blank => false %>
         <% end %>
 
         <%= f.input :enable_safe_mode, :label => "Safe mode", :hint => "Show only safe images. Hide questionable and explicit images.", :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
-        
+
         <%= f.input :blacklisted_tags, :hint => "Put any tag combinations you never want to see here. Each combination should go on a separate line. <a href='/help/blacklists'>View help.</a>".html_safe, :input_html => {:size => "40x5", :data => {:autocomplete => "tag-query"}} %>
       </fieldset>
-      
+
       <fieldset id="advanced-settings-section">
         <%= f.input :style_usernames, :as => :select, :label => "Colored usernames", :hint => "Color each user's name depending on their level", :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
-
-        <%= f.input :always_resize_images, :as => :select, :include_blank => false, :label => "Fit images to window", :hint => "Use JavaScript to resize images to fit window", :collection => [["Yes", "true"], ["No", "false"]] %>
 
         <%= f.input :enable_post_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]] %>
 

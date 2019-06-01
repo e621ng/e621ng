@@ -37,7 +37,6 @@ class User < ApplicationRecord
     is_banned
     has_mail
     receive_email_notifications
-    always_resize_images
     enable_post_navigation
     new_post_navigation_layout
     enable_privacy_mode
@@ -886,7 +885,6 @@ class User < ApplicationRecord
     self.new_post_navigation_layout = true
     self.enable_sequential_post_navigation = true
     self.enable_auto_complete = true
-    self.always_resize_images = true
   end
 
   def presenter
