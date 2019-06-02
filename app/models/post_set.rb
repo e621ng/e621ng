@@ -17,7 +17,8 @@ class PostSet < ApplicationRecord
     end
   end
   has_many :maintainers, class_name: "User", through: :post_set_maintainers
-  belongs_to_creator counter_cache: 'set_count'
+  belongs_to_creator
+  user_status_counter :set_count
 
   validates_length_of :name, :shortname, in: 3..100, message: "must be between three and one hundred characters long"
   validates_uniqueness_of :name, :shortname, case_sensitive: false, message: "is already taken"

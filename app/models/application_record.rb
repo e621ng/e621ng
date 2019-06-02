@@ -297,10 +297,16 @@ class ApplicationRecord < ActiveRecord::Base
 
   concerning :UserMethods do
     class_methods do
+      def user_status_counter(counter_name, options = {})
+        class_eval do
+          belongs_to :user_status, {foreign_key: :creator_id, primary_key: :user_id, counter_cache: counter_name}.merge(options)
+        end
+      end
+
       def belongs_to_creator(options = {})
         class_eval do
           belongs_to :creator, options.merge(class_name: "User")
-          before_validation(on: :create) do |rec| 
+          before_validation(on: :create) do |rec|
             if rec.creator_id.nil?
               rec.creator_id = CurrentUser.id
               rec.creator_ip_addr = CurrentUser.ip_addr if rec.respond_to?(:creator_ip_addr=)

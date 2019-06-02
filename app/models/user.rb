@@ -72,6 +72,7 @@ class User < ApplicationRecord
   before_create :promote_to_admin_if_first_user
   before_create :customize_new_user
   #after_create :notify_sock_puppets
+  after_create :create_user_status
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
   has_many :posts, :foreign_key => "uploader_id"
   has_many :post_approvals, :dependent => :destroy
@@ -84,7 +85,6 @@ class User < ApplicationRecord
 
   has_one :api_key
   has_one :dmail_filter
-  has_one :super_voter
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
   has_many :saved_searches
@@ -380,6 +380,10 @@ class User < ApplicationRecord
 
     def level_class
       "user-#{level_string.downcase}"
+    end
+
+    def create_user_status
+      UserStatus.create!(user_id: id)
     end
   end
 

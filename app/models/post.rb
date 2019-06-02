@@ -42,7 +42,8 @@ class Post < ApplicationRecord
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
-  belongs_to :uploader, :class_name => "User", :counter_cache => "post_upload_count"
+  belongs_to :uploader, :class_name => "User"
+  user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, :dependent => :destroy
   has_one :artist_commentary, :dependent => :destroy
