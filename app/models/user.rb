@@ -21,7 +21,6 @@ class User < ApplicationRecord
     :banned,
     :approver,
     :voter,
-    :super_voter,
     :verified,
   ]
 
