@@ -82,6 +82,7 @@ class User < ApplicationRecord
   has_many :note_versions
   has_many :bans, -> {order("bans.id desc")}
   has_one :recent_ban, -> {order("bans.id desc")}, :class_name => "Ban"
+  has_one :user_status
 
   has_one :api_key
   has_one :dmail_filter
@@ -650,11 +651,15 @@ class User < ApplicationRecord
 
   module CountMethods
     def wiki_page_version_count
-      WikiPageVersion.for_user(id).count
+      user_status.wiki_edit_count
+    end
+
+    def note_version_count
+      user_status.note_count
     end
 
     def artist_version_count
-      ArtistVersion.for_user(id).count
+      user_status.artist_edit_count
     end
 
     def artist_commentary_version_count
@@ -662,15 +667,19 @@ class User < ApplicationRecord
     end
 
     def pool_version_count
-      PoolArchive.for_user(id).count
+      user_status.pool_edit_count
     end
 
     def forum_post_count
-      ForumPost.for_user(id).count
+      user_status.forum_post_count
+    end
+
+    def favorite_count
+      user_status.favorite_count
     end
 
     def comment_count
-      Comment.for_creator(id).count
+      user_status.comment_count
     end
 
     def appeal_count
@@ -678,7 +687,7 @@ class User < ApplicationRecord
     end
 
     def flag_count
-      PostFlag.for_creator(id).count
+      user_status.post_flag_count
     end
 
     def positive_feedback_count

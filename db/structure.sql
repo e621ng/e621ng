@@ -2527,14 +2527,16 @@ CREATE TABLE public.user_statuses (
     post_count integer DEFAULT 0 NOT NULL,
     post_deleted_count integer DEFAULT 0 NOT NULL,
     post_update_count integer DEFAULT 0 NOT NULL,
+    post_flag_count integer DEFAULT 0 NOT NULL,
     favorite_count integer DEFAULT 0 NOT NULL,
     wiki_edit_count integer DEFAULT 0 NOT NULL,
     note_count integer DEFAULT 0 NOT NULL,
     forum_post_count integer DEFAULT 0 NOT NULL,
     comment_count integer DEFAULT 0 NOT NULL,
-    pool_count integer DEFAULT 0 NOT NULL,
+    pool_edit_count integer DEFAULT 0 NOT NULL,
     blip_count integer DEFAULT 0 NOT NULL,
-    set_count integer DEFAULT 0 NOT NULL
+    set_count integer DEFAULT 0 NOT NULL,
+    artist_edit_count integer DEFAULT 0 NOT NULL
 );
 
 

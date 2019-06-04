@@ -4,7 +4,6 @@ class Pool < ApplicationRecord
 
   array_attribute :post_ids, parse: /\d+/, cast: :to_i
   belongs_to_creator
-  user_status_counter :pool_count
 
   validates_uniqueness_of :name, case_sensitive: false, if: :name_changed?
   validate :validate_name, if: :name_changed?
