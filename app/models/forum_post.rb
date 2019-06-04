@@ -5,6 +5,7 @@ class ForumPost < ApplicationRecord
   attr_readonly :topic_id
   belongs_to_creator
   belongs_to_updater
+  user_status_counter :forum_post_count
   belongs_to :topic, :class_name => "ForumTopic"
   has_many :votes, class_name: "ForumPostVote"
   has_one :tag_alias
@@ -28,7 +29,7 @@ class ForumPost < ApplicationRecord
     ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
   end
   mentionable(
-    :message_field => :body, 
+    :message_field => :body,
     :title => ->(user_name) {%{#{creator_name} mentioned you in topic ##{topic_id} (#{topic.title})}},
     :body => ->(user_name) {%{@#{creator_name} mentioned you in topic ##{topic_id} ("#{topic.title}":[/forum_topics/#{topic_id}?page=#{forum_topic_page}]):\n\n[quote]\n#{DText.excerpt(body, "@"+user_name)}\n[/quote]\n}},
   )
@@ -102,7 +103,7 @@ class ForumPost < ApplicationRecord
 
       super(options)
     end
-    
+
     def hidden_attributes
       super + [:text_index]
     end

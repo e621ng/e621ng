@@ -1,6 +1,7 @@
 class Blip < ApplicationRecord
   simple_versioning
   belongs_to_creator
+  user_status_counter :blip_count
   validates_presence_of :body
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
   has_many :responses, class_name: "Blip", foreign_key: "response_to"

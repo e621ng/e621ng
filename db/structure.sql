@@ -2516,6 +2516,50 @@ ALTER SEQUENCE public.user_password_reset_nonces_id_seq OWNED BY public.user_pas
 
 
 --
+-- Name: user_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_statuses (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    user_id integer NOT NULL,
+    post_count integer DEFAULT 0 NOT NULL,
+    post_deleted_count integer DEFAULT 0 NOT NULL,
+    post_update_count integer DEFAULT 0 NOT NULL,
+    post_flag_count integer DEFAULT 0 NOT NULL,
+    favorite_count integer DEFAULT 0 NOT NULL,
+    wiki_edit_count integer DEFAULT 0 NOT NULL,
+    note_count integer DEFAULT 0 NOT NULL,
+    forum_post_count integer DEFAULT 0 NOT NULL,
+    comment_count integer DEFAULT 0 NOT NULL,
+    pool_edit_count integer DEFAULT 0 NOT NULL,
+    blip_count integer DEFAULT 0 NOT NULL,
+    set_count integer DEFAULT 0 NOT NULL,
+    artist_edit_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: user_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_statuses_id_seq OWNED BY public.user_statuses.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2533,10 +2577,6 @@ CREATE TABLE public.users (
     last_logged_in_at timestamp without time zone,
     last_forum_read_at timestamp without time zone,
     recent_tags text,
-    post_upload_count integer DEFAULT 0 NOT NULL,
-    post_update_count integer DEFAULT 0 NOT NULL,
-    note_update_count integer DEFAULT 0 NOT NULL,
-    favorite_count integer DEFAULT 0 NOT NULL,
     comment_threshold integer DEFAULT '-1'::integer NOT NULL,
     default_image_size character varying DEFAULT 'large'::character varying NOT NULL,
     favorite_tags text,
@@ -2551,7 +2591,6 @@ furry -rating:s'::text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
-    set_count integer DEFAULT 0 NOT NULL,
     profile_about text,
     profile_artinfo text,
     avatar_id integer
@@ -3098,6 +3137,13 @@ ALTER TABLE ONLY public.user_password_reset_nonces ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: user_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_statuses ALTER COLUMN id SET DEFAULT nextval('public.user_statuses_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3636,6 +3682,14 @@ ALTER TABLE ONLY public.user_name_change_requests
 
 ALTER TABLE ONLY public.user_password_reset_nonces
     ADD CONSTRAINT user_password_reset_nonces_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_statuses user_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_statuses
+    ADD CONSTRAINT user_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -4699,6 +4753,13 @@ CREATE INDEX index_user_name_change_requests_on_user_id ON public.user_name_chan
 
 
 --
+-- Name: index_user_statuses_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_user_id ON public.user_statuses USING btree (user_id);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5057,6 +5118,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190428132152'),
 ('20190430120155'),
 ('20190510184237'),
-('20190510184245');
+('20190510184245'),
+('20190602115848'),
+('20190604125828');
 
 

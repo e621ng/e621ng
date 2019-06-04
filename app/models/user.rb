@@ -72,6 +72,7 @@ class User < ApplicationRecord
   before_create :promote_to_admin_if_first_user
   before_create :customize_new_user
   #after_create :notify_sock_puppets
+  after_create :create_user_status
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
   has_many :posts, :foreign_key => "uploader_id"
   has_many :post_approvals, :dependent => :destroy
@@ -81,10 +82,10 @@ class User < ApplicationRecord
   has_many :note_versions
   has_many :bans, -> {order("bans.id desc")}
   has_one :recent_ban, -> {order("bans.id desc")}, :class_name => "Ban"
+  has_one :user_status
 
   has_one :api_key
   has_one :dmail_filter
-  has_one :super_voter
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
   has_many :saved_searches
@@ -381,6 +382,10 @@ class User < ApplicationRecord
     def level_class
       "user-#{level_string.downcase}"
     end
+
+    def create_user_status
+      UserStatus.create!(user_id: id)
+    end
   end
 
   module EmailMethods
@@ -646,11 +651,27 @@ class User < ApplicationRecord
 
   module CountMethods
     def wiki_page_version_count
-      WikiPageVersion.for_user(id).count
+      user_status.wiki_edit_count
+    end
+
+    def post_update_count
+      user_status.post_update_count
+    end
+
+    def post_upload_count
+      user_status.post_count
+    end
+
+    def note_version_count
+      user_status.note_count
+    end
+
+    def note_update_count
+      note_version_count
     end
 
     def artist_version_count
-      ArtistVersion.for_user(id).count
+      user_status.artist_edit_count
     end
 
     def artist_commentary_version_count
@@ -658,15 +679,19 @@ class User < ApplicationRecord
     end
 
     def pool_version_count
-      PoolArchive.for_user(id).count
+      user_status.pool_edit_count
     end
 
     def forum_post_count
-      ForumPost.for_user(id).count
+      user_status.forum_post_count
+    end
+
+    def favorite_count
+      user_status.favorite_count
     end
 
     def comment_count
-      Comment.for_creator(id).count
+      user_status.comment_count
     end
 
     def appeal_count
@@ -674,7 +699,7 @@ class User < ApplicationRecord
     end
 
     def flag_count
-      PostFlag.for_creator(id).count
+      user_status.post_flag_count
     end
 
     def positive_feedback_count
@@ -691,10 +716,10 @@ class User < ApplicationRecord
 
     def refresh_counts!
       self.class.without_timeout do
-        User.where(id: id).update_all(
-          post_upload_count: Post.for_user(id).count,
+        UserStatus.where(user_id: id).update_all(
+          post_count: Post.for_user(id).count,
           post_update_count: PostArchive.for_user(id).count,
-          note_update_count: NoteVersion.where(updater_id: id).count
+          note_count: NoteVersion.where(updater_id: id).count
         )
       end
     end
@@ -737,6 +762,7 @@ class User < ApplicationRecord
 
     def search(params)
       q = super
+      q = q.joins(:user_status)
 
       params = params.dup
       params[:name_matches] = params.delete(:name) if params[:name].present?
@@ -744,10 +770,11 @@ class User < ApplicationRecord
       q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
       q = q.attribute_matches(:inviter_id, params[:inviter_id])
-      q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
-      q = q.attribute_matches(:post_update_count, params[:post_update_count])
-      q = q.attribute_matches(:note_update_count, params[:note_update_count])
-      q = q.attribute_matches(:favorite_count, params[:favorite_count])
+      # TODO: Doesn't support relation filtering using this method.
+      # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
+      # q = q.attribute_matches(:post_update_count, params[:post_update_count])
+      # q = q.attribute_matches(:note_update_count, params[:note_update_count])
+      # q = q.attribute_matches(:favorite_count, params[:favorite_count])
 
       if params[:name_matches].present?
         q = q.where_ilike(:name, normalize_name(params[:name_matches]))
@@ -802,11 +829,11 @@ class User < ApplicationRecord
       when "name"
         q = q.order("name")
       when "post_upload_count"
-        q = q.order("post_upload_count desc")
+        q = q.order("user_statuses.post_count desc")
       when "note_count"
-        q = q.order("note_update_count desc")
+        q = q.order("user_statuses.note_count desc")
       when "post_update_count"
-        q = q.order("post_update_count desc")
+        q = q.order("user_statuses.post_update_count desc")
       else
         q = q.apply_default_order(params)
       end

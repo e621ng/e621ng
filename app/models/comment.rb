@@ -8,6 +8,7 @@ class Comment < ApplicationRecord
   belongs_to :post
   belongs_to_creator
   belongs_to_updater
+  user_status_counter :comment_count
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
   after_create :update_last_commented_at_on_create
   after_update(:if => ->(rec) {(!rec.is_deleted? || !rec.saved_change_to_is_deleted?) && CurrentUser.id != rec.creator_id}) do |rec|
@@ -18,7 +19,7 @@ class Comment < ApplicationRecord
     ModAction.log(:comment_delete, {comment_id: rec.id, user_id: rec.creator_id})
   end
   mentionable(
-    :message_field => :body, 
+    :message_field => :body,
     :title => ->(user_name) {"#{creator_name} mentioned you in a comment on post ##{post_id}"},
     :body => ->(user_name) {"@#{creator_name} mentioned you in a \"comment\":/posts/#{post_id}#comment-#{id} on post ##{post_id}:\n\n[quote]\n#{DText.excerpt(body, "@"+user_name)}\n[/quote]\n"},
   )

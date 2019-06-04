@@ -42,7 +42,8 @@ class Post < ApplicationRecord
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
-  belongs_to :uploader, :class_name => "User", :counter_cache => "post_upload_count"
+  belongs_to :uploader, :class_name => "User"
+  user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, :dependent => :destroy
   has_one :artist_commentary, :dependent => :destroy
@@ -1037,7 +1038,7 @@ class Post < ApplicationRecord
     def remove_from_favorites
       Favorite.where(post_id: id).delete_all
       user_ids = fav_string.scan(/\d+/)
-      User.where(:id => user_ids).update_all("favorite_count = favorite_count - 1")
+      UserStatus.where(:user_id => user_ids).update_all("favorite_count = favorite_count - 1")
     end
   end
 
@@ -1454,7 +1455,6 @@ class Post < ApplicationRecord
     end
 
     def create_new_version
-      User.where(id: CurrentUser.id).update_all("post_update_count = post_update_count + 1")
       PostArchive.queue(self)
     end
 

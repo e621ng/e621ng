@@ -102,7 +102,7 @@ class UserPresenter
   end
 
   def note_version_count(template)
-    template.link_to(user.note_update_count, template.note_versions_path(:search => {:updater_id => user.id}))
+    template.link_to(user.note_version_count, template.note_versions_path(:search => {:updater_id => user.id}))
   end
 
   def noted_posts_count(template)

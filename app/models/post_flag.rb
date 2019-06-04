@@ -10,6 +10,7 @@ class PostFlag < ApplicationRecord
   CREATION_THRESHOLD = 10 # in 30 days
 
   belongs_to_creator :class_name => "User"
+  user_status_counter :post_flag_count
   belongs_to :post
   validates_presence_of :reason
   validate :validate_creator_is_not_limited, on: :create

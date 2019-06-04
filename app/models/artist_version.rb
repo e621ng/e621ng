@@ -3,6 +3,7 @@ class ArtistVersion < ApplicationRecord
   array_attribute :other_names
 
   belongs_to_updater
+  user_status_counter :artist_edit_count, foreign_key: :updater_id
   belongs_to :artist
   delegate :visible?, :to => :artist
 
