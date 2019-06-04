@@ -2577,10 +2577,6 @@ CREATE TABLE public.users (
     last_logged_in_at timestamp without time zone,
     last_forum_read_at timestamp without time zone,
     recent_tags text,
-    post_upload_count integer DEFAULT 0 NOT NULL,
-    post_update_count integer DEFAULT 0 NOT NULL,
-    note_update_count integer DEFAULT 0 NOT NULL,
-    favorite_count integer DEFAULT 0 NOT NULL,
     comment_threshold integer DEFAULT '-1'::integer NOT NULL,
     default_image_size character varying DEFAULT 'large'::character varying NOT NULL,
     favorite_tags text,
@@ -2595,7 +2591,6 @@ furry -rating:s'::text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
-    set_count integer DEFAULT 0 NOT NULL,
     profile_about text,
     profile_artinfo text,
     avatar_id integer
@@ -5124,6 +5119,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190430120155'),
 ('20190510184237'),
 ('20190510184245'),
-('20190602115848');
+('20190602115848'),
+('20190604125828');
 
 

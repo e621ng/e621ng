@@ -4,7 +4,7 @@ class FavoriteManager
       Favorite.transaction(isolation: :serializable) do
         unless force
           if user.favorite_count >= user.favorite_limit
-            raise Favorite::Error, "You can only keep up to #{user.favorite_limit} favorites. Upgrade your account to save more."
+            raise Favorite::Error, "You can only keep up to #{user.favorite_limit} favorites."
           end
         end
 

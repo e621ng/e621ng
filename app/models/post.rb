@@ -1038,7 +1038,7 @@ class Post < ApplicationRecord
     def remove_from_favorites
       Favorite.where(post_id: id).delete_all
       user_ids = fav_string.scan(/\d+/)
-      User.where(:id => user_ids).update_all("favorite_count = favorite_count - 1")
+      UserStatus.where(:user_id => user_ids).update_all("favorite_count = favorite_count - 1")
     end
   end
 
@@ -1455,7 +1455,6 @@ class Post < ApplicationRecord
     end
 
     def create_new_version
-      User.where(id: CurrentUser.id).update_all("post_update_count = post_update_count + 1")
       PostArchive.queue(self)
     end
 

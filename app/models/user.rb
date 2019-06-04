@@ -654,8 +654,20 @@ class User < ApplicationRecord
       user_status.wiki_edit_count
     end
 
+    def post_update_count
+      user_status.post_update_count
+    end
+
+    def post_upload_count
+      user_status.post_count
+    end
+
     def note_version_count
       user_status.note_count
+    end
+
+    def note_update_count
+      note_version_count
     end
 
     def artist_version_count
@@ -704,10 +716,10 @@ class User < ApplicationRecord
 
     def refresh_counts!
       self.class.without_timeout do
-        User.where(id: id).update_all(
-          post_upload_count: Post.for_user(id).count,
+        UserStatus.where(user_id: id).update_all(
+          post_count: Post.for_user(id).count,
           post_update_count: PostArchive.for_user(id).count,
-          note_update_count: NoteVersion.where(updater_id: id).count
+          note_count: NoteVersion.where(updater_id: id).count
         )
       end
     end
@@ -750,6 +762,7 @@ class User < ApplicationRecord
 
     def search(params)
       q = super
+      q = q.joins(:user_status)
 
       params = params.dup
       params[:name_matches] = params.delete(:name) if params[:name].present?
@@ -757,10 +770,11 @@ class User < ApplicationRecord
       q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
       q = q.attribute_matches(:inviter_id, params[:inviter_id])
-      q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
-      q = q.attribute_matches(:post_update_count, params[:post_update_count])
-      q = q.attribute_matches(:note_update_count, params[:note_update_count])
-      q = q.attribute_matches(:favorite_count, params[:favorite_count])
+      # TODO: Doesn't support relation filtering using this method.
+      # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
+      # q = q.attribute_matches(:post_update_count, params[:post_update_count])
+      # q = q.attribute_matches(:note_update_count, params[:note_update_count])
+      # q = q.attribute_matches(:favorite_count, params[:favorite_count])
 
       if params[:name_matches].present?
         q = q.where_ilike(:name, normalize_name(params[:name_matches]))
@@ -815,11 +829,11 @@ class User < ApplicationRecord
       when "name"
         q = q.order("name")
       when "post_upload_count"
-        q = q.order("post_upload_count desc")
+        q = q.order("user_statuses.post_count desc")
       when "note_count"
-        q = q.order("note_update_count desc")
+        q = q.order("user_statuses.note_count desc")
       when "post_update_count"
-        q = q.order("post_update_count desc")
+        q = q.order("user_statuses.post_update_count desc")
       else
         q = q.apply_default_order(params)
       end
