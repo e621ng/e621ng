@@ -161,7 +161,7 @@ class Takedown < ApplicationRecord
       normalize_post_ids
       normalize_deleted_post_ids
       clear_cached_arrays
-      self.post_count = del_post_array.size
+      self.post_count = post_array.size
     end
   end
 

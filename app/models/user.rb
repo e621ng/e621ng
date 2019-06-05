@@ -27,6 +27,13 @@ class User < ApplicationRecord
   # candidates for removal:
   # - disable_cropped_thumbnails (enabled by 22)
   BOOLEAN_ATTRIBUTES = %w(
+    show_avatars
+    blacklist_avatars
+    blacklist_users
+    description_collapsed_initially
+    hide_comments
+    show_hidden_comments
+    show_post_statistics
     is_banned
     has_mail
     receive_email_notifications
