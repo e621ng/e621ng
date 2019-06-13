@@ -2489,9 +2489,9 @@ ALTER SEQUENCE public.user_name_change_requests_id_seq OWNED BY public.user_name
 CREATE TABLE public.user_password_reset_nonces (
     id integer NOT NULL,
     key character varying NOT NULL,
-    email character varying NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_id integer NOT NULL
 );
 
 
@@ -5120,6 +5120,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190510184237'),
 ('20190510184245'),
 ('20190602115848'),
-('20190604125828');
+('20190604125828'),
+('20190613025850');
 
 
