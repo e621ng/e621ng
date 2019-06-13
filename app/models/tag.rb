@@ -212,7 +212,7 @@ class Tag < ApplicationRecord
 
     def trending
       Cache.get("popular-tags-v3", 1.hour) do
-        CurrentUser.scoped(User.admins.first, "127.0.0.1") do
+        CurrentUser.scoped(User.system, "127.0.0.1") do
           n = 24
           counts = {}
 
