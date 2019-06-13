@@ -192,26 +192,6 @@ class User < ApplicationRecord
     def upgrade_password(pass)
       self.update_columns(password_hash: '', bcrypt_password_hash: User.bcrypt(pass))
     end
-
-    def reset_password
-      consonants = "bcdfghjklmnpqrstvqxyz"
-      vowels = "aeiou"
-      pass = ""
-
-      6.times do
-        pass << consonants[rand(21), 1]
-        pass << vowels[rand(5), 1]
-      end
-
-      pass << rand(100).to_s
-      update_column(:bcrypt_password_hash, User.bcrypt(pass))
-      pass
-    end
-
-    def reset_password_and_deliver_notice
-      new_password = reset_password()
-      Maintenance::User::PasswordResetMailer.confirmation(self, new_password).deliver_now
-    end
   end
 
   module AuthenticationMethods
@@ -220,7 +200,7 @@ class User < ApplicationRecord
     module ClassMethods
       def authenticate(name, pass)
         user = find_by_name(name)
-        if user && user.password_hash && PBKDF2.validate_password(pass, user.password_hash)
+        if user && user.password_hash.present? && PBKDF2.validate_password(pass, user.password_hash)
           user.upgrade_password(pass)
           user
         elsif user && user.bcrypt_password_hash && user.bcrypt_password == pass

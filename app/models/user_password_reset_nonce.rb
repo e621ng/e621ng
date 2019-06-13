@@ -1,29 +1,25 @@
 class UserPasswordResetNonce < ApplicationRecord
   has_secure_token :key
-  validates_presence_of :email
-  validate :validate_existence_of_email
   after_create :deliver_notice
+  belongs_to :user
 
   def self.prune!
-    where("created_at < ?", 1.week.ago).destroy_all
+    where("created_at < ?", 2.days.ago).destroy_all
   end
 
   def deliver_notice
-    Maintenance::User::PasswordResetMailer.reset_request(user, self).deliver_now
-  end
-
-  def validate_existence_of_email
-    if !User.with_email(email).exists?
-      errors[:email] << "is invalid"
-      return false
+    if user.email.present?
+      Maintenance::User::PasswordResetMailer.reset_request(user, self).deliver_now
     end
   end
 
-  def reset_user!
-    user.reset_password_and_deliver_notice
+  def reset_user!(pass, confirm)
+    return false if !ActiveSupport::SecurityUtils.secure_compare(pass, confirm)
+    user.upgrade_password(pass)
+    true
   end
 
-  def user
-    @user ||= User.with_email(email).first
+  def expired?
+    created_at < 24.hours.ago
   end
 end
