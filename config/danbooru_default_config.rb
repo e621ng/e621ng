@@ -4,24 +4,24 @@ module Danbooru
   class Configuration
     # The version of this Danbooru.
     def version
-      "2.105.0"
+      "2.0.0"
     end
 
     # The name of this Danbooru.
     def app_name
       if CurrentUser.safe_mode?
-        "Safebooru"
+        "e926"
       else
-        "Danbooru"
+        "e621"
       end
     end
 
     def description
-      "Find good anime art fast"
+      "Find good furry art, fast"
     end
 
     def domain
-      "donmai.us"
+      "e621.net"
     end
 
     # The canonical hostname of the site.
@@ -37,7 +37,7 @@ module Danbooru
 
     # Contact email address of the admin.
     def contact_email
-      "webmaster@#{server_host}"
+      "management@#{server_host}"
     end
 
     def takedown_email
@@ -53,7 +53,7 @@ module Danbooru
     #
     # Run `rake db:seed` to create this account if it doesn't already exist in your install.
     def system_user
-      "DanbooruBot"
+      "E621_Bot"
     end
 
     def upload_feedback_topic
@@ -65,7 +65,7 @@ module Danbooru
     end
 
     def source_code_url
-      "https://github.com/r888888888/danbooru"
+      "https://github.com/zwagoth/e621ng"
     end
 
     def commit_url(hash)
@@ -116,6 +116,12 @@ module Danbooru
     # local_hierarchy: Store every image in a hierarchical directory, based on the post's MD5 hash. On some file systems this may be faster.
     def image_store
       :local_flat
+    end
+
+    # This allows using statically linked copies of ffmpeg in non default locations. Not universally supported across
+    # the codebase at this time.
+    def ffmpeg_path
+      "/usr/bin/ffmpeg"
     end
 
     # Thumbnail size
@@ -209,22 +215,42 @@ module Danbooru
     # Maximum size of an upload. If you change this, you must also change
     # `client_max_body_size` in your nginx.conf.
     def max_file_size
-      35.megabytes
+      100.megabytes
+    end
+
+    def max_file_sizes
+      {
+          'jpg' => 100.megabytes,
+          'gif' => 20.megabytes,
+          'png' => 100.megabytes,
+          'swf' => 100.megabytes,
+          'webm' => 100.megabytes,
+          'mp4' => 100.megabytes
+      }
+    end
+
+    def max_apng_file_size
+      20.megabytes
+    end
+
+    # Measured in seconds
+    def max_video_duration
+      600
     end
 
     # Maximum resolution (width * height) of an upload. Default: 441 megapixels (21000x21000 pixels).
     def max_image_resolution
-      21000 * 21000
+      15000 * 15000
     end
 
     # Maximum width of an upload.
     def max_image_width
-      40000
+      15000
     end
 
     # Maximum height of an upload.
     def max_image_height
-      40000
+      15000
     end
 
     def member_comment_time_threshold
@@ -590,7 +616,7 @@ module Danbooru
 
     def stripe_secret_key
     end
-    
+
     def stripe_publishable_key
     end
 
@@ -629,31 +655,14 @@ module Danbooru
     # For downloads, if the host matches any of these IPs, block it
     def banned_ip_for_download?(ip_addr)
       raise ArgumentError unless ip_addr.is_a?(IPAddr)
+      ipv4s = %w(127.0.0.1/8 169.254.0.0/16 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16)
+      ipv6s = %w(::1 fe80::/10 fd00::/8)
+
 
       if ip_addr.ipv4?
-        if IPAddr.new("127.0.0.1") == ip_addr
-          true
-        elsif IPAddr.new("169.254.0.0/16").include?(ip_addr)
-          true
-        elsif IPAddr.new("10.0.0.0/8").include?(ip_addr)
-          true
-        elsif IPAddr.new("172.16.0.0/12").include?(ip_addr)
-          true
-        elsif IPAddr.new("192.168.0.0/16").include?(ip_addr)
-          true
-        else
-          false
-        end
+        ipv4s.any? {|range| IPAddr.new(range).include?(ip_addr)}
       elsif ip_addr.ipv6?
-        if IPAddr.new("::1") == ip_addr
-          true
-        elsif IPAddr.new("fe80::/10").include?(ip_addr)
-          true
-        elsif IPAddr.new("fd00::/8").include?(ip_addr)
-          true
-        else
-          false
-        end
+        ipv6s.any? {|range| IPAddr.new(range).include?(ip_addr)}
       else
         false
       end
@@ -698,6 +707,10 @@ module Danbooru
     def reportbooru_key
     end
 
+    def iqdb_enabled?
+      false
+    end
+
     # iqdbs options - see https://github.com/r888888888/iqdbs
     def iqdbs_auth_key
     end
@@ -720,7 +733,7 @@ module Danbooru
     def enable_image_cropping
       true
     end
-    
+
     # Akismet API key. Used for Dmail spam detection. http://akismet.com/signup/
     def rakismet_key
     end

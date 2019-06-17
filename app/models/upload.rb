@@ -7,6 +7,7 @@ class Upload < ApplicationRecord
     def validate(record)
       validate_file_ext(record)
       validate_md5_uniqueness(record)
+      validate_file_size(record)
       validate_video_duration(record)
       validate_resolution(record)
     end
@@ -14,6 +15,16 @@ class Upload < ApplicationRecord
     def validate_file_ext(record)
       if record.file_ext == "bin"
         record.errors[:file_ext] << "is invalid (only JPEG, PNG, GIF, SWF, MP4, and WebM files are allowed"
+      end
+    end
+
+    def validate_file_size(record)
+      max_size = Danbooru.config.max_file_sizes.fetch(record.file_ext, 0)
+      if record.file_size > max_size
+        record.errors[:file_size] << "is too large. Maximum allowed for this file type is #{max_size / (1024*1024)} MiB"
+      end
+      if record.is_apng && record.file_size > Danbooru.config.max_apng_file_size
+        record.errors[:file_size] << "is too large. Maximum allowed for this file type is #{Danbooru.config.max_apng_file_size / (1024*1024)} MiB"
       end
     end
 
@@ -48,14 +59,14 @@ class Upload < ApplicationRecord
     end
 
     def validate_video_duration(record)
-      if record.is_video? && record.video.duration > 120
-        record.errors[:base] << "video must not be longer than 2 minutes"
+      if record.is_video? && record.video.duration > Danbooru.config.max_video_duration
+        record.errors[:base] << "video must not be longer than #{Danbooru.config.max_video_duration} seconds"
       end
     end
   end
 
 
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 

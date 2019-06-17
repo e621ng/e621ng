@@ -24,7 +24,7 @@ class UploadService
       end
     end
 
-    def delete_file(md5, file_ext, upload_id = nil)     
+    def delete_file(md5, file_ext, upload_id = nil)
       if Post.where(md5: md5).exists?
         if upload_id.present? && Upload.where(id: upload_id).exists?
           CurrentUser.as_system do
@@ -98,7 +98,8 @@ class UploadService
       if upload.is_video?
         video = FFMPEG::Movie.new(file.path)
         crop_file = generate_video_crop_for(video, Danbooru.config.small_image_width)
-        preview_file = generate_video_preview_for(video, Danbooru.config.small_image_width, Danbooru.config.small_image_width)
+        preview_file = generate_video_preview_for(file.path, Danbooru.config.small_image_width)
+        sample_file = generate_video_sample_for(file.path)
 
       elsif upload.is_ugoira?
         preview_file = PixivUgoiraConverter.generate_preview(file)
@@ -124,16 +125,27 @@ class UploadService
       return crop
     end
 
-    def generate_video_preview_for(video, width, height)
-      dimension_ratio = video.width.to_f / video.height
-      if dimension_ratio > 1
-        height = (width / dimension_ratio).to_i
-      else
-        width = (height * dimension_ratio).to_i
-      end
-
+    def generate_video_preview_for(video, width)
       output_file = Tempfile.new(["video-preview", ".jpg"], binmode: true)
-      video.screenshot(output_file.path, {:seek_time => 0, :resolution => "#{width}x#{height}"})
+      stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, '-y', '-i', video, '-vf', "thumbnail,scale=#{width}:-1", '-frames:v', '1', output_file.path)
+
+      unless status == 0
+        Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
+        Rails.logger.warn("[FFMPEG PREVIEW STDERR] #{stderr.chomp!}")
+        raise CorruptFileError.new("could not generate thumbnail")
+      end
+      output_file
+    end
+
+    def generate_video_sample_for(video)
+      output_file = Tempfile.new(["video-sample", ".jpg"], binmode: true)
+      stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, '-y', '-i', video, '-vf', 'thumbnail', '-frames:v', '1', output_file.path)
+
+      unless status == 0
+        Rails.logger.warn("[FFMPEG SAMPLE STDOUT] #{stdout.chomp!}")
+        Rails.logger.warn("[FFMPEG SAMPLE STDERR] #{stderr.chomp!}")
+        raise CorruptFileError.new("could not generate sample")
+      end
       output_file
     end
 
@@ -147,6 +159,8 @@ class UploadService
         upload.image_width = width
         upload.image_height = height
       end
+
+      upload.is_apng = is_animated_png?(upload, file)
 
       upload.validate!(:file)
       upload.tag_string = "#{upload.tag_string} #{Utils.automatic_tags(upload, file)}"
@@ -169,8 +183,8 @@ class UploadService
       UploadDeleteFilesJob.set(wait: 24.hours).perform_later(upload.md5, upload.file_ext, upload.id)
     end
 
-    # these methods are only really used during upload processing even 
-    # though logically they belong on upload. post can rely on the 
+    # these methods are only really used during upload processing even
+    # though logically they belong on upload. post can rely on the
     # automatic tag that's added.
     def is_animated_gif?(upload, file)
       return false if upload.file_ext != "gif"
@@ -230,7 +244,7 @@ class UploadService
       end
 
       if download.data[:ugoira_frame_data].present?
-        upload.context = { 
+        upload.context = {
           "ugoira" => {
             "frame_data" => download.data[:ugoira_frame_data],
             "content_type" => "image/jpeg"
