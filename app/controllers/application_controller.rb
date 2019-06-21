@@ -138,24 +138,26 @@ class ApplicationController < ActionController::Base
 
   def access_denied(exception = nil)
     previous_url = params[:url] || request.fullpath
+    @message = "Access Denied: #{exception}" if exception.is_a?(String)
+    @message ||= exception&.message || "Access Denied"
 
     respond_to do |fmt|
       fmt.html do
         if CurrentUser.is_anonymous?
           if request.get?
-            redirect_to new_session_path(:url => previous_url), :notice => "Access denied"
+            redirect_to new_session_path(:url => previous_url), notice: @message
           else
-            redirect_to new_session_path, :notice => "Access denied"
+            redirect_to new_session_path, notice: @message
           end
         else
           render :template => "static/access_denied", :status => 403
         end
       end
       fmt.xml do
-        render :xml => {:success => false, :reason => "access denied"}.to_xml(:root => "response"), :status => 403
+        render :xml => {:success => false, reason: @message}.to_xml(:root => "response"), :status => 403
       end
       fmt.json do
-        render :json => {:success => false, :reason => "access denied"}.to_json, :status => 403
+        render :json => {:success => false, reason: @message}.to_json, :status => 403
       end
       fmt.js do
         render js: "", :status => 403

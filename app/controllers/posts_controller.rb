@@ -56,7 +56,7 @@ class PostsController < ApplicationController
     if @post.visible?
       @post.revert_to!(@version)
     end
-    
+
     respond_with(@post) do |format|
       format.js
     end
@@ -66,7 +66,7 @@ class PostsController < ApplicationController
     @post = Post.find(params[:id])
     @other_post = Post.find(params[:other_post_id].to_i)
     @post.copy_notes_to(@other_post)
-    
+
     if @post.errors.any?
       @error_message = @post.errors.full_messages.join("; ")
       render :json => {:success => false, :reason => @error_message}.to_json, :status => 400
