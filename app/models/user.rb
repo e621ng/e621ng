@@ -3,7 +3,13 @@ require 'danbooru/has_bit_flags'
 
 class User < ApplicationRecord
   class Error < Exception ; end
-  class PrivilegeError < Exception ; end
+  class PrivilegeError < Exception
+    attr_accessor :message
+
+    def initialize(msg = nil)
+      @message = "Access Denied: #{msg}" if msg
+    end
+  end
 
   module Levels
     ANONYMOUS = 0
