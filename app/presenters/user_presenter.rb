@@ -48,15 +48,9 @@ class UserPresenter
       return "none"
     end
 
-    slots_tooltip = "Next free slot: #{template.time_ago_in_words(user.next_free_upload_slot)}"
-    limit_tooltip = <<-EOS.strip_heredoc
-      Base: #{user.base_upload_limit}
-      Del. Rate: #{"%.2f" % user.adjusted_deletion_confidence}
-      Multiplier: (1 - (#{"%.2f" % user.adjusted_deletion_confidence} / 15)) = #{user.upload_limit_multiplier}
-      Upload Limit: #{user.base_upload_limit} * #{"%.2f" % user.upload_limit_multiplier} = #{user.max_upload_limit}
-    EOS
+    upload_limit_pieces = user.upload_limit_pieces
 
-    %{<abbr title="#{slots_tooltip}">#{user.used_upload_slots}</abbr> / <abbr title="#{limit_tooltip}">#{user.max_upload_limit}</abbr>}.html_safe
+    %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr> + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10) - (<abbr title="Deleted Posts">#{upload_limit_pieces[:deleted]}</abbr> / 4) - <abbr title="Pending or Flagged Posts">#{upload_limit_pieces[:pending]}</abbr> = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
   def uploads

@@ -170,6 +170,11 @@ module Danbooru
       2
     end
 
+    # Members cannot create more than X post versions in an hour.
+    def post_edit_limit
+      150
+    end
+
     # Members cannot change the category of pools with more than this many posts.
     def pool_category_change_limit
       100

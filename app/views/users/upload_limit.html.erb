@@ -1,0 +1,46 @@
+<h2>Upload Limit</h2>
+<div style="margin-bottom: 1em;">
+  <% unless CurrentUser.can_upload_free? %>
+    <p>You can currently upload <strong><%= CurrentUser.upload_limit %></strong> posts. This limit is based on the following formula:</p>
+
+    <ul>
+      <li>Approved: <%= @approved_count %></li>
+      <li>Deleted: <%= @deleted_count %></li>
+      <li>Pending/Flagged: <%= @pending_count %></li>
+      <li>Formula: <%= presenter.upload_limit(self)%></li>
+    </ul>
+
+    <p>
+      This means you are able to upload a maximum of <span style='font-weight:bold'><%= CurrentUser.upload_limit %></span> unapproved posts at a time.
+      Once a moderator approves some of your posts, you can upload more.<br />
+      You cannot upload anything within the first week of registration.<br />
+      If your limit ends up negative due to a large number of deleted posts, please contact <%= Danbooru.config.contact_email %> to have it corrected.
+    </p>
+  <% end %>
+
+  <p>
+    <% unless CurrentUser.can_upload_free? %>
+      In addition to this, you are limited to 30 uploads per hour.
+      You also may not upload if you have no remaining tag edits per hour.
+    <% else %>
+      You are limited to 30 uploads per hour.
+    <% end %>
+  </p>
+
+  <ul>
+    <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
+    <% if !CurrentUser.is_platinum? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
+  </ul>
+
+  <% unless CurrentUser.can_upload_free? %>
+    <p>
+      If either of these limits reaches zero, you may not upload until some time has passed and these limits increase automatically.
+    </p>
+  <% else %>
+    <p>
+      If this limit reaches zero, you may not upload until some time has passed and the limit increases automatically.
+    </p>
+  <% end %>
+</div>
+
+<%= render partial: "footer" %>

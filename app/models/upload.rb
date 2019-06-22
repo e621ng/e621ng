@@ -266,12 +266,12 @@ class Upload < ApplicationRecord
   include DirectURLMethods
 
   def uploader_is_not_limited
-    if !uploader.can_upload?
-      self.errors.add(:uploader, uploader.upload_limited_reason)
-      return false
-    else
-      return true
+    uploadable = uploader.can_upload_with_reason
+    if uploadable != true
+      self.errors.add(:uploader, User.upload_reason_string(uploadable))
+      false
     end
+    true
   end
 
   def direct_url_is_whitelisted

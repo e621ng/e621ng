@@ -445,25 +445,17 @@ class User < ApplicationRecord
       true
     end
 
-    def can_upload?
-      if can_upload_free?
-        true
-      elsif is_admin?
-        true
-      elsif created_at > 1.week.ago
-        false
-      else
-        upload_limit > 0
-      end
+    def can_edit_post?
+      # TODO: implement post edit limits
+      return false if created_at > 3.days.ago
+      return true if is_platinum?
+      post_edit_limit > 0
     end
 
-    def upload_limited_reason
-      if created_at > 1.week.ago
-        "cannot upload during your first week of registration"
-      else
-        "have reached your upload limit for the day"
-      end
+    def post_edit_limit
+      Danbooru.config.post_edit_limit - PostArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count
     end
+    memoize :post_edit_limit
 
     def can_comment?
       if is_gold?
@@ -497,46 +489,68 @@ class User < ApplicationRecord
       (is_moderator? && flag.not_uploaded_by?(id)) || flag.creator_id == id
     end
 
-    def upload_limit
-      [max_upload_limit - used_upload_slots, 0].max
+    def can_upload?
+      can_upload_with_reason == true
     end
 
-    def used_upload_slots
-      uploaded_count = Post.for_user(id).where("created_at >= ?", 23.hours.ago).count
-      uploaded_count
-    end
-    memoize :used_upload_slots
-
-    def max_upload_limit
-      [(base_upload_limit * upload_limit_multiplier).ceil, 10].max
-    end
-
-    def upload_limit_multiplier
-      (1 - (adjusted_deletion_confidence / 15.0))
-    end
-
-    def adjusted_deletion_confidence
-      [deletion_confidence(60), 15].min
-    end
-    memoize :adjusted_deletion_confidence
-
-    def base_upload_limit
-      if created_at >= 1.month.ago
-        10
-      elsif created_at >= 2.months.ago
-        20
-      elsif created_at >= 3.months.ago
-        30
-      elsif created_at >= 4.months.ago
-        40
+    def can_upload_with_reason
+      if can_upload_free?
+        true
+      elsif hourly_upload_limit <= 0
+        :REJ_UPLOAD_HOURLY
+      elsif is_admin?
+        true # TODO: Remove this?
+      elsif created_at > 1.week.ago
+        :REJ_UPLOAD_NEWBIE
+      elsif !is_platinum? && post_edit_limit <= 0
+        :REJ_UPLOAD_EDIT
+      elsif upload_limit <= 0
+        :REJ_UPLOAD_LIMIT
       else
-        50
+        true
       end
     end
 
-    def next_free_upload_slot
-      (posts.where("created_at >= ?", 23.hours.ago).first.try(:created_at) || 23.hours.ago) + 23.hours
+    def self.upload_reason_string(reason)
+      reasons = {
+          REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
+          REJ_UPLOAD_EDIT: "have no remaining tag edits available",
+          REJ_UPLOAD_LIMIT: "have reached your upload limit",
+          REJ_UPLOAD_NEWBIE: "cannot upload during your first week"
+      }
+      reasons.fetch(reason, "unknown upload rejection reason")
     end
+
+    def upload_limited_reason
+      User.upload_reason_string(can_upload_with_reason)
+    end
+
+    def hourly_upload_limit
+      30 - Post.for_user(id).where("created_at >= ?", 1.hour.ago).count
+    end
+    memoize :hourly_upload_limit
+
+    def upload_limit
+        pieces = upload_limit_pieces
+
+        base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+    end
+    memoize :upload_limit
+
+    def upload_limit_pieces
+      deleted_count = Post.deleted.for_user(id).count
+      unapproved_count = Post.pending_or_flagged.for_user(id).count
+      approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
+
+      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count}
+    end
+    memoize :upload_limit_pieces
+
+    def post_upload_throttle
+      return post_upload_limit if is_privileged_or_higher?
+      [hourly_upload_limit, tag_edit_limit].min
+    end
+    memoize :post_upload_throttle
 
     def tag_query_limit
       40
@@ -544,7 +558,7 @@ class User < ApplicationRecord
 
     def favorite_limit
       if is_platinum?
-        Float::INFINITY
+        40_000
       elsif is_gold?
         20_000
       else
@@ -627,8 +641,7 @@ class User < ApplicationRecord
         :artist_commentary_version_count, :pool_version_count,
         :forum_post_count, :comment_count,
         :appeal_count, :flag_count, :positive_feedback_count,
-        :neutral_feedback_count, :negative_feedback_count, :upload_limit,
-        :max_upload_limit
+        :neutral_feedback_count, :negative_feedback_count, :upload_limit
       ]
     end
 
