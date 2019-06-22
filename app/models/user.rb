@@ -445,11 +445,11 @@ class User < ApplicationRecord
       true
     end
 
-    def can_edit_post?
-      # TODO: implement post edit limits
-      return false if created_at > 3.days.ago
+    def can_edit_with_reason
+      return :REJ_EDIT_NEWBIE if created_at > 3.days.ago
       return true if is_platinum?
-      post_edit_limit > 0
+      return :REJ_EDIT_LIMIT if post_edit_limit <= 0
+      true
     end
 
     def post_edit_limit
