@@ -60,8 +60,8 @@ module DanbooruImageResizer
       "--format=#{output_file.path}[Q=#{quality},background=255,strip,interlace,optimize_coding]"
     ]
 
-    success = system("vipsthumbnail", *arguments)
-    raise RuntimeError, "vipsthumbnail failed (exit status: #{$?.exitstatus})" if !success
+    _, status = Open3.capture2e("vipsthumbnail", *arguments)
+    raise RuntimeError, "vipsthumbnail failed (exit status: #{status})" if status != 0
 
     output_file
   end
@@ -73,7 +73,7 @@ module DanbooruImageResizer
 
     # --size=WxH will upscale if the image is smaller than the target size.
     # Fix the target size so that it's not bigger than the image.
-    image = Vips::Image.new_from_file(file.path)
+    # image = Vips::Image.new_from_file(file.path)
 
     arguments = [
       file.path,
@@ -84,15 +84,15 @@ module DanbooruImageResizer
       "--format=#{output_file.path}[Q=#{quality},background=255,strip,interlace,optimize_coding]"
     ]
 
-    success = system("vipsthumbnail", *arguments)
-    raise RuntimeError, "vipsthumbnail failed (exit status: #{$?.exitstatus})" if !success
+    _, status = Open3.capture2e("vipsthumbnail", *arguments)
+    raise RuntimeError, "vipsthumbnail failed (exit status: #{status})" if status != 0
 
     output_file
   end
 
   def validate_shell(file)
     temp = Tempfile.new("validate")
-    output, status = Open3.capture2e("vips stats #{file.path} #{temp.path}.v")
+    output, status = Open3.capture2e("vips", "stats", file.path, "#{temp.path}.v")
 
     # png | jpeg | gif
     if output =~ /Read Error|Premature end of JPEG file|Failed to read from given file/m

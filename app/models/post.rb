@@ -20,6 +20,7 @@ class Post < ApplicationRecord
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
+  validate :updater_has_edit_credits, on: :update
   validate :tag_names_are_valid, if: :should_process_tags?
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
@@ -242,6 +243,7 @@ class Post < ApplicationRecord
     end
 
     def has_large?
+      return true if is_video?
       return false if has_tag?("animated_gif|animated_png")
       return true if is_ugoira?
       is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
@@ -633,12 +635,6 @@ class Post < ApplicationRecord
 
     def update_tag_post_counts
       decrement_tags = tag_array_was - tag_array
-
-      decrement_tags_except_requests = decrement_tags.reject {|tag| tag == "tagme" || tag.end_with?("_request")}
-      if decrement_tags_except_requests.size > 0 && !CurrentUser.is_builder? && CurrentUser.created_at > 1.week.ago
-        self.errors.add(:updater_id, "must have an account at least 1 week old to remove tags")
-        return false
-      end
 
       increment_tags = tag_array - tag_array_was
       if increment_tags.any?
@@ -1814,6 +1810,19 @@ class Post < ApplicationRecord
       if !new_record? && id == parent_id
         errors[:base] << "Post cannot have itself as a parent"
         false
+      end
+    end
+
+    def updater_has_edit_credits
+      can_edit = CurrentUser.can_edit_with_reason
+
+      if can_edit == :REJ_EDIT_NEWBIE
+        errors.add(:updater, "must have an account for at least 3 days before editing posts")
+        return false
+      end
+      if can_edit == :REJ_EDIT_LIMIT
+        errors.add(:updater, "has no more hourly post edit credits")
+        return false
       end
     end
 
