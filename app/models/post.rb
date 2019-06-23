@@ -709,7 +709,7 @@ class Post < ApplicationRecord
 
     def normalize_tags
       if !locked_tags.nil? && locked_tags.strip.blank?
-        update_attribute(:locked_tags, nil)
+        self.locked_tags = nil
       elsif locked_tags.present?
         locked = Tag.scan_tags(locked_tags.downcase)
         to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
