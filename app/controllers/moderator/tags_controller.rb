@@ -1,7 +1,6 @@
 module Moderator
   class TagsController < ApplicationController
     before_action :moderator_only
-    rescue_from TagBatchChange::Error, :with => :error
 
     def edit
     end
