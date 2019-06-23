@@ -378,6 +378,18 @@ module Danbooru
             "hover" => "$link_hover_color"
           }
         },
+        "species" => {
+          "category" => 5,
+          "short" => "spec",
+          "extra" => [],
+          "header" => %{<h2 class="species-tag-list">Species</h2>},
+          "humanized" => nil,
+          "relatedbutton" => "Species",
+          "css" => {
+            "color" => "#0F0",
+            "hover" => "#070"
+          }
+        },
         "character" => {
           "category" => 4,
           "short" => "char",
@@ -429,8 +441,20 @@ module Danbooru
             "hover" => "#B66"
           }
         },
+        "invalid" => {
+          "category" => 6,
+          "short" => "inv",
+          "extra" => [],
+          "header" => %{<h2 class="invalid-tag-list">Invalid</h2>},
+          "humanized" => nil,
+          "relatedbutton" => nil,
+          "css" => {
+            "color" => "#000",
+            "hover" => "#444"
+          }
+        },
         "meta" => {
-          "category" => 5,
+          "category" => 7,
           "short" => "meta",
           "extra" => [],
           "header" => %{<h2 class="meta-tag-list">Meta</h2>},
@@ -453,17 +477,17 @@ module Danbooru
 
     #Sets the order of the split tag header list (presenters/tag_set_presenter.rb)
     def split_tag_header_list
-      @split_tag_header_list ||= ["copyright","character","artist","general","meta"]
+      @split_tag_header_list ||= ["artist","copyright","character","species","general","meta","invalid"]
     end
 
     #Sets the order of the categorized tag string (presenters/post_presenter.rb)
     def categorized_tag_list
-      @categorized_tag_list ||= ["copyright","character","artist","meta","general"]
+      @categorized_tag_list ||= ["artist","copyright","character","species","meta","general","invalid"]
     end
 
     #Sets the order of the related tag buttons (javascripts/related_tag.js)
     def related_tag_button_list
-      @related_tag_button_list ||= ["general","artist","character","copyright"]
+      @related_tag_button_list ||= ["general","artist","species","character","copyright"]
     end
 
 #END TAG
