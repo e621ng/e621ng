@@ -10,6 +10,7 @@ class Dmail < ApplicationRecord
 
   validates_presence_of :title, :body, on: :create
   validate :validate_sender_is_not_banned, on: :create
+  validate :user_not_limited, on: :create
 
   belongs_to :owner, :class_name => "User"
   belongs_to :to, :class_name => "User"
@@ -210,6 +211,16 @@ class Dmail < ApplicationRecord
   include FactoryMethods
   include ApiMethods
   extend SearchMethods
+
+  def user_not_limited
+    allowed = CurrentUser.can_dmail_with_reason
+    minute_allowed = CurrentUser.can_dmail_minute_with_reason
+    if allowed != true || minute_allowed != true
+      errors.add(:base, "Sender #{User.throttle_reason(allowed != true ? allowed : minute_allowed)}.")
+      false
+    end
+    true
+  end
 
   def validate_sender_is_not_banned
     if from.try(:is_banned?)

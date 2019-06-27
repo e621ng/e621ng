@@ -7,6 +7,7 @@ class Artist < ApplicationRecord
 
   before_validation :normalize_name
   before_validation :normalize_other_names
+  validate :user_not_limited
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
