@@ -18,9 +18,12 @@ class Blip < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
-    unless creator.can_comment?
-      errors.add(:base, "You may not create blips until your account is three days old")
+    allowed = creator.can_blip_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      false
     end
+    true
   end
 
   def validate_parent_exists

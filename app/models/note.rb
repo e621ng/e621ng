@@ -6,6 +6,7 @@ class Note < ApplicationRecord
   belongs_to_creator
   has_many :versions, -> {order("note_versions.id ASC")}, :class_name => "NoteVersion", :dependent => :destroy
   validates_presence_of :post_id, :creator_id, :x, :y, :width, :height, :body
+  validate :user_not_limited
   validate :post_must_exist
   validate :note_within_image
   after_save :update_post
@@ -67,6 +68,15 @@ class Note < ApplicationRecord
 
   extend SearchMethods
   include ApiMethods
+
+  def user_not_limited
+    allowed = CurrentUser.can_not_edit_with_reason
+    if allowed != true
+      errors.add(:base, "User #{User.throttle_reason(allowed)}.")
+      false
+    end
+    true
+  end
 
   def post_must_exist
     if !Post.exists?(post_id)

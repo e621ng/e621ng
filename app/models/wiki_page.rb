@@ -7,6 +7,7 @@ class WikiPage < ApplicationRecord
   validates_uniqueness_of :title, :case_sensitive => false
   validates_presence_of :title
   validates_presence_of :body, :unless => -> { is_deleted? || other_names.present? }
+  validate :user_not_limited, on: :save
   validate :validate_rename
   validate :validate_not_locked
 
@@ -124,6 +125,15 @@ class WikiPage < ApplicationRecord
 
   extend SearchMethods
   include ApiMethods
+
+  def user_not_limited
+    allowed = CurrentUser.can_wiki_edit_with_reason
+    if allowed != true
+      errors.add(:base, "User #{User.throttle_reason(allowed)}.")
+      false
+    end
+    true
+  end
 
   def validate_not_locked
     if is_locked? && !CurrentUser.is_builder?

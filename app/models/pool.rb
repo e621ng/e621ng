@@ -6,6 +6,8 @@ class Pool < ApplicationRecord
   belongs_to_creator
 
   validates_uniqueness_of :name, case_sensitive: false, if: :name_changed?
+  validate :user_not_create_limited, on: :create
+  validate :user_not_limited, on: :update
   validate :validate_name, if: :name_changed?
   validates_inclusion_of :category, :in => %w(series collection)
   validate :updater_can_change_category
@@ -19,6 +21,10 @@ class Pool < ApplicationRecord
   after_create :synchronize!
 
   module SearchMethods
+    def for_user(id)
+      where("pools.creator_id = ?", id)
+    end
+
     def deleted
       where("pools.is_deleted = true")
     end
@@ -98,6 +104,24 @@ class Pool < ApplicationRecord
   end
 
   extend SearchMethods
+
+  def user_not_create_limited
+    allowed = creator.can_pool_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      false
+    end
+    true
+  end
+
+  def user_not_limited
+    allowed = CurrentUser.can_pool_edit_with_reason
+    if allowed != true
+      errors.add(:updater, User.throttle_reason(allowed))
+      false
+    end
+    true
+  end
 
   def self.name_to_id(name)
     if name =~ /^\d+$/

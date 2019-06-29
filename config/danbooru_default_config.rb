@@ -167,7 +167,45 @@ module Danbooru
 
     # Members cannot post more than X comments in an hour.
     def member_comment_limit
+      15
+    end
+
+    def dmail_limit
+      20
+    end
+
+    def dmail_minute_limit
+      1
+    end
+
+    # Blips created in the last hour
+    def blip_limit
+      25
+    end
+
+    # Artists creator or edited in the last hour
+    def artist_edit_limit
+      25
+    end
+
+    # Wiki pages created or edited in the last hour
+    def wiki_edit_limit
+      60
+    end
+
+    # Notes applied to posts edited or created in the last hour
+    def note_edit_limit
+      50
+    end
+
+    # Pools created in the last hour
+    def pool_limit
       2
+    end
+
+    # Pools created or edited in the last hour
+    def pool_edit_limit
+      10
     end
 
     # Members cannot create more than X post versions in an hour.

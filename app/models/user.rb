@@ -426,12 +426,68 @@ class User < ApplicationRecord
     end
   end
 
+  module ThrottleMethods
+    def throttle_reason(reason)
+      reasons = {
+          REJ_NEWBIE: 'can not yet perform this action. User not old enough',
+          REJ_LIMITED: 'has reached the hourly limit for this action'
+      }
+      reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
+    end
+
+    def upload_reason_string(reason)
+      reasons = {
+          REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
+          REJ_UPLOAD_EDIT: "have no remaining tag edits available",
+          REJ_UPLOAD_LIMIT: "have reached your upload limit",
+          REJ_UPLOAD_NEWBIE: "cannot upload during your first week"
+      }
+      reasons.fetch(reason, "unknown upload rejection reason")
+    end
+  end
+
   module LimitMethods
     extend Memoist
+
+    def self.create_user_throttle(name, limiter, checker, newbie_duration)
+      define_method("#{name}_limit".to_sym, limiter)
+      memoize "#{name}_limit".to_sym
+      define_method("can_#{name}_with_reason".to_sym) do
+        return :REJ_NEWBIE if newbie_duration && created_at > newbie_duration
+        return send(checker) if checker && send(checker)
+        return :REJ_LIMITED if send("#{name}_limit") <= 0
+        true
+      end
+    end
 
     def token_bucket
       @token_bucket ||= UserThrottle.new({prefix: "thtl:", duration: 1.minute}, self)
     end
+
+    def general_should_throttle?
+      !is_platinum?
+    end
+
+    create_user_throttle(:artist_edit, ->{ Danbooru.config.artist_edit_limit - ArtistVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 7.days.ago)
+    create_user_throttle(:post_edit, ->{ Danbooru.config.post_edit_limit - PostArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 3.days.ago)
+    create_user_throttle(:wiki_edit, ->{ Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 7.days.ago)
+    create_user_throttle(:pool, ->{ Danbooru.config.pool_limit - Pool.for_user(id).where('created_at > ?', 1.hour.ago).count },
+                         nil, 7.days.ago)
+    create_user_throttle(:pool_edit, ->{ Danbooru.config.pool_edit_limit - PoolArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
+                         nil, 7.days.ago)
+    create_user_throttle(:note_edit, ->{ Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 7.days.ago)
+    create_user_throttle(:comment, ->{ Danbooru.config.member_comment_limit - Comment.for_creator(id).where('created_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 7.days.ago)
+    create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
+                         :general_should_throttle?, 3.days.ago)
+    create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by(id).where('created_at > ?', 1.hour.ago).count },
+                         nil, nil)
+    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by(id).where('created_at > ?', 1.minute.ago).count },
+                         nil, nil)
 
     def max_saved_searches
       if is_platinum?
@@ -443,34 +499,6 @@ class User < ApplicationRecord
 
     def show_saved_searches?
       true
-    end
-
-    def can_edit_with_reason
-      return :REJ_EDIT_NEWBIE if created_at > 3.days.ago
-      return true if is_platinum?
-      return :REJ_EDIT_LIMIT if post_edit_limit <= 0
-      true
-    end
-
-    def post_edit_limit
-      Danbooru.config.post_edit_limit - PostArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count
-    end
-    memoize :post_edit_limit
-
-    def can_comment?
-      if is_gold?
-        true
-      else
-        created_at <= Danbooru.config.member_comment_time_threshold
-      end
-    end
-
-    def is_comment_limited?
-      if is_gold?
-        false
-      else
-        Comment.where("creator_id = ? and created_at > ?", id, 1.hour.ago).count >= Danbooru.config.member_comment_limit
-      end
     end
 
     def can_comment_vote?
@@ -509,16 +537,6 @@ class User < ApplicationRecord
       else
         true
       end
-    end
-
-    def self.upload_reason_string(reason)
-      reasons = {
-          REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
-          REJ_UPLOAD_EDIT: "have no remaining tag edits available",
-          REJ_UPLOAD_LIMIT: "have reached your upload limit",
-          REJ_UPLOAD_NEWBIE: "cannot upload during your first week"
-      }
-      reasons.fetch(reason, "unknown upload rejection reason")
     end
 
     def upload_limited_reason
@@ -874,6 +892,7 @@ class User < ApplicationRecord
   include ApiMethods
   include CountMethods
   extend SearchMethods
+  extend ThrottleMethods
   include StatisticsMethods
 
   def as_current(&block)
