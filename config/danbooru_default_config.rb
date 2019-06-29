@@ -95,6 +95,20 @@ module Danbooru
       "choujin-steiner"
     end
 
+    def levels
+      {
+          "Anonymous" => 0,
+          "Blocked" => 10,
+          "Member" => 20,
+          "Privileged" => 30,
+          "Contributor" => 33,
+          "Former Staff" => 34,
+          "Janitor" => 35,
+          "Mod" => 40,
+          "Admin" => 50
+      }
+    end
+
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
       # user.level = User::Levels::MEMBER

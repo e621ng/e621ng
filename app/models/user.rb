@@ -12,15 +12,9 @@ class User < ApplicationRecord
   end
 
   module Levels
-    ANONYMOUS = 0
-    BLOCKED = 10
-    MEMBER = 20
-    PRIVILEGED = 30
-    CONTRIBUTOR = 33
-    FORMER_STAFF = 34
-    JANITOR = 35
-    MODERATOR = 40
-    ADMIN = 50
+    Danbooru.config.levels.each do |name, level|
+      const_set(name.upcase.tr(' ', '_'), level)
+    end
   end
 
   # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
@@ -247,45 +241,11 @@ class User < ApplicationRecord
       end
 
       def level_hash
-        return {
-          "Member" => Levels::MEMBER,
-          "Privileged" => Levels::PRIVILEGED,
-          "Contributor" => Levels::CONTRIBUTOR,
-          "Builder" => Levels::JANITOR,
-          "Moderator" => Levels::MODERATOR,
-          "Admin" => Levels::ADMIN
-        }
+        Danbooru.config.levels
       end
 
       def level_string(value)
-        case value
-        when Levels::ANONYMOUS
-          "Anonymous"
-
-        when Levels::BLOCKED
-          "Banned"
-
-        when Levels::MEMBER
-          "Member"
-
-        when Levels::JANITOR
-          "Builder"
-
-        when Levels::PRIVILEGED
-          "Privileged"
-
-        when Levels::CONTRIBUTOR
-          "Contributor"
-
-        when Levels::MODERATOR
-          "Moderator"
-
-        when Levels::ADMIN
-          "Admin"
-
-        else
-          ""
-        end
+        Danbooru.config.levels.invert[value] || ""
       end
     end
 
@@ -325,36 +285,29 @@ class User < ApplicationRecord
       level == Levels::ANONYMOUS
     end
 
-    def is_member?
-      level >= Levels::MEMBER
-    end
-
     def is_blocked?
       is_banned?
     end
 
-    def is_builder?
-      level >= Levels::JANITOR
-    end
+    # Defines various convenience methods for finding out the user's level
+    Danbooru.config.levels.each do |name, value|
+      normalized_name = name.downcase.tr(' ', '_')
+      define_method("is_exactly_#{normalized_name}?") do
+        self.level == value && self.id.present?
+      end
 
-    def is_privileged?
-      level >= Levels::PRIVILEGED
-    end
+      # Changed from e6 to match new Danbooru semantics.
+      define_method("is_#{normalized_name}?") do
+        self.level >= value && self.id.present?
+      end
 
-    def is_contributor?
-      level >= Levels::CONTRIBUTOR
-    end
+      define_method("is_#{normalized_name}_or_higher?") do
+        self.level >= value && self.id.present?
+      end
 
-    def is_moderator?
-      level >= Levels::MODERATOR
-    end
-
-    def is_mod?
-      level >= Levels::MODERATOR
-    end
-
-    def is_admin?
-      level >= Levels::ADMIN
+      define_method("is_#{normalized_name}_or_lower?") do
+        self.level <= value && self.id.present?
+      end
     end
 
     def is_voter?
