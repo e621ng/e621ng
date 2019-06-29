@@ -27,7 +27,7 @@ FactoryBot.define do
       level 30
     end
 
-    factory(:platinum_user) do
+    factory(:contributor_user) do
       level 31
     end
 

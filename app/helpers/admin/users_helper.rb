@@ -3,7 +3,7 @@ module Admin::UsersHelper
     options = [
       ["Member", User::Levels::MEMBER],
       ["Privileged", User::Levels::PRIVILEGED],
-      ["Platinum", User::Levels::CONTRIBUTOR],
+      ["Contributor", User::Levels::CONTRIBUTOR],
       ["Builder", User::Levels::JANITOR],
       ["Moderator", User::Levels::MODERATOR],
       ["Admin", User::Levels::ADMIN]

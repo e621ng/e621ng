@@ -340,7 +340,6 @@ Rails.application.routes.draw do
       get :custom_style
     end
   end
-  resource :user_upgrade, :only => [:new, :create, :show]
   resources :user_feedbacks do
     collection do
       get :search

@@ -250,7 +250,7 @@ class User < ApplicationRecord
         return {
           "Member" => Levels::MEMBER,
           "Privileged" => Levels::PRIVILEGED,
-          "Platinum" => Levels::CONTRIBUTOR,
+          "Contributor" => Levels::CONTRIBUTOR,
           "Builder" => Levels::JANITOR,
           "Moderator" => Levels::MODERATOR,
           "Admin" => Levels::ADMIN
@@ -275,7 +275,7 @@ class User < ApplicationRecord
           "Privileged"
 
         when Levels::CONTRIBUTOR
-          "Platinum"
+          "Contributor"
 
         when Levels::MODERATOR
           "Moderator"
@@ -341,7 +341,7 @@ class User < ApplicationRecord
       level >= Levels::PRIVILEGED
     end
 
-    def is_platinum?
+    def is_contributor?
       level >= Levels::CONTRIBUTOR
     end
 
@@ -467,7 +467,7 @@ class User < ApplicationRecord
     end
 
     def general_should_throttle?
-      !is_platinum?
+      !is_contributor?
     end
 
     create_user_throttle(:artist_edit, ->{ Danbooru.config.artist_edit_limit - ArtistVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
@@ -492,7 +492,7 @@ class User < ApplicationRecord
                          nil, nil)
 
     def max_saved_searches
-      if is_platinum?
+      if is_contributor?
         1_000
       else
         250
@@ -532,7 +532,7 @@ class User < ApplicationRecord
         true # TODO: Remove this?
       elsif created_at > 1.week.ago
         :REJ_UPLOAD_NEWBIE
-      elsif !is_platinum? && post_edit_limit <= 0
+      elsif !is_privileged? && post_edit_limit <= 0
         :REJ_UPLOAD_EDIT
       elsif upload_limit <= 0
         :REJ_UPLOAD_LIMIT
@@ -577,7 +577,7 @@ class User < ApplicationRecord
     end
 
     def favorite_limit
-      if is_platinum?
+      if is_contributor?
         40_000
       elsif is_privileged?
         20_000
@@ -588,7 +588,7 @@ class User < ApplicationRecord
 
     def api_regen_multiplier
       # regen this amount per second
-      if is_platinum?
+      if is_contributor?
         4
       elsif is_privileged?
         2
@@ -600,7 +600,7 @@ class User < ApplicationRecord
     def api_burst_limit
       # can make this many api calls at once before being bound by
       # api_regen_multiplier refilling your pool
-      if is_platinum?
+      if is_contributor?
         60
       elsif is_privileged?
         30
@@ -614,7 +614,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      if is_platinum?
+      if is_contributor?
         9_000
       elsif is_privileged?
         6_000

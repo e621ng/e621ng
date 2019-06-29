@@ -14,15 +14,8 @@
         <%= subnav_link_to "Settings", edit_user_path(CurrentUser.user) %>
         <%= subnav_link_to "Profile", user_path(CurrentUser.user) %>
         <%= subnav_link_to "Messages #{CurrentUser.user.dmail_count}", dmails_current_folder_path %>
-
-        <% if !@user.is_platinum? %>
-          <%= subnav_link_to "Upgrade", new_user_upgrade_path %>
-        <% end %>
       <% else %>
         <%= subnav_link_to "Send message", new_dmail_path(:dmail => {:to_id => @user.id}) %>
-        <% if !@user.is_platinum? %>
-          <%= subnav_link_to "Gift upgrade", new_user_upgrade_path(:user_id => @user.id) %>
-        <% end %>
         <%= subnav_link_to "Report", new_ticket_path(disp_id: @user.id, type: 'user') %>
       <% end %>
 
