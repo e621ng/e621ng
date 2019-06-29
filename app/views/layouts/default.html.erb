@@ -105,10 +105,6 @@
       <%= render "users/sign_up_notice" %>
     <% end %>
 
-    <% if !CurrentUser.is_anonymous? && !CurrentUser.is_gold? && cookies[:hide_upgrade_account_notice].blank? && params[:action] != "upgrade_information" %>
-      <%= render "users/upgrade_notice" %>
-    <% end %>
-
     <% if CurrentUser.user.is_banned? %>
       <%= render "users/ban_notice" %>
     <% end %>
@@ -121,7 +117,7 @@
       <%= render "moderator/post/queues/notice" %>
     <% end %>
 
-    <% if cookies["accepted_tos"].blank? && !CurrentUser.is_gold? %>
+    <% if cookies["accepted_tos"].blank? && !CurrentUser.is_privileged? %>
       <%= render "users/tos" %>
     <% end %>
 

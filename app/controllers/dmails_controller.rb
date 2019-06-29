@@ -1,7 +1,7 @@
 class DmailsController < ApplicationController
   respond_to :html, :xml, :json
   before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
-  before_action :gold_only, only: [:ham, :spam]
+  before_action :privileged_only, only: [:ham, :spam]
 
   def new
     if params[:respond_to_id]

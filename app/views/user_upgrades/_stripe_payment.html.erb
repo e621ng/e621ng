@@ -1,10 +1,10 @@
 <div class="section">
   <p>You can pay with a credit or debit card. Safebooru uses <a href="https://www.stripe.com">Stripe</a> as a payment intermediary so none of your personal information will be stored on the site.</p>
 
-  <% if user.level < User::Levels::GOLD %>
+  <% if user.level < User::Levels::PRIVILEGED %>
     <%= stripe_button("Upgrade to Gold", 2000, user) %>
     <%= stripe_button("Upgrade to Platinum", 4000, user) %>
-  <% elsif user.level < User::Levels::PLATINUM %>
+  <% elsif user.level < User::Levels::CONTRIBUTOR %>
     <%= stripe_button("Upgrade Gold to Platinum", 2000, user) %>
   <% end %>
 </div>

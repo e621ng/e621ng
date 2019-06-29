@@ -15,9 +15,10 @@ class User < ApplicationRecord
     ANONYMOUS = 0
     BLOCKED = 10
     MEMBER = 20
-    GOLD = 30
-    PLATINUM = 31
-    BUILDER = 32
+    PRIVILEGED = 30
+    CONTRIBUTOR = 33
+    FORMER_STAFF = 34
+    JANITOR = 35
     MODERATOR = 40
     ADMIN = 50
   end
@@ -70,7 +71,7 @@ class User < ApplicationRecord
   validate :validate_email_address_allowed, on: [:create, :save], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.saved_change_to_email?) }
   validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
   validates_inclusion_of :default_image_size, :in => %w(large fit original)
-  validates_inclusion_of :per_page, :in => 1..100
+  validates_inclusion_of :per_page, :in => 1..250
   validates_confirmation_of :password
   validates_presence_of :email, :if => ->(rec) { rec.new_record? && Danbooru.config.enable_email_verification?}
   validates_presence_of :comment_threshold
@@ -248,9 +249,9 @@ class User < ApplicationRecord
       def level_hash
         return {
           "Member" => Levels::MEMBER,
-          "Gold" => Levels::GOLD,
-          "Platinum" => Levels::PLATINUM,
-          "Builder" => Levels::BUILDER,
+          "Privileged" => Levels::PRIVILEGED,
+          "Platinum" => Levels::CONTRIBUTOR,
+          "Builder" => Levels::JANITOR,
           "Moderator" => Levels::MODERATOR,
           "Admin" => Levels::ADMIN
         }
@@ -267,13 +268,13 @@ class User < ApplicationRecord
         when Levels::MEMBER
           "Member"
 
-        when Levels::BUILDER
+        when Levels::JANITOR
           "Builder"
 
-        when Levels::GOLD
-          "Gold"
+        when Levels::PRIVILEGED
+          "Privileged"
 
-        when Levels::PLATINUM
+        when Levels::CONTRIBUTOR
           "Platinum"
 
         when Levels::MODERATOR
@@ -333,15 +334,15 @@ class User < ApplicationRecord
     end
 
     def is_builder?
-      level >= Levels::BUILDER
+      level >= Levels::JANITOR
     end
 
-    def is_gold?
-      level >= Levels::GOLD
+    def is_privileged?
+      level >= Levels::PRIVILEGED
     end
 
     def is_platinum?
-      level >= Levels::PLATINUM
+      level >= Levels::CONTRIBUTOR
     end
 
     def is_moderator?
@@ -365,7 +366,7 @@ class User < ApplicationRecord
     end
 
     def set_per_page
-      if per_page.nil? || !is_gold?
+      if per_page.nil?
         self.per_page = Danbooru.config.posts_per_page
       end
 
@@ -418,7 +419,8 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_gold?
+      # TODO: Review this line, it doesn't make sense?
+      return false unless is_privileged?
       max_updated_at = ForumTopic.permitted.active.maximum(:updated_at)
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -577,7 +579,7 @@ class User < ApplicationRecord
     def favorite_limit
       if is_platinum?
         40_000
-      elsif is_gold?
+      elsif is_privileged?
         20_000
       else
         10_000
@@ -588,7 +590,7 @@ class User < ApplicationRecord
       # regen this amount per second
       if is_platinum?
         4
-      elsif is_gold?
+      elsif is_privileged?
         2
       else
         1
@@ -600,7 +602,7 @@ class User < ApplicationRecord
       # api_regen_multiplier refilling your pool
       if is_platinum?
         60
-      elsif is_gold?
+      elsif is_privileged?
         30
       else
         10
@@ -614,7 +616,7 @@ class User < ApplicationRecord
     def statement_timeout
       if is_platinum?
         9_000
-      elsif is_gold?
+      elsif is_privileged?
         6_000
       else
         3_000

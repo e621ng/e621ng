@@ -106,7 +106,7 @@ module PostSets
     end
 
     def use_sequential_paginator?
-      unknown_post_count? && !CurrentUser.is_gold?
+      unknown_post_count? && !CurrentUser.is_privileged?
     end
 
     def get_post_count

@@ -9,7 +9,7 @@ class PostPrunerTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
 
     Timecop.travel(2.weeks.ago) do
-      @flagger = FactoryBot.create(:gold_user)
+      @flagger = FactoryBot.create(:privileged_user)
     end
     @old_post = FactoryBot.create(:post, :created_at => 5.days.ago, :is_pending => true)
     @unresolved_flagged_post = FactoryBot.create(:post, :is_flagged => true)
@@ -25,7 +25,7 @@ class PostPrunerTest < ActiveSupport::TestCase
 
   def teardown
     super
-    
+
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end

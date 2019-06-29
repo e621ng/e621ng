@@ -6,7 +6,8 @@
       <%= render "posts/partials/index/blacklist" %>
 
       <section id="tag-list">
-        <%= @post.presenter.split_tag_list_html(current_query: params[:q], show_extra_links: CurrentUser.user.is_gold?) %>
+        <!-- TODO: Lock off these extra items? -->
+        <%= @post.presenter.split_tag_list_html(current_query: params[:q], show_extra_links: CurrentUser.user.is_privileged?) %>
       </section>
 
       <section id="post-information">

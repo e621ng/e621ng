@@ -4,7 +4,7 @@ class PostFlagTest < ActiveSupport::TestCase
   context "In all cases" do
     setup do
       travel_to(2.weeks.ago) do
-        @alice = create(:gold_user)
+        @alice = create(:privileged_user)
       end
       as(@alice) do
         @post = create(:post, tag_string: "aaa", uploader: @alice)
@@ -31,14 +31,14 @@ class PostFlagTest < ActiveSupport::TestCase
     context "a gold user" do
       setup do
         travel_to(2.weeks.ago) do
-          @bob = create(:gold_user)
+          @bob = create(:privileged_user)
         end
       end
 
       should "not be able to flag a post more than twice" do
         assert_difference(-> { PostFlag.count }, 1) do
           as(@bob) do
-            @post_flag = PostFlag.create(post: @post, reason: "aaa", is_resolved: false) 
+            @post_flag = PostFlag.create(post: @post, reason: "aaa", is_resolved: false)
           end
         end
 

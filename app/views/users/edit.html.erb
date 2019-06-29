@@ -16,11 +16,7 @@
         <div class="input">
           <label>Name</label>
 
-          <% if CurrentUser.user.is_gold? %>
-            <p><%= link_to "Request a name change", new_user_name_change_request_path %></p>
-          <% else %>
-            <p>You must <%= link_to "upgrade your account", new_user_upgrade_path %> to request a name change</p>
-          <% end %>
+          <p><%= link_to "Request a name change", new_user_name_change_request_path %></p>
         </div>
 
         <div class="input">
@@ -50,8 +46,8 @@
 
         <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, or show resized #{Danbooru.config.large_image_width} pixel sample version", :label => "Default image width", :collection => [["850px", "large"], ["scale to fit", "fit"], ["original", "original"]], :include_blank => false %>
 
-        <% if CurrentUser.user.is_gold? %>
-          <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (1..100), :include_blank => false %>
+        <% if CurrentUser.user.is_privileged? %>
+          <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (1..250), :include_blank => false %>
         <% end %>
 
         <%= f.input :enable_safe_mode, :label => "Safe mode", :hint => "Show only safe images. Hide questionable and explicit images.", :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>

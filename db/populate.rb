@@ -69,14 +69,14 @@ if User.count == 0
       :password => "password1",
       :password_confirmation => "password1"
       )
-    newuser.promote_to!(User::Levels::BUILDER, {:can_upload_free => true, :is_upgrade => true, :skip_dmail => true})
+    newuser.promote_to!(User::Levels::JANITOR, {:can_upload_free => true, :is_upgrade => true, :skip_dmail => true})
 
     newuser = User.create(
       :name => "approver",
       :password => "password1",
       :password_confirmation => "password1"
       )
-    newuser.promote_to!(User::Levels::BUILDER, {:can_approve_posts => true, :is_upgrade => true, :skip_dmail => true})
+    newuser.promote_to!(User::Levels::JANITOR, {:can_approve_posts => true, :is_upgrade => true, :skip_dmail => true})
 
   end
 

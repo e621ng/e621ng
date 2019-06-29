@@ -3,7 +3,7 @@ require 'test_helper'
 class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
   context "The user name change requests controller" do
     setup do
-      @user = create(:gold_user)
+      @user = create(:privileged_user)
       @admin = create(:admin_user)
       as(@user) do
         @change_request = UserNameChangeRequest.create!(
@@ -14,7 +14,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
         )
       end
     end
-    
+
     context "new action" do
       should "render" do
         get_auth new_user_name_change_request_path, @user
@@ -28,7 +28,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
     end
-    
+
     context "show action" do
       should "render" do
         get_auth user_name_change_request_path(@change_request), @user
@@ -43,7 +43,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
     end
-    
+
     context "for actions restricted to admins" do
       context "index action" do
         should "render" do
@@ -51,14 +51,14 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
       end
-      
+
       context "approve action" do
         should "succeed" do
           post_auth approve_user_name_change_request_path(@change_request), @admin
           assert_redirected_to(user_name_change_request_path(@change_request))
         end
       end
-      
+
       context "reject action" do
         should "succeed" do
           post_auth reject_user_name_change_request_path(@change_request), @admin

@@ -29,13 +29,13 @@ class UserUpgradesController < ApplicationController
     @user = user
 
     if params[:desc] == "Upgrade to Gold"
-      level = User::Levels::GOLD
+      level = User::Levels::PRIVILEGED
       cost = 2000
     elsif params[:desc] == "Upgrade to Platinum"
-      level = User::Levels::PLATINUM
+      level = User::Levels::CONTRIBUTOR
       cost = 4000
-    elsif params[:desc] == "Upgrade Gold to Platinum" && @user.level == User::Levels::GOLD
-      level = User::Levels::PLATINUM
+    elsif params[:desc] == "Upgrade Gold to Platinum" && @user.level == User::Levels::PRIVILEGED
+      level = User::Levels::CONTRIBUTOR
       cost = 2000
     else
       raise "Invalid desc"

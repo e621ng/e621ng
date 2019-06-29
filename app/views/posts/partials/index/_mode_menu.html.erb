@@ -1,27 +1,28 @@
-<% if CurrentUser.is_gold? %>
-  <section id="mode-box">
-    <h1>Mode</h1>
-    <form action="/">
-      <select name="mode">
-        <option value="view">View</option>
-        <option value="edit">Edit</option>
-        <option value="tag-script">Tag script</option>
-        <option value="add-fav">Favorite</option>
-        <option value="remove-fav">Unfavorite</option>
+<section id="mode-box">
+  <h1>Mode</h1>
+  <form action="/">
+    <select name="mode">
+      <option value="view">View</option>
+      <option value="edit">Edit</option>
+      <option value="add-fav">Favorite</option>
+      <option value="remove-fav">Unfavorite</option>
+      <% if CurrentUser.is_privileged? %>
         <option value="vote-up">Vote up</option>
         <option value="vote-down">Vote down</option>
-        <% if CurrentUser.is_builder? %>
-          <option value="lock-rating">Lock rating</option>
-          <option value="lock-note">Lock notes</option>
-        <% end %>
-        <% if CurrentUser.can_approve_posts? %>
-          <option value="approve">Approve</option>
-        <% end %>
-        <% if CurrentUser.is_admin? %>
-          <option value="ban">Ban</option>
-        <% end %>
-      </select>
-    </form>
+        <option value="tag-script">Tag script</option>
+      <% end %>
+      <% if CurrentUser.is_builder? %>
+        <option value="lock-rating">Lock rating</option>
+        <option value="lock-note">Lock notes</option>
+      <% end %>
+      <% if CurrentUser.can_approve_posts? %>
+        <option value="approve">Approve</option>
+        <option value="delete">Delete</option>
+        <option value="undelete">Undelete</option>
+      <% end %>
+    </select>
+  </form>
+  <% if CurrentUser.is_privileged? %>
     <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none; margin-top: 0.5em;">
-  </section>
-<% end %>
+  <% end %>
+</section>

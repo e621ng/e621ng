@@ -14,16 +14,16 @@ module RecommenderService
   end
 
   def available_for_user?
-    enabled? && CurrentUser.is_gold?
+    enabled? && CurrentUser.is_privileged?
   end
 
   def recommend_for_user(user_id)
     ids = Cache.get("rsu:#{user_id}", 1.hour) do
       resp = HTTParty.get(
-        "#{Danbooru.config.recommender_server}/recommend/#{user_id}", 
+        "#{Danbooru.config.recommender_server}/recommend/#{user_id}",
         Danbooru.config.httparty_options.merge(
           basic_auth: {
-            username: "danbooru", 
+            username: "danbooru",
             password: Danbooru.config.recommender_key
           }
         )
@@ -36,10 +36,10 @@ module RecommenderService
   def recommend_for_post(post_id)
     ids = Cache.get("rss:#{post_id}", 1.hour) do
       resp = HTTParty.get(
-        "#{Danbooru.config.recommender_server}/similar/#{post_id}", 
+        "#{Danbooru.config.recommender_server}/similar/#{post_id}",
         Danbooru.config.httparty_options.merge(
           basic_auth: {
-            username: "danbooru", 
+            username: "danbooru",
             password: Danbooru.config.recommender_key
           }
         )

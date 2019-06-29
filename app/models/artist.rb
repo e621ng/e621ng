@@ -586,6 +586,6 @@ class Artist < ApplicationRecord
   end
 
   def visible?
-    !is_banned? || CurrentUser.is_gold?
+    !is_banned? || CurrentUser.is_janitor?
   end
 end

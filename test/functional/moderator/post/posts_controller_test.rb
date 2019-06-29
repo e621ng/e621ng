@@ -7,9 +7,9 @@ module Moderator
         setup do
           @admin = create(:admin_user)
           travel_to(1.month.ago) do
-            @user = create(:gold_user)
+            @user = create(:privileged_user)
           end
-          
+
           as_user do
             @post = create(:post)
           end
@@ -69,7 +69,7 @@ module Moderator
               @child = create(:post, parent: @parent)
             end
             users = FactoryBot.create_list(:user, 2)
-            users.each do |u| 
+            users.each do |u|
               @child.add_favorite!(u)
               @child.reload
             end

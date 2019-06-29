@@ -26,7 +26,7 @@ class Dmail < ApplicationRecord
   concerning :SpamMethods do
     class_methods do
       def is_spammer?(user)
-        return false if user.is_gold?
+        return false if user.is_janitor?
 
         spammed_users = sent_by(user).where(is_spam: true).where("created_at > ?", AUTOBAN_WINDOW.ago).distinct.count(:to_id)
         spammed_users >= AUTOBAN_THRESHOLD
@@ -51,7 +51,7 @@ class Dmail < ApplicationRecord
 
     def spam?
       return false if Danbooru.config.rakismet_key.blank?
-      return false if from.is_gold?
+      return false if from.is_janitor?
       super()
     end
   end

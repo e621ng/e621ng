@@ -2,9 +2,9 @@ module Admin::UsersHelper
   def user_level_select(object, field)
     options = [
       ["Member", User::Levels::MEMBER],
-      ["Gold", User::Levels::GOLD],
-      ["Platinum", User::Levels::PLATINUM],
-      ["Builder", User::Levels::BUILDER],
+      ["Privileged", User::Levels::PRIVILEGED],
+      ["Platinum", User::Levels::CONTRIBUTOR],
+      ["Builder", User::Levels::JANITOR],
       ["Moderator", User::Levels::MODERATOR],
       ["Admin", User::Levels::ADMIN]
     ]

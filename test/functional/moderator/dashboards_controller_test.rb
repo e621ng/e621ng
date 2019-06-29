@@ -5,7 +5,7 @@ module Moderator
     context "The moderator dashboards controller" do
       setup do
         travel_to(1.month.ago) do
-          @user = create(:gold_user)
+          @user = create(:privileged_user)
         end
         @admin = create(:admin_user)
         Danbooru.config.stubs(:member_comment_time_threshold).returns(1.week.from_now)

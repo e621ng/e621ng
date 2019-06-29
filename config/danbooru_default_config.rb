@@ -229,7 +229,7 @@ module Danbooru
 
     # Determines who can see ads.
     def can_see_ads?(user)
-      !user.is_gold?
+      !user.is_privileged?
     end
 
     # Users cannot search for more than X regular tags at a time.
@@ -566,8 +566,9 @@ module Danbooru
       false
     end
 
+    # TODO: Investigate what this does and where it is used.
     def is_user_restricted?(user)
-      !user.is_gold?
+      !user.is_privileged?
     end
 
     def can_user_see_post?(user, post)

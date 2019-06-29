@@ -9,6 +9,6 @@ CurrentUser.ip_addr = "127.0.0.1"
 
 User.where("level >= ?", 33).find_each do |user|
   user.can_upload_free = true
-  user.level = User::Levels::BUILDER if user.level == 33
+  user.level = User::Levels::JANITOR if user.level == 35
   user.save
 end

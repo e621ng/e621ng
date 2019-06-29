@@ -155,7 +155,7 @@ class SavedSearchTest < ActiveSupport::TestCase
 
   context "A user with max saved searches" do
     setup do
-      @user = FactoryBot.create(:gold_user)
+      @user = FactoryBot.create(:privileged_user)
       CurrentUser.user = @user
       User.any_instance.stubs(:max_saved_searches).returns(0)
       @saved_search = @user.saved_searches.create(:query => "xxx")

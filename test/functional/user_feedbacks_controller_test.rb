@@ -4,7 +4,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
   context "The user feedbacks controller" do
     setup do
       @user = create(:user)
-      @critic = create(:gold_user)
+      @critic = create(:privileged_user)
       @mod = create(:moderator_user)
     end
 
