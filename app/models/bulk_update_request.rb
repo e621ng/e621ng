@@ -89,8 +89,8 @@ class BulkUpdateRequest < ApplicationRecord
           nil
         end
         ForumUpdater.new(
-          forum_topic, 
-          forum_post: post, 
+          forum_topic,
+          forum_post: post,
           expected_title: title,
           skip_update: !TagRelationship::SUPPORT_HARD_CODED
         )
@@ -179,7 +179,7 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def editable?(user)
-    user_id == user.id || user.is_builder?
+    user_id == user.id || user.is_janitor?
   end
 
   def approvable?(user)

@@ -5,7 +5,7 @@
       <%= text_field "artist", "name" %>
       <span id="check-name-result"></span>
 
-    <% elsif CurrentUser.user.is_builder? %>
+    <% elsif CurrentUser.user.is_janitor? %>
       <%= text_field "artist", "name" %>
       <span id="check-name-result"></span>
       <span class="hint">Change to rename this artist entry and its wiki page</span>

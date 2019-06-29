@@ -19,7 +19,7 @@ class TagsController < ApplicationController
   end
 
   def autocomplete
-    if CurrentUser.is_builder?
+    if CurrentUser.is_janitor?
       # limit rollout
       @tags = TagAutocomplete.search(params[:search][:name_matches])
     else

@@ -1,9 +1,9 @@
 class WikiPagesController < ApplicationController
   respond_to :html, :xml, :json, :js
   before_action :member_only, :except => [:index, :search, :show, :show_or_new]
-  before_action :builder_only, :only => [:destroy]
+  before_action :janitor_only, :only => [:destroy]
   before_action :normalize_search_params, :only => [:index]
-  
+
   def new
     @wiki_page = WikiPage.new(wiki_page_params(:create))
     respond_with(@wiki_page)
@@ -49,7 +49,7 @@ class WikiPagesController < ApplicationController
         return
       end
     end
-    
+
     respond_with(@wiki_page)
   end
 
@@ -100,8 +100,8 @@ class WikiPagesController < ApplicationController
 
   def wiki_page_params(context)
     permitted_params = %i[body other_names other_names_string skip_secondary_validations]
-    permitted_params += %i[is_locked is_deleted] if CurrentUser.is_builder?
-    permitted_params += %i[title] if context == :create || CurrentUser.is_builder?
+    permitted_params += %i[is_locked is_deleted] if CurrentUser.is_janitor?
+    permitted_params += %i[title] if context == :create || CurrentUser.is_janitor?
 
     params.fetch(:wiki_page, {}).permit(permitted_params)
   end

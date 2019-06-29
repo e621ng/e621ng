@@ -93,8 +93,8 @@ class PostTest < ActiveSupport::TestCase
 
       context "that belongs to a pool" do
         setup do
-          # must be a builder to update deleted pools. must be >1 week old to remove posts from pools.
-          CurrentUser.user = FactoryBot.create(:builder_user, created_at: 1.month.ago)
+          # must be a janitor to update deleted pools. must be >1 week old to remove posts from pools.
+          CurrentUser.user = FactoryBot.create(:janitor_user, created_at: 1.month.ago)
 
           SqsService.any_instance.stubs(:send_message)
           @pool = FactoryBot.create(:pool)
@@ -574,7 +574,7 @@ class PostTest < ActiveSupport::TestCase
 
       context "with an artist tag that is then changed to copyright" do
         setup do
-          CurrentUser.user = FactoryBot.create(:builder_user)
+          CurrentUser.user = FactoryBot.create(:janitor_user)
           @post = Post.find(@post.id)
           @post.update(:tag_string => "art:abc")
           @post = Post.find(@post.id)
@@ -1032,7 +1032,7 @@ class PostTest < ActiveSupport::TestCase
 
         context "of" do
           setup do
-            @builder = FactoryBot.create(:builder_user)
+            @janitor = FactoryBot.create(:janitor_user)
           end
 
           context "locked:notes" do
@@ -1043,9 +1043,9 @@ class PostTest < ActiveSupport::TestCase
               end
             end
 
-            context "by a builder" do
+            context "by a janitor" do
               should "lock/unlock the notes" do
-                CurrentUser.scoped(@builder) do
+                CurrentUser.scoped(@janitor) do
                   @post.update(:tag_string => "locked:notes")
                   assert_equal(true, @post.is_note_locked)
 
@@ -1064,9 +1064,9 @@ class PostTest < ActiveSupport::TestCase
               end
             end
 
-            context "by a builder" do
+            context "by a janitor" do
               should "lock/unlock the rating" do
-                CurrentUser.scoped(@builder) do
+                CurrentUser.scoped(@janitor) do
                   @post.update(:tag_string => "locked:rating")
                   assert_equal(true, @post.is_rating_locked)
 

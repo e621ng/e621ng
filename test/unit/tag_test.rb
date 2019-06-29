@@ -2,8 +2,8 @@ require 'test_helper'
 
 class TagTest < ActiveSupport::TestCase
   setup do
-    @builder = FactoryBot.create(:builder_user)
-    CurrentUser.user = @builder
+    @janitor = FactoryBot.create(:janitor_user)
+    CurrentUser.user = @janitor
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
@@ -194,9 +194,9 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(0, tag.category)
     end
 
-    should "not change category when the tag is too large to be changed by a builder" do
+    should "not change category when the tag is too large to be changed by a janitor" do
       tag = FactoryBot.create(:tag, post_count: 1001)
-      Tag.find_or_create_by_name("artist:#{tag.name}", creator: @builder)
+      Tag.find_or_create_by_name("artist:#{tag.name}", creator: @janitor)
 
       assert_equal(0, tag.reload.category)
     end

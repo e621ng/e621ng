@@ -88,7 +88,7 @@ class PostSet < ApplicationRecord
     end
 
     def can_make_public
-      if is_public && creator.created_at > 3.days.ago && !creator.is_builder?
+      if is_public && creator.created_at > 3.days.ago && !creator.is_janitor?
         errors.add(:base, "Can't make a set public until your account is at least three days old")
         false
       else
@@ -105,7 +105,7 @@ class PostSet < ApplicationRecord
     end
 
     def set_per_hour_limit
-      if where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count() > 6 && !creator.is_builder?
+      if where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count() > 6 && !creator.is_janitor?
         first = where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).order(:created_at).first()
         errors.add(:base, "You have already created 6 sets in the last hour. You can make a new set in #{time_ago_in_words(first.created_at)}")
         false

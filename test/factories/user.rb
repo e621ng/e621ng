@@ -31,8 +31,8 @@ FactoryBot.define do
       level 31
     end
 
-    factory(:builder_user) do
-      level 32
+    factory(:janitor_user) do
+      level 35
     end
 
     factory(:contributor_user) do

@@ -1,4 +1,4 @@
-<% if CurrentUser.user.try(:is_builder?) && @exception.present? %>
+<% if CurrentUser.user.try(:is_janitor?) && @exception.present? %>
   <h1><%= @exception.class.to_s %> exception raised</h1>
 
   <p><%= @exception.message.dup.force_encoding("utf-8") %></p>

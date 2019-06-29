@@ -4,7 +4,7 @@ module Admin::UsersHelper
       ["Member", User::Levels::MEMBER],
       ["Privileged", User::Levels::PRIVILEGED],
       ["Contributor", User::Levels::CONTRIBUTOR],
-      ["Builder", User::Levels::JANITOR],
+      ["Janitor", User::Levels::JANITOR],
       ["Moderator", User::Levels::MODERATOR],
       ["Admin", User::Levels::ADMIN]
     ]

@@ -188,16 +188,16 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "delete an artist" do
-      @builder = create(:builder_user)
-      delete_auth artist_path(@artist.id), @builder
+      @janitor = create(:janitor_user)
+      delete_auth artist_path(@artist.id), @janitor
       assert_redirected_to(artist_path(@artist.id))
       @artist.reload
       assert_equal(false, @artist.is_active)
     end
 
     should "undelete an artist" do
-      @builder = create(:builder_user)
-      put_auth artist_path(@artist.id), @builder, params: {artist: {is_active: true}}
+      @janitor = create(:janitor_user)
+      put_auth artist_path(@artist.id), @janitor, params: {artist: {is_active: true}}
       assert_redirected_to(artist_path(@artist.id))
       assert_equal(true, @artist.reload.is_active)
     end
