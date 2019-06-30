@@ -141,6 +141,10 @@ class Dmail < ApplicationRecord
   end
 
   module SearchMethods
+    def sent_by_id(user_id)
+      where("dmails.from_id = ? AND dmails.owner_id != ?", user_id, user_id)
+    end
+
     def sent_by(user)
       where("dmails.from_id = ? AND dmails.owner_id != ?", user.id, user.id)
     end
@@ -213,6 +217,8 @@ class Dmail < ApplicationRecord
   extend SearchMethods
 
   def user_not_limited
+    # System user must be able to send dmails at a very high rate, do not rate limit the system user.
+    return true if from_id == User.system.id
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason
     if allowed != true || minute_allowed != true

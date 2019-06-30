@@ -9,13 +9,13 @@ class UserFeedback < ApplicationRecord
   validate :user_is_not_creator
   after_create :create_dmail, unless: :disable_dmail_notification
   after_create do |rec|
-    ModAction.log(:user_feedback_create, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_create, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
   after_update do |rec|
-    ModAction.log(:user_feedback_update, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_update, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
   after_destroy do |rec|
-    ModAction.log(:user_feedback_delete, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_delete, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
 
   module SearchMethods

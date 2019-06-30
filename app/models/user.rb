@@ -286,11 +286,13 @@ class User < ApplicationRecord
     end
 
     def is_blocked?
-      is_banned?
+      is_banned? || level == Levels::BLOCKED
     end
 
     # Defines various convenience methods for finding out the user's level
     Danbooru.config.levels.each do |name, value|
+      # TODO: HACK: Remove this and make the below logic better to work with the new setup.
+      next if [0, 10].include?(value)
       normalized_name = name.downcase.tr(' ', '_')
       define_method("is_exactly_#{normalized_name}?") do
         self.level == value && self.id.present?
@@ -439,9 +441,9 @@ class User < ApplicationRecord
                          :general_should_throttle?, 7.days.ago)
     create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
                          :general_should_throttle?, 3.days.ago)
-    create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by(id).where('created_at > ?', 1.hour.ago).count },
+    create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.hour.ago).count },
                          nil, nil)
-    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by(id).where('created_at > ?', 1.minute.ago).count },
+    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
                          nil, nil)
 
     def max_saved_searches

@@ -1,13 +1,6 @@
 module Admin::UsersHelper
   def user_level_select(object, field)
-    options = [
-      ["Member", User::Levels::MEMBER],
-      ["Privileged", User::Levels::PRIVILEGED],
-      ["Contributor", User::Levels::CONTRIBUTOR],
-      ["Janitor", User::Levels::JANITOR],
-      ["Moderator", User::Levels::MODERATOR],
-      ["Admin", User::Levels::ADMIN]
-    ]
+    options = Danbooru.config.levels.map { |x,y| [x,y] }
     select(object, field, options)
   end
 end

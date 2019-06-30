@@ -104,7 +104,7 @@ module Danbooru
           "Contributor" => 33,
           "Former Staff" => 34,
           "Janitor" => 35,
-          "Mod" => 40,
+          "Moderator" => 40,
           "Admin" => 50
       }
     end
