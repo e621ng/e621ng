@@ -70,7 +70,7 @@ class Note < ApplicationRecord
   include ApiMethods
 
   def user_not_limited
-    allowed = CurrentUser.can_not_edit_with_reason
+    allowed = CurrentUser.can_note_edit_with_reason
     if allowed != true
       errors.add(:base, "User #{User.throttle_reason(allowed)}.")
       false

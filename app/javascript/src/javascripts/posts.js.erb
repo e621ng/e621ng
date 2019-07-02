@@ -392,7 +392,8 @@ Post.resize_sample = function() {
     return;
   Post.shrink_image().then(function() {
     const $image = $('#image');
-    $image.removeClass('fit-window');
+    $image.removeAttr('height', 'width');
+    $image.addClass('fit-window');
     Post.resize_ugoira_controls();
     Note.Box.scale_all();
   });
@@ -404,29 +405,36 @@ Post.set_size_mode = function(mode) {
   $('#current-image-resize-mode').text(modeMap[mode] || "?Unknown?");
 }
 
+Post.resize_notes = function() {
+  Note.Box.scale_all();
+}
+
 
 Post.initialize_resize = function() {
   Post.set_size_mode(Utility.meta("default-image-size"));
   this.initialize_change_resize_mode_link();
   if(Post.resizeMode === "fit") {
     Post.resize_fit();
-    $(window).on('resize', Post.resize_fit);
+  }
+  if(Post.resizeMode !== "original") {
+    $(window).on('resize', Post.resize_notes);
   }
 }
 
 Post.resize_cycle_mode = function(e) {
   if(e && e.target)
     e.preventDefault();
-  $(window).off('resize', Post.resize_fit);
+  $(window).off('resize', Post.resize_notes);
   if(Post.resizeMode === "large") {
     Post.resize_fit();
-    $(window).on('resize', Post.resize_fit);
+    $(window).on('resize', Post.resize_notes);
     Post.set_size_mode("fit");
   } else if (Post.resizeMode === "fit") {
     Post.resize_original();
     Post.set_size_mode("original");
   } else {
     Post.resize_sample();
+    $(window).on('resize', Post.resize_notes);
     Post.set_size_mode("large");
   }
 }

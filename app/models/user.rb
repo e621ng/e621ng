@@ -62,7 +62,7 @@ class User < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   validates :name, user_name: true, on: :create
   validates_uniqueness_of :email, :case_sensitive => false, :if => ->(rec) { rec.email.present? && rec.saved_change_to_email? }
-  validate :validate_email_address_allowed, on: [:create, :save], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.saved_change_to_email?) }
+  validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
   validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
   validates_inclusion_of :default_image_size, :in => %w(large fit original)
   validates_inclusion_of :per_page, :in => 1..250

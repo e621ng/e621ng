@@ -28,10 +28,10 @@
                 <td><%= link_to "#{HelpPage.title(help.name)}", help_page_path(id: help.name) %></td>
                 <td><%= link_to help.wiki_page, wiki_pages_path(title: help.wiki_page) %></td>
                 <td>
-                  <% @related = help.related.split(", ") %>
+                  <% @related = help.related.split(",") %>
                   <% if @related.present? %>
                     <% @related.each do |related| %>
-                      <%= link_to HelpPage.title(related), help_page_path(name: related) %><%= ", " unless related == @related.last %>
+                      <%= link_to HelpPage.title(related.strip), help_page_path(id: related.strip) %><%= ", " unless related == @related.last %>
                     <% end %>
                   <% end %>
                 </td>
