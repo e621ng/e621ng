@@ -180,6 +180,14 @@ class Post < ApplicationRecord
       end
     end
 
+    def display_class_for(user)
+      if user.default_image_size == "original"
+        ""
+      else
+        "fit-window"
+      end
+    end
+
     def is_image?
       file_ext =~ /jpg|jpeg|gif|png/i
     end
