@@ -10,7 +10,15 @@ class WikiPagesController < ApplicationController
   end
 
   def edit
-    @wiki_page = WikiPage.find(params[:id])
+    if params[:id] =~ /\A\d+\Z/
+      @wiki_page = WikiPage.find(params[:id])
+    else
+      @wiki_page = WikiPage.find_by_title(params[:id])
+      if @wiki_page.nil? && request.format.symbol == :html
+        redirect_to show_or_new_wiki_pages_path(:title => params[:id])
+        return
+      end
+    end
     respond_with(@wiki_page)
   end
 
