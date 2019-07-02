@@ -5,7 +5,7 @@ class ForumCategory < ApplicationRecord
   after_destroy :reassign_topics
 
   def reassign_topics
-    ForumTopic.where(category: @cat.id).update_all(category_id: 0)
+    ForumTopic.where(category: id).update_all(category_id: 0)
   end
 
   def can_create_within?(user = CurrentUser.user)
