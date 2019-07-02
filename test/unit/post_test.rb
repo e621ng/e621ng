@@ -93,8 +93,8 @@ class PostTest < ActiveSupport::TestCase
 
       context "that belongs to a pool" do
         setup do
-          # must be a builder to update deleted pools. must be >1 week old to remove posts from pools.
-          CurrentUser.user = FactoryBot.create(:builder_user, created_at: 1.month.ago)
+          # must be a janitor to update deleted pools. must be >1 week old to remove posts from pools.
+          CurrentUser.user = FactoryBot.create(:janitor_user, created_at: 1.month.ago)
 
           SqsService.any_instance.stubs(:send_message)
           @pool = FactoryBot.create(:pool)
@@ -276,13 +276,13 @@ class PostTest < ActiveSupport::TestCase
         end
       end
     end
-    
+
     context "Deleting a post with" do
       context "a parent" do
         should "not reassign favorites to the parent by default" do
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
-          user = FactoryBot.create(:gold_user)
+          user = FactoryBot.create(:privileged_user)
           c1.add_favorite!(user)
           c1.delete!("test")
           p1.reload
@@ -293,7 +293,7 @@ class PostTest < ActiveSupport::TestCase
         should "reassign favorites to the parent if specified" do
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
-          user = FactoryBot.create(:gold_user)
+          user = FactoryBot.create(:privileged_user)
           c1.add_favorite!(user)
           c1.delete!("test", :move_favorites => true)
           p1.reload
@@ -310,7 +310,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "clear the has_active_children flag when the 'move favorites' option is set" do
-          user = FactoryBot.create(:gold_user)
+          user = FactoryBot.create(:privileged_user)
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
           c1.add_favorite!(user)
@@ -574,7 +574,7 @@ class PostTest < ActiveSupport::TestCase
 
       context "with an artist tag that is then changed to copyright" do
         setup do
-          CurrentUser.user = FactoryBot.create(:builder_user)
+          CurrentUser.user = FactoryBot.create(:janitor_user)
           @post = Post.find(@post.id)
           @post.update(:tag_string => "art:abc")
           @post = Post.find(@post.id)
@@ -1032,7 +1032,7 @@ class PostTest < ActiveSupport::TestCase
 
         context "of" do
           setup do
-            @builder = FactoryBot.create(:builder_user)
+            @janitor = FactoryBot.create(:janitor_user)
           end
 
           context "locked:notes" do
@@ -1043,9 +1043,9 @@ class PostTest < ActiveSupport::TestCase
               end
             end
 
-            context "by a builder" do
+            context "by a janitor" do
               should "lock/unlock the notes" do
-                CurrentUser.scoped(@builder) do
+                CurrentUser.scoped(@janitor) do
                   @post.update(:tag_string => "locked:notes")
                   assert_equal(true, @post.is_note_locked)
 
@@ -1064,9 +1064,9 @@ class PostTest < ActiveSupport::TestCase
               end
             end
 
-            context "by a builder" do
+            context "by a janitor" do
               should "lock/unlock the rating" do
-                CurrentUser.scoped(@builder) do
+                CurrentUser.scoped(@janitor) do
                   @post.update(:tag_string => "locked:rating")
                   assert_equal(true, @post.is_rating_locked)
 
@@ -1101,7 +1101,7 @@ class PostTest < ActiveSupport::TestCase
 
         context "of" do
           setup do
-            @gold = FactoryBot.create(:gold_user)
+            @privileged = FactoryBot.create(:privileged_user)
           end
 
           context "upvote:self or downvote:self" do
@@ -1125,7 +1125,7 @@ class PostTest < ActiveSupport::TestCase
 
             context "by a gold user" do
               should "upvote the post" do
-                CurrentUser.scoped(FactoryBot.create(:gold_user)) do
+                CurrentUser.scoped(FactoryBot.create(:privileged_user)) do
                   @post.update(:tag_string => "tag1 tag2 upvote:self")
                   assert_equal(false, @post.errors.any?)
                   assert_equal(1, @post.score)
@@ -1133,7 +1133,7 @@ class PostTest < ActiveSupport::TestCase
               end
 
               should "downvote the post" do
-                CurrentUser.scoped(FactoryBot.create(:gold_user)) do
+                CurrentUser.scoped(FactoryBot.create(:privileged_user)) do
                   @post.update(:tag_string => "tag1 tag2 downvote:self")
                   assert_equal(false, @post.errors.any?)
                   assert_equal(-1, @post.score)
@@ -1692,11 +1692,11 @@ class PostTest < ActiveSupport::TestCase
         @child = FactoryBot.create(:post, parent: @parent)
 
         @user1 = FactoryBot.create(:user, enable_privacy_mode: true)
-        @gold1 = FactoryBot.create(:gold_user)
+        @privileged1 = FactoryBot.create(:privileged_user)
         @supervoter1 = FactoryBot.create(:user, is_super_voter: true)
 
         @child.add_favorite!(@user1)
-        @child.add_favorite!(@gold1)
+        @child.add_favorite!(@privileged1)
         @child.add_favorite!(@supervoter1)
         @parent.add_favorite!(@supervoter1)
 
@@ -1792,7 +1792,7 @@ class PostTest < ActiveSupport::TestCase
     setup do
       mock_pool_archive_service!
     end
-    
+
     should "return posts for the age:<1minute tag" do
       post = FactoryBot.create(:post)
       assert_tag_match([post], "age:<1minute")
@@ -2208,7 +2208,7 @@ class PostTest < ActiveSupport::TestCase
       context "labeled" do
         should "work" do
           SavedSearch.expects(:post_ids_for).with(CurrentUser.id, label: "zzz").returns([@post1.id])
-          assert_tag_match([@post1], "search:zzz")          
+          assert_tag_match([@post1], "search:zzz")
         end
       end
 
@@ -2222,7 +2222,7 @@ class PostTest < ActiveSupport::TestCase
       context "all" do
         should "work" do
           SavedSearch.expects(:post_ids_for).with(CurrentUser.id).returns([@post1.id, @post2.id])
-          assert_tag_match([@post2, @post1], "search:all")          
+          assert_tag_match([@post2, @post1], "search:all")
         end
       end
     end
@@ -2355,7 +2355,7 @@ class PostTest < ActiveSupport::TestCase
       post2 = FactoryBot.create(:post)
       post3 = FactoryBot.create(:post)
 
-      CurrentUser.scoped(FactoryBot.create(:gold_user), "127.0.0.1") do
+      CurrentUser.scoped(FactoryBot.create(:privileged_user), "127.0.0.1") do
         comment1 = FactoryBot.create(:comment, :post => post1)
         comment2 = FactoryBot.create(:comment, :post => post2, :do_not_bump_post => true)
         comment3 = FactoryBot.create(:comment, :post => post3)
@@ -2418,7 +2418,7 @@ class PostTest < ActiveSupport::TestCase
         FactoryBot.create(:super_voter, user: @user)
         @post = FactoryBot.create(:post)
       end
-      
+
       should "account for magnitude" do
         CurrentUser.scoped(@user, "127.0.0.1") do
           assert_nothing_raised {@post.vote!("up")}
@@ -2439,7 +2439,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "not allow duplicate votes" do
-      user = FactoryBot.create(:gold_user)
+      user = FactoryBot.create(:privileged_user)
       post = FactoryBot.create(:post)
       CurrentUser.scoped(user, "127.0.0.1") do
         assert_nothing_raised {post.vote!("up")}
@@ -2451,7 +2451,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "allow undoing of votes" do
-      user = FactoryBot.create(:gold_user)
+      user = FactoryBot.create(:privileged_user)
       post = FactoryBot.create(:post)
 
       # We deliberately don't call post.reload until the end to verify that

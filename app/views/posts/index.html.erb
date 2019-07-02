@@ -9,7 +9,8 @@
 
       <section id="tag-box">
         <h1>Tags</h1>
-        <%= @post_set.presenter.tag_list_html(current_query: params[:tags], show_extra_links: CurrentUser.user.is_gold?) %>
+        <!-- TODO: Lock off these extra items? -->
+        <%= @post_set.presenter.tag_list_html(current_query: params[:tags], show_extra_links: CurrentUser.user.is_privileged?) %>
       </section>
 
       <%= render "posts/partials/index/options" %>
@@ -38,7 +39,7 @@
       <%= render "posts/partials/index/excerpt", :post_set => @post_set %>
       <%= render "posts/partials/index/posts", :post_set => @post_set %>
     </section>
-    
+
 
     <%= post_search_count_js %>
 

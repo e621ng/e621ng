@@ -578,14 +578,14 @@ class Artist < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_builder?
+    user.is_janitor?
   end
 
   def editable_by?(user)
-    user.is_builder? || (!is_banned? && is_active?)
+    user.is_janitor? || (!is_banned? && is_active?)
   end
 
   def visible?
-    !is_banned? || CurrentUser.is_gold?
+    !is_banned? || CurrentUser.is_janitor?
   end
 end

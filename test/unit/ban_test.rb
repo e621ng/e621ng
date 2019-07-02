@@ -39,7 +39,7 @@ class BanTest < ActiveSupport::TestCase
         ban = FactoryBot.create(:ban, :user => user, :banner => @banner)
         assert(ban.errors.empty?)
 
-        user = FactoryBot.create(:gold_user)
+        user = FactoryBot.create(:privileged_user)
         ban = FactoryBot.create(:ban, :user => user, :banner => @banner)
         assert(ban.errors.empty?)
 
@@ -79,7 +79,7 @@ class BanTest < ActiveSupport::TestCase
         ban = FactoryBot.create(:ban, :user => user, :banner => @banner)
         assert(ban.errors.empty?)
 
-        user = FactoryBot.create(:gold_user)
+        user = FactoryBot.create(:privileged_user)
         ban = FactoryBot.create(:ban, :user => user, :banner => @banner)
         assert(ban.errors.empty?)
 

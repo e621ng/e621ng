@@ -107,7 +107,7 @@ module PostSets
 
         context "for a gold user" do
           setup do
-            CurrentUser.user = FactoryBot.create(:gold_user)
+            CurrentUser.user = FactoryBot.create(:privileged_user)
           end
 
           should "pass" do

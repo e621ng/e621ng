@@ -20,7 +20,7 @@ class UserTest < ActiveSupport::TestCase
 
       should "create a neutral feedback" do
         assert_difference("UserFeedback.count") do
-          @user.promote_to!(User::Levels::GOLD)
+          @user.promote_to!(User::Levels::PRIVILEGED)
         end
 
         assert_equal("You have been promoted to a Gold level account from Member.", @user.feedback.last.body)
@@ -31,7 +31,7 @@ class UserTest < ActiveSupport::TestCase
         User.stubs(:system).returns(bot)
 
         assert_difference("Dmail.count", 1) do
-          @user.promote_to!(User::Levels::GOLD)
+          @user.promote_to!(User::Levels::PRIVILEGED)
         end
 
         assert(@user.dmails.exists?(from: bot, to: @user, title: "You have been promoted"))
@@ -80,7 +80,7 @@ class UserTest < ActiveSupport::TestCase
 
     should "limit comments" do
       assert(!@user.can_comment?)
-      @user.update_column(:level, User::Levels::GOLD)
+      @user.update_column(:level, User::Levels::PRIVILEGED)
       assert(@user.can_comment?)
       @user.update_column(:level, User::Levels::MEMBER)
       @user.update_column(:created_at, 1.year.ago)
@@ -113,22 +113,22 @@ class UserTest < ActiveSupport::TestCase
     should "normalize its level" do
       user = FactoryBot.create(:user, :level => User::Levels::ADMIN)
       assert(user.is_moderator?)
-      assert(user.is_gold?)
+      assert(user.is_privileged?)
 
       user = FactoryBot.create(:user, :level => User::Levels::MODERATOR)
       assert(!user.is_admin?)
       assert(user.is_moderator?)
-      assert(user.is_gold?)
+      assert(user.is_privileged?)
 
-      user = FactoryBot.create(:user, :level => User::Levels::GOLD)
+      user = FactoryBot.create(:user, :level => User::Levels::PRIVILEGED)
       assert(!user.is_admin?)
       assert(!user.is_moderator?)
-      assert(user.is_gold?)
+      assert(user.is_privileged?)
 
       user = FactoryBot.create(:user)
       assert(!user.is_admin?)
       assert(!user.is_moderator?)
-      assert(!user.is_gold?)
+      assert(!user.is_privileged?)
     end
 
     context "name" do

@@ -13,38 +13,38 @@ class UserFeedbackTest < ActiveSupport::TestCase
 
     should "create a dmail" do
       user = FactoryBot.create(:user)
-      gold = FactoryBot.create(:gold_user)
+      privileged = FactoryBot.create(:privileged_user)
       member = FactoryBot.create(:user)
 
       dmail = <<~EOS.chomp
-        @#{gold.name} created a "positive record":/user_feedbacks?search[user_id]=#{user.id} for your account:
+        @#{privileged.name} created a "positive record":/user_feedbacks?search[user_id]=#{user.id} for your account:
 
         good job!
       EOS
 
-      CurrentUser.user = gold
+      CurrentUser.user = privileged
       assert_difference("Dmail.count", 1) do
         FactoryBot.create(:user_feedback, :user => user, :body => "good job!")
         assert_equal(dmail, user.dmails.last.body)
       end
     end
-    
+
     should "not validate if the creator is the user" do
-      gold_user = FactoryBot.create(:gold_user)
-      CurrentUser.user = gold_user
-      feedback = FactoryBot.build(:user_feedback, :user => gold_user)
+      privileged_user = FactoryBot.create(:privileged_user)
+      CurrentUser.user = privileged_user
+      feedback = FactoryBot.build(:user_feedback, :user => privileged_user)
       feedback.save
       assert_equal(["You cannot submit feedback for yourself"], feedback.errors.full_messages)
     end
 
     context "with a no_feedback user" do
       setup do
-        @gold_user = FactoryBot.create(:gold_user, no_feedback: true)
-        CurrentUser.user = @gold_user
+        @privileged_user = FactoryBot.create(:privileged_user, no_feedback: true)
+        CurrentUser.user = @privileged_user
       end
 
       should "not validate" do
-        feedback = FactoryBot.build(:user_feedback, :user => @gold_user)
+        feedback = FactoryBot.build(:user_feedback, :user => @privileged_user)
         feedback.save
         assert_equal(["You cannot submit feedback"], feedback.errors.full_messages.grep(/^You cannot submit feedback$/))
       end
@@ -52,10 +52,10 @@ class UserFeedbackTest < ActiveSupport::TestCase
 
     should "not validate if the creator is not gold" do
       user = FactoryBot.create(:user)
-      gold = FactoryBot.create(:gold_user)
+      privileged = FactoryBot.create(:privileged_user)
       member = FactoryBot.create(:user)
 
-      CurrentUser.user = gold
+      CurrentUser.user = privileged
       feedback = FactoryBot.create(:user_feedback, :user => user)
       assert(feedback.errors.empty?)
 

@@ -1,12 +1,12 @@
 class TagCorrectionsController < ApplicationController
   respond_to :html, :json, :xml
-  before_action :builder_only, only: [:new, :create]
+  before_action :janitor_only, only: [:new, :create]
 
   def new
     @correction = TagCorrection.new(params[:tag_id])
     respond_with(@correction)
   end
-  
+
   def show
     @correction = TagCorrection.new(params[:tag_id])
     respond_with(@correction)

@@ -95,6 +95,20 @@ module Danbooru
       "choujin-steiner"
     end
 
+    def levels
+      {
+          "Anonymous" => 0,
+          "Blocked" => 10,
+          "Member" => 20,
+          "Privileged" => 30,
+          "Contributor" => 33,
+          "Former Staff" => 34,
+          "Janitor" => 35,
+          "Moderator" => 40,
+          "Admin" => 50
+      }
+    end
+
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
       # user.level = User::Levels::MEMBER
@@ -229,7 +243,7 @@ module Danbooru
 
     # Determines who can see ads.
     def can_see_ads?(user)
-      !user.is_gold?
+      !user.is_privileged?
     end
 
     # Users cannot search for more than X regular tags at a time.
@@ -566,8 +580,9 @@ module Danbooru
       false
     end
 
+    # TODO: Investigate what this does and where it is used.
     def is_user_restricted?(user)
-      !user.is_gold?
+      !user.is_privileged?
     end
 
     def can_user_see_post?(user, post)

@@ -3,7 +3,7 @@ require 'test_helper'
 class TagsControllerTest < ActionDispatch::IntegrationTest
   context "The tags controller" do
     setup do
-      @user = create(:builder_user)
+      @user = create(:janitor_user)
       as_user do
         @tag = create(:tag, name: "touhou", category: Tag.categories.copyright, post_count: 1)
       end

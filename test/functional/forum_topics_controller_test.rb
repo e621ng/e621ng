@@ -25,34 +25,34 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not bump the forum for users without access" do
-        @gold_user = create(:gold_user)
+        @privileged_user = create(:privileged_user)
 
         # An open topic should bump...
-        as(@gold_user) do
+        as(@privileged_user) do
           @open_topic = create(:forum_topic)
         end
-        @gold_user.reload
-        as(@gold_user) do
-          assert(@gold_user.has_forum_been_updated?)
+        @privileged_user.reload
+        as(@privileged_user) do
+          assert(@privileged_user.has_forum_been_updated?)
         end
 
         # Marking it as read should clear it...
-        as(@gold_user) do
-          post_auth mark_all_as_read_forum_topics_path, @gold_user
+        as(@privileged_user) do
+          post_auth mark_all_as_read_forum_topics_path, @privileged_user
         end
-        @gold_user.reload
+        @privileged_user.reload
         assert_redirected_to(forum_topics_path)
-        as(@gold_user) do
-          assert(!@gold_user.has_forum_been_updated?)
+        as(@privileged_user) do
+          assert(!@privileged_user.has_forum_been_updated?)
         end
 
         # Then adding an unread private topic should not bump.
         as(@mod) do
           create(:forum_post, :topic_id => @forum_topic.id)
         end
-        @gold_user.reload
-        as(@gold_user) do
-          assert_equal(false, @gold_user.has_forum_been_updated?)
+        @privileged_user.reload
+        as(@privileged_user) do
+          assert_equal(false, @privileged_user.has_forum_been_updated?)
         end
       end
     end

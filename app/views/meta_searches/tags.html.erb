@@ -33,7 +33,7 @@
                   <% if tag.editable_by?(CurrentUser.user) %>
                     <%= link_to "edit", edit_tag_path(tag) %>
                   <% end %>
-                  <% if CurrentUser.is_builder? %>
+                  <% if CurrentUser.is_janitor? %>
                     | <%= link_to "fix", new_tag_correction_path(:tag_id => tag.id) %>
                   <% end %>
                 </td>
@@ -74,7 +74,7 @@
                     | <%= link_to "Approve", approve_tag_alias_path(tag_alias), :remote => true, :method => :post %>
                   <% end %>
 
-                  <% if CurrentUser.is_builder? %>
+                  <% if CurrentUser.is_janitor? %>
                     | <%= link_to "Fix", tag_alias_correction_path(:tag_alias_id => tag_alias.id) %>
                   <% end %>
                 </td>

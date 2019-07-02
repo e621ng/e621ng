@@ -20,7 +20,6 @@ class Post < ApplicationRecord
   before_validation :remove_parent_loops
   validates_uniqueness_of :md5, :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"}
   validates_inclusion_of :rating, in: %w(s q e), message: "rating must be s, q, or e"
-  validate :updater_has_edit_credits, on: :update
   validate :tag_names_are_valid, if: :should_process_tags?
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
@@ -951,10 +950,10 @@ class Post < ApplicationRecord
           self.rating = $1
 
         when /^(-?)locked:notes?$/i
-          self.is_note_locked = ($1 != "-") if CurrentUser.is_builder?
+          self.is_note_locked = ($1 != "-") if CurrentUser.is_janitor?
 
         when /^(-?)locked:rating$/i
-          self.is_rating_locked = ($1 != "-") if CurrentUser.is_builder?
+          self.is_rating_locked = ($1 != "-") if CurrentUser.is_janitor?
 
         when /^(-?)locked:status$/i
           self.is_status_locked = ($1 != "-") if CurrentUser.is_admin?
@@ -1810,19 +1809,6 @@ class Post < ApplicationRecord
       if !new_record? && id == parent_id
         errors[:base] << "Post cannot have itself as a parent"
         false
-      end
-    end
-
-    def updater_has_edit_credits
-      can_edit = CurrentUser.can_edit_with_reason
-
-      if can_edit == :REJ_EDIT_NEWBIE
-        errors.add(:updater, "must have an account for at least 3 days before editing posts")
-        return false
-      end
-      if can_edit == :REJ_EDIT_LIMIT
-        errors.add(:updater, "has no more hourly post edit credits")
-        return false
       end
     end
 

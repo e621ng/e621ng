@@ -5,17 +5,17 @@ class UserFeedback < ApplicationRecord
   attr_accessor :disable_dmail_notification
   validates_presence_of :user, :creator, :body, :category
   validates_inclusion_of :category, :in => %w(positive negative neutral)
-  validate :creator_is_gold
+  validate :creator_is_moderator
   validate :user_is_not_creator
   after_create :create_dmail, unless: :disable_dmail_notification
   after_create do |rec|
-    ModAction.log(:user_feedback_create, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_create, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
   after_update do |rec|
-    ModAction.log(:user_feedback_update, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_update, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
   after_destroy do |rec|
-    ModAction.log(:user_feedback_delete, {user_id: rec.user_id, reason: rec.reason, type: rec.category, record_id: rec.id})
+    ModAction.log(:user_feedback_delete, {user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id})
   end
 
   module SearchMethods
@@ -100,9 +100,9 @@ class UserFeedback < ApplicationRecord
     Dmail.create_automated(:to_id => user_id, :title => "Your user record has been updated", :body => body)
   end
 
-  def creator_is_gold
-    if !creator.is_gold?
-      errors[:creator] << "must be gold"
+  def creator_is_moderator
+    if !creator.is_moderator?
+      errors[:creator] << "must be moderator"
       return false
     elsif creator.no_feedback?
       errors[:creator] << "cannot submit feedback"

@@ -18,7 +18,7 @@ Note.update_all("y = 0", "y > (select _.image_height from posts _ where _.id = n
 # end
 
 Post.where("created_at >= '2013-02-01'").select("id, score, up_score, down_score").find_each do |post|
-  fav_count = Favorite.where("post_id = #{post.id}").joins("join users on favorites.user_id = users.id").where("users.level >= ?", User::Levels::GOLD).count
+  fav_count = Favorite.where("post_id = #{post.id}").joins("join users on favorites.user_id = users.id").where("users.level >= ?", User::Levels::PRIVILEGED).count
   revised_score = post.up_score + post.down_score + fav_count
   puts "#{post.id}: #{post.score} -> #{revised_score}" if post.score != revised_score
   post.update_column(:score, revised_score)

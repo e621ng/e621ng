@@ -28,7 +28,7 @@
         <%= link_to "Respond", new_dmail_path(:respond_to_id => @dmail) %>
         | <%= link_to "Forward", new_dmail_path(:respond_to_id => @dmail, :forward => true) %>
         | <%= link_to "Filter messages like these", edit_maintenance_user_dmail_filter_path(:dmail_id => @dmail.id) %>
-        <% if CurrentUser.is_gold? %>
+        <% if CurrentUser.is_privileged? %>
           <span id="spam-links">
             <% if @dmail.is_spam? %>
               | <%= link_to "Not spam", ham_dmail_path(@dmail), remote: :true, method: :post %>

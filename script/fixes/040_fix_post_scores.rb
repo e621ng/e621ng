@@ -8,5 +8,5 @@ CurrentUser.user = User.admins.first
 CurrentUser.ip_addr = "127.0.0.1"
 
 PostVote.find_each do |vote|
-  vote.destroy unless User.find(vote.user_id).is_gold?
+  vote.destroy unless User.find(vote.user_id).is_privileged?
 end

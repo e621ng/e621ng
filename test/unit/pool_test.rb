@@ -181,8 +181,8 @@ class PoolTest < ActiveSupport::TestCase
 
       context "to a deleted pool" do
         setup do
-          # must be a builder to update deleted pools.
-          CurrentUser.user = FactoryBot.create(:builder_user)
+          # must be a janitor to update deleted pools.
+          CurrentUser.user = FactoryBot.create(:janitor_user)
 
           @pool.update_attribute(:is_deleted, true)
           @pool.post_ids += [@p2.id]
@@ -266,9 +266,9 @@ class PoolTest < ActiveSupport::TestCase
         assert_equal(["You cannot change the category of pools with greater than 1 posts"], @pool.errors[:base])
       end
 
-      should "allow Builders to change the category of large pools" do
-        @builder = FactoryBot.create(:builder_user)
-        as(@builder) { @pool.update(category: "collection") }
+      should "allow janitors to change the category of large pools" do
+        @janitor = FactoryBot.create(:janitor_user)
+        as(@janitor) { @pool.update(category: "collection") }
 
         assert_equal(true, @pool.valid?)
         assert_equal("collection", @pool.category)

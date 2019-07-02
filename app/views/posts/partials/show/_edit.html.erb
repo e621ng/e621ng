@@ -1,4 +1,4 @@
-<% unless CurrentUser.user.is_builder? %>
+<% unless CurrentUser.user.is_janitor? %>
   <div style="margin-bottom: 1em;">
     <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(:id => "howto:tag") %>.</p>
   </div>
@@ -39,7 +39,7 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.is_builder? %>
+  <% if CurrentUser.is_janitor? %>
     <div class="input">
       <%= f.label :blank, "Lock" %>
 
@@ -107,7 +107,7 @@
       <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
     </div>
   </div>
-  
+
   <div class="input">
     <%= submit_tag "Submit", :class => "ui-button ui-widget ui-corner-all" %>
   </div>

@@ -26,7 +26,7 @@
   <% if CurrentUser.is_admin? %><span><%= link_to "(votes)", controller: :post_votes, post_id: post.id%></span><% end %>
   </li>
   <li>Favorites: <span id="favcount-for-post-<%= post.id %>"><%= post.fav_count %></span>
-  <% if CurrentUser.is_gold? %>
+  <% if CurrentUser.is_privileged? %>
     <%= link_to "Show »", "#", id: "show-favlist-link", style: ("display: none;" if post.fav_count == 0) %>
     <%= link_to "« Hide", "#", id: "hide-favlist-link", style: "display: none;" %>
     <div id="favlist" style="display: none;"><%= post_favlist(post) %></div>

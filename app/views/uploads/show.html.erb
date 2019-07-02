@@ -29,7 +29,7 @@
       <p>This upload is a duplicate: <%= link_to "post ##{@upload.duplicate_post_id}", post_path(@upload.duplicate_post_id) %></p>
     <% else %>
       <p>An error occurred: <%= render_status(@upload) %></p>
-      <% if CurrentUser.user.is_builder? %>
+      <% if CurrentUser.user.is_janitor? %>
         <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split(/\n/) %>
       <% end %>
     <% end %>

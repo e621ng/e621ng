@@ -1,7 +1,7 @@
 class ArtistsController < ApplicationController
   respond_to :html, :xml, :json, :js
   before_action :member_only, :except => [:index, :show, :show_or_new, :banned]
-  before_action :builder_only, :only => [:destroy]
+  before_action :janitor_only, :only => [:destroy]
   before_action :admin_only, :only => [:ban, :unban]
   before_action :load_artist, :only => [:ban, :unban, :show, :edit, :update, :destroy, :undelete]
 
@@ -106,7 +106,7 @@ private
 
   def artist_params(context = nil)
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
-    permitted_params << :is_active if CurrentUser.is_builder?
+    permitted_params << :is_active if CurrentUser.is_janitor?
     permitted_params << :source if context == :new
 
     params.fetch(:artist, {}).permit(permitted_params)

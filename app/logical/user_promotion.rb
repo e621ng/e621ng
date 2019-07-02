@@ -36,7 +36,7 @@ class UserPromotion
 
     user.inviter_id = promoter.id
 
-    create_user_feedback unless options[:is_upgrade]
+    create_user_feedback unless options[:is_upgbrade]
     create_dmail unless options[:skip_dmail]
     create_mod_actions
 
@@ -81,7 +81,7 @@ private
     # can't promote/demote moderators
     raise User::PrivilegeError if user.is_moderator?
 
-    # can't promote to admin      
+    # can't promote to admin
     raise User::PrivilegeError if new_level.to_i >= User::Levels::ADMIN
   end
 

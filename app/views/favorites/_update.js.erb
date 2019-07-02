@@ -7,7 +7,7 @@ $("#score-for-post-<%= @post.id %>").text(<%= @post.score %>);
 $("#favcount-for-post-<%= @post.id %>").text(<%= @post.fav_count %>);
 $(".fav-buttons").toggleClass("fav-buttons-false").toggleClass("fav-buttons-true");
 
-<% if CurrentUser.is_gold? %>
+<% if CurrentUser.is_privileged? %>
   var fav_count = <%= @post.fav_count %>;
   $("#favlist").html("<%= j post_favlist(@post) %>");
 

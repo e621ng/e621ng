@@ -23,16 +23,16 @@ FactoryBot.define do
       level 20
     end
 
-    factory(:gold_user) do
+    factory(:privileged_user) do
       level 30
     end
 
-    factory(:platinum_user) do
+    factory(:contributor_user) do
       level 31
     end
 
-    factory(:builder_user) do
-      level 32
+    factory(:janitor_user) do
+      level 35
     end
 
     factory(:contributor_user) do

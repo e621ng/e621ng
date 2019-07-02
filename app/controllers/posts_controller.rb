@@ -45,6 +45,12 @@ class PostsController < ApplicationController
   def update
     @post = Post.find(params[:id])
 
+    can_edit = CurrentUser.can_edit_with_reason
+    if can_edit != true
+      access_denied "Updater #{User.throttle_reason(can_edit)}"
+      return
+    end
+
     @post.update(post_params) if @post.visible?
     respond_with_post_after_update(@post)
   end
@@ -127,7 +133,7 @@ private
       rating old_rating
       has_embedded_notes
     ]
-    permitted_params += %i[is_rating_locked is_note_locked] if CurrentUser.is_builder?
+    permitted_params += %i[is_rating_locked is_note_locked] if CurrentUser.is_janitor?
     permitted_params += %i[is_status_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)

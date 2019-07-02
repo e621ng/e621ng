@@ -22,7 +22,7 @@
                 <%= link_to "edit", edit_tag_path(tag) %>
               <% end %>
               | <%= link_to "history", tag_type_versions_path(search: {tag: tag.name}) %>
-              <% if CurrentUser.is_builder? %>
+              <% if CurrentUser.is_janitor? %>
                 | <%= link_to "fix", new_tag_correction_path(:tag_id => tag.id) %>
               <% end %>
             </td>

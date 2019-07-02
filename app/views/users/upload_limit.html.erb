@@ -29,7 +29,7 @@
 
   <ul>
     <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-    <% if !CurrentUser.is_platinum? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
+    <% if !CurrentUser.is_privileged? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
   </ul>
 
   <% unless CurrentUser.can_upload_free? %>

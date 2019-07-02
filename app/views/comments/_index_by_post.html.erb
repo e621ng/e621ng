@@ -1,5 +1,5 @@
 <div id="p-index-by-post">
-  <% if !CurrentUser.user.is_builder? %>
+  <% if !CurrentUser.user.is_janitor? %>
     <div style="margin-bottom: 1em;">
       <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
     </div>

@@ -154,13 +154,14 @@ class PostFlag < ApplicationRecord
       end
     end
 
+    # TODO: Convert to a user limit and move to user class.
     if CurrentUser.can_approve_posts?
       # do nothing
     elsif creator.created_at > 1.week.ago
       errors[:creator] << "cannot flag within the first week of sign up"
-    elsif creator.is_gold? && flag_count_for_creator >= 10
+    elsif creator.is_privileged? && flag_count_for_creator >= 10
       errors[:creator] << "can flag 10 posts a day"
-    elsif !creator.is_gold? && flag_count_for_creator >= 1
+    elsif !creator.is_privileged? && flag_count_for_creator >= 1
       errors[:creator] << "can flag 1 post a day"
     end
 
