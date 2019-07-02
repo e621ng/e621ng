@@ -10,7 +10,7 @@ class WikiPagesController < ApplicationController
   end
 
   def edit
-    if params[:id] =~ /\A\d+\Z/
+    if params[:id] =~ /\A\d+\z/
       @wiki_page = WikiPage.find(params[:id])
     else
       @wiki_page = WikiPage.find_by_title(params[:id])
@@ -48,7 +48,7 @@ class WikiPagesController < ApplicationController
   end
 
   def show
-    if params[:id] =~ /\A\d+\Z/
+    if params[:id] =~ /\A\d+\z/
       @wiki_page = WikiPage.find(params[:id])
     else
       @wiki_page = WikiPage.find_by_title(params[:id])
