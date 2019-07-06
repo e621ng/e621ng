@@ -512,9 +512,9 @@
         var data = new FormData();
         var post_file = this.$refs['post_file'];
         if (post_file && post_file.files && post_file.files.length) {
-          data.append('post[file]', this.$refs['post_file'].files[0]);
+          data.append('upload[file]', this.$refs['post_file'].files[0]);
         } else {
-          data.append('post[direct_url]', this.uploadURL);
+          data.append('upload[direct_url]', this.uploadURL);
         }
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
