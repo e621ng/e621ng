@@ -62,10 +62,14 @@ class TagAlias < TagRelationship
     end
   end
 
-  def self.to_aliased(names)
+  def self.to_aliased_with_originals(names)
     Cache.get_multi(Array(names), "ta") do |tag|
       ActiveRecord::Base.select_value_sql("select consequent_name from tag_aliases where status in ('active', 'processing') and antecedent_name = ?", tag) || tag.to_s
-    end.values
+    end
+  end
+
+  def self.to_aliased(names)
+    TagAlias.to_aliased_with_originals(names).values
   end
 
   def process!(update_topic: true)

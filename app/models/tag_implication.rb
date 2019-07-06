@@ -14,7 +14,6 @@ class TagImplication < TagRelationship
   validate :consequent_is_not_aliased
   validate :wiki_pages_present, on: :create, unless: :skip_secondary_validations
   scope :old, ->{where("created_at between ? and ?", 2.months.ago, 1.month.ago)}
-  scope :pending, ->{where(status: "pending")}
 
   module DescendantMethods
     extend ActiveSupport::Concern
@@ -24,6 +23,10 @@ class TagImplication < TagRelationship
       # assumes names are normalized
       def with_descendants(names)
         (names + active.where(antecedent_name: names).flat_map(&:descendant_names)).uniq
+      end
+
+      def descendants_with_originals(names)
+        active.where(antecedent_name: names).map { |x| [x.antecedent_name, x.descendant_names] }.uniq
       end
 
       def automatic_tags_for(names)

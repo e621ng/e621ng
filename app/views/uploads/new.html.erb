@@ -580,7 +580,7 @@
         this.preview.tags = [];
         var self = this;
         var data = {tags: this.tags};
-        jQuery.ajax("/tag/preview.json", {
+        jQuery.ajax("/tags/preview.json", {
           method: 'POST',
           type: 'POST',
           data: data,

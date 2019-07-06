@@ -307,6 +307,7 @@ Rails.application.routes.draw do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
     collection do
       get :autocomplete
+      post :preview
     end
   end
   resources :tag_type_versions
