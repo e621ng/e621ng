@@ -26,7 +26,7 @@ class RelatedTagCalculator
 
     CurrentUser.without_safe_mode do
       Post.with_timeout(5_000, [], {:tags => tag}) do
-        Post.tag_match(tag).limit(400).reorder("posts.md5").pluck(:tag_string).each do |tag_string|
+        Post.tag_match("#{tag} order:random").limit(400).pluck(:tag_string).each do |tag_string|
           tag_string.split.each do |tag|
             counts[tag] += 1
           end
@@ -57,7 +57,7 @@ class RelatedTagCalculator
   def self.calculate_from_sample(tags, sample_size, category_constraint = nil, max_results = MAX_RESULTS)
     Post.with_timeout(5_000, [], {:tags => tags}) do
       sample = Post.sample(tags, sample_size)
-      posts_with_tags = Post.from(sample).with_unflattened_tags
+      posts_with_tags = sample.with_unflattened_tags
 
       if category_constraint
         posts_with_tags = posts_with_tags.joins("JOIN tags ON tags.name = tag").where("tags.category" => category_constraint)

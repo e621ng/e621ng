@@ -14,6 +14,18 @@ class Cache
     keys_to_values_hash
   end
 
+  def self.read_multi(keys, prefix)
+    sanitized_key_to_key_hash = keys.map do |key|
+      ["#{prefix}:#{Cache.hash(key)}", key]
+    end.to_h
+
+    sanitized_keys = sanitized_key_to_key_hash.keys
+    sanitized_key_to_value_hash = Rails.cache.read_multi(*sanitized_keys)
+
+    keys_to_values_hash = sanitized_key_to_value_hash.transform_keys(&sanitized_key_to_key_hash)
+    keys_to_values_hash
+  end
+
   def self.get(key, expiry_in_seconds = nil, &block)
     Rails.cache.fetch(key, expires_in: expiry_in_seconds, &block)
   end

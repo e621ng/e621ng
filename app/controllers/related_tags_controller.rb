@@ -1,5 +1,6 @@
 class RelatedTagsController < ApplicationController
   respond_to :json, :xml, :js, :html, except: [:update]
+  before_action :member_only
   before_action :require_reportbooru_key, only: [:update]
 
   def show
@@ -14,6 +15,11 @@ class RelatedTagsController < ApplicationController
     @tag.post_count = params[:post_count] if params[:post_count].present?
     @tag.save
     head :ok
+  end
+
+  def bulk
+    @query = BulkRelatedTagQuery.new(query: params[:query], category: params[:category], user: CurrentUser.user)
+    respond_with(@query)
   end
 
   protected

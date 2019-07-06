@@ -597,8 +597,8 @@
         })
       },
       findRelated: function (type) {
-        var self = this;
-        var convertResponse = function (respData) {
+        const self = this;
+        const convertResponse = function (respData) {
           var sortedRelated = [];
           for (var key in respData) {
             if (!respData.hasOwnProperty(key)) {
@@ -608,32 +608,26 @@
           }
           return sortedRelated;
         };
-        var getSelectedTags = function () {
-          var field = self.$refs['otherTags'];
+        const getSelectedTags = function () {
+          const field = self.$refs['otherTags'];
           if (!field.hasOwnProperty('selectionStart'))
             return null;
-          var length = field.selectionEnd - field.selectionStart;
+          const length = field.selectionEnd - field.selectionStart;
           if (length)
             return field.value.substr(field.selectionStart, length);
           return null;
         };
         this.loadingRelated = true;
         this.relatedTags = [];
-        var selectedTags = getSelectedTags();
-        var params = selectedTags ? {tags: selectedTags} : {tags: this.tags};
+        const selectedTags = getSelectedTags();
+        const params = selectedTags ? {query: selectedTags} : {query: this.tags};
+
         if (type)
-          params['type'] = type;
-        new Ajax.Request("/tag/related.json", {
-          method: 'POST',
-          parameters: params,
-          onComplete: function (resp) {
-            var respJ = resp.responseJSON;
-            self.relatedTags = convertResponse(respJ);
-            self.loadingRelated = false;
-          },
-          onError: function () {
-            self.loadingRelated = false;
-          }
+          params['category'] = type;
+        $.getJSON("/related_tag/bulk.json", params, function(data) {
+          self.relatedTags = convertResponse(data);
+        }).always(function() {
+          self.loadingRelated = false;
         });
       }
     },

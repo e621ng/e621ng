@@ -284,6 +284,7 @@ Rails.application.routes.draw do
   end
   resources :artist_commentary_versions, :only => [:index]
   resource :related_tag, :only => [:show, :update]
+  get "related_tag/bulk" => "related_tags#bulk"
   get "reports/uploads" => "reports#uploads"
   get "reports/upload_tags" => "reports#upload_tags"
   get "reports/post_versions" => "reports#post_versions"

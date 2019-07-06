@@ -435,6 +435,12 @@ class ElasticPostQueryBuilder
     when "id_desc"
       order.push({id: :desc})
 
+    when "md5"
+      order.push({md5: :desc})
+
+    when "md5_asc"
+      order.push({md5: :asc})
+
     when "score", "score_desc"
       order.concat([{score: :desc}, {id: :desc}])
 

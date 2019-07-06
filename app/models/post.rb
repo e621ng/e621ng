@@ -1639,7 +1639,7 @@ class Post < ApplicationRecord
 
     def sample(query, sample_size)
       CurrentUser.without_safe_mode do
-        tag_match(query).records.reorder(:md5).limit(sample_size)
+        tag_match("#{query} order:random").limit(sample_size).records
       end
     end
 
