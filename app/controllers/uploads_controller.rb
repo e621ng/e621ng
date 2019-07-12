@@ -52,14 +52,20 @@ class UploadsController < ApplicationController
       flash[:notice] = @service.warnings.join(".\n \n")
     end
 
-    respond_with(@upload)
+    respond_with(@upload) do |format|
+      format.json do
+        return render json: {success: true, location: post_path(@upload.post_id), post_id: @upload.post_id} unless @upload.is_errored?
+        return render json: {success: false, reason: 'duplicate', location: post_path(@upload.duplicate_post_id), post_id: @upload.duplicate_post_id}, status: 412 if @upload.is_duplicate?
+        return render json: {success: false, reason: 'invalid', message: @upload.sanitized_status}, status: 412 if @upload.is_errored?
+      end
+    end
   end
 
   private
 
   def upload_params
     permitted_params = %i[
-      file direct_url source tag_string rating status parent_id artist_commentary_title
+      file direct_url source tag_string rating parent_id description artist_commentary_title
       artist_commentary_desc include_artist_commentary referer_url
       md5_confirmation as_pending
     ]

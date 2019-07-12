@@ -1,5 +1,6 @@
 const { environment } = require('@rails/webpacker')
 const erb =  require('./loaders/erb')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const webpack = require('webpack');
 
 environment.loaders.append('scss.erb', {
@@ -13,6 +14,12 @@ environment.loaders.append('scss.erb', {
     'rails-erb-loader'
   ]
 });
+
+environment.loaders.append('vue', {
+  test: /\.vue$/,
+  use: 'vue-loader'
+});
+environment.plugins.append('VueLoaderPlugin', new VueLoaderPlugin());
 
 environment.loaders.append('erb', erb);
 

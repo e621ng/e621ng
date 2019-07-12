@@ -152,9 +152,16 @@ class Tag < ApplicationRecord
             hash
           end
         else
-          Cache.get_multi(Array(tag_names), "tc") do |tag|
-            Tag.select_category_for(tag)
+          found = Cache.read_multi(Array(tag_names), "tc")
+          not_found = tag_names - found.keys
+          if not_found.count > 0
+            # Is multi_write worth it here? Normal usage of this will be short put lists and then never touched.
+            Tag.where(name: not_found).select([:id, :name, :category]).find_each do |tag|
+              Cache.put("tc:#{Cache.hash(tag.name)}", tag.category)
+              found[tag.name] = tag.category
+            end
           end
+          found
         end
       end
 

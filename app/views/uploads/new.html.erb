@@ -1,153 +1,39 @@
-<div id="c-uploads">
-  <div id="a-new">
-    <h1>Upload</h1>
-
-    <% if CurrentUser.can_upload? %>
-      <div id="upload-guide-notice">
-        <%= format_text(@upload_notice_wiki.try(&:body)) %>
-      </div>
-
-      <% unless CurrentUser.can_upload_free? %>
-        <p>Upload limit: <strong><%= CurrentUser.user.presenter.upload_limit(self) %></strong>.</p>
-      <% end %>
-
-      <%= render "image" %>
-      <%= render "related_posts", source: @source %>
-      <%= render "sources/info" %>
-
-      <div id="client-errors" class="error-messages ui-state-error ui-corner-all" style="display:none"></div>
-
-      <%= form_for(@upload, :html => {:multipart => true, :class => "simple_form", :id => "form"}) do |f| %>
-        <%= f.hidden_field :md5_confirmation %>
-        <%= f.hidden_field :referer_url, value: params[:ref] %>
-
-        <% if CurrentUser.can_upload_free? %>
-          <div class="input">
-            <label for="upload_as_pending">
-              <%= f.check_box :as_pending, :checked => params[:as_pending].present? %>
-              Upload for approval
-            </label>
-          </div>
-        <% end %>
-
-        <div class="input">
-          <%= f.label :file %>
-          <%= f.file_field :file, :size => 50 %>
-        </div>
-
-        <div class="input">
-          <%= f.label :direct_url %>
-          <%= f.text_field :direct_url, size: 50, value: params[:url] %>
-          <%= button_tag "Similar", :id => "similar-button", :type => "button", :class => "ui-button ui-widget ui-corner-all sub" %>
-          <div id="whitelist-warning"></div>
-          <span class="hint">You can enter a URL to have <%= Danbooru.config.app_name %> automatically download and process it</span>
-        </div>
-
-        <div class="input">
-          <%= f.label :source, "Sources" %>
-          <%= f.text_area :source, size: "60x5", value: params[:url] %>
-        </div>
-
-        <div class="input">
-          <%= f.label :rating %>
-
-          <fieldset class="ratings">
-            <%= f.radio_button :rating, :e, :checked => (params[:rating] == "e") %>
-            <%= f.label :rating_e, "Explicit", :title => "Hardcore porn, visible genitals" %>
-
-            <%= f.radio_button :rating, :q, :checked => (params[:rating] == "q") %>
-            <%= f.label :rating_q, "Questionable", :title => "Nudity, anything erotic" %>
-
-            <%= f.radio_button :rating, :s, :checked => (params[:rating] == "s") %>
-            <%= f.label :rating_s, "Safe", :title => "Everything else" %>
-          </fieldset>
-        </div>
-
-        <div class="input">
-          <%= f.label :parent_id, "Parent ID" %>
-          <%= f.text_field :parent_id, :value => params[:parent_id] %>
-        </div>
-
-        <div class="input">
-          <strong>Commentary</strong>
-          <a href="#" id="toggle-artist-commentary">show »</a>
-
-          <div class="artist-commentary" style="display: none;">
-            <div class="input">
-              <%= f.label :artist_commentary_title, "Title" %>
-              <%= f.text_field :artist_commentary_title, :value => params[:artist_commentary_title] %>
-            </div>
-
-            <div class="input">
-              <%= f.label :artist_commentary_desc, "Description" %>
-              <%= f.text_area :artist_commentary_desc, :size => "60x5", :value => params[:artist_commentary_desc] %>
-            </div>
-
-            <div class="input">
-              <label for="upload_include_artist_commentary">
-                <%= f.check_box :include_artist_commentary, :checked => params[:include_artist_commentary].present? %>
-                Include Commentary
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="input" id="tags-container">
-          <div class="header">
-            <%= f.label :tag_string, "Tags" %>
-
-            <span class="options">
-              <i id="face" class="fas"></i>
-              <span class="count"></span>
-              <a href="javascript:void(0)"><i id="open-edit-dialog" class="fas fa-arrows-alt" title="detach" data-shortcut="shift+e"></i></a>
-            </span>
-          </div>
-
-          <div>
-            <%= f.text_area :tag_string, :size => "60x5", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => params[:tag_string] %>
-          </div>
-          <%= render "related_tags/buttons" %>
-        </div>
-
-        <div class="input">
-          <%= submit_tag "Submit", :id => "submit-button", :class => "large ui-button ui-widget ui-corner-all", data: { disable_with: false } %>
-        </div>
-
-        <%= render "related_tags/container" %>
-      <% end %>
-    <% else %>
-      <h2 style="margin-bottom: 1em;">You <%= CurrentUser.user.upload_limited_reason %></h2>
-    <% end %>
+<div id="post-add">
+  <div style="margin-bottom: 1rem;" class="section">
+    <h2>Before uploading, read
+      the <%= link_to "how to upload guide", wiki_pages_path(id: "howto:upload") %>.</h2>
+    <p>Make sure you're not posting something on
+      the <%= link_to "Avoid Posting List", help_pages_path(id: 'avoid_posting') %><br>
+      Review the <%= link_to "Uploading Guidelines", help_pages_path(id: "uploading_guidelines") %>
+      <br>
+      Unsure what to tag your post
+      with? <%= link_to "Tagging Checklist", help_pages_path(id: "tagging_checklist") %></p>
   </div>
+  <div id="uploader"></div>
+  <%# if current_user.is_member_or_lower? && (current_user.upload_limit <= 5 || current_user.post_upload_throttle <= 5) %>
+<!--    <div id="post-uploads-remaining" class="section<%# if [current_user.upload_limit, current_user.post_upload_throttle].min <= 0 %> sect_red<%# end %>" style="width:640px;">-->
+<!--      <p>-->
+<!--        You currently have <span class="post-uploads-remaining-count"><%#= current_user.upload_limit %></span> upload<%#= current_user.upload_limit!=1?"s":"" %> remaining.-->
+
+        <%# if current_user.pending_flagged_posts.count > 0 %>
+<!--          This number will go up as some of your <%#= link_to "<span class='post-uploads-remaining-count'>#{current_user.pending_flagged_posts.count}</span> pending/flagged posts", action: "index",tags: "user:#{current_user.name} status:pending" %> are approved.-->
+        <%# end %>
+<!--      </p>-->
+<!--      You have <span class="post-uploads-remaining-count"><%#= current_user.post_upload_throttle %></span> uploads remaining this hour.-->
+<!--      See <%#= link_to "here", controller: "user", action: "upload_limit" %> for more details.-->
+<!--    </div>-->
+  <%# elsif current_user.post_upload_throttle <= 5 %>
+<!--    <div id="post-uploads-remaining" class="section<%# if current_user.post_upload_throttle <= 0 %> sect_red<%# end %>" style="width:640px;">-->
+<!--      You have <span class="post-uploads-remaining-count"><%#= current_user.post_upload_throttle %></span> uploads remaining this hour.-->
+<!--      See <%#= link_to "here", controller: "user", action: "upload_limit" %> for more details.-->
+<!--    </div>-->
+  <%# end %>
 </div>
-
-<% content_for(:page_title) do %>
-  Upload - <%= Danbooru.config.app_name %>
-<% end %>
-
-<% content_for(:html_header) do %>
-  <script async src="/vendor/spark-md5-3.0.min.js" integrity="sha384-5VJv9Bpdgn6Hi1U9X+oyrPZZ6vIihhKUi6Dc3DoCBGph3XbthcAH6va41dxo1KUO" crossorigin="anonymous"></script>
-  <script>
-    $(function() {
-      var enabled = true;
-      var maxFilesize = <%= Danbooru.config.max_file_size.to_json %> / (1024 * 1024);
-
-      if (!window.FileReader) {
-        enabled = false;
-      }
-
-      // this.on("addedfile", function(file) {
-      //   var reader = new FileReader();
-      //   reader.addEventListener("loadend", function() {
-      //     var buf = new SparkMD5.ArrayBuffer();
-      //     buf.append(this.result);
-      //     var hash = buf.end();
-      //     $("#upload_md5_confirmation").val(hash);
-      //   });
-      //   reader.readAsArrayBuffer(file);
-      // });
-    });
-  </script>
-<% end %>
-
-<%= render "uploads/secondary_links" %>
+<script>
+  var safeSite = <%= CurrentUser.safe_mode?.to_json %>;
+  var userUploadTags = <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>;
+  var userRecentTags = <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>;
+</script>
+<script type="text/javascript">
+  Danbooru.Uploader.init();
+</script>

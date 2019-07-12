@@ -41,7 +41,7 @@ class TagAlias < TagRelationship
           nil
         end
         ForumUpdater.new(
-          forum_topic, 
+          forum_topic,
           forum_post: post,
           expected_title: TagAliasRequest.topic_title(antecedent_name, consequent_name),
           skip_update: !TagRelationship::SUPPORT_HARD_CODED
@@ -62,10 +62,14 @@ class TagAlias < TagRelationship
     end
   end
 
-  def self.to_aliased(names)
+  def self.to_aliased_with_originals(names)
     Cache.get_multi(Array(names), "ta") do |tag|
       ActiveRecord::Base.select_value_sql("select consequent_name from tag_aliases where status in ('active', 'processing') and antecedent_name = ?", tag) || tag.to_s
-    end.values
+    end
+  end
+
+  def self.to_aliased(names)
+    TagAlias.to_aliased_with_originals(names).values
   end
 
   def process!(update_topic: true)
@@ -178,7 +182,7 @@ class TagAlias < TagRelationship
 
   def rename_wiki_and_artist
     antecedent_wiki = WikiPage.titled(antecedent_name).first
-    if antecedent_wiki.present? 
+    if antecedent_wiki.present?
       if WikiPage.titled(consequent_name).blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
           antecedent_wiki.update(title: consequent_name, skip_secondary_validations: true)

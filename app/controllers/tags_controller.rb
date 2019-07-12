@@ -1,5 +1,5 @@
 class TagsController < ApplicationController
-  before_action :member_only, :only => [:edit, :update]
+  before_action :member_only, :only => [:edit, :update, :preview]
   respond_to :html, :xml, :json
 
   def edit
@@ -31,6 +31,15 @@ class TagsController < ApplicationController
     respond_with(@tags) do |format|
       format.xml do
         render :xml => @tags.to_xml(:root => "tags")
+      end
+    end
+  end
+
+  def preview
+    @preview = TagsPreview.new(tags: params[:tags])
+    respond_with(@preview) do |format|
+      format.json do
+        render json: @preview.serializable_hash
       end
     end
   end
