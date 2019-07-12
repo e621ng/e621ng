@@ -46,3 +46,4 @@ export { default as Utility } from '../src/javascripts/utility.js';
 export { default as Ugoira } from '../src/javascripts/ugoira.js';
 export { default as Takedown } from '../src/javascripts/takedowns.js';
 export { default as Thumbnails } from '../src/javascripts/thumbnails.js';
+export { default as Uploader } from '../src/javascripts/uploader.js';

@@ -156,6 +156,21 @@ class UserPresenter
     user.user_name_change_requests.map { |req| template.link_to req.original_name, req }.join(", ").html_safe
   end
 
+  def favorite_tags_with_types
+    tag_names = user&.favorite_tags.to_s.split
+    tag_names = TagAlias.to_aliased(tag_names)
+    Tag.where(name: tag_names).map {|x| [x.name, x.post_count, x.category]}
+  end
+
+  def recent_tags_with_types
+    versions = PostArchive.where(updater_id: user.id).where("updated_at > ?", 1.hour.ago).order(id: :desc).limit(150)
+    tags = versions.flat_map(&:added_tags)
+    tags = tags.reject { |tag| Tag.is_metatag?(tag) }
+    tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)
+    tags = tags.take(50)
+    Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
+  end
+
   def custom_css
     user.custom_style.to_s.split(/\r\n|\r|\n/).map do |line|
       if line =~ /\A@import/
