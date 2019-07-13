@@ -21,17 +21,17 @@ class TagsPreview
   def implications
     names = @tags.map {|tag| tag[:b] || tag[:a] }
     implications = TagImplication.descendants_with_originals(names)
-    implications.each do |imp|
-      @tags += imp[1].map { |x| {a: imp[0], b: x, type: 'implication'} }
+    implications.each do |implication, descendants|
+      @tags += descendants.map { |descendant| {a: implication, b: descendant, type: 'implication'} }
     end
   end
 
   def tag_types
     names = @tags.map { |tag| tag[:b] || tag[:a] }
     categories = Tag.categories_for(names)
-    @tags.map! do |x|
-      x[:tagType] = categories.fetch(x[:b] || x[:a], -1)
-      x
+    @tags.map! do |tag|
+      tag[:tagType] = categories.fetch(tag[:b] || tag[:a], -1)
+      tag
     end
   end
 

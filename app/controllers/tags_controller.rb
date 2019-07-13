@@ -37,7 +37,7 @@ class TagsController < ApplicationController
 
   def preview
     @preview = TagsPreview.new(tags: params[:tags])
-    respond_with(@preview) do |format|
+    respond_to do |format|
       format.json do
         render json: @preview.serializable_hash
       end

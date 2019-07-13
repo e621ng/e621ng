@@ -74,7 +74,7 @@
             });
           }
           if (this.related && this.related.length) {
-            for (var i = 0; i < this.related.length; i++) {
+            for (let i = 0; i < this.related.length; i++) {
               groups.push(this.related[i]);
             }
           }

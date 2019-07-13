@@ -39,10 +39,8 @@
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
                     <div>You should include: A link to the artists page where this was obtained, and a link to the
-                        submission page
-                        where this image was obtained. No available source should ONLY be used if the content has never
-                        been posted
-                        online anywhere else.
+                        submission page where this image was obtained. No available source should ONLY be used if the
+                        content has never been posted online anywhere else.
                     </div>
                 </div>
                 <div class="col2">
@@ -129,8 +127,7 @@
                         <label class="section-label">Contentious Content</label>
                         <div>
                             These allow users to find or blacklist content with ease. Make sure that you are tagging
-                            these upon
-                            initial upload.
+                            these upon initial upload.
                         </div>
                     </div>
                     <div class="col2">
@@ -143,7 +140,7 @@
                 <div class="col">
                     <label class="section-label" for="post_rating_questionable">Rating</label>
                     <div>Explicit tags include sex, pussy, penis, masturbation, fellatio, etc.
-                        (<%= link_to "help", help_pages_path(title: 'ratings'), target: "_blank" %>)
+                        (<a href="/help/ratings" target="_blank">help</a>)
                     </div>
                 </div>
                 <div class="col2">
@@ -168,8 +165,7 @@
                 <div class="col">
                     <label class="section-label" for="post_tags">Other Tags</label>
                     <div>
-                        Separate tags with spaces. (<%= link_to "help", help_pages_path(title: 'tags'), target: "_blank"
-                        %>)
+                        Separate tags with spaces. (<a href="/help/tags" target="_blank">help</a>)
                     </div>
                 </div>
                 <div class="col2">
@@ -179,8 +175,7 @@
                     </div>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
-                        towards this
-                        total.
+                        towards this total.
                     </div>
                     <div v-show="!preview.show">
                         <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
@@ -190,11 +185,15 @@
                         <tag-preview :tags="preview.tags" :loading="preview.loading"
                                      @close="previewFinalTags"></tag-preview>
                     </div>
+
                     <div class="related-tag-functions">
-                        <a href="#" @click.prevent="findRelated()">Related Tags</a> |
-                        <a href="#" @click.prevent="findRelated('artist')">Related Artists</a> |
-                        <a href="#" @click.prevent="findRelated('char')">Related Characters</a> |
-                        <a href="#" @click.prevent="findRelated('copyright')">Related Copyrights</a> |
+                        Related:
+                        <a href="#" @click.prevent="findRelated()">Tags</a> |
+                        <a href="#" @click.prevent="findRelated('artist')">Artists</a> |
+                        <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a>
+                        <a href="#" @click.prevent="findRelated('char')">Characters</a> |
+                        <a href="#" @click.prevent="findRelated('species')">Species</a> |
+                        <a href="#" @click.prevent="findRelated('meta')">Metatags</a> | 
                         <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
                     </div>
                 </div>
@@ -234,9 +233,8 @@
                     <div class="box-section sect_red" v-show="duplicateId">
                         Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
                     </div>
-                    <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">{{
-                        submitting ? 'Uploading...' :
-                        'Upload' }}
+                    <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">
+                        {{ submitting ? 'Uploading...' : 'Upload' }}
                     </button>
                 </div>
             </div>
@@ -619,6 +617,10 @@
     this.updatePreview();
   }
 
+  function tagSorter(a, b) {
+    return a[0] > b[0] ? 1 : -1;
+  }
+
   export default {
     components: {
       'image-source': source,
@@ -816,9 +818,10 @@
         const convertResponse = function (respData) {
           var sortedRelated = [];
           for (var key in respData) {
-            if (!respData.hasOwnProperty(key)) {
+            if (!respData.hasOwnProperty(key))
               continue;
-            }
+            if (!respData[key].length)
+              continue;
             sortedRelated.push({title: 'Related: ' + key, tags: respData[key].sort(tagSorter)});
           }
           return sortedRelated;
