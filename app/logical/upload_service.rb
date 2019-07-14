@@ -53,7 +53,7 @@ class UploadService
       )
     end
 
-    if include_artist_commentary?
+    if params[:artist_commentary_desc].strip
       @post.create_artist_commentary(
         :original_title => params[:artist_commentary_title],
         :original_description => params[:artist_commentary_desc]
