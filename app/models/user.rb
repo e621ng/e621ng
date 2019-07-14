@@ -602,7 +602,7 @@ class User < ApplicationRecord
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
           :statement_timeout, :favorite_limit,
           :tag_query_limit, :can_comment_vote?, :can_remove_from_pools?,
-          :is_comment_limited?, :can_comment?, :can_upload?, :max_saved_searches,
+          :can_upload?, :max_saved_searches,
         ]
       end
 
@@ -797,8 +797,9 @@ class User < ApplicationRecord
                     {:len => bitprefs_length, :bits => bitprefs_exclude})
       end
 
+      # TODO: Fix this as soon as possible.
       if params[:current_user_first].to_s.truthy? && !CurrentUser.is_anonymous?
-        q = q.order("id = #{CurrentUser.user.id.to_i} desc")
+        q = q.order(Arel.sql("users.id = #{CurrentUser.user.id.to_i} desc"))
       end
 
       case params[:order]
