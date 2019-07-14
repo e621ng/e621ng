@@ -19,7 +19,7 @@ class Tag < ApplicationRecord
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
-    -upvote -downvote
+    -upvote -downvote description -description
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -749,6 +749,12 @@ class Tag < ApplicationRecord
 
           when "-filetype"
             q[:filetype_neg] = g2.downcase
+
+          when "description"
+            q[:description] = g2
+
+          when "-description"
+            q[:description_neg] = g2
 
           when "pixiv_id", "pixiv"
             if g2.downcase == "any" || g2.downcase == "none"

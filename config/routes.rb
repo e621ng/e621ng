@@ -240,10 +240,6 @@ Rails.application.routes.draw do
   resources :posts, :only => [:index, :show, :update] do
     resources :events, :only => [:index], :controller => "post_events"
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
-    resource :artist_commentary, :only => [:index, :show] do
-      collection {put :create_or_update}
-      member {put :revert}
-    end
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
     collection do
       get :random
@@ -282,7 +278,6 @@ Rails.application.routes.draw do
       put :revert
     end
   end
-  resources :artist_commentary_versions, :only => [:index]
   resource :related_tag, :only => [:show, :update]
   get "related_tag/bulk" => "related_tags#bulk"
   get "reports/uploads" => "reports#uploads"

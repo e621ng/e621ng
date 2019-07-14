@@ -45,7 +45,7 @@ class PostsController < ApplicationController
   def update
     @post = Post.find(params[:id])
 
-    can_edit = CurrentUser.can_edit_with_reason
+    can_edit = CurrentUser.can_post_edit_with_reason
     if can_edit != true
       access_denied "Updater #{User.throttle_reason(can_edit)}"
       return
@@ -130,6 +130,7 @@ private
       tag_string old_tag_string
       parent_id old_parent_id
       source old_source
+      description old_description
       rating old_rating
       has_embedded_notes
     ]

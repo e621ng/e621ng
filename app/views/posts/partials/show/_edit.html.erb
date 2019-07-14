@@ -13,6 +13,30 @@
   <%= f.hidden_field :old_source, :value => post.source %>
   <%= f.hidden_field :old_rating, :value => post.rating %>
 
+  <div class="input" id="tags-container">
+    <div class="header">
+      <%= f.label :tag_string, "Tags" %>
+
+      <span class="options">
+        <i id="face" class="fas"></i>
+        <span class="count"></span>
+        <a href="javascript:void(0)"><i id="open-edit-dialog" class="fas fa-arrows-alt" title="detach" data-shortcut="shift+e"></i></a>
+      </span>
+    </div>
+
+    <div>
+      <%= f.text_area :tag_string, :size => "60x5", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => post.presenter.split_tag_list_text + " " %>
+    </div>
+    <%= render "related_tags/buttons" %>
+
+    <div>
+      <%= f.label :locked_tags, "Locked Tags" %>
+      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
+    </div>
+  </div>
+
+  <%= render "related_tags/container" %>
+
   <div class="input">
     <% if post.is_rating_locked? %>
       This post is rating locked.
@@ -31,6 +55,25 @@
       </fieldset>
     <% end %>
   </div>
+
+  <div class="input">
+    <%= f.label :parent_id, "Parent" %>
+    <%= f.text_field :parent_id, :size => 5 %>
+  </div>
+
+  <div class="input">
+    <%= f.label :source, "Sources" %>
+    <%= f.text_area :source, size: '60x5', spellcheck: false %>
+  </div>
+
+  <div class="input">
+    <%= f.label :description, "Description" %>
+    <%= f.text_area :description, size: '60x5', spellcheck: true %>
+  </div>
+
+  <% if Danbooru.config.iqdbs_server %>
+    <div class="input" id="iqdb-similar" style="display: none;"></div>
+  <% end %>
 
   <% unless post.is_note_locked? %>
     <div class="input">
@@ -71,46 +114,6 @@
   <% end %>
 
   <div class="input">
-    <%= f.label :parent_id, "Parent" %>
-    <%= f.text_field :parent_id, :size => 5 %>
-  </div>
-
-  <div class="input">
-    <%= f.label :source, "Sources" %>
-    <%= f.text_area :source, size: '60x5', spellcheck: false %>
-  </div>
-
-  <% if Danbooru.config.iqdbs_server %>
-    <div class="input" id="iqdb-similar" style="display: none;"></div>
-  <% end %>
-
-
-
-  <div class="input" id="tags-container">
-    <div class="header">
-      <%= f.label :tag_string, "Tags" %>
-
-      <span class="options">
-        <i id="face" class="fas"></i>
-        <span class="count"></span>
-        <a href="javascript:void(0)"><i id="open-edit-dialog" class="fas fa-arrows-alt" title="detach" data-shortcut="shift+e"></i></a>
-      </span>
-    </div>
-
-    <div>
-      <%= f.text_area :tag_string, :size => "60x5", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => post.presenter.split_tag_list_text + " " %>
-    </div>
-    <%= render "related_tags/buttons" %>
-
-    <div>
-      <%= f.label :locked_tags, "Locked Tags" %>
-      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
-    </div>
-  </div>
-
-  <div class="input">
     <%= submit_tag "Submit", :class => "ui-button ui-widget ui-corner-all" %>
   </div>
-
-  <%= render "related_tags/container" %>
 <% end %>

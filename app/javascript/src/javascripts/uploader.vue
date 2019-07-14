@@ -193,7 +193,7 @@
                         <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a>
                         <a href="#" @click.prevent="findRelated('char')">Characters</a> |
                         <a href="#" @click.prevent="findRelated('species')">Species</a> |
-                        <a href="#" @click.prevent="findRelated('meta')">Metatags</a> | 
+                        <a href="#" @click.prevent="findRelated('meta')">Metatags</a> |
                         <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
                     </div>
                 </div>
@@ -736,7 +736,7 @@
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
         data.append('upload[source]', this.sources.join('\n'));
-        // data.append('upload[description]', this.description);
+        data.append('upload[description]', this.description);
         data.append('upload[parent_id]', this.parentID);
         jQuery.ajax('/uploads.json', {
           contentType: false,

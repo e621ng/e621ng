@@ -67,7 +67,8 @@ class PostArchive < ApplicationRecord
                     updater_id: CurrentUser.id,
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
-                    locked_tags: post.locked_tags
+                    locked_tags: post.locked_tags,
+                    description: post.description
                 })
   end
 
@@ -97,6 +98,7 @@ class PostArchive < ApplicationRecord
     self.rating_changed = prev.nil? || rating != prev.try(:rating)
     self.parent_changed = prev.nil? || parent_id != prev.try(:parent_id)
     self.source_changed = prev.nil? || source != prev.try(:source)
+    self.description_changed = prev.nil? || description != prev.try(:description)
   end
 
   def tag_array

@@ -24,10 +24,9 @@
         <section id="post-history">
           <h1>History</h1>
           <ul>
-            <li><%= fast_link_to "Tags", post_versions_path(:search => {:post_id => @post.id}) %></li>
+            <li><%= fast_link_to "Tags/Desc", post_versions_path(:search => {:post_id => @post.id}) %></li>
             <li><%= fast_link_to "Notes", note_versions_path(:search => {:post_id => @post.id}) %></li>
             <li><%= fast_link_to "Moderation", post_events_path(@post.id) %></li>
-            <li><%= fast_link_to "Commentary", artist_commentary_versions_path(:search => {:post_id => @post.id}) %></li>
             <li><%= fast_link_to "Replacements", post_replacements_path(:search => {:post_id => @post.id}) %></li>
           </ul>
         </section>
@@ -85,9 +84,14 @@
         <% end %>
       </section>
 
-      <% if @post.artist_commentary && @post.artist_commentary.any_field_present? %>
+      <% if @post.description.present? %>
         <div id="artist-commentary">
-          <%= render "artist_commentaries/show", :artist_commentary => @post.artist_commentary %>
+          <h3>Description</h3>
+          <section id="original-artist-commentary">
+            <div class="prose">
+              <%= format_text(@post.description, disable_mentions: true, max_thumbs: 0) %>
+            </div>
+          </section>
         </div>
       <% end %>
 
@@ -139,10 +143,6 @@
   <% if CurrentUser.is_member? %>
     <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
       <%= render "pool_elements/new" %>
-    </div>
-
-    <div id="add-commentary-dialog" title="Add artist commentary" style="display: none;">
-      <%= render "artist_commentaries/form", :post => @post %>
     </div>
   <% end %>
 </div>

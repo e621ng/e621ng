@@ -1,15 +1,16 @@
 class ArtistCommentary < ApplicationRecord
   class RevertError < Exception ; end
 
-  attr_accessor :remove_commentary_tag, :remove_commentary_request_tag, :remove_commentary_check_tag, :remove_partial_commentary_tag
-  attr_accessor :add_commentary_tag, :add_commentary_request_tag, :add_commentary_check_tag, :add_partial_commentary_tag
   before_validation :trim_whitespace
   validates_uniqueness_of :post_id
+  validates_length_of :original_title, maximum: 150
+  validates_length_of :translated_title, maximum: 150
+  validates_length_of :original_description, maximum: 50000
+  validates_length_of :translated_description, maximum: 50000
   belongs_to :post, required: true
   has_many :versions, -> {order("artist_commentary_versions.id ASC")}, :class_name => "ArtistCommentaryVersion", :dependent => :destroy, :foreign_key => :post_id, :primary_key => :post_id
   has_one :previous_version, -> {order(id: :desc)}, :class_name => "ArtistCommentaryVersion", :foreign_key => :post_id, :primary_key => :post_id
   after_save :create_version
-  after_commit :tag_post
 
   module SearchMethods
     def text_matches(query)
@@ -65,10 +66,10 @@ class ArtistCommentary < ApplicationRecord
   end
 
   def trim_whitespace
-    self.original_title = original_title.gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
-    self.translated_title = translated_title.gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
-    self.original_description = original_description.gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
-    self.translated_description = translated_description.gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
+    self.original_title = (original_title || '').gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
+    self.translated_title = (translated_title || '').gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
+    self.original_description = (original_description || '').gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
+    self.translated_description = (translated_description || '').gsub(/\A[[:space:]]+|[[:space:]]+\z/, "")
   end
 
   def original_present?
@@ -81,22 +82,6 @@ class ArtistCommentary < ApplicationRecord
 
   def any_field_present?
     original_present? || translated_present?
-  end
-
-  def tag_post
-    post.remove_tag("commentary") if remove_commentary_tag.to_s.truthy?
-    post.add_tag("commentary") if add_commentary_tag.to_s.truthy?
-
-    post.remove_tag("commentary_request") if remove_commentary_request_tag.to_s.truthy?
-    post.add_tag("commentary_request") if add_commentary_request_tag.to_s.truthy?
-
-    post.remove_tag("check_commentary") if remove_commentary_check_tag.to_s.truthy?
-    post.add_tag("check_commentary") if add_commentary_check_tag.to_s.truthy?
-
-    post.remove_tag("partial_commentary") if remove_partial_commentary_tag.to_s.truthy?
-    post.add_tag("partial_commentary") if add_partial_commentary_tag.to_s.truthy?
-
-    post.save if post.tag_string_changed?
   end
 
   module VersionMethods

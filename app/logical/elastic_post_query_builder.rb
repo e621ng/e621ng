@@ -172,6 +172,13 @@ class ElasticPostQueryBuilder
       add_range_relation(q[column], column, must)
     end
 
+    if q[:description]
+      must.push({match: {description: q[:description]}})
+    end
+    if q[:description_neg]
+      must_not.push({match: {description: q[:description_neg]}})
+    end
+
     if q[:md5]
       must.push(should(*(q[:md5].map {|m| {term: {md5: m}}})))
     end
