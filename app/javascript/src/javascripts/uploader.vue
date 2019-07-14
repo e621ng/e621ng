@@ -736,7 +736,7 @@
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
         data.append('upload[source]', this.sources.join('\n'));
-        data.append('upload[artist_commentary_desc]', this.description);
+        data.append('upload[description]', this.description);
         data.append('upload[parent_id]', this.parentID);
         jQuery.ajax('/uploads.json', {
           contentType: false,

@@ -2,7 +2,7 @@
 
 module PostIndex
   def self.included(base)
-    base.settings index: { number_of_shards: 5, number_of_replicas: 1 } do
+    base.settings index: { number_of_shards: 10, number_of_replicas: 1 } do
       mappings dynamic: false, _all: { enabled: false } do
         indexes :created_at,        type: 'date'
         indexes :updated_at,        type: 'date'
@@ -44,6 +44,7 @@ module PostIndex
         indexes :rating,        type: 'keyword'
         indexes :file_ext,      type: 'keyword'
         indexes :source,        type: 'keyword'
+        indexes :description,   type: 'text'
 
         indexes :rating_locked,   type: 'boolean'
         indexes :note_locked,     type: 'boolean'
@@ -193,11 +194,12 @@ module PostIndex
       mpixels:      (image_width.to_f * image_height / 1_000_000).round(2),
       aspect_ratio: (image_width.to_f / [image_height, 1].max).round(2),
 
-      tags:     tag_string.split(" "),
-      md5:      md5,
-      rating:   rating,
-      file_ext: file_ext,
-      source:   source_array,
+      tags:        tag_string.split(" "),
+      md5:         md5,
+      rating:      rating,
+      file_ext:    file_ext,
+      source:      source_array,
+      description: description,
 
       rating_locked:  is_rating_locked,
       note_locked:    is_note_locked,

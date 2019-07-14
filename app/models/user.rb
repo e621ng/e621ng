@@ -612,8 +612,7 @@ class User < ApplicationRecord
     # extra attributes returned for /users/:id.json but not for /users.json.
     def full_attributes
       [
-        :wiki_page_version_count, :artist_version_count,
-        :artist_commentary_version_count, :pool_version_count,
+        :wiki_page_version_count, :artist_version_count, :pool_version_count,
         :forum_post_count, :comment_count,
         :appeal_count, :flag_count, :positive_feedback_count,
         :neutral_feedback_count, :negative_feedback_count, :upload_limit
@@ -653,10 +652,6 @@ class User < ApplicationRecord
 
     def artist_version_count
       user_status.artist_edit_count
-    end
-
-    def artist_commentary_version_count
-      ArtistCommentaryVersion.for_user(id).count
     end
 
     def pool_version_count

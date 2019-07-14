@@ -37,10 +37,6 @@ class UploadService
     return @post.warnings.full_messages
   end
 
-  def include_artist_commentary?
-    params[:include_artist_commentary].to_s.truthy?
-  end
-
   def create_post_from_upload(upload)
     @post = convert_to_post(upload)
     @post.save!
@@ -53,13 +49,6 @@ class UploadService
       )
     end
 
-    if params[:artist_commentary_desc].strip
-      @post.create_artist_commentary(
-        :original_title => params[:artist_commentary_title],
-        :original_description => params[:artist_commentary_desc]
-      )
-    end
-
     upload.update(status: "completed", post_id: @post.id)
 
     @post
@@ -69,6 +58,7 @@ class UploadService
     Post.new.tap do |p|
       p.has_cropped = true
       p.tag_string = upload.tag_string
+      p.description = upload.description.strip
       p.md5 = upload.md5
       p.file_ext = upload.file_ext
       p.image_width = upload.image_width

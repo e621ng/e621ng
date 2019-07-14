@@ -130,6 +130,7 @@ private
       tag_string old_tag_string
       parent_id old_parent_id
       source old_source
+      description old_description
       rating old_rating
       has_embedded_notes
     ]

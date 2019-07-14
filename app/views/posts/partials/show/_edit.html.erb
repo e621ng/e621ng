@@ -66,6 +66,11 @@
     <%= f.text_area :source, size: '60x5', spellcheck: false %>
   </div>
 
+  <div class="input">
+    <%= f.label :description, "Description" %>
+    <%= f.text_area :description, size: '60x5', spellcheck: true %>
+  </div>
+
   <% if Danbooru.config.iqdbs_server %>
     <div class="input" id="iqdb-similar" style="display: none;"></div>
   <% end %>
