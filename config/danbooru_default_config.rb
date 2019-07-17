@@ -594,6 +594,10 @@ module Danbooru
       end
     end
 
+    def user_needs_login_for_post?(post)
+      false
+    end
+
     def select_posts_visible_to_user(user, posts)
       posts.select {|x| can_user_see_post?(user, x)}
     end

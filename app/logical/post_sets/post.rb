@@ -86,15 +86,19 @@ module PostSets
     end
 
     def hidden_posts
-      posts.select { |p| !p.visible? }
+      @hidden_posts ||= posts.select { |p| !p.visible? }
+    end
+
+    def login_blocked_posts
+      @login_blocked ||= posts.select { |p| p.loginblocked? }
     end
 
     def deleted_posts
-      posts.select { |p| p.deleteblocked? }
+      @deleted_posts ||= posts.select { |p| p.deleteblocked? }
     end
 
     def safe_posts
-      posts.select { |p| p.safeblocked? && !p.deleteblocked? }
+      @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
     end
 
     def per_page
