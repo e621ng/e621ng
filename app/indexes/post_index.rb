@@ -2,7 +2,7 @@
 
 module PostIndex
   def self.included(base)
-    base.settings index: { number_of_shards: 10, number_of_replicas: 1 } do
+    base.settings index: { number_of_shards: 5, number_of_replicas: 1 } do
       mappings dynamic: false, _all: { enabled: false } do
         indexes :created_at,        type: 'date'
         indexes :updated_at,        type: 'date'
