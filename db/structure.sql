@@ -850,6 +850,44 @@ ALTER SEQUENCE public.email_blacklists_id_seq OWNED BY public.email_blacklists.i
 
 
 --
+-- Name: exception_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.exception_logs (
+    id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    class_name character varying NOT NULL,
+    ip_addr inet NOT NULL,
+    version character varying NOT NULL,
+    extra_params text,
+    message text NOT NULL,
+    trace text NOT NULL,
+    code uuid NOT NULL,
+    user_id integer
+);
+
+
+--
+-- Name: exception_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.exception_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: exception_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
+
+
+--
 -- Name: favorite_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2839,6 +2877,13 @@ ALTER TABLE ONLY public.email_blacklists ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: exception_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('public.exception_logs_id_seq'::regclass);
+
+
+--
 -- Name: favorite_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3333,6 +3378,14 @@ ALTER TABLE ONLY public.edit_histories
 
 ALTER TABLE ONLY public.email_blacklists
     ADD CONSTRAINT email_blacklists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: exception_logs exception_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exception_logs
+    ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -5126,6 +5179,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190604125828'),
 ('20190613025850'),
 ('20190623070654'),
-('20190714122705');
+('20190714122705'),
+('20190717205018');
 
 

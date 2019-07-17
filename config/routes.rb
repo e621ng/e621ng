@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     resources :users, :only => [:edit, :update]
     resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
+    resources :exceptions, only: [:index, :show]
   end
   resources :edit_histories
   namespace :moderator do

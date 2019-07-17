@@ -1,0 +1,30 @@
+<table class="striped">
+  <thead>
+  <tr>
+    <th style="width: 200px">Created At</th>
+    <th>Code</th>
+    <th style="width: 100px">Version</th>
+    <th>Class Name</th>
+    <th>Message</th>
+    <th>Stacktrace</th>
+  </tr>
+  </thead>
+  <tbody>
+  <%- @exception_logs.each do |exception_log| %>
+    <tr style="cursor: click;">
+      <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
+      <td><%= exception_log.code %></td>
+      <td><%= exception_log.version %></td>
+      <td><%= exception_log.class_name %></td>
+      <td><%= exception_log.message %></td>
+      <td>
+        <%= link_to "View", admin_exception_path(exception_log) %>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<div id="paginator">
+  <%= numbered_paginator(@exception_logs) %>
+</div>
