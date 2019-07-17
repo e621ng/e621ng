@@ -1,0 +1,15 @@
+<div>
+  <div class="box-section">
+    <h3><%= @exception_log.class_name %></h3>
+    <p><%= @exception_log.message %></p>
+    <p>
+      Error Code: <%= @exception_log.code %><br/>
+      Created At: <%= @exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %><br/>
+      Version: <%= @exception_log.version %>
+    </p>
+  </div>
+  <strong>Extra Params:</strong>
+  <pre class="box-section"><%= JSON.pretty_generate(@exception_log.extra_params) %></pre>
+  <strong>Stacktrace:</strong>
+  <pre class="box-section"><%= @exception_log.trace %></pre>
+</div>

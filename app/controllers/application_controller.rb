@@ -88,6 +88,14 @@ class ApplicationController < ActionController::Base
       puts "---"
     end
 
+    ExceptionLog.add(exception, CurrentUser.ip_addr, {
+        host: Socket.gethostname,
+        params: params,
+        user_id: CurrentUser.id,
+        referrer: request.referrer,
+        user_agent: request.user_agent
+    })
+
     if Rails.env.development?
       Rails.logger.error("<<< \n #{exception.class} exception thrown: #{exception.message}\n#{exception.backtrace.join("\n")}\n<<<")
     end
