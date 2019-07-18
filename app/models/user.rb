@@ -410,8 +410,8 @@ class User < ApplicationRecord
       define_method("#{name}_limit".to_sym, limiter)
       memoize "#{name}_limit".to_sym
       define_method("can_#{name}_with_reason".to_sym) do
-        return :REJ_NEWBIE if newbie_duration && created_at > newbie_duration
         return send(checker) if checker && send(checker)
+        return :REJ_NEWBIE if newbie_duration && created_at > newbie_duration
         return :REJ_LIMITED if send("#{name}_limit") <= 0
         true
       end
