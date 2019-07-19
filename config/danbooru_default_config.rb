@@ -179,6 +179,10 @@ module Danbooru
       40
     end
 
+    def disable_throttles
+      false
+    end
+
     # Members cannot post more than X comments in an hour.
     def member_comment_limit
       15
