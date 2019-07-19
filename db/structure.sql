@@ -2414,7 +2414,8 @@ CREATE TABLE public.uploads (
     artist_commentary_title text,
     include_artist_commentary boolean,
     context text,
-    referer_url text
+    referer_url text,
+    description text DEFAULT ''::text NOT NULL
 );
 
 
@@ -5180,6 +5181,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190613025850'),
 ('20190623070654'),
 ('20190714122705'),
-('20190717205018');
+('20190717205018'),
+('20190718201354');
 
 
