@@ -253,7 +253,7 @@ class Tag < ApplicationRecord
 
   module NameMethods
     def normalize_name(name)
-      name.to_s.mb_chars.downcase.strip.tr(" ", "_").to_s
+      name.to_s.unicode_normalize(:nfc).mb_chars.downcase.strip.tr(" ", "_").to_s
     end
 
     def create_for_list(names)
@@ -302,7 +302,7 @@ class Tag < ApplicationRecord
 
   module ParseMethods
     def normalize(query)
-      query.to_s.gsub(/\u3000/, " ").strip
+      query.to_s.unicode_normalize(:nfc).gsub(/\u3000/, " ").strip
     end
 
     def normalize_query(query, sort: true)
