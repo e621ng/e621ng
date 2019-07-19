@@ -585,6 +585,15 @@ class Artist < ApplicationRecord
     user.is_janitor? || (!is_banned? && is_active?)
   end
 
+  def user_not_limited
+    allowed = CurrentUser.can_artist_edit_with_reason
+    if allowed != true
+      errors.add(:base, "User #{User.throttle_reason(allowed)}.")
+      false
+    end
+    true
+  end
+
   def visible?
     !is_banned? || CurrentUser.is_janitor?
   end
