@@ -1933,6 +1933,7 @@ class Post < ApplicationRecord
   include PixivMethods
   include IqdbMethods
   include ValidationMethods
+  include RatingMethods
   include Danbooru::HasBitFlags
   include Indexable
   include PostIndex
