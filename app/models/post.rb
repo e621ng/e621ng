@@ -740,7 +740,6 @@ class Post < ApplicationRecord
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = remove_invalid_tags(normalized_tags)
-      normalized_tags = Tag.convert_cosplay_tags(normalized_tags)
       normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
@@ -770,11 +769,8 @@ class Post < ApplicationRecord
     end
 
     def remove_invalid_tags(tags)
-      invalid_tags = Tag.invalid_cosplay_tags(tags)
-      if invalid_tags.present?
-        self.warnings[:base] << "The root tag must be a character tag: #{invalid_tags.map {|tag| "[b]#{tag}[/b]"}.join(", ")}"
-      end
-      tags - invalid_tags
+      # TODO: Should we keep this?
+      tags
     end
 
     def remove_negated_tags(tags)
@@ -787,21 +783,14 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags if !Danbooru.config.enable_dimension_autotagging
 
-      tags -= %w(incredibly_absurdres absurdres highres lowres huge_filesize flash webm mp4)
+      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res animated huge_filesize flash webm mp4 wide_image long_image ugoira)
 
       if has_dimensions?
-        if image_width >= 10_000 || image_height >= 10_000
-          tags << "incredibly_absurdres"
-        end
-        if image_width >= 3200 || image_height >= 2400
-          tags << "absurdres"
-        end
-        if image_width >= 1600 || image_height >= 1200
-          tags << "highres"
-        end
-        if image_width <= 500 && image_height <= 500
-          tags << "lowres"
-        end
+        tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
+        tags << "absurd_res" if image_width >= 3200 || image_height >= 2400
+        tags << "hi_res" if image_width >= 1600 || image_height >= 1200
+        tags << "lowres" if image_width <= 500 && image_height <= 500
+        tags << "thumbnail" if image_width <= 250 && image_height <= 250
 
         if image_width >= 1024 && image_width.to_f / image_height >= 4
           tags << "wide_image"
@@ -812,7 +801,7 @@ class Post < ApplicationRecord
         end
       end
 
-      if file_size >= 10.megabytes
+      if file_size >= 30.megabytes
         tags << "huge_filesize"
       end
 
