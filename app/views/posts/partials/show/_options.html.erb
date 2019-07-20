@@ -44,6 +44,10 @@
           <li><%= link_to "Hide from queue", moderator_post_disapprovals_path(post_disapproval: { post_id: post.id, reason: "disinterest" }), remote: true, method: :post, id: "disapprove" %></li>
         <% end %>
 
+        <% if !post.is_pending? && !post.is_deleted? %>
+          <li><%= link_to "Unapprove", moderator_post_approval_path(post_id: post.id), remote: true, method: :delete, id: "unapprove", "data-confirm": "Are you sure you want to unapprove this post?" %></li>
+        <% end %>
+
         <% if CurrentUser.is_admin? %>
           <li><%= link_to "Expunge", expunge_moderator_post_post_path(:post_id => post.id), :remote => true, :method => :post, :id => "expunge", :data => {:confirm => "This will permanently delete this post (meaning the file will be deleted). Are you sure you want to delete this post?"} %></li>
         <% end %>

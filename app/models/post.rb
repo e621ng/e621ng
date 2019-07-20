@@ -300,7 +300,7 @@ class Post < ApplicationRecord
 
   module ApprovalMethods
     def is_approvable?(user = CurrentUser.user)
-      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?) && uploader != user
+      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?)
     end
 
     def flag!(reason, options = {})
@@ -327,11 +327,16 @@ class Post < ApplicationRecord
       approver == user || approvals.where(user: user).exists?
     end
 
+    def unapprove!(unapprover = CurrentUser.user)
+      update(approver: nil, is_pending: true)
+    end
+
 
     def approve!(approver = CurrentUser.user)
-      approvals.create(user: approver)
-      post.flags.each(&:resolve!)
-      post.update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+      approv = approvals.create(user: approver)
+      flags.each(&:resolve!)
+      update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+      approv
     end
 
     def disapproved_by?(user)
