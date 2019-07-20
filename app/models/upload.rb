@@ -66,7 +66,7 @@ class Upload < ApplicationRecord
   end
 
 
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng, :original_post_id
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 

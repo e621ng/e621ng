@@ -100,7 +100,7 @@ class UploadService
         upload.update(status: "processing")
 
         upload.file = Utils.get_file_for_upload(upload, file: upload.file)
-        Utils.process_file(upload, upload.file)
+        Utils.process_file(upload, upload.file, original_post_id: post.id)
 
         upload.save!
       rescue Exception => x
