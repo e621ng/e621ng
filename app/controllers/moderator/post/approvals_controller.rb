@@ -11,6 +11,11 @@ module Moderator
         @approval = post.approve!
         respond_with(:moderator, @approval)
       end
+
+      def destroy
+        post = ::Post.find(params[:post_id])
+        post.unapprove!
+      end
     end
   end
 end

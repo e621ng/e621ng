@@ -28,7 +28,7 @@ Rails.application.routes.draw do
           get :random
         end
       end
-      resource :approval, :only => [:create]
+      resource :approval, :only => [:create, :destroy]
       resources :disapprovals, :only => [:create, :index]
       resources :posts, :only => [:delete, :undelete, :expunge, :confirm_delete] do
         member do
