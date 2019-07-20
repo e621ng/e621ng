@@ -789,7 +789,7 @@ class Post < ApplicationRecord
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
         tags << "absurd_res" if image_width >= 3200 || image_height >= 2400
         tags << "hi_res" if image_width >= 1600 || image_height >= 1200
-        tags << "lowres" if image_width <= 500 && image_height <= 500
+        tags << "low_res" if image_width <= 500 && image_height <= 500
         tags << "thumbnail" if image_width <= 250 && image_height <= 250
 
         if image_width >= 1024 && image_width.to_f / image_height >= 4
