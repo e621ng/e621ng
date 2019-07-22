@@ -756,10 +756,10 @@
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;
               } else {
-                self.error = 'Error: ' + data2.messages.join('; ');
+                self.error = 'Error: ' + data2.message;
               }
             } catch (e) {
-              self.error = 'Error: Unknown error! ' + data2;
+              self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
             }
           }
         });

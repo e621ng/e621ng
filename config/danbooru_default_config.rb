@@ -286,7 +286,8 @@ module Danbooru
           'png' => 100.megabytes,
           'swf' => 100.megabytes,
           'webm' => 100.megabytes,
-          'mp4' => 100.megabytes
+          'mp4' => 100.megabytes,
+          'zip' => 100.megabytes
       }
     end
 
