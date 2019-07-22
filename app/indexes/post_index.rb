@@ -34,6 +34,7 @@ module PostIndex
         indexes :downvotes,     type: 'integer'
         indexes :children,      type: 'integer'
         indexes :uploader,      type: 'integer'
+        indexes :approver,      type: 'integer'
         indexes :width,         type: 'integer'
         indexes :height,        type: 'integer'
         indexes :mpixels,       type: 'float'
@@ -189,6 +190,7 @@ module PostIndex
       downvotes:    options[:downvotes] || PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
       children:     options[:children]  || Post.where(parent_id: id).pluck(:id),
       uploader:     uploader_id,
+      approver:     approver_id,
       width:        image_width,
       height:       image_height,
       mpixels:      (image_width.to_f * image_height / 1_000_000).round(2),

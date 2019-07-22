@@ -283,24 +283,24 @@ class ElasticPostQueryBuilder
     end
 
     if q[:uploader_id_neg]
-      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader_id: x.to_i}}})
+      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader: x.to_i}}})
     end
 
     if q[:uploader_id]
-      must.push({term: {uploader_id: q[:uploader_id].to_i}})
+      must.push({term: {uploader: q[:uploader_id].to_i}})
     end
 
     if q[:approver_id_neg]
-      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver_id: x.to_i}}})
+      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver: x.to_i}}})
     end
 
     if q[:approver_id]
       if q[:approver_id] == "any"
-        must.push({exists: {field: :approver_id}})
+        must.push({exists: {field: :approver}})
       elsif q[:approver_id] == "none"
-        must_not.push({exists: {field: :approver_id}})
+        must_not.push({exists: {field: :approver}})
       else
-        must.push({term: {approver_id: q[:approver_id].to_i}})
+        must.push({term: {approver: q[:approver_id].to_i}})
       end
     end
 
