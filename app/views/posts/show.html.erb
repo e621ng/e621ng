@@ -33,6 +33,20 @@
 
       <% end %>
 
+      <% if @post.visible? && @post.is_image? %>
+        <section id="post-related-images">
+          <h1>Related</h1>
+          <ul>
+            <li><a href="https://www.google.com/searchbyimage?image_url=<%= @post.preview_file_url %>">Reverse Google Search</a></li>
+            <li><a href="https://saucenao.com/search.php?url=<%= @post.preview_file_url %>">Reverse SauceNAO Search</a></li>
+            <li><a href="http://iqdb.harry.lu/?url=<%= @post.preview_file_url %>">Reverse harry.lu Search</a></li>
+            <li><a href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny MD5 Search</a></li>
+            <li><a href="https://derpibooru.org/search/reverse?url=<%= @post.preview_file_url %>">Reverse Derpibooru Search</a></li>
+            <li><a href="https://kheina.com/?url=<%= @post.preview_file_url %>">Reverse Kheina Search</a></li>
+          </ul>
+        </section>
+      <% end %>
+
     </aside>
 
     <section id="content">
