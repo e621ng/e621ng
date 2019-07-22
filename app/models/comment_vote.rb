@@ -53,7 +53,7 @@ class CommentVote < ApplicationRecord
   end
 
   module SearchMethods
-    def self.search(params)
+    def search(params)
       q = super
 
       if params[:comment_id].present?
@@ -63,6 +63,10 @@ class CommentVote < ApplicationRecord
       if params[:user_name].present?
         user_id = User.name_to_id(params[:user_name])
         q = q.where('user_id = ?', user_id) if user_id
+      end
+
+      if params[:user_id].present?
+        q = q.where('user_id = ?', params[:user_id].to_i)
       end
 
       q.order(id: :desc)
