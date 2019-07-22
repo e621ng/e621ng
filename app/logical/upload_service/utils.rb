@@ -214,7 +214,6 @@ class UploadService
       return "" unless Danbooru.config.enable_dimension_autotagging
 
       tags = []
-      tags << "video_with_sound" if is_video_with_audio?(upload, file)
       tags << "animated_gif" if is_animated_gif?(upload, file)
       tags << "animated_png" if is_animated_png?(upload, file)
       tags.join(" ")

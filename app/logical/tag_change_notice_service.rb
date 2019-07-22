@@ -6,13 +6,14 @@ module TagChangeNoticeService
   end
 
   def get_forum_topic_id(tag)
-    redis_client.get("tcn:#{tag}")
+    false #redis_client.get("tcn:#{tag}")
   end
 
   def update_cache(affected_tags, forum_topic_id)
-    rc = redis_client
-    affected_tags.each do |tag|
-      rc.setex("tcn:#{tag}", 1.week, forum_topic_id)
-    end
+    # TODO: Revisit this idea and making it work with some kind of cache invalidation.
+    # rc = redis_client
+    # affected_tags.each do |tag|
+    #   rc.setex("tcn:#{tag}", 1.week, forum_topic_id)
+    # end
   end
 end
