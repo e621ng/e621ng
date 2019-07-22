@@ -123,7 +123,9 @@ class Ticket < ApplicationRecord
         q = q.where('status = ?', params[:status])
       end
 
-      q
+
+
+      q.apply_default_order(params)
     end
   end
 
