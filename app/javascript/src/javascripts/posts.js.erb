@@ -32,6 +32,9 @@ Post.initialize_all = function() {
     this.initialize_voting();
   }
 
+  if ($("#p-index-by-post"))
+    this.initialize_voting();
+
   if ($("#c-posts #a-show, #c-uploads #a-new").length) {
     this.initialize_edit_dialog();
   }
