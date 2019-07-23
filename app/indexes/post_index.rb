@@ -22,6 +22,7 @@ module PostIndex
         indexes :tag_count_copyright, type: 'integer'
         indexes :tag_count_meta,      type: 'integer'
         indexes :tag_count_species,   type: 'integer'
+        indexes :tag_count_invalid,   type: 'integer'
         indexes :comment_count,       type: 'integer'
 
         indexes :file_size,     type: 'integer'
@@ -178,6 +179,8 @@ module PostIndex
       tag_count_character: tag_count_character,
       tag_count_copyright: tag_count_copyright,
       tag_count_meta:      tag_count_meta,
+      tag_count_species:   tag_count_species,
+      tag_count_invalid:   tag_count_invalid,
       # tag_count_species:   tag_count_species,
       comment_count:       options[:comment_count] || Comment.where(post_id: id).count,
 
