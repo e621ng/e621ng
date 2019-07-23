@@ -40,7 +40,7 @@ class UserPresenter
   end
 
   def posts_for_saved_search_category(category)
-    Post.tag_match("search:#{category}").limit(10)
+    Post.tag_match("search:#{category}").limit(10).records
   end
 
   def upload_limit(template)
@@ -54,7 +54,7 @@ class UserPresenter
   end
 
   def uploads
-    Post.tag_match("user:#{user.name}").limit(6)
+    Post.tag_match("user:#{user.name}").limit(6).records
   end
 
   def has_uploads?
