@@ -32,7 +32,7 @@ Post.initialize_all = function() {
     this.initialize_voting();
   }
 
-  if ($("#p-index-by-post"))
+  if ($("#p-index-by-post").length)
     this.initialize_voting();
 
   if ($("#c-posts #a-show, #c-uploads #a-new").length) {
