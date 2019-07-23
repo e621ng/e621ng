@@ -7,7 +7,7 @@ module Maintenance
 
       def create
         ::User.where('email = ?', params[:email]).each do |user|
-          next if user.is_mod?
+          next if user.is_moderator?
           UserPasswordResetNonce.create(user_id: user.id)
         end
         redirect_to new_maintenance_user_password_reset_path, :notice => "If your email was on file, an email has been sent your way. It should arrive within the next few minutes. Make sure to check your spam folder."
