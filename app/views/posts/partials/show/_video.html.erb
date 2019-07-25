@@ -1,12 +1,5 @@
 <% if post.is_ugoira? %>
-
-	<%= content_tag(:video, nil, :id => "image", :width => post.image_width, :height => post.image_height, :loop => "true", :controls => "controls", :src => post.tagged_large_file_url) %>
-
-	<p><%= link_to "Save this video (right click and save)", post.tagged_large_file_url %></p>
-
+	<%= content_tag(:video, nil, :id => "image", class: post.display_class_for(CurrentUser.user), :"data-original-width" => post.image_width, :"data-original-height" => post.image_height, :loop => "true", :controls => "controls", :src => post.tagged_large_file_url) %>
 <% else %>
-	<%= content_tag(:video, nil, :id => "image", :width => post.image_width, :height => post.image_height, :loop => "true", :controls => "controls",  poster: post.large_file_url, :src => post.tagged_file_url) %>
-
-	<p><%= link_to "Save this video (right click and save)", post.tagged_file_url %></p>
-
+	<%= content_tag(:video, nil, :id => "image", class: post.display_class_for(CurrentUser.user), :"data-original-width" => post.image_width, :"data-original-height" => post.image_height, :loop => "true", :controls => "controls",  poster: post.large_file_url, :src => post.tagged_file_url) %>
 <% end %>
