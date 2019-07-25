@@ -8,7 +8,7 @@
   display: none;
 }
 
-@media screen and (max-width: 660px) {
+@media screen and (max-width: 800px) {
   #desktop-version-link {
     display: inline;
   }
@@ -73,7 +73,7 @@
 
     &.toggler-active {
       background-color: lighten($link_color, 25%);
-      color: #000;    
+      color: #000;
     }
   }
 
@@ -160,7 +160,7 @@
 
   article.post-preview {
     float: none;
-    margin: 0; 
+    margin: 0;
     text-align: center;
     vertical-align: middle;
     display: inline-block;
@@ -239,23 +239,23 @@
     line-height: 2em;
     display: none;
   }
-  
+
   header#top menu.main {
     background-color: lighten($link_color, 25%);
     padding: 5px 10px;
   }
-  
+
   h1 {
     display: block;
     font-size: 2em;
     margin: 1em 0 0 0;
   }
-  
+
   h2 {
     font-size: 0.825em;
     margin: 1em 0 0 0;
   }
-  
+
   header {
     text-align: center;
     line-height: 2em;
@@ -263,7 +263,7 @@
       display: inline; //Needed for menu button
     }
   }
-  
+
   div#page {
     margin: 0;
   }
@@ -281,7 +281,7 @@
   #post-sections {
     font-size: 1em;
   }
-  
+
   div article.post-preview {
     overflow: visible;
   }
