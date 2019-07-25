@@ -26,7 +26,7 @@
 <% if post.is_pending? || post.is_flagged? %>
   <div class="ui-corner-all ui-state-highlight notice notice-pending" id="pending-approval-notice">
     <% if post.is_pending? %>
-      This post is pending approval. 
+      This post is pending approval.
       (<%= link_to "learn more", wiki_pages_path(:title => "about:mod_queue") %>)
     <% else %>
       This post was flagged and is pending approval (<%= link_to "learn more", wiki_pages_path(:title => "about:mod_queue") %>)
