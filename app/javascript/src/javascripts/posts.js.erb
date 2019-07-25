@@ -53,39 +53,6 @@ Post.initialize_voting = function() {
   $(document).on("click.danbooru.post", ".post-vote-down-link", Post.vote_down);
 }
 
-Post.initialize_gestures = function() {
-  if (Utility.meta("disable-mobile-gestures") === "true") {
-    return;
-  }
-  var $body = $("body");
-  if ($body.data("hammer")) {
-    return;
-  }
-  if (!Utility.test_max_width(660)) {
-    return;
-  }
-  $("#image-container").css({overflow: "visible"});
-  var hasPrev = $("#a-show").length || $(".paginator a[rel~=prev]").length;
-  var hasNext = $("#a-index").length && $(".paginator a[rel~=next]").length;
-
-  var hammer = new Hammer($body[0], {touchAction: 'pan-y', recognizers: [[Hammer.Swipe, { threshold: 20, velocity: 0.4, direction: Hammer.DIRECTION_HORIZONTAL }]], inputClass: Hammer.TouchInput});
-  $body.data("hammer", hammer);
-
-  if (hasPrev) {
-    hammer.on("swiperight", function(e) {
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
-      $.timeout(200).done(function() {Post.swipe_prev(e)});
-    });
-  }
-
-  if (hasNext) {
-    hammer.on("swipeleft", function(e) {
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
-      $.timeout(200).done(function() {Post.swipe_next(e)});
-    });
-  }
-}
-
 Post.initialize_edit_dialog = function() {
   $("#open-edit-dialog").show().on("click.danbooru", function(e) {
     Post.open_edit_dialog();
@@ -179,14 +146,45 @@ Post.initialize_similar = function() {
   });
 }
 
-Post.swipe_prev = function(e) {
-  if ($("#a-show").length) {
-    window.history.back();
-  } if ($(".paginator a[rel~=prev]").length) {
-    location.href = $("a[rel~=prev]").attr("href");
+Post.has_next_target = function() {
+  return $(".paginator a[rel~=next]").length || $("#search-seq-nav a[rel~=next]").length || $("#pool-nav li.pool-selected-true a[rel~=next], #set-nav a.active[rel~=next]").length;
+}
+
+Post.has_prev_target = function() {
+  return $(".paginator a[rel~=prev]").length || $("#search-seq-nav a[rel~=prev]").length || $("#pool-nav li.pool-selected-true a[rel~=prev], #set-nav a.active[rel~=prev]").length
+}
+
+Post.initialize_gestures = function() {
+  if (Utility.meta("disable-mobile-gestures") === "true") {
+    return;
+  }
+  var $body = $("body");
+  if ($body.data("hammer")) {
+    return;
+  }
+//  if (!Utility.test_max_width(660)) {
+//    return;
+//  }
+  $("#image-container").css({overflow: "visible"});
+  var hasPrev = Post.has_prev_target();
+  var hasNext = Post.has_next_target();
+
+  var hammer = new Hammer($body[0], {touchAction: 'pan-y', recognizers: [[Hammer.Swipe, { threshold: 20, velocity: 0.4, direction: Hammer.DIRECTION_HORIZONTAL }]], inputClass: Hammer.TouchInput});
+  $body.data("hammer", hammer);
+
+  if (hasPrev) {
+    hammer.on("swiperight", function(e) {
+      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
+      $.timeout(200).done(function() {Post.nav_prev(e)});
+    });
   }
 
-  e.preventDefault();
+  if (hasNext) {
+    hammer.on("swipeleft", function(e) {
+      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
+      $.timeout(200).done(function() {Post.nav_next(e)});
+    });
+  }
 }
 
 Post.nav_prev = function(e) {
@@ -222,14 +220,6 @@ Post.nav_next = function(e) {
     if (href) {
       location.href = href;
     }
-  }
-
-  e.preventDefault();
-}
-
-Post.swipe_next = function(e) {
-  if ($(".paginator a[rel~=next ]").length) {
-    location.href = $(".paginator a[rel~=next]").attr("href");
   }
 
   e.preventDefault();
