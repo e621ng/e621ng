@@ -192,11 +192,6 @@ Blacklist.post_hide = function (post) {
 Blacklist.post_unhide = function (post) {
   var $post = $(post);
   $post.addClass("blacklisted").removeClass("blacklisted-active");
-
-  var $video = $post.find("video").get(0);
-  if ($video) {
-    $video.play();
-  }
 }
 
 Blacklist.initialize_all = function () {
