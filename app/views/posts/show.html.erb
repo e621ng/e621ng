@@ -50,13 +50,22 @@
     </aside>
 
     <section id="content">
-      <%= render "posts/partials/show/notices", :post => @post %>
+      <% if @post.presenter.has_nav_links?(self) %>
+        <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
+      <% end %>
 
       <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
         <div id="note-container"></div>
         <div id="note-preview"></div>
         <%= render "posts/partials/show/embedded", post: @post %>
       <% end -%>
+
+      <% if @post.visible? && @post.has_large? && !@post.is_ugoira? %>
+        <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
+          <span>Viewing sample resized to <%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
+          <span style="display: none;">Loading...</span>
+        </div>
+      <% end %>
 
       <section id="image-extra-controls" style="display: flex;">
         <% if CurrentUser.is_member? %>
@@ -79,6 +88,8 @@
           <a href="javascript:void(0)" style="cursor: pointer;" onclick="Danbooru.Post.resize_cycle_mode();">Change Size Mode(<span id="current-image-resize-mode"></span>)</a>
         </div>
       </section>
+
+      <%= render "posts/partials/show/notices", :post => @post %>
 
       <section id="mark-as-translated-section" style="display: none;">
         <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>
@@ -112,10 +123,6 @@
             </div>
           </section>
         </div>
-      <% end %>
-
-      <% if @post.presenter.has_nav_links?(self) %>
-        <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
       <% end %>
 
       <menu id="post-sections">

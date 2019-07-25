@@ -82,7 +82,7 @@ article.post-preview {
   &.post-status-has-parent img {
     border-color: $preview_has_parent_color;
   }
-  
+
   &.post-status-has-children.post-status-has-parent img {
     border-color: $preview_has_children_color $preview_has_parent_color $preview_has_parent_color $preview_has_children_color;
   }
@@ -153,7 +153,7 @@ body[data-user-can-approve-posts="true"] .post-preview {
 #has-parent-relationship-preview, #has-children-relationship-preview {
   overflow-x: auto;
   white-space: nowrap;
-  
+
   article.post-preview {
     width: auto;
     border: none;
@@ -451,7 +451,7 @@ div#c-posts {
       right: 5px;
       cursor: pointer;
     }
-    
+
     div.comments-for-post {
       width:100%
     }
