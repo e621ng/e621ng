@@ -6,7 +6,11 @@
 
     <% if CurrentUser.can_approve_posts? %>
       <div>
-        <!-- unflag options for flagged posts -->
+        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post) %> |
+        <%= link_to_function "Unflag", "Danbooru.Post.unflag(#{post.id}, 'none')" %> |
+        <%= link_to_function "Unflag+unapprove", "Danbooru.Post.unflag(#{post.id}, 'unapprove')" %> |
+        <%= link_to_function "Unflag+approve", "Danbooru.Post.unflag(#{post.id}, 'approve')" %> |
+        <%= link_to_function "Delete with given reason", "Danbooru.Post.delete_with_reason(#{post.id}, null)" %>
       </div>
     <% end %>
   </div>

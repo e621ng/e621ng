@@ -242,6 +242,7 @@ Rails.application.routes.draw do
     resources :events, :only => [:index], :controller => "post_events"
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
+    resource :flag, controller: 'post_flags', only: [:destroy]
     collection do
       get :random
     end
@@ -260,7 +261,7 @@ Rails.application.routes.draw do
     end
   end
   resources :post_appeals
-  resources :post_flags
+  resources :post_flags, except: [:destroy]
   resources :post_approvals, only: [:index]
   resources :post_versions, :only => [:index, :search] do
     member do

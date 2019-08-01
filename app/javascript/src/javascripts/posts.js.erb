@@ -584,6 +584,21 @@ Post.delete_with_reason = function(post_id, reason) {
   });
 }
 
+Post.unflag = function(post_id, approval) {
+  let modApproval = approval || 'none';
+  $.ajax({
+    type: "DELETE",
+    url: `/posts/${post_id}/flag.json`,
+    data: {approval: modApproval}
+  }).fail(function(data) {
+    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+    $(window).trigger('danbooru:error', "Error: " + message);
+  }).done(function(data) {
+    $(window).trigger("danbooru:notice", "Unflagged post");
+    location.reload();
+  });
+}
+
 Post.unapprove = function(post_id) {
   $.ajax({
     type: "DELETE",

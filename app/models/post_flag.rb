@@ -15,7 +15,7 @@ class PostFlag < ApplicationRecord
   validates_presence_of :reason
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
-  validates_uniqueness_of :creator_id, :scope => :post_id, :on => :create, :unless => :is_deletion, :message => "have already flagged this post"
+  validates_uniqueness_of :creator_id, :scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"
   before_save :update_post
 
   scope :by_users, -> { where.not(creator: User.system) }
@@ -138,12 +138,18 @@ class PostFlag < ApplicationRecord
     post.update_column(:is_flagged, true) unless post.is_flagged?
   end
 
+  def bypass_unique
+    is_deletion || creator.is_janitor?
+  end
+
   def validate_creator_is_not_limited
     return if is_deletion
 
     if creator.no_flagging?
       errors[:creator] << "cannot flag posts"
     end
+
+    return if creator.is_janitor?
 
     if creator_id != User.system.id && PostFlag.for_creator(creator_id).where("created_at > ?", 30.days.ago).count >= CREATION_THRESHOLD
       report = Reports::PostFlags.new(user_id: post.uploader_id, date_range: 90.days.ago)
@@ -171,7 +177,6 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
-    errors[:post] << "is pending and cannot be flagged" if post.is_pending? && !is_deletion
     errors[:post] << "is locked and cannot be flagged" if post.is_status_locked?
     errors[:post] << "is deleted" if post.is_deleted?
   end

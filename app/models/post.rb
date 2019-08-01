@@ -311,6 +311,11 @@ class Post < ApplicationRecord
       end
     end
 
+    def unflag!
+      flags.each(&:resolve!)
+      update(is_flagged: false)
+    end
+
     def appeal!(reason)
       if is_status_locked?
         raise PostAppeal::Error.new("Post is locked and cannot be appealed")
@@ -1379,6 +1384,15 @@ class Post < ApplicationRecord
       if is_status_locked? && !options.fetch(:force, false)
         self.errors.add(:is_status_locked, "; cannot delete post")
         return false
+      end
+
+      if reason.blank?
+        last_flag = flags.unresolved.order(id: :desc).first
+        if last_flag.blank?
+          self.errors.add(:base, "Cannot flag with blank reason when no active flag exists.")
+          return false
+        end
+        reason = last_flag.reason
       end
 
       Post.transaction do
