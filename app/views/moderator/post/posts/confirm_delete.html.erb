@@ -16,7 +16,7 @@
 
   <div class="input">
     <label for="reason">Reason</label>
-    <%= text_area_tag "reason" %>
+    <%= text_area_tag "reason", @post.flags.where(is_resolved: false)&.last&.reason || '' %>
   </div>
 
   <%= submit_tag "Delete" %>
