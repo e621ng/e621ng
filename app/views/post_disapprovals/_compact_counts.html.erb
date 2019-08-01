@@ -1,4 +1,4 @@
-<% if (CurrentUser.can_approve_posts? || post.created_at < PostDisapproval.DELETION_THRESHOLD.ago) && disapprovals.length > 0 %>
+<% if (CurrentUser.can_approve_posts? || post.created_at < PostDisapproval::DELETION_THRESHOLD.ago) && disapprovals.length > 0 %>
   <% if disapprovals.map(&:reason).grep("borderline_relevancy").count > 0 %>
     (relevancy: <%= disapprovals.map(&:reason).grep("borderline_relevancy").count %>)
   <% end %>
