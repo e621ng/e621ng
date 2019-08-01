@@ -24,7 +24,7 @@
                 method: :post, remote: true, class: "disapprove-link btn" %>
   </div>
   <div>
-    <%= link_to "Detailed Deletion", confirm_delete_moderator_post_post_path(post_id: post.id) %> |
+    <%= link_to "Detailed Deletion", confirm_delete_moderator_post_post_path(id: post.id) %> |
     <%= link_to "Detailed Disapproval", "#", "data-post-id" => post.id, class: "detailed-rejection-link btn" %>
   </div>
 </div>
