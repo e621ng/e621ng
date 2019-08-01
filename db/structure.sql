@@ -1650,7 +1650,8 @@ CREATE TABLE public.post_flags (
     reason text,
     is_resolved boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    is_deletion boolean DEFAULT false NOT NULL
 );
 
 
@@ -5182,6 +5183,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190623070654'),
 ('20190714122705'),
 ('20190717205018'),
-('20190718201354');
+('20190718201354'),
+('20190801210547');
 
 

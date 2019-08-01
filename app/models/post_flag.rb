@@ -17,7 +17,6 @@ class PostFlag < ApplicationRecord
   validate :validate_post
   validates_uniqueness_of :creator_id, :scope => :post_id, :on => :create, :unless => :is_deletion, :message => "have already flagged this post"
   before_save :update_post
-  attr_accessor :is_deletion
 
   scope :by_users, -> { where.not(creator: User.system) }
   scope :by_system, -> { where(creator: User.system) }

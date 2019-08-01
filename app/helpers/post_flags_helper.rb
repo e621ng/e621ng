@@ -5,6 +5,7 @@ module PostFlagsHelper
 
     post.flags.each do |flag|
       html << '<li>'
+      html << (flag.is_deletion ? "[DELETION] " : "[FLAG] ")
       html << format_text(flag.reason, inline: true)
 
       if CurrentUser.can_view_flagger_on_post?(flag)

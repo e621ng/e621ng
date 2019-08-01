@@ -15,7 +15,7 @@
 <% if post.is_deleted? %>
   <div class="ui-corner-all ui-state-highlight notice notice-deleted">
     <% if post.flags.any? %>
-      <p>This post was deleted for the following reasons: </p>
+      <p>This post was deleted or flagged for the following reasons: </p>
       <%= post_flag_reasons(post) %>
     <% else %>
       <p>This post was deleted</p>
