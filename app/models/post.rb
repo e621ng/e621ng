@@ -339,8 +339,8 @@ class Post < ApplicationRecord
       approv
     end
 
-    def disapproved_by?(user)
-      PostDisapproval.where(:user_id => user.id, :post_id => id).exists?
+    def disapproval_by(user)
+      PostDisapproval.where(user_id: user.id, post_id: id).first
     end
   end
 

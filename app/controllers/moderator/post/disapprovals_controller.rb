@@ -7,7 +7,11 @@ module Moderator
 
       def create
         cookies.permanent[:moderated] = Time.now.to_i
-        @post_disapproval = PostDisapproval.create(post_disapproval_params)
+        pd_params = post_disapproval_params
+        @post_disapproval = PostDisapproval.create_with(post_disapproval_params).find_or_create_by(user_id: CurrentUser.id, post_id: pd_params[:post_id])
+        @post_disapproval.reason = pd_params[:reason]
+        @post_disapproval.message = pd_params[:message]
+        @post_disapproval.save
         respond_with(@post_disapproval)
       end
 

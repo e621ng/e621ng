@@ -54,6 +54,8 @@
         <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
       <% end %>
 
+      <%= render "posts/partials/show/notices", :post => @post %>
+
       <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
         <div id="note-container"></div>
         <div id="note-preview"></div>
@@ -89,7 +91,7 @@
         </div>
       </section>
 
-      <%= render "posts/partials/show/notices", :post => @post %>
+      <%= render "posts/partials/show/notices_bottom", :post => @post %>
 
       <section id="mark-as-translated-section" style="display: none;">
         <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>

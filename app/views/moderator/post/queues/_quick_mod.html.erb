@@ -1,7 +1,30 @@
 <div class="quick-mod">
-  <%= link_to_if post.is_approvable?, "Approve", moderator_post_approval_path(post_id: post.id), method: :post, remote: true, class: "approve-link btn" %> |
-  <%= link_to "Breaks Rules", moderator_post_disapprovals_path(post_disapproval: { post_id: post.id, reason: "breaks_rules" }), method: :post, remote: true, class: "disapprove-link btn" %> |
-  <%= link_to "Poor Quality", moderator_post_disapprovals_path(post_disapproval: { post_id: post.id, reason: "poor_quality" }), method: :post, remote: true, class: "disapprove-link btn" %> |
-  <%= link_to "No Interest",  moderator_post_disapprovals_path(post_disapproval: { post_id: post.id, reason: "disinterest" }), method: :post, remote: true, class: "disapprove-link btn" %> |
-  <%= link_to "Detailed Rejection", "#", "data-post-id" => post.id, class: "detailed-rejection-link btn" %>
+  <div>
+    <strong><%= link_to_if post.is_approvable?, "Approve", moderator_post_approval_path(post_id: post.id),
+                           method: :post, remote: true, class: "approve-link btn" %></strong>
+  </div>
+  <% @our_disapproval = post.disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
+  <% if @our_disapproval.present? %>
+  <div>
+    You are currently disapproving of this post for the following reason: <strong><%= @our_disapproval.reason %></strong>
+  </div>
+  <% end %>
+  <div>
+    <%= link_to "Human Only", "#", class: "delete-with-reason-link", data: {prompt: "human only", reason: "Irrelevant to site. (Human only)"} %> |
+    <%= link_to "Artistec Standards", "#", class: "delete-with-reason-link", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)"} %> |
+    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link", data: {prompt: "photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)"} %> |
+    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "excessive base", reason: "Excessive same base image set."} %> |
+    <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "an annoying ad", reason: "Advertisement"} %> |
+
+    <%= link_to "Borderline Quality", moderator_post_disapprovals_path(post_disapproval: {post_id: post.id,
+                                                                                          reason: "borderline_quality"}),
+                method: :post, remote: true, class: "disapprove-link btn" %> |
+    <%= link_to "Borderline Relevancy", moderator_post_disapprovals_path(post_disapproval: {post_id: post.id,
+                                                                                            reason: "borderline_relevancy"}),
+                method: :post, remote: true, class: "disapprove-link btn" %>
+  </div>
+  <div>
+    <%= link_to "Detailed Deletion", confirm_delete_moderator_post_post_path(post_id: post.id) %> |
+    <%= link_to "Detailed Disapproval", "#", "data-post-id" => post.id, class: "detailed-rejection-link btn" %>
+  </div>
 </div>

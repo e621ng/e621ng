@@ -15,6 +15,7 @@ module Moderator
       def destroy
         post = ::Post.find(params[:post_id])
         post.unapprove!
+        respond_with(nil)
       end
     end
   end

@@ -5,12 +5,11 @@ class PostDisapproval < ApplicationRecord
   belongs_to :user
   after_initialize :initialize_attributes, if: :new_record?
   validates_uniqueness_of :post_id, :scope => [:user_id], :message => "have already hidden this post"
-  validates_inclusion_of :reason, :in => %w(legacy breaks_rules poor_quality disinterest)
+  validates_inclusion_of :reason, :in => %w(borderline_quality borderline_relevancy other)
 
   scope :with_message, -> {where("message is not null and message <> ''")}
-  scope :breaks_rules, -> {where(:reason => "breaks_rules")}
-  scope :poor_quality, -> {where(:reason => "poor_quality")}
-  scope :disinterest, -> {where(:reason => ["disinterest", "legacy"])}
+  scope :poor_quality, -> {where(:reason => "borderline_quality")}
+  scope :not_relevant, -> {where(:reason => "borderline_relevancy")}
 
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id

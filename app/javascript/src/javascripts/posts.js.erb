@@ -233,6 +233,14 @@ Post.initialize_shortcuts = function() {
 }
 
 Post.initialize_links = function() {
+  $(".delete-with-reason-link").on('click', function(e) {
+    var post_id = $("meta[name=post-id]").attr("content");
+    var prompt = $(e.target).data('prompt');
+    var reason = $(e.target).data('reason');
+
+    if(confirm(`Delete post for being ${prompt}?`))
+      Post.delete_with_reason(post_id, reason);
+  });
   $("#copy-notes").on("click.danbooru", function(e) {
     var current_post_id = $("meta[name=post-id]").attr("content");
     var other_post_id = parseInt(prompt("Enter the ID of the post to copy all notes to:"), 10);
@@ -562,19 +570,31 @@ Post.update = function(post_id, params) {
   });
 }
 
-Post.ban = function(post_id) {
+Post.delete_with_reason = function(post_id, reason) {
   $.ajax({
     type: "POST",
-    url: "/moderator/post/posts/" + post_id + "/ban.js",
-    data: {
-      commit: "Ban"
-    },
-    success: function(data) {
-      $("#post_" + post_id).remove();
-    },
-    error: function(data) {
-      $(window).trigger("danbooru:error", 'There was an error updating <a href="/posts/' + post_id + '">post #' + post_id + '</a>');
-    }
+    url: `/moderator/post/posts/${post_id}/delete.json`,
+    data: {commit: "Delete", reason: reason}
+  }).fail(function(data) {
+    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+    $(window).trigger('danbooru:error', "Error: " + message);
+  }).done(function(data) {
+    $(window).trigger("danbooru:notice", "Deleted post.");
+    location.reload();
+  });
+}
+
+Post.unapprove = function(post_id) {
+  $.ajax({
+    type: "DELETE",
+    url: "/moderator/post/approval.json",
+    data: {post_id: post_id}
+  }).fail(function(data) {
+    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+    $(window).trigger('danbooru:error', "Error: " + message);
+  }).done(function(data) {
+    $(window).trigger("danbooru:notice", "Unapproved post.");
+    location.reload();
   });
 }
 
