@@ -7,7 +7,25 @@
   <% @post_flag = post_flag %>
   <%= simple_form_for(@post_flag, format: :js, remote: true) do |f| %>
     <%= f.hidden_field :post_id %>
-    <%= dtext_field "post_flag", "reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
-    <%= dtext_preview_button "post_flag", "reason", preview_id: "dtext-preview-for-post-flag" %>
+
+    <% Danbooru.config.flag_reasons.each do |flag_reason| %>
+      <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
+      <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label><br>
+    <% end %>
+    <%= radio_button_tag "post_flag[reason_name]", "inferior", false %>
+    <label for="post_flag_reason_name_inferior">This post is a duplicate or an inferior version of another post
+      (smaller, lower quality, etc.)</label>
+    <%= f.input :parent_id, as: :integer, label: 'Inferior of Post #' %>
+    <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
+      <%= radio_button_tag "post_flag[reason_name]", "user" %>
+      <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48
+        hours of uploading). Only use if no other reason above fits.</label>
+      <%= dtext_field "post_flag", "reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
+      <%= dtext_preview_button "post_flag", "reason", preview_id: "dtext-preview-for-post-flag" %>
+    <% else %>
+      <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: true %>
+      <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48
+        hours of uploading). Only use if no other reason above fits.</label>
+    <% end %>
   <% end %>
 </div>

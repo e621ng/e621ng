@@ -554,6 +554,17 @@ module Danbooru
       false
     end
 
+    def flag_reasons
+      [
+          {name: 'dnp_artist', reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]"},
+          {name: 'pay_content', reason: "This post is paysite or commercial content"},
+          {name: 'trace', reason: "This post is a trace of another artist's work"},
+          {name: 'previously_deleted', reason: "This image has been deleted before. Please leave any additional information in a comment below the image, or directly parent the original"},
+          {name: 'real_porn', reason: "This post contains real-life pornography"},
+          {name: 'corrupt', reason: "The file in this post is either corrupted, broken, or otherwise doesn't work"}
+      ]
+    end
+
     # Any custom code you want to insert into the default layout without
     # having to modify the templates.
     def custom_html_header_content

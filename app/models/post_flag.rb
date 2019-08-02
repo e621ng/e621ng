@@ -1,5 +1,6 @@
 class PostFlag < ApplicationRecord
-  class Error < Exception ; end
+  class Error < Exception;
+  end
 
   module Reasons
     UNAPPROVED = "Unapproved in 30 days"
@@ -8,19 +9,25 @@ class PostFlag < ApplicationRecord
 
   COOLDOWN_PERIOD = 3.days
   CREATION_THRESHOLD = 10 # in 30 days
+  MAPPED_REASONS = Danbooru.config.flag_reasons.map {|i| [i[:name], i[:reason]] }.to_h
 
   belongs_to_creator :class_name => "User"
   user_status_counter :post_flag_count
   belongs_to :post
-  validates_presence_of :reason
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
+  validate :validate_reason
+  validate :update_reason, on: :create
+  validates_presence_of :reason
+  validates_length_of :reason, in: 1..250
   validates_uniqueness_of :creator_id, :scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"
   before_save :update_post
 
-  scope :by_users, -> { where.not(creator: User.system) }
-  scope :by_system, -> { where(creator: User.system) }
-  scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
+  scope :by_users, -> {where.not(creator: User.system)}
+  scope :by_system, -> {where(creator: User.system)}
+  scope :in_cooldown, -> {by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago)}
+
+  attr_accessor :parent_id, :reason_name
 
   module SearchMethods
     def duplicate
@@ -181,6 +188,30 @@ class PostFlag < ApplicationRecord
     errors[:post] << "is deleted" if post.is_deleted?
   end
 
+  def validate_reason
+    case reason_name
+    when 'inferior'
+      errors[:parent_id] << "must exist" unless parent_post
+      errors[:parent_id] << "cannot be set to the post being flagged" if parent_post.id == post.id
+    when 'user'
+      errors[:reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
+    else
+      errors[:reason] << "is not one of the available choices" unless MAPPED_REASONS.key?(reason_name)
+    end
+  end
+
+  def update_reason
+    case reason_name
+    when 'inferior'
+      post.update_column(:parent_id, parent_post.id)
+      self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
+    when "user"
+      self.reason = "Uploader requested removal within 48 hours (Reason: #{reason})"
+    else
+      self.reason = MAPPED_REASONS[reason_name]
+    end
+  end
+
   def resolve!
     update_column(:is_resolved, true)
   end
@@ -195,5 +226,9 @@ class PostFlag < ApplicationRecord
 
   def not_uploaded_by?(userid)
     uploader_id != userid
+  end
+
+  def parent_post
+    @parent_post ||= Post.where('id = ?', parent_id).first
   end
 end

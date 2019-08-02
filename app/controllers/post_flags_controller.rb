@@ -4,6 +4,7 @@ class PostFlagsController < ApplicationController
 
   def new
     @post_flag = PostFlag.new(post_flag_params)
+    @post = Post.find(params[:post_flag][:post_id])
     respond_with(@post_flag)
   end
 
@@ -43,6 +44,6 @@ class PostFlagsController < ApplicationController
   private
 
   def post_flag_params
-    params.fetch(:post_flag, {}).permit(%i[post_id reason])
+    params.fetch(:post_flag, {}).permit(%i[post_id reason_name reason parent_id])
   end
 end
