@@ -303,14 +303,6 @@ class Post < ApplicationRecord
       !is_status_locked? && (is_pending? || is_flagged? || is_deleted?)
     end
 
-    def flag!(reason, options = {})
-      flag = flags.create(:reason => reason, :is_resolved => false, :is_deletion => options[:is_deletion])
-
-      if flag.errors.any?
-        raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
-      end
-    end
-
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
@@ -1396,7 +1388,11 @@ class Post < ApplicationRecord
       end
 
       Post.transaction do
-        flag!(reason, is_deletion: true)
+        flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true)
+
+        if flag.errors.any?
+          raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
+        end
 
         update(
             is_deleted: true,

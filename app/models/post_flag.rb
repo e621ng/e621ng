@@ -190,6 +190,9 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
+    when 'deletion'
+      # You're probably looking at this line as you get this validation failure
+      errors[:reason] << "is not one of the available choices" unless is_deletion
     when 'inferior'
       errors[:parent_id] << "must exist" unless parent_post
       errors[:parent_id] << "cannot be set to the post being flagged" if parent_post.id == post.id
@@ -202,6 +205,8 @@ class PostFlag < ApplicationRecord
 
   def update_reason
     case reason_name
+    when 'deletion'
+      # NOP
     when 'inferior'
       post.update_column(:parent_id, parent_post.id)
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
