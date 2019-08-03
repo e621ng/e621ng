@@ -9,6 +9,8 @@ module Moderator
           as_user do
             @post = create(:post, :is_pending => true)
           end
+
+          CurrentUser.user = @admin
         end
 
         context "create action" do
@@ -16,6 +18,15 @@ module Moderator
             assert_difference("PostDisapproval.count", 1) do
               post_auth moderator_post_disapprovals_path, @admin, params: { post_disapproval: { post_id: @post.id, reason: "breaks_rules" }, format: "js" }
             end
+            assert_response :success
+          end
+        end
+
+        context "index action" do
+          should "render" do
+            disapproval = FactoryBot.create(:post_disapproval, post: @post)
+            get_auth moderator_post_disapprovals_path, @admin
+
             assert_response :success
           end
         end
