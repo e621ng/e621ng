@@ -35,12 +35,16 @@ $red_color: #e45f5f;
 $green_color: #3e9e49;
 $dark_grey_color: hsl(0, 0%, 50%);
 
+$explicit_rating_color: $red_color;
+$questionable_rating_color: hsl(50, 100%, 70%);
+$safe_rating_color: $green_color;
+
 @mixin animated-icon {
   content: "►";
   position: absolute;
   width: 20px;
   height: 20px;
-  color: white; 
+  color: white;
   background-color: rgba(0,0,0,0.5);
   margin: 2px;
   text-align: center;
@@ -51,7 +55,7 @@ $dark_grey_color: hsl(0, 0%, 50%);
   position: absolute;
   width: 20px;
   height: 20px;
-  color: white; 
+  color: white;
   background-color: rgba(0,0,0,0.5);
   margin: 2px;
   text-align: center;

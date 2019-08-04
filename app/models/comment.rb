@@ -5,7 +5,7 @@ class Comment < ApplicationRecord
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
   validates_presence_of :body, :message => "has no content"
-  belongs_to :post
+  belongs_to :post, counter_cache: :comment_count
   belongs_to_creator
   belongs_to_updater
   user_status_counter :comment_count

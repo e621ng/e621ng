@@ -170,8 +170,14 @@
     }
 
     img {
+      max-width: none;
+      max-height: none;
       width: 33.3vw;
       border: none !important;
+    }
+
+    .desc {
+      display: none;
     }
 
     &[data-tags~=animated]:before, &[data-file-ext=swf]:before, &[data-file-ext=webm]:before, &[data-file-ext=mp4]:before, &[data-file-ext=zip]:before {

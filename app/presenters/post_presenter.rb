@@ -20,6 +20,8 @@ class PostPresenter < Presenter
       return ""
     end
 
+    options[:stats] |= !options[:avatar] && !options[:inline]
+
     locals = {}
 
     locals[:article_attrs] = {
@@ -40,7 +42,7 @@ class PostPresenter < Presenter
       locals[:link_params]["post_set_id"] = options[:post_set_id]
     end
 
-    locals[:tooltip] = "#{post.tag_string} rating:#{post.rating} score:#{post.score}"
+    locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
     locals[:cropped_url] = if Danbooru.config.enable_image_cropping && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
       post.crop_file_url
@@ -80,13 +82,18 @@ class PostPresenter < Presenter
       locals[:size] = nil
     end
 
+    if options[:stats]
+      locals[:post] = post
+      locals[:stats] = true
+    end
+
     ApplicationController.render(partial: "posts/partials/index/preview", locals: locals)
   end
 
   def self.preview_class(post, highlight_score: nil, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["post-preview"]
-    # klass << " large-cropped" if post.has_cropped? && options[:show_cropped]
-    klass << "captioned" if pool || size || similarity
+    klass = ["post-preview", "captioned"]
+    # Always captioned with new post stats section.
+    # klass << "captioned" if pool || size || similarity
     klass << "post-status-pending" if post.is_pending?
     klass << "post-status-flagged" if post.is_flagged?
     klass << "post-status-deleted" if post.is_deleted?
@@ -94,6 +101,9 @@ class PostPresenter < Presenter
     klass << "post-status-has-children" if post.has_visible_children?
     klass << "post-pos-score" if highlight_score && post.score >= 3
     klass << "post-neg-score" if highlight_score && post.score <= -3
+    klass << "post-rating-safe" if post.rating == 's'
+    klass << "post-rating-questionable" if post.rating == 'q'
+    klass << "post-rating-explicit" if post.rating == 'e'
     klass
   end
 

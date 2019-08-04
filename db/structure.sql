@@ -1966,7 +1966,8 @@ CREATE TABLE public.posts (
     locked_tags text,
     tag_count_species integer DEFAULT 0 NOT NULL,
     tag_count_invalid integer DEFAULT 0 NOT NULL,
-    description text DEFAULT ''::text NOT NULL
+    description text DEFAULT ''::text NOT NULL,
+    comment_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -5184,6 +5185,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190714122705'),
 ('20190717205018'),
 ('20190718201354'),
-('20190801210547');
+('20190801210547'),
+('20190804010156');
 
 

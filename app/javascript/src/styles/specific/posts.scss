@@ -41,12 +41,31 @@ article.post-preview {
   }
 
   .desc {
-   font-size: 80%;
-   margin-bottom: 0;
+    background-color: $grey_color;
+    font-size: 80%;
+    margin-bottom: 0;
+  }
+
+  .post-score>span {
+    margin-left: 0.5em;
+  }
+
+  &.post-rating-explicit .post-score-rating {
+    color: $explicit_rating_color;
+  }
+
+  &.post-rating-safe .post-score-rating {
+    color: $safe_rating_color;
+  }
+
+  &.post-rating-questionable .post-score-rating {
+    color: $questionable_rating_color;
   }
 
   img {
     margin: auto;
+    max-height: 150px;
+    max-width: 150px;
   }
 
   &[data-tags~=animated]:before, &[data-file-ext=swf]:before, &[data-file-ext=webm]:before, &[data-file-ext=mp4]:before, &[data-file-ext=zip]:before {

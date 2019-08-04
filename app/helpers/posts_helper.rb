@@ -146,6 +146,22 @@ module PostsHelper
     Tag.scan_query(params[:tags]).size == 1 && TagChangeNoticeService.get_forum_topic_id(params[:tags])
   end
 
+  def post_stats_section(post)
+    status_flags = []
+    status_flags << 'P' if post.parent_id
+    status_flags << 'C' if post.has_children?
+    status_flags << 'U' if post.is_pending?
+    status_flags << 'F' if post.is_flagged?
+
+    post_score_icon = "#{"&uarr;" if post.score > 0}#{"&darr;" if post.score < 0}#{"&varr;" if post.score == 0}"
+    score = tag.span("#{post_score_icon}#{post.score}".html_safe, class: "post-score-score " + score_class(post.score))
+    favs =  tag.span("&hearts;#{post.fav_count}".html_safe, class: 'post-score-faves')
+    comments = tag.span "C#{post.comment_count}", class: 'post-score-comments'
+    rating =  tag.span(post.rating.upcase, class: "post-score-rating")
+    status = tag.span(status_flags.join(''), class: 'post-score-extras')
+    tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
+  end
+
   private
 
   def nav_params_for(page)
@@ -158,24 +174,24 @@ module PostsHelper
     vote_score = voted ? vote.score : 0
     post_score = post.score
 
-    def score_class(score)
-      return 'score-neutral' if score == 0
-      score > 0 ? 'score-positive' : 'score-negative'
-    end
-
     def confirm_score_class(score, want)
       return 'score-neutral' if score != want || score == 0
       score_class(score)
     end
 
     up_tag = tag.span(tag.a('&#x25B2;'.html_safe, class: 'post-vote-up-link', 'data-id': post.id),
-                    class: confirm_score_class(vote_score, 1),
-                    id: "post-vote-up-#{post.id}")
+                      class: confirm_score_class(vote_score, 1),
+                      id: "post-vote-up-#{post.id}")
     down_tag = tag.span(tag.a('&#x25BC;'.html_safe, class: 'post-vote-down-link', 'data-id': post.id),
-                      class: confirm_score_class(vote_score, -1),
-                      id: "post-vote-down-#{post.id}")
-    vote_block = tag.span(" (vote ".html_safe + up_tag +  "/" + down_tag + ")")
+                        class: confirm_score_class(vote_score, -1),
+                        id: "post-vote-down-#{post.id}")
+    vote_block = tag.span(" (vote ".html_safe + up_tag + "/" + down_tag + ")")
     score_tag = tag.span(post.score, class: "post-score #{score_class(post_score)}", id: "post-score-#{post.id}", title: "#{post.up_score} up/#{post.down_score} down")
     score_tag + (CurrentUser.is_voter? ? vote_block : '')
+  end
+
+  def score_class(score)
+    return 'score-neutral' if score == 0
+    score > 0 ? 'score-positive' : 'score-negative'
   end
 end

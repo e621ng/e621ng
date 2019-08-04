@@ -127,7 +127,7 @@ module PostIndex
           scores = scores[1..-2].split(",").map(&:to_i)
           [pid.to_i, uids.zip(scores)]
         end
-        
+
         upvote_ids   = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s <= 0 }.map {|uid, _| uid}] }.to_h
         downvote_ids = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s >= 0 }.map {|uid, _| uid}] }.to_h
 
@@ -181,7 +181,7 @@ module PostIndex
       tag_count_meta:      tag_count_meta,
       tag_count_species:   tag_count_species,
       tag_count_invalid:   tag_count_invalid,
-      comment_count:       options[:comment_count] || Comment.where(post_id: id).count,
+      comment_count:       options[:comment_count] || comment_count,
 
       file_size:    file_size,
       parent:       parent_id,
