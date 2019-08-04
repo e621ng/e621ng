@@ -26,10 +26,12 @@ script/scratch.*
 test/fixtures/vcr_cassettes
 .gitconfig
 test/reports
+
+.idea
+.vagrant
+
+/public/packs
 /public/packs-test
 /node_modules
 yarn-debug.log*
 .yarn-integrity
-public/packs
-.idea
-.vagrant

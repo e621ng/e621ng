@@ -2,7 +2,7 @@
     <div>
         <input type="text" size="50" v-model="realValue" @keyup.enter="add"/>
         <button @click="remove" v-if="index !== 0">-</button>
-        <button @click="add" v-if="last && index < 4">+</button>
+        <button @click="add" v-if="last && index < 9">+</button>
     </div>
 </template>
 
