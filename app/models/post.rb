@@ -1964,6 +1964,17 @@ class Post < ApplicationRecord
     return true
   end
 
+  def allow_sample_resize?
+    return false if is_flash?
+    return false if is_ugoira?
+    return false if is_video?
+    true
+  end
+
+  def force_original_size?(ugoira_original)
+    (is_ugoira? && ugoira_original.present?) || is_flash?
+  end
+
   def reload(options = nil)
     super
     reset_tag_array_cache
