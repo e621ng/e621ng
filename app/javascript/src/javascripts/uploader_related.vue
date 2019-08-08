@@ -20,9 +20,9 @@
     props: ['tags', 'related', 'loading'],
     data: function () {
       return {
-        uploaded: (window.userUploadTags || []),
-        recent: (window.userRecentTags || []).sort(tagSorter),
-        artists: (window.userArtistTags || []).sort(tagSorter)
+        uploaded: (window.uploaderSettings.uploadTags || []),
+        recent: (window.uploaderSettings.recentTags || []).sort(tagSorter),
+        artists: (window.uploadSettings.artistTags || []).sort(tagSorter)
       };
     },
     methods: {

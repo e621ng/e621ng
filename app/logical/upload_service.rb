@@ -58,6 +58,8 @@ class UploadService
     Post.new.tap do |p|
       p.has_cropped = true
       p.tag_string = upload.tag_string
+      p.locked_tags = upload.locked_tags
+      p.is_rating_locked = upload.locked_rating
       p.description = upload.description.strip
       p.md5 = upload.md5
       p.file_ext = upload.file_ext

@@ -44,10 +44,8 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-show="showErrors && sourceWarning">A source must be provided or
-                        you must
-                        select that there
-                        is no available source.
+                    <div class="box-section sect_red" v-show="showErrors && sourceWarning">
+                        A source must be provided or you must select that there is no available source.
                     </div>
                     <div v-if="!noSource">
                         <image-source :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
@@ -55,9 +53,9 @@
                                       @delete="removeSource(i)" @add="addSource" :key="i"></image-source>
                     </div>
                     <div>
-                        <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/> No
-                            available source
-                            / I am the source.</label>
+                        <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/>
+                            No available source / I am the source.
+                        </label>
                     </div>
                 </div>
             </div>
@@ -69,7 +67,7 @@
                     <div class="col2">
                         <div>
             <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
-                      placeholder="Ex: artist_name etc."></textarea>
+                      placeholder="Ex: artist_name etc." data-autocomplete="tag-edit"></textarea>
                         </div>
                         <div class="flex-wrap">
                             <image-checkbox :check="check" :checks="checkboxes.selected"
@@ -81,10 +79,13 @@
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label" for="post_sex_tags">Characters</label>
-                        <div>Select (and write in) all that apply. Character sex is based only on what is visible in the
+                        <div>
+                            Select (and write in) all that apply. Character sex is based only on what is visible in the
                             image.
-                            Outside information or other images should not be used when deciding what tags are used.
                         </div>
+                        <div><a href="/wiki_pages/tag_what_you_see">
+                            Outside information or other images should not be used when deciding what tags are used.
+                        </a></div>
                     </div>
                     <div class="col2">
                         <div class="flex-wrap">
@@ -105,7 +106,8 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.sex" id="post_sexes"
-                                  placeholder="Ex: character_name solo_focus etc."></textarea>
+                                  placeholder="Ex: character_name solo_focus etc."
+                                  data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -119,19 +121,22 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.bodyType" id="post_bodyTypes"
-                                  placeholder="Ex: bear dragon hyena rat newt etc."></textarea>
+                                  placeholder="Ex: bear dragon hyena rat newt etc."
+                                  data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label">Contentious Content</label>
                         <div>
+                            Fetishes or subjects that other users may find extreme or objectionable.
                             These allow users to find or blacklist content with ease. Make sure that you are tagging
                             these upon initial upload.
                         </div>
                     </div>
                     <div class="col2">
           <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2"
+                    data-autocomplete="tag-edit"
                     placeholder="Ex: cub young gore scat watersports diaper my_little_pony vore not_furry rape etc."></textarea>
                     </div>
                 </div>
@@ -179,7 +184,7 @@
                     </div>
                     <div v-show="!preview.show">
                         <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
-                                  ref="otherTags"></textarea>
+                                  ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     </div>
                     <div v-show="preview.show">
                         <tag-preview :tags="preview.tags" :loading="preview.loading"
@@ -208,6 +213,22 @@
                 </div>
                 <div class="col2">
                     <input type="number" v-model.number="parentID" placeholder="Ex. 12345"/>
+                </div>
+            </div>
+            <div v-if="allowLockedTags" class="flex-grid border-bottom">
+                <div class="col">
+                    <label class="section-label">Locked Tags</label>
+                </div>
+                <div class="col2">
+                    <input type="text" v-model="lockedTags" data-autocomplete="tag-query"/>
+                </div>
+            </div>
+            <div v-if="allowRatingLock" class="flex-grid border-bottom">
+                <div class="col">
+                    <label class="section-label">Lock Rating</label>
+                </div>
+                <div class="col2">
+                    <label><input type="checkbox" v-model="ratingLocked"/> Lock Rating</label>
                 </div>
             </div>
             <div class="flex-grid border-bottom">
@@ -308,6 +329,7 @@
 
     .section-label {
         white-space: normal;
+        font-weight: bold;
     }
 
     .come-together-now {
@@ -629,8 +651,8 @@
       'tag-preview': tagPreview
     },
     data() {
-      var allChecks = {};
-      var addChecks = function (check) {
+      const allChecks = {};
+      const addChecks = function (check) {
         if (typeof check['tag'] !== "undefined") {
           allChecks[check.tag] = true;
           return
@@ -642,8 +664,10 @@
       pairing_checks.forEach(addChecks);
       char_count_checks.forEach(addChecks);
       body_type_checks.forEach(addChecks);
+
+
       return {
-        safe: window.safeSite,
+        safe: window.uploaderSettings.safeSite,
         showErrors: false,
         whitelist: {
           visible: false,
@@ -689,6 +713,11 @@
           tags: []
         },
 
+        allowLockedTags: window.uploaderSettings.allowLockedTags,
+        lockedTags: '',
+        allowRatingLock: window.uploaderSettings.allowRatingLock,
+        ratingLocked: false,
+
         relatedTags: [],
         loadingRelated: false,
 
@@ -700,9 +729,9 @@
       };
     },
     methods: {
-      updatePreview: updatePreview,
-      updatePreviewDims: updatePreviewDims,
-      previewError: previewError,
+      updatePreview,
+      updatePreviewDims,
+      previewError,
       clearFile: clearFileUpload,
       whitelistWarning(allowed, domain) {
         this.whitelist.allowed = allowed;
@@ -724,10 +753,10 @@
         this.error = '';
         if (this.preventUpload || this.submitting)
           return;
-        var self = this;
+        const self = this;
         this.submitting = true;
-        var data = new FormData();
-        var post_file = this.$refs['post_file'];
+        const data = new FormData();
+        const post_file = this.$refs['post_file'];
         if (post_file && post_file.files && post_file.files.length) {
           data.append('upload[file]', this.$refs['post_file'].files[0]);
         } else {
@@ -738,6 +767,10 @@
         data.append('upload[source]', this.sources.join('\n'));
         data.append('upload[description]', this.description);
         data.append('upload[parent_id]', this.parentID);
+        if (this.allowLockedTags)
+          data.append('upload[locked_tags]', this.lockedTags);
+        if (this.allowRatingLock)
+          data.append('upload[locked_rating]', this.ratingLocked);
         jQuery.ajax('/uploads.json', {
           contentType: false,
           processData: false,
@@ -755,8 +788,13 @@
             try {
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;
-              } else {
+              }
+              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1 ) {
+                self.error = data2.message;
+              } else if (data2 && data2.message) {
                 self.error = 'Error: ' + data2.message;
+              } else {
+                self.error = 'Error: ' + data2.reason;
               }
             } catch (e) {
               self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
@@ -766,15 +804,15 @@
       },
       pushTag(tag, add) {
         this.preview.show = false;
-        var isCheck = typeof this.checkboxes.all[tag] !== "undefined";
+        const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
         // In advanced mode we need to push these into the tags area because there are no checkboxes or other
         // tag fields so we can't see them otherwise.
         if (isCheck && this.normalMode) {
           this.setCheck(tag, add);
           return;
         }
-        var tags = this.tagEntries.other ? this.tagEntries.other.trim().split(' ') : [];
-        var tagIdx = tags.indexOf(tag);
+        const tags = this.tagEntries.other ? this.tagEntries.other.trim().split(' ') : [];
+        const tagIdx = tags.indexOf(tag);
         if (add) {
           if (tagIdx === -1)
             tags.push(tag);
@@ -795,8 +833,8 @@
         this.preview.loading = true;
         this.preview.show = true;
         this.preview.tags = [];
-        var self = this;
-        var data = {tags: this.tags};
+        const self = this;
+        const data = {tags: this.tags};
         jQuery.ajax("/tags/preview.json", {
           method: 'POST',
           type: 'POST',
@@ -851,8 +889,8 @@
     },
     computed: {
       tags() {
-        var self = this;
-        var checked = Object.keys(this.checkboxes.selected).filter(function (x) {
+        const self = this;
+        const checked = Object.keys(this.checkboxes.selected).filter(function (x) {
           return self.checkboxes.selected[x] === true;
         });
         return checked.concat([this.tagEntries.other, this.tagEntries.sex, this.tagEntries.bodyType,
@@ -873,7 +911,7 @@
         return !!this.directURLProblem;
       },
       sourceWarning: function () {
-        var validSourceCount = this.sources.filter(function (i) {
+        const validSourceCount = this.sources.filter(function (i) {
           return i.length > 0;
         }).length;
         return !this.noSource && (validSourceCount === 0);
