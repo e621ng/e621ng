@@ -788,10 +788,13 @@
             try {
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;
-              } else if (data2 && data2.reason) {
-                self.error = 'Error: ' + data2.reason;
-              } else {
+              }
+              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1 ) {
+                self.error = data2.message;
+              } else if (data2 && data2.message) {
                 self.error = 'Error: ' + data2.message;
+              } else {
+                self.error = 'Error: ' + data2.reason;
               }
             } catch (e) {
               self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
