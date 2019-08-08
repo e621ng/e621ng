@@ -4,6 +4,9 @@ class UploadsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:preprocess]
 
   def new
+    if CurrentUser.can_upload_with_reason == :REJ_UPLOAD_NEWBIE
+      return access_denied("You can not upload during your first week.")
+    end
     @source = Sources::Strategies.find(params[:url], params[:ref]) if params[:url].present?
     @upload_notice_wiki = WikiPage.titled(Danbooru.config.upload_notice_wiki_page).first
     @upload = Upload.new
