@@ -44,10 +44,8 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-show="showErrors && sourceWarning">A source must be provided or
-                        you must
-                        select that there
-                        is no available source.
+                    <div class="box-section sect_red" v-show="showErrors && sourceWarning">
+                        A source must be provided or you must select that there is no available source.
                     </div>
                     <div v-if="!noSource">
                         <image-source :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
@@ -55,9 +53,9 @@
                                       @delete="removeSource(i)" @add="addSource" :key="i"></image-source>
                     </div>
                     <div>
-                        <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/> No
-                            available source
-                            / I am the source.</label>
+                        <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/>
+                            No available source / I am the source.
+                        </label>
                     </div>
                 </div>
             </div>
@@ -69,7 +67,7 @@
                     <div class="col2">
                         <div>
             <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
-                      placeholder="Ex: artist_name etc."></textarea>
+                      placeholder="Ex: artist_name etc." data-autocomplete="tag-edit"></textarea>
                         </div>
                         <div class="flex-wrap">
                             <image-checkbox :check="check" :checks="checkboxes.selected"
@@ -81,10 +79,13 @@
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label" for="post_sex_tags">Characters</label>
-                        <div>Select (and write in) all that apply. Character sex is based only on what is visible in the
+                        <div>
+                            Select (and write in) all that apply. Character sex is based only on what is visible in the
                             image.
-                            Outside information or other images should not be used when deciding what tags are used.
                         </div>
+                        <div><a href="/wiki_pages/tag_what_you_see">
+                                Outside information or other images should not be used when deciding what tags are used.
+                        </a></div>
                     </div>
                     <div class="col2">
                         <div class="flex-wrap">
@@ -105,7 +106,7 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.sex" id="post_sexes"
-                                  placeholder="Ex: character_name solo_focus etc."></textarea>
+                                  placeholder="Ex: character_name solo_focus etc." data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -119,19 +120,20 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.bodyType" id="post_bodyTypes"
-                                  placeholder="Ex: bear dragon hyena rat newt etc."></textarea>
+                                  placeholder="Ex: bear dragon hyena rat newt etc." data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label">Contentious Content</label>
                         <div>
+                            Fetishes or subjects that other users may find extreme or objectionable.
                             These allow users to find or blacklist content with ease. Make sure that you are tagging
                             these upon initial upload.
                         </div>
                     </div>
                     <div class="col2">
-          <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2"
+          <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2" data-autocomplete="tag-edit"
                     placeholder="Ex: cub young gore scat watersports diaper my_little_pony vore not_furry rape etc."></textarea>
                     </div>
                 </div>
@@ -179,7 +181,7 @@
                     </div>
                     <div v-show="!preview.show">
                         <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
-                                  ref="otherTags"></textarea>
+                                  ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     </div>
                     <div v-show="preview.show">
                         <tag-preview :tags="preview.tags" :loading="preview.loading"
@@ -308,6 +310,7 @@
 
     .section-label {
         white-space: normal;
+        font-weight: bold;
     }
 
     .come-together-now {
