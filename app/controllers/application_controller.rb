@@ -10,7 +10,6 @@ class ApplicationController < ActionController::Base
   before_action :api_check
   before_action :set_safe_mode
   before_action :set_variant
-  # before_action :secure_cookies_check
   layout "default"
   helper_method :show_moderation_notice?
   before_action :enable_cors
@@ -231,13 +230,5 @@ class ApplicationController < ActionController::Base
 
   def set_safe_mode
     CurrentUser.set_safe_mode(request)
-  end
-
-  def secure_cookies_check
-    if request.ssl?
-      Rails.application.config.session_store :cookie_store, :key => '_danbooru_session', :secure => true
-    else
-      Rails.application.config.session_store :cookie_store, :key => '_danbooru_session', :secure => false
-    end
   end
 end
