@@ -72,6 +72,9 @@ class UploadsController < ApplicationController
       file direct_url source tag_string rating parent_id description description referer_url md5_confirmation as_pending
     ]
 
+    permitted_params << :locked_tags if CurrentUser.is_admin?
+    permitted_params << :locked_rating if CurrentUser.is_privileged?
+
     params.require(:upload).permit(permitted_params)
   end
 end
