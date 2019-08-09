@@ -12,70 +12,82 @@ module Moderator
       elsif params[:user_name].present?
         search_by_user_name(params[:user_name].split(/,/).map(&:strip))
       elsif params[:ip_addr].present?
-        search_by_ip_addr(params[:ip_addr].split(/,/).map(&:strip))
+        search_by_ip_addr(params[:ip_addr].split(/,/).map(&:strip), params[:with_history])
       else
         []
       end
     end
 
-  private
-    def search_by_ip_addr(ip_addrs)
-      sums = Hash.new {|h, k| h[k] = 0}
+    private
 
-      add_row(sums, ArtistCommentaryVersion.where(updater_ip_addr: ip_addrs).group(:updater).count)
-      add_row(sums, ArtistVersion.where(updater_ip_addr: ip_addrs).group(:updater).count)
-      add_row(sums, NoteVersion.where(updater_ip_addr: ip_addrs).group(:updater).count)
-      add_row(sums, WikiPageVersion.where(updater_ip_addr: ip_addrs).group(:updater).count)
-      add_row(sums, Comment.where(creator_ip_addr: ip_addrs).group(:creator).count)
-      add_row(sums, Dmail.where(creator_ip_addr: ip_addrs).group(:from).count)
-      add_row(sums, PostAppeal.where(creator_ip_addr: ip_addrs).group(:creator).count)
-      add_row(sums, PostFlag.where(creator_ip_addr: ip_addrs).group(:creator).count)
-      add_row(sums, Upload.where(uploader_ip_addr: ip_addrs).group(:uploader).count)
-      add_row(sums, UserFeedback.where(creator_ip_addr: ip_addrs).group(:creator).count)
-      add_row(sums, Hash[User.where(last_ip_addr: ip_addrs).collect { |user| [user, 1] }])
-
-      add_row_id(sums, PoolArchive.where(updater_ip_addr: ip_addrs).group(:updater_id).count)
-      add_row_id(sums, PostArchive.where(updater_ip_addr: ip_addrs).group(:updater_id).count)
-
-      sums
-    end
-
-    def search_by_user_name(user_names)
-      user_ids = user_names.map { |name| User.name_to_id(name) }
-      search_by_user_id(user_ids)
-    end
-
-    def search_by_user_id(user_ids)
-      sums = Hash.new {|h, k| h[k] = 0}
-      users = User.find(user_ids)
-
-      add_row(sums, ArtistCommentaryVersion.where(updater: users).group(:updater_ip_addr).count)
-      add_row(sums, ArtistVersion.where(updater: users).group(:updater_ip_addr).count)
-      add_row(sums, NoteVersion.where(updater: users).group(:updater_ip_addr).count)
-      add_row(sums, PoolArchive.where(updater_id: users.map(&:id)).group(:updater_ip_addr).count)
-      add_row(sums, PostArchive.where(updater_id: users.map(&:id)).group(:updater_ip_addr).count)
-      add_row(sums, WikiPageVersion.where(updater: users).group(:updater_ip_addr).count)
-      add_row(sums, Comment.where(creator: users).group(:creator_ip_addr).count)
-      add_row(sums, Dmail.where(from: users).group(:creator_ip_addr).count)
-      add_row(sums, PostAppeal.where(creator: users).where.not(creator_ip_addr: nil).group(:creator_ip_addr).count)
-      add_row(sums, PostFlag.where(creator: users).group(:creator_ip_addr).count)
-      add_row(sums, Upload.where(uploader: users).group(:uploader_ip_addr).count)
-      add_row(sums, User.where(id: users).where.not(last_ip_addr: nil).group(:last_ip_addr).count)
-      add_row(sums, UserFeedback.where(creator_id: users).where.not(creator_ip_addr: nil).group(:creator_ip_addr).count)
-
-      sums
-    end
-
-    def add_row(sums, counts)
-      sums.merge!(counts) { |key, oldcount, newcount| oldcount + newcount }
-    end
-
-    def add_row_id(sums, counts)
-      user_counts = {}
-      counts.each do |k, v|
-        user_counts[User.find(k)] = v
+    def search_by_ip_addr(ip_addrs, with_history = false)
+      def add_by_ip_addr(target, name, ips, klass, ip_field, id_field)
+        if ips.size == 1
+          target.merge!({name => klass.where("#{ip_field} <<= ?", ips[0]).group(id_field).count})
+        else
+          target.merge!({name => klass.where(ip_field => ips).group(id_field).count})
+        end
       end
-      add_row(sums, user_counts)
+
+      sums = {}
+      add_by_ip_addr(sums, :wiki_page, ip_addrs, WikiPageVersion, :updater_ip_addr, :updater_id)
+      add_by_ip_addr(sums, :comment, ip_addrs, Comment, :creator_ip_addr, :creator_id)
+      add_by_ip_addr(sums, :dmail, ip_addrs, Dmail, :creator_ip_addr, :from_id)
+      add_by_ip_addr(sums, :blip, ip_addrs, Blip, :creator_ip_addr, :creator_id)
+      add_by_ip_addr(sums, :post_appeal, ip_addrs, PostAppeal, :creator_ip_addr, :creator_id)
+      add_by_ip_addr(sums, :post_flag, ip_addrs, PostFlag, :creator_ip_addr, :creator_id)
+      add_by_ip_addr(sums, :upload, ip_addrs, Upload, :uploader_ip_addr, :uploader_id)
+      add_by_ip_addr(sums, :user_record, ip_addrs, UserFeedback, :creator_ip_addr, :creator_id)
+      add_by_ip_addr(sums, :posts, ip_addrs, Post, :uploader_ip_addr, :uploader_id)
+      sums[:last_login] = Hash[User.where(last_ip_addr: ip_addrs).collect { |user| [user.id, 1] }]
+
+      if with_history
+        add_by_ip_addr(sums, :artist_commentary_version, ip_addrs, ArtistCommentaryVersion, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :artist_version, ip_addrs, ArtistVersion, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :note_version, ip_addrs, NoteVersion, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :pool_version, ip_addrs, PoolArchive, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :post_version, ip_addrs, PostArchive, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :wiki_page_version, ip_addrs, WikiPageVersion, :updater_ip_addr, :updater_id)
+      end
+
+      user_ids = sums.map { |_, v| v.map { |k, _| k } }.reduce([]) { |ids, id| ids + id }.uniq
+      users = User.where(id: user_ids).map { |u| [u.id, u] }.to_h
+      {sums: sums, users: users}
+    end
+
+    def search_by_user_name(user_names, with_history = false)
+      user_ids = user_names.map { |name| User.name_to_id(name) }
+      search_by_user_id(user_ids, with_history)
+    end
+
+    def search_by_user_id(user_ids, with_history = false)
+      def add_by_user_id(target, name, ids, klass, ip_field, id_field)
+          target.merge!({name => klass.where(id_field => ids).where.not(ip_field => nil).group(ip_field).count})
+      end
+
+      sums = {}
+      add_by_user_id(sums, :wiki_page, user_ids, WikiPageVersion, :updater_ip_addr, :updater_id)
+      add_by_user_id(sums, :comment, user_ids, Comment, :creator_ip_addr, :creator_id)
+      add_by_user_id(sums, :dmail, user_ids, Dmail, :creator_ip_addr, :from_id)
+      add_by_user_id(sums, :blip, user_ids, Blip, :creator_ip_addr, :creator_id)
+      add_by_user_id(sums, :post_appeal, user_ids, PostAppeal, :creator_ip_addr, :creator_id)
+      add_by_user_id(sums, :post_flag, user_ids, PostFlag, :creator_ip_addr, :creator_id)
+      add_by_user_id(sums, :upload, user_ids, Upload, :uploader_ip_addr, :uploader_id)
+      add_by_user_id(sums, :user_record, user_ids, UserFeedback, :creator_ip_addr, :creator_id)
+      add_by_user_id(sums, :posts, user_ids, Post, :uploader_ip_addr, :uploader_id)
+      add_by_user_id(sums, :users, user_ids, User, :last_ip_addr, :id)
+
+      if with_history
+        add_by_user_id(sums, :artist_commentary_version, user_ids, ArtistCommentaryVersion, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :artist_version, user_ids, ArtistVersion, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :note_version, user_ids, NoteVersion, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :pool_version, user_ids, PoolArchive, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :post_version, user_ids, PostArchive, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :wiki_page_version, user_ids, WikiPageVersion, :updater_ip_addr, :updater_id)
+      end
+
+      ip_addrs = sums.map { |_, v| v.map { |k, _| k } }.reduce([]) { |ids, id| ids + id }.uniq
+      {sums: sums, ip_addrs: ip_addrs}
     end
   end
 end

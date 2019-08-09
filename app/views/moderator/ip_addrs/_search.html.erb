@@ -1,0 +1,10 @@
+<div class="box-section">
+  It is possible to search for IP address wildcards using CIDR notation, but only if searching for a single IP addr. You probably want '/24' at the end for IPv4 wildcards.
+</div>
+<%= simple_form_for(:search, method: :get, url: moderator_ip_addrs_path, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
+  <%= f.input :user_id, label: "User IDs", input_html: { value: params[:search][:user_id] } %>
+  <%= f.input :user_name, label: "User Names", input_html: { value: params[:search][:user_name] } %>
+  <%= f.input :ip_addr, label: "IP Addresses", input_html: { value: params[:search][:ip_addr] } %>
+  <%= f.input :with_history, label: "With History", as: :boolean, input_html: { checked: params[:search][:with_history] } %>
+  <%= f.submit "Search" %>
+<% end %>

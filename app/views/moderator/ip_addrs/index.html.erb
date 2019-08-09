@@ -3,13 +3,17 @@
     <h1>IP Addresses</h1>
 
     <% if params[:search][:user_id].present? || params[:search][:user_name].present? %>
+      <%= render "search" %>
       <div id="p-ip-listing">
         <%= render "ip_listing" %>
       </div>
-    <% else %>
+    <% elsif params[:search][:ip_addr] %>
+      <%= render "search" %>
       <div id="p-user-listing">
         <%= render "user_listing" %>
       </div>
+    <% else %>
+      <%= render "search" %>
     <% end %>
   </div>
 </div>

@@ -1,18 +1,22 @@
-<p><%= link_to "Search for users with these IP addresses", moderator_ip_addrs_path(:search => {:ip_addr => @results.keys.reject{|ip| ip == "127.0.0.1"}.join(",")}) %></p>
+<p><%= link_to "Search for users with these IP addresses", moderator_ip_addrs_path(:search => {:ip_addr => @results[:ip_addrs].reject{|ip| ip == "127.0.0.1"}.join(",")}) %></p>
 
 <table class="striped">
   <thead>
     <tr>
       <th>IP Address</th>
+      <th>Type</th>
       <th>Number of Occurrences</th>
     </tr>
   </thead>
   <tbody>
-    <% @results.each do |ip_address, count| %>
+  <% @results[:sums].each do |name, counts| %>
+    <% counts.each do |ip_addr, count| %>
       <tr>
-        <td><%= link_to_ip ip_address %></td>
+        <td><%= link_to_ip ip_addr %></td>
+        <td><%= name.to_s.tr '_', ' ' %></td>
         <td><%= count %></td>
       </tr>
     <% end %>
+  <% end %>
   </tbody>
 </table>

@@ -1,20 +1,24 @@
-<p><%= link_to "Search for IP addresses with these users", moderator_ip_addrs_path(:search => {:user_id => @results.map{|user, count| user.id}.join(",")}) %></p>
+<p><%= link_to "Search for IP addresses with these users", moderator_ip_addrs_path(:search => {:user_id => @results[:users].map { |user_id, _| user_id }.join(",")}) %></p>
 
 <table class="striped">
   <thead>
-    <tr>
-      <th>User</th>
-      <th>Number of Occurrences</th>
-      <th/>
-    </tr>
+  <tr>
+    <th>User</th>
+    <th>Type</th>
+    <th>Number of Occurrences</th>
+    <th/>
+  </tr>
   </thead>
   <tbody>
-    <% @results.each do |user, count| %>
+  <% @results[:sums].each do |name, counts| %>
+    <% counts.each do |uid, count| %>
       <tr>
-        <td><%= link_to_user user %></td>
+        <td><%= link_to_user @results[:users][uid] %></td>
         <td><%= count %></td>
-        <td><%= link_to "Show IP addresses", moderator_ip_addrs_path(:search => {:user_id => user.id}) %></td>
+        <td><%= name.to_s.tr '_', ' ' %></td>
+        <td><%= link_to "Show IP addresses", moderator_ip_addrs_path(:search => {:user_id => uid}) %></td>
       </tr>
     <% end %>
+  <% end %>
   </tbody>
 </table>
