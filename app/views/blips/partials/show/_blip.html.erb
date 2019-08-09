@@ -32,8 +32,6 @@
         <% if !blip.is_hidden %>
           <% if blip.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
-          <% else %>
-            <!--              | <%#= link_to "Report", {controller: "ticket", action: "new", type: "blip", disp_id: blip.id}, class: "" %>-->
           <% end %>
         <% elsif CurrentUser.is_moderator? %>
           <li><%= link_to "Unhide", unhide_blip_path(blip), data: {confirm: "Are you sure you want to unhide this blip?"}, method: :post %></li>
@@ -41,7 +39,6 @@
 
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to "Delete", blip_path(blip), data: {confirm: "Are you sure you want to delete this blip?"}, method: :delete %></li>
-          <!--            | <%#= link_to "View Edits", controller: "edit_history", action: "show", id: blip.id, type: "Blip" %>-->
         <% end %>
 
         <% if blip.has_responses? %>

@@ -44,6 +44,10 @@
         <% if CurrentUser.is_moderator? %>
           <li>|</li>
           <li><%= link_to "Show Edits", edit_history_path(id: forum_post.id, type: 'ForumPost') %></li>
+          <li>
+            <strong>IP</strong>
+            <span><%= link_to_ip forum_post.creator_ip_addr %></span>
+          </li>
           <li>|</li>
         <% end %>
         <% if params[:controller] == "forum_posts" %>
