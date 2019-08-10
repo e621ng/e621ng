@@ -488,7 +488,7 @@ CREATE TABLE public.bans (
     user_id integer,
     reason text NOT NULL,
     banner_id integer NOT NULL,
-    expires_at timestamp without time zone NOT NULL,
+    expires_at timestamp without time zone,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -5186,6 +5186,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190717205018'),
 ('20190718201354'),
 ('20190801210547'),
-('20190804010156');
+('20190804010156'),
+('20190810064211');
 
 

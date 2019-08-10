@@ -3,6 +3,7 @@
 
   <%= f.input :user_name, :as => :string %>
   <%= f.input :duration, :hint => "in days" %>
+  <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
   <%= f.input :reason %>
   <%= f.button :submit, :value => "Ban" %>
 <% end %>

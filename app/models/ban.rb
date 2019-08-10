@@ -1,4 +1,5 @@
 class Ban < ApplicationRecord
+  attr_accessor :is_permaban
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
@@ -9,12 +10,13 @@ class Ban < ApplicationRecord
   validate :user_is_inferior
   validates_presence_of :user_id, :reason, :duration
   before_validation :initialize_banner_id, :on => :create
+  before_validation :initialize_permaban, on: [:update, :create]
 
-  scope :unexpired, -> { where("bans.expires_at > ?", Time.now) }
-  scope :expired, -> { where("bans.expires_at <= ?", Time.now) }
+  scope :unexpired, -> { where("bans.expires_at > ? OR bans.expires_at IS NULL", Time.now) }
+  scope :expired, -> { where("bans.expires_at IS NOT NULL").where("bans.expires_at <= ?", Time.now) }
 
   def self.is_banned?(user)
-    exists?(["user_id = ? AND expires_at > ?", user.id, Time.now])
+    exists?(["user_id = ? AND (expires_at > ? OR expires_at IS NULL)", user.id, Time.now])
   end
 
   def self.reason_matches(query)
@@ -69,6 +71,12 @@ class Ban < ApplicationRecord
     self.banner_id = CurrentUser.id if self.banner_id.blank?
   end
 
+  def initialize_permaban
+    if is_permaban == "1"
+      self.duration = -1
+    end
+  end
+
   def user_is_inferior
     if user
       if user.is_admin?
@@ -105,7 +113,12 @@ class Ban < ApplicationRecord
   end
 
   def duration=(dur)
-    self.expires_at = dur.to_i.days.from_now
+    dur = dur.to_i
+    if dur < 0
+      self.expires_at = nil
+    else
+      self.expires_at = dur.days.from_now
+    end
     @duration = dur
   end
 
@@ -114,11 +127,22 @@ class Ban < ApplicationRecord
   end
 
   def humanized_duration
+    return 'permanent' if expires_at == nil
     ApplicationController.helpers.distance_of_time_in_words(created_at, expires_at)
   end
 
+  def humanized_expiration
+    return 'never' if expires_at == nil
+    ApplicationController.helpers.compact_time expires_at
+  end
+
+  def expire_days
+    return 'never' if expires_at == nil
+    ApplicaitonController.helpers.time_ago_in_words(expires_at)
+  end
+
   def expired?
-    expires_at < Time.now
+    expires_at != nil && expires_at < Time.now
   end
 
   def create_feedback
