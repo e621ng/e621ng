@@ -9,7 +9,7 @@
     </p>
   </div>
   <strong>Extra Params:</strong>
-  <pre class="box-section"><%= JSON.pretty_generate(@exception_log.extra_params) %></pre>
+  <pre class="box-section"><%= JSON.pretty_generate(@exception_log.extra_params || {}) %></pre>
   <strong>Stacktrace:</strong>
   <pre class="box-section"><%= @exception_log.trace %></pre>
 </div>
