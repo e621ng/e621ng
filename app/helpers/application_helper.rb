@@ -258,6 +258,12 @@ protected
     when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "admin/users"
       /^\/(session|users)/
 
+    when "post_sets"
+      /^\/post_sets/
+
+    when "blips"
+      /^\/blips/
+
     when "forum_posts"
       /^\/forum_topics/
 
@@ -268,7 +274,7 @@ protected
       /^\/notes/
 
     when "posts", "uploads", "post_versions", "explore/posts", "moderator/post/dashboards", "favorites"
-      /^\/post/
+      /^\/posts/
 
     when "artists", "artist_versions"
       /^\/artist/

@@ -122,6 +122,6 @@ class UserFeedback < ApplicationRecord
   end
 
   def editable_by?(editor)
-    (editor.is_moderator? && editor != user) || creator == editor
+    (editor.is_moderator? && editor != user)
   end
 end
