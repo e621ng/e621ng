@@ -1,7 +1,7 @@
 require 'securerandom'
 
 class ExceptionLog < ApplicationRecord
-  serialize :extra_params
+  serialize :extra_params, JSON
 
   def self.add(exc, ip_addr, params = {})
     log = self.new(
