@@ -1,13 +1,4 @@
 GIT
-  remote: https://github.com/abronte/BigQuery.git
-  revision: b92b4e0b54574e3fde7ad910f39a67538ed387ad
-  ref: b92b4e0b54574e3fde7ad910f39a67538ed387ad
-  specs:
-    bigquery (0.9.0)
-      google-api-client (~> 0.9.3)
-      googleauth (~> 0.5.0)
-
-GIT
   remote: https://github.com/r888888888/ruby-imagespec.git
   revision: 2dab9811f4abb4fbaeea66feb42e388ba545b2d8
   branch: exif-fixes
@@ -75,14 +66,6 @@ GEM
       sshkit (>= 1.6.1, != 1.7.0)
     arel (9.0.0)
     awesome_print (1.8.0)
-    aws-sdk (2.11.38)
-      aws-sdk-resources (= 2.11.38)
-    aws-sdk-core (2.11.38)
-      aws-sigv4 (~> 1.0)
-      jmespath (~> 1.0)
-    aws-sdk-resources (2.11.38)
-      aws-sdk-core (= 2.11.38)
-    aws-sigv4 (1.0.2)
     bcrypt (3.1.11)
     bcrypt (3.1.11-x64-mingw32)
     bootsnap (1.3.0)
@@ -147,7 +130,6 @@ GEM
       multi_json
     equalizer (0.0.11)
     erubi (1.8.0)
-    execjs (2.7.0)
     factory_bot (4.8.2)
       activesupport (>= 3.0.0)
     faraday (0.12.2)
@@ -162,26 +144,8 @@ GEM
     get_process_mem (0.2.1)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    google-api-client (0.9.28)
-      addressable (~> 2.3)
-      googleauth (~> 0.5)
-      httpclient (~> 2.7)
-      hurley (~> 0.1)
-      memoist (~> 0.11)
-      mime-types (>= 1.6)
-      representable (~> 2.3.0)
-      retriable (~> 2.0)
-    googleauth (0.5.3)
-      faraday (~> 0.12)
-      jwt (~> 1.4)
-      logging (~> 2.0)
-      memoist (~> 0.12)
-      multi_json (~> 1.11)
-      os (~> 0.9)
-      signet (~> 0.7)
     hashdiff (0.3.7)
     hashie (3.6.0)
-    highline (1.7.10)
     http (3.3.0)
       addressable (~> 2.3)
       http-cookie (~> 1.0)
@@ -193,11 +157,8 @@ GEM
     http_parser.rb (0.6.0)
     httparty (0.16.2)
       multi_xml (>= 0.5.2)
-    httpclient (2.8.3)
-    hurley (0.2)
     i18n (1.6.0)
       concurrent-ruby (~> 1.0)
-    jmespath (1.4.0)
     jquery-rails (4.3.3)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -205,15 +166,10 @@ GEM
     json (2.1.0)
     jwt (1.5.6)
     kgio (2.11.2)
-    libv8 (3.16.14.19)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
-    little-plugger (1.1.4)
-    logging (2.2.2)
-      little-plugger (~> 1.1)
-      multi_json (~> 1.10)
     loofah (2.2.3)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -230,8 +186,6 @@ GEM
       nokogiri (~> 1.6)
       ntlm-http (~> 0.1, >= 0.1.1)
       webrobots (>= 0.0.9, < 0.2)
-    memcache-client (1.8.5)
-    memcache_mock (0.0.14)
     memoist (0.16.0)
     memoizable (0.4.2)
       thread_safe (~> 0.3, >= 0.3.1)
@@ -278,7 +232,6 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
-    os (0.9.6)
     pg (1.0.0)
     pg (1.0.0-x64-mingw32)
     pry (0.11.3)
@@ -332,9 +285,6 @@ GEM
     recaptcha (4.8.0)
       json
     redis (4.0.3)
-    ref (2.0.0)
-    representable (2.3.0)
-      uber (~> 0.0.7)
     request_store (1.4.1)
       rack (>= 1.4)
     responders (2.4.0)
@@ -351,17 +301,6 @@ GEM
       crass (~> 1.0.2)
       nokogiri (>= 1.4.4)
       nokogumbo (~> 1.4)
-    sass (3.5.6)
-      sass-listen (~> 4.0.0)
-    sass-listen (4.0.0)
-      rb-fsevent (~> 0.9, >= 0.9.4)
-      rb-inotify (~> 0.9, >= 0.9.7)
-    sass-rails (5.0.7)
-      railties (>= 4.0.0, < 6)
-      sass (~> 3.1)
-      sprockets (>= 2.8, < 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
-      tilt (>= 1.1, < 3)
     shoulda-context (1.2.2)
     shoulda-matchers (3.1.2)
       activesupport (>= 4.0.0)
@@ -374,11 +313,6 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 4.0, < 7.0)
       thor (~> 0)
-    signet (0.8.1)
-      addressable (~> 2.3)
-      faraday (~> 0.9)
-      jwt (>= 1.5, < 3.0)
-      multi_json (~> 1.10)
     simple_form (4.0.0)
       actionpack (> 4)
       activemodel (> 4)
@@ -406,18 +340,10 @@ GEM
     statistics2 (0.54)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
-    stripe (3.13.0)
-      faraday (~> 0.10)
-    term-ansicolor (1.6.0)
-      tins (~> 1.0)
-    therubyracer (0.12.3)
-      libv8 (~> 3.16.14.15)
-      ref
     thor (0.19.4)
     thread_safe (0.3.6)
     tilt (2.0.8)
     timecop (0.9.1)
-    tins (1.16.3)
     twitter (6.2.0)
       addressable (~> 2.3)
       buftok (~> 0.2.0)
@@ -431,11 +357,6 @@ GEM
       simple_oauth (~> 0.3.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2018.4)
-      tzinfo (>= 1.0.0)
-    uber (0.0.15)
-    uglifier (4.1.10)
-      execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.5)
@@ -476,9 +397,7 @@ DEPENDENCIES
   activemodel-serializers-xml
   addressable
   awesome_print
-  aws-sdk (~> 2)
   bcrypt
-  bigquery!
   bootsnap
   capistrano (~> 3.10)
   capistrano-deploytags (~> 1.0.0)
@@ -497,14 +416,10 @@ DEPENDENCIES
   factory_bot
   ffaker
   foreman
-  google-api-client
-  highline
   httparty
   jquery-rails
   listen
   mechanize
-  memcache-client
-  memcache_mock
   memoist
   minitest-ci
   mocha
@@ -528,7 +443,6 @@ DEPENDENCIES
   ruby-vips
   rubyzip
   sanitize
-  sass-rails
   shoulda-context
   shoulda-matchers
   sidekiq
@@ -538,13 +452,8 @@ DEPENDENCIES
   sinatra
   statistics2
   streamio-ffmpeg
-  stripe
-  term-ansicolor
-  therubyracer
   timecop
   twitter
-  tzinfo-data
-  uglifier
   unicorn
   unicorn-worker-killer
   webmock
