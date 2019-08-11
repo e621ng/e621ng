@@ -191,6 +191,11 @@ class WikiPage < ApplicationRecord
     title.tr("_", " ")
   end
 
+  def pretty_title_with_category
+    return pretty_title if category_name == 0
+    "#{Tag.category_for_value(category_name)}: #{pretty_title}"
+  end
+
   def wiki_page_changed?
     saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names?
   end
