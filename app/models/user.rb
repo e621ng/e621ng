@@ -472,7 +472,7 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger_on_post?(flag)
-      (is_moderator? && flag.not_uploaded_by?(id)) || flag.creator_id == id
+      is_moderator? || flag.creator_id == id
     end
 
     def can_upload?

@@ -13,7 +13,7 @@ class TakedownJob < ApplicationJob
     CurrentUser.as_system do
       @takedown.status = @takedown.calculated_status
       @takedown.save!
-      @takedown.actual_posts.each do |p|
+      @takedown.actual_posts.find_each do |p|
         if @takedown.should_delete(p.id)
           next if p.is_deleted?
           p.delete!("takedown ##{@takedown.id}: #{del_reason}", force: true, without_mod_action: true)

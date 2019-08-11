@@ -111,7 +111,17 @@
       </div>
     <% end %>
 
-    <% if @show_instructions || CurrentUser.is_admin? %>
+    <% if CurrentUser.is_admin? %>
+      <% if !@takedown.instructions.blank? %>
+        <h3>Special instructions</h3>
+        <div class="box-section">
+          <%= h @takedown.instructions %>
+        </div>
+      <% end %>
+      <%= render "editor" %>
+    <% end %>
+
+    <% if @show_instructions %>
       <% if !@takedown.instructions.blank? %>
         <h3>Special instructions</h3>
         <div class="box-section">
