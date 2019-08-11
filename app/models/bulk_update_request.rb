@@ -1,5 +1,5 @@
 class BulkUpdateRequest < ApplicationRecord
-  attr_accessor :reason, :skip_secondary_validations
+  attr_accessor :reason, :skip_secondary_validations, :skip_forum
 
   belongs_to :user
   belongs_to :forum_topic, optional: true
@@ -118,6 +118,7 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def create_forum_topic
+      return if skip_forum
       if forum_topic_id
         forum_post = forum_topic.posts.create(body: reason_with_link)
         update(forum_post_id: forum_post.id)
@@ -225,6 +226,10 @@ class BulkUpdateRequest < ApplicationRecord
 
   def skip_secondary_validations=(v)
     @skip_secondary_validations = v.to_s.truthy?
+  end
+
+  def skip_forum=(v)
+    @skip_forum = v.to_s.truthy?
   end
 
   def is_pending?

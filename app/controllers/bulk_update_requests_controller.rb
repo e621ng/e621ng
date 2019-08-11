@@ -59,8 +59,9 @@ class BulkUpdateRequestsController < ApplicationController
   end
 
   def bur_params(context)
-    permitted_params = %i[script skip_secondary_validations]
+    permitted_params = %i[script]
     permitted_params += %i[title reason forum_topic_id] if context == :create
+    permitted_params += %i[skip_secondary_validations skip_forum] if CurrentUser.is_moderator?
     permitted_params += %i[forum_topic_id forum_post_id] if context == :update && CurrentUser.is_admin?
 
     params.require(:bulk_update_request).permit(permitted_params)

@@ -1,7 +1,7 @@
 class TagImplicationRequest
   include ActiveModel::Validations
 
-  attr_reader :antecedent_name, :consequent_name, :reason, :tag_implication, :forum_topic, :skip_secondary_validations
+  attr_reader :antecedent_name, :consequent_name, :reason, :tag_implication, :forum_topic, :skip_secondary_validations, :skip_forum
 
   validate :validate_tag_implication
   validate :validate_forum_topic
@@ -10,7 +10,7 @@ class TagImplicationRequest
     "Tag implication: #{antecedent_name} -> #{consequent_name}"
   end
 
-  def self.command_string(antecedent_name, consequent_name, id=nil)
+  def self.command_string(antecedent_name, consequent_name, id = nil)
     if id
       return "[ti:#{id}]"
     end
@@ -23,6 +23,7 @@ class TagImplicationRequest
     @consequent_name = attributes[:consequent_name].strip.tr(" ", "_")
     @reason = attributes[:reason]
     self.skip_secondary_validations = attributes[:skip_secondary_validations]
+    self.skip_forum = attributes[:skip_forum]
   end
 
   def create
@@ -32,20 +33,23 @@ class TagImplicationRequest
       @tag_implication = build_tag_implication
       @tag_implication.save
 
-      @forum_topic = build_forum_topic(@tag_implication.id)
-      @forum_topic.save
 
-      @tag_implication.forum_topic_id = @forum_topic.id
-      @tag_implication.forum_post_id = @forum_topic.posts.first.id
-      @tag_implication.save
+      unless skip_forum
+        @forum_topic = build_forum_topic(@tag_implication.id)
+        @forum_topic.save
+
+        @tag_implication.forum_topic_id = @forum_topic.id
+        @tag_implication.forum_post_id = @forum_topic.posts.first.id
+        @tag_implication.save
+      end
     end
   end
 
   def build_tag_implication
     x = TagImplication.new(
-      :antecedent_name => antecedent_name, 
-      :consequent_name => consequent_name, 
-      :skip_secondary_validations => skip_secondary_validations
+        :antecedent_name => antecedent_name,
+        :consequent_name => consequent_name,
+        :skip_secondary_validations => skip_secondary_validations
     )
     x.status = "pending"
     x
@@ -53,11 +57,11 @@ class TagImplicationRequest
 
   def build_forum_topic(tag_implication_id)
     ForumTopic.new(
-      :title => TagImplicationRequest.topic_title(antecedent_name, consequent_name),
-      :original_post_attributes => {
-        :body => TagImplicationRequest.command_string(antecedent_name, consequent_name, tag_implication_id) + "\n\nReason: #{reason}"
-      },
-      :category_id => 1
+        :title => TagImplicationRequest.topic_title(antecedent_name, consequent_name),
+        :original_post_attributes => {
+            :body => TagImplicationRequest.command_string(antecedent_name, consequent_name, tag_implication_id) + "\n\nReason: #{reason}"
+        },
+        :category_id => 1
     )
   end
 
@@ -65,20 +69,25 @@ class TagImplicationRequest
     ti = @tag_implication || build_tag_implication
 
     if ti.invalid?
-      self.errors.add(:base, ti.errors.full_messages.join("; ")) 
+      self.errors.add(:base, ti.errors.full_messages.join("; "))
       return false
     end
   end
 
   def validate_forum_topic
+    return if skip_forum
     ft = @forum_topic || build_forum_topic(nil)
     if ft.invalid?
-      self.errors.add(:base, ft.errors.full_messages.join("; ")) 
+      self.errors.add(:base, ft.errors.full_messages.join("; "))
       return false
     end
   end
 
   def skip_secondary_validations=(v)
     @skip_secondary_validations = v.to_s.truthy?
+  end
+
+  def skip_forum=(v)
+    @skip_forum = v.to_s.truthy?
   end
 end

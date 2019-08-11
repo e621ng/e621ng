@@ -10,14 +10,18 @@ class TagAliasRequestsController < ApplicationController
 
     if @tag_alias_request.invalid?
       render :action => "new"
-    else
+    elsif @tag_alias_request.forum_topic
       redirect_to forum_topic_path(@tag_alias_request.forum_topic)
+    else
+      redirect_to tag_alias_path(@tag_alias_request.tag_alias)
     end
   end
 
 private
-  
+
   def tar_params
-    params.require(:tag_alias_request).permit(:antecedent_name, :consequent_name, :reason, :skip_secondary_validations)
+    permitted = %i{antecedent_name consequent_name reason}
+    permitted += [:skip_secondary_validations, :skip_forum] if CurrentUser.is_moderator?
+    params.require(:tag_alias_request).permit(permitted)
   end
 end
