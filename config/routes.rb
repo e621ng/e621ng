@@ -309,7 +309,6 @@ Rails.application.routes.draw do
   end
   resources :tag_type_versions
   resources :tag_aliases do
-    resource :correction, :controller => "tag_alias_corrections"
     member do
       post :approve
     end
