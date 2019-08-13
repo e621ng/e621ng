@@ -32,7 +32,7 @@ class PostPresenter < Presenter
     locals[:link_target] = options[:link_target] || post
 
     locals[:link_params] = {}
-    if options[:tags].present? && !CurrentUser.is_anonymous?
+    if options[:tags].present?
       locals[:link_params]["q"] = options[:tags]
     end
     if options[:pool_id]
