@@ -71,7 +71,7 @@ class User < ApplicationRecord
   validates_presence_of :comment_threshold
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
-  before_validation :normalize_blacklisted_tags
+  before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
   before_validation :normalize_email
   before_create :encrypt_password_on_create
@@ -368,7 +368,7 @@ class User < ApplicationRecord
 
   module BlacklistMethods
     def normalize_blacklisted_tags
-      self.blacklisted_tags = blacklisted_tags.downcase if blacklisted_tags.present?
+      self.blacklisted_tags = TagAlias.to_aliased_query(blacklisted_tags.downcase) if blacklisted_tags.present?
     end
   end
 
