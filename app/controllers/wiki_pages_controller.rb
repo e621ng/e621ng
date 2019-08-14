@@ -51,14 +51,16 @@ class WikiPagesController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @wiki_page = WikiPage.find(params[:id])
     else
-      @wiki_page = WikiPage.find_by_title(params[:id])
-      if @wiki_page.nil? && request.format.symbol == :html
-        redirect_to show_or_new_wiki_pages_path(:title => params[:id])
-        return
-      end
+      @wiki_page = WikiPage.titled(params[:id]).first
     end
 
-    respond_with(@wiki_page)
+    if @wiki_page.present?
+      respond_with(@wiki_page)
+    elsif request.format.html?
+      redirect_to show_or_new_wiki_pages_path(title: params[:id])
+    else
+      raise ActiveRecord::RecordNotFound
+    end
   end
 
   def create
