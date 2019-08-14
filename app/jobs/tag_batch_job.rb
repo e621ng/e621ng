@@ -20,7 +20,7 @@ class TagBatchJob < ApplicationJob
       end
     end
 
-    ModAction.log("processed mass update: #{@antecedent} -> #{@consequent}",:mass_update)
+    ModAction.log(:mass_update, {antecedent: @antecedent, consequent: @consequent})
   end
 
   def estimate_update_count

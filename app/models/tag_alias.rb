@@ -1,27 +1,9 @@
 class TagAlias < TagRelationship
-  after_save :clear_all_cache
-  after_destroy :clear_all_cache
-  after_save :clear_all_cache, if: ->(rec) {rec.is_retired?}
   after_save :create_mod_action
-  validates_uniqueness_of :antecedent_name, scope: :status, conditions: -> { active }
+  validates_uniqueness_of :antecedent_name
   validate :absence_of_transitive_relation
   validate :wiki_pages_present, on: :create, unless: :skip_secondary_validations
   validate :mininum_antecedent_count, on: :create, unless: :skip_secondary_validations
-
-  module CacheMethods
-    extend ActiveSupport::Concern
-
-    module ClassMethods
-      def clear_cache_for(name)
-        Cache.delete("ta:#{Cache.hash(name)}")
-      end
-    end
-
-    def clear_all_cache
-      TagAlias.clear_cache_for(antecedent_name)
-      TagAlias.clear_cache_for(consequent_name)
-    end
-  end
 
   module ApprovalMethods
     def approve!(update_topic: true, approver: CurrentUser.user)
@@ -36,21 +18,20 @@ class TagAlias < TagRelationship
     def forum_updater
       @forum_updater ||= begin
         post = if forum_topic
-          forum_post || forum_topic.posts.where("body like ?", TagAliasRequest.command_string(antecedent_name, consequent_name, id) + "%").last
-        else
-          nil
-        end
+                 forum_post || forum_topic.posts.where("body like ?", TagAliasRequest.command_string(antecedent_name, consequent_name, id) + "%").last
+               else
+                 nil
+               end
         ForumUpdater.new(
-          forum_topic,
-          forum_post: post,
-          expected_title: TagAliasRequest.topic_title(antecedent_name, consequent_name),
-          skip_update: !TagRelationship::SUPPORT_HARD_CODED
+            forum_topic,
+            forum_post: post,
+            expected_title: TagAliasRequest.topic_title(antecedent_name, consequent_name),
+            skip_update: !TagRelationship::SUPPORT_HARD_CODED
         )
       end
     end
   end
 
-  include CacheMethods
   include ApprovalMethods
   include ForumMethods
 
@@ -63,13 +44,31 @@ class TagAlias < TagRelationship
   end
 
   def self.to_aliased_with_originals(names)
-    Cache.get_multi(Array(names), "ta") do |tag|
-      ActiveRecord::Base.select_value_sql("select consequent_name from tag_aliases where status in ('active', 'processing') and antecedent_name = ?", tag) || tag.to_s
-    end
+    names = Array(names).map(&:to_s)
+    return {} if names.empty?
+    aliases = active.where(antecedent_name: names).map { |ta| [ta.antecedent_name, ta.consequent_name] }.to_h
+    names.map { |tag| [tag, tag] }.to_h.merge(aliases)
   end
 
   def self.to_aliased(names)
     TagAlias.to_aliased_with_originals(names).values
+  end
+
+  def self.to_aliased_query(query)
+    # Remove tag types (newline syntax)
+    query.gsub!(/(^| )(-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join("|")}):([\S])/i, '\1\2\4')
+    # Remove tag types (comma syntax)
+    query.gsub!(/, (-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join("|")}):([\S])/i, ', \1\3')
+    lines = query.downcase.split("\n")
+    lines = lines.map do |line|
+      tags = line.split(" ").reject(&:blank?).map do |x|
+        negated = x[0] == '-'
+        [negated ? x[1..-1] : x, negated]
+      end
+      aliased = to_aliased_with_originals(tags.map { |t| t[0] })
+      tags.map { |t| "#{t[1] ? '-' : ''}#{aliased[t[0]]}" }.join(" ")
+    end
+    lines.uniq.join("\n")
   end
 
   def process!(update_topic: true)
@@ -84,14 +83,16 @@ class TagAlias < TagRelationship
         update(status: "processing")
         move_aliases_and_implications
         move_saved_searches
-        clear_all_cache
         ensure_category_consistency
+        update_posts_locked_tags
+        update_blacklists
         update_posts
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         rename_wiki_and_artist
         update(status: "active", post_count: consequent_tag.post_count)
       end
     rescue Exception => e
+      Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")
       if tries < 5
         tries += 1
         sleep 2 ** tries
@@ -161,18 +162,35 @@ class TagAlias < TagRelationship
     end
   end
 
+  def update_blacklists
+    User.without_timeout do
+      User.where_ilike(:blacklisted_tags, "*#{antecedent_name}*").find_each(batch_size: 50) do |user|
+        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags)
+        user.update_column(:blacklisted_tags, fixed_blacklist)
+      end
+    end
+  end
+
+  def update_posts_locked_tags
+    Post.without_timeout do
+      Post.where_ilike(:locked_tags, "*#{antecedent_name}*").find_each(batch_size: 50) do |post|
+        fixed_tags = TagAlias.to_aliased_query(post.locked_tags)
+        CurrentUser.scoped(creator, creator_ip_addr) do
+          post.update_column(:locked_tags, fixed_tags)
+        end
+      end
+    end
+  end
+
   def update_posts
     Post.without_timeout do
       Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-        escaped_antecedent_name = Regexp.escape(antecedent_name)
-        fixed_tags = post.tag_string.sub(/(?:\A| )#{escaped_antecedent_name}(?:\Z| )/, " #{consequent_name} ").strip
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          post.update_attributes(
-            :tag_string => fixed_tags
-          )
-        end
+        post.do_not_version_changes = true
+        post.tag_string += " "
+        post.save
       end
 
+      # TODO: Race condition with indexing jobs here.
       antecedent_tag.fix_post_count if antecedent_tag
       consequent_tag.fix_post_count if consequent_tag
     end
@@ -201,7 +219,6 @@ class TagAlias < TagRelationship
 
   def reject!(update_topic: true)
     update(status: "deleted")
-    clear_all_cache
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
   end
 

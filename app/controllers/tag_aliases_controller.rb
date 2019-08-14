@@ -14,8 +14,12 @@ class TagAliasesController < ApplicationController
   def update
     @tag_alias = TagAlias.find(params[:id])
 
-    if @tag_alias.is_pending? && @tag_alias.editable_by?(CurrentUser.user)
-      @tag_alias.update(tag_alias_params)
+    if @tag_alias.editable_by?(CurrentUser.user)
+      update_params = tag_alias_params
+      unless @tag_alias.is_pending?
+        update_params = update_params.except(:antecedent_name, :consequent_name)
+      end
+      @tag_alias.update(update_params)
     end
 
     respond_with(@tag_alias)
@@ -34,6 +38,7 @@ class TagAliasesController < ApplicationController
     @tag_alias = TagAlias.find(params[:id])
     if @tag_alias.deletable_by?(CurrentUser.user)
       @tag_alias.reject!
+      @tag_alias.destroy
       respond_with(@tag_alias, :location => tag_aliases_path)
     else
       access_denied
@@ -46,7 +51,7 @@ class TagAliasesController < ApplicationController
     respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
   end
 
-private
+  private
 
   def tag_alias_params
     params.require(:tag_alias).permit(%i[antecedent_name consequent_name forum_topic_id skip_secondary_validations])

@@ -1,0 +1,9 @@
+<div>
+  <%= form_tag(tag_alias_request_path,) do %>
+    <%= hidden_field "tag_alias_request", "skip_secondary_validations", value: "1" %>
+    <%= hidden_field "tag_alias_request", "skip_forum", value: "1" %>
+    <label>From: <%= text_field "tag_alias_request", "antecedent_name", :data => {:autocomplete => "tag"} %></label>
+    <label>To: <%= text_field "tag_alias_request", "consequent_name", :data => {:autocomplete => "tag"} %></label>
+    <%= submit_tag "New Alias" %>
+  <% end %>
+</div>
