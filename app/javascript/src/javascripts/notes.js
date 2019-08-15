@@ -264,7 +264,7 @@ let Note = {
 
     hide: function(id) {
       var $note_body = Note.Body.find(id);
-      Note.timeouts.push($.timeout(250).done(function() {$note_body.hide();}));
+      $note_body.hide();
     },
 
     hide_all: function() {
