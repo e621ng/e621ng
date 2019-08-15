@@ -264,7 +264,7 @@ let Note = {
 
     hide: function(id) {
       var $note_body = Note.Body.find(id);
-      $note_body.hide();
+      Note.timeouts.push(setTimeout(function() {$note_body.hide();}, 350));
     },
 
     hide_all: function() {
@@ -763,7 +763,7 @@ let Note = {
 
   clear_timeouts: function() {
     $.each(Note.timeouts, function(i, v) {
-      v.clear();
+      clearTimeout(v);
     });
 
     Note.timeouts = [];
