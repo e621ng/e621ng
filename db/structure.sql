@@ -37,6 +37,23 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
+-- Name: posts_trigger_change_seq(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.posts_trigger_change_seq() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NEW.tag_string != OLD.tag_string OR NEW.parent_id != OLD.parent_id OR NEW.source != OLD.source OR NEW.approver_id != OLD.approver_id OR NEW.rating != OLD.rating OR NEW.description != OLD.description OR NEW.md5 != OLD.md5 OR NEW.is_deleted != OLD.is_deleted OR NEW.is_pending != OLD.is_pending OR NEW.is_flagged != OLD.is_flagged OR NEW.is_rating_locked != OLD.is_rating_locked OR NEW.is_status_locked != OLD.is_status_locked OR NEW.is_note_locked != OLD.is_note_locked OR NEW.bit_flags != OLD.bit_flags OR NEW.has_active_children != OLD.has_active_children OR NEW.last_noted_at != OLD.last_noted_at
+  THEN
+     NEW.change_seq = nextval('public.posts_change_seq_seq');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: sourcepattern(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1967,8 +1984,28 @@ CREATE TABLE public.posts (
     tag_count_species integer DEFAULT 0 NOT NULL,
     tag_count_invalid integer DEFAULT 0 NOT NULL,
     description text DEFAULT ''::text NOT NULL,
-    comment_count integer DEFAULT 0 NOT NULL
+    comment_count integer DEFAULT 0 NOT NULL,
+    change_seq bigint NOT NULL
 );
+
+
+--
+-- Name: posts_change_seq_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.posts_change_seq_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: posts_change_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.posts_change_seq_seq OWNED BY public.posts.change_seq;
 
 
 --
@@ -3087,6 +3124,13 @@ ALTER TABLE ONLY public.post_votes ALTER COLUMN id SET DEFAULT nextval('public.p
 --
 
 ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_id_seq'::regclass);
+
+
+--
+-- Name: posts change_seq; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('public.posts_change_seq_seq'::regclass);
 
 
 --
@@ -4483,6 +4527,13 @@ CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes
 
 
 --
+-- Name: index_posts_on_change_seq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_posts_on_change_seq ON public.posts USING btree (change_seq);
+
+
+--
 -- Name: index_posts_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4903,6 +4954,13 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER posts_update_change_seq BEFORE UPDATE ON public.posts FOR EACH ROW EXECUTE PROCEDURE public.posts_trigger_change_seq();
+
+
+--
 -- Name: blips trigger_blips_on_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5187,6 +5245,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190718201354'),
 ('20190801210547'),
 ('20190804010156'),
-('20190810064211');
+('20190810064211'),
+('20190815131908');
 
 

@@ -159,6 +159,7 @@ class ElasticPostQueryBuilder
     add_range_relation(q[:score], :score, must)
     add_range_relation(q[:fav_count], :fav_count, must)
     add_range_relation(q[:filesize], :file_size, must)
+    add_range_relation(q[:change_seq], :change_seq, must)
     add_range_relation(q[:date], :created_at, must)
     add_range_relation(q[:age], :created_at, must)
 
@@ -441,6 +442,12 @@ class ElasticPostQueryBuilder
 
     when "id_desc"
       order.push({id: :desc})
+
+    when "change", "change_desc"
+      order.push({change_seq: :desc})
+
+    when "change_asc"
+      order.push({change_seq: :asc})
 
     when "md5"
       order.push({md5: :desc})
