@@ -361,8 +361,6 @@ class Pool < ApplicationRecord
     case name
     when /\A(any|none|series|collection)\z/i
       errors[:name] << "cannot be any of the following names: any, none, series, collection"
-    when /,/
-      errors[:name] << "cannot contain commas"
     when /\*/
       errors[:name] << "cannot contain asterisks"
     when ""
