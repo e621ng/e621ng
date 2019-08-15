@@ -15,6 +15,7 @@ module PostIndex
         indexes :score,             type: 'integer'
         indexes :fav_count,         type: 'integer'
         indexes :tag_count,         type: 'integer'
+        indexes :change_seq,        type: 'long'
 
         indexes :tag_count_general,   type: 'integer'
         indexes :tag_count_artist,    type: 'integer'
@@ -173,6 +174,7 @@ module PostIndex
       score:             score,
       fav_count:         fav_count,
       tag_count:         tag_count,
+      change_seq:        change_seq,
 
       tag_count_general:   tag_count_general,
       tag_count_artist:    tag_count_artist,

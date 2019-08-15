@@ -138,6 +138,7 @@ class PostQueryBuilder
     relation = add_range_relation(q[:score], "posts.score", relation)
     relation = add_range_relation(q[:fav_count], "posts.fav_count", relation)
     relation = add_range_relation(q[:filesize], "posts.file_size", relation)
+    relation = add_range_relation(q[:change_seq], 'posts.change_seq', relation)
     relation = add_range_relation(q[:date], "posts.created_at", relation)
     relation = add_range_relation(q[:age], "posts.created_at", relation)
     TagCategory.categories.each do |category|

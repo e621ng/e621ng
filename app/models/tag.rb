@@ -19,7 +19,7 @@ class Tag < ApplicationRecord
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
-    -upvote -downvote description -description
+    -upvote -downvote description -description change
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -38,6 +38,7 @@ class Tag < ApplicationRecord
     portrait landscape
     filesize filesize_asc
     tagcount tagcount_asc
+    change change_desc change_asc
     rank
     random
     custom
@@ -685,6 +686,9 @@ class Tag < ApplicationRecord
 
           when "filesize"
             q[:filesize] = parse_helper_fudged(g2, :filesize)
+
+          when "change"
+            q[:change_seq] = parse_helper(g2)
 
           when "source"
             src = g2.gsub(/\A"(.*)"\Z/, '\1')
