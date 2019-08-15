@@ -1050,11 +1050,14 @@ class Post < ApplicationRecord
   end
 
   module SetMethods
+    def set_ids
+      pool_string.scan(/set\:(\d+)/).map {|set| set[0].to_i}
+    end
+
     def post_sets
       @post_sets ||= begin
         return PostSet.none if pool_string.blank?
-        post_set_ids = pool_string.scan(/\d+/)
-        PostSet.where(id: post_set_ids)
+        PostSet.where(id: set_ids)
       end
     end
 
@@ -1093,10 +1096,13 @@ class Post < ApplicationRecord
   end
 
   module PoolMethods
+    def pool_ids
+      pool_string.scan(/pool\:(\d+)/).map {|pool| pool[0].to_i}
+    end
+
     def pools
       @pools ||= begin
         return Pool.none if pool_string.blank?
-        pool_ids = pool_string.scan(/\d+/)
         Pool.where(id: pool_ids).series_first
       end
     end
@@ -1532,10 +1538,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:tag_index]
-      unless CurrentUser.is_moderator?
-        list += [:fav_string]
-      end
+      list = super + [:tag_index, :pool_string, :fav_string]
       if !visible?
         list += [:md5, :file_ext]
       end
@@ -1543,7 +1546,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:uploader_name, :has_large, :has_visible_children, :children_ids, :is_favorited?] + TagCategory.categories.map {|x| "tag_string_#{x}".to_sym}
+      list = super + [:uploader_name, :has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?] + TagCategory.categories.map {|x| "tag_string_#{x}".to_sym}
       if visible?
         list += [:file_url, :large_file_url, :preview_file_url]
       end
