@@ -1,0 +1,158 @@
+<% if CurrentUser.is_anonymous? %>
+  <h2>You are not logged in.</h2>
+
+  <div class="section" style="width:450px;">
+    <ul class="link-page">
+      <li>&raquo; <%= link_to "Login", new_session_path %></li>
+
+      <% if Danbooru.config.enable_signups? %>
+        <li>&raquo; <%= link_to "Sign up", new_user_path %></li>
+      <% else %>
+        <li>Signups are disabled</li>
+      <% end %>
+
+      <li>&raquo; <%= link_to "Reset password", new_maintenance_user_password_reset_path %></li>
+      <li>&raquo; <%= link_to "Login reminder", new_maintenance_user_login_reminder_path %></li>
+
+      <% if Danbooru.config.enable_email_verification? %>
+        <li>&raquo; <%= link_to "Resend activation email", action: "resend_confirmation" %></li>
+      <% end %>
+    </ul>
+  </div>
+<% else %>
+  <h2>
+    <%= [
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Afrikaans'>Welkom</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Albanian'>Mirëseerdhët</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Amharic'>እንኳን ደህና መጣህ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Arabic'>مرحبا</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Armenian'>ողջույն</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Azerbaijani'>xoş</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Basque'>Ongi</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Belarusian'>жаданы</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Bengali'>স্বাগত</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Bosnian'>Dobrodošli</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Bulgarian'>Добре дошли</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Catalan'>Benvinguda</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Chinese'>歡迎</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Corsican'>Benvenuti</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Croatian'>Dobrodošli</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Czech'>Vítejte</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Danish'>Velkommen</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Dutch'>Welkom</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in English'>Welcome</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Esperanto'>Bonvenon</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Estonian'>Teretulnud</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Filipino'>Maligayang pagdating</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Finnish'>Tervetuloa</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in French'>Bienvenue</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Frisian'>Wolkom</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Galician'>Benvido</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Georgian'>კეთილი</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in German'>Willkommen</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Greek'>καλωσόρισμα</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Gujarati'>સ્વાગત</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Haitian Creole'>Akeyi</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Hausa'>Barka</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Hebrew'>ברוך הבא</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Hindi'>स्वागत</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Hmong'>Zoo siab txais tos</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Hungarian'>Üdvözöljük</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Icelandic'>Velkomin</span>",
+            "<span dir='ltr' class='greeting' title='Namasté is an Indian greeting'>Namasté</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Indonesian'>Selamat datang</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Irish'>Fáilte</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Italian'>Benvenuto</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Japanese'>ようこそ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Kannada'>ಸ್ವಾಗತ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Kazakh'>Қош келдіңіздер</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Khmer'>សូមស្វាគមន៍</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Korean'>환영</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Kurdish'>Bixêrhatin</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Kyrgyz'>Cаламдашуу</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Lao'>ຍິນດີຕ້ອນຮັບ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Latin'>Gratissimum</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Latvian'>Gaidīts</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Lithuanian'>Gaidīts</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Luxembourgish'>Wëllkomm</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Macedonian'>Добредојдовте</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Malay'>Selamat datang</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Malayalam'>സ്വാഗതം</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Maltese'>Merħba</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Maori'>Nau mai</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Marathi'>आपले स्वागत आहे</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Mongolian'>тавтай морилно уу</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Myanmar'>ကြိုဆိုပါတယ်</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Nepali'>स्वागत</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Norwegian'>Velkommen</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Pashto'>ښه راغلاست</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Persian'>خوش آمد</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Polish'>Witaj</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Portuguese'>Bem-vindo</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Punjabi'>ਸੁਆਗਤ ਹੈ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Romanian'>Bun venit</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Russian'>добро пожаловать</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Samoan'>Taliga</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Scottish Gaelic'>Fàilte</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Serbian'>добродошао</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Sesotho'>Amohelehile</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Shona'>Kugashira</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Sindhi'>ڀلي ڪري آيا</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Sinhala'>ඔබ සාදරයෙන් පිළිගනිමු</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Slovak'>Vitajte</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Slovenian'>Dobrodošli</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Spanish'>Bienvenido</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Sundanese'>Wilujeung sumping</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Swahili'>Karibu</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Swedish'>Välkommen</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Tajik'>Хуш омадед</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Tamil'>வரவேற்கிறோம்</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Telugu'>స్వాగతం</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Thai'>ยินดีต้อนรับ</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Turkish'>Karşılama</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Ukrainian'>Ласкаво просимо</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Urdu'>آمدید</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Uzbek'>Xush kelibsiz</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Vietnamese'>Chào mừng bạn</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Welsh'>Croeso</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Yiddish'>באַגריסן</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Zulu'>Siyakwamukela</span>",
+
+            #Made up / Fictional
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Crab People'>*click click click*</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Dothraki'>Idde</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Elvish'>Alatúlië</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Klingon'>yI'el</span>",
+            "<span dir='ltr' class='greeting' title='\"Welcome\" in Zombie'>Uuuugggghh...</span>"
+        ].sample.html_safe %>, <%= CurrentUser.pretty_name %>!
+  </h2>
+  <p>From here you can access account-specific options and features.</p>
+
+  <div class="section" style="width:450px;">
+    <ul class="link-page">
+      <li>&raquo; <%= link_to "Logout", sign_out_session_path %></li>
+      <li>&raquo; <%= link_to "Settings", edit_user_path(CurrentUser.user) %></li>
+      <li>&raquo; <%= link_to "Change password", edit_user_password_path(CurrentUser.user) %></li>
+      <li>&raquo; <%= link_to "Manage API Access", user_api_key_path(CurrentUser.user) %></li>
+      <li>&raquo; <%= link_to "Change username", new_user_name_change_request_path %></li>
+      <% if Danbooru.config.enable_email_verification? && !CurrentUser.is_verified? %>
+        <li>&raquo; <%= link_to "Resend activation email", action: "resend_confirmation" %></li>
+      <% end %>
+      <li>&nbsp;</li>
+      <li>&raquo; <%= link_to "My profile", action: "show", id: CurrentUser.id %></li>
+      <li>&raquo; <%= link_to "My messages", dmails_path %></li>
+      <li>&raquo; <%= link_to "My favorites", posts_path(tags: "fav:#{CurrentUser.name}") %></li>
+      <li>&nbsp;</li>
+      <li>&raquo; <%= link_to "My sets", post_sets_path(user_id: CurrentUser.id) %></li>
+      <li>&raquo; <%= link_to "Sets I maintain", post_sets_path(maintainer_id: CurrentUser.id) %></li>
+      <li>&raquo; <%= link_to "Set maintainer invites", post_set_maintainers_path %></li>
+      <li>&nbsp;</li>
+      <li>&raquo; <%= link_to "Search for myself in comments", comments_path(group_by: :comment, search:{ body_matches: CurrentUser.name, results: 'exact'}) %></li>
+      <li>&raquo; <%= link_to "Search for myself in blips", blips_path(search: {body: CurrentUser.pretty_name}) %></li>
+      <li>&raquo; <%= link_to "Search for myself in forums", forum_posts_path(search: {body_matches: CurrentUser.pretty_name}) %></li>
+      <li>&raquo; <%= link_to "Comments on my posts", comments_path(search: {poster_id: CurrentUser.id}) %></li>
+    </ul>
+  </div>
+<% end %>
+
+<%= render 'secondary_links' %>

@@ -332,6 +332,7 @@ Rails.application.routes.draw do
     end
 
     collection do
+      get :home
       get :search
       get :custom_style
     end
