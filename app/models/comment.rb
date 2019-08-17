@@ -54,7 +54,11 @@ class Comment < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+      where(post_id: PostQueryBuilder.new(query).build.reorder(id: :desc).limit(300))
+    end
+
+    def poster_id(user_id)
+      where(post_id: PostQueryBuilder.new("user_id:#{user_id}").build.reorder(id: :desc).limit(300))
     end
 
     def for_creator(user_id)
@@ -66,7 +70,7 @@ class Comment < ApplicationRecord
     end
 
     def search(params)
-      q = super
+      q = super.includes(:creator).includes(:updater).includes(:post)
 
       q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
 
@@ -84,6 +88,10 @@ class Comment < ApplicationRecord
 
       if params[:creator_id].present?
         q = q.for_creator(params[:creator_id].to_i)
+      end
+
+      if params[:poster_id].present?
+        q = q.poster_id(params[:poster_id].to_i)
       end
 
       q = q.attribute_matches(:is_deleted, params[:is_deleted])
