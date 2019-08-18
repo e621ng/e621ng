@@ -3,6 +3,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
 
   def new
+    return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new
     respond_with(@user)
   end
@@ -35,6 +36,9 @@ class UsersController < ApplicationController
     end
   end
 
+  def home
+  end
+
   def search
   end
 
@@ -45,6 +49,7 @@ class UsersController < ApplicationController
   end
 
   def create
+    return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new(user_params(:create))
     if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
       @user.save

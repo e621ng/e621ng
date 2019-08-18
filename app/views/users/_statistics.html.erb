@@ -1,16 +1,26 @@
-<div>
-  <h2>Statistics</h2>
-  <table width="100%" class="user-statistics">
-    <tbody>
+<style>
+  .profile-container {
+    display: flex;
+  }
+
+  .profile-avatar {
+    margin-right: 2em;
+  }
+</style>
+<div class="profile-container">
+  <div class="profile-avatar">
+    <%= user_avatar @user %>
+  </div>
+  <div class="profile-stats">
+    <h1><%= link_to_user @user %></h1>
+    <table width="100%" class="striped user-statistics">
+      <tbody>
       <tr>
         <th>Join Date</th>
         <td><%= presenter.join_date %></td>
-      </tr>
-
-      <tr>
         <th>Inviter</th>
         <% if user.inviter %>
-          <td><%= link_to_user user.inviter %> <%= link_to "»", users_path(search: { inviter: { name: user.inviter.name }}) %></td>
+          <td><%= link_to_user user.inviter %> <%= link_to "»", users_path(search: {inviter: {name: user.inviter.name}}) %></td>
         <% else %>
           <td>None</td>
         <% end %>
@@ -19,9 +29,6 @@
       <tr>
         <th>Level</th>
         <td><%= presenter.level %></td>
-      </tr>
-
-      <tr>
         <th>Permissions</th>
         <td><%= presenter.permissions %></td>
       </tr>
@@ -34,12 +41,7 @@
       <% end %>
 
       <tr>
-        <th>Upload Limit</th>
-        <td><%= presenter.upload_limit(self) %> (<%= link_to "help", wiki_pages_path(title: "about:upload_limits") %>)</td>
-      </tr>
-
-      <tr>
-        <th>Uploads</th>
+        <th>Posts</th>
         <td>
           <%= presenter.upload_count(self) %>
           <% if presenter.has_uploads? %>
@@ -49,16 +51,25 @@
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300") %>]
           <% end %>
         </td>
+        <th>Upload Limit</th>
+        <td><%= presenter.upload_limit(self) %> (<%= link_to "help", wiki_pages_path(title: "about:upload_limits") %>)
+        </td>
       </tr>
 
       <tr>
-        <th>Deleted Uploads</th>
+        <th>Deleted Posts</th>
         <td>
           <%= presenter.deleted_upload_count(self) %>
           <% if CurrentUser.is_moderator? %>
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
           <% end %>
-
+        </td>
+        <th>Post Changes</th>
+        <td>
+          <%= presenter.post_version_count(self) %>
+          <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
+            [<%= link_to "revert all", new_user_revert_path(user_id: user.id) %>]
+          <% end %>
         </td>
       </tr>
 
@@ -70,60 +81,36 @@
             [<%= link_to "sample", posts_path(:tags => "fav:#{user.name} order:random limit:300") %>]
           <% end %>
         </td>
-      </tr>
-
-      <tr>
-        <th>Post Changes</th>
-        <td>
-          <%= presenter.post_version_count(self) %>
-          <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user)%>
-            [<%= link_to "revert all", new_user_revert_path(user_id: user.id) %>]
-          <% end %>
-        </td>
-      </tr>
-
-      <tr>
-        <th>Note Changes</th>
-        <td><%= presenter.note_version_count(self) %> in <%= presenter.noted_posts_count(self) %> posts</td>
-      </tr>
-
-      <tr>
         <th>Wiki Page Changes</th>
         <td><%= presenter.wiki_page_version_count(self) %></td>
       </tr>
 
       <tr>
+        <th>Forum Posts</th>
+        <td><%= presenter.forum_post_count(self) %></td>
+        <th>Note Changes</th>
+        <td><%= presenter.note_version_count(self) %> on <%= presenter.noted_posts_count(self) %> posts</td>
+      </tr>
+
+      <tr>
+        <th>Comments</th>
+        <td><%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts</td>
         <th>Artist Changes</th>
         <td><%= presenter.artist_version_count(self) %></td>
       </tr>
 
       <tr>
+        <th>Approvals</th>
+        <td><%= presenter.approval_count(self) %></td>
         <th>Pool Changes</th>
         <td><%= presenter.pool_version_count(self) %></td>
       </tr>
 
-      <tr>
-        <th>Forum Posts</th>
-        <td><%= presenter.forum_post_count(self) %></td>
-      </tr>
-
-      <tr>
-        <th>Approvals</th>
-        <td><%= presenter.approval_count(self) %></td>
-      </tr>
-
-      <tr>
-        <th>Comments</th>
-        <td><%= presenter.comment_count(self) %> in <%= presenter.commented_posts_count(self) %> posts</td>
-      </tr>
 
       <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
         <tr>
           <th>Appeals</th>
           <td><%= presenter.appeal_count(self) %></td>
-        </tr>
-
-        <tr>
           <th>Flags</th>
           <td><%= presenter.flag_count(self) %></td>
         </tr>
@@ -131,7 +118,8 @@
 
       <tr>
         <th>Feedback</th>
-        <td><%= presenter.feedbacks(self) %></td>    </tbody>
+        <td><%= presenter.feedbacks(self) %></td>
+      </tbody>
       </tr>
 
       <% if presenter.previous_names(self).present? %>
@@ -159,9 +147,6 @@
             <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
             (<%= link_to "help", help_page_path(id: "api") %>)
           </td>
-        </tr>
-
-        <tr>
           <th>API Limits</th>
           <td>
             <%= CurrentUser.user.remaining_api_limit %>
@@ -169,5 +154,6 @@
           </td>
         </tr>
       <% end %>
-  </table>
+    </table>
+  </div>
 </div>

@@ -19,7 +19,7 @@ class Tag < ApplicationRecord
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
-    -upvote -downvote description -description change
+    -upvote -downvote description -description change -user_id user_id
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -539,6 +539,12 @@ class Tag < ApplicationRecord
             user_id = User.name_to_id(g2)
             q[:uploader_id] = user_id unless user_id.blank?
 
+          when "user_id"
+            q[:uploader_id] = g2.to_i
+
+          when "-user_id"
+            q[:uploader_id_neg] << g2.to_i
+
           when "-approver"
             if g2 == "none"
               q[:approver_id] = "any"
@@ -559,6 +565,35 @@ class Tag < ApplicationRecord
               user_id = User.name_to_id(g2)
               q[:approver_id] = user_id unless user_id.blank?
             end
+
+          when "commenter", "comm"
+            q[:commenter_ids] ||= []
+
+            if g2 == "none"
+              q[:commenter_ids] << "none"
+            elsif g2 == "any"
+              q[:commenter_ids] << "any"
+            else
+              user_id = User.name_to_id(g2)
+              q[:commenter_ids] << user_id unless user_id.blank?
+            end
+
+          when "noter"
+            q[:noter_ids] ||= []
+
+            if g2 == "none"
+              q[:noter_ids] << "none"
+            elsif g2 == "any"
+              q[:noter_ids] << "any"
+            else
+              user_id = User.name_to_id(g2)
+              q[:noter_ids] << user_id unless user_id.blank?
+            end
+
+          when "noteupdater"
+            q[:note_updater_ids] ||= []
+            user_id = User.name_to_id(g2)
+            q[:note_updater_ids] << user_id unless user_id.blank?
 
           when "-pool"
             q[:pools_neg] ||= []

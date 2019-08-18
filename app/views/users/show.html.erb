@@ -1,14 +1,17 @@
 <div id="c-users">
   <div id="a-show">
-    <h1><%= link_to_user @user %></h1>
-
     <%= render "statistics", :presenter => @presenter, :user => @user %>
-    <%= render "about", presenter: @presenter, user: @user %>
 
     <% if !CurrentUser.is_admin? && !@user.enable_privacy_mode? || CurrentUser.id == @user.id %>
       <%= render "posts/partials/common/inline_blacklist" %>
-      <%= render "post_summary", :presenter => @presenter, :user => @user %>
     <% end %>
+    <div class="profile-container">
+      <% if !CurrentUser.is_admin? && !@user.enable_privacy_mode? || CurrentUser.id == @user.id %>
+        <%= render "post_summary", :presenter => @presenter, :user => @user %>
+      <% end %>
+      <%= render "about", presenter: @presenter, user: @user %>
+    </div>
+
   </div>
 </div>
 
@@ -18,5 +21,5 @@
   User - <%= @presenter.name %> - <%= Danbooru.config.app_name %>
 <% end %>
 
-<% content_for(:html_header, auto_discovery_link_tag(:atom, comments_url(:atom, search: { post_tags_match: "user:#{@user.name}" }), title: "Comments on #{@user.name}'s uploads")) %>
-<% content_for(:html_header, auto_discovery_link_tag(:atom, comments_url(:atom, search: { post_tags_match: "commenter:#{@user.name}" }), title: "Comments on posts commented on by #{@user.name}")) %>
+<% content_for(:html_header, auto_discovery_link_tag(:atom, comments_url(:atom, search: {post_tags_match: "user:#{@user.name}"}), title: "Comments on #{@user.name}'s uploads")) %>
+<% content_for(:html_header, auto_discovery_link_tag(:atom, comments_url(:atom, search: {post_tags_match: "commenter:#{@user.name}"}), title: "Comments on posts commented on by #{@user.name}")) %>

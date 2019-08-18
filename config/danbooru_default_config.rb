@@ -554,6 +554,10 @@ module Danbooru
       false
     end
 
+    def enable_signups?
+      true
+    end
+
     def flag_reasons
       [
           {name: 'dnp_artist', reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]"},

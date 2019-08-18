@@ -3,10 +3,16 @@
 div#c-users {
   div#a-show {
     .about-section {
+      flex-grow: 2;
       display: flex;
       .about-piece {
         flex-grow: 1;
         margin: 0 1em;
+      }
+      div {
+        flex-basis: 50%;
+        overflow-wrap: break-word;
+        word-break: break-all;
       }
     }
 
@@ -16,6 +22,11 @@ div#c-users {
       }
 
       margin-bottom: 2em;
+    }
+
+    div.vertical-section {
+      display: flex;
+      flex-direction: column;
     }
 
     /* clearfix hacks */
@@ -28,20 +39,30 @@ div#c-users {
       clear: both;
     }
 
+    div.profile-container {
+      width: 100%;
+      display: flex;
+    }
+
+    div.profile-stats {
+      width: 100%;
+    }
+
     table.user-statistics {
+      width: 100%;
       tr {
         height: 1.75em;
       }
 
       th {
-        width: 15%;
+        width: 10%;
         text-align: right;
         padding-right: 1em;
         vertical-align: top;
       }
 
       td {
-        width: 85%;
+        width: 40%;
         vertical-align: top;
       }
 
