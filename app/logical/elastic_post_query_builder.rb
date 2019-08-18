@@ -305,6 +305,34 @@ class ElasticPostQueryBuilder
       end
     end
 
+    if q[:commenter_ids]
+      q[:commenter_ids].each do |commenter_id|
+        if commenter_id == "any"
+          must.push({exists: {field: :commenters}})
+        elsif commenter_id == "none"
+          must_not.push({exists: {field: :commenters}})
+        else
+          must.concat(q[:commenter_ids].map {|x| {term: {commenters: x.to_i}}} )
+        end
+      end
+    end
+
+    if q[:noter_ids]
+      q[:noter_ids].each do |noter_id|
+        if noter_id == "any"
+          must.push({exists: {field: :noters}})
+        elsif noter_id == "none"
+          must_not.push({exists: {field: :noters}})
+        else
+          must.concat(q[:noter_ids].map {|x| {term: {noters: x.to_i}}} )
+        end
+      end
+    end
+
+    if q[:note_updater_ids]
+      must.concat(q[:note_updater_ids].map {|x| {term: {noters: x.to_i}}} )
+    end
+
     if q[:post_id_negated]
       must_not.push({term: {id: q[:post_id_negated].to_i}})
     end

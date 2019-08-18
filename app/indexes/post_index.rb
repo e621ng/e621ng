@@ -31,6 +31,8 @@ module PostIndex
         indexes :parent,        type: 'integer'
         indexes :pools,         type: 'integer'
         indexes :sets,          type: 'integer'
+        indexes :commenters,    type: 'integer'
+        indexes :noters,        type: 'integer'
         indexes :faves,         type: 'integer'
         indexes :upvotes,       type: 'integer'
         indexes :downvotes,     type: 'integer'
@@ -98,6 +100,16 @@ module PostIndex
             WHERE post_ids @> '{#{post_ids}}'
           ) t GROUP BY post_id
         SQL
+        commenter_sql = <<-SQL
+          SELECT post_id, array_agg(distinct creator_id) FROM comments
+          WHERE post_id IN (#{post_ids}) AND is_deleted = false
+          GROUP BY post_id
+        SQL
+        noter_sql = <<-SQL
+          SELECT post_id, array_agg(distinct creator_id) FROM notes
+          WHERE post_id IN (#{post_ids}) AND is_active = true
+          GROUP BY post_id
+        SQL
         faves_sql = <<-SQL
           SELECT post_id, array_agg(user_id) FROM favorites
           WHERE post_id IN (#{post_ids})
@@ -120,6 +132,8 @@ module PostIndex
         pool_ids       = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
         fave_ids       = conn.execute(faves_sql).values.map(&array_parse).to_h
+        commenter_ids  = conn.execute(commenter_sql).values.map(&array_parse).to_h
+        noter_ids      = conn.execute(noter_sql).values.map(&array_parse).to_h
         child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
 
         # Special handling for votes to do it with one query
@@ -142,6 +156,8 @@ module PostIndex
             upvotes:       upvote_ids[p.id]     || empty,
             downvotes:     downvote_ids[p.id]   || empty,
             children:      child_ids[p.id]      || empty,
+            commenters:    commenter_ids[p.id]  || empty,
+            noters:        noter_ids[p.id]      || empty
           }
 
           {
@@ -187,12 +203,14 @@ module PostIndex
 
       file_size:    file_size,
       parent:       parent_id,
-      pools:        options[:pools]     || Pool.where("post_ids @> '{?}'", id).pluck(:id),
-      sets:         options[:sets]      || PostSet.where("post_ids @> '{?}'", id).pluck(:id),
-      faves:        options[:faves]     || Favorite.where(post_id: id).pluck(:user_id),
-      upvotes:      options[:upvotes]   || PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
-      downvotes:    options[:downvotes] || PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
-      children:     options[:children]  || Post.where(parent_id: id).pluck(:id),
+      pools:        options[:pools]      || Pool.where("post_ids @> '{?}'", id).pluck(:id),
+      sets:         options[:sets]       || PostSet.where("post_ids @> '{?}'", id).pluck(:id),
+      commenters:   options[:commenters] || Comment.undeleted.where(post_id: id).pluck(:creator_id),
+      noters:       options[:noters]     || Note.active.where(post_id: id).pluck(:creator_id),
+      faves:        options[:faves]      || Favorite.where(post_id: id).pluck(:user_id),
+      upvotes:      options[:upvotes]    || PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
+      downvotes:    options[:downvotes]  || PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
+      children:     options[:children]   || Post.where(parent_id: id).pluck(:id),
       uploader:     uploader_id,
       approver:     approver_id,
       width:        image_width,
