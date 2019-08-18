@@ -17,10 +17,10 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors[attribute] << "'#{value}' cannot end with an underscore"
     when /__/
       record.errors[attribute] << "'#{value}' cannot contain consecutive underscores"
-    when /[^[[:graph:]]]/
+    when /[^[:graph:]]/
       record.errors[attribute] << "'#{value}' cannot contain non-printable characters"
-    # when /[^[[:ascii:]]]/
-    #   record.errors[attribute] << "'#{value}' must consist of only ASCII characters"
+    when /[^[:ascii:]]/
+      record.errors[attribute] << "'#{value}' must consist of only ASCII characters"
     when /\A(#{Tag::METATAGS.join("|")}):(.+)\z/i
       record.errors[attribute] << "'#{value}' cannot begin with '#{$1}:'"
     when /\A(#{Tag.categories.regexp}):(.+)\z/i
