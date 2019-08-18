@@ -21,7 +21,7 @@ class Dmail < ApplicationRecord
   after_create :update_recipient
   after_commit :send_email, on: :create
 
-  rakismet_attrs author: :from_name, author_email: :from_email, content: :title_and_body, user_ip: :creator_ip_addr_str
+  rakismet_attrs author: -> { from.name }, author_email: -> { from.email }, content: -> { title + "\n\n" + body }, user_ip: -> { creator_ip_addr.to_s }
 
   concerning :SpamMethods do
     class_methods do
@@ -41,14 +41,6 @@ class Dmail < ApplicationRecord
       end
     end
 
-    def title_and_body
-      "#{title}\n\n#{body}"
-    end
-
-    def creator_ip_addr_str
-      creator_ip_addr.to_s
-    end
-
     def spam?
       return false if Danbooru.config.rakismet_key.blank?
       return false if from.is_janitor?
@@ -57,18 +49,6 @@ class Dmail < ApplicationRecord
   end
 
   module AddressMethods
-    def to_name
-      User.id_to_pretty_name(to_id)
-    end
-
-    def from_name
-      User.id_to_pretty_name(from_id)
-    end
-
-    def from_email
-      from.email
-    end
-
     def to_name=(name)
       self.to_id = User.name_to_id(name)
     end
@@ -238,7 +218,7 @@ class Dmail < ApplicationRecord
   end
 
   def quoted_body
-    "[quote]\n#{from_name} said:\n\n#{body}\n[/quote]\n\n"
+    "[quote]\n#{from.pretty_name} said:\n\n#{body}\n[/quote]\n\n"
   end
 
   def send_email
@@ -273,7 +253,7 @@ class Dmail < ApplicationRecord
       to.update(has_mail: true, unread_dmail_count: to.dmails.unread.count)
     end
   end
-
+  
   def visible_to?(user)
     owner_id == user.id || (user.is_admin? && (to.is_admin? || from.is_admin? || Ticket.exists?(qtype: 'dmail', disp_id: id)))
   end
