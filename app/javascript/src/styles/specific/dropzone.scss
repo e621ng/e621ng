@@ -1,3 +1,5 @@
+@import "../base/000_vars.scss";
+
 #filedropzone {
   border: 4px dashed #DDD;
   padding: 0;
@@ -5,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: $border_radius;
 
   .placeholder {
     font-style: italic;

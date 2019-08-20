@@ -36,9 +36,9 @@ div.ui-dialog {
 }
 
 .ui-state-highlight {
-  border: 1px solid #FCEEC1;
-  background: #FDF5D9;
-  color: #363636;
+  border: 1px solid darken($notice_color, 25%);
+  background: $notice_color;
+  color: $text_color;
 
   a, a:active, a:visited {
     color: $link_color;
@@ -50,8 +50,8 @@ div.ui-dialog {
 }
 
 .ui-state-error {
-  border: 1px solid #FBC7C6;
-  background: #FDDFDE;
+  border: 1px solid darken($error_color, 25%);
+  background: $error_color;
 }
 
 .ui-button {

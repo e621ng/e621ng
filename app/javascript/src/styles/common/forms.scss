@@ -1,0 +1,59 @@
+@import "../base/000_vars.scss";
+
+
+label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+textarea {
+  display: block;
+  font-family: monospace;
+  font-size: 1.2em;
+}
+
+textarea.no-block {
+  display: inline;
+}
+
+input[type=button] {
+  min-width: 5rem;
+}
+
+input[type=submit] {
+  min-width: 5rem;
+}
+
+input[type=radio] {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+input[type=date] {
+  background-color: white;
+}
+
+input:focus {
+  background: $form_focus_color;
+  color: black;
+}
+
+select:focus {
+  background: $form_focus_color;
+  color: black;
+}
+
+textarea:focus {
+  background: $form_focus_color;
+  color: black;
+}
+
+input:disabled {
+  background-color: $form_disabled_color;
+}
+
+.simple_form {
+  padding: $base_padding;
+  border-radius: $border_radius;
+  background-color: $section_background_color;
+}

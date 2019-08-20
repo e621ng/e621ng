@@ -2,8 +2,8 @@
 
 div#c-takedowns {
   .takedown-vericode {
-    border-radius: 2px;
-    padding: 5px;
+    border-radius: $border_radius;
+    padding: $base_padding;
     font-weight: bold;
     cursor: default;
   }

@@ -14,7 +14,7 @@ div.related-tags {
   padding: 1em;
   background: #EEE;
   overflow: auto;
-  border-radius: 4px;
+  border-radius: $border_radius;
   display: flex;
   flex-wrap: wrap;
 

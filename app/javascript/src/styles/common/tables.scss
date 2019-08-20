@@ -11,15 +11,7 @@ table.striped {
 
   tbody {
     tr {
-      border-bottom: 1px solid #CCC;
-
-      &:hover {
-        background-color: $highlight_color;
-      }
-
-      &.selected {
-        background-color: $highlight_color;
-      }
+      border-bottom: 1px solid $table_stripe_border_color;
     }
   }
 
@@ -29,18 +21,32 @@ table.striped {
 
   thead {
     tr {
-      border-bottom: 2px solid #666;
+      border-bottom: 2px solid $table_stripe_border_color;
     }
 
     th {
       font-weight: bold;
       text-align: left;
-      color: #333;
+      color: $table_stripe_header_text_color;
+    }
+  }
+}
+
+table.striped {
+  tbody {
+    tr {
+      &:hover {
+        background-color: $table_stripe_highlight_color;
+      }
+
+      &.selected {
+        background-color: $table_stripe_highlight_color;
+      }
     }
   }
 
   tr:nth-child(even) {
-    background-color: #FAFAFA;
+    background-color: $table_stripe_even_background_color;
   }
 }
 
@@ -71,7 +77,7 @@ table.search {
 
   th {
     text-align: right;
-    padding-right: 1em;
+    padding-right: $base_padding;
     vertical-align: top;
   }
 

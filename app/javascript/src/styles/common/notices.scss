@@ -1,6 +1,8 @@
+@import "../base/000_vars.scss";
+
 div.error-messages {
   margin: 1em 0;
-  padding: 1em;
+  padding: $base_padding;
 
   h1 {
     font-size: 1em;
@@ -17,8 +19,8 @@ div#notice {
   z-index: 100;
 
   &:not(.ui-state-error) {
-    background-color: #FFFBBF;
-    border: 1px solid #CCC999;
+    background-color: $notice_color;
+    border: 1px solid darken($notice_color, 25%);
   }
 }
 

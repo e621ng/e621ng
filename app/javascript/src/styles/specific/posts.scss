@@ -41,7 +41,7 @@ article.post-preview {
   }
 
   .desc {
-    background-color: $grey_color;
+    background-color: $section_background_color;
     font-size: 80%;
     margin-bottom: 0;
   }
@@ -477,7 +477,7 @@ div#c-posts {
 
     #artist-commentary {
       border: 1px solid #CCC;
-      border-radius: 8px;
+      border-radius: $border_radius;
       background-color: #F8F8F8;
       margin-top: 1em;
       padding: 0.5em;
@@ -513,7 +513,7 @@ div#c-post-versions, div#c-artist-versions {
 div#c-posts, div#c-uploads {
   /* Fetch source data box */
   div#source-info {
-    border-radius: 4px;
+    border-radius: $border_radius;
     margin: 1em 0;
     padding: 1em;
     border: 1px solid #666;
