@@ -20,6 +20,10 @@ a:active {
   text-decoration: none;
 }
 
+a.last-page {
+  color: $link_last_page_color;
+}
+
 a.active {
   font-weight: bold;
 }

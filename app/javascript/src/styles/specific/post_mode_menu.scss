@@ -1,13 +1,15 @@
-body.mode-view {
-  background-color: #FFF;
-}
+@import "../base/000_vars.scss";
+
+//body.mode-view {
+//  background-color: $bg_color_view;
+//}
 
 body.mode-edit {
-  background-color: #5C5;
+  background-color: $bg_color_edit;
 }
 
 body.mode-tag-script {
-  background-color: #D6D;
+  background-color: $bg_color_tagscript;
 }
 
 body.mode-add-fav {
@@ -44,8 +46,4 @@ body.mode-translation {
 
 body.mode-ban {
   background-color: #F33;
-}
-
-#page, #top, #page-footer {
-  background-color: white;
 }

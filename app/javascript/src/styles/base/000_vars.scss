@@ -1,7 +1,10 @@
-$menu_color: #F5F5FF;
-$link_color: hsl(213, 100%, 50%);
-$link_hover_color: lighten($link_color, 25%);
-$highlight_color: lighten($link_color, 45%);
+// Base formatting constants
+$border_radius: 3px;
+$base_padding: 1rem;
+
+// Font
+$text_color: #fff;
+$inverted_text_color: invert($text_color);
 $h1_size: 2em;
 $h2_size: 1.5em;
 $h3_size: 1.16667em;
@@ -17,6 +20,47 @@ $h2_padding: 0.8em 0 0.25em 0;
 $h3_padding: 0.8em 0 0.25em 0;
 $h4_padding: 0.8em 0 0.25em 0;
 $base_font_family: Verdana, Helvetica, sans-serif;
+
+
+// Main background colors
+$background_color: #031131;
+$menu_color: #152F56;
+$content_background_color: #152f56;
+
+// View modes
+$bg_color_edit: #104e17;
+$bg_color_delete: #4e1010;
+$bg_color_rating_q: #4e4810;
+$bg_color_tagscript: #4f114f;
+$bg_color_lock: #1d1d1d;
+$bg_color_add_pool: #104b57;
+
+// Links
+$link_color: #b4c7d9;
+$link_hover_color: #2e76b4;
+$link_last_page_color: #3e9e49;
+$highlight_color: lighten($link_color, 45%);
+
+$blockquote_background_color: #284A81;
+$blockquote_border_color: #174891;
+
+$hint_color: #666;
+$info_color: #AAA;
+
+// Sections
+$section_background_color: #284a81;
+
+// Tables
+$table_stripe_even_background_color: #204274;
+$table_stripe_highlight_color: darken($table_stripe_even_background_color, 10%);
+$table_stripe_border_color: #255193;
+$table_stripe_header_text_color: darken($text_color, 10%);
+
+// Forms
+$form_focus_color: #FFC;
+$form_disabled_color: #DDD;
+
+// Post previews
 $preview_has_children_color: #0F0;
 $preview_has_parent_color: #CC0;
 $preview_deleted_color: #000;
@@ -27,9 +71,16 @@ $preview_quality_warning_color: hsl(50, 100%, 90%); // light yellow
 
 $note_highlight_color: $preview_pending_color;
 
+
+// Mixin/state colors
+$warning_color: #ffd700;
+$notice_color: saturate($section_background_color, 20%);
+$success_color: #3e9e49;
+$error_color: #e45f5f;
+
 $grey_color: hsl(0, 0%, 90%); // Light grey
-$error_color: hsl(0, 100%, 95%); // light red
-$success_color: hsl(120, 100%, 95%); // light green
+//$error_color: hsl(0, 100%, 95%); // light red
+//$success_color: hsl(120, 100%, 95%); // light green
 
 $red_color: #e45f5f;
 $green_color: #3e9e49;

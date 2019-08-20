@@ -1,8 +1,8 @@
 @import "../base/000_vars.scss";
 
 .box-section {
-  background-color: $menu-color;
-  padding: 1rem;
+  background-color: $section_background_color;
+  padding: $base_padding;
   margin-bottom: 1.5rem;
 }
 

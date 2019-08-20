@@ -1,3 +1,5 @@
+@import "../base/000_vars.scss";
+
 div#c-wiki-pages {
   form span.hint {
     display: block;
@@ -15,5 +17,5 @@ div#c-wiki-pages {
 .wiki-other-name {
   background-color: #EEE;
   padding: 3px;
-  border-radius: 3px;
+  border-radius: $border_radius;
 }

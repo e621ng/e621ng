@@ -1,7 +1,8 @@
 @import "../base/000_vars.scss";
 
 body {
-  background-color: #FFF;
+  background-color: $background_color;
+  color: $text_color;
   font-family: $base_font_family;
   font-size: 87.5%;
   line-height: 1.25em;
@@ -14,8 +15,8 @@ abbr[title=required] {
 blockquote {
   margin: 0 0 1em 0;
   padding: 1em 1em 0.2em;
-  border: 1px solid #666;
-  background: #EEE;
+  border: 1px solid $blockquote_border_color;
+  background: $blockquote_background_color;
 }
 
 code {
@@ -92,7 +93,7 @@ table tfoot {
 }
 
 .hint {
-  color: #666;
+  color: $hint_color;
   font-style: italic;
   max-width: 70%;
 }
@@ -103,7 +104,28 @@ table tfoot {
 }
 
 p.info {
-  color: #AAA;
+  color: $info_color;
   font-style: italic;
   font-size: 80%;
 }
+
+
+#page {
+  background-color: $content_background_color;
+}
+
+#top, #page-footer {
+  background-color: $background_color;
+}
+
+.greentext, .greentext a, .approved-ticket { color:#3e9e49 !important; font-weight:bold; }
+.greytext, .greytext a { color:#959595 !important; font-weight:bold; }
+.yellowtext, .yellowtext a, .partial-ticket { color:#e4e150 !important; font-weight:bold; }
+.redtext, .redtext a, .denied-ticket { color:#e45f5f !important; font-weight:bold; }
+
+
+.sect_green { background-color:#288233; /* green */ }
+.sect_red { background-color:#822828; /* red */ }
+.sect_yellow { background-color:#828028; /* yellow */ }
+.sect_grey { background-color:#5d656e; /* yellow */ }
+.sect_green a:hover, .sect_red a:hover, .sect_yellow a:hover { color:white; }
