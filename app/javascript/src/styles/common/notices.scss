@@ -20,7 +20,7 @@ div#notice {
 
   &:not(.ui-state-error) {
     background-color: $notice_color;
-    border: 1px solid darken($notice_color, 25%);
+    border: 1px solid border_color($notice_color);
   }
 }
 

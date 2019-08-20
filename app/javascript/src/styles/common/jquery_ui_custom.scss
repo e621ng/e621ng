@@ -36,7 +36,7 @@ div.ui-dialog {
 }
 
 .ui-state-highlight {
-  border: 1px solid darken($notice_color, 25%);
+  border: 1px solid border_color($notice_color);
   background: $notice_color;
   color: $text_color;
 
@@ -50,7 +50,7 @@ div.ui-dialog {
 }
 
 .ui-state-error {
-  border: 1px solid darken($error_color, 25%);
+  border: 1px solid border_color($error_color);
   background: $error_color;
 }
 

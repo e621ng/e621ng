@@ -18,11 +18,18 @@ div#search-box button {
 div#page {
   overflow: visible;
   margin: 0 20px;
-  padding: 0 10px;
+  padding: $half_padding;
+
+  // Fix failure to contain contents in bounding box.
+  &:after {
+    display: block;
+    visibility: hidden;
+    content: '';
+    clear: both;
+  }
 
   div#upgrade-account-notice, div#sign-up-notice, div#tos-notice, div#ban-notice, div#dmail-notice, div#mod-notice {
-    margin: 1em 0;
-    padding: 1em;
+    padding: $half_padding;
     text-align: center;
     position: relative;
 
@@ -78,13 +85,14 @@ div#page {
   }
 }
 
+
 footer#page-footer {
   clear: both;
   width: 100%;
   margin-top: 1em;
   text-align: center;
   padding: $base_padding 0 $base_padding;
-  border-top: 1px solid #EEE;
+  border-top: 1px solid $hr_color;
 }
 
 div.clearfix {

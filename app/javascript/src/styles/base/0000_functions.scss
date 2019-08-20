@@ -1,0 +1,3 @@
+@function border_color($color) {
+  @return darken($color, 25%);
+}

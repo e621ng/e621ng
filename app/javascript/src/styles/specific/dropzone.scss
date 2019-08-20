@@ -16,12 +16,12 @@
   }
 
   &.error {
-    border-color: darken(#f2dede, 30%);
+    border-color: border_color(#f2dede);
     background-color: #f2dede;
   }
 
   &.success {
-    border-color: darken(#dff0d8, 30%);
+    border-color: border_color(#dff0d8);
     background-color: #dff0d8;
   }
 }

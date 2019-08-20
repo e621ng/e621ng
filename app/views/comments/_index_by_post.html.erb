@@ -18,7 +18,6 @@
           <% end %>
         </div>
         <%= render "comments/partials/index/list", :post => post, :comments => post.comments.visible(CurrentUser.user).recent.reverse, :show_header => true %>
-        <div class="clearfix"></div>
       <% end %>
     <% end %>
   <% end %>
