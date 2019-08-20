@@ -1,6 +1,10 @@
+@import "0000_functions.scss";
+
 // Base formatting constants
 $border_radius: 3px;
 $base_padding: 1rem;
+$half_padding: $base_padding/2;
+$quarter_padding: $base_padding/4;
 
 // Font
 $text_color: #fff;
@@ -23,9 +27,9 @@ $base_font_family: Verdana, Helvetica, sans-serif;
 
 
 // Main background colors
-$background_color: #031131;
+$bg_color: #031131;
 $menu_color: #152F56;
-$content_background_color: #152f56;
+$content_bg: #152f56;
 
 // View modes
 $bg_color_edit: #104e17;
@@ -41,14 +45,18 @@ $link_hover_color: #2e76b4;
 $link_last_page_color: #3e9e49;
 $highlight_color: lighten($link_color, 45%);
 
-$blockquote_background_color: #284A81;
-$blockquote_border_color: #174891;
+$blockquote_bg: #284A81;
+$blockquote_border: border_color($blockquote_bg);//#174891;
 
 $hint_color: #666;
 $info_color: #AAA;
 
 // Sections
-$section_background_color: #284a81;
+$section_bg: #284a81;
+
+// Navigation
+$navigation_bg: $section_bg;
+$navigation_border: border_color($section_bg);
 
 // Tables
 $table_stripe_even_background_color: #204274;
@@ -74,7 +82,7 @@ $note_highlight_color: $preview_pending_color;
 
 // Mixin/state colors
 $warning_color: #ffd700;
-$notice_color: saturate($section_background_color, 20%);
+$notice_color: saturate($section_bg, 20%);
 $success_color: #3e9e49;
 $error_color: #e45f5f;
 
@@ -89,6 +97,19 @@ $dark_grey_color: hsl(0, 0%, 50%);
 $explicit_rating_color: $red_color;
 $questionable_rating_color: hsl(50, 100%, 70%);
 $safe_rating_color: $green_color;
+
+$hr_color: rgba(255,255,255,0.25);
+
+
+// Posts page
+$notice_parent_bg: darken($success_color, 20%);
+$notice_parent_border: border_color($notice_parent_bg);
+$notice_child_bg: darken($warning_color, 40%);
+$notice_child_border: border_color($notice_child_bg);
+$notice_deleted_bg: darken($error_color, 40%);
+$notice_deleted_border: border_color($notice_deleted_bg);
+$notice_pending_bg: $section_bg;
+$notice_pending_border: border_color($notice_pending_bg);
 
 @mixin animated-icon {
   content: "►";

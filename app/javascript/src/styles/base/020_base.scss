@@ -1,7 +1,7 @@
 @import "../base/000_vars.scss";
 
 body {
-  background-color: $background_color;
+  background-color: $bg_color;
   color: $text_color;
   font-family: $base_font_family;
   font-size: 87.5%;
@@ -15,8 +15,8 @@ abbr[title=required] {
 blockquote {
   margin: 0 0 1em 0;
   padding: 1em 1em 0.2em;
-  border: 1px solid $blockquote_border_color;
-  background: $blockquote_background_color;
+  border: 1px solid $blockquote_border;
+  background: $blockquote_bg;
 }
 
 code {
@@ -111,11 +111,11 @@ p.info {
 
 
 #page {
-  background-color: $content_background_color;
+  background-color: $content_bg;
 }
 
 #top, #page-footer {
-  background-color: $background_color;
+  background-color: $bg_color;
 }
 
 .greentext, .greentext a, .approved-ticket { color:#3e9e49 !important; font-weight:bold; }
