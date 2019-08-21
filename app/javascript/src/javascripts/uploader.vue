@@ -4,7 +4,7 @@
             <div class="the_secret_switch" @click="normalMode = !normalMode"></div>
             <div class="flex-grid border-bottom">
                 <div class="col">
-                    <label class="section-label" for="post_file">Image</label>
+                    <label class="section-label" for="post_file">File</label>
                 </div>
                 <div class="col2">
                     <div v-if="!disableFileUpload">

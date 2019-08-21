@@ -309,8 +309,8 @@ div#c-posts {
     }
 
     &.notice-flagged {
-      border-color: #FCC0C0;
-      background: #FCD9D8;
+      border-color: $notice_deleted_border;
+      background: $notice_deleted_bg;
     }
 
     &.notice-deleted {
@@ -319,13 +319,13 @@ div#c-posts {
     }
 
     &.notice-appealed {
-      border-color: #C0ECFC;
-      background: #D8F2FC;
+      border-color: $notice_pending_border;
+      background: $notice_pending_bg;
     }
 
     &.notice-resized {
-      border-color: #E4C0FC;
-      background: #EED8FC;
+      border-color: $notice_pending_border;
+      background: $notice_pending_bg;
     }
   }
 
