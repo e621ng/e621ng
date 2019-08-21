@@ -1,16 +1,18 @@
+@import "../base/000_vars.scss";
+
 div#c-user-feedbacks, div#c-moderator-dashboards div#col2 {
   .feedback-category-positive {
-    background: #DDFFDD !important;
+    background: $positive_record_bg !important;
   }
 
   .feedback-category-negative {
-    background: #FFDDDD !important;
+    background: $negative_record_bg !important;
   }
 
   .feedback-category-neutral {
-    background: #FFFFFF !important;
+    background: $neutral_record_bg !important;
   }
-  
+
   blockquote {
     padding: 0.5em;
   }

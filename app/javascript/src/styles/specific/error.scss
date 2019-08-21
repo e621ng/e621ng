@@ -1,8 +1,10 @@
+@import "../base/000_vars.scss";
+
 ul.backtrace {
   font-family: monospace;
   font-size: 1.2em;
   list-style-type: none;
-  background: #EEE;
+  background: $section_bg;
   padding: 1em;
   margin-bottom: 1em;
 }

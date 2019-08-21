@@ -9,7 +9,7 @@ class ModActionDecorator < ApplicationDecorator
     vals = object.values
 
     if vals['user_id']
-      user = "\"#{User.id_to_pretty_name(vals['user_id'])}\":/users/#{vals['user_id']}"
+      user = "\"#{User.id_to_name(vals['user_id'])}\":/users/#{vals['user_id']}"
     elsif vals['username']
       user = "\"#{vals['username']}\":/users/?name=#{vals['username']}"
     end

@@ -111,6 +111,11 @@ $notice_deleted_border: border_color($notice_deleted_bg);
 $notice_pending_bg: $section_bg;
 $notice_pending_border: border_color($notice_pending_bg);
 
+// User Feedback page
+$neutral_record_bg: #666;
+$positive_record_bg: green;
+$negative_record_bg: #822828;
+
 @mixin animated-icon {
   content: "►";
   position: absolute;
