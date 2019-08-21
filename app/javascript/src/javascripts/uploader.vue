@@ -742,7 +742,7 @@
         this.sources.splice(i, 1);
       },
       addSource() {
-        if (this.sources.length < 5)
+        if (this.sources.length < 10)
           this.sources.push('');
       },
       setCheck(tag, value) {
