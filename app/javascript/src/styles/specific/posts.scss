@@ -472,9 +472,9 @@ div#c-posts {
     }
 
     #artist-commentary {
-      border: 1px solid #CCC;
+      border: 1px solid border_color($section_bg);
       border-radius: $border_radius;
-      background-color: #F8F8F8;
+      background-color: $section_bg;
       margin-top: 1em;
       padding: 0.5em;
 
