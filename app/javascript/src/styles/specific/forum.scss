@@ -1,14 +1,19 @@
+@import "../base/000_vars.scss";
+
 div.list-of-forum-posts {
   article {
-    border: 1px solid #AAA;
+    background-color: $section_bg;
     margin: 1em 0em;
     word-wrap: break-word;
-    box-shadow: 1px 1px 2px #AAA;
+
+    &:nth-child(even) {
+      background-color: $table_stripe_even_background_color;
+    }
 
     a.voted {
       font-weight: bold;
     }
-    
+
     span.desc {
       color: grey;
     }
@@ -42,6 +47,7 @@ div.list-of-forum-posts {
     div.content {
       padding: 1em;
       margin-left: 14em;
+      word-break: break-all;
 
       .edit_forum_post, .edit_forum_topic {
         display: none;
@@ -81,7 +87,7 @@ div#c-forum-topics {
     color: #f66;
     font-weight: bold;
   }
-  
+
   tr.forum-topic-row td:last-child {
     white-space: nowrap;
   }

@@ -45,10 +45,11 @@ $link_hover_color: #2e76b4;
 $link_last_page_color: #3e9e49;
 $highlight_color: lighten($link_color, 45%);
 
-$blockquote_bg: #284A81;
+//$blockquote_bg: #284A81;
+$blockquote_bg: rgba(255, 255, 255, 0.1);
 $blockquote_border: border_color($blockquote_bg);//#174891;
 
-$hint_color: #666;
+$hint_color: #AAA;
 $info_color: #AAA;
 
 // Sections
@@ -67,6 +68,8 @@ $table_stripe_header_text_color: darken($text_color, 10%);
 // Forms
 $form_focus_color: #FFC;
 $form_disabled_color: #DDD;
+$button_bg: white;
+$button_bg_hover: darken($button_bg, 10%);
 
 // Post previews
 $preview_has_children_color: #0F0;
