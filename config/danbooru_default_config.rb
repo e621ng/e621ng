@@ -845,6 +845,7 @@ module Danbooru
     end
 
     def rakismet_url
+      "https://#{hostname}"
     end
 
     # Cloudflare data

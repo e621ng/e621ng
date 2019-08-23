@@ -18,7 +18,8 @@ class DmailTest < ActiveSupport::TestCase
     context "spam" do
       setup do
         Dmail.any_instance.stubs(:spam?).returns(true)
-        @recipient = FactoryBot.create(:user)
+        @spammer = create(:user)
+        @recipient = create(:user)
       end
 
       should "not validate" do
