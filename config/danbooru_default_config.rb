@@ -869,6 +869,22 @@ module Danbooru
     def bypass_upload_whitelist?(user)
       user.is_admin?
     end
+
+    def ads_enabled?
+      false
+    end
+
+    def ads_desktop_zone
+      nil
+    end
+
+    def ads_desktop_revive_id
+      nil
+    end
+
+    def ads_desktop_checksum
+      nil
+    end
   end
 
   class EnvironmentConfiguration

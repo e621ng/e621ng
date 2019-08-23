@@ -1,0 +1,14 @@
+<% if Danbooru.config.ads_enabled? %>
+  <div id="ad-leaderboard" class='section'>
+    <div id="ad-leaderboard-content" class="adzone">
+      <ins data-revive-zoneid="<%= Danbooru.config.ads_desktop_zone %>" data-revive-id="<%= Danbooru.config.ads_desktop_revive_id %>"></ins>
+      <script async src="//ads.dragonfru.it/www/delivery/asyncjs.php"></script>
+      <% ad_rand = Random::DEFAULT.rand(50000000) %>
+      <noscript class="adzone">
+        <a href='https://ads.dragonfru.it/www/delivery/ck.php?zoneid=<%= Danbooru.config.ads_desktop_zone %>&n=<%= Danbooru.config.ads_desktop_checksum %>&cb=<%= ad_rand %>' target='_blank' rel="nofollow noopener">
+          <img src='https://ads.dragonfru.it/www/delivery/avw.php?zoneid=<%= Danbooru.config.ads_desktop_zone %>&cb=<%= ad_rand %>&n=<%= Danbooru.config.ads_desktop_checksum %>' border='0' alt='' />
+        </a>
+      </noscript>
+    </div>
+  </div>
+<% end %>
