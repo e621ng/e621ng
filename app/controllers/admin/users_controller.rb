@@ -8,6 +8,7 @@ module Admin
 
     def update
       @user = User.find(params[:id])
+      @user.update_attributes!(user_params)
       @user.promote_to!(params[:user][:level], params[:user])
       redirect_to edit_admin_user_path(@user), :notice => "User updated"
     end
@@ -20,7 +21,13 @@ module Admin
       @user = User.find(params[:id])
       @user.update_attributes!(params[:user].permit([:blacklisted_tags]))
       ModAction.log(:user_blacklist_changed, {user_id: @user.id})
-      redirect_to edit_blacklist_admin_user_path(@user)
+      redirect_to edit_blacklist_admin_user_path(@user), notice: "Blacklist updated"
+    end
+
+    private
+
+    def user_params
+      params.require(:user).slice(:profile_about, :profile_artinfo, :email).permit([:profile_about, :profile_artinfo, :email])
     end
   end
 end
