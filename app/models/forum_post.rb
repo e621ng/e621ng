@@ -18,6 +18,7 @@ class ForumPost < ApplicationRecord
   validates_presence_of :body, :creator_id
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
+  validate :validate_post_is_not_spam, on: :create
   validate :topic_is_not_restricted, :on => :create
   validate :category_allows_replies, on: :create
   before_destroy :validate_topic_is_unlocked
@@ -135,6 +136,10 @@ class ForumPost < ApplicationRecord
 
   def voted?(user, score)
     votes.where(creator_id: user.id, score: score).exists?
+  end
+
+  def validate_post_is_not_spam
+    errors[:base] << "Failed to create forum post" if SpamDetector.new(self, user_ip: CurrentUser.ip_addr).spam?
   end
 
   def validate_topic_is_unlocked

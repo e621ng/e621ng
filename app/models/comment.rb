@@ -4,6 +4,7 @@ class Comment < ApplicationRecord
   simple_versioning
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
+  validate :validate_comment_is_not_spam, on: :create
   validates_presence_of :body, :message => "has no content"
   belongs_to :post, counter_cache: :comment_count
   belongs_to_creator
@@ -126,6 +127,10 @@ class Comment < ApplicationRecord
       false
     end
     true
+  end
+
+  def validate_comment_is_not_spam
+    errors[:base] << "Failed to create comment" if SpamDetector.new(self).spam?
   end
 
   def update_last_commented_at_on_create
