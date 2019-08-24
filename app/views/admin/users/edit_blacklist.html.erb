@@ -1,0 +1,9 @@
+<div>
+  <h4>View User Blacklist</h4>
+  <div class='section' style='width:400px;'>
+    <%= form_tag({action: "update_blacklist"}, method: :post) do %>
+      <%= text_area "user", "blacklisted_tags", size: "60x20" %>
+      <%= submit_tag "Save", name: nil %>
+    <% end %>
+  </div>
+</div>

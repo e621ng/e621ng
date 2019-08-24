@@ -6,7 +6,12 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => '/sidekiq'
 
   namespace :admin do
-    resources :users, :only => [:edit, :update]
+    resources :users, :only => [:edit, :update, :edit_blacklist, :update_blacklist] do
+      member do
+        get :edit_blacklist
+        post :update_blacklist
+      end
+    end
     resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]

@@ -5,6 +5,21 @@
     <%= form_tag(admin_user_path(@user), :method => :put, :class => "simple_form") do %>
       <%= hidden_field_tag "id", @user.id %>
 
+      <div class="input">
+        <label class="block" for="user_email">Email</label>
+        <%= text_field "user", "email", size: "50" %>
+      </div>
+
+      <div class="input">
+        <label class="block" for="user_about">About</label>
+        <%= text_area "user", "profile_about", size: "50x8", class: "dtext-full" %>
+      </div>
+
+      <div class="input">
+        <label class="block" for="user_rates">Rates</label>
+        <%= text_area "user", "profile_artinfo", size: "50x8", class: "dtext-full" %>
+      </div>
+
       <div class="input integer optional">
         <label for="user_level" class="optional">Level</label>
         <%= user_level_select(:user, :level) %>
