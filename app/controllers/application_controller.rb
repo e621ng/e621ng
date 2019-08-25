@@ -1,16 +1,14 @@
 class ApplicationController < ActionController::Base
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
-  helper :pagination
   before_action :reset_current_user
   before_action :set_current_user
-  after_action :reset_current_user
   before_action :set_title
   before_action :normalize_search
   before_action :api_check
   before_action :set_variant
-  layout "default"
-  helper_method :show_moderation_notice?
   before_action :enable_cors
+  after_action :reset_current_user
+  layout "default"
 
   include DeferredPosts
   helper_method :deferred_post_ids, :deferred_posts
@@ -25,8 +23,10 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def show_moderation_notice?
-    CurrentUser.can_approve_posts? && (cookies[:moderated].blank? || Time.at(cookies[:moderated].to_i) < 20.hours.ago)
+  def self.rescue_with(*klasses, status: 500)
+    rescue_from *klasses do |exception|
+      render_error_page(status, exception)
+    end
   end
 
   def enable_cors
