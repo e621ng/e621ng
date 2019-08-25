@@ -8,7 +8,6 @@ class ApplicationController < ActionController::Base
   before_action :normalize_search
   before_action :set_started_at_session
   before_action :api_check
-  before_action :set_safe_mode
   before_action :set_variant
   layout "default"
   helper_method :show_moderation_notice?
@@ -158,6 +157,7 @@ class ApplicationController < ActionController::Base
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
+    CurrentUser.safe_mode = false
     CurrentUser.root_url = root_url.chomp("/")
   end
 
@@ -204,9 +204,5 @@ class ApplicationController < ActionController::Base
 
   def search_params
     params.fetch(:search, {}).permit!
-  end
-
-  def set_safe_mode
-    CurrentUser.set_safe_mode(request)
   end
 end
