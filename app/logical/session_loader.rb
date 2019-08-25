@@ -3,18 +3,20 @@ class SessionLoader
 
   attr_reader :session, :cookies, :request, :params
 
-  def initialize(session, cookies, request, params)
-    @session = session
-    @cookies = cookies
+  def initialize(request)
     @request = request
-    @params = params
+    @session = request.session
+    @cookies = request.cookie_jar
+    @params = request.parameters
   end
 
   def load
     CurrentUser.user = User.anonymous
     CurrentUser.ip_addr = request.remote_ip
 
-    if session[:user_id]
+    if has_api_authentication?
+      load_session_for_api
+    elsif session[:user_id]
       load_session_user
     else
       load_session_for_api
@@ -26,6 +28,10 @@ class SessionLoader
     set_time_zone
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     DanbooruLogger.initialize(request, session, CurrentUser.user)
+  end
+
+  def has_api_authentication?
+    request.authorization.present? || params[:login].present? || params[:api_key].present? || params[:password_hash].present?
   end
 
 private
@@ -40,15 +46,17 @@ private
       authenticate_basic_auth
     elsif params[:login].present? && params[:api_key].present?
       authenticate_api_key(params[:login], params[:api_key])
+    else
+      raise AuthenticationFailure
     end
   end
-  
+
   def authenticate_basic_auth
     credentials = ::Base64.decode64(request.authorization.split(' ', 2).last || '')
     login, api_key = credentials.split(/:/, 2)
     authenticate_api_key(login, api_key)
   end
-  
+
   def authenticate_api_key(name, api_key)
     CurrentUser.user = User.authenticate_api_key(name, api_key)
 
