@@ -4866,7 +4866,7 @@ CREATE INDEX index_user_name_change_requests_on_user_id ON public.user_name_chan
 -- Name: index_user_statuses_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_statuses_on_user_id ON public.user_statuses USING btree (user_id);
+CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING btree (user_id);
 
 
 --
@@ -5246,6 +5246,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190801210547'),
 ('20190804010156'),
 ('20190810064211'),
-('20190815131908');
+('20190815131908'),
+('20190827223818');
 
 
