@@ -7,18 +7,18 @@ class PostSetsController < ApplicationController
   def index
     if !params[:post_id].blank?
       if CurrentUser.is_admin?
-        @sets = PostSet.paginate(include: :set_entries, conditions: ["set_entries.post_id = ?", params[:post_id]], page: 1, per_page: 50)
+        @sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       else
-        @sets = PostSet.paginate(include: :set_entries, conditions: ["(post_sets.public = TRUE OR post_sets.user_id = ?) AND set_entries.post_id = ?", CurrentUser.id || 0, params[:post_id]], page: 1, per_page: 50)
+        @sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       end
     elsif !params[:maintainer_id].blank?
       if CurrentUser.is_admin?
-        @sets = PostSet.paginate(include: :set_maintainers, conditions: ["(set_maintainers.user_id = ? AND set_maintainers.status = 'approved')", params[:maintainer_id]], page: 1, per_page: 50)
+        @sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
       else
-        @sets = PostSet.paginate(include: :set_maintainers, conditions: ["(post_sets.public = TRUE OR post_sets.user_id = ?) AND (set_maintainers.user_id = ? AND set_maintainers.status = 'approved')", CurrentUser.id || 0, params[:maintainer_id]], page: 1, per_page: 50)
+        @sets = PostSet.visible(CurrentUser.user).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
       end
     else
-      @sets = PostSet.search(search_params).paginate(params[:page], limit: params[:limit])
+      @sets = PostSet.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
     end
 
     respond_with(@sets)

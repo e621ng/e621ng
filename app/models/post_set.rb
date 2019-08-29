@@ -16,7 +16,7 @@ class PostSet < ApplicationRecord
       where(status: 'banned')
     end
   end
-  has_many :maintainers, class_name: "User", through: :post_set_maintainers
+  has_many :maintainers, class_name: "User", through: :post_set_maintainers, source: :user
   belongs_to_creator
   user_status_counter :set_count
 
@@ -48,7 +48,8 @@ class PostSet < ApplicationRecord
 
   end
 
-  def self.visible(user = CurrentUser)
+  def self.visible(user = CurrentUser.user)
+    return where('is_public = true') if user.nil?
     return all() if user.is_admin?
     where('is_public = true OR creator_id = ?', user.id)
   end
@@ -272,11 +273,16 @@ class PostSet < ApplicationRecord
       reorder(Arel.sql("(case post_sets.id when #{current_set_id} then 0 else 1 end), post_sets.name"))
     end
 
-    def self.search(prams)
-      q = super
+    def where_has_post(post_id)
+      where('post_ids @> ARRAY[?]::integer[]', post_id)
+    end
 
-      q = q.where('is_public = true')
-      q = q.or(where('(is_public = false AND creator_id = ?', creator_id)) if creator_id
+    def where_has_maintainer(user_id)
+      joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'active', user_id)
+    end
+
+    def search(params)
+      q = super
 
       if params[:creator_name].present?
         user = User.find_by_name(params[:username])

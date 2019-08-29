@@ -4492,6 +4492,13 @@ CREATE INDEX index_post_replacements_on_post_id ON public.post_replacements USIN
 
 
 --
+-- Name: index_post_sets_on_post_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_sets_on_post_ids ON public.post_sets USING gin (post_ids);
+
+
+--
 -- Name: index_post_versions_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5247,6 +5254,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190804010156'),
 ('20190810064211'),
 ('20190815131908'),
-('20190827223818');
+('20190827223818'),
+('20190827233008');
 
 
