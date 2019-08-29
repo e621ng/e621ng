@@ -175,7 +175,7 @@ Post.initialize_gestures = function() {
   if (hasPrev) {
     hammer.on("swiperight", async function(e) {
       $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
-      await Dandbooru.Utility.delay(200);
+      await Utility.delay(200);
       Post.nav_prev(e);
     });
   }
@@ -183,7 +183,7 @@ Post.initialize_gestures = function() {
   if (hasNext) {
     hammer.on("swipeleft", async function(e) {
       $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
-      await Danbooru.Utility.delay(200);
+      await Utility.delay(200);
       Post.nav_next(e);
     });
   }
