@@ -98,6 +98,7 @@ module Danbooru
     def levels
       {
           "Anonymous" => 0,
+          "Unactivated" => 1,
           "Blocked" => 10,
           "Member" => 20,
           "Privileged" => 30,
@@ -111,6 +112,15 @@ module Danbooru
 
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
+      user.level = User::Levels::UNACTIVATED
+      user.comment_threshold = -10
+      user.blacklisted_tags = 'gore
+scat
+watersports
+young -rating:s
+loli
+shota
+fart'
       # user.level = User::Levels::MEMBER
       # user.can_approve_posts = false
       # user.can_upload_free = false

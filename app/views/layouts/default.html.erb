@@ -113,6 +113,10 @@
       <%= render "users/dmail_notice" %>
     <% end %>
 
+    <% if !CurrentUser.is_anonymous? && !CurrentUser.is_verified? %>
+      <%= render "users/validation_notice" %>
+    <% end %>
+
     <% if CurrentUser.user.can_approve_posts? %>
       <%= render "moderator/post/queues/notice" %>
     <% end %>

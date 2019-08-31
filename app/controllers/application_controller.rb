@@ -39,25 +39,12 @@ class ApplicationController < ActionController::Base
       headers["X-Api-Limit"] = CurrentUser.user.token_bucket.cached_count.to_s
 
       if throttled
-        respond_to do |format|
-          format.json do
-            render json: {success: false, reason: "too many requests"}.to_json, status: 429
-          end
-
-          format.xml do
-            render xml: {success: false, reason: "too many requests"}.to_xml(:root => "response"), status: 429
-          end
-
-          format.html do
-            render :template => "static/too_many_requests", :status => 429
-          end
-        end
-
+        render_error_page(429, Exception.new, message: "Too many requests")
         return false
       end
     end
 
-    return true
+    true
   end
 
   def rescue_exception(exception)

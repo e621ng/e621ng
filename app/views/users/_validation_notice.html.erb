@@ -1,0 +1,5 @@
+<div class="ui-corner-all ui-state-highlight site-notice" id="unactivated-notice">
+  <h1>You still need to activate your account via an email sent to
+    <span style="font-weight:bold;"><%= CurrentUser.email %> (<%= link_to "resend", resend_confirmation_email_path %>)</span>
+  </h1>
+</div>

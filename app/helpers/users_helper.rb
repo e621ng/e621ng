@@ -1,6 +1,5 @@
 module UsersHelper
-  def email_sig(user)
-    verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.email_key, serializer: JSON, digest: "SHA256")
-    verifier.generate("#{user.id}")
+  def email_sig(user, purpose, expires = nil)
+    EmailLinkValidator.generate("#{user.id}", purpose, expires)
   end
 end

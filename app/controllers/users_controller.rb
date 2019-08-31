@@ -49,7 +49,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
+    raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new(user_params(:create))
     if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
       @user.save
@@ -57,6 +57,9 @@ class UsersController < ApplicationController
         session[:user_id] = @user.id
       else
         flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join("; ")}"
+      end
+      if Danbooru.config.enable_email_verification?
+        Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
       end
       set_current_user
       respond_with(@user)

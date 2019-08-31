@@ -22,10 +22,9 @@ module Maintenance
       end
 
       def validate_sig
-        verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.email_key, digest: "SHA256", serializer: JSON)
-        calculated_sig = verifier.generate(params[:user_id].to_s)
-        if calculated_sig != params[:sig]
-          raise VerificationError.new
+        message = EmailLinkValidator.validate(params[:sig], :unsubscribe)
+        if message.blank? || !message || message != params[:user_id].to_s
+          raise VerificationError
         end
       end
     end
