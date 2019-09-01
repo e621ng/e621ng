@@ -1,8 +1,8 @@
 source 'https://rubygems.org/'
 
-gem 'dotenv-rails', :require => "dotenv/rails-now"
+gem 'dotenv-rails', require: 'dotenv/rails-now'
 
-gem "rails", "~> 5.2"
+gem "rails", "~> 6.0"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
@@ -69,7 +69,6 @@ end
 group :development, :test do
   gem 'awesome_print'
   gem 'pry-byebug'
-  gem 'foreman'
   gem 'listen'
 end
 

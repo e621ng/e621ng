@@ -335,19 +335,7 @@ class User < ApplicationRecord
 
   module EmailMethods
     def is_verified?
-      email_verification_key.blank?
-    end
-
-    def generate_email_verification_key
-      self.email_verification_key = Digest::SHA1.hexdigest("#{Time.now.to_f}--#{name}--#{rand(1_000_000)}--")
-    end
-
-    def verify!(key)
-      if email_verification_key == key
-        self.update_column(:email_verification_key, nil)
-      else
-        raise User::Error.new("Verification key does not match")
-      end
+      level > Levels::UNACTIVATED
     end
 
     def normalize_email

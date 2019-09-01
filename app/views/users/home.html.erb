@@ -15,7 +15,7 @@
       <li>&raquo; <%= link_to "Login reminder", new_maintenance_user_login_reminder_path %></li>
 
       <% if Danbooru.config.enable_email_verification? %>
-        <li>&raquo; <%= link_to "Resend activation email", action: "resend_confirmation" %></li>
+        <li>&raquo; <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
       <% end %>
     </ul>
   </div>
@@ -136,7 +136,7 @@
       <li>&raquo; <%= link_to "Manage API Access", user_api_key_path(CurrentUser.user) %></li>
       <li>&raquo; <%= link_to "Change username", new_user_name_change_request_path %></li>
       <% if Danbooru.config.enable_email_verification? && !CurrentUser.is_verified? %>
-        <li>&raquo; <%= link_to "Resend activation email", action: "resend_confirmation" %></li>
+        <li>&raquo; <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
       <% end %>
       <li>&nbsp;</li>
       <li>&raquo; <%= link_to "My profile", action: "show", id: CurrentUser.id %></li>

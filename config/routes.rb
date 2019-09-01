@@ -394,6 +394,12 @@ Rails.application.routes.draw do
       post :deny
     end
   end
+  resource :email do
+    collection do
+      get :activate_user
+      get :resend_confirmation
+    end
+  end
 
   # aliases
   resources :wpages, :controller => "wiki_pages"

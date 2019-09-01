@@ -19,8 +19,6 @@ Sidekiq::Testing::fake!
 Dir[File.expand_path(File.dirname(__FILE__) + "/factories/*.rb")].each {|file| require file}
 Dir[File.expand_path(File.dirname(__FILE__) + "/test_helpers/*.rb")].each {|file| require file}
 
-Dotenv.load(Rails.root + ".env.local")
-
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :minitest

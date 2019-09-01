@@ -28,7 +28,7 @@ div#page {
     clear: both;
   }
 
-  div#upgrade-account-notice, div#sign-up-notice, div#tos-notice, div#ban-notice, div#dmail-notice, div#mod-notice {
+  div.site-notice {
     padding: $half_padding;
     text-align: center;
     position: relative;

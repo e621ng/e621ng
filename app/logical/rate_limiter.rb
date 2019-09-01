@@ -6,7 +6,9 @@ class RateLimiter
     if attempts >= max_attempts
       Cache.put("#{key}:lockout", true, lockout_time)
       reset_limit(key)
+      return true
     end
+    false
   end
 
   def self.hit(key, time_period = 1.minute)

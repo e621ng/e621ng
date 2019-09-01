@@ -18,8 +18,6 @@ class SessionLoader
       load_session_for_api
     elsif session[:user_id]
       load_session_user
-    else
-      load_session_for_api
     end
 
     set_statement_timeout
