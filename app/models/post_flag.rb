@@ -7,7 +7,7 @@ class PostFlag < ApplicationRecord
     BANNED = "Artist requested removal"
   end
 
-  COOLDOWN_PERIOD = 3.days
+  COOLDOWN_PERIOD = 1.days
   CREATION_THRESHOLD = 10 # in 30 days
   MAPPED_REASONS = Danbooru.config.flag_reasons.map {|i| [i[:name], i[:reason]] }.to_h
 
@@ -158,23 +158,19 @@ class PostFlag < ApplicationRecord
 
     return if creator.is_janitor?
 
-    if creator_id != User.system.id && PostFlag.for_creator(creator_id).where("created_at > ?", 30.days.ago).count >= CREATION_THRESHOLD
-      report = Reports::PostFlags.new(user_id: post.uploader_id, date_range: 90.days.ago)
+    # TODO: Should we keep this?
+    # if creator_id != User.system.id && PostFlag.for_creator(creator_id).where("created_at > ?", 30.days.ago).count >= CREATION_THRESHOLD
+    #   report = Reports::PostFlags.new(user_id: post.uploader_id, date_range: 90.days.ago)
+    #
+    #   if report.attackers.include?(creator_id)
+    #     errors[:creator] << "cannot flag posts uploaded by this user"
+    #   end
+    # end
 
-      if report.attackers.include?(creator_id)
-        errors[:creator] << "cannot flag posts uploaded by this user"
-      end
-    end
-
-    # TODO: Convert to a user limit and move to user class.
-    if CurrentUser.can_approve_posts?
-      # do nothing
-    elsif creator.created_at > 1.week.ago
-      errors[:creator] << "cannot flag within the first week of sign up"
-    elsif creator.is_privileged? && flag_count_for_creator >= 10
-      errors[:creator] << "can flag 10 posts a day"
-    elsif !creator.is_privileged? && flag_count_for_creator >= 1
-      errors[:creator] << "can flag 1 post a day"
+    allowed = creator.can_post_flag_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      return false
     end
 
     flag = post.flags.in_cooldown.last
@@ -184,7 +180,7 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
-    errors[:post] << "is locked and cannot be flagged" if post.is_status_locked?
+    errors[:post] << "is locked and cannot be flagged" if post.is_status_locked? && !creator.is_admin?
     errors[:post] << "is deleted" if post.is_deleted?
   end
 

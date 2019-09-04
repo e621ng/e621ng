@@ -447,6 +447,10 @@ class User < ApplicationRecord
                          :general_bypass_throttle?, 3.days.ago)
     create_user_throttle(:post_vote, ->{ Danbooru.config.post_vote_limit - PostVote.for_user(id).where("created_at > ?", 1.hour.ago)},
                          :general_bypass_throttle?, nil)
+    create_user_throttle(:post_flag, ->{ Danboooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago)},
+                         :can_approve_posts?, 3.days.ago)
+    create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago)},
+                         :general_bypass_throttle?, 3.days.ago)
 
     def max_saved_searches
       if is_contributor?

@@ -12,6 +12,8 @@ class Ticket < ApplicationRecord
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_can_see_target, on: :create
 
+  scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
+
 =begin
     Permission truth table.
     Type            | Field         | Access

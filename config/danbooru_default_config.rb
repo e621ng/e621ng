@@ -249,8 +249,16 @@ fart'
       150
     end
 
+    def post_flag_limit
+      10
+    end
+
     # Flat limit that applies to all users, regardless of level
     def hourly_upload_limit
+      30
+    end
+
+    def ticket_limit
       30
     end
 
