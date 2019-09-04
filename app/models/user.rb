@@ -60,20 +60,33 @@ class User < ApplicationRecord
   attr_accessor :password, :old_password
 
   after_initialize :initialize_attributes, if: :new_record?
-  validates :name, user_name: true, on: :create
-  validates_uniqueness_of :email, :case_sensitive => false, :if => ->(rec) { rec.email.present? && rec.saved_change_to_email? }
+
+  before_validation :normalize_email
+  if Danbooru.config.enable_email_verification?
+    validates_presence_of :email, on: :create
+    validates_presence_of :email, on: :update, if: ->(rec) { rec.email_changed? }
+    validates_uniqueness_of :email, case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? }
+    validates_uniqueness_of :email, case_sensitive: false, on: :create
+    validates_format_of :email, with: /^.+@[^ ,;@]+\.[^ ,;@]+$/, on: :create
+    validates_format_of :email, with: /^.+@[^ ,;@]+\.[^ ,;@]+$/, on: :update, if: ->(rec) { rec.email_changed? }
+  else
+    validates_uniqueness_of :email, case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?}
+  end
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
-  validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
+
+
+  validates :name, user_name: true, on: :create
   validates_inclusion_of :default_image_size, :in => %w(large fit original)
-  validates_inclusion_of :per_page, :in => 1..250
-  validates_confirmation_of :password
-  validates_presence_of :email, :if => ->(rec) { rec.new_record? && Danbooru.config.enable_email_verification?}
+  validates_inclusion_of :per_page, :in => 1..320
   validates_presence_of :comment_threshold
+  validates_numericality_of :comment_threshold, only_integer: true, less_than: 50_000, greater_than: -50_000
+  validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
+  validates_confirmation_of :password
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
-  before_validation :normalize_email
+  validates_length_of :blacklisted_tags, max: 150_000
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
@@ -100,7 +113,7 @@ class User < ApplicationRecord
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.created_at desc")}
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
-  has_many :favorites, ->(rec) {where("user_id % 100 = #{rec.id % 100} and user_id = #{rec.id}").order("id desc")}
+  has_many :favorites, ->(rec) {where("user_id = ?", rec.id).order("id desc")}
   belongs_to :inviter, class_name: "User", optional: true
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
