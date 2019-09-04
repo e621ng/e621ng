@@ -5,7 +5,7 @@ class PostVote < ApplicationRecord
   belongs_to :user
 
   after_initialize :initialize_attributes, if: :new_record?
-  validates :validate_user_can_vote
+  validate :validate_user_can_vote
   validates_presence_of :post_id, :user_id, :score
   validates_inclusion_of :score, :in => [1, 0, -1]
 

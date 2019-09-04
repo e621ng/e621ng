@@ -2,6 +2,7 @@ class ArtistUrl < ApplicationRecord
   before_validation :initialize_normalized_url, on: :create
   before_validation :normalize
   validates :url, presence: true, uniqueness: { scope: :artist_id }
+  validates_length_of :url, in: 1..4096
   validate :validate_url_format
   belongs_to :artist, :touch => true
 
@@ -29,17 +30,17 @@ class ArtistUrl < ApplicationRecord
 
       # the strategy won't always work for twitter because it looks for a status
       url = url.downcase if url =~ %r!^https?://(?:mobile\.)?twitter\.com!
-        
+
       begin
         source = Sources::Strategies.find(url)
-  
+
         if !source.normalized_for_artist_finder? && source.normalizable_for_artist_finder?
           url = source.normalize_for_artist_finder
         end
       rescue Net::OpenTimeout, PixivApiClient::Error
         raise if Rails.env.test?
       end
-      
+
       url = url.gsub(/\/+\Z/, "")
       url = url.gsub(%r!^https://!, "http://")
       url + "/"

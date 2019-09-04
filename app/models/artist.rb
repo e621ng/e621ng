@@ -5,15 +5,18 @@ class Artist < ApplicationRecord
   attr_accessor :url_string_changed
   array_attribute :other_names
 
+  belongs_to_creator
   before_validation :normalize_name
   before_validation :normalize_other_names
   validate :user_not_limited
+  validates :name, tag_name: true, uniqueness: true
+  validates_length_of :group_name, maximum: 100
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
   after_save :clear_url_string_changed
-  validates :name, tag_name: true, uniqueness: true
-  belongs_to_creator
+
+
   has_many :members, :class_name => "Artist", :foreign_key => "group_name", :primary_key => "name"
   has_many :urls, :dependent => :destroy, :class_name => "ArtistUrl", :autosave => true
   has_many :versions, -> {order("artist_versions.id ASC")}, :class_name => "ArtistVersion"

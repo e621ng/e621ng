@@ -25,7 +25,7 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors[attribute] << "'#{value}' cannot begin with an underscore ('_')"
     when /_\z/
       record.errors[attribute] << "'#{value}' cannot end with an underscore ('_')"
-    when /[_-~]{2}/
+    when /[_\-~]{2}/
       record.errors[attribute] << "'#{value}' cannot contain consecutive underscores, hyphens or tildes"
     when /[^[:graph:]]/
       record.errors[attribute] << "'#{value}' cannot contain non-printable characters"
