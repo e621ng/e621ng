@@ -603,6 +603,7 @@ class ElasticPostQueryBuilder
         query: {bool: {must: must, must_not: must_not}},
         sort: order,
         _source: false,
+        timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
     }
 
     Post.__elasticsearch__.search(search_body)

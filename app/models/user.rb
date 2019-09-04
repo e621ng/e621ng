@@ -67,8 +67,8 @@ class User < ApplicationRecord
     validates_presence_of :email, on: :update, if: ->(rec) { rec.email_changed? }
     validates_uniqueness_of :email, case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? }
     validates_uniqueness_of :email, case_sensitive: false, on: :create
-    validates_format_of :email, with: /^.+@[^ ,;@]+\.[^ ,;@]+$/, on: :create
-    validates_format_of :email, with: /^.+@[^ ,;@]+\.[^ ,;@]+$/, on: :update, if: ->(rec) { rec.email_changed? }
+    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create
+    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? }
   else
     validates_uniqueness_of :email, case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?}
   end
@@ -86,7 +86,7 @@ class User < ApplicationRecord
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
-  validates_length_of :blacklisted_tags, max: 150_000
+  validates_length_of :blacklisted_tags, maximum: 150_000
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
