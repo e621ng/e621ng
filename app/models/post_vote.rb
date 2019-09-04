@@ -5,8 +5,11 @@ class PostVote < ApplicationRecord
   belongs_to :user
 
   after_initialize :initialize_attributes, if: :new_record?
+  validates :validate_user_can_vote
   validates_presence_of :post_id, :user_id, :score
   validates_inclusion_of :score, :in => [1, 0, -1]
+
+  scope :for_user, ->(uid) {where("user_id = ?", uid)}
 
   def self.positive_user_ids
     select_values_sql("select user_id from post_votes where score > 0 group by user_id having count(*) > 100")
@@ -23,6 +26,19 @@ class PostVote < ApplicationRecord
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
     self.user_ip_addr ||= CurrentUser.ip_addr
+  end
+
+  def validate_user_can_vote
+    if creator.created_at > 3.days.ago && score == -1
+      errors.add(:creator, "must be 3 days old to downvote posts")
+      return false
+    end
+    allowed = creator.can_post_vote_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      return false
+    end
+    true
   end
 
   module SearchMethods

@@ -198,6 +198,14 @@ fart'
       15
     end
 
+    def comment_vote_limit
+      10
+    end
+
+    def post_vote_limit
+      3_000
+    end
+
     def dmail_limit
       20
     end
@@ -241,9 +249,14 @@ fart'
       150
     end
 
+    # Flat limit that applies to all users, regardless of level
+    def hourly_upload_limit
+      30
+    end
+
     # Members cannot change the category of pools with more than this many posts.
     def pool_category_change_limit
-      100
+      30
     end
 
     def tag_type_change_cutoff

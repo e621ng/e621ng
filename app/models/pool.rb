@@ -109,7 +109,7 @@ class Pool < ApplicationRecord
     allowed = creator.can_pool_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end
@@ -118,7 +118,7 @@ class Pool < ApplicationRecord
     allowed = CurrentUser.can_pool_edit_with_reason
     if allowed != true
       errors.add(:updater, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end

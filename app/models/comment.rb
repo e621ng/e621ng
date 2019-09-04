@@ -124,7 +124,7 @@ class Comment < ApplicationRecord
     allowed = creator.can_comment_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end
