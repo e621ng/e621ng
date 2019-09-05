@@ -6,6 +6,8 @@ class Pool < ApplicationRecord
   belongs_to_creator
 
   validates_uniqueness_of :name, case_sensitive: false, if: :name_changed?
+  validates_length_of :name, minimum: 1, maximum: 250
+  validates_length_of :description, maximum: 10_000
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update
   validate :validate_name, if: :name_changed?
@@ -109,7 +111,7 @@ class Pool < ApplicationRecord
     allowed = creator.can_pool_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end
@@ -118,7 +120,7 @@ class Pool < ApplicationRecord
     allowed = CurrentUser.can_pool_edit_with_reason
     if allowed != true
       errors.add(:updater, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end

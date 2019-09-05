@@ -7,16 +7,26 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors[attribute] << "'#{value}' cannot contain asterisks ('*')"
     when /,/
       record.errors[attribute] << "'#{value}' cannot contain commas (',')"
+    when /#/
+      record.errors[attribute] << "'#{value}' cannot contain octothorpes ('#')"
+    when /\$/
+      record.errors[attribute] << "'#{value}' cannot contain peso signs ('$')"
+    when /%/
+      record.errors[attribute] << "'#{value}' cannot contain percent signs ('%')"
+    when /\\/
+      record.errors[attribute] << "'#{value}' cannot contain back slashes ('\\')"
     when /\A~/
       record.errors[attribute] << "'#{value}' cannot begin with a tilde ('~')"
     when /\A-/
       record.errors[attribute] << "'#{value}' cannot begin with a dash ('-')"
+    when /\A:/
+      record.errors[attribute] << "'#{value}' cannot begin with a colon (':')"
     when /\A_/
-      record.errors[attribute] << "'#{value}' cannot begin with an underscore"
+      record.errors[attribute] << "'#{value}' cannot begin with an underscore ('_')"
     when /_\z/
-      record.errors[attribute] << "'#{value}' cannot end with an underscore"
-    when /__/
-      record.errors[attribute] << "'#{value}' cannot contain consecutive underscores"
+      record.errors[attribute] << "'#{value}' cannot end with an underscore ('_')"
+    when /[_\-~]{2}/
+      record.errors[attribute] << "'#{value}' cannot contain consecutive underscores, hyphens or tildes"
     when /[^[:graph:]]/
       record.errors[attribute] << "'#{value}' cannot contain non-printable characters"
     when /[^[:ascii:]]/

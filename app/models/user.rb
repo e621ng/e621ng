@@ -60,20 +60,35 @@ class User < ApplicationRecord
   attr_accessor :password, :old_password
 
   after_initialize :initialize_attributes, if: :new_record?
-  validates :name, user_name: true, on: :create
-  validates_uniqueness_of :email, :case_sensitive => false, :if => ->(rec) { rec.email.present? && rec.saved_change_to_email? }
+
+  before_validation :normalize_email
+  if Danbooru.config.enable_email_verification?
+    validates_presence_of :email, on: :create
+    validates_presence_of :email, on: :update, if: ->(rec) { rec.email_changed? }
+    validates_uniqueness_of :email, case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? }
+    validates_uniqueness_of :email, case_sensitive: false, on: :create
+    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create
+    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? }
+  else
+    validates_uniqueness_of :email, case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?}
+  end
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
-  validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
+
+
+  validates :name, user_name: true, on: :create
   validates_inclusion_of :default_image_size, :in => %w(large fit original)
-  validates_inclusion_of :per_page, :in => 1..250
-  validates_confirmation_of :password
-  validates_presence_of :email, :if => ->(rec) { rec.new_record? && Danbooru.config.enable_email_verification?}
+  validates_inclusion_of :per_page, :in => 1..320
   validates_presence_of :comment_threshold
+  validates_numericality_of :comment_threshold, only_integer: true, less_than: 50_000, greater_than: -50_000
+  validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
+  validates_confirmation_of :password
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
-  before_validation :normalize_email
+  validates_length_of :blacklisted_tags, maximum: 150_000
+  validates_length_of :profile_about, maximum: 50_0000
+  validates_length_of :profile_artinfo, maximum: 50_000
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
@@ -100,7 +115,7 @@ class User < ApplicationRecord
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.created_at desc")}
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
-  has_many :favorites, ->(rec) {where("user_id % 100 = #{rec.id % 100} and user_id = #{rec.id}").order("id desc")}
+  has_many :favorites, ->(rec) {where("user_id = ?", rec.id).order("id desc")}
   belongs_to :inviter, class_name: "User", optional: true
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -407,29 +422,37 @@ class User < ApplicationRecord
     end
 
     def general_bypass_throttle?
-      is_contributor?
+      is_privileged?
     end
 
     create_user_throttle(:artist_edit, ->{ Danbooru.config.artist_edit_limit - ArtistVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days.ago)
     create_user_throttle(:post_edit, ->{ Danbooru.config.post_edit_limit - PostArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days.ago)
+                         :general_bypass_throttle?, 7.days.ago)
     create_user_throttle(:wiki_edit, ->{ Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days.ago)
     create_user_throttle(:pool, ->{ Danbooru.config.pool_limit - Pool.for_user(id).where('created_at > ?', 1.hour.ago).count },
                          nil, 7.days.ago)
     create_user_throttle(:pool_edit, ->{ Danbooru.config.pool_edit_limit - PoolArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         nil, 7.days.ago)
+                         nil, 3.days.ago)
     create_user_throttle(:note_edit, ->{ Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days.ago)
+                         :general_bypass_throttle?, 3.days.ago)
     create_user_throttle(:comment, ->{ Danbooru.config.member_comment_limit - Comment.for_creator(id).where('created_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days.ago)
     create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days.ago)
     create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.hour.ago).count },
-                         nil, nil)
+                         nil, 7.days.ago)
     create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
-                         nil, nil)
+                         nil, 7.days.ago)
+    create_user_throttle(:comment_vote, ->{ Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago)},
+                         :general_bypass_throttle?, 3.days.ago)
+    create_user_throttle(:post_vote, ->{ Danbooru.config.post_vote_limit - PostVote.for_user(id).where("created_at > ?", 1.hour.ago)},
+                         :general_bypass_throttle?, nil)
+    create_user_throttle(:post_flag, ->{ Danboooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago)},
+                         :can_approve_posts?, 3.days.ago)
+    create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago)},
+                         :general_bypass_throttle?, 3.days.ago)
 
     def max_saved_searches
       if is_contributor?
@@ -443,12 +466,8 @@ class User < ApplicationRecord
       true
     end
 
-    def can_comment_vote?
-      CommentVote.where("user_id = ? and created_at > ?", id, 1.hour.ago).count < 10
-    end
-
     def can_remove_from_pools?
-      created_at <= 1.week.ago
+      created_at <= 7.days.ago
     end
 
     def can_view_flagger?(flagger_id)
@@ -470,7 +489,7 @@ class User < ApplicationRecord
         :REJ_UPLOAD_HOURLY
       elsif is_admin?
         true # TODO: Remove this?
-      elsif created_at > 1.week.ago
+      elsif created_at > 7.days.ago
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0
         :REJ_UPLOAD_EDIT
@@ -486,7 +505,7 @@ class User < ApplicationRecord
     end
 
     def hourly_upload_limit
-      30 - Post.for_user(id).where("created_at >= ?", 1.hour.ago).count
+      Danbooru.config.hourly_upload_limit - Post.for_user(id).where("created_at >= ?", 1.hour.ago).count
     end
     memoize :hourly_upload_limit
 

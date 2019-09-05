@@ -5,15 +5,18 @@ class Artist < ApplicationRecord
   attr_accessor :url_string_changed
   array_attribute :other_names
 
+  belongs_to_creator
   before_validation :normalize_name
   before_validation :normalize_other_names
   validate :user_not_limited
+  validates :name, tag_name: true, uniqueness: true
+  validates_length_of :group_name, maximum: 100
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
   after_save :clear_url_string_changed
-  validates :name, tag_name: true, uniqueness: true
-  belongs_to_creator
+
+
   has_many :members, :class_name => "Artist", :foreign_key => "group_name", :primary_key => "name"
   has_many :urls, :dependent => :destroy, :class_name => "ArtistUrl", :autosave => true
   has_many :versions, -> {order("artist_versions.id ASC")}, :class_name => "ArtistVersion"
@@ -30,7 +33,9 @@ class Artist < ApplicationRecord
   module UrlMethods
     extend ActiveSupport::Concern
 
+    MAX_URLS_PER_ARTIST = 25
     module ClassMethods
+
       # Subdomains are automatically included. e.g., "twitter.com" matches "www.twitter.com",
       # "mobile.twitter.com" and any other subdomain of "twitter.com".
       SITE_BLACKLIST = [
@@ -189,7 +194,7 @@ class Artist < ApplicationRecord
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|
         is_active, url = ArtistUrl.parse_prefix(url)
         self.urls.find_or_initialize_by(url: url, is_active: is_active)
-      end.uniq(&:url)
+      end.uniq(&:url)[0..MAX_URLS_PER_ARTIST]
 
       self.url_string_changed = (url_string_was != url_string)
     end

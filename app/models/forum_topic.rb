@@ -1,10 +1,4 @@
 class ForumTopic < ApplicationRecord
-  CATEGORIES = {
-    0 => "General",
-    1 => "Tags",
-    2 => "Bugs & Features"
-  }
-
   MIN_LEVELS = {
     None: 0,
     Moderator: User::Levels::MODERATOR,
@@ -22,7 +16,7 @@ class ForumTopic < ApplicationRecord
   validates_associated :original_post
   validates_associated :category
   validates_inclusion_of :min_level, :in => MIN_LEVELS.values
-  validates :title, :length => {:maximum => 255}
+  validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
   after_update :update_orignal_post
@@ -115,7 +109,7 @@ class ForumTopic < ApplicationRecord
 
     def mark_as_read!(user = CurrentUser.user)
       return if user.is_anonymous?
-      
+
       match = ForumTopicVisit.where(:user_id => user.id, :forum_topic_id => id).first
       if match
         match.update_attribute(:last_read_at, updated_at)

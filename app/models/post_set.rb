@@ -25,7 +25,7 @@ class PostSet < ApplicationRecord
   validates_length_of :shortname, in: 1..50, message: 'must be between one and fifty characters long'
   validates_format_of :shortname, with: /\A[\w]+\z/, message: "must only contain numbers, letters, and underscores"
   validates_format_of :shortname, with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one letter or underscore"
-  validates_length_of :description, maximum: 10000
+  validates_length_of :description, maximum: 10_000
   validate :validate_number_of_posts
   validate :can_make_public
   validate :set_per_hour_limit, on: :create

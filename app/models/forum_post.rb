@@ -16,6 +16,7 @@ class ForumPost < ApplicationRecord
   after_update :update_topic_updated_at_on_update_for_original_posts
   after_destroy :update_topic_updated_at_on_destroy
   validates_presence_of :body, :creator_id
+  validates_length_of :body, minimum: 1, maximum: 50_000
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
   validate :validate_post_is_not_spam, on: :create

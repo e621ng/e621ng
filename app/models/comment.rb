@@ -2,15 +2,14 @@ class Comment < ApplicationRecord
   include Mentionable
 
   simple_versioning
+  belongs_to_creator
+  belongs_to_updater
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
   validate :validate_comment_is_not_spam, on: :create
   validates_presence_of :body, :message => "has no content"
-  belongs_to :post, counter_cache: :comment_count
-  belongs_to_creator
-  belongs_to_updater
-  user_status_counter :comment_count
-  has_many :votes, :class_name => "CommentVote", :dependent => :destroy
+  validates_length_of :body, minimum: 1, maximum: 10_000
+
   after_create :update_last_commented_at_on_create
   after_update(:if => ->(rec) {(!rec.is_deleted? || !rec.saved_change_to_is_deleted?) && CurrentUser.id != rec.creator_id}) do |rec|
     ModAction.log(:comment_update, {comment_id: rec.id, user_id: rec.creator_id})
@@ -19,6 +18,11 @@ class Comment < ApplicationRecord
   after_save(:if => ->(rec) {rec.is_deleted? && rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id}) do |rec|
     ModAction.log(:comment_delete, {comment_id: rec.id, user_id: rec.creator_id})
   end
+
+
+  user_status_counter :comment_count
+  belongs_to :post, counter_cache: :comment_count
+  has_many :votes, :class_name => "CommentVote", :dependent => :destroy
   mentionable(
     :message_field => :body,
     :title => ->(user_name) {"#{creator_name} mentioned you in a comment on post ##{post_id}"},
@@ -124,7 +128,7 @@ class Comment < ApplicationRecord
     allowed = creator.can_comment_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
-      false
+      return false
     end
     true
   end
