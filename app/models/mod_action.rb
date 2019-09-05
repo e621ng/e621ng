@@ -1,7 +1,7 @@
 class ModAction < ApplicationRecord
   belongs_to :creator, :class_name => "User"
   before_validation :initialize_creator, :on => :create
-  validates_presence_of :creator_id
+  validates :creator_id, presence: true
 
   #####DIVISIONS#####
   #Groups:     0-999

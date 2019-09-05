@@ -2,10 +2,10 @@ class Blip < ApplicationRecord
   simple_versioning
   belongs_to_creator
   user_status_counter :blip_count
-  validates_presence_of :body
+  validates :body, presence: true
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
   has_many :responses, class_name: "Blip", foreign_key: "response_to"
-  validates_length_of :body, within: 5..1000
+  validates :body, length: { within: 5..1000 }
   validate :validate_parent_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
 

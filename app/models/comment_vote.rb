@@ -5,11 +5,11 @@ class CommentVote < ApplicationRecord
   belongs_to :comment
   belongs_to :user
   before_validation :initialize_user, :on => :create
-  validates_presence_of :user_id, :comment_id, :score
-  validates_uniqueness_of :user_id, :scope => :comment_id, :message => "have already voted for this comment"
+  validates :user_id, :comment_id, :score, presence: true
+  validates :user_id, uniqueness: { :scope => :comment_id, :message => "have already voted for this comment" }
   validate :validate_user_can_vote
   validate :validate_comment_can_be_down_voted
-  validates_inclusion_of :score, :in => [-1, 0, 1], :message => "must be 1 or -1"
+  validates :score, inclusion: { :in => [-1, 0, 1], :message => "must be 1 or -1" }
 
   scope :for_user, ->(uid) {where("user_id = ?", uid)}
 

@@ -1,6 +1,6 @@
 class TagAlias < TagRelationship
   after_save :create_mod_action
-  validates_uniqueness_of :antecedent_name
+  validates :antecedent_name, uniqueness: true
   validate :absence_of_transitive_relation
   validate :wiki_pages_present, on: :create, unless: :skip_secondary_validations
   validate :mininum_antecedent_count, on: :create, unless: :skip_secondary_validations

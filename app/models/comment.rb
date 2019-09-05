@@ -7,8 +7,8 @@ class Comment < ApplicationRecord
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
   validate :validate_comment_is_not_spam, on: :create
-  validates_presence_of :body, :message => "has no content"
-  validates_length_of :body, minimum: 1, maximum: 10_000
+  validates :body, presence: { :message => "has no content" }
+  validates :body, length: { minimum: 1, maximum: 10_000 }
 
   after_create :update_last_commented_at_on_create
   after_update(:if => ->(rec) {(!rec.is_deleted? || !rec.saved_change_to_is_deleted?) && CurrentUser.id != rec.creator_id}) do |rec|

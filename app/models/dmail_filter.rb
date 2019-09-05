@@ -2,9 +2,9 @@ class DmailFilter < ApplicationRecord
   extend Memoist
 
   belongs_to :user
-  validates_presence_of :user
+  validates :user, presence: true
   before_validation :initialize_user
-  validates_length_of :words, maximum: 1000
+  validates :words, length: { maximum: 1000 }
 
   def initialize_user
     unless user_id

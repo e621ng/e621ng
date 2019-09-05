@@ -1,6 +1,6 @@
 class HelpPage < ApplicationRecord
-  validates_uniqueness_of :wiki_page, :name
-  validates_presence_of :wiki_page, :name
+  validates :wiki_page, :name, uniqueness: true
+  validates :wiki_page, :name, presence: true
   before_validation :normalize
   validate :wiki_page_exists
   after_save :invalidate_cache

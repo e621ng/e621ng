@@ -1,7 +1,7 @@
 class IpBan < ApplicationRecord
   belongs_to_creator
-  validates_presence_of :reason, :ip_addr
-  validates_uniqueness_of :ip_addr
+  validates :reason, :ip_addr, presence: true
+  validates :ip_addr, uniqueness: true
   after_create do |rec|
     ModAction.log(:ip_ban_create, {ip_addr: rec.ip_addr})
   end

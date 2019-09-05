@@ -6,9 +6,9 @@ class Dmail < ApplicationRecord
   AUTOBAN_WINDOW = 24.hours
   AUTOBAN_DURATION = 3
 
-  validates_presence_of :title, :body, on: :create
-  validates_length_of :title, minimum: 1, maximum: 250
-  validates_length_of :body, minimum: 1, maximum: 50_000
+  validates :title, :body, presence: { on: :create }
+  validates :title, length: { minimum: 1, maximum: 250 }
+  validates :body, length: { minimum: 1, maximum: 50_000 }
   validate :validate_sender_is_not_banned, on: :create
   validate :user_not_limited, on: :create
 

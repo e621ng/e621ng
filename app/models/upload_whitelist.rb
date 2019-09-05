@@ -2,9 +2,9 @@ class UploadWhitelist < ApplicationRecord
   before_save :clean_pattern
   after_save :clear_cache
 
-  validates_presence_of :pattern
-  validates_uniqueness_of :pattern
-  validates_format_of :pattern, with: /\A[a-zA-Z0-9.%:\-*\/?&]+\z/
+  validates :pattern, presence: true
+  validates :pattern, uniqueness: true
+  validates :pattern, format: { with: /\A[a-zA-Z0-9.%:\-*\/?&]+\z/ }
   after_create do |rec|
     ModAction.log(:upload_whitelist_create, {pattern: rec.pattern, note: rec.note, hidden: rec.hidden})
   end

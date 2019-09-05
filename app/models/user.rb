@@ -63,32 +63,32 @@ class User < ApplicationRecord
 
   before_validation :normalize_email
   if Danbooru.config.enable_email_verification?
-    validates_presence_of :email, on: :create
-    validates_presence_of :email, on: :update, if: ->(rec) { rec.email_changed? }
-    validates_uniqueness_of :email, case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? }
-    validates_uniqueness_of :email, case_sensitive: false, on: :create
-    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create
-    validates_format_of :email, with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? }
+    validates :email, presence: { on: :create }
+    validates :email, presence: { on: :update, if: ->(rec) { rec.email_changed? } }
+    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? } }
+    validates :email, uniqueness: { case_sensitive: false, on: :create }
+    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create }
+    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? } }
   else
-    validates_uniqueness_of :email, case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?}
+    validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?} }
   end
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
 
   validates :name, user_name: true, on: :create
-  validates_inclusion_of :default_image_size, :in => %w(large fit original)
-  validates_inclusion_of :per_page, :in => 1..320
-  validates_presence_of :comment_threshold
-  validates_numericality_of :comment_threshold, only_integer: true, less_than: 50_000, greater_than: -50_000
-  validates_length_of :password, :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?}
-  validates_confirmation_of :password
+  validates :default_image_size, inclusion: { :in => %w(large fit original) }
+  validates :per_page, inclusion: { :in => 1..320 }
+  validates :comment_threshold, presence: true
+  validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
+  validates :password, length: { :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?} }
+  validates :password, confirmation: true
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
-  validates_length_of :blacklisted_tags, maximum: 150_000
-  validates_length_of :profile_about, maximum: 50_0000
-  validates_length_of :profile_artinfo, maximum: 50_000
+  validates :blacklisted_tags, length: { maximum: 150_000 }
+  validates :profile_about, length: { maximum: 50_0000 }
+  validates :profile_artinfo, length: { maximum: 50_000 }
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache

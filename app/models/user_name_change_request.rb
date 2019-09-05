@@ -1,7 +1,7 @@
 class UserNameChangeRequest < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
-  validates_presence_of :user_id, :original_name, :desired_name
-  validates_inclusion_of :status, :in => %w(pending approved rejected)
+  validates :user_id, :original_name, :desired_name, presence: true
+  validates :status, inclusion: { :in => %w(pending approved rejected) }
   belongs_to :user
   belongs_to :approver, :class_name => "User", optional: true
   validate :not_limited, :on => :create

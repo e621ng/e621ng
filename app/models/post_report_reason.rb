@@ -1,6 +1,6 @@
 class PostReportReason < ApplicationRecord
   belongs_to_creator
-  validates_uniqueness_of :reason, case_sensitive: false
+  validates :reason, uniqueness: { case_sensitive: false }
 
 
   def self.for_select

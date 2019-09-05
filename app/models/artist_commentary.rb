@@ -2,11 +2,11 @@ class ArtistCommentary < ApplicationRecord
   class RevertError < Exception ; end
 
   before_validation :trim_whitespace
-  validates_uniqueness_of :post_id
-  validates_length_of :original_title, maximum: 150
-  validates_length_of :translated_title, maximum: 150
-  validates_length_of :original_description, maximum: 50000
-  validates_length_of :translated_description, maximum: 50000
+  validates :post_id, uniqueness: true
+  validates :original_title, length: { maximum: 150 }
+  validates :translated_title, length: { maximum: 150 }
+  validates :original_description, length: { maximum: 50000 }
+  validates :translated_description, length: { maximum: 50000 }
   belongs_to :post, required: true
   has_many :versions, -> {order("artist_commentary_versions.id ASC")}, :class_name => "ArtistCommentaryVersion", :dependent => :destroy, :foreign_key => :post_id, :primary_key => :post_id
   has_one :previous_version, -> {order(id: :desc)}, :class_name => "ArtistCommentaryVersion", :foreign_key => :post_id, :primary_key => :post_id

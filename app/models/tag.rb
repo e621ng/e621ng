@@ -55,8 +55,8 @@ class Tag < ApplicationRecord
   has_many :consequent_implications, -> {active}, :class_name => "TagImplication", :foreign_key => "consequent_name", :primary_key => "name"
 
   validates :name, uniqueness: true, tag_name: true, on: :create
-  validates_length_of :name, in: 1..100
-  validates_inclusion_of :category, in: TagCategory.category_ids
+  validates :name, length: { in: 1..100 }
+  validates :category, inclusion: { in: TagCategory.category_ids }
 
   before_save :update_category, if: :category_changed?
 

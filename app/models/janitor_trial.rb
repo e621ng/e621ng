@@ -2,11 +2,11 @@ class JanitorTrial < ApplicationRecord
   belongs_to :user
   after_create :send_dmail
   after_create :promote_user
-  validates_presence_of :user
+  validates :user, presence: true
   belongs_to_creator
-  validates_inclusion_of :status, :in => %w(active inactive)
+  validates :status, inclusion: { :in => %w(active inactive) }
   before_validation :initialize_status
-  validates_uniqueness_of :user_id
+  validates :user_id, uniqueness: true
 
   def self.search(params)
     q = super.where(status: "active")

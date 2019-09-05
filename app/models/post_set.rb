@@ -20,12 +20,12 @@ class PostSet < ApplicationRecord
   belongs_to_creator
   user_status_counter :set_count
 
-  validates_length_of :name, :shortname, in: 3..100, message: "must be between three and one hundred characters long"
-  validates_uniqueness_of :name, :shortname, case_sensitive: false, message: "is already taken"
-  validates_length_of :shortname, in: 1..50, message: 'must be between one and fifty characters long'
-  validates_format_of :shortname, with: /\A[\w]+\z/, message: "must only contain numbers, letters, and underscores"
-  validates_format_of :shortname, with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one letter or underscore"
-  validates_length_of :description, maximum: 10_000
+  validates :name, :shortname, length: { in: 3..100, message: "must be between three and one hundred characters long" }
+  validates :name, :shortname, uniqueness: { case_sensitive: false, message: "is already taken" }
+  validates :shortname, length: { in: 1..50, message: 'must be between one and fifty characters long' }
+  validates :shortname, format: { with: /\A[\w]+\z/, message: "must only contain numbers, letters, and underscores" }
+  validates :shortname, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one letter or underscore" }
+  validates :description, length: { maximum: 10_000 }
   validate :validate_number_of_posts
   validate :can_make_public
   validate :set_per_hour_limit, on: :create

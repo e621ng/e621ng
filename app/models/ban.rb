@@ -8,7 +8,7 @@ class Ban < ApplicationRecord
   belongs_to :user
   belongs_to :banner, :class_name => "User"
   validate :user_is_inferior
-  validates_presence_of :user_id, :reason, :duration
+  validates :user_id, :reason, :duration, presence: true
   before_validation :initialize_banner_id, :on => :create
   before_validation :initialize_permaban, on: [:update, :create]
 

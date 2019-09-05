@@ -1,7 +1,7 @@
 class ApiKey < ApplicationRecord
   belongs_to :user
-  validates_uniqueness_of :user_id
-  validates_uniqueness_of :key
+  validates :user_id, uniqueness: true
+  validates :key, uniqueness: true
   has_secure_token :key
 
   def self.generate!(user)

@@ -26,8 +26,8 @@ class TagRelationship < ApplicationRecord
 
   before_validation :initialize_creator, :on => :create
   before_validation :normalize_names
-  validates_format_of :status, :with => /\A(active|deleted|pending|processing|queued|retired|error: .*)\Z/
-  validates_presence_of :creator_id, :antecedent_name, :consequent_name
+  validates :status, format: { :with => /\A(active|deleted|pending|processing|queued|retired|error: .*)\Z/ }
+  validates :creator_id, :antecedent_name, :consequent_name, presence: true
   validates :creator, presence: { message: "must exist" }, if: -> { creator_id.present? }
   validates :approver, presence: { message: "must exist" }, if: -> { approver_id.present? }
   validates :forum_topic, presence: { message: "must exist" }, if: -> { forum_topic_id.present? }

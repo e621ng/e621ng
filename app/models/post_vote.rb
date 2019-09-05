@@ -6,8 +6,8 @@ class PostVote < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
   validate :validate_user_can_vote
-  validates_presence_of :post_id, :user_id, :score
-  validates_inclusion_of :score, :in => [1, 0, -1]
+  validates :post_id, :user_id, :score, presence: true
+  validates :score, inclusion: { :in => [1, 0, -1] }
 
   scope :for_user, ->(uid) {where("user_id = ?", uid)}
 

@@ -5,11 +5,11 @@ class Note < ApplicationRecord
   belongs_to :post
   belongs_to_creator
   has_many :versions, -> {order("note_versions.id ASC")}, :class_name => "NoteVersion", :dependent => :destroy
-  validates_presence_of :post_id, :creator_id, :x, :y, :width, :height, :body
+  validates :post_id, :creator_id, :x, :y, :width, :height, :body, presence: true
   validate :user_not_limited
   validate :post_must_exist
   validate :note_within_image
-  validates_length_of :body, minimum: 1, maximum: 1_000
+  validates :body, length: { minimum: 1, maximum: 1_000 }
   after_save :update_post
   after_save :create_version
   validate :post_must_not_be_note_locked

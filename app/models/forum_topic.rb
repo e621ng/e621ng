@@ -12,10 +12,10 @@ class ForumTopic < ApplicationRecord
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
   before_validation :initialize_is_deleted, :on => :create
-  validates_presence_of :title, :creator_id
+  validates :title, :creator_id, presence: true
   validates_associated :original_post
   validates_associated :category
-  validates_inclusion_of :min_level, :in => MIN_LEVELS.values
+  validates :min_level, inclusion: { :in => MIN_LEVELS.values }
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post

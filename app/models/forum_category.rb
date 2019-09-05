@@ -1,6 +1,6 @@
 class ForumCategory < ApplicationRecord
   has_many :forum_topics, -> { order(id: :desc) }
-  validates_uniqueness_of :name, case_sensitive: false
+  validates :name, uniqueness: { case_sensitive: false }
 
   after_destroy :reassign_topics
 

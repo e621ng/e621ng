@@ -2,7 +2,7 @@ class ArtistUrl < ApplicationRecord
   before_validation :initialize_normalized_url, on: :create
   before_validation :normalize
   validates :url, presence: true, uniqueness: { scope: :artist_id }
-  validates_length_of :url, in: 1..4096
+  validates :url, length: { in: 1..4096 }
   validate :validate_url_format
   belongs_to :artist, :touch => true
 

@@ -6,9 +6,9 @@ class Ticket < ApplicationRecord
   before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
-  validates_presence_of :qtype
-  validates_presence_of :reason
-  validates_length_of :reason, maximum: 5_000
+  validates :qtype, presence: true
+  validates :reason, presence: true
+  validates :reason, length: { maximum: 5_000 }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_can_see_target, on: :create
