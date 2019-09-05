@@ -12,6 +12,7 @@ class Ticket < ApplicationRecord
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_can_see_target, on: :create
+  validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
 
@@ -91,6 +92,15 @@ class Ticket < ApplicationRecord
       else
         @can_see = true
       end
+    end
+
+    def validate_creator_is_not_limited
+      allowed = creator.can_ticket_with_reason
+      if allowed != true
+        errors.add(:creator, User.throttle_reason(allowed))
+        return false
+      end
+      true
     end
 
     def initialize_fields
