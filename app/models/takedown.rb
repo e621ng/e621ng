@@ -6,6 +6,10 @@ class Takedown < ApplicationRecord
   validates_presence_of :email
   validates_presence_of :reason
   validates_format_of :email, with: /\A([\s*A-Z0-9._%+-]+@[\s*A-Z0-9.-]+\.\s*[A-Z\s*]{2,15}\s*)\z/i, on: :create
+  validates_length_of :email, maximum: 250
+  validates_length_of :reason, maximum: 5_000
+  validates_length_of :instructions, maximum: 5_000
+  validates_length_of :notes, maximum: 5_000
   validate :can_create_takedown
   validate :valid_posts_or_instructions
   validate :validate_number_of_posts

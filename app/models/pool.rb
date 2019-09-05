@@ -6,6 +6,8 @@ class Pool < ApplicationRecord
   belongs_to_creator
 
   validates_uniqueness_of :name, case_sensitive: false, if: :name_changed?
+  validates_length_of :name, minimum: 1, maximum: 250
+  validates_length_of :description, maximum: 10_000
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update
   validate :validate_name, if: :name_changed?

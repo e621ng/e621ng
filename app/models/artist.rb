@@ -33,8 +33,9 @@ class Artist < ApplicationRecord
   module UrlMethods
     extend ActiveSupport::Concern
 
+    MAX_URLS_PER_ARTIST = 25
     module ClassMethods
-      MAX_URLS_PER_ARTIST = 25
+
       # Subdomains are automatically included. e.g., "twitter.com" matches "www.twitter.com",
       # "mobile.twitter.com" and any other subdomain of "twitter.com".
       SITE_BLACKLIST = [

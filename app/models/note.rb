@@ -9,6 +9,7 @@ class Note < ApplicationRecord
   validate :user_not_limited
   validate :post_must_exist
   validate :note_within_image
+  validates_length_of :body, minimum: 1, maximum: 1_000
   after_save :update_post
   after_save :create_version
   validate :post_must_not_be_note_locked

@@ -87,6 +87,8 @@ class User < ApplicationRecord
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
   validates_length_of :blacklisted_tags, maximum: 150_000
+  validates_length_of :profile_about, maximum: 50_0000
+  validates_length_of :profile_artinfo, maximum: 50_000
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache

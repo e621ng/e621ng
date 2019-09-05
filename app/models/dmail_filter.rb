@@ -4,6 +4,7 @@ class DmailFilter < ApplicationRecord
   belongs_to :user
   validates_presence_of :user
   before_validation :initialize_user
+  validates_length_of :words, maximum: 1000
 
   def initialize_user
     unless user_id
