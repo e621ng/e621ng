@@ -34,6 +34,7 @@ class Artist < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
+      MAX_URLS_PER_ARTIST = 25
       # Subdomains are automatically included. e.g., "twitter.com" matches "www.twitter.com",
       # "mobile.twitter.com" and any other subdomain of "twitter.com".
       SITE_BLACKLIST = [
@@ -192,7 +193,7 @@ class Artist < ApplicationRecord
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|
         is_active, url = ArtistUrl.parse_prefix(url)
         self.urls.find_or_initialize_by(url: url, is_active: is_active)
-      end.uniq(&:url)
+      end.uniq(&:url)[0..MAX_URLS_PER_ARTIST]
 
       self.url_string_changed = (url_string_was != url_string)
     end
