@@ -4,6 +4,7 @@ module PostSets
     attr_reader :tag_array, :page, :raw, :random, :post_count, :format
 
     def initialize(tags, page = 1, per_page = nil, options = {})
+      tags ||= ''
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       @tag_array = Tag.scan_query(tags)
