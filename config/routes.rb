@@ -129,7 +129,8 @@ Rails.application.routes.draw do
       get :search
     end
     member do
-      post :undelete
+      post :hide
+      post :unhide
     end
   end
   resources :comment_votes, only: [:index, :delete, :lock] do

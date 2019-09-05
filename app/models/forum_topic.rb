@@ -11,7 +11,7 @@ class ForumTopic < ApplicationRecord
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
-  before_validation :initialize_is_deleted, :on => :create
+  before_validation :initialize_is_hidden, :on => :create
   validates :title, :creator_id, presence: true
   validates_associated :original_post
   validates_associated :category
@@ -48,7 +48,7 @@ class ForumTopic < ApplicationRecord
 
   module SearchMethods
     def active
-      where("is_deleted = false")
+      where("is_hidden = false")
     end
 
     def permitted
@@ -83,7 +83,7 @@ class ForumTopic < ApplicationRecord
 
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:is_locked, params[:is_locked])
-      q = q.attribute_matches(:is_deleted, params[:is_deleted])
+      q = q.attribute_matches(:is_hidden, params[:is_hidden])
 
       case params[:order]
       when "sticky"
@@ -159,8 +159,8 @@ class ForumTopic < ApplicationRecord
     ModAction.log(:forum_topic_unhide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def initialize_is_deleted
-    self.is_deleted = false if is_deleted.nil?
+  def initialize_is_hidden
+    self.is_hidden = false if is_hidden.nil?
   end
 
   def page_for(post_id)
@@ -194,15 +194,15 @@ class ForumTopic < ApplicationRecord
   def merge(topic)
     ForumPost.where(:id => self.posts.map(&:id)).update_all(:topic_id => topic.id)
     topic.update_attributes(:response_count => topic.response_count + self.posts.length, :updater_id => CurrentUser.id)
-    self.update_columns(:response_count => 0, :is_deleted => true, :updater_id => CurrentUser.id)
+    self.update_columns(:response_count => 0, :is_hidden => true, :updater_id => CurrentUser.id)
   end
 
-  def delete!
-    update(is_deleted: true)
+  def hide!
+    update(is_hidden: true)
   end
 
-  def undelete!
-    update(is_deleted: false)
+  def unhide!
+    update(is_hidden: false)
   end
 
   def update_orignal_post

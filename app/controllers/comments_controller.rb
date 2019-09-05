@@ -1,7 +1,8 @@
 class CommentsController < ApplicationController
   respond_to :html, :xml, :json
-  respond_to :js, only: [:new, :destroy, :undelete]
+  respond_to :js, only: [:new, :destroy, :unhide, :hide]
   before_action :member_only, :except => [:index, :search, :show]
+  before_action :moderator_only, only: [:unhide, :destroy]
   skip_before_action :api_check
 
   def index
@@ -54,15 +55,21 @@ class CommentsController < ApplicationController
 
   def destroy
     @comment = Comment.find(params[:id])
-    check_privilege(@comment)
-    @comment.delete!
+    @comment.destroy
     respond_with(@comment)
   end
 
-  def undelete
+  def hide
     @comment = Comment.find(params[:id])
     check_privilege(@comment)
-    @comment.undelete!
+    @comment.hide!
+    respond_with(@comment)
+  end
+
+  def unhide
+    @comment = Comment.find(params[:id])
+    check_privilege(@comment)
+    @comment.unhide!
     respond_with(@comment)
   end
 
@@ -108,8 +115,7 @@ private
   def comment_params(context)
     permitted_params = %i[body post_id]
     permitted_params += %i[do_not_bump_post] if context == :create
-    permitted_params += %i[is_deleted] if context == :update
-    permitted_params += %i[is_sticky] if CurrentUser.is_moderator?
+    permitted_params += %i[is_sticky is_hidden] if CurrentUser.is_moderator?
 
     params.fetch(:comment, {}).permit(permitted_params)
   end
