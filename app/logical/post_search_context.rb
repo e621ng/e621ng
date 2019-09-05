@@ -5,7 +5,9 @@ class PostSearchContext
   def initialize(params)
     @id = params[:id].to_i
     @seq = params[:seq]
-    @tags = params[:q].presence || params[:tags].presence || "status:any"
+    @tags = params[:q].presence || params[:tags].presence || ""
+    @tags += " rating:s" if CurrentUser.safe_mode?
+    @tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
   end
 
   def post_id
