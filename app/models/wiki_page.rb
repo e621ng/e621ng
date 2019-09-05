@@ -7,6 +7,8 @@ class WikiPage < ApplicationRecord
   validates_uniqueness_of :title, :case_sensitive => false
   validates_presence_of :title
   validates_presence_of :body, :unless => -> { is_deleted? || other_names.present? }
+  validates_length_of :title, minimum: 1, maximum: 100
+  validates_length_of :body, maximum: 250_000
   validate :user_not_limited, on: :save
   validate :validate_rename
   validate :validate_not_locked
