@@ -11,8 +11,8 @@
       </thead>
       <tbody>
         <% @forum_posts.each do |forum_post| %>
-          <% if CurrentUser.is_moderator? || !forum_post.is_deleted? %>
-            <tr id="forum-post-<%= forum_post.id %>" data-topic-is-deleted="<%= forum_post.topic.is_deleted? %>" data-is-deleted="<%= forum_post.is_deleted? %>">
+          <% if forum_post.visible?(CurrentUser.user) %>
+            <tr id="forum-post-<%= forum_post.id %>" data-topic-is-hidden="<%= forum_post.topic.is_hidden? %>" data-is-hidden="<%= forum_post.is_hidden? %>">
               <td class="forum-post-topic-title"><%= link_to forum_post.topic.title, forum_topic_path(forum_post.topic) %></td>
               <td class="forum-post-excerpt">
                 <%= link_to truncate(forum_post.body, :length => 50), forum_post_path(forum_post) %>

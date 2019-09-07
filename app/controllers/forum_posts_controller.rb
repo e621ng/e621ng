@@ -1,13 +1,14 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :xml, :json, :js
   before_action :member_only, :except => [:index, :show, :search]
-  before_action :load_post, :only => [:edit, :show, :update, :destroy, :undelete]
-  before_action :check_min_level, :only => [:edit, :show, :update, :destroy, :undelete]
+  before_action :moderator_only, only: [:destroy, :unhide]
+  before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
+  before_action :check_min_level, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
   skip_before_action :api_check
-  
+
   def new
     if params[:topic_id]
-      @forum_topic = ForumTopic.find(params[:topic_id]) 
+      @forum_topic = ForumTopic.find(params[:topic_id])
       raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user) && @forum_topic.can_reply?(CurrentUser.user)
     end
     if params[:post_id]
@@ -24,7 +25,7 @@ class ForumPostsController < ApplicationController
   end
 
   def index
-    @query = ForumPost.search(search_params)
+    @query = ForumPost.permitted.active.search(search_params)
     @forum_posts = @query.includes(:topic).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     respond_with(@forum_posts) do |format|
       format.xml do
@@ -59,41 +60,32 @@ class ForumPostsController < ApplicationController
 
   def destroy
     check_privilege(@forum_post)
-    @forum_post.delete!
+    @forum_post.destroy
     respond_with(@forum_post)
   end
 
-  def undelete
+  def hide
     check_privilege(@forum_post)
-    @forum_post.undelete!
+    @forum_post.hide!
+    respond_with(@forum_post)
+  end
+
+  def unhide
+    check_privilege(@forum_post)
+    @forum_post.unhide!
     respond_with(@forum_post)
   end
 
 private
   def load_post
-    @forum_post = ForumPost.find(params[:id])
+    @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
     @forum_topic = @forum_post.topic
   end
 
   def check_min_level
-    if CurrentUser.user.level < @forum_topic.min_level
-      respond_with(@forum_topic) do |fmt|
-        fmt.html do
-          flash[:notice] = "Access denied"
-          redirect_to forum_topics_path
-        end
-
-        fmt.json do
-          render json: nil, :status => 403
-        end
-
-        fmt.xml do
-          render xml: nil, :status => 403
-        end
-      end
-
-      return false
-    end
+    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
   end
 
   def check_privilege(forum_post)

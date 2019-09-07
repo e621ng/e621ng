@@ -11,7 +11,7 @@ class ForumTopic < ApplicationRecord
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
-  before_validation :initialize_is_deleted, :on => :create
+  before_validation :initialize_is_hidden, :on => :create
   validates :title, :creator_id, presence: true
   validates_associated :original_post
   validates_associated :category
@@ -19,6 +19,7 @@ class ForumTopic < ApplicationRecord
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
+  before_destroy :create_mod_action_for_delete
   after_update :update_orignal_post
   after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, user_id: rec.creator_id})
@@ -48,7 +49,7 @@ class ForumTopic < ApplicationRecord
 
   module SearchMethods
     def active
-      where("is_deleted = false")
+      where("(forum_topics.is_hidden = false or forum_topics.creator_id = ?)", CurrentUser.id)
     end
 
     def permitted
@@ -83,7 +84,7 @@ class ForumTopic < ApplicationRecord
 
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:is_locked, params[:is_locked])
-      q = q.attribute_matches(:is_deleted, params[:is_deleted])
+      q = q.attribute_matches(:is_hidden, params[:is_hidden])
 
       case params[:order]
       when "sticky"
@@ -151,16 +152,28 @@ class ForumTopic < ApplicationRecord
     user.level >= category.can_reply
   end
 
+  def can_hide?(user)
+    user.is_moderator? || user.id == creator_id
+  end
+
+  def can_delete?(user)
+    user.is_moderator?
+  end
+
   def create_mod_action_for_delete
+    ModAction.log(:forum_topic_delete, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
+  end
+
+  def create_mod_action_for_hide
     ModAction.log(:forum_topic_hide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def create_mod_action_for_undelete
+  def create_mod_action_for_unhide
     ModAction.log(:forum_topic_unhide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def initialize_is_deleted
-    self.is_deleted = false if is_deleted.nil?
+  def initialize_is_hidden
+    self.is_hidden = false if is_hidden.nil?
   end
 
   def page_for(post_id)
@@ -194,15 +207,15 @@ class ForumTopic < ApplicationRecord
   def merge(topic)
     ForumPost.where(:id => self.posts.map(&:id)).update_all(:topic_id => topic.id)
     topic.update_attributes(:response_count => topic.response_count + self.posts.length, :updater_id => CurrentUser.id)
-    self.update_columns(:response_count => 0, :is_deleted => true, :updater_id => CurrentUser.id)
+    self.update_columns(:response_count => 0, :is_hidden => true, :updater_id => CurrentUser.id)
   end
 
-  def delete!
-    update(is_deleted: true)
+  def hide!
+    update(is_hidden: true)
   end
 
-  def undelete!
-    update(is_deleted: false)
+  def unhide!
+    update(is_hidden: false)
   end
 
   def update_orignal_post

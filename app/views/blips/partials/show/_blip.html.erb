@@ -29,10 +29,8 @@
         <% end %>
         <li><%= tag.a "@", href: '#', onclick: "Danbooru.Blip.atme(#{blip.id})" %></li>
 
-        <% if !blip.is_hidden %>
-          <% if blip.can_hide?(CurrentUser.user) %>
+        <% if !blip.is_hidden && blip.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
-          <% end %>
         <% elsif CurrentUser.is_moderator? %>
           <li><%= link_to "Unhide", unhide_blip_path(blip), data: {confirm: "Are you sure you want to unhide this blip?"}, method: :post %></li>
         <% end %>

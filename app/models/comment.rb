@@ -11,12 +11,13 @@ class Comment < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: 10_000 }
 
   after_create :update_last_commented_at_on_create
-  after_update(:if => ->(rec) {(!rec.is_deleted? || !rec.saved_change_to_is_deleted?) && CurrentUser.id != rec.creator_id}) do |rec|
+  after_update(:if => ->(rec) {(!rec.is_hidden? || !rec.saved_change_to_is_hidden?) && CurrentUser.id != rec.creator_id}) do |rec|
     ModAction.log(:comment_update, {comment_id: rec.id, user_id: rec.creator_id})
   end
-  after_save :update_last_commented_at_on_destroy, :if => ->(rec) {rec.is_deleted? && rec.saved_change_to_is_deleted?}
-  after_save(:if => ->(rec) {rec.is_deleted? && rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id}) do |rec|
-    ModAction.log(:comment_delete, {comment_id: rec.id, user_id: rec.creator_id})
+  after_save :update_last_commented_at_on_destroy, :if => ->(rec) {rec.is_hidden? && rec.saved_change_to_is_hidden?}
+  after_destroy :update_last_commented_at_on_destroy
+  after_save(:if => ->(rec) {rec.is_hidden? && rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id}) do |rec|
+    ModAction.log(:comment_hide, {comment_id: rec.id, user_id: rec.creator_id})
   end
 
 
@@ -36,26 +37,26 @@ class Comment < ApplicationRecord
 
     def hidden(user)
       if user.is_moderator?
-        where("(score < ? and is_sticky = false) or is_deleted = true", user.comment_threshold)
-      else
         where("score < ? and is_sticky = false", user.comment_threshold)
+      else
+        where("(score < ? and is_sticky = false) or (is_hidden = true and creator_id != ?)", user.comment_threshold, user.id)
       end
     end
 
     def visible(user)
       if user.is_moderator?
-        where("(score >= ? or is_sticky = true) and is_deleted = false", user.comment_threshold)
-      else
         where("score >= ? or is_sticky = true", user.comment_threshold)
+      else
+        where("(score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?)", user.comment_threshold, user.id)
       end
     end
 
     def deleted
-      where("comments.is_deleted = true")
+      where("comments.is_hidden = true")
     end
 
     def undeleted
-      where("comments.is_deleted = false")
+      where("comments.is_hidden = false")
     end
 
     def post_tags_match(query)
@@ -99,7 +100,7 @@ class Comment < ApplicationRecord
         q = q.poster_id(params[:poster_id].to_i)
       end
 
-      q = q.attribute_matches(:is_deleted, params[:is_deleted])
+      q = q.attribute_matches(:is_hidden, params[:is_hidden])
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:do_not_bump_post, params[:do_not_bump_post])
 
@@ -176,8 +177,12 @@ class Comment < ApplicationRecord
     creator_id == user.id || user.is_moderator?
   end
 
+  def can_hide?(user)
+    user.is_moderator? || user.id == creator_id
+  end
+
   def visible_to?(user)
-    is_deleted? == false || (creator_id == user.id || user.is_moderator?)
+    is_hidden? == false || ((creator_id == user.id && user.show_hidden_comments?) || user.is_moderator?)
   end
 
   def hidden_attributes
@@ -188,12 +193,12 @@ class Comment < ApplicationRecord
     super + [:creator_name, :updater_name]
   end
 
-  def delete!
-    update(is_deleted: true)
+  def hide!
+    update(is_hidden: true)
   end
 
-  def undelete!
-    update(is_deleted: false)
+  def unhide!
+    update(is_hidden: false)
   end
 
   def quoted_response

@@ -657,7 +657,7 @@ CREATE TABLE public.comments (
     updater_id integer,
     updater_ip_addr inet,
     do_not_bump_post boolean DEFAULT false NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     is_sticky boolean DEFAULT false NOT NULL
 );
 
@@ -1048,7 +1048,7 @@ CREATE TABLE public.forum_posts (
     updater_id integer NOT NULL,
     body text NOT NULL,
     text_index tsvector NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     creator_ip_addr inet
@@ -1154,7 +1154,7 @@ CREATE TABLE public.forum_topics (
     response_count integer DEFAULT 0 NOT NULL,
     is_sticky boolean DEFAULT false NOT NULL,
     is_locked boolean DEFAULT false NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
+    is_hidden boolean DEFAULT false NOT NULL,
     text_index tsvector NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -5256,6 +5256,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190815131908'),
 ('20190827223818'),
 ('20190827233008'),
-('20190829044313');
+('20190829044313'),
+('20190905111159');
 
 

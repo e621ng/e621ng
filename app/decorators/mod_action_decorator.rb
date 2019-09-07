@@ -141,6 +141,8 @@ class ModActionDecorator < ApplicationDecorator
       "Hid forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unhide"
       "Unhid forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_topic_delete"
+      "Deleted forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_stick"
       "Stickied forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unstick"

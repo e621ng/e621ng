@@ -1,10 +1,10 @@
 class ForumTopicsController < ApplicationController
   respond_to :html, :xml, :json
   before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:new_merge, :create_merge]
+  before_action :moderator_only, :only => [:new_merge, :create_merge, :unhide, :destroy]
   before_action :normalize_search, :only => :index
-  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :undelete, :new_merge, :create_merge, :subscribe, :unsubscribe]
-  before_action :check_min_level, :only => [:show, :edit, :update, :new_merge, :create_merge, :destroy, :undelete, :subscribe, :unsubscribe]
+  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :new_merge, :create_merge, :subscribe, :unsubscribe]
+  before_action :check_min_level, :only => [:show, :edit, :update, :new_merge, :create_merge, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
   skip_before_action :api_check
 
   def new
@@ -22,7 +22,7 @@ class ForumTopicsController < ApplicationController
     params[:search] ||= {}
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
-    @query = ForumTopic.active.search(search_params)
+    @query = ForumTopic.permitted.active.search(search_params)
     @forum_topics = @query.paginate(params[:page], :limit => per_page, :search_count => params[:search])
 
     respond_with(@forum_topics) do |format|
@@ -45,7 +45,7 @@ class ForumTopicsController < ApplicationController
     if request.format == Mime::Type.lookup("text/html")
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
-    @forum_posts = ForumPost.search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
+    @forum_posts = ForumPost.includes(topic: [:category]).search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
     @original_forum_post_id = @forum_topic.original_post.id
     respond_with(@forum_topic) do |format|
       format.atom do
@@ -67,17 +67,23 @@ class ForumTopicsController < ApplicationController
 
   def destroy
     check_privilege(@forum_topic)
-    @forum_topic.delete!
-    @forum_topic.create_mod_action_for_delete
+    @forum_topic.destroy
     flash[:notice] = "Topic deleted"
+  end
+
+  def hide
+    check_privilege(@forum_topic)
+    @forum_topic.hide!
+    @forum_topic.create_mod_action_for_hide
+    flash[:notice] = "Topic hidden"
     respond_with(@forum_topic)
   end
 
-  def undelete
+  def unhide
     check_privilege(@forum_topic)
-    @forum_topic.undelete!
-    @forum_topic.create_mod_action_for_undelete
-    flash[:notice] = "Topic undeleted"
+    @forum_topic.unhide!
+    @forum_topic.create_mod_action_for_unhide
+    flash[:notice] = "Topic unhidden"
     respond_with(@forum_topic)
   end
 
@@ -136,28 +142,12 @@ private
   end
 
   def load_topic
-    @forum_topic = ForumTopic.find(params[:id])
+    @forum_topic = ForumTopic.includes(:category).find(params[:id])
   end
 
   def check_min_level
-    if CurrentUser.user.level < @forum_topic.min_level
-      respond_with(@forum_topic) do |fmt|
-        fmt.html do
-          flash[:notice] = "Access denied"
-          redirect_to forum_topics_path
-        end
-
-        fmt.json do
-          render json: nil, :status => 403
-        end
-
-        fmt.xml do
-          render xml: nil, :status => 403
-        end
-      end
-
-      return false
-    end
+    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
   end
 
   def forum_topic_params(context)
