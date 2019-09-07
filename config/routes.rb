@@ -165,7 +165,8 @@ Rails.application.routes.draw do
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
     member do
-      post :undelete
+      post :hide
+      post :unhide
     end
     collection do
       get :search
@@ -173,7 +174,8 @@ Rails.application.routes.draw do
   end
   resources :forum_topics do
     member do
-      post :undelete
+      post :hide
+      post :unhide
       get :new_merge
       post :create_merge
       post :subscribe

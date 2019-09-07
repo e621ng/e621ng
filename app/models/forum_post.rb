@@ -11,7 +11,7 @@ class ForumPost < ApplicationRecord
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
-  before_validation :initialize_is_deleted, :on => :create
+  before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_update :update_topic_updated_at_on_update_for_original_posts
   after_destroy :update_topic_updated_at_on_destroy
@@ -50,7 +50,7 @@ class ForumPost < ApplicationRecord
     end
 
     def active
-      where("forum_posts.is_deleted = false")
+      where("(forum_posts.is_hidden = false or creator_id = ?)", CurrentUser.id)
     end
 
     def permitted
@@ -83,7 +83,7 @@ class ForumPost < ApplicationRecord
         q = q.joins(:topic).where("forum_topics.category_id = ?", params[:topic_category_id].to_i)
       end
 
-      q = q.attribute_matches(:is_deleted, params[:is_deleted])
+      q = q.attribute_matches(:is_hidden, params[:is_hidden])
 
       q.apply_default_order(params)
     end
@@ -179,7 +179,15 @@ class ForumPost < ApplicationRecord
   end
 
   def visible?(user)
-    user.is_moderator? || (topic.visible?(user) && !is_deleted?)
+    user.is_moderator? || (topic.visible?(user) && (!is_hidden? || user.id == creator_id))
+  end
+
+  def can_hide?(user)
+    user.is_moderator? || user.id == creator_id
+  end
+
+  def can_delete?(user)
+    user.is_moderator?
   end
 
   def update_topic_updated_at_on_create
@@ -197,17 +205,17 @@ class ForumPost < ApplicationRecord
   end
 
   def delete!
-    update(is_deleted: true)
+    update(is_hidden: true)
     update_topic_updated_at_on_delete
   end
 
   def undelete!
-    update(is_deleted: false)
+    update(is_hidden: false)
     update_topic_updated_at_on_undelete
   end
 
   def update_topic_updated_at_on_delete
-    max = ForumPost.where(:topic_id => topic.id, :is_deleted => false).order("updated_at desc").first
+    max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
       ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
     end
@@ -220,7 +228,7 @@ class ForumPost < ApplicationRecord
   end
 
   def update_topic_updated_at_on_destroy
-    max = ForumPost.where(:topic_id => topic.id, :is_deleted => false).order("updated_at desc").first
+    max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
       ForumTopic.where(:id => topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
       topic.response_count -= 1
@@ -230,8 +238,8 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  def initialize_is_deleted
-    self.is_deleted = false if is_deleted.nil?
+  def initialize_is_hidden
+    self.is_hidden = false if is_hidden.nil?
   end
 
   def creator_name
@@ -259,8 +267,8 @@ class ForumPost < ApplicationRecord
   end
 
   def delete_topic_if_original_post
-    if is_deleted? && is_original_post?
-      topic.update_attribute(:is_deleted, true)
+    if is_hidden? && is_original_post?
+      topic.update_attribute(:is_hidden, true)
     end
 
     true

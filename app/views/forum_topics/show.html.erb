@@ -7,8 +7,8 @@
         <span class="level-topic">(<%= User.level_string(@forum_topic.min_level).downcase %>+ only)</span>
       <% end %>
 
-      <% if @forum_topic.is_deleted? %>
-        <span class="locked-topic">(deleted)</span>
+      <% if @forum_topic.is_hidden? %>
+        <span class="locked-topic">(hidden)</span>
       <% end %>
     </h1>
 
