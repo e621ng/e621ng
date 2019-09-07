@@ -45,7 +45,7 @@ class ForumTopicsController < ApplicationController
     if request.format == Mime::Type.lookup("text/html")
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
-    @forum_posts = ForumPost.search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
+    @forum_posts = ForumPost.includes(topic: [:category]).search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
     @original_forum_post_id = @forum_topic.original_post.id
     respond_with(@forum_topic) do |format|
       format.atom do
@@ -142,28 +142,12 @@ private
   end
 
   def load_topic
-    @forum_topic = ForumTopic.find(params[:id])
+    @forum_topic = ForumTopic.includes(:category).find(params[:id])
   end
 
   def check_min_level
-    if CurrentUser.user.level < @forum_topic.min_level
-      respond_with(@forum_topic) do |fmt|
-        fmt.html do
-          flash[:notice] = "Access denied"
-          redirect_to forum_topics_path
-        end
-
-        fmt.json do
-          render json: nil, :status => 403
-        end
-
-        fmt.xml do
-          render xml: nil, :status => 403
-        end
-      end
-
-      return false
-    end
+    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
   end
 
   def forum_topic_params(context)

@@ -11,7 +11,7 @@
       </thead>
       <tbody>
         <% @forum_posts.each do |forum_post| %>
-          <% if forum_post.visible?(user) %>
+          <% if forum_post.visible?(CurrentUser.user) %>
             <tr id="forum-post-<%= forum_post.id %>" data-topic-is-hidden="<%= forum_post.topic.is_hidden? %>" data-is-hidden="<%= forum_post.is_hidden? %>">
               <td class="forum-post-topic-title"><%= link_to forum_post.topic.title, forum_topic_path(forum_post.topic) %></td>
               <td class="forum-post-excerpt">

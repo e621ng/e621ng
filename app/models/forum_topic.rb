@@ -49,7 +49,7 @@ class ForumTopic < ApplicationRecord
 
   module SearchMethods
     def active
-      where("(is_hidden = false or creator_id = ?)", CurrentUser.id)
+      where("(forum_topics.is_hidden = false or forum_topics.creator_id = ?)", CurrentUser.id)
     end
 
     def permitted

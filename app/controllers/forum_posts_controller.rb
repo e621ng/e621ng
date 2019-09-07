@@ -78,29 +78,14 @@ class ForumPostsController < ApplicationController
 
 private
   def load_post
-    @forum_post = ForumPost.find(params[:id])
+    @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
     @forum_topic = @forum_post.topic
   end
 
   def check_min_level
-    if CurrentUser.user.level < @forum_topic.min_level
-      respond_with(@forum_topic) do |fmt|
-        fmt.html do
-          flash[:notice] = "Access denied"
-          redirect_to forum_topics_path
-        end
-
-        fmt.json do
-          render json: nil, :status => 403
-        end
-
-        fmt.xml do
-          render xml: nil, :status => 403
-        end
-      end
-
-      return false
-    end
+    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError.new if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
   end
 
   def check_privilege(forum_post)

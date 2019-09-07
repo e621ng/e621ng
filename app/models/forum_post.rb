@@ -50,11 +50,13 @@ class ForumPost < ApplicationRecord
     end
 
     def active
-      where("(forum_posts.is_hidden = false or creator_id = ?)", CurrentUser.id)
+      where("(forum_posts.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id)
     end
 
     def permitted
-      joins(:topic).where("forum_topics.min_level <= ?", CurrentUser.level)
+      q = joins(:topic).where("forum_topics.min_level <= ?", CurrentUser.level)
+      q = q.where("(forum_topics.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id) unless CurrentUser.is_moderator?
+      q
     end
 
     def search(params)

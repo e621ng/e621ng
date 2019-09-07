@@ -29,6 +29,9 @@
             <% if topic.is_locked? %>
               <span class="locked-topic">(locked)</span>
             <% end %>
+            <% if topic.is_hidden? %>
+              <sspan class="locked-topic">(hidden)</sspan>
+            <% end %>
 
             <% if topic.min_level > 0 %>
               <span class="level-topic">(<%= User.level_string(topic.min_level).downcase %> only)</span>
