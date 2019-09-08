@@ -162,6 +162,13 @@ module PostsHelper
     tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
   end
 
+  def user_record_meta(user)
+    positive = user.positive_feedback_count
+    negative = user.negative_feedback_count
+
+    link_to("(P:#{positive} N:#{negative})", user_feedbacks_path(:search => {:user_id => user.id}))
+  end
+
   private
 
   def nav_params_for(page)
