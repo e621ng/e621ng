@@ -15,7 +15,6 @@ class Post < ApplicationRecord
   before_validation :merge_old_changes
   before_validation :normalize_tags, if: :should_process_tags?
   before_validation :strip_source
-  #before_validation :parse_pixiv_id
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
@@ -1778,17 +1777,6 @@ class Post < ApplicationRecord
     end
   end
 
-  module PixivMethods
-    def parse_pixiv_id
-      self.pixiv_id = nil
-
-      site = Sources::Strategies::Pixiv.new(source)
-      if site.match?
-        self.pixiv_id = site.illust_id
-      end
-    end
-  end
-
   module IqdbMethods
     extend ActiveSupport::Concern
 
@@ -1933,7 +1921,6 @@ class Post < ApplicationRecord
   include NoteMethods
   include ApiMethods
   extend SearchMethods
-  include PixivMethods
   include IqdbMethods
   include ValidationMethods
   include RatingMethods

@@ -2,16 +2,7 @@ module Sources
   module Strategies
     def self.all
       return [
-        Strategies::Pixiv, 
-        Strategies::NicoSeiga, 
-        Strategies::Twitter, 
-        Strategies::Stash, # must come before DeviantArt
-        Strategies::DeviantArt, 
-        Strategies::Tumblr, 
-        Strategies::ArtStation, 
-        Strategies::Nijie, 
-        Strategies::Pawoo,
-        Strategies::Moebooru,
+        Strategies::ArtStation,
       ]
     end
 
