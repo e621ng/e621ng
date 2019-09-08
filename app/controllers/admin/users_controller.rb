@@ -24,6 +24,20 @@ module Admin
       redirect_to edit_blacklist_admin_user_path(@user), notice: "Blacklist updated"
     end
 
+    def request_password_reset
+      @user = User.find(params[:id])
+    end
+
+    def password_reset
+      @user = User.find(params[:id])
+
+      unless User.authenticate(CurrentUser.name, params[:admin][:password])
+        return redirect_to request_password_reset_admin_user_path(@user), notice: "Password wrong"
+      end
+
+      @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+    end
+
     private
 
     def user_params

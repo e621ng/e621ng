@@ -10,6 +10,8 @@ Rails.application.routes.draw do
       member do
         get :edit_blacklist
         post :update_blacklist
+        get :request_password_reset
+        post :password_reset
       end
     end
     resource :alias_and_implication_import, :only => [:new, :create]
