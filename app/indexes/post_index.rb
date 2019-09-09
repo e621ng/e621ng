@@ -3,7 +3,7 @@
 module PostIndex
   def self.included(base)
     base.settings index: { number_of_shards: 5, number_of_replicas: 1 } do
-      mappings dynamic: false, _all: { enabled: false } do
+      mappings dynamic: false do
         indexes :created_at,        type: 'date'
         indexes :updated_at,        type: 'date'
         indexes :commented_at,      type: 'date'
@@ -102,7 +102,7 @@ module PostIndex
         SQL
         commenter_sql = <<-SQL
           SELECT post_id, array_agg(distinct creator_id) FROM comments
-          WHERE post_id IN (#{post_ids}) AND is_deleted = false
+          WHERE post_id IN (#{post_ids}) AND is_hidden = false
           GROUP BY post_id
         SQL
         noter_sql = <<-SQL
