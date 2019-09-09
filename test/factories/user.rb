@@ -4,7 +4,7 @@ FactoryBot.define do
       "user#{n}"
     end
     password { "password" }
-    bcrypt_password_hash {BCrypt::Password.create("password", cost: 1)}
+    password_hash {"password"}
     email {FFaker::Internet.email}
     default_image_size { "large" }
     base_upload_limit { 10 }
