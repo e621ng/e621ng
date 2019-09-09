@@ -80,6 +80,7 @@ class ActiveSupport::TestCase
     mock_missed_search_service!
     WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
+    Danbooru.config.stubs(:disable_throttles).returns(true)
 
     storage_manager = StorageManager::Local.new(base_dir: "#{Rails.root}/tmp/test-storage2")
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
