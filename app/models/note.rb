@@ -156,7 +156,7 @@ class Note < ApplicationRecord
 
   def merge_version
     prev = versions.last
-    prev.update_attributes(
+    prev.update(
       :x => x,
       :y => y,
       :width => width,
