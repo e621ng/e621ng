@@ -49,7 +49,7 @@ class ForumTopicTest < ActiveSupport::TestCase
           context "that postdates the topic" do
             setup do
               FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 2.days.from_now)
-            end            
+            end
 
             should "return true" do
               assert_equal(true, @topic.read_by?(@user))
@@ -153,7 +153,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       end
 
       should "record its updater" do
-        @topic.update_attributes(:title => "abc")
+        @topic.update(:title => "abc")
         assert_equal(@second_user.id, @topic.updater_id)
       end
     end

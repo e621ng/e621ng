@@ -60,6 +60,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     context "edit action" do
       should "render" do
         get_auth edit_comment_path(@comment.id), @user
+
         assert_response :success
       end
     end
@@ -98,11 +99,9 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to post_path(@comment.post)
       end
 
-      should "allow changing the body and is_deleted" do
-        put_auth comment_path(@comment.id), @user, params: {comment: {body: "herp derp", is_deleted: true}}
-        assert_equal("herp derp", @comment.reload.body)
-        assert_equal(true, @comment.is_deleted)
-        assert_redirected_to post_path(@post)
+      should "not allow changing is_hidden" do
+        put_auth comment_path(@comment.id), @user, params: {comment: {body: "herp derp", is_hidden: true}}
+        assert_equal(false, @comment.is_hidden)
       end
 
       should "not allow changing do_not_bump_post or post_id" do
@@ -139,23 +138,36 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "destroy action" do
-      should "mark comment as deleted" do
-        delete_auth comment_path(@comment.id), @user
-        assert_equal(true, @comment.reload.is_deleted)
+    context "hide action" do
+      should "mark comment as hidden" do
+        post_auth hide_comment_path(@comment.id), @user
+        assert_equal(true, @comment.reload.is_hidden)
         assert_redirected_to @comment
       end
     end
 
-    context "undelete action" do
+    context "unhide action" do
       setup do
-        @comment.delete!        
+        @comment.hide!
       end
-      
-      should "mark comment as undeleted" do
-        post_auth undelete_comment_path(@comment.id), @user
-        assert_equal(false, @comment.reload.is_deleted)
+
+      should "mark comment as unhidden if mod" do
+        post_auth unhide_comment_path(@comment.id), @mod
+        assert_equal(false, @comment.reload.is_hidden)
         assert_redirected_to(@comment)
+      end
+
+      should "not mark comment as unhidden if not mod" do
+        post_auth unhide_comment_path(@comment.id), @user
+        assert_equal(true, @comment.reload.is_hidden)
+        assert_response :forbidden
+      end
+    end
+
+    context "destroy action" do
+      should "destroy the comment" do
+        delete_auth comment_path(@comment.id), @mod
+        assert_equal(0, Comment.where(id: @comment.id).count)
       end
     end
   end

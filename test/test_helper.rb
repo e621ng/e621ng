@@ -80,14 +80,17 @@ class ActiveSupport::TestCase
     mock_missed_search_service!
     WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
+    Danbooru.config.stubs(:disable_throttles).returns(true)
 
-    storage_manager = StorageManager::Local.new(base_dir: "#{Rails.root}/public/data/test")
+    storage_manager = StorageManager::Local.new(base_dir: "#{Rails.root}/tmp/test-storage2")
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
+    Danbooru.config.stubs(:enable_email_verification?).returns(false)
   end
 
   teardown do
-    FileUtils.rm_rf(Danbooru.config.storage_manager.base_dir)
+    # The below line is only mildly insane and may have resulted in the destruction of my data several times.
+    FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
   end
 end

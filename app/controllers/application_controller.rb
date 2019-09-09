@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  class APIThrottled < Exception; end
+
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
   before_action :reset_current_user
   before_action :set_current_user
@@ -39,7 +41,7 @@ class ApplicationController < ActionController::Base
       headers["X-Api-Limit"] = CurrentUser.user.token_bucket.cached_count.to_s
 
       if throttled
-        render_error_page(429, Exception.new, message: "Too many requests")
+        raise APIThrottled.new
         return false
       end
     end
@@ -66,6 +68,8 @@ class ApplicationController < ActionController::Base
     })
 
     case exception
+    when APIThrottled
+      render_error_page(429, exception, message: "Too many requests")
     when ActiveRecord::QueryCanceled
       render_error_page(500, exception, message: "The database timed out running your query.")
     when ActionController::BadRequest

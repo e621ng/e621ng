@@ -24,11 +24,6 @@ class SavedSearchesControllerTest < ActionDispatch::IntegrationTest
         post_auth saved_searches_path, @user, params: { saved_search: { query: "bkub", label_string: "artist" }}
         assert_response :redirect
       end
-
-      should "disable labels when the disable_labels param is given" do
-        post_auth saved_searches_path, @user, params: { saved_search: { query: "bkub", disable_labels: "1" }}
-        assert_equal(true, @user.reload.disable_categorized_saved_searches)
-      end
     end
 
     context "edit action" do
