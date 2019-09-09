@@ -158,6 +158,8 @@ Post.initialize_gestures = function() {
   if (Utility.meta("disable-mobile-gestures") === "true") {
     return;
   }
+  if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
+    return;
   var $body = $("body");
   if ($body.data("hammer")) {
     return;
@@ -169,6 +171,7 @@ Post.initialize_gestures = function() {
   var hasPrev = Post.has_prev_target();
   var hasNext = Post.has_next_target();
 
+  delete Hammer.defaults.cssProps.userSelect;
   var hammer = new Hammer($body[0], {touchAction: 'pan-y', recognizers: [[Hammer.Swipe, { threshold: 20, velocity: 0.4, direction: Hammer.DIRECTION_HORIZONTAL }]], inputClass: Hammer.TouchInput});
   $body.data("hammer", hammer);
 
