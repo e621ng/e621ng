@@ -285,7 +285,7 @@ class Artist < ApplicationRecord
 
     def merge_version
       prev = versions.last
-      prev.update_attributes(
+      prev.update(
         :name => name,
         :urls => url_array,
         :is_active => is_active,
@@ -418,7 +418,7 @@ class Artist < ApplicationRecord
           begin
             Post.tag_match(name).records.each do |post|
               fixed_tags = post.tag_string.sub(/(?:\A| )banned_artist(?:\Z| )/, " ").strip
-              post.update_attributes(:tag_string => fixed_tags)
+              post.update(:tag_string => fixed_tags)
             end
           rescue Post::SearchError
             # swallow
