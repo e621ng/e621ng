@@ -50,7 +50,7 @@ class UserDeletionTest < ActiveSupport::TestCase
       @post = FactoryBot.create(:post)
       Favorite.add(post: @post, user: @user)
 
-      @user.update_attributes(:email => "ted@danbooru.com")
+      @user.update(:email => "ted@danbooru.com")
 
       @deletion = UserDeletion.new(@user, "password")
       @deletion.delete!
