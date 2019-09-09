@@ -40,7 +40,7 @@ fi
 if ! package_installed elasticsearch; then
     install_packages apt-transport-https default-jre-headless
     add_key https://packages.elastic.co/GPG-KEY-elasticsearch
-    echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" > /etc/apt/sources.list.d/elasticsearch-6.x.list
+    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elasticsearch-7.x.list
     script_log "Elasticsearch repository added"
 fi
 
