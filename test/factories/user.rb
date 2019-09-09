@@ -4,7 +4,7 @@ FactoryBot.define do
       "user#{n}"
     end
     password { "password" }
-    bcrypt_password_hash {User.bcrypt("password")}
+    bcrypt_password_hash {BCrypt::Password.create("password", cost: 1)}
     email {FFaker::Internet.email}
     default_image_size { "large" }
     base_upload_limit { 10 }
@@ -28,15 +28,17 @@ FactoryBot.define do
 
     factory(:janitor_user) do
       level { 35 }
+      bit_prefs { User.flag_value_for("can_upload_free") }
+      can_approve_posts { true }
     end
 
     factory(:contributor_user) do
-      level { 32 }
+      level { 33 }
       bit_prefs { User.flag_value_for("can_upload_free") }
     end
 
     factory(:contrib_user) do
-      level { 32 }
+      level { 33 }
       bit_prefs { User.flag_value_for("can_upload_free") }
     end
 

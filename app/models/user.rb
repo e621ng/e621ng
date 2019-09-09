@@ -277,6 +277,7 @@ class User < ApplicationRecord
     end
 
     def customize_new_user
+      return if Rails.env.test?
       Danbooru.config.customize_new_user(self)
     end
 
