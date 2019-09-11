@@ -176,6 +176,10 @@ fi
 
 service nginx restart
 
+script_log "Installing shoreman..."
+curl https://github.com/chrismytton/shoreman/raw/master/shoreman.sh -sLo /usr/bin/shoreman
+chmod +x /usr/bin/shoreman
+
 script_log "Copying systemd unit file..."
 cp $APP_DIR/vagrant/danbooru.service /lib/systemd/system/
 systemctl daemon-reload

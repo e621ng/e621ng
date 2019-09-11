@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=danbooru
 WorkingDirectory=/home/danbooru/danbooru
-ExecStart=/bin/bash -c 'source /etc/profile.d/chruby.sh;/home/danbooru/danbooru/bin/bundle exec foreman start'
+ExecStart=/bin/bash -c 'source /etc/profile.d/chruby.sh;/usr/bin/shoreman'
 
 [Install]
 WantedBy=vagrant.mount
