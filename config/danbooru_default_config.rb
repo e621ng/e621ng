@@ -112,8 +112,8 @@ module Danbooru
 
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
-      user.level = User::Levels::UNACTIVATED
-      user.comment_threshold = -10
+      user.level = User::Levels::UNACTIVATED unless user.will_save_change_to_level?
+      user.comment_threshold = -10 unless user.will_save_change_to_comment_threshold?
       user.blacklisted_tags = 'gore
 scat
 watersports
@@ -121,17 +121,6 @@ young -rating:s
 loli
 shota
 fart'
-      # user.level = User::Levels::MEMBER
-      # user.can_approve_posts = false
-      # user.can_upload_free = false
-      # user.is_super_voter = false
-      #
-      # user.base_upload_limit = 10
-      # user.comment_threshold = -1
-      # user.blacklisted_tags = ["spoilers", "guro", "scat", "furry -rating:s"].join("\n")
-      # user.default_image_size = "large"
-      # user.per_page = 20
-      # user.disable_tagged_filenames = false
       true
     end
 

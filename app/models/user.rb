@@ -93,7 +93,6 @@ class User < ApplicationRecord
   before_update :encrypt_password_on_update
   after_save :update_cache
   before_create :promote_to_admin_if_first_user
-  before_create :customize_new_user
   #after_create :notify_sock_puppets
   after_create :create_user_status
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
@@ -278,11 +277,6 @@ class User < ApplicationRecord
       else
         self.level = Levels::MEMBER
       end
-    end
-
-    def customize_new_user
-      return if Rails.env.test?
-      Danbooru.config.customize_new_user(self)
     end
 
     def role
@@ -877,6 +871,9 @@ class User < ApplicationRecord
     self.last_ip_addr ||= CurrentUser.ip_addr
     self.enable_keyboard_navigation = true
     self.enable_auto_complete = true
+
+    return if Rails.env.test?
+    Danbooru.config.customize_new_user(self)
   end
 
   def presenter
