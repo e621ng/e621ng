@@ -250,6 +250,7 @@ class User < ApplicationRecord
 
       def anonymous
         user = User.new(name: "Anonymous", created_at: Time.now)
+        user.level = Levels::ANONYMOUS
         user.freeze.readonly!
         user
       end
