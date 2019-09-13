@@ -901,7 +901,7 @@
       },
       previewDimensions() {
         if (this.previewWidth && this.previewHeight)
-          return this.previewHeight + '×' + this.previewWidth;
+          return this.previewWidth + '×' + this.previewHeight;
         return '';
       },
       directURLProblem: function () {
