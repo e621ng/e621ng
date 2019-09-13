@@ -1,4 +1,4 @@
-class IQDBRemoveJob
+class IqdbRemoveJob
   include Sidekiq::Worker
 
   sidekiq_options queue: 'iqdb'

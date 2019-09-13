@@ -1,4 +1,4 @@
-class StorageManager::SFTP < StorageManager
+class StorageManager::Sftp < StorageManager
   DEFAULT_PERMISSIONS = 0644
 
   # http://net-ssh.github.io/net-ssh/Net/SSH.html#method-c-start

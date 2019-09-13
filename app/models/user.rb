@@ -215,7 +215,7 @@ class User < ApplicationRecord
         if Rails.env.test? && user && user.password_hash.present? && user.password_hash == pass
           return user
         end
-        if user && user.password_hash.present? && PBKDF2.validate_password(pass, user.password_hash)
+        if user && user.password_hash.present? && Pbkdf2.validate_password(pass, user.password_hash)
           user.upgrade_password(pass)
           user
         elsif user && user.bcrypt_password_hash && user.bcrypt_password == pass
