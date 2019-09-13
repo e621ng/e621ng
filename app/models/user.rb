@@ -489,6 +489,8 @@ class User < ApplicationRecord
         :REJ_UPLOAD_HOURLY
       elsif is_admin?
         true # TODO: Remove this?
+      elsif Danbooru.config.disable_throttles
+        true # TODO: Remove this too?
       elsif created_at > 7.days.ago
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0
