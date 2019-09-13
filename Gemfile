@@ -48,6 +48,9 @@ gem 'request_store'
 gem 'elasticsearch-model'
 gem 'elasticsearch-rails'
 
+
+gem 'mailgun-ruby'
+
 # needed for looser jpeg header compat
 gem 'ruby-imagespec', :require => "image_spec", :git => "https://github.com/r888888888/ruby-imagespec.git", :branch => "exif-fixes"
 

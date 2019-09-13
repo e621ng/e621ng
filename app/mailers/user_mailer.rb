@@ -1,7 +1,7 @@
 class UserMailer < ActionMailer::Base
   add_template_helper ApplicationHelper
   add_template_helper UsersHelper
-  default :from => Danbooru.config.contact_email, :content_type => "text/html"
+  default :from => Danbooru.config.mail_from_addr, :content_type => "text/html"
 
   def dmail_notice(dmail)
     @dmail = dmail

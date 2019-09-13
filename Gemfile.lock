@@ -186,6 +186,8 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
+    mailgun-ruby (1.2.0)
+      rest-client (~> 2.0.2)
     marcel (0.3.3)
       mimemagic (~> 0.3.2)
     mechanize (2.7.6)
@@ -229,6 +231,7 @@ GEM
     net-sftp (2.1.2)
       net-ssh (>= 2.6.5)
     net-ssh (5.2.0)
+    netrc (0.11.0)
     newrelic_rpm (6.5.0.357)
     nio4r (2.5.1)
     nokogiri (1.10.4)
@@ -304,6 +307,15 @@ GEM
     responders (3.0.0)
       actionpack (>= 5.0)
       railties (>= 5.0)
+    rest-client (2.0.2)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 4.0)
+      netrc (~> 0.8)
+    rest-client (2.0.2-x64-mingw32)
+      ffi (~> 1.9)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 4.0)
+      netrc (~> 0.8)
     retriable (3.1.2)
     ruby-vips (2.0.14)
       ffi (~> 1.9)
@@ -431,6 +443,7 @@ DEPENDENCIES
   httparty
   jquery-rails
   listen
+  mailgun-ruby
   mechanize
   memoist
   minitest-ci
