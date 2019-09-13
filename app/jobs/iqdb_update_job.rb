@@ -1,4 +1,4 @@
-class IQDBUpdateJob
+class IqdbUpdateJob
   include Sidekiq::Worker
 
   sidekiq_options queue: 'iqdb'
