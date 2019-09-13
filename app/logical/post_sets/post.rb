@@ -136,7 +136,7 @@ module PostSets
     end
 
     def hide_from_crawler?
-      !is_simple_tag? || page.to_i > 1
+      !is_empty_tag?
     end
 
     def is_single_tag?
