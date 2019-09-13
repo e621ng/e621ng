@@ -163,14 +163,24 @@ module Danbooru
         results.total
       end
 
+      def response_hits_total
+        if response['hits']['total'].respond_to?(:keys)
+          response['hits']['total']['value']
+        else
+          response['hits']['total']
+        end
+      end
+
       def exists?
+        search.definition[:body]&.delete(:sort)
         search.definition.update(from: 0, size: 1, terminate_after: 1, sort: '_doc', _source: false, track_total_hits: false)
-        response['hits']['total'] > 0
+        response_hits_total > 0
       end
 
       def count_only
-        search.definition.update(from: 0, size: 0, sort: '_doc', _source: false)
-        response['hits']['total']
+        search.definition[:body]&.delete(:sort)
+        search.definition.update(from: 0, size: 0, sort: '_doc', _source: false, track_total_hits: true)
+        response_hits_total
       end
     end
   end
