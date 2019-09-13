@@ -201,7 +201,7 @@ class UploadService
     end
 
     def is_animated_png?(upload, file)
-      upload.file_ext == "png" && APNGInspector.new(file.path).inspect!.animated?
+      upload.file_ext == "png" && ApngInspector.new(file.path).inspect!.animated?
     end
 
     def is_video_with_audio?(upload, file)

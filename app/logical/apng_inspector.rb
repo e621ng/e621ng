@@ -1,4 +1,4 @@
-class APNGInspector
+class ApngInspector
   attr_reader :frames
 
   PNG_MAGIC_NUMBER = ["89504E470D0A1A0A"].pack('H*')
