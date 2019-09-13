@@ -1,10 +1,11 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 320
-    attr_reader :tag_array, :page, :raw, :random, :post_count, :format
+    attr_reader :tag_array, :public_tag_array, :page, :raw, :random, :post_count, :format
 
     def initialize(tags, page = 1, per_page = nil, options = {})
       tags ||= ''
+      @public_tag_array = Tag.scan_query(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       @tag_array = Tag.scan_query(tags)
@@ -17,6 +18,10 @@ module PostSets
 
     def tag_string
       @tag_string ||= tag_array.uniq.join(" ")
+    end
+
+    def public_tag_string
+      @public_tag_string ||= public_tag_array.uniq.join(" ")
     end
 
     def humanized_tag_string
