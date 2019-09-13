@@ -767,6 +767,18 @@ fart'
       "zDMSATq0W3hmA5p3rKTgD"
     end
 
+    def mailgun_api_key
+      ''
+    end
+
+    def mailgun_domain
+      ''
+    end
+
+    def mail_from_addr
+      'noreply@localhost'
+    end
+
     # impose additional requirements to create tag aliases and implications
     def strict_tag_requirements
       true
