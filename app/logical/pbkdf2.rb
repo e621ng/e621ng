@@ -28,7 +28,7 @@ require 'securerandom'
 require 'openssl'
 require 'base64'
 
-module PBKDF2
+module Pbkdf2
 
   PBKDF2_ITERATIONS = 20000
   SALT_BYTE_SIZE = 24
