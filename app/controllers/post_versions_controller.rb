@@ -3,7 +3,7 @@ class PostVersionsController < ApplicationController
   respond_to :html, :xml, :json
 
   def index
-    @post_versions = PostArchive.includes(:updater, post: [:versions]).search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @post_versions = PostArchive.search(PostArchive.build_query(search_params)).paginate(params[:page], :limit => params[:limit], :search_count => params[:search], includes: [:updater, post: [:versions]])
     respond_with(@post_versions) do |format|
       format.xml do
         render :xml => @post_versions.to_xml(:root => "post-versions")

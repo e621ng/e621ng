@@ -31,26 +31,41 @@ class PostArchive < ApplicationRecord
       for_user(user_id)
     end
 
-    def search(params)
-      q = super
+    def build_query(params)
+      must = []
+      def should(*args)
+        {bool: {should: args}}
+      end
+      def split_to_terms(field, input)
+        input.split(',').map(&:to_i).map {|x| {term: {field => x}}}
+      end
 
       if params[:updater_name].present?
-        q = q.for_user_name(params[:updater_name])
+        must << {term: {updater_id: User.name_to_id(params[:updater_name])}}
       end
 
       if params[:updater_id].present?
-        q = q.where(updater_id: params[:updater_id].split(",").map(&:to_i))
+        must << should(*split_to_terms(:updater_id, params[:updater_id]))
       end
 
       if params[:post_id].present?
-        q = q.where(post_id: params[:post_id].split(",").map(&:to_i))
+        must << should(*split_to_terms(:post_id, params[:post_id]))
       end
 
       if params[:start_id].present?
-        q = q.where("id <= ?", params[:start_id].to_i)
+        must << {range: {id: {gte: params[:start_id].to_i}}}
       end
 
-      q.apply_default_order(params)
+      if must.empty?
+        must.push({match_all: {}})
+      end
+
+      {
+          query: {bool: {must: must}},
+          sort: {id: :desc},
+          _source: false,
+          timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
+      }
     end
   end
 

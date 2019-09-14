@@ -5,6 +5,7 @@ module PostVersionIndex
     base.settings index: {number_of_shards: 8, number_of_replicas: 1} do
       mappings dynamic: false do
         indexes :id, type: 'integer'
+        indexes :post_id, type: 'integer'
         indexes :version, type: 'integer'
         indexes :updater_id, type: 'integer'
         indexes :parent_id, type: 'integer'
@@ -61,6 +62,7 @@ module PostVersionIndex
   def as_indexed_json(options = {})
     {
         id: id,
+        post_id: post_id,
         updated_at: updated_at,
         version: version,
         updater_id: updater_id,
