@@ -29,7 +29,7 @@ class PostVote < ApplicationRecord
   end
 
   def validate_user_can_vote
-    if creator.created_at > 3.days.ago && score == -1
+    if creator.younger_than(3.days) && score == -1
       errors.add(:creator, "must be 3 days old to downvote posts")
       return false
     end

@@ -405,13 +405,23 @@ class User < ApplicationRecord
   module LimitMethods
     extend Memoist
 
+    def younger_than(duration)
+      return false if Danbooru.config.disable_age_checks
+      created_at > duration.ago
+    end
+
+    def older_than(duration)
+      return true if Danbooru.config.disable_age_checks
+      created_at < duration.ago
+    end
+
     def self.create_user_throttle(name, limiter, checker, newbie_duration)
       define_method("#{name}_limit".to_sym, limiter)
       memoize "#{name}_limit".to_sym
       define_method("can_#{name}_with_reason".to_sym) do
         return true if Danbooru.config.disable_throttles
         return send(checker) if checker && send(checker)
-        return :REJ_NEWBIE if newbie_duration && created_at > newbie_duration
+        return :REJ_NEWBIE if newbie_duration && younger_than(newbie_duration)
         return :REJ_LIMITED if send("#{name}_limit") <= 0
         true
       end
@@ -426,33 +436,33 @@ class User < ApplicationRecord
     end
 
     create_user_throttle(:artist_edit, ->{ Danbooru.config.artist_edit_limit - ArtistVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days.ago)
+                         :general_bypass_throttle?, 7.days)
     create_user_throttle(:post_edit, ->{ Danbooru.config.post_edit_limit - PostArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days.ago)
+                         :general_bypass_throttle?, 7.days)
     create_user_throttle(:wiki_edit, ->{ Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days.ago)
+                         :general_bypass_throttle?, 7.days)
     create_user_throttle(:pool, ->{ Danbooru.config.pool_limit - Pool.for_user(id).where('created_at > ?', 1.hour.ago).count },
-                         nil, 7.days.ago)
+                         nil, 7.days)
     create_user_throttle(:pool_edit, ->{ Danbooru.config.pool_edit_limit - PoolArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         nil, 3.days.ago)
+                         nil, 3.days)
     create_user_throttle(:note_edit, ->{ Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days.ago)
+                         :general_bypass_throttle?, 3.days)
     create_user_throttle(:comment, ->{ Danbooru.config.member_comment_limit - Comment.for_creator(id).where('created_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days.ago)
+                         :general_bypass_throttle?, 7.days)
     create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days.ago)
+                         :general_bypass_throttle?, 3.days)
     create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.hour.ago).count },
-                         nil, 7.days.ago)
+                         nil, 7.days)
     create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
-                         nil, 7.days.ago)
+                         nil, 7.days)
     create_user_throttle(:comment_vote, ->{ Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago)},
-                         :general_bypass_throttle?, 3.days.ago)
+                         :general_bypass_throttle?, 3.days)
     create_user_throttle(:post_vote, ->{ Danbooru.config.post_vote_limit - PostVote.for_user(id).where("created_at > ?", 1.hour.ago)},
                          :general_bypass_throttle?, nil)
     create_user_throttle(:post_flag, ->{ Danboooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago)},
-                         :can_approve_posts?, 3.days.ago)
+                         :can_approve_posts?, 3.days)
     create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago)},
-                         :general_bypass_throttle?, 3.days.ago)
+                         :general_bypass_throttle?, 3.days)
 
     def max_saved_searches
       if is_contributor?
@@ -467,7 +477,7 @@ class User < ApplicationRecord
     end
 
     def can_remove_from_pools?
-      created_at <= 7.days.ago
+      older_than 7.days
     end
 
     def can_view_flagger?(flagger_id)
@@ -491,7 +501,7 @@ class User < ApplicationRecord
         true # TODO: Remove this?
       elsif Danbooru.config.disable_throttles
         true # TODO: Remove this too?
-      elsif created_at > 7.days.ago
+      elsif younger_than 7.days
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0
         :REJ_UPLOAD_EDIT
