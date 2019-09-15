@@ -30,7 +30,6 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  before_save :set_pool_category_pseudo_tags
   before_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
   after_save :create_version
   after_save :update_parent_on_save
@@ -856,7 +855,7 @@ class Post < ApplicationRecord
     def filter_metatags(tags)
       @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
       tags = apply_categorization_metatags(tags)
-      @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|fav|-fav|child|-child|upvote|downvote):/i}
+      @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i}
       apply_pre_metatags
       return tags
     end
@@ -1124,7 +1123,6 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
-        set_pool_category_pseudo_tags
         pool.add!(self)
       end
     end
@@ -1135,7 +1133,6 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
-        set_pool_category_pseudo_tags
         pool.remove!(self)
       end
     end
@@ -1143,18 +1140,6 @@ class Post < ApplicationRecord
     def remove_from_all_pools
       pools.find_each do |pool|
         pool.remove!(self)
-      end
-    end
-
-    def set_pool_category_pseudo_tags
-      self.pool_string = (pool_string.split - ["pool:series", "pool:collection"]).join(" ")
-
-      pool_categories = pools.undeleted.pluck(:category)
-      if pool_categories.include?("series")
-        self.pool_string = "#{pool_string} pool:series".strip
-      end
-      if pool_categories.include?("collection")
-        self.pool_string = "#{pool_string} pool:collection".strip
       end
     end
   end
