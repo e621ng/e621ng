@@ -49,7 +49,7 @@ div.prose {
   li {
     list-style-type: disc;
   }
-  
+
   pre {
     font-family: monospace;
     font-size: 1.2em;
@@ -61,7 +61,8 @@ div.prose {
 
   code {
     font-family: monospace;
-    background: #EEE;
+    white-space: pre-wrap;
+    background-color: $blockquote_bg;
   }
 
   div.expandable {
