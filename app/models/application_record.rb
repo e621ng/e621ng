@@ -38,7 +38,7 @@ class ApplicationRecord < ActiveRecord::Base
       def attribute_exact_matches(attribute, value, **options)
         return all unless value.present?
 
-        column = qualified_column_for_attribute(attribute)
+        column = qualified_column_for(attribute)
         where("#{column} = ?", value)
       end
 
