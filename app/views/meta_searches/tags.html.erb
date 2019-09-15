@@ -30,7 +30,7 @@
                 <td><%= tag.name %></td>
                 <td><%= tag.post_count %></td>
                 <td>
-                  <% if tag.editable_by?(CurrentUser.user) %>
+                  <% if tag.category_editable_by?(CurrentUser.user) %>
                     <%= link_to "edit", edit_tag_path(tag) %>
                   <% end %>
                 </td>
