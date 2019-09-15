@@ -20,9 +20,9 @@ class CommentVote < ApplicationRecord
   end
 
   def validate_user_can_vote
-    allowed = creator.can_comment_vote_with_reason
+    allowed = user.can_comment_vote_with_reason
     if allowed != true
-      errors.add(:creator, User.throttle_reason(allowed))
+      errors.add(:user, User.throttle_reason(allowed))
       return false
     end
     true
