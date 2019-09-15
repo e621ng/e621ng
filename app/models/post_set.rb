@@ -89,7 +89,7 @@ class PostSet < ApplicationRecord
     end
 
     def can_make_public
-      if is_public && creator.created_at > 3.days.ago && !creator.is_janitor?
+      if is_public && creator.younger_than(3.days) && !creator.is_janitor?
         errors.add(:base, "Can't make a set public until your account is at least three days old")
         false
       else
