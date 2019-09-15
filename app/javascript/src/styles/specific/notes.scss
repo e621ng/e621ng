@@ -8,6 +8,7 @@ div#note-container {
     position: absolute;
     border: 1px solid black;
     background: #FFE;
+    color: $inverted_text_color;
     min-width: 140px;
     min-height: 1em;
     line-height: normal;
