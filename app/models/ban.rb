@@ -138,7 +138,7 @@ class Ban < ApplicationRecord
 
   def expire_days
     return 'never' if expires_at == nil
-    ApplicaitonController.helpers.time_ago_in_words(expires_at)
+    ApplicationController.helpers.time_ago_in_words(expires_at)
   end
 
   def expired?
