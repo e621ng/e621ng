@@ -106,8 +106,8 @@ class PostSet < ApplicationRecord
     end
 
     def set_per_hour_limit
-      if where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count() > 6 && !creator.is_janitor?
-        first = where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).order(:created_at).first()
+      if PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count() > 6 && !creator.is_janitor?
+        first = PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).order(:created_at).first()
         errors.add(:base, "You have already created 6 sets in the last hour. You can make a new set in #{time_ago_in_words(first.created_at)}")
         false
       else
