@@ -143,7 +143,7 @@
       <li>&raquo; <%= link_to "My messages", dmails_path %></li>
       <li>&raquo; <%= link_to "My favorites", posts_path(tags: "fav:#{CurrentUser.name}") %></li>
       <li>&nbsp;</li>
-      <li>&raquo; <%= link_to "My sets", post_sets_path(user_id: CurrentUser.id) %></li>
+      <li>&raquo; <%= link_to "My sets", post_sets_path(search: {creator_id: CurrentUser.id}) %></li>
       <li>&raquo; <%= link_to "Sets I maintain", post_sets_path(maintainer_id: CurrentUser.id) %></li>
       <li>&raquo; <%= link_to "Set maintainer invites", post_set_maintainers_path %></li>
       <li>&nbsp;</li>

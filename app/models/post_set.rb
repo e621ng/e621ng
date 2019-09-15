@@ -285,7 +285,7 @@ class PostSet < ApplicationRecord
       q = super
 
       if params[:creator_name].present?
-        user = User.find_by_name(params[:username])
+        user = User.find_by_name(params[:creator_name])
         q = q.where(creator_id: user)
       end
 
