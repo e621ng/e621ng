@@ -91,13 +91,13 @@ module PostIndex
         pools_sql = <<-SQL
           SELECT post_id, array_agg(pool_id) FROM (
             SELECT id as pool_id, unnest(post_ids) AS post_id FROM pools
-            WHERE post_ids @> '{#{post_ids}}'
+            WHERE post_ids && '{#{post_ids}}'
           ) t GROUP BY post_id
         SQL
         sets_sql = <<-SQL
           SELECT post_id, array_agg(set_id) FROM (
             SELECT id as set_id, unnest(post_ids) AS post_id FROM post_sets
-            WHERE post_ids @> '{#{post_ids}}'
+            WHERE post_ids && '{#{post_ids}}'
           ) t GROUP BY post_id
         SQL
         commenter_sql = <<-SQL
