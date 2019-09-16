@@ -27,7 +27,7 @@
         <% if !forum_post.is_original_post?(original_forum_post_id) %>
           <% if forum_post.is_hidden? && CurrentUser.is_moderator? %>
             <li><%= link_to "Unhide", unhide_forum_post_path(forum_post.id), method: :post, :remote => true %></li>
-          <% elsif forum_post.can_hide?(CurrentUser.user) %>
+          <% elsif !forum_post.is_hidden? && forum_post.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to hide this forum post?"}, method: :post, :remote => true %></li>
           <% end %>
           <% if forum_post.can_delete?(CurrentUser.user) %>

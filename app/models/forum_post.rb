@@ -206,24 +206,24 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  def delete!
+  def hide!
     update(is_hidden: true)
-    update_topic_updated_at_on_delete
+    update_topic_updated_at_on_hide
   end
 
-  def undelete!
+  def unhide!
     update(is_hidden: false)
-    update_topic_updated_at_on_undelete
+    update_topic_updated_at_on_unhide
   end
 
-  def update_topic_updated_at_on_delete
+  def update_topic_updated_at_on_hide
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
       ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
     end
   end
 
-  def update_topic_updated_at_on_undelete
+  def update_topic_updated_at_on_unhide
     if topic
       ForumTopic.where(:id => topic.id).update_all(["updater_id = ?, updated_at = ?", CurrentUser.id, Time.now])
     end
