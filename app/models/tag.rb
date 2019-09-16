@@ -57,6 +57,7 @@ class Tag < ApplicationRecord
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates :name, length: { in: 1..100 }
   validates :category, inclusion: { in: TagCategory.category_ids }
+  validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
 
@@ -197,6 +198,14 @@ class Tag < ApplicationRecord
 
     def update_category_cache
       Cache.put("tc:#{Cache.hash(name)}", category, 3.hours)
+    end
+
+    def user_can_change_category?
+      cat = TagCategory.reverse_mapping[category]
+      if !CurrentUser.is_moderator? && TagCategory.mod_only_mapping[cat]
+        errors[:category] << "can only used by moderators"
+        return false
+      end
     end
 
     def update_category

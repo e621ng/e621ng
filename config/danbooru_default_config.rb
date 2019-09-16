@@ -447,6 +447,7 @@ fart'
           "extra" => [],
           "header" => %{<h1 class="general-tag-list">Tags</h1>},
           "humanized" => nil,
+          "mod_only" => false,
           "relatedbutton" => "General",
           "css" => {
             "color" => "$link_color",
@@ -459,6 +460,7 @@ fart'
           "extra" => [],
           "header" => %{<h2 class="species-tag-list">Species</h2>},
           "humanized" => nil,
+          "mod_only" => false,
           "relatedbutton" => "Species",
           "css" => {
             "color" => "#0F0",
@@ -476,6 +478,7 @@ fart'
             "regexmap" => /^(.+?)(?:_\(.+\))?$/,
             "formatstr" => "%s"
           },
+          "mod_only" => false,
           "relatedbutton" => "Characters",
           "css" => {
             "color" => "#0A0",
@@ -493,6 +496,7 @@ fart'
             "regexmap" => //,
             "formatstr" => "(%s)"
           },
+          "mod_only" => false,
           "relatedbutton" => "Copyrights",
           "css" => {
             "color" => "#A0A",
@@ -510,6 +514,7 @@ fart'
             "regexmap" => //,
             "formatstr" => "drawn by %s"
           },
+          "mod_only" => false,
           "relatedbutton" => "Artists",
           "css" => {
             "color" => "#A00",
@@ -522,6 +527,7 @@ fart'
           "extra" => [],
           "header" => %{<h2 class="invalid-tag-list">Invalid</h2>},
           "humanized" => nil,
+          "mod_only" => true,
           "relatedbutton" => nil,
           "css" => {
             "color" => "#000",
@@ -534,6 +540,7 @@ fart'
           "extra" => [],
           "header" => %{<h2 class="meta-tag-list">Meta</h2>},
           "humanized" => nil,
+          "mod_only" => true,
           "relatedbutton" => nil,
           "css" => {
             "color" => "#F80",
