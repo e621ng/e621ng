@@ -1,6 +1,6 @@
 @import "../base/000_vars.scss";
 
-table.striped {
+table.table {
   p {
     margin: 0;
   }
@@ -11,6 +11,9 @@ table.striped {
 
   tbody {
     tr {
+      &:hover {
+        background-color: $table_stripe_highlight_color;
+      }
       border-bottom: 1px solid $table_stripe_border_color;
     }
   }
@@ -33,6 +36,7 @@ table.striped {
 }
 
 table.striped {
+  @extend table.table;
   tbody {
     tr {
       &:hover {

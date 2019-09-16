@@ -1,11 +1,9 @@
+@import "../base/000_vars.scss";
+
 div#c-post-events {
   #a-index {
-    tr.resolved-true {
-      background: #DDD;
-    }
-
     tr.resolved-false {
-      background: #FFF;
+      background: $negative_record_bg;
     }
   }
 }
