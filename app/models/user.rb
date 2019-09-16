@@ -558,25 +558,18 @@ class User < ApplicationRecord
     end
 
     def api_regen_multiplier
-      # regen this amount per second
-      if is_contributor?
-        4
-      elsif is_privileged?
-        2
-      else
-        1
-      end
+      1
     end
 
     def api_burst_limit
       # can make this many api calls at once before being bound by
       # api_regen_multiplier refilling your pool
       if is_contributor?
-        60
+        120
       elsif is_privileged?
-        30
+        90
       else
-        10
+        60
       end
     end
 
