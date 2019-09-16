@@ -34,8 +34,6 @@ class UserPromotion
       user.no_flagging = options[:no_flagging]
     end
 
-    user.inviter_id = promoter.id
-
     create_user_feedback unless options[:is_upgbrade]
     create_dmail unless options[:skip_dmail]
     create_mod_actions

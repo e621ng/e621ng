@@ -5,6 +5,7 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
@@ -2652,7 +2653,6 @@ CREATE TABLE public.users (
     password_hash character varying NOT NULL,
     email character varying,
     email_verification_key character varying,
-    inviter_id integer,
     level integer DEFAULT 0 NOT NULL,
     base_upload_limit integer DEFAULT 10 NOT NULL,
     last_logged_in_at timestamp without time zone,
@@ -5257,6 +5257,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190827223818'),
 ('20190827233008'),
 ('20190829044313'),
-('20190905111159');
+('20190905111159'),
+('20190916204908');
 
 

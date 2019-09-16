@@ -34,9 +34,6 @@
             </td>
             <td>
               <%= link_to_user user %>
-              <% if user.inviter %>
-                &larr; <%= link_to_user user.inviter %>
-              <% end %>
             </td>
             <td><%= link_to user.posts.count, posts_path(:tags => "user:#{user.name}") %></td>
             <td><%= user.posts.deleted.count %></td>
