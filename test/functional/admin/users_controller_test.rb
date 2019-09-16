@@ -22,7 +22,6 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
           assert_redirected_to(edit_admin_user_path(@user))
           @user.reload
           assert_equal(30, @user.level)
-          assert_equal(@mod.id, @user.inviter_id)
         end
 
         context "promoted to an admin" do

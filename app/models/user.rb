@@ -115,7 +115,6 @@ class User < ApplicationRecord
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.created_at desc")}
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
   has_many :favorites, ->(rec) {where("user_id = ?", rec.id).order("id desc")}
-  belongs_to :inviter, class_name: "User", optional: true
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
 
@@ -596,7 +595,7 @@ class User < ApplicationRecord
 
     def method_attributes
       list = super + [
-        :id, :created_at, :name, :inviter_id, :level, :base_upload_limit,
+        :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
         :level_string,
@@ -749,7 +748,6 @@ class User < ApplicationRecord
 
       q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
-      q = q.attribute_matches(:inviter_id, params[:inviter_id])
       # TODO: Doesn't support relation filtering using this method.
       # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
       # q = q.attribute_matches(:post_update_count, params[:post_update_count])
@@ -758,10 +756,6 @@ class User < ApplicationRecord
 
       if params[:name_matches].present?
         q = q.where_ilike(:name, normalize_name(params[:name_matches]))
-      end
-
-      if params[:inviter].present?
-        q = q.where(inviter_id: search(params[:inviter]))
       end
 
       if params[:min_level].present?
