@@ -63,6 +63,6 @@ class UploadWhitelist < ApplicationRecord
         return [x.allowed, x.reason]
       end
     end
-    [false, "not in whitelist"]
+    [false, "#{url.domain} not in whitelist"]
   end
 end

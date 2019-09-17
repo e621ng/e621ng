@@ -19,11 +19,6 @@ class UploadsController < ApplicationController
     respond_with(@source)
   end
 
-  def image_proxy
-    resp = ImageProxy.get_image(params[:url])
-    send_data resp.body, :type => resp.content_type, :disposition => "inline"
-  end
-
   def index
     @uploads = Upload.search(search_params).includes(:post, :uploader).paginate(params[:page], :limit => params[:limit])
     respond_with(@uploads) do |format|
@@ -50,6 +45,7 @@ class UploadsController < ApplicationController
 
     if @upload.invalid?
       flash[:notice] = @upload.errors.full_messages.join("; ")
+      return render json: {success: false, reason: 'invalid', message: @upload.errors.full_messages.join("; ")}, status: 412
     end
     if @service.warnings.any?
       flash[:notice] = @service.warnings.join(".\n \n")

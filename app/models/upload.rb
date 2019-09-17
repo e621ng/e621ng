@@ -269,7 +269,7 @@ class Upload < ApplicationRecord
     uploadable = uploader.can_upload_with_reason
     if uploadable != true
       self.errors.add(:uploader, User.upload_reason_string(uploadable))
-      false
+      return false
     end
     true
   end

@@ -25,8 +25,9 @@
                         <div id="whitelist-warning" v-show="whitelist.visible"
                              :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
                             <span v-if="whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are permitted.</span>
-                            <span v-if="!whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are not permitted. (<a
-                                    href='/upload_whitelist'>View whitelisted domains</a>)</span>
+                            <span v-if="!whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are not permitted.
+                                <span v-if="whitelist.reason">Reason given: {{whitelist.reason}}</span>
+                                (<a href='/upload_whitelists'>View whitelisted domains</a>)</span>
                         </div>
                     </div>
                 </div>
@@ -554,12 +555,12 @@
       return;
     }
     this.disableFileUpload = true;
-    var domain = $j("<a>").prop("href", this.uploadURL).prop("hostname");
+    var domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
 
     if (domain && domain != this.oldDomain) {
-      $j.getJSON("/upload_whitelist/is_whitelisted", {url: this.uploadURL}, function (data) {
+      $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, function (data) {
         if (data.domain)
-          self.whitelistWarning(data.is_whitelisted, data.domain);
+          self.whitelistWarning(data.is_whitelisted, data.domain, data.reason);
       });
     }
     this.oldDomain = domain;
@@ -733,9 +734,10 @@
       updatePreviewDims,
       previewError,
       clearFile: clearFileUpload,
-      whitelistWarning(allowed, domain) {
+      whitelistWarning(allowed, domain, reason) {
         this.whitelist.allowed = allowed;
         this.whitelist.domain = domain;
+        this.whitelist.reason = reason;
         this.whitelist.visible = true;
       },
       removeSource(i) {
