@@ -394,9 +394,9 @@ Rails.application.routes.draw do
   end
   resources :post_set_maintainers do
     member do
-      post :approve
-      post :block
-      post :deny
+      get :approve
+      get :block
+      get :deny
     end
   end
   resource :email do

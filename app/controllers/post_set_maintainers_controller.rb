@@ -52,6 +52,7 @@ class PostSetMaintainersController < ApplicationController
     check_approve_access(@maintainer)
 
     @maintainer.approve!
+    redirect_to :back, notice: "You are now a maintainer for the set."
   end
 
   def deny
@@ -59,6 +60,7 @@ class PostSetMaintainersController < ApplicationController
     raise User::PrivilegeError unless @maintainer.user_id == CurrentUser.id
 
     @maintainer.deny!
+    redirect_to :back, notice: "You have declined the set maintainer invite."
   end
 
   def block
@@ -66,6 +68,7 @@ class PostSetMaintainersController < ApplicationController
     check_block_access(@maintainer)
 
     @maintainer.block!
+    redirect_to :back, notice: "You will not receive further invites for this set."
   end
 
   private
