@@ -4023,6 +4023,13 @@ CREATE INDEX index_comment_votes_on_comment_id ON public.comment_votes USING btr
 
 
 --
+-- Name: index_comment_votes_on_comment_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_comment_votes_on_comment_id_and_user_id ON public.comment_votes USING btree (comment_id, user_id);
+
+
+--
 -- Name: index_comment_votes_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5258,6 +5265,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190827233008'),
 ('20190829044313'),
 ('20190905111159'),
-('20190916204908');
+('20190916204908'),
+('20190919213915');
 
 

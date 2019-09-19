@@ -7,27 +7,29 @@ class VoteManager
       raise PostVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
       PostVote.transaction(isolation: :serializable) do
-        old_vote = post.votes.where(user_id: user.id).first
-        if old_vote
-          raise PostVote::Error.new("Vote is locked") if old_vote.score == 0
-          if old_vote.score == score
-            return :need_unvote
-          else
-            score_modifier *= 2
+        PostVote.uncached do
+          old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
+          if old_vote
+            raise PostVote::Error.new("Vote is locked") if old_vote.score == 0
+            if old_vote.score == score
+              return :need_unvote
+            else
+              score_modifier *= 2
+            end
+            old_vote.destroy
           end
-          old_vote.destroy
+          @vote = vote = PostVote.create!(user: user, score: score, post: post)
+          vote_cols = "score = score + #{score_modifier}"
+          if vote.score > 0
+            vote_cols += ", up_score = up_score + #{vote.score}"
+            vote_cols += ", down_score = down_score - #{old_vote.score}" if old_vote
+          else
+            vote_cols += ", down_score = down_score + #{vote.score}"
+            vote_cols += ", up_score = up_score - #{old_vote.score}" if old_vote
+          end
+          Post.where(id: post.id).update_all(vote_cols)
+          post.reload
         end
-        @vote = vote = post.votes.create!(user: user, score: score)
-        vote_cols = "score = score + #{score_modifier}"
-        if vote.score > 0
-          vote_cols += ", up_score = up_score + #{vote.score}"
-          vote_cols += ", down_score = down_score - #{old_vote.score}" if old_vote
-        else
-          vote_cols += ", down_score = down_score + #{vote.score}"
-          vote_cols += ", up_score = up_score - #{old_vote.score}" if old_vote
-        end
-        Post.where(id: post.id).update_all(vote_cols)
-        post.reload
       end
       post.update_index
     rescue ActiveRecord::RecordNotUnique
@@ -38,12 +40,14 @@ class VoteManager
 
   def self.unvote!(user:, post:, force: false)
     PostVote.transaction(isolation: :serializable) do
-      vote = post.votes.where(user: user).first
-      return unless vote
-      raise PostVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
-      post.votes.where(user: user).delete_all
-      subtract_vote(post, vote)
-      post.reload
+      PostVote.uncached do
+        vote = PostVote.where(user_id: user.id, post_id: post.id).first
+        return unless vote
+        raise PostVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
+        post.votes.where(user: user).delete_all
+        subtract_vote(post, vote)
+        post.reload
+      end
     end
     post.update_index
   end
@@ -73,18 +77,20 @@ class VoteManager
       raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
       CommentVote.transaction(isolation: :serializable) do
-        old_vote = comment.votes.where(user_id: user.id).first
-        if old_vote
-          raise CommentVote::Error.new("Vote is locked") if old_vote.score == 0
-          if old_vote.score == score
-            return :need_unvote
-          else
-            score_modifier *= 2
+        CommentVote.uncached do
+          old_vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
+          if old_vote
+            raise CommentVote::Error.new("Vote is locked") if old_vote.score == 0
+            if old_vote.score == score
+              return :need_unvote
+            else
+              score_modifier *= 2
+            end
+            old_vote.destroy
           end
-          old_vote.destroy
+          @vote = CommentVote.create!(user_id: user.id, score: score, comment_id: comment.id)
+          Comment.where(id: comment.id).update_all("score = score + #{score_modifier}")
         end
-        @vote = comment.votes.create!(user: user, score: score)
-        Comment.where(id: comment.id).update_all("score = score + #{score_modifier}")
       end
     rescue ActiveRecord::RecordNotUnique
       raise CommentVote::Error.new("You have already voted for this post")
@@ -94,11 +100,13 @@ class VoteManager
 
   def self.comment_unvote!(user:, comment:, force: false)
     CommentVote.transaction(isolation: :serializable) do
-      vote = comment.votes.where(user: user).first
-      return unless vote
-      raise CommentVote::Error.new("You can't remove locked votes") if vote.score == 0 && !force
-      comment.votes.where(user: user).delete_all
-      Comment.where(id: comment.id).update_all("score = score - #{vote.score}")
+      CommentVote.uncached do
+        vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
+        return unless vote
+        raise CommentVote::Error.new("You can't remove locked votes") if vote.score == 0 && !force
+        CommentVote.where(user_id: user.id, comment_id: comment.id).delete_all
+        Comment.where(id: comment.id).update_all("score = score - #{vote.score}")
+      end
     end
   end
 

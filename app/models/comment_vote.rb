@@ -6,7 +6,7 @@ class CommentVote < ApplicationRecord
   belongs_to :user
   before_validation :initialize_user, :on => :create
   validates :user_id, :comment_id, :score, presence: true
-  validates :user_id, uniqueness: { :scope => :comment_id, :message => "have already voted for this comment" }
+  # validates :user_id, uniqueness: { :scope => :comment_id, :message => "have already voted for this comment" }
   validate :validate_user_can_vote
   validate :validate_comment_can_be_down_voted
   validates :score, inclusion: { :in => [-1, 0, 1], :message => "must be 1 or -1" }
