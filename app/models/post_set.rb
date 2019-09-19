@@ -54,6 +54,14 @@ class PostSet < ApplicationRecord
     where('is_public = true OR creator_id = ?', user.id)
   end
 
+  def self.owned(user = CurrentUser.user)
+    where('creator_id = ?', user.id)
+  end
+
+  def self.active_maintainer(user = CurrentUser.user)
+    joins(:post_set_maintainers).where(post_set_maintainers: {status: 'active', user_id: user.id})
+  end
+
   def if_names_changed?
     name_changed? || shortname_changed?
   end

@@ -1,8 +1,6 @@
 class PostSetsController < ApplicationController
   respond_to :html, :json, :xml
-  before_action :member_only, only: [:new, :create, :update, :destroy,
-                                     :edit, :maintainers, :update_posts,
-                                     :add_post, :remove_post]
+  before_action :member_only, except: [:index, :atom, :show]
 
   def index
     if !params[:post_id].blank?
@@ -109,30 +107,30 @@ class PostSetsController < ApplicationController
     respond_with(@set)
   end
 
-  def select
-    @sets_owned = PostSet.all(order: "lower(name) ASC", conditions: ["user_id = ?", CurrentUser.id])
-    @sets_maintained = SetMaintainer.all(joins: :post_set, select: "set_maintainers.*, post_sets.*", conditions: ["set_maintainers.user_id = ? AND post_sets.public = TRUE", CurrentUser.id])
+  def for_select
+    owned = PostSet.owned(CurrentUser.user)
+    maintained = PostSet.active_maintainer(CurrentUser.user)
 
-    @grouped_options = {
-        "Owned" => @sets_owned.map {|x| [truncate(x.name.tr("_", " "), length: 35), x.id]},
-        "Maintained" => @sets_maintained.map {|x| [truncate(x.name.tr("_", " "), length: 35), x.id]}
+    @for_select = {
+        "Owned" => owned.map {|x| [x.name.tr("_", " ").truncate(35), x.id]},
+        "Maintained" => maintained.map {|x| [x.name.tr("_", " ").truncate(35), x.id]}
     }
 
-    render layout: false
+    render json: @for_select
   end
 
   def add_posts
-    @set = PostSet.find(params[:set_id])
+    @set = PostSet.find(params[:id])
     check_edit_access(@set)
-    @set.add(params[:post_ids])
+    @set.add(params[:post_ids].map(&:to_i))
     @set.save
     respond_with(@set)
   end
 
-  def remove_post
-    @set = PostSet.find(params[:set_id])
+  def remove_posts
+    @set = PostSet.find(params[:id])
     check_edit_access(@set)
-    @set.remove(params[:post_ids])
+    @set.remove(params[:post_ids].map(&:to_i))
     @set.save
     respond_with(@set)
   end
