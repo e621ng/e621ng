@@ -1,8 +1,10 @@
 class UsersController < ApplicationController
   respond_to :html, :xml, :json
   skip_before_action :api_check
+  before_action :member_only, only: [:custom_style]
 
   def new
+    raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
     return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new
     respond_with(@user)
@@ -49,6 +51,7 @@ class UsersController < ApplicationController
   end
 
   def create
+    raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
     raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new(user_params(:create))
     if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
