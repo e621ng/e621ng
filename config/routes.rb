@@ -141,11 +141,6 @@ Rails.application.routes.draw do
       post :delete
     end
   end
-  resources :counts do
-    collection do
-      get :posts
-    end
-  end
   resources :delayed_jobs, :only => [:index, :destroy] do
     member do
       put :run

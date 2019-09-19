@@ -1,7 +1,7 @@
 <section id="related-box">
   <h1>Related</h1>
   <ul id="related-list">
-    <% if discover_mode? %> 
+    <% if discover_mode? %>
       <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:rank") %></li>
       <li id="secondary-links-posts-popular"><%= link_to "Popular", popular_explore_posts_path %></li>
       <% if PopularSearchService.enabled? %>
@@ -17,7 +17,5 @@
     <% end %>
 
     <li><%= link_to "Random", random_posts_path(:tags => params[:tags]), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
-
-    <li><%= link_to "Count", posts_counts_path(:tags => params[:tags]) %></li>
   </ul>
 </section>
