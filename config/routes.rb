@@ -383,6 +383,7 @@ Rails.application.routes.draw do
   resources :post_sets do
     collection do
       get :atom
+      get :for_select
     end
     member do
       get :maintainers

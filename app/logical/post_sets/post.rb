@@ -44,7 +44,12 @@ module PostSets
 
     def tag
       return nil if !is_single_tag?
+      return nil if is_metatag_only?
       @tag ||= Tag.find_by(name: Tag.normalize_name(tag_string))
+    end
+
+    def is_metatag_only?
+      Tag.is_metatag?(Tag.normalize_name(tag_string))
     end
 
     def artist

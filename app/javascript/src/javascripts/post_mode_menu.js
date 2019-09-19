@@ -2,6 +2,8 @@ import Utility from './utility'
 import Cookie from './cookie'
 import Post from './posts.js.erb'
 import Favorite from './favorites'
+import PostSet from './post_sets'
+import { SendQueue } from './send_queue'
 
 let PostModeMenu = {};
 
@@ -110,6 +112,27 @@ PostModeMenu.initialize_tag_script_field = function() {
   });
 }
 
+PostModeMenu.update_sets_menu = function() {
+  SendQueue.add(function() {
+    $.ajax({
+      type: "GET",
+      url: "/post_sets/for_select.json",
+    }).fail(function(data) {
+      $(window).trigger('danbooru:error', "Error getting sets list: " + data.message);
+    }).done(function(data) {
+      let target = $('#set-id');
+      target.empty();
+      ['Owned', "Maintained"].forEach(function(v) {
+        let group = $('<optgroup>', {label: v});
+        data[v].forEach(function(gi) {
+          group.append($('<option>', {value: gi[1]}).text(gi[0]));
+        });
+        target.append(group);
+      });
+    });
+  });
+};
+
 PostModeMenu.change = function() {
   $("#quick-edit-div").slideUp("fast");
   var s = $("#mode-box select").val();
@@ -131,7 +154,11 @@ PostModeMenu.change = function() {
 
     $("#tag-script-field").val(script).show();
     PostModeMenu.show_notice(current_script_id);
+  } else if (s === 'add-to-set' || s === 'remove-from-set') {
+    PostModeMenu.update_sets_menu();
+    $("#set-id").show();
   } else {
+    $("#set-id").hide();
     $("#tag-script-field").hide();
   }
 }
@@ -163,14 +190,22 @@ PostModeMenu.click = function(e) {
     Post.vote("down", post_id);
   } else if (s === 'vote-up') {
     Post.vote("up", post_id);
+  } else if (s === 'add-to-set') {
+    PostSet.add_post($("#set-id").val(), post_id);
+  } else if (s === 'remove-from-set') {
+    PostSet.remove_post($("#set-id").val(), post_id);
+  } else if (s === 'rating-q') {
+    Post.update(post_id, {"post[rating]": "questionable"})
+  } else if (s === 'rating-s') {
+    Post.update(post_id, {"post[rating]": "safe"})
+  } else if (s === 'rating-e') {
+    Post.update(post_id, {"post[rating]": "explicit"})
   } else if (s === 'lock-rating') {
     Post.update(post_id, {"post[is_rating_locked]": "1"});
   } else if (s === 'lock-note') {
     Post.update(post_id, {"post[is_note_locked]": "1"});
   } else if (s === 'approve') {
     Post.approve(post_id);
-  } else if (s === 'ban') {
-    Post.ban(post_id);
   } else if (s === "tag-script") {
     var current_script_id = Cookie.get("current_tag_script_id");
     var tag_script = Cookie.get("tag-script-" + current_script_id);

@@ -896,6 +896,22 @@ class Post < ApplicationRecord
           pool = Pool.find_by_name($1)
           add_pool!(pool) if pool
 
+        when /^set:(\d+)$/i
+          set = PostSet.find_by_id($1.to_i)
+          set.add!(self) if set && set.can_edit?(CurrentUser.user)
+
+        when /^-set:(\d+)$/i
+          set = PostSet.find_by_id($1.to_i)
+          set.remove!(self) if set && set.can_edit?(CurrentUser.user)
+
+        when /^set:(.+)$/i
+          set = PostSet.find_by_shortname($1)
+          set.add!(self) if set && set.can_edit?(CurrentUser.user)
+
+        when /^-set:(.+)$/i
+          set = PostSet.find_by_shortname($1)
+          set.remove!(self) if set && set.can_edit?(CurrentUser.user)
+
         when /^fav:(.+)$/i
           FavoriteManager.add!(user: CurrentUser.user, post: self)
 

@@ -3,6 +3,7 @@ import Hammer from 'hammerjs'
 import Cookie from './cookie'
 import Note from './notes'
 import SavedSearch from './saved_searches'
+import { SendQueue } from './send_queue'
 
 let Post = {};
 
@@ -564,14 +565,6 @@ Post.update_data = function(data) {
   }
 }
 
-Post.vote = function(score, id) {
-  $(window).trigger("danbooru:notice", "Voting...");
-
-  $.post("/posts/" + id + "/votes.js", {
-    score: score
-  });
-}
-
 Post.tag = function(post_id, tags) {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
   Post.update(post_id, { "post[old_tag_string]": "", "post[tag_string]": tag_string });
@@ -580,78 +573,100 @@ Post.tag = function(post_id, tags) {
 Post.update = function(post_id, params) {
   Post.notice_update("inc");
 
-  $.ajax({
-    type: "PUT",
-    url: "/posts/" + post_id + ".json",
-    data: params,
-    success: function(data) {
-      Post.notice_update("dec");
-      Post.update_data(data);
-    },
-    error: function(data) {
-      Post.notice_update("dec");
-      $(window).trigger("danbooru:error", 'There was an error updating <a href="/posts/' + post_id + '">post #' + post_id + '</a>');
-    }
+  SendQueue.add(function() {
+    $.ajax({
+      type: "PUT",
+      url: "/posts/" + post_id + ".json",
+      data: params,
+      success: function(data) {
+        Post.notice_update("dec");
+        Post.update_data(data);
+      },
+      error: function(data) {
+        Post.notice_update("dec");
+        $(window).trigger("danbooru:error", 'There was an error updating <a href="/posts/' + post_id + '">post #' + post_id + '</a>');
+      }
+    });
   });
 }
 
 Post.delete_with_reason = function(post_id, reason) {
-  $.ajax({
-    type: "POST",
-    url: `/moderator/post/posts/${post_id}/delete.json`,
-    data: {commit: "Delete", reason: reason}
-  }).fail(function(data) {
-    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
-    $(window).trigger('danbooru:error', "Error: " + message);
-  }).done(function(data) {
-    $(window).trigger("danbooru:notice", "Deleted post.");
-    location.reload();
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.ajax({
+      type: "POST",
+      url: `/moderator/post/posts/${post_id}/delete.json`,
+      data: {commit: "Delete", reason: reason}
+    }).fail(function(data) {
+      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      $(window).trigger('danbooru:error', "Error: " + message);
+    }).done(function(data) {
+      $(window).trigger("danbooru:notice", "Deleted post.");
+      location.reload();
+    }).always(function() {
+      Post.notice_update("dec");
+    });
   });
 }
 
 Post.unflag = function(post_id, approval) {
+  Post.notice_update("inc");
   let modApproval = approval || 'none';
-  $.ajax({
-    type: "DELETE",
-    url: `/posts/${post_id}/flag.json`,
-    data: {approval: modApproval}
-  }).fail(function(data) {
-    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
-    $(window).trigger('danbooru:error', "Error: " + message);
-  }).done(function(data) {
-    $(window).trigger("danbooru:notice", "Unflagged post");
-    location.reload();
+  SendQueue.add(function() {
+    $.ajax({
+      type: "DELETE",
+      url: `/posts/${post_id}/flag.json`,
+      data: {approval: modApproval}
+    }).fail(function(data) {
+      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      $(window).trigger('danbooru:error', "Error: " + message);
+    }).done(function(data) {
+      $(window).trigger("danbooru:notice", "Unflagged post");
+      location.reload();
+    }).always(function() {
+      Post.notice_update("dec");
+    });
   });
 }
 
 Post.unapprove = function(post_id) {
-  $.ajax({
-    type: "DELETE",
-    url: "/moderator/post/approval.json",
-    data: {post_id: post_id}
-  }).fail(function(data) {
-    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
-    $(window).trigger('danbooru:error', "Error: " + message);
-  }).done(function(data) {
-    $(window).trigger("danbooru:notice", "Unapproved post.");
-    location.reload();
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.ajax({
+      type: "DELETE",
+      url: "/moderator/post/approval.json",
+      data: {post_id: post_id}
+    }).fail(function(data) {
+      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      $(window).trigger('danbooru:error', "Error: " + message);
+    }).done(function(data) {
+      $(window).trigger("danbooru:notice", "Unapproved post.");
+      location.reload();
+    }).always(function() {
+      Post.notice_update("dec");
+    });
   });
 }
 
 Post.approve = function(post_id) {
-  $.post(
-    "/moderator/post/approval.json",
-    {"post_id": post_id}
-  ).fail(function(data) {
-    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
-    $(window).trigger("danbooru:error", "Error: " + message);
-  }).done(function(data) {
-    var $post = $("#post_" + post_id);
-    if ($post.length) {
-      $post.data("flags", $post.data("flags").replace(/pending/, ""));
-      $post.removeClass("post-status-pending");
-      $(window).trigger("danbooru:notice", "Approved post #" + post_id);
-    }
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.post(
+      "/moderator/post/approval.json",
+      {"post_id": post_id}
+    ).fail(function(data) {
+      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function(data) {
+      var $post = $("#post_" + post_id);
+      if ($post.length) {
+        $post.data("flags", $post.data("flags").replace(/pending/, ""));
+        $post.removeClass("post-status-pending");
+        $(window).trigger("danbooru:notice", "Approved post #" + post_id);
+      }
+    }).always(function() {
+      Post.notice_update("dec");
+    });
   });
 }
 
@@ -734,15 +749,20 @@ Post.vote_down = function (e) {
 }
 
 Post.vote = function (id, score) {
-  $.ajax({
-    method: 'POST',
-    url: `/posts/${id}/votes`,
-    data: {
-      score: score
-    },
-    headers: {
-      accept: '*/*;q=0.5,text/javascript'
-    }
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.ajax({
+      method: 'POST',
+      url: `/posts/${id}/votes`,
+      data: {
+        score: score
+      },
+      headers: {
+        accept: '*/*;q=0.5,text/javascript'
+      }
+    }).always(function() {
+      Post.notice_update("dec");
+    });
   });
 }
 
