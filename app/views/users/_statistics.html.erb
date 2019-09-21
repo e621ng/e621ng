@@ -18,6 +18,8 @@
       <tr>
         <th>Join Date</th>
         <td><%= presenter.join_date %></td>
+        <th>Feedback</th>
+        <td><%= presenter.feedbacks(self) %></td>
       </tr>
 
       <tr>
@@ -110,12 +112,6 @@
         </tr>
       <% end %>
 
-      <tr>
-        <th>Feedback</th>
-        <td><%= presenter.feedbacks(self) %></td>
-      </tbody>
-      </tr>
-
       <% if presenter.previous_names(self).present? %>
         <tr>
           <th>Previous Names</th>
@@ -148,6 +144,7 @@
           </td>
         </tr>
       <% end %>
+      </tbody>
     </table>
   </div>
 </div>
