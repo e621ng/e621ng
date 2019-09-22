@@ -68,24 +68,39 @@
   div.expandable {
     margin-bottom: 1em;
     border: 1px inset #666;
-  }
 
-  div.expandable-header {
-    padding: 0.4em;
+    div.expandable-header {
+      padding: 0.4em;
 
-    span {
-      margin-right: 0.5em;
-      font-weight: bold;
+      .section-arrow::after {
+        content: '►';
+      }
+
+      span {
+        margin-right: 0.5em;
+        font-weight: bold;
+      }
+    }
+
+    div.expandable-content {
+      display: none;
+      padding: 0.4em;
+      border-top: 1px solid #666;
+
+      > :last-child {
+        margin-bottom: 0;
+      }
     }
   }
 
-  div.expandable-content {
-    display: none;
-    padding: 0.4em;
-    border-top: 1px solid #666;
-
-    > :last-child {
-      margin-bottom: 0;
+  div.expandable.expanded {
+    div.expandable-content {
+      display: block;
+    }
+    div.expandable-header {
+      .section-arrow::after {
+        content: '▼';
+      }
     }
   }
 
