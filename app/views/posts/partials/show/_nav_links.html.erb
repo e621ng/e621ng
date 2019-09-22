@@ -7,7 +7,7 @@
     <%= render "posts/partials/show/pool_list", post: post, pools: post.pools.undeleted.selected_first(params[:pool_id]).limit(5) %>
   <% end %>
 
-  <% if post.post_sets.visible.any? %>
-    <%= render "posts/partials/show/post_set_list", post: post, post_sets: post.post_sets.visible.selected_first(params[:post_set_id]).limit(5) %>
+  <% if CurrentUser.is_member? && post.post_sets.owned.any? %>
+    <%= render "posts/partials/show/post_set_list", post: post, post_sets: post.post_sets.owned.selected_first(params[:post_set_id]).limit(5) %>
   <% end %>
 </div>
