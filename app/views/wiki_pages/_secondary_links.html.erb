@@ -15,12 +15,20 @@
     <% if @wiki_page && @wiki_page.new_record? && @wiki_page.try(:tag).present? %>
       <li>|</li>
 
+      <% if CurrentUser.is_member? %>
+        <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
+      <% end %>
+
       <%= subnav_link_to "Posts (#{@wiki_page.tag.post_count})", posts_path(:tags => @wiki_page.title) %>
 
     <% elsif @wiki_page && !@wiki_page.new_record? %>
       <li>|</li>
 
       <%= subnav_link_to "Posts (#{@wiki_page.tag.try(:post_count) || 0})", posts_path(:tags => @wiki_page.title) %>
+
+      <% if CurrentUser.is_member? && @wiki_page.try(:tag).present? %>
+        <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
+      <% end %>
 
       <%= subnav_link_to "History", wiki_page_versions_path(:search => {:wiki_page_id => @wiki_page.id}) %>
 

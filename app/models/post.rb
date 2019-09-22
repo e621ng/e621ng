@@ -853,17 +853,23 @@ class Post < ApplicationRecord
     end
 
     def filter_metatags(tags)
+      @bad_type_changes = []
       @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
       tags = apply_categorization_metatags(tags)
       @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i}
       apply_pre_metatags
-      return tags
+      if @bad_type_changes.size > 0
+        bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
+        self.warnings[:base] << "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website."
+      end
+      tags
     end
 
     def apply_categorization_metatags(tags)
       tags.map do |x|
         if x =~ Tag.categories.regexp
           tag = Tag.find_or_create_by_name(x)
+          @bad_type_changes << tag.name if tag.errors.include? :category
           tag.name
         else
           x

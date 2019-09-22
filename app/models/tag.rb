@@ -203,15 +203,15 @@ class Tag < ApplicationRecord
     def user_can_change_category?
       cat = TagCategory.reverse_mapping[category]
       if !CurrentUser.is_moderator? && TagCategory.mod_only_mapping[cat]
-        errors[:category] << "can only used by moderators"
+        errors.add(:category,  "can only used by moderators")
         return false
       end
     end
 
     def update_category
       update_category_cache
-      update_category_post_counts unless new_record?
       write_category_change_entry unless new_record?
+      update_category_post_counts unless new_record?
     end
 
     def write_category_change_entry
@@ -297,6 +297,8 @@ class Tag < ApplicationRecord
 
           if tag.category_editable_by_implicit?(creator)
             tag.update(category: category_id)
+          else
+            tag.errors.add(:category, "cannot be changed implicitly through a tag prefix")
           end
         end
 
