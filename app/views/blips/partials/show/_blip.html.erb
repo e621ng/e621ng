@@ -18,7 +18,7 @@
       <% if blip.response? %>
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
-      <div class="body prose">
+      <div class="body styled-dtext">
         <%= format_text(blip.body) %>
       </div>
 

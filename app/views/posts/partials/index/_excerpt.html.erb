@@ -5,7 +5,7 @@
     <% post_set.artist.tap do |artist| %>
       <% if artist.visible? %>
         <% unless artist.notes.blank? %>
-          <div class="prose">
+          <div class="styled-dtext">
             <%= format_text(artist.notes) %>
           </div>
         <% end %>
@@ -23,7 +23,7 @@
     <% end %>
   <% elsif post_set.wiki_page.present? %>
     <% post_set.wiki_page.tap do |wiki_page| %>
-      <div class="prose">
+      <div class="styled-dtext">
         <% if wiki_page.other_names.present? %>
           <p><%= wiki_page_other_names_list(wiki_page) %></p>
         <% end %>
@@ -46,7 +46,7 @@
         <% end %>
       </h4>
 
-      <div id="description" class="prose">
+      <div id="description" class="styled-dtext">
         <%= format_text(post_set.pool.description) %>
       </div>
 

@@ -16,7 +16,7 @@
         <% end %>
       </h1>
 
-      <div id="wiki-page-body" class="prose">
+      <div id="wiki-page-body" class="styled-dtext">
         <% if @wiki_page.visible? %>
           <% if @wiki_page.other_names.present? %>
             <p><%= wiki_page_other_names_list(@wiki_page) %></p>
