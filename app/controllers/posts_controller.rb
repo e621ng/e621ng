@@ -110,7 +110,7 @@ private
         end
 
         if post.errors.any?
-          @error_message = post.errors.full_messages.join("; ")
+          @message = post.errors.full_messages.join("; ")
           render :template => "static/error", :status => 500
         else
           response_params = {:q => params[:tags_query], :pool_id => params[:pool_id], post_set_id: params[:post_set_id]}

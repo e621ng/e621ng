@@ -24,7 +24,6 @@ class Post < ApplicationRecord
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
   validate :has_artist_tag, if: :should_process_tags?
-  validate :has_copyright_tag, if: :should_process_tags?
   validate :has_enough_tags, if: :should_process_tags?
   validate :post_is_not_its_own_parent
   validate :updater_can_change_rating
@@ -853,17 +852,23 @@ class Post < ApplicationRecord
     end
 
     def filter_metatags(tags)
+      @bad_type_changes = []
       @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
       tags = apply_categorization_metatags(tags)
       @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i}
       apply_pre_metatags
-      return tags
+      if @bad_type_changes.size > 0
+        bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
+        self.warnings[:base] << "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website"
+      end
+      tags
     end
 
     def apply_categorization_metatags(tags)
       tags.map do |x|
         if x =~ Tag.categories.regexp
           tag = Tag.find_or_create_by_name(x)
+          @bad_type_changes << tag.name if tag.errors.include? :category
           tag.name
         else
           x
@@ -1844,10 +1849,17 @@ class Post < ApplicationRecord
     end
 
     def added_tags_are_valid
+      added_invalid_tags = added_tags.select {|t| t.category == Tag.categories.invalid}
       new_tags = added_tags.select {|t| t.post_count <= 0}
       new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
       new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
-      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta) && (t.created_at < 1.hour.ago)}
+      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta)}
+
+      if added_invalid_tags.present?
+        n = added_invalid_tags.size
+        tag_wiki_links = added_invalid_tags.map {|tag| "[[#{tag.name}]]"}
+        self.warnings[:base] << "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}"
+      end
 
       if new_general_tags.present?
         n = new_general_tags.size
@@ -1886,13 +1898,6 @@ class Post < ApplicationRecord
       return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
 
       self.warnings[:base] << "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help"
-    end
-
-    def has_copyright_tag
-      return if !new_record?
-      return if has_tag?("copyright_request") || tags.any? {|t| t.category == Tag.categories.copyright}
-
-      self.warnings[:base] << "Copyright tag is required. Consider adding [[copyright request]] or [[original]]"
     end
 
     def has_enough_tags

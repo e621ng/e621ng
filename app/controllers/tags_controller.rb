@@ -45,7 +45,11 @@ class TagsController < ApplicationController
   end
 
   def show
-    @tag = Tag.find(params[:id])
+    if params[:id] =~ /\A\d+\z/
+      @tag = Tag.find(params[:id])
+    else
+      @tag = Tag.find_by_name(params[:id])
+    end
     respond_with(@tag)
   end
 
