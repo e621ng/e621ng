@@ -10,16 +10,12 @@ Dtext.initialize_links = function() {
 }
 
 Dtext.initialize_expandables = function() {
-  $(document).on("click.danbooru", ".expandable-button", function(e) {
-    var button = $(this);
-    button.parent().next().fadeToggle("fast");
-    if (button.val() === "Show") {
-      button.val("Hide");
-    } else {
-      button.val("Show");
-    }
+  $(document).on("click.danbooru", ".expandable-header", function(e) {
+    const header = $(this);
+    header.next().fadeToggle("fast");
+    header.parent().toggleClass("expanded");
   });
-}
+};
 
 Dtext.call_preview = function(e, $button, $input, $preview) {
   $button.val("Edit");
