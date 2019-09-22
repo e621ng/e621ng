@@ -289,16 +289,17 @@ class Tag < ApplicationRecord
       if tag
         if category
           category_id = categories.value_for(category)
+            # in case a category change hasn't propagated to this server yet,
+            # force an update the local cache. This may get overwritten in the
+            # next few lines if the category is changed.
+            tag.update_category_cache
 
-          # in case a category change hasn't propagated to this server yet,
-          # force an update the local cache. This may get overwritten in the
-          # next few lines if the category is changed.
-          tag.update_category_cache
-
-          if tag.category_editable_by_implicit?(creator)
-            tag.update(category: category_id)
-          else
-            tag.errors.add(:category, "cannot be changed implicitly through a tag prefix")
+          unless category_id == tag.category
+            if tag.category_editable_by_implicit?(creator)
+              tag.update(category: category_id)
+            else
+              tag.errors.add(:category, "cannot be changed implicitly through a tag prefix")
+            end
           end
         end
 
