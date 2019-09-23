@@ -54,6 +54,7 @@ class UsersController < ApplicationController
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
     raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new(user_params(:create))
+    @user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
     if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
       @user.save
       if @user.errors.empty?

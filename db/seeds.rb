@@ -18,7 +18,16 @@ puts "== Seeding database with sample content ==\n"
 admin = User.find_or_create_by!(name: "admin") do |user|
   user.created_at = 2.weeks.ago
   user.password = "e621test"
+  user.password_hash = ""
   user.email = "admin@e621.net"
+  user.can_upload_free = true
+  user.level = User::Levels::ADMIN
+end
+
+User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
+  user.password_hash = ""
+  user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
+  user.email = "system@e621.net"
   user.can_upload_free = true
   user.level = User::Levels::ADMIN
 end

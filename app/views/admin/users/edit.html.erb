@@ -11,6 +11,11 @@
       </div>
 
       <div class="input">
+        <label class="block" for="user_verified">Email Verified</label>
+        <%= select_tag("user[verified]", options_for_select([["Yes", true], ["No", false]], @user.is_verified?)) %>
+      </div>
+
+      <div class="input">
         <label class="block" for="user_about">About</label>
         <%= text_area "user", "profile_about", size: "50x8", class: "dtext-full" %>
       </div>
