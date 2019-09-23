@@ -70,7 +70,7 @@ class User < ApplicationRecord
     validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create }
     validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? } }
   else
-    validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { not rec.email.empty?} }
+    validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { rec.email.present?} }
   end
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
@@ -310,15 +310,15 @@ class User < ApplicationRecord
 
       # Changed from e6 to match new Danbooru semantics.
       define_method("is_#{normalized_name}?") do
-        self.level >= value && self.id.present?
+        is_verified? && self.level >= value && self.id.present?
       end
 
       define_method("is_#{normalized_name}_or_higher?") do
-        self.level >= value && self.id.present?
+        is_verified? && self.level >= value && self.id.present?
       end
 
       define_method("is_#{normalized_name}_or_lower?") do
-        self.level <= value && self.id.present?
+        !is_verified? || (self.level <= value && self.id.present?)
       end
     end
 
@@ -349,7 +349,15 @@ class User < ApplicationRecord
 
   module EmailMethods
     def is_verified?
-      level > Levels::UNACTIVATED
+      id.present? && email_verification_key.nil?
+    end
+
+    def mark_unverified!
+      update_attribute(:email_verification_key, '1')
+    end
+
+    def mark_verified!
+      update_attribute(:email_verification_key, nil)
     end
 
     def normalize_email

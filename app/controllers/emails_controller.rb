@@ -30,7 +30,7 @@ class EmailsController < ApplicationController
     raise User::PrivilegeError.new('Account cannot be activated because the email is not allowed.') if EmailBlacklist.is_banned?(user.email)
     raise User::PrivilegeError.new('Account already activated.') if user.is_verified?
 
-    user.update_attribute(:level, User::Levels::MEMBER)
+    user.mark_verified!
 
     redirect_to home_users_path, notice: "Account activated"
   end

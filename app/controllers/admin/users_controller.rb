@@ -9,6 +9,8 @@ module Admin
     def update
       @user = User.find(params[:id])
       @user.update!(user_params)
+      @user.mark_verified! if params[:user][:verified] == 'true'
+      @user.mark_unverified! if params[:user][:verified] == 'false'
       @user.promote_to!(params[:user][:level], params[:user])
       redirect_to edit_admin_user_path(@user), :notice => "User updated"
     end
