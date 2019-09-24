@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div.paginator {
   display: block;
@@ -18,11 +18,11 @@ div.paginator {
 
     a.arrow:hover {
       background: white;
-      color: $link_color;
+      color: $link-color;
     }
 
     a:hover {
-      background: $link_color;
+      background: $link-color;
       color: white;
     }
 

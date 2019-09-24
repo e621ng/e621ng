@@ -1,15 +1,15 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 //body.mode-view {
 //  background-color: $bg_color_view;
 //}
 
 body.mode-edit {
-  background-color: $bg_color_edit;
+  background-color: $mode-view-background;
 }
 
 body.mode-tag-script {
-  background-color: $bg_color_tagscript;
+  background-color: $mode-tagscript-background;
 }
 
 body.mode-add-fav {

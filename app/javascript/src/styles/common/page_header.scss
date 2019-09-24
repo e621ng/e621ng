@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 #maintoggle {
   display: none;
@@ -12,7 +12,7 @@ header#top {
 
   menu {
     margin-top: -2px;
-    background: $menu_color;
+    background: $menu-color;
     padding: 6px 20px;
 
     form {
@@ -39,7 +39,7 @@ header#top {
     background: none;
 
     li.current a {
-      background: $menu_color;
+      background: $menu-color;
       font-weight: bold;
     }
 

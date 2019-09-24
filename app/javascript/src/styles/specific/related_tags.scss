@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#related-tags-container {
   &.visible a#show-related-tags-link,
@@ -12,7 +12,7 @@ div.related-tags {
   width: 100%;
   margin-bottom: 1em;
   padding: 1em;
-  background: lighten($section_bg, 10%);
+  background: lighten($section-background, 10%);
   overflow: auto;
   border-radius: $border_radius;
   display: flex;

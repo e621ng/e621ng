@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 a.pool-category-series, .pool-category-series a {
   color: #A0A;
@@ -9,10 +9,10 @@ a.pool-category-series, .pool-category-series a {
 }
 
 a.pool-category-collection, .pool-category-collection a {
-  color: $link_color;
+  color: $link-color;
 
   &:hover {
-    color: $link_hover_color;
+    color: $link-hover-color;
   }
 }
 
@@ -31,7 +31,7 @@ div#add-to-pool-dialog {
   h1 {
     font-size: $h3_size;
   }
-  
+
   .hint {
     display: block;
   }

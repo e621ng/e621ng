@@ -1,27 +1,27 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 a:link {
-  color: $link_color;
+  color: $link-color;
   text-decoration: none;
 }
 
 a:visited {
-  color: $link_color;
+  color: $link-color;
   text-decoration: none;
 }
 
 a:hover {
-  color: $link_hover_color;
+  color: $link-hover-color;
   text-decoration: none;
 }
 
 a:active {
-  color: $link_color;
+  color: $link-color;
   text-decoration: none;
 }
 
 a.last-page {
-  color: $link_last_page_color;
+  color: $link-last-page-color;
 }
 
 a.active {

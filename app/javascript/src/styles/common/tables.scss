@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 table.table {
   p {
@@ -12,9 +12,9 @@ table.table {
   tbody {
     tr {
       &:hover {
-        background-color: $table_stripe_highlight_color;
+        background-color: $table-stripe-highlight-background;
       }
-      border-bottom: 1px solid $table_stripe_border_color;
+      border-bottom: 1px solid $table-stripe-border;
     }
   }
 
@@ -24,13 +24,13 @@ table.table {
 
   thead {
     tr {
-      border-bottom: 2px solid $table_stripe_border_color;
+      border-bottom: 2px solid $table-stripe-border;
     }
 
     th {
       font-weight: bold;
       text-align: left;
-      color: $table_stripe_header_text_color;
+      color: $table-stripe-header-text-color;
     }
   }
 }
@@ -40,17 +40,17 @@ table.striped {
   tbody {
     tr {
       &:hover {
-        background-color: $table_stripe_highlight_color;
+        background-color: $table-stripe-highlight-background;
       }
 
       &.selected {
-        background-color: $table_stripe_highlight_color;
+        background-color: $table-stripe-highlight-background;
       }
     }
   }
 
   tr:nth-child(even) {
-    background-color: $table_stripe_even_background_color;
+    background-color: $table-stripe-even-background;
   }
 }
 

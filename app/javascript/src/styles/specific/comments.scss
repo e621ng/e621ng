@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div.comments-for-post {
   div.notices {
@@ -6,16 +6,16 @@ div.comments-for-post {
   }
 
   div.list-of-comments {
-    background-color: $section_bg;
+    background-color: $section-background;
     padding: $base_padding;
     article.comment {
-      border-bottom: 1px solid border_color($section_bg);
+      border-bottom: 1px solid border_color($section-background);
       word-wrap: break-word;
       padding: 5px;
       display: flex;
 
       &[data-is-sticky="true"] {
-        background: saturate($section_bg, 10%);
+        background: saturate($section-background, 10%);
       }
 
       div.author {
@@ -42,13 +42,13 @@ div.comments-for-post {
       }
 
       .score-positive {
-        color: $green_color;
+        color: $green-color;
       }
       .score-negative {
-        color: $red_color;
+        color: $red-color;
       }
       .score-neutral {
-        color: $dark_grey_color
+        color: $dark-grey-color
       }
     }
 

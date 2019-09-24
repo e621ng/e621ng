@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 @keyframes heartbeat {
   0% {
@@ -41,7 +41,7 @@ article.post-preview {
   }
 
   .desc {
-    background-color: $section_bg;
+    background-color: $section-background;
     font-size: 80%;
     margin-bottom: 0;
   }
@@ -51,15 +51,15 @@ article.post-preview {
   }
 
   &.post-rating-explicit .post-score-rating {
-    color: $explicit_rating_color;
+    color: $explicit-rating-color;
   }
 
   &.post-rating-safe .post-score-rating {
-    color: $safe_rating_color;
+    color: $safe-rating-color;
   }
 
   &.post-rating-questionable .post-score-rating {
-    color: $questionable_rating_color;
+    color: $questionable-rating-color;
   }
 
   img {
@@ -235,13 +235,13 @@ div#c-posts {
   }
 
   .score-positive {
-    color: $green_color;
+    color: $green-color;
   }
   .score-negative {
-    color: $red_color;
+    color: $red-color;
   }
   .score-neutral {
-    color: $dark_grey_color
+    color: $dark-grey-color
   }
 
   #ugoira-controls {
@@ -294,46 +294,46 @@ div#c-posts {
     }
 
     &.notice-parent {
-      border-color: $notice_parent_border;
-      background: $notice_parent_bg;
+      border-color: $notice-parent-border;
+      background: $notice-parent-background;
     }
 
     &.notice-child {
-      border-color: $notice_child_border;
-      background: $notice_child_bg;
+      border-color: $notice-child-border;
+      background: $notice-child-background;
     }
 
     &.notice-pending {
-      border-color: $notice_pending_border;
-      background: $notice_pending_bg;
+      border-color: $notice-pending-border;
+      background: $notice-pending-background;
     }
 
     &.notice-flagged {
-      border-color: $notice_deleted_border;
-      background: $notice_deleted_bg;
+      border-color: $notice-deleted-border;
+      background: $notice-deleted-background;
     }
 
     &.notice-deleted {
-      border-color: $notice_deleted_border;
-      background: $notice_deleted_bg;
+      border-color: $notice-deleted-border;
+      background: $notice-deleted-background;
     }
 
     &.notice-appealed {
-      border-color: $notice_pending_border;
-      background: $notice_pending_bg;
+      border-color: $notice-pending-border;
+      background: $notice-pending-background;
     }
 
     &.notice-resized {
-      border-color: $notice_pending_border;
-      background: $notice_pending_bg;
+      border-color: $notice-pending-border;
+      background: $notice-pending-background;
     }
   }
 
   div.nav-notice {
     padding: 0.5em;
     margin: 1em 0;
-    background: $navigation_bg;
-    border: 1px solid $navigation_border;
+    background: $navigation-background;
+    border: 1px solid $navigation-border;
     position: relative;
 
     p {
@@ -472,9 +472,9 @@ div#c-posts {
     }
 
     #artist-commentary {
-      border: 1px solid border_color($section_bg);
+      border: 1px solid border_color($section-background);
       border-radius: $border_radius;
-      background-color: $section_bg;
+      background-color: $section-background;
       margin-top: 1em;
       padding: 0.5em;
 

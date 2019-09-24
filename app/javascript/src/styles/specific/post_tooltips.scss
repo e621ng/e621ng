@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 $tooltip-line-height: 16px;
 $tooltip-body-height: $tooltip-line-height * 6; // 6 lines high.
@@ -75,7 +75,7 @@ $tooltip-width: 164px * 3 - 10; // 3 thumbnails wide.
     }
 
     .post-tooltip-header {
-      background-color: $menu_color;
+      background-color: $menu-color;
       display: flex;
       white-space: nowrap;
       overflow: hidden;

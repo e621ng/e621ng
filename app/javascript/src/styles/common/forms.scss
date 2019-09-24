@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 
 label {
@@ -34,26 +34,26 @@ input[type=date] {
 }
 
 input:focus {
-  background: $form_focus_color;
+  background: $form-focus-color;
   color: black;
 }
 
 select:focus {
-  background: $form_focus_color;
+  background: $form-focus-color;
   color: black;
 }
 
 textarea:focus {
-  background: $form_focus_color;
+  background: $form-focus-color;
   color: black;
 }
 
 input:disabled {
-  background-color: $form_disabled_color;
+  background-color: $form-disabled-color;
 }
 
 .simple_form {
   padding: $base_padding;
   border-radius: $border_radius;
-  background-color: $section_bg;
+  background-color: $section-background;
 }

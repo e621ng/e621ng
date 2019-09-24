@@ -1,0 +1,113 @@
+@import "000_functions.scss";
+
+// Font
+$text-color: #fff;
+$inverted-text-color: invert($text-color);
+$translation-note-color: gray;
+$green-text-color: #3e9e49;
+$yellow-text-color: #e4e150;
+$red-text-color: #e45f5f;
+$grey-text-color: #959595;
+
+
+$section-green-background: #288233;
+$section-yellow-background: #828028;
+$section-red-background: #822828;
+$section-grey-background: #5d656e;
+$section-link-hover-color: white;
+
+// Main background colors
+$main-background: #031131;
+$menu-color: #152F56;
+$content-background: #152f56;
+
+// View modes
+$mode-view-background: #104e17;
+$mode-delete-background: #4e1010;
+$mode-rating-q-background: #4e4810;
+$mode-tagscript-background: #4f114f;
+$mode-lock-background: #1d1d1d;
+$mode-add-pool-background: #104b57;
+
+// Links
+$link-color: #b4c7d9;
+$link-hover-color: #2e76b4;
+$link-last-page-color: #3e9e49;
+$highlight-color: lighten($link-color, 45%);
+
+//$blockquote_bg: #284A81;
+$blockquote-background: rgba(255, 255, 255, 0.1);
+$blockquote-border: border_color($blockquote-background);//#174891;
+
+$hint-color: #AAA;
+$info-color: #AAA;
+
+// Sections
+$section-background: #284a81;
+
+// Navigation
+$navigation-background: $section-background;
+$navigation-border: border_color($section-background);
+
+// Tables
+$table-stripe-even-background: #204274;
+$table-stripe-highlight-background: darken($table-stripe-even-background, 10%);
+$table-stripe-border: #255193;
+$table-stripe-header-text-color: darken($text-color, 10%);
+
+// Forms
+$form-focus-color: #FFC;
+$form-disabled-color: #DDD;
+$button-background: white;
+$button-hover-background: darken($button-background, 10%);
+
+// Post previews
+$preview_has_children_color: #0F0;
+$preview_has_parent_color: #CC0;
+$preview_deleted_color: #000;
+$preview_pending_color: #00F;
+$preview_flagged_color: #F00;
+$preview_sample_warning_color:  hsl(0,  100%, 90%); // light red
+$preview_quality_warning_color: hsl(50, 100%, 90%); // light yellow
+
+$note_highlight_color: $preview_pending_color;
+
+
+// Mixin/state colors
+$warning-color: #ffd700;
+$notice-color: saturate($section-background, 20%);
+$success-color: #3e9e49;
+$error-color: #e45f5f;
+
+$grey-color: hsl(0, 0%, 90%); // Light grey
+//$error_color: hsl(0, 100%, 95%); // light red
+//$success_color: hsl(120, 100%, 95%); // light green
+
+$red-color: #e45f5f;
+$green-color: #3e9e49;
+$dark-grey-color: hsl(0, 0%, 50%);
+
+$explicit-rating-color: $red-color;
+$questionable-rating-color: hsl(50, 100%, 70%);
+$safe-rating-color: $green-color;
+
+$hr-color: rgba(255,255,255,0.25);
+
+// User Feedback page
+$neutral-record-background: #666;
+$positive-record-background: green;
+$negative-record-background: #822828;
+
+// Icon overlays
+$preview-icon-color: white;
+$preview-icon-bg: rgba(0,0,0,0.5);
+
+// Posts page
+$notice-parent-background: darken($success-color, 20%);
+$notice-parent-border: border_color($notice-parent-background);
+$notice-child-background: darken($warning-color, 40%);
+$notice-child-border: border_color($notice-child-background);
+$notice-deleted-background: darken($error-color, 40%);
+$notice-deleted-border: border_color($notice-deleted-background);
+$notice-pending-background: $section-background;
+$notice-pending-border: border_color($notice-pending-background);

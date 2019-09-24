@@ -1,8 +1,8 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 body {
-  background-color: $bg_color;
-  color: $text_color;
+  background-color: $main-background;
+  color: $text-color;
   font-family: $base_font_family;
   font-size: 87.5%;
   line-height: 1.25em;
@@ -15,8 +15,8 @@ abbr[title=required] {
 blockquote {
   margin: 0 0 1em 0;
   padding: 1em 1em 0.2em;
-  border: 1px solid $blockquote_border;
-  background: $blockquote_bg;
+  border: 1px solid $blockquote-border;
+  background: $blockquote-background;
 }
 
 code {
@@ -93,39 +93,39 @@ table tfoot {
 }
 
 .hint {
-  color: $hint_color;
+  color: $hint-color;
   font-style: italic;
   max-width: 70%;
 }
 
 .tn {
   font-size: 0.8em;
-  color: gray;
+  color: $translation-note-color;
 }
 
 p.info {
-  color: $info_color;
+  color: $info-color;
   font-style: italic;
   font-size: 80%;
 }
 
 
 #page {
-  background-color: $content_bg;
+  background-color: $content-background;
 }
 
 #top, #page-footer {
-  background-color: $bg_color;
+  background-color: $main-background;
 }
 
-.greentext, .greentext a, .approved-ticket { color:#3e9e49 !important; font-weight:bold; }
-.greytext, .greytext a { color:#959595 !important; font-weight:bold; }
-.yellowtext, .yellowtext a, .partial-ticket { color:#e4e150 !important; font-weight:bold; }
-.redtext, .redtext a, .denied-ticket { color:#e45f5f !important; font-weight:bold; }
+.greentext, .greentext a, .approved-ticket { color: $green-text-color !important; font-weight:bold; }
+.greytext, .greytext a { color: $grey-text-color !important; font-weight:bold; }
+.yellowtext, .yellowtext a, .partial-ticket { color: $yellow-text-color !important; font-weight:bold; }
+.redtext, .redtext a, .denied-ticket { color: $red-text-color !important; font-weight:bold; }
 
 
-.sect_green { background-color:#288233; /* green */ }
-.sect_red { background-color:#822828; /* red */ }
-.sect_yellow { background-color:#828028; /* yellow */ }
-.sect_grey { background-color:#5d656e; /* yellow */ }
-.sect_green a:hover, .sect_red a:hover, .sect_yellow a:hover { color:white; }
+.sect_green { background-color: $section-green-background; /* green */ }
+.sect_red { background-color: $section-red-background; /* red */ }
+.sect_yellow { background-color: $section-yellow-background; /* yellow */ }
+.sect_grey { background-color: $section-grey-background; /* yellow */ }
+.sect_green a:hover, .sect_red a:hover, .sect_yellow a:hover { color: $section-link-hover-color; }

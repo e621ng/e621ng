@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 #c-edit-history {
   .edit-item {
@@ -10,11 +10,11 @@
   }
 
   ins {
-    background-color: $success_color;
+    background-color: $success-color;
     font-weight: bold;
   }
   del {
-    background-color: $error_color;
+    background-color: $error-color;
     font-weight: bold;
   }
 }

@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#c-takedowns {
   .takedown-vericode {
@@ -54,15 +54,15 @@ div#c-takedowns {
 
   .takedown-post-remove {
     width: 20px;
-    background-color: $error_color;
+    background-color: $error-color;
     text-align: center;
   }
 
   .takedown-post-keep {
-    background-color: $success_color;
+    background-color: $success-color;
   }
 
   .takedown-post-delete {
-    background-color: $error_color;
+    background-color: $error-color;
   }
 }

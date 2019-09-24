@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#note-container {
   position: absolute;
@@ -8,7 +8,7 @@ div#note-container {
     position: absolute;
     border: 1px solid black;
     background: #FFE;
-    color: $inverted_text_color;
+    color: $inverted-text-color;
     min-width: 140px;
     min-height: 1em;
     line-height: normal;

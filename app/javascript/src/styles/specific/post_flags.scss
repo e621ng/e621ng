@@ -1,7 +1,7 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#c-post-flags {
   tr.resolved-false {
-    background: $negative_record_bg !important;
+    background: $negative-record-background !important;
   }
 }

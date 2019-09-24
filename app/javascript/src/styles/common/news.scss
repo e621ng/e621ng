@@ -1,9 +1,9 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#news-updates {
   padding: 5px;
-  background: $notice_color;
-  border-bottom: 2px solid border_color($notice_color);
+  background: $notice-color;
+  border-bottom: 2px solid border_color($notice-color);
   overflow: hidden;
   font-size: 0.8em;
 

@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div.error-messages {
   margin: 1em 0;
@@ -19,8 +19,8 @@ div#notice {
   z-index: 100;
 
   &:not(.ui-state-error) {
-    background-color: $notice_color;
-    border: 1px solid border_color($notice_color);
+    background-color: $notice-color;
+    border: 1px solid border_color($notice-color);
   }
 }
 

@@ -1,11 +1,11 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#c-blips {
   article.blip {
     margin-bottom: 2em;
     word-wrap: break-word;
     padding: 5px;
-    background: $section_bg;
+    background: $section-background;
 
     div.author {
       width: 12em;

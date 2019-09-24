@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#c-artists, div#excerpt {
   span.new-artist {
@@ -13,7 +13,7 @@ div#c-artists, div#excerpt {
   div#a-edit, div#a-new {
     textarea {
       height: 10em;
-      
+
       &#artist_other_names_string {
         height: 3em;
       }
@@ -21,7 +21,7 @@ div#c-artists, div#excerpt {
 
     .hint {
       display: block;
-    } 
+    }
   }
 
   div.recent-posts {

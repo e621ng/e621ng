@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 .ui-widget {
   font-family: $base_font_family;
@@ -9,11 +9,11 @@
 }
 
 .ui-widget-content a {
-  color: $link_color;
+  color: $link-color;
 }
 
 .ui-widget-content a:hover {
-  color: $link_hover_color;
+  color: $link-hover-color;
 }
 
 div.ui-dialog {
@@ -36,33 +36,33 @@ div.ui-dialog {
 }
 
 .ui-state-highlight {
-  border: 1px solid border_color($notice_color);
-  background: $notice_color;
-  color: $text_color;
+  border: 1px solid border_color($notice-color);
+  background: $notice-color;
+  color: $text-color;
 
   a, a:active, a:visited {
-    color: $link_color;
+    color: $link-color;
   }
 
   a:hover {
-    color: $link_hover_color;
+    color: $link-hover-color;
   }
 }
 
 .ui-state-error {
-  border: 1px solid border_color($error_color);
-  background: $error_color;
+  border: 1px solid border_color($error-color);
+  background: $error-color;
 }
 
 .ui-button {
   margin: 0;
   padding: 0.25em 1em;
-  color: $inverted_text_color;
+  color: $inverted-text-color;
   border-top: 1px solid silver;
   border-left: 1px solid silver;
   border-bottom: 1px solid darkgrey;
   border-right: 1px solid darkgrey;
-  background-color: $button_bg;
+  background-color: $button-background;
 
   &.sub {
     font-size: 90%;
@@ -76,7 +76,7 @@ div.ui-dialog {
 
 .ui-button:hover {
   box-shadow: 1px 1px grey;
-  background: $button_bg_hover;
+  background: $button-hover-background;
 }
 
 .ui-front {
@@ -84,12 +84,12 @@ div.ui-dialog {
 }
 
 .ui-widget-content {
-  border: 1px solid border_color($section_bg) !important;
-  background-color: $section_bg !important;
-  color: $text_color !important;
+  border: 1px solid border_color($section-background) !important;
+  background-color: $section-background !important;
+  color: $text-color !important;
 }
 
 .ui-widget-header {
-  background-color: $bg_color;
-  color: $text_color !important;
+  background-color: $main-background;
+  color: $text-color !important;
 }

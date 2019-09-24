@@ -1,4 +1,4 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div#search {
   margin-bottom: 1em;
@@ -6,12 +6,12 @@ div#search {
 
 div#search-box button {
   -webkit-appearance: button;
-  border: 1px solid $link_color;
-  background-color: $link_color;
+  border: 1px solid $link-color;
+  background-color: $link-color;
   color: #FFF;
   &:hover, &:focus {
-    border: 1px solid $link_hover_color;
-    background-color: $link_hover_color;
+    border: 1px solid $link-hover-color;
+    background-color: $link-hover-color;
   }
 }
 
@@ -92,7 +92,7 @@ footer#page-footer {
   margin-top: 1em;
   text-align: center;
   padding: $base_padding 0 $base_padding;
-  border-top: 1px solid $hr_color;
+  border-top: 1px solid $hr-color;
 }
 
 div.clearfix {

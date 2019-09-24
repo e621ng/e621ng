@@ -1,13 +1,13 @@
-@import "../base/000_vars.scss";
+@import "../base/005_vars.scss";
 
 div.list-of-forum-posts {
   article {
-    background-color: $section_bg;
+    background-color: $section-background;
     margin: 1em 0em;
     word-wrap: break-word;
 
     &:nth-child(even) {
-      background-color: $table_stripe_even_background_color;
+      background-color: $table-stripe-even-background;
     }
 
     a.voted {
