@@ -5,6 +5,7 @@
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
+                    <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
                 </div>
                 <div class="col2">
                     <div v-if="!disableFileUpload">
