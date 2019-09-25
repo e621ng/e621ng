@@ -532,6 +532,19 @@ fart'
             "hover" => "#444"
           }
         },
+        "lore" => {
+          "category" => 8,
+          "short" => 'lor',
+          'extra' => [],
+          'header' => %{<h2 class="lore-tag-list">Lore</h2>},
+          'humanized' => nil,
+          'mod_only' => true,
+          'relatedbutton' => nil,
+          'css' => {
+              'color' => '#000',
+              'hover' => '#444'
+          }
+        },
         "meta" => {
           "category" => 7,
           "short" => "meta",
@@ -557,12 +570,12 @@ fart'
 
     #Sets the order of the split tag header list (presenters/tag_set_presenter.rb)
     def split_tag_header_list
-      @split_tag_header_list ||= ["artist","copyright","character","species","general","meta","invalid"]
+      @split_tag_header_list ||= ["invalid","artist","copyright","character","species","general","meta","lore"]
     end
 
     #Sets the order of the categorized tag string (presenters/post_presenter.rb)
     def categorized_tag_list
-      @categorized_tag_list ||= ["artist","copyright","character","species","meta","general","invalid"]
+      @categorized_tag_list ||= ["invalid","artist","copyright","character","species","meta","general","lore"]
     end
 
     #Sets the order of the related tag buttons (javascripts/related_tag.js)
