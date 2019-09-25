@@ -14,7 +14,7 @@ class FavoritesController < ApplicationController
         raise User::PrivilegeError.new
       end
 
-      @favorite_set = PostSets::Favorite.new(user_id, params[:page], params)
+      @favorite_set = PostSets::Post.new("fav:#{@user.name} status:any", params[:page],nil, params)
       respond_with(@favorite_set.posts) do |format|
         format.xml do
           render :xml => @favorite_set.posts.to_xml(:root => "posts")
