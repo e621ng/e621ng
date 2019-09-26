@@ -147,6 +147,20 @@ class PostArchive < ApplicationRecord
     post && post.visible?
   end
 
+  def diff_sources(version = nil)
+    new_sources = source.split("\n") || []
+    old_sources = version&.source&.split("\n") || []
+
+    added_sources = new_sources - old_sources
+    removed_sources = old_sources - new_sources
+
+    return {
+        :added_sources => added_sources,
+        :unchanged_sources => new_sources & old_sources,
+        :removed_sources => removed_sources
+    }
+  end
+
   def diff(version = nil)
     if post.nil?
       latest_tags = tag_array
@@ -154,19 +168,16 @@ class PostArchive < ApplicationRecord
       latest_tags = post.tag_array
       latest_tags << "rating:#{post.rating}" if post.rating.present?
       latest_tags << "parent:#{post.parent_id}" if post.parent_id.present?
-      latest_tags << "source:#{post.source}" if post.source.present?
     end
 
     new_tags = tag_array
     new_tags << "rating:#{rating}" if rating.present?
     new_tags << "parent:#{parent_id}" if parent_id.present?
-    new_tags << "source:#{source}" if source.present?
 
     old_tags = version.present? ? version.tag_array : []
     if version.present?
       old_tags << "rating:#{version.rating}" if version.rating.present?
       old_tags << "parent:#{version.parent_id}" if version.parent_id.present?
-      old_tags << "source:#{version.source}" if version.source.present?
     end
 
     added_tags = new_tags - old_tags
@@ -177,7 +188,7 @@ class PostArchive < ApplicationRecord
         :removed_tags => removed_tags,
         :obsolete_added_tags => added_tags - latest_tags,
         :obsolete_removed_tags => removed_tags & latest_tags,
-        :unchanged_tags => new_tags & old_tags,
+        :unchanged_tags => new_tags & old_tags
     }
   end
 

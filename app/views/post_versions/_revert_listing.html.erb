@@ -5,11 +5,12 @@
         <th width="5%">Post</th>
         <th width="15%">Date</th>
         <th width="10%">User</th>
-        <th width="5%">Rating</th>
-        <th width="5%">Parent</th>
+        <th width="3%">Rating</th>
+        <th width="3%">Parent</th>
         <% if CurrentUser.is_moderator? %>
-          <th width="10%">IP Address</th>
+          <th width="5%">IP Address</th>
         <% end %>
+        <th>Sources</th>
         <th>Tags</th>
         <% if CurrentUser.is_member? %>
           <th width="7%"></th>
@@ -33,7 +34,8 @@
               <%= link_to_ip post_version.updater_ip_addr %>
             </td>
           <% end %>
-          <td class="col-expand"><%= post_version_diff(post_version) %></td>
+          <td class="col-expand"><%= post_source_diff(post_version) %></td>
+          <td><%= post_version_diff(post_version) %></td>
           <% if CurrentUser.is_member? %>
             <td>
               <% if post_version.visible? %>

@@ -1,4 +1,27 @@
 module PostVersionsHelper
+  def post_source_diff(post_version)
+    diff = post_version.diff_sources(post_version.previous)
+    html = '<span class="diff-list">'
+
+    diff[:added_sources].each do |source|
+      prefix = '<div><ins>+'
+      html << prefix + wordbreakify(source) + '</ins></div>'
+      html << " "
+    end
+    diff[:removed_sources].each do |source|
+      prefix = '<div><del>-'
+      html << prefix + wordbreakify(source) + '</del></div>'
+      html << " "
+    end
+    diff[:unchanged_sources].each do |source|
+      html << '<div>' + wordbreakify(source) + '</div>'
+      html << " "
+    end
+
+    html << "</span>"
+    html.html_safe
+  end
+
   def post_version_diff(post_version)
     diff = post_version.diff(post_version.previous)
     html = '<span class="diff-list">'
