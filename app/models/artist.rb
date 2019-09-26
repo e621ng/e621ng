@@ -334,7 +334,8 @@ class Artist < ApplicationRecord
         artist = Artist.new(params)
       end
 
-      artist.tap(&:validate) # run before_validation callbacks to normalize the names
+      artist.tap(&:validate) if artist.name.present? # run before_validation callbacks to normalize the names
+      artist
     end
   end
 
