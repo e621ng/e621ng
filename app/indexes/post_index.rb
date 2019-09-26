@@ -40,6 +40,7 @@ module PostIndex
         indexes :children,      type: 'integer'
         indexes :uploader,      type: 'integer'
         indexes :approver,      type: 'integer'
+        indexes :deleter,       type: 'integer'
         indexes :width,         type: 'integer'
         indexes :height,        type: 'integer'
         indexes :mpixels,       type: 'float'
@@ -51,6 +52,8 @@ module PostIndex
         indexes :file_ext,      type: 'keyword'
         indexes :source,        type: 'keyword'
         indexes :description,   type: 'text'
+        indexes :notes,         type: 'text'
+        indexes :del_reason,    type: 'keyword'
 
         indexes :rating_locked,   type: 'boolean'
         indexes :note_locked,     type: 'boolean'
@@ -126,9 +129,24 @@ module PostIndex
           WHERE parent_id IN (#{post_ids})
           GROUP BY parent_id
         SQL
+        note_sql = <<-SQL
+          SELECT post_id, body FROM notes
+          WHERE post_id IN (#{post_ids})
+        SQL
+        deletion_sql = <<-SQL
+          SELECT pf.post_id, pf.creator_id, pf.reason FROM
+            (SELECT MAX(id) as mid, post_id
+             FROM post_flags
+             WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = true
+             GROUP BY post_id) pfi
+          INNER JOIN post_flags pf ON pf.id = pfi.mid;
+        SQL
 
         # Run queries
         conn = ApplicationRecord.connection
+        deletions      = conn.execute(deletion_sql)
+        deleter_ids    = deletions.values.map {|p,did,dr| [p,did]}.to_h
+        del_reasons    = deletions.values.map {|p,did,dr| [p,dr]}.to_h
         comment_counts = conn.execute(comments_sql).values.to_h
         pool_ids       = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
@@ -136,6 +154,8 @@ module PostIndex
         commenter_ids  = conn.execute(commenter_sql).values.map(&array_parse).to_h
         noter_ids      = conn.execute(noter_sql).values.map(&array_parse).to_h
         child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
+        notes          = Hash.new { |h,k| h[k] = [] }
+        conn.execute(note_sql).values.each { |p,b| notes[p] << b }
 
         # Special handling for votes to do it with one query
         vote_ids = conn.execute(votes_sql).values.map do |pid, uids, scores|
@@ -158,7 +178,10 @@ module PostIndex
             downvotes:     downvote_ids[p.id]   || empty,
             children:      child_ids[p.id]      || empty,
             commenters:    commenter_ids[p.id]  || empty,
-            noters:        noter_ids[p.id]      || empty
+            noters:        noter_ids[p.id]      || empty,
+            notes:         notes[p.id]          || empty,
+            deleter:       deleter_ids[p.id]    || empty,
+            del_reason:    del_reasons[p.id]    || empty
           }
 
           {
@@ -213,8 +236,11 @@ module PostIndex
       upvotes:      options[:upvotes]    || PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
       downvotes:    options[:downvotes]  || PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
       children:     options[:children]   || Post.where(parent_id: id).pluck(:id),
+      notes:        options[:notes]      || Note.active.where(post_id: id).pluck(:body),
       uploader:     uploader_id,
       approver:     approver_id,
+      deleter:      options[:deleter]    || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.pluck(:creator_id),
+      del_reason:   options[:del_reason] || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.pluck(:reason),
       width:        image_width,
       height:       image_height,
       mpixels:      (image_width.to_f * image_height / 1_000_000).round(2),

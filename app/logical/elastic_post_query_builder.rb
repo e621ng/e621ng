@@ -105,7 +105,7 @@ class ElasticPostQueryBuilder
     true
   end
 
-  def sql_like_to_elastic(query)
+  def sql_like_to_elastic(field, query)
     # First escape any existing wildcard characters
     # in the term
     query = query.gsub(/
@@ -125,7 +125,7 @@ class ElasticPostQueryBuilder
     # Collapse runs of wildcards for efficiency
     query = query.gsub(/(?:\*)+\*/, '*')
 
-    {wildcard: {source: query}}
+    {wildcard: {field => query}}
   end
 
   def build
@@ -233,7 +233,7 @@ class ElasticPostQueryBuilder
       elsif q[:source] == "http%"
         must.push({prefix: {source: "http"}})
       else
-        must.push(sql_like_to_elastic(q[:source]))
+        must.push(sql_like_to_elastic(:source, q[:source]))
       end
     end
 
@@ -243,7 +243,7 @@ class ElasticPostQueryBuilder
       elsif q[:source_neg] == "http%"
         must_not.push({prefix: {source: "http"}})
       else
-        must_not.push(sql_like_to_elastic(q[:source_neg]))
+        must_not.push(sql_like_to_elastic(:source, q[:source_neg]))
       end
     end
 
@@ -331,6 +331,30 @@ class ElasticPostQueryBuilder
 
     if q[:note_updater_ids]
       must.concat(q[:note_updater_ids].map {|x| {term: {noters: x.to_i}}} )
+    end
+
+    if q[:note]
+      must.push({match: {notes: q[:note]}})
+    end
+
+    if q[:note_neg]
+      must_not.push({match: {notes: q[:note]}})
+    end
+
+    if q[:delreason]
+      must.push(sql_like_to_elastic(:del_reason, q[:delreason]))
+    end
+
+    if q[:delreason_neg]
+      must_not.push(sql_like_to_elastic(:del_reason, q[:delreason]))
+    end
+
+    if q[:deleter]
+      must.push({term: {deleter: q[:deleter].to_i}})
+    end
+
+    if q[:deleter_neg]
+      must_not.push({term: {deleter: q[:deleter].to_i}})
     end
 
     if q[:post_id_negated]

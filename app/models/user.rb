@@ -151,6 +151,13 @@ class User < ApplicationRecord
         end
       end
 
+      def name_or_id_to_id(name)
+        if name =~ /\A(\d+)\z/
+          return name.to_i
+        end
+        User.name_to_id(name)
+      end
+
       def id_to_name(user_id)
         Cache.get("uin:#{user_id}", 4.hours) do
           select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name

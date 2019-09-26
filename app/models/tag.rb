@@ -14,12 +14,13 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater artcomm
-    -pool pool ordpool -fav fav ordfav md5 -rating rating
+    -pool pool ordpool -fav fav ordfav md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
-    -upvote -downvote description -description change -user_id user_id
+    -upvote -downvote description -description change -user_id user_id delreason -delreason
+    deletedby -deletedby
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -545,11 +546,11 @@ class Tag < ApplicationRecord
           case g1
           when "-user"
             q[:uploader_id_neg] ||= []
-            user_id = User.name_to_id(g2)
+            user_id = User.name_or_id_to_id(g2)
             q[:uploader_id_neg] << user_id unless user_id.blank?
 
           when "user"
-            user_id = User.name_to_id(g2)
+            user_id = User.name_or_id_to_id(g2)
             q[:uploader_id] = user_id unless user_id.blank?
 
           when "user_id"
@@ -565,7 +566,7 @@ class Tag < ApplicationRecord
               q[:approver_id] = "none"
             else
               q[:approver_id_neg] ||= []
-              user_id = User.name_to_id(g2)
+              user_id = User.name_or_id_to_id(g2)
               q[:approver_id_neg] << user_id unless user_id.blank?
             end
 
@@ -575,7 +576,7 @@ class Tag < ApplicationRecord
             elsif g2 == "any"
               q[:approver_id] = "any"
             else
-              user_id = User.name_to_id(g2)
+              user_id = User.name_or_id_to_id(g2)
               q[:approver_id] = user_id unless user_id.blank?
             end
 
@@ -587,7 +588,7 @@ class Tag < ApplicationRecord
             elsif g2 == "any"
               q[:commenter_ids] << "any"
             else
-              user_id = User.name_to_id(g2)
+              user_id = User.name_or_id_to_id(g2)
               q[:commenter_ids] << user_id unless user_id.blank?
             end
 
@@ -599,13 +600,13 @@ class Tag < ApplicationRecord
             elsif g2 == "any"
               q[:noter_ids] << "any"
             else
-              user_id = User.name_to_id(g2)
+              user_id = User.name_or_id_to_id(g2)
               q[:noter_ids] << user_id unless user_id.blank?
             end
 
           when "noteupdater"
             q[:note_updater_ids] ||= []
-            user_id = User.name_to_id(g2)
+            user_id = User.name_or_id_to_id(g2)
             q[:note_updater_ids] << user_id unless user_id.blank?
 
           when "-pool"
@@ -808,6 +809,28 @@ class Tag < ApplicationRecord
           when "-description"
             q[:description_neg] = g2
 
+          when "note"
+            q[:note] = g2
+
+          when "-note"
+            q[:note_neg] = g2
+
+          when "delreason"
+            q[:delreason] = g2.to_escaped_for_sql_like
+            q[:status] ||= 'any'
+
+          when "-delreason"
+            q[:delreason] = g2.to_escaped_for_sql_like
+            q[:status] ||= 'any'
+
+          when "deletedby"
+            q[:deleter] = User.name_or_id_to_id(g2)
+            q[:status] ||= 'any'
+
+          when "-deletedby"
+            q[:deleter_neg] = User.name_or_id_to_id(g2)
+            q[:status] ||= 'any'
+
           when "pixiv_id", "pixiv"
             if g2.downcase == "any" || g2.downcase == "none"
               q[:pixiv_id] = g2.downcase
@@ -817,42 +840,42 @@ class Tag < ApplicationRecord
 
           when "upvote"
             if CurrentUser.is_moderator?
-              q[:upvote] = User.name_to_id(g2)
+              q[:upvote] = User.name_or_id_to_id(g2)
             elsif Currentuser.is_member?
               q[:upvote] = CurrentUser.id
             end
 
           when "downvote"
             if CurrentUser.is_moderator?
-              q[:downvote] = User.name_to_id(g2)
+              q[:downvote] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
               q[:downvote] = CurrentUser.id
             end
 
           when "voted"
             if CurrentUser.is_moderator?
-              q[:voted] = User.name_to_id(g2)
+              q[:voted] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
               q[:voted] = CurrentUser.id
             end
 
           when "-voted"
             if CurrentUser.is_moderator?
-              q[:neg_voted] = User.name_to_id(g2)
+              q[:neg_voted] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
               q[:neg_voted] = CurrentUser.id
             end
 
           when "-upvote"
             if CurrentUser.is_moderator?
-              q[:neg_upvote] = User.name_to_id(g2)
+              q[:neg_upvote] = User.name_or_id_to_id(g2)
             elsif Currentuser.is_member?
               q[:neg_upvote] = CurrentUser.id
             end
 
           when "-downvote"
             if CurrentUser.is_moderator?
-              q[:neg_downvote] = User.name_to_id(g2)
+              q[:neg_downvote] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
               q[:neg_downvote] = CurrentUser.id
             end
