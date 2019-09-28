@@ -10,7 +10,8 @@
                 <div class="col2">
                     <div v-if="!disableFileUpload">
                         <label>File:
-                            <input type="file" ref="post_file" @change="updatePreview" :disabled="disableFileUpload"/>
+                            <input type="file" ref="post_file" @change="updatePreview" @keyup="updatePreview"
+                                   :disabled="disableFileUpload"/>
                         </label>
                         <button @click="clearFile" v-show="disableURLUpload">Clear</button>
                     </div>
@@ -139,13 +140,13 @@
                     <div class="col2">
           <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2"
                     data-autocomplete="tag-edit"
-                    placeholder="Ex: cub young gore scat watersports diaper my_little_pony vore not_furry rape etc."></textarea>
+                    placeholder="Ex: cub young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></textarea>
                     </div>
                 </div>
             </template>
             <div class="flex-grid border-bottom">
                 <div class="col">
-                    <label class="section-label" for="post_rating_questionable">Rating</label>
+                    <label class="section-label">Rating</label>
                     <div>Explicit tags include sex, pussy, penis, masturbation, fellatio, etc.
                         (<a href="/help/ratings" target="_blank">help</a>)
                     </div>
@@ -206,7 +207,8 @@
                 </div>
             </div>
             <div class="flex-grid border-bottom over-me">
-                <related-tags :tags="tagsArray" :related="relatedTags" :loading="loadingRelated"
+                <related-tags v-if="relatedTags.length" :tags="tagsArray" :related="relatedTags"
+                              :loading="loadingRelated"
                               @tag-active="pushTag"></related-tags>
             </div>
             <div class="flex-grid border-bottom">
@@ -507,7 +509,7 @@
     {name: 'Taur'}];
 
   function updatePreviewDims(e) {
-    var img = e.target;
+    const img = e.target;
     if (thumbURLs.filter(function (x) {
       return img.src.indexOf(x) !== -1;
     }).length !== 0)
@@ -515,7 +517,6 @@
     this.previewHeight = img.naturalHeight;
     this.previewWidth = img.naturalWidth;
     this.overDims = (img.naturalHeight > 15000 || img.naturalWidth > 15000);
-    updateDimensionTag.call(this);
   }
 
   function previewError() {
@@ -529,13 +530,13 @@
   }
 
   function updatePreviewFile() {
-    var self = this;
-    var reader = new FileReader();
-    var file = this.$refs['post_file'].files[0];
+    const self = this;
+    const reader = new FileReader();
+    const file = this.$refs['post_file'].files[0];
     this.previewHeight = 0;
     this.previewWidth = 0;
     reader.onload = function (e) {
-      var src = e.target.result;
+      let src = e.target.result;
 
       if (file.type.match('video/webm'))
         src = thumbs.webm;
@@ -549,61 +550,38 @@
   }
 
   function updatePreviewURL() {
-    var self = this;
+    const self = this;
     if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
       this.disableFileUpload = false;
       this.oldDomain = '';
+      self.clearWhitelistWarning();
       return;
     }
     this.disableFileUpload = true;
-    var domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
+    const domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
 
-    if (domain && domain != this.oldDomain) {
+    if (domain && domain !== this.oldDomain) {
       $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, function (data) {
-        if (data.domain)
-          self.whitelistWarning(data.is_whitelisted, data.domain, data.reason);
+        if (data.domain) {
+          self.whitelistWarning(data.is_allowed, data.domain, data.reason);
+          if (!data.is_allowed)
+            self.previewURL = thumbs.none;
+        }
       });
+    } else if (!domain) {
+      self.clearWhitelistWarning();
     }
     this.oldDomain = domain;
 
-    var src = thumbs.none;
-    if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(jpg|jpeg|gif|png)/))
-      src = this.uploadURL;
-    else if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(swf)$/))
+    let src = thumbs.none;
+    if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(swf)$/))
       src = thumbs.flash;
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
       src = thumbs.webm;
+    else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/))
+      src = this.uploadURL;
 
     this.previewURL = src;
-  }
-
-  function updateDimensionTag() {
-    var self = this;
-    if (!(self.previewHeight || self.previewWidth))
-      return;
-    var otherTags = ['low_res', 'hi_res', 'superabsurd_res', 'absurd_res'];
-    var ourTag = function (h, w) {
-      if (!(h && w)) {
-        return null;
-      }
-      if ((h <= 500) && (w <= 500))
-        return 'low_res';
-      if ((h >= 10000) || (w >= 10000))
-        return 'superabsurb_res';
-      if ((h >= 2400) || (w >= 3200))
-        return 'absurd_res';
-      if ((h >= 1200) || (w >= 1600))
-        return 'hi_res';
-      return null;
-    }(self.previewHeight, self.previewWidth);
-    var tagIdx = otherTags.indexOf(ourTag);
-    if (tagIdx > 0)
-      otherTags.splice(tagIdx, 1);
-    if (ourTag)
-      self.pushTag(ourTag, true);
-    for (var i = 0; i < otherTags.length; i++) {
-      self.pushTag(otherTags[i], false);
-    }
   }
 
   function updatePreview() {
@@ -741,6 +719,10 @@
         this.whitelist.reason = reason;
         this.whitelist.visible = true;
       },
+      clearWhitelistWarning() {
+        this.whitelist.visible = false;
+        this.whitelist.domain = '';
+      },
       removeSource(i) {
         this.sources.splice(i, 1);
       },
@@ -792,7 +774,7 @@
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;
               }
-              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1 ) {
+              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1) {
                 self.error = data2.message;
               } else if (data2 && data2.message) {
                 self.error = 'Error: ' + data2.message;
