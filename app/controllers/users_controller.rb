@@ -39,6 +39,7 @@ class UsersController < ApplicationController
   end
 
   def home
+    @user = CurrentUser.user
   end
 
   def search
