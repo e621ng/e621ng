@@ -115,7 +115,6 @@ class UsersController < ApplicationController
     permitted_params += [dmail_filter_attributes: %i[id words]]
     permitted_params += [:profile_about, :profile_artinfo, :email, :avatar_id] if CurrentUser.is_member? # Prevent editing when blocked
     permitted_params += [:name, :email] if context == :create
-    permitted_params << :level if CurrentUser.is_admin?
 
     params.require(:user).permit(permitted_params)
   end
