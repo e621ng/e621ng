@@ -1,5 +1,6 @@
 class PostsController < ApplicationController
   before_action :member_only, :except => [:show, :show_seq, :index, :home, :random]
+  before_action :admin_only, only: [:update_iqdb]
   respond_to :html, :xml, :json
 
   def index
@@ -93,6 +94,12 @@ class PostsController < ApplicationController
   def mark_as_translated
     @post = Post.find(params[:id])
     @post.mark_as_translated(params[:post])
+    respond_with_post_after_update(@post)
+  end
+
+  def update_iqdb
+    @post = Post.find(params[:id])
+    @post.update_iqdb_async
     respond_with_post_after_update(@post)
   end
 

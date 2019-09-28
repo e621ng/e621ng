@@ -252,6 +252,7 @@ Rails.application.routes.draw do
       get :random
     end
     member do
+      get :update_iqdb
       put :revert
       put :copy_notes
       get :show_seq
