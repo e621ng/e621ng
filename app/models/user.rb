@@ -80,7 +80,7 @@ class User < ApplicationRecord
   validates :per_page, inclusion: { :in => 1..320 }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
-  validates :password, length: { :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present?} }
+  validates :password, length: { :minimum => 5, :if => ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
   validates :password, confirmation: true
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
