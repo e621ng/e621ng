@@ -5,8 +5,9 @@ class IqdbProxy
     url = URI.parse(Danbooru.config.iqdbs_server)
     url.path = "/similar"
     url.query = {url: image_url}.to_query
-    json = HTTParty.get(url.to_s, Danbooru.config.httparty_options).parsed_response
-    decorate_posts(json)
+    json = HTTParty.get(url.to_s, Danbooru.config.httparty_options)
+    return [] if json.code != 200
+    decorate_posts(json.parsed_response)
   end
 
   def self.decorate_posts(json)

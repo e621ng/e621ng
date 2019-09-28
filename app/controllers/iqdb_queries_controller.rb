@@ -4,23 +4,19 @@ class IqdbQueriesController < ApplicationController
 
   def show
     if params[:url]
-      strategy = Sources::Strategies.find(params[:url])
-      @matches = IqdbProxy.query(strategy.image_url)
+      access_denied("Not an allowed URL") if UploadWhitelist.is_whitelisted?(params[:url])
+      @matches = IqdbProxy.query(params[:url])
     end
 
     if params[:post_id]
       @matches = IqdbProxy.query(Post.find(params[:post_id]).preview_file_url)
     end
 
-    if params[:matches]
-      @matches = IqdbProxy.decorate_posts(JSON.parse(params[:matches]))
-    end
-
     respond_with(@matches) do |fmt|
       fmt.html do |html|
         html.xhr { render layout: false}
       end
-      
+
       fmt.json do
         render json: @matches
       end
@@ -28,7 +24,7 @@ class IqdbQueriesController < ApplicationController
   end
 
 private
-  
+
   def detect_xhr
     if request.xhr?
       request.variant = :xhr

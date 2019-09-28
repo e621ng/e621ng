@@ -780,6 +780,8 @@ fart'
       # proxy example:
       # {http_proxyaddr: "", http_proxyport: "", http_proxyuser: nil, http_proxypass: nil}
       {
+        timeout: 10,
+        open_timout: 5,
         headers: Danbooru.config.http_headers,
       }
     end
