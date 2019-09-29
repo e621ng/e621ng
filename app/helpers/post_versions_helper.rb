@@ -44,4 +44,27 @@ module PostVersionsHelper
     html << "</span>"
     html.html_safe
   end
+
+  def post_version_locked_diff(post_version)
+    diff = post_version.diff(post_version.previous)
+    html = '<span class="diff-list">'
+
+    diff[:added_locked_tags].each do |tag|
+      prefix = '<ins>+'
+      html << prefix + link_to(wordbreakify(tag), posts_path(:tags => tag)) + '</ins>'
+      html << " "
+    end
+    diff[:removed_locked_tags].each do |tag|
+      prefix = '<del>-'
+      html << prefix + link_to(wordbreakify(tag), posts_path(:tags => tag)) + '</del>'
+      html << " "
+    end
+    diff[:unchanged_locked_tags].each do |tag|
+      html << '<span>' + link_to(wordbreakify(tag), posts_path(:tags => tag)) + '</span>'
+      html << " "
+    end
+
+    html << "</span>"
+    html.html_safe
+  end
 end

@@ -17,6 +17,7 @@
       <% end %>
       <th>Sources</th>
       <th>Tags</th>
+      <td>Locked Tags</td>
       <th width="7%"></th>
     </tr>
     </thead>
@@ -45,8 +46,9 @@
             <%= link_to_ip post_version.updater_ip_addr %>
           </td>
         <% end %>
-        <td><%= post_source_diff(post_version) %></td>
-        <td class="col-expand"><%= post_version_diff(post_version) %></td>
+        <td class="col-expand"><%= post_source_diff(post_version) %></td>
+        <td><%= post_version_diff(post_version) %></td>
+        <td><%= post_version_locked_diff(post_version) %></td>
         <td>
           <% if post_version.can_undo?(CurrentUser.user) %>
             <%= link_to "Undo", undo_post_version_path(post_version), :method => :put, :remote => true %> |
