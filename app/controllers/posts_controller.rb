@@ -44,19 +44,15 @@ class PostsController < ApplicationController
   end
 
   def update
+    ensure_can_edit
     @post = Post.find(params[:id])
-
-    can_edit = CurrentUser.can_post_edit_with_reason
-    if can_edit != true
-      access_denied "Updater #{User.throttle_reason(can_edit)}"
-      return
-    end
 
     @post.update(post_params) if @post.visible?
     respond_with_post_after_update(@post)
   end
 
   def revert
+    ensure_can_edit
     @post = Post.find(params[:id])
     @version = @post.versions.find(params[:version_id])
 
@@ -70,6 +66,7 @@ class PostsController < ApplicationController
   end
 
   def copy_notes
+    ensure_can_edit
     @post = Post.find(params[:id])
     @other_post = Post.find(params[:other_post_id].to_i)
     @post.copy_notes_to(@other_post)
@@ -130,6 +127,11 @@ private
         render :json => post.to_json
       end
     end
+  end
+
+  def ensure_can_edit
+    can_edit = CurrentUser.can_post_edit_with_reason
+    raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
   end
 
   def post_params
