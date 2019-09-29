@@ -207,6 +207,12 @@ class Tag < ApplicationRecord
         errors.add(:category,  "can only used by moderators")
         return false
       end
+      if cat == "lore"
+        unless name =~ /\A.*_\(lore\)\z/
+          errors.add(:category, "can only be applied to tags that end with '_(lore)'")
+          return false
+        end
+      end
     end
 
     def update_category
