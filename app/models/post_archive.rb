@@ -1,4 +1,5 @@
 class PostArchive < ApplicationRecord
+  class RevertError < Exception ; end
   extend Memoist
 
   belongs_to :post
@@ -183,12 +184,21 @@ class PostArchive < ApplicationRecord
     added_tags = new_tags - old_tags
     removed_tags = old_tags - new_tags
 
+    new_locked = locked_tag_array
+    old_locked = version.present? ? version.locked_tag_array : []
+
+    added_locked = new_locked - old_locked
+    removed_locked = old_locked - new_locked
+
     return {
-        :added_tags => added_tags,
-        :removed_tags => removed_tags,
-        :obsolete_added_tags => added_tags - latest_tags,
-        :obsolete_removed_tags => removed_tags & latest_tags,
-        :unchanged_tags => new_tags & old_tags
+        added_tags: added_tags,
+        removed_tags: removed_tags,
+        obsolete_added_tags: added_tags - latest_tags,
+        obsolete_removed_tags: removed_tags & latest_tags,
+        unchanged_tags: new_tags & old_tags,
+        added_locked_tags: added_locked,
+        removed_locked_tags: removed_locked,
+        unchanged_locked_tags: new_locked & old_locked
     }
   end
 
@@ -273,6 +283,8 @@ class PostArchive < ApplicationRecord
   end
 
   def undo
+    raise RevertError unless post.visible?
+
     added = changes[:added_tags] - changes[:obsolete_added_tags]
     removed = changes[:removed_tags] - changes[:obsolete_removed_tags]
 
@@ -298,6 +310,14 @@ class PostArchive < ApplicationRecord
   def undo!
     undo
     post.save!
+  end
+
+  def can_undo?(user)
+    version > 1 && post&.visible? && user.is_member?
+  end
+
+  def can_revert_to?(user)
+    post&.visible? && user.is_member?
   end
 
   def method_attributes

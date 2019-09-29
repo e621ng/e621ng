@@ -69,7 +69,6 @@
         <% if Danbooru.config.reportbooru_server %>
           <li><%= link_to("Top Searches", searches_explore_posts_path) %></li>
           <li><%= link_to("Missed Searches", missed_searches_explore_posts_path) %></li>
-          <li><%= link_to("Post Changes", reports_post_versions_path) %></li>
         <% end %>
       </ul>
     </section>
@@ -124,7 +123,6 @@
 
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
-          <li><%= link_to("Bulk Revert", new_moderator_bulk_revert_path) %></li>
         <% end %>
 
         <% if CurrentUser.is_admin? %>

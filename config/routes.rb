@@ -20,7 +20,6 @@ Rails.application.routes.draw do
   end
   resources :edit_histories
   namespace :moderator do
-    resource :bulk_revert, :only => [:new, :create]
     resource :dashboard, :only => [:show]
     resources :ip_addrs, :only => [:index] do
       collection do
