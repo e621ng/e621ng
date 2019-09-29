@@ -209,7 +209,7 @@ PostModeMenu.click = function(e) {
   } else if (s === "tag-script") {
     var current_script_id = Cookie.get("current_tag_script_id");
     var tag_script = Cookie.get("tag-script-" + current_script_id);
-    Post.tag(post_id, tag_script);
+    Post.tagScript(post_id, tag_script);
   } else {
     return;
   }

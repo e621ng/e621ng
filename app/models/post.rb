@@ -13,6 +13,8 @@ class Post < ApplicationRecord
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
+  before_validation :apply_source_diff
+  before_validation :apply_tag_diff, if: :should_process_tags?
   before_validation :normalize_tags, if: :should_process_tags?
   before_validation :strip_source
   before_validation :blank_out_nonexistent_parents
@@ -56,7 +58,8 @@ class Post < ApplicationRecord
   has_many :favorites
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
-  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning, :view_count, :do_not_version_changes
+  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning,
+                :view_count, :do_not_version_changes, :tag_string_diff, :source_diff
 
   has_many :versions, -> {Rails.env.test? ? order("post_versions.updated_at ASC, post_versions.id ASC") : order("post_versions.updated_at ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
@@ -344,6 +347,19 @@ class Post < ApplicationRecord
       source.split("\n")
     end
 
+    def apply_source_diff
+      return unless source_diff.present?
+
+      diff = source_diff.gsub(/\r\n?/, "\n").gsub(/%0A/i, "\n").split(/(?:\r)?\n/)
+      to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
+      to_remove = to_remove.map {|x| x[1..-1]}
+
+      current_sources = source_array
+      current_sources += to_add
+      current_sources -= to_remove
+      self.source = current_sources.join("\n")
+    end
+
     def strip_source
       self.source = "" if source.blank?
 
@@ -612,7 +628,7 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      tag_string_changed? || locked_tags_changed?
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
     end
 
     def tag_array
@@ -701,6 +717,22 @@ class Post < ApplicationRecord
       if old_rating == rating
         self.rating = rating_before_last_save || rating_was
       end
+    end
+
+    def apply_tag_diff
+      @removed_tags = []
+      return unless tag_string_diff.present?
+
+      current_tags = tag_array
+      diff = Tag.scan_tags(tag_string_diff.downcase)
+      to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
+      to_remove = to_remove.map {|x| x[1..-1]}
+      to_remove = TagAlias.to_aliased(to_remove)
+      to_add = TagAlias.to_aliased(to_add)
+      @removed_tags = to_remove
+      current_tags += to_add
+      current_tags -= to_remove
+      set_tag_string(current_tags.uniq.sort.join(" "))
     end
 
     def reset_tag_array_cache

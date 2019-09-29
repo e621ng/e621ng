@@ -44,21 +44,22 @@ class PostsController < ApplicationController
   end
 
   def update
-    ensure_can_edit
     @post = Post.find(params[:id])
+    ensure_can_edit(@post)
 
-    @post.update(post_params) if @post.visible?
+    pparams = post_params
+    pparams.delete(:tag_string) if pparams[:tag_string_diff].present?
+    pparams.delete(:source) if pparams[:source_diff].present?
+    @post.update(pparams)
     respond_with_post_after_update(@post)
   end
 
   def revert
-    ensure_can_edit
     @post = Post.find(params[:id])
+    ensure_can_edit(@post)
     @version = @post.versions.find(params[:version_id])
 
-    if @post.visible?
-      @post.revert_to!(@version)
-    end
+    @post.revert_to!(@version)
 
     respond_with(@post) do |format|
       format.js
@@ -66,8 +67,8 @@ class PostsController < ApplicationController
   end
 
   def copy_notes
-    ensure_can_edit
     @post = Post.find(params[:id])
+    ensure_can_edit(@post)
     @other_post = Post.find(params[:other_post_id].to_i)
     @post.copy_notes_to(@other_post)
 
@@ -90,6 +91,7 @@ class PostsController < ApplicationController
 
   def mark_as_translated
     @post = Post.find(params[:id])
+    ensure_can_edit(@post)
     @post.mark_as_translated(params[:post])
     respond_with_post_after_update(@post)
   end
@@ -129,7 +131,8 @@ private
     end
   end
 
-  def ensure_can_edit
+  def ensure_can_edit(post)
+    raise User::PrivilegeError.new("Post not visible to you") unless post.visible?
     can_edit = CurrentUser.can_post_edit_with_reason
     raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
   end
@@ -137,6 +140,7 @@ private
   def post_params
     permitted_params = %i[
       tag_string old_tag_string
+      tag_string_diff source_diff
       parent_id old_parent_id
       source old_source
       description old_description
