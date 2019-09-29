@@ -5,5 +5,8 @@
     <%= subnav_link_to "Search", search_post_versions_path %>
     <%= subnav_link_to "Changes", post_versions_path %>
     <%= subnav_link_to "Help", help_page_path(id: "posts") %>
+    <% if params[:action] == "index" %>
+      | <%= subnav_link_to "Undo selected", "" %>
+    <% end %>
   </menu>
 <% end %>
