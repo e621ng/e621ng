@@ -1,7 +1,7 @@
 module Moderator
   module Post
     class PostsController < ApplicationController
-      before_action :approver_only, :only => [:delete, :undelete, :move_favorites, :ban, :unban, :confirm_delete, :confirm_move_favorites, :confirm_ban]
+      before_action :approver_only, :only => [:delete, :undelete, :move_favorites, :confirm_delete, :confirm_move_favorites]
       before_action :admin_only, :only => [:expunge]
       skip_before_action :api_check
 
@@ -39,10 +39,6 @@ module Moderator
       def expunge
         @post = ::Post.find(params[:id])
         @post.expunge!
-      end
-
-      def confirm_ban
-        @post = ::Post.find(params[:id])
       end
     end
   end

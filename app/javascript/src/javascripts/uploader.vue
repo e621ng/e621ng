@@ -592,12 +592,12 @@
   }
 
   function directURLCheck(url) {
-    var patterns = [{reason: 'Thumbnail URL', test: /[at]\.facdn\.net/gi},
+    var patterns = [
+      {reason: 'Thumbnail URL', test: /[at]\.facdn\.net/gi},
       {reason: 'Sample URL', test: /pximg\.net\/img-master/gi},
-      // {reason: 'Sample URL', test: /\d+\.media\.tumblr\.com/gi}, // Tumblr broke raws.
       {reason: 'Sample URL', test: /d3gz42uwgl1r1y\.cloudfront\.net\/.*\/\d+x\d+\./gi},
       {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/\w+\.(jpg|png)(:large)?$/gi},
-      {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/\w+\?format=/gi},
+      {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/\w+\?format=(jpg|png)(?!&name=orig)/gi},
       {reason: 'Sample URL', test: /derpicdn\.net\/.*\/large\./gi},
       {reason: 'Sample URL', test: /metapix\.net\/files\/(preview|screen)\//gi},
       {reason: 'Sample URL', test: /sofurryfiles\.com\/std\/preview/gi}];
