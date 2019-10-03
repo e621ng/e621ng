@@ -2186,6 +2186,40 @@ ALTER SEQUENCE public.tag_implications_id_seq OWNED BY public.tag_implications.i
 
 
 --
+-- Name: tag_rel_undos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tag_rel_undos (
+    id bigint NOT NULL,
+    tag_rel_type character varying,
+    tag_rel_id bigint,
+    undo_data json,
+    applied boolean DEFAULT false,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: tag_rel_undos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tag_rel_undos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tag_rel_undos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tag_rel_undos_id_seq OWNED BY public.tag_rel_undos.id;
+
+
+--
 -- Name: tag_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3163,6 +3197,13 @@ ALTER TABLE ONLY public.tag_implications ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: tag_rel_undos id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_rel_undos ALTER COLUMN id SET DEFAULT nextval('public.tag_rel_undos_id_seq'::regclass);
+
+
+--
 -- Name: tag_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3706,6 +3747,14 @@ ALTER TABLE ONLY public.tag_aliases
 
 ALTER TABLE ONLY public.tag_implications
     ADD CONSTRAINT tag_implications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tag_rel_undos tag_rel_undos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_rel_undos
+    ADD CONSTRAINT tag_rel_undos_pkey PRIMARY KEY (id);
 
 
 --
@@ -4745,6 +4794,13 @@ CREATE INDEX index_tag_implications_on_forum_post_id ON public.tag_implications 
 
 
 --
+-- Name: index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id ON public.tag_rel_undos USING btree (tag_rel_type, tag_rel_id);
+
+
+--
 -- Name: index_tag_subscriptions_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5268,6 +5324,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190905111159'),
 ('20190916204908'),
 ('20190919213915'),
-('20190924233432');
+('20190924233432'),
+('20191003070653');
 
 
