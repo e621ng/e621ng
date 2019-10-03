@@ -52,6 +52,7 @@ class User < ApplicationRecord
     disable_post_tooltips
     no_flagging
     no_feedback
+    disable_user_dmails
   )
 
   include Danbooru::HasBitFlags
@@ -86,6 +87,7 @@ class User < ApplicationRecord
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
+  before_validation :staff_cant_disable_dmail
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates :profile_about, length: { maximum: 50_0000 }
   validates :profile_artinfo, length: { maximum: 50_000 }
@@ -345,6 +347,10 @@ class User < ApplicationRecord
       return true
     end
 
+    def staff_cant_disable_dmail
+      self.disable_user_dmails = false if self.is_janitor?
+    end
+
     def level_class
       "user-#{level_string.downcase}"
     end
@@ -382,6 +388,11 @@ class User < ApplicationRecord
   module BlacklistMethods
     def normalize_blacklisted_tags
       self.blacklisted_tags = TagAlias.to_aliased_query(blacklisted_tags.downcase) if blacklisted_tags.present?
+    end
+
+    def is_blacklisting_user?(user)
+      blta = blacklisted_tags.split("\n").map{|x| x.downcase}
+      blta.include?("user:#{user.name.downcase}") || blta.include?("uploaderid:#{user.id}")
     end
   end
 

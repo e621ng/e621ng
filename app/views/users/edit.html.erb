@@ -62,6 +62,10 @@
 
         <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
 
+        <% unless CurrentUser.is_janitor? %>
+          <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.", :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
+        <% end %>
+
         <%= f.input :disable_mobile_gestures, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
 
         <%= f.input :disable_post_tooltips, :as => :select, :hint => "Disable advanced tooltips when hovering over thumbnails", :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
