@@ -1,4 +1,6 @@
 class TagAlias < TagRelationship
+  has_many :tag_rel_undos, as: :tag_rel
+
   after_save :create_mod_action
   validates :antecedent_name, uniqueness: true
   validate :absence_of_transitive_relation
@@ -9,7 +11,14 @@ class TagAlias < TagRelationship
     def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
+        create_undo_information
         TagAliasJob.perform_later(id, update_topic)
+      end
+    end
+
+    def undo!(approver: CurrentUser.user)
+      CurrentUser.scoped(approver) do
+        TagAliaseUndoJob.perform_later(id, true)
       end
     end
   end
@@ -54,7 +63,7 @@ class TagAlias < TagRelationship
     TagAlias.to_aliased_with_originals(names).values
   end
 
-  def self.to_aliased_query(query)
+  def self.to_aliased_query(query, overrides: nil)
     # Remove tag types (newline syntax)
     query.gsub!(/(^| )(-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join("|")}):([\S])/i, '\1\2\4')
     # Remove tag types (comma syntax)
@@ -66,9 +75,83 @@ class TagAlias < TagRelationship
         [negated ? x[1..-1] : x, negated]
       end
       aliased = to_aliased_with_originals(tags.map { |t| t[0] })
+      aliased.merge!(overrides) if overrides
       tags.map { |t| "#{t[1] ? '-' : ''}#{aliased[t[0]]}" }.join(" ")
     end
     lines.uniq.join("\n")
+  end
+
+  def process_undo!(update_topic: true)
+    unless valid?
+      raise errors.full_messages.join("; ")
+    end
+
+    CurrentUser.scoped(approver) do
+      update(status: "pending")
+      update_posts_locked_tags_undo
+      update_blacklists_undo
+      update_posts_undo
+      forum_updater.update(retirement_message, "UNDONE") if update_topic
+      rename_wiki_and_artist_undo
+    end
+    tag_rel_undos.update_all(applied: true)
+  end
+
+  def update_posts_locked_tags_undo
+    Post.without_timeout do
+      Post.where_ilike(:locked_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |post|
+        fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: {consequent_name => antecedent_name})
+        CurrentUser.scoped(creator, creator_ip_addr) do
+          post.update_column(:locked_tags, fixed_tags)
+        end
+      end
+    end
+  end
+
+  def update_blacklists_undo
+    User.without_timeout do
+      User.where_ilike(:blacklisted_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |user|
+        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: {consequent_name => antecedent_name})
+        user.update_column(:blacklisted_tags, fixed_blacklist)
+      end
+    end
+  end
+
+  def update_posts_undo
+    Post.without_timeout do
+      tag_rel_undos.where(applied: false).each do |tu|
+        Post.where(id: tu.undo_data).find_each do |post|
+          post.do_not_version_changes = true
+          post.tag_string_diff = "-#{consequent_name} #{antecedent_name}"
+          post.save
+        end
+      end
+
+      # TODO: Race condition with indexing jobs here.
+      antecedent_tag.fix_post_count if antecedent_tag
+      consequent_tag.fix_post_count if consequent_tag
+    end
+  end
+
+  def rename_wiki_and_artist_undo
+    consequent_wiki = WikiPage.titled(consequent_name).first
+    if consequent_wiki.present?
+      if WikiPage.titled(antecedent_name).blank?
+        CurrentUser.scoped(creator, creator_ip_addr) do
+          consequent_wiki.update(title: antecedent_name, skip_secondary_validations: true)
+        end
+      else
+        forum_updater.update(conflict_message)
+      end
+    end
+
+    if consequent_tag.category == Tag.categories.artist
+      if consequent_tag.artist.present? && antecedent_tag.artist.blank?
+        CurrentUser.scoped(creator, creator_ip_addr) do
+          consequent_tag.artist.update!(name: antecedent_name)
+        end
+      end
+    end
   end
 
   def process!(update_topic: true)
@@ -82,14 +165,13 @@ class TagAlias < TagRelationship
       CurrentUser.scoped(approver) do
         update(status: "processing")
         move_aliases_and_implications
-        move_saved_searches
         ensure_category_consistency
         update_posts_locked_tags
         update_blacklists
         update_posts
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         rename_wiki_and_artist
-        update(status: "active", post_count: consequent_tag.post_count)
+        update(status: 'active', post_count: consequent_tag.post_count)
       end
     rescue Exception => e
       Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")
@@ -113,17 +195,6 @@ class TagAlias < TagRelationship
     # If the a -> b alias was created first, the new one will be allowed and the old one will be moved automatically instead.
     if TagAlias.active.exists?(antecedent_name: consequent_name)
       errors[:base] << "A tag alias for #{consequent_name} already exists"
-    end
-  end
-
-  def move_saved_searches
-    escaped = Regexp.escape(antecedent_name)
-
-    if SavedSearch.enabled?
-      SavedSearch.where("query like ?", "%#{antecedent_name}%").find_each do |ss|
-        ss.query = ss.query.sub(/(?:^| )#{escaped}(?:$| )/, " #{consequent_name} ").strip.gsub(/  /, " ")
-        ss.save
-      end
     end
   end
 
@@ -178,6 +249,18 @@ class TagAlias < TagRelationship
         CurrentUser.scoped(creator, creator_ip_addr) do
           post.update_column(:locked_tags, fixed_tags)
         end
+      end
+    end
+  end
+
+  def create_undo_information
+    post_ids = []
+    Post.transaction do
+      Post.without_timeout do
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+          post_ids << post.id
+        end
+        tag_rel_undos.create!(undo_data: post_ids)
       end
     end
   end

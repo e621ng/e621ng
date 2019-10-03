@@ -1,6 +1,8 @@
 class TagImplication < TagRelationship
   extend Memoist
 
+  has_many :tag_rel_undos, as: :tag_rel
+
   array_attribute :descendant_names
 
   before_save :update_descendant_names
@@ -150,6 +152,19 @@ class TagImplication < TagRelationship
       end
     end
 
+    def create_undo_information
+      Post.without_timeout do
+        Post.sql_raw_tag_match(antecedent_name).find_in_batches do |posts|
+          post_info = Hash.new
+          posts.each do |p|
+            post_info[p.id] = p.tag_string
+          end
+          tag_rel_undos.create!(undo_data: post_info)
+        end
+      end
+
+    end
+
     def update_posts
       Post.without_timeout do
         Post.sql_raw_tag_match(antecedent_name).find_each do |post|
@@ -165,6 +180,7 @@ class TagImplication < TagRelationship
 
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
+      create_undo_information
       TagImplicationJob.perform_later(id, update_topic)
     end
 
