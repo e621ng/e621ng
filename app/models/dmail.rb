@@ -9,7 +9,8 @@ class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
   validates :body, length: { minimum: 1, maximum: 50_000 }
-  validate :validate_sender_is_not_banned, on: :create
+  validate :sender_is_not_banned, on: :create
+  validate :recipient_accepts_dmails, on: :create
   validate :user_not_limited, on: :create
 
   belongs_to :owner, :class_name => "User"
@@ -198,18 +199,35 @@ class Dmail < ApplicationRecord
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason
     if allowed != true || minute_allowed != true
-      errors.add(:base, "Sender #{User.throttle_reason(allowed != true ? allowed : minute_allowed)}.")
+      errors.add(:base, "Sender #{User.throttle_reason(allowed != true ? allowed : minute_allowed)}")
       false
     end
     true
   end
 
-  def validate_sender_is_not_banned
+  def sender_is_not_banned
     if from.try(:is_banned?)
       errors[:base] << "Sender is banned and cannot send messages"
       return false
     else
       return true
+    end
+  end
+
+  def recipient_accepts_dmails
+    return true if from_id == User.system.id
+    return true if from.is_janitor?
+    if to.disable_user_dmails
+      errors.add(:to_name, "has disabled DMails")
+      return false
+    end
+    if from.disable_user_dmails && !to.is_janitor?
+      errors.add(:to_name, "is not a valid recipient while blocking DMails from others. You may only message janitors and above")
+      return false
+    end
+    if to.is_blacklisting_user?(from)
+      errors.add(:to_name, "does not wish to receive DMails from you")
+      return false
     end
   end
 
