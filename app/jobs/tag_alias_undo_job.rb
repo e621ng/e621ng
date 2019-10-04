@@ -1,4 +1,4 @@
-class TagAliasJob < ApplicationJob
+class TagAliasUndoJob < ApplicationJob
   queue_as :tags
 
   def perform(*args)
