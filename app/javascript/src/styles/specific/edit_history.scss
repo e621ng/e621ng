@@ -10,11 +10,11 @@
   }
 
   ins {
-    background-color: $success-color;
+    background-color: $state-success-color;
     font-weight: bold;
   }
   del {
-    background-color: $error-color;
+    background-color: $state-error-color;
     font-weight: bold;
   }
 }

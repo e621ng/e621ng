@@ -55,7 +55,7 @@
     font-size: 1.2em;
     margin: 0.5em 0;
     padding: 0.5em 1em;
-    background: #EEE;
+    background: $dtext-code-background;
     white-space: pre-wrap;
   }
 
@@ -67,7 +67,7 @@
 
   div.expandable {
     margin-bottom: 1em;
-    border: 1px inset #666;
+    border: 1px inset $dtext-expandable-border;
 
     div.expandable-header {
       padding: 0.4em;
@@ -85,7 +85,7 @@
     div.expandable-content {
       display: none;
       padding: 0.4em;
-      border-top: 1px solid #666;
+      border-top: 1px solid $dtext-expandable-border;
 
       > :last-child {
         margin-bottom: 0;

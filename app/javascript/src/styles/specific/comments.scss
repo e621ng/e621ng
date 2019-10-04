@@ -7,7 +7,7 @@ div.comments-for-post {
 
   div.list-of-comments {
     background-color: $section-background;
-    padding: $base_padding;
+    padding: $base-padding;
     article.comment {
       border-bottom: 1px solid border_color($section-background);
       word-wrap: break-word;
@@ -37,7 +37,7 @@ div.comments-for-post {
 
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
             background-color: rgba(255, 255, 255, 0.2);
-            border-radius: $border_radius;
+            border-radius: $border-radius;
         }
       }
 

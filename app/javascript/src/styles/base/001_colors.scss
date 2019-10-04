@@ -18,16 +18,8 @@ $section-link-hover-color: white;
 
 // Main background colors
 $main-background: #031131;
-$menu-color: #152F56;
+$menu-background: #152F56;
 $content-background: #152f56;
-
-// View modes
-$mode-view-background: #104e17;
-$mode-delete-background: #4e1010;
-$mode-rating-q-background: #4e4810;
-$mode-tagscript-background: #4f114f;
-$mode-lock-background: #1d1d1d;
-$mode-add-pool-background: #104b57;
 
 // Links
 $link-color: #b4c7d9;
@@ -35,15 +27,27 @@ $link-hover-color: #2e76b4;
 $link-last-page-color: #3e9e49;
 $highlight-color: lighten($link-color, 45%);
 
-//$blockquote_bg: #284A81;
-$blockquote-background: rgba(255, 255, 255, 0.1);
-$blockquote-border: border_color($blockquote-background);//#174891;
+// Sections
+$section-background: #284a81;
+
+// Mixin/state colors
+$state-warning-color: #ffd700;
+$state-notice-color: saturate($section-background, 20%);
+$state-success-color: #3e9e49;
+$state-error-color: #e45f5f;
+
+
+$blockquote-background: #284A81;
+$blockquote-border: #174891;
+$blockquote-shadow: #07162D;
 
 $hint-color: #AAA;
 $info-color: #AAA;
 
-// Sections
-$section-background: #284a81;
+// DText
+$dtext-expandable-border: #666;
+$dtext-code-background: rgba(255,255,255,0.2);
+
 
 // Navigation
 $navigation-background: $section-background;
@@ -56,28 +60,82 @@ $table-stripe-border: #255193;
 $table-stripe-header-text-color: darken($text-color, 10%);
 
 // Forms
-$form-focus-color: #FFC;
-$form-disabled-color: #DDD;
+$form-date-background: white; // TODO: Remove?
+$form-focus-color: black;
+$form-focus-background: #FFC;
+$form-disabled-background: #DDD;
 $button-background: white;
 $button-hover-background: darken($button-background, 10%);
+$form-submit-button-background: #eee;
+
+// Search Box
+$search-box-background: $link-color;
+$search-box-border: $link-color;
+$search-box-color: #fff;
+$search-box-hover-border: $link-hover-color;
+$search-box-hover-background: $link-hover-color;
+
+// Page Header
+$page-header-sign-in-link-color: #e00;
 
 // Post previews
-$preview_has_children_color: #0F0;
-$preview_has_parent_color: #CC0;
-$preview_deleted_color: #000;
-$preview_pending_color: #00F;
-$preview_flagged_color: #F00;
-$preview_sample_warning_color:  hsl(0,  100%, 90%); // light red
-$preview_quality_warning_color: hsl(50, 100%, 90%); // light yellow
+$preview-has-children-color: #0F0;
+$preview-has-parent-color: #CC0;
+$preview-deleted-color: #000;
+$preview-pending-color: #00F;
+$preview-flagged-color: #F00;
+$preview-sample-warning-color:  hsl(0,  100%, 90%); // light red
+$preview-quality-warning-color: hsl(50, 100%, 90%); // light yellow
 
-$note_highlight_color: $preview_pending_color;
+$note-highlight-color: $preview-pending-color;
+
+// Autocomplete
+$autocomplete-active-background: #F0F0F0;
+$autocomplete-border: #C5C5C5;
+$autocomplete-arrow-color: black;
+
+// Paginator
+$paginator-more-color: grey;
+$paginator-arrow-hover-color: $link-hover-color;
+$paginator-arrow-hover-background: white;
+$paginator-hover-color: white;
+$paginator-hover-background: $link-hover-color;
+
+// Spoilers
+$spoiler-color: black;
+$spoiler-background: black;
+$spoiler-link-color: black;
+$spoiler-hover-color: white;
+$spoiler-link-hover-color: white;
+
+// User Ranks
+$rank-admin-color: red;
+$rank-moderator-color: orange;
+$rank-contributor-color: purple;
+$rank-janitor-color: #63f;
+$rank-privileged-color: #00f;
+$rank-member-color: auto;
+
+// Tag types
+$tag-selected-color: white;
+$tag-banned-color: black;
+$tag-banned-background: red;
+
+// News
+$news-background: $state-notice-color;
+$news-border: border_color($state-notice-color);
 
 
-// Mixin/state colors
-$warning-color: #ffd700;
-$notice-color: saturate($section-background, 20%);
-$success-color: #3e9e49;
-$error-color: #e45f5f;
+// Diffs (wiki/post versions)
+$diff-added-color: green;
+$diff-added-obsolete-color: darkGreen;
+$diff-removed-color: red;
+$diff-removed-obsolete-color: darkRed;
+
+// Notices
+$error-notice-color: #a00;
+$notice-background: $state-notice-color;
+$notice-border: border_color($state-notice-color);
 
 $grey-color: hsl(0, 0%, 90%); // Light grey
 //$error_color: hsl(0, 100%, 95%); // light red
@@ -103,11 +161,49 @@ $preview-icon-color: white;
 $preview-icon-bg: rgba(0,0,0,0.5);
 
 // Posts page
-$notice-parent-background: darken($success-color, 20%);
+$notice-parent-background: darken($state-success-color, 20%);
 $notice-parent-border: border_color($notice-parent-background);
-$notice-child-background: darken($warning-color, 40%);
+$notice-child-background: darken($state-warning-color, 40%);
 $notice-child-border: border_color($notice-child-background);
-$notice-deleted-background: darken($error-color, 40%);
+$notice-deleted-background: darken($state-error-color, 40%);
 $notice-deleted-border: border_color($notice-deleted-background);
 $notice-pending-background: $section-background;
 $notice-pending-border: border_color($notice-pending-background);
+
+// Posts Page View modes
+$mode-view-background: #104e17;
+$mode-delete-background: #4e1010;
+$mode-rating-q-background: #4e4810;
+$mode-tagscript-background: #4f114f;
+$mode-lock-background: #1d1d1d;
+$mode-add-pool-background: #104b57;
+
+// Inline?
+$inline-link-color: $link-color;
+$inline-count-color: #ccc;
+$keyboard-key-background: #333;
+$keyboard-key-color: white;
+$keyboard-key-border: #333;
+$inline-inactive-color: #aaa;
+$inline-last-page-color: #666;
+
+// JQUI
+$widget-link-color: $link-color;
+$widget-link-hover-color: $link-hover-color;
+$widget-highlight-border: border_color($state-notice-color);
+$widget-highlight-background: $state-notice-color;
+$widget-highlight-color: $text-color;
+$widget-highlight-link-hover-color: $link-hover-color;
+$widget-highlight-link-color: $link-color;
+$widget-error-border: border_color($state-error-color);
+$widget-error-background: $state-error-color;
+$widget-button-color: $inverted-text-color;
+$widget-button-background: $button-background;
+$widget-button-border: silver;
+$widget-button-hover-background: $button-hover-background;
+$widget-button-shadow: grey;
+$widget-border: border_color($section-background);
+$widget-color: $text-color;
+$widget-background: $section-background;
+$widget-header-background: $main-background;
+$widget-header-color: $text-color;

@@ -13,17 +13,17 @@ div.paginator {
     }
 
     &.more {
-      color: grey;
+      color: $paginator-more-color;
     }
 
     a.arrow:hover {
-      background: white;
-      color: $link-color;
+      background: $paginator-arrow-hover-background;
+      color: $paginator-arrow-hover-color;
     }
 
     a:hover {
-      background: $link-color;
-      color: white;
+      background: $paginator-hover-background;
+      color: $paginator-hover-color;
     }
 
     span {

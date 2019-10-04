@@ -1,16 +1,18 @@
+@import "../base/005_vars.scss";
+
 .spoiler {
-  color: black;
-  background: black;
+  color: $spoiler-color;
+  background: $spoiler-background;
 }
 
 .spoiler a {
-  color: black;
+  color: $spoiler-link-color;
 }
 
 .spoiler:hover {
-  color: white;
+  color: $spoiler-hover-color;
 }
 
 .spoiler:hover a{
-  color: white;
+  color: $spoiler-link-hover-color;
 }

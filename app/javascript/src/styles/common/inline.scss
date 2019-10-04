@@ -7,30 +7,30 @@ span.error {
 }
 
 span.link {
-  color: $link-color;
+  color: $inline-link-color;
   cursor: pointer;
 }
 
 span.count {
-  color: #CCC;
+  color: $inline-count-color;
   margin-left: 0.5em;
 }
 
 kbd.key {
-  background: #333;
-  border: 1px solid #333;
+  background: $keyboard-key-background;
+  border: 1px solid $keyboard-key-border;
   padding: 1px 6px;
-  color: white;
+  color: $keyboard-key-color;
 /*  width: 1em;*/
   text-align: center;
   display: inline-block;
-  border-radius: 3px;
+  border-radius: $border-radius;
 }
 
 span.inactive {
-  color: #AAA;
+  color: $inline-inactive-color;
 }
 
 td a.last-page {
-  color: #666;
+  color: $inline-last-page-color;
 }

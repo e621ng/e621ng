@@ -6,19 +6,19 @@ div#search {
 
 div#search-box button {
   -webkit-appearance: button;
-  border: 1px solid $link-color;
-  background-color: $link-color;
-  color: #FFF;
+  border: 1px solid $search-box-border;
+  background-color: $search-box-background;
+  color: $search-box-color;
   &:hover, &:focus {
-    border: 1px solid $link-hover-color;
-    background-color: $link-hover-color;
+    border: 1px solid $search-box-hover-border;
+    background-color: $search-box-hover-background;
   }
 }
 
 div#page {
   overflow: visible;
   margin: 0 20px;
-  padding: $half_padding;
+  padding: $half-padding;
 
   // Fix failure to contain contents in bounding box.
   &:after {
@@ -29,12 +29,12 @@ div#page {
   }
 
   div.site-notice {
-    padding: $half_padding;
+    padding: $half-padding;
     text-align: center;
     position: relative;
 
     h1 {
-      font-size: $h2_size;
+      font-size: $h2-size;
     }
 
     p {
@@ -62,7 +62,7 @@ div#page {
 
     button[type=submit] {
       padding: 2px 6px;
-      background: #EEE;
+      background: $form-submit-button-background;
     }
 
     #search-box button[type=submit] {
@@ -91,7 +91,7 @@ footer#page-footer {
   width: 100%;
   margin-top: 1em;
   text-align: center;
-  padding: $base_padding 0 $base_padding;
+  padding: $base-padding 0 $base-padding;
   border-top: 1px solid $hr-color;
 }
 

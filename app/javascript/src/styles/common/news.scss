@@ -2,8 +2,8 @@
 
 div#news-updates {
   padding: 5px;
-  background: $notice-color;
-  border-bottom: 2px solid border_color($notice-color);
+  background: $news-background;
+  border-bottom: 2px solid $news-border;
   overflow: hidden;
   font-size: 0.8em;
 

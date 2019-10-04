@@ -1,43 +1,45 @@
+@import "../base/005_vars.scss";
+
 .diff-list {
   .added, .added a {
-    color: green;
+    color: $diff-added-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   .added.obsolete, .added.obsolete a {
-    color: darkGreen;
+    color: $diff-added-obsolete-color;
   }
 
   .removed, .removed a {
-    color: red;
+    color: $diff-removed-color;
     text-decoration: line-through;
     margin-right: 0.5em;
   }
 
   .removed.obsolete, .removed.obsolete a {
-    color: darkRed;
+    color: $diff-removed-obsolete-color;
   }
 }
 
 .diff-list {
   ins, ins a {
-    color: green;
+    color: $diff-added-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   del, del a {
-    color: red;
+    color: $diff-removed-color;
     text-decoration: line-through;
     margin-right: 0.5em;
   }
 
   ins.obsolete, ins.obsolete a {
-    color: darkGreen;
+    color: $diff-added-obsolete-color;
   }
 
   del.obsolete, del.obsolete a {
-    color: darkRed;
+    color: $diff-removed-obsolete-color;
   }
 }

@@ -2,11 +2,11 @@
 
 div.error-messages {
   margin: 1em 0;
-  padding: $base_padding;
+  padding: $base-padding;
 
   h1 {
     font-size: 1em;
-    color: #A00;
+    color: $error-notice-color;
   }
 }
 
@@ -19,8 +19,8 @@ div#notice {
   z-index: 100;
 
   &:not(.ui-state-error) {
-    background-color: $notice-color;
-    border: 1px solid border_color($notice-color);
+    background-color: $notice-background;
+    border: 1px solid $notice-border;
   }
 }
 

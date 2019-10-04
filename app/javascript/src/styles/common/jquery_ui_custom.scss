@@ -9,11 +9,11 @@
 }
 
 .ui-widget-content a {
-  color: $link-color;
+  color: $widget-link-color;
 }
 
 .ui-widget-content a:hover {
-  color: $link-hover-color;
+  color: $widget-link-hover-color;
 }
 
 div.ui-dialog {
@@ -36,33 +36,30 @@ div.ui-dialog {
 }
 
 .ui-state-highlight {
-  border: 1px solid border_color($notice-color);
-  background: $notice-color;
-  color: $text-color;
+  border: 1px solid $widget-highlight-border;
+  background: $widget-highlight-background;
+  color: $widget-highlight-color;
 
   a, a:active, a:visited {
-    color: $link-color;
+    color: $widget-highlight-link-color;
   }
 
   a:hover {
-    color: $link-hover-color;
+    color: $widget-highlight-link-hover-color;
   }
 }
 
 .ui-state-error {
-  border: 1px solid border_color($error-color);
-  background: $error-color;
+  border: 1px solid $widget-error-border;
+  background: $widget-error-background;
 }
 
 .ui-button {
   margin: 0;
   padding: 0.25em 1em;
-  color: $inverted-text-color;
-  border-top: 1px solid silver;
-  border-left: 1px solid silver;
-  border-bottom: 1px solid darkgrey;
-  border-right: 1px solid darkgrey;
-  background-color: $button-background;
+  color: $widget-button-color;
+  border: 1px solid $widget-button-border;
+  background-color: $widget-button-background;
 
   &.sub {
     font-size: 90%;
@@ -75,8 +72,8 @@ div.ui-dialog {
 }
 
 .ui-button:hover {
-  box-shadow: 1px 1px grey;
-  background: $button-hover-background;
+  box-shadow: 1px 1px $widget-button-shadow;
+  background: $widget-button-hover-background;
 }
 
 .ui-front {
@@ -84,12 +81,12 @@ div.ui-dialog {
 }
 
 .ui-widget-content {
-  border: 1px solid border_color($section-background) !important;
-  background-color: $section-background !important;
-  color: $text-color !important;
+  border: 1px solid $widget-border !important;
+  background-color: $widget-background !important;
+  color: $widget-color !important;
 }
 
 .ui-widget-header {
-  background-color: $main-background;
-  color: $text-color !important;
+  background-color: $widget-header-background;
+  color: $widget-header-color !important;
 }

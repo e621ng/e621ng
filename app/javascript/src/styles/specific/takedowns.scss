@@ -2,8 +2,8 @@
 
 div#c-takedowns {
   .takedown-vericode {
-    border-radius: $border_radius;
-    padding: $base_padding;
+    border-radius: $border-radius;
+    padding: $base-padding;
     font-weight: bold;
     cursor: default;
   }
@@ -54,15 +54,15 @@ div#c-takedowns {
 
   .takedown-post-remove {
     width: 20px;
-    background-color: $error-color;
+    background-color: $state-error-color;
     text-align: center;
   }
 
   .takedown-post-keep {
-    background-color: $success-color;
+    background-color: $state-success-color;
   }
 
   .takedown-post-delete {
-    background-color: $error-color;
+    background-color: $state-error-color;
   }
 }

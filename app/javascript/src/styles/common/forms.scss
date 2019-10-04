@@ -30,30 +30,30 @@ input[type=radio] {
 }
 
 input[type=date] {
-  background-color: white;
+  background-color: $form-date-background;
 }
 
 input:focus {
-  background: $form-focus-color;
-  color: black;
+  background: $form-focus-background;
+  color: $form-focus-color;
 }
 
 select:focus {
-  background: $form-focus-color;
-  color: black;
+  background: $form-focus-background;
+  color: $form-focus-color;
 }
 
 textarea:focus {
-  background: $form-focus-color;
-  color: black;
+  background: $form-focus-background;
+  color: $form-focus-color;
 }
 
 input:disabled {
-  background-color: $form-disabled-color;
+  background-color: $form-disabled-background;
 }
 
 .simple_form {
-  padding: $base_padding;
-  border-radius: $border_radius;
+  padding: $base-padding;
+  border-radius: $border-radius;
   background-color: $section-background;
 }

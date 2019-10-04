@@ -12,7 +12,7 @@ header#top {
 
   menu {
     margin-top: -2px;
-    background: $menu-color;
+    background: $menu-background;
     padding: 6px 20px;
 
     form {
@@ -39,13 +39,13 @@ header#top {
     background: none;
 
     li.current a {
-      background: $menu-color;
+      background: $menu-background;
       font-weight: bold;
     }
 
     li#nav-sign-in a {
       font-weight: bold;
-      color: #e00;
+      color: $page-header-sign-in-link-color;
     }
 
     li.forum-updated a {

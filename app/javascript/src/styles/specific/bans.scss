@@ -2,18 +2,18 @@
 
 #c-bans #a-index {
   tr[data-expired="true"] {
-    background-color: $success-color !important;
+    background-color: $state-success-color !important;
 
     &:hover {
-      background-color: darken($success-color, 5%) !important;
+      background-color: darken($state-success-color, 5%) !important;
     }
   }
 
   tr[data-expired="false"] {
-    background-color: $error-color !important;
+    background-color: $state-error-color !important;
 
     &:hover {
-      background-color: darken($error-color, 5%) !important;
+      background-color: darken($state-error-color, 5%) !important;
     }
   }
 }

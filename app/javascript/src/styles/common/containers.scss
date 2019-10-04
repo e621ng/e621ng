@@ -2,18 +2,18 @@
 
 .box-section {
   background-color: $section-background;
-  padding: $base_padding;
+  padding: $base-padding;
   margin-bottom: 1.5rem;
 }
 
 .box-section.sect_green {
-  background-color: $success-color;
+  background-color: $section-green-background;
 }
 
 .box-section.sect_grey {
-  background-color: $grey-color;
+  background-color: $section-grey-background;
 }
 
 .box-section.sect_red {
-  background-color: $error-color;
+  background-color: $section-red-background;
 }

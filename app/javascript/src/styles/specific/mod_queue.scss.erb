@@ -27,13 +27,13 @@ div#c-moderator-post-queues {
 
     <% Danbooru.config.modqueue_quality_warning_tags.each do |tag| %>
       &[data-tags~="<%= tag %>"] {
-        background-color: $preview_quality_warning_color;
+        background-color: $preview-quality-warning-color;
       }
     <% end %>
 
     <% Danbooru.config.modqueue_sample_warning_tags.each do |tag| %>
       &[data-tags~="<%= tag %>"] {
-        background-color: $preview_sample_warning_color;
+        background-color: $preview-sample-warning-color;
       }
     <% end %>
 
@@ -54,7 +54,7 @@ div#c-moderator-post-queues {
     width: 900px;
 
     h1 {
-      font-size: $h2_size;
+      font-size: $h2-size;
     }
   }
 }

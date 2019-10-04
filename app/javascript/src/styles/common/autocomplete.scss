@@ -6,9 +6,9 @@
   .ui-state-active {
     border: none;
     margin: 0 -1px;
-    background-color: #F0F0F0;
-    border-left: 1px solid #C5C5C5;
-    border-right: 1px solid #C5C5C5;
+    background-color: $autocomplete-active-background;
+    border-left: 1px solid $autocomplete-border;
+    border-right: 1px solid $autocomplete-border;
   }
 
   .ui-menu-item-wrapper {
@@ -20,6 +20,6 @@
   }
 
   .autocomplete-arrow {
-    color: black;
+    color: $autocomplete-arrow-color;
   }
 }

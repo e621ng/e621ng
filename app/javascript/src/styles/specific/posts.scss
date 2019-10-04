@@ -95,73 +95,73 @@ article.post-preview {
   }
 
   &.post-status-has-children img {
-    border-color: $preview_has_children_color;
+    border-color: $preview-has-children-color;
   }
 
   &.post-status-has-parent img {
-    border-color: $preview_has_parent_color;
+    border-color: $preview-has-parent-color;
   }
 
   &.post-status-has-children.post-status-has-parent img {
-    border-color: $preview_has_children_color $preview_has_parent_color $preview_has_parent_color $preview_has_children_color;
+    border-color: $preview-has-children-color $preview-has-parent-color $preview-has-parent-color $preview-has-children-color;
   }
 
 
   &.post-status-deleted img {
-    border-color: $preview_deleted_color;
+    border-color: $preview-deleted-color;
   }
 
   &.post-status-has-children.post-status-deleted img {
-    border-color: $preview_has_children_color $preview_deleted_color $preview_deleted_color $preview_has_children_color;
+    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-children-color;
   }
 
   &.post-status-has-parent.post-status-deleted img {
-    border-color: $preview_has_parent_color $preview_deleted_color $preview_deleted_color $preview_has_parent_color;
+    border-color: $preview-has-parent-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
   }
 
   &.post-status-has-children.post-status-has-parent.post-status-deleted img {
-    border-color: $preview_has_children_color $preview_deleted_color $preview_deleted_color $preview_has_parent_color;
+    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
   }
 
 
   /* Pending and flagged posts have blue borders (except in the modqueue). */
   &.post-status-pending:not(.mod-queue-preview) img,
   &.post-status-flagged:not(.mod-queue-preview) img {
-    border-color: $preview_pending_color;
+    border-color: $preview-pending-color;
   }
 
   &.post-status-has-children.post-status-pending:not(.mod-queue-preview) img,
   &.post-status-has-children.post-status-flagged:not(.mod-queue-preview) img {
-    border-color: $preview_has_children_color $preview_pending_color $preview_pending_color $preview_has_children_color;
+    border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-children-color;
   }
 
   &.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
   &.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
-    border-color: $preview_has_parent_color $preview_pending_color $preview_pending_color $preview_has_parent_color;
+    border-color: $preview-has-parent-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }
 
   &.post-status-has-children.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
   &.post-status-has-children.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
-    border-color: $preview_has_children_color $preview_pending_color $preview_pending_color $preview_has_parent_color;
+    border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }
 }
 
 /* Flagged posts have red borders for approvers. */
 body[data-user-can-approve-posts="true"] .post-preview {
   &.post-status-flagged img {
-    border-color: $preview_flagged_color;
+    border-color: $preview-flagged-color;
   }
 
   &.post-status-has-children.post-status-flagged img {
-    border-color: $preview_has_children_color $preview_flagged_color $preview_flagged_color $preview_has_children_color;
+    border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-children-color;
   }
 
   &.post-status-has-parent.post-status-flagged img {
-    border-color: $preview_has_parent_color $preview_flagged_color $preview_flagged_color $preview_has_parent_color;
+    border-color: $preview-has-parent-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
   }
 
   &.post-status-has-children.post-status-has-parent.post-status-flagged img {
-    border-color: $preview_has_children_color $preview_flagged_color $preview_flagged_color $preview_has_parent_color;
+    border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
   }
 }
 
@@ -473,7 +473,7 @@ div#c-posts {
 
     #artist-commentary {
       border: 1px solid border_color($section-background);
-      border-radius: $border_radius;
+      border-radius: $border-radius;
       background-color: $section-background;
       margin-top: 1em;
       padding: 0.5em;
@@ -509,7 +509,7 @@ div#c-post-versions, div#c-artist-versions {
 div#c-posts, div#c-uploads {
   /* Fetch source data box */
   div#source-info {
-    border-radius: $border_radius;
+    border-radius: $border-radius;
     margin: 1em 0;
     padding: 1em;
     border: 1px solid #666;

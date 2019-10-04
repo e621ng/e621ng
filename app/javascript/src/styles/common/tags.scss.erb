@@ -16,7 +16,7 @@
     }
 
     &.selected {
-      color: white;
+      color: $tag-selected-color;
     }
   }
 
@@ -32,14 +32,14 @@
     }
 
     &.selected {
-      color: white;
+      color: $tag-selected-color;
     }
   }
 <% end %>
 
 .category-banned a, a.tag-type-banned, .ui-state-active a.tag-type-banned {
-  color: black;
-  background-color: red;
+  color: $tag-banned-color;
+  background-color: $tag-banned-background;
 }
 
 .inline-tag-list {
