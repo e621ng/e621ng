@@ -2,10 +2,11 @@
 
 div#c-blips {
   article.blip {
-    margin-bottom: 2em;
+    @include section-box-shadow;
+    margin-bottom: $base-padding;
     word-wrap: break-word;
     padding: 5px;
-    background: $section-background;
+    background: $blip-background;
 
     div.author {
       width: 12em;
@@ -15,7 +16,7 @@ div#c-blips {
 
       h1 {
         display: block;
-        font-size: $h3_size;
+        font-size: $h3-size;
       }
     }
 

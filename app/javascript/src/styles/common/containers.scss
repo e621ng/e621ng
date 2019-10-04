@@ -1,6 +1,7 @@
 @import "../base/005_vars.scss";
 
 .box-section {
+  @include section-box-shadow;
   background-color: $section-background;
   padding: $base-padding;
   margin-bottom: 1.5rem;

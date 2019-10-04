@@ -20,6 +20,8 @@ $section-link-hover-color: white;
 $main-background: #031131;
 $menu-background: #152F56;
 $content-background: #152f56;
+$lighten-background: rgba(255,255,255,0.05);
+$box-shadow-color: #07162D;
 
 // Links
 $link-color: #b4c7d9;
@@ -45,9 +47,13 @@ $hint-color: #AAA;
 $info-color: #AAA;
 
 // DText
-$dtext-expandable-border: #666;
+$dtext-expandable-background: $section-background;
+$dtext-expandable-shadow: #07162d;
 $dtext-code-background: rgba(255,255,255,0.2);
 
+// Blips
+$blip-background: $lighten-background;
+$blip-shadow: #07162d;
 
 // Navigation
 $navigation-background: $section-background;
@@ -177,6 +183,13 @@ $mode-rating-q-background: #4e4810;
 $mode-tagscript-background: #4f114f;
 $mode-lock-background: #1d1d1d;
 $mode-add-pool-background: #104b57;
+
+$comment-list-background: none;
+$comment-background: $lighten-background;
+$comment-sticky-background: saturate($section-background, 10%);
+$comment-hidden-background: $section-red-background;
+$comment-vote-background: rgba(255, 255, 255, 0.2);
+$comment-post-background: $section-background;
 
 // Inline?
 $inline-link-color: $link-color;

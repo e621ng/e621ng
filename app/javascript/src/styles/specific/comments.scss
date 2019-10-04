@@ -6,16 +6,22 @@ div.comments-for-post {
   }
 
   div.list-of-comments {
-    background-color: $section-background;
+    background-color: $comment-list-background;
     padding: $base-padding;
     article.comment {
-      border-bottom: 1px solid border_color($section-background);
+      @include section-box-shadow;
+      background: $comment-background;
       word-wrap: break-word;
       padding: 5px;
+      margin-bottom: 1rem;
       display: flex;
 
       &[data-is-sticky="true"] {
-        background: saturate($section-background, 10%);
+        background: $comment-sticky-background;
+      }
+
+      &[data-is-hidden="true"] {
+        background: $comment-hidden-background;
       }
 
       div.author {
@@ -24,7 +30,7 @@ div.comments-for-post {
 
         h1 {
           display: block;
-          font-size: $h3_size;
+          font-size: $h3-size;
         }
       }
 
@@ -36,7 +42,7 @@ div.comments-for-post {
         }
 
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: $comment-vote-background;
             border-radius: $border-radius;
         }
       }
@@ -90,6 +96,9 @@ div#c-comments {
     }
 
     div.post-preview {
+      @include section-box-shadow;
+      background-color: $comment-post-background;
+      padding: $half-padding;
       &[data-tags~=animated], &[data-file-ext=swf], &[data-file-ext=webm], &[data-file-ext=zip], &[data-file-ext=mp4] {
         div.preview {
           position: relative;

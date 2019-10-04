@@ -66,13 +66,16 @@
   }
 
   div.expandable {
+    @include section-box-shadow;
     margin-bottom: 1em;
-    border: 1px inset $dtext-expandable-border;
+    background: $dtext-expandable-background;
+    border-radius: $border-radius;
 
-    div.expandable-header {
+    >div.expandable-header {
+      cursor: pointer;
       padding: 0.4em;
 
-      .section-arrow::after {
+      >.section-arrow::after {
         content: '►';
       }
 
@@ -85,7 +88,6 @@
     div.expandable-content {
       display: none;
       padding: 0.4em;
-      border-top: 1px solid $dtext-expandable-border;
 
       > :last-child {
         margin-bottom: 0;
@@ -94,13 +96,11 @@
   }
 
   div.expandable.expanded {
-    div.expandable-content {
+    >div.expandable-content {
       display: block;
     }
-    div.expandable-header {
-      .section-arrow::after {
+    >div.expandable-header>.section-arrow::after {
         content: '▼';
-      }
     }
   }
 

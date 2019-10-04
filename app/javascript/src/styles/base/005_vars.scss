@@ -9,7 +9,7 @@ $quarter_padding: $base-padding/4;
 // Font
 $h1_size: 2em;
 $h2-size: 1.5em;
-$h3_size: 1.16667em;
+$h3-size: 1.16667em;
 $h4_size: 1em;
 $dtext_h1_size: 2em;
 $dtext_h2_size: 1.8em;
@@ -22,6 +22,8 @@ $h2_padding: 0.8em 0 0.25em 0;
 $h3_padding: 0.8em 0 0.25em 0;
 $h4_padding: 0.8em 0 0.25em 0;
 $base_font_family: Verdana, Helvetica, sans-serif;
+
+$box-shadow-size: 2px 2px 5px;
 
 
 
@@ -58,4 +60,8 @@ $base_font_family: Verdana, Helvetica, sans-serif;
   font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro";
   font-weight: 900;
   content: $content;
+}
+
+@mixin section-box-shadow($size: $box-shadow-size, $color: $box-shadow-color) {
+  box-shadow: $size $color;
 }

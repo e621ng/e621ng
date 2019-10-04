@@ -2,6 +2,7 @@
 
 div.list-of-forum-posts {
   article {
+    @include section-box-shadow;
     background-color: $section-background;
     margin: 1em 0em;
     word-wrap: break-word;
