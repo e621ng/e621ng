@@ -2,8 +2,9 @@ Rails.application.routes.draw do
 
   require 'sidekiq/web'
   require 'sidekiq_unique_jobs/web'
+
   Sidekiq::Web.set :session_secret, Rails.application.credentials[:secret_key_base]
-  mount Sidekiq::Web => '/sidekiq'
+  mount Sidekiq::Web => '/sidekiq', constraints: AdminRouteConstraint.new
 
   namespace :admin do
     resources :users, :only => [:edit, :update, :edit_blacklist, :update_blacklist] do
