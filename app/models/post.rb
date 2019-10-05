@@ -1833,7 +1833,7 @@ class Post < ApplicationRecord
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
         # IqdbUpdateJob.perform_async(id, preview_file_url)
-        IqdbUpdateJob.perform_async(id, "md5:#{md5}.#{file_ext}")
+        IqdbUpdateJob.perform_async(id, "md5:#{md5}.jpg")
       end
     end
 
