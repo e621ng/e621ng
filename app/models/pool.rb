@@ -18,7 +18,6 @@ class Pool < ApplicationRecord
   validate :validate_number_of_posts
   before_validation :normalize_post_ids
   before_validation :normalize_name
-  after_save :update_category_pseudo_tags_for_posts_async
   after_save :create_version
   after_create :synchronize!
 
@@ -333,20 +332,6 @@ class Pool < ApplicationRecord
 
   def method_attributes
     super + [:creator_name, :post_count]
-  end
-
-  def update_category_pseudo_tags_for_posts_async
-    if saved_change_to_category?
-      PostUpdatePoolsJob.perform_later(id)
-    end
-  end
-
-  def update_category_pseudo_tags_for_posts
-    Post.where(id: post_ids).find_each do |post|
-      post.reload
-      post.set_pool_category_pseudo_tags
-      Post.where(:id => post.id).update_all(:pool_string => post.pool_string)
-    end
   end
 
   def category_changeable_by?(user)
