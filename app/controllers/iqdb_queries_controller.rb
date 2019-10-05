@@ -9,7 +9,7 @@ class IqdbQueriesController < ApplicationController
     end
 
     if params[:post_id]
-      @matches = IqdbProxy.query(Post.find(params[:post_id]).preview_file_url)
+      @matches = IqdbProxy.query_path(Post.find(params[:post_id]).preview_file_path)
     end
 
     respond_with(@matches) do |fmt|

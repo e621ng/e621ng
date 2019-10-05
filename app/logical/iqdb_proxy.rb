@@ -10,6 +10,20 @@ class IqdbProxy
     decorate_posts(json.parsed_response)
   end
 
+  def self.query_path(image_path)
+    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+
+    f = File.open(image_path)
+    url = URI.parse(Danbooru.config.iqdbs_server)
+    url.path = "/similar"
+    json = HTTParty.post(url.to_s, body: {
+        file: f
+    }.merge(Danbooru.config.httparty_options))
+    f.close
+    return [] if json.code != 200
+    decorate_posts(json.parsed_response)
+  end
+
   def self.decorate_posts(json)
     json.map do |x|
       begin
