@@ -2,14 +2,13 @@
   <div id="a-new">
     <h1>Name Change Request</h1>
 
-    <p>You can request a name change once per week. Your previous names will still
-    be visible on your profile to other Danbooru members, but they won't be visible
-    to search engines.</p>
+    <p>You can request a name change once per week.</p>
 
     <%= error_messages_for "change_request" %>
 
     <%= simple_form_for(@change_request) do |f| %>
       <%= f.input :desired_name %>
+      <%= f.input :change_reason %>
       <%= f.submit "Submit" %>
     <% end %>
   </div>

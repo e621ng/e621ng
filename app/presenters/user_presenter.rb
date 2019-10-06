@@ -149,7 +149,7 @@ class UserPresenter
   end
 
   def previous_names(template)
-    user.user_name_change_requests.map { |req| template.link_to req.original_name, req }.join(", ").html_safe
+    user.user_name_change_requests.map { |req| template.link_to req.original_name, req }.join(" -> ").html_safe
   end
 
   def favorite_tags_with_types

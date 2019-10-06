@@ -2,11 +2,12 @@
   <div id="a-new">
     <h1>Sign Up</h1>
 
-    <p>A basic account is <strong>free</strong> and lets you keep favorites, upload artwork, and write comments.</p>
+    <p>An account is <strong>free</strong> and lets you keep favorites, upload artwork, and write comments.</p>
 
-    <h1 style="margin-bottom: 1em;">This site is open to web crawlers so whatever name you choose will be public!</h1>
-
-    <p>This includes favorites, uploads, and comments. Almost everything is public. So don't choose a name you don't want to be associated with.</p>
+    <div class="box-section sect_red">
+      <p>This site is open to web crawlers so whatever name you choose will be public!</p>
+      <p>This includes favorites, uploads, and comments. Almost everything is public. So don't choose a name you don't want to be associated with.</p>
+    </div>
 
     <div id="p3">
       <%= simple_form_for(@user, html: {id: "signup-form"}) do |f| %>
