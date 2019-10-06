@@ -1877,7 +1877,8 @@ CREATE TABLE public.post_versions (
     source_changed boolean DEFAULT false NOT NULL,
     description text,
     description_changed boolean DEFAULT false NOT NULL,
-    version integer DEFAULT 1 NOT NULL
+    version integer DEFAULT 1 NOT NULL,
+    reason character varying
 );
 
 
@@ -5328,6 +5329,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190919213915'),
 ('20190924233432'),
 ('20191003070653'),
-('20191006073950');
+('20191006073950'),
+('20191006143246');
 
 
