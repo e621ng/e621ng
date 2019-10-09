@@ -9,15 +9,17 @@
 
   .added.obsolete, .added.obsolete a {
     color: $diff-added-obsolete-color;
+    text-decoration: line-through;
   }
 
   .removed, .removed a {
     color: $diff-removed-color;
-    text-decoration: line-through;
+    text-decoration: none;
     margin-right: 0.5em;
   }
 
   .removed.obsolete, .removed.obsolete a {
+    text-decoration: line-through;
     color: $diff-removed-obsolete-color;
   }
 }
@@ -31,15 +33,17 @@
 
   del, del a {
     color: $diff-removed-color;
-    text-decoration: line-through;
+    text-decoration: none;
     margin-right: 0.5em;
   }
 
   ins.obsolete, ins.obsolete a {
+    text-decoration: line-through;
     color: $diff-added-obsolete-color;
   }
 
   del.obsolete, del.obsolete a {
+    text-decoration: line-through;
     color: $diff-removed-obsolete-color;
   }
 }

@@ -27,12 +27,12 @@ module PostVersionsHelper
     html = '<span class="diff-list">'
 
     diff[:added_tags].each do |tag|
-      prefix = diff[:obsolete_added_tags].include?(tag) ? '+<ins class="obsolete">' : '<ins>+'
+      prefix = diff[:obsolete_added_tags].include?(tag) ? '<ins class="obsolete">+' : '<ins>+'
       html << prefix + link_to(tag, posts_path(:tags => tag)) + '</ins>'
       html << " "
     end
     diff[:removed_tags].each do |tag|
-      prefix = diff[:obsolete_removed_tags].include?(tag) ? '-<del class="obsolete">' : '<del>-'
+      prefix = diff[:obsolete_removed_tags].include?(tag) ? '<del class="obsolete">-' : '<del>-'
       html << prefix + link_to(tag, posts_path(:tags => tag)) + '</del>'
       html << " "
     end

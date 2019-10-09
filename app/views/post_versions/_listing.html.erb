@@ -5,7 +5,7 @@
         <input type="checkbox" class="post-version-select" <%= "disabled" unless post_version.can_undo?(CurrentUser.user) %> >
       </div>
       <div class="pv-post-label pv-label">
-        Post #
+        Post #:Version
       </div>
       <div class="pv-date-label pv-label">
         User
@@ -18,7 +18,7 @@
       </div>
       <div class="pv-spacer pv-label"></div>
       <div class="pv-post pv-content">
-        <%= link_to("#{post_version.post_id}.#{post_version.version}", post_path(post_version.post_id)) %>
+        <%= link_to("#{post_version.post_id}:#{post_version.version}", post_path(post_version.post_id)) %>
       </div>
       <div class="pv-date pv-content">
         <% if post_version.updater %>
