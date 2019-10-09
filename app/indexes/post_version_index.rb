@@ -70,8 +70,10 @@ module PostVersionIndex
         parent_id: parent_id,
         rating: rating,
         source: source,
+        description: description,
+        reason: reason,
 
-        description_changed: false,
+        description_changed: description_changed,
         parent_id_changed: parent_changed,
         source_changed: source_changed,
         rating_changed: rating_changed,
