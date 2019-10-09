@@ -40,6 +40,12 @@ class PostArchive < ApplicationRecord
       def split_to_terms(field, input)
         input.split(',').map(&:to_i).map {|x| {term: {field => x}}}
       end
+      def tag_list(field, input, target)
+        if input.present?
+          target += Tag.scan_tags(input, strip_metatags: true).map {|x| {term: {field => x}}}
+        end
+        target
+      end
 
       if params[:updater_name].present?
         must << {term: {updater_id: User.name_to_id(params[:updater_name])}}
@@ -55,6 +61,21 @@ class PostArchive < ApplicationRecord
 
       if params[:start_id].present?
         must << {range: {id: {gte: params[:start_id].to_i}}}
+      end
+
+      must = tag_list(:tags, params[:tags], must)
+      must = tag_list(:tags_removed, params[:tags_removed], must)
+      must = tag_list(:tags_added, params[:tags_added], must)
+      must = tag_list(:locked_tags, params[:locket_tags], must)
+      must = tag_list(:locked_tags_removed, params[:locked_tags_removed], must)
+      must = tag_list(:locked_tags_added, params[:locked_tags_added], must)
+
+      if params[:reason].present?
+        must << {match: {reason: params[:reason]}}
+      end
+
+      if params[:description].present?
+        must << {match: {description: params[:description]}}
       end
 
       if must.empty?
@@ -135,6 +156,11 @@ class PostArchive < ApplicationRecord
   end
 
   def previous
+    # HACK: If this if the first version we can avoid a lookup because we know there are no previous versions.
+    if version <= 1
+      return nil
+    end
+
     # HACK: if all the post versions for this post have already been preloaded,
     # we can use that to avoid a SQL query.
     if association(:post).loaded? && post && post.association(:versions).loaded?
@@ -149,7 +175,7 @@ class PostArchive < ApplicationRecord
   end
 
   def diff_sources(version = nil)
-    new_sources = source.split("\n") || []
+    new_sources = source&.split("\n") || []
     old_sources = version&.source&.split("\n") || []
 
     added_sources = new_sources - old_sources

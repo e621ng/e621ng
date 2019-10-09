@@ -12,6 +12,7 @@ module PostVersionIndex
         indexes :rating, type: 'keyword'
         indexes :source, type: 'keyword'
         indexes :description, type: 'text'
+        indexes :reason, type: "text"
 
         indexes :description_changed, type: 'boolean'
         indexes :parent_id_changed, type: 'boolean'
