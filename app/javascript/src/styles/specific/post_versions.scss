@@ -2,8 +2,115 @@
 
 div#c-post-versions {
   div#a-index {
-    tr.hilite {
-      background: $highlight-color;
+    .pv-label {
+      border-bottom: 1px solid black;
+      border-right: 1px solid black;
+      background: $post-version-label-background;
+      padding: 0.25rem 0.5rem;
+    }
+
+    .pv-content {
+      background: $post-version-content-background;
+      padding: 0.25rem 0.5rem;
+    }
+
+    .post-version {
+      display: grid;
+      border: 1px solid black;
+      margin-bottom: 0.5rem;
+      grid-template-columns: 2rem repeat(12, 1fr);
+      grid-auto-rows: auto;
+      @include section-box-shadow;
+    }
+
+    .pv-check {
+      grid-row-start: 1;
+      grid-row-end: 5;
+      grid-column: 1;
+      background: $post-version-label-background;
+    }
+
+    .pv-post-label {
+      grid-row: 1;
+      grid-column-start: 2;
+      grid-column-end: 3;
+    }
+
+    .pv-post {
+      grid-row: 2;
+      grid-column-start: 2;
+      grid-column-end: 3;
+    }
+
+    .pv-date-label {
+      grid-row: 1;
+      grid-column-start: 3;
+      grid-column-end: 5;
+    }
+
+    .pv-date {
+      grid-row: 2;
+      grid-column-start: 3;
+      grid-column-end: 5;
+    }
+
+    .pv-reason-label {
+      grid-row: 1;
+      grid-column-start: 5;
+      grid-column-end: 7;
+    }
+
+    .pv-reason {
+      grid-row: 2;
+      grid-column-start: 5;
+      grid-column-end: 7;
+    }
+
+    .pv-sources-label {
+      grid-row: 1;
+      grid-column-start: 7;
+      grid-column-end: 13;
+    }
+
+    .pv-sources {
+      grid-row: 2;
+      grid-column-start: 7;
+      grid-column-end: 13;
+    }
+
+    .pv-tags-label {
+      grid-row: 3;
+      grid-column-start: 2;
+      grid-column-end: 10;
+    }
+
+    .pv-tags {
+      grid-row: 4;
+      grid-column-start: 2;
+      grid-column-end: 10;
+      border-right: 1px solid black;
+    }
+
+    .pv-tags-locked-label {
+      grid-row: 3;
+      grid-column-start: 10;
+      grid-column-end: 14;
+    }
+
+    .pv-tags-locked {
+      grid-row: 4;
+      grid-column-start: 10;
+      grid-column-end: 14;
+    }
+
+    .pv-actions {
+      grid-row: 2;
+      grid-column: 13;
+    }
+
+    .pv-spacer {
+      grid-row: 1;
+      grid-column: 13;
     }
   }
 }
