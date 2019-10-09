@@ -1,58 +1,58 @@
 <div id="p-revert-listing">
-  <table class="striped autofit">
-    <thead>
-    <tr>
-      <% if CurrentUser.is_janitor? %>
-        <th class="post-version-row-select">
-          <label><input type="checkbox" id="post-version-select-all"/></label>
-        </th>
-      <% end %>
-      <th width="5%">Post</th>
-      <th width="15%">Date</th>
-      <th width="10%">User</th>
-      <% if CurrentUser.is_moderator? %>
-        <th width="5%">IP Address</th>
-      <% end %>
-      <th>Sources</th>
-      <th>Tags</th>
-      <td>Locked Tags</td>
-      <th width="7%"></th>
-    </tr>
-    </thead>
-    <tbody>
-    <% @post_versions.each do |post_version| %>
-      <tr id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>">
-        <% if CurrentUser.is_janitor? %>
-          <td class="post-version-row-select">
-            <input type="checkbox" class="post-version-select" <%= "disabled" unless post_version.can_undo?(CurrentUser.user) %>>
-          </td>
+  <% @post_versions.each do |post_version| %>
+    <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" class="post-version">
+      <div class="post-version-row-select pv-check pv-label">
+        <input type="checkbox" class="post-version-select" <%= "disabled" unless post_version.can_undo?(CurrentUser.user) %> >
+      </div>
+      <div class="pv-post-label pv-label">
+        Post #
+      </div>
+      <div class="pv-date-label pv-label">
+        User
+      </div>
+      <div class="pv-reason-label pv-label">
+        Reason
+      </div>
+      <div class="pv-sources-label pv-label">
+        Sources
+      </div>
+      <div class="pv-spacer pv-label"></div>
+      <div class="pv-post pv-content">
+        <%= link_to("#{post_version.post_id}.#{post_version.version}", post_path(post_version.post_id)) %>
+      </div>
+      <div class="pv-date pv-content">
+        <% if post_version.updater %>
+          <%= link_to_user(post_version.updater) %>
         <% end %>
-        <td><%= link_to("#{post_version.post_id}.#{post_version.version}", post_path(post_version.post_id)) %></td>
-        <td><%= compact_time(post_version.updated_at) %></td>
-        <td>
-          <% if post_version.updater %>
-            <%= link_to_user(post_version.updater) %>
-          <% end %>
-        </td>
-        <% if CurrentUser.is_moderator? %>
-          <td>
-            <%= link_to_ip post_version.updater_ip_addr %>
-          </td>
+        <%= time_ago_in_words_tagged(post_version.updated_at, compact: true) %>
+      </div>
+      <div class="pv-reason pv-content">
+        <%= post_version.reason || "(None)" %>
+      </div>
+      <div class="pv-sources pv-content">
+        <%= post_source_diff(post_version) %>
+      </div>
+      <div class="pv-actions pv-content">
+        <% if post_version.can_undo?(CurrentUser.user) %>
+          <%= link_to "Undo", undo_post_version_path(post_version), :method => :put, :remote => true %>
         <% end %>
-        <td class="col-expand"><%= post_source_diff(post_version) %></td>
-        <td><%= post_version_diff(post_version) %></td>
-        <td><%= post_version_locked_diff(post_version) %></td>
-        <td>
-          <% if post_version.can_undo?(CurrentUser.user) %>
-            <%= link_to "Undo", undo_post_version_path(post_version), :method => :put, :remote => true %>
-          <% end %>
-          <% if params.dig(:search, :post_id).present? && post_version.can_revert_to?(CurrentUser.user) %>
-            | <%= link_to "Revert to", revert_post_path(post_version.post_id, :version_id => post_version.id), :method => :put, :remote => true %>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
-    </tbody>
-  </table>
+        <% if params.dig(:search, :post_id).present? && post_version.can_revert_to?(CurrentUser.user) %>
+          | <%= link_to "Revert to", revert_post_path(post_version.post_id, :version_id => post_version.id), :method => :put, :remote => true %>
+        <% end %>
+      </div>
+      <div class="pv-tags-label pv-label">
+        Tags
+      </div>
+      <div class="pv-tags-locked-label pv-label">
+        Locked Tags
+      </div>
+      <div class="pv-tags pv-content">
+        <%= post_version_diff(post_version) %>
+      </div>
+      <div class="pv-tags-locked pv-content">
+        <%= post_version_locked_diff(post_version) %>
+      </div>
+    </div>
+  <% end %>
 </div>
 

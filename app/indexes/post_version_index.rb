@@ -12,6 +12,7 @@ module PostVersionIndex
         indexes :rating, type: 'keyword'
         indexes :source, type: 'keyword'
         indexes :description, type: 'text'
+        indexes :reason, type: "text"
 
         indexes :description_changed, type: 'boolean'
         indexes :parent_id_changed, type: 'boolean'
@@ -69,8 +70,10 @@ module PostVersionIndex
         parent_id: parent_id,
         rating: rating,
         source: source,
+        description: description,
+        reason: reason,
 
-        description_changed: false,
+        description_changed: description_changed,
         parent_id_changed: parent_changed,
         source_changed: source_changed,
         rating_changed: rating_changed,
