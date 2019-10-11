@@ -13,8 +13,11 @@
       <div class="pv-reason-label pv-label">
         Reason
       </div>
-      <div class="pv-sources-label pv-label">
-        Sources
+      <div class="pv-description-label pv-label">
+        Description
+      </div>
+      <div class="pv-tags-locked-label pv-label">
+        Locked Tags
       </div>
       <div class="pv-spacer pv-label"></div>
       <div class="pv-post pv-content">
@@ -29,8 +32,23 @@
       <div class="pv-reason pv-content">
         <%= post_version.reason || "(None)" %>
       </div>
-      <div class="pv-sources pv-content">
-        <%= post_source_diff(post_version) %>
+      <div class="pv-description pv-content">
+        <% if post_version.description.present? %>
+          <div onclick='$(this).next().toggle();' class="desc-show">
+            <%= post_version.description_changed ? "Show Description" : "No change" %></div>
+          <div id='desc-<%= post_version.id %>' class='desc-popup box-section'>
+            <h2>Description</h2>
+            <div class="closebutton" onclick="$(this.parentNode).hide()">X</div>
+            <div class='desc-popup-inner'>
+              <p><%= format_text(post_version.description) %></p>
+            </div>
+          </div>
+        <% else %>
+          (None)
+        <% end %>
+      </div>
+      <div class="pv-tags-locked pv-content">
+        <%= post_version_locked_diff(post_version) %>
       </div>
       <div class="pv-actions pv-content">
         <% if post_version.can_undo?(CurrentUser.user) %>
@@ -43,14 +61,14 @@
       <div class="pv-tags-label pv-label">
         Tags
       </div>
-      <div class="pv-tags-locked-label pv-label">
-        Locked Tags
+      <div class="pv-sources-label pv-label">
+        Sources
       </div>
       <div class="pv-tags pv-content">
         <%= post_version_diff(post_version) %>
       </div>
-      <div class="pv-tags-locked pv-content">
-        <%= post_version_locked_diff(post_version) %>
+      <div class="pv-sources pv-content">
+        <%= post_source_diff(post_version) %>
       </div>
     </div>
   <% end %>

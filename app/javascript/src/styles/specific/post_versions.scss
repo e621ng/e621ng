@@ -2,6 +2,41 @@
 
 div#c-post-versions {
   div#a-index {
+    .desc-show {
+      cursor:pointer;
+    }
+
+    .desc-popup {
+      display:none;
+      z-index:10;
+      width:800px;
+      height:400px;
+      position:fixed;
+      top:50%;
+      left:50%;
+      margin:auto;
+      margin-left:-400px;
+      margin-top:-200px;
+      box-shadow:0px 0px 15px #07162D, 0px 0px 15px #07162D, 0px 0px 15px #07162D !important;
+    }
+
+    .desc-popup-inner {
+      height:370px;
+      overflow:auto;
+    }
+
+    .closebutton {
+      float:right;
+      cursor:pointer;
+      margin-right:10px;
+      font-size:14pt;
+      font-weight:bold;
+      color:white;
+      vertical-align:center;
+      margin-top:-3px;
+    }
+
+
     .pv-label {
       border-bottom: 1px solid black;
       border-right: 1px solid black;
@@ -40,6 +75,7 @@ div#c-post-versions {
       grid-row: 2;
       grid-column-start: 2;
       grid-column-end: 3;
+      border-right: 1px solid black;
     }
 
     .pv-date-label {
@@ -52,6 +88,7 @@ div#c-post-versions {
       grid-row: 2;
       grid-column-start: 3;
       grid-column-end: 5;
+      border-right: 1px solid black;
     }
 
     .pv-reason-label {
@@ -64,18 +101,33 @@ div#c-post-versions {
       grid-row: 2;
       grid-column-start: 5;
       grid-column-end: 7;
+      border-right: 1px solid black;
     }
 
-    .pv-sources-label {
+    .pv-description-label {
       grid-row: 1;
       grid-column-start: 7;
+      grid-column-end: 9;
+    }
+
+    .pv-description {
+      grid-row: 2;
+      grid-column-start: 7;
+      grid-column-end: 9;
+      border-right: 1px solid black;
+    }
+
+    .pv-tags-locked-label {
+      grid-row: 1;
+      grid-column-start: 9;
       grid-column-end: 13;
     }
 
-    .pv-sources {
+    .pv-tags-locked {
       grid-row: 2;
-      grid-column-start: 7;
+      grid-column-start: 9;
       grid-column-end: 13;
+      border-right: 1px solid black;
     }
 
     .pv-tags-label {
@@ -91,13 +143,13 @@ div#c-post-versions {
       border-right: 1px solid black;
     }
 
-    .pv-tags-locked-label {
+    .pv-sources-label {
       grid-row: 3;
       grid-column-start: 10;
       grid-column-end: 14;
     }
 
-    .pv-tags-locked {
+    .pv-sources {
       grid-row: 4;
       grid-column-start: 10;
       grid-column-end: 14;
