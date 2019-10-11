@@ -30,7 +30,7 @@
         <%= time_ago_in_words_tagged(post_version.updated_at, compact: true) %>
       </div>
       <div class="pv-reason pv-content">
-        <%= post_version.reason || "(None)" %>
+        <%= post_version.reason %>
       </div>
       <div class="pv-description pv-content">
         <% if post_version.description.present? %>
@@ -43,8 +43,6 @@
               <p><%= format_text(post_version.description) %></p>
             </div>
           </div>
-        <% else %>
-          (None)
         <% end %>
       </div>
       <div class="pv-tags-locked pv-content">
