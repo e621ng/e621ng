@@ -1,4 +1,4 @@
-import Cookie from './cookie'
+import LS from './local_storage'
 
 let NewsUpdate = {};
 
@@ -9,14 +9,14 @@ NewsUpdate.initialize = function() {
 
   var key = $("#news-updates").data("id").toString();
 
-  if (Cookie.get("news-ticker") === key) {
+  if (LS.get("news-ticker") === key) {
     $("#news-updates").hide();
   } else {
     $("#news-updates").show();
 
     $("#close-news-ticker-link").on("click.danbooru", function(e) {
       $("#news-updates").hide();
-      Cookie.put("news-ticker", key);
+      LS.put("news-ticker", key);
 
       return false;
     });

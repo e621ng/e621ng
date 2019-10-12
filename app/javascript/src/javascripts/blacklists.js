@@ -1,5 +1,5 @@
 import Utility from './utility'
-import Cookie from './cookie'
+import LS from './local_storage'
 
 let Blacklist = {};
 
@@ -85,7 +85,7 @@ Blacklist.update_sidebar = function () {
 }
 
 Blacklist.initialize_disable_all_blacklists = function () {
-  if (Cookie.get("dab") === "1") {
+  if (LS.get("dab") === "1") {
     $("#re-enable-all-blacklists").show();
     $("#blacklist-list a:not(.blacklisted-active)").click();
     Blacklist.apply();
@@ -96,7 +96,7 @@ Blacklist.initialize_disable_all_blacklists = function () {
   $("#disable-all-blacklists").on("click.danbooru", function (e) {
     $("#disable-all-blacklists").hide();
     $("#re-enable-all-blacklists").show();
-    Cookie.put("dab", "1");
+    LS.put("dab", "1");
     $("#blacklist-list a:not(.blacklisted-active)").click();
     e.preventDefault();
   });
@@ -104,7 +104,7 @@ Blacklist.initialize_disable_all_blacklists = function () {
   $("#re-enable-all-blacklists").on("click.danbooru", function (e) {
     $("#disable-all-blacklists").show();
     $("#re-enable-all-blacklists").hide();
-    Cookie.put("dab", "0");
+    LS.put("dab", "0");
     $("#blacklist-list a.blacklisted-active").click();
     e.preventDefault();
   });
