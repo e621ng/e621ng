@@ -574,11 +574,11 @@ class User < ApplicationRecord
 
     def favorite_limit
       if is_contributor?
-        40_000
+        250_000
       elsif is_privileged?
-        20_000
+        125_000
       else
-        10_000
+        80_000
       end
     end
 
