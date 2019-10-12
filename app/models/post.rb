@@ -766,7 +766,7 @@ class Post < ApplicationRecord
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = remove_invalid_tags(normalized_tags)
-      normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
+      # normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
@@ -1894,8 +1894,10 @@ class Post < ApplicationRecord
     end
 
     def added_tags_are_valid
-      added_invalid_tags = added_tags.select {|t| t.category == Tag.categories.invalid}
-      new_tags = added_tags.select {|t| t.post_count <= 0}
+      # Load this only once since it isn't cached
+      added = added_tags
+      added_invalid_tags = added.select {|t| t.category == Tag.categories.invalid}
+      new_tags = added.select {|t| t.post_count <= 0}
       new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
       new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
       repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta)}

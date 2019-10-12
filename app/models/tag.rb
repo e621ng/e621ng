@@ -275,11 +275,43 @@ class Tag < ApplicationRecord
     end
 
     def create_for_list(names)
-      names.map {|x| find_or_create_by_name(x).name}
+      find_or_create_by_name_list(names).map(&:name)
     end
 
     def find_by_normalized_name(name)
       find_by_name(normalize_name(name))
+    end
+
+    def find_or_create_by_name_list(names, creator: CurrentUser.user)
+      names = names.map {|x| normalize_name(x)}
+      names = names.map do |x|
+        if x =~ /\A(#{categories.regexp}):(.+)\Z/
+          return [$1, $2]
+        end
+        [x, nil]
+      end.to_h
+
+      existing = Tag.where(name: names.keys).to_a
+      existing.each do |tag|
+        cat = names[tag.name]
+        if cat && categories.value_for(cat) != tag.category
+          if tag.category_editable_by_implicit?(creator)
+            tag.update(category: category_id)
+          else
+            tag.errors.add(:category, "cannot be changed implicitly through a tag prefix")
+          end
+        end
+        names.delete(tag.name)
+      end
+
+      names.each do |name, cat|
+        existing << Tag.new.tap do |t|
+          t.name = name
+          t.category = categories.value_for(cat)
+          t.save
+        end
+      end
+      existing
     end
 
     def find_or_create_by_name(name, creator: CurrentUser.user)
