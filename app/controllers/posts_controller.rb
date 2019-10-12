@@ -29,9 +29,7 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted)
     @comment_votes = CommentVote.for_comments_and_user(@post.comments.visible(CurrentUser.user).map(&:id), CurrentUser.id) if request.format.html?
 
-    respond_with(@post) do |format|
-      format.html.tooltip { render layout: false }
-    end
+    respond_with(@post)
   end
 
   def show_seq
