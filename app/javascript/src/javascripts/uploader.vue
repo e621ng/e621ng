@@ -36,7 +36,7 @@
             </div>
             <div class="box-section upload_preview_container in-editor below-upload">
                 <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"/>
+                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;" referrerpolicy="no-referrer"/>
             </div>
             <div class="flex-grid border-bottom">
                 <div class="col">
@@ -179,7 +179,7 @@
                 <div class="col2">
                     <div class="box-section upload_preview_container in-editor">
                         <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"/>
+                        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;" referrerpolicy="no-referrer"/>
                     </div>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
