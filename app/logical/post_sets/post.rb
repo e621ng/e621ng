@@ -25,7 +25,7 @@ module PostSets
     end
 
     def humanized_tag_string
-      tag_array.slice(0, 25).join(" ").tr("_", " ")
+      public_tag_array.slice(0, 25).join(" ").tr("_", " ")
     end
 
     def unordered_tag_array
@@ -126,9 +126,9 @@ module PostSets
     def posts
       @posts ||= begin
         if raw
-          temp = ::Post.raw_tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)
+          temp = ::Post.raw_tag_match(tag_string).paginate(page, count: post_count, :limit => per_page, includes: [:uploader])
         else
-          temp = ::Post.tag_match(tag_string).paginate(page, :count => post_count, :limit => per_page)
+          temp = ::Post.tag_match(tag_string).paginate(page, count: post_count, :limit => per_page, includes: [:uploader])
         end
 
         @post_count = temp.total_count

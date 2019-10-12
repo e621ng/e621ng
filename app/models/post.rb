@@ -1108,6 +1108,9 @@ class Post < ApplicationRecord
     end
 
     def uploader_name
+      if association(:uploader).loaded?
+        return uploader.name
+      end
       User.id_to_name(uploader_id)
     end
   end
@@ -1627,7 +1630,8 @@ class Post < ApplicationRecord
           height: image_height,
           tags: tag_string,
           score: score,
-          uploader_id: uploader_id
+          uploader_id: uploader_id,
+          uploader: uploader_name
       }
 
       if visible?

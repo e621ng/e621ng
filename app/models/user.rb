@@ -161,9 +161,15 @@ class User < ApplicationRecord
       end
 
       def id_to_name(user_id)
-        Cache.get("uin:#{user_id}", 4.hours) do
+        RequestStore[:id_name_cache] ||= {}
+        if RequestStore[:id_name_cache].key?(user_id)
+          return RequestStore[:id_name_cache]
+        end
+        name = Cache.get("uin:#{user_id}", 4.hours) do
           select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
         end
+        RequestStore[:id_name_cache][user_id] = name
+        name
       end
 
       def find_by_name(name)

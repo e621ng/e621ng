@@ -6,7 +6,7 @@ module DeferredPosts
   end
 
   def deferred_posts
-    Post.where(id: deferred_post_ids.to_a).find_each.reduce({}) do |post_hash, p|
+    Post.includes(:uploader).where(id: deferred_post_ids.to_a).find_each.reduce({}) do |post_hash, p|
       post_hash[p.id] = p.minimal_attributes
       post_hash
     end

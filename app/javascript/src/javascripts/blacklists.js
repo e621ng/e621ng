@@ -152,7 +152,7 @@ Blacklist.post_match = function (post, entry) {
     tags: $post.data('tags'),
     rating: $post.data('rating'),
     uploader_id: $post.data('uploader-id'),
-    user: $post.data('uploader'),
+    user: $post.data('uploader').toLowerCase(),
     flags: $post.data('flags')
   };
   return Blacklist.post_match_object(post_data, entry);
@@ -167,6 +167,7 @@ Blacklist.post_match_object = function (post, entry) {
   tags.push(`id:${post.id}`);
   tags.push(`rating:${post.rating}`);
   tags.push(`uploaderid:${post.uploader_id}`);
+  tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
   $.each(post.flags.match(/\S+/g) || [], function (i, v) {

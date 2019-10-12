@@ -127,13 +127,10 @@ class PostPresenter < Presenter
       "data-file-ext" => post.file_ext,
       "data-source" => post.source,
       "data-uploader-id" => post.uploader_id,
+      "data-uploader" => post.uploader_name,
       "data-normalized-source" => post.normalized_source,
       "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
     }
-
-    if CurrentUser.is_moderator?
-      attributes["data-uploader"] = post.uploader_name
-    end
 
     if post.visible?
       attributes["data-md5"] = post.md5
