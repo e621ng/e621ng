@@ -768,10 +768,22 @@ class Post < ApplicationRecord
       normalized_tags = remove_invalid_tags(normalized_tags)
       normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
+      enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq.sort
       normalized_tags = Tag.create_for_list(normalized_tags)
       set_tag_string(normalized_tags.join(" "))
+    end
+
+    def enforce_dnp_tags(tags)
+      locked = Tag.scan_tags((locked_tags || '').downcase)
+      if tags.include? 'avoid_posting'
+        locked << 'avoid_posting'
+      end
+      if tags.include? 'conditional_dnp'
+        locked << 'conditional_dnp'
+      end
+      self.locked_tags = locked.uniq.join(' ') if locked.size > 0
     end
 
     def apply_locked_tags(tags, to_add, to_remove)
