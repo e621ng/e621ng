@@ -925,16 +925,12 @@ fart'
       false
     end
 
-    def ads_desktop_zone
-      nil
+    def ads_zone_desktop
+      {zone: nil, revive_id: nil, checksum: nil}
     end
 
-    def ads_desktop_revive_id
-      nil
-    end
-
-    def ads_desktop_checksum
-      nil
+    def ads_zone_mobile
+      {zone: nil, revive_id: nil, checksum: nil}
     end
   end
 
