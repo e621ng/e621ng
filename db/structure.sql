@@ -436,7 +436,8 @@ CREATE TABLE public.artist_versions (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
-    urls text[] DEFAULT '{}'::text[] NOT NULL
+    urls text[] DEFAULT '{}'::text[] NOT NULL,
+    notes_changed boolean DEFAULT false
 );
 
 
@@ -3695,6 +3696,8 @@ ALTER TABLE ONLY public.post_sets
 ALTER TABLE ONLY public.post_versions
     ADD CONSTRAINT post_versions_pkey PRIMARY KEY (id);
 
+ALTER TABLE public.post_versions CLUSTER ON post_versions_pkey;
+
 
 --
 -- Name: post_votes post_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -5330,6 +5333,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190924233432'),
 ('20191003070653'),
 ('20191006073950'),
-('20191006143246');
+('20191006143246'),
+('20191013233447');
 
 

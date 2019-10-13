@@ -279,7 +279,8 @@ class Artist < ApplicationRecord
         :is_active => is_active,
         :is_banned => is_banned,
         :other_names => other_names,
-        :group_name => group_name
+        :group_name => group_name,
+        :notes_changed => saved_change_to_notes?
       )
     end
 
@@ -291,7 +292,8 @@ class Artist < ApplicationRecord
         :is_active => is_active,
         :is_banned => is_banned,
         :other_names => other_names,
-        :group_name => group_name
+        :group_name => group_name,
+        :notes_changed => saved_change_to_notes?
       )
     end
 

@@ -5,6 +5,7 @@
         <th>Name</th>
         <th>Other Names</th>
         <th>URLs</th>
+        <th>Notes</th>
         <th>Updated</th>
         <% if artist_versions_listing_type == :revert %>
           <th></th>
@@ -34,6 +35,13 @@
           <% end %>
           <td class="col-expand">
             <%= artist_version_urls_diff(artist_version) if artist_version.visible? %>
+          </td>
+          <td>
+            <% if artist_version.notes_changed %>
+              <%= link_to "Note Changes", wiki_page_versions_path(search: {wiki_page_id: artist_version.artist.wiki_page})%>
+            <% else %>
+              (No Changes)
+            <% end %>
           </td>
           <td>
             <%= link_to_user artist_version.updater %>
