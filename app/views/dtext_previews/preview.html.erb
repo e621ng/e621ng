@@ -1,11 +1,6 @@
 <%= format_text(@body) %>
 <script>
   (function() {
-    window.___deferred_posts = window.___deferred_posts || {};
-    var additionalPosts = <%= raw deferred_posts.to_json %>;
-    for(var postKey in additionalPosts) {
-      window.___deferred_posts[postKey] = additionalPosts[postKey];
-    }
-    $(document).trigger('thumbnails:apply');
+    $(window).trigger('e621:add_deferred_posts', <%= raw deferred_posts.to_json %>)
   })();
 </script>
