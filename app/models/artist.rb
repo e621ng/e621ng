@@ -413,12 +413,12 @@ class Artist < ApplicationRecord
     def unban!
       Post.transaction do
         CurrentUser.without_safe_mode do
-          ti = TagImplication.where(:antecedent_name => name, :consequent_name => "banned_artist").first
+          ti = TagImplication.where(:antecedent_name => name, :consequent_name => "avoid_posting").first
           ti.destroy if ti
 
           begin
             Post.tag_match(name).records.each do |post|
-              fixed_tags = post.tag_string.sub(/(?:\A| )banned_artist(?:\Z| )/, " ").strip
+              fixed_tags = post.tag_string.sub(/(?:\A| )avoid_posting(?:\Z| )/, " ").strip
               post.update(:tag_string => fixed_tags)
             end
           rescue Post::SearchError
@@ -435,8 +435,8 @@ class Artist < ApplicationRecord
       Post.transaction do
         CurrentUser.without_safe_mode do
           # potential race condition but unlikely
-          unless TagImplication.where(:antecedent_name => name, :consequent_name => "banned_artist").exists?
-            tag_implication = TagImplication.create!(:antecedent_name => name, :consequent_name => "banned_artist", :skip_secondary_validations => true)
+          unless TagImplication.where(:antecedent_name => name, :consequent_name => "avoid_posting").exists?
+            tag_implication = TagImplication.create!(:antecedent_name => name, :consequent_name => "avoid_posting", :skip_secondary_validations => true)
             tag_implication.approve!(approver: CurrentUser.user)
           end
 

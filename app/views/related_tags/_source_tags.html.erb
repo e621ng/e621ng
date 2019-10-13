@@ -9,7 +9,7 @@
         none
       <% else %>
         <% if source.artists.any?(&:is_banned?) %>
-          <%= TagSetPresenter.new(["banned_artist"]).tag_list_html(name_only: true) %>
+          <%= TagSetPresenter.new(["avoid_posting"]).tag_list_html(name_only: true) %>
         <% end %>
 
         <% source.artists.each do |artist| %>

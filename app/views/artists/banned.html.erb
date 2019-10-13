@@ -1,8 +1,8 @@
 <div id="c-artists">
   <div id="a-banned">
-    <h1>Banned Artists</h1>
+    <h1>Avoid Posting</h1>
 
-    <p>The following artists have requested they be removed from the site. Please do not upload any works from these artists. These artists all have implications pointing to the <code>banned_artist</code> tag.</p>
+    <p>The following artists have requested they be removed from the site. Please do not upload any works from these artists. These artists all have implications pointing to the <code>avoid_posting</code> tag.</p>
 
     <ul>
       <% @artists.each do |artist| %>
@@ -15,5 +15,5 @@
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Banned Artists - <%= Danbooru.config.app_name %>
+  Avoid Posting - <%= Danbooru.config.app_name %>
 <% end %>
