@@ -141,7 +141,7 @@ fi
 
 script_log "Installing libvips..."
 if ! which vipsthumbnail >/dev/null; then
-    VIPS_VERSION=8.7.0
+    VIPS_VERSION=8.8.3
     pushd .
     cd /tmp
     wget -q https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz
