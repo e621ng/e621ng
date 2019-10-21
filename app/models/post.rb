@@ -821,7 +821,7 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags if !Danbooru.config.enable_dimension_autotagging
 
-      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res animated huge_filesize flash webm mp4 wide_image long_image ugoira)
+      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image ugoira)
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -859,11 +859,11 @@ class Post < ApplicationRecord
         tags << "ugoira"
       end
 
-      if !is_gif?
+      unless is_gif?
         tags -= ["animated_gif"]
       end
 
-      if !is_png?
+      unless is_png?
         tags -= ["animated_png"]
       end
 
