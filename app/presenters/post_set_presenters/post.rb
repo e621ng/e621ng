@@ -18,8 +18,6 @@ module PostSetPresenters
     def related_tags
       if post_set.is_pattern_search?
         pattern_tags
-      elsif post_set.is_saved_search?
-        ["search:all"] + SavedSearch.labels_for(CurrentUser.user.id).map {|x| "search:#{x}"}
       elsif post_set.is_empty_tag? || post_set.tag_string == "order:rank"
         popular_tags
       elsif post_set.is_single_tag?
@@ -63,12 +61,8 @@ module PostSetPresenters
       RelatedTagCalculator.calculate_from_posts_to_array(post_set.posts).map(&:first)
     end
 
-    def saved_search_labels
-      SavedSearch.labels_for(CurrentUser.user.id).map {|x| "search:#{x}"}
-    end
-
     def tag_list_html(**options)
-      tag_set_presenter.tag_list_html(name_only: post_set.is_saved_search?, **options)
+      tag_set_presenter.tag_list_html(name_only: false, **options)
     end
   end
 end

@@ -70,7 +70,6 @@ class ActiveSupport::TestCase
   include ReportbooruHelper
   include DownloadTestHelper
   include IqdbTestHelper
-  include SavedSearchTestHelper
   include UploadTestHelper
   include TestHelpers
 

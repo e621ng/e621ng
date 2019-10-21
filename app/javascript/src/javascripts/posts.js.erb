@@ -2,7 +2,6 @@ import Utility from './utility'
 import Hammer from 'hammerjs'
 import LS from './local_storage'
 import Note from './notes'
-import SavedSearch from './saved_searches'
 import { SendQueue } from './send_queue'
 
 let Post = {};
@@ -14,7 +13,6 @@ Post.initialize_all = function() {
 
   if ($("#c-posts").length) {
     this.initialize_shortcuts();
-    this.initialize_saved_searches();
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
@@ -43,10 +41,6 @@ Post.initialize_all = function() {
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
   $fields_multiple.on("click", Post.update_tag_count);
-
-  $(window).on('danbooru:initialize_saved_seraches', () => {
-    Post.initialize_saved_searches();
-  });
 }
 
 Post.initialize_voting = function() {
@@ -672,53 +666,6 @@ Post.approve = function(post_id) {
     }).always(function() {
       Post.notice_update("dec");
     });
-  });
-}
-
-Post.initialize_saved_searches = function() {
-  $("#new_saved_search #saved_search_label_string").autocomplete({
-    search: function() {
-      $(this).data("ui-autocomplete").menu.bindings = $();
-    },
-    source: function(req, resp) {
-      SavedSearch.labels(req.term).then(function(labels) {
-        resp(labels.map(function(label) {
-          return {
-            label: label.replace(/_/g, " "),
-            value: label
-          };
-        }));
-      });
-    }
-  });
-
-  $("#save-search-dialog").dialog({
-    width: 500,
-    modal: true,
-    autoOpen: false,
-    buttons: {
-      "Submit": function() {
-        $("#save-search-dialog form").submit();
-        $(this).dialog("close");
-      },
-      "Cancel": function() {
-        $(this).dialog("close");
-      }
-    }
-  });
-
-  $("#save-search").on("click.danbooru", function(e) {
-    $("#save-search-dialog #saved_search_query").val($("#tags").val());
-      $.post(
-        "/saved_searches.js",
-        {
-          "saved_search": {
-            "query": $("#tags").val()
-          }
-        }
-      );
-
-    e.preventDefault();
   });
 }
 

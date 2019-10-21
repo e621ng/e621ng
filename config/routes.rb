@@ -295,11 +295,6 @@ Rails.application.routes.draw do
   get "reports/down_voting_post" => "reports#down_voting_post"
   post "reports/down_voting_post_create" => "reports#down_voting_post_create"
   resource :recommended_posts, only: [:show]
-  resources :saved_searches, :except => [:show] do
-    collection do
-      get :labels
-    end
-  end
   resource :session, only: [:new, :create, :destroy] do
     get :sign_out, on: :collection
   end

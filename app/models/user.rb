@@ -27,6 +27,7 @@ class User < ApplicationRecord
 
   # candidates for removal:
   # - disable_cropped_thumbnails (enabled by 22)
+  # - has_saved_searches (removed in removal of saved searches)
   BOOLEAN_ATTRIBUTES = %w(
     show_avatars
     blacklist_avatars
@@ -112,7 +113,6 @@ class User < ApplicationRecord
   has_one :dmail_filter
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
-  has_many :saved_searches
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.id desc")}
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
@@ -494,18 +494,6 @@ class User < ApplicationRecord
                          :can_approve_posts?, 3.days)
     create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
-
-    def max_saved_searches
-      if is_contributor?
-        1_000
-      else
-        250
-      end
-    end
-
-    def show_saved_searches?
-      true
-    end
 
     def can_remove_from_pools?
       older_than 7.days

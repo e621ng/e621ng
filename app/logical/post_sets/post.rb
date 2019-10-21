@@ -164,10 +164,6 @@ module PostSets
       [page.to_i, 1].max
     end
 
-    def is_saved_search?
-      tag_string =~ /search:/
-    end
-
     def presenter
       @presenter ||= ::PostSetPresenters::Post.new(self)
     end

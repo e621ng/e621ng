@@ -113,17 +113,6 @@
       <% end %>
 
       <% if CurrentUser.id == user.id %>
-        <% if CurrentUser.has_saved_searches? %>
-          <tr>
-            <th>Saved Searches</th>
-            <td>
-              <% SavedSearch.labels_for(CurrentUser.user.id).each do |label| %>
-                <%= link_to label, posts_path(tags: "search:#{label}") %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-
         <tr>
           <th>API Key</th>
           <td>

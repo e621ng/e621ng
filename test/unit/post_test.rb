@@ -13,7 +13,6 @@ class PostTest < ActiveSupport::TestCase
     end
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
-    mock_saved_search_service!
     mock_pool_archive_service!
   end
 
@@ -2194,37 +2193,6 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for a pixiv_id:none search" do
       post = FactoryBot.create(:post)
       assert_tag_match([post], "pixiv_id:none")
-    end
-
-    context "saved searches" do
-      setup do
-        SavedSearch.stubs(:enabled?).returns(true)
-        @post1 = FactoryBot.create(:post, tag_string: "aaa")
-        @post2 = FactoryBot.create(:post, tag_string: "bbb")
-        FactoryBot.create(:saved_search, query: "aaa", labels: ["zzz"], user: CurrentUser.user)
-        FactoryBot.create(:saved_search, query: "bbb", user: CurrentUser.user)
-      end
-
-      context "labeled" do
-        should "work" do
-          SavedSearch.expects(:post_ids_for).with(CurrentUser.id, label: "zzz").returns([@post1.id])
-          assert_tag_match([@post1], "search:zzz")
-        end
-      end
-
-      context "missing" do
-        should "work" do
-          SavedSearch.expects(:post_ids_for).with(CurrentUser.id, label: "uncategorized").returns([@post2.id])
-          assert_tag_match([@post2], "search:uncategorized")
-        end
-      end
-
-      context "all" do
-        should "work" do
-          SavedSearch.expects(:post_ids_for).with(CurrentUser.id).returns([@post1.id, @post2.id])
-          assert_tag_match([@post2, @post1], "search:all")
-        end
-      end
     end
 
     should "return posts for a rating:<s|q|e> metatag" do

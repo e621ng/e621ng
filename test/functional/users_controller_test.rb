@@ -38,7 +38,6 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         # flesh out profile to get more test coverage of user presenter.
         @user = create(:banned_user, can_approve_posts: true, is_super_voter: true)
         as_user do
-          create(:saved_search, user: @user)
           create(:post, uploader: @user, tag_string: "fav:#{@user.name}")
         end
       end

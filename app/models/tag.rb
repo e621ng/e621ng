@@ -728,10 +728,6 @@ class Tag < ApplicationRecord
 
             q[:fav_ids] << favuser.id
 
-          when "search"
-            q[:saved_searches] ||= []
-            q[:saved_searches] << g2
-
           when "md5"
             q[:md5] = g2.downcase.split(/,/)[0..99]
 

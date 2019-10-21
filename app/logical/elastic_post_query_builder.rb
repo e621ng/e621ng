@@ -61,21 +61,6 @@ class ElasticPostQueryBuilder
     }})
   end
 
-  def saved_search_relation(saved_searches, should)
-    if SavedSearch.enabled?
-      saved_searches.map do |saved_search|
-        if saved_search == "all"
-          post_ids = SavedSearch.post_ids_for(CurrentUser.id)
-        else
-          post_ids = SavedSearch.post_ids_for(CurrentUser.id, label: saved_search)
-        end
-
-        post_ids = [] if post_ids.empty?
-        should.push({terms: {id: post_ids}})
-      end
-    end
-  end
-
   def table_for_metatag(metatag)
     if metatag.in?(Tag::COUNT_METATAGS)
       metatag[/(?<table>[a-z]+)_count\z/i, :table]
@@ -276,11 +261,6 @@ class ElasticPostQueryBuilder
     end
     if q[:fav_ids_neg]
       must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
-    end
-
-    if q[:saved_searches]
-      # TODO
-      # saved_search_relation(q[:saved_searches], should)
     end
 
     if q[:uploader_id_neg]

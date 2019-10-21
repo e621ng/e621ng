@@ -8,9 +8,6 @@
     <% end %>
     <% unless CurrentUser.is_anonymous? %>
       <%= subnav_link_to "Favorites", favorites_path %>
-      <% if CurrentUser.has_saved_searches? %>
-        <%= subnav_link_to "Saved searches", posts_path(:tags => "search:all") %>
-      <% end %>
     <% end %>
     <%= subnav_link_to "Changes", post_versions_path %>
     <% if CurrentUser.can_approve_posts? %>

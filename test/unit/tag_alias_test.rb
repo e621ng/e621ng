@@ -18,7 +18,6 @@ class TagAliasTest < ActiveSupport::TestCase
         CurrentUser.user = user
       end
       CurrentUser.ip_addr = "127.0.0.1"
-      mock_saved_search_service!
     end
 
     teardown do
@@ -123,22 +122,6 @@ class TagAliasTest < ActiveSupport::TestCase
       assert_equal(["bbb", "ccc"], TagAlias.to_aliased(["aaa", "ccc"]))
       assert_equal(["ccc", "bbb"], TagAlias.to_aliased(["ccc", "bbb"]))
       assert_equal(["bbb", "bbb"], TagAlias.to_aliased(["aaa", "aaa"]))
-    end
-
-    context "saved searches" do
-      setup do
-        SavedSearch.stubs(:enabled?).returns(true)
-      end
-
-      should "move saved searches" do
-        tag1 = FactoryBot.create(:tag, :name => "...")
-        tag2 = FactoryBot.create(:tag, :name => "bbb")
-        ss = FactoryBot.create(:saved_search, :query => "123 ... 456", :user => CurrentUser.user)
-        ta = FactoryBot.create(:tag_alias, :antecedent_name => "...", :consequent_name => "bbb")
-        ta.approve!(approver: @admin)
-
-        assert_equal(%w(123 456 bbb), ss.reload.query.split.sort)
-      end
     end
 
     should "update any affected posts when saved" do

@@ -6,7 +6,6 @@ class UserDeletionJob < ApplicationJob
 
 
     remove_favorites(user)
-    remove_saved_searches(user)
     rename(user)
   end
 
@@ -16,10 +15,6 @@ class UserDeletionJob < ApplicationJob
         FavoriteManager.remove!(user: user, post: post)
       end
     end
-  end
-
-  def remove_saved_searches(user)
-    SavedSearch.where(user_id: user.id).destroy_all
   end
 
   def rename(user)

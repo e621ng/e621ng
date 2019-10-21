@@ -23,20 +23,3 @@
     </div>
   </div>
 <% end %>
-
-<% if CurrentUser.user.id == @user.id && @user.has_saved_searches? && @user.is_privileged? %>
-  <% presenter.saved_search_labels.each do |label| %>
-    <div class="box user-saved-search" data-label="<%= label %>">
-      <h2>
-        Saved Search: <%= link_to label, posts_path(:tags => "search:#{label}") %>
-        (<%= link_to "manage", saved_searches_path(label: label) %>)
-      </h2>
-
-      <div class="vertical-section">
-        <% presenter.posts_for_saved_search_category(label).each do |post| %>
-          <%= PostPresenter.preview(post, :tags => "search:#{label}") %>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-<% end %>

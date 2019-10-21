@@ -68,23 +68,6 @@ class PostQueryBuilder
     relation
   end
 
-  def add_saved_search_relation(saved_searches, relation)
-    if SavedSearch.enabled?
-      saved_searches.each do |saved_search|
-        if saved_search == "all"
-          post_ids = SavedSearch.post_ids_for(CurrentUser.id)
-        else
-          post_ids = SavedSearch.post_ids_for(CurrentUser.id, label: saved_search)
-        end
-
-        post_ids = [0] if post_ids.empty?
-        relation = relation.where("posts.id": post_ids)
-      end
-    end
-
-    relation
-  end
-
   def table_for_metatag(metatag)
     if metatag.in?(Tag::COUNT_METATAGS)
       metatag[/(?<table>[a-z]+)_count\z/i, :table]
@@ -223,10 +206,6 @@ class PostQueryBuilder
       relation = relation.where("posts.pool_string = ''")
     elsif q[:pool] == "any"
       relation = relation.where("posts.pool_string != ''")
-    end
-
-    if q[:saved_searches]
-      relation = add_saved_search_relation(q[:saved_searches], relation)
     end
 
     if q[:uploader_id_neg]

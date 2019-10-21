@@ -39,10 +39,6 @@ class UserPresenter
     permissions.join(", ")
   end
 
-  def posts_for_saved_search_category(category)
-    Post.tag_match("search:#{category}").limit(10).records
-  end
-
   def upload_limit(template)
     if user.can_upload_free?
       return "none"
@@ -138,14 +134,6 @@ class UserPresenter
     negative = user.negative_feedback_count
 
     template.link_to("positive:#{positive} neutral:#{neutral} negative:#{negative}", template.user_feedbacks_path(:search => {:user_id => user.id}))
-  end
-
-  def saved_search_labels
-    if CurrentUser.user.id == user.id
-      SavedSearch.labels_for(CurrentUser.user.id)
-    else
-      []
-    end
   end
 
   def previous_names(template)

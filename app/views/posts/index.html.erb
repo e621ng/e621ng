@@ -15,8 +15,6 @@
         <%= @post_set.presenter.tag_list_html(current_query: params[:tags], show_extra_links: CurrentUser.user.is_privileged?) %>
       </section>
 
-      <%= render "posts/partials/index/options" %>
-
       <%= render "posts/partials/index/related" %>
     </aside>
 
@@ -46,18 +44,11 @@
 
 
     <%= post_search_count_js %>
-
-    <div id="saved-searches-nav">
-      <%= render "saved_searches/interface" %>
-    </div>
   </div>
 </div>
 
-<% if params[:tags] =~ /search:/ %>
-  <%= render "saved_searches/secondary_links" %>
-<% else %>
-  <%= render "posts/partials/common/secondary_links" %>
-<% end %>
+
+<%= render "posts/partials/common/secondary_links" %>
 
 <% content_for(:page_title) do %>
   <% if @post_set.public_tag_string.present? %>
