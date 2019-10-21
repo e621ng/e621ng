@@ -125,11 +125,11 @@ class Post < ApplicationRecord
     end
 
     def tagged_file_url
-      storage_manager.file_url(self, :original, tagged_filenames: false)
+      storage_manager.file_url(self, :original)
     end
 
     def tagged_large_file_url
-      storage_manager.file_url(self, :large, tagged_filenames: false)
+      storage_manager.file_url(self, :large)
     end
 
     def file_url

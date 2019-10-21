@@ -3,22 +3,25 @@ class StorageManager
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
 
-  attr_reader :base_url, :base_dir, :hierarchical, :tagged_filenames, :large_image_prefix, :base_url_protected, :base_dir_protected
+  attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path
 
-  def initialize(base_url: default_base_url, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
-                 tagged_filenames: Danbooru.config.enable_seo_post_urls, large_image_prefix: Danbooru.config.large_image_prefix,
+  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
+                 large_image_prefix: Danbooru.config.large_image_prefix,
                  protected_prefix: Danbooru.config.protected_path_prefix)
     @base_url = base_url.chomp("/")
-    @base_url_protected = "#{@base_url}/#{protected_prefix}"
     @base_dir = base_dir
-    @base_dir_protected = "#{@base_dir}/#{protected_prefix}"
+    @base_path = base_path
+    @protected_prefix = protected_prefix
     @hierarchical = hierarchical
-    @tagged_filenames = tagged_filenames
     @large_image_prefix = large_image_prefix
   end
 
+  def default_base_path
+    "/data"
+  end
+
   def default_base_url
-    "#{CurrentUser.root_url}/data"
+    "#{CurrentUser.root_url}"
   end
 
   # Store the given file at the given path. If a file already exists at that
@@ -69,27 +72,25 @@ class StorageManager
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 
-  def file_url(post, type, tagged_filenames: false)
+  def file_url(post, type)
     subdir = subdir_for(post.md5)
     file = file_name(post.md5, post.file_ext, type)
-    seo_tags = seo_tags(post) if tagged_filenames
-    base = post.protect_file? ? base_url_protected : base_url
+    base = post.protect_file? ? "#{base_path}/#{protected_prefix}" : base_path
 
-    url = if type == :preview && !post.has_preview?
-      "#{root_url}/images/download-preview.png"
-    elsif type == :preview
+    return "#{root_url}/images/download-preview.png" if type == :preview && !post.has_preview?
+    path = if type == :preview
       "#{base}/preview/#{subdir}#{file}"
     elsif type == :crop
       "#{base}/crop/#{subdir}#{file}"
     elsif type == :large && post.has_large?
-      "#{base}/sample/#{subdir}#{seo_tags}#{file}"
+      "#{base}/sample/#{subdir}#{file}"
     else
-      "#{base}/#{subdir}#{seo_tags}#{post.md5}.#{post.file_ext}"
+      "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
     end
     if post.protect_file?
-      "#{url}#{protected_params(url, post)}" if post.protect_file?
+      "#{base_url}#{path}#{protected_params(path, post)}"
     else
-      url
+      "#{base_url}#{path}"
     end
   end
 
@@ -103,7 +104,7 @@ class StorageManager
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
     subdir = subdir_for(md5)
     file = file_name(md5, file_ext, type)
-    base = protected ? base_dir_protected : base_dir
+    base = protected ? "#{base_dir}/#{protected_prefix}" : base_dir
 
     case type
     when :preview
@@ -134,12 +135,5 @@ class StorageManager
 
   def subdir_for(md5)
     hierarchical ? "#{md5[0..1]}/#{md5[2..3]}/" : ""
-  end
-
-  def seo_tags(post)
-    return "" if !tagged_filenames
-
-    tags = post.presenter.humanized_essential_tag_string.gsub(/[^a-z0-9]+/, "_").gsub(/(?:^_+)|(?:_+$)/, "").gsub(/_{2,}/, "_")
-    "__#{tags}__"
   end
 end
