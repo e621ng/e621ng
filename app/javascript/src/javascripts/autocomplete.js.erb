@@ -115,8 +115,6 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "age":
       case "limit":
       case "tagcount":
-      case "pixiv_id":
-      case "pixiv":
       <% TagCategory.short_name_list.each do |category| %>
         case "<%= category %>tags": // eslint-disable-line
       <% end %>
@@ -140,6 +138,7 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "noteupdater":
       case "artcomm":
       case "fav":
+      case "favoritedby":
       case "ordfav":
       case "appealer":
       case "flagger":
@@ -401,7 +400,7 @@ Autocomplete.render_item = function(list, item) {
 Autocomplete.static_metatags = {
   order: Autocomplete.ORDER_METATAGS,
   status: [
-    "any", "deleted", "active", "pending", "flagged", "banned", "modqueue", "unmoderated"
+    "any", "deleted", "active", "pending", "flagged", "modqueue", "unmoderated"
   ],
   rating: [
     "safe", "questionable", "explicit"
