@@ -319,13 +319,7 @@ Rails.application.routes.draw do
     end
   end
   resource :tag_implication_request, :only => [:new, :create]
-  resources :uploads do
-    collection do
-      post :preprocess
-      get :batch
-      get :image_proxy
-    end
-  end
+  resources :uploads
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
     resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do

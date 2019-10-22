@@ -1,7 +1,7 @@
 class UploadsController < ApplicationController
-  before_action :member_only, except: [:index, :show]
+  before_action :member_only
+  before_action :janitor_only, only: [:index, :show]
   respond_to :html, :xml, :json, :js
-  skip_before_action :verify_authenticity_token, only: [:preprocess]
 
   def new
     if CurrentUser.can_upload_with_reason == :REJ_UPLOAD_NEWBIE
@@ -11,12 +11,6 @@ class UploadsController < ApplicationController
     @upload_notice_wiki = WikiPage.titled(Danbooru.config.upload_notice_wiki_page).first
     @upload = Upload.new
     respond_with(@upload)
-  end
-
-  def batch
-    @url = params.dig(:batch, :url) || params[:url]
-    @source = Sources::Strategies.find(@url, params[:ref]) if @url.present?
-    respond_with(@source)
   end
 
   def index
