@@ -60,11 +60,11 @@ class UsersController < ApplicationController
       @user.save
       if @user.errors.empty?
         session[:user_id] = @user.id
+        if Danbooru.config.enable_email_verification?
+          Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
+        end
       else
         flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join("; ")}"
-      end
-      if Danbooru.config.enable_email_verification?
-        Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
       end
       set_current_user
       respond_with(@user)
