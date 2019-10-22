@@ -4,7 +4,7 @@ module PostsHelper
   end
 
   def discover_mode?
-    params[:tags] =~ /order:rank/ || params[:action] =~ /searches|viewed/
+    params[:tags] =~ /order:rank/
   end
 
   def next_page_url

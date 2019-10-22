@@ -7,9 +7,6 @@
       <% if PopularSearchService.enabled? %>
         <li><%= link_to "Searches", searches_explore_posts_path %></li>
       <% end %>
-      <% if PostViewCountService.enabled? %>
-        <li><%= link_to "Viewed", viewed_explore_posts_path %></li>
-      <% end %>
     <% end %>
 
     <%if CurrentUser.is_approver? %>

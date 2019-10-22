@@ -6,9 +6,10 @@
         <li><%= link_to("Help", help_page_path(id: "posts")) %></li>
         <li><%= link_to("Listing", posts_path) %></li>
         <li><%= link_to("Upload", new_upload_path) %></li>
-        <li><%= link_to("Upload Listing", uploads_path) %></li>
+        <% if CurrentUser.is_janitor? %>
+          <li><%= link_to("Upload Listing", uploads_path) %></li>
+        <% end %>
         <li><%= link_to("Popular", popular_explore_posts_path) %></li>
-        <li><%= link_to("Most Viewed", viewed_explore_posts_path) %></li>
         <% if CurrentUser.can_approve_posts? %>
           <li><%= link_to("Moderate", moderator_post_queue_path) %></li>
         <% end %>
