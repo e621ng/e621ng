@@ -55,11 +55,11 @@
 
       <fieldset id="advanced-settings-section">
         <%= f.input :style_usernames, :as => :select, :label => "Colored usernames",
-                    :hint => "Color each user's name depending on their level. See #{link_to 'the legend', wiki_page_path(id: 'e621:colored_usernames')} for what the colros are.",
+                    :hint => raw("Color each user's name depending on their level. See #{link_to 'the legend', wiki_page_path(id: 'e621:colored_usernames')} for what the colors are."),
                     :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 
         <%= f.input :enable_keyboard_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]],
-        hint: raw("Enables the use of keyboard shortcuts for a majority of site actions related to posts. A list of keyboard shortcuts is available <a href='static/keyboard_shortcuts'>here</a>.")%>
+        hint: raw("Enables the use of keyboard shortcuts for a majority of site actions related to posts. A list of keyboard shortcuts is available #{link_to 'here', keyboard_shortcuts_path}.")%>
 
         <%= f.input :enable_auto_complete, :as => :select, :collection => [["Yes", "true"], ["No", "false"]], :include_blank => false,
                     hint: "Enables auto-completion on most tag and user entry fields." %>
