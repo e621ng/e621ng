@@ -22,7 +22,10 @@ class ForumTopic < ApplicationRecord
   before_destroy :create_mod_action_for_delete
   after_update :update_orignal_post
   after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
-    ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, user_id: rec.creator_id})
+    ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  end
+  after_save(:if => ->(rec) {!rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
+    ModAction.log(:forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
 
   module CategoryMethods
