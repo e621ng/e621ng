@@ -20,11 +20,12 @@ class PostSet < ApplicationRecord
   belongs_to_creator
   user_status_counter :set_count
 
+  before_validation :normalize_shortname
   validates :name, :shortname, length: { in: 3..100, message: "must be between three and one hundred characters long" }
   validates :name, :shortname, uniqueness: { case_sensitive: false, message: "is already taken" }, if: :if_names_changed?
   validates :shortname, length: { in: 1..50, message: 'must be between one and fifty characters long' }
-  validates :shortname, format: { with: /\A[\w]+\z/, message: "must only contain numbers, letters, and underscores" }
-  validates :shortname, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one letter or underscore" }
+  validates :shortname, format: { with: /\A[\w]+\z/, message: "must only contain numbers, lowercase letters, and underscores" }
+  validates :shortname, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one lowercase letter or underscore" }
   validates :description, length: { maximum: 10_000 }
   validate :validate_number_of_posts
   validate :can_make_public, if: :is_public_changed?
@@ -71,6 +72,12 @@ class PostSet < ApplicationRecord
   end
 
   module ValidationMethods
+    def normalize_shortname
+      if shortname_changed?
+        self.shortname.downcase!
+      end
+    end
+
     def send_maintainer_public_dmails
       if RateLimiter.check_limit("set.public.#{id}", 1, 24.hours)
         return
