@@ -770,9 +770,9 @@ class Post < ApplicationRecord
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
-      normalized_tags = normalized_tags.compact.uniq.sort
+      normalized_tags = normalized_tags.compact.uniq
       normalized_tags = Tag.create_for_list(normalized_tags)
-      set_tag_string(normalized_tags.join(" "))
+      set_tag_string(normalized_tags.uniq.sort.join(" "))
     end
 
     def enforce_dnp_tags(tags)
