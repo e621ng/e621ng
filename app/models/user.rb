@@ -163,7 +163,7 @@ class User < ApplicationRecord
       def id_to_name(user_id)
         RequestStore[:id_name_cache] ||= {}
         if RequestStore[:id_name_cache].key?(user_id)
-          return RequestStore[:id_name_cache]
+          return RequestStore[:id_name_cache][user_id]
         end
         name = Cache.get("uin:#{user_id}", 4.hours) do
           select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
