@@ -1598,7 +1598,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:uploader_name, :has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?] + TagCategory.categories.map {|x| "tag_string_#{x}".to_sym}
+      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?] + TagCategory.categories.map {|x| "tag_string_#{x}".to_sym}
       if visible?
         list += [:file_url, :large_file_url, :preview_file_url]
       end
