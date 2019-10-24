@@ -1,5 +1,6 @@
 class StaticController < ApplicationController
   def terms_of_service
+    @page = WikiPage.find_by_title('e621:terms_of_service')
   end
 
   def accept_terms_of_service

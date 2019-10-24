@@ -1,71 +1,7 @@
 <div id="c-static">
   <div id="a-terms-of-service">
-    <h1>Rules</h1>
-    
-    <p>Please read the following before using the site:</p>
-    
-    <ul>
-      <li>Danbooru reserves the right to delete or modify your account, or any content you have posted to the site.</li>
-      <li>You will make a best faith effort to upload only high quality anime-related images.</li>
-      <li>You have read the <%= link_to "tagging guidelines", help_page_path(id: "tags") %>.</li>
-    </ul>
 
-    <div class="section">
-      <h6>Post/Comment Limiting</h6>
-      <p>You cannot upload a post or comment during the first week of signing up.</p>
-      <p>After the initial period, you can post up to two comments an hour and a variable number of posts based on how many of your previous uploads were approved or deleted.</p>
-    </div>
-
-    <div class="section">
-      <h6>Prohibited and Restricted Content</h6>
-      <p>You may not upload any of the following:</p>
-      <ul>
-        <li>Non-anime: Photographs of American porn actresses, for example, are prohibited. Photographs of cosplayers, figures, or prominent figures in the industry are acceptable.</li>
-        <li>Manga: Uploading entire manga or doujinshi chapters is discouraged. Individual pages can be uploaded if they meet the quality criterion.</li>
-        <li>Fake translations: Images that have false translations are not allowed in any case.</li>
-      </ul>
-    
-      <p>The following may be uploaded, but will be put to a higher level of artistic and qualitative scrutiny than normal, and (if applicable) you must tag them with the corresponding tag. Please do not upload more than 20 a day of these works:</p>
-      <ul>
-        <li>Western: Drawings of characters from non-Japanese comics, games, and other properties.</li>
-        <li>Furry: Any explicit image where a person's skin is made of fur or scales. Please use the <em>furry</em> tag.</li>
-        <li>Grotesque: Any depiction of extreme mutilation, extreme bodily distension, feces, or bodies that are far outside the realm of normal human proportion (for example, breasts that are larger than three heads in size or penises that are larger than two heads in size). Please use the <em>guro</em> tag.</li>
-        <li>Self Artwork: You can upload your own artwork but be aware that Danbooru is not a place to expect positive reinforcement. Your uploads will be subject to the same standards as everything else and may be flagged, downvoted, or even deleted. If you don't want to risk experiencing these things then don't upload your art.</li>
-      </ul>
-
-      <p>The following may be uploaded but are generally not recommended unless a better copy cannot be found:</p>
-      <ul>
-        <li>Third-Party Watermark: Any image where a person who is not the original copyright owner has placed a watermark on the image.</li>
-        <li>Hard translations: Images that have been edited to replace the original language are discouraged.</li>
-        <li>Poorly compressed: Any image where compression artifacts are easily visible. An exception to this is if the image was uploaded by the artist and there are no higher quality versions available.</li>
-        <li>Nude Filter: Images that have been edited by someone other than the original creator to remove clothing or censorship. These typically feature crude drawings of breasts or genitalia laid on top of the original image.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="section">
-    <h4>Copyright Infringement</h4>
-
-    <p>If you believe a post infringes upon your copyright, please send an email to the <%= mail_to Danbooru.config.contact_email, "webmaster", :encode => "hex" %> with the following pieces of information:</p>
-    <ul>
-      <li>The URL of the infringing post.</li>
-      <li>Proof that you own the copyright.</li>
-    </ul>
-  </div>
-
-  <div class="section">
-    <h4>Privacy Policy</h4>
-
-    <p>Danbooru will not disclose the IP address, email address, password, or DMails of any user except to the staff.</p>
-    <p>Danbooru is allowed to make public everything else, including but not limited to: uploaded posts, favorited posts, comments, forum posts, wiki edits, and note edits.</p>
-  </div>
-
-  <div class="section">
-    <h4>Accounts</h4>
-
-    <p>You may have alternative accounts for bots or scripts, but if there's any suspicion you either create a new account or reuse an existing one to evade a ban or any sort of account limitation (limited uploads, loss of flagging or user feedback permissions), then all your accounts will be banned. Bot accounts that flag posts or leave user feedback are not permitted and will be banned.</p>
-    <p>Account sharing is not permitted. If you are suspected of sharing an account, then it will be banned.</p>
-  </div>
+    <%= format_text(@page.body, allow_color: true) %>
 
   <%= form_tag(accept_terms_of_service_path) do %>
     <%= hidden_field_tag :url, params[:url] %>
