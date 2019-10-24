@@ -101,7 +101,7 @@ class PostSetsController < ApplicationController
       raise User::PrivilegeError
     end
     if CurrentUser.is_admin?
-      ModAction.log(:set_delete, {set_id: @set.id, user_id: @set.user_id})
+      ModAction.log(:set_delete, {set_id: @set.id, user_id: @set.creator_id})
     end
     @set.destroy
     respond_with(@set)
