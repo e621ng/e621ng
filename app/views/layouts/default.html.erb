@@ -13,7 +13,7 @@
   <meta name="current-user-can-approve-posts" content="<%= CurrentUser.can_approve_posts? %>">
   <meta name="user-comment-threshold" content="<%= CurrentUser.comment_threshold %>">
   <% if CurrentUser.user.blacklisted_tags.present? %>
-    <meta name="blacklisted-tags" content="<%= CurrentUser.user.blacklisted_tags.gsub(/(?:\r|\n)+/, ",") %>">
+    <meta name="blacklisted-tags" content="<%= CurrentUser.user.blacklisted_tags.split(/(?:\r|\n)+/).to_json %>">
   <% end %>
   <% if flash[:notice] =~ /error/i %>
     <meta name="errors" content="true">

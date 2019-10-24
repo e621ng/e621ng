@@ -32,11 +32,12 @@ Blacklist.parse_entry = function (string) {
 }
 
 Blacklist.parse_entries = function () {
-  var entries = (Utility.meta("blacklisted-tags") || "nozomiisthebestlovelive").replace(/(rating:[qes])\w+/ig, "$1").toLowerCase().split(/,/);
+  let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
+  entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
   entries = entries.filter(e => e.trim() !== "");
 
   $.each(entries, function (i, tags) {
-    var entry = Blacklist.parse_entry(tags);
+    const entry = Blacklist.parse_entry(tags);
     Blacklist.entries.push(entry);
   });
 }
@@ -204,11 +205,41 @@ Blacklist.initialize_all = function () {
   }
 }
 
+Blacklist.initialize_anonymous_blacklist = function() {
+  if($(document.body).data('user-is-anonymous') !== true)
+    return;
+
+  const anonBlacklist = LS.get('anonymous-blacklist');
+
+  if(anonBlacklist)
+    $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
+
+  $("#anonymous-blacklist-dialog").dialog({autoOpen: false});
+
+  $("#anonymous-blacklist-cancel").on('click', function() {
+    $("#anonymous-blacklist-dialog").dialog('close');
+  });
+
+  $("#anonymous-blacklist-save").on('click', function() {
+    LS.put('anonymous-blacklist', JSON.stringify($("#anonymous-blacklist-edit").val().split(/\n\r?/)));
+    $("#anonymous-blacklist-dialog").dialog('close');
+  });
+
+  $("#anonymous-blacklist-link").on('click', function() {
+    let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
+    entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
+    entries = entries.filter(e => e.trim() !== "");
+    $("#anonymous-blacklist-edit").val(entries.join('\n'));
+    $("#anonymous-blacklist-dialog").dialog('open');
+  });
+};
+
 $(document).ready(function () {
   // if ($("#blacklist-box").length === 0) {
   //   return;
   // }
 
+  Blacklist.initialize_anonymous_blacklist();
   Blacklist.initialize_all();
 });
 
