@@ -42,9 +42,9 @@
 
         <%= f.input :receive_email_notifications, :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 
-        <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default" %>
+        <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default." %>
 
-        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, or show resized #{Danbooru.config.large_image_width} pixel sample version", :label => "Default image width", :collection => [["850px", "large"], ["scale to fit", "fit"], ["original", "original"]], :include_blank => false %>
+        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["850px", "large"], ["scale to fit", "fit"], ["original", "original"]], :include_blank => false %>
 
         <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (25..250), :include_blank => false %>
 
@@ -54,21 +54,29 @@
       </fieldset>
 
       <fieldset id="advanced-settings-section">
-        <%= f.input :style_usernames, :as => :select, :label => "Colored usernames", :hint => "Color each user's name depending on their level", :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
+        <%= f.input :style_usernames, :as => :select, :label => "Colored usernames",
+                    :hint => "Color each user's name depending on their level. See #{link_to 'the legend', wiki_page_path(id: 'e621:colored_usernames')} for what the colros are.",
+                    :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 
-        <%= f.input :enable_keyboard_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]] %>
+        <%= f.input :enable_keyboard_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]],
+        hint: raw("Enables the use of keyboard shortcuts for a majority of site actions related to posts. A list of keyboard shortcuts is available <a href='static/keyboard_shortcuts'>here</a>.")%>
 
-        <%= f.input :enable_auto_complete, :as => :select, :collection => [["Yes", "true"], ["No", "false"]], :include_blank => false %>
+        <%= f.input :enable_auto_complete, :as => :select, :collection => [["Yes", "true"], ["No", "false"]], :include_blank => false,
+                    hint: "Enables auto-completion on most tag and user entry fields." %>
 
-        <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
+        <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
+        hint: "Makes a cursory effort to prevent showing your favorites to others users. Has not been well tested." %>
 
         <% unless CurrentUser.is_janitor? %>
-          <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.", :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
+          <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.",
+                      :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
         <% end %>
 
-        <%= f.input :disable_mobile_gestures, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
+        <%= f.input :disable_mobile_gestures, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
+        hint: "Disabled swipe left/right gestures on post lists and post pages for navigating between pages." %>
 
-        <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
+        <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
+        hint: "Disables displaying cropped thumbnails on the mobile layout of the site in favor of scaled thumbnails. Has no effect on the desktop site." %>
 
         <div class="input text optional field_with_hint">
           <label class="text optional" for="user_dmail_filter_attributes_words">Dmail filter</label>
@@ -79,7 +87,7 @@
 
         <%= f.input :favorite_tags, :label => "Frequent tags", :hint => "A list of tags that you use often. They will appear when using the list of Related Tags.", :input_html => { :rows => 5, :data => { :autocomplete => "tag-query" } } %>
 
-        <%= f.input :disable_responsive_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false, :hint => "Disable alternative layout for mobile and tablet" %>
+        <%= f.input :disable_responsive_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false, :hint => "Disable alternative layout for mobile and tablet." %>
 
         <%= f.input :custom_style, :label => "Custom <a href='https://en.wikipedia.org/wiki/Cascading_Style_Sheets'>CSS</a> style".html_safe, :hint => "Style to apply to the whole site.", :input_html => {:size => "40x5"} %>
       </fieldset>
