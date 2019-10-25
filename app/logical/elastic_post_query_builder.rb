@@ -571,7 +571,7 @@ class ElasticPostQueryBuilder
           script_score: {
               script: {
                   params: {log3: Math.log(3), date2005_05_24: 1116936000},
-                  source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].date.millis / 1000 - params.date2005_05_24) / 35000",
+                  source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
               },
           },
       }})
