@@ -17,7 +17,7 @@ class Tag < ApplicationRecord
     -pool pool ordpool -fav fav -favoritedby favoritedby ordfav md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
-    child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger
+    child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby
@@ -831,10 +831,10 @@ class Tag < ApplicationRecord
           when "status"
             q[:status] = g2.downcase
 
-          when "filetype"
+          when "filetype", "type"
             q[:filetype] = g2.downcase
 
-          when "-filetype"
+          when "-filetype", "-type"
             q[:filetype_neg] = g2.downcase
 
           when "description"

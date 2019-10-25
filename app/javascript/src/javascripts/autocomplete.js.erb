@@ -127,6 +127,7 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "child":
       case "parent":
       case "filetype":
+      case "type":
       case "disapproval":
         Autocomplete.static_metatag_source(term, resp, metatag);
         return;
@@ -415,6 +416,9 @@ Autocomplete.static_metatags = {
     "any", "none"
   ],
   filetype: [
+    "jpg", "png", "gif", "swf", "zip", "webm", "mp4"
+  ],
+  type: [
     "jpg", "png", "gif", "swf", "zip", "webm", "mp4"
   ],
   disapproval: [
