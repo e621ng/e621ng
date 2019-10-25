@@ -27,7 +27,7 @@ PostModeMenu.show_notice = function(i) {
 }
 
 PostModeMenu.change_tag_script = function(e) {
-  if ($("#mode-box select").val() === "tag-script") {
+  if ($("#mode-box-mode").val() === "tag-script") {
     var old_tag_script_id = LS.get("current_tag_script_id") || "1";
 
     var new_tag_script_id = String.fromCharCode(e.which);
@@ -46,12 +46,12 @@ PostModeMenu.change_tag_script = function(e) {
 PostModeMenu.initialize_selector = function() {
   if (!LS.get("mode")) {
     LS.put("mode", "view");
-    $("#mode-box select").val("view");
+    $("#mode-box-mode").val("view");
   } else {
-    $("#mode-box select").val(LS.get("mode"));
+    $("#mode-box-mode").val(LS.get("mode"));
   }
 
-  $("#mode-box select").on("change.danbooru", function(e) {
+  $("#mode-box-mode").on("change.danbooru", function(e) {
     PostModeMenu.change();
     $("#tag-script-field:visible").focus().select();
   });
@@ -106,7 +106,7 @@ PostModeMenu.initialize_tag_script_field = function() {
       var current_script_id = LS.get("current_tag_script_id");
       LS.put("tag-script-" + current_script_id, script);
     } else {
-      $("#mode-box select").val("view");
+      $("#mode-box-mode").val("view");
       PostModeMenu.change();
     }
   });
@@ -135,7 +135,7 @@ PostModeMenu.update_sets_menu = function() {
 
 PostModeMenu.change = function() {
   $("#quick-edit-div").slideUp("fast");
-  var s = $("#mode-box select").val();
+  var s = $("#mode-box-mode").val();
   if (s === undefined) {
     return;
   }
@@ -178,7 +178,7 @@ PostModeMenu.open_edit = function(post_id) {
 }
 
 PostModeMenu.click = function(e) {
-  var s = $("#mode-box select").val();
+  var s = $("#mode-box-mode").val();
   var post_id = $(e.target).closest("article").data("id");
 
   if (s === "add-fav") {
