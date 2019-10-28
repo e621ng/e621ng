@@ -3,7 +3,7 @@
     <tr>
       <th width="25%">From</th>
       <th width="25%">To</th>
-      <th width="10%">Reference</th>
+      <th width="10%">Forum Post</th>
       <th width="15%">Approver</th>
       <th width="5%">Status</th>
       <th width="15%"></th>
@@ -26,16 +26,18 @@
         <td>
           <%= link_to "Show", tag_alias_path(tag_alias) %>
 
-          <% if tag_alias.editable_by?(CurrentUser.user) %>
-            | <%= link_to "Edit", edit_tag_alias_path(tag_alias) %>
-          <% end %>
+          <% if CurrentUser.is_moderator? %>
+            <% if tag_alias.editable_by?(CurrentUser.user) %>
+              | <%= link_to "Edit", edit_tag_alias_path(tag_alias) %>
+            <% end %>
 
-          <% if tag_alias.deletable_by?(CurrentUser.user) %>
-            | <%= link_to "Delete", tag_alias_path(tag_alias), :remote => true, :method => :delete, :data => {:confirm => "Are you sure you want to delete this alias?"} %>
-          <% end %>
+            <% if tag_alias.deletable_by?(CurrentUser.user) %>
+              | <%= link_to "Delete", tag_alias_path(tag_alias), :remote => true, :method => :delete, :data => {:confirm => "Are you sure you want to delete this alias?"} %>
+            <% end %>
 
-          <% if CurrentUser.is_admin? && tag_alias.is_pending? %>
-            | <%= link_to "Approve", approve_tag_alias_path(tag_alias), :remote => true, :method => :post %>
+            <% if tag_alias.is_pending? %>
+              | <%= link_to "Approve", approve_tag_alias_path(tag_alias), :remote => true, :method => :post %>
+            <% end %>
           <% end %>
         </td>
       </tr>

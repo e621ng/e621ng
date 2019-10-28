@@ -69,9 +69,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def deletable_by?(user)
-    return true if user.is_admin?
-    return true if is_pending? && user.is_janitor?
-    return true if is_pending? && user.id == creator_id
+    return true if user.is_moderator?
     return false
   end
 
