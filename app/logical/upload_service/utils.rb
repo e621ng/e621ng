@@ -193,7 +193,7 @@ class UploadService
       result = Vips::Image.gifload(file.path, page: 1) rescue $ERROR_INFO
       if result.is_a?(Vips::Image)
         true
-      elsif result.is_a?(Vips::Error) && result.message =~ /too few frames in GIF file/
+      elsif result.is_a?(Vips::Error) && result.message =~ /bad page number/
         false
       else
         raise result
@@ -214,8 +214,8 @@ class UploadService
       return "" unless Danbooru.config.enable_dimension_autotagging
 
       tags = []
-      tags << "animated_gif" if is_animated_gif?(upload, file)
-      tags << "animated_png" if is_animated_png?(upload, file)
+      tags += ["animated_gif", "animated"] if is_animated_gif?(upload, file)
+      tags += ["animated_png", "animated"] if is_animated_png?(upload, file)
       tags.join(" ")
     end
 
