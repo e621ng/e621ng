@@ -147,6 +147,8 @@ Blacklist.post_match = function (post, entry) {
   }
 
   var $post = $(post);
+  if ($post.hasClass('post-no-blacklist'))
+    return false;
   let post_data = {
     id: $post.data('id'),
     score: parseInt($post.data('score'), 10),
