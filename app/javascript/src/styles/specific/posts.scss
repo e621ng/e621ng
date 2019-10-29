@@ -346,10 +346,6 @@ div#c-posts {
     font-size: $h4_size;
   }
 
-  aside#sidebar > section > ul {
-    margin-bottom: 1em;
-  }
-
   aside#sidebar > section > ul li {
     list-style-type: none;
   }
@@ -594,4 +590,15 @@ section#image-extra-controls {
 
 .flag-dialog-body label {
   white-space: normal;
+}
+
+#tag-list > ul {
+  margin-bottom: $quarter-padding;
+}
+
+.tag-list-header {
+  cursor: pointer;
+  &.hidden-category::before {
+    content: "► ";
+  }
 }

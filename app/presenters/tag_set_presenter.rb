@@ -36,7 +36,7 @@ class TagSetPresenter < Presenter
       typetags = tags_for_category(category)
 
       if typetags.any?
-        html << TagCategory.header_mapping[category] if headers
+        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory.header_mapping[category]}</h2>} if headers
         html << %{<ul class="#{category}-tag-list">}
         typetags.each do |tag|
           html << build_list_item(tag, current_query: current_query, show_extra_links: show_extra_links, name_only: name_only, humanize_tags: humanize_tags)

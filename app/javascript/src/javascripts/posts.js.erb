@@ -13,6 +13,7 @@ Post.initialize_all = function() {
 
   if ($("#c-posts").length) {
     this.initialize_shortcuts();
+    this.initialize_collapse();
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
@@ -41,6 +42,15 @@ Post.initialize_all = function() {
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
   $fields_multiple.on("click", Post.update_tag_count);
+}
+
+Post.initialize_collapse = function() {
+  $('.tag-list-header').on('click', function(e) {
+    const category = $(e.target).data('category');
+    $(`.${category}-tag-list`).toggle();
+    $(e.target).toggleClass("hidden-category");
+    e.preventDefault();
+  });
 }
 
 Post.initialize_voting = function() {
