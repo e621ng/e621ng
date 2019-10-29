@@ -3,7 +3,7 @@
     <h2>New Set</h2>
 
     <div>
-      <%= simple_form_for(@set) do |f| %>
+      <%= simple_form_for(@post_set) do |f| %>
         <%= error_messages_for :post_set %>
         <%= f.input :name, as: :string, input_html: {onkeyup: 'fillShortName()'} %>
 

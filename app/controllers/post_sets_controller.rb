@@ -5,106 +5,106 @@ class PostSetsController < ApplicationController
   def index
     if !params[:post_id].blank?
       if CurrentUser.is_admin?
-        @sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       else
-        @sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       end
     elsif !params[:maintainer_id].blank?
       if CurrentUser.is_admin?
-        @sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
       else
-        @sets = PostSet.visible(CurrentUser.user).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.visible(CurrentUser.user).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
       end
     else
-      @sets = PostSet.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+      @post_sets = PostSet.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
     end
 
-    respond_with(@sets)
+    respond_with(@post_sets)
   end
 
   def atom
     begin
-      @sets = PostSet.visible.order(id: :desc).limit(32)
+      @post_sets = PostSet.visible.order(id: :desc).limit(32)
       headers["Content-Type"] = "application/atom+xml"
     rescue RuntimeError => e
-      @set = []
+      @post_sets = []
     end
 
     render layout: false
   end
 
   def new
-    @set = PostSet.new
+    @post_set = PostSet.new
   end
 
   def create
-    @set = PostSet.create(set_params)
-    flash[:notice] = @set.valid? ? 'Set created' : @set.errors.full_messages.join('; ')
-    respond_with(@set)
+    @post_set = PostSet.create(set_params)
+    flash[:notice] = @post_set.valid? ? 'Set created' : @post_set.errors.full_messages.join('; ')
+    respond_with(@post_set)
   end
 
   def show
-    @set = PostSet.find(params[:id])
-    check_view_access(@set)
+    @post_set = PostSet.find(params[:id])
+    check_view_access(@post_set)
 
-    respond_with(@set)
+    respond_with(@post_set)
   end
 
   def edit
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    @can_edit = @set.is_owner?(CurrentUser) || CurrentUser.is_admin?
-    respond_with(@set)
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    @can_edit = @post_set.is_owner?(CurrentUser) || CurrentUser.is_admin?
+    respond_with(@post_set)
   end
 
   def update
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    @set.update(set_params)
-    flash[:notice] = @set.valid? ? 'Set updated.' : @set.errors.full_messages.join('; ')
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    @post_set.update(set_params)
+    flash[:notice] = @post_set.valid? ? 'Set updated.' : @post_set.errors.full_messages.join('; ')
 
-    if CurrentUser.is_admin? && !@set.is_owner?(CurrentUser.user)
-      if @set.saved_change_to_is_public?
-        ModAction.log(:set_mark_private, {set_id: @set.id, user_id: @set.creator_id})
+    if CurrentUser.is_admin? && !@post_set.is_owner?(CurrentUser.user)
+      if @post_set.saved_change_to_is_public?
+        ModAction.log(:set_mark_private, {set_id: @post_set.id, user_id: @post_set.creator_id})
       end
 
-      if @set.saved_change_to_watched_attribute?
-        Modaction.log(:set_update, {set_id: @set.id, user_id: @set.creator_id})
+      if @post_set.saved_change_to_watched_attribute?
+        Modaction.log(:set_update, {set_id: @post_set.id, user_id: @post_set.creator_id})
       end
     end
 
-    respond_with(@set)
+    respond_with(@post_set)
   end
 
   def maintainers
-    @set = PostSet.find(params[:id])
+    @post_set = PostSet.find(params[:id])
   end
 
   def post_list
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    respond_with(@set)
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    respond_with(@post_set)
   end
 
   def update_posts
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    @set.update(update_posts_params)
-    flash[:notice] = @set.valid? ? 'Set posts updated.' : @set.errors.full_messages.join('; ')
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    @post_set.update(update_posts_params)
+    flash[:notice] = @post_set.valid? ? 'Set posts updated.' : @post_set.errors.full_messages.join('; ')
 
-    redirect_back(fallback_location: post_list_post_set_path(@set))
+    redirect_back(fallback_location: post_list_post_set_path(@post_set))
   end
 
   def destroy
-    @set = PostSet.find(params[:id])
-    unless @set.is_owner?(CurrentUser.user) || CurrentUser.is_admin?
+    @post_set = PostSet.find(params[:id])
+    unless @post_set.is_owner?(CurrentUser.user) || CurrentUser.is_admin?
       raise User::PrivilegeError
     end
     if CurrentUser.is_admin?
-      ModAction.log(:set_delete, {set_id: @set.id, user_id: @set.creator_id})
+      ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
     end
-    @set.destroy
-    respond_with(@set)
+    @post_set.destroy
+    respond_with(@post_set)
   end
 
   def for_select
@@ -120,19 +120,19 @@ class PostSetsController < ApplicationController
   end
 
   def add_posts
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    @set.add(params[:post_ids].map(&:to_i))
-    @set.save
-    respond_with(@set)
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    @post_set.add(params[:post_ids].map(&:to_i))
+    @post_set.save
+    respond_with(@post_set)
   end
 
   def remove_posts
-    @set = PostSet.find(params[:id])
-    check_edit_access(@set)
-    @set.remove(params[:post_ids].map(&:to_i))
-    @set.save
-    respond_with(@set)
+    @post_set = PostSet.find(params[:id])
+    check_edit_access(@post_set)
+    @post_set.remove(params[:post_ids].map(&:to_i))
+    @post_set.save
+    respond_with(@post_set)
   end
 
   private
