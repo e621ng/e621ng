@@ -1,43 +1,43 @@
 <div id="c-sets">
   <div id="a-show">
-    <div class="set-header"><span class="set-name"><%= @set.name %></span> by
-      <span class="set-creator"><%= link_to_user @set.creator %></span>
-      <% if @set.is_public %>
+    <div class="set-header"><span class="set-name"><%= @post_set.name %></span> by
+      <span class="set-creator"><%= link_to_user @post_set.creator %></span>
+      <% if @post_set.is_public %>
         <div class='set-status set-status-public' title='This set is public'>Public</div>
       <% else %>
         <div class='set-status set-status-private' title='This set is private and only visible to you'>Private</div>
       <% end %>
 
-      <% if @set.is_owner?(CurrentUser.user) %>
+      <% if @post_set.is_owner?(CurrentUser.user) %>
         <div class='set-status set-status-owner' title='You own this set'>Owner</div>
-      <% elsif @set.is_maintainer?(CurrentUser.user) %>
+      <% elsif @post_set.is_maintainer?(CurrentUser.user) %>
         <div class='set-status set-status-maintainer' title='You are a maintainer of this set and can add and remove posts'>Maint.</div>
       <% end %>
     </div>
     <div class="set-shortname">Short
-      Name: <%= link_to @set.shortname, posts_path(tags: "set:#{@set.shortname}") %></div>
+      Name: <%= link_to @post_set.shortname, posts_path(tags: "set:#{@post_set.shortname}") %></div>
     Created:
-    <span class="date" title="<%= @set.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@set.created_at) + " ago" %></span>
+    <span class="date" title="<%= @post_set.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.created_at) + " ago" %></span>
     |
     Updated:
-    <span class="date" title="<%= @set.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@set.updated_at) + " ago" %></span><br/>
+    <span class="date" title="<%= @post_set.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.updated_at) + " ago" %></span><br/>
 
-    <% if @set.description.blank? %>
+    <% if @post_set.description.blank? %>
       <div class='set-description'>No description.</div>
     <% else %>
-      <div class='set-description'><%= format_text @set.description %></div>
+      <div class='set-description'><%= format_text @post_set.description %></div>
     <% end %>
     <div class='set-description-bottom'></div>
 
-    <span class="set-viewposts"><%= link_to "&raquo; View Posts (#{@set.post_count.to_s})".html_safe, posts_path(tags: "set:#{@set.shortname}") %></span><br/>
-    <%#= link_to "&raquo; Maintainers (" + PostSetMaintainer.count(conditions: ["post_set_id = ?", @set.id]).to_s + ")", action: "maintainers", id: @set.id %>
+    <span class="set-viewposts"><%= link_to "&raquo; View Posts (#{@post_set.post_count.to_s})".html_safe, posts_path(tags: "set:#{@post_set.shortname}") %></span><br/>
+    <%#= link_to "&raquo; Maintainers (" + PostSetMaintainer.count(conditions: ["post_set_id = ?", @post_set.id]).to_s + ")", action: "maintainers", id: @post_set.id %>
     <br/>
 
-    <% if @set.post_count == 0 %>
+    <% if @post_set.post_count == 0 %>
       <div class="set-empty section">
         <p>This set has no posts in it.</p>
 
-        <% if @set.is_owner?(CurrentUser.user) || @set.is_maintainer?(CurrentUser.user) %>
+        <% if @post_set.is_owner?(CurrentUser.user) || @post_set.is_maintainer?(CurrentUser.user) %>
           To start adding posts to this set:
           <ul>
             <li>On a post's page, click <strong>Add to Set</strong> under <strong>Options</strong> in the sidebar,
@@ -49,7 +49,7 @@
           </ul>
         <% end %>
       </div>
-    <% elsif @set.is_owner?(CurrentUser.user) || @set.is_maintainer?(CurrentUser.user) %>
+    <% elsif @post_set.is_owner?(CurrentUser.user) || @post_set.is_maintainer?(CurrentUser.user) %>
       <div class="section">
         To add posts to this set:
         <ul>

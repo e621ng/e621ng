@@ -5,12 +5,12 @@
 	<link href="<%= atom_post_sets_url() %>" rel="self"/>
   <link href="<%= post_sets_url() %>>" rel="alternate"/>
   <id><%= atom_post_sets_url() %></id>
-  <% if @sets.any? %>
-    <updated><%= @sets[0].created_at.gmtime.xmlschema %></updated>
+  <% if @post_sets.any? %>
+    <updated><%= @post_sets[0].created_at.gmtime.xmlschema %></updated>
   <% end %>
   <author><name><%= Danbooru.config.app_name %></name></author>
 
-  <% @sets.each do |set| %>
+  <% @post_sets.each do |set| %>
     <entry>
       <title><%= set.name %></title>
       <link href="<%= post_set_url(set) %>" rel="alternate"/>

@@ -19,7 +19,7 @@
         </thead>
 
         <tbody>
-        <% @sets.each do |s| %>
+        <% @post_sets.each do |s| %>
           <tr>
             <td><%= link_to s.name, post_set_path(s) %></td>
             <td><%= link_to s.shortname, posts_path(tags: "set:#{s.shortname}") %></td>
@@ -51,7 +51,7 @@
     </div>
 
     <div id="paginator">
-      <%= numbered_paginator(@sets) %>
+      <%= numbered_paginator(@post_sets) %>
     </div>
   </div>
 </div>

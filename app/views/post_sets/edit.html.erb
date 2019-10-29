@@ -1,10 +1,10 @@
 <div id="a-set">
   <div id="c-edit">
-    <h2>Editing <span class="set-name"><%= @set.name %></span></h2>
+    <h2>Editing <span class="set-name"><%= @post_set.name %></span></h2>
 
     <% if @can_edit %>
       <div class='section'>
-        <%= simple_form_for(@set) do |f| %>
+        <%= simple_form_for(@post_set) do |f| %>
           <%= f.input :name, as: :string, input_html: {onkeyup: 'fillShortName()'} %>
 
           <%= f.input :shortname, label: 'Short Name', as: :string, input_html: {onchange: 'shortNameChanged()'},
@@ -24,12 +24,12 @@
       </div>
     <% end %>
 
-    <% if @set.is_owner?(CurrentUser) %>
-      <%= link_to "&raquo; Click here to edit maintainers.".html_safe, maintainers_post_set_path(@set) %><br/>
+    <% if @post_set.is_owner?(CurrentUser) %>
+      <%= link_to "&raquo; Click here to edit maintainers.".html_safe, maintainers_post_set_path(@post_set) %><br/>
     <% end %>
 
-    <% if @set.is_owner?(CurrentUser) || @set.is_maintainer?(CurrentUser) %>
-      <%= link_to "&raquo; Click here to add/remove posts.".html_safe, post_list_post_set_path(@set) %><br/>
+    <% if @post_set.is_owner?(CurrentUser) || @post_set.is_maintainer?(CurrentUser) %>
+      <%= link_to "&raquo; Click here to add/remove posts.".html_safe, post_list_post_set_path(@post_set) %><br/>
     <% end %>
   </div>
 </div>

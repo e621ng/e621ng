@@ -1,15 +1,15 @@
 <div id="c-sets">
   <div id="a-maintainers">
-    <% @maintainers = @set.post_set_maintainers %>
-    <h2>Maintainers for set <span class="set-name"><%= @set.name %></span></h2>
+    <% @maintainers = @post_set.post_set_maintainers %>
+    <h2>Maintainers for set <span class="set-name"><%= @post_set.name %></span></h2>
     <p>Maintainers are users who are assigned to a set and have the ability to add or remove posts from it. They cannot
       edit any other details of the set.</p>
     <h3>Approved</h3>
     <table class="rounded nomargin" width="400px" style="margin-bottom:30px;">
       <thead>
       <tr>
-        <th width="55%"><%= link_to "Username", action: "maintainers", id: @set.id, order: "username" %></th>
-        <th width="30%"><%= link_to "Status", action: "maintainers", id: @set.id, order: "status" %></th>
+        <th width="55%"><%= link_to "Username", action: "maintainers", id: @post_set.id, order: "username" %></th>
+        <th width="30%"><%= link_to "Status", action: "maintainers", id: @post_set.id, order: "status" %></th>
         <th width="15%"></th>
       </tr>
       </thead>
@@ -20,7 +20,7 @@
           <td><%= m.status.capitalize %></td>
 
           <td>
-            <% if @set.is_owner?(CurrentUser) %>
+            <% if @post_set.is_owner?(CurrentUser) %>
               <%= form_tag({controller: "set_maintainer", action: "destroy"}) do %>
                 <%= hidden_field_tag "id", m.id %>
                 <%= submit_tag "Remove" %>
@@ -36,8 +36,8 @@
     <table class="rounded nomargin" width="400px">
       <thead>
       <tr>
-        <th width="55%"><%= link_to "Username", action: "maintainers", id: @set.id, order: "username" %></th>
-        <th width="30%"><%= link_to "Status", action: "maintainers", id: @set.id, order: "status" %></th>
+        <th width="55%"><%= link_to "Username", action: "maintainers", id: @post_set.id, order: "username" %></th>
+        <th width="30%"><%= link_to "Status", action: "maintainers", id: @post_set.id, order: "status" %></th>
         <th width="15%"></th>
       </tr>
       </thead>
@@ -48,7 +48,7 @@
           <td><%= m.status.capitalize %></td>
 
           <td>
-            <% if @set.is_owner?(CurrentUser) %>
+            <% if @post_set.is_owner?(CurrentUser) %>
               <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, remote: true, data: {confirm: "Are you sure you want to remove this pending invite?"} %>
             <% end %>
           </td>
@@ -57,12 +57,12 @@
       </tbody>
     </table>
 
-    <% if @set.is_owner?(CurrentUser) && @set.is_public %>
+    <% if @post_set.is_owner?(CurrentUser) && @post_set.is_public %>
       <h3 style="margin-top:15px;">Add new Maintainer</h3>
       <div class='section' style="width:380px;">
         <%= form_tag(post_set_maintainers_path) do %>
           <label for="set_maintainer_name">Username</label><br/>
-          <%= hidden_field_tag "post_set_id", @set.id %>
+          <%= hidden_field_tag "post_set_id", @post_set.id %>
           <%= text_field_tag "username" %>
           <%= submit_tag "Create" %>
         <% end %>
