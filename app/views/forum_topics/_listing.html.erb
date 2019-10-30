@@ -2,9 +2,9 @@
   <thead>
     <tr>
       <th>Title</th>
-      <th>Creator</th>
-      <th class="updater">Updated by</th>
-      <th class="updated-at">Updated at</th>
+      <th class="updated-at updater">Last Post</th>
+      <th class="created-at creator">Created</th>
+      <th>Replies</th>
     </tr>
   </thead>
   <tbody>
@@ -37,9 +37,9 @@
               <span class="level-topic">(<%= User.level_string(topic.min_level).downcase %> only)</span>
             <% end %>
           </td>
-          <td><%= link_to_user topic.creator %></td>
-          <td class="updater"><%= link_to_user topic.updater %></td>
-          <td class="updated-at"><%= compact_time topic.updated_at %></td>
+          <td class="updated-at updater"><%= link_to_user topic.updater %> <%= time_ago_in_words_tagged topic.updated_at, compact: true %></td>
+          <td class="created-at creator"><%= link_to_user topic.creator %> <%= time_ago_in_words_tagged topic.created_at, compact: true %></td>
+          <td><%= topic.response_count %></td>
         </tr>
       <% end %>
     <% end %>
