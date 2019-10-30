@@ -313,7 +313,7 @@ fart'
 
     # Measured in seconds
     def max_video_duration
-      600
+      3600
     end
 
     # Maximum resolution (width * height) of an upload. Default: 441 megapixels (21000x21000 pixels).
