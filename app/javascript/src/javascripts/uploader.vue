@@ -2,6 +2,9 @@
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
             <div class="the_secret_switch" @click="normalMode = !normalMode"></div>
+            <div class="box-section sect_red" v-show="overDims">
+                One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
+            </div>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
@@ -554,6 +557,7 @@
     if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
       this.disableFileUpload = false;
       this.oldDomain = '';
+      this.overDims = false;
       self.clearWhitelistWarning();
       return;
     }
@@ -616,6 +620,7 @@
     this.disableURLUpload = this.disableFileUpload = false;
     this.previewURL = thumbs.none;
     this.previewHeight = this.previewWidth = 0;
+    this.overDims = false;
     this.updatePreview();
   }
 
