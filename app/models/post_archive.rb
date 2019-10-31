@@ -48,7 +48,8 @@ class PostArchive < ApplicationRecord
       end
 
       if params[:updater_name].present?
-        must << {term: {updater_id: User.name_to_id(params[:updater_name])}}
+        user_id = User.name_to_id(params[:updater_name])
+        must << {term: {updater_id: user_id}} if user_id
       end
 
       if params[:updater_id].present?
