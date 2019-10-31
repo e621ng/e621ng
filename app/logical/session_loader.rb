@@ -18,6 +18,8 @@ class SessionLoader
       load_session_for_api
     elsif session[:user_id]
       load_session_user
+    elsif has_remember_token?
+      load_remember_token
     end
 
     set_statement_timeout
@@ -34,11 +36,22 @@ class SessionLoader
     request.authorization.present? || params[:login].present? || params[:api_key].present? || params[:password_hash].present?
   end
 
+  def has_remember_token?
+    cookies.encrypted[:remember].present?
+  end
+
 private
 
   def set_statement_timeout
     timeout = CurrentUser.user.statement_timeout
     ActiveRecord::Base.connection.execute("set statement_timeout = #{timeout}")
+  end
+
+  def load_remember_token
+    user = User.find_by_id(cookies.encrypted[:remember])
+    return unless user
+    CurrentUser.user = user
+    session[:user_id] = user.id
   end
 
   def load_session_for_api

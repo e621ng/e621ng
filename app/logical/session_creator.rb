@@ -17,6 +17,8 @@ class SessionCreator
 
       session[:user_id] = user.id
       user.update_column(:last_ip_addr, ip_addr)
+
+      cookies.encrypted[:remember] = {value: user.id, expires: Time.now + 7.days} if remember
       return true
     else
       return false
