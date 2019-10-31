@@ -106,7 +106,8 @@ class PostArchive < ApplicationRecord
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
                     locked_tags: post.locked_tags,
-                    description: post.description
+                    description: post.description,
+                    reason: post.edit_reason
                 })
   end
 

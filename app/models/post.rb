@@ -59,7 +59,7 @@ class Post < ApplicationRecord
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning,
-                :view_count, :do_not_version_changes, :tag_string_diff, :source_diff
+                :view_count, :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
@@ -1521,6 +1521,8 @@ class Post < ApplicationRecord
     end
 
     def create_new_version
+      # This function name is misleading, this directly creates the version.
+      # Previously there was a queue involved, now there isn't.
       PostArchive.queue(self)
     end
 

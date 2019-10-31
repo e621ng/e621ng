@@ -114,6 +114,11 @@
   <% end %>
 
   <div class="input">
+    <%= f.label :edit_reason, "Edit Reason" %>
+    <%= f.text_field :edit_reason %>
+  </div>
+
+  <div class="input">
     <%= submit_tag "Submit", :class => "ui-button ui-widget ui-corner-all" %>
   </div>
 <% end %>
