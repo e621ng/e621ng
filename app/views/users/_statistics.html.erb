@@ -40,9 +40,6 @@
         <th>Posts</th>
         <td>
           <%= presenter.upload_count(self) %>
-          <% if presenter.has_uploads? %>
-            [<%= link_to "tag changes report", reports_upload_tags_path(user_id: user.id) %>]
-          <% end %>
           <% if CurrentUser.is_moderator? %>
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300") %>]
           <% end %>

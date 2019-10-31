@@ -287,12 +287,6 @@ Rails.application.routes.draw do
   end
   resource :related_tag, :only => [:show, :update]
   get "related_tag/bulk" => "related_tags#bulk"
-  get "reports/uploads" => "reports#uploads"
-  get "reports/upload_tags" => "reports#upload_tags"
-  get "reports/post_versions" => "reports#post_versions"
-  post "reports/post_versions_create" => "reports#post_versions_create"
-  get "reports/down_voting_post" => "reports#down_voting_post"
-  post "reports/down_voting_post_create" => "reports#down_voting_post_create"
   resource :recommended_posts, only: [:show]
   resource :session, only: [:new, :create, :destroy] do
     get :sign_out, on: :collection
