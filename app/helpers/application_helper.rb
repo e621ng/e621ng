@@ -77,6 +77,7 @@ module ApplicationHelper
   end
 
   def format_text(text, **options)
+    options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
     return raw "" if parsed.nil?
     deferred_post_ids.merge(parsed[1]) if parsed[1].present?

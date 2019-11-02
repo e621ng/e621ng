@@ -15,7 +15,7 @@
   <%= tag.section id: "original-artist-commentary", style: ("display: none" if artist_commentary.translated_present?) do %>
     <h4><%= artist_commentary.original_title %></h4>
     <div class="styled-dtext">
-      <%= format_text(artist_commentary.original_description, :disable_mentions => true) %>
+      <%= format_text(artist_commentary.original_description) %>
     </div>
   <% end %>
 <% end %>
@@ -33,7 +33,7 @@
       <% if artist_commentary.translated_description.present? %>
         <%= format_text(artist_commentary.translated_description, :disable_mentions => true) %>
       <% else %>
-        <span class="disabled"><%= format_text(artist_commentary.original_description, :disable_mentions => true) %></span>
+        <span class="disabled"><%= format_text(artist_commentary.original_description) %></span>
       <% end %>
     </div>
   </section>

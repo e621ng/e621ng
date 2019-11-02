@@ -21,13 +21,13 @@
           <td>
             <h3><%= h(commentary_version.original_title) %></h3>
             <div class="styled-dtext">
-              <%= format_text(commentary_version.original_description, :disable_mentions => true) %>
+              <%= format_text(commentary_version.original_description) %>
             </div>
           </td>
           <td>
             <h3><%= h(commentary_version.translated_title) %></h3>
             <div class="styled-dtext">
-              <%= format_text(commentary_version.translated_description, :disable_mentions => true) %>
+              <%= format_text(commentary_version.translated_description) %>
             </div>
           </td>
           <% if CurrentUser.is_moderator? %>

@@ -1,5 +1,4 @@
 class Comment < ApplicationRecord
-  include Mentionable
 
   simple_versioning
   belongs_to_creator
@@ -24,11 +23,6 @@ class Comment < ApplicationRecord
   user_status_counter :comment_count
   belongs_to :post, counter_cache: :comment_count
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
-  mentionable(
-    :message_field => :body,
-    :title => ->(user_name) {"#{creator_name} mentioned you in a comment on post ##{post_id}"},
-    :body => ->(user_name) {"@#{creator_name} mentioned you in a \"comment\":/posts/#{post_id}#comment-#{id} on post ##{post_id}:\n\n[quote]\n#{DText.excerpt(body, "@"+user_name)}\n[/quote]\n"},
-  )
 
   module SearchMethods
     def recent

@@ -1,5 +1,4 @@
 class ForumPost < ApplicationRecord
-  include Mentionable
 
   simple_versioning
   attr_readonly :topic_id
@@ -30,11 +29,6 @@ class ForumPost < ApplicationRecord
   after_destroy(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
     ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
   end
-  mentionable(
-    :message_field => :body,
-    :title => ->(user_name) {%{#{creator_name} mentioned you in topic ##{topic_id} (#{topic.title})}},
-    :body => ->(user_name) {%{@#{creator_name} mentioned you in topic ##{topic_id} ("#{topic.title}":[/forum_topics/#{topic_id}?page=#{forum_topic_page}]):\n\n[quote]\n#{DText.excerpt(body, "@"+user_name)}\n[/quote]\n}},
-  )
 
   module SearchMethods
     def topic_title_matches(title)

@@ -49,7 +49,7 @@
             <%= f.input :reason, as: :text, maxlength: 20 %><br/>
           <% else %>
             <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
-            <%= dtext_field "ticket", "reason", :classes => "autocomplete-mentions", :value => @ticket.reason, :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
+            <%= dtext_field "ticket", "reason", :value => @ticket.reason, :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
           <% end %>
 
         </div>

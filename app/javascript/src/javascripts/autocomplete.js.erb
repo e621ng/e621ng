@@ -23,51 +23,15 @@ Autocomplete.initialize_all = function() {
         this.element.on("keydown.Autocomplete.tab", null, "tab", Autocomplete.on_tab);
         this._super();
       },
-      _renderItem: Autocomplete.render_item,
+      _renderItem: Autocomplete.render_item
     });
 
     this.initialize_tag_autocomplete();
-    this.initialize_mention_autocomplete($(".autocomplete-mentions textarea"));
     this.initialize_artist_autocomplete($('[data-autocomplete="artist"]'));
     this.initialize_pool_autocomplete($('[data-autocomplete="pool"]'));
     this.initialize_user_autocomplete($('[data-autocomplete="user"]'));
     this.initialize_wiki_autocomplete($('[data-autocomplete="wiki-page"]'));
   }
-}
-
-Autocomplete.initialize_mention_autocomplete = function($fields) {
-  $fields.autocomplete({
-    search: function() {
-      $(this).data("ui-autocomplete").menu.bindings = $();
-    },
-    select: function(event, ui) {
-      Autocomplete.insert_completion(this, ui.item.value);
-      return false;
-    },
-    source: function(req, resp) {
-      var cursor = this.element.get(0).selectionStart;
-      var name = null;
-
-      for (var i = cursor; i >= 1; --i) {
-        if (req.term[i - 1] === " ") {
-          return;
-        }
-
-        if (req.term[i - 1] === "@") {
-          if (i === 1 || /[ \r\n]/.test(req.term[i - 2])) {
-            name = req.term.substring(i, cursor);
-            break;
-          } else {
-            return;
-          }
-        }
-      }
-
-      if (name) {
-        Autocomplete.user_source(name, resp, "@");
-      }
-    }
-  });
 }
 
 Autocomplete.initialize_tag_autocomplete = function() {
