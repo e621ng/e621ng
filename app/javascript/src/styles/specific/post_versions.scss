@@ -1,45 +1,54 @@
 @import "../base/005_vars.scss";
 
+@mixin grid-col($start, $end) {
+    grid-column-start: $start;
+    grid-column-end: $end;
+}
+
+@mixin grid-border($dir) {
+  border-#{dir}: 1px solid $post-version-grid-border;
+}
+
 div#c-post-versions {
   div#a-index {
     .desc-show {
-      cursor:pointer;
+      cursor: pointer;
     }
 
     .desc-popup {
-      display:none;
-      z-index:10;
-      width:800px;
-      height:400px;
-      position:fixed;
-      top:50%;
-      left:50%;
-      margin:auto;
-      margin-left:-400px;
-      margin-top:-200px;
-      box-shadow:0px 0px 15px #07162D, 0px 0px 15px #07162D, 0px 0px 15px #07162D !important;
+      display: none;
+      z-index: 10;
+      width: 800px;
+      height: 400px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      margin: auto;
+      margin-left: -400px;
+      margin-top: -200px;
+      box-shadow: 0px 0px 15px #07162D, 0px 0px 15px #07162D, 0px 0px 15px #07162D !important;
     }
 
     .desc-popup-inner {
-      height:370px;
-      overflow:auto;
+      height: 370px;
+      overflow: auto;
     }
 
     .closebutton {
-      float:right;
-      cursor:pointer;
-      margin-right:10px;
-      font-size:14pt;
-      font-weight:bold;
-      color:white;
-      vertical-align:center;
-      margin-top:-3px;
+      float: right;
+      cursor: pointer;
+      margin-right: 10px;
+      font-size: 14pt;
+      font-weight: bold;
+      color: white;
+      vertical-align: center;
+      margin-top: -3px;
     }
 
 
     .pv-label {
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
+      border-bottom: 1px solid $post-version-grid-border;
+      border-right: 1px solid $post-version-grid-border;
       background: $post-version-label-background;
       padding: 0.25rem 0.5rem;
     }
@@ -51,7 +60,7 @@ div#c-post-versions {
 
     .post-version {
       display: grid;
-      border: 1px solid black;
+      border: 1px solid $post-version-grid-border;
       margin-bottom: 0.5rem;
       grid-template-columns: 2rem repeat(12, 1fr);
       grid-auto-rows: auto;
@@ -67,92 +76,78 @@ div#c-post-versions {
 
     .pv-post-label {
       grid-row: 1;
-      grid-column-start: 2;
-      grid-column-end: 3;
+      @include grid-col(2, 3);
     }
 
     .pv-post {
       grid-row: 2;
-      grid-column-start: 2;
-      grid-column-end: 3;
-      border-right: 1px solid black;
+      @include grid-col(2, 3);
+      @include grid-border(right);
     }
 
     .pv-date-label {
       grid-row: 1;
-      grid-column-start: 3;
-      grid-column-end: 5;
+      @include grid-col(3, 5);
     }
 
     .pv-date {
       grid-row: 2;
-      grid-column-start: 3;
-      grid-column-end: 5;
-      border-right: 1px solid black;
+      @include grid-col(3, 5);
+      @include grid-border(righ);
     }
 
     .pv-reason-label {
       grid-row: 1;
-      grid-column-start: 5;
-      grid-column-end: 7;
+      @include grid-col(5, 7);
     }
 
     .pv-reason {
       grid-row: 2;
-      grid-column-start: 5;
-      grid-column-end: 7;
-      border-right: 1px solid black;
+      @include grid-col(5, 7);
+      @include grid-border(righ);
     }
 
     .pv-description-label {
       grid-row: 1;
-      grid-column-start: 7;
-      grid-column-end: 9;
+      @include grid-col(7, 9);
     }
 
     .pv-description {
       grid-row: 2;
-      grid-column-start: 7;
-      grid-column-end: 9;
-      border-right: 1px solid black;
+      @include grid-col(7, 9);
+      @include grid-border(right);
     }
 
     .pv-tags-locked-label {
       grid-row: 1;
-      grid-column-start: 9;
-      grid-column-end: 13;
+      @include grid-col(9, 13);
     }
 
     .pv-tags-locked {
       grid-row: 2;
-      grid-column-start: 9;
-      grid-column-end: 13;
-      border-right: 1px solid black;
+      @include grid-col(9, 13);
+      @include grid-border(right);
     }
 
     .pv-tags-label {
       grid-row: 3;
-      grid-column-start: 2;
-      grid-column-end: 10;
+      @include grid-col(2, 10);
     }
 
     .pv-tags {
       grid-row: 4;
-      grid-column-start: 2;
-      grid-column-end: 10;
-      border-right: 1px solid black;
+      @include grid-col(2, 10);
+      @include grid-border(right);
     }
 
     .pv-sources-label {
       grid-row: 3;
-      grid-column-start: 10;
-      grid-column-end: 14;
+      @include grid-col(10, 14);
     }
 
     .pv-sources {
       grid-row: 4;
-      grid-column-start: 10;
-      grid-column-end: 14;
+      @include grid-col(10, 14);
     }
 
     .pv-actions {

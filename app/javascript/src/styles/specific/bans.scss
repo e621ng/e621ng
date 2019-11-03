@@ -2,18 +2,18 @@
 
 #c-bans #a-index {
   tr[data-expired="true"] {
-    background-color: $state-success-color !important;
+    background-color: $ban-expired-background !important;
 
     &:hover {
-      background-color: darken($state-success-color, 5%) !important;
+      background-color: $ban-expired-hover-background !important;
     }
   }
 
   tr[data-expired="false"] {
-    background-color: $state-error-color !important;
+    background-color: $ban-background !important;
 
     &:hover {
-      background-color: darken($state-error-color, 5%) !important;
+      background-color: $ban-hover-background !important;
     }
   }
 }

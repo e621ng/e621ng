@@ -1,9 +1,11 @@
+@import "../base/005_vars.scss";
+
 #c-bulk-update-requests {
   s.approved {
-    color: green;
+    color: $bur-approved-color;
   }
 
   s.failed {
-    color: red;
+    color: $bur-rejected-color;
   }
 }

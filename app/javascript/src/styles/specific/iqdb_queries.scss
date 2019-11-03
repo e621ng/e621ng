@@ -1,9 +1,11 @@
+@import "../base/005_vars.scss";
+
 div#c-iqdb-queries {
   div#a-check {
     article.post-preview {
       height: 180px;
       width: 180px;
-      border: lightgrey solid 1px;
+      border: $iqdb-post-border solid 1px;
 
       img {
         margin-top: 10px;

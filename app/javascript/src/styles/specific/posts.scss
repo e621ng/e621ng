@@ -41,7 +41,7 @@ article.post-preview {
   }
 
   .desc {
-    background-color: $section-background;
+    background-color: $post-description-background;
     font-size: 80%;
     margin-bottom: 0;
   }
@@ -51,15 +51,15 @@ article.post-preview {
   }
 
   &.post-rating-explicit .post-score-rating {
-    color: $explicit-rating-color;
+    color: $post-rating-explicit-color;
   }
 
   &.post-rating-safe .post-score-rating {
-    color: $safe-rating-color;
+    color: $post-rating-safe-color;
   }
 
   &.post-rating-questionable .post-score-rating {
-    color: $questionable-rating-color;
+    color: $post-rating-questionable-color;
   }
 
   img {
@@ -166,7 +166,7 @@ body[data-user-can-approve-posts="true"] .post-preview {
 }
 
 .post-preview.current-post {
-  background-color: rgba(0,0,0,0.1);
+  background-color: $post-preview-highlight-background;
 }
 
 #has-parent-relationship-preview, #has-children-relationship-preview {
@@ -182,12 +182,12 @@ body[data-user-can-approve-posts="true"] .post-preview {
 }
 
 .post-count {
-  color: #CCC;
+  color: $post-count-color;
   margin-left: 0.2em;
 }
 
 .low-post-count {
-  color: red;
+  color: $post-tag-low-count-color;
 }
 
 div#c-posts {
@@ -235,13 +235,13 @@ div#c-posts {
   }
 
   .score-positive {
-    color: $green-color;
+    color: $post-score-positive-color;
   }
   .score-negative {
-    color: $red-color;
+    color: $post-score-negative-color;
   }
   .score-neutral {
-    color: $dark-grey-color
+    color: $post-score-neutral-color;
   }
 
   #ugoira-controls {
@@ -249,10 +249,10 @@ div#c-posts {
       margin-top: 0.5em;
       float: right;
       overflow: visible;
-      background: #EEE;
+      background: $post-ugoira-seek-background;
 
       .ui-progressbar-value {
-        background: white;
+        background: $post-ugoira-seek-progress-background;
       }
     }
 
@@ -468,9 +468,9 @@ div#c-posts {
     }
 
     #artist-commentary {
-      border: 1px solid border_color($section-background);
+      border: 1px solid $post-description-border;
       border-radius: $border-radius;
-      background-color: $section-background;
+      background-color: $post-description-background;
       margin-top: 1em;
       padding: 0.5em;
 
@@ -480,7 +480,7 @@ div#c-posts {
       }
 
       .disabled {
-        color: gray;
+        color: $post-description-disabled-color;
       }
     }
   }
@@ -498,32 +498,6 @@ div#c-post-versions, div#c-artist-versions {
   div#a-index {
     a {
       word-wrap: break-word
-    }
-  }
-}
-
-div#c-posts, div#c-uploads {
-  /* Fetch source data box */
-  div#source-info {
-    border-radius: $border-radius;
-    margin: 1em 0;
-    padding: 1em;
-    border: 1px solid #666;
-
-    &:not(.loading) #source-info-loading { display: none; }
-    &.loading #source-info-content { display: none; }
-    &.loading #fetch-data-manual { display: none; }
-
-    ul {
-      display: inline-block;
-    }
-
-    dt, dd, li {
-      display: inline;
-    }
-
-    dt, #source-info-tags li {
-      margin-right: 1em;
     }
   }
 }
@@ -555,21 +529,6 @@ div#unapprove-dialog {
 
 textarea[data-autocomplete="tag-edit"] {
   font-family: monospace;
-}
-
-#add-commentary-dialog {
-  input {
-    width: 70%;
-  }
-
-  input[type=checkbox] {
-    width: auto;
-  }
-
-  textarea {
-    font-size: 1em;
-    width: 100%;
-  }
 }
 
 #image {

@@ -10,11 +10,11 @@
   }
 
   ins {
-    background-color: $state-success-color;
+    background-color: $post-version-diff-added-color;
     font-weight: bold;
   }
   del {
-    background-color: $state-error-color;
+    background-color: $post-version-diff-removed-color;
     font-weight: bold;
   }
 }

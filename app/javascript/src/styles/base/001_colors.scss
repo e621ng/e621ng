@@ -151,10 +151,6 @@ $red-color: #e45f5f;
 $green-color: #3e9e49;
 $dark-grey-color: hsl(0, 0%, 50%);
 
-$explicit-rating-color: $red-color;
-$questionable-rating-color: hsl(50, 100%, 70%);
-$safe-rating-color: $green-color;
-
 $hr-color: rgba(255,255,255,0.25);
 
 // User Feedback page
@@ -175,14 +171,6 @@ $notice-deleted-background: darken($state-error-color, 40%);
 $notice-deleted-border: border_color($notice-deleted-background);
 $notice-pending-background: $section-background;
 $notice-pending-border: border_color($notice-pending-background);
-
-// Posts Page View modes
-$mode-view-background: #104e17;
-$mode-delete-background: #4e1010;
-$mode-rating-q-background: #4e4810;
-$mode-tagscript-background: #4f114f;
-$mode-lock-background: #1d1d1d;
-$mode-add-pool-background: #104b57;
 
 $comment-list-background: none;
 $comment-background: $lighten-background;
@@ -221,5 +209,124 @@ $widget-background: $section-background;
 $widget-header-background: $main-background;
 $widget-header-color: $text-color;
 
+// Bans
+$ban-expired-background: $state-success-color;
+$ban-expired-hover-background: darken($state-success-color, 5%);
+$ban-background: $state-error-color;
+$ban-hover-background: darken($state-error-color, 5%);
+
+// Artists
+$artist-new-artist-color: #A00;
+
+// BURs(Mairos)
+$bur-approved-color: green;
+$bur-rejected-color: red;
+
+// DMails
+$dmail-preview-border: #CCC;
+
+// Forum
+$forum-post-background: $section-background;
+$forum-post-even-background: $table-stripe-even-background;
+$forum-post-highlight-background: rgba(255,255,255,0.25);
+$forum-vote-up-color: green;
+$forum-vote-down-color: red;
+$forum-vote-meh-color: goldenrod;
+$forum-topic-info-color: #AAA;
+$forum-topic-new-color: red;
+$forum-topic-locked-color: gray;
+$forum-topic-leveled-color: #f66;
+$forum-topic-except-color: gray;
+
+// IQDB lookup
+$iqdb-post-border: lightgrey;
+
+// Mod queue
+$modqueue-post-pos-score-background: rgb(230, 255, 230);
+$modqueue-post-neg-score-background: rgb(255, 230, 230);
+$modqueue-post-quality-warning-background: $preview-quality-warning-color;
+$modqueue-post-sample-warning-background: $preview-sample-warning-color;
+
+// Notes
+$note-color: $inverted-text-color;
+$note-background: #FFE;
+$note-border: black;
+$note-box-border: white;
+$note-box-background: transparent;
+$note-box-inner-border: black;
+$note-box-inner-background: #FFE;
+$note-box-inner-unsaved-border: red;
+$note-box-highlighted-outline: $note-highlight-color;
+$note-preview-background: white;
+
+// Pools
+$pool-series-link-color: #A0A;
+$pool-series-link-hover-color: #B6B;
+$pool-collection-link-color: $link-color;
+$pool-collection-link-hover-color: $link-hover-color;
+
+// Post Events
+$post-events-unresolved-background: $negative-record-background;
+
+// Post Flags
+$post-flags-unresolved-background: $negative-record-background;
+
+// Post Mode
+$post-mode-edit: #104e17;
+$post-mode-tag-script: #4f114f;
+$post-mode-add-fav: #FFA;
+$post-mode-remove-fav: #FFA;
+$post-mode-vote-up: #AFA;
+$post-mode-vote-down: #FAA;
+$post-mode-rate-q: #4e4810;;
+$post-mode-rate-e: none; // TODO
+$post-mode-rate-s: none; // TODO
+$post-mode-add-pool: #104b57;
+$post-mode-lock-rating: #AA3;
+$post-mode-lock-note: #3AA;
+$post-mode-approve: #48C;
+$post-mode-notes: #5CD;
+$post-mode-delete: #4e1010;
+
+// Edit History / Post Versions
+$post-version-grid-border: black;
 $post-version-label-background: $section-background;
 $post-version-content-background: inherit;
+$post-version-diff-added-color: $state-success-color;
+$post-version-diff-removed-color: $state-error-color;
+
+// Posts
+$post-preview-description-background: $section-background;
+$post-rating-explicit-color: $red-color;
+$post-rating-questionable-color: hsl(50, 100%, 70%);
+$post-rating-safe-color: $green-color;
+$post-preview-highlight-background: rgba(0,0,0,0.1);
+$post-count-color: #CCC;
+$post-tag-low-count-color: red;
+$post-score-positive-color: $green-color;
+$post-score-negative-color: $red-color;
+$post-score-neutral-color: $dark-grey-color;
+
+$post-ugoira-seek-background: #EEE;
+$post-ugoira-seek-progress-background: white;
+
+$post-description-background: $section-background;
+$post-description-border: border_color($post-description-background);
+$post-description-disabled-color: gray;
+
+// Related Tags
+$related-tags-background: lighten($section-background, 10%);
+$related-tags-link-selected-background: rgba(255, 255, 255, 0.15);
+$related-tags-link-selected-color: white;
+
+// Tags
+$tags-count-link-color: gray;
+$tags-vote-down-color: red;
+$tags-vote-meh-color: darkkhaki;
+$tags-vote-up-color: green;
+
+// Users
+$user-profile-box-header-color: #333;
+
+// Wiki
+$wiki-other-names-background: #EEE;

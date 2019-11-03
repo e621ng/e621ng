@@ -1,12 +1,14 @@
+@import "../base/005_vars.scss";
+
 div#c-wiki-page-versions {
   #a-diff {
     del {
-      background: #FCC;
+      background: $diff-removed-color;
       text-decoration: none;
     }
 
     ins {
-      background: #CFC;
+      background: $diff-added-color;
       text-decoration: none;
     }
   }
@@ -19,7 +21,7 @@ div#c-wiki-page-versions {
 
   #a-show {
     span.version {
-      color: #AAA;
+      color: $info-color;
     }
   }
 }

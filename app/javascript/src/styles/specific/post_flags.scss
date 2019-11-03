@@ -2,6 +2,6 @@
 
 div#c-post-flags {
   tr.resolved-false {
-    background: $negative-record-background !important;
+    background: $post-flags-unresolved-background !important;
   }
 }

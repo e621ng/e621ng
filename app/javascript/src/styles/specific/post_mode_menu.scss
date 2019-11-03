@@ -1,49 +1,45 @@
 @import "../base/005_vars.scss";
 
-//body.mode-view {
-//  background-color: $bg_color_view;
-//}
-
 body.mode-edit {
-  background-color: $mode-view-background;
+  background-color: $post-mode-edit;
 }
 
 body.mode-tag-script {
-  background-color: $mode-tagscript-background;
+  background-color: $post-mode-tag-script;
 }
 
 body.mode-add-fav {
-  background-color: #FFA;
+  background-color: $post-mode-add-fav;
 }
 
 body.mode-remove-fav {
-  background-color: #FFA;
+  background-color: $post-mode-remove-fav;
 }
 
 body.mode-vote-up {
-  background-color: #AFA;
+  background-color: $post-mode-vote-up;
 }
 
 body.mode-vote-down {
-  background-color: #FAA;
+  background-color: $post-mode-vote-down;
 }
 
 body.mode-lock-rating {
-  background-color: #AA3;
+  background-color: $post-mode-lock-rating;
 }
 
 body.mode-lock-note {
-  background-color: #3AA;
+  background-color: $post-mode-lock-note;
 }
 
 body.mode-approve {
-  background-color: #48C;
+  background-color: $post-mode-approve;
 }
 
-body.mode-translation {
-  background-color: #5CD;
+body.mode-notes {
+  background-color: $post-mode-notes;
 }
 
-body.mode-ban {
-  background-color: #F33;
+body.mode-delete {
+  background-color: $post-mode-delete;
 }

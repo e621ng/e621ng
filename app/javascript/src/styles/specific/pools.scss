@@ -1,18 +1,18 @@
 @import "../base/005_vars.scss";
 
 a.pool-category-series, .pool-category-series a {
-  color: #A0A;
+  color: $pool-series-link-color;
 
   &:hover {
-    color: #B6B;
+    color: $pool-series-link-hover-color;
   }
 }
 
 a.pool-category-collection, .pool-category-collection a {
-  color: $link-color;
+  color: $pool-collection-link-color;
 
   &:hover {
-    color: $link-hover-color;
+    color: $pool-collection-link-hover-color;
   }
 }
 

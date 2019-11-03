@@ -6,9 +6,9 @@ div#note-container {
 
   div.note-body {
     position: absolute;
-    border: 1px solid black;
-    background: #FFE;
-    color: $inverted-text-color;
+    border: 1px solid $note-border;
+    background: $note-background;
+    color: $note-color;
     min-width: 140px;
     min-height: 1em;
     line-height: normal;
@@ -63,22 +63,22 @@ div#note-container {
 
   div.note-box {
     position: absolute;
-    border: 1px solid white;
+    border: 1px solid $note-box-border;
     min-width: 5px;
     min-height: 5px;
     width: 100px;
     height: 100px;
     cursor: move;
-    background: transparent;
+    background: $note-box-background;
     line-height: normal;
 
     div.note-box-inner-border {
-      border: 1px solid black;
-      background: #FFE;
+      border: 1px solid $note-box-inner-border;
+      background: $note-box-inner-background;
     }
 
     div.note-box-inner-border.unsaved {
-      border: 1px solid red;
+      border: 1px solid $note-box-inner-unsaved-border;
     }
 
     &.embedded {
@@ -97,7 +97,7 @@ div#note-container {
     }
 
     &.note-box-highlighted {
-      outline: 2px solid $note-highlight-color;
+      outline: 2px solid $note-box-highlighted-outline;
     }
   }
 }
@@ -107,7 +107,7 @@ div#note-preview {
   border: 1px solid red;
   opacity: 0.6;
   display: none;
-  background: white;
+  background: $note-preview-background;
 }
 
 div.note-edit-dialog {
