@@ -7,9 +7,9 @@ GIT
 
 GIT
   remote: https://github.com/zwagoth/dtext_rb.git
-  revision: e0841d55b705d8b2d87de5c7b809751049aa32d0
+  revision: 2e06f94f01f6bcce005975baa19abb5eb81fdf80
   specs:
-    dtext_rb (1.10.8)
+    dtext_rb (1.10.11)
       nokogiri (~> 1.8)
 
 GEM
@@ -233,9 +233,9 @@ GEM
     netrc (0.11.0)
     newrelic_rpm (6.7.0.359)
     nio4r (2.5.2)
-    nokogiri (1.10.4)
+    nokogiri (1.10.5)
       mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.4-x64-mingw32)
+    nokogiri (1.10.5-x64-mingw32)
       mini_portile2 (~> 2.4.0)
     nokogumbo (2.0.1)
       nokogiri (~> 1.8, >= 1.8.4)
