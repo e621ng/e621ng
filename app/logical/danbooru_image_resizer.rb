@@ -6,7 +6,7 @@ module DanbooruImageResizer
   # http://jcupitt.github.io/libvips/API/current/libvips-resample.html#vips-thumbnail
   THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE }
   # http://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave
-  JPEG_OPTIONS = { background: 255, strip: true, interlace: true, optimize_coding: true }
+  JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }
   CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE, crop: :attention }
 
   # XXX libvips-8.4 on Debian doesn't support the `Vips::Image.thumbnail` method.
