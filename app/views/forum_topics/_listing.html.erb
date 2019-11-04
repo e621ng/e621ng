@@ -39,7 +39,7 @@
           </td>
           <td class="updated-at updater"><%= link_to_user topic.updater %> <%= time_ago_in_words_tagged topic.updated_at, compact: true %></td>
           <td class="created-at creator"><%= link_to_user topic.creator %> <%= time_ago_in_words_tagged topic.created_at, compact: true %></td>
-          <td><%= topic.response_count %></td>
+          <td><%= topic.response_count-1 %></td>
         </tr>
       <% end %>
     <% end %>
@@ -49,8 +49,8 @@
 <% content_for(:html_header) do %>
 <style>
   @media screen and (max-width: 660px) {
-    .updater { display: none; }
-    .updated-at { display: none; }
+    .creator { display: none; }
+    .created-at { display: none; }
   }
 </style>
 <% end %>

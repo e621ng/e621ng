@@ -108,7 +108,7 @@ class ForumTopic < ApplicationRecord
         return true
       end
 
-      ForumTopicVisit.where("user_id = ? and forum_topic_id = ? and last_read_at >= ?", user.id, id, updated_at).exists?
+      user.has_viewed_thread?(id, updated_at)
     end
 
     def mark_as_read!(user = CurrentUser.user)

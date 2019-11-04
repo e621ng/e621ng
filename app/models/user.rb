@@ -111,6 +111,7 @@ class User < ApplicationRecord
 
   has_one :api_key
   has_one :dmail_filter
+  has_many :forum_topic_visits
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
@@ -410,6 +411,11 @@ class User < ApplicationRecord
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
       return max_updated_at > last_forum_read_at
+    end
+
+    def has_viewed_thread?(id, last_updated)
+      @topic_views ||= forum_topic_visits.pluck(:forum_topic_id, :last_read_at).to_h
+      @topic_views.key?(id) && @topic_views[id] >= last_updated
     end
   end
 
