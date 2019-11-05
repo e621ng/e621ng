@@ -1,0 +1,54 @@
+@import "../base/005_vars.scss";
+
+@each $tag-category, $tag-colors in $tag-category-colors {
+  .category-#{$tag-category} a,
+  a.tag-type-#{$tag-category},
+  .ui-widget-content .category-#{$tag-category} a,
+  .ui-widget-content a.tag-type-#{$tag-category} {
+    color: map-get($tag-colors, "color");
+
+    &:link, &:visited {
+      color: map-get($tag-colors, "color");
+    }
+
+    &:hover {
+      color: map-get($tag-colors, "hover");
+    }
+
+    &.selected {
+      color: $tag-selected-color;
+    }
+  }
+
+  .ui-widget-content .ui-state-active a.tag-type-#{$tag-category} {
+    color: map-get($tag-colors, "hover");
+
+    &:link, &:visited {
+      color: map-get($tag-colors, "color");
+    }
+
+    &:hover {
+      color: map-get($tag-colors, "hover");
+    }
+
+    &.selected {
+      color: $tag-selected-color;
+    }
+  }
+}
+
+.category-banned a, a.tag-type-banned, .ui-state-active a.tag-type-banned {
+  color: $tag-banned-color;
+  background-color: $tag-banned-background;
+}
+
+.inline-tag-list {
+  ul {
+    display: inline;
+
+    li {
+      display: inline;
+      margin-right: 0.5em;
+    }
+  }
+}
