@@ -207,6 +207,7 @@ Blacklist.initialize_all = function () {
     Blacklist.update_sidebar();
     Blacklist.initialize_disable_all_blacklists();
   }
+  $("#blacklisted-hider").remove();
 }
 
 Blacklist.initialize_anonymous_blacklist = function() {
