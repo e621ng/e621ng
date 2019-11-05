@@ -88,6 +88,24 @@
   </script>
   <%= yield :html_header %>
   <%= raw Danbooru.config.custom_html_header_content %>
+  <style id="blacklisted-hider">
+    .post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail {
+      display: none !important;
+    }
+  </style>
+  <noscript>
+    <style>
+      .post-preview, .mod-queue-preview.post-preview, .post-thumbnail {
+        display: inline-block !important;
+      }
+      #c-comments .post {
+        display: flex !important;
+      }
+      #image-container {
+        display: block !important;
+      }
+    </style>
+  </noscript>
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
   <%= render "news_updates/listing" %>
