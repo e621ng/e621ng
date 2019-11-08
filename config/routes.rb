@@ -392,8 +392,6 @@ Rails.application.routes.draw do
 
   # legacy aliases
   get "/artist" => redirect {|params, req| "/artists?page=#{req.params[:page]}&search[name]=#{CGI::escape(req.params[:name].to_s)}"}
-  get "/artist/index.xml", :controller => "legacy", :action => "artists", :format => "xml"
-  get "/artist/index.json", :controller => "legacy", :action => "artists", :format => "json"
   get "/artist/index" => redirect {|params, req| "/artists?page=#{req.params[:page]}"}
   get "/artist/show/:id" => redirect("/artists/%{id}")
   get "/artist/show" => redirect {|params, req| "/artists?name=#{CGI::escape(req.params[:name].to_s)}"}
@@ -414,7 +412,6 @@ Rails.application.routes.draw do
 
   get "/favorite" => redirect {|params, req| "/favorites?page=#{req.params[:page]}"}
   get "/favorite/index" => redirect {|params, req| "/favorites?page=#{req.params[:page]}"}
-  get "/favorite/list_users.json", :controller => "legacy", :action => "unavailable"
 
   get "/forum" => redirect {|params, req| "/forum_topics?page=#{req.params[:page]}"}
   get "/forum/index" => redirect {|params, req| "/forum_topics?page=#{req.params[:page]}"}
@@ -433,9 +430,6 @@ Rails.application.routes.draw do
   get "/pool/history/:id" => redirect("/pool_versions?search[pool_id]=%{id}")
   get "/pool/recent_changes" => redirect("/pool_versions")
 
-  get "/post/index.xml", :controller => "legacy", :action => "posts", :format => "xml"
-  get "/post/index.json", :controller => "legacy", :action => "posts", :format => "json"
-  get "/post/piclens", :controller => "legacy", :action => "unavailable"
   get "/post/index" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post/upload" => redirect("/uploads/new")
@@ -458,15 +452,11 @@ Rails.application.routes.draw do
   end)
   get "/post_tag_history/index" => redirect {|params, req| "/post_versions?page=#{req.params[:page]}&search[post_id]=#{req.params[:post_id]}"}
 
-  get "/tag/index.xml", :controller => "legacy", :action => "tags", :format => "xml"
-  get "/tag/index.json", :controller => "legacy", :action => "tags", :format => "json"
   get "/tag" => redirect {|params, req| "/tags?page=#{req.params[:page]}&search[name_matches]=#{CGI::escape(req.params[:name].to_s)}&search[order]=#{req.params[:order]}&search[category]=#{req.params[:type]}"}
   get "/tag/index" => redirect {|params, req| "/tags?page=#{req.params[:page]}&search[name_matches]=#{CGI::escape(req.params[:name].to_s)}&search[order]=#{req.params[:order]}"}
 
   get "/tag_implication" => redirect {|params, req| "/tag_implications?search[name_matches]=#{CGI::escape(req.params[:query].to_s)}"}
 
-  get "/user/index.xml", :controller => "legacy", :action => "users", :format => "xml"
-  get "/user/index.json", :controller => "legacy", :action => "users", :format => "json"
   get "/user" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/index" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/show/:id" => redirect("/users/%{id}")
@@ -481,11 +471,9 @@ Rails.application.routes.draw do
   get "/wiki/history/:title" => redirect("/wiki_page_versions?title=%{title}")
 
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
-  get "/static/bookmarklet" => "static#bookmarklet", :as => "bookmarklet"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/terms_of_service" => "static#terms_of_service", :as => "terms_of_service"
   post "/static/accept_terms_of_service" => "static#accept_terms_of_service", :as => "accept_terms_of_service"
-  get "/static/mrtg" => "static#mrtg", :as => "mrtg"
   get "/static/contact" => "static#contact", :as => "contact"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
 
