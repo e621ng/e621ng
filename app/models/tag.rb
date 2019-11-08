@@ -383,6 +383,41 @@ class Tag < ApplicationRecord
       list
     end
 
+    def parse_date(target)
+      case target
+      when /\A(day|week|month|year)\z/
+        [:gte, Time.zone.now - 1.send($1.to_sym)]
+      else
+        parse_helper(target, :date)
+      end
+    end
+
+    def ago_helper(target)
+      target =~ /\A(\d+)(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)(ago)?\z/i
+
+      size = $1.to_i
+      unit = $2
+
+      case unit
+      when /^s/i
+        size.seconds.ago
+      when /^mi/i
+        size.minutes.ago
+      when /^h/i
+        size.hours.ago
+      when /^d/i
+        size.days.ago
+      when /^w/i
+        size.weeks.ago
+      when /^mo/i
+        size.months.ago
+      when /^y/i
+        size.years.ago
+      else
+        nil
+      end
+    end
+
     def parse_cast(object, type)
       case type
       when :integer
@@ -392,6 +427,20 @@ class Tag < ApplicationRecord
         object.to_f
 
       when :date, :datetime
+        case object
+        when "today"
+          return Date.current
+        when "yesterday"
+          return Date.yesterday
+        when "decade"
+          return Date.current - 10.years
+        when /\A(day|week|month|year)\z/
+          return Date.current - 1.send($1.to_sym)
+        end
+
+        ago = ago_helper(object)
+        return ago if ago
+
         begin
           Time.zone.parse(object)
         rescue Exception
@@ -399,29 +448,7 @@ class Tag < ApplicationRecord
         end
 
       when :age
-        object =~ /(\d+)(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)?/i
-
-        size = $1.to_i
-        unit = $2
-
-        case unit
-        when /^s/i
-          size.seconds.ago
-        when /^mi/i
-          size.minutes.ago
-        when /^h/i
-          size.hours.ago
-        when /^d/i
-          size.days.ago
-        when /^w/i
-          size.weeks.ago
-        when /^mo/i
-          size.months.ago
-        when /^y/i
-          size.years.ago
-        else
-          size.seconds.ago
-        end
+        ago_helper(object)
 
       when :ratio
         object =~ /\A(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\Z/i
@@ -782,7 +809,8 @@ class Tag < ApplicationRecord
             q[:source_neg] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
 
           when "date"
-            q[:date] = parse_helper(g2, :date)
+            parsed_date = parse_date(g2)
+            q[:date] = parsed_date unless parsed_date[1].nil?
 
           when "age"
             q[:age] = reverse_parse_helper(parse_helper(g2, :age))
