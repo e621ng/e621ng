@@ -37,6 +37,7 @@
         <section id="post-related-images">
           <h1>Related</h1>
           <ul>
+            <li><%= link_to "Visually similar on E6", iqdb_queries_path(post_id: @post.id) %></li>
             <li><a href="https://www.google.com/searchbyimage?image_url=<%= @post.preview_file_url %>">Reverse Google Search</a></li>
             <li><a href="https://saucenao.com/search.php?url=<%= @post.preview_file_url %>">Reverse SauceNAO Search</a></li>
             <li><a href="http://iqdb.harry.lu/?url=<%= @post.preview_file_url %>">Reverse harry.lu Search</a></li>
@@ -175,6 +176,9 @@
   <% if CurrentUser.is_member? %>
     <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
       <%= render "pool_elements/new" %>
+    </div>
+    <div id="add-to-set-dialog" title="Add to set" style="display: none;">
+      <%= render "post_sets/add_dialog" %>
     </div>
   <% end %>
 </div>
