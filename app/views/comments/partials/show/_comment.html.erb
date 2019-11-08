@@ -10,7 +10,7 @@
         <% end %>
       </h1>
       <p>
-        <%= time_ago_in_words_tagged(comment.created_at) %>
+        <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>
       </p>
     </div>
     <div class="content">

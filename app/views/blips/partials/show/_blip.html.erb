@@ -11,7 +11,7 @@
         <%#= avatar_for(blip.creator) %>
       </h1>
       <p>
-        <span class="date" title="<%= blip.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= link_to time_ago_in_words(blip.created_at) + " ago", blip_path(blip) %></span>
+        <%= link_to time_ago_in_words_tagged(blip.created_at), blip_path(blip) %>
       </p>
     </div>
     <div class="content">
@@ -23,11 +23,11 @@
       </div>
 
       <menu>
-        <li><%= tag.a "Respond", href: '#', onclick: "Danbooru.Blip.quote(#{blip.id})" %></li>
+        <li><%= link_to_function "Reply", "Danbooru.Blip.quote(#{blip.id})" %></li>
         <% if blip.can_edit?(CurrentUser.user) %>
           <li><%= link_to "Edit", edit_blip_path(blip) %></li>
         <% end %>
-        <li><%= tag.a "@", href: '#', onclick: "Danbooru.Blip.atme(#{blip.id})" %></li>
+        <li><%= link_to_function "@", "Danbooru.Blip.atme(#{blip.id})" %></li>
 
         <% if !blip.is_hidden && blip.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
