@@ -653,10 +653,6 @@ class Tag < ApplicationRecord
               q[:pool] = "any"
             elsif g2.downcase == "any"
               q[:pool] = "none"
-            elsif g2.downcase == "series"
-              q[:tags][:exclude] << "pool:series"
-            elsif g2.downcase == "collection"
-              q[:tags][:exclude] << "pool:collection"
             elsif g2.include?("*")
               pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
               q[:pools_neg] += pool_ids
@@ -670,10 +666,6 @@ class Tag < ApplicationRecord
               q[:pool] = "none"
             elsif g2.downcase == "any"
               q[:pool] = "any"
-            elsif g2.downcase == "series"
-              q[:tags][:related] << "pool:series"
-            elsif g2.downcase == "collection"
-              q[:tags][:related] << "pool:collection"
             elsif g2.include?("*")
               pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
               q[:pools] += pool_ids
@@ -689,7 +681,9 @@ class Tag < ApplicationRecord
           when "set"
             q[:sets] ||= []
             post_set_id = PostSet.name_to_id(g2)
-            post_set = PostSet.find(post_set_id)
+            post_set = PostSet.find_by_id(post_set_id)
+
+            next unless post_set
 
             unless post_set.can_view?(CurrentUser.user)
               raise User::PrivilegeError
@@ -700,7 +694,9 @@ class Tag < ApplicationRecord
           when "-set"
             q[:sets_neg] ||= []
             post_set_id = PostSet.name_to_id(g2)
-            post_set = PostSet.find(post_set_id)
+            post_set = PostSet.find_by_id(post_set_id)
+
+            next unless post_set
 
             unless post_set.can_view?(CurrentUser.user)
               raise User::PrivilegeError
@@ -712,6 +708,8 @@ class Tag < ApplicationRecord
             q[:fav_ids_neg] ||= []
             favuser = User.find_by_name(g2)
 
+            next unless favuser
+
             if favuser.hide_favorites?
               raise User::PrivilegeError.new
             end
@@ -721,6 +719,8 @@ class Tag < ApplicationRecord
           when "fav", "favoritedby"
             q[:fav_ids] ||= []
             favuser = User.find_by_name(g2)
+
+            next unless favuser
 
             if favuser.hide_favorites?
               raise User::PrivilegeError.new

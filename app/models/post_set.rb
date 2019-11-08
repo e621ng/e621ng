@@ -38,7 +38,7 @@ class PostSet < ApplicationRecord
   after_save :synchronize, if: :saved_change_to_post_ids?
 
   def self.name_to_id(name)
-    if name =~ /^\d+$/
+    if name =~ /\A\d+\z/
       name.to_i
     else
       select_value_sql("SELECT id FROM post_sets WHERE lower(shortname) = ?", name.downcase.tr(" ", "_")).to_i
