@@ -20,7 +20,11 @@ module DanbooruImageResizer
   end
 
   def crop(file, width, height, quality = 90)
-    crop_shell(file, width, height, quality)
+    if Vips.at_least_libvips?(8, 5)
+      crop_ruby(file, width, height, quality)
+    else
+      crop_shell(file, width, height, quality)
+    end
   end
 
   # https://github.com/jcupitt/libvips/wiki/HOWTO----Image-shrinking
@@ -57,7 +61,7 @@ module DanbooruImageResizer
       "--eprofile=#{SRGB_PROFILE}",
       "--iprofile=#{SRGB_PROFILE}",
       "--size=#{target_width}x#{target_height}",
-      "--format=#{output_file.path}[Q=#{quality},background=255,strip,interlace,optimize_coding]"
+      "--format=#{output_file.path}[Q=#{quality},background=0,strip,interlace,optimize_coding]"
     ]
 
     _, status = Open3.capture2e("vipsthumbnail", *arguments)
@@ -81,7 +85,7 @@ module DanbooruImageResizer
       "--iprofile=#{SRGB_PROFILE}",
       "--smartcrop=attention",
       "--size=#{width}x#{height}",
-      "--format=#{output_file.path}[Q=#{quality},background=255,strip,interlace,optimize_coding]"
+      "--format=#{output_file.path}[Q=#{quality},background=0,strip,interlace,optimize_coding]"
     ]
 
     _, status = Open3.capture2e("vipsthumbnail", *arguments)
