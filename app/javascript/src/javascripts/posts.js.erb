@@ -1,5 +1,5 @@
 import Utility from './utility'
-import Hammer from 'hammerjs'
+import ZingTouch from 'zingtouch'
 import LS from './local_storage'
 import Note from './notes'
 import { SendQueue } from './send_queue'
@@ -165,36 +165,29 @@ Post.initialize_gestures = function() {
   }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
     return;
-  var $body = $("body");
-  if ($body.data("hammer")) {
+
+  const zing = new ZingTouch.Region(document.body, false, false);
+  zing.bind(document.body, 'swipe', function(e) {
+    console.log(e);
+    const angle = e.detail.data[0].currentDirection + 90.0;
+    const hasPrev = Post.has_prev_target();
+    const hasNext = Post.has_next_target();
+    if (hasPrev && angle > 90-35 && angle < 90+35) { // right swipe
+        $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
+        Utility.delay(200).then(function() { Post.nav_prev(e); });
+    }
+    if (hasNext && angle > 270-35 && angle < 270+35) { // Left swipe
+        $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
+        Utility.delay(200).then(function() { Post.nav_next(e); });
+    }
+  });
+
+  const $body = $("body");
+  if($body.data('zing'))
     return;
-  }
-//  if (!Utility.test_max_width(660)) {
-//    return;
-//  }
+
+  $body.data("zing", zing);
   $("#image-container").css({overflow: "visible"});
-  var hasPrev = Post.has_prev_target();
-  var hasNext = Post.has_next_target();
-
-  delete Hammer.defaults.cssProps.userSelect;
-  var hammer = new Hammer($body[0], {touchAction: 'pan-y', recognizers: [[Hammer.Swipe, { threshold: 20, velocity: 0.4, direction: Hammer.DIRECTION_HORIZONTAL }]], inputClass: Hammer.TouchInput});
-  $body.data("hammer", hammer);
-
-  if (hasPrev) {
-    hammer.on("swiperight", async function(e) {
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
-      await Utility.delay(200);
-      Post.nav_prev(e);
-    });
-  }
-
-  if (hasNext) {
-    hammer.on("swipeleft", async function(e) {
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
-      await Utility.delay(200);
-      Post.nav_next(e);
-    });
-  }
 }
 
 Post.nav_prev = function(e) {
