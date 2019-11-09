@@ -6,7 +6,6 @@ function importAll(r) {
 }
 
 require('jquery-ujs');
-require('hammerjs');
 
 // should start looking for nodejs replacements
 importAll(require.context('../vendor', true, /\.js$/));
