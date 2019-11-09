@@ -131,7 +131,7 @@ class BulkUpdateRequest < ApplicationRecord
     def reject!(rejector = User.system)
       transaction do
         update(status: "rejected")
-        forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post.id}) has been rejected by @#{rejector.name}.", "REJECTED")
+        forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been rejected by @#{rejector.name}.", "REJECTED")
       end
     end
 
