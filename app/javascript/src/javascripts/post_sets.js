@@ -1,7 +1,5 @@
 import {SendQueue} from './send_queue'
 import Post from './posts.js.erb'
-import Pool from "./pools";
-import PostModeMenu from "./post_mode_menu";
 
 let PostSet = {};
 
