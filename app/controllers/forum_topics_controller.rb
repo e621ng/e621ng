@@ -61,7 +61,8 @@ class ForumTopicsController < ApplicationController
 
   def update
     check_privilege(@forum_topic)
-    @forum_topic.update(forum_topic_params(:update))
+    @forum_topic.assign_attributes(forum_topic_params(:update))
+    @forum_topic.save touch: false
     respond_with(@forum_topic)
   end
 

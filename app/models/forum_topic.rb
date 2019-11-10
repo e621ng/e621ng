@@ -20,7 +20,7 @@ class ForumTopic < ApplicationRecord
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
   before_destroy :create_mod_action_for_delete
-  after_update :update_orignal_post
+  after_update :update_original_post
   after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
@@ -221,7 +221,7 @@ class ForumTopic < ApplicationRecord
     update(is_hidden: false)
   end
 
-  def update_orignal_post
+  def update_original_post
     if original_post
       original_post.update_columns(:updater_id => CurrentUser.id, :updated_at => Time.now)
     end

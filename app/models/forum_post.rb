@@ -12,7 +12,6 @@ class ForumPost < ApplicationRecord
   has_one :bulk_update_request
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
-  after_update :update_topic_updated_at_on_update_for_original_posts
   after_destroy :update_topic_updated_at_on_destroy
   validates :body, :creator_id, presence: true
   validates :body, length: { minimum: 1, maximum: 50_000 }
@@ -194,12 +193,6 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  def update_topic_updated_at_on_update_for_original_posts
-    if is_original_post?
-      topic.touch
-    end
-  end
-
   def hide!
     update(is_hidden: true)
     update_topic_updated_at_on_hide
@@ -207,19 +200,13 @@ class ForumPost < ApplicationRecord
 
   def unhide!
     update(is_hidden: false)
-    update_topic_updated_at_on_unhide
+    update_topic_updated_at_on_hide
   end
 
   def update_topic_updated_at_on_hide
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
       ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
-    end
-  end
-
-  def update_topic_updated_at_on_unhide
-    if topic
-      ForumTopic.where(:id => topic.id).update_all(["updater_id = ?, updated_at = ?", CurrentUser.id, Time.now])
     end
   end
 
