@@ -22,7 +22,7 @@
       return {
         uploaded: (window.uploaderSettings.uploadTags || []),
         recent: (window.uploaderSettings.recentTags || []).sort(tagSorter),
-        artists: (window.uploadSettings.artistTags || []).sort(tagSorter)
+        artists: (window.uploaderSettings.artistTags || []).sort(tagSorter)
       };
     },
     methods: {
@@ -54,7 +54,7 @@
     computed: {
       tagGroups: {
         get: function () {
-          var groups = [];
+          const groups = [];
           if (this.uploaded && this.uploaded.length) {
             groups.push({
               title: "Quick Tags",

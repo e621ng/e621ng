@@ -180,6 +180,13 @@
     <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
     </div>
+    <script>
+      var uploaderSettings = {
+        postTags: <%= (@post.presenter.split_tag_list_text + " ").to_json.html_safe %>,
+        uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
+        recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>
+      };
+    </script>
   <% end %>
 </div>
 

@@ -286,7 +286,7 @@ Rails.application.routes.draw do
     end
   end
   resource :related_tag, :only => [:show, :update]
-  get "related_tag/bulk" => "related_tags#bulk"
+  match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
   resource :recommended_posts, only: [:show]
   resource :session, only: [:new, :create, :destroy] do
     get :sign_out, on: :collection
