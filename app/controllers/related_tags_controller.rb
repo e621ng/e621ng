@@ -5,6 +5,7 @@ class RelatedTagsController < ApplicationController
 
   def show
     @query = RelatedTagQuery.new(query: params[:query], category: params[:category], user: CurrentUser.user)
+    expires_in 1.second
     respond_with(@query)
   end
 
