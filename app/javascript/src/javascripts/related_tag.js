@@ -1,4 +1,3 @@
-import Uploads from './uploads';
 import Utility from './utility';
 import Post from './posts.js.erb';
 
@@ -17,7 +16,6 @@ RelatedTag.initialize_all = function() {
 
   // Initialize the recent/favorite/translated/artist tag columns once, the first time the related tags are shown.
   $(document).one("danbooru:show-related-tags", RelatedTag.initialize_recent_and_favorite_tags);
-  $(document).one("danbooru:show-related-tags", Uploads.fetch_data_manual);
 
   // Show the related tags automatically when the "Edit" tab is opened, or by default on the uploads page.
   $(document).on("danbooru:open-post-edit-tab", RelatedTag.show);
