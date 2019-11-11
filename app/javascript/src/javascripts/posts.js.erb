@@ -172,7 +172,7 @@ Post.initialize_gestures = function() {
     const angle = e.detail.data[0].currentDirection;
     const hasPrev = Post.has_prev_target();
     const hasNext = Post.has_next_target();
-    if (hasPrev && (angle > 360-45 || angle < 45) { // right swipe
+    if (hasPrev && (angle > 360-45 || angle < 45)) { // right swipe
         $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
         Utility.delay(200).then(function() { Post.nav_prev(e); });
     }
