@@ -169,14 +169,14 @@ Post.initialize_gestures = function() {
   const zing = new ZingTouch.Region(document.body, false, false);
   zing.bind(document.body, 'swipe', function(e) {
     console.log(e);
-    const angle = e.detail.data[0].currentDirection + 90.0;
+    const angle = e.detail.data[0].currentDirection;
     const hasPrev = Post.has_prev_target();
     const hasNext = Post.has_next_target();
-    if (hasPrev && angle > 90-35 && angle < 90+35) { // right swipe
+    if (hasPrev && (angle > 360-25 || angle < 25)) { // right swipe
         $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
         Utility.delay(200).then(function() { Post.nav_prev(e); });
     }
-    if (hasNext && angle > 270-35 && angle < 270+35) { // Left swipe
+    if (hasNext && angle > 180-25 && angle < 180+25) { // Left swipe
         $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
         Utility.delay(200).then(function() { Post.nav_next(e); });
     }
