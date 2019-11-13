@@ -277,7 +277,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
     .toggle-button {
         box-sizing: border-box;
         display: inline-block;
@@ -345,54 +345,6 @@
 
     .over-me {
         padding-top: 0;
-    }
-
-    .related-section {
-        display: flex;
-        flex-direction: row;
-        flex: 0 1 10%;
-        padding: 5px 10px;
-    }
-
-    .related-items {
-        display: flex;
-        flex-direction: column;
-        margin: 0 -5px;
-        padding: 0 5px;
-    }
-
-    .related-item {
-        padding: 0 5px;
-        max-width: 140px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-
-    .related-title {
-        padding: 0 5px;
-        font-weight: bold;
-    }
-
-    .tag-active {
-        background: rgb(0, 111, 250);
-        color: white;
-    }
-
-    .tag-preview {
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        background: rgba(1, 1, 1, 0.15);
-        border-radius: 2px;
-        padding: 3px;
-        margin-right: 5px;
-        box-sizing: border-box;
-    }
-
-    .tag-preview-alias {
-        background-color: rgba(150, 0, 0, 0.25);
-    }
-
-    .tag-preview-implication {
-        background-color: rgba(0, 150, 0, 0.25);
     }
 
     .tag-textarea {
