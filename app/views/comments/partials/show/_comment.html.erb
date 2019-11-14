@@ -1,6 +1,9 @@
 <% if comment.visible_to?(CurrentUser.user) %>
   <a name="comment-<%= comment.id %>"></a>
-  <article class="comment <%= "below-threshold" if comment.below_threshold? %> <%= "hidden" if comment.is_hidden? %>" data-post-id="<%= comment.post_id %>" data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>" data-creator="<%= comment.creator_name %>" data-is-sticky="<%= comment.is_sticky %>">
+  <article class="comment <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
+           data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
+           data-creator="<%= comment.creator_name %>" data-is-sticky="<%= comment.is_sticky %>"
+           data-is-deleted="<%= comment.is_hidden? %>">
     <div class="author">
       <%= user_avatar(comment.creator) %>
       <h1>

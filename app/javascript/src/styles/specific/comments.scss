@@ -20,7 +20,7 @@ div.comments-for-post {
         background: $comment-sticky-background;
       }
 
-      &[data-is-hidden="true"] {
+      &[data-is-deleted="true"] {
         background: $comment-hidden-background;
       }
 
