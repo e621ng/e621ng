@@ -237,6 +237,9 @@ $forum-topic-new-color: red;
 $forum-topic-locked-color: gray;
 $forum-topic-leveled-color: #f66;
 $forum-topic-except-color: gray;
+//$forum-topic-hidden-background: $section-red-background;
+$forum-topic-hidden-background: rgba(130,40,40,0.75);
+$forum-post-hidden-background: rgba(130,40,40,0.75);
 
 // IQDB lookup
 $iqdb-post-border: lightgrey;

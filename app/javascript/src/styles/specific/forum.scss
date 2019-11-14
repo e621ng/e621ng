@@ -23,6 +23,10 @@ div.list-of-forum-posts {
       background-color: $forum-post-highlight-background;
     }
 
+    &[data-is-deleted="true"] {
+      background-color: $forum-post-hidden-background;
+    }
+
     .vote-score-up {
       color: $forum-vote-up-color;
     }
@@ -91,6 +95,10 @@ div#c-forum-topics {
   tr.forum-topic-row td:last-child {
     white-space: nowrap;
   }
+
+  tr.forum-topic-row[data-is-deleted="true"] {
+    background-color: $forum-topic-hidden-background;
+  }
 }
 
 #c-forum-posts #a-index {
@@ -98,5 +106,8 @@ div#c-forum-topics {
   tr[data-is-deleted="true"] .forum-post-excerpt::after {
     content: " (deleted)";
     color: $forum-topic-except-color;
+  }
+  tr[data-is-deleted="true"], tr[data-topic-is-deleted="true"] {
+    background-color: $forum-topic-hidden-background;
   }
 }

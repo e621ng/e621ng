@@ -10,7 +10,7 @@
   <tbody>
     <% forum_topics.each do |topic| %>
       <% if CurrentUser.user.level >= topic.min_level %>
-        <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>">
+        <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-deleted="<%= topic.is_hidden? %>">
           <td>
             <% if topic.is_sticky? %>
               <span class="sticky">Sticky:</span>
