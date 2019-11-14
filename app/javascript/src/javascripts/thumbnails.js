@@ -1,4 +1,5 @@
 import Blacklist from './blacklists';
+import LS from './local_storage';
 
 const Thumbnails = {};
 
@@ -12,6 +13,7 @@ Thumbnails.initialize = function () {
   };
   const postsData = window.___deferred_posts || {};
   const posts = $('.post-thumb.placeholder, .thumb-placeholder-link');
+  const DAB = LS.get("dab") === "1";
   $.each(posts, function (i, post) {
     const p = $(post);
     const postID = p.data('id');
@@ -32,7 +34,7 @@ Thumbnails.initialize = function () {
       }
     });
     const newTag = $('<div>');
-    const blacklisted = blacklist_hit_count > 0;
+    const blacklisted = DAB ? false : blacklist_hit_count > 0;
     for (const key in postData) {
       newTag.data(key.replace(/_/g, '-'), postData[key]);
     }
