@@ -8,6 +8,10 @@ div#c-blips {
     padding: 5px;
     background: $blip-background;
 
+    &[data-is-deleted="true"] {
+      background-color: $blip-hidden-background;
+    }
+
     div.author {
       width: 12em;
       float: left;

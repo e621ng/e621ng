@@ -1,14 +1,9 @@
 <% if blip.visible_to?(CurrentUser.user) %>
-  <article class="blip">
+  <article class="blip" data-is-deleted="<%= blip.is_hidden? %>">
     <div class="author">
       <%= user_avatar(blip.creator) %>
       <h1>
         <%= link_to_user blip.creator %>
-        <% if blip.is_hidden %>
-          (hidden)
-        <% end %>
-
-        <%#= avatar_for(blip.creator) %>
       </h1>
       <p>
         <%= link_to time_ago_in_words_tagged(blip.created_at), blip_path(blip) %>

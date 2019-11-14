@@ -60,9 +60,9 @@ class Blip < ApplicationRecord
   module SearchMethods
     def visible(user = CurrentUser)
       if user.is_moderator?
-        where('is_hidden = ?', false)
+        all
       else
-        where('1=1')
+        where('is_hidden = ?', false)
       end
     end
 

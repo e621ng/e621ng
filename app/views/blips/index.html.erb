@@ -4,6 +4,7 @@
     <div id="blip-list">
       <%= render "search" %>
 
+      <%= render "posts/partials/common/inline_blacklist" %>
       <% if @blips.empty? %>
         <h4>No blips</h4>
       <% else %>
