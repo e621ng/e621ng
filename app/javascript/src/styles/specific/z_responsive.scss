@@ -99,15 +99,27 @@
   }
 
   form {
-    input[type=text] {
+    * {
+    max-width: 100%;
+    }
+    select {
       vertical-align: top;
-      font-size: 24pt;
+      font-size: 18pt;
+    }
+
+    input[type=text], input[type=email], input[type=password] {
+      vertical-align: top;
+      font-size: 18pt;
       border: 1px solid #c5c5c5;
     }
 
     textarea {
       vertical-align: top;
       border: 1px solid #c5c5c5;
+    }
+
+    button, input[type=button] {
+      font-size: 160%;
     }
 
     input[type=submit] {
