@@ -295,10 +295,14 @@
     #a-show { padding: 1em 0.5em; }
     div.list-of-forum-posts {
       article div.author {
+        display: flex;
         width: auto;
         float: none;
         background: $lighten-background;
         padding: $half-padding $base-padding;
+        .author-info {
+          margin-left: $half-padding;
+        }
         p {
           margin: 0;
         }

@@ -6,15 +6,17 @@
            data-is-deleted="<%= forum_post.id == original_forum_post_id ? @forum_topic.is_hidden? : forum_post.is_hidden? %>">
     <div class="author">
       <%= user_avatar(forum_post.creator) %>
-      <h4>
-        <%= link_to_user forum_post.creator %>
-        <% if forum_post.is_hidden? %>
-          (hidden)
-        <% end %>
-      </h4>
-      <p>
-        <%= link_to time_ago_in_words_tagged(forum_post.created_at), forum_post_path(forum_post) %>
-      </p>
+      <div class="author-info">
+        <h4>
+          <%= link_to_user forum_post.creator %>
+          <% if forum_post.is_hidden? %>
+            (hidden)
+          <% end %>
+        </h4>
+        <p>
+          <%= link_to time_ago_in_words_tagged(forum_post.created_at), forum_post_path(forum_post) %>
+        </p>
+      </div>
     </div>
     <div class="content">
       <div class="styled-dtext">
