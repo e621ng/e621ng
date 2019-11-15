@@ -201,7 +201,7 @@
     }
 
     .desc {
-      font-size: 110%;
+      font-size: 100%;
     }
 
     &[data-tags~=animated]:before, &[data-file-ext=swf]:before, &[data-file-ext=webm]:before, &[data-file-ext=mp4]:before, &[data-file-ext=zip]:before {
@@ -216,13 +216,16 @@
   .user-disable-cropped-false {
     article.post-preview {
       width: 32vw;
-    }
 
-    img {
-      max-width: 32vw;
+      img {
+        height: auto;
+        max-height: none;
+        max-width: none;
+        width: 32vw;
 
-      &.has-cropped-false {
-        object-fit: cover;
+        &.has-cropped-false {
+          object-fit: cover;
+        }
       }
     }
   }
