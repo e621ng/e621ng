@@ -18,6 +18,8 @@
         <%= f.input :password %>
         <%= f.input :password_confirmation %>
 
+        <%= f.input :time_zone, :include_blank => false %>
+
         <% if Danbooru.config.enable_recaptcha? %>
           <%= invisible_recaptcha_tags callback: 'submitInvisibleRecaptchaForm', text: 'Sign up' %>
         <% else %>
