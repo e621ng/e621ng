@@ -195,9 +195,8 @@
     }
 
     img {
-      max-width: none;
-      max-height: none;
-      width: 32vw;
+      max-height: 150px;
+      max-width: 32vw;
       border: none !important;
     }
 
@@ -216,11 +215,11 @@
 
   .user-disable-cropped-false {
     article.post-preview {
-      width: 32%;
+      width: 32vw;
     }
 
     img {
-      width: 32vw;
+      max-width: 32vw;
 
       &.has-cropped-false {
         object-fit: cover;
