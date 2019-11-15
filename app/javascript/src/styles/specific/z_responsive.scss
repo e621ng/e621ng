@@ -290,6 +290,30 @@
   }
 }
 
+@media screen and (max-width: 660px) {
+  #c-forum-topics, #c-forum-posts {
+    #a-show { padding: 1em 0.5em; }
+    div.list-of-forum-posts {
+      article div.author {
+        width: auto;
+        float: none;
+        background: $lighten-background;
+        padding: $half-padding $base-padding;
+        p {
+          margin: 0;
+        }
+      }
+      article div.content {
+        width: auto;
+        float: none;
+        margin-left: 0;
+      }
+    }
+    .creator { display: none; }
+    .created-at { display: none; }
+  }
+}
+
 @media screen and (max-width: 440px) {
   input#expand-search {
     display: none;

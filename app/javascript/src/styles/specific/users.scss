@@ -2,6 +2,14 @@
 
 div#c-users {
   div#a-show {
+    .profile-container {
+      display: flex;
+    }
+
+    .profile-avatar {
+      margin-right: 2em;
+    }
+
     .about-section {
       flex-grow: 2;
       display: flex;
