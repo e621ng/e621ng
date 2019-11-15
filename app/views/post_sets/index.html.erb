@@ -5,7 +5,7 @@
     <h2>Sets</h2>
 
     <div id="set-index">
-      <table width="100%" class="rounded">
+      <table width="100%" class="table striped">
         <thead>
         <tr>
           <th width="30%"><%= link_to "Name", action: "index", order: "username" %></th>
@@ -25,8 +25,8 @@
             <td><%= link_to s.shortname, posts_path(tags: "set:#{s.shortname}") %></td>
             <td><%= link_to_user s.creator %></td>
             <td><%= s.post_count %></td>
-            <td><span class="date" title="<%= s.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(s.created_at) + " ago" %></span></td>
-            <td><span class="date" title="<%= s.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(s.updated_at) + " ago" %></span></td>
+            <td><%= time_ago_in_words_tagged s.created_at, compact: true %></td>
+            <td><%= time_ago_in_words_tagged s.updated_at, compact: true %></td>
             <td>
               <% if s.is_public %>
                 <div class='set-status set-status-public' title='This set is public'>Public</div>
