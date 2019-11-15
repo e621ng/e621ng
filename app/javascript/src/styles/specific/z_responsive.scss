@@ -141,53 +141,54 @@
     display: none;
   }
 
-  div.paginator {
-    font-size: 24pt;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    margin-top: 1em;
-
-    li {
-      display: inline-block;
-      margin: 0 0.25em;
-
-      a, span {
-        margin: 0;
-        padding: 0;
-        border: none;
-      }
-
-      &.current-page {
-        text-align: center;
-      }
-
-      &.arrow:last-child {
-        text-align: right;
-      }
-
-      &.numbered-page, &.more {
-        display: none;
-      }
-    }
-  }
+  //div.paginator {
+  //  font-size: 24pt;
+  //  font-weight: bold;
+  //  text-align: center;
+  //  width: 100%;
+  //  padding: 0;
+  //  margin: 0;
+  //  margin-top: 1em;
+  //
+  //  li {
+  //    display: inline-block;
+  //    margin: 0 0.25em;
+  //
+  //    a, span {
+  //      margin: 0;
+  //      padding: 0;
+  //      border: none;
+  //    }
+  //
+  //    &.current-page {
+  //      text-align: center;
+  //    }
+  //
+  //    &.arrow:last-child {
+  //      text-align: right;
+  //    }
+  //
+  //    &.numbered-page, &.more {
+  //      display: none;
+  //    }
+  //  }
+  //}
 
   #posts #posts-container {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-evenly;
   }
-
+  //
   article.post-preview {
     float: none;
-    margin: 0;
+    margin: 0 0 5px 0;
     text-align: center;
     vertical-align: middle;
     display: inline-block;
+    width: 32vw;
 
     a {
       margin: 0 auto;
@@ -196,12 +197,12 @@
     img {
       max-width: none;
       max-height: none;
-      width: 33.3vw;
+      width: 32vw;
       border: none !important;
     }
 
     .desc {
-      display: none;
+      font-size: 110%;
     }
 
     &[data-tags~=animated]:before, &[data-file-ext=swf]:before, &[data-file-ext=webm]:before, &[data-file-ext=mp4]:before, &[data-file-ext=zip]:before {
@@ -215,27 +216,16 @@
 
   .user-disable-cropped-false {
     article.post-preview {
-      width: 33.3%;
-      height: 33.3vw;
-      overflow: hidden;
+      width: 32%;
     }
 
     img {
-      width: 33.3vw;
-      height: 33.3vw;
+      width: 32vw;
 
       &.has-cropped-false {
         object-fit: cover;
       }
     }
-  }
-
-  img#image {
-    margin-top: 5px;
-  }
-
-  #image-container {
-    overflow: scroll;
   }
 
   div#options {
@@ -311,9 +301,9 @@
     font-size: 1em;
   }
 
-  div article.post-preview {
-    overflow: visible;
-  }
+  //div article.post-preview {
+  //  overflow: visible;
+  //}
 }
 
 #tos-notice {
