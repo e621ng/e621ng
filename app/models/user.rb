@@ -405,8 +405,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      # TODO: Review this line, it doesn't make sense?
-      return false unless is_privileged?
+      return false unless is_member?
       max_updated_at = ForumTopic.permitted.active.maximum(:updated_at)
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
