@@ -2752,7 +2752,8 @@ CREATE TABLE public.wiki_page_versions (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL
+    is_deleted boolean DEFAULT false NOT NULL,
+    reason character varying
 );
 
 
@@ -5334,6 +5335,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191003070653'),
 ('20191006073950'),
 ('20191006143246'),
-('20191013233447');
+('20191013233447'),
+('20191116032230');
 
 

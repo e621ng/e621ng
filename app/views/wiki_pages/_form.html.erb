@@ -22,6 +22,8 @@
       <%= f.input :is_locked, :label => "Locked" %>
     <% end %>
 
+    <%= f.input :edit_reason, label: "Edit Reason" %>
+
     <% if @wiki_page.errors[:title].present?  %>
       <%= f.input :skip_secondary_validations, as: :boolean, label: "Force rename", hint: "Ignore the renaming requirements" %>
     <% end %>

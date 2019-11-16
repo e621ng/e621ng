@@ -15,7 +15,7 @@ class WikiPage < ApplicationRecord
 
   before_save :log_changes
 
-  attr_accessor :skip_secondary_validations
+  attr_accessor :skip_secondary_validations, :edit_reason
   array_attribute :other_names
   belongs_to_creator
   belongs_to_updater
@@ -202,22 +202,6 @@ class WikiPage < ApplicationRecord
     saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names?
   end
 
-  def merge_version
-    prev = versions.last
-    prev.update(
-      :title => title,
-      :body => body,
-      :is_locked => is_locked,
-      :is_deleted => is_deleted,
-      :other_names => other_names
-    )
-  end
-
-  def merge_version?
-    prev = versions.last
-    prev && prev.updater_id == CurrentUser.user.id && prev.updated_at > 1.hour.ago
-  end
-
   def create_new_version
     versions.create(
       :updater_id => CurrentUser.user.id,
@@ -226,17 +210,14 @@ class WikiPage < ApplicationRecord
       :body => body,
       :is_locked => is_locked,
       :is_deleted => is_deleted,
-      :other_names => other_names
+      :other_names => other_names,
+      reason: edit_reason
     )
   end
 
   def create_version
     if wiki_page_changed?
-      if merge_version?
-        merge_version
-      else
-        create_new_version
-      end
+      create_new_version
     end
   end
 

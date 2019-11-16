@@ -8,12 +8,13 @@
           <th width="2%"></th>
 
           <th>Title</th>
-          <th width="3%">Del</th>
-          <th width="5%"></th>
+          <th width="3%">Deleted</th>
+          <th width="5%">View</th>
           <% if CurrentUser.is_moderator? %>
             <th width="10%">IP Address</th>
           <% end %>
           <th width="26%">Last edited</th>
+          <th>Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -33,7 +34,7 @@
               <%= link_to wiki_page_version.title, wiki_page_version_path(wiki_page_version) %>
             </td>
             <td><%= wiki_page_version.is_deleted? ? "Y" : "" %></td>
-            <td><%= link_to "wiki", wiki_page_path(wiki_page_version.wiki_page_id) %></td>
+            <td><%= link_to "view version", wiki_page_path(wiki_page_version.wiki_page_id) %></td>
             <% if CurrentUser.is_moderator? %>
               <td>
                 <%= link_to_ip wiki_page_version.updater_ip_addr %>
@@ -46,6 +47,7 @@
                 <%= link_to_user wiki_page_version.updater %>
               <% end %>
             </td>
+            <td><%= wiki_page_version.reason %></td>
           </tr>
         <% end %>
       </tbody>
