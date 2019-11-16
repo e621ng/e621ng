@@ -123,9 +123,9 @@ class TagSetPresenter < Presenter
 
     unless name_only
       if category == Tag.categories.artist
-        html << %{<a class="wiki-link" href="/artists/show_or_new?name=#{u(name)}">?</a> }
+        html << %{<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> }
       else
-        html << %{<a class="wiki-link" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> }
+        html << %{<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> }
       end
 
       if show_extra_links && current_query.present?
@@ -136,7 +136,7 @@ class TagSetPresenter < Presenter
 
     humanized_tag = humanize_tags ? name.tr("_", " ") : name
     itemprop = 'itemprop="author"' if category == Tag.categories.artist
-    html << %{<a class="search-tag" #{itemprop} href="/posts?tags=#{u(name)}">#{h(humanized_tag)}</a> }
+    html << %{<a rel="nofollow" class="search-tag" #{itemprop} href="/posts?tags=#{u(name)}">#{h(humanized_tag)}</a> }
 
     unless name_only || tag.new_record?
       if count >= 10_000

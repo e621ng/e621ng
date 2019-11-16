@@ -146,7 +146,7 @@ module ApplicationHelper
   end
 
   def link_to_search(search)
-    link_to search, posts_path(tags: search)
+    link_to search, posts_path(tags: search), rel: "nofollow"
   end
 
   def link_to_wiki(*wiki_titles, **options)
