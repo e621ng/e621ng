@@ -17,7 +17,7 @@ div#search-box button {
 
 div#page {
   overflow: visible;
-  margin: 0 20px;
+  margin: 0;
   padding: $half-padding;
 
   // Fix failure to contain contents in bounding box.

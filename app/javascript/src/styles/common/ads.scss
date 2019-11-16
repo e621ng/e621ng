@@ -1,4 +1,7 @@
+@import "../base/005_vars.scss";
+
 #ad-leaderboard {
+  margin-bottom: $half-padding;
   width: 100%;
   height: 90px;
   display: flex;

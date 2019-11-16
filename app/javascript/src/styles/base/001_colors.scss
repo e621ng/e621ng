@@ -175,6 +175,7 @@ $notice-pending-border: border_color($notice-pending-background);
 
 $comment-list-background: none;
 $comment-background: $lighten-background;
+$comment-author-background: $lighten-background;
 $comment-sticky-background: saturate($section-background, 10%);
 $comment-hidden-background: $section-red-background;
 $comment-vote-background: rgba(255, 255, 255, 0.2);

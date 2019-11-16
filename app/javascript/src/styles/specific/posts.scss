@@ -331,7 +331,7 @@ div#c-posts {
 
   div.nav-notice {
     padding: 0.5em;
-    margin: 1em 0;
+    margin-bottom: $half-padding;
     background: $navigation-background;
     border: 1px solid $navigation-border;
     position: relative;
@@ -393,10 +393,6 @@ div#c-posts {
 
     div.notices {
       margin: 1em 0;
-    }
-
-    section {
-      margin-top: 1em;
     }
 
     span.quick-mod {

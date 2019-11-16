@@ -6,15 +6,17 @@
            data-is-deleted="<%= comment.is_hidden? %>">
     <div class="author">
       <%= user_avatar(comment.creator) %>
-      <h1>
-        <%= link_to_user comment.creator %>
-        <% if comment.is_hidden? %>
-          (hidden)
-        <% end %>
-      </h1>
-      <p>
-        <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>
-      </p>
+      <div class="author-info">
+        <h1>
+          <%= link_to_user comment.creator %>
+          <% if comment.is_hidden? %>
+            (hidden)
+          <% end %>
+        </h1>
+        <p>
+          <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>
+        </p>
+      </div>
     </div>
     <div class="content">
       <div class="body styled-dtext">
