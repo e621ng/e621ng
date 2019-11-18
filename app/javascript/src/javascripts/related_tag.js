@@ -18,16 +18,17 @@ RelatedTag.initialize_all = function() {
 
   // Show the related tags automatically when the "Edit" tab is opened, or by default on the uploads page.
   $(document).on("danbooru:open-post-edit-tab", RelatedTag.show);
-  if ($("#c-posts #a-show").length) {
-    RelatedTag.init_post_show_editor();
-  }
+  $(document).on("danbooru:open-post-edit-tab", RelatedTag.init_post_show_editor);
 }
 
 import TagEditor from './tag_editor.vue';
 import Vue from 'vue';
 
-
+RelatedTag.tag_editor_setup = false;
 RelatedTag.init_post_show_editor = function() {
+  if (RelatedTag.tag_editor_setup)
+    return;
+  RelatedTag.tag_editor_setup = true;
   const app = new Vue({
     render: (h) => h(TagEditor)
   });

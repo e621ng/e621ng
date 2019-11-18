@@ -3,6 +3,8 @@ require("jquery-ui/themes/base/sortable.css");
 
 let Pool = {};
 
+Pool.dialog_setup = false;
+
 Pool.initialize_all = function() {
   if ($("#c-posts").length && $("#a-show").length) {
     this.initialize_add_to_pool_link();
@@ -14,9 +16,11 @@ Pool.initialize_all = function() {
 }
 
 Pool.initialize_add_to_pool_link = function() {
-  $("#add-to-pool-dialog").dialog({autoOpen: false});
-
   $("#pool").on("click.danbooru", function(e) {
+    if (!Pool.dialog_setup) {
+      $("#add-to-pool-dialog").dialog({autoOpen: false});
+      Pool.dialog_setup = true;
+    }
     e.preventDefault();
     $("#add-to-pool-dialog").dialog("open");
   });

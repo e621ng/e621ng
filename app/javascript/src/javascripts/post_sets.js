@@ -3,6 +3,8 @@ import Post from './posts.js.erb'
 
 let PostSet = {};
 
+PostSet.dialog_setup = false;
+
 PostSet.add_post = function (set_id, post_id) {
   Post.notice_update("inc");
   SendQueue.add(function () {
@@ -40,9 +42,11 @@ PostSet.remove_post = function (set_id, post_id) {
 };
 
 PostSet.initialize_add_to_set_link = function() {
-  $("#add-to-set-dialog").dialog({autoOpen: false});
-
   $("#set").on("click.danbooru", function(e) {
+    if (!PostSet.dialog_setup) {
+      $("#add-to-set-dialog").dialog({autoOpen: false});
+      PostSet.dialog_setup = true;
+    }
     e.preventDefault();
     PostSet.update_sets_menu();
     $("#add-to-set-dialog").dialog("open");
