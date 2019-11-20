@@ -1,45 +1,45 @@
 @import "../base/005_vars.scss";
 
-body.mode-edit {
+#page.mode-edit {
   background-color: $post-mode-edit;
 }
 
-body.mode-tag-script {
+#page.mode-tag-script {
   background-color: $post-mode-tag-script;
 }
 
-body.mode-add-fav {
+#page.mode-add-fav {
   background-color: $post-mode-add-fav;
 }
 
-body.mode-remove-fav {
+#page.mode-remove-fav {
   background-color: $post-mode-remove-fav;
 }
 
-body.mode-vote-up {
+#page.mode-vote-up {
   background-color: $post-mode-vote-up;
 }
 
-body.mode-vote-down {
+#page.mode-vote-down {
   background-color: $post-mode-vote-down;
 }
 
-body.mode-lock-rating {
+#page.mode-lock-rating {
   background-color: $post-mode-lock-rating;
 }
 
-body.mode-lock-note {
+#page.mode-lock-note {
   background-color: $post-mode-lock-note;
 }
 
-body.mode-approve {
+#page.mode-approve {
   background-color: $post-mode-approve;
 }
 
-body.mode-notes {
+#page.mode-notes {
   background-color: $post-mode-notes;
 }
 
-body.mode-delete {
+#page.mode-delete {
   background-color: $post-mode-delete;
 }

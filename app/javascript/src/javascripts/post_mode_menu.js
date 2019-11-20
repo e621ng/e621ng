@@ -139,7 +139,7 @@ PostModeMenu.change = function() {
   if (s === undefined) {
     return;
   }
-  var $body = $(document.body);
+  var $body = $("#page");
   $body.removeClass((i, classNames) => classNames.split(/ /).filter(name => /^mode-/.test(name)).join(" "));
   $body.addClass("mode-" + s);
   LS.put("mode", s, 1);
