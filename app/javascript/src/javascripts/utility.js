@@ -67,9 +67,16 @@ Utility.dialog = function(title, html) {
 
 Utility.keydown = function(keys, namespace, handler) {
   if (Utility.meta("enable-js-navigation") === "true") {
+    $(document).off("keydown.danbooru." + namespace);
     $(document).on("keydown.danbooru." + namespace, null, keys, handler);
   }
 };
+
+Utility.delKeydown = function(keys, namespace) {
+  if (Utility.meta("enable-js-navigation") === "true") {
+    $(document).off("keydown.danbooru." + namespace);
+  }
+}
 
 Utility.is_subset = function(array, subarray) {
   var all = true;

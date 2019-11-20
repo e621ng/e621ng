@@ -39,6 +39,9 @@ Post.initialize_all = function() {
     this.initialize_edit_dialog();
   }
 
+  $(document).on("danbooru:open-post-edit-tab", this.remove_shortcuts);
+  $(document).on("danbooru:close-post-edit-tab", this.initialize_shortcuts);
+
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
   $fields_multiple.on("click", Post.update_tag_count);
@@ -232,6 +235,13 @@ Post.initialize_shortcuts = function() {
   if ($("#a-show").length) {
     Utility.keydown("a", "prev_page", Post.nav_prev);
     Utility.keydown("d", "next_page", Post.nav_next);
+  }
+}
+
+Post.remove_shortcuts = function() {
+  if ($("#a-show").length) {
+    Utility.delKeydown("a", "prev_page");
+    Utility.delKeydown("d", "next_page");
   }
 }
 
@@ -500,25 +510,19 @@ Post.initialize_post_sections = function() {
     if (e.target.hash === "#comments") {
       $("#comments").show();
       $("#edit").hide();
-      $("#recommended").hide();
     } else if (e.target.hash === "#edit") {
       $("#edit").show();
       $("#comments").hide();
       $("#post_tag_string").focus().selectEnd().height($("#post_tag_string")[0].scrollHeight);
-      $("#recommended").hide();
       $(document).trigger("danbooru:open-post-edit-tab");
       Post.update_tag_count({target: $("#post_tag_string")});
-    } else if (e.target.hash === "#recommended") {
-      $("#comments").hide();
-      $("#edit").hide();
-      $("#recommended").show();
-      $.get("/recommended_posts", {context: "post", post_id: Utility.meta("post-id")}, function(data) {
-        $("#recommended").html(data);
-      });
     } else {
       $("#edit").hide();
       $("#comments").hide();
-      $("#recommended").hide();
+    }
+
+    if(e.target.hash !== "#edit") {
+      $(document).trigger("danbooru:close-post-edit-tab");
     }
 
     $("#post-sections li").removeClass("active");
