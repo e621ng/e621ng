@@ -203,7 +203,7 @@ module ApplicationHelper
   end
 
   def dtext_preview_button(object, name, input_id: "#{object}_#{name}", preview_id: "dtext-preview")
-    tag.input value: "Preview", type: "button", class: "dtext-preview-button", "data-input-id": input_id, "data-preview-id": preview_id
+    tag.input value: "Preview DText", type: "button", class: "dtext-preview-button", "data-input-id": input_id, "data-preview-id": preview_id
   end
 
   def search_field(method, label: method.titleize, hint: nil, value: nil, **attributes)
