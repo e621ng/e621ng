@@ -92,6 +92,7 @@ PostModeMenu.initialize_edit_form = function() {
 }
 
 PostModeMenu.close_edit_form = function() {
+  Utility.disableShortcuts = false;
   $("#quick-edit-div").slideUp("fast");
   if (Utility.meta("enable-auto-complete") === "true") {
     $("#post_tag_string").data("uiAutocomplete").close();
@@ -165,6 +166,7 @@ PostModeMenu.change = function() {
 }
 
 PostModeMenu.open_edit = function(post_id) {
+  Utility.disableShortcuts = true;
   var $post = $("#post_" + post_id);
   $("#quick-edit-div").slideDown("fast");
   $("#quick-edit-form").attr("action", "/posts/" + post_id + ".json");
