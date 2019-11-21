@@ -300,6 +300,14 @@
         float: none;
         background: $lighten-background;
         padding: $half-padding $base-padding;
+        .post-thumbnail {
+          img {
+            height: auto;
+            width: auto;
+            max-height: 100px;
+            max-width: 100px;
+          }
+        }
         .author-info {
           margin-left: $half-padding;
         }
