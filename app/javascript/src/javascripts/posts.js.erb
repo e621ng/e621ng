@@ -39,8 +39,8 @@ Post.initialize_all = function() {
     this.initialize_edit_dialog();
   }
 
-  $(document).on("danbooru:open-post-edit-tab", this.remove_shortcuts);
-  $(document).on("danbooru:close-post-edit-tab", this.initialize_shortcuts);
+  $(document).on("danbooru:open-post-edit-tab", () => Utility.disableShortcuts = true);
+  $(document).on("danbooru:close-post-edit-tab", () => Utility.disableShortcuts = false);
 
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -235,13 +235,6 @@ Post.initialize_shortcuts = function() {
   if ($("#a-show").length) {
     Utility.keydown("a", "prev_page", Post.nav_prev);
     Utility.keydown("d", "next_page", Post.nav_next);
-  }
-}
-
-Post.remove_shortcuts = function() {
-  if ($("#a-show").length) {
-    Utility.delKeydown("a", "prev_page");
-    Utility.delKeydown("d", "next_page");
   }
 }
 
