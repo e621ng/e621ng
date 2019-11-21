@@ -46,7 +46,7 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find(User.name_or_id_to_id(params[:id]))
     @presenter = UserPresenter.new(@user)
     respond_with(@user, methods: @user.full_attributes)
   end
