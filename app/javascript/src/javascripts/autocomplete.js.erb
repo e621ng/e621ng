@@ -14,8 +14,8 @@ Autocomplete.initialize_all = function() {
   if (Utility.meta("enable-auto-complete") === "true") {
     $.widget("ui.autocomplete", $.ui.autocomplete, {
       options: {
-        delay: 0,
-        minLength: 1,
+        delay: 225,
+        minLength: 3,
         autoFocus: false,
         focus: function() { return false; },
       },
@@ -217,6 +217,9 @@ Autocomplete.initialize_wiki_autocomplete = function($fields) {
 };
 
 Autocomplete.normal_source = function(term, resp) {
+  if (term.length < 3) {
+    return;
+  }
   return $.ajax({
     url: "/tags/autocomplete.json",
     data: {

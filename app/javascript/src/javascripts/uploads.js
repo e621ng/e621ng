@@ -4,7 +4,6 @@ let Upload = {};
 
 Upload.initialize_all = function() {
   if ($("#c-uploads,#c-posts").length) {
-    this.initialize_enter_on_tags();
     $("#upload_direct_url").on("change.danbooru", Upload.fetch_data_manual);
     $(document).on("click.danbooru", "#fetch-data-manual", Upload.fetch_data_manual);
   }
@@ -62,16 +61,6 @@ Upload.initialize_iqdb_source = function() {
   if (/^https?:\/\//.test($("#upload_direct_url").val())) {
     $.get("/iqdb_queries", {"url": $("#upload_direct_url").val()}).done(function(html) {$("#iqdb-similar").html(html)});
   }
-}
-
-Upload.initialize_enter_on_tags = function() {
-  var $textarea = $("#upload_tag_string, #post_tag_string");
-  var $submit = $textarea.parents("form").find('input[type="submit"]');
-
-  $textarea.on("keydown.danbooru.submit", null, "return", function(e) {
-    $submit.click();
-    e.preventDefault();
-  });
 }
 
 Upload.initialize_similar = function() {

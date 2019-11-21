@@ -1116,9 +1116,9 @@ class Tag < ApplicationRecord
                    .limit(20) # Get 20 records even though only 10 will be displayed in case some duplicates get filtered out.
 
       sql_query = "((#{query1.to_sql}) UNION ALL (#{query2.to_sql})) AS unioned_query"
-      tags = Tag.select("DISTINCT ON (name, post_count) *").from(sql_query).order("post_count desc").limit(10)
+      tags = Tag.select("DISTINCT ON (name, post_count) *").from(sql_query).order("post_count desc").limit(10).to_a
 
-      if tags.empty?
+      if tags.size == 0
         tags = Tag.select("tags.name, tags.post_count, tags.category, null AS antecedent_name").fuzzy_name_matches(name).order_similarity(name).nonempty.limit(10)
       end
 

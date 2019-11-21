@@ -19,20 +19,11 @@ class TagsController < ApplicationController
   end
 
   def autocomplete
-    if CurrentUser.is_janitor?
-      # limit rollout
-      @tags = TagAutocomplete.search(params[:search][:name_matches])
-    else
-      @tags = Tag.names_matches_with_aliases(params[:search][:name_matches])
-    end
+    @tags = Tag.names_matches_with_aliases(params[:search][:name_matches])
 
     expires_in params[:expiry].to_i.days if params[:expiry]
 
-    respond_with(@tags) do |format|
-      format.xml do
-        render :xml => @tags.to_xml(:root => "tags")
-      end
-    end
+    respond_with(@tags)
   end
 
   def preview
