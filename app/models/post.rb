@@ -208,12 +208,8 @@ class Post < ApplicationRecord
       file_ext =~ /webm/i
     end
 
-    def is_mp4?
-      file_ext =~ /mp4/i
-    end
-
     def is_video?
-      is_webm? || is_mp4?
+      is_webm?
     end
 
     def is_ugoira?
@@ -849,10 +845,6 @@ class Post < ApplicationRecord
 
       if is_webm?
         tags << "webm"
-      end
-
-      if is_mp4?
-        tags << "mp4"
       end
 
       if is_ugoira?

@@ -8,13 +8,14 @@ class Upload < ApplicationRecord
       validate_file_ext(record)
       validate_md5_uniqueness(record)
       validate_file_size(record)
+      validate_video_container_format(record)
       validate_video_duration(record)
       validate_resolution(record)
     end
 
     def validate_file_ext(record)
       if record.file_ext == "bin"
-        record.errors[:file_ext] << "is invalid (only JPEG, PNG, GIF, SWF, MP4, and WebM files are allowed"
+        record.errors[:file_ext] << "is invalid (only JPEG, PNG, GIF, SWF, and WebM files are allowed"
       end
     end
 
@@ -63,6 +64,20 @@ class Upload < ApplicationRecord
         record.errors[:base] << "video must not be longer than #{Danbooru.config.max_video_duration} seconds"
       end
     end
+
+    def validate_video_container_format(record)
+      if record.is_video?
+        unless record.video.valid?
+          record.errors[:base] << "video isn't valid"
+          return
+        end
+        valid_video_codec = %w{vp8 vp9 av1}.include?(record.video.video_codec)
+        valid_container = record.video.container == "matroska,webm"
+        unless valid_video_codec && valid_container
+          record.errors[:base] << "video container/codec isn't valid for webm"
+        end
+      end
+    end
   end
 
 
@@ -97,7 +112,7 @@ class Upload < ApplicationRecord
     end
 
     def is_video?
-      %w(webm mp4).include?(file_ext)
+      %w(webm).include?(file_ext)
     end
 
     def is_ugoira?

@@ -15,8 +15,6 @@ class UploadService
         "swf"
       when /^\x1a\x45\xdf\xa3/n
         "webm"
-      when /^....ftyp(?:isom|3gp5|mp42|MSNV|avc1)/
-        "mp4"
       when /^PK\x03\x04/
         "zip"
       else
