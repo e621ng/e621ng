@@ -1,9 +1,11 @@
 @import "../base/005_vars.scss";
 
+span.user-greeting {
+  color: $user-home-greeting-color;
+  cursor: help;
+}
+
 div#c-users {
-  div#a-home {
-    .user-greeting { color:$user-home-greeting-color; cursor:help; }
-  }
   div#a-show {
     .profile-container {
       display: flex;
@@ -57,6 +59,10 @@ div#c-users {
 
     div.profile-stats {
       width: 100%;
+
+      abbr {
+        cursor: help;
+      }
     }
 
     table.user-statistics {
