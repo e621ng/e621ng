@@ -143,7 +143,8 @@ class UserPresenter
   def favorite_tags_with_types
     tag_names = user&.favorite_tags.to_s.split
     tag_names = TagAlias.to_aliased(tag_names)
-    Tag.where(name: tag_names).map {|x| [x.name, x.post_count, x.category]}
+    indices = tag_names.each_with_index.map {|x, i| [x, i]}.to_h
+    Tag.where(name: tag_names).map {|x| [x.name, x.post_count, x.category]}.sort_by {|x| indices[x[0]] }
   end
 
   def recent_tags_with_types
