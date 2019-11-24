@@ -128,12 +128,20 @@ class UserPresenter
     template.link_to(Post.where("approver_id = ?", user.id).count, template.posts_path(:tags => "approver:#{user.name}"))
   end
 
-  def feedbacks(template)
+  def feedbacks
     positive = user.positive_feedback_count
     neutral = user.neutral_feedback_count
     negative = user.negative_feedback_count
 
-    template.link_to("positive:#{positive} neutral:#{neutral} negative:#{negative}", template.user_feedbacks_path(:search => {:user_id => user.id}))
+    return "0" unless positive > 0 || neutral > 0 || negative > 0
+
+    total_class = (positive - negative) > 0 ? "user-feedback-positive" : "user-feedback-negative"
+    total_class = "" if (positive - negative) == 0
+    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
+    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
+    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
+
+    %{<span class="#{total_class}">#{positive - negative}</span> ( #{positive_html} #{neutral_html} #{negative_html} ) }.html_safe
   end
 
   def previous_names(template)

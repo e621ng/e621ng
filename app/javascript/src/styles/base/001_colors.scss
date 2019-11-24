@@ -158,6 +158,9 @@ $hr-color: rgba(255,255,255,0.25);
 $neutral-record-background: #666;
 $positive-record-background: green;
 $negative-record-background: #822828;
+$positive-record-color: $green-color;
+$negative-record-color: $red-color;
+$neutral-record-color: $dark-grey-color;
 
 // Icon overlays
 $preview-icon-color: white;

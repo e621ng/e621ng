@@ -10,7 +10,7 @@
         <th>Join Date</th>
         <td><%= presenter.join_date %></td>
         <th>Feedback</th>
-        <td><%= presenter.feedbacks(self) %></td>
+        <td><%= presenter.feedbacks %> <%= link_to("List", user_feedbacks_path(:search => {:user_id => @user.id})) %></td>
       </tr>
 
       <tr>

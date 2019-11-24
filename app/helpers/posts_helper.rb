@@ -164,9 +164,15 @@ module PostsHelper
 
   def user_record_meta(user)
     positive = user.positive_feedback_count
+    neutral = user.neutral_feedback_count
     negative = user.negative_feedback_count
 
-    link_to("(P:#{positive} N:#{negative})", user_feedbacks_path(:search => {:user_id => user.id}))
+    return "" unless positive > 0 || neutral > 0 || negative > 0
+    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
+    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
+    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
+
+    link_to(%{(#{positive_html} #{neutral_html} #{negative_html})}.html_safe,  user_feedbacks_path(:search => {:user_id => user.id}))
   end
 
   private
