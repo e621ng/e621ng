@@ -97,7 +97,7 @@ $preview-quality-warning-color: hsl(50, 100%, 90%); // light yellow
 $note-highlight-color: $preview-pending-color;
 
 // Autocomplete
-$autocomplete-active-background: #F0F0F0;
+$autocomplete-active-background: darken($section-grey-background, 25%);
 $autocomplete-border: #C5C5C5;
 $autocomplete-arrow-color: black;
 
