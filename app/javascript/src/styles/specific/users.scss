@@ -1,6 +1,9 @@
 @import "../base/005_vars.scss";
 
 div#c-users {
+  div#a-home {
+    .user-greeting { color:$user-home-greeting-color; cursor:help; }
+  }
   div#a-show {
     .profile-container {
       display: flex;
