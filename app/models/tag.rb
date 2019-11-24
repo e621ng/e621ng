@@ -542,17 +542,25 @@ class Tag < ApplicationRecord
       end
     end
 
+    def pull_wildcard_tags(tag)
+      matches = Tag.name_matches(tag).select("name").limit(Danbooru.config.tag_query_limit).order("post_count DESC").map(&:name)
+      matches = [] if matches.empty?
+      matches
+    end
+
     def parse_tag(tag, output)
       if tag[0] == "-" && tag.size > 1
-        output[:exclude] << tag[1..-1].mb_chars.downcase
+        if tag =~ /\*/
+          output[:exclude] += pull_wildcard_tags(tag[1..-1].mb_chars.downcase)
+        else
+          output[:exclude] << tag[1..-1].mb_chars.downcase
+        end
 
       elsif tag[0] == "~" && tag.size > 1
         output[:include] << tag[1..-1].mb_chars.downcase
 
       elsif tag =~ /\*/
-        matches = Tag.name_matches(tag).select("name").limit(Danbooru.config.tag_query_limit).order("post_count DESC").map(&:name)
-        matches = ["~no_matches~"] if matches.empty?
-        output[:include] += matches
+        output[:include] += pull_wildcard_tags(tag.mb_chars.downcase)
 
       else
         output[:related] << tag.mb_chars.downcase
