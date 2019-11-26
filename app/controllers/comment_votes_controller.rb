@@ -1,5 +1,5 @@
 class CommentVotesController < ApplicationController
-  respond_to :js, :json, :xml
+  respond_to :js, :json
   respond_to :html, only: [:index]
   before_action :voter_only
   before_action :admin_only, only: [:index, :lock, :delete]

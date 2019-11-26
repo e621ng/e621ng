@@ -1,5 +1,5 @@
 class ForumTopicsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   before_action :member_only, :except => [:index, :show]
   before_action :moderator_only, :only => [:new_merge, :create_merge, :unhide, :destroy]
   before_action :normalize_search, :only => :index

@@ -1,6 +1,6 @@
 class BansController < ApplicationController
   before_action :moderator_only, :except => [:show, :index]
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   helper_method :search_params
 
   def new

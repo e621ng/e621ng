@@ -1,5 +1,5 @@
 class ForumPostsController < ApplicationController
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
   before_action :member_only, :except => [:index, :show, :search]
   before_action :moderator_only, only: [:destroy, :unhide]
   before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide]

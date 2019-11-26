@@ -1,5 +1,5 @@
 class TagTypeVersionsController < ApplicationController
-  respond_to :html, :xml, :jso
+  respond_to :html, :jso
 
   def index
     @tag_versions = TagTypeVersion.search(params[:search]).paginate(params[:page], limit: params[:limit])

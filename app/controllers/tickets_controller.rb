@@ -1,5 +1,5 @@
 class TicketsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   before_action :member_only, except: [:index]
   before_action :admin_only, only: [:update, :edit, :destroy, :claim, :unclaim]
 

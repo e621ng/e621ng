@@ -1,5 +1,5 @@
 class TagCorrectionsController < ApplicationController
-  respond_to :html, :json, :xml
+  respond_to :html, :json
   before_action :janitor_only, only: [:new, :create]
 
   def new

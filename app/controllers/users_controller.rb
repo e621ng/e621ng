@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   skip_before_action :api_check
   before_action :member_only, only: [:custom_style, :upload_limit]
 

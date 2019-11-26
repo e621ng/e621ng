@@ -1,6 +1,6 @@
 class TagImplicationsController < ApplicationController
   before_action :moderator_only, except: [:index, :show]
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
 
   def show
     @tag_implication = TagImplication.find(params[:id])

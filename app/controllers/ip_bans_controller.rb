@@ -1,5 +1,5 @@
 class IpBansController < ApplicationController
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
   before_action :moderator_only
 
   def new

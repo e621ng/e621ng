@@ -1,5 +1,5 @@
 class NotesController < ApplicationController
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
   before_action :member_only, :except => [:index, :show, :search]
 
   def search

@@ -1,6 +1,6 @@
 class TagsController < ApplicationController
   before_action :member_only, :only => [:edit, :update, :preview]
-  respond_to :html, :xml, :json
+  respond_to :html, :json
 
   def edit
     @tag = Tag.find(params[:id])

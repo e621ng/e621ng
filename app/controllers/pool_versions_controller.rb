@@ -1,5 +1,5 @@
 class PoolVersionsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   before_action :member_only
 
   def index

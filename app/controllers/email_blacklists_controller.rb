@@ -1,5 +1,5 @@
 class EmailBlacklistsController < ApplicationController
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
   before_action :admin_only
   before_action :load_whitelist, only: [:destroy]
 

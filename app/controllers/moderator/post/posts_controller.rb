@@ -5,7 +5,7 @@ module Moderator
       before_action :admin_only, :only => [:expunge]
       skip_before_action :api_check
 
-      respond_to :html, :json, :xml
+      respond_to :html, :json
 
       def confirm_delete
         @post = ::Post.find(params[:id])

@@ -1,5 +1,5 @@
 class ArtistCommentaryVersionsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
 
   def index
     @commentary_versions = ArtistCommentaryVersion.search(search_params).paginate(params[:page], :limit => params[:limit])

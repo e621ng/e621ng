@@ -1,5 +1,5 @@
 class WikiPagesController < ApplicationController
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
   before_action :member_only, :except => [:index, :search, :show, :show_or_new]
   before_action :janitor_only, :only => [:destroy]
   before_action :normalize_search_params, :only => [:index]

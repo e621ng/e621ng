@@ -1,5 +1,5 @@
 class PostSetsController < ApplicationController
-  respond_to :html, :json, :xml
+  respond_to :html, :json
   before_action :member_only, except: [:index, :atom, :show]
 
   def index

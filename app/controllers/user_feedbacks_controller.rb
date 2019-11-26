@@ -1,7 +1,7 @@
 class UserFeedbacksController < ApplicationController
   before_action :moderator_only, :only => [:new, :edit, :create, :update, :destroy]
   before_action :check_no_feedback, only: [:new, :edit, :create, :update, :destroy]
-  respond_to :html, :xml, :json
+  respond_to :html, :json
 
   def new
     @user_feedback = UserFeedback.new(user_feedback_params(:create))

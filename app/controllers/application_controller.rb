@@ -128,9 +128,6 @@ class ApplicationController < ActionController::Base
           render :template => "static/access_denied", :status => 403
         end
       end
-      fmt.xml do
-        render :xml => {:success => false, reason: @message}.to_xml(:root => "response"), :status => 403
-      end
       fmt.json do
         render :json => {:success => false, reason: @message}.to_json, :status => 403
       end

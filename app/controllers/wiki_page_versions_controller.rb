@@ -1,5 +1,5 @@
 class WikiPageVersionsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
 
   def index
     @wiki_page_versions = WikiPageVersion.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])

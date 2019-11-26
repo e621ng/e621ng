@@ -2,7 +2,7 @@ module Maintenance
   module User
     class DmailFiltersController < ApplicationController
       before_action :ensure_ownership
-      respond_to :html, :json, :xml
+      respond_to :html, :json
 
       def edit
         @dmail_filter = CurrentUser.dmail_filter || DmailFilter.new

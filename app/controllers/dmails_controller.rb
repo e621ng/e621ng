@@ -1,5 +1,5 @@
 class DmailsController < ApplicationController
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
   before_action :privileged_only, only: [:ham, :spam]
 

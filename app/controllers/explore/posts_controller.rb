@@ -1,6 +1,6 @@
 module Explore
   class PostsController < ApplicationController
-    respond_to :html, :xml, :json
+    respond_to :html, :json
     before_action :set_date, only: [:searches]
 
     def popular

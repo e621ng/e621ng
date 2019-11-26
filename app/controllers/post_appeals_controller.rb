@@ -1,6 +1,6 @@
 class PostAppealsController < ApplicationController
   before_action :member_only, :except => [:index, :show]
-  respond_to :html, :xml, :json, :js
+  respond_to :html, :json, :js
 
   def new
     @post_appeal = PostAppeal.new(post_appeal_params)

@@ -1,6 +1,6 @@
 class PostVersionsController < ApplicationController
   before_action :member_only
-  respond_to :html, :xml, :json
+  respond_to :html, :json
   respond_to :js, only: [:undo]
 
   def index

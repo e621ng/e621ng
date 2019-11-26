@@ -3,7 +3,7 @@ module Moderator
     class ApprovalsController < ApplicationController
       before_action :approver_only
       skip_before_action :api_check
-      respond_to :json, :xml, :js
+      respond_to :json, :js
 
       def create
         cookies.permanent[:moderated] = Time.now.to_i
