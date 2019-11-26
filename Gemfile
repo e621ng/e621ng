@@ -7,6 +7,7 @@ gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
 gem "mechanize"
+gem 'active_model_serializers', '~> 0.10.0'
 gem "whenever", :require => false
 gem "sanitize"
 gem 'ruby-vips'
@@ -33,7 +34,6 @@ gem 'addressable'
 gem 'httparty'
 gem 'rakismet'
 gem 'recaptcha', require: "recaptcha/rails"
-gem 'activemodel-serializers-xml'
 gem 'ptools'
 gem 'jquery-rails'
 gem 'webpacker', '>= 4.0.x'

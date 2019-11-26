@@ -165,18 +165,6 @@ class ApplicationRecord < ActiveRecord::Base
       super(options)
     end
 
-    def to_xml(options = {}, &block)
-      options ||= {}
-
-      options[:except] ||= []
-      options[:except] += hidden_attributes
-
-      options[:methods] ||= []
-      options[:methods] += method_attributes
-
-      super(options, &block)
-    end
-
     def serializable_hash(*args)
       hash = super(*args)
       hash.transform_keys { |key| key.delete("?") }

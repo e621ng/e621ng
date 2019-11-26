@@ -1601,16 +1601,16 @@ class Post < ApplicationRecord
       list
     end
 
-    def associated_attributes
-      [:pixiv_ugoira_frame_data]
-    end
+    # def associated_attributes
+    #   [:pixiv_ugoira_frame_data]
+    # end
 
-    def as_json(options = {})
-      options ||= {}
-      options[:include] ||= []
-      options[:include] += associated_attributes
-      super(options)
-    end
+    # def as_json(options = {})
+    #   options ||= {}
+    #   options[:include] ||= []
+    #   options[:include] += associated_attributes
+    #   super(options)
+    # end
 
     def minimal_attributes
       preview_dims = preview_dimensions
