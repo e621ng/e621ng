@@ -1,0 +1,35 @@
+@import "../base/005_vars";
+
+.guest-warning {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 10;
+  background-color: $main-background;
+
+  .guest-warning-dialog {
+    z-index: 100;
+    position: relative;
+    top: 20vh;
+    margin-left: auto;
+    margin-right: auto;
+    height: 40vh;
+    width: 40vw;
+    background-color: $section-background;
+    border: 1px solid border_color($section-background);
+
+    .dialog-header {
+      padding: $half-padding $base-padding;
+      background-color: $lighten-background;
+      border-bottom: 1px solid border_color($section-background);
+    }
+    .dialog-content {
+      padding: $half-padding $base-padding;
+    }
+    .dialog-footer {
+      padding: $half-padding $base-padding;
+    }
+  }
+}

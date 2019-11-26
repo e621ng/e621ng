@@ -12,6 +12,7 @@
   <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
   <link rel="top" title="<%= Danbooru.config.app_name %>" href="/">
   <%= csrf_meta_tag %>
+  <%= csp_meta_tag %>
   <% unless CurrentUser.disable_responsive_mode? %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
   <% end %>
@@ -32,12 +33,12 @@
   <meta name="last-forum-read-at" content="<%= CurrentUser.user.last_forum_read_at %>">
   <%= tag.meta name: "disable-mobile-gestures", content: CurrentUser.disable_mobile_gestures? %>
   <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
-  <script src="/vendor/jquery-3.4.1.min.js" integrity="sha384-v/CvOfYoICV4azK6zXTy9qXP6UwbdbFVuxd2Lorpes7n5YVsaU1bQqIalcktKchl" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-  <%= stylesheet_pack_tag "application" %>
-  <%= javascript_pack_tag "application" %>
+  <%= javascript_include_tag "/vendor/jquery-3.4.1.min.js", nonce: true, integrity: "sha384-v/CvOfYoICV4azK6zXTy9qXP6UwbdbFVuxd2Lorpes7n5YVsaU1bQqIalcktKchl", crossorigin: "anonymous" %>
+  <%= stylesheet_link_tag "/vendor/fontawesome/css/all.min.css", nonce: true, integrity: "sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf", crossorigin: "anonymous" %>
+  <%= stylesheet_pack_tag "application", nonce: true %>
+  <%= javascript_pack_tag "application", nonce: true %>
   <% if CurrentUser.user.custom_style.present? %>
-    <%= stylesheet_link_tag custom_style_users_path(md5: Digest::MD5.hexdigest(CurrentUser.user.custom_style)), media: "screen" %>
+    <%= stylesheet_link_tag custom_style_users_path(md5: Digest::MD5.hexdigest(CurrentUser.user.custom_style)), media: "screen", nonce: true %>
   <% end %>
   <% if Danbooru.config.twitter_site %>
     <script type="application/ld+json">
@@ -153,6 +154,10 @@
     <%= yield :layout %>
   </div>
 
+  <% if CurrentUser.is_anonymous? %>
+    <%= render "static/guest_warning" %>
+    <script></script>
+  <% end %>
   <%= render "static/footer" %>
   <%= render "static/deferred_posts" %>
 <% end %>
