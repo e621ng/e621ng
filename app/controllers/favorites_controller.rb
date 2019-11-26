@@ -15,11 +15,7 @@ class FavoritesController < ApplicationController
       end
 
       @favorite_set = PostSets::Post.new("fav:#{@user.name} status:any", params[:page],nil, params)
-      respond_with(@favorite_set.posts) do |format|
-        format.xml do
-          render :xml => @favorite_set.posts.to_xml(:root => "posts")
-        end
-      end
+      respond_with(@favorite_set.posts)
     end
   end
 

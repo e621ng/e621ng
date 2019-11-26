@@ -35,9 +35,6 @@ class ForumTopicsController < ApplicationController
       format.json do
         render :json => @forum_topics.to_json
       end
-      format.xml do
-        render :xml => @forum_topics.to_xml(:root => "forum-topics")
-      end
     end
   end
 

@@ -6,7 +6,6 @@ class ArtistUrlsController < ApplicationController
     @artist_urls = ArtistUrl.includes(:artist).search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     respond_with(@artist_urls) do |format|
       format.json { render json: @artist_urls.to_json(include: "artist",) }
-      format.xml { render xml: @artist_urls.to_xml(include: "artist", root: "artist-urls") }
     end
   end
 

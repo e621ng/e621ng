@@ -86,11 +86,7 @@ private
     @posts = Post.tag_match(tags + " order:comment_bump").paginate(params[:page], :limit => 5, :search_count => params[:search])
     comment_ids = @posts.flat_map {|post| post.comments.visible(CurrentUser.user).recent.reverse.map(&:id)} if CurrentUser.id
     @comment_votes = CommentVote.for_comments_and_user(comment_ids || [], CurrentUser.id)
-    respond_with(@posts) do |format|
-      format.xml do
-        render :xml => @posts.to_xml(:root => "posts")
-      end
-    end
+    respond_with(@posts)
   end
 
   def index_by_comment
@@ -99,9 +95,6 @@ private
     respond_with(@comments) do |format|
       format.atom do
         @comments = @comments.includes(:post, :creator).load
-      end
-      format.xml do
-        render :xml => @comments.to_xml(:root => "comments")
       end
     end
   end

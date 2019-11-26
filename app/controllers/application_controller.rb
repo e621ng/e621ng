@@ -102,7 +102,7 @@ class ApplicationController < ActionController::Base
     @expected = status < 500
     @message = message.encode("utf-8", { invalid: :replace, undef: :replace })
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
-    format = :html unless format.in?(%i[html json xml js atom])
+    format = :html unless format.in?(%i[html json js atom])
 
     # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
     layout = CurrentUser.user.present? ? "default" : "blank"

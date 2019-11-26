@@ -17,9 +17,6 @@ class ArtistsController < ApplicationController
   def banned
     @artists = Artist.where("is_banned = ?", true).order("name")
     respond_with(@artists) do |format|
-      format.xml do
-        render :xml => @artists.to_xml(:include => [:urls], :root => "artists")
-      end
       format.json do
         render :json => @artists.to_json(:include => [:urls])
       end
@@ -39,9 +36,6 @@ class ArtistsController < ApplicationController
   def index
     @artists = Artist.includes(:urls).search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     respond_with(@artists) do |format|
-      format.xml do
-        render :xml => @artists.to_xml(:include => [:urls], :root => "artists")
-      end
       format.json do
         render :json => @artists.to_json(:include => [:urls])
         expires_in params[:expiry].to_i.days if params[:expiry]
