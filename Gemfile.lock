@@ -7,9 +7,9 @@ GIT
 
 GIT
   remote: https://github.com/zwagoth/dtext_rb.git
-  revision: 918bf260e6e0ea7cdfa1fdd0a2ddc59cc6726b8d
+  revision: 86e4e1a7ddec957610fbaa4a36a22a054bc41f3c
   specs:
-    dtext_rb (1.10.12)
+    dtext_rb (1.10.13)
       nokogiri (~> 1.8)
 
 GEM
