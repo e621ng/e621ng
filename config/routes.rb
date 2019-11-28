@@ -193,6 +193,7 @@ Rails.application.routes.draw do
   resources :email_blacklists
   resource :iqdb_queries, :only => [:show] do
     collection do
+      post :show
       get :preview
       get :check, to: redirect {|path_params, req| "/iqdb_queries?#{req.query_string}"}
     end
