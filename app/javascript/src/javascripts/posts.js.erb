@@ -437,6 +437,8 @@ Post.initialize_resize = function() {
 Post.resize_cycle_mode = function(e) {
   if(e && e.target)
     e.preventDefault();
+  if ($("#image-container").hasClass("blacklisted-active"))
+    return;
   const $target = $('#current-image-resize-mode');
   const overrideMode = Utility.meta('image-override-size');
   if(overrideMode)
