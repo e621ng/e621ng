@@ -110,7 +110,7 @@ Blacklist.update_sidebar = function () {
   $("#blacklist-list").html("");
   for (const entry of this.entries) {
     if (entry.hits === 0) {
-      return;
+      continue;
     }
 
     const item = $("<li/>");
