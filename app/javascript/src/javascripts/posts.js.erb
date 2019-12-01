@@ -239,14 +239,6 @@ Post.initialize_shortcuts = function() {
 }
 
 Post.initialize_links = function() {
-  $(".delete-with-reason-link").on('click', function(e) {
-    var post_id = $("meta[name=post-id]").attr("content");
-    var prompt = $(e.target).data('prompt');
-    var reason = $(e.target).data('reason');
-
-    if(confirm(`Delete post for being ${prompt}?`))
-      Post.delete_with_reason(post_id, reason);
-  });
   $("#copy-notes").on("click.danbooru", function(e) {
     var current_post_id = $("meta[name=post-id]").attr("content");
     var other_post_id = parseInt(prompt("Enter the ID of the post to copy all notes to:"), 10);

@@ -10,11 +10,11 @@
   </div>
   <% end %>
   <div>
-    <%= link_to "Human Only", "#", class: "delete-with-reason-link", data: {prompt: "human only", reason: "Irrelevant to site. (Human only)"} %> |
-    <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)"} %> |
-    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link", data: {prompt: "photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)"} %> |
-    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "excessive base", reason: "Excessive same base image set."} %> |
-    <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "an annoying ad", reason: "Advertisement"} %> |
+    <%= link_to "Human Only", "#", class: "delete-with-reason-link", data: {prompt: "human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> |
+    <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)", post_id: post.id} %> |
+    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link", data: {prompt: "photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)", post_id: post.id} %> |
+    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "excessive base", reason: "Excessive same base image set.", post_id: post.id} %> |
+    <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "an annoying ad", reason: "Advertisement", post_id: post.id} %> |
 
     <%= link_to "Borderline Quality", moderator_post_disapprovals_path(post_disapproval: {post_id: post.id,
                                                                                           reason: "borderline_quality"}),
