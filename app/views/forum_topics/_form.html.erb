@@ -2,7 +2,7 @@
 
 <div id="form-content">
   <%= simple_form_for(forum_topic) do |f| %>
-    <%= f.input :title %>
+    <%= f.input :title, input_html: {size: 100} %>
 
     <div class="input">
       <label for="forum_topic_category_id">Category</label>

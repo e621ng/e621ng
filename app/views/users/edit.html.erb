@@ -34,9 +34,9 @@
 
         <%= f.input :avatar_id, type: :number, label: 'Avatar Post ID' %>
 
-        <%= f.input :profile_about, label: "About Me" %>
+        <%= f.input :profile_about, label: "About Me", :input_html => {:size => "40x5"} %>
 
-        <%= f.input :profile_artinfo, label: "Commission Info" %>
+        <%= f.input :profile_artinfo, label: "Commission Info", :input_html => {:size => "40x5"} %>
 
         <%= f.input :time_zone, :include_blank => false %>
 

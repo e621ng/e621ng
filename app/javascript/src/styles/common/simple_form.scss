@@ -19,7 +19,7 @@ form.simple_form {
     margin-bottom: 1em;
 
     input[type=text], input[type=file], input[type=password], input[type=email] {
-      max-width: 20em;
+      max-width: 80%;
     }
 
     span.hint {
@@ -28,7 +28,7 @@ form.simple_form {
     }
 
     textarea {
-      width: 70%;
+      width: 80%;
       font-size: 1.2em;
     }
 

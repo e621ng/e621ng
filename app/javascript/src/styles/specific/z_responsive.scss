@@ -99,21 +99,23 @@
   }
 
   form {
-    * {
-    max-width: 100%;
+    select, input, textarea, button {
+      max-width: 100%;
     }
     select {
       vertical-align: top;
       font-size: 18pt;
     }
 
-    input[type=text], input[type=email], input[type=password] {
+    input[type=text], input[type=email], input[type=password], input[type=number] {
       vertical-align: top;
       font-size: 18pt;
       border: 1px solid #c5c5c5;
+      width: 90%;
     }
 
     textarea {
+      width: 90%;
       vertical-align: top;
       border: 1px solid #c5c5c5;
     }
@@ -129,6 +131,20 @@
     input[type=submit].tiny {
       font-size: 120%;
       vertical-align: top;
+    }
+  }
+
+  form.simple_form {
+    div.input {
+      input[type=text], input[type=email], input[type=password], input[type=number] {
+        width: 90%;
+        max-width: 90%;
+      }
+
+      textarea {
+        width: 90%;
+        max-width: 90%;
+      }
     }
   }
 
