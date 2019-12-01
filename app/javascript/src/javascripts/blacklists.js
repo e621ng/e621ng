@@ -3,6 +3,8 @@ import LS from './local_storage'
 
 let Blacklist = {};
 
+Blacklist.post_count = 0;
+
 Blacklist.entries = [];
 
 Blacklist.parse_entry = function (string) {
@@ -108,6 +110,10 @@ Blacklist.updateSidebarEntry = function (entry) {
 
 Blacklist.update_sidebar = function () {
   $("#blacklist-list").html("");
+  if (Blacklist.post_count <= 0) {
+    $("#blacklist-box").hide();
+    return;
+  }
   for (const entry of this.entries) {
     if (entry.hits === 0) {
       continue;
@@ -173,6 +179,7 @@ Blacklist.initialize_disable_all_blacklists = function () {
 }
 
 Blacklist.apply = function () {
+  Blacklist.post_count = 0;
   for (const entry of this.entries) {
     entry.hits = 0;
   }
@@ -184,6 +191,7 @@ Blacklist.apply = function () {
         entry.hits += 1;
         if (!entry.disabled)
           post_count += 1;
+        Blacklist.post_count += 1;
       }
     }
     const $post = $(post);
