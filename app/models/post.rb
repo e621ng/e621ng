@@ -1617,6 +1617,7 @@ class Post < ApplicationRecord
           flags: status_flags,
           file_ext: file_ext,
           id: id,
+          created_at: created_at,
           rating: rating,
           preview_width: preview_dims[1],
           width: image_width,

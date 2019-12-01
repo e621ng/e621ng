@@ -51,7 +51,7 @@ Thumbnails.initialize = function () {
     img.attr({
       height: postData.preview_url ? postData.preview_height : 150,
       width: postData.preview_url ? postData.preview_width : 150,
-      title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.status}\r\n\r\n${postData.tags}`,
+      title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.status}\r\nDate: ${postData.created_at}\r\n\r\n${postData.tags}`,
       alt: postData.tags,
       class: 'post-thumbnail-img'
     });

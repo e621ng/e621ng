@@ -42,7 +42,7 @@ class PostPresenter < Presenter
       locals[:link_params]["post_set_id"] = options[:post_set_id]
     end
 
-    locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
+    locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
     locals[:cropped_url] = if Danbooru.config.enable_image_cropping && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
       post.crop_file_url
