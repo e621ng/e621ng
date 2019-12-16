@@ -10,7 +10,7 @@ class SessionsController < ApplicationController
       url = params[:url] if params[:url] && params[:url].start_with?("/")
       redirect_to(url || posts_path, :notice => "You are now logged in")
     else
-      redirect_to(new_session_path, :notice => "Password was incorrect")
+      redirect_to(new_session_path, :notice => "Username/Password was incorrect")
     end
   end
 
