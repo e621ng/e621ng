@@ -21,6 +21,14 @@
 }
 
 @media screen and (max-width: 800px) {
+  .guest-warning {
+    .guest-warning-dialog {
+      top: 5vh;
+      height: 90vh;
+      width: 80vw;
+    }
+  }
+
   #desktop-version-link {
     display: inline;
   }

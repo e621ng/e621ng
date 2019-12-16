@@ -17,6 +17,7 @@
     margin-right: auto;
     height: 40vh;
     width: 40vw;
+    overflow-x: scroll;
     background-color: $section-background;
     border: 1px solid border_color($section-background);
 
