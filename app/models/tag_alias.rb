@@ -138,7 +138,7 @@ class TagAlias < TagRelationship
     if consequent_wiki.present?
       if WikiPage.titled(antecedent_name).blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
-          consequent_wiki.update(title: antecedent_name, skip_secondary_validations: true)
+          consequent_wiki.update(title: antecedent_name)
         end
       else
         forum_updater.update(conflict_message)
