@@ -369,7 +369,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        #   TODO: When sets go in, fill this in.
+        set.can_view?(user)
       end
     end
 
