@@ -17,9 +17,7 @@
     <span class="info">
       <strong>Score</strong>
       <span>
-        <% if CurrentUser.is_voter? %>
-          <%= post_vote_block(post, nil) %>
-        <% end %>
+        <%= post_vote_block(post, post.own_vote) %>
       </span>
     </span>
   </div>
