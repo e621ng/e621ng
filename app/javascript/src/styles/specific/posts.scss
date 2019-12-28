@@ -22,6 +22,16 @@
   }
 }
 
+.score-positive {
+  color: $post-score-positive-color;
+}
+.score-negative {
+  color: $post-score-negative-color;
+}
+.score-neutral {
+  color: $post-score-neutral-color;
+}
+
 article.post-preview {
   height: 154px;
   width: 154px;
@@ -232,16 +242,6 @@ div#c-posts {
 
   .fav-buttons-false #remove-fav-button {
     display: none;
-  }
-
-  .score-positive {
-    color: $post-score-positive-color;
-  }
-  .score-negative {
-    color: $post-score-negative-color;
-  }
-  .score-neutral {
-    color: $post-score-neutral-color;
   }
 
   #ugoira-controls {
