@@ -42,9 +42,6 @@
       <%= render "posts/partials/index/excerpt", :post_set => @post_set %>
       <%= render "posts/partials/index/posts", :post_set => @post_set %>
     </section>
-
-
-    <%= post_search_count_js %>
   </div>
 </div>
 
@@ -65,6 +62,5 @@
   <% if prev_page_url %>
     <%= tag.link rel: "prev", href: prev_page_url %>
   <% end %>
-  <%= missed_post_search_count_js %>
   <%= render "posts/partials/index/seo_meta_tags" %>
 <% end %>
