@@ -17,9 +17,11 @@
         <% end %>
       <% end %>
 
-      <div id='preview' class='section' style="width:600px; margin:1em 0; display:none;"></div>
+      <% if CurrentUser.is_member? %>
+        <div id='preview' class='section' style="width:600px; margin:1em 0; display:none;"></div>
 
-      <%= render "form", blip: Blip.new %>
+        <%= render "form", blip: Blip.new %>
+      <% end %>
 
       <div id="paginator">
         <%= numbered_paginator(@blips) %>
