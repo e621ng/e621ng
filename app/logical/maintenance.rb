@@ -1,43 +1,33 @@
 module Maintenance
   module_function
 
-  def hourly
-    UploadErrorChecker.new.check!
-  rescue Exception => exception
-    rescue_exception(exception)
-  end
-
   def daily
-    ActiveRecord::Base.connection.execute("set statement_timeout = 0")
-    PostPruner.new.prune!
-    Upload.where('created_at < ?', 1.day.ago).delete_all
-    PostVote.prune!
-    CommentVote.prune!
-    ApiCacheGenerator.new.generate_tag_cache
-    PostDisapproval.prune!
-    ForumSubscription.process_all!
-    TagAlias.update_cached_post_counts_for_all
-    PostDisapproval.dmail_messages!
-    Tag.clean_up_negative_post_counts!
-    TokenBucket.prune!
-    TagChangeRequestPruner.warn_all
-    TagChangeRequestPruner.reject_all
-    Ban.prune!
-  rescue Exception => exception
-    rescue_exception(exception)
+    ignoring_exceptions { PostPruner.new.prune! }
+    ignoring_exceptions { Upload.where('created_at < ?', 1.day.ago).delete_all }
+    ignoring_exceptions { PostVote.prune! }
+    ignoring_exceptions { CommentVote.prune! }
+    ignoring_exceptions { ApiCacheGenerator.new.generate_tag_cache }
+    ignoring_exceptions { PostDisapproval.prune! }
+    ignoring_exceptions { ForumSubscription.process_all! }
+    ignoring_exceptions { TagAlias.update_cached_post_counts_for_all }
+    ignoring_exceptions { PostDisapproval.dmail_messages! }
+    ignoring_exceptions { Tag.clean_up_negative_post_counts! }
+    ignoring_exceptions { TokenBucket.prune! }
+    ignoring_exceptions { TagChangeRequestPruner.warn_all }
+    ignoring_exceptions { TagChangeRequestPruner.reject_all }
+    ignoring_exceptions { Ban.prune! }
   end
 
   def weekly
-    ActiveRecord::Base.connection.execute("set statement_timeout = 0")
-    UserPasswordResetNonce.prune!
-    ApproverPruner.prune!
-    TagRelationshipRetirementService.find_and_retire!
-  rescue Exception => exception
-    rescue_exception(exception)
+    ignoring_exceptions { UserPasswordResetNonce.prune! }
+    ignoring_exceptions { ApproverPruner.prune! }
+    ignoring_exceptions { TagRelationshipRetirementService.find_and_retire! }
   end
 
-  def rescue_exception(exception)
+  def ignoring_exceptions(&block)
+    ActiveRecord::Base.connection.execute("set statement_timeout = 0")
+    yield
+  rescue StandardError => exception
     DanbooruLogger.log(exception)
-    raise exception
   end
 end
