@@ -126,13 +126,9 @@ class Note < ApplicationRecord
   def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
     return unless saved_change_to_versioned_attributes?
 
-    if merge_version?(updater.id)
-      merge_version
-    else
-      Note.where(:id => id).update_all("version = coalesce(version, 0) + 1")
-      reload
-      create_new_version(updater.id, updater_ip_addr)
-    end
+    Note.where(:id => id).update_all("version = coalesce(version, 0) + 1")
+    reload
+    create_new_version(updater.id, updater_ip_addr)
   end
 
   def saved_change_to_versioned_attributes?
@@ -152,23 +148,6 @@ class Note < ApplicationRecord
       :body => body,
       :version => version
     )
-  end
-
-  def merge_version
-    prev = versions.last
-    prev.update(
-      :x => x,
-      :y => y,
-      :width => width,
-      :height => height,
-      :is_active => is_active,
-      :body => body
-    )
-  end
-
-  def merge_version?(updater_id)
-    prev = versions.last
-    prev && prev.updater_id == updater_id && prev.updated_at > 1.hour.ago && !saved_change_to_is_active?
   end
 
   def revert_to(version)
