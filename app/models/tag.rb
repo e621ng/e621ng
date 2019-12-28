@@ -102,11 +102,13 @@ class Tag < ApplicationRecord
       end
 
       def increment_post_counts(tag_names)
-        Tag.where(:name => tag_names).update_all("post_count = post_count + 1")
+        Tag.where(name: tag_names).order(:name).lock("FOR UPDATE").pluck(1)
+        Tag.where(name: tag_names).update_all("post_count = post_count + 1")
       end
 
       def decrement_post_counts(tag_names)
-        Tag.where(:name => tag_names).update_all("post_count = post_count - 1")
+        Tag.where(name: tag_names).order(:name).lock("FOR UPDATE").pluck(1)
+        Tag.where(name: tag_names).update_all("post_count = post_count - 1")
       end
 
       def clean_up_negative_post_counts!

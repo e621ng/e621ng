@@ -210,6 +210,20 @@ class TagRelationship < ApplicationRecord
     )
   end
 
+  def update_posts
+    Post.without_timeout do
+      Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+        post.with_lock do
+          CurrentUser.scoped(creator, creator_ip_addr) do
+            post.do_not_version_changes = true
+            post.tag_string += " "
+            post.save!
+          end
+        end
+      end
+    end
+  end
+
   extend SearchMethods
   include MessageMethods
 end

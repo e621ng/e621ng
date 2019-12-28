@@ -172,6 +172,9 @@ class TagAlias < TagRelationship
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         rename_wiki_and_artist
         update(status: 'active', post_count: consequent_tag.post_count)
+        # TODO: Race condition with indexing jobs here.
+        antecedent_tag.fix_post_count if antecedent_tag
+        consequent_tag.fix_post_count if consequent_tag
       end
     rescue Exception => e
       Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")
@@ -262,20 +265,6 @@ class TagAlias < TagRelationship
         end
         tag_rel_undos.create!(undo_data: post_ids)
       end
-    end
-  end
-
-  def update_posts
-    Post.without_timeout do
-      Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-        post.do_not_version_changes = true
-        post.tag_string += " "
-        post.save
-      end
-
-      # TODO: Race condition with indexing jobs here.
-      antecedent_tag.fix_post_count if antecedent_tag
-      consequent_tag.fix_post_count if consequent_tag
     end
   end
 

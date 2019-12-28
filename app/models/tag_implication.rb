@@ -165,19 +165,6 @@ class TagImplication < TagRelationship
 
     end
 
-    def update_posts
-      Post.without_timeout do
-        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-          fixed_tags = "#{post.tag_string} #{descendant_names_string}".strip
-          CurrentUser.scoped(creator, creator_ip_addr) do
-            post.update(
-              :tag_string => fixed_tags
-            )
-          end
-        end
-      end
-    end
-
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
       create_undo_information
