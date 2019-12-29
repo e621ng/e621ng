@@ -6,12 +6,13 @@ class UserNameChangeRequest < ApplicationRecord
   belongs_to :approver, :class_name => "User", optional: true
   validate :not_limited, :on => :create
   validates :desired_name, user_name: true
+  attr_accessor :skip_limited_validation
 
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
     self.original_name ||= CurrentUser.user.name
   end
-  
+
   def self.pending
     where(:status => "pending")
   end
@@ -29,11 +30,11 @@ class UserNameChangeRequest < ApplicationRecord
       none
     end
   end
-  
+
   def rejected?
     status == "rejected"
   end
-  
+
   def approved?
     status == "approved"
   end
@@ -41,27 +42,28 @@ class UserNameChangeRequest < ApplicationRecord
   def pending?
     status == "pending"
   end
-  
+
   def feedback
     UserFeedback.for_user(user_id).order("id desc")
   end
-  
+
   def approve!
     update(:status => "approved", :approver_id => CurrentUser.user.id)
     user.update_attribute(:name, desired_name)
     body = "Your name change request has been approved. Be sure to log in with your new user name."
     Dmail.create_automated(:title => "Name change request approved", :body => body, :to_id => user_id)
-    UserFeedback.create(:user_id => user_id, :category => "neutral", :body => "Name changed from #{original_name} to #{desired_name}")
+    # UserFeedback.create(:user_id => user_id, :category => "neutral", :body => "Name changed from #{original_name} to #{desired_name}")
     ModAction.log(:user_name_change, {user_id: user.id, old_name: original_name, new_name: desired_name})
   end
-  
+
   def reject!(reason)
     update(:status => "rejected", :rejection_reason => reason)
     body = "Your name change request has been rejected for the following reason: #{rejection_reason}"
     Dmail.create_automated(:title => "Name change request rejected", :body => body, :to_id => user_id)
   end
-  
+
   def not_limited
+    return true if skip_limited_validation == true
     if UserNameChangeRequest.where("user_id = ? and created_at >= ?", CurrentUser.user.id, 1.week.ago).exists?
       errors.add(:base, "You can only submit one name change request per week")
       return false

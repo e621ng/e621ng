@@ -8,10 +8,21 @@ module Admin
 
     def update
       @user = User.find(params[:id])
+      old_username = @user.name
+      desired_username = params[:user][:name]
       @user.update!(user_params)
       @user.mark_verified! if params[:user][:verified] == 'true'
       @user.mark_unverified! if params[:user][:verified] == 'false'
       @user.promote_to!(params[:user][:level], params[:user])
+      if old_username != desired_username
+        change_request = UserNameChangeRequest.create!({
+                                                           original_name: @user.name,
+                                                           user_id: @user.id,
+                                                           desired_name: desired_username,
+                                                           change_reason: "Administrative change",
+                                                           skip_limited_validation: true})
+        change_request.approve!
+      end
       redirect_to edit_admin_user_path(@user), :notice => "User updated"
     end
 

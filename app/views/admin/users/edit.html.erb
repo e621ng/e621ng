@@ -6,6 +6,11 @@
       <%= hidden_field_tag "id", @user.id %>
 
       <div class="input">
+        <label class="block" for="user_name">Name</label>
+        <%= text_field "user", "name", size: "50" %>
+      </div>
+
+      <div class="input">
         <label class="block" for="user_email">Email</label>
         <%= text_field "user", "email", size: "50" %>
       </div>
