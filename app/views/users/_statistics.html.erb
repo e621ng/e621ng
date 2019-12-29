@@ -37,7 +37,7 @@
           (<%= link_to "comments on", comments_path(group_by: :comment, search: {poster_id: user.id}) %>)
         </td>
         <th>Upload Limit</th>
-        <td><%= presenter.upload_limit(self) %> (<%= link_to "help", wiki_pages_path(title: "about:upload_limits") %>)
+        <td><%= presenter.upload_limit(self) %> (<%= link_to "help", wiki_page_path(id: "upload_limit") %>)
         </td>
       </tr>
 
