@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   respond_to :html, :xml, :json
   skip_before_action :api_check
-  before_action :member_only, only: [:custom_style]
+  before_action :member_only, only: [:custom_style, :upload_limit]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -43,6 +43,15 @@ class UsersController < ApplicationController
   end
 
   def search
+  end
+
+  def upload_limit
+    @presenter = UserPresenter.new(CurrentUser.user)
+    pieces = CurrentUser.upload_limit_pieces
+    @approved_count = pieces[:approved]
+    @deleted_count = pieces[:deleted]
+    @pending_count = pieces[:pending]
+    respond_with(CurrentUser.user)
   end
 
   def show

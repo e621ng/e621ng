@@ -7,7 +7,7 @@
       <li>Approved: <%= @approved_count %></li>
       <li>Deleted: <%= @deleted_count %></li>
       <li>Pending/Flagged: <%= @pending_count %></li>
-      <li>Formula: <%= presenter.upload_limit(self)%></li>
+      <li>Formula: <%= @presenter.upload_limit(self)%></li>
     </ul>
 
     <p>
@@ -29,7 +29,7 @@
 
   <ul>
     <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-    <% if !CurrentUser.is_privileged? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
+    <% if !CurrentUser.can_upload_free? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
   </ul>
 
   <% unless CurrentUser.can_upload_free? %>
@@ -42,5 +42,3 @@
     </p>
   <% end %>
 </div>
-
-<%= render partial: "footer" %>

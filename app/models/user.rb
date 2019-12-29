@@ -562,7 +562,7 @@ class User < ApplicationRecord
     memoize :upload_limit_pieces
 
     def post_upload_throttle
-      return post_upload_limit if is_privileged_or_higher?
+      return hourly_upload_limit if is_privileged_or_higher?
       [hourly_upload_limit, tag_edit_limit].min
     end
     memoize :post_upload_throttle

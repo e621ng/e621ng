@@ -323,6 +323,7 @@ Rails.application.routes.draw do
     collection do
       get :home
       get :search
+      get :upload_limit
       get :custom_style
     end
   end
