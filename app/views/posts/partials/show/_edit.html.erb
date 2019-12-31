@@ -96,6 +96,11 @@
         <% end %>
       </fieldset>
     </div>
+
+    <div class="input">
+      <%= f.label :bg_color, "Background Color" %>
+      <%= f.text_field :bg_color, :size => 6 %>
+    </div>
   <% end %>
 
   <% if CurrentUser.is_admin? %>

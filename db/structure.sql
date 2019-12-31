@@ -1989,7 +1989,8 @@ CREATE TABLE public.posts (
     description text DEFAULT ''::text NOT NULL,
     comment_count integer DEFAULT 0 NOT NULL,
     change_seq bigint NOT NULL,
-    tag_count_lore integer DEFAULT 0 NOT NULL
+    tag_count_lore integer DEFAULT 0 NOT NULL,
+    bg_color character varying
 );
 
 
@@ -5336,6 +5337,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191006073950'),
 ('20191006143246'),
 ('20191013233447'),
-('20191116032230');
+('20191116032230'),
+('20191231162515');
 
 

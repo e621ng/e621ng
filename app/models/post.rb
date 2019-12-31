@@ -17,10 +17,12 @@ class Post < ApplicationRecord
   before_validation :apply_tag_diff, if: :should_process_tags?
   before_validation :normalize_tags, if: :should_process_tags?
   before_validation :strip_source
+  before_validation :fix_bg_color
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
+  validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
   validates :description, length: { maximum: 50_000 }
   validate :tag_names_are_valid, if: :should_process_tags?
   validate :added_tags_are_valid, if: :should_process_tags?
@@ -1860,6 +1862,12 @@ class Post < ApplicationRecord
   end
 
   module ValidationMethods
+    def fix_bg_color
+      if bg_color.blank?
+        self.bg_color = nil
+      end
+    end
+
     def post_is_not_its_own_parent
       if !new_record? && id == parent_id
         errors[:base] << "Post cannot have itself as a parent"

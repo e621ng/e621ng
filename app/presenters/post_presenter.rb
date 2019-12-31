@@ -133,6 +133,10 @@ class PostPresenter < Presenter
       "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
     }
 
+    if post.bg_color
+      attributes['style'] = "background-color: ##{post.bg_color}"
+    end
+
     if post.visible?
       attributes["data-md5"] = post.md5
       attributes["data-file-url"] = post.file_url
