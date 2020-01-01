@@ -6,7 +6,7 @@ module Moderator
       respond_to :js, :html, :json, :xml
 
       def create
-        cookies.permanent[:moderated] = Time.now.to_i
+        #cookies.permanent[:moderated] = Time.now.to_i
         pd_params = post_disapproval_params
         @post_disapproval = PostDisapproval.create_with(post_disapproval_params).find_or_create_by(user_id: CurrentUser.id, post_id: pd_params[:post_id])
         @post_disapproval.reason = pd_params[:reason]

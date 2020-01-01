@@ -8,7 +8,7 @@ module Moderator
       skip_before_action :api_check
 
       def show
-        cookies.permanent[:moderated] = Time.now.to_i
+        #cookies.permanent[:moderated] = Time.now.to_i
 
         if params[:per_page]
           cookies.permanent["mq_per_page"] = params[:per_page]
@@ -25,7 +25,7 @@ module Moderator
       end
 
       def random
-        cookies.permanent[:moderated] = Time.now.to_i
+        #cookies.permanent[:moderated] = Time.now.to_i
 
         ::Post.without_timeout do
           @posts = ::Post.includes(:disapprovals, :uploader).order("posts.id asc").pending_or_flagged.available_for_moderation(false).reorder("random()").limit(RANDOM_COUNT)
