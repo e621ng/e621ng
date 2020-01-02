@@ -51,6 +51,11 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
+    active_model_serializers (0.10.10)
+      actionpack (>= 4.1, < 6.1)
+      activemodel (>= 4.1, < 6.1)
+      case_transform (>= 0.2)
+      jsonapi-renderer (>= 0.1.1.beta1, < 0.3)
     activejob (6.0.2.1)
       activesupport (= 6.0.2.1)
       globalid (>= 0.3.6)
@@ -102,6 +107,8 @@ GEM
       sshkit (~> 1.3)
     capistrano3-unicorn (0.2.1)
       capistrano (~> 3.1, >= 3.1.0)
+    case_transform (0.2)
+      activesupport
     chronic (0.10.2)
     cityhash (0.9.0)
     coderay (1.1.2)
@@ -143,7 +150,7 @@ GEM
     erubi (1.9.0)
     factory_bot (5.1.1)
       activesupport (>= 4.2.0)
-    faraday (0.17.1)
+    faraday (1.0.0)
       multipart-post (>= 1.2, < 3)
     ffaker (2.13.0)
     ffi (1.11.3)
@@ -175,6 +182,7 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (2.3.0)
+    jsonapi-renderer (0.2.2)
     jwt (2.2.1)
     kgio (2.11.2)
     listen (3.2.1)
@@ -218,7 +226,8 @@ GEM
     multi_json (1.14.1)
     multi_xml (0.6.0)
     multipart-post (2.1.1)
-    mustermann (1.0.3)
+    mustermann (1.1.0)
+      ruby2_keywords (~> 0.0.1)
     naught (1.1.0)
     net-http-digest_auth (1.4.1)
     net-http-persistent (3.1.0)
@@ -229,7 +238,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (5.2.0)
     netrc (0.11.0)
-    newrelic_rpm (6.7.0.359)
+    newrelic_rpm (6.8.0.360)
     nio4r (2.5.2)
     nokogiri (1.10.7)
       mini_portile2 (~> 2.4.0)
@@ -257,7 +266,7 @@ GEM
       win32-file (>= 0.7.0)
     public_suffix (4.0.2)
     rack (2.0.8)
-    rack-protection (2.0.7)
+    rack-protection (2.0.8.1)
       rack
     rack-proxy (0.6.5)
       rack
@@ -316,6 +325,7 @@ GEM
     retriable (3.1.2)
     ruby-vips (2.0.16)
       ffi (~> 1.9)
+    ruby2_keywords (0.0.1)
     rubyzip (2.0.0)
     safe_yaml (1.0.5)
     sanitize (5.1.0)
@@ -343,10 +353,10 @@ GEM
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.2)
-    sinatra (2.0.7)
+    sinatra (2.0.8.1)
       mustermann (~> 1.0)
       rack (~> 2.0)
-      rack-protection (= 2.0.7)
+      rack-protection (= 2.0.8.1)
       tilt (~> 2.0)
     sprockets (4.0.0)
       concurrent-ruby (~> 1.0)
@@ -415,7 +425,7 @@ PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
-  activemodel-serializers-xml
+  active_model_serializers (~> 0.10.0)
   addressable
   awesome_print
   bcrypt
