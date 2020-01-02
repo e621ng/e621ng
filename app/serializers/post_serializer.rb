@@ -35,6 +35,19 @@ class PostSerializer < ActiveModel::Serializer
     preview_attributes
   end
 
+  def sample
+    sample_attributes = {
+        has: object.has_large?,
+        height: object.large_image_height,
+        width: object.large_image_width,
+        url: nil
+    }
+    if object.visible?
+      sample_attributes[:url] = object.large_file_url
+    end
+    sample_attributes
+  end
+
   def score
     {
         up: object.up_score,
@@ -66,7 +79,8 @@ class PostSerializer < ActiveModel::Serializer
     {
         parent_id: object.parent_id,
         has_children: object.has_children,
-        has_active_children: object.has_active_children
+        has_active_children: object.has_active_children,
+        children: object.children_ids&.split(' ')&.map(&:to_i) || []
     }
   end
 
@@ -74,5 +88,11 @@ class PostSerializer < ActiveModel::Serializer
     object.locked_tags&.split(' ') || []
   end
 
-  attributes :id, :created_at, :updated_at, :file, :preview, :score, :tags, :locked_tags, :change_seq, :flags, :rating, :fav_count, :sources, :pools, :approver_id, :uploader_id, :description, :comment_count
+  def is_favorited
+    object.is_favorited?
+  end
+
+  attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,
+             :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :description,
+             :comment_count, :is_favorited
 end
