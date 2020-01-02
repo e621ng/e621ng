@@ -133,15 +133,39 @@ class PostPresenter < Presenter
       "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
     }
 
-    if post.bg_color
-      attributes['style'] = "background-color: ##{post.bg_color}"
-    end
-
     if post.visible?
       attributes["data-md5"] = post.md5
       attributes["data-file-url"] = post.file_url
       attributes["data-large-file-url"] = post.large_file_url
       attributes["data-preview-file-url"] = post.preview_file_url
+    end
+
+    attributes
+  end
+
+  def image_attributes
+    attributes = {
+        :id => "image",
+        class: @post.display_class_for(CurrentUser.user),
+        "data-original-width" => @post.image_width,
+        "data-original-height" => @post.image_height,
+        "data-large-width" => @post.large_image_width,
+        "data-large-height" => @post.large_image_height,
+        "data-tags" => @post.tag_string,
+        :alt => humanized_essential_tag_string,
+        "data-uploader" => @post.uploader_name,
+        "data-rating" => @post.rating,
+        "data-flags" => @post.status_flags,
+        "data-parent-id" => @post.parent_id,
+        "data-has-children" => @post.has_children?,
+        "data-has-active-children" => @post.has_active_children?,
+        "data-score" => @post.score,
+        "data-fav-count" => @post.fav_count,
+        "itemprop" => "contentUrl"
+    }
+
+    if @post.bg_color
+      attributes['style'] = "background-color: ##{@post.bg_color};"
     end
 
     attributes
