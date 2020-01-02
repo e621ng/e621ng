@@ -30,6 +30,8 @@
           <%= render "forum_posts/partials/new/form", :forum_post => ForumPost.new(:topic_id => @forum_topic.id) %>
         </div>
       <% end %>
+    <% elsif !@forum_topic.is_locked? %>
+      <h5 id="respond-link"><%= link_to "Login to respond &raquo;".html_safe, new_session_path %></h5>
     <% end %>
 
     <%= numbered_paginator(@forum_posts) %>

@@ -28,5 +28,7 @@
       <p><%= link_to "Post comment", new_comment_path(comment: { post_id: post.id }), :class => "expand-comment-response" %></p>
       <%= render "comments/form", comment: post.comments.new, hidden: true %>
     </div>
+  <% else %>
+    <h5 id="respond-link"><%= link_to "Login to respond &raquo;".html_safe, new_session_path %></h5>
   <% end %>
 </div>
