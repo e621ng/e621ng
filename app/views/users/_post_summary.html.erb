@@ -3,6 +3,11 @@
     <h2>
       <%= link_to "Favorites", favorites_path(:user_id => user.id) %>
     </h2>
+    <% if user.enable_privacy_mode? %>
+      <h4>
+        (hidden)
+      </h4>
+    <% end %>
     <div class="vertical-section">
       <% presenter.favorites.each do |post| %>
         <%= PostPresenter.preview(post, :tags => "fav:#{user.name}") %>
