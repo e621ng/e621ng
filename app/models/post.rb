@@ -759,6 +759,7 @@ class Post < ApplicationRecord
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
       normalized_tags = filter_metatags(normalized_tags)
       normalized_tags = remove_negated_tags(normalized_tags)
+      normalized_tags = remove_dnp_tags(normalized_tags)
       normalized_tags = TagAlias.to_aliased(normalized_tags)
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
       normalized_tags = %w(tagme) if normalized_tags.empty?
@@ -771,6 +772,10 @@ class Post < ApplicationRecord
       normalized_tags = normalized_tags.compact.uniq
       normalized_tags = Tag.create_for_list(normalized_tags)
       set_tag_string(normalized_tags.uniq.sort.join(" "))
+    end
+
+    def remove_dnp_tags(tags)
+      tags - ['avoid_posting', 'conditional_dnp']
     end
 
     def enforce_dnp_tags(tags)
