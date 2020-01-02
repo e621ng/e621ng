@@ -204,4 +204,10 @@ class PostPresenter < Presenter
     return false if params[:pool_id].present? || params[:post_set_id].present?
     true
   end
+
+  def default_image_size(user, force_original)
+    return "original" if @post.force_original_size?(force_original)
+    return "fit" if user.default_image_size == "large" && !@post.allow_sample_resize?
+    user.default_image_size
+  end
 end

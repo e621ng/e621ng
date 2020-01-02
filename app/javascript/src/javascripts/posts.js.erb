@@ -402,7 +402,7 @@ Post.resize_sample = function() {
 Post.set_size_mode = function(mode) {
   const modeMap = {large: "Sample", fit: "Scale To Fit", original: "Original"};
   Post.resizeMode = mode;
-  $('#current-image-resize-mode').text(`Change Size Mode(${modeMap[mode] || "?Unknown?"})`);
+  $('#current-image-resize-mode').text(`Change Size Mode (${modeMap[mode] || "?Unknown?"})`);
 }
 
 Post.resize_notes = function() {

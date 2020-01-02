@@ -92,7 +92,7 @@
         <% end %>
         <% if !@post.force_original_size?(params[:original]) %>
           <div id="image-resize-cycle">
-            <a id="current-image-resize-mode" href="javascript:void(0)" style="cursor: pointer;" onclick="Danbooru.Post.resize_cycle_mode(event);" data-samples="<%= @post.allow_sample_resize? %>">Change Size Mode()</a>
+            | <a id="current-image-resize-mode" href="javascript:void(0)" style="cursor: pointer;" onclick="Danbooru.Post.resize_cycle_mode(event);" data-samples="<%= @post.allow_sample_resize? %>">Change Size Mode ()</a>
           </div>
         <% end %>
       </section>
@@ -193,6 +193,7 @@
 <% content_for(:html_header) do %>
   <% if @post.hide_from_search_engines? %><meta name="robots" content="noindex" /><% end %>
   <% if @post.force_original_size?(params[:original]) %><meta name="image-override-size" content="original"/><% end %>
+  <meta name="default-image-size" content="<%= @post.presenter.default_image_size(CurrentUser.user, params[:original]) %>"/>
 
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">
