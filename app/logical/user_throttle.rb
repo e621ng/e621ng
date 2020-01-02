@@ -3,7 +3,7 @@ class UserThrottle
     @prefix = options[:prefix] || "thtl:"
     @duration = options[:duration] || 1.minute
     @user_id = user.id
-    @max_rate = user.api_burst_limit
+    @max_rate = options[:max] || user.api_burst_limit
 
     @cached_rate = 0
   end

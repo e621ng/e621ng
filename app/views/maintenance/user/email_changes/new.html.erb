@@ -2,7 +2,11 @@
   <div id="a-new">
     <h1>Change Email</h1>
 
+    <div class="box-section sect_red">
+    <p>Warning: Changing the email on your account will mark it as unactivated until you confirm the new email address.</p>
+
     <p>You must confirm your password in order to change your email address.</p>
+    </div>
 
     <%= form_tag(maintenance_user_email_change_path, :class => "simple_form") do %>
       <div class="input">
