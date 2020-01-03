@@ -674,6 +674,10 @@ class User < ApplicationRecord
       user_status.post_count
     end
 
+    def post_deleted_count
+      user_status.post_deleted_count
+    end
+
     def note_version_count
       user_status.note_count
     end
@@ -726,6 +730,7 @@ class User < ApplicationRecord
       self.class.without_timeout do
         UserStatus.where(user_id: id).update_all(
           post_count: Post.for_user(id).count,
+          post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostArchive.for_user(id).count,
           note_count: NoteVersion.where(updater_id: id).count
         )

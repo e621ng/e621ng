@@ -1458,6 +1458,7 @@ class Post < ApplicationRecord
         )
 
         move_files_on_delete
+        UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
 
         # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
         give_favorites_to_parent(options) if options[:move_favorites]
@@ -1485,6 +1486,7 @@ class Post < ApplicationRecord
       self.approver_id = CurrentUser.id
       flags.each {|x| x.resolve!}
       save
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
       move_files_on_undelete
       approvals.create(user: CurrentUser.user)
       unless options[:without_mod_action]
