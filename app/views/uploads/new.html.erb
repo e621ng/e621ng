@@ -32,6 +32,7 @@
 </div>
 <script>
   var uploaderSettings = {
+    compactMode: <%= CurrentUser.compact_uploader?.to_json %>,
     safeSite: <%= CurrentUser.safe_mode?.to_json %>,
     uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
     recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>,

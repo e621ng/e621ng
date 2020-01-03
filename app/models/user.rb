@@ -54,6 +54,7 @@ class User < ApplicationRecord
     no_flagging
     no_feedback
     disable_user_dmails
+    enable_compact_uploader
   )
 
   include Danbooru::HasBitFlags
@@ -563,7 +564,7 @@ class User < ApplicationRecord
 
     def post_upload_throttle
       return hourly_upload_limit if is_privileged_or_higher?
-      [hourly_upload_limit, tag_edit_limit].min
+      [hourly_upload_limit, post_edit_limit].min
     end
     memoize :post_upload_throttle
 
@@ -894,6 +895,10 @@ class User < ApplicationRecord
 
   def hide_favorites?
     !CurrentUser.is_admin? && enable_privacy_mode? && CurrentUser.user.id != id
+  end
+
+  def compact_uploader?
+    post_upload_count >= 10 && enable_compact_uploader?
   end
 
   def initialize_attributes

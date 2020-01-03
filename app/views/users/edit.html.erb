@@ -78,6 +78,12 @@
         <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
         hint: "Disables displaying cropped thumbnails on the mobile layout of the site in favor of scaled thumbnails. Has no effect on the desktop site." %>
 
+        <% if @user.post_upload_count >= 10 %>
+          <%= f.input :enable_compact_uploader, label: "Enable Compact Uploader", as: :select,
+          collection: [["No", "false"], ["Yes", "true"]], include_blank: false,
+          hint: "Enables a more compact and less guided post uploader." %>
+        <% end %>
+
         <div class="input text optional field_with_hint">
           <label class="text optional" for="user_dmail_filter_attributes_words">Dmail filter</label>
           <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>

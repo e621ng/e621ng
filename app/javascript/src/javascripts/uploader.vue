@@ -627,7 +627,7 @@
 
         noSource: false,
         sources: [''],
-        normalMode: true,
+        normalMode: !window.uploaderSettings.compactMode,
 
         checkboxes: {
           artist: artist_checks,
