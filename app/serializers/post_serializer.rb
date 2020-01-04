@@ -92,7 +92,11 @@ class PostSerializer < ActiveModel::Serializer
     object.is_favorited?
   end
 
+  def own_vote
+    object.own_vote&.score || 0
+  end
+
   attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,
              :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :description,
-             :comment_count, :is_favorited
+             :comment_count, :is_favorited, :own_vote
 end
