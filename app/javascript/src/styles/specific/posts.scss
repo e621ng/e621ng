@@ -287,6 +287,17 @@ div#c-posts {
     overflow: hidden;
   }
 
+  div.bottom-notices {
+    display: flex;
+    margin: 0 -$quarter-padding;
+    margin-bottom: $quarter-padding;
+    div.notice {
+      margin: 0 $quarter-padding;
+      flex-basis: 50%;
+      flex-grow: 1;
+    }
+  }
+
   div.notice {
     font-size: 0.8em;
     padding: 0.5em;

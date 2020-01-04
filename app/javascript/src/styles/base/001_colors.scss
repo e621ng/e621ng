@@ -167,9 +167,9 @@ $preview-icon-color: white;
 $preview-icon-bg: rgba(0,0,0,0.5);
 
 // Posts page
-$notice-parent-background: darken($state-success-color, 20%);
+$notice-parent-background: $section-background;
 $notice-parent-border: border_color($notice-parent-background);
-$notice-child-background: darken($state-warning-color, 40%);
+$notice-child-background: $section-background;
 $notice-child-border: border_color($notice-child-background);
 $notice-deleted-background: darken($state-error-color, 40%);
 $notice-deleted-border: border_color($notice-deleted-background);

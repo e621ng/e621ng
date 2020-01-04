@@ -3,6 +3,7 @@ module PostSets
     attr_reader :parent, :children
 
     def initialize(parent_id, options = {})
+      @want_parent = options[:want_parent]
       @parent = ::Post.where("id = ?", parent_id)
       @children = ::Post.where("parent_id = ?", parent_id).order("id ASC")
       if options[:include_deleted]
@@ -14,7 +15,8 @@ module PostSets
     end
 
     def posts
-      @parent + @children
+      return @parent if @want_parent
+      @children
     end
 
     def presenter
