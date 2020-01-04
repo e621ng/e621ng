@@ -239,6 +239,9 @@ Post.initialize_shortcuts = function() {
 }
 
 Post.initialize_links = function() {
+  $("#set-as-avatar-link").on('click.danbooru', function(e) {
+    Post.set_as_avatar($(e.target).data('post-id'));
+  });
   $("#copy-notes").on("click.danbooru", function(e) {
     var current_post_id = $("meta[name=post-id]").attr("content");
     var other_post_id = parseInt(prompt("Enter the ID of the post to copy all notes to:"), 10);
@@ -708,6 +711,23 @@ Post.vote = function (id, score) {
       }
     }).always(function() {
       Post.notice_update("dec");
+    });
+  });
+}
+
+Post.set_as_avatar = function(id) {
+  SendQueue.add(function() {
+    $.ajax({
+      method: 'PATCH',
+      url: `/users/${Utility.meta("current-user-id")}.json`,
+      data: {
+        'user[avatar_id]': id
+      },
+      headers: {
+        accept: '*/*;q=0.5,text/javascript'
+      }
+    }).done(function(data) {
+      $(window).trigger("danbooru:notice", "Post set as avatar");
     });
   });
 }
