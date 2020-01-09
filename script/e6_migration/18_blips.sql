@@ -1,3 +1,5 @@
+drop trigger trg_blip_search_update on blips;
+
 alter table blips rename column text_search_index to body_index;
 alter table blips rename column response to response_to;
 alter table blips rename column user_id to creator_id;

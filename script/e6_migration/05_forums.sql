@@ -1,5 +1,7 @@
 -- Forums
 
+drop trigger trg_forum_post_search_update on forum_posts;
+
 CREATE TABLE forum_topics (
     id serial NOT NULL,
     creator_id integer NOT NULL,

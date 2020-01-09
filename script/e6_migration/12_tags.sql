@@ -8,7 +8,7 @@ alter table tags add column created_at timestamp not null default now(),
 add column updated_at timestamp not null default now();
 alter table tags alter column related_tags drop not null,
 alter column related_tags_updated_at drop not null;
-alter table tags add primary key id;
+alter table tags add primary key (id);
 
 alter table tag_aliases rename column name to antecedent_name;
 alter table tag_aliases add column updated_at timestamp,
@@ -25,6 +25,8 @@ alter table tag_aliases drop column alias_id;
 update tag_aliases set creator_id = 1 where creator_id is null;
 alter table tag_aliases alter column creator_id set not null,
 alter column consequent_name set not null;
+
+alter table forum_posts add primary key (id);
 update tag_aliases set forum_topic_id = (select _.topic_id from forum_posts _ where _.id = tag_aliases.forum_post_id);
 
 alter table tag_implications add column antecedent_name varchar,
@@ -43,4 +45,5 @@ update tag_implications set creator_id = 1 where creator_id is null;
 alter table tag_implications alter column creator_id set not null;
 alter table tag_implications drop column consequent_id, drop column predicate_id;
 
-alter table tags drop primary key id;
+alter table forum_posts drop constraint forum_posts_pkey;
+alter table tags drop constraint tags_pkey;

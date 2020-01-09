@@ -1,5 +1,7 @@
 -- Comments
 
+drop trigger trg_comment_search_update on comments;
+
 alter table comment_votes rename column ip_addr to user_ip_addr;
 update comment_votes set score = 0 where score is null;
 alter table comment_votes alter column score set not null;

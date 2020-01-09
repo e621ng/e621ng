@@ -31,7 +31,7 @@ add column removed_post_ids integer[] not null default '{}'::integer[];
 ALTER TABLE public.pool_versions ALTER COLUMN is_deleted SET DEFAULT false;
 ALTER TABLE public.pool_versions ALTER COLUMN post_ids SET DEFAULT '{}'::integer[];
 
-create temp table pool_verison_versions as select id, row_number() OVER (PARTITION BY pool_id ORDER id) as version FROM pool_versions;
+create temp table pool_version_versions as select id, row_number() OVER (PARTITION BY pool_id ORDER BY id) as version FROM pool_versions;
 update pool_versions pv set version = pvv.version from pool_version_versions pvv WHERE pv.id = pvv.id;
 drop table pool_version_versions;
 

@@ -1,3 +1,5 @@
+drop trigger trg_posts_tags_index_update on posts;
+
 alter table posts rename column artist_tag_count to tag_count_artist;
 alter table posts rename column cached_tags to tag_string;
 alter table posts rename column character_tag_count to tag_count_character;
