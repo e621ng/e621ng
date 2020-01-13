@@ -181,7 +181,7 @@
   <% if @fixup_post_url %>
     <script>
       // This just fixes up the history path for this page so you don't end up getting the wrong url when navigating.
-      history.pushState({}, "", <%= post_path(@post, q: params[:q]).to_json.html_safe %>);
+      history.replaceState({}, "", <%= post_path(@post, q: params[:q]).to_json.html_safe %>);
     </script>
   <% end %>
 </div>
