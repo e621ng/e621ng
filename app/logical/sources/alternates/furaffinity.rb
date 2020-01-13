@@ -14,7 +14,7 @@ module Sources
 
       def parse
         if @url =~ IMAGE_TO_ARTIST
-          @gallery_url = "https://www.furaffinity.net/user/#{$1}"
+          @gallery_url = "https://www.furaffinity.net/user/#{$1}/"
           @direct_url = @url
         end
       end
