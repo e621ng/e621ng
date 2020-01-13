@@ -131,142 +131,6 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: advertisement_hits; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.advertisement_hits (
-    id integer NOT NULL,
-    advertisement_id integer NOT NULL,
-    ip_addr inet NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: advertisement_hits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.advertisement_hits_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: advertisement_hits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.advertisement_hits_id_seq OWNED BY public.advertisement_hits.id;
-
-
---
--- Name: advertisements; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.advertisements (
-    id integer NOT NULL,
-    referral_url text NOT NULL,
-    ad_type character varying NOT NULL,
-    status character varying NOT NULL,
-    hit_count integer DEFAULT 0 NOT NULL,
-    width integer NOT NULL,
-    height integer NOT NULL,
-    file_name character varying NOT NULL,
-    is_work_safe boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: advertisements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.advertisements_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: advertisements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.advertisements_id_seq OWNED BY public.advertisements.id;
-
-
---
--- Name: amazon_backups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.amazon_backups (
-    id integer NOT NULL,
-    last_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: amazon_backups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.amazon_backups_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: amazon_backups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.amazon_backups_id_seq OWNED BY public.amazon_backups.id;
-
-
---
--- Name: anti_voters; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.anti_voters (
-    id integer NOT NULL,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: anti_voters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.anti_voters_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: anti_voters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.anti_voters_id_seq OWNED BY public.anti_voters.id;
-
-
---
 -- Name: api_keys; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -682,46 +546,6 @@ CREATE SEQUENCE public.comments_id_seq
 --
 
 ALTER SEQUENCE public.comments_id_seq OWNED BY public.comments.id;
-
-
---
--- Name: delayed_jobs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.delayed_jobs (
-    id integer NOT NULL,
-    priority integer DEFAULT 0,
-    attempts integer DEFAULT 0,
-    handler text,
-    last_error text,
-    run_at timestamp without time zone,
-    locked_at timestamp without time zone,
-    failed_at timestamp without time zone,
-    locked_by character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    queue character varying
-);
-
-
---
--- Name: delayed_jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.delayed_jobs_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: delayed_jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
 
 
 --
@@ -2077,38 +1901,6 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: super_voters; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.super_voters (
-    id integer NOT NULL,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: super_voters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.super_voters_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: super_voters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.super_voters_id_seq OWNED BY public.super_voters.id;
-
-
---
 -- Name: tag_aliases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2222,44 +2014,6 @@ CREATE SEQUENCE public.tag_rel_undos_id_seq
 --
 
 ALTER SEQUENCE public.tag_rel_undos_id_seq OWNED BY public.tag_rel_undos.id;
-
-
---
--- Name: tag_subscriptions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tag_subscriptions (
-    id integer NOT NULL,
-    creator_id integer NOT NULL,
-    name character varying NOT NULL,
-    tag_query text NOT NULL,
-    post_ids text NOT NULL,
-    is_public boolean DEFAULT true NOT NULL,
-    last_accessed_at timestamp without time zone,
-    is_opted_in boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: tag_subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.tag_subscriptions_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: tag_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.tag_subscriptions_id_seq OWNED BY public.tag_subscriptions.id;
 
 
 --
@@ -2416,17 +2170,6 @@ CREATE SEQUENCE public.tickets_id_seq
 --
 
 ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
-
-
---
--- Name: token_buckets; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE UNLOGGED TABLE public.token_buckets (
-    user_id integer,
-    last_touched_at timestamp without time zone NOT NULL,
-    token_count real NOT NULL
-);
 
 
 --
@@ -2818,34 +2561,6 @@ ALTER SEQUENCE public.wiki_pages_id_seq OWNED BY public.wiki_pages.id;
 
 
 --
--- Name: advertisement_hits id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.advertisement_hits ALTER COLUMN id SET DEFAULT nextval('public.advertisement_hits_id_seq'::regclass);
-
-
---
--- Name: advertisements id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.advertisements ALTER COLUMN id SET DEFAULT nextval('public.advertisements_id_seq'::regclass);
-
-
---
--- Name: amazon_backups id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.amazon_backups ALTER COLUMN id SET DEFAULT nextval('public.amazon_backups_id_seq'::regclass);
-
-
---
--- Name: anti_voters id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.anti_voters ALTER COLUMN id SET DEFAULT nextval('public.anti_voters_id_seq'::regclass);
-
-
---
 -- Name: api_keys id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2920,13 +2635,6 @@ ALTER TABLE ONLY public.comment_votes ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.comments_id_seq'::regclass);
-
-
---
--- Name: delayed_jobs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.delayed_jobs ALTER COLUMN id SET DEFAULT nextval('public.delayed_jobs_id_seq'::regclass);
 
 
 --
@@ -3182,13 +2890,6 @@ ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: super_voters id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.super_voters ALTER COLUMN id SET DEFAULT nextval('public.super_voters_id_seq'::regclass);
-
-
---
 -- Name: tag_aliases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3207,13 +2908,6 @@ ALTER TABLE ONLY public.tag_implications ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.tag_rel_undos ALTER COLUMN id SET DEFAULT nextval('public.tag_rel_undos_id_seq'::regclass);
-
-
---
--- Name: tag_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tag_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.tag_subscriptions_id_seq'::regclass);
 
 
 --
@@ -3305,38 +2999,6 @@ ALTER TABLE ONLY public.wiki_page_versions ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.wiki_pages ALTER COLUMN id SET DEFAULT nextval('public.wiki_pages_id_seq'::regclass);
-
-
---
--- Name: advertisement_hits advertisement_hits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.advertisement_hits
-    ADD CONSTRAINT advertisement_hits_pkey PRIMARY KEY (id);
-
-
---
--- Name: advertisements advertisements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.advertisements
-    ADD CONSTRAINT advertisements_pkey PRIMARY KEY (id);
-
-
---
--- Name: amazon_backups amazon_backups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.amazon_backups
-    ADD CONSTRAINT amazon_backups_pkey PRIMARY KEY (id);
-
-
---
--- Name: anti_voters anti_voters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.anti_voters
-    ADD CONSTRAINT anti_voters_pkey PRIMARY KEY (id);
 
 
 --
@@ -3433,14 +3095,6 @@ ALTER TABLE ONLY public.comment_votes
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
-
-
---
--- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.delayed_jobs
-    ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
 
 
 --
@@ -3734,14 +3388,6 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: super_voters super_voters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.super_voters
-    ADD CONSTRAINT super_voters_pkey PRIMARY KEY (id);
-
-
---
 -- Name: tag_aliases tag_aliases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3763,14 +3409,6 @@ ALTER TABLE ONLY public.tag_implications
 
 ALTER TABLE ONLY public.tag_rel_undos
     ADD CONSTRAINT tag_rel_undos_pkey PRIMARY KEY (id);
-
-
---
--- Name: tag_subscriptions tag_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tag_subscriptions
-    ADD CONSTRAINT tag_subscriptions_pkey PRIMARY KEY (id);
 
 
 --
@@ -3875,27 +3513,6 @@ ALTER TABLE ONLY public.wiki_page_versions
 
 ALTER TABLE ONLY public.wiki_pages
     ADD CONSTRAINT wiki_pages_pkey PRIMARY KEY (id);
-
-
---
--- Name: index_advertisement_hits_on_advertisement_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_advertisement_hits_on_advertisement_id ON public.advertisement_hits USING btree (advertisement_id);
-
-
---
--- Name: index_advertisement_hits_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_advertisement_hits_on_created_at ON public.advertisement_hits USING btree (created_at);
-
-
---
--- Name: index_advertisements_on_ad_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_advertisements_on_ad_type ON public.advertisements USING btree (ad_type);
 
 
 --
@@ -4127,13 +3744,6 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 --
 
 CREATE INDEX index_comments_on_post_id ON public.comments USING btree (post_id);
-
-
---
--- Name: index_delayed_jobs_on_run_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_delayed_jobs_on_run_at ON public.delayed_jobs USING btree (run_at);
 
 
 --
@@ -4809,20 +4419,6 @@ CREATE INDEX index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id ON public.tag_re
 
 
 --
--- Name: index_tag_subscriptions_on_creator_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_tag_subscriptions_on_creator_id ON public.tag_subscriptions USING btree (creator_id);
-
-
---
--- Name: index_tag_subscriptions_on_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_tag_subscriptions_on_name ON public.tag_subscriptions USING btree (name);
-
-
---
 -- Name: index_tag_type_versions_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4862,13 +4458,6 @@ CREATE INDEX index_tags_on_name_prefix ON public.tags USING gin (regexp_replace(
 --
 
 CREATE INDEX index_tags_on_name_trgm ON public.tags USING gin (name public.gin_trgm_ops);
-
-
---
--- Name: index_token_buckets_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_token_buckets_on_user_id ON public.token_buckets USING btree (user_id);
 
 
 --
@@ -5338,6 +4927,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191006143246'),
 ('20191013233447'),
 ('20191116032230'),
-('20191231162515');
+('20191231162515'),
+('20200113022639');
 
 
