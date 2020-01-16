@@ -23,6 +23,7 @@ alter table artist_versions drop column version;
 alter table artist_versions rename column other_names_array to other_names;
 alter table artist_versions add column updater_ip_addr inet not null default '127.0.0.1';
 alter table artist_versions add column is_banned boolean not null default false;
+alter table artist_versions add column notes_changed boolean default false;
 alter table artist_versions add column urls text[] not null default '{}'::text[];
 update artist_versions set urls = string_to_array(cached_urls, ' ');
 alter table artist_versions drop column cached_urls;

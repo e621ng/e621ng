@@ -1,3 +1,4 @@
+begin;
 alter table takedowns rename column ip_addr to creator_ip_addr;
 alter table takedowns rename column user_id to creator_id;
 alter table takedowns rename column approver to approver_id;
@@ -16,3 +17,5 @@ update takedowns set post_ids = (select string_agg(post_id::text, ' ') from take
 update takedowns set del_post_ids = (select string_agg(post_id::text, ' ') from takedown_posts _ where _.takedown_id = takedowns.id and status = 'deleted');
 update takedowns set post_count = (select count(*) from takedown_posts _ where _.takedown_id = takedowns.id);
 drop index td_tmp;
+drop table takedown_posts;
+commit;

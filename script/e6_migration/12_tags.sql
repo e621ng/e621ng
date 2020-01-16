@@ -1,3 +1,5 @@
+begin;
+
 alter table tags rename column tag_type to category;
 alter table tags rename column type_locked to is_locked;
 alter table tags rename column cached_related to related_tags;
@@ -47,3 +49,7 @@ alter table tag_implications drop column consequent_id, drop column predicate_id
 
 alter table forum_posts drop constraint forum_posts_pkey;
 alter table tags drop constraint tags_pkey;
+
+alter table tag_type_histories rename to tag_type_versions;
+
+commit;

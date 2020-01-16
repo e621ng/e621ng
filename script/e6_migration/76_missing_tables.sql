@@ -205,6 +205,16 @@ CREATE TABLE public.saved_searches (
     labels text[] DEFAULT '{}'::text[] NOT NULL
 );
 
+CREATE TABLE public.tag_rel_undos (
+    id bigserial NOT NULL,
+    tag_rel_type character varying,
+    tag_rel_id bigint,
+    undo_data json,
+    applied boolean DEFAULT false,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
 --
 -- Name: uploads; Type: TABLE; Schema: public; Owner: -
 --

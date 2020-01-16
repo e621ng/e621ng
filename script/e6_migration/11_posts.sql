@@ -34,6 +34,13 @@ add column has_children boolean not null default false,
 add column last_comment_bumped_at timestamp;
 alter table posts drop column view_count;
 
+create sequence posts_change_seq_seq;
+select setval('posts_change_seq_seq', MAX(change_seq) + 1) from posts;
+ALTER TABLE posts ALTER COLUMN change_seq TYPE bigint;
+ALTER TABLE posts ALTER COLUMN change_seq SET DEFAULT nextval('posts_change_seq_seq'::regclass);
+ALTER TABLE posts ALTER COLUMN change_seq SET NOT NULL;
+
+
 update posts set is_pending = true where status = 'pending';
 update posts set is_flagged = true where status = 'flagged';
 update posts set is_deleted = true where status = 'deleted';
