@@ -24,6 +24,7 @@ module Moderator
       def undelete
         @post = ::Post.find(params[:id])
         @post.undelete!
+        respond_with(@post)
       end
 
       def confirm_move_favorites

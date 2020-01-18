@@ -586,7 +586,7 @@ Post.update = function(post_id, params) {
   });
 }
 
-Post.delete_with_reason = function(post_id, reason) {
+Post.delete_with_reason = function(post_id, reason, reload_after_delete) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.ajax({
@@ -598,7 +598,30 @@ Post.delete_with_reason = function(post_id, reason) {
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function(data) {
       $(window).trigger("danbooru:notice", "Deleted post.");
-      location.reload();
+      if(reload_after_delete) {
+        location.reload();
+      } else {
+        $(`article#post_${post_id}`).attr('data-flags', 'deleted');
+      }
+    }).always(function() {
+      Post.notice_update("dec");
+    });
+  });
+}
+
+Post.undelete = function(post_id) {
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.ajax({
+      type: "POST",
+      url: `/moderator/post/posts/${post_id}/undelete.json`
+    }).fail(function(data) {
+//      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      const message = data.responseJSON.message;
+      $(window).trigger('danbooru:error', "Error: " + message);
+    }).done(function(data) {
+      $(window).trigger("danbooru:notice", "Deleted post.");
+      $(`article#post_${post_id}`).attr('data-flags', 'active');
     }).always(function() {
       Post.notice_update("dec");
     });
@@ -614,7 +637,8 @@ Post.unflag = function(post_id, approval) {
       url: `/posts/${post_id}/flag.json`,
       data: {approval: modApproval}
     }).fail(function(data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+//      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      const message = data.responseJSON.message;
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function(data) {
       $(window).trigger("danbooru:notice", "Unflagged post");

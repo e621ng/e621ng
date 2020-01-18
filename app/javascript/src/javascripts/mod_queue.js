@@ -32,7 +32,7 @@ $(function() {
     const reason = $(e.target).data('reason');
 
     if (confirm(`Delete post for being ${prompt}?`))
-      Post.delete_with_reason(post_id, reason);
+      Post.delete_with_reason(post_id, reason, true);
   });
 });
 

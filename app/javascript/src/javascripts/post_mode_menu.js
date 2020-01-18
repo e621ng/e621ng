@@ -145,9 +145,11 @@ PostModeMenu.change = function() {
   $body.removeClass((i, classNames) => classNames.split(/ /).filter(name => /^mode-/.test(name)).join(" "));
   $body.addClass("mode-" + s);
   LS.put("mode", s, 1);
+  $("#set-id").hide();
+  $("#tag-script-field").hide();
+  $("#quick-mode-reason").hide();
 
   if (s === "tag-script") {
-    $("#set-id").hide();
     let current_script_id = LS.get("current_tag_script_id");
     if (!current_script_id) {
       current_script_id = "1";
@@ -160,9 +162,8 @@ PostModeMenu.change = function() {
   } else if (s === 'add-to-set' || s === 'remove-from-set') {
     PostModeMenu.update_sets_menu();
     $("#set-id").show();
-  } else {
-    $("#set-id").hide();
-    $("#tag-script-field").hide();
+  } else if (s === 'delete') {
+    $("#quick-mode-reason").show();
   }
 }
 
@@ -208,6 +209,10 @@ PostModeMenu.click = function(e) {
     Post.update(post_id, {"post[is_rating_locked]": "1"});
   } else if (s === 'lock-note') {
     Post.update(post_id, {"post[is_note_locked]": "1"});
+  } else if (s === 'delete') {
+    Post.delete_with_reason(post_id, $("#quick-mode-reason").val(), false);
+  } else if (s === 'undelete') {
+    Post.undelete(post_id);
   } else if (s === 'approve') {
     Post.approve(post_id);
   } else if (s === "tag-script") {
