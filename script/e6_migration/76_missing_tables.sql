@@ -245,5 +245,6 @@ CREATE TABLE public.uploads (
     artist_commentary_title text,
     include_artist_commentary boolean,
     context text,
-    referer_url text
+    referer_url text,
+    description text not null default ''::text
 );

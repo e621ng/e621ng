@@ -1,7 +1,8 @@
 -- pools
- 
+
 alter table pools rename column user_id to creator_id;
 alter table pools drop column post_count;
+alter table pools drop column is_locked;
 alter table pools add column category character varying(30) not null default 'series',
 add column is_deleted boolean not null default false;
 -- Update to support locking in model
@@ -10,6 +11,7 @@ update pools set post_ids = (select coalesce(array_agg(x.post_id), '{}'::integer
 drop table pools_posts;
 
 alter table pool_updates rename to pool_versions;
+alter table pool_versions drop column is_locked;
 alter table pool_versions alter column post_ids drop default;
 alter table pool_versions alter column post_ids type integer[] using (string_to_array(post_ids, ' ')::integer[]);
 update pool_versions set post_ids = coalesce((select array_agg(val) from unnest(post_ids) with ordinality as t(val, idx) WHERE idx % 2 = 1), '{}'::integer[]);

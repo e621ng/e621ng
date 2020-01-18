@@ -31,7 +31,8 @@ add column up_score int not null default 0,
 add column down_score int not null default 0,
 add column bit_flags bigint not null default 0,
 add column has_children boolean not null default false,
-add column last_comment_bumped_at timestamp;
+add column last_comment_bumped_at timestamp,
+add column bg_color character varying(8);
 alter table posts drop column view_count;
 
 create sequence posts_change_seq_seq;
