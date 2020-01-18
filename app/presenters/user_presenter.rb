@@ -70,6 +70,10 @@ class UserPresenter
     template.link_to(user.post_upload_count, template.posts_path(:tags => "user:#{user.name}"))
   end
 
+  def active_upload_count(template)
+    template.link_to(user.post_upload_count - user.post_deleted_count, template.posts_path(:tags => "user:#{user.name}"))
+  end
+
   def deleted_upload_count(template)
     template.link_to(user.post_deleted_count, template.posts_path(:tags => "status:deleted user:#{user.name}"))
   end

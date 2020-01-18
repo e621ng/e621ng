@@ -30,7 +30,7 @@
       <tr>
         <th>Posts</th>
         <td>
-          <%= presenter.upload_count(self) %>
+          <%= presenter.active_upload_count(self) %>
           <% if CurrentUser.is_moderator? %>
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300") %>]
           <% end %>
