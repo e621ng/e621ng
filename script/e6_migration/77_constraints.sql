@@ -118,6 +118,8 @@ ALTER TABLE ONLY public.edit_histories
 ALTER TABLE ONLY public.email_blacklists
     ADD CONSTRAINT email_blacklists_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY public.exception_logs
+    ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
 
 --
 -- Name: favorites favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -125,7 +127,6 @@ ALTER TABLE ONLY public.email_blacklists
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
-
 
 --
 -- Name: forum_categories forum_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -451,3 +452,17 @@ ALTER TABLE ONLY public.wiki_page_versions
 
 ALTER TABLE ONLY public.wiki_pages
     ADD CONSTRAINT wiki_pages_pkey PRIMARY KEY (id);
+
+DELETE FROM post_votes
+                WHERE NOT EXISTS (
+                SELECT 1 FROM posts WHERE posts.id = post_votes.post_id
+                );
+ALTER TABLE public.post_votes ADD CONSTRAINT fk_rails_a7668ef612 FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE public.post_votes ADD CONSTRAINT fk_rails_d20e53bb67 FOREIGN KEY (post_id) REFERENCES posts(id);
+
+ALTER TABLE public.favorites ADD CONSTRAINT fk_rails_a7668ef613 FOREIGN KEY (user_id) REFERENCES users(id);
+DELETE FROM favorites
+    WHERE NOT EXISTS (
+    SELECT 1 FROM posts WHERE posts.id = favorites.post_id
+);
+ALTER TABLE public.favorites ADD CONSTRAINT fk_rails_d20e53bb68 FOREIGN KEY (post_id) REFERENCES posts(id);

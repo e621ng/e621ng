@@ -74,3 +74,4 @@ update post_versions pv set version = pvv.version from post_version_versions pvv
 drop table post_version_versions;
 
 alter table post_votes rename column ip_addr to user_ip_addr;
+

@@ -59,8 +59,7 @@ drop column show_comments,
 drop column show_hidden_comments,
 drop column show_post_stats;
 alter table users add column default_image_size varchar not null default 'large',
-add column email_verification_key varchar,
-add column inviter_id integer;
+add column email_verification_key varchar;
 update users set default_image_size = 'large' where image_resize_mode = 2;
 update users set default_image_size = 'original' where image_resize_mode = 0;
 update users set default_image_size = 'fit' where image_resize_mode = 1;
@@ -69,6 +68,14 @@ alter table users drop column image_resize_mode;
 create index blacklisted_by_user on user_blacklisted_tags(user_id);
 update users set blacklisted_tags = (select array_to_string(array_agg(_.tags), E'\n') from user_blacklisted_tags _ where _.user_id = users.id);
 drop index blacklisted_by_user;
+
+alter table users alter column blacklisted_tags set default 'gore
+scat
+watersports
+young -rating:s
+loli
+shota'::text;
+
 
 alter table user_statuses rename column del_post_count to post_deleted_count;
 alter table user_statuses rename column edit_count to post_update_count;
@@ -79,6 +86,8 @@ alter table user_statuses add column post_flag_count int not null default 0,
 add column artist_edit_count int not null default 0,
 add column created_at timestamp,
 add column updated_at timestamp;
+alter table user_statuses alter column user_id set not null;
+alter table user_statuses drop column pos_user_records, drop column neg_user_records, drop column neutral_user_records;
 
 create index flags_by_creator on post_flags(creator_id);
 update user_statuses set post_flag_count = (select count(*) from post_flags _ where _.creator_id = user_statuses.user_id);

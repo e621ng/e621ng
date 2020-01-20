@@ -37,7 +37,8 @@ add column status varchar not null default 'pending',
 add column creator_ip_addr inet not null default '127.0.0.1',
 add column forum_topic_id int,
 add column updated_at timestamp,
-add column descendant_names text[] default '{}'::text[];
+add column descendant_names text[] default '{}'::text[],
+add column approver_id integer;
 update tag_implications set status = 'active' where is_pending = false;
 alter table tag_implications drop column is_pending;
 update tag_implications set antecedent_name = (select _.name from tags _ where _.id = tag_implications.predicate_id), consequent_name = (select _.name from tags _ where _.id = tag_implications.consequent_id);
@@ -51,5 +52,6 @@ alter table forum_posts drop constraint forum_posts_pkey;
 alter table tags drop constraint tags_pkey;
 
 alter table tag_type_histories rename to tag_type_versions;
+alter table tag_type_versions rename column user_id to creator_id;
 
 commit;

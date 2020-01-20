@@ -9,17 +9,13 @@ CREATE INDEX index_artist_commentary_versions_on_updater_id_and_post_id ON artis
 CREATE INDEX index_artist_commentary_versions_on_updater_ip_addr ON artist_commentary_versions USING btree (updater_ip_addr);
 CREATE INDEX index_artist_urls_on_artist_id ON artist_urls USING btree (artist_id);
 CREATE INDEX index_artist_urls_on_normalized_url_pattern ON artist_urls USING btree (normalized_url text_pattern_ops);
-CREATE INDEX index_artist_urls_on_normalized_url_trgm ON artist_urls USING gin (normalized_url gin_trgm_ops);
-CREATE INDEX index_artist_urls_on_url_trgm ON artist_urls USING gin (url gin_trgm_ops);
 CREATE INDEX index_artist_versions_on_artist_id ON artist_versions USING btree (artist_id);
 CREATE INDEX index_artist_versions_on_created_at ON artist_versions USING btree (created_at);
 CREATE INDEX index_artist_versions_on_name ON artist_versions USING btree (name);
 CREATE INDEX index_artist_versions_on_updater_id ON artist_versions USING btree (updater_id);
 CREATE INDEX index_artist_versions_on_updater_ip_addr ON artist_versions USING btree (updater_ip_addr);
 CREATE INDEX index_artists_on_group_name ON artists USING btree (group_name);
-CREATE INDEX index_artists_on_group_name_trgm ON artists USING gin (group_name gin_trgm_ops);
 CREATE UNIQUE INDEX index_artists_on_name ON artists USING btree (name);
-CREATE INDEX index_artists_on_name_trgm ON artists USING gin (name gin_trgm_ops);
 CREATE INDEX index_artists_on_other_names ON artists USING gin (other_names);
 CREATE INDEX index_bans_on_banner_id ON bans USING btree (banner_id);
 CREATE INDEX index_bans_on_expires_at ON bans USING btree (expires_at);
@@ -31,6 +27,7 @@ CREATE INDEX index_bulk_update_requests_on_forum_post_id ON bulk_update_requests
 CREATE INDEX index_comment_votes_on_comment_id ON comment_votes USING btree (comment_id);
 CREATE INDEX index_comment_votes_on_created_at ON comment_votes USING btree (created_at);
 CREATE INDEX index_comment_votes_on_user_id ON comment_votes USING btree (user_id);
+CREATE UNIQUE INDEX index_comment_votes_on_comment_id_and_user_id ON comment_votes USING btree (comment_id, user_id);
 CREATE INDEX index_comments_on_body_index ON comments USING gin (body_index);
 CREATE INDEX index_comments_on_creator_id_and_post_id ON comments USING btree (creator_id, post_id);
 CREATE INDEX index_comments_on_creator_ip_addr ON comments USING btree (creator_ip_addr);
@@ -87,7 +84,6 @@ ALTER TABLE public.pool_versions ADD CONSTRAINT pool_versions_pkey PRIMARY KEY (
 CREATE INDEX index_pools_on_creator_id ON pools USING btree (creator_id);
 CREATE INDEX index_pools_on_lower_name ON pools USING btree (lower(name::text));
 CREATE INDEX index_pools_on_name ON pools USING btree (name);
-CREATE INDEX index_pools_on_name_trgm ON pools USING gin (lower(name::text) gin_trgm_ops);
 CREATE INDEX index_pools_on_updated_at ON pools USING btree (updated_at);
 
 
@@ -107,6 +103,8 @@ CREATE INDEX index_post_flags_on_reason_tsvector ON post_flags USING gin (to_tsv
 CREATE INDEX index_post_replacements_on_creator_id ON post_replacements USING btree (creator_id);
 CREATE INDEX index_post_replacements_on_post_id ON post_replacements USING btree (post_id);
 
+CREATE INDEX index_post_sets_on_post_ids ON post_sets USING gin (post_ids);
+
 
 CREATE INDEX index_post_versions_on_post_id ON post_versions USING btree (post_id);
 CREATE INDEX index_post_versions_on_updated_at ON post_versions USING btree (updated_at);
@@ -116,6 +114,9 @@ ALTER TABLE public.post_versions ADD CONSTRAINT post_versions_pkey PRIMARY KEY (
 
 
 -- Deduplicate
+DELETE FROM post_votes a USING post_votes b
+    WHERE a.id < b.id
+    AND a.user_id = b.user_id AND a.post_id = b.post_id;
 CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON post_votes USING btree (user_id, post_id);
 
 
@@ -128,8 +129,13 @@ CREATE INDEX index_posts_on_last_comment_bumped_at ON posts USING btree (last_co
 CREATE INDEX index_posts_on_last_noted_at ON posts USING btree (last_noted_at DESC NULLS LAST);
 CREATE INDEX index_posts_on_mpixels ON posts USING btree (((image_width * image_height)::numeric / 1000000.0));
 CREATE INDEX index_posts_on_source ON posts USING btree (lower(source::text));
--- CREATE INDEX index_posts_on_source_pattern ON posts USING btree (sourcepattern(lower(source::text)) text_pattern_ops);
 CREATE INDEX index_posts_on_tags_index ON posts USING gin (tag_index);
+CREATE UNIQUE INDEX index_posts_on_change_seq ON posts USING btree (change_seq);
+CREATE INDEX index_posts_on_created_at ON posts USING btree (created_at);
+CREATE UNIQUE INDEX index_posts_on_md5 ON posts USING btree (md5);
+CREATE INDEX index_posts_on_parent_id ON posts USING btree (parent_id);
+CREATE INDEX index_posts_on_uploader_id ON posts USING btree (uploader_id);
+CREATE INDEX index_posts_on_uploader_ip_addr ON posts USING btree (uploader_ip_addr);
 
 
 CREATE INDEX index_saved_searches_on_labels ON saved_searches USING gin (labels);
@@ -147,12 +153,14 @@ CREATE INDEX index_tag_subscriptions_on_creator_id ON tag_subscriptions USING bt
 CREATE INDEX index_tag_subscriptions_on_name ON tag_subscriptions USING btree (name);
 CREATE INDEX index_tag_type_versions_on_creator_id ON tag_type_versions USING btree (creator_id);
 CREATE INDEX index_tag_type_versions_on_tag_id ON tag_type_versions USING btree (tag_id);
+ALTER TABLE public.tag_type_versions ADD CONSTRAINT tag_type_versions_pkey PRIMARY KEY (id);
+
+CREATE INDEX index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id ON tag_rel_undos USING btree (tag_rel_type, tag_rel_id);
+ALTER TABLE tag_rel_undos ADD CONSTRAINT tag_rel_undos_pkey PRIMARY KEY (id);
 
 
 CREATE UNIQUE INDEX index_tags_on_name ON tags USING btree (name);
 CREATE INDEX index_tags_on_name_pattern ON tags USING btree (name text_pattern_ops);
-CREATE INDEX index_tags_on_name_prefix ON tags USING gin (regexp_replace(name::text, '([a-z0-9])[a-z0-9'']*($|[^a-z0-9'']+)'::text, '\1'::text, 'g'::text) gin_trgm_ops);
-CREATE INDEX index_tags_on_name_trgm ON tags USING gin (name gin_trgm_ops);
 CREATE INDEX index_uploads_on_referer_url ON uploads USING btree (referer_url);
 CREATE INDEX index_uploads_on_source ON uploads USING btree (source);
 CREATE INDEX index_uploads_on_uploader_id ON uploads USING btree (uploader_id);
@@ -169,14 +177,12 @@ CREATE UNIQUE INDEX user_password_reset_nonces_pkey ON user_password_reset_nonce
 ALTER TABLE public.user_password_reset_nonces ADD CONSTRAINT user_password_reset_nonces_pkey PRIMARY KEY (id); -- (1);
 
 
-CREATE INDEX index_user_statuses_on_user_id ON user_statuses USING btree (user_id);
+CREATE UNIQUE INDEX index_user_statuses_on_user_id ON user_statuses USING btree (user_id);
 ALTER TABLE public.user_statuses ADD CONSTRAINT user_statuses_pkey PRIMARY KEY (id); -- (1);
-CREATE INDEX index_users_on_email ON users USING btree (email);
+CREATE INDEX index_users_on_email ON users USING btree (email); -- TODO: UNIQUE
 CREATE INDEX index_users_on_last_ip_addr ON users USING btree (last_ip_addr) WHERE last_ip_addr IS NOT NULL;
 CREATE UNIQUE INDEX index_users_on_name ON users USING btree (lower(name::text));
 
-
-CREATE INDEX index_users_on_name_trgm ON users USING gin (lower(name::text) gin_trgm_ops);
 CREATE INDEX index_wiki_page_versions_on_created_at ON wiki_page_versions USING btree (created_at);
 CREATE INDEX index_wiki_page_versions_on_updater_ip_addr ON wiki_page_versions USING btree (updater_ip_addr);
 CREATE INDEX index_wiki_page_versions_on_wiki_page_id ON wiki_page_versions USING btree (wiki_page_id);
