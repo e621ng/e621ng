@@ -82,7 +82,7 @@ module PaginationHelper
     if total_pages <= Danbooru.config.max_numbered_pages
       numbered_paginator_item(total_pages, current_page)
     else
-      ""
+      numbered_paginator_item(Danbooru.config.max_numbered_pages, current_page)
     end
   end
 
@@ -93,7 +93,7 @@ module PaginationHelper
     if page == "..."
       html << "<li class='more'>"
       html << content_tag(:i, nil, class: "fas fa-ellipsis-h")
-      html << "</li>"      
+      html << "</li>"
     elsif page == current_page
       html << "<li class='current-page'>"
       html << '<span>' + page.to_s + '</span>'
