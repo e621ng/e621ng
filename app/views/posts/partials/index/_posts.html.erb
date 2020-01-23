@@ -1,6 +1,12 @@
 <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping && CurrentUser.user.disable_cropped_thumbnails? %>">
   <div id="posts-container">
-    <%= post_set.presenter.post_previews_html(self) %>
+    <% if @posts.empty? %>
+      <%= render "posts/blank" %>
+    <% else %>
+      <% @posts.each do |post| %>
+        <%= post.preview_html(self, {tags: @post_set.public_tag_string, raw: @post_set.raw, show_cropped: true}) %>
+      <% end %>
+    <% end %>
   </div>
 
   <% if post_set.hidden_posts.present? %>
