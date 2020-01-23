@@ -83,7 +83,7 @@ module PostSets
     end
 
     def has_explicit?
-      posts.any? {|x| x.rating == "e"}
+      !CurrentUser.safe_mode?
     end
 
     def hidden_posts
@@ -166,11 +166,6 @@ module PostSets
 
     def presenter
       @presenter ||= ::PostSetPresenters::Post.new(self)
-    end
-
-    def best_post
-      # be smarter about this in the future
-      posts.reject(&:is_deleted).select(&:visible?).max_by(&:fav_count)
     end
   end
 end
