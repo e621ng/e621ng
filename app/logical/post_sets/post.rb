@@ -126,9 +126,9 @@ module PostSets
     def posts
       @posts ||= begin
         if raw
-          temp = ::Post.raw_tag_match(tag_string).paginate(page, count: get_post_count, limit: per_page, includes: [:uploader])
+          temp = ::Post.raw_tag_match(tag_string).paginate(page, count: post_count, :limit => per_page, includes: [:uploader])
         else
-          temp = ::Post.tag_match(tag_string).paginate(page, count: get_post_count, limit: per_page, includes: [:uploader])
+          temp = ::Post.tag_match(tag_string).paginate(page, count: post_count, :limit => per_page, includes: [:uploader])
         end
 
         @post_count = temp.total_count

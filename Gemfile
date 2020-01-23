@@ -67,9 +67,6 @@ end
 
 group :development do
   gem 'sinatra'
-  gem 'rack-mini-profiler'
-  gem 'flamegraph'
-  gem 'stackprof'
 end
 
 group :development, :test do
