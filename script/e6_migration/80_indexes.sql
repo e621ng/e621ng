@@ -45,7 +45,11 @@ CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON edit
 CREATE INDEX index_forum_post_votes_on_forum_post_id ON forum_post_votes USING btree (forum_post_id);
 
 -- Deduplicate
+DELETE FROM favorites a USING favorites b
+    WHERE a.id < b.id
+    AND a.user_id = b.user_id AND a.post_id = b.post_id;
 CREATE UNIQUE INDEX index_favorites_on_user_id_and_post_id ON favorites USING btree (user_id, post_id);
+CREATE INDEX index_favorites_on_post_id ON favorites USING btree (post_id);
 
 
 CREATE UNIQUE INDEX index_forum_post_votes_on_forum_post_id_and_creator_id ON forum_post_votes USING btree (forum_post_id, creator_id);
@@ -118,6 +122,7 @@ DELETE FROM post_votes a USING post_votes b
     WHERE a.id < b.id
     AND a.user_id = b.user_id AND a.post_id = b.post_id;
 CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON post_votes USING btree (user_id, post_id);
+CREATE INDEX index_post_votes_on_post_id ON post_votes USING btree (post_id);
 
 
 CREATE INDEX index_posts_on_file_size ON posts USING btree (file_size);
