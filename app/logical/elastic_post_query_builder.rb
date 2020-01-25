@@ -440,6 +440,10 @@ class ElasticPostQueryBuilder
       must.push({term: {has_children: q[:isparent]}})
     end
 
+    if q.include?(:inpool)
+      (q[:inpool] ? must : must_not).push({exists: {field: :pools}})
+    end
+
     add_tag_string_search_relation(q[:tags], must)
 
     if q[:upvote].present?
