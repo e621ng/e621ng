@@ -2,28 +2,25 @@ import LS from './local_storage'
 
 let NewsUpdate = {};
 
-NewsUpdate.initialize = function() {
-  if (!$("#news-updates").length) {
+NewsUpdate.initialize = function () {
+  if (!$("#news").length) {
     return;
   }
+  const key = parseInt($("#news").data("id"), 10);
 
-  var key = $("#news-updates").data("id").toString();
-
-  if (LS.get("news-ticker") === key) {
-    $("#news-updates").hide();
-  } else {
-    $("#news-updates").show();
-
-    $("#close-news-ticker-link").on("click.danbooru", function(e) {
-      $("#news-updates").hide();
-      LS.put("news-ticker", key);
-
-      return false;
-    });
+  $('#news').on('click', function () {
+    $('#news').toggleClass('open');
+  });
+  $('#news-closebutton').on('click', function () {
+    $('#news').hide();
+    LS.put('hide_news_notice', key.toString());
+  });
+  if (parseInt(LS.get("hide_news_notice") || 0, 10) !== key) {
+    $("#news").show();
   }
-}
+};
 
-$(function() {
+$(function () {
   NewsUpdate.initialize();
 });
 

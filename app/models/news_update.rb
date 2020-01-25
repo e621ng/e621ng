@@ -7,7 +7,7 @@ class NewsUpdate < ApplicationRecord
 
   def self.recent
     @recent_news ||= Cache.get('recent_news', 1.day) do
-      self.order('created_at desc').first(5)
+      self.order('id desc').first(1)
     end
   end
 

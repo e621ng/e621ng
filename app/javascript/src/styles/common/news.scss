@@ -1,5 +1,34 @@
 @import "../base/005_vars.scss";
 
+div#news {
+  max-height: 1rem;
+  overflow-y: hidden;
+  user-select: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &.open {
+    max-height: none;
+  }
+
+  .newsbody {
+    margin-top: 5px;
+  }
+
+  .closebutton {
+    float: right;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 14pt;
+    font-weight: bold;
+    color: white;
+    vertical-align: center;
+    margin-top: -3px;
+  }
+}
+
 div#news-updates {
   padding: 5px;
   background: $news-background;

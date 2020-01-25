@@ -289,6 +289,10 @@ fart'
       1_000
     end
 
+    def beta_notice
+      false
+    end
+
     # Maximum size of an upload. If you change this, you must also change
     # `client_max_body_size` in your nginx.conf.
     def max_file_size

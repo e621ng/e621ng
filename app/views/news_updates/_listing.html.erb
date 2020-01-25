@@ -1,13 +1,10 @@
-<% cache("news-updates", :expires_in => 1.hour) do %>
-  <% if NewsUpdate.recent.any? %>
-    <div id="news-updates" data-id="<%= NewsUpdate.recent.first.try(:id) %>" style="display: none;">
-      <ul>
-        <% NewsUpdate.recent.each do |news_update| %>
-          <li><%= news_update.created_at.strftime("%b %d") %>: <%= news_update.message.html_safe %></li>
-        <% end %>
-      </ul>
-
-      <a href="#" id="close-news-ticker-link">close</a>
-    </div>
-  <% end %>
+<% if NewsUpdate.recent.present? %>
+  <div class="ui-state-highlight site-notice" style="display: none;" id="news" data-id="<%= NewsUpdate.recent[0].id %>">
+    <div id="news-closebutton" class="closebutton">Dismiss</div>
+    <h6><%= link_to("News", news_updates_path) %> - <%= NewsUpdate.recent[0].created_at.strftime("%b %d, %Y") %>
+      (<%= time_ago_in_words NewsUpdate.recent[0].created_at %> ago)
+      <span id="news-showtext" class="showtext">Click to show.</span>
+    </h6>
+    <div class="newsbody"><%= format_text(NewsUpdate.recent[0].message) %></div>
+  </div>
 <% end %>
