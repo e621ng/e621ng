@@ -251,7 +251,7 @@ module PostIndex
       rating:      rating,
       file_ext:    file_ext,
       source:      source_array,
-      description: description,
+      description: description.present? ? description : nil,
 
       rating_locked:  is_rating_locked,
       note_locked:    is_note_locked,

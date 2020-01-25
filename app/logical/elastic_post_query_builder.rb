@@ -412,27 +412,35 @@ class ElasticPostQueryBuilder
       must.push({term: {status_locked: false}})
     end
 
+    if q.include?(:ratinglocked)
+      must.push({term: {rating_locked: q[:ratinglocked]}})
+    end
+
+    if q.include?(:notelocked)
+      must.push({term: {note_locked: q[:notelocked]}})
+    end
+
+    if q.include?(:statuslocked)
+      must.push({term: {status_locked: q[:statuslocked]}})
+    end
+
+    if q.include?(:hassource)
+      (q[:hassource] ? must : must_not).push({exists: {field: :source}})
+    end
+
+    if q.include?(:hasdescription)
+      (q[:hasdescription] ? must : must_not).push({exists: {field: :description}})
+    end
+
+    if q.include?(:ischild)
+      (q[:ischild] ? must : must_not).push({exists: {field: :parent}})
+    end
+
+    if q.include?(:isparent)
+      must.push({term: {has_children: q[:isparent]}})
+    end
+
     add_tag_string_search_relation(q[:tags], must)
-
-    if q[:favgroups_neg].present?
-      q[:favgroups_neg].each do |favgroup_rec|
-        favgroup_id = favgroup_rec.to_i
-        favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
-        if favgroup
-          must_not.push({terms: {id: favgroup.post_id_array}})
-        end
-      end
-    end
-
-    if q[:favgroups].present?
-      q[:favgroups].each do |favgroup_rec|
-        favgroup_id = favgroup_rec.to_i
-        favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
-        if favgroup
-          must.push({terms: {id: favgroup.post_id_array}})
-        end
-      end
-    end
 
     if q[:upvote].present?
       must.push({term: {upvotes: q[:upvote].to_i}})

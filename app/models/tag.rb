@@ -1,16 +1,17 @@
 class Tag < ApplicationRecord
   COSINE_SIMILARITY_RELATED_TAG_THRESHOLD = 300
   COUNT_METATAGS = %w[
-    comment_count deleted_comment_count active_comment_count
-    note_count deleted_note_count active_note_count
-    flag_count resolved_flag_count unresolved_flag_count
-    child_count deleted_child_count active_child_count
-    pool_count deleted_pool_count active_pool_count series_pool_count collection_pool_count
-    appeal_count approval_count replacement_count
+    comment_count
+    note_count
+    flag_count
+    child_count
+    pool_count
   ]
 
-  # allow e.g. `deleted_comments` as a synonym for `deleted_comment_count`
-  COUNT_METATAG_SYNONYMS = COUNT_METATAGS.map {|str| str.delete_suffix("_count").pluralize}
+  BOOLEAN_METATAGS = %w[
+    hassource hasdescription ratinglocked notelocked statuslocked
+    tagslocked hideanon hidegoogle isparent ischild
+  ]
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater artcomm
@@ -21,7 +22,7 @@ class Tag < ApplicationRecord
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby
-  ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + COUNT_METATAG_SYNONYMS
+  ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
 
@@ -45,7 +46,6 @@ class Tag < ApplicationRecord
     custom
   ] +
       COUNT_METATAGS +
-      COUNT_METATAG_SYNONYMS.flat_map {|str| [str, "#{str}_asc"]} +
       TagCategory.short_name_list.flat_map {|str| ["#{str}tags", "#{str}tags_asc"]}
 
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
@@ -550,6 +550,10 @@ class Tag < ApplicationRecord
       matches
     end
 
+    def parse_boolean(value)
+      value&.downcase == 'true'
+    end
+
     def parse_tag(tag, output)
       if tag[0] == "-" && tag.size > 1
         if tag =~ /\*/
@@ -854,9 +858,6 @@ class Tag < ApplicationRecord
             g2 = g2.downcase
 
             order, suffix, _ = g2.partition(/_(asc|desc)\z/i)
-            if order.in?(COUNT_METATAG_SYNONYMS)
-              g2 = order.singularize + "_count" + suffix
-            end
 
             q[:order] = g2
 
@@ -955,9 +956,8 @@ class Tag < ApplicationRecord
           when *COUNT_METATAGS
             q[g1.to_sym] = parse_helper(g2)
 
-          when *COUNT_METATAG_SYNONYMS
-            g1 = "#{g1.singularize}_count"
-            q[g1.to_sym] = parse_helper(g2)
+          when *BOOLEAN_METATAGS
+            q[g1.to_sym] = parse_boolean(g2)
 
           end
 
