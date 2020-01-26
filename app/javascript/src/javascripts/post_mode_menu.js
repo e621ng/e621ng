@@ -31,7 +31,7 @@ PostModeMenu.change_tag_script = function(e) {
   if ($("#mode-box-mode").val() === "tag-script") {
     const old_tag_script_id = LS.get("current_tag_script_id") || "1";
 
-    const new_tag_script_id = String.fromCharCode(e.which);
+    const new_tag_script_id = parseInt(e.key, 10);
     const new_tag_script = LS.get("tag-script-" + new_tag_script_id);
 
     $("#tag-script-field").val(new_tag_script);
@@ -104,13 +104,8 @@ PostModeMenu.initialize_tag_script_field = function() {
   $("#tag-script-field").blur(function(e) {
     const script = $(this).val();
 
-    if (script) {
-      const current_script_id = LS.get("current_tag_script_id");
-      LS.put("tag-script-" + current_script_id, script);
-    } else {
-      $("#mode-box-mode").val("view");
-      PostModeMenu.change();
-    }
+    const current_script_id = LS.get("current_tag_script_id");
+    LS.put("tag-script-" + current_script_id, script);
   });
 }
 
@@ -220,6 +215,10 @@ PostModeMenu.click = function(e) {
   } else if (s === "tag-script") {
     const current_script_id = LS.get("current_tag_script_id");
     const tag_script = LS.get("tag-script-" + current_script_id);
+    if (!tag_script) {
+      e.preventDefault();
+      return;
+    }
     const postTags = $("#post_" + post_id).data('tags').split(' ');
     const tags = new Set(postTags);
     const changes = TagScript.run(tags, tag_script);
