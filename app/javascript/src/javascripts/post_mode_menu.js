@@ -215,6 +215,8 @@ PostModeMenu.click = function(e) {
     Post.undelete(post_id);
   } else if (s === 'approve') {
     Post.approve(post_id);
+  } else if (s === 'remove-parent') {
+    Post.update(post_id, {"post[parent_id]": ""});
   } else if (s === "tag-script") {
     const current_script_id = LS.get("current_tag_script_id");
     const tag_script = LS.get("tag-script-" + current_script_id);
