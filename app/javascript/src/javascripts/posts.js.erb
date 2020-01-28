@@ -275,20 +275,23 @@ Post.initialize_post_relationship_previews = function() {
   var current_post_id = $("meta[name=post-id]").attr("content");
   $("[id=post_" + current_post_id + "]").addClass("current-post");
 
+  const toggle = function() {
+    Post.toggle_relationship_preview($("#has-children-relationship-preview"), $("#has-children-relationship-preview-link"));
+    Post.toggle_relationship_preview($("#has-parent-relationship-preview"), $("#has-parent-relationship-preview-link"));
+  }
+
   if (LS.get("show-relationship-previews") === "1") {
-    this.toggle_relationship_preview($("#has-children-relationship-preview"), $("#has-children-relationship-preview-link"));
-    this.toggle_relationship_preview($("#has-parent-relationship-preview"), $("#has-parent-relationship-preview-link"));
+    toggle();
   }
 
   $("#has-children-relationship-preview-link").on("click.danbooru", function(e) {
-    Post.toggle_relationship_preview($("#has-children-relationship-preview"), $(this));
+    toggle();
     e.preventDefault();
   });
-
   $("#has-parent-relationship-preview-link").on("click.danbooru", function(e) {
-    Post.toggle_relationship_preview($("#has-parent-relationship-preview"), $(this));
+    toggle();
     e.preventDefault();
-  });
+  })
 }
 
 Post.toggle_relationship_preview = function(preview, preview_link) {
