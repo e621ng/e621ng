@@ -21,9 +21,12 @@
       </span>
     </span>
   </div>
-  <div class="row list-of-tags">
+  <div class="row list-of-tags hidden" id="post-tags-<%= post.id %>">
     <strong>Tags</strong>
-    <%= post.presenter.inline_tag_list_html %>
+    <a href="#" class="comment-tag-hide-link" data-post-id="<%= post.id %>"></a>
+    <div class="tag-list">
+      <%= post.presenter.inline_tag_list_html %>
+    </div>
   </div>
 </div>
 

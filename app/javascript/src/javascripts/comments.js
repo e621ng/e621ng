@@ -6,7 +6,13 @@ Comment.initialize_all = function () {
     $(document).on("click.danbooru.comment", ".expand-comment-response", Comment.show_new_comment_form);
     $(document).on("click.danbooru.comment", '.comment-vote-up-link', Comment.vote_up);
     $(document).on("click.danbooru.comment", ".comment-vote-down-link", Comment.vote_down);
+    $(".comment-tag-hide-link").on("click", Comment.toggle_post_tags)
   }
+}
+
+Comment.toggle_post_tags = function(e) {
+  const link = $(e.target);
+  $(`#post-tags-${link.data('post-id')}`).toggleClass("hidden");
 }
 
 Comment.show_new_comment_form = function (e) {

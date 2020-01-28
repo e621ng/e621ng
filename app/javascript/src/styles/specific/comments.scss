@@ -94,6 +94,20 @@ div#c-comments {
       div.notices {
         margin: 1em 0;
       }
+
+      div.list-of-tags {
+        .comment-tag-hide-link::before {
+          content: "Hide Tags";
+        }
+        &.hidden {
+          .tag-list {
+            display: none;
+          }
+          .comment-tag-hide-link::before {
+            content: "Show Tags";
+          }
+        }
+      }
     }
 
     div.preview {
