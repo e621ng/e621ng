@@ -342,12 +342,11 @@ class ElasticPostQueryBuilder
     end
 
     if q[:parent] == "none"
-      must_not.push({exists: {field: :parent_id}})
+      must_not.push({exists: {field: :parent}})
     elsif q[:parent] == "any"
-      must.push({exists: {field: :parent_id}})
+      must.push({exists: {field: :parent}})
     elsif q[:parent]
-      must.push(should({term: {id: q[:parent].to_i}},
-                       {term: {parent_id: q[:parent].to_i}}))
+      must.push({term: {parent: q[:parent].to_i}})
     end
 
     if q[:parent_neg_ids]
@@ -357,8 +356,7 @@ class ElasticPostQueryBuilder
         # Negated version of the above
         must_not.push({bool: {
             should: [
-                {term: {id: q[:parent].to_i}},
-                {term: {parent_id: q[:parent].to_i}},
+                {term: {parent: q[:parent].to_i}},
             ],
         }})
       end
