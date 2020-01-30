@@ -3,6 +3,8 @@ class ModAction < ApplicationRecord
   before_validation :initialize_creator, :on => :create
   validates :creator_id, presence: true
 
+  serialize :values_old
+
   #####DIVISIONS#####
   #Groups:     0-999
   #Individual: 1000-1999
@@ -52,7 +54,7 @@ class ModAction < ApplicationRecord
       bulk_revert: 1001,
       other: 2000
   }
-  
+
   def self.search(params)
     q = super
 
