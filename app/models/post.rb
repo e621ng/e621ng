@@ -1108,7 +1108,7 @@ class Post < ApplicationRecord
 
     def uploader_name
       if association(:uploader).loaded?
-        return uploader.name
+        return uploader&.name || "Anonymous"
       end
       User.id_to_name(uploader_id)
     end
