@@ -87,7 +87,7 @@ module Danbooru
       end
 
       def paginate_sequential_before(before_id = nil)
-        search.definition.update(size: records_per_page + 1)
+        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
         search.definition[:body].update(sort: [{id: :desc}])
 
 
@@ -101,7 +101,7 @@ module Danbooru
       end
 
       def paginate_sequential_after(after_id)
-        search.definition.update(size: records_per_page + 1)
+        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
         search.definition[:body].update(sort: [{id: :asc}])
         search.definition[:body][:query][:bool][:must] << ({range: {id: {gt: after_id.to_i}}})
         @sequential_paginator_mode = :after
@@ -116,7 +116,7 @@ module Danbooru
           raise ::Danbooru::Paginator::PaginationError.new("You cannot go beyond page #{Danbooru.config.max_numbered_pages}. Please narrow your search terms.")
         end
 
-        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page)
+        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: 750*records_per_page + 1)
         @current_page = page
 
         self
@@ -160,7 +160,7 @@ module Danbooru
       def total_count
         return option_for(:count) if option_for(:count)
 
-        results.total
+        response_hits_total
       end
 
       def response_hits_total
