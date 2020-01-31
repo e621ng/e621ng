@@ -153,10 +153,11 @@ class Tag < ApplicationRecord
 
       def categories_for(tag_names, options = {})
         if options[:disable_caching]
-          Array(tag_names).inject({}) do |hash, tag_name|
-            hash[tag_name] = select_category_for(tag_name)
-            hash
+          tag_cats = {}
+          Tag.where(name: Array(tag_names)).select([:id, :name, :category]).find_each do |tag|
+            tag_cats[tag.name] = tag.category
           end
+          tag_cats
         else
           found = Cache.read_multi(Array(tag_names), "tc")
           not_found = tag_names - found.keys
@@ -288,15 +289,17 @@ class Tag < ApplicationRecord
       names = names.map {|x| normalize_name(x)}
       names = names.map do |x|
         if x =~ /\A(#{categories.regexp}):(.+)\Z/
-          return [$1, $2]
+          [$2, $1]
+        else
+          [x, nil]
         end
-        [x, nil]
       end.to_h
 
       existing = Tag.where(name: names.keys).to_a
       existing.each do |tag|
         cat = names[tag.name]
-        if cat && categories.value_for(cat) != tag.category
+        category_id = categories.value_for(cat)
+        if cat && category_id != tag.category
           if tag.category_editable_by_implicit?(creator)
             tag.update(category: category_id)
           else

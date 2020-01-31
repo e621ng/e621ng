@@ -897,26 +897,24 @@ class Post < ApplicationRecord
     def filter_metatags(tags)
       @bad_type_changes = []
       @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
-      #tags = apply_categorization_metatags(tags)
+      tags = apply_categorization_metatags(tags)
       @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i}
       apply_pre_metatags
-      #if @bad_type_changes.size > 0
-      #  bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
-      #  self.warnings[:base] << "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website"
-      #end
+      if @bad_type_changes.size > 0
+        bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
+        self.warnings[:base] << "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website"
+      end
       tags
     end
 
     def apply_categorization_metatags(tags)
-      tags.map do |x|
-        if x =~ Tag.categories.regexp
-          tag = Tag.find_or_create_by_name(x)
-          @bad_type_changes << tag.name if tag.errors.include? :category
-          tag.name
-        else
-          x
-        end
+      prefixed, unprefixed = tags.partition {|x| x =~ Tag.categories.regexp}
+      prefixed = Tag.find_or_create_by_name_list(prefixed)
+      prefixed.map! do |tag|
+        @bad_type_changes << tag.name if tag.errors.include? :category
+        tag.name
       end
+      prefixed + unprefixed
     end
 
     def apply_post_metatags
@@ -1934,7 +1932,7 @@ class Post < ApplicationRecord
         self.warnings[:base] << "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}"
       end
 
-      # TODO: This is really slow and could be improved.
+      ActiveRecord::Associations::Preloader.new.preload(new_artist_tags, :artist)
       new_artist_tags.each do |tag|
         if tag.artist.blank?
           self.warnings[:base] << "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]"
