@@ -93,16 +93,12 @@ module PostIndex
           GROUP BY post_id
         SQL
         pools_sql = <<-SQL
-          SELECT post_id, array_agg(pool_id) FROM (
-            SELECT id as pool_id, unnest(post_ids) AS post_id FROM pools
-            WHERE post_ids && '{#{post_ids}}'
-          ) t GROUP BY post_id
+          SELECT post_id, ( SELECT COALESCE(array_agg(id), '{}'::int[]) FROM pools WHERE post_ids @> ('{}'::int[] || post_id) )
+          FROM (SELECT unnest('{#{post_ids}}'::int[])) as input_list(post_id);
         SQL
         sets_sql = <<-SQL
-          SELECT post_id, array_agg(set_id) FROM (
-            SELECT id as set_id, unnest(post_ids) AS post_id FROM post_sets
-            WHERE post_ids && '{#{post_ids}}'
-          ) t GROUP BY post_id
+          SELECT post_id, ( SELECT COALESCE(array_agg(id), '{}'::int[]) FROM post_sets WHERE post_ids @> ('{}'::int[] || post_id) )
+          FROM (SELECT unnest('{#{post_ids}}'::int[])) as input_list(post_id);
         SQL
         commenter_sql = <<-SQL
           SELECT post_id, array_agg(distinct creator_id) FROM comments
