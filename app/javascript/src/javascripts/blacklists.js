@@ -133,7 +133,7 @@ Blacklist.update_sidebar = function () {
     link.attr("rel", "nofollow");
     link.on("click.danbooru", Blacklist.entryToggle);
     count.html(entry.hits);
-    count.addClass("count");
+    count.addClass("post-count");
     item.append(link);
     item.append(" ");
     item.append(count);
