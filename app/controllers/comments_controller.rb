@@ -83,7 +83,7 @@ private
 
   def index_by_post
     tags = params[:tags] || ""
-    @posts = Post.tag_match(tags + " order:comment_bump").paginate(params[:page], :limit => 5, :search_count => params[:search])
+    @posts = Post.tag_match(tags + " order:comment_bumped").paginate(params[:page], :limit => 5, :search_count => params[:search])
     comment_ids = @posts.flat_map {|post| post.comments.visible(CurrentUser.user).recent.reverse.map(&:id)} if CurrentUser.id
     @comment_votes = CommentVote.for_comments_and_user(comment_ids || [], CurrentUser.id)
     respond_with(@posts)
