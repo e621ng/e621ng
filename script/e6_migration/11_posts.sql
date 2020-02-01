@@ -41,7 +41,7 @@ ALTER TABLE posts ALTER COLUMN change_seq TYPE bigint;
 ALTER TABLE posts ALTER COLUMN change_seq SET DEFAULT nextval('posts_change_seq_seq'::regclass);
 ALTER TABLE posts ALTER COLUMN change_seq SET NOT NULL;
 
-
+update posts set last_comment_bumped_at = last_commented_at;
 update posts set is_pending = true where status = 'pending';
 update posts set is_flagged = true where status = 'flagged';
 update posts set is_deleted = true where status = 'deleted';
