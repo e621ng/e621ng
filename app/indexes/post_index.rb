@@ -239,8 +239,8 @@ module PostIndex
       del_reason:   options[:del_reason] || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason,
       width:        image_width,
       height:       image_height,
-      mpixels:      (image_width.to_f * image_height / 1_000_000).round(2),
-      aspect_ratio: (image_width.to_f / [image_height, 1].max).round(2),
+      mpixels:      image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
+      aspect_ratio: image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
 
       tags:        tag_string.split(" "),
       md5:         md5,
