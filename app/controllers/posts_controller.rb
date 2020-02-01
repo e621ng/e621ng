@@ -13,6 +13,9 @@ class PostsController < ApplicationController
       @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], raw: params[:raw], random: params[:random], format: params[:format], read_only: params[:ro])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
+        format.json do
+          render json: @post_set.posts
+        end
         format.atom
       end
     end
