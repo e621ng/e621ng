@@ -293,6 +293,14 @@ fart'
       false
     end
 
+    def discord_site
+      ""
+    end
+
+    def discord_secret
+      ""
+    end
+
     # Maximum size of an upload. If you change this, you must also change
     # `client_max_body_size` in your nginx.conf.
     def max_file_size

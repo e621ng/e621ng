@@ -9,10 +9,6 @@
   <%= nav_link_to("Artists", artists_path) %>
   <%= nav_link_to("Tags", tags_path) %>
   <%= nav_link_to("Blips", blips_path) %>
-  <% if CurrentUser.is_janitor? %>
-    <%= nav_link_to("Aliases", tag_aliases_path) %>
-    <%= nav_link_to("Implications", tag_implications_path) %>
-  <% end %>
   <%= nav_link_to("Pools", pools_path) %>
   <%= nav_link_to("Sets", post_sets_path) %>
   <%= nav_link_to("Wiki", wiki_pages_path(:title => "help:home")) %>
@@ -20,5 +16,6 @@
   <% if CurrentUser.is_moderator? %>
     <%= nav_link_to("Dashboard", moderator_dashboard_path) %>
   <% end %>
+  <%= nav_link_to("Discord", discord_get_path) %>
   <%= nav_link_to("More »", site_map_path) %>
 </menu>

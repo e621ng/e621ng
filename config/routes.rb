@@ -477,6 +477,8 @@ Rails.application.routes.draw do
   get "/static/terms_of_service" => "static#terms_of_service", :as => "terms_of_service"
   post "/static/accept_terms_of_service" => "static#accept_terms_of_service", :as => "accept_terms_of_service"
   get "/static/contact" => "static#contact", :as => "contact"
+  get "/static/discord" => "static#discord", as: "discord_get"
+  post "/static/discord" => "static#discord", as: "discord_post"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
 
   get "/intro" => redirect("/explore/posts/intro")

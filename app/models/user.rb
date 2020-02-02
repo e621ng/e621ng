@@ -505,6 +505,10 @@ class User < ApplicationRecord
       older_than 7.days
     end
 
+    def can_discord?
+      older_than 7.days
+    end
+
     def can_view_flagger?(flagger_id)
       is_moderator? || flagger_id == id
     end
