@@ -31,8 +31,6 @@ module Danbooru
     config.autoload_paths += %W(#{config.root}/app/presenters #{config.root}/app/logical #{config.root}/app/mailers #{config.root}/app/indexes)
     config.plugins = [:all]
     config.time_zone = 'UTC'
-    config.action_mailer.delivery_method = :smtp
-    config.action_mailer.smtp_settings = {:enable_starttls_auto => false}
     config.action_mailer.perform_deliveries = true
     config.log_tags = [->(req) {"PID:#{Process.pid}"}]
     config.action_controller.action_on_unpermitted_parameters = :raise
