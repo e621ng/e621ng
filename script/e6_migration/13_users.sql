@@ -65,6 +65,8 @@ update users set default_image_size = 'original' where image_resize_mode = 0;
 update users set default_image_size = 'fit' where image_resize_mode = 1;
 alter table users drop column image_resize_mode;
 
+update users set "level" = 20, email_verification_key = '1' WHERE "level" = 0;
+
 create index blacklisted_by_user on user_blacklisted_tags(user_id);
 update users set blacklisted_tags = (select array_to_string(array_agg(_.tags), E'\n') from user_blacklisted_tags _ where _.user_id = users.id);
 drop index blacklisted_by_user;
