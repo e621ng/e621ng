@@ -1,5 +1,6 @@
 <% if blip.visible_to?(CurrentUser.user) %>
-  <article class="blip" data-is-deleted="<%= blip.is_hidden? %>">
+  <article class="blip" data-is-deleted="<%= blip.is_hidden? %>" data-creator="<%= blip.creator&.name.downcase %>"
+  data-creator-id="<%= blip.creator_id %>">
     <div class="author">
       <%= user_avatar(blip.creator) %>
       <h1>

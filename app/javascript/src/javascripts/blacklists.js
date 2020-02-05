@@ -15,7 +15,9 @@ Blacklist.parse_entry = function (string) {
     "optional": [],
     "disabled": false,
     "hits": 0,
-    "min_score": null
+    "min_score": null,
+    "username": false,
+    "user_id": 0
   };
   const matches = string.match(/\S+/g) || [];
   for (const tag of matches) {
@@ -29,6 +31,14 @@ Blacklist.parse_entry = function (string) {
     } else {
       entry.require.push(tag);
     }
+  }
+  const user_matches = string.match(/user:([\w\d]+)/) || [];
+  if (user_matches.length === 2) {
+    entry.username = user_matches[1];
+  }
+  const userid_matches = string.match(/userid:(\d+)/) || [];
+  if (userid_matches.length === 2) {
+    entry.user_id = parseInt(userid_matches[1], 10);
   }
   return entry;
 };
@@ -202,6 +212,15 @@ Blacklist.apply = function () {
     }
   }
 
+  if (Utility.meta("blacklist-users") === "true") {
+    for (const entry of this.entries.filter(x => x.username !== false)) {
+      $(`article[data-creator="${entry.username}"]`).hide();
+    }
+    for (const entry of this.entries.filter(x => x.user_id !== 0)) {
+      $(`article[data-creator-id="${entry.user_id}"]`).hide();
+    }
+  }
+
   Blacklist.update_sidebar();
 }
 
@@ -230,7 +249,7 @@ Blacklist.post_match_object = function (post, entry) {
   const tags = post.tags.match(/\S+/g) || [];
   tags.push(`id:${post.id}`);
   tags.push(`rating:${post.rating}`);
-  tags.push(`uploaderid:${post.uploader_id}`);
+  tags.push(`userid:${post.uploader_id}`);
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
