@@ -1,0 +1,11 @@
+<div class='content'>
+  <p>e621 has a discord server where you can chat with other e621 users. All site rules apply in the discord server.
+    There is no voice chat, and there never will be.</p>
+  <h4>In order to limit access to the server to e621 members we have employed a system where you must authorize e621 to
+    join the server on your behalf. You will be asked to authorize the "E621 Joiner" application to do this.</h4>
+  <p>Once you have joined the server this authorization serves no purpose and you can safely deauthorize the application
+    if you wish to.</p>
+  <%= form_tag(discord_post_path) do %>
+    <%= submit_tag 'Join the server.' %>
+  <% end %>
+</div>
