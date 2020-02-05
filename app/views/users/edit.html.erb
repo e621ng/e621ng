@@ -69,6 +69,9 @@
         <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
         hint: "Makes a cursory effort to prevent showing your favorites to others users. Has not been well tested." %>
 
+        <%= f.input :show_post_statistics, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
+        hint: "Show post statistics below posts on search pages." %>
+
         <% unless CurrentUser.is_janitor? %>
           <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.",
                       :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>

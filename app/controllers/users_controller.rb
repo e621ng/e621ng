@@ -112,7 +112,7 @@ class UsersController < ApplicationController
       time_zone per_page custom_style
 
       receive_email_notifications enable_keyboard_navigation
-      enable_privacy_mode disable_user_dmails blacklist_users
+      enable_privacy_mode disable_user_dmails blacklist_users show_post_statistics
       style_usernames
       enable_auto_complete
       disable_cropped_thumbnails disable_mobile_gestures

@@ -97,8 +97,6 @@ class PostsDecorator < ApplicationDecorator
       return ""
     end
 
-    options[:stats] |= !options[:avatar] && !options[:inline]
-
     article_attrs = {
         "id" => "post_#{post.id}",
         "class" => preview_class(options).join(" ")
