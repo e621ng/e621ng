@@ -24,11 +24,13 @@ Dtext.call_preview = function(e, $button, $input, $preview) {
   $.ajax({
     type: "post",
     url: "/dtext_preview",
+    dataType: "json",
     data: {
       body: $input.val()
     },
     success: function(data) {
-      $preview.html(data).fadeIn("fast");
+      $preview.html(data.html).fadeIn("fast");
+      $(window).trigger('e621:add_deferred_posts', data.posts);
     }
   });
 }
