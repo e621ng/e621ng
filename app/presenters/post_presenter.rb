@@ -20,6 +20,8 @@ class PostPresenter < Presenter
       return ""
     end
 
+    options[:stats] |= !options[:avatar] && !options[:inline]
+
     locals = {}
 
     locals[:article_attrs] = {
@@ -83,6 +85,8 @@ class PostPresenter < Presenter
     if options[:stats]
       locals[:post] = post
       locals[:stats] = true
+    else
+      locals[:stats] = false
     end
 
     ApplicationController.render(partial: "posts/partials/index/preview", locals: locals)
