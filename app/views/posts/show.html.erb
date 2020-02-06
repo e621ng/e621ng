@@ -92,7 +92,7 @@
         <% end %>
         <% if !@post.force_original_size?(params[:original]) %>
           <div id="image-resize-cycle">
-            | <a id="current-image-resize-mode" href="javascript:void(0)" style="cursor: pointer;" onclick="Danbooru.Post.resize_cycle_mode(event);" data-samples="<%= @post.allow_sample_resize? %>">Change Size Mode ()</a>
+            | <a id="current-image-resize-mode" href="javascript:void(0)" style="cursor: pointer;" data-samples="<%= @post.allow_sample_resize? %>">Change Size Mode ()</a>
           </div>
         <% end %>
       </section>

@@ -419,6 +419,9 @@ Post.resize_notes = function() {
 
 
 Post.initialize_resize = function() {
+  $("#current-image-resize-mode").on('click', function(e) {
+    Post.resize_cycle_mode(e);
+  });
   const image_override = Utility.meta('image-override-size');
   if(image_override)
     Post.set_size_mode(image_override);
