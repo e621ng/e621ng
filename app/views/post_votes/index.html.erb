@@ -54,7 +54,7 @@
     voting on the image again<br/>
     <%= button_to_function "Delete Votes", "PostVotes.delete()", id: "undo" %> Remove the votes
 
-    <script type="text/javascript">
+    <%= javascript_tag nonce: true do -%>
       $(function () {
         $("#votes").on('click', 'tbody tr', function (evt) {
           $(this).toggleClass('selected');
@@ -94,7 +94,7 @@
           $(window).trigger('danbooru:notice', 'Post votes deleted.');
         });
       };
-    </script>
+    <% end -%>
 
     <div id="paginator">
       <%= sequential_paginator(@post_votes) %>

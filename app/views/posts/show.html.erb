@@ -170,19 +170,19 @@
     <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
     </div>
-    <script>
+    <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
         postTags: <%= (@post.presenter.split_tag_list_text + " ").to_json.html_safe %>,
         uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
         recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>
       };
-    </script>
+      <% end -%>
   <% end %>
   <% if @fixup_post_url %>
-    <script>
+    <%= javascript_tag nonce: true do -%>
       // This just fixes up the history path for this page so you don't end up getting the wrong url when navigating.
       history.replaceState({}, "", <%= post_path(@post, q: params[:q]).to_json.html_safe %>);
-    </script>
+    <% end -%>
   <% end %>
 </div>
 

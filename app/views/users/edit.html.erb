@@ -113,19 +113,19 @@
 <% end %>
 
 <% content_for(:html_header) do %>
-  <script type="text/javascript">
+  <%= javascript_tag nonce: true do -%>
     $(function() {
       $("#advanced-settings-section").hide();
       $("#edit-options a:not(#delete-account):not(#change-password)").on("click", function(e) {
         var $target = $(e.target);
         $("h2 a").removeClass("active");
         $("#basic-settings-section,#advanced-settings-section").hide();
-        $target.addClass("active")
+        $target.addClass("active");
         $($target.attr("href") + "-section").show();
         e.preventDefault();
       });
     });
-  </script>
+  <% end -%>
 <% end %>
 
 <%= render "secondary_links" %>

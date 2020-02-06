@@ -13,6 +13,8 @@
   <%= link_to_function "Hide Search Options", "$('#searchform').fadeOut('fast'); $('searchform_hide').show();" %>
 </div>
 <% if params[:body] || params[:name] || params[:response_to] %>
-  <script type='text/javascript'>$('searchform_hide').hide();
-  $('searchform').show();</script>
+  <%= javascript_tag nonce: true do -%>
+    $('searchform_hide').hide();
+    $('searchform').show();
+  <% end -%>
 <% end %>

@@ -1,6 +1,6 @@
 <%= format_text(@body) %>
-<script>
+<%= javascript_tag nonce: true do -%>
   (function() {
     $(window).trigger('e621:add_deferred_posts', <%= raw deferred_posts.to_json %>)
   })();
-</script>
+<% end -%>

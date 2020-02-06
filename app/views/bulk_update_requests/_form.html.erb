@@ -54,7 +54,7 @@
 <% end %>
 
 <%= content_for(:html_header) do %>
-  <script>
+  <%= javascript_tag nonce: true do -%>
     $(function() {
       $("#script-help").hide();
       $("#script-help-link").click(function() {
@@ -62,5 +62,5 @@
         return false;
       });
     });
-  </script>
+  <% end -%>
 <% end %>

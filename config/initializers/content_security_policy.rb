@@ -18,7 +18,7 @@
 #   policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 
 #   # Specify URI for violation reports
-#    policy.report_uri "/csp-violation"
+    policy.report_uri "/csp-violation"
  end
 
 # If you are using UJS then enable automatic nonce generation

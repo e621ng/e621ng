@@ -30,6 +30,8 @@
   <%= f.submit "Search" %>
 <% end %>
 <% if params[:name] || params[:type] || params[:status] %>
-  <script type='text/javascript'>$('#searchform_hide').hide();
-  $('#searchform').show();</script>
+  <%= javascript_tag nonce: true do -%>
+    $('#searchform_hide').hide();
+    $('#searchform').show();
+  <% end -%>
 <% end %>

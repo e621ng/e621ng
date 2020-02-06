@@ -84,7 +84,7 @@
 
 
 
-<script type="text/javascript">
+<%= javascript_tag nonce: true do -%>
   $(function () {
     $("body").on("change", "[id^='takedown_posts_']", function () {
       // Update labels when checkboxes are changed
@@ -153,4 +153,4 @@
     // Trigger change event for elements to run their update handlers
     $("[id^='takedown_posts_']").trigger("change");
   });
-</script>
+<% end -%>

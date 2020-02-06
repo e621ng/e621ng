@@ -51,5 +51,7 @@
   <% end %>
 </div>
 <% if params[:source] || params[:reason] || params[:notes] || params[:reason_hidden] || params[:instructions] || params[:post_id] || params[:email] || params[:ip_addr] || params[:vericode] || params[:status] || params[:order] %>
-  <script type='text/javascript'>$('searchform_hide').hide(); $('searchform').show();</script>
+  <%= javascript_tag nonce: true do -%>
+    $('searchform_hide').hide(); $('searchform').show();
+  <% end -%>
 <% end %>
