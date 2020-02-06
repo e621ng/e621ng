@@ -74,19 +74,6 @@
     "url" : "<%= root_url %>"
   }
   </script>
-  <script>
-    if (typeof window.Danbooru !== "object") {
-      window.Danbooru = {};
-    }
-    window.Danbooru.notice = function(msg) {
-      console.warn("Danbooru.notice will be deprecated. Use $(window).trigger('danbooru:notice', msg) instead.")
-      $(window).trigger("danbooru:notice", msg);
-    }
-    window.Danbooru.error = function(msg) {
-      console.warn("Danbooru.error will be deprecated. Use $(window).trigger('danbooru:error', msg) instead.")
-      $(window).trigger("danbooru:error", msg);
-    }
-  </script>
   <%= yield :html_header %>
   <%= raw Danbooru.config.custom_html_header_content %>
   <style id="blacklisted-hider">

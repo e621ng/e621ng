@@ -2,7 +2,7 @@
   <div id="ad-leaderboard" class='section'>
     <div id="ad-leaderboard-content" class="adzone">
       <ins id="ad-insert-element"></ins>
-      <script>
+      <%= javascript_tag nonce: true do -%>
         (function() {
           var zones = {
             desktop: <%= raw(Danbooru.config.ads_zone_desktop.to_json) %>,
@@ -23,7 +23,7 @@
           s.src = "//ads.dragonfru.it/www/delivery/asyncjs.php";
           document.body.appendChild(s);
         })();
-      </script>
+      <% end -%>
       <% ad_rand = Random::DEFAULT.rand(50000000) %>
       <% ad_zone = Danbooru.config.ads_zone_desktop %>
       <noscript class="adzone">

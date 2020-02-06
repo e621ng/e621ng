@@ -46,3 +46,13 @@ export { default as Ugoira } from '../src/javascripts/ugoira.js';
 export { default as Takedown } from '../src/javascripts/takedowns.js';
 export { default as Thumbnails } from '../src/javascripts/thumbnails.js';
 export { default as Uploader } from '../src/javascripts/uploader.js';
+
+function inError(msg) {
+  $(window).trigger("danbooru:error", msg);
+}
+
+function inNotice(msg) {
+  $(window).trigger("danbooru:notice", msg);
+}
+
+export {inError as error, inNotice as notice};
