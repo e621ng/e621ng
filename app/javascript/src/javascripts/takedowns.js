@@ -140,4 +140,22 @@ Takedown.post_button_html = function (post_id) {
   return "<div id='takedown-post-" + post_id + "' data-post-id='" + post_id + "' class='takedown-post'><div class='takedown-post-label takedown-post-remove' title='Remove this post from the takedown'>X</div> <label for='takedown_posts_" + post_id + "' class='takedown-post-label takedown-post-keep'><input name='takedown_posts[" + post_id + "]' type='hidden' value='0'><input id='takedown_posts_" + post_id + "' name='takedown_posts[" + post_id + "]' type='checkbox' value='1'> <span>Keep</span></label> <a href='/post/show/" + post_id + "'>post #" + post_id + "</a></div>";
 };
 
+$(document).ready(function() {
+  $("#takedown-add-posts-ids-submit").on('click', e => {
+    const $e = $(e.target);
+    Takedown.add_posts_by_ids($e.data('tid'));
+  });
+  $("#takedown-add-posts-tags-cancel").on('click', () => {
+    Takedown.add_posts_by_tags_cancel();
+  });
+  $("#takedown-add-posts-tags-confirm").on('click', e => {
+    const $e = $(e.target);
+    Takedown.add_posts_by_tags($e.data('tid'));
+  });
+  $("#takedown-add-posts-tags-preview").on('click', e => {
+    const $e = $(e.target);
+    Takedown.add_posts_by_tags_preview($e.data('tid'));
+  })
+});
+
 export default Takedown
