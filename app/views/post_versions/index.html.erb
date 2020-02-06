@@ -21,6 +21,15 @@
   </div>
 </div>
 
+<%= javascript_tag nonce: true do -%>
+  $(".closebutton").on('click', function(e) {
+    $(e.target.parentNode).hide();
+  });
+  $(".desc-show").on('click', function(e) {
+    $(e.target).next().toggle();
+  });
+<% end -%>
+
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>

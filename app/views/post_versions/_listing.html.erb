@@ -34,11 +34,11 @@
       </div>
       <div class="pv-description pv-content">
         <% if post_version.description.present? %>
-          <div onclick='$(this).next().toggle();' class="desc-show">
+          <div class="desc-show">
             <%= post_version.description_changed ? "Show Description" : "No change" %></div>
           <div id='desc-<%= post_version.id %>' class='desc-popup box-section'>
             <h2>Description</h2>
-            <div class="closebutton" onclick="$(this.parentNode).hide()">X</div>
+            <div class="closebutton">X</div>
             <div class='desc-popup-inner'>
               <p><%= format_text(post_version.description) %></p>
             </div>
