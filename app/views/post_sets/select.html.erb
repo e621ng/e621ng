@@ -1,7 +1,0 @@
-<% form_tag(action: "add_post") do %>
-	<%= hidden_field_tag "post_id", params[:post_id] %>
-	<%= select_tag "set_id", unsorted_grouped_options_for_select(@grouped_options, session[:last_set_id]) %>
-	<% if !params[:mode] %>
-		<%= button_to_function "Add", "PostSet.add_post(#{params[:post_id]}, jQuery('#set_id').val())" %>
-	<% end %>
-<% end %>

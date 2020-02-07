@@ -50,15 +50,17 @@
       <% end %>
       </table>
     <br/>
-    <%= button_to_function "Lock Votes", "PostVotes.lock()", id: "undo" %> Set the votes to 0, preventing the user from
+    <%= tag.button "Lock Votes", id: "lock-votes" %> Set the votes to 0, preventing the user from
     voting on the image again<br/>
-    <%= button_to_function "Delete Votes", "PostVotes.delete()", id: "undo" %> Remove the votes
+    <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
 
     <%= javascript_tag nonce: true do -%>
       $(function () {
         $("#votes").on('click', 'tbody tr', function (evt) {
           $(this).toggleClass('selected');
         });
+      $("#lock-votes").on('click', PostVotes.lock);
+      $("#delete-votes").on('click', PostVotes.delete);
       });
 
       function selectedVotes() {

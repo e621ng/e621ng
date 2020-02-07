@@ -72,10 +72,6 @@ module ApplicationHelper
     tag.a text, href: '#', onclick: function, **options
   end
 
-  def button_to_function(text, function, **options)
-    tag.button text, onclick: function, **options
-  end
-
   def format_text(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
