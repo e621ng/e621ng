@@ -68,8 +68,12 @@ module ApplicationHelper
     raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
   end
 
-  def link_to_function(text, function, **options)
-    tag.a text, href: '#', onclick: function, **options
+  def search_show_link
+    tag.a "Show Search Options", href: '#', id: 'search-form-show-link'
+  end
+
+  def search_hide_link
+    tag.a "Hide Search Options", href: '#', id: 'search-form-hide-link'
   end
 
   def format_text(text, **options)

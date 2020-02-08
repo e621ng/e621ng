@@ -1,5 +1,5 @@
 <div id='searchform_hide'>
-  <%= link_to_function "Show Search Options", "$('#searchform').fadeIn('fast'); $('#searchform_hide').hide();" %>
+  <%= search_show_link %>
 </div>
 <%= simple_form_for(:search, method: :get, defaults: {required: false}, html: {id: 'searchform', class: "inline-form"}) do |f| %>
   <% if CurrentUser.is_admin? %>
@@ -28,10 +28,6 @@
       ["Denied", "denied"]
   ], selected: params[:search][:status] %>
   <%= f.submit "Search" %>
+  <%= search_hide_link %>
 <% end %>
-<% if params[:name] || params[:type] || params[:status] %>
-  <%= javascript_tag nonce: true do -%>
-    $('#searchform_hide').hide();
-    $('#searchform').show();
-  <% end -%>
-<% end %>
+

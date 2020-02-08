@@ -46,7 +46,7 @@
         <% end %>
 
         <% if !post.is_pending? && !post.is_deleted? %>
-          <li><%= link_to_function "Unapprove", "Danbooru.Post.unapprove(#{post.id})" %></li>
+          <li><%= tag.a "Unapprove", href: '#', 'data-pid': post.id, id: 'unapprove-post-link' %></li>
         <% end %>
 
         <% if CurrentUser.is_admin? %>

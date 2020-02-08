@@ -43,4 +43,17 @@ ${stripped_body}
   });
 };
 
+$(function() {
+  if($("#c-blips").length) {
+    $(".blip-atme-link").on('click', e => {
+      Blip.atme($(e.target).data('bid'));
+      e.preventDefault();
+    });
+    $(".blip-reply-link").on('click', e => {
+      Blip.quote($(e.target).data('bid'));
+      e.preventDefault();
+    });
+  }
+});
+
 export default Blip;

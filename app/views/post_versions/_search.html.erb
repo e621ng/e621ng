@@ -1,5 +1,5 @@
 <div id='searchform_hide'>
-  <%= link_to_function "Show Search Options", "$('#searchform').fadeIn('fast'); $('#searchform_hide').hide();" %>
+  <%= search_show_link %>
 </div>
 <div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;
   <% end %>'>
@@ -18,11 +18,5 @@
     <%= f.input :source, label: "Source", input_html: {value: params[:search][:source]} %>
     <%= f.submit "Search" %>
   <% end %>
-  <%= link_to_function "Hide Search Options", "$('#searchform').fadeOut('fast'); $('#searchform_hide').show();" %>
+  <%= search_hide_link %>
 </div>
-<% if params[:search].present? %>
-  <%= javascript_tag nonce: true do -%>
-    $('#searchform_hide').hide();
-    $('#searchform').show();
-  <% end -%>
-<% end %>

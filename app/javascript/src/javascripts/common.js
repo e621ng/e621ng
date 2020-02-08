@@ -1,6 +1,26 @@
 import Cookie from './cookie'
 import Utility from './utility'
 
+function initSearch() {
+  const $s = $("#searchform");
+  const $sh = $("#searchform_hide");
+  if ($s.length) {
+    $("#search-form-show-link").on('click', e => {
+      $s.fadeIn('fast');
+      $sh.hide();
+    });
+    $("#search-form-hide-link").on('click', e => {
+      $s.fadeOut('fast');
+      $sh.show();
+    });
+    const urlSearch = new URLSearchParams(window.location.search);
+    if (Array.from(urlSearch.keys()).filter(e => e.startsWith("search")).length) {
+      $s.show();
+      $sh.hide();
+    }
+  }
+}
+
 $(function() {
   // Account notices
   $("#hide-dmail-notice").on("click.danbooru", function(e) {
@@ -27,6 +47,8 @@ $(function() {
       location.reload();
     });
   });
+
+  initSearch();
 });
 
 window.submitInvisibleRecaptchaForm = function () {

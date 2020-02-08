@@ -1,10 +1,8 @@
 <% unless params[:show] %>
-  <div id='searchform_hide'><%= link_to_function "Show Search Options", "$('#searchform').fadeIn('fast'); $('#searchform_hide').hide();" %></div>
+  <div id='searchform_hide'><%= search_show_link %></div>
 <% end %>
 <div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;
   <% end %>'>
-  <% unless params[:show] %><%= link_to_function "Hide Search Options", "$('#searchform').fadeOut('fast'); $('#searchform_hide').show();" %>
-  <% end %>
   <%= form_tag({action: "index"}, method: :get) do %>
     <table class='search'>
       <tr>
@@ -27,10 +25,5 @@
       <input type='hidden' name='show' value='1'/>
     <% end %>
   <% end %>
+  <% unless params[:show] %><%= search_hide_link %><% end %>
 </div>
-<% if params[:search].present? %>
-  <%= javascript_tag nonce: true do -%>
-    $('#searchform_hide').hide();
-    $('#searchform').show();
-  <% end -%>
-<% end %>

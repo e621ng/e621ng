@@ -19,11 +19,11 @@
       </div>
 
       <menu>
-        <li><%= link_to_function "Reply", "Danbooru.Blip.quote(#{blip.id})" %></li>
+        <li><%= tag.a "Reply", href: '#', class: 'blip-reply-link', 'data-bid': blip.id %></li>
         <% if blip.can_edit?(CurrentUser.user) %>
           <li><%= link_to "Edit", edit_blip_path(blip) %></li>
         <% end %>
-        <li><%= link_to_function "@", "Danbooru.Blip.atme(#{blip.id})" %></li>
+        <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
 
         <% if !blip.is_hidden && blip.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
