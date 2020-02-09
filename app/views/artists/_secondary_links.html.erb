@@ -20,7 +20,7 @@
         <% if @artist.is_active? %>
           <%= subnav_link_to "Delete", artist_path(@artist), method: :delete, "data-shortcut": "shift+d", "data-confirm": "Are you sure you want to delete this artist?" %>
         <% else %>
-          <%= subnav_link_to "Undelete", artist_path(@artist, format: "js"), method: :put, data: {confirm: "Are you sure you want to undelete this artist?", params: "artist[is_active]=true"}, remote: true %>
+          <%= subnav_link_to "Undelete", '#', 'data-aid': @artist.id, id: 'undelete-artist-link' %>
         <% end %>
       <% end %>
       <% if CurrentUser.is_admin? %>
