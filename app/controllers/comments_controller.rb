@@ -1,6 +1,5 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
-  respond_to :js, only: [:new, :destroy, :unhide, :hide]
   before_action :member_only, :except => [:index, :search, :show]
   before_action :moderator_only, only: [:unhide, :destroy]
   skip_before_action :api_check
