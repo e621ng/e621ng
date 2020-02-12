@@ -136,10 +136,6 @@
       <%= render "users/validation_notice" %>
     <% end %>
 
-    <% if CurrentUser.user.can_approve_posts? %>
-      <%= render "moderator/post/queues/notice" %>
-    <% end %>
-
     <% if cookies["accepted_tos"].blank? && !CurrentUser.is_privileged? %>
       <%= render "users/tos" %>
     <% end %>
