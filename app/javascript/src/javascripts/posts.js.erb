@@ -259,6 +259,16 @@ Post.initialize_shortcuts = function() {
 }
 
 Post.initialize_links = function() {
+  $(".undelete-post-link").on('click', e => {
+    e.preventDefault();
+    if(!confirm("Are you sure you want to undelete this post?"))
+      return;
+    Post.undelete($(e.target).data('pid'));
+  });
+  $(".approve-post-link").on('click', e => {
+    e.preventDefault();
+    Post.approve($(e.target).data('pid'), true);
+  });
   $("#set-as-avatar-link").on('click.danbooru', function(e) {
     Post.set_as_avatar($(e.target).data('post-id'));
   });
@@ -694,7 +704,7 @@ Post.unapprove = function(post_id) {
   });
 }
 
-Post.approve = function(post_id) {
+Post.approve = function(post_id, should_reload) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.post(
@@ -710,6 +720,8 @@ Post.approve = function(post_id) {
         $post.removeClass("post-status-pending");
         $(window).trigger("danbooru:notice", "Approved post #" + post_id);
       }
+      if (should_reload === true)
+        location.reload();
     }).always(function() {
       Post.notice_update("dec");
     });
