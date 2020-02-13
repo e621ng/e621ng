@@ -1,8 +1,9 @@
 <div class="quick-mod">
+  <% if post.is_approvable? %>
   <div>
-    <strong><%= link_to_if post.is_approvable?, "Approve", moderator_post_approval_path(post_id: post.id),
-                           method: :post, remote: true, class: "approve-link btn" %></strong>
+    <strong><%= tag.a "Approve", href: '#', class: 'approve-post-link', 'data-pid': post.id %></strong>
   </div>
+  <% end %>
   <% @our_disapproval = post.disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
   <% if @our_disapproval.present? %>
   <div>
@@ -16,12 +17,8 @@
     <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "excessive base", reason: "Excessive same base image set.", post_id: post.id} %> |
     <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "an annoying ad", reason: "Advertisement", post_id: post.id} %> |
 
-    <%= link_to "Borderline Quality", moderator_post_disapprovals_path(post_disapproval: {post_id: post.id,
-                                                                                          reason: "borderline_quality"}),
-                method: :post, remote: true, class: "disapprove-link btn" %> |
-    <%= link_to "Borderline Relevancy", moderator_post_disapprovals_path(post_disapproval: {post_id: post.id,
-                                                                                            reason: "borderline_relevancy"}),
-                method: :post, remote: true, class: "disapprove-link btn" %>
+    <%= tag.a "Borderline Quality", href: '#', data: {pid: post.id, reason: "borderline_quality"}, class: "disapprove-post-link btn" %> |
+    <%= tag.a "Borderline Relevancy", href: '#', data: {pid: post.id, reason: "borderline_relevancy"}, class: "disapprove-post-link btn" %>
   </div>
   <div>
     <%= link_to "Detailed Deletion", confirm_delete_moderator_post_post_path(id: post.id) %> |

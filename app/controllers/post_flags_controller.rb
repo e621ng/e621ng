@@ -1,6 +1,6 @@
 class PostFlagsController < ApplicationController
   before_action :member_only, :except => [:index, :show]
-  respond_to :html, :json, :js
+  respond_to :html, :json
 
   def new
     @post_flag = PostFlag.new(post_flag_params)
@@ -16,7 +16,11 @@ class PostFlagsController < ApplicationController
 
   def create
     @post_flag = PostFlag.create(post_flag_params)
-    respond_with(@post_flag)
+    respond_with(@post_flag) do |fmt|
+      fmt.html do
+        redirect_to post_path(id: @post_flag.post_id)
+      end
+    end
   end
 
   def destroy

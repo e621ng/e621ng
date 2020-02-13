@@ -269,7 +269,19 @@ Post.initialize_links = function() {
     e.preventDefault();
     Post.approve($(e.target).data('pid'), true);
   });
+  $("#destroy-post-link").on('click', e => {
+    e.preventDefault();
+    if(!confirm("This will permanently delete this post (meaning the file will be deleted). Are you sure you want to delete this post?"))
+      return;
+    Post.destroy($(e.target).data('pid'));
+  });
+  $(".disapprove-post-link").on('click', e => {
+    e.preventDefault();
+    const target = $(e.target);
+    Post.disapprove(target.data('pid'), target.data('reason'), true);
+  });
   $("#set-as-avatar-link").on('click.danbooru', function(e) {
+    e.preventDefault();
     Post.set_as_avatar($(e.target).data('post-id'));
   });
   $("#copy-notes").on("click.danbooru", function(e) {
@@ -704,6 +716,16 @@ Post.unapprove = function(post_id) {
   });
 }
 
+Post.destroy = function(post_id) {
+  $.post(`/moderator/post/posts/${post_id}/expunge.json`, {}
+  ).fail(data => {
+    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+    $(window).trigger("danbooru:error", "Error: " + message);
+  }).done(data => {
+    location.reload();
+  });
+};
+
 Post.approve = function(post_id, should_reload) {
   Post.notice_update("inc");
   SendQueue.add(function() {
@@ -714,6 +736,12 @@ Post.approve = function(post_id, should_reload) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function(data) {
+      if ($("#c-moderator-post-queues").length) {
+        $(`#c-moderator-post-queues #post-${post_id}`).hide();
+        $(window).trigger("danbooru:modqueue_increment_processed");
+        $(window).trigger("danbooru:notice", "Post was approved");
+        return;
+      }
       var $post = $("#post_" + post_id);
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
@@ -727,6 +755,29 @@ Post.approve = function(post_id, should_reload) {
     });
   });
 }
+
+Post.disapprove = function(post_id, reason, should_reload) {
+  Post.notice_update("inc");
+  SendQueue.add(function() {
+    $.post(
+      "/moderator/post/disapprovals.json",
+      {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason}
+    ).fail(function(data) {
+      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function(data) {
+      if ($("#c-posts #a-show").length) {
+        location.reload();
+      } else if ($("#c-moderator-post-queues").length) {
+        $(`#c-moderator-post-queues #post-${post_id}`).hide();
+        $(window).trigger("danbooru:modqueue_increment_processed");
+        $(window).trigger("danbooru:notice", "Post was hidden");
+      }
+    }).always(function() {
+      Post.notice_update("dec");
+    });
+  });
+};
 
 Post.update_tag_count = function(event) {
   let string = "0 tags";

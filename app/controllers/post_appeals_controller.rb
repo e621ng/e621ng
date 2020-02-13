@@ -1,6 +1,6 @@
 class PostAppealsController < ApplicationController
   before_action :member_only, :except => [:index, :show]
-  respond_to :html, :json, :js
+  respond_to :html, :json
 
   def new
     @post_appeal = PostAppeal.new(post_appeal_params)
@@ -15,7 +15,11 @@ class PostAppealsController < ApplicationController
 
   def create
     @post_appeal = PostAppeal.create(post_appeal_params)
-    respond_with(@post_appeal)
+    respond_with(@post_appeal) do |fmt|
+      fmt.html do
+        redirect_to post_path(id: @post_appeal.post_id)
+      end
+    end
   end
 
   def show

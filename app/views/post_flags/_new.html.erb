@@ -5,7 +5,7 @@
 
   <%# XXX dtext_field expects there to be a `post_flag` instance variable. %>
   <% @post_flag = post_flag %>
-  <%= simple_form_for(@post_flag, format: :js, remote: true) do |f| %>
+  <%= simple_form_for(@post_flag) do |f| %>
     <%= f.hidden_field :post_id %>
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>

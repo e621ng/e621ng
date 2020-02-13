@@ -1,7 +1,0 @@
-<% if @post.errors.any? %>
-  $(window).trigger("danbooru:error", "<%= j @post.errors.full_messages.join('; ') %>");
-<% elsif @error %>
-  $(window).trigger("danbooru:error", "<%= j @error.to_s %>");
-<% else %>
-  $(window).trigger("danbooru:notice", "Post was permanently deleted");
-<% end %>
