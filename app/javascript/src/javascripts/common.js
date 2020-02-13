@@ -48,6 +48,23 @@ $(function() {
     });
   });
 
+  $(".confirmed-deletion-link").on('click', e => {
+    e.preventDefault();
+    const target = $(e.target);
+    const noun = target.data('noun');
+    if (!confirm(`Are you sure you want to delete this ${noun}?`))
+      return;
+    $.ajax({
+      type: "DELETE",
+      dataType: 'json',
+      url: target.data('target')
+    }).done(e => {
+      location.reload();
+    }).fail(e => {
+      Utility.error(`Failed to delete ${noun}. ${e.responseText}`);
+    });
+  });
+
   initSearch();
 });
 

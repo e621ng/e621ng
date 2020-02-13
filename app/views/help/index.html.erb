@@ -22,7 +22,7 @@
               <tr>
                 <td>
                   <%= link_to "Edit", edit_help_page_path(help) %> |
-                  <%= link_to "Delete", help_page_path(help), remote: true, method: :delete, 'data-confirm': "Are you sure you want to delete this entry?" %>
+                  <%= tag.a "Delete", href: "#", class: 'confirmed-deletion-link', data: {noun: 'help page', target: help_page_path(help, format: :json)} %>
                 </td>
 
                 <td><%= link_to "#{HelpPage.title(help.name)}", help_page_path(id: help.name) %></td>

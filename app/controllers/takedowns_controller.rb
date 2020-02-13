@@ -1,5 +1,5 @@
 class TakedownsController < ApplicationController
-  respond_to :html, :json, :js
+  respond_to :html, :json
   before_action :admin_only, only: [:update, :edit, :destroy, :add_by_ids, :add_by_tags, :count_matching_posts, :remove_by_ids]
 
   def index
