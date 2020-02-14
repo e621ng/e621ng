@@ -18,7 +18,7 @@
           <td id="api-key-created"><%= compact_time @api_key.created_at %></td>
           <td id="api-key-updated"><%= compact_time @api_key.updated_at %></td>
           <td>
-            <%= button_to "Regenerate", user_api_key_path(CurrentUser.user), method: :put, params: { 'user[password]': @password }, remote: true %>
+            <%= button_to "Regenerate", user_api_key_path(CurrentUser.user), method: :put, params: { 'user[password]': @password } %>
             <%= button_to "Delete", user_api_key_path(CurrentUser.user), method: :delete, params: { 'user[password]': @password } %>
           </td>
         </tr>

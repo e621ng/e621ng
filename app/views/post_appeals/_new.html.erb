@@ -8,6 +8,7 @@
   <%= simple_form_for(@post_appeal) do |f| %>
     <%= f.hidden_field :post_id %>
     <%= dtext_field "post_appeal", "reason", preview_id: "dtext-preview-for-post-appeal", type: "string" %>
+    <%= f.submit "Submit" %>
     <%= dtext_preview_button "post_appeal", "reason", preview_id: "dtext-preview-for-post-appeal" %>
   <% end %>
 </div>
