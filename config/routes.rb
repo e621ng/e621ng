@@ -474,6 +474,7 @@ Rails.application.routes.draw do
 
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
+  get "/static/takedown" => "static#takedown", as: "takedown_static"
   get "/static/terms_of_service" => "static#terms_of_service", :as => "terms_of_service"
   post "/static/accept_terms_of_service" => "static#accept_terms_of_service", :as => "accept_terms_of_service"
   get "/static/contact" => "static#contact", :as => "contact"

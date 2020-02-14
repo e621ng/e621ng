@@ -1,5 +1,5 @@
 class Takedown < ApplicationRecord
-  belongs_to_creator
+  belongs_to_creator optional: true
   belongs_to :approver, class_name: "User", optional: true
   before_validation :initialize_fields, on: :create
   before_validation :normalize_post_ids
@@ -47,13 +47,22 @@ class Takedown < ApplicationRecord
 
   module ValidationMethods
     def valid_posts_or_instructions
-      errors[:base] << "You must provide post ids or instructions." if post_array.size <= 0 && instructions.blank?
+      if post_array.size <= 0 && instructions.blank?
+        errors[:base] << "You must provide post ids or instructions."
+        return false
+      end
     end
 
     def can_create_takedown
-      return if creator.is_moderator?
-      errors[:base] << "You have created a takedown too recently" if self.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
-      errors[:base] << "You have created a takedown too recently" if self.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr, 5.minutes.ago).count > 0
+      return true if creator && creator.is_moderator?
+      if Takedown.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr.to_s, 5.minutes.ago).count > 0
+        errors[:base] << "You have created a takedown too recently"
+        return false
+      end
+      if creator_id && Takedown.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
+        errors[:base] << "You have created a takedown too recently"
+        return false
+      end
     end
 
     def validate_number_of_posts

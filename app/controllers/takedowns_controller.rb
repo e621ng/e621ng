@@ -30,11 +30,11 @@ class TakedownsController < ApplicationController
 
   def create
     @takedown = Takedown.create(takedown_params)
-    flash[:notice] = @takedown.valid? ? "Takedown created" : @takedown.errors.full_messages.join(". ")
-    if @takedown.valid?
-      redirect_to(takedown_url(@takedown, code: @takedown.vericode))
-    else
+    flash[:notice] = @takedown.errors.count > 0 ? @takedown.errors.full_messages.join(". ") : "Takedown created"
+    if @takedown.errors.count > 0
       respond_with(@takedown)
+    else
+      redirect_to(takedown_path(id: @takedown.id, code: @takedown.vericode))
     end
   end
 
