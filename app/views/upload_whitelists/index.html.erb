@@ -24,7 +24,7 @@
             <td><%= whitelist.allowed ? "Yes" : "No" %></td>
             <td><%= whitelist.reason %></td>
             <td><%= link_to "Edit", edit_upload_whitelist_path(whitelist) %></td>
-            <td><%= link_to "Delete", upload_whitelist_path(whitelist), :remote => true, method: :delete, data: {confirm: "Do your really want to delete #{whitelist.pattern}?"} %></td>
+            <td><%= link_to "Delete", upload_whitelist_path(whitelist),  method: :delete, data: {confirm: "Do your really want to delete #{whitelist.pattern}?"} %></td>
           </tr>
         <% end %>
       </tbody>

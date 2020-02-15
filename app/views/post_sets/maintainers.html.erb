@@ -49,7 +49,7 @@
 
           <td>
             <% if @post_set.is_owner?(CurrentUser) %>
-              <%= tag.a "Delete", href: "#", class: 'confirmed-deletion-link', data: {noun: 'pending invite', target: post_set_maintainer_path(m, format: :json)} %>
+              <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, data: {confirm: "Are you sure you want to remove this pending invite?"} %>
             <% end %>
           </td>
         </tr>

@@ -45,6 +45,7 @@ class PostSetMaintainersController < ApplicationController
     check_cancel_access(@maintainer)
 
     @maintainer.cancel!
+    respond_with(@set)
   end
 
   def approve

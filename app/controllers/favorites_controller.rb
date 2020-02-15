@@ -1,6 +1,6 @@
 class FavoritesController < ApplicationController
   before_action :member_only, except: [:index]
-  respond_to :html, :json, :js
+  respond_to :html, :json
   skip_before_action :api_check
 
   def index

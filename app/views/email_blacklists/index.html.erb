@@ -18,7 +18,7 @@
             <td><%= link_to_user(blacklist.creator) %></td>
             <td><%= blacklist.domain %></td>
             <td><%= blacklist.reason %></td>
-            <td><%= link_to "Delete", email_blacklist_path(blacklist), :remote => true, method: :delete, data: {confirm: "Do your really want to delete #{blacklist.domain}?"} %></td>
+            <td><%= link_to "Delete", email_blacklist_path(blacklist), method: :delete, data: {confirm: "Do your really want to delete #{blacklist.domain}?"} %></td>
           </tr>
         <% end %>
       </tbody>
