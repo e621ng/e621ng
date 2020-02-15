@@ -1,13 +1,12 @@
 <div id="c-pool-import">
   <div id="a-import">
-    <h4>Pool Import: <%= h(@pool.pretty_name) %></h4>
+    <h4>Pool Import: <%= @pool.pretty_name %></h4>
 
     <p>You can perform a tag search and import all the matching posts into this pool.</p>
 
     <div class='section'>
-      <%= form_tag import_preview_pool_path(@pool), method: :get, remote: true do %>
-        <%= text_field_tag "tags", params[:tags], size: 50 %> <%= submit_tag "Search" %>
-      <% end %>
+      <%= text_field_tag "tags", params[:tags], size: 50, id: 'pool-import-tags-field' %>
+      <%= submit_tag "Search", id: 'pool-import-preview-button', 'data-pid': @pool.id %>
     </div>
 
     <div>

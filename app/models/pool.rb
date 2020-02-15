@@ -19,6 +19,7 @@ class Pool < ApplicationRecord
   before_validation :normalize_post_ids
   before_validation :normalize_name
   after_save :create_version
+  after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
 
   module SearchMethods
@@ -186,7 +187,7 @@ class Pool < ApplicationRecord
     self.post_ids = version.post_ids
     self.name = version.name
     self.description = version.description
-    synchronize!
+    save
   end
 
   def contains?(post_id)

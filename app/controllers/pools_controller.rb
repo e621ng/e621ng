@@ -50,7 +50,6 @@ class PoolsController < ApplicationController
     # need to do this in order for synchronize! to work correctly
     @pool = Pool.find(params[:id])
     @pool.attributes = pool_params
-    @pool.synchronize
     @pool.save
     unless @pool.errors.any?
       flash[:notice] = "Pool updated"
@@ -108,7 +107,11 @@ class PoolsController < ApplicationController
   def import_preview
     @pool = Pool.find(params[:id])
     @posts = Post.tag_match(params[:tags]).limit(500).records
-    respond_with(@pool)
+    respond_with(@pool) do |fmt|
+      fmt.json do
+        render json: {posts: @posts.map{|p| {id: p.id, html: PostPresenter.preview(p) }} }
+      end
+    end
   end
 
   private
