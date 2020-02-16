@@ -76,13 +76,8 @@
       <section id="image-extra-controls" style="display: flex;">
         <% if CurrentUser.is_member? %>
           <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= form_tag(favorites_path(post_id: @post.id), method: "post", id: "add-fav-button", "data-remote": true) do %>
-              <%= button_tag "+Fav", class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
-            <% end %>
-
-            <%= form_tag(favorite_path(@post.id), method: "delete", id: "remove-fav-button", "data-remote": true) do %>
-              <%= button_tag "-Fav", class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin") %>
-            <% end %>
+            <%= button_tag "+Fav", id: 'add-fav-button', class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
+            <%= button_tag "-Fav", id: 'remove-fav-button', class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
           <% end %>
         <% end %>
         <% if @post.visible? %>
