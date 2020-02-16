@@ -48,6 +48,24 @@ $(function() {
     });
   });
 
+  $(".revert-item-link").on('click', e => {
+    e.preventDefault();
+    const target = $(e.target);
+    const noun = target.data('noun');
+    if (!confirm(`Are you sure you want to revert ${noun} to this version?`))
+      return;
+    const path = target.attr('href');
+    $.ajax({
+      method: "PUT",
+      url: path,
+      dataType: 'json'
+    }).done(data => {
+      location.reload();
+    }).fail(data => {
+      Utility.error("Failed to revert to specified version.");
+    })
+  });
+
   initSearch();
 });
 

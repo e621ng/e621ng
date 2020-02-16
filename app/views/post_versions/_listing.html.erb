@@ -50,10 +50,10 @@
       </div>
       <div class="pv-actions pv-content">
         <% if post_version.can_undo?(CurrentUser.user) %>
-          <%= link_to "Undo", undo_post_version_path(post_version), :method => :put, :remote => true %>
+          <%= link_to "Undo", undo_post_version_path(post_version), :method => :put %>
         <% end %>
         <% if params.dig(:search, :post_id).present? && post_version.can_revert_to?(CurrentUser.user) %>
-          | <%= link_to "Revert to", revert_post_path(post_version.post_id, :version_id => post_version.id), :method => :put, :remote => true %>
+          | <%= link_to "Revert to", revert_post_path(post_version.post_id, :version_id => post_version.id, format: :json), class: 'revert-item-link', 'data-noun': 'post' %>
         <% end %>
       </div>
       <div class="pv-tags-label pv-label">

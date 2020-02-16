@@ -36,7 +36,7 @@
           <td><%= compact_time pool_version.updated_at %></td>
           <% if CurrentUser.is_member? %>
             <td>
-              <%= link_to "Revert to", revert_pool_path(pool_version.pool_id, :version_id => pool_version.id), :method => :put, :remote => true %>
+              <%= link_to "Revert to", revert_pool_path(pool_version.pool_id, :version_id => pool_version.id, format: :json), class: 'revert-item-link', 'data-noun': 'pool' %>
             </td>
           <% end %>
         </tr>
