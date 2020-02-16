@@ -26,16 +26,16 @@
       <%= render "application/update_notice", record: forum_post %>
       <menu>
         <% if CurrentUser.is_member? && @forum_topic %>
-          <li><%= link_to "Reply", new_forum_post_path(:post_id => forum_post.id), :method => :get, :remote => true %></li>
+          <li><%= tag.a "Reply", href: '#', class: "reply-link forum-post-reply-link" %></li>
         <% end %>
         <% if !forum_post.is_original_post?(original_forum_post_id) %>
           <% if forum_post.is_hidden? && CurrentUser.is_moderator? %>
-            <li><%= link_to "Unhide", unhide_forum_post_path(forum_post.id), method: :post, :remote => true %></li>
+            <li><%= tag.a "Unhide", href: '#', class: 'forum-post-unhide-link' %></li>
           <% elsif !forum_post.is_hidden? && forum_post.can_hide?(CurrentUser.user) %>
-            <li><%= link_to "Hide", hide_forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to hide this forum post?"}, method: :post, :remote => true %></li>
+            <li><%= tag.a "Hide", href: '#', class: 'forum-post-hide-link' %></li>
           <% end %>
           <% if forum_post.can_delete?(CurrentUser.user) %>
-            <li><%= link_to "Delete", forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to delete this forum post?"}, method: :delete, :remote => true %></li>
+            <li><%= link_to "Delete", forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to delete this forum post?"}, method: :delete %></li>
           <% end %>
         <% else %>
           <% if forum_post.topic.is_hidden? && CurrentUser.is_moderator? %>
@@ -44,7 +44,7 @@
             <li><%= link_to "Hide", hide_forum_topic_path(forum_post.topic.id), :data => {:confirm => "Are you sure you want to hide this forum topic?"}, method: :post %></li>
           <% end %>
           <% if forum_post.topic.can_delete?(CurrentUser.user) %>
-            <li><%= link_to "Delete", forum_topic_path(forum_post.topic), :data => {:confirm => "Are you sure you want to delete this forum topic?"}, method: :delete, :remote => true %></li>
+            <li><%= link_to "Delete", forum_topic_path(forum_post.topic), :data => {:confirm => "Are you sure you want to delete this forum topic?"}, method: :delete %></li>
           <% end %>
         <% end %>
         <% if forum_post.editable_by?(CurrentUser.user) %>
