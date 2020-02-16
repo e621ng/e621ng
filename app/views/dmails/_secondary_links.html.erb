@@ -7,7 +7,7 @@
     <%= subnav_link_to "Spam", spam_dmails_path %>
     <li>|</li>
     <%= subnav_link_to "New", new_dmail_path %>
-    <%= subnav_link_to "Mark all as read", {:controller => "dmails", :action => "mark_all_as_read"}, :method => :post, :remote => true %></li>
+    <%= subnav_link_to "Mark all as read", {:controller => "dmails", :action => "mark_all_as_read"}, :method => :post%></li>
     <li>|</li>
     <%= subnav_link_to "Help", help_page_path(id: "dmail") %>
   </menu>

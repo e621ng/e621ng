@@ -49,6 +49,8 @@ class DmailsController < ApplicationController
       x.update_column(:is_read, true)
     end
     CurrentUser.user.update(has_mail: false, unread_dmail_count: 0)
+    flash[:notice] = "All messages marked as read"
+    redirect_to dmails_path
   end
 
   def spam
