@@ -34,7 +34,7 @@
             <% end %>
 
             <% if tag_implication.is_pending? %>
-              | <%= link_to "Approve", approve_tag_implication_path(tag_implication), :remote => true, :method => :post %>
+              | <%= link_to "Approve", approve_tag_implication_path(tag_implication), :method => :post %>
             <% end %>
           <% end %>
         </td>

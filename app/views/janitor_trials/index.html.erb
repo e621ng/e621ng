@@ -16,8 +16,8 @@
             <td><%= link_to_user janitor_trial.user %></td>
             <td><%= compact_time janitor_trial.created_at %></td>
             <td>
-              <%= link_to "Promote", promote_janitor_trial_path(janitor_trial), :remote => true, :method => :put %>
-              | <%= link_to "Demote", demote_janitor_trial_path(janitor_trial), :remote => true, :method => :put %>
+              <%= link_to "Promote", promote_janitor_trial_path(janitor_trial), :method => :put %>
+              | <%= link_to "Demote", demote_janitor_trial_path(janitor_trial), :method => :put %>
             </td>
           </tr>
         <% end %>

@@ -10,7 +10,7 @@ class ForumUpdater
 
   def update(message, title_tag = nil)
     return if forum_topic.nil?
-    
+
     CurrentUser.scoped(User.system) do
       create_response(message)
       update_title(title_tag) if title_tag
@@ -22,7 +22,7 @@ class ForumUpdater
   end
 
   def create_response(body)
-    forum_topic.posts.create(body: body, skip_mention_notifications: true)
+    forum_topic.posts.create(body: body)
   end
 
   def update_title(title_tag)
@@ -33,6 +33,6 @@ class ForumUpdater
 
   def update_post(body)
     return if @skip_update
-    forum_post.update(body: "#{forum_post.body}\n\nEDIT: #{body}", skip_mention_notifications: true)
+    forum_post.update(body: "#{forum_post.body}\n\nEDIT: #{body}")
   end
 end

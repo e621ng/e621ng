@@ -25,17 +25,13 @@ class JanitorTrialsController < ApplicationController
   def promote
     @janitor_trial = JanitorTrial.find(params[:id])
     @janitor_trial.promote!
-    respond_with(@janitor_trial) do |format|
-      format.js
-    end
+    respond_with(@janitor_trial, location: janitor_trials_path)
   end
 
   def demote
     @janitor_trial = JanitorTrial.find(params[:id])
     @janitor_trial.demote!
-    respond_with(@janitor_trial) do |format|
-      format.js
-    end
+    respond_with(@janitor_trial, location: janitor_trials_path)
   end
 
   def test
