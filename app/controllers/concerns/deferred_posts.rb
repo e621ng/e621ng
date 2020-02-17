@@ -2,7 +2,7 @@ module DeferredPosts
   extend ActiveSupport::Concern
 
   def deferred_post_ids
-    @post_ids_set ||= Set.new
+    RequestStore[:deferred_post_ids] ||= Set.new
   end
 
   def deferred_posts

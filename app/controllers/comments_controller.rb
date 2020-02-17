@@ -7,14 +7,20 @@ class CommentsController < ApplicationController
   def index
     if params[:group_by] == "comment" || request.format == Mime::Type.lookup("application/atom+xml")
       index_by_comment
-    elsif request.format == Mime::Type.lookup("text/javascript")
-      index_for_post
     else
       index_by_post
     end
   end
 
   def search
+  end
+
+  def for_post
+    @post = Post.find(params[:id])
+    @comments = @post.comments
+    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+    comment_html = render_to_string partial: 'comments/partials/show/comment.html', collection: @comments, formats: [:html]
+    render json: {html: comment_html, posts: deferred_posts}
   end
 
   def new
@@ -73,13 +79,6 @@ class CommentsController < ApplicationController
   end
 
 private
-  def index_for_post
-    @post = Post.find(params[:post_id])
-    @comments = @post.comments
-    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
-    render :action => "index_for_post"
-  end
-
   def index_by_post
     tags = params[:tags] || ""
     @posts = Post.tag_match(tags + " order:comment_bumped").paginate(params[:page], :limit => 5, :search_count => params[:search])

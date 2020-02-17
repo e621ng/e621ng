@@ -12,9 +12,29 @@ Comment.initialize_all = function () {
     $(".comment-hide-link").on('click', Comment.hide);
     $(".comment-unhide-link").on('click', Comment.unhide);
     $(".comment-delete-link").on('click', Comment.delete);
-    $(".comment-tag-hide-link").on("click", Comment.toggle_post_tags)
+    $(".show-all-comments-for-post-link").on('click', Comment.show_all);
+    $(".comment-tag-hide-link").on("click", Comment.toggle_post_tags);
   }
 }
+
+Comment.show_all = function(e) {
+  e.preventDefault();
+  const target = $(e.target);
+  const post_id = target.data('pid');
+  $.ajax({
+    url: `/posts/${post_id}/comments.json`,
+    type: 'GET',
+    dataType: 'json'
+  }).done(function(data) {
+    $(`#threshold-comments-notice-for-${post_id}`).hide();
+
+    const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
+    current_comment_section.html(data.html);
+    $(window).trigger("e621:add_deferred_posts", data.posts);
+  }).fail(function(data) {
+    Utility.error("Failed to fetch all comments for this post.");
+  });
+};
 
 Comment.hide = function (e) {
   e.preventDefault();
@@ -136,9 +156,6 @@ Comment.vote = function (id, score) {
     url: `/comments/${id}/votes`,
     data: {
       score: score
-    },
-    headers: {
-      accept: '*/*;q=0.5,text/javascript'
     }
   }).done(function () {
     $(window).trigger('danbooru.notice', "Vote applied");

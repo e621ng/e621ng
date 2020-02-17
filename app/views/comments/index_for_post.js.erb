@@ -1,6 +1,0 @@
-$("#threshold-comments-notice-for-<%= @post.id %>").hide();
-
-var current_comment_section = $("div.comments-for-post[data-post-id=<%= @post.id %>] div.list-of-comments");
-current_comment_section.html("<%= j(render(:partial => 'comments/partials/show/comment', :collection => @comments))%>");
-$(window).trigger("e621:add_deferred_posts", <%= raw deferred_posts.to_json %>);
-$(window).trigger("danbooru:index_for_post", [<%= @post.id %>]);
