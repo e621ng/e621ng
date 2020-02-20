@@ -90,6 +90,7 @@ class User < ApplicationRecord
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
   before_validation :set_per_page
   before_validation :staff_cant_disable_dmail
+  before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates :profile_about, length: { maximum: 50_0000 }
   validates :profile_artinfo, length: { maximum: 50_000 }
@@ -353,6 +354,12 @@ class User < ApplicationRecord
       end
 
       return true
+    end
+
+    def blank_out_nonexistent_avatars
+      if avatar_id.present? && avatar.nil?
+        self.avatar_id = nil
+      end
     end
 
     def staff_cant_disable_dmail

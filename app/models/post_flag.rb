@@ -9,7 +9,7 @@ class PostFlag < ApplicationRecord
 
   COOLDOWN_PERIOD = 1.days
   CREATION_THRESHOLD = 10 # in 30 days
-  MAPPED_REASONS = Danbooru.config.flag_reasons.map {|i| [i[:name], i[:reason]] }.to_h
+  MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
 
   belongs_to_creator :class_name => "User"
   user_status_counter :post_flag_count
@@ -19,13 +19,13 @@ class PostFlag < ApplicationRecord
   validate :validate_reason
   validate :update_reason, on: :create
   validates :reason, presence: true
-  validates :reason, length: { in: 1..250 }
-  validates :creator_id, uniqueness: { :scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post" }
+  validates :reason, length: {in: 1..250}
+  validates :creator_id, uniqueness: {:scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"}
   before_save :update_post
 
-  scope :by_users, -> {where.not(creator: User.system)}
-  scope :by_system, -> {where(creator: User.system)}
-  scope :in_cooldown, -> {by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago)}
+  scope :by_users, -> { where.not(creator: User.system) }
+  scope :by_system, -> { where(creator: User.system) }
+  scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
   attr_accessor :parent_id, :reason_name
 
@@ -190,7 +190,10 @@ class PostFlag < ApplicationRecord
       # You're probably looking at this line as you get this validation failure
       errors[:reason] << "is not one of the available choices" unless is_deletion
     when 'inferior'
-      errors[:parent_id] << "must exist" unless parent_post
+      unless parent_post.present?
+        errors[:parent_id] << "must exist"
+        return false
+      end
       errors[:parent_id] << "cannot be set to the post being flagged" if parent_post.id == post.id
     when 'user'
       errors[:reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
@@ -204,6 +207,7 @@ class PostFlag < ApplicationRecord
     when 'deletion'
       # NOP
     when 'inferior'
+      return unless parent_post
       post.update_column(:parent_id, parent_post.id)
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     when "user"
@@ -230,6 +234,10 @@ class PostFlag < ApplicationRecord
   end
 
   def parent_post
-    @parent_post ||= Post.where('id = ?', parent_id).first
+    @parent_post ||= begin
+                       Post.where('id = ?', parent_id).first
+                     rescue
+                       nil
+                     end
   end
 end
