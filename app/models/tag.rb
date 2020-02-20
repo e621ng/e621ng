@@ -917,7 +917,7 @@ class Tag < ApplicationRecord
           when "upvote", "votedup"
             if CurrentUser.is_moderator?
               q[:upvote] = User.name_or_id_to_id(g2)
-            elsif Currentuser.is_member?
+            elsif CurrentUser.is_member?
               q[:upvote] = CurrentUser.id
             end
 
@@ -945,7 +945,7 @@ class Tag < ApplicationRecord
           when "-upvote", "-votedup"
             if CurrentUser.is_moderator?
               q[:neg_upvote] = User.name_or_id_to_id(g2)
-            elsif Currentuser.is_member?
+            elsif CurrentUser.is_member?
               q[:neg_upvote] = CurrentUser.id
             end
 
