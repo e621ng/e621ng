@@ -19,5 +19,6 @@
   <% if !CurrentUser.is_anonymous? %>
     <%= nav_link_to("Discord", discord_get_path) %>
   <% end %>
+  <%= nav_link_to("Help", help_pages_path) %>
   <%= nav_link_to("More »", site_map_path) %>
 </menu>

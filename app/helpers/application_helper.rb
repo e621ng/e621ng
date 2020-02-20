@@ -305,6 +305,9 @@ protected
     when "forum_topics", "forum_posts"
       /^\/forum_topics/
 
+    when "help"
+      /^\/help/
+
     else
       /^\/static/
     end
