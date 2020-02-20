@@ -1703,7 +1703,9 @@ class Post < ApplicationRecord
 
     def sample(query, sample_size)
       CurrentUser.without_safe_mode do
-        tag_match("#{query} order:random").limit(sample_size).records
+        query = Tag.parse_query("#{query} order:random")
+        query[:tag_count] -= 1 # Cheat to fix tag count
+        tag_match(query).limit(sample_size).records
       end
     end
 
@@ -1825,7 +1827,7 @@ class Post < ApplicationRecord
 
     def raw_tag_match(tag)
       tags = {related: tag.split(' '), include: [], exclude: []}
-      ElasticPostQueryBuilder.new(tag_count: 1, tags: tags).build
+      ElasticPostQueryBuilder.new(tag_count: tags[:related].size, tags: tags).build
     end
 
     def tag_match(query)
