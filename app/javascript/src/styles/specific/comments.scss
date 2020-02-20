@@ -26,12 +26,11 @@ div.comments-for-post {
 
       div.author {
         background-color: $comment-author-background;
-        overflow: hidden;
         padding: 1em 1em 0 1em;
         width: 154px;
+        flex-shrink: 0;
 
         .author-info {
-
           h1 {
             display: block;
             font-size: $h3-size;
