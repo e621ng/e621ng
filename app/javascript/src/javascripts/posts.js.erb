@@ -168,6 +168,8 @@ Post.initialize_gestures = function() {
   }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
     return;
+  if (navigator.userAgent.toLowerCase().indexOf("firefox") !== -1)
+    return; // Bug with firefox doing strange normalization of touch inputs that breaks the detector used.
 
   const zing = new ZingTouch.Region(document.body, false, false);
   zing.bind(document.body, 'swipe', function(e) {
