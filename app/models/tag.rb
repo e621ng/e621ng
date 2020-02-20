@@ -21,7 +21,7 @@ class Tag < ApplicationRecord
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
-    deletedby -deletedby
+    deletedby -deletedby votedup voteddown -votedup -voteddown
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -914,14 +914,14 @@ class Tag < ApplicationRecord
               q[:pixiv_id] = parse_helper(g2)
             end
 
-          when "upvote"
+          when "upvote", "votedup"
             if CurrentUser.is_moderator?
               q[:upvote] = User.name_or_id_to_id(g2)
             elsif Currentuser.is_member?
               q[:upvote] = CurrentUser.id
             end
 
-          when "downvote"
+          when "downvote", "voteddown"
             if CurrentUser.is_moderator?
               q[:downvote] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
@@ -942,14 +942,14 @@ class Tag < ApplicationRecord
               q[:neg_voted] = CurrentUser.id
             end
 
-          when "-upvote"
+          when "-upvote", "-votedup"
             if CurrentUser.is_moderator?
               q[:neg_upvote] = User.name_or_id_to_id(g2)
             elsif Currentuser.is_member?
               q[:neg_upvote] = CurrentUser.id
             end
 
-          when "-downvote"
+          when "-downvote", "-voteddown"
             if CurrentUser.is_moderator?
               q[:neg_downvote] = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
