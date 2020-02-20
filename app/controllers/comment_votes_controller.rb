@@ -1,5 +1,5 @@
 class CommentVotesController < ApplicationController
-  respond_to :js, :json
+  respond_to :json
   respond_to :html, only: [:index]
   before_action :voter_only
   before_action :admin_only, only: [:index, :lock, :delete]
@@ -12,17 +12,16 @@ class CommentVotesController < ApplicationController
       VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
     end
     @comment.reload
+    render json: {score: @comment.score, our_score: @comment_vote != :need_unvote ? @comment_vote.score : 0}
   rescue CommentVote::Error, ActiveRecord::RecordInvalid => x
-    @error = x
-    render status: 422
+    render_error_page(422, x)
   end
 
   def destroy
     @comment = Comment.find(params[:comment_id])
     VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
   rescue CommentVote::Error => x
-    @error = x
-    render status: 422
+    render_error_page(422, x)
   end
 
   def index

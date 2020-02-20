@@ -153,12 +153,30 @@ Comment.vote_down = function (e) {
 Comment.vote = function (id, score) {
   $.ajax({
     method: 'POST',
-    url: `/comments/${id}/votes`,
+    url: `/comments/${id}/votes.json`,
     data: {
       score: score
+    },
+    dataType: 'json'
+  }).done(function (data) {
+    const scoreClasses = 'score-neutral score-positive score-negative';
+    const commentID = id;
+    const commentScore = data.score;
+    const ourScore = data.our_score;
+    function scoreToClass(inScore) {
+      if (inScore === 0) return 'score-neutral';
+      return inScore > 0 ? 'score-positive' : 'score-negative';
     }
-  }).done(function () {
-    $(window).trigger('danbooru.notice', "Vote applied");
+    $("#comment-score-"+commentID).removeClass(scoreClasses);
+    $("#comment-vote-up-"+commentID).removeClass(scoreClasses);
+    $("#comment-vote-down-"+commentID).removeClass(scoreClasses);
+    $('#comment-score-'+commentID).text(commentScore);
+    $("#comment-score-"+commentID).addClass(scoreToClass(commentScore));
+    $('#comment-vote-up-'+commentID).addClass(ourScore > 0 ? 'score-positive' : 'score-neutral');
+    $('#comment-vote-down-'+commentID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');
+    Utility.notice('Vote saved');
+  }).fail(function(data) {
+    Utility.error(data.message);
   });
 }
 
