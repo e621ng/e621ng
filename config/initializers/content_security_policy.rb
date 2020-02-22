@@ -8,7 +8,7 @@
    policy.default_src :self
    policy.script_src  :self, 'ads.dragonfru.it', 'js-agent.newrelic.com', 'bam.nr-data.net'
    policy.style_src   :self, :unsafe_inline
-   policy.connect_src :self, 'ads.dragonfu.it', 'bam.nr-data.net'
+   policy.connect_src :self, 'ads.dragonfru.it', 'bam.nr-data.net'
    policy.object_src  :self, 'static1.e621.net'
    policy.frame_ancestors :none
    policy.font_src    :self
