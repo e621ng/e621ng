@@ -58,6 +58,7 @@ class Tag < ApplicationRecord
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates :name, length: { in: 1..100 }
   validates :category, inclusion: { in: TagCategory.category_ids }
+  validate :user_can_create_tag?, on: :create
   validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
@@ -1152,6 +1153,14 @@ class Tag < ApplicationRecord
     return true if post_count < Danbooru.config.tag_type_change_cutoff
     return true if user.is_moderator?
     false
+  end
+
+  def user_can_create_tag?
+    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_moderator?
+      errors.add(:name, "can not create lore tags unless moderator")
+      return false
+    end
+    true
   end
 
   include ApiMethods
