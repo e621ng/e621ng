@@ -15,7 +15,7 @@ class DanbooruLogger
       Rails.logger.error("#{exception.class}: #{exception.message}\n#{backtrace}")
     end
 
-    if defined?(::NewRelic)
+    if defined?(::NewRelic) && !expected
       ::NewRelic::Agent.notice_error(exception, expected: expected, custom_params: params)
     end
   end

@@ -59,14 +59,6 @@ class ApplicationController < ActionController::Base
       puts "---"
     end
 
-    ExceptionLog.add(exception, CurrentUser.ip_addr, {
-        host: Socket.gethostname,
-        params: params,
-        user_id: CurrentUser.id,
-        referrer: request.referrer,
-        user_agent: request.user_agent
-    })
-
     case exception
     when APIThrottled
       render_error_page(429, exception, message: "Too many requests")
@@ -97,17 +89,32 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def render_404
+    render "static/404", formats: [:html, :json, :atom]
+  end
+
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
     @exception = exception
     @expected = status < 500
     @message = message.encode("utf-8", { invalid: :replace, undef: :replace })
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
-    format = :html unless format.in?(%i[html json js atom])
+    format = :html unless format.in?(%i[html json atom])
 
     # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
     layout = CurrentUser.user.present? ? "default" : "blank"
+    if !CurrentUser.user&.try(:is_janitor?)
+      @message = "An unexpected error occurred."
+    end
 
     DanbooruLogger.log(@exception, expected: @expected)
+    log = ExceptionLog.add(exception, CurrentUser.ip_addr, {
+        host: Socket.gethostname,
+        params: params,
+        user_id: CurrentUser.id,
+        referrer: request.referrer,
+        user_agent: request.user_agent
+    })
+    @log_code = log&.code
     render "static/error", layout: layout, status: status, formats: format
   end
 
@@ -130,9 +137,6 @@ class ApplicationController < ActionController::Base
       end
       fmt.json do
         render :json => {:success => false, reason: @message}.to_json, :status => 403
-      end
-      fmt.js do
-        render js: "", :status => 403
       end
     end
   end
