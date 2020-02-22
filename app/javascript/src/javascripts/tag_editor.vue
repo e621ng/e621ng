@@ -31,6 +31,7 @@
   import relatedTags from './uploader_related.vue';
   import tagPreview from './uploader_preview.vue';
   import Post from './posts.js.erb';
+  import Autocomplete from "./autocomplete.js.erb";
 
   function tagSorter(a, b) {
     return a[0] > b[0] ? 1 : -1;
@@ -53,6 +54,9 @@
         relatedTags: [],
         loadingRelated: false,
       };
+    },
+    mounted() {
+      Autocomplete.initialize_tag_autocomplete();
     },
     computed: {
       tagsArray() {
