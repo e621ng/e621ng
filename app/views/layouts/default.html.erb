@@ -15,7 +15,7 @@
   <%= csp_meta_tag %>
   <% if defined?(::NewRelic) %>
     <%= javascript_tag nonce: true do -%>
-      <%= ::NewRelic::Agent.browser_timing_header.gsub!("<script>", "").gsub!("</script>", "") %>
+      <%= ::NewRelic::Agent.browser_timing_header.gsub!("<script>", "").gsub!("</script>", "").html_safe %>
     <% end -%>
   <% end %>
   <% unless CurrentUser.disable_responsive_mode? %>
