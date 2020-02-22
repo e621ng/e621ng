@@ -1,5 +1,5 @@
 class BulkUpdateRequestsController < ApplicationController
-  respond_to :html, :json, :js
+  respond_to :html, :json
   before_action :member_only, :except => [:index, :show]
   before_action :admin_only, :only => [:approve]
   before_action :load_bulk_update_request, :except => [:new, :create, :index]

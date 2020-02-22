@@ -810,18 +810,38 @@ Post.vote_down = function (e) {
   Post.vote(id, -1);
 }
 
-Post.vote = function (id, score) {
+Post.vote = function (id, score, prevent_unvote) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.ajax({
       method: 'POST',
-      url: `/posts/${id}/votes`,
+      url: `/posts/${id}/votes.json`,
       data: {
-        score: score
+        score: score,
+        no_unvote: prevent_unvote === true
       },
+      dataType: 'json',
       headers: {
         accept: '*/*;q=0.5,text/javascript'
       }
+    }).done(function(data) {
+      const scoreClasses = 'score-neutral score-positive score-negative';
+      const postID = id;
+      const postScore = data.score;
+      const ourScore = data.our_score;
+      function scoreToClass(inScore) {
+        if(inScore == 0) return 'score-neutral';
+        return inScore > 0 ? 'score-positive' : 'score-negative';
+      }
+      $("#post-score-"+postID).removeClass(scoreClasses);
+      $("#post-vote-up-"+postID).removeClass(scoreClasses);
+      $("#post-vote-down-"+postID).removeClass(scoreClasses);
+      $('#post-score-'+postID).text(postScore);
+      $('#post-score-'+postID).attr('title', `${data.up_score} up/${data.down_score} down`);
+      $("#post-score-"+postID).addClass(scoreToClass(postScore));
+      $('#post-vote-up-'+postID).addClass(ourScore > 0 ? 'score-positive' : 'score-neutral');
+      $('#post-vote-down-'+postID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');
+      $(window).trigger('danbooru:notice', 'Vote saved');
     }).always(function() {
       Post.notice_update("dec");
     });

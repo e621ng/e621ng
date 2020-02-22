@@ -1,5 +1,5 @@
 class ForumCategoriesController < ApplicationController
-  respond_to :html, :js
+  respond_to :html
   before_action :admin_only
 
   def index

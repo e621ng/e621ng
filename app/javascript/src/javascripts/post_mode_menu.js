@@ -187,9 +187,9 @@ PostModeMenu.click = function(e) {
   } else if (s === "edit") {
     PostModeMenu.open_edit(post_id);
   } else if (s === 'vote-down') {
-    Post.vote("down", post_id);
+    Post.vote(post_id, -1, true);
   } else if (s === 'vote-up') {
-    Post.vote("up", post_id);
+    Post.vote(post_id, 1, true);
   } else if (s === 'add-to-set') {
     PostSet.add_post($("#set-id").val(), post_id);
   } else if (s === 'remove-from-set') {
