@@ -13,11 +13,6 @@
   <link rel="top" title="<%= Danbooru.config.app_name %>" href="/">
   <%= csrf_meta_tag %>
   <%= csp_meta_tag %>
-  <% if defined?(::NewRelic) %>
-    <%= javascript_tag nonce: true do -%>
-      <%= ::NewRelic::Agent.browser_timing_header.gsub!("<script>", "").gsub!("</script>", "").html_safe %>
-    <% end -%>
-  <% end %>
   <% unless CurrentUser.disable_responsive_mode? %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
   <% end %>
