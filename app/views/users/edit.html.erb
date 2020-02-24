@@ -72,6 +72,12 @@
         <%= f.input :show_post_statistics, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
         hint: "Show post statistics below posts on search pages." %>
 
+        <%= f.input :description_collapsed_initially, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
+        hint: "Don't expand post descriptions on page load." %>
+
+        <%= f.input :hide_comments, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
+        hint: "Do not show the comments section on post pages." %>
+
         <% unless CurrentUser.is_janitor? %>
           <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.",
                       :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
