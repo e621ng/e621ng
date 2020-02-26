@@ -25,7 +25,6 @@ class Post < ApplicationRecord
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
   validates :description, length: { maximum: 50_000 }
-  validate :tag_names_are_valid, if: :should_process_tags?
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
   validate :has_artist_tag, if: :should_process_tags?
@@ -780,15 +779,17 @@ class Post < ApplicationRecord
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
-      normalized_tags = remove_invalid_tags(normalized_tags)
       # normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq
-      normalized_tags = Tag.create_for_list(normalized_tags)
-      set_tag_string(normalized_tags.uniq.sort.join(" "))
+      normalized_tags = Tag.find_or_create_by_name_list(normalized_tags)
+      normalized_tags = remove_invalid_tags(normalized_tags)
+      set_tag_string(normalized_tags.map(&:name).uniq.sort.join(" "))
     end
+
+
 
     def remove_dnp_tags(tags)
       tags - ['avoid_posting', 'conditional_dnp']
@@ -826,7 +827,12 @@ class Post < ApplicationRecord
     end
 
     def remove_invalid_tags(tags)
-      # TODO: Should we keep this?
+      tags = tags.reject do |tag|
+        if tag.errors.size > 0
+          self.warnings[:base] << "Can't add tag #{tag.name}: #{tag.errors.full_messages.join('; ')}"
+        end
+        tag.errors.size > 0
+      end
       tags
     end
 
@@ -1903,22 +1909,6 @@ class Post < ApplicationRecord
         # Don't forbid changes if the rating lock was just now set in the same update.
         if !is_rating_locked_changed?
           errors.add(:rating, "is locked and cannot be changed. Unlock the post first.")
-        end
-      end
-    end
-
-    def tag_names_are_valid
-      # only validate new tags; allow invalid names for tags that already exist.
-      added_tags = tag_array - tag_array_was
-      new_tags = added_tags - Tag.where(name: added_tags).pluck(:name)
-
-      new_tags.each do |name|
-        tag = Tag.new
-        tag.name = name
-        tag.valid?
-
-        tag.errors.messages.each do |attribute, messages|
-          errors[:tag_string] << "tag #{attribute} #{messages.join(';')}"
         end
       end
     end

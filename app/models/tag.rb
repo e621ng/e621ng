@@ -1157,7 +1157,8 @@ class Tag < ApplicationRecord
 
   def user_can_create_tag?
     if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_moderator?
-      errors.add(:name, "can not create lore tags unless moderator")
+      errors.add(:base, "Can not create lore tags unless moderator")
+      errors.add(:name, "is invalid")
       return false
     end
     true
