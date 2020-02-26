@@ -343,6 +343,10 @@ fart'
       15000
     end
 
+    def max_tags_per_post
+      2000
+    end
+
     def member_comment_time_threshold
       1.week.ago
     end

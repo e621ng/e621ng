@@ -16,6 +16,7 @@ class Post < ApplicationRecord
   before_validation :apply_source_diff
   before_validation :apply_tag_diff, if: :should_process_tags?
   before_validation :normalize_tags, if: :should_process_tags?
+  before_validation :tag_count_not_insane, if: :should_process_tags?
   before_validation :strip_source
   before_validation :fix_bg_color
   before_validation :blank_out_nonexistent_parents
@@ -743,6 +744,15 @@ class Post < ApplicationRecord
       reset_tag_array_cache
     end
 
+    def tag_count_not_insane
+      max_count = Danbooru.config.max_tags_per_post
+      if Tag.scan_tags(tag_string).size > max_count
+        self.errors.add(:tag_string, "tag count exceeds maximum of #{max_count}")
+        throw :abort
+      end
+      true
+    end
+
     def normalize_tags
       if !locked_tags.nil? && locked_tags.strip.blank?
         self.locked_tags = nil
@@ -755,6 +765,12 @@ class Post < ApplicationRecord
       end
 
       normalized_tags = Tag.scan_tags(tag_string)
+      # Sanity check input, this is checked again on output as well to prevent bad cases where implications push post
+      # over the limit and posts will fail to edit later on.
+      if normalized_tags.size > Danbooru.config.max_tags_per_post
+        self.errors.add(:tag_string, "tag count exceeds maximum of #{Danbooru.config.max_tags_per_post}")
+        throw :abort
+      end
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
       normalized_tags = filter_metatags(normalized_tags)
