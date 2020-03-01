@@ -15,7 +15,7 @@
           <% end %>
         </h4>
         <p>
-          <%= link_to time_ago_in_words_tagged(forum_post.created_at), forum_post_path(forum_post) %>
+          <%= link_to time_ago_in_words_tagged(forum_post.created_at), forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %>
         </p>
       </div>
     </div>
@@ -25,7 +25,7 @@
       </div>
       <%= render "application/update_notice", record: forum_post %>
       <menu>
-        <% if CurrentUser.is_member? && @forum_topic %>
+        <% if CurrentUser.is_member? && @forum_topic && params[:controller] != "forum_posts" %>
           <li><%= tag.a "Reply", href: '#', class: "reply-link forum-post-reply-link" %></li>
         <% end %>
         <% if !forum_post.is_original_post?(original_forum_post_id) %>
