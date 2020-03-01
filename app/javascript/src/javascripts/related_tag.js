@@ -13,9 +13,6 @@ RelatedTag.initialize_all = function() {
   $(document).on("danbooru:open-post-edit-dialog", RelatedTag.hide);
   $(document).on("danbooru:close-post-edit-dialog", RelatedTag.show);
 
-  // Initialize the recent/favorite/translated/artist tag columns once, the first time the related tags are shown.
-  $(document).one("danbooru:show-related-tags", RelatedTag.initialize_recent_and_favorite_tags);
-
   // Show the related tags automatically when the "Edit" tab is opened, or by default on the uploads page.
   $(document).on("danbooru:open-post-edit-tab", RelatedTag.show);
   $(document).on("danbooru:open-post-edit-tab", RelatedTag.init_post_show_editor);
@@ -36,12 +33,7 @@ RelatedTag.init_post_show_editor = function() {
   app.$mount('#tag-string-editor');
 }
 
-RelatedTag.initialize_recent_and_favorite_tags = function(event) {
-  $.get("/related_tag.js", { user_tags: true });
-}
-
 RelatedTag.on_click_related_tags_button = function (event) {
-  $.get("/related_tags.js", { query: RelatedTag.current_tag(), category: $(event.target).data("category") });
   RelatedTag.show();
 }
 
