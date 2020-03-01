@@ -41,7 +41,9 @@ module PostVersionIndex
       q = q.where("id <= ?", options[:to]) if options[:to]
       q = q.where(options[:query]) if options[:query]
 
+      cnt = 0
       q.find_in_batches(batch_size: 10000) do |batch|
+        puts cnt+=1
         batch.map! do |pv|
           {
               index: {

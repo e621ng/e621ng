@@ -119,8 +119,8 @@ class PostArchive < ApplicationRecord
     self.version = PostArchive.calculate_version (self.post_id)
   end
 
-  def fill_changes
-    prev = previous
+  def fill_changes(prev = nil)
+    prev ||= previous
 
     if prev
       self.added_tags = tag_array - prev.tag_array
@@ -141,7 +141,7 @@ class PostArchive < ApplicationRecord
   end
 
   def tag_array
-    tags.split
+    (tags || "").split
   end
 
   def locked_tag_array
