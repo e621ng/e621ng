@@ -24,6 +24,7 @@ module Sources
       private
 
       def illust_id
+        return 0 if parsed_url.nil?
         url = parsed_url
         # http://www.pixiv.net/member_illust.php?mode=medium&illust_id=18557054
         # http://www.pixiv.net/member_illust.php?mode=big&illust_id=18557054

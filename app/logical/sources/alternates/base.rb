@@ -11,7 +11,7 @@ module Sources
 
         @parsed_url = Addressable::URI.heuristic_parse(url) rescue nil
 
-        parse
+        parse if @parsed_url.present?
       end
 
       def force_https?
