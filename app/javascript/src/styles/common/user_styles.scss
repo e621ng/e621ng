@@ -8,18 +8,11 @@ a.user-moderator.with-style {
   color: $rank-moderator-color;
 }
 
-a.user-contributor.with-style {
-  color: $rank-contributor-color;
-}
-
 a.user-janitor.with-style {
   color: $rank-janitor-color;
 }
 
-a.user-privileged.with-style {
-  color: $rank-privileged-color;
-}
-
-a.user-member.with-style {
-  color: $rank-member-color;
+a.user-blocked.with-style {
+  color: $rank-blocked-color;
+  text-decoration: line-through;
 }

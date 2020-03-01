@@ -571,6 +571,10 @@ section#image-extra-controls {
   white-space: normal;
 }
 
+section#tag-list {
+  word-break: break-word;
+}
+
 #tag-list > ul {
   margin-bottom: $quarter-padding;
 }

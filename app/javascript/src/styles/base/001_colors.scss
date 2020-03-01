@@ -116,12 +116,10 @@ $spoiler-hover-color: white;
 $spoiler-link-hover-color: white;
 
 // User Ranks
-$rank-admin-color: red;
-$rank-moderator-color: orange;
-$rank-contributor-color: purple;
-$rank-janitor-color: #63f;
-$rank-privileged-color: #00f;
-$rank-member-color: auto;
+$rank-admin-color: darken(orange, 5%);
+$rank-moderator-color: darken(orange, 5%);
+$rank-janitor-color: darken(red, 15%);
+$rank-blocked-color: black;
 
 // Tag types
 $tag-selected-color: white;
@@ -349,5 +347,5 @@ $tag-category-colors: (
   "5": ("color": #ED5D1F, "hover": lighten(#ED5D1F, 25%)), // Species
   "6": ("color": #ff3d3d, "hover": lighten(#ff3d3d, 25%)), // Invalid
   "7": ("color": #fff, "hover": #666), // Meta
-  "8": ("color": #000, "hover": #888) // Lore
+  "8": ("color": #282, "hover": lighten(#292, 25%)) // Lore
 );
