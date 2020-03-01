@@ -12,8 +12,7 @@
   <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
   <link rel="top" title="<%= Danbooru.config.app_name %>" href="/">
   <%= csrf_meta_tag %>
-  <%= csp_meta_tag %>
-  <% unless CurrentUser.disable_responsive_mode? %>
+  <% unless disable_mobile_mode? %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
   <% end %>
   <meta name="current-user-name" content="<%= CurrentUser.name %>">

@@ -22,6 +22,21 @@ class StaticController < ApplicationController
   def takedown
   end
 
+  def disable_mobile_mode
+    if CurrentUser.is_member?
+      user = CurrentUser.user
+      user.disable_responsive_mode = !user.disable_responsive_mode
+      user.save
+    else
+      if cookies[:nmm]
+        cookies.delete(:nmm)
+      else
+        cookies.permanent[:nmm] = '1'
+      end
+    end
+    redirect_back fallback_location: posts_path
+  end
+
   def discord
     unless CurrentUser.can_discord?
       access_denied message: "You must have an account for at least one week in order to join the Discord server."

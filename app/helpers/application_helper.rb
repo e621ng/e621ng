@@ -1,6 +1,14 @@
 require 'dtext'
 
 module ApplicationHelper
+  def disable_mobile_mode?
+    if CurrentUser.is_member?
+      return CurrentUser.disable_responsive_mode?
+    end
+    cookies[:nmm].present?
+  end
+
+
   def diff_list_html(new, old, latest)
     diff = SetDiff.new(new, old, latest)
     render "diff_list", diff: diff
@@ -225,7 +233,7 @@ module ApplicationHelper
 
     {
       lang: "en",
-      class: "c-#{controller_param} a-#{action_param}",
+      class: "c-#{controller_param} a-#{action_param} #{"resp" unless disable_mobile_mode?}",
       data: {
         controller: controller_param,
         action: action_param,
