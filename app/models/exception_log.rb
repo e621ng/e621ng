@@ -10,7 +10,7 @@ class ExceptionLog < ApplicationRecord
         message: exc.message,
         trace: exc.backtrace.join("\n"),
         code: SecureRandom.uuid,
-        version: Danbooru.config.version,
+        version: "#{Danbooru.config.version} (#{Rails.application.config.x.git_hash})",
         extra_params: params
     )
     log.save!
