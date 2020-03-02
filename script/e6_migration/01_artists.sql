@@ -2,18 +2,19 @@
 
 alter table artists drop column version;
 alter table artists drop column updater_id;
-alter table artists rename column user_id to creator_id;
 alter table artists rename column other_names_array to other_names;
+alter table artists rename column user_id to linked_user_id;
 alter table artists add column created_at timestamp not null default now();
 alter table artists add column is_banned boolean not null default false;
+alter table artists add column creator_id int;
+update artists set creator_id = 1;
+alter table artists alter column creator_id not null;
 alter table artists alter column other_names set default '{}'::text[];
 update artists set other_names = default where other_names is null;
 alter table artists alter column other_names set not null;
 alter table artists alter column group_name set default '';
 update artists set group_name = default where group_name is null;
 alter table artists alter column group_name set not null;
-update artists set creator_id = 1 where creator_id is null;
-alter table artists alter column creator_id set not null;
 
 alter table artist_urls add column created_at timestamp not null default now();
 alter table artist_urls add column updated_at timestamp not null default now();

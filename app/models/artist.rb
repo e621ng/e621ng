@@ -23,6 +23,7 @@ class Artist < ApplicationRecord
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
   has_one :tag_alias, :foreign_key => "antecedent_name", :primary_key => "name"
   has_one :tag, :foreign_key => "name", :primary_key => "name"
+  belongs_to :linked_user, class_name: "User", optional: true
   attribute :notes, :string
 
   scope :active, -> { where(is_active: true) }
@@ -261,11 +262,7 @@ class Artist < ApplicationRecord
   module VersionMethods
     def create_version(force=false)
       if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_is_banned? || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
-        if merge_version?
-          merge_version
-        else
-          create_new_version
-        end
+        create_new_version
       end
     end
 
@@ -282,24 +279,6 @@ class Artist < ApplicationRecord
         :group_name => group_name,
         :notes_changed => saved_change_to_notes?
       )
-    end
-
-    def merge_version
-      prev = versions.last
-      prev.update(
-        :name => name,
-        :urls => url_array,
-        :is_active => is_active,
-        :is_banned => is_banned,
-        :other_names => other_names,
-        :group_name => group_name,
-        :notes_changed => saved_change_to_notes?
-      )
-    end
-
-    def merge_version?
-      prev = versions.last
-      prev && prev.updater_id == CurrentUser.user.id && prev.updated_at > 1.hour.ago
     end
 
     def revert_to!(version)
