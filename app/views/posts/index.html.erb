@@ -38,6 +38,22 @@
         <li id="searchbox-redirect-link"><a href="#search-box">Search &raquo;</a></li>
       </menu>
 
+      <div class="mobile-search">
+        <%= link_to "(search help)", help_page_path(id: "cheatsheet") %>
+        <div class="search-form">
+          <%= form_tag(posts_path, :method => "get") do %>
+            <% if params[:raw] %>
+              <%= hidden_field_tag :raw, params[:raw] %>
+            <% end %>
+            <% if params[:random] %>
+              <%= hidden_field_tag :random, params[:random] %>
+            <% end %>
+            <div class="search-input"><%= text_field_tag("tags", params[:tags], :id => "mobile-search-input", :"data-autocomplete" => "tag-query") %></div>
+            <div class="search-button"><%= content_tag "button", content_tag("i", nil, class: "fas fa-search"), type: "submit" %></div>
+          <% end %>
+        </div>
+      </div>
+
       <%= render "posts/partials/index/edit" %>
       <%= render "posts/partials/index/excerpt", :post_set => @post_set %>
       <%= render "posts/partials/index/posts", :post_set => @post_set %>

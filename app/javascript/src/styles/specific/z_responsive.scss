@@ -22,6 +22,27 @@
 
 @media screen and (max-width: 800px) {
   body.resp {
+    .mobile-search {
+      display: block;
+    }
+    .mobile-search > .search-form > form {
+      box-sizing: border-box;
+      display: flex;
+      width: 100%;
+      margin-bottom: $quarter-padding;
+      .search-input {
+        width: 100%;
+        input {
+          width: 100%;
+        }
+        flex-grow: 1;
+      }
+      .search-button > button {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
     .guest-warning {
       .guest-warning-dialog {
         top: 5vh;
