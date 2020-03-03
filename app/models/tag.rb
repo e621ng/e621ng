@@ -399,7 +399,7 @@ class Tag < ApplicationRecord
     end
 
     def ago_helper(target)
-      target =~ /\A(\d+)(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)(ago)?\z/i
+      target =~ /\A(\d+)_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)_?(ago)?\z/i
 
       size = $1.to_i
       unit = $2
