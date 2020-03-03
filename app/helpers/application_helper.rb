@@ -198,13 +198,16 @@ module ApplicationHelper
     html.html_safe
   end
 
-  def dtext_field(object, name, options = {})
+  def dtext_field(object, name, **options)
     options[:name] ||= name.capitalize
     options[:input_id] ||= "#{object}_#{name}"
     options[:input_name] ||= "#{object}[#{name}]"
     options[:value] ||= instance_variable_get("@#{object}").try(name)
     options[:preview_id] ||= "dtext-preview"
     options[:classes] ||= ""
+    options[:input_classes] ||= ""
+    options[:rows] ||= 10
+    options[:cols] ||= 80
     options[:type] ||= "text"
 
     render "dtext/form", options
