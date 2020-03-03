@@ -8,7 +8,7 @@ if defined?(Unicorn) && ENV["RAILS_ENV"] == "production"
   use Unicorn::WorkerKiller::MaxRequests, 5_000, 10_000
 
   # Max memory size (RSS) per worker
-  use Unicorn::WorkerKiller::Oom, (192*(1024**2)), (256*(1024**2))
+  use Unicorn::WorkerKiller::Oom, (386*(1024**2)), (768*(1024**2))
 end
 
 require ::File.expand_path('../config/environment',  __FILE__)
