@@ -9,16 +9,17 @@
    policy.script_src  :self, 'ads.dragonfru.it', 'js-agent.newrelic.com', 'bam.nr-data.net'
    policy.style_src   :self, :unsafe_inline
    policy.connect_src :self, 'ads.dragonfru.it', 'bam.nr-data.net'
-   policy.object_src  :self, 'static1.e621.net'
+   policy.object_src  :self, 'static1.e621.net', 'static1.e926.net'
    policy.frame_ancestors :none
    policy.font_src    :self
-   policy.img_src     :self, :data, 'static1.e621.net', 'ads.dragonfru.it'
+   policy.img_src     :self, :data, 'static1.e621.net', 'static1.e926.net', 'ads.dragonfru.it'
    policy.child_src   :none
+   policy.form_action :self
 #   # If you are using webpack-dev-server then specify webpack-dev-server host
 #   policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 
 #   # Specify URI for violation reports
-    policy.report_uri "/csp-violation"
+# policy.report_uri "/csp-violation"
  end
 
 # If you are using UJS then enable automatic nonce generation
