@@ -89,6 +89,7 @@ CREATE INDEX index_pools_on_creator_id ON pools USING btree (creator_id);
 CREATE INDEX index_pools_on_lower_name ON pools USING btree (lower(name::text));
 CREATE INDEX index_pools_on_name ON pools USING btree (name);
 CREATE INDEX index_pools_on_updated_at ON pools USING btree (updated_at);
+CREATE INDEX index_pools_on_post_ids ON pools USING gin (post_ids);
 
 
 CREATE INDEX index_post_appeals_on_created_at ON post_appeals USING btree (created_at);
