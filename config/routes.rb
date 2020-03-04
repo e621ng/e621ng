@@ -433,6 +433,8 @@ Rails.application.routes.draw do
   get "/pool/history/:id" => redirect("/pool_versions?search[pool_id]=%{id}")
   get "/pool/recent_changes" => redirect("/pool_versions")
 
+  get "/post/index/:page/:tags" => redirect {|params, req| "/posts?tags=#{CGI::escape(params[:tags].to_s)}&page=#{params[:page].to_i}"}
+  get "/post/index/:page" => redirect {|params, req| "/posts?tags=&page=#{params[:page].to_i}"}
   get "/post/index" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post/upload" => redirect("/uploads/new")
