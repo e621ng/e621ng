@@ -102,9 +102,15 @@ class ApplicationController < ActionController::Base
 
     # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
     layout = CurrentUser.user.present? ? "default" : "blank"
+
+    if status == 404
+      return render "static/404", layout: layout, status: status, formats: format
+    end
+
     if !CurrentUser.user&.try(:is_janitor?)
       @message = "An unexpected error occurred."
     end
+
 
     DanbooruLogger.log(@exception, expected: @expected)
     log = ExceptionLog.add(exception, CurrentUser.ip_addr, {
