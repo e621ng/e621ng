@@ -1,19 +1,19 @@
-import LS from "./local_storage";
+import Cookie from "./cookie";
 
 const GuestWarning = {
   init() {
     const hider = $(".guest-warning");
-    const gw = LS.get("gw");
+    const gw = Cookie.get("gw");
     if (gw === "seen" || $("#a-terms-of-service").length > 0) {
       return;
     }
     hider.show();
     $("#guest-warning-accept").on('click', function() {
-      LS.put("gw", "seen");
+      Cookie.put("gw", "seen");
       hider.hide();
     });
     $("#guest-warning-decline").on('click', function() {
-      LS.put("gw", "reject");
+      Cookie.put("gw", "reject");
       window.location.assign("https://www.google.com/");
     });
   }
