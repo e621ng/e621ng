@@ -13,8 +13,8 @@
       <tr>
         <td>
           <%= link_to activity.comment.body, post_path(activity.comment.post_id) %>
-          <% if activity.comment.is_deleted? %>
-            <span class="inactive">(deleted)</span>
+          <% if activity.comment.is_hidden? %>
+            <span class="inactive">(hidden)</span>
           <% end %>
         </td>
         <td><%= mod_link_to_user(activity.comment.creator, :negative) %></td>
