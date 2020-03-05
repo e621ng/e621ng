@@ -33,7 +33,7 @@ class SessionLoader
   end
 
   def has_api_authentication?
-    request.authorization.present? || params[:login].present? || params[:api_key].present? || params[:password_hash].present?
+    request.authorization.present? || params[:login].present? || params[:api_key].present?
   end
 
   def has_remember_token?

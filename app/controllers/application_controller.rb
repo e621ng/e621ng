@@ -61,25 +61,25 @@ class ApplicationController < ActionController::Base
 
     case exception
     when APIThrottled
-      render_error_page(429, exception, message: "Too many requests")
+      render_expected_error(429, "Throttled: Too many requests")
     when ActiveRecord::QueryCanceled
       render_error_page(500, exception, message: "The database timed out running your query.")
     when ActionController::BadRequest
       render_error_page(400, exception)
     when SessionLoader::AuthenticationFailure
-      render_error_page(401, exception)
+      render_expected_error(401, exception.message)
     when ActionController::InvalidAuthenticityToken
       render_error_page(403, exception)
     when ActiveRecord::RecordNotFound
-      render_error_page(404, exception, message: "That record was not found.")
+      render_404
     when ActionController::RoutingError
       render_error_page(405, exception)
     when ActionController::UnknownFormat, ActionView::MissingTemplate
       render_error_page(406, exception, message: "#{request.format.to_s} is not a supported format for this page", format: :html)
     when Danbooru::Paginator::PaginationError
-      render_error_page(410, exception)
+      render_expected_error(410, exception.message)
     when Post::SearchError
-      render_error_page(422, exception)
+      render_expected_error(422, exception.message)
     when NotImplementedError
       render_error_page(501, exception, message: "This feature isn't available: #{exception.message}")
     when PG::ConnectionBad
@@ -93,6 +93,13 @@ class ApplicationController < ActionController::Base
     render "static/404", formats: [:html, :json, :atom]
   end
 
+  def render_expected_error(status, message, format: request.format.symbol)
+    format = :html unless format.in?(%i[html json atom])
+    layout = CurrentUser.user.present? ? "default" : "blank"
+    @message = message
+    render "static/error", layout: layout, status: status, formats: format
+  end
+
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
     @exception = exception
     @expected = status < 500
@@ -103,11 +110,7 @@ class ApplicationController < ActionController::Base
     # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
     layout = CurrentUser.user.present? ? "default" : "blank"
 
-    if status == 404
-      return render "static/404", layout: layout, status: status, formats: format
-    end
-
-    if !CurrentUser.user&.try(:is_janitor?)
+    if !CurrentUser.user&.try(:is_janitor?) && message == exception.message
       @message = "An unexpected error occurred."
     end
 
@@ -119,7 +122,7 @@ class ApplicationController < ActionController::Base
         user_id: CurrentUser.id,
         referrer: request.referrer,
         user_agent: request.user_agent
-    })
+    }) if !@expected
     @log_code = log&.code
     render "static/error", layout: layout, status: status, formats: format
   end
