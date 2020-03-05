@@ -15,7 +15,7 @@
    policy.font_src    :self
    policy.img_src     :self, :data, 'static1.e621.net', 'static1.e926.net', 'ads.dragonfru.it'
    policy.child_src   :none
-   policy.form_action :self, 'discord.e621.net'
+   policy.form_action :self, 'discord.e621.net', 'discordapp.com'
 #   # If you are using webpack-dev-server then specify webpack-dev-server host
 #   policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 
