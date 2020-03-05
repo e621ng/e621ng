@@ -30,6 +30,8 @@ Disallow: /post_flags
 Disallow: /post_sets
 Disallow: /post_versions
 Disallow: /post_votes
+Disallow: /post
+Disallow: /posts
 Disallow: /posts.atom
 Disallow: /posts/random
 Disallow: /posts/copy_notes
@@ -45,6 +47,8 @@ Disallow: /tag_corrections
 Disallow: /tag_implication_requests
 Disallow: /tag_implications
 Disallow: /tags
+Disallow: /tickets
+Disallow: /takedowns
 Disallow: /uploads
 Disallow: /user_feedback
 Disallow: /users
@@ -52,3 +56,17 @@ Disallow: /wiki_page_versions
 Disallow: /wiki_pages/new
 Disallow: /wiki_pages/revert
 Disallow: /wiki_pages/show_or_new
+
+User-agent: MJ12bot
+User-agent: dotbot
+User-agent: coccocbot-web
+User-agent: BLEXBot
+User-agent: HTTrack
+User-agent: Slurp
+User-agent: Baiduspider
+User-agent: Yandex
+User-agent: magpie-crawler
+User-agent: SemrushBot
+User-agent: SemrushBot-SA
+User-agent: AhrefsBot 
+Disallow: /
