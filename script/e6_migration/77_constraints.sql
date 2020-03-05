@@ -351,14 +351,6 @@ ALTER TABLE ONLY public.tag_implications
 
 
 --
--- Name: tag_subscriptions tag_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tag_subscriptions
-    ADD CONSTRAINT tag_subscriptions_pkey PRIMARY KEY (id);
-
-
---
 -- Name: tag_type_versions tag_type_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 

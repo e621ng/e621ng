@@ -119,9 +119,11 @@ ALTER TABLE public.post_versions ADD CONSTRAINT post_versions_pkey PRIMARY KEY (
 
 
 -- Deduplicate
+create index tmp_post_votes on post_votes(user_id, post_id);
 DELETE FROM post_votes a USING post_votes b
     WHERE a.id < b.id
     AND a.user_id = b.user_id AND a.post_id = b.post_id;
+drop index tmp_post_votes;
 CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON post_votes USING btree (user_id, post_id);
 CREATE INDEX index_post_votes_on_post_id ON post_votes USING btree (post_id);
 
@@ -155,11 +157,8 @@ CREATE INDEX index_tag_aliases_on_post_count ON tag_aliases USING btree (post_co
 CREATE INDEX index_tag_implications_on_antecedent_name ON tag_implications USING btree (antecedent_name);
 CREATE INDEX index_tag_implications_on_consequent_name ON tag_implications USING btree (consequent_name);
 CREATE INDEX index_tag_implications_on_forum_post_id ON tag_implications USING btree (forum_post_id);
-CREATE INDEX index_tag_subscriptions_on_creator_id ON tag_subscriptions USING btree (creator_id);
-CREATE INDEX index_tag_subscriptions_on_name ON tag_subscriptions USING btree (name);
 CREATE INDEX index_tag_type_versions_on_creator_id ON tag_type_versions USING btree (creator_id);
 CREATE INDEX index_tag_type_versions_on_tag_id ON tag_type_versions USING btree (tag_id);
-ALTER TABLE public.tag_type_versions ADD CONSTRAINT tag_type_versions_pkey PRIMARY KEY (id);
 
 CREATE INDEX index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id ON tag_rel_undos USING btree (tag_rel_type, tag_rel_id);
 ALTER TABLE tag_rel_undos ADD CONSTRAINT tag_rel_undos_pkey PRIMARY KEY (id);
@@ -179,7 +178,6 @@ CREATE INDEX index_user_name_change_requests_on_original_name ON user_name_chang
 CREATE INDEX index_user_name_change_requests_on_user_id ON user_name_change_requests USING btree (user_id);
 
 
-CREATE UNIQUE INDEX user_password_reset_nonces_pkey ON user_password_reset_nonces USING btree (id);
 ALTER TABLE public.user_password_reset_nonces ADD CONSTRAINT user_password_reset_nonces_pkey PRIMARY KEY (id); -- (1);
 
 

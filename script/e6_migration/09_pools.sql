@@ -7,11 +7,13 @@ alter table pools add column category character varying(30) not null default 'se
 add column is_deleted boolean not null default false;
 -- Update to support locking in model
 alter table pools add column post_ids integer[] not null default '{}'::integer[];
+create index temp_pool_posts_ids on pools_posts(pool_id);
+create unique index temp_pool_ids on pools(id);
 update pools set post_ids = (select coalesce(array_agg(x.post_id), '{}'::integer[]) from (select _.post_id from pools_posts _ where _.pool_id = pools.id order by _.sequence) x);
 drop table pools_posts;
+drop index temp_pool_ids;
 
 alter table pool_updates rename to pool_versions;
-alter table pool_versions drop column is_locked;
 alter table pool_versions alter column post_ids drop default;
 alter table pool_versions alter column post_ids type integer[] using (string_to_array(post_ids, ' ')::integer[]);
 update pool_versions set post_ids = coalesce((select array_agg(val) from unnest(post_ids) with ordinality as t(val, idx) WHERE idx % 2 = 1), '{}'::integer[]);

@@ -8,7 +8,7 @@ alter table artists add column created_at timestamp not null default now();
 alter table artists add column is_banned boolean not null default false;
 alter table artists add column creator_id int;
 update artists set creator_id = 1;
-alter table artists alter column creator_id not null;
+alter table artists alter column creator_id set not null;
 alter table artists alter column other_names set default '{}'::text[];
 update artists set other_names = default where other_names is null;
 alter table artists alter column other_names set not null;
