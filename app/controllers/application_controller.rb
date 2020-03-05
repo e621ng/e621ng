@@ -157,7 +157,7 @@ class ApplicationController < ActionController::Base
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
-    CurrentUser.safe_mode = false
+    CurrentUser.safe_mode = Danbooru.config.safe_mode
     CurrentUser.root_url = root_url.chomp("/")
   end
 
