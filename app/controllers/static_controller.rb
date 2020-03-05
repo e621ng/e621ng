@@ -39,7 +39,7 @@ class StaticController < ApplicationController
 
   def discord
     unless CurrentUser.can_discord?
-      access_denied message: "You must have an account for at least one week in order to join the Discord server."
+      raise User::PrivilegeError.new("You must have an account for at least one week in order to join the Discord server.")
       return
     end
     if request.post?
