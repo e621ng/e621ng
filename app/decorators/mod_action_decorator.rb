@@ -7,6 +7,7 @@ class ModActionDecorator < ApplicationDecorator
 
   def format_description
     vals = object.values
+    return "" if vals.nil?
 
     if vals['user_id']
       user = "\"#{User.id_to_name(vals['user_id'])}\":/users/#{vals['user_id']}"
