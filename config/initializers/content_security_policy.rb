@@ -10,6 +10,7 @@
    policy.style_src   :self, :unsafe_inline
    policy.connect_src :self, 'ads.dragonfru.it', 'bam.nr-data.net'
    policy.object_src  :self, 'static1.e621.net', 'static1.e926.net'
+   policy.media_src   :self, 'static1.e621.net', 'static1.e926.net'
    policy.frame_ancestors :none
    policy.font_src    :self
    policy.img_src     :self, :data, 'static1.e621.net', 'static1.e926.net', 'ads.dragonfru.it'
