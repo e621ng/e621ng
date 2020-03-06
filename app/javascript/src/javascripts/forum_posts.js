@@ -13,6 +13,7 @@ ForumPost.initialize_all = function() {
 }
 
 ForumPost.quote = function (e) {
+  e.preventDefault();
   const parent = $(e.target).parents('article.forum-post');
   const fpid = parent.data('forum-post-id');
   $.ajax({
@@ -36,6 +37,9 @@ ${stripped_body}
     $textarea.val(msg);
     $textarea.selectEnd();
     $('#topic-response').show();
+    setTimeout(function() {
+      $('#topic-response')[0].scrollIntoView();
+    }, 15);
   }).fail(function (data) {
     Utility.error(data.responseText);
   });
