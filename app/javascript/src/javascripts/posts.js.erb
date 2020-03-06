@@ -18,7 +18,7 @@ Post.initialize_all = function() {
 
   if ($("#c-posts").length && $("#a-index").length) {
     this.initialize_excerpt();
-    this.initialize_gestures();
+//    this.initialize_gestures();
   }
 
   if ($("#c-posts").length && $("#a-show").length) {
@@ -28,7 +28,7 @@ Post.initialize_all = function() {
     this.initialize_post_sections();
     this.initialize_resize();
     this.initialize_similar();
-    this.initialize_gestures();
+//    this.initialize_gestures();
     this.initialize_voting();
     this.initialize_moderation();
   }
@@ -181,6 +181,7 @@ Post.has_prev_target = function() {
 }
 
 Post.initialize_gestures = function() {
+  return;
   if (Utility.meta("disable-mobile-gestures") === "true") {
     return;
   }
