@@ -56,12 +56,13 @@ class ElasticPostQueryBuilder
     must = tags[:related].map {|x| {term: {tags: x}}}
     must_not = tags[:exclude].map {|x| {term: {tags: x}}}
 
-    relation.push({bool: {
-        minimum_should_match: 1,
+    search = {bool: {
         should: should,
         must: must,
         must_not: must_not,
-    }})
+    }}
+    search[:bool][:minimum_should_match] = 1 if should.size > 0
+    relation.push(search)
   end
 
   def table_for_metatag(metatag)
@@ -118,6 +119,7 @@ class ElasticPostQueryBuilder
 
   def build
     def should(*args)
+      # Explicitly set minimum should match, even though it may not be required in this context.
       {bool: {minimum_should_match: 1, should: args}}
     end
 
