@@ -25,6 +25,8 @@ class FavoritesController < ApplicationController
     flash.now[:notice] = "You have favorited this post"
 
     respond_with(@post)
+  rescue Favorite::Error, ActiveRecord::RecordInvalid => x
+    render_expected_error(422, x.message)
   end
 
   def destroy
@@ -33,5 +35,7 @@ class FavoritesController < ApplicationController
 
     flash.now[:notice] = "You have unfavorited this post"
     respond_with(@post)
+  rescue Favorite::Error => x
+    render_expected_error(422, x.message)
   end
 end
