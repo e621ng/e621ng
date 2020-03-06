@@ -523,7 +523,7 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger_on_post?(flag)
-      is_janitor? || flag.creator_id == id
+      is_janitor? || flag.creator_id == id || flag.is_deletion
     end
 
     def can_upload?
