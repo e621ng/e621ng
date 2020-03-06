@@ -25,7 +25,7 @@ class UsersController < ApplicationController
         redirect_to user_path(@user)
       end
     else
-      @users = User.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+      @users = User.search(user_search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
       respond_with(@users) do |format|
         format.json do
           render json: @users.to_json
@@ -125,5 +125,11 @@ class UsersController < ApplicationController
     permitted_params += [:name, :email] if context == :create
 
     params.require(:user).permit(permitted_params)
+  end
+
+  def user_search_params
+    permitted_params = %i[name_matches level min_level max_level can_upload_free can_approve_posts order]
+    permitted_params += [:email_matches] if CurrentUser.is_admin?
+    params.fetch(:search, {}).permit(permitted_params)
   end
 end

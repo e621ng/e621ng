@@ -793,6 +793,10 @@ class User < ApplicationRecord
       # q = q.attribute_matches(:note_update_count, params[:note_update_count])
       # q = q.attribute_matches(:favorite_count, params[:favorite_count])
 
+      if params[:email_matches].present? && CurrentUser.is_admin?
+        q = q.where_ilike(:email, params[:email_matches])
+      end
+
       if params[:name_matches].present?
         q = q.where_ilike(:name, normalize_name(params[:name_matches]))
       end
