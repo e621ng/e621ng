@@ -519,11 +519,11 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger?(flagger_id)
-      is_moderator? || flagger_id == id
+      is_janitor? || flagger_id == id
     end
 
     def can_view_flagger_on_post?(flag)
-      is_moderator? || flag.creator_id == id
+      is_janitor? || flag.creator_id == id
     end
 
     def can_upload?
