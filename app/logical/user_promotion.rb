@@ -34,7 +34,7 @@ class UserPromotion
       user.no_flagging = options[:no_flagging]
     end
 
-    create_user_feedback unless options[:is_upgbrade]
+    create_user_feedback unless options[:is_upgrade]
     create_dmail unless options[:skip_dmail]
     create_mod_actions
 

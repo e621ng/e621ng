@@ -13,6 +13,8 @@ module Admin
       @user.update!(user_params)
       @user.mark_verified! if params[:user][:verified] == 'true'
       @user.mark_unverified! if params[:user][:verified] == 'false'
+      params[:user][:is_upgrade] = true
+      params[:user][:skip_dmail] = true
       @user.promote_to!(params[:user][:level], params[:user])
       if old_username != desired_username
         change_request = UserNameChangeRequest.create!({
@@ -23,7 +25,7 @@ module Admin
                                                            skip_limited_validation: true})
         change_request.approve!
       end
-      redirect_to edit_admin_user_path(@user), :notice => "User updated"
+      redirect_to user_path(@user), :notice => "User updated"
     end
 
     def edit_blacklist
@@ -54,7 +56,7 @@ module Admin
     private
 
     def user_params
-      params.require(:user).slice(:profile_about, :profile_artinfo, :email).permit([:profile_about, :profile_artinfo, :email])
+      params.require(:user).slice(:profile_about, :profile_artinfo, :email, :base_upload_limit).permit([:profile_about, :profile_artinfo, :email, :base_upload_limit])
     end
   end
 end
