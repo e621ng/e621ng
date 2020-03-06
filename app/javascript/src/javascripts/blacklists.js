@@ -241,6 +241,8 @@ Blacklist.post_match = function (post, entry) {
     user: $post.data('uploader').toString().toLowerCase(),
     flags: $post.data('flags')
   };
+
+  
   return Blacklist.post_match_object(post_data, entry);
 };
 
