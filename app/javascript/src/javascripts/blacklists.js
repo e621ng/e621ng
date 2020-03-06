@@ -238,7 +238,7 @@ Blacklist.post_match = function (post, entry) {
     tags: $post.data('tags'),
     rating: $post.data('rating'),
     uploader_id: $post.data('uploader-id'),
-    user: $post.data('uploader').toLowerCase(),
+    user: $post.data('uploader').toString().toLowerCase(),
     flags: $post.data('flags')
   };
   return Blacklist.post_match_object(post_data, entry);
