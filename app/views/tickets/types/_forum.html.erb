@@ -2,7 +2,7 @@
   <tr>
     <td><span class='title'>Reported Forum Post</span></td>
     <td>
-      <%= link_to("Post by #{@ticket.forum.creator.name} in '#{@ticket.forum.topic.title}'", forum_topic_path(@ticket.forum.topic)) %>
+      <%= link_to("Post by #{@ticket.forum.creator.name} in '#{@ticket.forum.topic.title}'", forum_post_path(@ticket.forum)) %>
     </td>
   </tr>
 <% else %>
