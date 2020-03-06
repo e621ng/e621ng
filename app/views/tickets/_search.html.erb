@@ -8,7 +8,7 @@
     <%= f.input :accused_name, label: "Accused", input_html: {value: params[:search][:accused_name]} %>
   <% end %>
   <%= f.input :type, collection: [
-      ["Any", "any"],
+      ["Any", ""],
       ["User complaint", "user"],
       ["Private message complaint", "dmail"],
       ["Comment complaint", "comment"],
@@ -21,7 +21,7 @@
       ["Post complaint", "post"]
   ], selected: params[:search][:type] %>
   <%= f.input :status, collection: [
-      ["Any", "any"],
+      ["Any", ""],
       ["Approved/investigated", "approved"],
       ["Under investigation", "partial"],
       ["Pending", "pending"],
