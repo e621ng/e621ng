@@ -57,6 +57,7 @@ class ElasticPostQueryBuilder
     must_not = tags[:exclude].map {|x| {term: {tags: x}}}
 
     relation.push({bool: {
+        minimum_should_match: 1,
         should: should,
         must: must,
         must_not: must_not,
@@ -117,7 +118,7 @@ class ElasticPostQueryBuilder
 
   def build
     def should(*args)
-      {bool: {should: args}}
+      {bool: {minimum_should_match: 1, should: args}}
     end
 
     if query_string.is_a?(Hash)
@@ -355,12 +356,7 @@ class ElasticPostQueryBuilder
       neg_ids = q[:parent_neg_ids].map(&:to_i)
       neg_ids.delete(0)
       if neg_ids.present?
-        # Negated version of the above
-        must_not.push({bool: {
-            should: [
-                {term: {parent: q[:parent].to_i}},
-            ],
-        }})
+        must_not.push(should(*(neg_ids.map {|p| {term: {parent: p}}})))
       end
     end
 
