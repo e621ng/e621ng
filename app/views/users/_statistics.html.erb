@@ -116,10 +116,16 @@
         </tr>
       <% end %>
 
-      <% if (CurrentUser.id == user.id || CurrentUser.is_janitor?) && presenter.previous_names(self).present? %>
+      <% if (CurrentUser.id == user.id || CurrentUser.is_janitor?) %>
         <tr>
+          <% if presenter.previous_names(self).present? %>
           <th>Previous Names</th>
           <td><%= presenter.previous_names(self) %></td>
+          <% end %>
+          <% if CurrentUser.is_admin? %>
+          <th>Email</th>
+          <td><%= user.email %></td>
+          <% end %>
         </tr>
       <% end %>
       </tbody>
