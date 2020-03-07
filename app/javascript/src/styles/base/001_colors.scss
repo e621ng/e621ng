@@ -267,8 +267,8 @@ $note-box-highlighted-outline: $note-highlight-color;
 $note-preview-background: white;
 
 // Pools
-$pool-series-link-color: #A0A;
-$pool-series-link-hover-color: #B6B;
+$pool-series-link-color: $link-color;
+$pool-series-link-hover-color: $link-hover-color;
 $pool-collection-link-color: $link-color;
 $pool-collection-link-hover-color: $link-hover-color;
 
