@@ -200,10 +200,10 @@ class Takedown < ApplicationRecord
       q = super
 
       if params[:source].present?
-        q = q.where('source ILIKE ?', params[:source].to_escaped_for_sql_like)
+        q = q.where_ilike(:source, params[:source])
       end
       if params[:reason].present?
-        q = q.where('reason ILIKE ?', params[:reason].to_escaped_for_sql_like)
+        q = q.where_ilike(:reason, params[:reason])
       end
       if params[:ip_addr].present?
         q = q.where('creator_ip_addr <<= ?', params[:ip_addr])
@@ -215,7 +215,7 @@ class Takedown < ApplicationRecord
         q = q.where('takedowns.creator_id = (select _.id from users _ WHERE lower(_.name) ? ?)', params[:creator_name].tr(' ', '_').downcase)
       end
       if params[:email].present?
-        q = q.where('email ILIKE ?', params[:email].to_escaped_for_sql_like)
+        q = q.where_ilike(:email, params[:email])
       end
       if params[:vericode].present?
         q = q.where('vericode = ?', params[:vericode])
