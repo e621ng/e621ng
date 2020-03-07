@@ -7,9 +7,9 @@ GIT
 
 GIT
   remote: https://github.com/zwagoth/dtext_rb.git
-  revision: a89945a72aaff57762109110ce6d986f327ae459
+  revision: 755de326b233eeb7a06388372f88f3e1cb869f6f
   specs:
-    dtext_rb (1.10.15)
+    dtext_rb (1.10.16)
       nokogiri (~> 1.8)
 
 GEM
@@ -245,9 +245,9 @@ GEM
     netrc (0.11.0)
     newrelic_rpm (6.9.0.363)
     nio4r (2.5.2)
-    nokogiri (1.10.8)
+    nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
-    nokogiri (1.10.8-x64-mingw32)
+    nokogiri (1.10.9-x64-mingw32)
       mini_portile2 (~> 2.4.0)
     nokogumbo (2.0.2)
       nokogiri (~> 1.8, >= 1.8.4)
@@ -495,4 +495,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-   2.0.1
+   2.1.2
