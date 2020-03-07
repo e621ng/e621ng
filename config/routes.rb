@@ -421,7 +421,7 @@ Rails.application.routes.draw do
   get "/forum/show/:id" => redirect {|params, req| "/forum_posts/#{req.params[:id]}?page=#{req.params[:page]}"}
   get "/forum/search" => redirect("/forum_posts/search")
 
-  get "/help/:title" => redirect {|params, req| ("/wiki_pages?title=#{CGI::escape('help:' + req.params[:title])}")}
+  get "/help/show/:title" => redirect("/help/%{title}")
 
   get "/note" => redirect {|params, req| "/notes?page=#{req.params[:page]}"}
   get "/note/index" => redirect {|params, req| "/notes?page=#{req.params[:page]}"}
@@ -471,6 +471,7 @@ Rails.application.routes.draw do
   get "/wiki" => redirect {|params, req| "/wiki_pages?page=#{req.params[:page]}"}
   get "/wiki/index" => redirect {|params, req| "/wiki_pages?page=#{req.params[:page]}"}
   get "/wiki/rename" => redirect("/wiki_pages")
+  get "/wiki/show/:title" => redirect("/wiki_pages/%{title}")
   get "/wiki/show" => redirect {|params, req| "/wiki_pages?title=#{CGI::escape(req.params[:title].to_s)}"}
   get "/wiki/recent_changes" => redirect {|params, req| "/wiki_page_versions?search[updater_id]=#{req.params[:user_id]}"}
   get "/wiki/history/:title" => redirect("/wiki_page_versions?title=%{title}")
