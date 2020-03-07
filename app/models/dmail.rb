@@ -184,7 +184,7 @@ class Dmail < ApplicationRecord
       q = q.read if params[:read].to_s.truthy?
       q = q.unread if params[:read].to_s.falsy?
 
-      q.apply_default_order(params)
+      q.order(created_at: :desc)
     end
   end
 
