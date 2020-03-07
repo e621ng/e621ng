@@ -590,7 +590,7 @@ class Ticket < ApplicationRecord
 
 
 
-      q.apply_default_order(params)
+      q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
     end
   end
 
