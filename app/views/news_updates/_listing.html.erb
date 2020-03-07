@@ -1,7 +1,7 @@
 <% if NewsUpdate.recent.present? %>
   <div class="ui-state-highlight site-notice" style="display: none;" id="news" data-id="<%= NewsUpdate.recent[0].id %>">
     <div id="news-closebutton" class="closebutton">Dismiss</div>
-    <h6><%= link_to("News", news_updates_path) %> - <%= NewsUpdate.recent[0].created_at.strftime("%b %d, %Y") %>
+    <h6>News - <%= NewsUpdate.recent[0].created_at.strftime("%b %d, %Y") %>
       (<%= time_ago_in_words NewsUpdate.recent[0].created_at %> ago)
       <span id="news-showtext" class="showtext">Click to show.</span>
     </h6>
