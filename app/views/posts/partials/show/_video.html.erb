@@ -3,3 +3,18 @@
 <% else %>
 	<%= content_tag(:video, nil, :id => "image", class: post.display_class_for(CurrentUser.user), :"data-original-width" => post.image_width, :"data-original-height" => post.image_height, :loop => "true", :controls => "controls",  poster: post.large_file_url, :src => post.tagged_file_url) %>
 <% end %>
+
+<%= javascript_tag nonce: true do -%>
+  (function () {
+    var videoEl = document.getElementById('image');
+    var savedVolume = parseFloat(localStorage.getItem('video_volume') || '1.0');
+    if (videoEl) {
+      videoEl.volume = savedVolume;
+      videoEl.addEventListener('volumechange', function (evt) {
+      if (evt.target) {
+        localStorage.setItem('video_volume', evt.target.volume);
+      }
+    });
+  }
+  })();
+<% end -%>
