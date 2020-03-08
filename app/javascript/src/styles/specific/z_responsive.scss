@@ -314,6 +314,10 @@
 
     header#top menu.main {
       padding: 5px 10px;
+
+      li.current a {
+        border-radius: 6px;
+      }
     }
 
     h1 {
