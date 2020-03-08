@@ -82,7 +82,7 @@
         <% end %>
         <% if @post.visible? %>
           <div id="image-download-link">
-            <%= link_to "Download", @post.file_url, target: "_blank" %>
+            <%= link_to "Download", @post.file_url %>
           </div>
         <% end %>
         <% if !@post.force_original_size?(params[:original]) %>
@@ -189,7 +189,7 @@
 </div>
 
 <% content_for(:page_title) do %>
-  <%= @post.presenter.humanized_essential_tag_string %> - <%= Danbooru.config.app_name %>
+  #<%= @post.id %> - <%= Danbooru.config.app_name %>
 <% end %>
 
 <% content_for(:html_header) do %>
