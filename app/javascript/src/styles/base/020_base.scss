@@ -2,6 +2,7 @@
 
 body {
   background-color: $main-background;
+  background-image: $main-background-texture;
   color: $text-color;
   font-family: $base_font_family;
   font-size: 87.5%;
@@ -112,11 +113,7 @@ p.info {
 
 
 #page {
-  background-color: $content-background;
-}
-
-#top, #page-footer {
-  background-color: $main-background;
+  background: $content-background $content-background-texture repeat-x left top;
 }
 
 .greentext, .greentext a, .approved-ticket { color: $green-text-color !important; font-weight:bold; }
