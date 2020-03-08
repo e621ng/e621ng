@@ -41,6 +41,7 @@ header#top {
     li.current a {
       background: $menu-background;
       font-weight: bold;
+      border-radius: 6px 6px 0 0;
     }
 
     li#nav-sign-in a {
