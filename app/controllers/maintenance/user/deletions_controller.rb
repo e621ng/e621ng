@@ -2,6 +2,7 @@ module Maintenance
   module User
     class DeletionsController < ApplicationController
       def show
+        raise ::User::PrivilegeError.new("Temporarily disabled while being worked on. Check back later.")
       end
 
       def destroy
