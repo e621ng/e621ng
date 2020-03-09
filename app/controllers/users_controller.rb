@@ -76,7 +76,7 @@ class UsersController < ApplicationController
       respond_with(@user)
     else
       flash[:notice] = "Sign up failed"
-      redirect_to new_user_path
+      respond_with(@user)
     end
   end
 
