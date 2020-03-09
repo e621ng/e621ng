@@ -6,13 +6,13 @@
 
  Rails.application.config.content_security_policy do |policy|
    policy.default_src :self
-   policy.script_src  :self, 'ads.dragonfru.it', 'js-agent.newrelic.com', 'bam.nr-data.net', 'https://www.google.com/recaptcha/', 'https://www.gstatic.com/recaptcha/'
+   policy.script_src  :self, 'ads.dragonfru.it', 'js-agent.newrelic.com', 'bam.nr-data.net', 'https://www.google.com/recaptcha/', 'https://www.gstatic.com/recaptcha/', 'https://www.recaptcha.net/'
    policy.style_src   :self, :unsafe_inline
    policy.connect_src :self, 'ads.dragonfru.it', 'bam.nr-data.net'
    policy.object_src  :self, 'static1.e621.net', 'static1.e926.net'
    policy.media_src   :self, 'static1.e621.net', 'static1.e926.net'
    policy.frame_ancestors :none
-   policy.frame_src   'https://www.google.com/recaptcha/'
+   policy.frame_src   'https://www.google.com/recaptcha/', 'https://www.recaptcha.net/'
    policy.font_src    :self
    policy.img_src     :self, :data, 'static1.e621.net', 'static1.e926.net', 'ads.dragonfru.it'
    policy.child_src   :none
