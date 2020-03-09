@@ -77,19 +77,13 @@
   <%= raw Danbooru.config.custom_html_header_content %>
   <style id="blacklisted-hider">
     .post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail {
-      display: none !important;
+      visibility: hidden !important;
     }
   </style>
   <noscript>
     <style>
-      .post-preview, .mod-queue-preview.post-preview, .post-thumbnail {
-        display: inline-block !important;
-      }
-      #c-comments .post {
-        display: flex !important;
-      }
-      #image-container {
-        display: block !important;
+      .post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail {
+        visibility: visible !important;
       }
     </style>
   </noscript>
