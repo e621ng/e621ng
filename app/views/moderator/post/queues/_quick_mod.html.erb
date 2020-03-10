@@ -11,11 +11,11 @@
   </div>
   <% end %>
   <div>
-    <%= link_to "Human Only", "#", class: "delete-with-reason-link", data: {prompt: "human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> |
+    <%= link_to "Human Only", "#", class: "delete-with-reason-link", data: {prompt: "being human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> |
     <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)", post_id: post.id} %> |
-    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link", data: {prompt: "photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)", post_id: post.id} %> |
-    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "excessive base", reason: "Excessive same base image set.", post_id: post.id} %> |
-    <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "an annoying ad", reason: "Advertisement", post_id: post.id} %> |
+    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link", data: {prompt: "being a photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)", post_id: post.id} %> |
+    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link", data: {prompt: "being an  excessive base", reason: "Excessive same base image set.", post_id: post.id} %> |
+    <%= link_to "Advertisement", "#", class: "delete-with-reason-link", data: {prompt: "being an annoying ad", reason: "Advertisement", post_id: post.id} %> |
 
     <%= tag.a "Borderline Quality", href: '#', data: {pid: post.id, reason: "borderline_quality"}, class: "disapprove-post-link btn" %> |
     <%= tag.a "Borderline Relevancy", href: '#', data: {pid: post.id, reason: "borderline_relevancy"}, class: "disapprove-post-link btn" %>

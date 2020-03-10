@@ -58,11 +58,6 @@ Post.initialize_moderation = function() {
     Post.unflag($e.data('pid'), $e.data('type'));
     e.preventDefault();
   });
-  $('#delete-post-with-reason-link').on('click', e => {
-    const $e = $(e.target);
-    Post.delete_with_reason($e.data('pid'), null);
-    e.preventDefault();
-  })
 };
 
 Post.initialize_collapse = function() {
@@ -640,7 +635,7 @@ Post.delete_with_reason = function(post_id, reason, reload_after_delete) {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
-      data: {commit: "Delete", reason: reason}
+      data: {commit: "Delete", reason: reason, move_favorites: true}
     }).fail(function(data) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       $(window).trigger('danbooru:error', "Error: " + message);
