@@ -108,7 +108,7 @@ module PostsHelper
   def post_stats_section(post)
     status_flags = []
     status_flags << 'P' if post.parent_id
-    status_flags << 'C' if post.has_children?
+    status_flags << 'C' if post.has_active_children?
     status_flags << 'U' if post.is_pending?
     status_flags << 'F' if post.is_flagged?
 

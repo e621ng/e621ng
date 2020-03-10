@@ -22,6 +22,7 @@ class PostFlag < ApplicationRecord
   validates :reason, length: {in: 1..250}
   validates :creator_id, uniqueness: {:scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"}
   before_save :update_post
+  after_commit :index_post
 
   scope :by_users, -> { where.not(creator: User.system) }
   scope :by_system, -> { where(creator: User.system) }
@@ -143,6 +144,9 @@ class PostFlag < ApplicationRecord
 
   def update_post
     post.update_column(:is_flagged, true) unless post.is_flagged?
+  end
+
+  def index_post
     post.update_index
   end
 
