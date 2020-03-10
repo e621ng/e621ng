@@ -238,15 +238,29 @@ div#c-posts {
 
     button.ui-button {
       padding: 0.25em 0.75em;
+      color: white;
+      border: none;
+
+      &:hover {
+        box-shadow: 3px 3px 5px $form-shadow;
+      }
     }
   }
 
-  #remove-fav-button i.fa-heart {
-    color: deeppink;
+  #add-fav-button {
+    background-color: green;
   }
 
-  #remove-fav-button.animate i {
-    animation: heartbeat 0.4s ease;
+  #remove-fav-button {
+    background-color: $section-red-background;
+
+    &.animate i {
+      animation: heartbeat 0.4s ease;
+    }
+
+    i.fa-heart {
+      color: deeppink;
+    }
   }
 
   .fav-buttons-true #add-fav-button {
