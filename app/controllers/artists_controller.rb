@@ -100,7 +100,7 @@ private
 
   def artist_params(context = nil)
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
-    permitted_params << :is_active if CurrentUser.is_janitor?
+    permitted_params += [:is_active, :linked_user_id] if CurrentUser.is_janitor?
     permitted_params << :source if context == :new
 
     params.fetch(:artist, {}).permit(permitted_params)

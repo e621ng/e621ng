@@ -2,6 +2,10 @@
 <ul>
   <li><strong>Status</strong> <%= artist.status %></li>
 
+  <% if artist.linked_user_id && artist.linked_user %>
+    <li><strong>User</strong> <%= link_to_user(artist.linked_user) %></li>
+  <% end %>
+
   <% if !artist.is_banned? || CurrentUser.is_member? %>
     <% if artist.other_names.present? %>
       <li><strong>Other Names</strong> <%= link_to_artists(artist.other_names) %></li>
