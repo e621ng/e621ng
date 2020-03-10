@@ -41,6 +41,7 @@ Post.initialize_all = function() {
   }
 
   $(document).on("danbooru:open-post-edit-tab", () => Utility.disableShortcuts = true);
+  $(document).on("danbooru:open-post-edit-tab", () => $('#post_tag_string').focus());
   $(document).on("danbooru:close-post-edit-tab", () => Utility.disableShortcuts = false);
 
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');

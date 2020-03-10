@@ -49,7 +49,7 @@
           show: false,
           tags: []
         },
-        expandRelated: false,
+        expandRelated: true,
         tags: window.uploaderSettings.postTags,
         relatedTags: [],
         loadingRelated: false,
