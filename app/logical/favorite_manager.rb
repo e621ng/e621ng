@@ -38,8 +38,14 @@ class FavoriteManager
     parent = post.parent
     return false unless parent
     post.favorites.each do |fav|
-      FavoriteManager.remove!(user: fav.user, post: post)
-      FavoriteManager.add!(user: fav.user, post: parent, force: true)
+      tries = 5
+      begin
+        FavoriteManager.remove!(user: fav.user, post: post)
+        FavoriteManager.add!(user: fav.user, post: parent, force: true)
+      rescue ActiveRecord::SerializationFailure
+        tries -= 1
+        retry if tries > 0
+      end
     end
     true
   end
