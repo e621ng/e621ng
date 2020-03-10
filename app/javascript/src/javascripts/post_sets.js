@@ -14,11 +14,11 @@ PostSet.add_post = function (set_id, post_id) {
       data: {post_ids: [post_id]},
     }).fail(function (data) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      Post.notice_update("dec");
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Added post to set");
-    }).always(function () {
       Post.notice_update("dec");
+      $(window).trigger("danbooru:notice", "Added post to set");
     });
   });
 };
@@ -32,11 +32,11 @@ PostSet.remove_post = function (set_id, post_id) {
       data: {post_ids: [post_id]},
     }).fail(function (data) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      Post.notice_update("dec");
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Removed post from set");
-    }).always(function () {
       Post.notice_update("dec");
+      $(window).trigger("danbooru:notice", "Removed post from set");
     });
   });
 };
