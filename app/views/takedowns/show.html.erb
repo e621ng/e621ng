@@ -8,7 +8,7 @@
 
         <ul>
           <% Danbooru.config.takedown_links.each do |link| %>
-            <li><%= link_to link, link %></li>
+            <li><%= link_to link[0], link[1] %></li>
           <% end %>
           <li>Or via email from your personal website (e.g. from me@mywebsite.com to <%= Danbooru.config.takedown_email %>)</li>
         </ul>
