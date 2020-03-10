@@ -33,7 +33,9 @@ RelatedTag.init_post_show_editor = function() {
   app.$mount('#tag-string-editor');
   setTimeout(function() {
     // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
-    app.$children[0].$refs['otherTags'].focus();
+    const el = app.$children[0].$refs['otherTags'];
+    el.focus();
+    el.scrollIntoView();
   }, 20);
 }
 
