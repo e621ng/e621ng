@@ -143,6 +143,7 @@ class PostFlag < ApplicationRecord
 
   def update_post
     post.update_column(:is_flagged, true) unless post.is_flagged?
+    post.update_index
   end
 
   def bypass_unique
