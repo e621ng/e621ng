@@ -10,6 +10,7 @@ class FavoriteManager
 
         Favorite.create!(:user_id => user.id, :post_id => post.id)
         post.append_user_to_fav_string(user.id)
+        post.do_not_version_changes = true
         post.save
       end
     rescue ActiveRecord::RecordNotUnique
@@ -27,6 +28,7 @@ class FavoriteManager
 
       Favorite.for_user(user.id).where(post_id: post_id).destroy_all
       post.delete_user_from_fav_string(user.id) if post
+      post.do_not_version_changes = true
       post.save if post
     end
   end
