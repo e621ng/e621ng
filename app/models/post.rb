@@ -227,6 +227,7 @@ class Post < ApplicationRecord
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
+      return [max_px, max_px] unless has_dimensions?
       height = width = max_px
       dimension_ratio = image_width.to_f / image_height
       if dimension_ratio > 1
@@ -250,6 +251,7 @@ class Post < ApplicationRecord
     def has_large?
       return true if is_video?
       return true if is_ugoira?
+      return false if is_gif?
       return false if has_tag?("animated_gif|animated_png")
       is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
     end
