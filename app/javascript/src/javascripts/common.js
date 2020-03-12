@@ -1,4 +1,5 @@
 import Cookie from './cookie'
+import LS from './local_storage'
 import Utility from './utility'
 
 function initSearch() {
@@ -22,6 +23,21 @@ function initSearch() {
 }
 
 $(function() {
+  $("#theme-switcher").change(function(e) {
+    $(this).children().each(function(index, option) {
+      $("body").removeClass("theme-" + $(option).val());
+    });
+    let theme = $(this).val();
+    LS.put("theme", theme);
+    $("body").addClass("theme-" + theme);
+  });
+
+  {
+    let theme = LS.get("theme") || "hexagon";
+    $("body").addClass("theme-" + theme);
+    $("#theme-switcher").val(theme);
+  }
+
   // Account notices
   $("#hide-dmail-notice").on("click.danbooru", function(e) {
     var $dmail_notice = $("#dmail-notice");

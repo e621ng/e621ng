@@ -101,6 +101,15 @@
   <% end %>
 
   <header id="top">
+    <!-- Temporary theme switcher element -->
+    <div id="theme-switcher-container" style="float: right; position: relative; top: 3px; right: 3px; color: #999;">
+      Theme:
+      <select id="theme-switcher">
+        <option value="hexagon">Hexagon</option>
+        <option value="bloodlust">Bloodlust</option>
+        <option value="hotdog">Hotdog</option>
+      </select>
+    </div>
     <h1><%= link_to Danbooru.config.app_name, "/" %></h1>
 
     <div id="maintoggle">
@@ -112,6 +121,7 @@
       <%= render "layouts/main_links" %>
       <%= yield :secondary_links %>
     </nav>
+
   </header>
 
   <div id="page">
