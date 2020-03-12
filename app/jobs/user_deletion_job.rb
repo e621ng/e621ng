@@ -4,31 +4,19 @@ class UserDeletionJob < ApplicationJob
   def perform(*args)
     user = User.find(args[0])
 
-
     remove_favorites(user)
-    rename(user)
   end
 
   def remove_favorites(user)
     Favorite.without_timeout do
       Favorite.for_user(user.id).includes(:post).find_each do |fav|
-        FavoriteManager.remove!(user: user, post: post)
+        begin
+          FavoriteManager.remove!(user: user, post: fav.post)
+        rescue ActiveRecord::SerializationFailure
+          tries -= 1
+          retry if tries > 0
+        end
       end
     end
-  end
-
-  def rename(user)
-    name = "user_#{user.id}"
-    n = 0
-    while User.where(:name => name).exists? && (n < 10)
-      name += "~"
-    end
-
-    if n == 10
-      raise JobError.new("New name could not be found")
-    end
-
-    user.name = name
-    user.save!
   end
 end

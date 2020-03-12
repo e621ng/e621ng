@@ -1,5 +1,6 @@
 class UserDeletion
-  class ValidationError < Exception ; end
+  class ValidationError < Exception;
+  end
 
   attr_reader :user, :password
 
@@ -10,35 +11,45 @@ class UserDeletion
 
   def delete!
     validate
+    rename_user
     clear_user_settings
     reset_password
     create_mod_action
     UserDeletionJob.perform_later(user.id)
   end
 
-private
-  
+  private
+
   def create_mod_action
     ModAction.log(:user_delete, {user_id: user.id})
   end
 
   def clear_user_settings
-    user.email = nil
-    user.last_logged_in_at = nil
-    user.last_forum_read_at = nil
-    user.recent_tags = ''
-    user.favorite_tags = ''
-    user.blacklisted_tags = ''
-    user.time_zone = "Eastern Time (US & Canada)"
-    user.save!
+    user.update_columns(last_logged_in_at: nil,
+                        last_forum_read_at: nil,
+                        recent_tags: '',
+                        favorite_tags: '',
+                        blacklisted_tags: '',
+                        time_zone: "Eastern Time (US & Canada)",
+                        email: nil)
   end
 
   def reset_password
-    random = SecureRandom.hex(16)
-    user.password = random
-    user.password_confirmation = random
-    user.old_password = password
-    user.save!
+    user.update_columns(password_hash: '', bcrypt_password_hash: '*LK*')
+  end
+
+  def rename_user
+    name = "user_#{user.id}"
+    n = 0
+    while User.where(:name => name).exists? && (n < 10)
+      name += "~"
+    end
+
+    if n == 10
+      raise ValidationError.new("New name could not be found")
+    end
+
+    user.update_column(:name, name)
   end
 
   def validate
