@@ -1,9 +1,14 @@
 body {
-  background-color: $main-background;
-  color: $text-color;
+  @include themable($flipped: true) {
+    background-color: themed("color-background");
+    background-image: themed("image-background");
+
+    color: themed("color-text");
+  }
   font-family: $base_font_family;
-  font-size: 87.5%;
+  font-size: $font-size;
   line-height: 1.25em;
+  margin: 0 auto;
 }
 
 abbr[title=required] {
@@ -33,11 +38,11 @@ dt {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: Tahoma, Verdana, Helvetica, sans-serif;
+  font-family: $base_font_family;
 }
 
 h1 {
-  font-size: $h1_size;
+  font-size: $h1-size;
 }
 
 h2 {
@@ -49,7 +54,7 @@ h3 {
 }
 
 h4, h5, h6 {
-  font-size: $h4_size;
+  font-size: $h4-size;
 }
 
 fieldset {
@@ -108,12 +113,7 @@ p.info {
   font-size: 80%;
 }
 
-
-#page {
-  background-color: $content-background;
-}
-
-#top, #page-footer {
+#top {
   background-color: $main-background;
 }
 

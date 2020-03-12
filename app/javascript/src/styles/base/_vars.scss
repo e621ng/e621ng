@@ -1,14 +1,20 @@
 // Base formatting constants
 $border-radius: 3px;
+$border-radius-page: 6px;
 $base-padding: 1rem;
 $half-padding: $base-padding/2;
 $quarter-padding: $base-padding/4;
 
+
+$main-background-image: url("images/hexagon/background.png");
+$page-background-image: url("images/hexagon/foreground.png");
+
 // Font
-$h1_size: 2em;
+$font-size: 85%;
+$h1-size: 2em;
 $h2-size: 1.5em;
 $h3-size: 1.16667em;
-$h4_size: 1em;
+$h4-size: 1em;
 $dtext_h1_size: 2em;
 $dtext_h2_size: 1.8em;
 $dtext_h3_size: 1.6em;
@@ -19,7 +25,7 @@ $h1_padding: 0.8em 0 0.25em 0;
 $h2_padding: 0.8em 0 0.25em 0;
 $h3_padding: 0.8em 0 0.25em 0;
 $h4_padding: 0.8em 0 0.25em 0;
-$base_font_family: Verdana, Helvetica, sans-serif;
+$base_font_family: Verdana, sans-serif;
 
 $box-shadow-size: 2px 2px 5px;
 

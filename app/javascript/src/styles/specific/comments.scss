@@ -51,16 +51,6 @@ div.comments-for-post {
             border-radius: $border-radius;
         }
       }
-
-      .score-positive {
-        color: $green-color;
-      }
-      .score-negative {
-        color: $red-color;
-      }
-      .score-neutral {
-        color: $dark-grey-color;
-      }
     }
 
     article.comment.below-threshold:not([data-is-sticky="true"]) {

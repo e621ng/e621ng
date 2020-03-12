@@ -1,0 +1,25 @@
+.score-negative,                                                // Scores and rating are bold everywhere now
+.score-neutral,                                                 // Except if they don't have the class associated (like 'rating' in posts and comments pages)
+.score-positive,
+.post-score-rating {
+  font-weight: 700;
+}
+
+.score-positive {
+  @include themable { color: themed("color-score-positive"); }
+  a:hover {
+    @include themable { color: darken( themed("color-score-positive"), 10%); }
+  }
+}
+.score-negative {
+  @include themable { color: themed("color-score-negative"); }
+  a:hover {
+    @include themable { color: darken( themed("color-score-negative"), 10%); }
+  }
+}
+.score-neutral {
+  @include themable { color: themed("color-text-muted"); }
+  a:hover {
+    @include themable { color: darken( themed("color-text-muted"), 10%); }
+  }
+}

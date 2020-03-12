@@ -16,6 +16,14 @@ div#search-box button {
 }
 
 div#page {
+  border-radius: $border-radius-page;
+  @include themable {
+    background-image: themed("image-foreground");
+    background-color: themed("color-foreground");
+  }
+  background-position: left top;
+  background-repeat: repeat-x;
+
   overflow: visible;
   margin: 0 1rem;
   padding: $half-padding;
@@ -29,9 +37,14 @@ div#page {
   }
 
   div.site-notice {
+    @include themable {
+      background-color: themed("color-section");
+    }
     padding: $half-padding;
     text-align: center;
     position: relative;
+    border: 1px solid $darken-background-50;
+    @include section-box-shadow(0 0 24px, $darken-background-20);
 
     h1 {
       font-size: $h2-size;
@@ -91,11 +104,14 @@ div#page {
 
 footer#page-footer {
   clear: both;
-  width: 100%;
-  margin-top: 1em;
+  margin: 1em;
+  margin-bottom: 0;
   text-align: center;
+  border-radius: $border-radius-page $border-radius-page 0 0;
   padding: $base-padding 0 $base-padding;
-  border-top: 1px solid $hr-color;
+  @include themable {
+    background-color: themed("color-foreground");
+  }
 }
 
 div.clearfix {

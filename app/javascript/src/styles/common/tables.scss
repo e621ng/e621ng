@@ -1,6 +1,6 @@
 
-
 table.table {
+  width: 100%;
   p {
     margin: 0;
   }
@@ -11,8 +11,22 @@ table.table {
 
   tbody {
     tr {
+      td {
+        padding: $half-padding $quarter-padding;
+      }
+      @include themable {
+        background-color: themed("color-section");
+        border-bottom: 1px solid themed("color-foreground");
+      }
       &:hover {
-        background-color: $table-stripe-highlight-background;
+        @include themable {
+          background-color: lighten( themed("color-section"), 10%);
+        }
+      }
+      &.selected {
+        @include themable {
+          background-color: lighten( themed("color-section"), 10%);
+        }
       }
       border-bottom: 1px solid $table-stripe-border;
     }
@@ -24,7 +38,10 @@ table.table {
 
   thead {
     tr {
-      border-bottom: 2px solid $table-stripe-border;
+      @include themable {
+        background-color: darken( themed("color-section"), 5%);
+        border-bottom: 1px solid themed("color-foreground");
+      }
     }
 
     th {
@@ -35,23 +52,9 @@ table.table {
   }
 }
 
+// Needed so that unconverted tables work.
 table.striped {
   @extend table.table;
-  tbody {
-    tr {
-      &:hover {
-        background-color: $table-stripe-highlight-background;
-      }
-
-      &.selected {
-        background-color: $table-stripe-highlight-background;
-      }
-    }
-  }
-
-  tr:nth-child(even) {
-    background-color: $table-stripe-even-background;
-  }
 }
 
 /*

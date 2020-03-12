@@ -1,25 +1,35 @@
-a:link {
-  color: $link-color;
-  text-decoration: none;
-}
-
+a,
+a:link,
 a:visited {
-  color: $link-color;
+  @include themable {
+    color: themed('color-link');
+  }
   text-decoration: none;
 }
 
 a:hover {
-  color: $link-hover-color;
+  @include themable {
+    color: themed('color-link-hover');
+  }
   text-decoration: none;
 }
 
 a:active {
-  color: $link-color;
+  @include themable {
+    color: themed('color-link-active');
+  }
   text-decoration: none;
 }
 
 a.last-page {
-  color: $link-last-page-color;
+  @include themable {
+    color: themed('color-link-last-page');
+  }
+}
+a.last-page:hover {
+  @include themable {
+    color: themed('color-link-last-page-hover');
+  }
 }
 
 a.active {

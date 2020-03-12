@@ -10,7 +10,7 @@ require('jquery-ujs');
 // should start looking for nodejs replacements
 importAll(require.context('../vendor', true, /\.js$/));
 
-require('../src/styles/themes/base.scss');
+require('../src/styles/base.scss');
 
 require("jquery-ui/ui/widgets/autocomplete");
 require("jquery-ui/ui/widgets/button");
