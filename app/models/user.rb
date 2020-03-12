@@ -93,6 +93,7 @@ class User < ApplicationRecord
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
+  validates  :custom_style, length: { maximum: 500_000}
   validates :profile_about, length: { maximum: 50_0000 }
   validates :profile_artinfo, length: { maximum: 50_000 }
   before_create :encrypt_password_on_create
