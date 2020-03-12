@@ -1,9 +1,6 @@
-@import "../base/005_vars.scss";
-
 button, input, select, textarea {
   border: 0;
   border-radius: 2px;
-  box-shadow: 2px 2px 5px $form-shadow;
   padding: 1px 2px;
 }
 
