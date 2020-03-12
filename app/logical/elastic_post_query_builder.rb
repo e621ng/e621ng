@@ -12,7 +12,7 @@ class ElasticPostQueryBuilder
 
   def add_range_relation(arr, field, relation)
     return relation if arr.nil?
-    return relation if arr.size != 2
+    return relation if arr.size < 2
     return relation if arr[1].nil?
 
     case arr[0]
