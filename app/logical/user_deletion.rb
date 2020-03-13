@@ -25,9 +25,7 @@ class UserDeletion
   end
 
   def clear_user_settings
-    user.update_columns(last_logged_in_at: nil,
-                        last_forum_read_at: nil,
-                        recent_tags: '',
+    user.update_columns(recent_tags: '',
                         favorite_tags: '',
                         blacklisted_tags: '',
                         time_zone: "Eastern Time (US & Canada)",
