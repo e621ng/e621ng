@@ -110,6 +110,8 @@ PostModeMenu.initialize_tag_script_field = function() {
 }
 
 PostModeMenu.update_sets_menu = function() {
+  let target = $('#set-id');
+  target.off('change');
   SendQueue.add(function() {
     $.ajax({
       type: "GET",
@@ -117,12 +119,15 @@ PostModeMenu.update_sets_menu = function() {
     }).fail(function(data) {
       $(window).trigger('danbooru:error', "Error getting sets list: " + data.message);
     }).done(function(data) {
-      let target = $('#set-id');
+      target.on('change', function(e) {
+        LS.put('set', e.target.value);
+      });
       target.empty();
+      const target_set = LS.get('set') || 0;
       ['Owned', "Maintained"].forEach(function(v) {
         let group = $('<optgroup>', {label: v});
         data[v].forEach(function(gi) {
-          group.append($('<option>', {value: gi[1]}).text(gi[0]));
+          group.append($('<option>', {value: gi[1], selected: (gi[1] == target_set)}).text(gi[0]));
         });
         target.append(group);
       });

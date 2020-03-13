@@ -1,5 +1,6 @@
 import {SendQueue} from './send_queue'
 import Post from './posts.js.erb'
+import LS from './local_storage'
 
 let PostSet = {};
 
@@ -64,6 +65,7 @@ PostSet.update_sets_menu = function() {
   const target = $('#add-to-set-id');
   target.empty();
   target.append($('<option>').text('Loading...'));
+  target.off('change');
   SendQueue.add(function() {
     $.ajax({
       type: "GET",
@@ -71,11 +73,15 @@ PostSet.update_sets_menu = function() {
     }).fail(function(data) {
       $(window).trigger('danbooru:error', "Error getting sets list: " + data.message);
     }).done(function(data) {
+      target.on('change', function(e) {
+        LS.put('set', e.target.value);
+      })
+      const target_set = LS.get('set') || 0;
       target.empty();
       ['Owned', "Maintained"].forEach(function(v) {
         let group = $('<optgroup>', {label: v});
         data[v].forEach(function(gi) {
-          group.append($('<option>', {value: gi[1]}).text(gi[0]));
+          group.append($('<option>', {value: gi[1], selected: (gi[1] == target_set)}).text(gi[0]));
         });
         target.append(group);
       });
