@@ -768,7 +768,7 @@ class User < ApplicationRecord
       if email.blank?
         where("FALSE")
       else
-        where("email = ?", email)
+        where("lower(email) = lower(?)", email)
       end
     end
 
