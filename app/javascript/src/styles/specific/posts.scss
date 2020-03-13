@@ -80,13 +80,17 @@ article.post-preview {
     max-width: 150px;
   }
 
-  &[data-tags~=animated]:before, &[data-file-ext=swf]:before, &[data-file-ext=webm]:before, &[data-file-ext=mp4]:before, &[data-file-ext=zip]:before {
-    @include animated-icon;
+  &[data-tags~=animated]:before {
+    @include  preview-type-badge('ANIM');
   }
 
-  &[data-has-sound=true]:before {
-    @include sound-icon;
+  &[data-file-ext=webm]:before {
+    @include preview-type-badge('WEBM');
   }
+
+  //&[data-file-ext=swf]:before {
+  //  @include preview-type-badge('FLASH');
+  //}
 }
 
 #saved-searches-nav {

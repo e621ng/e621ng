@@ -49,6 +49,22 @@ $box-shadow-size: 2px 2px 5px;
   text-align: center;
 }
 
+@mixin preview-type-badge($text) {
+  z-index: 5;
+  position: absolute;
+  left: 0;
+  top: 10px;
+  background-color: #284a81;
+  text-align: center;
+  border-radius: 5px;
+  color: white;
+  padding: 3px 5px;
+  font-size: 60%;
+  font-weight: bold;
+  border: 1px solid white;
+  content: $text;
+}
+
 // https://fontawesome.com/how-to-use/on-the-web/advanced/css-pseudo-elements
 @mixin fa-solid-icon($content) {
   display: inline-block;
