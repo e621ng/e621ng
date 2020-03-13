@@ -43,15 +43,13 @@ class ForumPostsController < ApplicationController
 
   def create
     @forum_post = ForumPost.create(forum_post_params(:create))
-    page = @forum_post.topic.last_page if @forum_post.topic.last_page > 1
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => page))
+    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
   end
 
   def update
     check_privilege(@forum_post)
     @forum_post.update(forum_post_params(:update))
-    page = @forum_post.forum_topic_page if @forum_post.forum_topic_page > 1
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => page, :anchor => "forum_post_#{@forum_post.id}"))
+    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
   end
 
   def destroy
