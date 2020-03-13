@@ -22,6 +22,8 @@ class Dmail < ApplicationRecord
   after_create :update_recipient
   after_commit :send_email, on: :create
 
+  attr_accessor :bypass_limits
+
   concerning :SpamMethods do
     class_methods do
       def is_spammer?(user)
@@ -195,6 +197,7 @@ class Dmail < ApplicationRecord
 
   def user_not_limited
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
+    return true if bypass_limits == true
     return true if from_id == User.system.id
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason

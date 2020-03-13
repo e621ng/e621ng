@@ -664,7 +664,8 @@ class Ticket < ApplicationRecord
           :from_id => CurrentUser.id,
           :to_id => creator.id,
           :title => "Your ticket has been updated to '#{status}'",
-          :body => msg
+          :body => msg,
+          bypass_limits: true
       )
     end
 
