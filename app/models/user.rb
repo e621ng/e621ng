@@ -409,6 +409,7 @@ class User < ApplicationRecord
     end
 
     def is_blacklisting_user?(user)
+      return false if blacklisted_tags.blank?
       blta = blacklisted_tags.split("\n").map{|x| x.downcase}
       blta.include?("user:#{user.name.downcase}") || blta.include?("uploaderid:#{user.id}")
     end
