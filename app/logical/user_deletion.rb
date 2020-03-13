@@ -31,7 +31,7 @@ class UserDeletion
                         favorite_tags: '',
                         blacklisted_tags: '',
                         time_zone: "Eastern Time (US & Canada)",
-                        email: nil)
+                        email: '')
   end
 
   def reset_password
