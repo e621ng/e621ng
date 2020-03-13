@@ -652,7 +652,7 @@ class Ticket < ApplicationRecord
 
   module NotificationMethods
     def should_send_notification
-      status_changed?
+      saved_change_to_status?
     end
 
     def send_update_dmail
@@ -660,9 +660,10 @@ class Ticket < ApplicationRecord
           " #{handler.pretty_name}.\nTicket Status: #{status}\n\n" +
           (qtype == "reason" ? "Reason" : "Response") +
           ": #{response}"
-      Dmail.create_automated(
-          :to_id => user.id,
-          :title => "Your ticket has been updated to '#{pretty_status}'",
+      Dmail.create_split(
+          :from_id => CurrentUser.id,
+          :to_id => creator.id,
+          :title => "Your ticket has been updated to '#{status}'",
           :body => msg
       )
     end
