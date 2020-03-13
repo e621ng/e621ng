@@ -80,11 +80,11 @@ article.post-preview {
     max-width: 150px;
   }
 
-  &[data-tags~=animated]:before {
+  &[data-tags~=animated] > a:before {
     @include  preview-type-badge('ANIM');
   }
 
-  &[data-file-ext=webm]:before {
+  &[data-file-ext=webm] > a:before {
     @include preview-type-badge('WEBM');
   }
 
