@@ -1,18 +1,87 @@
 
-
-a.user-admin.with-style {
-  color: $rank-admin-color;
+a.user-member.with-style {
+  @include themable {
+    color: themed("color-user-member");
+  }
 }
 
-a.user-moderator.with-style {
-  color: $rank-moderator-color;
+a.user-member.with-style:hover {
+  @include themable {
+    color: themed("color-user-member-alt");
+  }
 }
 
-a.user-janitor.with-style {
-  color: $rank-janitor-color;
+a.user-privileged.with-style {
+  @include themable {
+    color: themed("color-user-privileged");
+  }
+}
+
+a.user-privileged.with-style:hover {
+  @include themable {
+    color: themed("color-user-privileged-alt");
+  }
+}
+
+a.user-contributor.with-style {
+  @include themable {
+    color: themed("color-user-contributor");
+  }
+}
+
+a.user-contributor.with-style:hover {
+  @include themable {
+    color: themed("color-user-contributor-alt");
+  }
 }
 
 a.user-blocked.with-style {
-  color: $rank-blocked-color;
-  text-decoration: line-through;
+  @include themable {
+    color: themed("color-user-blocked");
+    text-decoration: line-through;
+  }
+}
+
+a.user-blocked.with-style:hover {
+  @include themable {
+    color: themed("color-user-blocked-alt");
+  }
+}
+
+a.user-former.staff.with-style {
+  @include themable {
+    color: themed("color-user-former-staff");
+  }
+}
+
+// TODO BUG Instead of having class .former-staff
+a.user-former.staff.with-style:hover {
+  @include themable {
+    color: themed("color-user-former-staff-alt");
+  }
+}
+
+// This group has two classes: .former and .staff
+a.user-janitor.with-style {
+  @include themable {
+    color: themed("color-user-janitor");
+  }
+}
+
+a.user-janitor.with-style:hover {
+  @include themable {
+    color: themed("color-user-janitor-alt");
+  }
+}
+
+a.user-admin.with-style {
+  @include themable {
+    color: themed("color-user-admin");
+  }
+}
+
+a.user-admin.with-style:hover {
+  @include themable {
+    color: themed("color-user-admin-alt");
+  }
 }

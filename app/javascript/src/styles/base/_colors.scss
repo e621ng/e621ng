@@ -339,14 +339,13 @@ $user-home-greeting-color: gold;
 // Wiki
 $wiki-other-names-background: #EEE;
 
-// Tag colors
-$tag-category-colors: (
-  "0": ("color": $link-color, "hover": $link-hover-color), // General
-  "1": ("color": #f2ac08, "hover": lighten(#f2ac08, 25%)), // Artist
-  "3": ("color": #D0D, "hover": lighten(#D0D, 25%)), // Copyright
-  "4": ("color": #0A0, "hover": lighten(#0A0, 25%)), // Character
-  "5": ("color": #ED5D1F, "hover": lighten(#ED5D1F, 25%)), // Species
-  "6": ("color": #ff3d3d, "hover": lighten(#ff3d3d, 25%)), // Invalid
-  "7": ("color": #fff, "hover": #666), // Meta
-  "8": ("color": #282, "hover": lighten(#292, 25%)) // Lore
+$tag-categories: (
+  "0": "general",
+  "1": "artist",
+  "3": "copyright",
+  "4": "character",
+  "5": "species",
+  "6": "invalid",
+  "7": "meta",
+  "8": "lore"
 );
