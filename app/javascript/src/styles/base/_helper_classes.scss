@@ -1,0 +1,43 @@
+.bg-background {
+  @include themable() { background-color: themed("color-background"); }
+}
+
+.bg-foreground {
+  @include themable() { background-color: themed("color-foreground"); }
+}
+
+.bg-section {
+  @include themable() { background-color: themed("color-section"); }
+}
+
+.bg-highlight {
+  @include themable() { background-color: lighten( themed("color-section"), 10%);}
+}
+
+.border-background {
+  @include themable() { border: 1px solid themed("color-background"); }
+}
+
+.border-foreground {
+  @include themable() { border: 1px solid themed("color-foreground"); }
+}
+
+.border-section {
+  @include themable() { border: 1px solid themed("color-section"); }
+}
+
+.border-highlight {
+  @include themable() { borer: 1px solid lighten( themed("color-section"), 10%);}
+}
+
+.color-text {
+  @include themable() { color: themed("color-text"); }
+}
+
+.color-muted {
+  @include themable() { color: themed("color-muted"); }
+}
+
+.color-white {
+  @include themable() { color: themed("color-white"); }
+}

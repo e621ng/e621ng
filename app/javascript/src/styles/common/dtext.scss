@@ -77,7 +77,7 @@
     @include section-box-shadow;
     margin-bottom: 1em;
     background: $dtext-expandable-background;
-    border-radius: $border-radius;
+    border-radius: $border-radius-half;
 
     >div.expandable-header {
       cursor: pointer;

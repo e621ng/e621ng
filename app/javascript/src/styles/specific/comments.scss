@@ -10,7 +10,7 @@ div.comments-for-post {
     //padding: $base-padding;
     article.comment {
       @include section-box-shadow;
-      border-radius: $border-radius;
+      border-radius: $border-radius-half;
       background: $comment-background;
       word-wrap: break-word;
       margin-bottom: $half-padding;
@@ -48,7 +48,7 @@ div.comments-for-post {
 
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
             background-color: $comment-vote-background;
-            border-radius: $border-radius;
+            border-radius: $border-radius-half;
         }
       }
     }

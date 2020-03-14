@@ -1,32 +1,35 @@
 @import "../themes/index";
 
-// Generates theme-specific classes for content within
-@mixin themable($themes: $themes, $flipped: false) {
-
-  // Sets the default theme's styles first, as baseline
-  $themes_current: $themes_default !global;
+@mixin themable($data_map: $theme_main_index, $apply_to_self: false) {
+  // Apply the default style to the original element
+  $data_current: map-get($data_map, "default") !global;
   @content;
-  $themes_current: null !global;
+  $data_current: null !global;
+
+  $data_attr: "custom";
+  @if (map_has_key($data_map, "data-attr")) {
+    $data_attr: map-get($data_map, "data-attr");
+  }
 
   // Iterates over the list of themes and creates corresponding classes
-  @each $theme, $map in $themes {
-    @if ($flipped == true) {
-      &.theme-#{$theme} {
-        $themes_current: $map !global;
+  @each $theme, $map in map-get($data_map, "themes") {
+    @if ($apply_to_self == true) {
+      &[data-th-#{$data_attr}=#{$theme}] {
+        $data_current: $map !global;
         @content;
-        $themes_current: null !global;
+        $data_current: null !global;
       }
     } @else {
-      .theme-#{$theme} & {
-        $themes_current: $map !global;
+      [data-th-#{$data_attr}=#{$theme}] & {
+        $data_current: $map !global;
         @content;
-        $themes_current: null !global;
+        $data_current: null !global;
       }
     }
   }
 }
 
 // Used inside @themable mixin to fetch necessary values
-@function themed($key) {
-  @return map-get($themes_current, $key);
+@function themed($key, $important: false) {
+  @return map-get($data_current, $key);
 }

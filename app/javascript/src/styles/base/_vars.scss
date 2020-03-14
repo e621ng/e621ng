@@ -1,13 +1,9 @@
 // Base formatting constants
-$border-radius: 3px;
-$border-radius-page: 6px;
+$border-radius-half: 3px;
+$border-radius-full: 6px;
 $base-padding: 1rem;
 $half-padding: $base-padding/2;
 $quarter-padding: $base-padding/4;
-
-
-$main-background-image: url("images/hexagon/background.png");
-$page-background-image: url("images/hexagon/foreground.png");
 
 // Font
 $font-size: 85%;

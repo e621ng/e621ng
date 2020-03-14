@@ -24,17 +24,14 @@ function initSearch() {
 
 $(function() {
   $("#theme-switcher").change(function(e) {
-    $(this).children().each(function(index, option) {
-      $("body").removeClass("theme-" + $(option).val());
-    });
     let theme = $(this).val();
     LS.put("theme", theme);
-    $("body").addClass("theme-" + theme);
+    $("body").attr("data-th-main", theme);
   });
 
   {
     let theme = LS.get("theme") || "hexagon";
-    $("body").addClass("theme-" + theme);
+    $("body").attr("data-th-main", theme);
     $("#theme-switcher").val(theme);
   }
 

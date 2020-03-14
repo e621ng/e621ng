@@ -16,13 +16,16 @@ div#search-box button {
 }
 
 div#page {
-  border-radius: $border-radius-page;
-  @include themable {
-    background-image: themed("image-foreground");
+  @include themable() {
     background-color: themed("color-foreground");
   }
-  background-position: left top;
-  background-repeat: repeat-x;
+  @include themable($data_map: $theme_extra_index) {
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+    padding-bottom: themed("content-padding-bottom");
+  }
+  border-radius: $border-radius-full;
 
   overflow: visible;
   margin: 0 1rem;
@@ -107,7 +110,7 @@ footer#page-footer {
   margin: 1em;
   margin-bottom: 0;
   text-align: center;
-  border-radius: $border-radius-page $border-radius-page 0 0;
+  border-radius: $border-radius-full $border-radius-full 0 0;
   padding: $base-padding 0 $base-padding;
   @include themable {
     background-color: themed("color-foreground");

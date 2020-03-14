@@ -1,9 +1,8 @@
 body {
-  @include themable($flipped: true) {
+  @include themable($apply_to_self: true) {
+    color: themed("color-text");
     background-color: themed("color-background");
     background-image: themed("image-background");
-
-    color: themed("color-text");
   }
   font-family: $base_font_family;
   font-size: $font-size;
@@ -18,7 +17,7 @@ abbr[title=required] {
 blockquote {
   background: $blockquote-background;
   border: 1px solid $blockquote-border;
-  border-radius: $border-radius;
+  border-radius: $border-radius-half;
   box-shadow: 2px 2px 5px $blockquote-shadow;
   margin: 0 0 1rem 0;
   padding: 1rem 1rem 0.2rem;

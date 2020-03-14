@@ -1,0 +1,10 @@
+// === Extra Theming - Winter ===
+
+$extra_winter: (
+
+    "image-foreground": (url('images/extras/snow_bottom.png'),
+                        url('images/extras/snow_top.png')),
+    "image-foreground-position": (left bottom, left top),
+    "image-foreground-repeat": repeat-x,
+    "content-padding-bottom": 3rem,
+);
