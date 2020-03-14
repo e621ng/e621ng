@@ -109,6 +109,6 @@ class PoolArchive < ApplicationRecord
   end
 
   def pretty_name
-    name.tr("_", " ")
+    name&.tr("_", " ") || '(Unknown Name)'
   end
 end
