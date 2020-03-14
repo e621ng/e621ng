@@ -18,6 +18,6 @@ class PostVersionsController < ApplicationController
     @post_version = PostArchive.find(params[:id])
     @post_version.undo!
 
-    respond_with(@post_version)
+    redirect_back fallback_location: post_versions_path
   end
 end
