@@ -7,7 +7,7 @@
 
       <section id="tag-list">
         <!-- TODO: Lock off these extra items? -->
-        <%= @post.presenter.split_tag_list_html(current_query: params[:q], show_extra_links: CurrentUser.user.is_privileged?) %>
+        <%= @post.presenter.split_tag_list_html(current_query: params[:q], show_extra_links: true) %>
       </section>
 
       <section id="post-information">

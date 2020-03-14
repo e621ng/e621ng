@@ -13,7 +13,7 @@
       <section id="tag-box">
         <h1>Tags</h1>
         <!-- TODO: Lock off these extra items? -->
-        <%= @post_set.presenter.tag_list_html(current_query: params[:tags], show_extra_links: CurrentUser.user.is_privileged?) %>
+        <%= @post_set.presenter.tag_list_html(current_query: params[:tags], show_extra_links: true) %>
       </section>
 
       <%= render "posts/partials/index/related" %>
