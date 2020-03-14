@@ -111,9 +111,6 @@
     #maintoggle {
       display: block;
       font-weight: bold;
-      position: absolute;
-      top: 2vw;
-      right: 3vw;
       font-size: 2em;
 
       &.toggler-active {
@@ -190,39 +187,6 @@
     #comments h2 {
       display: none;
     }
-
-    //div.paginator {
-    //  font-size: 24pt;
-    //  font-weight: bold;
-    //  text-align: center;
-    //  width: 100%;
-    //  padding: 0;
-    //  margin: 0;
-    //  margin-top: 1em;
-    //
-    //  li {
-    //    display: inline-block;
-    //    margin: 0 0.25em;
-    //
-    //    a, span {
-    //      margin: 0;
-    //      padding: 0;
-    //      border: none;
-    //    }
-    //
-    //    &.current-page {
-    //      text-align: center;
-    //    }
-    //
-    //    &.arrow:last-child {
-    //      text-align: right;
-    //    }
-    //
-    //    &.numbered-page, &.more {
-    //      display: none;
-    //    }
-    //  }
-    //}
 
     #posts #posts-container {
       width: 100%;

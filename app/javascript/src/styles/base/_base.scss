@@ -112,10 +112,6 @@ p.info {
   font-size: 80%;
 }
 
-#top {
-  background-color: $main-background;
-}
-
 .greentext, .greentext a, .approved-ticket { color: $green-text-color !important; font-weight:bold; }
 .greytext, .greytext a { color: $grey-text-color !important; font-weight:bold; }
 .yellowtext, .yellowtext a, .partial-ticket { color: $yellow-text-color !important; font-weight:bold; }

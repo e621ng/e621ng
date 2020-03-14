@@ -1,4 +1,5 @@
 <menu class="main">
+  <%= nav_link_to Danbooru.config.app_name, "/" %>
   <% if CurrentUser.is_anonymous? %>
     <%= nav_link_to("Sign in", new_session_path) %>
   <% else %>
