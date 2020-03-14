@@ -38,7 +38,6 @@ $(function() {
 
   $("#desktop-version-link a").on("click.danbooru", function(e) {
     e.preventDefault();
-    e.preventDefault();
     $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
       method: "PUT",
       data: {
