@@ -29,7 +29,7 @@ div#page {
 
   overflow: visible;
   margin: 0 1rem;
-  padding: $half-padding;
+  padding: $padding-050;
 
   // Fix failure to contain contents in bounding box.
   &:after {
@@ -43,7 +43,7 @@ div#page {
     @include themable {
       background-color: themed("color-section");
     }
-    padding: $half-padding;
+    padding: $padding-050;
     text-align: center;
     position: relative;
     border: 1px solid $darken-background-50;
@@ -66,23 +66,25 @@ div#page {
       font-size: $h3-size;
     }
 
-    ul {
-      list-style-type: none;
-    }
+    #search-box {
+      input[type=text] {
+        /* ensure expanded search box renders above post thumbnails. */
+        z-index: 1;
+        position: relative;
+        width: 13em;
+        padding: 0.125rem 0.125rem;
+        border-right: 0;
+        box-sizing: border-box;
+        border-radius: $border-radius-half 0 0 $border-radius-half;
+      }
 
-    input[type=text] {
-      /* ensure expanded search box renders above post thumbnails. */
-      z-index: 1;
-      position: relative;
-    }
-
-    button[type=submit] {
-      padding: 2px 6px;
-      background: $form-submit-button-background;
-    }
-
-    #search-box button[type=submit] {
-      border-left: none;
+      button[type=submit] {
+        padding: 2px 6px;
+        background: $form-submit-button-background;
+        width: 2em;
+        border-left: 1px solid #ccc; // HACK: hardcoded color
+        border-radius: 0 $border-radius-half $border-radius-half 0;
+      }
     }
 
     #options-box i.fa-bookmark {
@@ -119,4 +121,9 @@ footer#page-footer {
 
 div.clearfix {
   clear: both;
+}
+
+.search-help, .blacklist-help {
+  float: right;
+  font-size: 70%;
 }

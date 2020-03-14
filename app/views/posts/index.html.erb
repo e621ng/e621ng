@@ -39,7 +39,7 @@
       </menu>
 
       <div class="mobile-search">
-        <%= link_to "(search help)", help_page_path(id: "cheatsheet") %>
+        <%= link_to "(search help)", help_page_path(id: "cheatsheet"), class: 'search-help' %>
         <div class="search-form">
           <%= form_tag(posts_path, :method => "get") do %>
             <% if params[:raw] %>

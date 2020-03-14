@@ -13,7 +13,7 @@ div.comments-for-post {
       border-radius: $border-radius-half;
       background: $comment-background;
       word-wrap: break-word;
-      margin-bottom: $half-padding;
+      margin-bottom: $padding-050;
       display: flex;
 
       &[data-is-sticky="true"] {
@@ -39,7 +39,7 @@ div.comments-for-post {
       }
 
       div.content {
-        padding: $half-padding;
+        padding: $padding-050;
         menu {
           li {
             margin-right: 1em;
@@ -107,7 +107,7 @@ div#c-comments {
     div.post-preview {
       @include section-box-shadow;
       background-color: $comment-post-background;
-      padding: $half-padding;
+      padding: $padding-050;
       &[data-tags~=animated], &[data-file-ext=swf], &[data-file-ext=webm], &[data-file-ext=zip], &[data-file-ext=mp4] {
         div.preview {
           position: relative;

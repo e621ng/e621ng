@@ -52,3 +52,13 @@
     }
   }
 }
+
+.post-count {
+  font-size: 85%;
+  font-weight: 500;
+  margin-left: 0.2em;
+}
+
+.low-post-count {
+  color: $post-tag-low-count-color;
+}

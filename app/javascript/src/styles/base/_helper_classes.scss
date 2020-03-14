@@ -35,9 +35,9 @@
 }
 
 .color-muted {
-  @include themable() { color: themed("color-muted"); }
+  @include themable() { color: themed("color-text-muted"); }
 }
 
 .color-white {
-  @include themable() { color: themed("color-white"); }
+  @include themable() { color: themed("color-text-white"); }
 }

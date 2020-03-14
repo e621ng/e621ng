@@ -22,24 +22,34 @@
 
 @media screen and (max-width: 800px) {
   body.resp {
+    #search-box { display: none; }
+
     .mobile-search {
       display: block;
+      margin: $padding-050 $padding-050 $padding-150;
+      .search-help {
+        font-size: $font-size;
+      }
     }
     .mobile-search > .search-form > form {
       box-sizing: border-box;
       display: flex;
       width: 100%;
-      margin-bottom: $quarter-padding;
+      margin-bottom: $padding-025;
       .search-input {
         width: 100%;
         input {
           width: 100%;
+          box-sizing: border-box;
+          border-radius: $border-radius-half 0 0 $border-radius-half;
         }
         flex-grow: 1;
       }
       .search-button > button {
         width: 32px;
         height: 32px;
+        border-left: 1px solid #ccc; //HACK: hardcoded color
+        border-radius: 0 $border-radius-half $border-radius-half 0;
       }
     }
 
@@ -311,7 +321,7 @@
           width: auto;
           float: none;
           background: $lighten-background-5;
-          padding: $half-padding $base-padding;
+          padding: $padding-050 $base-padding;
 
           .post-thumbnail {
             img {
@@ -323,7 +333,7 @@
           }
 
           .author-info {
-            margin-left: $half-padding;
+            margin-left: $padding-050;
           }
 
           p {

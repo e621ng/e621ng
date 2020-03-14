@@ -148,7 +148,7 @@ class TagSetPresenter < Presenter
       end
 
       is_underused_tag = count <= 1 && category == Tag.categories.general
-      klass = "post-count#{is_underused_tag ? " low-post-count" : ""}"
+      klass = "color-muted post-count#{is_underused_tag ? " low-post-count" : ""}"
       title = "New general tag detected. Check the spelling or populate it now."
 
       html << %{<span class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}

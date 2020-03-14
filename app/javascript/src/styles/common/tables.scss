@@ -12,7 +12,7 @@ table.table {
   tbody {
     tr {
       td {
-        padding: $half-padding $quarter-padding;
+        padding: $padding-050 $padding-025;
       }
       @include themable {
         background-color: themed("color-section");

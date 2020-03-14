@@ -2,8 +2,11 @@
 $border-radius-half: 3px;
 $border-radius-full: 6px;
 $base-padding: 1rem;
-$half-padding: $base-padding/2;
-$quarter-padding: $base-padding/4;
+$padding-050: $base-padding/2;
+$padding-025: $base-padding/4;
+$padding-100: $base-padding;
+$padding-125: $base-padding*1.25;
+$padding-150: $base-padding*1.5;
 
 // Font
 $font-size: 85%;
