@@ -489,7 +489,7 @@ Rails.application.routes.draw do
 
   get "/intro" => redirect("/explore/posts/intro")
 
-  root :to => "posts#index"
+  root :to => "static#home"
 
   get "*other", :to => "static#not_found"
 end
