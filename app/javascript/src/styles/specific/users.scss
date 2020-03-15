@@ -1,8 +1,10 @@
 
-
-span.user-greeting {
-  color: $user-home-greeting-color;
-  cursor: help;
+.user-greeting-outer {
+  padding: $padding-025 0 $padding-025;
+  span.user-greeting {
+    color: $user-home-greeting-color;
+    cursor: help;
+  }
 }
 
 div#c-users {
