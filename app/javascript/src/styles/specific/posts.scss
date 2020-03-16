@@ -1,4 +1,7 @@
 
+#mode-box-mode, #mode-box #set-id {
+  width: 15em; // Match width to that of the
+}
 
 @keyframes heartbeat {
   0% {
@@ -42,12 +45,15 @@ article.post-preview {
   }
 
   .desc {
-    background-color: $post-description-background;
+    @include themable {
+      background-color: lighten( themed("color-section"), 5%);
+    }
     font-size: 80%;
     margin-bottom: 0;
   }
 
   .post-score>span {
+    font-size: 0.8rem;
     margin-left: 0.5em;
   }
 
@@ -66,8 +72,9 @@ article.post-preview {
   img {
     box-sizing: border-box;
     margin: auto;
-    max-height: 150px;
-    max-width: 150px;
+    max-height: 10rem; // Roughly 160px with 16pt font size
+    max-width: 10rem;
+    border-radius: $border-radius-half $border-radius-half 0 0;
   }
 
   &[data-tags~=animated] > a:before {

@@ -53,18 +53,20 @@ $box-shadow-size: 2px 2px 5px;
 }
 
 @mixin preview-type-badge($text) {
+  @include themable {
+    background-color: themed("color-section");
+    border: 1px solid themed("color-text-white");
+    color: themed("color-text");
+  }
   z-index: 5;
   position: absolute;
   left: 0;
-  top: 10px;
-  background-color: #284a81;
+  top: 0.5rem;
   text-align: center;
-  border-radius: 5px;
-  color: white;
+  border-radius: $border-radius-full;
   padding: 3px 5px;
   font-size: 60%;
   font-weight: bold;
-  border: 1px solid white;
   content: $text;
 }
 
