@@ -161,14 +161,14 @@
                     </div>
                     <div>
                         <template v-if="!safe">
-                            <button class="toggle-button" :class="{active: rating==='e'}" @click="rating = 'e'">
+                            <button class="toggle-button rating-e" :class="{active: rating==='e'}" @click="rating = 'e'">
                                 Explicit
                             </button>
-                            <button class="toggle-button" :class="{active: rating==='q'}" @click="rating = 'q'">
+                            <button class="toggle-button rating-q" :class="{active: rating==='q'}" @click="rating = 'q'">
                                 Questionable
                             </button>
                         </template>
-                        <button class="toggle-button" :class="{active: rating==='s'}" @click="rating = 's'">Safe
+                        <button class="toggle-button rating-s" :class="{active: rating==='s'}" @click="rating = 's'">Safe
                         </button>
                     </div>
                 </div>
@@ -278,138 +278,6 @@
         </div>
     </div>
 </template>
-
-<style scoped>
-    .toggle-button {
-        box-sizing: border-box;
-        display: inline-block;
-        font-weight: 400;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: center;
-        user-select: none;
-        padding: .175em .5rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        margin-right: 5px;
-    }
-
-    .toggle-button.active {
-        background-color: #FDF5D9;
-    }
-
-    .flex-grid-outer {
-        display: flex;
-        padding: 10px 0;
-    }
-
-    .upload_preview_container.in-editor {
-        display: none;
-    }
-
-    .upload_preview_container.in-sidebar {
-        position: sticky;
-        top: 20px;
-    }
-
-    .flex-grid {
-        display: flex;
-        padding: 10px 0;
-    }
-
-    .flex-wrap {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .col {
-        flex: 1 0 0;
-        margin-right: 5px;
-    }
-
-    .col2 {
-        flex: 2 1 0;
-    }
-
-    .border-bottom {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-    }
-
-    .section-label {
-        white-space: normal;
-        font-weight: bold;
-    }
-
-    .come-together-now {
-        padding-bottom: 0;
-    }
-
-    .over-me {
-        padding-top: 0;
-    }
-
-    .tag-textarea {
-        display: inline-block; /* Why were we even unsetting this? It breaks EVERYTHING. */
-        font-size: 1rem;
-        width: 100%;
-        resize: vertical;
-    }
-
-    /* Need to override this so it shows up at all. */
-    #whitelist-warning {
-        display: block;
-        float: none;
-    }
-
-    @media only screen and (orientation: portrait), (max-width: 1100px) {
-        #preview-sidebar {
-            display: none;
-        }
-
-        .upload_preview_container.in-editor {
-            display: flex;
-            flex-direction: column-reverse;
-        }
-
-        .upload_preview_container.in-sidebar {
-            display: none;
-        }
-
-        .upload_preview_dims {
-            text-align: center;
-        }
-
-        .upload_preview_img {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            max-height: 500px;
-        }
-
-        .below-upload > .upload_preview_img {
-            max-height: 150px;
-        }
-
-        .related-section {
-            flex: 0 1 50%;
-        }
-
-        .flex-grid {
-            flex-direction: column;
-        }
-
-        input {
-            max-width: 90%;
-        }
-
-    }
-
-    .the_secret_switch {
-        height: 10px;
-        width: 100%;
-    }
-</style>
 
 <script>
   import Vue from 'vue';
