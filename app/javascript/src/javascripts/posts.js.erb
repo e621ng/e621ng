@@ -455,6 +455,15 @@ Post.resize_notes = function() {
 
 
 Post.initialize_resize = function() {
+  const $image = $('#image');
+  if($image[0].complete) {
+    Post.resize_notes();
+  } else {
+    $image.on('load', function(e) {
+      $image.off('load');
+      Post.resize_notes();
+    });
+  }
   $("#current-image-resize-mode").on('click', function(e) {
     Post.resize_cycle_mode(e);
   });
