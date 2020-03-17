@@ -1,11 +1,16 @@
+$bloodlust-color-background: #000000;
+$bloodlust-color-section:    #333333;
 $bloodlust-color-link-hover: #f68b00;
 $bloodlust-color-text-muted: #999999;
 
 $theme_bloodlust: (
   // Layout Colors
-  "color-background":             #000000,                // Main background (dark blue, large hexagons)
+  "color-background":             $bloodlust-color-background,                // Main background (dark blue, large hexagons)
   "color-foreground":             #222222,                // Foreground (lighter blue, small hexagons)
-  "color-section":                #333333,                // Foreground sections - boxes, sections, etc
+  "color-section":                $bloodlust-color-section,                // Foreground sections - boxes, sections, etc
+
+  "color-section-pending":        $bloodlust-color-section,
+  "color-section-pending-border": $bloodlust-color-background,
 
   // Main Colors
   "color-text":                   #ffffff,

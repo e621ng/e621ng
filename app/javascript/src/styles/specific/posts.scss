@@ -310,46 +310,62 @@ div#c-posts {
     }
 
     &.notice-parent {
-      border-color: $notice-parent-border;
-      background: $notice-parent-background;
+      @include themable {
+        background-color: themed('color-section-pending');
+        border: 1px solid themed('color-section-pending-border');
+      }
     }
 
     &.notice-child {
-      border-color: $notice-child-border;
-      background: $notice-child-background;
+      @include themable {
+        background-color: themed('color-section-pending');
+        border: 1px solid themed('color-section-pending-border');
+      }
     }
 
     &.notice-pending {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section-pending');
+        border: 1px solid themed('color-section-pending-border');
+      }
     }
 
     &.notice-flagged {
-      border-color: $notice-deleted-border;
-      background: $notice-deleted-background;
+      @include themable {
+        background-color: darken( themed('color-danger'), 10%);
+        border: 1px solid themed("color-foreground");
+      }
     }
 
     &.notice-deleted {
-      border-color: $notice-deleted-border;
-      background: $notice-deleted-background;
+      @include themable {
+        background-color: darken( themed('color-danger'), 10%);
+        border: 1px solid themed("color-foreground");
+      }
     }
 
     &.notice-appealed {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section-pending');
+        border: 1px solid themed('color-section-pending-border');
+      }
     }
 
     &.notice-resized {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section-pending');
+        border: 1px solid themed('color-section-pending-border');
+      }
     }
   }
 
   div.nav-notice {
     padding: 0.5em;
     margin-bottom: $padding-050;
-    background: $navigation-background;
-    border: 1px solid $navigation-border;
+    @include themable {
+      background-color: themed('color-section');
+      border: 1px solid themed('color-background');
+    }
     position: relative;
 
     p {
