@@ -1,4 +1,5 @@
 User-agent: *
+Crawl-delay: 1
 Disallow: /admin
 Disallow: /advertisements
 Disallow: /artists
@@ -36,6 +37,7 @@ Disallow: /posts.atom
 Disallow: /posts/random
 Disallow: /posts/copy_notes
 Disallow: /posts/revert
+Disallow: /posts*?*tags=*
 Disallow: /reports
 Disallow: /session
 Disallow: /sources
