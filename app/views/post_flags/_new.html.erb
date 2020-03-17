@@ -3,6 +3,8 @@
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
   </div>
 
+  <%= error_messages_for :post_flag %>
+
   <%# XXX dtext_field expects there to be a `post_flag` instance variable. %>
   <% @post_flag = post_flag %>
   <%= simple_form_for(@post_flag) do |f| %>
@@ -20,8 +22,7 @@
       <%= radio_button_tag "post_flag[reason_name]", "user" %>
       <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48
         hours of uploading). Only use if no other reason above fits.</label>
-      <%= dtext_field "post_flag", "reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
-      <%= dtext_preview_button "post_flag", "reason", preview_id: "dtext-preview-for-post-flag" %>
+      <%= dtext_field "post_flag", "user_reason", name: "Reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
     <% else %>
       <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: true %>
       <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48

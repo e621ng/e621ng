@@ -19,7 +19,6 @@ class PostFlag < ApplicationRecord
   validate :validate_reason
   validate :update_reason, on: :create
   validates :reason, presence: true
-  validates :reason, length: {in: 1..250}
   validates :creator_id, uniqueness: {:scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"}
   before_save :update_post
   after_commit :index_post
@@ -28,7 +27,7 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name
+  attr_accessor :parent_id, :reason_name, :user_reason
 
   module SearchMethods
     def duplicate
@@ -201,7 +200,8 @@ class PostFlag < ApplicationRecord
       end
       errors[:parent_id] << "cannot be set to the post being flagged" if parent_post.id == post.id
     when 'user'
-      errors[:reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
+      errors[:user_reason] << "cannot be blank" unless user_reason.present? && user_reason.strip.length > 0
+      errors[:user_reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
     else
       errors[:reason] << "is not one of the available choices" unless MAPPED_REASONS.key?(reason_name)
     end
@@ -216,7 +216,7 @@ class PostFlag < ApplicationRecord
       post.update_column(:parent_id, parent_post.id)
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     when "user"
-      self.reason = "Uploader requested removal within 48 hours (Reason: #{reason})"
+      self.reason = "Uploader requested removal within 48 hours (Reason: #{user_reason})"
     else
       self.reason = MAPPED_REASONS[reason_name]
     end

@@ -18,7 +18,11 @@ class PostFlagsController < ApplicationController
     @post_flag = PostFlag.create(post_flag_params)
     respond_with(@post_flag) do |fmt|
       fmt.html do
-        redirect_to post_path(id: @post_flag.post_id)
+        if @post_flag.errors.size > 0
+          respond_with(@post_flag)
+          else
+            redirect_to post_path(id: @post_flag.post_id)
+        end
       end
     end
   end
@@ -44,6 +48,6 @@ class PostFlagsController < ApplicationController
   private
 
   def post_flag_params
-    params.fetch(:post_flag, {}).permit(%i[post_id reason_name reason parent_id])
+    params.fetch(:post_flag, {}).permit(%i[post_id reason_name user_reason parent_id])
   end
 end
