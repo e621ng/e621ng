@@ -14,7 +14,7 @@
 
 <% if recent_updated_pools.any? %>
   <div>
-    <h1>Recent Pools</h1>
+    <h3>Recent Pools</h3>
     <ul id="recent-pools">
       <% recent_updated_pools.each do |pool| %>
         <%= content_tag :li, pool.pretty_name, "data-value" => pool.name %>
