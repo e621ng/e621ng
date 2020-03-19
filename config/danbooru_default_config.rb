@@ -952,6 +952,10 @@ fart'
     def ads_zone_mobile
       {zone: nil, revive_id: nil, checksum: nil}
     end
+
+    def metrika_enabled?
+      false
+    end
   end
 
   class EnvironmentConfiguration
