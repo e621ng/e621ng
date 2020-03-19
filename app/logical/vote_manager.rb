@@ -31,9 +31,10 @@ class VoteManager
           post.reload
         end
       end
-    rescue ActiveRecord::SerializationFailure
+    rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
+      raise e
     rescue ActiveRecord::RecordNotUnique
       raise PostVote::Error.new("You have already voted for this post")
     end
@@ -54,9 +55,10 @@ class VoteManager
           post.reload
         end
       end
-    rescue ActiveRecord::SerializationFailure
+    rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
+      raise e
     end
     post.update_index
   end

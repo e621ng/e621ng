@@ -14,9 +14,10 @@ class FavoriteManager
         post.do_not_version_changes = true
         post.save
       end
-    rescue ActiveRecord::SerializationFailure
+    rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
+      raise e
     rescue ActiveRecord::RecordNotUnique
       raise Favorite::Error, "You have already favorited this post" unless force
     end
@@ -37,9 +38,10 @@ class FavoriteManager
         post.do_not_version_changes = true
         post.save if post
       end
-    rescue ActiveRecord::SerializationFailure
+    rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
+      raise e
     end
   end
 
