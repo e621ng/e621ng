@@ -27,7 +27,7 @@ class TagBatchJob < ApplicationJob
   end
 
   def migrate_posts(normalized_antecedent, normalized_consequent)
-    ::Post.tag_match(normalized_antecedent.join(" ")).find_each do |post|
+    ::PostQueryBuilder.new(normalized_antecedent.join(" ")).build.reorder('').find_each do |post|
       post.with_lock do
         tags = (post.tag_array - normalized_antecedent + normalized_consequent).join(" ")
         post.update(tag_string: tags)
