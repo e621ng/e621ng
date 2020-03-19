@@ -2,7 +2,7 @@ class VoteManager
   def self.vote!(user:, post:, score:)
     @vote = nil
     score = score_modifier = score.to_i
-    # TODO retry on ActiveRecord::TransactionIsloationConflict?
+    retries = 5
     begin
       raise PostVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
@@ -31,23 +31,32 @@ class VoteManager
           post.reload
         end
       end
-      post.update_index
+    rescue ActiveRecord::SerializationFailure
+      retries -= 1
+      retry if retries > 0
     rescue ActiveRecord::RecordNotUnique
       raise PostVote::Error.new("You have already voted for this post")
     end
+    post.update_index
     @vote
   end
 
   def self.unvote!(user:, post:, force: false)
-    PostVote.transaction(isolation: :serializable) do
-      PostVote.uncached do
-        vote = PostVote.where(user_id: user.id, post_id: post.id).first
-        return unless vote
-        raise PostVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
-        post.votes.where(user: user).delete_all
-        subtract_vote(post, vote)
-        post.reload
+    retries = 5
+    begin
+      PostVote.transaction(isolation: :serializable) do
+        PostVote.uncached do
+          vote = PostVote.where(user_id: user.id, post_id: post.id).first
+          return unless vote
+          raise PostVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
+          post.votes.where(user: user).delete_all
+          subtract_vote(post, vote)
+          post.reload
+        end
       end
+    rescue ActiveRecord::SerializationFailure
+      retries -= 1
+      retry if retries > 0
     end
     post.update_index
   end

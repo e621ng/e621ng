@@ -1,5 +1,6 @@
 class FavoriteManager
   def self.add!(user:, post:, force: false)
+    retries = 5
     begin
       Favorite.transaction(isolation: :serializable) do
         unless force
@@ -13,6 +14,9 @@ class FavoriteManager
         post.do_not_version_changes = true
         post.save
       end
+    rescue ActiveRecord::SerializationFailure
+      retries -= 1
+      retry if retries > 0
     rescue ActiveRecord::RecordNotUnique
       raise Favorite::Error, "You have already favorited this post" unless force
     end
@@ -21,15 +25,21 @@ class FavoriteManager
   def self.remove!(user:, post:, post_id: nil)
     post_id = post ? post.id : post_id
     raise Favorite::Error, "Must specify a post or post_id to remove favorite" unless post_id
-    Favorite.transaction(isolation: :serializable) do
-      unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
-        return
-      end
+    retries = 5
+    begin
+      Favorite.transaction(isolation: :serializable) do
+        unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
+          return
+        end
 
-      Favorite.for_user(user.id).where(post_id: post_id).destroy_all
-      post.delete_user_from_fav_string(user.id) if post
-      post.do_not_version_changes = true
-      post.save if post
+        Favorite.for_user(user.id).where(post_id: post_id).destroy_all
+        post.delete_user_from_fav_string(user.id) if post
+        post.do_not_version_changes = true
+        post.save if post
+      end
+    rescue ActiveRecord::SerializationFailure
+      retries -= 1
+      retry if retries > 0
     end
   end
 
