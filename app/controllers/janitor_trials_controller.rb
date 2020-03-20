@@ -1,6 +1,6 @@
 class JanitorTrialsController < ApplicationController
   respond_to :html, :json
-  before_action :moderator_only, :only => [:create, :promote, :demote]
+  before_action :admin_only
 
   def new
     @janitor_trial = JanitorTrial.new
