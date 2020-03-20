@@ -430,8 +430,21 @@ div#c-posts {
       margin-bottom: 0.25em;
     }
 
-    #edit textarea {
-      width: 100%;
+    #edit {
+      .edit-submit {
+        position: sticky;
+        bottom: 0;
+
+        @include themable {
+          background: themed("color-section");
+        }
+        width: min-content;
+        padding: 1rem 1rem 1rem 0.5rem;
+        margin: 0;
+      }
+      textarea {
+        width: 100%;
+      }
     }
 
     #favlist {
