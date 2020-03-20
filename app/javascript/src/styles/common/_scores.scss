@@ -5,19 +5,19 @@
   font-weight: 700;
 }
 
-.score-positive {
+.score-positive, .score-positive a {
   @include themable { color: themed("color-score-positive"); }
   a:hover {
     @include themable { color: darken( themed("color-score-positive"), 10%); }
   }
 }
-.score-negative {
+.score-negative, .score-negative a {
   @include themable { color: themed("color-score-negative"); }
   a:hover {
     @include themable { color: darken( themed("color-score-negative"), 10%); }
   }
 }
-.score-neutral {
+.score-neutral, .score-neutral a {
   @include themable { color: themed("color-text-muted"); }
   a:hover {
     @include themable { color: darken( themed("color-text-muted"), 10%); }

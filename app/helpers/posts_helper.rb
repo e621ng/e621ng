@@ -157,7 +157,7 @@ module PostsHelper
     down_tag = tag.span(tag.a('&#x25BC;'.html_safe, class: 'post-vote-down-link', 'data-id': post.id),
                         class: confirm_score_class(vote_score, -1),
                         id: "post-vote-down-#{post.id}")
-    vote_block = tag.span(" (vote ".html_safe + up_tag + "/" + down_tag + ")")
+    vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
     score_tag = tag.span(post.score, class: "post-score #{score_class(post_score)}", id: "post-score-#{post.id}", title: "#{post.up_score} up/#{post.down_score} down")
     score_tag + (CurrentUser.is_voter? ? vote_block : '')
   end

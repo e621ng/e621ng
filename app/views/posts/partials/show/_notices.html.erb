@@ -1,5 +1,5 @@
-<% if post.is_flagged? && !post.is_deleted? && post.flags.any? %>
-  <div class="ui-corner-all ui-state-highlight notice notice-flagged">
+<% if CurrentUser.is_janitor? && post.is_flagged? && !post.is_deleted? && post.flags.any? %>
+  <div class="notice notice-flagged">
     <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(:title => "howto:flag") %>): </p>
 
     <%= post_flag_reasons(post) %>
@@ -16,8 +16,8 @@
   </div>
 <% end %>
 
-<% if post.is_deleted? %>
-  <div class="ui-corner-all ui-state-highlight notice notice-deleted">
+<% if CurrentUser.is_janitor? && post.is_deleted? %>
+  <div class="notice notice-deleted">
     <% if post.flags.any? %>
       <p>This post was deleted or flagged for the following reasons: </p>
       <%= post_flag_reasons(post) %>
@@ -34,8 +34,8 @@
   </div>
 <% end %>
 
-<% if post.is_pending? %>
-  <div class="ui-corner-all ui-state-highlight notice notice-pending" id="pending-approval-notice">
+<% if CurrentUser.is_janitor? && post.is_pending? %>
+  <div class="notice notice-pending" id="pending-approval-notice">
     This post is pending approval. (<%= link_to "learn more", wiki_pages_path(:title => "about:mod_queue") %>)
 
     <%= render "post_disapprovals/counts", disapprovals: post.disapprovals, post: post %>
@@ -47,8 +47,8 @@
   </div>
 <% end %>
 
-<% if (post.is_flagged? || post.is_deleted?) && post.appeals.any? %>
-  <div class="ui-corner-all ui-state-highlight notice notice-appealed">
+<% if CurrentUser.is_janitor? && (post.is_flagged? || post.is_deleted?) && post.appeals.any? %>
+  <div class="notice notice-appealed">
     <p>This post was appealed:</p>
     <%= post_appeal_reasons(post) %>
   </div>

@@ -213,6 +213,9 @@ div#c-posts {
     max-width:190px;
   }
   .source-link:hover {
+    @include themable {
+      background: themed("color-background");
+    }
     overflow:visible;
     height:auto;
     z-index:2;
@@ -231,14 +234,6 @@ div#c-posts {
     button.ui-button {
       padding: 0.25em 0.75em;
     }
-  }
-
-  #remove-fav-button i.fa-heart {
-    color: deeppink;
-  }
-
-  #remove-fav-button.animate i {
-    animation: heartbeat 0.4s ease;
   }
 
   .fav-buttons-true #add-fav-button {
@@ -279,7 +274,7 @@ div#c-posts {
     overflow: hidden;
   }
 
-  div.bottom-notices {
+  div.parent-children {
     display: flex;
     margin: 0 -$padding-025;
     margin-bottom: $padding-025;
@@ -291,7 +286,7 @@ div#c-posts {
   }
 
   div.notice {
-    font-size: 0.8em;
+    border-radius: $border-radius-half;
     padding: 0.5em;
     margin-bottom: 0.5em;
     overflow: hidden;
@@ -311,22 +306,22 @@ div#c-posts {
 
     &.notice-parent {
       @include themable {
-        background-color: themed('color-section-pending');
-        border: 1px solid themed('color-section-pending-border');
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
       }
     }
 
     &.notice-child {
       @include themable {
-        background-color: themed('color-section-pending');
-        border: 1px solid themed('color-section-pending-border');
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
       }
     }
 
     &.notice-pending {
       @include themable {
-        background-color: themed('color-section-pending');
-        border: 1px solid themed('color-section-pending-border');
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
       }
     }
 
@@ -346,15 +341,15 @@ div#c-posts {
 
     &.notice-appealed {
       @include themable {
-        background-color: themed('color-section-pending');
-        border: 1px solid themed('color-section-pending-border');
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
       }
     }
 
     &.notice-resized {
       @include themable {
-        background-color: themed('color-section-pending');
-        border: 1px solid themed('color-section-pending-border');
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
       }
     }
   }
@@ -423,8 +418,12 @@ div#c-posts {
       float: right;
     }
 
-    .pool-name, .search-name {
+    .pool-name, .search-name, .set-name {
       word-wrap: break-word;
+      flex-grow: 2;
+      text-align: center;
+      max-width: 65%;
+      padding: 0 1rem;
     }
 
     textarea {
@@ -445,33 +444,20 @@ div#c-posts {
     }
 
     #pool-nav, #search-seq-nav, #set-nav {
+      @include themable {
+        background: themed("color-section");
+      }
       li {
-        position: relative;
-        text-align: center;
-        padding: 0 5.5em;
+        display: flex;
+        height: 2rem;
+        align-items: center;
+        justify-content: space-between;
 
-        .prev {
-          position: absolute;
-          left: 2em;
-          top: 0;
+        .first, .prev {
+          flex-shrink: 2;
         }
-
-        .next {
-          position: absolute;
-          right: 2em;
-          top: 0;
-        }
-
-        .first {
-          position: absolute;
-          left: 0.5em;
-          top: 0;
-        }
-
-        .last {
-          position: absolute;
-          right: 0.5em;
-          top: 0;
+        .next, .last {
+          flex-shrink: 2;
         }
       }
     }

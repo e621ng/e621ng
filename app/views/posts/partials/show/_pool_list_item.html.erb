@@ -1,8 +1,8 @@
 <%= content_tag :li, id: "nav-link-for-pool-#{pool.id}", class: "pool-category-#{pool.category} pool-selected-#{selected}" do -%>
   <% if !pool.first_post?(post.id) && pool.post_ids.first -%>
-    <%= link_to("&laquo;".html_safe, post_path(pool.post_ids.first, pool_id: pool.id), class: "first", title: "to page 1") %>
+    <%= link_to("&laquo; first".html_safe, post_path(pool.post_ids.first, pool_id: pool.id), class: "first", title: "to page 1") %>
   <% else -%>
-    <span class="first">&laquo;</span>
+    <span class="first">&laquo; first</span>
   <% end -%>
 
   <% pool.previous_post_id(post.id).tap do |previous_post_id| -%>
@@ -26,8 +26,8 @@
   <% end -%>
 
   <% if !pool.last_post?(post.id) && pool.post_ids.last -%>
-    <%= link_to("&raquo;".html_safe, post_path(pool.post_ids.last, pool_id: pool.id), class: "last", title: "to page #{pool.post_count}") -%>
+    <%= link_to("last &raquo;".html_safe, post_path(pool.post_ids.last, pool_id: pool.id), class: "last", title: "to page #{pool.post_count}") -%>
   <% else -%>
-    <span class="last">&raquo;</span>
+    <span class="last">last &raquo;</span>
   <% end -%>
 <% end -%>
