@@ -213,8 +213,10 @@ div#c-posts {
     max-width:190px;
   }
   .source-link:hover {
-    @include themable {
-      background: themed("color-background");
+    a {
+      @include themable {
+        background: themed("color-background");
+      }
     }
     overflow:visible;
     height:auto;
@@ -462,7 +464,7 @@ div#c-posts {
       }
       li {
         display: flex;
-        height: 2rem;
+        height: 1.25rem;
         align-items: center;
         justify-content: space-between;
 

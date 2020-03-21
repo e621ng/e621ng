@@ -22,6 +22,16 @@
 
 @media screen and (max-width: 800px) {
   body.resp {
+    div#c-posts {
+      div#a-show {
+        #pool-nav, #search-seq-nav, #set-nav {
+          li {
+            height: 2rem;
+          }
+        }
+      }
+    }
+
     #search-box { display: none; }
 
     .mobile-search {

@@ -23,3 +23,13 @@
     @include themable { color: darken( themed("color-text-muted"), 10%); }
   }
 }
+
+.post-rating-text-safe {
+  @include themable { color: themed("color-rating-safe"); }
+}
+.post-rating-text-questionable {
+  @include themable { color: themed("color-rating-questionable"); }
+}
+.post-rating-text-explicit {
+  @include themable { color: themed("color-rating-explicit"); }
+}

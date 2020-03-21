@@ -141,6 +141,12 @@ module PostsHelper
     {params: query_params}
   end
 
+  def pretty_html_rating(post)
+    rating_text = post.pretty_rating
+    rating_class = "post-rating-text-#{rating_text.downcase}"
+    tag.span(rating_text, id: "post-rating-text", class: rating_class)
+  end
+
   def post_vote_block(post, vote)
     voted = !vote.nil?
     vote_score = voted ? vote.score : 0
