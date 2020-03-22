@@ -67,6 +67,8 @@ class ApplicationController < ActionController::Base
     when ActionController::BadRequest
       render_error_page(400, exception)
     when SessionLoader::AuthenticationFailure
+      session.delete(:user_id)
+      cookies.delete :remember
       render_expected_error(401, exception.message)
     when ActionController::InvalidAuthenticityToken
       render_error_page(403, exception)

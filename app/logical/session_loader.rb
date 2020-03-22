@@ -22,13 +22,14 @@ class SessionLoader
       load_remember_token
     end
 
+    CurrentUser.user.unban! if CurrentUser.user.ban_expired?
+    raise AuthenticationFailure.new("Account banned") if CurrentUser.user.is_blocked?
     set_statement_timeout
     update_last_logged_in_at
     update_last_ip_addr
     set_time_zone
     set_safe_mode
     set_started_at_session
-    CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     DanbooruLogger.initialize(request, session, CurrentUser.user)
   end
 
