@@ -48,11 +48,12 @@
 }
 
 .button {
+  display: inline-block;
+  box-sizing: border-box;
   border-radius: $border-radius-full;
   font-size: 1rem;
   padding: 0.25rem 0.5rem;
   border: 0;
-  box-sizing: border-box;
   @include themable { color: themed("color-text-white") !important; }
 
   &.btn-danger {

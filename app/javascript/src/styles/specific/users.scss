@@ -44,16 +44,6 @@ div#c-users {
       flex-direction: column;
     }
 
-    /* clearfix hacks */
-    div.box:before, div.box:after {
-      content: "";
-      display: table;
-    }
-
-    div.box:after {
-      clear: both;
-    }
-
     div.profile-container {
       width: 100%;
       display: flex;
@@ -61,6 +51,10 @@ div#c-users {
 
     div.profile-stats {
       width: 100%;
+      border-radius: $border-radius-full;
+      @include themable {
+        background: rgba(themed("color-section"), 0.8);
+      }
 
       abbr {
         cursor: help;

@@ -14,15 +14,15 @@
 
 div#c-user-feedbacks, div#c-moderator-dashboards div#col2 {
   .feedback-category-positive {
-    background: $positive-record-background !important;
+    background: $positive-record-background;
   }
 
   .feedback-category-negative {
-    background: $negative-record-background !important;
+    background: $negative-record-background;
   }
 
   .feedback-category-neutral {
-    background: $neutral-record-background !important;
+    background: $neutral-record-background;
   }
 
   blockquote {
