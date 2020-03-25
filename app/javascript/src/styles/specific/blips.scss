@@ -4,34 +4,9 @@ div#c-blips {
   article.blip {
     margin-bottom: $base-padding;
     word-wrap: break-word;
-    padding: 5px;
-    background: $blip-background;
 
     &[data-is-deleted="true"] {
       background-color: $blip-hidden-background;
-    }
-
-    div.author {
-      width: 12em;
-      float: left;
-      overflow: hidden;
-      margin-right: 1em;
-
-      h1 {
-        display: block;
-        font-size: $h3-size;
-      }
-    }
-
-    div.content {
-      margin-left: 13em;
-      min-width: 17em;
-
-      menu {
-        li {
-          margin-right: 1em;
-        }
-      }
     }
   }
 }

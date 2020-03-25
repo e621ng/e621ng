@@ -123,6 +123,7 @@ ${stripped_body}
 };
 
 Comment.toggle_post_tags = function (e) {
+  e.preventDefault();
   const link = $(e.target);
   $(`#post-tags-${link.data('post-id')}`).toggleClass("hidden");
 }

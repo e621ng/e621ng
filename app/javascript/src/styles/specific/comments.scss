@@ -10,10 +10,8 @@ div.comments-for-post {
     //padding: $base-padding;
     article.comment {
       border-radius: $border-radius-half;
-      background: $comment-background;
       word-wrap: break-word;
       margin-bottom: $padding-050;
-      display: flex;
 
       &[data-is-sticky="true"] {
         background: $comment-sticky-background;
@@ -23,28 +21,7 @@ div.comments-for-post {
         background: $comment-hidden-background;
       }
 
-      div.author {
-        background-color: $comment-author-background;
-        padding: 1em 1em 0 1em;
-        width: 154px;
-        flex-shrink: 0;
-
-        .author-info {
-          h1 {
-            display: block;
-            font-size: $h3-size;
-          }
-        }
-      }
-
       div.content {
-        padding: $padding-050;
-        menu {
-          li {
-            margin-right: 1em;
-          }
-        }
-
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
             background-color: $comment-vote-background;
             border-radius: $border-radius-half;
@@ -61,12 +38,6 @@ div.comments-for-post {
     }
   }
 }
-
-//div#c-posts {
-//  div.comments-for-post {
-//    float: left;
-//  }
-//}
 
 div#c-comments {
   div#a-index, div#a-show {
@@ -106,25 +77,6 @@ div#c-comments {
     div.post-preview {
       background-color: $comment-post-background;
       padding: $padding-050;
-      &[data-tags~=animated], &[data-file-ext=swf], &[data-file-ext=webm], &[data-file-ext=zip], &[data-file-ext=mp4] {
-        div.preview {
-          position: relative;
-
-          &:before {
-            @include animated-icon;
-          }
-        }
-      }
-
-      &[data-has-sound=true] {
-        div.preview {
-          position: relative;
-
-          &:before {
-            @include sound-icon;
-          }
-        }
-      }
     }
 
     div.post {

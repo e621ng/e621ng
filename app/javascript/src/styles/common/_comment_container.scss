@@ -1,11 +1,14 @@
 .comment-post-grid {
+  @include themable {
+    background: themed("color-section");
+  }
   display: grid;
   grid-template-rows: 1fr;
-  grid-template-columns: 150px 1fr;
+  grid-template-columns: 165px 1fr;
   min-height: 2rem;
 
   .author-info {
-    padding-left: $padding-050;
+    padding: $padding-025 $padding-050;
     grid-column: 1;
     grid-row: 1;
     background: $lighten-background-5;
@@ -15,8 +18,8 @@
         img {
           height: auto;
           width: auto;
-          max-height: 150px;
-          max-width: 150px;
+          max-height: 140px;
+          max-width: 140px;
         }
       }
     }
@@ -39,7 +42,7 @@
       grid-template-columns: 1fr;
 
       .author-info {
-        padding-left: unset;
+        padding: unset;
         grid-column: 1;
         grid-row: 1;
 
