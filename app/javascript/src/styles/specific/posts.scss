@@ -487,23 +487,6 @@ div#c-posts {
     div.comments-for-post {
       width:100%
     }
-
-    #artist-commentary {
-      border: 1px solid $post-description-border;
-      border-radius: $border-radius-half;
-      background-color: $post-description-background;
-      margin-top: 1em;
-      padding: 0.5em;
-
-      #original-artist-commentary, #translated-artist-commentary {
-        max-height: 20em;
-        overflow-y: auto;
-      }
-
-      .disabled {
-        color: $post-description-disabled-color;
-      }
-    }
   }
 
   div#quick-edit-div {

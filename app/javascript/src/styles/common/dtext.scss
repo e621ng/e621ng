@@ -51,11 +51,11 @@
   }
 
   pre {
+    @include themable { border-left-color: themed("color-detail-code"); }
     font-family: monospace;
     font-size: 1.2em;
     margin: 0.5em 0;
     padding: 0.5em 1em;
-    background: $dtext-code-background;
     white-space: pre-wrap;
   }
 
@@ -74,8 +74,6 @@
   }
 
   div.expandable {
-    @include section-box-shadow;
-    margin-bottom: 1em;
     background: $dtext-expandable-background;
     border-radius: $border-radius-half;
 
@@ -119,6 +117,29 @@
     font-size: 0.6em;
     padding: 0 0.2em 0 0.3em;
     vertical-align: 1px;
+  }
+
+  div.expandable, pre, blockquote {
+    padding: $padding-025;
+    margin: 0 0 0.5rem;
+    border-radius: $border-radius-half;
+    @include themable {
+      border: 1px solid themed("color-section");
+      border-left: 0.25rem solid themed("color-danger");
+      background: rgba( lighten( themed("color-section"), 10%), 0.7);
+    }
+  }
+
+  blockquote {
+    @include themable {
+      border-left-color: themed("color-detail-quote");
+    }
+  }
+
+  div.expandable {
+    @include themable {
+      border-left-color: themed("color-detail-expandable");
+    }
   }
 }
 

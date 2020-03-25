@@ -47,7 +47,6 @@ div#page {
     text-align: center;
     position: relative;
     border: 1px solid $darken-background-50;
-    @include section-box-shadow(0 0 24px, $darken-background-20);
 
     h1 {
       font-size: $h2-size;

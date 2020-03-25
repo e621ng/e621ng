@@ -2,7 +2,6 @@
 
 div#c-blips {
   article.blip {
-    @include section-box-shadow;
     margin-bottom: $base-padding;
     word-wrap: break-word;
     padding: 5px;
