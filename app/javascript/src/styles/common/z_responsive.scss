@@ -321,39 +321,6 @@
         padding: 1em 0.5em;
       }
 
-      div.list-of-forum-posts {
-        article div.author {
-          display: flex;
-          width: auto;
-          float: none;
-          background: $lighten-background-5;
-          padding: $padding-050 $base-padding;
-
-          .post-thumbnail {
-            img {
-              height: auto;
-              width: auto;
-              max-height: 100px;
-              max-width: 100px;
-            }
-          }
-
-          .author-info {
-            margin-left: $padding-050;
-          }
-
-          p {
-            margin: 0;
-          }
-        }
-
-        article div.content {
-          width: auto;
-          float: none;
-          margin-left: 0;
-        }
-      }
-
       .creator {
         display: none;
       }
