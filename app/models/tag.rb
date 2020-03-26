@@ -620,6 +620,11 @@ class Tag < ApplicationRecord
           :exclude => []
       }
 
+      def id_or_invalid(val)
+        return -1 if val.blank?
+        val
+      end
+
       scan_query(query).each do |token|
         q[:tag_count] += 1 unless Danbooru.config.is_unlimited_tag?(token)
 
@@ -630,11 +635,11 @@ class Tag < ApplicationRecord
           when "-user"
             q[:uploader_id_neg] ||= []
             user_id = User.name_or_id_to_id(g2)
-            q[:uploader_id_neg] << user_id unless user_id.blank?
+            q[:uploader_id_neg] << id_or_invalid(user_id)
 
           when "user"
             user_id = User.name_or_id_to_id(g2)
-            q[:uploader_id] = user_id unless user_id.blank?
+            q[:uploader_id] = id_or_invalid(user_id)
 
           when "user_id"
             q[:uploader_id] = g2.to_i
@@ -650,7 +655,7 @@ class Tag < ApplicationRecord
             else
               q[:approver_id_neg] ||= []
               user_id = User.name_or_id_to_id(g2)
-              q[:approver_id_neg] << user_id unless user_id.blank?
+              q[:approver_id_neg] << id_or_invalid(user_id)
             end
 
           when "approver"
@@ -660,7 +665,7 @@ class Tag < ApplicationRecord
               q[:approver_id] = "any"
             else
               user_id = User.name_or_id_to_id(g2)
-              q[:approver_id] = user_id unless user_id.blank?
+              q[:approver_id] = id_or_invalid(user_id)
             end
 
           when "commenter", "comm"
@@ -672,7 +677,7 @@ class Tag < ApplicationRecord
               q[:commenter_ids] << "any"
             else
               user_id = User.name_or_id_to_id(g2)
-              q[:commenter_ids] << user_id unless user_id.blank?
+              q[:commenter_ids] << id_or_invalid(user_id)
             end
 
           when "noter"
@@ -684,13 +689,13 @@ class Tag < ApplicationRecord
               q[:noter_ids] << "any"
             else
               user_id = User.name_or_id_to_id(g2)
-              q[:noter_ids] << user_id unless user_id.blank?
+              q[:noter_ids] << id_or_invalid(user_id)
             end
 
           when "noteupdater"
             q[:note_updater_ids] ||= []
             user_id = User.name_or_id_to_id(g2)
-            q[:note_updater_ids] << user_id unless user_id.blank?
+            q[:note_updater_ids] << id_or_invalid(user_id)
 
           when "-pool"
             q[:pools_neg] ||= []
