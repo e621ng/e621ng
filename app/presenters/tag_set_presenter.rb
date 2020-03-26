@@ -151,7 +151,7 @@ class TagSetPresenter < Presenter
       klass = "color-muted post-count#{is_underused_tag ? " low-post-count" : ""}"
       title = "New general tag detected. Check the spelling or populate it now."
 
-      html << %{<span class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}
+      html << %{<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}
     end
 
     html << "</li>"
