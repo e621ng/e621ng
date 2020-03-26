@@ -5,8 +5,9 @@
 @import "base/reset";
 @import "base/base";
 @import "base/links";
-@import "base/helper_classes";
 
+
+@import "common/helper_classes";
 @import "common/ads.scss";
 @import "common/autocomplete.scss";
 @import "common/blacklists.scss";
