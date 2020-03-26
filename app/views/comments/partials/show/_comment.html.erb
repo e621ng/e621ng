@@ -25,7 +25,6 @@
 
         <%= render "application/update_notice", record: comment %>
       </div>
-      <% if CurrentUser.is_member? %>
         <div class="content-menu">
           <menu>
             <% if @post || @posts %>
@@ -47,8 +46,10 @@
               <% if CurrentUser.is_admin? %>
                 <li><%= link_to "(List)", controller: 'comment_votes', comment_id: comment.id %></li>
               <% end %>
-              <li>|</li>
-              <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
+              <% if CurrentUser.is_member? %>
+                <li>|</li>
+                <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
+              <% end %>
               <% if CurrentUser.is_moderator? %>
                 <li>|</li>
                 <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
@@ -62,7 +63,6 @@
           <% if comment.editable_by?(CurrentUser.user) %>
             <%= render "comments/form", comment: comment, hidden: true %>
           <% end %>
-      <% end %>
       </div>
     </div>
   </article>

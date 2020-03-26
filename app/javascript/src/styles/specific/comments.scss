@@ -6,8 +6,6 @@ div.comments-for-post {
   }
 
   div.list-of-comments {
-    background-color: $comment-list-background;
-    //padding: $base-padding;
     article.comment {
       border-radius: $border-radius-half;
       word-wrap: break-word;
@@ -68,20 +66,40 @@ div#c-comments {
         }
       }
     }
+  }
+}
 
-    div.preview {
-      margin-right: 30px;
-      text-align: center;
+div#c-comments {
+  div#a-index {
+    .comment-post {
+      @include themable {
+        border-left: 0.25rem solid themed("color-detail-expandable");
+        background: rgba(lighten(themed("color-section"), 10%), 0.7);
+      }
+      padding-left: $padding-050;
+      padding-bottom: $padding-025;
+      margin-bottom: $padding-100;
     }
-
-    div.post-preview {
-      background-color: $comment-post-background;
-      padding: $padding-050;
-    }
-
-    div.post {
+    .post-container {
       display: flex;
-      margin-bottom: 4em;
+      .post {
+        width: 165px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  body.resp {
+    div#a-index {
+      .post-container {
+        .post-information {
+          margin-left: $padding-050;
+        }
+        .post {
+          width: unset;
+        }
+      }
     }
   }
 }
