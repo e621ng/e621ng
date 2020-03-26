@@ -177,4 +177,10 @@ class UserPresenter
       end
     end.join("\n")
   end
+
+  def can_view_favorites?
+    return true if CurrentUser.id == user.id
+    return false if user.enable_privacy_mode? && !CurrentUser.is_admin?
+    true
+  end
 end
