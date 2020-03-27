@@ -22,8 +22,6 @@
       <% unless CurrentUser.no_flagging? %>
         <% if !post.is_deleted? && !post.is_flagged? %>
           <li><%= link_to "Flag", new_post_flag_path(post_flag: {post_id: post.id}), id: "flag" %></li>
-        <% elsif post.is_flagged? || post.is_deleted? %>
-          <li><%= link_to "Appeal", new_post_appeal_path(post_appeal: {post_id: post.id}), id: "appeal" %></li>
         <% end %>
       <% end %>
       <% if CurrentUser.is_member? %>
