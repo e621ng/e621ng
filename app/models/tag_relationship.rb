@@ -172,10 +172,6 @@ class TagRelationship < ApplicationRecord
       "The #{relationship} [[#{antecedent_name}]] -> [[#{consequent_name}]] #{forum_link} has been retired."
     end
 
-    def conflict_message
-      "The tag alias [[#{antecedent_name}]] -> [[#{consequent_name}]] #{forum_link} has conflicting wiki pages. [[#{consequent_name}]] should be updated to include information from [[#{antecedent_name}]] if necessary."
-    end
-
     def date_timestamp
       Time.now.strftime("%Y-%m-%d")
     end

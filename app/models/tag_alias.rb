@@ -4,7 +4,6 @@ class TagAlias < TagRelationship
   after_save :create_mod_action
   validates :antecedent_name, uniqueness: true
   validate :absence_of_transitive_relation
-  validate :wiki_pages_present, on: :create, unless: :skip_secondary_validations
   validate :mininum_antecedent_count, on: :create, unless: :skip_secondary_validations
 
   module ApprovalMethods
@@ -92,7 +91,7 @@ class TagAlias < TagRelationship
       update_blacklists_undo
       update_posts_undo
       forum_updater.update(retirement_message, "UNDONE") if update_topic
-      rename_wiki_and_artist_undo
+      rename_artist_undo
     end
     tag_rel_undos.update_all(applied: true)
   end
@@ -133,18 +132,7 @@ class TagAlias < TagRelationship
     end
   end
 
-  def rename_wiki_and_artist_undo
-    consequent_wiki = WikiPage.titled(consequent_name).first
-    if consequent_wiki.present?
-      if WikiPage.titled(antecedent_name).blank?
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          consequent_wiki.update(title: antecedent_name)
-        end
-      else
-        forum_updater.update(conflict_message)
-      end
-    end
-
+  def rename_artist_undo
     if consequent_tag.category == Tag.categories.artist
       if consequent_tag.artist.present? && antecedent_tag.artist.blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
@@ -170,7 +158,7 @@ class TagAlias < TagRelationship
         update_blacklists
         update_posts
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
-        rename_wiki_and_artist
+        rename_artist
         update(status: 'active', post_count: consequent_tag.post_count)
         # TODO: Race condition with indexing jobs here.
         antecedent_tag.fix_post_count if antecedent_tag
@@ -268,18 +256,7 @@ class TagAlias < TagRelationship
     end
   end
 
-  def rename_wiki_and_artist
-    antecedent_wiki = WikiPage.titled(antecedent_name).first
-    if antecedent_wiki.present?
-      if WikiPage.titled(consequent_name).blank?
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          antecedent_wiki.update(title: consequent_name, skip_secondary_validations: true)
-        end
-      else
-        forum_updater.update(conflict_message)
-      end
-    end
-
+  def rename_artist
     if antecedent_tag.category == Tag.categories.artist
       if antecedent_tag.artist.present? && consequent_tag.artist.blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
@@ -292,14 +269,6 @@ class TagAlias < TagRelationship
   def reject!(update_topic: true)
     update(status: "deleted")
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
-  end
-
-  def wiki_pages_present
-    if antecedent_wiki.present? && consequent_wiki.present?
-      errors[:base] << conflict_message
-    elsif antecedent_wiki.blank? && consequent_wiki.blank?
-      errors[:base] << "The #{consequent_name} tag needs a corresponding wiki page"
-    end
   end
 
   def mininum_antecedent_count
