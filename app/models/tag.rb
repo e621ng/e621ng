@@ -389,10 +389,23 @@ class Tag < ApplicationRecord
       list
     end
 
+    def yester_helper(count, unit)
+      count = 1 if count.nil?
+      date1 = (Date.current - (count.to_i.send(unit.to_sym))).send('beginning_of_%s' % unit)
+      date2 = (Date.current - (count.to_i.send(unit.to_sym))).send('end_of_%s' % unit)
+      return [:between, date1, date2]
+    end
+
     def parse_date(target)
       case target
+      when /\A(\d{1,2})\_?yester(week|month|year)s?\_?ago\z/
+        yester_helper($1.to_i, $2)
+      when /\Ayester(week|month|year)\z/
+        yester_helper(nil, $1)
       when /\A(day|week|month|year)\z/
         [:gte, Time.zone.now - 1.send($1.to_sym)]
+      when /\A(\d+)_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)_?(ago)?\z/i
+        [:gte, ago_helper(target)]
       else
         parse_helper(target, :date)
       end
