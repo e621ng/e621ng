@@ -89,6 +89,7 @@
   </noscript>
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
+  <%= render "layouts/theme_include" %>
   <% if Danbooru.config.beta_notice %>
   <div id="news-updates">
     <ul>
@@ -101,18 +102,6 @@
   <% end %>
 
   <header id="top">
-    <!-- Temporary theme switcher element -->
-    <div id="theme-switcher-container" style="float: right; position: relative; top: 3px; right: 3px; color: #999;">
-      Theme:
-      <select id="theme-switcher">
-        <option value="hexagon">Hexagon</option>
-        <option value="bloodlust">Bloodlust</option>
-        <option value="serpent">Serpent</option>
-        <option value="pony">Pony</option>
-        <option value="hotdog">Hotdog</option>
-      </select>
-    </div>
-
     <div id="maintoggle">
       <a href="#"><i id="maintoggle-on" class="fas fa-bars"></i></a>
       <a href="#"><i id="maintoggle-off" class="fas fa-times" style="display: none;"></i></a>

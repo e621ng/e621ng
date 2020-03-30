@@ -5,8 +5,10 @@ class IqdbQueriesController < ApplicationController
   def show
     if params[:file]
       @matches = IqdbProxy.query_file(params[:file])
-    elsif params[:url]
-      whitelist_result = UploadWhitelist.is_whitelisted?(params[:url])
+    elsif params[:url].present?
+      parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
+      raise User::PrivilegeError.new("Invalid URL") unless parsed_url
+      whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise User::PrivilegeError.new("Not allowed to request content from this URL") unless whitelist_result[0]
       @matches = IqdbProxy.query(params[:url])
     elsif params[:post_id]
@@ -19,7 +21,7 @@ class IqdbQueriesController < ApplicationController
       end
 
       fmt.json do
-        render json: @matches
+        render json: @matches, root: 'posts'
       end
     end
   end

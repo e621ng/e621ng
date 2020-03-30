@@ -15,7 +15,11 @@ class FavoritesController < ApplicationController
       end
 
       @favorite_set = PostSets::Favorites.new(@user, params[:page])
-      respond_with(@favorite_set.posts)
+      respond_with(@favorite_set.posts) do |fmt|
+        fmt.json do
+          render json: @favorite_set.posts, root: 'posts'
+        end
+      end
     end
   end
 
