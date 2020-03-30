@@ -40,7 +40,7 @@ class DmailsController < ApplicationController
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail)
     @dmail.mark_as_read!
-    @dmail.destroy
+    @dmail.update_attribute(:is_deleted, true)
     redirect_to dmails_path, :notice => "Message destroyed"
   end
 
