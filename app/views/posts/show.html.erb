@@ -78,7 +78,11 @@
       </div>
 
       <section id="image-extra-controls" style="display: flex;">
+
         <% if CurrentUser.is_member? %>
+          <div class="image-vote-buttons">
+            <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
+          </div>
           <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
             <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
             <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>

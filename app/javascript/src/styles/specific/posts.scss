@@ -570,6 +570,12 @@ section#tag-list {
   }
 }
 
+.image-vote-buttons {
+  .post-score {
+    padding: 0 $padding-050;
+  }
+}
+
 div#image-and-nav {
   display: grid;
   grid-template-columns: 1fr;

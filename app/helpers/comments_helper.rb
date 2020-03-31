@@ -4,22 +4,12 @@ module CommentsHelper
     vote_score = voted ? vote.score : 0
     comment_score = comment.score
 
-    def score_class(score)
-      return 'score-neutral' if score == 0
-      score > 0 ? 'score-positive' : 'score-negative'
-    end
-
-    def confirm_score_class(score, want)
-      return 'score-neutral' if score != want || score == 0
-      score_class(score)
-    end
-
     if CurrentUser.is_member?
       up_tag = tag.li(tag.a('&#x25B2;'.html_safe, class: 'comment-vote-up-link', 'data-id': comment.id),
-                      class: confirm_score_class(vote_score, 1),
+                      class: confirm_score_class(vote_score, 1, false),
                       id: "comment-vote-up-#{comment.id}")
       down_tag = tag.li(tag.a('&#x25BC;'.html_safe, class: 'comment-vote-down-link', 'data-id': comment.id),
-                        class: confirm_score_class(vote_score, -1),
+                        class: confirm_score_class(vote_score, -1, false),
                         id: "comment-vote-down-#{comment.id}")
     else
       up_tag = down_tag = "".html_safe

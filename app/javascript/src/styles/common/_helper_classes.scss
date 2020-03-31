@@ -55,24 +55,69 @@
   line-height: 1.25rem;
   padding: 0.25rem 0.5rem;
   border: 0;
-  @include themable { color: themed("color-text-white") !important; }
+  @include themable { color: themed("color-text-white"); }
 
   &.btn-danger {
-    @include themable { background: themed("color-danger"); }
-    &:hover {
-      @include themable { background: darken(themed("color-danger"), 5%);}
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-danger");
+      &:hover {
+        background: darken(themed("color-danger"), 5%);
+      }
     }
   }
   &.btn-warn {
-    @include themable { background: themed("color-warning"); }
-    &:hover {
-      @include themable { background: darken(themed("color-warning"), 5%);}
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-warning");
+      &:hover {
+        background: darken(themed("color-warning"), 5%);
+      }
     }
   }
   &.btn-success {
-    @include themable {background: themed("color-success"); }
-    &:hover {
-      @include themable { background: darken(themed("color-success"), 5%);}
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-success");
+      &:hover {
+        background: darken(themed("color-success"), 5%);
+      }
+    }
+  }
+  &.btn-neutral {
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-section");
+      &:hover {
+        background: darken(themed("color-section"), 5%);
+      }
+    }
+  }
+  &.score-positive {
+    @include themable {
+      color: themed("color-score-positive");
+      background: themed("color-success");
+      &:hover {
+        background: darken(themed("color-success"), 5%);
+      }
+    }
+  }
+  &.score-negative {
+    @include themable {
+      color: themed("color-score-negative");
+      background: themed("color-danger");
+      &:hover {
+        background: darken(themed("color-danger"), 5%);
+      }
+    }
+  }
+  &.score-neutral {
+    @include themable {
+      color: themed("color-text-muted");
+      background: themed("color-section");
+      &:hover {
+        background: darken(themed("color-section"), 5%);
+      }
     }
   }
 }

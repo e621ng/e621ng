@@ -147,29 +147,35 @@ module PostsHelper
     tag.span(rating_text, id: "post-rating-text", class: rating_class)
   end
 
-  def post_vote_block(post, vote)
+  def post_vote_block(post, vote, buttons: false)
     voted = !vote.nil?
     vote_score = voted ? vote.score : 0
     post_score = post.score
 
-    def confirm_score_class(score, want)
-      return 'score-neutral' if score != want || score == 0
-      score_class(score)
+    up_tag = tag.a(tag.span('&#x25B2;'.html_safe,
+                            class: "post-vote-up-#{post.id} " + confirm_score_class(vote_score, 1, buttons)),
+                   class: 'post-vote-up-link', 'data-id': post.id)
+    down_tag = tag.a(tag.span('&#x25BC;'.html_safe,
+                              class: "post-vote-down-#{post.id} " + confirm_score_class(vote_score, -1, buttons)),
+                     class: 'post-vote-down-link', 'data-id': post.id)
+    if buttons
+      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
+      CurrentUser.is_voter? ? up_tag + score_tag + down_tag : ''
+    else
+      vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
+      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
+      score_tag + (CurrentUser.is_voter? ? vote_block : '')
     end
-
-    up_tag = tag.span(tag.a('&#x25B2;'.html_safe, class: 'post-vote-up-link', 'data-id': post.id),
-                      class: confirm_score_class(vote_score, 1),
-                      id: "post-vote-up-#{post.id}")
-    down_tag = tag.span(tag.a('&#x25BC;'.html_safe, class: 'post-vote-down-link', 'data-id': post.id),
-                        class: confirm_score_class(vote_score, -1),
-                        id: "post-vote-down-#{post.id}")
-    vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
-    score_tag = tag.span(post.score, class: "post-score #{score_class(post_score)}", id: "post-score-#{post.id}", title: "#{post.up_score} up/#{post.down_score} down")
-    score_tag + (CurrentUser.is_voter? ? vote_block : '')
   end
 
   def score_class(score)
     return 'score-neutral' if score == 0
     score > 0 ? 'score-positive' : 'score-negative'
+  end
+
+  def confirm_score_class(score, want, buttons)
+    base = buttons ? 'button ' : ''
+    return base + 'score-neutral' if score != want || score == 0
+    base + score_class(score)
   end
 end
