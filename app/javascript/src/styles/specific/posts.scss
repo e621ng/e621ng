@@ -569,3 +569,32 @@ section#tag-list {
     content: "► ";
   }
 }
+
+div#image-and-nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(5, auto);
+
+  [data-th-nav=bottom] & {
+    #post-notices-top {
+      grid-row: 1;
+    }
+    #adzone {
+      grid-row: 2;
+    }
+    #image-container {
+      grid-row: 3;
+    }
+    #image-resize-notice {
+      grid-row: 4;
+    }
+    #nav-links {
+      grid-row: 5;
+    }
+  }
+  [data-th-nav=none] & {
+    #nav-links {
+      display: none;
+    }
+  }
+}
