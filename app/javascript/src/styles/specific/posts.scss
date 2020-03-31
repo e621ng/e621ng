@@ -572,6 +572,7 @@ section#tag-list {
 
 .image-vote-buttons {
   .post-score {
+    padding: 0 $padding-050; // Enforce some minor spacing between these elements
     padding: 0 $padding-050;
   }
 }
