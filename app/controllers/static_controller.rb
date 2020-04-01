@@ -22,6 +22,13 @@ class StaticController < ApplicationController
   def takedown
   end
 
+  def home
+    render layout: "blank"
+  end
+
+  def theme
+  end
+
   def disable_mobile_mode
     if CurrentUser.is_member?
       user = CurrentUser.user

@@ -1,8 +1,8 @@
 <%= content_tag :li, id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}" do -%>
   <% if !post_set.first_post?(post.id) && post_set.post_ids.first -%>
-    <%= link_to("&laquo;".html_safe, post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
+    <%= link_to("&laquo; first".html_safe, post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
   <% else -%>
-    <span class="first">&laquo;</span>
+    <span class="first">&laquo; first</span>
   <% end -%>
 
   <% post_set.previous_post_id(post.id).tap do |previous_post_id| -%>
@@ -26,8 +26,8 @@
   <% end -%>
 
   <% if !post_set.last_post?(post.id) && post_set.post_ids.last -%>
-    <%= link_to("&raquo;".html_safe, post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "last", title: "to page #{post_set.post_count}") -%>
+    <%= link_to("last &raquo;".html_safe, post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "last", title: "to page #{post_set.post_count}") -%>
   <% else -%>
-    <span class="last">&raquo;</span>
+    <span class="last">last &raquo;</span>
   <% end -%>
 <% end -%>

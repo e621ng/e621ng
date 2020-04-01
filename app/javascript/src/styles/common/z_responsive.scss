@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 #desktop-version-link {
   display: none;
@@ -22,24 +22,44 @@
 
 @media screen and (max-width: 800px) {
   body.resp {
+    div#c-posts {
+      div#a-show {
+        #pool-nav, #search-seq-nav, #set-nav {
+          li {
+            height: 2rem;
+          }
+        }
+      }
+    }
+
+    #search-box { display: none; }
+
     .mobile-search {
       display: block;
+      margin: $padding-050 $padding-050 $padding-150;
+      .search-help {
+        font-size: $font-size;
+      }
     }
     .mobile-search > .search-form > form {
       box-sizing: border-box;
       display: flex;
       width: 100%;
-      margin-bottom: $quarter-padding;
+      margin-bottom: $padding-025;
       .search-input {
         width: 100%;
         input {
           width: 100%;
+          box-sizing: border-box;
+          border-radius: $border-radius-half 0 0 $border-radius-half;
         }
         flex-grow: 1;
       }
       .search-button > button {
         width: 32px;
         height: 32px;
+        border-left: 1px solid #ccc; //HACK: hardcoded color
+        border-radius: 0 $border-radius-half $border-radius-half 0;
       }
     }
 
@@ -61,10 +81,6 @@
 
     #saved-searches-nav {
       display: none;
-    }
-
-    .fav-buttons button {
-      font-size: 1.5em;
     }
 
     div#page aside#sidebar {
@@ -111,9 +127,6 @@
     #maintoggle {
       display: block;
       font-weight: bold;
-      position: absolute;
-      top: 2vw;
-      right: 3vw;
       font-size: 2em;
 
       &.toggler-active {
@@ -191,39 +204,6 @@
       display: none;
     }
 
-    //div.paginator {
-    //  font-size: 24pt;
-    //  font-weight: bold;
-    //  text-align: center;
-    //  width: 100%;
-    //  padding: 0;
-    //  margin: 0;
-    //  margin-top: 1em;
-    //
-    //  li {
-    //    display: inline-block;
-    //    margin: 0 0.25em;
-    //
-    //    a, span {
-    //      margin: 0;
-    //      padding: 0;
-    //      border: none;
-    //    }
-    //
-    //    &.current-page {
-    //      text-align: center;
-    //    }
-    //
-    //    &.arrow:last-child {
-    //      text-align: right;
-    //    }
-    //
-    //    &.numbered-page, &.more {
-    //      display: none;
-    //    }
-    //  }
-    //}
-
     #posts #posts-container {
       width: 100%;
       display: flex;
@@ -235,11 +215,11 @@
     //
     article.post-preview {
       float: none;
-      margin: 0 0 5px 0;
+      margin: 0 0 10px 0;
       text-align: center;
       vertical-align: middle;
       display: inline-block;
-      width: 32vw;
+      width: 31vw;
 
       a {
         margin: 0 auto;
@@ -247,7 +227,7 @@
 
       img {
         max-height: 150px;
-        max-width: 32vw;
+        max-width: 31vw;
       }
 
       .desc {
@@ -257,13 +237,13 @@
 
     .user-disable-cropped-false {
       article.post-preview {
-        width: 32vw;
+        width: 31vw;
 
         img {
           height: auto;
           max-height: none;
           max-width: none;
-          width: 32vw;
+          width: 31vw;
 
           &.has-cropped-false {
             object-fit: cover;
@@ -288,13 +268,6 @@
       a.search-tag {
         font-size: 24pt;
         font-weight: bold;
-      }
-    }
-
-    div#page {
-      div.comments-for-post div.list-of-comments article.comment div.content {
-        clear: both;
-        margin: 0;
       }
     }
 
@@ -339,39 +312,6 @@
     #c-forum-topics, #c-forum-posts {
       #a-show {
         padding: 1em 0.5em;
-      }
-
-      div.list-of-forum-posts {
-        article div.author {
-          display: flex;
-          width: auto;
-          float: none;
-          background: $lighten-background;
-          padding: $half-padding $base-padding;
-
-          .post-thumbnail {
-            img {
-              height: auto;
-              width: auto;
-              max-height: 100px;
-              max-width: 100px;
-            }
-          }
-
-          .author-info {
-            margin-left: $half-padding;
-          }
-
-          p {
-            margin: 0;
-          }
-        }
-
-        article div.content {
-          width: auto;
-          float: none;
-          margin-left: 0;
-        }
       }
 
       .creator {

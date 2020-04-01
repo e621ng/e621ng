@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 .ui-widget {
   font-family: $base_font_family;
@@ -36,16 +36,22 @@ div.ui-dialog {
 }
 
 .ui-state-highlight {
+  @include themable {
+    background-color: themed('color-section');
+    color: themed('color-text');
+  }
   border: 1px solid $widget-highlight-border;
-  background: $widget-highlight-background;
-  color: $widget-highlight-color;
 
-  a, a:active, a:visited {
-    color: $widget-highlight-link-color;
+  a, a:link, a:active, a:visited {
+    @include themable {
+      color: themed('color-link');
+    }
   }
 
   a:hover {
-    color: $widget-highlight-link-hover-color;
+    @include themable {
+      color: themed('color-link-hover');
+    }
   }
 }
 

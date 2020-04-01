@@ -1,0 +1,14 @@
+<%= javascript_tag nonce: true do -%>
+(function() {
+  try {
+    var theme = localStorage.getItem('theme') || 'hexagon';
+    var extra = localStorage.getItem('theme-extra') || 'hexagon';
+    var nav = localStorage.getItem('theme-nav') || 'top';
+    var b = document.body;
+    b.setAttribute('data-th-main', theme);
+    b.setAttribute('data-th-extra', extra);
+    b.setAttribute('data-th-nav', nav);
+  } catch(e) {
+  }
+})();
+<% end -%>

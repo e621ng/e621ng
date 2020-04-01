@@ -1,8 +1,8 @@
-@import "../base/005_vars.scss";
+
 
 div#c-takedowns {
   .takedown-vericode {
-    border-radius: $border-radius;
+    border-radius: $border-radius-half;
     padding: $base-padding;
     font-weight: bold;
     cursor: default;

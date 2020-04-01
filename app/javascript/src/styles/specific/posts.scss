@@ -1,4 +1,7 @@
-@import "../base/005_vars.scss";
+
+#mode-box-mode, #mode-box #set-id {
+  width: 15em; // Match width to that of the
+}
 
 @keyframes heartbeat {
   0% {
@@ -22,16 +25,6 @@
   }
 }
 
-.score-positive {
-  color: $post-score-positive-color;
-}
-.score-negative {
-  color: $post-score-negative-color;
-}
-.score-neutral {
-  color: $post-score-neutral-color;
-}
-
 article.post-preview {
   box-sizing: border-box;
   height: 154px;
@@ -52,12 +45,15 @@ article.post-preview {
   }
 
   .desc {
-    background-color: $post-description-background;
+    @include themable {
+      background-color: lighten( themed("color-section"), 5%);
+    }
     font-size: 80%;
     margin-bottom: 0;
   }
 
   .post-score>span {
+    font-size: 0.8rem;
     margin-left: 0.5em;
   }
 
@@ -76,8 +72,9 @@ article.post-preview {
   img {
     box-sizing: border-box;
     margin: auto;
-    max-height: 150px;
-    max-width: 150px;
+    max-height: 10rem; // Roughly 160px with 16pt font size
+    max-width: 10rem;
+    border-radius: $border-radius-half $border-radius-half 0 0;
   }
 
   &[data-tags~=animated] > a:before {
@@ -208,15 +205,6 @@ body[data-user-can-approve-posts="true"] .post-preview {
   }
 }
 
-.post-count {
-  color: $post-count-color;
-  margin-left: 0.2em;
-}
-
-.low-post-count {
-  color: $post-tag-low-count-color;
-}
-
 div#c-posts {
   .source-link {
     overflow:hidden;
@@ -225,6 +213,11 @@ div#c-posts {
     max-width:190px;
   }
   .source-link:hover {
+    a {
+      @include themable {
+        background: themed("color-background");
+      }
+    }
     overflow:visible;
     height:auto;
     z-index:2;
@@ -243,14 +236,6 @@ div#c-posts {
     button.ui-button {
       padding: 0.25em 0.75em;
     }
-  }
-
-  #remove-fav-button i.fa-heart {
-    color: deeppink;
-  }
-
-  #remove-fav-button.animate i {
-    animation: heartbeat 0.4s ease;
   }
 
   .fav-buttons-true #add-fav-button {
@@ -291,19 +276,19 @@ div#c-posts {
     overflow: hidden;
   }
 
-  div.bottom-notices {
+  div.parent-children {
     display: flex;
-    margin: 0 -$quarter-padding;
-    margin-bottom: $quarter-padding;
+    margin: 0 -$padding-025;
+    margin-bottom: $padding-025;
     div.notice {
-      margin: 0 $quarter-padding;
+      margin: 0 $padding-025;
       flex-basis: 50%;
       flex-grow: 1;
     }
   }
 
   div.notice {
-    font-size: 0.8em;
+    border-radius: $border-radius-half;
     padding: 0.5em;
     margin-bottom: 0.5em;
     overflow: hidden;
@@ -322,46 +307,62 @@ div#c-posts {
     }
 
     &.notice-parent {
-      border-color: $notice-parent-border;
-      background: $notice-parent-background;
+      @include themable {
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
+      }
     }
 
     &.notice-child {
-      border-color: $notice-child-border;
-      background: $notice-child-background;
+      @include themable {
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
+      }
     }
 
     &.notice-pending {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
+      }
     }
 
     &.notice-flagged {
-      border-color: $notice-deleted-border;
-      background: $notice-deleted-background;
+      @include themable {
+        background-color: darken( themed('color-danger'), 10%);
+        border: 1px solid themed("color-foreground");
+      }
     }
 
     &.notice-deleted {
-      border-color: $notice-deleted-border;
-      background: $notice-deleted-background;
+      @include themable {
+        background-color: darken( themed('color-danger'), 10%);
+        border: 1px solid themed("color-foreground");
+      }
     }
 
     &.notice-appealed {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
+      }
     }
 
     &.notice-resized {
-      border-color: $notice-pending-border;
-      background: $notice-pending-background;
+      @include themable {
+        background-color: themed('color-section');
+        border: 1px solid themed('color-foreground');
+      }
     }
   }
 
   div.nav-notice {
     padding: 0.5em;
-    margin-bottom: $half-padding;
-    background: $navigation-background;
-    border: 1px solid $navigation-border;
+    margin-bottom: $padding-050;
+    @include themable {
+      background-color: themed('color-section');
+      border: 1px solid themed('color-background');
+    }
     position: relative;
 
     p {
@@ -372,14 +373,6 @@ div#c-posts {
 
   aside#sidebar #tag-list h2 {
     font-size: $h4_size;
-  }
-
-  aside#sidebar > section > ul li {
-    list-style-type: none;
-  }
-
-  aside#sidebar > section > ul ul li {
-    margin-left: 1em;
   }
 
   div#a-index {
@@ -427,16 +420,33 @@ div#c-posts {
       float: right;
     }
 
-    .pool-name, .search-name {
+    .pool-name, .search-name, .set-name {
       word-wrap: break-word;
+      flex-grow: 2;
+      text-align: center;
+      max-width: 65%;
+      padding: 0 1rem;
     }
 
     textarea {
       margin-bottom: 0.25em;
     }
 
-    #edit textarea {
-      width: 100%;
+    #edit {
+      .edit-submit {
+        position: sticky;
+        bottom: 0;
+
+        @include themable {
+          background: themed("color-section");
+        }
+        width: min-content;
+        padding: 1rem 1rem 1rem 0.5rem;
+        margin: 0;
+      }
+      textarea {
+        width: 100%;
+      }
     }
 
     #favlist {
@@ -449,33 +459,20 @@ div#c-posts {
     }
 
     #pool-nav, #search-seq-nav, #set-nav {
+      @include themable {
+        background: themed("color-section");
+      }
       li {
-        position: relative;
-        text-align: center;
-        padding: 0 5.5em;
+        display: flex;
+        height: 1.25rem;
+        align-items: center;
+        justify-content: space-between;
 
-        .prev {
-          position: absolute;
-          left: 2em;
-          top: 0;
+        .first, .prev {
+          flex-shrink: 2;
         }
-
-        .next {
-          position: absolute;
-          right: 2em;
-          top: 0;
-        }
-
-        .first {
-          position: absolute;
-          left: 0.5em;
-          top: 0;
-        }
-
-        .last {
-          position: absolute;
-          right: 0.5em;
-          top: 0;
+        .next, .last {
+          flex-shrink: 2;
         }
       }
     }
@@ -489,23 +486,6 @@ div#c-posts {
 
     div.comments-for-post {
       width:100%
-    }
-
-    #artist-commentary {
-      border: 1px solid $post-description-border;
-      border-radius: $border-radius;
-      background-color: $post-description-background;
-      margin-top: 1em;
-      padding: 0.5em;
-
-      #original-artist-commentary, #translated-artist-commentary {
-        max-height: 20em;
-        overflow-y: auto;
-      }
-
-      .disabled {
-        color: $post-description-disabled-color;
-      }
     }
   }
 
@@ -580,12 +560,57 @@ section#tag-list {
 }
 
 #tag-list > ul {
-  margin-bottom: $quarter-padding;
+  margin-bottom: $padding-025;
 }
 
 .tag-list-header {
   cursor: pointer;
   &.hidden-category::before {
     content: "► ";
+  }
+}
+
+.image-vote-buttons {
+  .post-score {
+    padding: 0 $padding-050;
+  }
+}
+
+div#image-and-nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(5, auto);
+
+  [data-th-nav=bottom] & {
+    #post-notices-top {
+      grid-row: 1;
+    }
+    #adzone {
+      grid-row: 2;
+    }
+    #image-container {
+      grid-row: 3;
+    }
+    #image-resize-notice {
+      grid-row: 4;
+    }
+    #nav-links {
+      grid-row: 5;
+    }
+  }
+  [data-th-nav=none] & {
+    #nav-links {
+      display: none;
+    }
+  }
+}
+
+body[data-user-can-approve-posts="true"] .notice {
+  &.notice-flagged, &.notice-deleted, &.notice-pending {
+    .button {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+      padding: $padding-025 $padding-050;
+    }
   }
 }

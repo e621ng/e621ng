@@ -1,0 +1,53 @@
+$bloodlust-color-background: #000000;
+$bloodlust-color-section:    #333333;
+$bloodlust-color-link-hover: #f68b00;
+$bloodlust-color-text-muted: #999999;
+
+$theme_bloodlust: (
+  // Layout Colors
+  "color-background":             $bloodlust-color-background,                // Main background (dark blue, large hexagons)
+  "color-foreground":             #222222,                // Foreground (lighter blue, small hexagons)
+  "color-section":                $bloodlust-color-section,                // Foreground sections - boxes, sections, etc
+
+  "color-section-pending":        $bloodlust-color-section,
+  "color-section-pending-border": $bloodlust-color-background,
+
+  // Main Colors
+  "color-text":                   #ffffff,
+  "color-text-muted":             $bloodlust-color-text-muted,
+  "color-text-white":             #ffffff,
+
+  "color-link":                   #ffee95,
+  "color-link-hover":             $bloodlust-color-link-hover,
+  "color-link-active":            #ffffff,
+
+  "color-link-last-page":         $bloodlust-color-text-muted,
+  "color-link-last-hover":        $bloodlust-color-link-hover,
+
+  "color-success":                darkgreen,
+  "color-danger":                 maroon,
+  "color-warning":                sienna,
+
+  "color-score-positive":         #3e9e49,
+  "color-score-negative":         #e45f5f,
+
+  // Detail Colors
+  "color-detail-quote":           #67717b,
+  "color-detail-code":      #ffe380,
+  "color-detail-expandable":            #427982,
+
+  // User Groups
+  "color-user-member":            #ffee95,
+  "color-user-member-alt":        #f68b00,
+  "color-user-privileged":        #ffee95,
+  "color-user-privileged-alt":    #f68b00,
+  "color-user-contributor":       #ffee95,
+  "color-user-contributor-alt":   #f68b00,
+
+  "color-user-blocked":           #ffee95,
+  "color-user-blocked-alt":       #f68b00,
+
+  // Tag Categories
+  "color-tag-general":            #ffee95,
+  "color-tag-general-alt":        #f68b00,
+);

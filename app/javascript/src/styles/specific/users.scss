@@ -1,14 +1,30 @@
-@import "../base/005_vars.scss";
 
-span.user-greeting {
-  color: $user-home-greeting-color;
-  cursor: help;
+.user-greeting-outer {
+  padding: $padding-025 0 $padding-025;
+  span.user-greeting {
+    color: $user-home-greeting-color;
+    cursor: help;
+  }
 }
 
 div#c-users {
   div#a-show {
     .profile-container {
+      width: 100%;
+    }
+
+    .bottom-section {
       display: flex;
+    }
+
+    .stats-section {
+      display: flex;
+    }
+
+    .posts-section {
+      .posts {
+        display: flex;
+      }
     }
 
     .profile-avatar {
@@ -37,35 +53,24 @@ div#c-users {
       margin-bottom: 2em;
     }
 
-    div.vertical-section {
+    .vertical-section {
       display: flex;
       flex-direction: column;
     }
 
-    /* clearfix hacks */
-    div.box:before, div.box:after {
-      content: "";
-      display: table;
-    }
-
-    div.box:after {
-      clear: both;
-    }
-
-    div.profile-container {
+    .profile-stats {
       width: 100%;
-      display: flex;
-    }
-
-    div.profile-stats {
-      width: 100%;
+      border-radius: $border-radius-full;
+      @include themable {
+        background: rgba(themed("color-section"), 0.8);
+      }
 
       abbr {
         cursor: help;
       }
     }
 
-    table.user-statistics {
+    .user-statistics {
       width: 100%;
       tr {
         height: 1.75em;
@@ -118,6 +123,41 @@ div#c-users {
     p {
       font-size: 1.2em;
       line-height: 1.4em;
+    }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  body.resp {
+    div#c-users {
+      div#a-show {
+        .stats-section {
+          flex-direction: column;
+        }
+        .bottom-section {
+          flex-direction: column;
+        }
+        .vertical-section {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+        .posts-section {
+          order: 2;
+          .posts {
+            display: block;
+          }
+        }
+        .user-uploads {
+          order: 1;
+        }
+        .about-section {
+          flex-direction: column;
+        }
+        .about-piece {
+          margin: 0;
+          margin-bottom: $padding-050;
+        }
+      }
     }
   }
 }

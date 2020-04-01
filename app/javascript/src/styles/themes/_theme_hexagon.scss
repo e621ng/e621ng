@@ -1,0 +1,93 @@
+$hexagon-color-background:        #020F23;
+$hexagon-color-link-hover:        #e9f2fa;
+$hexagon-color-text-muted:        #999999;
+$hexagon-color-section:           #1f3c67;
+$hexagon-color-section-border:    $hexagon-color-background;
+
+$theme_hexagon: (
+  // Theme-specific images
+  "image-background":             url('images/hexagon/background.png'),
+
+  // Layout Colors
+  "color-background":             $hexagon-color-background, // Main background (dark blue, large hexagons)
+  "color-foreground":             #152f56,                   // Foreground (lighter blue, small hexagons)
+  "color-section":                $hexagon-color-section,    // Foreground sections - boxes, sections, etc
+
+  "color-section-pending":        $hexagon-color-section,
+  "color-section-pending-border": $hexagon-color-section-border,
+
+  // Main Colors
+  "color-text":                   #ffffff,
+  "color-text-muted":             #999999,
+  "color-text-white":             #ffffff,
+
+  "color-link":                   #b4c7d9,
+  "color-link-hover":             #e9f2fa,
+  "color-link-active":            #e8c446,
+
+  "color-link-last-page":         $hexagon-color-text-muted,
+  "color-link-last-hover":        $hexagon-color-link-hover,
+
+  "color-success":                darkgreen,
+  "color-danger":                 maroon,
+  "color-warning":                sienna,
+
+  "color-rating-explicit":        #e45f5f,
+  "color-rating-questionable":    hsl(50, 100%, 70%),
+  "color-rating-safe":            #3e9e49,
+
+  "color-score-positive":         #3e9e49,
+  "color-score-negative":         #e45f5f,
+
+  // Detail Colors
+  "color-detail-quote":           #b4c7d9,
+  "color-detail-code":            #ffe380,
+  "color-detail-expandable":      #17a2b8,
+
+  // User Groups
+  "color-user-member":            #b4c7d9,
+  "color-user-member-alt":        #2e76b4,
+  "color-user-privileged":        #b4c7d9,
+  "color-user-privileged-alt":    #2e76b4,
+  "color-user-contributor":       #b4c7d9,
+  "color-user-contributor-alt":   #2e76b4,
+
+  "color-user-blocked":           #b4c7d9,
+  "color-user-blocked-alt":       #2e76b4,
+
+  "color-user-former-staff":      #78dca5,
+  "color-user-former-staff-alt":  #4da073,
+  "color-user-janitor":           #d82828,
+  "color-user-janitor-alt":       #cc5151,
+  "color-user-admin":             #e69500,
+  "color-user-admin-alt":         #9d6703,
+
+  // Tag Categories
+  "color-tag-general":            #b4c7d9,
+  "color-tag-general-alt":        #2e76b4,
+
+  "color-tag-artist":             #f2ac08,
+  "color-tag-artist-alt":         #fbd67f,
+
+  "color-tag-copyright":          #d0d,
+  "color-tag-copyright-alt":      #ff5eff,
+
+  "color-tag-character":          #0a0,
+  "color-tag-character-alt":      #2bff2b,
+
+  "color-tag-species":            #ed5d1f,
+  "color-tag-species-alt":        #f6b295,
+
+  "color-tag-invalid":            #ff3d3d,
+  "color-tag-invalid-alt":        lighten(#ff3d3d, 25%),
+
+  "color-tag-meta":               #fff,
+  "color-tag-meta-alt":           #666,
+
+  "color-tag-lore":               #282,
+  "color-tag-lore-alt":           #5fdb5f,
+
+  "color-tag-pool":               wheat,
+  "color-tag-pool-alt":           #d0b27a,
+
+);

@@ -357,7 +357,7 @@ let Note = {
       } else {
         $note_body.on("click.danbooru", function(e) {
           if (e.target.tagName !== "A") {
-            Utility.notice("You must be logged in to edit notes");
+            Utility.error("You must be logged in to edit notes");
           }
           e.stopPropagation();
         });
@@ -572,7 +572,7 @@ let Note = {
       e.preventDefault();
 
       if (Utility.meta("current-user-id") === "") {
-        Utility.notice("You must be logged in to edit notes");
+        Utility.error("You must be logged in to edit notes");
         return;
       }
 

@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 div.error-messages {
   margin: 1em 0;
@@ -13,14 +13,21 @@ div.error-messages {
 div#notice {
   padding: 0.25em;
   position: fixed;
-  top: 0.5em;
+  top: 1rem;
   left: 25%;
   width: 50%;
   z-index: 100;
 
-  &:not(.ui-state-error) {
-    background-color: $notice-background;
-    border: 1px solid $notice-border;
+  @include themable {
+    color: themed("color-text");
+    background-color: themed("color-success");
+    border: 1px solid themed("color-foreground");
+  }
+
+  &.ui-state-error {
+    @include themable {
+      background-color: themed("color-danger");
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 div.comments-for-post {
   div.notices {
@@ -6,15 +6,10 @@ div.comments-for-post {
   }
 
   div.list-of-comments {
-    background-color: $comment-list-background;
-    //padding: $base-padding;
     article.comment {
-      @include section-box-shadow;
-      border-radius: $border-radius;
-      background: $comment-background;
+      border-radius: $border-radius-half;
       word-wrap: break-word;
-      margin-bottom: $half-padding;
-      display: flex;
+      margin-bottom: $padding-050;
 
       &[data-is-sticky="true"] {
         background: $comment-sticky-background;
@@ -24,42 +19,11 @@ div.comments-for-post {
         background: $comment-hidden-background;
       }
 
-      div.author {
-        background-color: $comment-author-background;
-        padding: 1em 1em 0 1em;
-        width: 154px;
-        flex-shrink: 0;
-
-        .author-info {
-          h1 {
-            display: block;
-            font-size: $h3-size;
-          }
-        }
-      }
-
       div.content {
-        padding: $half-padding;
-        menu {
-          li {
-            margin-right: 1em;
-          }
-        }
-
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
             background-color: $comment-vote-background;
-            border-radius: $border-radius;
+            border-radius: $border-radius-half;
         }
-      }
-
-      .score-positive {
-        color: $green-color;
-      }
-      .score-negative {
-        color: $red-color;
-      }
-      .score-neutral {
-        color: $dark-grey-color;
       }
     }
 
@@ -72,12 +36,6 @@ div.comments-for-post {
     }
   }
 }
-
-//div#c-posts {
-//  div.comments-for-post {
-//    float: left;
-//  }
-//}
 
 div#c-comments {
   div#a-index, div#a-show {
@@ -108,40 +66,40 @@ div#c-comments {
         }
       }
     }
+  }
+}
 
-    div.preview {
-      margin-right: 30px;
-      text-align: center;
-    }
-
-    div.post-preview {
-      @include section-box-shadow;
-      background-color: $comment-post-background;
-      padding: $half-padding;
-      &[data-tags~=animated], &[data-file-ext=swf], &[data-file-ext=webm], &[data-file-ext=zip], &[data-file-ext=mp4] {
-        div.preview {
-          position: relative;
-
-          &:before {
-            @include animated-icon;
-          }
-        }
+div#c-comments {
+  div#a-index {
+    .comment-post {
+      @include themable {
+        border-left: 0.25rem solid themed("color-detail-expandable");
+        background: rgba(lighten(themed("color-section"), 10%), 0.7);
       }
-
-      &[data-has-sound=true] {
-        div.preview {
-          position: relative;
-
-          &:before {
-            @include sound-icon;
-          }
-        }
-      }
+      padding-left: $padding-050;
+      padding-bottom: $padding-025;
+      margin-bottom: $padding-100;
     }
-
-    div.post {
+    .post-container {
       display: flex;
-      margin-bottom: 4em;
+      .post {
+        width: 165px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  body.resp {
+    div#a-index {
+      .post-container {
+        .post-information {
+          margin-left: $padding-050;
+        }
+        .post {
+          width: unset;
+        }
+      }
     }
   }
 }

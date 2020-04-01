@@ -1,0 +1,123 @@
+.bg-background {
+  @include themable() { background-color: themed("color-background"); }
+}
+
+.bg-foreground {
+  @include themable() { background-color: themed("color-foreground"); }
+}
+
+.bg-section {
+  @include themable() { background-color: themed("color-section"); }
+}
+
+.bg-highlight {
+  @include themable() { background-color: lighten( themed("color-section"), 10%);}
+}
+
+.border-background {
+  @include themable() { border: 1px solid themed("color-background"); }
+}
+
+.border-foreground {
+  @include themable() { border: 1px solid themed("color-foreground"); }
+}
+
+.border-section {
+  @include themable() { border: 1px solid themed("color-section"); }
+}
+
+.border-highlight {
+  @include themable() { borer: 1px solid lighten( themed("color-section"), 10%);}
+}
+
+.color-text {
+  @include themable() { color: themed("color-text"); }
+}
+
+.color-muted {
+  @include themable() { color: themed("color-text-muted"); }
+}
+
+.color-white {
+  @include themable() { color: themed("color-text-white"); }
+}
+
+.vpad-05 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.button {
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: $border-radius-full;
+  font-size: 1rem;
+  line-height: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  @include themable { color: themed("color-text-white"); }
+
+  &.btn-danger {
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-danger");
+      &:hover {
+        background: darken(themed("color-danger"), 5%);
+      }
+    }
+  }
+  &.btn-warn {
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-warning");
+      &:hover {
+        background: darken(themed("color-warning"), 5%);
+      }
+    }
+  }
+  &.btn-success {
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-success");
+      &:hover {
+        background: darken(themed("color-success"), 5%);
+      }
+    }
+  }
+  &.btn-neutral {
+    @include themable {
+      color: themed("color-text-white");
+      background: themed("color-section");
+      &:hover {
+        background: darken(themed("color-section"), 5%);
+      }
+    }
+  }
+  &.score-positive {
+    @include themable {
+      color: themed("color-score-positive");
+      background: themed("color-success");
+      &:hover {
+        background: darken(themed("color-success"), 5%);
+      }
+    }
+  }
+  &.score-negative {
+    @include themable {
+      color: themed("color-score-negative");
+      background: themed("color-danger");
+      &:hover {
+        background: darken(themed("color-danger"), 5%);
+      }
+    }
+  }
+  &.score-neutral {
+    @include themable {
+      color: themed("color-text-muted");
+      background: themed("color-section");
+      &:hover {
+        background: darken(themed("color-section"), 5%);
+      }
+    }
+  }
+}

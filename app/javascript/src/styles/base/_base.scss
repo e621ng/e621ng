@@ -1,11 +1,13 @@
-@import "../base/005_vars.scss";
-
 body {
-  background-color: $main-background;
-  color: $text-color;
+  @include themable($apply_to_self: true) {
+    color: themed("color-text");
+    background-color: themed("color-background");
+    background-image: themed("image-background");
+  }
   font-family: $base_font_family;
-  font-size: 87.5%;
+  font-size: $font-size;
   line-height: 1.25em;
+  margin: 0 auto;
 }
 
 abbr[title=required] {
@@ -15,7 +17,7 @@ abbr[title=required] {
 blockquote {
   background: $blockquote-background;
   border: 1px solid $blockquote-border;
-  border-radius: $border-radius;
+  border-radius: $border-radius-half;
   box-shadow: 2px 2px 5px $blockquote-shadow;
   margin: 0 0 1rem 0;
   padding: 1rem 1rem 0.2rem;
@@ -35,11 +37,11 @@ dt {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: Tahoma, Verdana, Helvetica, sans-serif;
+  font-family: $base_font_family;
 }
 
 h1 {
-  font-size: $h1_size;
+  font-size: $h1-size;
 }
 
 h2 {
@@ -51,7 +53,7 @@ h3 {
 }
 
 h4, h5, h6 {
-  font-size: $h4_size;
+  font-size: $h4-size;
 }
 
 fieldset {
@@ -59,7 +61,7 @@ fieldset {
 }
 
 header {
-  margin: 0 0 $half-padding 0;
+  margin: 0 0 $padding-050 0;
   padding: 0;
 }
 
@@ -108,15 +110,6 @@ p.info {
   color: $info-color;
   font-style: italic;
   font-size: 80%;
-}
-
-
-#page {
-  background-color: $content-background;
-}
-
-#top, #page-footer {
-  background-color: $main-background;
 }
 
 .greentext, .greentext a, .approved-ticket { color: $green-text-color !important; font-weight:bold; }

@@ -1,5 +1,3 @@
-@import "000_functions.scss";
-
 // Font
 $text-color: #fff;
 $inverted-text-color: invert($text-color);
@@ -20,8 +18,10 @@ $section-link-hover-color: white;
 $main-background: #031131;
 $menu-background: #152F56;
 $content-background: #152f56;
-$lighten-background: rgba(255,255,255,0.05);
+$lighten-background-5: rgba(255,255,255,0.05);
 $box-shadow-color: #07162D;
+$darken-background-20: rgba(0,0,0,0.2);
+$darken-background-50: rgba(0,0,0,0.5);
 
 // Links
 $link-color: #b4c7d9;
@@ -52,7 +52,7 @@ $dtext-expandable-shadow: #07162d;
 $dtext-code-background: rgba(255,255,255,0.2);
 
 // Blips
-$blip-background: $lighten-background;
+$blip-background: $lighten-background-5;
 $blip-hidden-background: $section-red-background;
 $blip-shadow: #07162d;
 
@@ -176,8 +176,8 @@ $notice-pending-background: $section-background;
 $notice-pending-border: border_color($notice-pending-background);
 
 $comment-list-background: none;
-$comment-background: $lighten-background;
-$comment-author-background: $lighten-background;
+$comment-background: $lighten-background-5;
+$comment-author-background: $lighten-background-5;
 $comment-sticky-background: saturate($section-background, 10%);
 $comment-hidden-background: $section-red-background;
 $comment-vote-background: rgba(255, 255, 255, 0.2);
@@ -279,13 +279,13 @@ $post-events-unresolved-background: $negative-record-background;
 $post-flags-unresolved-background: $negative-record-background;
 
 // Post Mode
-$post-mode-edit: #104e17;
+$post-mode-edit: $section-yellow-background;
 $post-mode-tag-script: #4f114f;
-$post-mode-add-fav: $section-yellow-background;
-$post-mode-remove-fav: $section-yellow-background;
+$post-mode-add-fav: #104e17;
+$post-mode-remove-fav: darken(#104e17, 10%);
 $post-mode-vote-up: $section-green-background;
 $post-mode-vote-down: $section-red-background;
-$post-mode-rate-q: #4e4810;;
+$post-mode-rate-q: #4e4810;
 $post-mode-rate-e: none; // TODO
 $post-mode-rate-s: none; // TODO
 $post-mode-add-pool: #104b57;
@@ -339,14 +339,13 @@ $user-home-greeting-color: gold;
 // Wiki
 $wiki-other-names-background: #EEE;
 
-// Tag colors
-$tag-category-colors: (
-  "0": ("color": $link-color, "hover": $link-hover-color), // General
-  "1": ("color": #f2ac08, "hover": lighten(#f2ac08, 25%)), // Artist
-  "3": ("color": #D0D, "hover": lighten(#D0D, 25%)), // Copyright
-  "4": ("color": #0A0, "hover": lighten(#0A0, 25%)), // Character
-  "5": ("color": #ED5D1F, "hover": lighten(#ED5D1F, 25%)), // Species
-  "6": ("color": #ff3d3d, "hover": lighten(#ff3d3d, 25%)), // Invalid
-  "7": ("color": #fff, "hover": #666), // Meta
-  "8": ("color": #282, "hover": lighten(#292, 25%)) // Lore
+$tag-categories: (
+  "0": "general",
+  "1": "artist",
+  "3": "copyright",
+  "4": "character",
+  "5": "species",
+  "6": "invalid",
+  "7": "meta",
+  "8": "lore"
 );

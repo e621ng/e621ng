@@ -1,16 +1,19 @@
-@import "001_colors.scss";
-
 // Base formatting constants
-$border-radius: 3px;
+$border-radius-half: 3px;
+$border-radius-full: 6px;
 $base-padding: 1rem;
-$half-padding: $base-padding/2;
-$quarter-padding: $base-padding/4;
+$padding-050: $base-padding/2;
+$padding-025: $base-padding/4;
+$padding-100: $base-padding;
+$padding-125: $base-padding*1.25;
+$padding-150: $base-padding*1.5;
 
 // Font
-$h1_size: 2em;
+$font-size: 85%;
+$h1-size: 2em;
 $h2-size: 1.5em;
 $h3-size: 1.16667em;
-$h4_size: 1em;
+$h4-size: 1em;
 $dtext_h1_size: 2em;
 $dtext_h2_size: 1.8em;
 $dtext_h3_size: 1.6em;
@@ -21,7 +24,7 @@ $h1_padding: 0.8em 0 0.25em 0;
 $h2_padding: 0.8em 0 0.25em 0;
 $h3_padding: 0.8em 0 0.25em 0;
 $h4_padding: 0.8em 0 0.25em 0;
-$base_font_family: Verdana, Helvetica, sans-serif;
+$base_font_family: Verdana, sans-serif;
 
 $box-shadow-size: 2px 2px 5px;
 
@@ -50,18 +53,20 @@ $box-shadow-size: 2px 2px 5px;
 }
 
 @mixin preview-type-badge($text) {
+  @include themable {
+    background-color: themed("color-section");
+    border: 1px solid themed("color-text-white");
+    color: themed("color-text");
+  }
   z-index: 5;
   position: absolute;
   left: 0;
-  top: 10px;
-  background-color: #284a81;
+  top: 0.5rem;
   text-align: center;
-  border-radius: 5px;
-  color: white;
+  border-radius: $border-radius-full;
   padding: 3px 5px;
   font-size: 60%;
   font-weight: bold;
-  border: 1px solid white;
   content: $text;
 }
 

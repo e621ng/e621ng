@@ -3,7 +3,7 @@ import Utility from './utility.js';
 let Takedown = {};
 
 Takedown.destroy = function (id) {
-  Utility.Utility.notice('Deleting takedown #' + id + "...");
+  Utility.notice('Deleting takedown #' + id + "...");
 
   $.ajax({
     url: "/takedown/destroy.json",

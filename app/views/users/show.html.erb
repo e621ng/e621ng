@@ -1,17 +1,22 @@
 <div id="c-users">
   <div id="a-show">
-    <%= render "statistics", :presenter => @presenter, :user => @user %>
-
-    <% if !CurrentUser.is_admin? && !@user.enable_privacy_mode? || CurrentUser.id == @user.id %>
-      <%= render "posts/partials/common/inline_blacklist" %>
-    <% end %>
     <div class="profile-container">
-      <% if !CurrentUser.is_admin? && !@user.enable_privacy_mode? || CurrentUser.id == @user.id %>
-        <%= render "post_summary", :presenter => @presenter, :user => @user %>
-      <% end %>
-      <%= render "about", presenter: @presenter, user: @user %>
-    </div>
+      <%= render "statistics", :presenter => @presenter, :user => @user %>
 
+      <div class="bottom-section">
+        <div class="posts-section">
+          <% if @presenter.can_view_favorites? %>
+            <div class="blacklist">
+            <%= render "posts/partials/common/inline_blacklist" %>
+            </div>
+            <div class="posts">
+            <%= render "post_summary", :presenter => @presenter, :user => @user %>
+            </div>
+          <% end %>
+        </div>
+        <%= render "about", presenter: @presenter, user: @user %>
+      </div>
+    </div>
   </div>
 </div>
 

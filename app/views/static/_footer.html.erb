@@ -1,8 +1,6 @@
 <footer id="page-footer">
   Running <%= Danbooru.config.app_name %>
-  <%# if Rails.application.config.x.git_hash %>
-<!--    (<%#= link_to Rails.application.config.x.git_hash, Danbooru.config.commit_url(Rails.application.config.x.git_hash) %>)-->
-  <%# end %>
+  - <%= link_to "Themes", theme_path %>
   &ndash; <%= link_to "Rules", terms_of_service_path %>
   - <%= link_to "Takedowns", takedown_static_path %>
   &ndash; <%= link_to "Contact", contact_path %>

@@ -1,0 +1,43 @@
+$theme_serpent: (
+
+  // Layout Colors
+  "color-background":             #44a544,                // Main background (dark blue, large hexagons)
+  "color-foreground":             #dacf6b,                // Foreground (lighter blue, small hexagons)
+  "color-section":                #fff48b,                // Foreground sections - boxes, sections, etc
+
+  // Main Colors
+  "color-text":                   #000000,
+  "color-text-muted":             #555555,
+  "color-text-white":             #ffffff,
+
+  "color-link":                   #005500,
+  "color-link-hover":             #3A8F3A,
+  "color-link-active":            #e8c446,
+
+  "color-success":                darkgreen,
+  "color-danger":                 maroon,
+  "color-warning":                sienna,
+
+  "color-score-positive":         #3e9e49,
+  "color-score-negative":         #e45f5f,
+
+  // Detail Colors
+  "color-detail-quote":           #67717b,
+  "color-detail-code":      #ffe380,
+  "color-detail-expandable":            #427982,
+
+  // User Groups
+  "color-user-member":            #005500,
+  "color-user-member-alt":        #3A8F3A,
+  "color-user-privileged":        #005500,
+  "color-user-privileged-alt":    #3A8F3A,
+  "color-user-contributor":       #005500,
+  "color-user-contributor-alt":   #3A8F3A,
+
+  "color-user-blocked":           #005500,
+  "color-user-blocked-alt":       #3A8F3A,
+
+  // Tag Categories
+  "color-tag-general":            #005500,
+  "color-tag-general-alt":        #3A8F3A,
+);

@@ -1,0 +1,41 @@
+a,
+a:link,
+a:visited {
+  @include themable {
+    color: themed('color-link');
+  }
+  text-decoration: none;
+}
+
+a:hover {
+  @include themable {
+    color: themed('color-link-hover');
+  }
+  text-decoration: none;
+}
+
+a:active {
+  @include themable {
+    color: themed('color-link-active');
+  }
+  text-decoration: none;
+}
+
+a.last-page {
+  @include themable {
+    color: themed('color-link-last-page');
+  }
+}
+a.last-page:hover {
+  @include themable {
+    color: themed('color-link-last-page-hover');
+  }
+}
+
+a.active {
+  font-weight: bold;
+}
+
+a.wiki-link {
+  margin-right: 0.3em;
+}

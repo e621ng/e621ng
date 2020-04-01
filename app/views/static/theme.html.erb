@@ -1,0 +1,76 @@
+<p>Theme settings are saved using cookies and javascript. This means that they will not persist across private browsing
+  sessions, or work inside incognito mode on mobile devices.</p>
+
+<h3 class="redtext" id="no_save_warning" style="display:none;">Your device does not allow the site to save theme
+  settings.</h3>
+<noscript>
+  <h3 class="redtext" id="no_save_warning">Your device does not allow the site to save theme settings.</h3>
+</noscript>
+
+<div class="simple_form inline-form">
+  <div class="input">
+    <label for="theme_name">Theme</label>
+    <select id="theme_name">
+      <option value="hexagon">Hexagon</option>
+      <option value="bloodlust">Bloodlust</option>
+      <option value="serpent">Serpent</option>
+      <option value="pony">Pony</option>
+      <option value="hotdog">Hotdog</option>
+    </select>
+  </div>
+  <div class="input">
+    <label for="theme_extra">Embellishments</label>
+    <select id="theme_extra">
+      <option value="none">(None)</option>
+      <option value="aurora">Aurora</option>
+      <option value="autumn">Autumn</option>
+      <option value="hexagon">Hexagon</option>
+      <option value="space">Space</option>
+      <option value="spring">Spring</option>
+      <option value="stars">Stars</option>
+      <option value="winter">Eternal Winter</option>
+    </select>
+  </div>
+  <div class="input">
+    <lablel for="theme_navbar">Navigation bar location</lablel>
+    <select id="theme_navbar">
+      <option value="top">Top(default)</option>
+      <option value="bottom">Bottom</option>
+      <option value="none">Off(not recommended)</option>
+    </select>
+  </div>
+</div>
+
+<%= javascript_tag nonce: true do -%>
+  $(function() {
+    var $body = $(document.body);
+    try {
+      var ls = window.localStorage;
+      ls.setItem('test', 'a');
+      ls.removeItem('test');
+      var theme = ls.getItem('theme') || 'hexagon';
+      var extra = ls.getItem('theme-extra') || 'hexagon';
+      var nav = ls.getItem('theme-nav') || 'top';
+      $('#theme_name').val(theme);
+      $('#theme_extra').val(extra);
+      $('#theme_navbar').val(nav);
+    } catch(e) {
+      $("#no_save_warning").show();
+    }
+    $("#theme_name").on('change', function(e) {
+      var theme = e.target.value;
+      $body.attr('data-th-main', theme);
+      window.localStorage.setItem('theme', theme);
+    });
+    $("#theme_extra").on('change', function(e) {
+      var extra = e.target.value;
+      $body.attr('data-th-extra', extra);
+      window.localStorage.setItem('theme-extra', extra);
+    });
+    $("#theme_navbar").on('change', function(e) {
+      var pos = e.target.value;
+      $body.attr('data-th-nav', pos);
+      window.localStorage.setItem('theme-nav', pos);
+    });
+  });
+<% end -%>

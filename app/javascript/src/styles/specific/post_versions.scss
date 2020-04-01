@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 @mixin grid-col($start, $end) {
     grid-column-start: $start;
@@ -64,7 +64,6 @@ div#c-post-versions {
       margin-bottom: 0.5rem;
       grid-template-columns: 2rem repeat(12, 1fr);
       grid-auto-rows: auto;
-      @include section-box-shadow;
     }
 
     .pv-check {

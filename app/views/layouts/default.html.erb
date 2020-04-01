@@ -89,6 +89,7 @@
   </noscript>
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
+  <%= render "layouts/theme_include" %>
   <% if Danbooru.config.beta_notice %>
   <div id="news-updates">
     <ul>
@@ -101,8 +102,6 @@
   <% end %>
 
   <header id="top">
-    <h1><%= link_to Danbooru.config.app_name, "/" %></h1>
-
     <div id="maintoggle">
       <a href="#"><i id="maintoggle-on" class="fas fa-bars"></i></a>
       <a href="#"><i id="maintoggle-off" class="fas fa-times" style="display: none;"></i></a>
@@ -112,6 +111,7 @@
       <%= render "layouts/main_links" %>
       <%= yield :secondary_links %>
     </nav>
+
   </header>
 
   <div id="page">

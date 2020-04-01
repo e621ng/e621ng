@@ -1,18 +1,17 @@
-@import "../base/005_vars.scss";
 
-@each $tag-category, $tag-colors in $tag-category-colors {
+
+@each $tag-category, $tag-category-name in $tag-categories {
   .category-#{$tag-category} a,
   a.tag-type-#{$tag-category},
   .ui-widget-content .category-#{$tag-category} a,
   .ui-widget-content a.tag-type-#{$tag-category} {
-    color: map-get($tag-colors, "color");
 
-    &:link, &:visited {
-      color: map-get($tag-colors, "color");
+    &, &:link, &:visited {
+      @include themable { color: themed("color-tag-#{$tag-category-name}") };
     }
 
     &:hover {
-      color: map-get($tag-colors, "hover");
+      @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
     }
 
     &.selected {
@@ -21,14 +20,14 @@
   }
 
   .ui-widget-content .ui-state-active a.tag-type-#{$tag-category} {
-    color: map-get($tag-colors, "hover");
+    @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
 
     &:link, &:visited {
-      color: map-get($tag-colors, "color");
+      @include themable { color: themed("color-tag-#{$tag-category-name}") };
     }
 
     &:hover {
-      color: map-get($tag-colors, "hover");
+      @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
     }
 
     &.selected {
@@ -51,4 +50,14 @@
       margin-right: 0.5em;
     }
   }
+}
+
+.post-count {
+  font-size: 85%;
+  font-weight: 500;
+  margin-left: 0.2em;
+}
+
+.low-post-count {
+  color: $post-tag-low-count-color;
 }

@@ -178,7 +178,7 @@ module ApplicationHelper
     else
       name = user.pretty_name
     end
-    link_to(name, user_path(user), :class => user_class)
+    link_to(name, user_path(user), :class => user_class, rel: "nofollow")
   end
 
   def mod_link_to_user(user, positive_or_negative)

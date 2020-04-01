@@ -52,37 +52,45 @@
     </aside>
 
     <section id="content">
-      <% if @post.presenter.has_nav_links?(self) %>
-        <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
-      <% end %>
+      <div id="image-and-nav">
+        <% if @post.presenter.has_nav_links?(self) %>
+          <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
+        <% end %>
 
-      <%= render "posts/partials/show/notices", :post => @post %>
-
-      <%= render "ads/leaderboard" %>
-
-      <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
-        <div id="note-container"></div>
-        <div id="note-preview"></div>
-        <%= render "posts/partials/show/embedded", post: @post %>
-      <% end -%>
-
-      <% if @post.visible? && @post.has_large? && !@post.is_ugoira? && !@post.is_video? %>
-        <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
-          <span>Viewing sample resized to <%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
-          <span style="display: none;">Loading...</span>
+        <div id="post-notices-top">
+          <%= render "posts/partials/show/notices", :post => @post %>
         </div>
-      <% end %>
+
+        <%= render "ads/leaderboard" %>
+
+        <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post))) do -%>
+          <div id="note-container"></div>
+          <div id="note-preview"></div>
+          <%= render "posts/partials/show/embedded", post: @post %>
+        <% end -%>
+
+        <% if @post.visible? && @post.has_large? && !@post.is_ugoira? && !@post.is_video? %>
+          <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
+            <span>Viewing sample resized to <%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
+            <span style="display: none;">Loading...</span>
+          </div>
+        <% end %>
+      </div>
 
       <section id="image-extra-controls" style="display: flex;">
+
         <% if CurrentUser.is_member? %>
+          <div class="image-vote-buttons">
+            <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
+          </div>
           <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag "+Fav", id: 'add-fav-button', class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
-            <%= button_tag "-Fav", id: 'remove-fav-button', class: "ui-button ui-widget ui-corner-all", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
+            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
+            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
           <% end %>
         <% end %>
         <% if @post.visible? %>
           <div id="image-download-link">
-            <%= link_to "Download", @post.file_url %>
+            <%= link_to "Download", @post.file_url, class: "button btn-warn" %>
           </div>
         <% end %>
         <% if !@post.force_original_size?(params[:original]) %>
@@ -141,10 +149,7 @@
       </menu>
 
       <% unless CurrentUser.hide_comments? %>
-        <section id="comments" class="box-section">
-          <% if !CurrentUser.is_anonymous? && !CurrentUser.user.is_janitor? %>
-            <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
-          <% end %>
+        <section id="comments">
           <%= render "comments/partials/index/list", :comments => @post.comments.visible(CurrentUser.user), :post => @post, :show_header => false %>
         </section>
       <% end %>
@@ -158,7 +163,7 @@
       </section>
 
       <% if CurrentUser.is_member? && @post.visible? %>
-        <section id="edit" style="display: none;" class="box-section">
+        <section id="edit" style="display: none;">
           <%= render "posts/partials/show/edit", :post => @post %>
         </section>
       <% end %>

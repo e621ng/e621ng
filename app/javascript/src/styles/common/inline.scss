@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 span.error {
   display: block;
@@ -24,7 +24,7 @@ kbd.key {
 /*  width: 1em;*/
   text-align: center;
   display: inline-block;
-  border-radius: $border-radius;
+  border-radius: $border-radius-half;
 }
 
 span.inactive {

@@ -1,15 +1,9 @@
-@import "../base/005_vars.scss";
+
 
 div.list-of-forum-posts {
   article {
-    @include section-box-shadow;
-    background-color: $forum-post-background;
     margin: 1em 0em;
     word-wrap: break-word;
-
-    &:nth-child(even) {
-      background-color: $forum-post-even-background;
-    }
 
     a.voted {
       font-weight: bold;
@@ -39,20 +33,7 @@ div.list-of-forum-posts {
       color: $forum-vote-down-color;
     }
 
-    div.author {
-      padding: 1em 1em 0 1em;
-      width: 154px;
-      float: left;
-
-      time {
-        font-style: italic;
-      }
-    }
-
-    div.content {
-      padding: 1em;
-      margin-left: 14em;
-
+    div.content-menu {
       .edit_forum_post, .edit_forum_topic {
         display: none;
       }

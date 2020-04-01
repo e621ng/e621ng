@@ -1,12 +1,12 @@
 <ul>
   <% if CurrentUser.is_member? %>
-    <li><%= tag.a "Favorite", href: '#', :id => "add-to-favorites", :"data-shortcut" => "f", style: ("display: none;" if @post.is_favorited?), 'data-pid': @post.id %></li>
-    <li><%= tag.a "Unfavorite", href: '#', :id => "remove-from-favorites", :"data-shortcut" => "shift+f", style: ("display: none;" if !@post.is_favorited?), 'data-pid': @post.id %></li>
+    <li class="vpad-05"><%= tag.a "+Favorite", href: '#', class: 'button btn-success', :id => "add-to-favorites", :"data-shortcut" => "f", style: ("display: none;" if @post.is_favorited?), 'data-pid': @post.id %></li>
+    <li class="vpad-05"><%= tag.a "-Favorite", href: '#', class: 'button btn-danger', :id => "remove-from-favorites", :"data-shortcut" => "shift+f", style: ("display: none;" if !@post.is_favorited?), 'data-pid': @post.id %></li>
     <li><%= link_to "Edit", "#edit", :id => "side-edit-link" %></li>
     <li><%= link_to_if post.visible?, "Download", post.tagged_file_url + "?download=1", download: post.presenter.filename_for_download %></li>
     <li id="add-to-pool-list"><%= link_to "Add to pool", "#", :id => "pool" %></li>
     <li id="add-to-set-list"><%= link_to "Add to set", "#", id: "set" %></li>
-    <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: {post_id: post.id} %></li>
+    <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: {post_id: post.id, confirm: 'Set post as avatar?'} %></li>
     <% if post.is_note_locked? %>
       <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
     <% else %>

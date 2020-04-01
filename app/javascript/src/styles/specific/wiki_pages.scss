@@ -1,4 +1,4 @@
-@import "../base/005_vars.scss";
+
 
 div#c-wiki-pages {
   form span.hint {
@@ -12,10 +12,4 @@ div#c-wiki-pages {
       margin: 1em 0;
     }
   }
-}
-
-.wiki-other-name {
-  background-color: $wiki-other-names-background;
-  padding: 3px;
-  border-radius: $border-radius;
 }

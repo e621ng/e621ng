@@ -1,11 +1,11 @@
-@import "../base/005_vars.scss";
+
 
 div.related-tags {
   width: 100%;
   margin-bottom: 1em;
   background: $related-tags-background;
   overflow: hidden;
-  border-radius: $border-radius;
+  border-radius: $border-radius-half;
   display: flex;
   flex-wrap: wrap;
 

@@ -1,0 +1,42 @@
+$theme_hotdog: (
+  // Layout Colors
+  "color-background":             #FFFF00,                // Main background (dark blue, large hexagons)
+  "color-foreground":             #FF0000,                // Foreground (lighter blue, small hexagons)
+  "color-section":                #c53c38,                // Foreground sections - boxes, sections, etc
+
+  // Main Colors
+  "color-text":                   #000000,
+  "color-text-muted":             #999999,
+  "color-text-white":             #ffffff,
+
+  "color-link":                   #000000,
+  "color-link-hover":             #666666,
+  "color-link-active":            #ffe380,
+
+  "color-success":                darkgreen,
+  "color-danger":                 maroon,
+  "color-warning":                sienna,
+
+  "color-score-positive":         #3e9e49,
+  "color-score-negative":         #e45f5f,
+
+  // Detail Colors
+  "color-detail-quote":           #67717b,
+  "color-detail-code":      #ffe380,
+  "color-detail-expandable":            #427982,
+
+  // User Groups
+  "color-user-member":            #000000,
+  "color-user-member-alt":        #999999,
+  "color-user-privileged":        #000000,
+  "color-user-privileged-alt":    #999999,
+  "color-user-contributor":       #000000,
+  "color-user-contributor-alt":   #999999,
+
+  "color-user-blocked":           #000000,
+  "color-user-blocked-alt":       #999999,
+
+  // Tag Categories
+  "color-tag-general":            #000000,
+  "color-tag-general-alt":        #999999,
+);
