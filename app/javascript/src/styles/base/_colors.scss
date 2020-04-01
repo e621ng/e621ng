@@ -279,13 +279,13 @@ $post-events-unresolved-background: $negative-record-background;
 $post-flags-unresolved-background: $negative-record-background;
 
 // Post Mode
-$post-mode-edit: #104e17;
+$post-mode-edit: $section-yellow-background;
 $post-mode-tag-script: #4f114f;
-$post-mode-add-fav: $section-yellow-background;
-$post-mode-remove-fav: $section-yellow-background;
+$post-mode-add-fav: #104e17;
+$post-mode-remove-fav: darken(#104e17, 10%);
 $post-mode-vote-up: $section-green-background;
 $post-mode-vote-down: $section-red-background;
-$post-mode-rate-q: #4e4810;;
+$post-mode-rate-q: #4e4810;
 $post-mode-rate-e: none; // TODO
 $post-mode-rate-s: none; // TODO
 $post-mode-add-pool: #104b57;

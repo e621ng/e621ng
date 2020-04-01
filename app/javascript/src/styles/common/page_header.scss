@@ -4,7 +4,7 @@
 }
 
 header#top {
-  font-size: 1.05rem;
+  font-size: 1.05em;
   margin: 0 $base-padding 0.8rem;
   @include themable() {
     color: themed("color-text");

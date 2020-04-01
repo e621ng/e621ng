@@ -572,7 +572,6 @@ section#tag-list {
 
 .image-vote-buttons {
   .post-score {
-    padding: 0 $padding-050; // Enforce some minor spacing between these elements
     padding: 0 $padding-050;
   }
 }
@@ -602,6 +601,16 @@ div#image-and-nav {
   [data-th-nav=none] & {
     #nav-links {
       display: none;
+    }
+  }
+}
+
+body[data-user-can-approve-posts="true"] .notice {
+  &.notice-flagged, &.notice-deleted, &.notice-pending {
+    .button {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+      padding: $padding-025 $padding-050;
     }
   }
 }
