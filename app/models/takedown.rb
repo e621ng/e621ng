@@ -10,8 +10,8 @@ class Takedown < ApplicationRecord
   validates :reason, length: { maximum: 5_000 }
   validates :instructions, length: { maximum: 5_000 }
   validates :notes, length: { maximum: 5_000 }
-  validate :can_create_takedown
-  validate :valid_posts_or_instructions
+  validate :can_create_takedown, on: :create
+  validate :valid_posts_or_instructions, on: :create
   validate :validate_number_of_posts
   validate :validate_post_ids
   after_validation :normalize_deleted_post_ids
