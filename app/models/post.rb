@@ -24,7 +24,7 @@ class Post < ApplicationRecord
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
-  validates :description, length: { maximum: 50_000 }
+  validates :description, length: { maximum: 50_000 }, if: :description_changed?
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
   validate :has_artist_tag, if: :should_process_tags?
