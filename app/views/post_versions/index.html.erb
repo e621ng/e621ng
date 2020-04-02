@@ -6,6 +6,15 @@
 
     <p>Recent updates may not have been processed yet. The most recently processed version was <%= time_ago_in_words_tagged(PostArchive.maximum(:updated_at) || 0) %>.</p>
 
+    <% if CurrentUser.is_admin? %>
+      <div class="inline-form">
+        <div class="input">
+          <label>Tag Script</label>
+          <input id="update-tag-script" placeholder="tag script to apply here"/>
+        </div>
+      </div>
+    <% end %>
+
     <% if @post_versions.length == 0 %>
       <%= render "posts/blank" %>
     <% else %>

@@ -6,6 +6,8 @@
     <%= subnav_link_to "Help", help_page_path(id: "posts") %>
     <% if params[:action] == "index" %>
       | <%= subnav_link_to "Undo selected", "" %>
+      <%= subnav_link_to "Select All", "" %>
+      | <%= subnav_link_to "Apply Tag Script To Selected", "" %>
     <% end %>
   </menu>
 <% end %>
