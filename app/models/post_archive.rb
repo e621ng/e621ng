@@ -341,6 +341,7 @@ class PostArchive < ApplicationRecord
   end
 
   def can_undo?(user)
+    return version > 1 if user.is_admin?
     version > 1 && post&.visible? && user.is_member?
   end
 
