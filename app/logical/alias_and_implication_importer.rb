@@ -135,7 +135,7 @@ private
           unless tag_alias.valid?
             raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
           end
-          tag_alias.rename_wiki_and_artist if rename_aliased_pages?
+          tag_alias.rename_artist if rename_aliased_pages?
           tag_alias.approve!(approver: approver, update_topic: false)
 
         when :create_implication
