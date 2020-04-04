@@ -361,7 +361,6 @@ div#c-posts {
     margin-bottom: $padding-050;
     @include themable {
       background-color: themed('color-section');
-      border: 1px solid themed('color-background');
     }
     position: relative;
 

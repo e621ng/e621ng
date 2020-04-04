@@ -100,7 +100,8 @@
     }
 
     div#page {
-      padding: 0 0.25vw;
+      padding-left: 0;
+      padding-right: 0;
 
       > div /* div#c-$controller */
       {

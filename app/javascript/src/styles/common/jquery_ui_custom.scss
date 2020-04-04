@@ -17,10 +17,10 @@
 }
 
 div.ui-dialog {
-  height: auto! important;
+  height: auto;
   overflow: visible;
   font-size: 1em;
-  z-index: 999 !important;
+  z-index: 999;
   box-shadow: none;
   padding: 0;
 
@@ -87,12 +87,12 @@ div.ui-dialog {
 }
 
 .ui-widget-content {
-  border: 1px solid $widget-border !important;
-  background-color: $widget-background !important;
-  color: $widget-color !important;
+  border: 1px solid $widget-border;
+  background-color: $widget-background;
+  color: $widget-color;
 }
 
 .ui-widget-header {
   background-color: $widget-header-background;
-  color: $widget-header-color !important;
+  color: $widget-header-color;
 }

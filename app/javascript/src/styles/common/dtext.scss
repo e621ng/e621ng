@@ -51,7 +51,6 @@
   }
 
   pre {
-    @include themable { border-left-color: themed("color-detail-code"); }
     font-family: monospace;
     font-size: 1.2em;
     margin: 0.5em 0;
@@ -127,6 +126,12 @@
       border: 1px solid themed("color-section");
       border-left: 0.25rem solid themed("color-danger");
       background: rgba( lighten( themed("color-section"), 10%), 0.7);
+    }
+  }
+
+  pre {
+    @include themable {
+      border-left-color: themed("color-detail-code");
     }
   }
 

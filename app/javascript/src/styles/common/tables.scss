@@ -47,7 +47,9 @@ table.table {
     th {
       font-weight: bold;
       text-align: left;
-      color: $table-stripe-header-text-color;
+      @include themable {
+        color: darken( themed("color-text"), 10%);
+      }
     }
   }
 }
