@@ -1,42 +1,3 @@
-
-
-div.comments-for-post {
-  div.notices {
-    margin: 1em 0;
-  }
-
-  div.list-of-comments {
-    article.comment {
-      border-radius: $border-radius-half;
-      word-wrap: break-word;
-      margin-bottom: $padding-050;
-
-      &[data-is-sticky="true"] {
-        background: $comment-sticky-background;
-      }
-
-      &[data-is-deleted="true"] {
-        background: $comment-hidden-background;
-      }
-
-      div.content {
-        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
-            background-color: $comment-vote-background;
-            border-radius: $border-radius-half;
-        }
-      }
-    }
-
-    article.comment.below-threshold:not([data-is-sticky="true"]) {
-      opacity: 0.3;
-    }
-
-    article.comment.below-threshold:hover {
-      opacity: 1.0;
-    }
-  }
-}
-
 div#c-comments {
   div#a-index, div#a-show {
     div.header {
@@ -76,9 +37,14 @@ div#c-comments {
         border-left: 0.25rem solid themed("color-detail-expandable");
         background: rgba(lighten(themed("color-section"), 10%), 0.7);
       }
+      box-sizing: border-box;
       padding-left: $padding-050;
       padding-bottom: $padding-025;
       margin-bottom: $padding-100;
+
+      .comments {
+        margin-left: 2rem;
+      }
     }
     .post-container {
       display: flex;
@@ -86,18 +52,47 @@ div#c-comments {
         width: 165px;
       }
     }
+
+    div.comments-for-post {
+      .comment-post {
+        display: flex;
+        .comments {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    }
   }
 }
 
+
 @media screen and (max-width: 800px) {
   body.resp {
-    div#a-index {
-      .post-container {
-        .post-information {
-          margin-left: $padding-050;
+    div#c-comments {
+      div#a-index {
+        .comment-post {
+          .comments {
+            margin-left: 1rem;
+          }
         }
-        .post {
-          width: unset;
+
+        .post-container {
+          .post-information {
+            margin-left: $padding-050;
+          }
+
+          .post {
+            width: unset;
+          }
+        }
+
+        div.comments-for-post {
+          .comment-post {
+            display: block;
+            .comments {
+              width: unset;
+            }
+          }
         }
       }
     }
