@@ -278,6 +278,8 @@ Post.initialize_links = function() {
   });
   $("#set-as-avatar-link").on('click.danbooru', function(e) {
     e.preventDefault();
+    if(!confirm("Set post as avatar?"))
+      return;
     Post.set_as_avatar($(e.target).data('post-id'));
   });
   $("#copy-notes").on("click.danbooru", function(e) {
