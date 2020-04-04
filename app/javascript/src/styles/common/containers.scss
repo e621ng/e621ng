@@ -1,7 +1,9 @@
 
 
 .box-section {
-  background-color: $section-background;
+  @include themable {
+    background-color: themed("color-section");
+  }
   padding: $base-padding;
   margin-bottom: 1.5rem;
   border-radius: $border-radius-half;
