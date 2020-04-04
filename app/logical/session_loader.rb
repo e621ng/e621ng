@@ -23,7 +23,14 @@ class SessionLoader
     end
 
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
-    raise AuthenticationFailure.new("Account banned") if CurrentUser.user.is_blocked?
+    if CurrentUser.user.is_blocked?
+      recent_ban = CurrentUser.user.recent_ban
+      ban_message = "Account is banned: forever"
+      if recent_ban && recent_ban.expires_at.present?
+        ban_message = "Account is suspended for another #{recent_ban.expire_days}"
+      end
+      raise AuthenticationFailure.new(ban_message)
+    end
     set_statement_timeout
     update_last_logged_in_at
     update_last_ip_addr
