@@ -49,7 +49,9 @@ div#c-post-versions {
     .pv-label {
       border-bottom: 1px solid $post-version-grid-border;
       border-right: 1px solid $post-version-grid-border;
-      background: $post-version-label-background;
+      @include themable {
+        background: themed("color-section");
+      }
       padding: 0.25rem 0.5rem;
     }
 
