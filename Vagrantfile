@@ -1,9 +1,22 @@
+$script = <<SCRIPT
+home=/home/vagrant
+cd $home
+
+	echo "deb http://snapshot.debian.org/archive/debian/20190603T102115Z/ stretch main" | sudo tee -a /etc/apt/sources.list
+	sudo apt-get update
+	sudo apt-get install -y linux-headers-4.9.0-9-amd64
+  sudo apt-get update	 
+	 	 
+echo Done.
+SCRIPT
+
 Vagrant.configure('2') do |config|
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
 
   config.vm.box = 'debian/stretch64'
-  config.vm.box_version = '9.4.0'
+
+  config.vm.provision "shell", inline: $script
 
   config.vm.provider 'virtualbox' do |v|
     v.cpus = 2
