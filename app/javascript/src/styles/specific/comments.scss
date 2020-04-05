@@ -1,3 +1,41 @@
+div.comments-for-post {
+  div.notices {
+    margin: 1em 0;
+  }
+
+  div.list-of-comments {
+    article.comment {
+      border-radius: $border-radius-half;
+      word-wrap: break-word;
+      margin-bottom: $padding-050;
+
+      &[data-is-sticky="true"] {
+        background: $comment-sticky-background;
+      }
+
+      &[data-is-deleted="true"] {
+        background: $comment-hidden-background;
+      }
+
+      div.content {
+        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
+          background-color: $comment-vote-background;
+          border-radius: $border-radius-half;
+        }
+      }
+    }
+
+    article.comment.below-threshold:not([data-is-sticky="true"]) {
+      opacity: 0.3;
+    }
+
+    article.comment.below-threshold:hover {
+      opacity: 1.0;
+    }
+  }
+}
+
+
 div#c-comments {
   div#a-index, div#a-show {
     div.header {
