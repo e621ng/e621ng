@@ -56,7 +56,6 @@ class UploadService
 
   def convert_to_post(upload)
     Post.new.tap do |p|
-      p.has_cropped = true
       p.tag_string = upload.tag_string
       p.locked_tags = upload.locked_tags
       p.is_rating_locked = upload.locked_rating if upload.locked_rating.present?
@@ -71,6 +70,7 @@ class UploadService
       p.uploader_id = upload.uploader_id
       p.uploader_ip_addr = upload.uploader_ip_addr
       p.parent_id = upload.parent_id
+      p.has_cropped = upload.is_image?
 
       if !upload.uploader.can_upload_free? || upload.upload_as_pending?
         p.is_pending = true

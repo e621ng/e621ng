@@ -104,7 +104,7 @@ class Upload < ApplicationRecord
 
   module FileMethods
     def is_image?
-      %w(jpg gif png).include?(file_ext)
+      %w(jpg jpeg gif png).include?(file_ext)
     end
 
     def is_flash?
