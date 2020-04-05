@@ -1,0 +1,27 @@
+<h4>Deleted Posts</h4>
+
+<table class='table'>
+  <thead>
+  <tr>
+    <th width="7%">Post</th>
+    <th width="10%">Poster</th>
+    <th width="48%">Tags</th>
+    <th width="35%">Reason</th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <% @posts.each do |post| %>
+    <tr>
+      <td><%= link_to post.id, post_path(post) %></td>
+      <td><%= link_to_user post.uploader %></td>
+      <td><%= post.tag_string %></td>
+      <td><%= post.flags.last&.reason %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<div id="paginator">
+  <%= numbered_paginator(@posts) %>
+</div>

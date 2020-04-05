@@ -243,6 +243,7 @@ Rails.application.routes.draw do
     end
   end
   resources :post_replacements, :only => [:index, :new, :create, :update]
+  resources :deleted_posts, only: [:index]
   resources :posts, :only => [:index, :show, :update] do
     resources :events, :only => [:index], :controller => "post_events"
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
