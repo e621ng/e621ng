@@ -15,12 +15,20 @@
 4. `cd` into the repo using Command Prompt/Terminal
 5. Run the following command:
      `vagrant up`
-5. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
-   By the time you get back the install will surely have completed.<sup>1</sup>
-6. ???
-7. Profit!
+6. Once vagrant exists with an error, execute `vagrant up` again (Workaround to install the linux headers required by the guest additions)
+7. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
+By the time you get back the install will surely have completed.<sup>1</sup>
+8. To confirm the installation worked, open the web browser of your choice and enter `http://192.168.64.78:3000/` into the address bar and see if the website loads correctly.
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
+
+#### VirtualBox Troubleshooting
+
+In case the VM doesn't start with the error `VT-x not available` and the error description `WHvCapabilityCodeHypervisorPresent is FALSE!` the the following solution should resolve the issue:
+
+This error usually occours, when the `Hyper-V` or the `Windows Hypervisor Platform` features are activated. <br/>
+To deactivate these features, press the windows key and enter `Turn Windows features on or off`, here you can deactivate both features by unchecking their respective checkboxes.
+Don't forget to restart the computer after deactivating the features.
 
 ## Installation
 
