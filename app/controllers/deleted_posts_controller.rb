@@ -9,6 +9,6 @@ class DeletedPostsController < ApplicationController
       @posts = @posts.where('posts.uploader_id = ?', @user.id)
     end
 
-    @posts = @posts.includes(:uploader).includes(:flags).order(Arel.sql('post_flags.created_at DESC')).paginate(params[:page])
+    @posts = @posts.includes(:uploader).includes(:flags).where('post_flags.id IS NOT NULL').order(Arel.sql('post_flags.created_at DESC')).paginate(params[:page])
   end
 end
