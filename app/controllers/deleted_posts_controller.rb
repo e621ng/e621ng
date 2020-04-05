@@ -11,7 +11,7 @@ class DeletedPostsController < ApplicationController
       @posts = @posts.includes(:uploader).includes(:flags).where('post_flags.id IS NOT NULL').order(Arel.sql('post_flags.created_at DESC')).paginate(params[:page])
     else
       @posts = PostFlag.where(is_deletion: true).includes(post: [:uploader, :flags]).order(id: :desc).paginate(params[:page])
-      new_opts = {mode: :numbered, per_page: @posts.records_per_page, total: @posts.total_count, current_page: params[:page] || 1}
+      new_opts = {mode: :numbered, per_page: @posts.records_per_page, total: @posts.total_count, current_page: params[:page].to_i || 1}
       @posts = ::Danbooru::Paginator::PaginatedArray.new(@posts.map {|f| f.post},
                                                 new_opts
       )
