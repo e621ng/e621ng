@@ -58,6 +58,9 @@
         <% end %>
 
         <div id="post-notices-top">
+          <div class="notice notice-no-shortcuts" style="display: none;" id="flash-shortcut-notice">
+            Keyboard shortcuts are disabled on this page because it contains flash.
+          </div>
           <%= render "posts/partials/show/notices", :post => @post %>
         </div>
 

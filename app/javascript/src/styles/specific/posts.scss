@@ -328,6 +328,13 @@ div#c-posts {
       }
     }
 
+    &.notice-no-shortcuts {
+      @include themable {
+        background-color: darken( themed('color-danger'), 10%);
+        border: 1px solid themed("color-foreground");
+      }
+    }
+
     &.notice-flagged {
       @include themable {
         background-color: darken( themed('color-danger'), 10%);

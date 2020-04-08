@@ -249,6 +249,10 @@ Post.nav_next = function(e) {
 
 Post.initialize_shortcuts = function() {
   if ($("#a-show").length) {
+    if ($("#flash-content").length) {
+      Utility.disableShortcuts = true;
+      $("#flash-shortcut-notice").show();
+    }
     Utility.keydown("a", "prev_page", Post.nav_prev);
     Utility.keydown("d", "next_page", Post.nav_next);
   }
