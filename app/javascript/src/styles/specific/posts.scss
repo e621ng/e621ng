@@ -282,7 +282,8 @@ div#c-posts {
     margin-bottom: $padding-025;
     div.notice {
       margin: 0 $padding-025;
-      flex-basis: 50%;
+    }
+    div.notice-parent {
       flex-grow: 1;
     }
   }
