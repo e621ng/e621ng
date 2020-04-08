@@ -517,7 +517,7 @@ class Tag < ApplicationRecord
         return [:gt, parse_cast($1, type)]
 
       when /,/
-        return [:in, range.split(/,/).map {|x| parse_cast(x, type)}]
+        return [:in, range.split(/,/)[0..99].map {|x| parse_cast(x, type)}]
 
       else
         return [:eq, parse_cast(range, type)]
