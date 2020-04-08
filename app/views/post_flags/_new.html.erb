@@ -3,6 +3,10 @@
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
   </div>
 
+  <div class="flag_post">
+    <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
+  </div>
+
   <%= error_messages_for :post_flag %>
 
   <%# XXX dtext_field expects there to be a `post_flag` instance variable. %>
