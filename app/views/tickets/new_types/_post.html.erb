@@ -4,7 +4,7 @@
 <% else %>
     <div class='section' style='width:80em;'>
       <% @post = @ticket.post %>
-      You are reporting <%= PostPresenter.preview(@post) %>
+      You are reporting <%= PostPresenter.preview(@ticket.post, tags: 'status:any', no_blacklist: true) %>
     </div>
 
     <div class='section' style='width:80em;'>

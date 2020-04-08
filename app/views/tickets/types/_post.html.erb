@@ -1,6 +1,6 @@
 <% if @ticket.post %>
     <tr>
       <td><span class='title'>Reported Post</span></td>
-      <td><%= PostPresenter.preview(@ticket.post) %></td>
+      <td><%= PostPresenter.preview(@ticket.post, tags: 'status:any', no_blacklist: true) %></td>
     </tr>
 <% end %>
