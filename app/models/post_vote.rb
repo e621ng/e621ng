@@ -54,6 +54,10 @@ class PostVote < ApplicationRecord
         q = q.where('user_id = ?', user_id) if user_id
       end
 
+      if params[:user_id].present?
+        q = q.where('user_id = ?', params[:user_id].to_i)
+      end
+
       q.order(id: :desc)
 
       q
