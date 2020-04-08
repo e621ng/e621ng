@@ -18,7 +18,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.create(ticket_params)
     if @ticket.valid?
       flash[:notice] = 'Ticket created'
-      redirect_to(tickets_path())
+      redirect_to(ticket_path(@ticket))
     else
       respond_with(@ticket)
     end
