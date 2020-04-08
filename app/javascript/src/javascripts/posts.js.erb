@@ -320,16 +320,25 @@ Post.initialize_post_relationship_previews = function() {
     Post.toggle_relationship_preview($("#has-parent-relationship-preview"), $("#has-parent-relationship-preview-link"));
   }
 
+  const flip_saved = function() {
+    if (LS.get("show-relationship-previews") === "1")
+      LS.put("show-relationship-previews", "0");
+    else
+      LS.put("show-relationship-previews", "1");
+  }
+
   if (LS.get("show-relationship-previews") === "1") {
     toggle();
   }
 
   $("#has-children-relationship-preview-link").on("click.danbooru", function(e) {
     toggle();
+    flip_saved();
     e.preventDefault();
   });
   $("#has-parent-relationship-preview-link").on("click.danbooru", function(e) {
     toggle();
+    flip_saved();
     e.preventDefault();
   })
 }
@@ -338,10 +347,8 @@ Post.toggle_relationship_preview = function(preview, preview_link) {
   preview.toggle();
   if (preview.is(":visible")) {
     preview_link.html("&laquo; hide");
-    LS.put("show-relationship-previews", "1");
   } else {
     preview_link.html("show &raquo;");
-    LS.put("show-relationship-previews", "0");
   }
 }
 
