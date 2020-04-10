@@ -2,7 +2,6 @@ module Sources
   module Strategies
     def self.all
       return [
-        Strategies::ArtStation,
         Strategies::PixivSlim
       ]
     end
