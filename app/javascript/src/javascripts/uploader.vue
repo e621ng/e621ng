@@ -535,6 +535,44 @@
         duplicateId: 0
       };
     },
+    mounted() {
+      const self = this;
+      const params = new URLSearchParams(window.location.search);
+      const fillField = function(field, key) {
+        if(params.has(key)) {
+          self[field] = params.get(key);
+        }
+      };
+      const fillFieldBool = function(field, key) {
+        if(params.has(key)) {
+          self[field] = (params.get(key) === 'true');
+        }
+      };
+      const fillTags = function() {
+        if(!params.has('tags'))
+          return;
+        const tags = params.get('tags').split(' ');
+        for(const tag of tags) {
+          const trimTag = tag.trim();
+          if(!trimTag)
+            continue;
+          self.pushTag(trimTag, true);
+        }
+      };
+      fillField('uploadURL', 'upload_url');
+      if(params.has('upload_url'))
+        this.updatePreview();
+      fillField('parentID', 'parent');
+      fillField('description', 'description');
+      fillTags();
+      if(params.has('sources')) {
+        self.sources = params.get('sources').split(',');
+      }
+      if(this.allowRatingLock)
+        fillFieldBool('ratingLocked', 'rating_locked');
+      if(this.allowLockedTags)
+        fillField('lockedTags', 'locked_tags');
+    },
     methods: {
       updatePreview,
       updatePreviewDims,
