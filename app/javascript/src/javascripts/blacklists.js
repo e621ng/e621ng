@@ -7,7 +7,34 @@ Blacklist.post_count = 0;
 
 Blacklist.entries = [];
 
-Blacklist.parse_entry = function (string) {
+Blacklist.entryGet = function (line) {
+  return $.grep(Blacklist.entries, function (e, i) {
+    return e.tags === line;
+  })[0];
+};
+
+Blacklist.entriesAllSet = function (enabled) {
+  LS.put("dab", enabled ? "0" : "1");
+  for (const entry of Blacklist.entries) {
+    entry.disabled = !enabled;
+  }
+};
+
+Blacklist.lineToggle = function (line) {
+  const entry = Blacklist.entryGet(line);
+  if (!entry)
+    return;
+  entry.disabled = !entry.disabled;
+};
+
+Blacklist.lineSet = function (line, enabled) {
+  const entry = Blacklist.entryGet(line);
+  if (!entry)
+    return;
+  entry.disabled = !enabled;
+};
+
+Blacklist.entryParse = function (string) {
   const entry = {
     "tags": string,
     "require": [],
@@ -43,29 +70,23 @@ Blacklist.parse_entry = function (string) {
   return entry;
 };
 
-Blacklist.parse_entries = function () {
+Blacklist.entriesParse = function () {
   Blacklist.entries = [];
   let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
   entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
   entries = entries.filter(e => e.trim() !== "");
 
   for (const tags of entries) {
-    const entry = Blacklist.parse_entry(tags);
+    const entry = Blacklist.entryParse(tags);
     Blacklist.entries.push(entry);
   }
 };
 
-Blacklist.entryToggle = function (e) {
+Blacklist.domEntryToggle = function (e) {
   e.preventDefault();
   const tags = $(e.target).text();
-  const entry = $.grep(Blacklist.entries, function (e, i) {
-    return e.tags === tags;
-  })[0];
-  if (!entry)
-    return;
-  entry.disabled = !entry.disabled;
+  Blacklist.lineToggle(tags);
   Blacklist.apply();
-  Blacklist.updateSidebarEntry(entry);
 };
 
 Blacklist.postSaveReplaceSrc = function (post) {
@@ -109,16 +130,14 @@ Blacklist.postShow = function (post) {
   Blacklist.postRestoreSrc(post);
 };
 
-Blacklist.updateSidebarEntry = function (entry) {
-  const link = $(`.blacklist-toggle-link[title="${entry.tags}"]`);
-  if (entry.disabled) {
-    link.addClass("blacklist-disabled");
+Blacklist.sidebarUpdate = function () {
+  if (LS.get("dab") === "1") {
+    $("#disable-all-blacklists").hide();
+    $("#re-enable-all-blacklists").show();
   } else {
-    link.removeClass("blacklist-disabled");
+    $("#disable-all-blacklists").show();
+    $("#re-enable-all-blacklists").hide();
   }
-};
-
-Blacklist.update_sidebar = function () {
   $("#blacklist-list").html("");
   if (Blacklist.post_count <= 0) {
     $("#blacklist-box").hide();
@@ -141,7 +160,7 @@ Blacklist.update_sidebar = function () {
     link.attr("href", `/posts?tags=${encodeURIComponent(entry.tags)}`);
     link.attr("title", entry.tags);
     link.attr("rel", "nofollow");
-    link.on("click.danbooru", Blacklist.entryToggle);
+    link.on("click.danbooru", Blacklist.domEntryToggle);
     count.html(entry.hits);
     count.addClass("post-count");
     item.append(link);
@@ -150,41 +169,27 @@ Blacklist.update_sidebar = function () {
 
     $("#blacklist-list").append(item);
   }
+  $("#blacklisted-count").text(`(${Blacklist.post_count})`);
+
 
   $("#blacklist-box").show();
 }
 
 Blacklist.initialize_disable_all_blacklists = function () {
   if (LS.get("dab") === "1") {
-    $("#re-enable-all-blacklists").show();
-    for (const entry of Blacklist.entries) {
-      entry.disabled = true;
-    }
-    Blacklist.apply();
-  } else {
-    $("#disable-all-blacklists").show()
+    Blacklist.entriesAllSet(false);
   }
 
   $("#disable-all-blacklists").on("click.danbooru", function (e) {
-    $("#disable-all-blacklists").hide();
-    $("#re-enable-all-blacklists").show();
-    LS.put("dab", "1");
-    for (const entry of Blacklist.entries) {
-      entry.disabled = true;
-    }
-    Blacklist.apply();
     e.preventDefault();
+    Blacklist.entriesAllSet(false);
+    Blacklist.apply();
   });
 
   $("#re-enable-all-blacklists").on("click.danbooru", function (e) {
-    $("#disable-all-blacklists").show();
-    $("#re-enable-all-blacklists").hide();
-    LS.put("dab", "0");
-    for (const entry of Blacklist.entries) {
-      entry.disabled = false;
-    }
-    Blacklist.apply();
     e.preventDefault();
+    Blacklist.entriesAllSet(true);
+    Blacklist.apply();
   });
 }
 
@@ -197,7 +202,7 @@ Blacklist.apply = function () {
   for (const post of this.posts()) {
     let post_count = 0;
     for (const entry of Blacklist.entries) {
-      if (Blacklist.post_match(post, entry)) {
+      if (Blacklist.postMatch(post, entry)) {
         entry.hits += 1;
         if (!entry.disabled)
           post_count += 1;
@@ -221,14 +226,14 @@ Blacklist.apply = function () {
     }
   }
 
-  Blacklist.update_sidebar();
+  Blacklist.sidebarUpdate();
 }
 
 Blacklist.posts = function () {
   return $(".post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail");
 }
 
-Blacklist.post_match = function (post, entry) {
+Blacklist.postMatch = function (post, entry) {
   const $post = $(post);
   if ($post.hasClass('post-no-blacklist'))
     return false;
@@ -241,10 +246,10 @@ Blacklist.post_match = function (post, entry) {
     user: $post.data('uploader').toString().toLowerCase(),
     flags: $post.data('flags')
   };
-  return Blacklist.post_match_object(post_data, entry);
+  return Blacklist.postMatchObject(post_data, entry);
 };
 
-Blacklist.post_match_object = function (post, entry) {
+Blacklist.postMatchObject = function (post, entry) {
   const score_test = entry.min_score === null || post.score < entry.min_score;
   const tags = post.tags.match(/\S+/g) || [];
   tags.push(`id:${post.id}`);
@@ -263,10 +268,10 @@ Blacklist.post_match_object = function (post, entry) {
 }
 
 Blacklist.initialize_all = function () {
-  Blacklist.parse_entries();
+  Blacklist.entriesParse();
 
-  Blacklist.apply();
   Blacklist.initialize_disable_all_blacklists();
+  Blacklist.apply();
   $("#blacklisted-hider").remove();
 }
 
@@ -301,11 +306,37 @@ Blacklist.initialize_anonymous_blacklist = function () {
   });
 };
 
-$(document).ready(function () {
-  // if ($("#blacklist-box").length === 0) {
-  //   return;
-  // }
+Blacklist.collapseGet = function () {
+  const lsValue = LS.get('bc') || '1';
+  return lsValue === '1';
+};
 
+Blacklist.collapseSet = function (collapsed) {
+  LS.put('bc', collapsed ? "1" : "0");
+};
+
+Blacklist.collapseUpdate = function () {
+  if (Blacklist.collapseGet()) {
+    $('#blacklist-list').hide();
+    $('#blacklist-collapse').addClass('hidden');
+  } else {
+    $('#blacklist-list').show();
+    $('#blacklist-collapse').removeClass('hidden');
+  }
+};
+
+Blacklist.initialize_collapse = function () {
+  $("#blacklist-collapse").on('click', function (e) {
+    e.preventDefault();
+    const current = Blacklist.collapseGet();
+    Blacklist.collapseSet(!current);
+    Blacklist.collapseUpdate();
+  });
+  Blacklist.collapseUpdate();
+};
+
+$(document).ready(function () {
+  Blacklist.initialize_collapse();
   Blacklist.initialize_anonymous_blacklist();
   Blacklist.initialize_all();
 });

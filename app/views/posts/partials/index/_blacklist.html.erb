@@ -1,6 +1,9 @@
 <section id="blacklist-box" class="sidebar-blacklist">
-  <h1>Blacklisted <span class="blacklist-help"><%= link_to "(blacklist help)", help_page_path(id: "blacklist") %></span></h1>
-  <ul id="blacklist-list">
+  <div class="blacklist-header">
+    <h1 id="blacklist-collapse" class="hidden">Blacklisted<span id="blacklisted-count"></span></h1>
+    <div class="blacklist-help"><%= link_to "(help)", help_page_path(id: "blacklist") %></div>
+  </div>
+  <ul id="blacklist-list" style="display: none;">
   </ul>
   <%= link_to "Disable all", "#", :id => "disable-all-blacklists", :style => "display: none;" %>
   <%= link_to "Re-enable all", "#", :id => "re-enable-all-blacklists", :style => "display: none;" %>

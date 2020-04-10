@@ -4,6 +4,25 @@
   display: none;
   margin-bottom: 1em;
 
+  .blacklist-help {
+    font-size: 0.85em;
+    font-weight: bold;
+  }
+
+  .blacklist-header {
+    display: flex;
+    justify-content: space-between;
+  }
+  #blacklist-collapse {
+    cursor: pointer;
+    &::before {
+      content: '▼ '
+    }
+    &.hidden::before {
+      content: '► ';
+    }
+  }
+
   #blacklist-list {
     a {
       display: inline-block;

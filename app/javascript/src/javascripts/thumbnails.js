@@ -28,7 +28,7 @@ Thumbnails.initialize = function () {
     }
     let blacklist_hit_count = 0;
     $.each(Blacklist.entries, function (j, entry) {
-      if (Blacklist.post_match_object(postData, entry)) {
+      if (Blacklist.postMatchObject(postData, entry)) {
         entry.hits += 1;
         blacklist_hit_count += 1;
       }
