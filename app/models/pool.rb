@@ -9,7 +9,7 @@ class Pool < ApplicationRecord
   validates :name, length: { minimum: 1, maximum: 250 }
   validates :description, length: { maximum: 10_000 }
   validate :user_not_create_limited, on: :create
-  validate :user_not_limited, on: :update
+  validate :user_not_limited, on: :update, if: :limited_attribute_changed?
   validate :validate_name, if: :name_changed?
   validates :category, inclusion: { :in => %w(series collection) }
   validate :updater_can_change_category
@@ -21,6 +21,10 @@ class Pool < ApplicationRecord
   after_save :create_version
   after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
+
+  def limited_attribute_changed?
+    name_changed? || description_changed? || category_changed? || is_active_changed?
+  end
 
   module SearchMethods
     def for_user(id)
