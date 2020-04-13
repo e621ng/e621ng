@@ -8,6 +8,9 @@
 .score-positive, span.score-positive {
   @include themable {
     color: themed("color-score-positive");
+    a {
+      color: themed("color-score-positive");
+    }
     a:hover {
       color: darken(themed("color-score-positive"), 10%);
     }
@@ -16,6 +19,9 @@
 .score-negative, span.score-negative {
   @include themable {
     color: themed("color-score-negative");
+    a {
+      color: themed("color-score-negative");
+    }
     a:hover {
       color: darken(themed("color-score-negative"), 10%);
     }
