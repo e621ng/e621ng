@@ -10,6 +10,7 @@ class Pool < ApplicationRecord
   validates :description, length: { maximum: 10_000 }
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update, if: :limited_attribute_changed?
+  validate :user_not_posts_limited, on: :update, if: :post_ids_changed?
   validate :validate_name, if: :name_changed?
   validates :category, inclusion: { :in => %w(series collection) }
   validate :updater_can_change_category
@@ -124,6 +125,15 @@ class Pool < ApplicationRecord
     allowed = CurrentUser.can_pool_edit_with_reason
     if allowed != true
       errors.add(:updater, User.throttle_reason(allowed))
+      return false
+    end
+    true
+  end
+
+  def user_not_posts_limited
+    allowed = CurrentUser.can_pool_post_edit_with_reason
+    if allowed != true
+      errors.add(:updater, User.throttle_reason(allowed) + ": updating unique pools posts")
       return false
     end
     true
