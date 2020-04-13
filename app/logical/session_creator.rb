@@ -18,7 +18,10 @@ class SessionCreator
       session[:user_id] = user.id
       user.update_column(:last_ip_addr, ip_addr)
 
-      cookies.encrypted[:remember] = {value: user.id, expires: Time.now + 7.days, httponly: true} if remember
+      if remember
+        verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, hash: "SHA256")
+        cookies.encrypted[:remember] = {value: verifier.generate(user.id, purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true}
+      end
       return true
     else
       return false

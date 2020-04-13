@@ -263,6 +263,10 @@ fart'
       30
     end
 
+    def remember_key
+      "abc123"
+    end
+
     def tag_type_change_cutoff
       100
     end

@@ -8,6 +8,7 @@ class SessionLoader
     @session = request.session
     @cookies = request.cookie_jar
     @params = request.parameters
+    @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, hash: "SHA256")
   end
 
   def load
@@ -36,7 +37,7 @@ class SessionLoader
     update_last_ip_addr
     set_time_zone
     set_safe_mode
-    set_started_at_session
+    refresh_old_remember_token
     DanbooruLogger.initialize(request, session, CurrentUser.user)
   end
 
@@ -56,10 +57,22 @@ private
   end
 
   def load_remember_token
-    user = User.find_by_id(cookies.encrypted[:remember])
-    return unless user
-    CurrentUser.user = user
-    session[:user_id] = user.id
+    begin
+      message = @remember_validator.verify(cookies.encrypted[:remember], purpose: "rbr")
+      return if message.nil?
+      user = User.find_by_id(message.to_i)
+      return unless user
+      CurrentUser.user = user
+      session[:user_id] = user.id
+    rescue
+      return
+    end
+  end
+
+  def refresh_old_remember_token
+    if cookies.encrypted[:remember]
+      cookies.encrypted[:remember] = {value: @remember_validator.generate(CurrentUser.id, purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true}
+    end
   end
 
   def load_session_for_api
@@ -110,11 +123,5 @@ private
   def set_safe_mode
     safe_mode = request.host.match?(/safebooru/i) || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
     CurrentUser.safe_mode = safe_mode
-  end
-
-  def set_started_at_session
-    if session[:started_at].blank?
-      session[:started_at] = Time.now.utc.to_s
-    end
   end
 end
