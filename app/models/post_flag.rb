@@ -104,7 +104,7 @@ class PostFlag < ApplicationRecord
       when "banned"
         q = q.where(reason: Reasons::BANNED)
       when "deleted"
-        q = q.where("reason = ? OR reason LIKE ?", Reasons::UNAPPROVED)
+        q = q.where("reason = ?", Reasons::UNAPPROVED)
       when "duplicate"
         q = q.duplicate
       end
