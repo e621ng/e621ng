@@ -15,7 +15,7 @@
 
       <tr>
         <th>Level</th>
-        <td><%= presenter.level %></td>
+        <td><%= "(Unactivated)" unless user.is_verified? %> <%= presenter.level %></td>
         <th>Permissions</th>
         <td><%= presenter.permissions %></td>
       </tr>
