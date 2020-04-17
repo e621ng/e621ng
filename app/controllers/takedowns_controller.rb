@@ -91,7 +91,7 @@ class TakedownsController < ApplicationController
   def search_params
     permitted_params = %i[status]
     if CurrentUser.is_admin?
-      permitted_params << %i[source reason ip_addr creator_id creator_name email vericode status order]
+      permitted_params << %i[source reason ip_addr creator_id creator_name email vericode status order reason_hidden instructions post_id notes]
     end
     params.fetch(:search, {}).permit(*permitted_params)
   end
