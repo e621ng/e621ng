@@ -21,6 +21,6 @@ class ForumCategory < ApplicationRecord
   end
 
   def self.visible(user = CurrentUser.user)
-    where('can_view >= ?', user.level)
+    where('can_view <= ?', user.level)
   end
 end
