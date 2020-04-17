@@ -121,7 +121,7 @@ private
   end
 
   def set_safe_mode
-    safe_mode = request.host.match?(/safebooru/i) || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
+    safe_mode = Danbooru.config.safe_mode || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
     CurrentUser.safe_mode = safe_mode
   end
 end

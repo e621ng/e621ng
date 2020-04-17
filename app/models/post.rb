@@ -2014,7 +2014,7 @@ class Post < ApplicationRecord
 
   def safeblocked?
     return true if Danbooru.config.safe_mode && rating != "s"
-    CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|toddler|diaper|tentacle|rape|bestiality|beastiality|lolita|loli|nude|shota|pussy|penis"))
+    CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|toddler|diaper|tentacle|rape|bestiality|beastiality|lolita|loli|shota|pussy|penis"))
   end
 
   def deleteblocked?
