@@ -177,7 +177,7 @@ Comment.vote = function (id, score) {
     $('#comment-vote-down-'+commentID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');
     Utility.notice('Vote saved');
   }).fail(function(data) {
-    Utility.error(data.message);
+    Utility.error(data.responseJSON.message);
   });
 }
 

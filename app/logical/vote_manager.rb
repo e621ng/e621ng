@@ -81,12 +81,14 @@ class VoteManager
   end
 
   def self.comment_vote!(user:, comment:, score:)
+    retries = 5
     @vote = nil
-    # TODO retry on ActiveRecord::TransactionIsloationConflict?
     score = score_modifier = score.to_i
     begin
       raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
+      reason = user.can_comment_vote_with_reason
+      raise CommentVote::Error.new("You #{User.throttle_reason(reason)}") unless reason == true
       CommentVote.transaction(isolation: :serializable) do
         CommentVote.uncached do
           old_vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
@@ -103,6 +105,10 @@ class VoteManager
           Comment.where(id: comment.id).update_all("score = score + #{score_modifier}")
         end
       end
+    rescue ActiveRecord::SerializationFailure => e
+      retries -= 1
+      retry if retries > 0
+      raise e
     rescue ActiveRecord::RecordNotUnique
       raise CommentVote::Error.new("You have already voted for this post")
     end
