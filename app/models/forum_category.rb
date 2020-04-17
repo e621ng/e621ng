@@ -19,4 +19,8 @@ class ForumCategory < ApplicationRecord
   def self.ordered_categories
     order(:cat_order)
   end
+
+  def self.visible(user = CurrentUser.user)
+    where('can_view >= ?', user.level)
+  end
 end
