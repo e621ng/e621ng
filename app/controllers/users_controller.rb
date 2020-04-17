@@ -103,6 +103,7 @@ class UsersController < ApplicationController
 
   def check_privilege(user)
     raise User::PrivilegeError unless (user.id == CurrentUser.id || CurrentUser.is_admin?)
+    raise User::PrivilegeError.new("Must verify account email") unless CurrentUser.is_verified?
   end
 
   def user_params(context)
