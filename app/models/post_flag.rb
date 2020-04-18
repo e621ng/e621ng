@@ -19,7 +19,6 @@ class PostFlag < ApplicationRecord
   validate :validate_reason
   validate :update_reason, on: :create
   validates :reason, presence: true
-  validates :creator_id, uniqueness: {:scope => :post_id, :on => :create, :unless => :bypass_unique, :message => "have already flagged this post"}
   before_save :update_post
   after_commit :index_post
 
