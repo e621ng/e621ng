@@ -23,6 +23,8 @@ class Pool < ApplicationRecord
   after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
 
+  attr_accessor :skip_sync
+
   def limited_attribute_changed?
     name_changed? || description_changed? || category_changed? || is_active_changed?
   end
@@ -240,10 +242,14 @@ class Pool < ApplicationRecord
   end
 
   def add!(post)
+    return if post.nil?
+    return if post.id.nil?
     return if contains?(post.id)
     return if is_deleted?
 
     with_lock do
+      reload
+      self.skip_sync = true
       update(post_ids: post_ids + [post.id])
       post.add_pool!(self, true)
       post.save
@@ -251,6 +257,7 @@ class Pool < ApplicationRecord
   end
 
   def add(id)
+    return if id.nil?
     return if contains?(id)
     return if is_deleted?
 
@@ -263,6 +270,7 @@ class Pool < ApplicationRecord
 
     with_lock do
       reload
+      self.skip_sync = true
       update(post_ids: post_ids - [post.id])
       post.remove_pool!(self)
       post.save
@@ -284,6 +292,7 @@ class Pool < ApplicationRecord
   end
 
   def synchronize
+    return if skip_sync == true
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
     removed = post_ids_before - post_ids
@@ -297,8 +306,6 @@ class Pool < ApplicationRecord
       post.remove_pool!(self)
       post.save
     end
-
-    normalize_post_ids
   end
 
   def synchronize!

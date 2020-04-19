@@ -7,7 +7,10 @@ class PoolElementsController < ApplicationController
 
     if @pool.present? && !@pool.is_deleted?
       @post = Post.find(params[:post_id])
-      @pool.add!(@post)
+      @pool.with_lock do
+        @pool.add(@post.id)
+        @pool.save
+      end
       append_pool_to_session(@pool)
     else
       @error = "That pool does not exist"
@@ -17,7 +20,10 @@ class PoolElementsController < ApplicationController
   def destroy
     @pool = Pool.find(params[:pool_id])
     @post = Post.find(params[:post_id])
-    @pool.remove!(@post)
+    @pool.with_lock do
+      @pool.remove(@post.id)
+      @pool.save
+    end
     respond_with(@pool, :location => post_path(@post))
   end
 

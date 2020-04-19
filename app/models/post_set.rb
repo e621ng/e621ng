@@ -37,6 +37,8 @@ class PostSet < ApplicationRecord
   before_save :update_post_count
   after_save :synchronize, if: :saved_change_to_post_ids?
 
+  attr_accessor :skip_sync
+
   def self.name_to_id(name)
     if name =~ /\A\d+\z/
       name.to_i
@@ -190,9 +192,13 @@ class PostSet < ApplicationRecord
     end
 
     def add!(post)
+      return if post.nil?
+      return if post.id.nil?
       return if contains?(post.id)
 
       with_lock do
+        reload
+        self.skip_sync = true
         update(post_ids: post_ids + [post.id])
         post.add_set!(self, true)
         post.save
@@ -207,6 +213,8 @@ class PostSet < ApplicationRecord
       return unless contains?(post.id)
 
       with_lock do
+        reload
+        self.skip_sync = true
         update(post_ids: post_ids - [post.id])
         post.remove_set!(self)
         post.save
@@ -251,6 +259,7 @@ class PostSet < ApplicationRecord
     end
 
     def synchronize
+      return if skip_sync == true
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       removed = post_ids_before - post_ids
@@ -266,8 +275,6 @@ class PostSet < ApplicationRecord
         post.remove_set!(self)
         post.save
       end
-
-      normalize_post_ids
     end
 
     def synchronize!

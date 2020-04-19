@@ -948,23 +948,23 @@ class Post < ApplicationRecord
         case tag
         when /^-pool:(\d+)$/i
           pool = Pool.find_by_id($1.to_i)
-          remove_pool!(pool) if pool
+          pool.remove!(self) if pool
 
         when /^-pool:(.+)$/i
           pool = Pool.find_by_name($1)
-          remove_pool!(pool) if pool
+          pool.remove!(self) if pool
 
         when /^pool:(\d+)$/i
           pool = Pool.find_by_id($1.to_i)
-          add_pool!(pool) if pool
+          pool.add!(self) if pool
 
         when /^pool:(.+)$/i
           pool = Pool.find_by_name($1)
-          add_pool!(pool) if pool
+          pool.add!(self) if pool
 
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
-          add_pool!(pool) if pool
+          pool.add!(self) if pool
 
         when /^set:(\d+)$/i
           set = PostSet.find_by_id($1.to_i)
@@ -1212,7 +1212,6 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
-        pool.add!(self)
       end
     end
 
@@ -1222,7 +1221,6 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
-        pool.remove!(self)
       end
     end
 
