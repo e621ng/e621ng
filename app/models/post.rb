@@ -1168,9 +1168,13 @@ class Post < ApplicationRecord
     def give_post_sets_to_parent
       transaction do
         post_sets.find_each do |set|
-          set.remove([id])
-          set.add([parent.id]) if parent_id.present? && set.transfer_on_delete
-          set.save!
+          begin
+            set.remove([id])
+            set.add([parent.id]) if parent_id.present? && set.transfer_on_delete
+            set.save!
+          rescue
+            #Ignore set errors due to things like set post count
+          end
         end
       end
     end

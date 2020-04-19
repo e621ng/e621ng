@@ -137,6 +137,9 @@ class PostSet < ApplicationRecord
     end
 
     def validate_number_of_posts
+      post_ids_before = post_ids_before_last_save || post_ids_was
+      added = post_ids - post_ids_before
+      return unless added.size > 0
       if post_ids.size > 10_000
         errors.add(:base, "Sets can have up to 10,000 posts each")
         false
