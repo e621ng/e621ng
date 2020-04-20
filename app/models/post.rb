@@ -1468,30 +1468,31 @@ class Post < ApplicationRecord
         reason = last_flag.reason
       end
 
-      Post.transaction do
-        flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true)
+      Post.with_timeout(30_000) do
+        transaction do
+          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true)
 
-        if flag.errors.any?
-          raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
-        end
+          if flag.errors.any?
+            raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
+          end
 
-        update(
-            is_deleted: true,
-            is_pending: false,
-            is_flagged: false
-        )
-
-        move_files_on_delete
-        UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
-
-        # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
-        give_favorites_to_parent(options) if options[:move_favorites]
-        give_post_sets_to_parent
-
-        unless options[:without_mod_action]
-          ModAction.log(:post_delete, {post_id: id, reason: reason})
+          update(
+              is_deleted: true,
+              is_pending: false,
+              is_flagged: false
+          )
+          move_files_on_delete
+          unless options[:without_mod_action]
+            ModAction.log(:post_delete, {post_id: id, reason: reason})
+          end
         end
       end
+
+      # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
+      # We don't care if these fail per-se so they are outside the transaction.
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
+      give_favorites_to_parent(options) if options[:move_favorites]
+      give_post_sets_to_parent if options[:move_favorites]
     end
 
     def undelete!(options = {})
@@ -1506,16 +1507,18 @@ class Post < ApplicationRecord
         end
       end
 
-      self.is_deleted = false
-      self.approver_id = CurrentUser.id
-      flags.each {|x| x.resolve!}
-      save
-      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
-      move_files_on_undelete
-      approvals.create(user: CurrentUser.user)
-      unless options[:without_mod_action]
-        ModAction.log(:post_undelete, {post_id: id})
+      transaction do
+        self.is_deleted = false
+        self.approver_id = CurrentUser.id
+        flags.each {|x| x.resolve!}
+        save
+        approvals.create(user: CurrentUser.user)
+        unless options[:without_mod_action]
+          ModAction.log(:post_undelete, {post_id: id})
+        end
       end
+      move_files_on_undelete
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
 
     def replace!(params)
