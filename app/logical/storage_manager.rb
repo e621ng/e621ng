@@ -49,6 +49,7 @@ class StorageManager
 
   def delete_file(post_id, md5, file_ext, type)
     delete(file_path(md5, file_ext, type))
+    delete(file_path(md5, file_ext, type, true))
   end
 
   def open_file(post, type)
