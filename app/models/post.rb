@@ -77,10 +77,7 @@ class Post < ApplicationRecord
         Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :original)
         Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :large)
         Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :preview)
-
-        Danbooru.config.backup_storage_manager.delete_file(post_id, md5, file_ext, :original)
-        Danbooru.config.backup_storage_manager.delete_file(post_id, md5, file_ext, :large)
-        Danbooru.config.backup_storage_manager.delete_file(post_id, md5, file_ext, :preview)
+        Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :crop)
 
         if Danbooru.config.cloudflare_key
           CloudflareService.new.delete(md5, file_ext)
