@@ -1432,7 +1432,7 @@ class Post < ApplicationRecord
 
       transaction do
         Post.without_timeout do
-          ModAction.log(:post_destroy, {post_id: id})
+          ModAction.log(:post_destroy, {post_id: id, md5: md5})
 
           give_favorites_to_parent! # Must be inline or else the post and favorites won't exist for the background job.
           update_children_on_destroy
