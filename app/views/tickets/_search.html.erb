@@ -3,7 +3,7 @@
 </div>
 <%= simple_form_for(:search, method: :get, defaults: {required: false}, html: {id: 'searchform', class: "inline-form"}) do |f| %>
   <% if CurrentUser.is_admin? %>
-    <%= f.input :creator_name, label: "Reporter", hint: "Use * for wildcard", input_html: {value: params[:search][:creator_name]} %>
+    <%= f.input :creator_name, label: "Reporter", input_html: {value: params[:search][:creator_name]} %>
     <%= f.input :creator_id, label: "Reporter ID", input_html: {value: params[:search][:creator_id]} %>
     <%= f.input :accused_name, label: "Accused", input_html: {value: params[:search][:accused_name]} %>
   <% end %>

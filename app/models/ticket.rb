@@ -573,11 +573,13 @@ class Ticket < ApplicationRecord
       end
 
       if params[:creator_name].present?
-        q = q.where('tickets.creator_id = (select _.id from users _ where lower(_.name) = ?', params[:reporter_name].tr(' ', '_').downcase)
+        user_id = User::name_to_id(params[:creator_name])
+        q = q.where('creator_id = ?', user_id) if user_id
       end
 
       if params[:accused].present?
-        q = q.where("tickets.disp_id = (select _.id from users _ where lower(_.name) = ? AND tickets.qtype = ?)", params[:accused].tr(' ', '_').downcase, 'user')
+        user_id = User::name_to_id(params[:accused])
+        q = q.where('disp_id = ? and qtype = ?', [user_id, 'user']) if user_id
       end
 
       if params[:type].present?
