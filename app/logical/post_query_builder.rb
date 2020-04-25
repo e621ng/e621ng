@@ -567,11 +567,6 @@ class PostQueryBuilder
     when "rank"
       relation = relation.order(Arel.sql("log(3, posts.score) + (extract(epoch from posts.created_at) - extract(epoch from timestamp '2005-05-24')) / 35000 DESC"))
 
-    when "custom"
-      if q[:post_id].present? && q[:post_id][0] == :in
-        relation = relation.find_ordered(q[:post_id][1])
-      end
-
     else
       relation = relation.order("posts.id DESC")
     end
