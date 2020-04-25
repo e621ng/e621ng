@@ -14,7 +14,7 @@
       <li><strong>Group</strong> <%= link_to_artist(artist.group_name) %></li>
     <% end %>
     <% if artist.group_name.present? && artist.members.present? %>
-      <li><strong>Members</strong> <%= link_to_artists(artist.members.map(&:name)) %></li>
+      <li><strong>Members</strong> <%= link_to_artists(artist.members.limit(25).map(&:name)) %></li>
     <% end %>
     <% if artist.domains.any? %>
       <li><strong>Domains</strong></li>

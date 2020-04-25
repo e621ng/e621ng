@@ -250,12 +250,13 @@ class Artist < ApplicationRecord
     def normalize_other_names
       self.other_names = other_names.map { |x| Artist.normalize_name(x) }.uniq
       self.other_names -= [name]
+      self.other_names = other_names[0..25]
     end
   end
 
   module GroupMethods
     def member_names
-      members.map(&:name).join(", ")
+      members.limit(25).map(&:name).join(", ")
     end
   end
 
