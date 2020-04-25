@@ -31,6 +31,7 @@ class TagRelationship < ApplicationRecord
   validates :creator, presence: { message: "must exist" }, if: -> { creator_id.present? }
   validates :approver, presence: { message: "must exist" }, if: -> { approver_id.present? }
   validates :forum_topic, presence: { message: "must exist" }, if: -> { forum_topic_id.present? }
+  validates :consequent_name, tag_name: true, on: :create
   validate :antecedent_and_consequent_are_different
   after_save :update_notice
 

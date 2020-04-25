@@ -272,8 +272,8 @@ class TagAlias < TagRelationship
   end
 
   def mininum_antecedent_count
-    if antecedent_tag.post_count < 50
-      errors[:base] << "The #{antecedent_name} tag must have at least 50 posts for an alias to be created"
+    if antecedent_tag.post_count < 20
+      errors[:base] << "The #{antecedent_name} tag must have at least 20 posts for an alias to be created"
     end
   end
 
