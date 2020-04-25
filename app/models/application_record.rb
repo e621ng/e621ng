@@ -117,25 +117,11 @@ class ApplicationRecord < ActiveRecord::Base
       end
 
       def apply_default_order(params)
-        if params[:order] == "custom"
-          parse_ids = Tag.parse_helper(params[:id])
-          if parse_ids[0] == :in
-            return find_ordered(parse_ids[1])
-          end
-        end
         return default_order
       end
 
       def default_order
         order(id: :desc)
-      end
-
-      def find_ordered(ids)
-        order_clause = []
-        ids.each do |id|
-          order_clause << sanitize_sql_array(["ID=? DESC", id])
-        end
-        where(id: ids).order(Arel.sql(order_clause.join(', ')))
       end
 
       def search(params = {})
