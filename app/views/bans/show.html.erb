@@ -4,7 +4,10 @@
     <ul style="margin-bottom: 1em;">
       <li><strong>User</strong>: <%= link_to_user(@ban.user) %></li>
       <li><strong>Expires</strong>: <%= @ban.humanized_expiration %></li>
-      <li><strong>Reason</strong>: <%= format_text @ban.reason %></li>
+      <li><strong>Reason</strong>:
+        <div class="styled-dtext"><%= format_text @ban.reason %>
+        </div>
+      </li>
     </ul>
 
     <%= form_tag(ban_path(@ban), :method => :delete) do %>

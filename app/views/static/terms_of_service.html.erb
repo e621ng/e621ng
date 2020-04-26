@@ -1,7 +1,9 @@
 <div id="c-static">
   <div id="a-terms-of-service">
 
+    <div class="styled-dtext">
     <%= format_text(@page.body, allow_color: true) %>
+    </div>
 
   <%= form_tag(accept_terms_of_service_path) do %>
     <%= hidden_field_tag :url, params[:url] %>

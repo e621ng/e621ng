@@ -10,7 +10,7 @@
     <% @dashboard.mod_actions.each do |mod_action| %>
       <tr>
         <td><%= link_to_user mod_action.creator %></td>
-        <td><%= format_text(mod_action.format_description) %></td>
+        <td class="styled-dtext"><%= format_text(mod_action.format_description) %></td>
       </tr>
     <% end %>
   </tbody>
