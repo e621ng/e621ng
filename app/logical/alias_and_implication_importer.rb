@@ -89,7 +89,7 @@ class AliasAndImplicationImporter
         sum + TagImplication.new(antecedent_name: token[1], consequent_name: token[2]).estimate_update_count
 
       when :mass_update
-        sum + Moderator::TagBatchChange.new(token[1], token[2]).estimate_update_count
+        sum + ::Post.tag_match(token[1]).count
 
       when :change_category
         sum + Tag.find_by_name(token[1]).try(:post_count) || 0
@@ -149,11 +149,13 @@ private
           tag_alias = TagAlias.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Alias for #{token[1]} not found" if tag_alias.nil?
           tag_alias.reject!(update_topic: false)
+          tag_alias.destroy
 
         when :remove_implication
           tag_implication = TagImplication.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Implication for #{token[1]} not found" if tag_implication.nil?
           tag_implication.reject!(update_topic: false)
+          tag_implication.destroy
 
         when :mass_update
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
