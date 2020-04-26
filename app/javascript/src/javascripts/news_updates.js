@@ -15,7 +15,7 @@ NewsUpdate.initialize = function () {
     $('#news').hide();
     LS.put('hide_news_notice', key.toString());
   });
-  if (parseInt(LS.get("hide_news_notice") || 0, 10) !== key) {
+  if (parseInt(LS.get("hide_news_notice") || 0, 10) < key) {
     $("#news").show();
   }
 };
