@@ -131,6 +131,12 @@
           <% end %>
         </tr>
       <% end %>
+      <% if CurrentUser.is_moderator? %>
+        <tr>
+          <th>Last IP</th>
+          <td><%= link_to_ip(user.last_ip_addr) %></td>
+        </tr>
+      <% end %>
       </tbody>
     </table>
   </div>
