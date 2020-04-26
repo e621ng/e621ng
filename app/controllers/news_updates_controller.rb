@@ -1,5 +1,5 @@
 class NewsUpdatesController < ApplicationController
-  before_action :admin_only
+  before_action :admin_only, except: [:index]
   respond_to :html
 
   def index

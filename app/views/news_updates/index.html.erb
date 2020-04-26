@@ -15,7 +15,9 @@
           <tr id="news-update-<%= news_update.id %>">
             <td><%= link_to_user news_update.creator %></td>
             <td><%= news_update.message %></td>
-            <td><%= link_to "Edit", edit_news_update_path(news_update) %> | <%= link_to "Delete", news_update_path(news_update), :method => :delete %></td>
+            <% if CurrentUser.is_moderator? %>
+              <td><%= link_to "Edit", edit_news_update_path(news_update) %> | <%= link_to "Delete", news_update_path(news_update), :method => :delete %></td>
+            <% end %>
           </tr>
         <% end %>
       </tbody>

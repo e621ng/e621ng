@@ -11,12 +11,8 @@ function showMascot(cur) {
 
   $('body').css("background-image", "url(" + mascots[cur][0] + ")");
   $('body').css("background-color", mascots[cur][1]);
-  $('#searchbox').css("background-image", "url(" + blurred + ")");
-  $('#searchbox').css("background-color", mascots[cur][1]);
-  $('#searchbox2').css("background-image", "url(" + blurred + ")");
-  $('#searchbox2').css("background-color", mascots[cur][1]);
-  $('#searchbox3').css("background-image", "url(" + blurred + ")");
-  $('#searchbox3').css("background-color", mascots[cur][1]);
+  $('.mascotbox').css("background-image", "url(" + blurred + ")");
+  $('.mascotbox').css("background-color", mascots[cur][1]);
 
   if (mascots[cur][2])
     $('#mascot_artist').html("Mascot by " + mascots[cur][2]);
