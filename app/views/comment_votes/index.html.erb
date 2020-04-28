@@ -59,12 +59,26 @@
 
     <%= javascript_tag nonce: true do -%>
       $(function () {
+        var lastSelected = 0;
         $("#votes").on('click', 'tbody tr', function (evt) {
+          evt.preventDefault();
+          if(evt.shiftKey) {
+            toggleRowsBetween([lastSelected, this.rowIndex]);
+          }
           $(this).toggleClass('selected');
+          lastSelected = this.rowIndex;
         });
         $("#lock-votes").on('click', CommentVotes.lock);
         $("#delete-votes").on('click', CommentVotes.delete);
       });
+
+      function toggleRowsBetween(indices) {
+        lastSelected = indices[1];
+        var rows = $('#votes').find('tr');
+        indices = indices.sort();
+        rows = rows.slice(indices[0], indices[1]);
+        rows.toggleClass('selected');
+      }
 
       function selectedVotes() {
         return $("#votes>tbody>tr.selected").map(function () {
