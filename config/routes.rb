@@ -7,12 +7,15 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => '/sidekiq', constraints: AdminRouteConstraint.new
 
   namespace :admin do
-    resources :users, :only => [:edit, :update, :edit_blacklist, :update_blacklist] do
+    resources :users, :only => [:edit, :update, :edit_blacklist, :update_blacklist, :alt_list] do
       member do
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+      end
+      collection do
+        get :alt_list
       end
     end
     resource :alias_and_implication_import, :only => [:new, :create]

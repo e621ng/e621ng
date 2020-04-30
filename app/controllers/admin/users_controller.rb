@@ -1,6 +1,18 @@
 module Admin
   class UsersController < ApplicationController
     before_action :moderator_only
+    respond_to :html, :json
+
+    def alt_list
+      offset = params[:page].to_i || 0
+      offset *= 100
+      @alts = ::User.connection.select_all("
+SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.last_ip_addr, u1.email as u1email, u2.email as u2email, u2.last_logged_in_at
+FROM (SELECT * FROM users ORDER BY id DESC LIMIT 100 OFFSET #{offset}) u1
+INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
+ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
+      respond_with(@alts)
+    end
 
     def edit
       @user = User.find(params[:id])
