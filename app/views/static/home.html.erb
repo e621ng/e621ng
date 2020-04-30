@@ -82,10 +82,6 @@
       <div id='mascot_artist'></div>
     </div>
 
-    <div class="mascotbox">
-      <%= render 'news_updates/listing_home' %>
-    </div>
-
     <div id='searchbox2' class='mascotbox'>
       <% Post.fast_count.to_s.each_char do |x| %>
         <%= image_tag("counter/#{x}.png") %>
