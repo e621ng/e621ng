@@ -7,7 +7,7 @@
   <%= csrf_meta_tag %>
   <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
   <%= raw Danbooru.config.custom_html_header_content %>
-  <script src="/vendor/jquery-3.4.1.min.js" integrity="sha384-v/CvOfYoICV4azK6zXTy9qXP6UwbdbFVuxd2Lorpes7n5YVsaU1bQqIalcktKchl" crossorigin="anonymous"></script>
+  <script src="/vendor/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
   <%= stylesheet_pack_tag "application", nonce: true %>
   <%= javascript_pack_tag "application", nonce: true %>
