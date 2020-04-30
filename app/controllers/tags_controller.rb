@@ -15,15 +15,11 @@ class TagsController < ApplicationController
   end
 
   def autocomplete
-    begin
-      @tags = Tag.names_matches_with_aliases(params[:search][:name_matches])
-    rescue ActiveRecord::QueryCanceled
-      @tags = []
-    end
+    @tags = Tag.names_matches_with_aliases(params[:search][:name_matches])
 
     expires_in params[:expiry].to_i.days if params[:expiry]
 
-    respond_with(@tags, root: "tags")
+    respond_with(@tags)
   end
 
   def preview
