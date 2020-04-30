@@ -76,7 +76,7 @@
       pushTag(tag, add) {
         this.preview.show = false;
         if (add) {
-          const tags = this.tags.toLowerCase().trim().replace(/\r?\n|\r/g, ' ');
+          const tags = this.tags.toLowerCase().trim().replace(/\r?\n|\r/g, ' ').split(' ');
           if (tags.indexOf(tag) === -1) {
             this.tags += tag + ' ';
           }
