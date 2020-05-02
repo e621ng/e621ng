@@ -60,24 +60,32 @@ class UsersController < ApplicationController
   def create
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
     raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
-    @user = User.new(user_params(:create))
-    @user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
-    if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
-      @user.save
-      if @user.errors.empty?
-        session[:user_id] = @user.id
-        if Danbooru.config.enable_email_verification?
-          Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
+    User.transaction do
+      @user = User.new(user_params(:create))
+      @user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
+      if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
+        @user.save
+        if @user.errors.empty?
+          session[:user_id] = @user.id
+          if Danbooru.config.enable_email_verification?
+            Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
+          end
+        else
+          flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join("; ")}"
         end
+        set_current_user
+        respond_with(@user)
       else
-        flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join("; ")}"
+        flash[:notice] = "Sign up failed"
+        respond_with(@user)
       end
-      set_current_user
-      respond_with(@user)
-    else
-      flash[:notice] = "Sign up failed"
-      respond_with(@user)
     end
+  rescue ::Mailgun::CommunicationError
+    session[:user_id] = nil
+    @user.errors.add(:email, "There was a problem with your email that prevented sign up")
+    @user.id = nil
+    flash[:notice] = "There was a problem with your email that prevented sign up"
+    respond_with(@user)
   end
 
   def update
