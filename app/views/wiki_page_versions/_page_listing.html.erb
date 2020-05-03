@@ -34,7 +34,7 @@
               <%= link_to wiki_page_version.title, wiki_page_version_path(wiki_page_version) %>
             </td>
             <td><%= wiki_page_version.is_deleted? ? "Y" : "" %></td>
-            <td><%= link_to "view version", wiki_page_path(wiki_page_version.wiki_page_id) %></td>
+            <td><%= link_to "view version", wiki_page_version_path(wiki_page_version) %></td>
             <% if CurrentUser.is_moderator? %>
               <td>
                 <%= link_to_ip wiki_page_version.updater_ip_addr %>
