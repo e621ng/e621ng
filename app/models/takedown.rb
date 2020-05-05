@@ -270,7 +270,14 @@ class Takedown < ApplicationRecord
     end
   end
 
+  module APIMethods
+    def hidden_attributes
+      super + [:source, :vericode, :email, :reason, :instructions, :post_ids, :del_post_ids, :creator_id, :notes]
+    end
+  end
+
   include PostMethods
+  include APIMethods
   include ValidationMethods
   include StatusMethods
   include ModifyPostMethods
