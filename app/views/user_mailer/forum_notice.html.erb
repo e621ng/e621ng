@@ -4,7 +4,7 @@
   <p>
     <strong><%= forum_post.creator_name %> said:</strong>
   </p>
-  <%= format_text(forum_post.body, base_url: root_url) %>
+  <%= format_text(forum_post.body, base_url: root_url, max_thumbs: 0) %>
   <br>
   <hr>
   <br>
