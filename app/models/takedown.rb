@@ -181,6 +181,7 @@ class Takedown < ApplicationRecord
   module ProcessMethods
     def apply_posts(posts)
       to_del = []
+      posts ||= []
       posts.each do |post_id, keep|
         if keep == '1'
           to_del << post_id
