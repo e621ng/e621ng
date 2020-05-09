@@ -11,6 +11,7 @@ SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.la
 FROM (SELECT * FROM users ORDER BY id DESC LIMIT 100 OFFSET #{offset}) u1
 INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
 ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
+      @alts = @alts.to_a.group_by {|i| i['u1id']}
       respond_with(@alts)
     end
 

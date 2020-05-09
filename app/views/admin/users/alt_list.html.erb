@@ -1,28 +1,38 @@
 <table class="table">
-  <thead>
-  <tr>
-    <th>ID #1</th>
-    <th>Name #1</th>
-    <th>Email #1</th>
-    <th>IP</th>
-    <th>ID #2</th>
-    <th>Name #2</th>
-    <th>Email #2</th>
-    <th>Last Login #2</th>
-  </tr>
-  </thead>
   <tbody>
-  <% @alts.each do |alt| %>
-  <tr>
-    <td><%= link_to alt['u1id'], user_path(id: alt['u1id']) %></td>
-    <td><%= link_to alt['u1name'], user_path(id: alt['u1id']) %></td>
-    <td><%= alt['u1email'] %></td>
-    <td><%= link_to_ip alt['last_ip_addr'] %></td>
-    <td><%= link_to alt['u2id'], user_path(id: alt['u2id']) %></td>
-    <td><%= link_to alt['u2name'], user_path(id: alt['u2id']) %></td>
-    <td><%= alt['u2email'] %></td>
-    <td><%= alt['last_logged_in_at'] %></td>
+  <% @alts.each do |_, alt| %>
+  <tr class="alt-header" data-alt="<%= alt[0]['u1id'] %>">
+    <td><%= link_to alt[0]['u1id'], user_path(id: alt[0]['u1id']) %></td>
+    <td><%= link_to alt[0]['u1name'], user_path(id: alt[0]['u1id']) %></td>
+    <td><%= alt[0]['u1email'] %></td>
+    <td><%= link_to_ip alt[0]['last_ip_addr'] %></td>
+    <td><%= alt.size %> alts</td>
+  </tr>
+  <tr id="alt-details-<%= alt[0]['u1id'] %>" style="display:none;">
+    <td colspan="5">
+      <table>
+        <tbody>
+      <% alt.each do |v| %>
+        <tr>
+          <td><%= link_to v['u2id'], user_path(id: v['u2id']) %></td>
+          <td><%= link_to v['u2name'], user_path(id: v['u2id']) %></td>
+          <td><%= v['u2email'] %></td>
+        </tr>
+      <% end %>
+        </tbody>
+      </table>
+    </td>
   </tr>
   <% end %>
   </tbody>
 </table>
+
+<%= javascript_tag nonce: true do -%>
+$(function() {
+  $(".alt-header").on('click', function(evt) {
+    var target = $(evt.currentTarget);
+    var altid = target.data('alt');
+    $('#alt-details-' + altid).toggle();
+  });
+});
+<% end -%>
