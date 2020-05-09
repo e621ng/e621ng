@@ -130,7 +130,7 @@ module PostIndex
           WHERE post_id IN (#{post_ids})
         SQL
         deletion_sql = <<-SQL
-          SELECT pf.post_id, pf.creator_id, pf.reason FROM
+          SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason FROM
             (SELECT MAX(id) as mid, post_id
              FROM post_flags
              WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = true
@@ -236,7 +236,7 @@ module PostIndex
       uploader:     uploader_id,
       approver:     approver_id,
       deleter:      options[:deleter]    || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
-      del_reason:   options[:del_reason] || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason,
+      del_reason:   options[:del_reason] || PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
       width:        image_width,
       height:       image_height,
       mpixels:      image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
