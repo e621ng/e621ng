@@ -3,7 +3,8 @@
   <% @alts.each do |_, alt| %>
   <tr class="alt-header" data-alt="<%= alt[0]['u1id'] %>">
     <td><%= link_to alt[0]['u1id'], user_path(id: alt[0]['u1id']) %></td>
-    <td><%= link_to alt[0]['u1name'], user_path(id: alt[0]['u1id']) %></td>
+    <td><%= link_to alt[0]['u1name'], user_path(id: alt[0]['u1id']), class: "with-style #{"user-banned" if (alt[0]['u1flags'] & 256) || alt[0]['u1level'] == 10} #{"user-"+User.level_string(alt[0]['u1level']).downcase}" %>
+      <%= "(Unactivated)" if alt[0]['u1activation'].present? %></td>
     <td><%= alt[0]['u1email'] %></td>
     <td><%= link_to_ip alt[0]['last_ip_addr'] %></td>
     <td><%= alt.size %> alts</td>
@@ -15,8 +16,11 @@
       <% alt.each do |v| %>
         <tr>
           <td><%= link_to v['u2id'], user_path(id: v['u2id']) %></td>
-          <td><%= link_to v['u2name'], user_path(id: v['u2id']) %></td>
-          <td><%= v['u2email'] %></td>
+          <td><%= link_to v['u2name'], user_path(id: v['u2id']), class: "with-style #{"user-banned" if (v['u2flags'] & 256) || v['u2level'] == 10} #{"user-"+User.level_string(v['u2level']).downcase}" %>
+            <%= "(Unactivated)" if v['u2activation'].present? %></td>
+          <td>Created: <%= time_ago_in_words_tagged v['created_at'] %></td>
+          <td>Last Login: <%= time_ago_in_words_tagged v['last_logged_in_at'] %></td>
+          <td>Email: <%= v['u2email'] %></td>
         </tr>
       <% end %>
         </tbody>
