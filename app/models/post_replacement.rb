@@ -1,37 +1,132 @@
 class PostReplacement < ApplicationRecord
-  DELETION_GRACE_PERIOD = 24.hours
-
   belongs_to :post
   belongs_to :creator, class_name: "User"
-  before_validation :initialize_fields, on: :create
-  attr_accessor :replacement_file, :final_source, :tags
+  attr_accessor :replacement_file, :replacement_url, :final_source, :tags
 
-  def initialize_fields
-    self.creator = CurrentUser.user
-    self.original_url = post.source
-    self.tags = post.tag_string + " " + self.tags.to_s
+  validate :set_file_name, on: :create
+  validate :fetch_source_file, on: :create
+  validate :update_file_attributes, on: :create
+  validate :write_storage_file, on: :create
+  validate :user_is_not_limited, on: :create
 
-    self.old_file_ext =  post.file_ext
-    self.old_file_size = post.file_size
-    self.old_image_width = post.image_width
-    self.old_image_height = post.image_height
-    self.old_md5 = post.md5
+  before_destroy :remove_files
+
+  def replacement_url_parsed
+    return nil unless replacement_url =~ %r!\Ahttps?://!i
+    Addressable::URI.heuristic_parse(replacement_url) rescue nil
+  end
+
+  module FileMethods
+    def is_image?
+      %w(jpg jpeg gif png).include?(file_ext)
+    end
+
+    def is_flash?
+      %w(swf).include?(file_ext)
+    end
+
+    def is_video?
+      %w(webm).include?(file_ext)
+    end
+
+    def is_ugoira?
+      %w(zip).include?(file_ext)
+    end
+  end
+
+  def user_is_not_limited
+    return true if status == 'original'
+    replaceable = creator.can_replace_post_with_reason
+    if replaceable != true
+      self.errors.add(:creator, User.throttle_reason(replaceable))
+      return false
+    end
+    uploadable = creator.can_upload_with_reason
+    if uploadable != true
+      self.errors.add(:creator, User.upload_reason_string(uploadable))
+      return false
+    end
+    true
+  end
+
+  module StorageMethods
+    def remove_files
+      ModAction.log(:post_replacement_delete, {id: id, post_id: post_id, md5: md5, storage_id: storage_id})
+      Danbooru.config.storage_manager.delete_replacement(self)
+    end
+
+    def fetch_source_file
+      return if replacement_file.present?
+
+      download = Downloads::File.new(replacement_url_parsed, "")
+      file, strategy = download.download!
+
+      self.replacement_file = file
+    end
+
+    def update_file_attributes
+      self.file_ext = UploadService::Utils.file_header_to_file_ext(replacement_file)
+      self.file_size = replacement_file.size
+      self.md5 = Digest::MD5.file(replacement_file.path).hexdigest
+
+      UploadService::Utils.calculate_dimensions(self, replacement_file) do |width, height|
+        self.image_width = width
+        self.image_height = height
+      end
+    end
+
+    def set_file_name
+      if replacement_file.present?
+        self.file_name = replacement_file.try(:original_filename) || File.basename(replacement_file.path)
+      else
+        raise RuntimeError, "No file or source URL provided" if replacement_url_parsed.blank?
+        self.file_name = replacement_url_parsed.basename
+      end
+    end
+
+    def write_storage_file
+      self.storage_id = SecureRandom.hex(16)
+      Danbooru.config.storage_manager.store_replacement(replacement_file, self, :original)
+      thumbnail_file = PostThumbnailer.generate_thumbnail(replacement_file, is_video? ? :video : :image)
+      Danbooru.config.storage_manager.store_replacement(thumbnail_file, self, :thumb)
+    ensure
+      thumbnail_file.try(:close!)
+    end
+
+    def replacement_file_url
+      Danbooru.config.storage_manager.replacement_url(self)
+    end
+
+    def replacement_thumb_url
+      Danbooru.config.storage_manager.replacement_url(self, :thumb)
+    end
+  end
+
+  module ApiMethods
+    def hidden_attributes
+      super + [:storage_id]
+    end
+  end
+
+  module ProcessingMethods
+    def approve!
+      transaction do
+        processor = UploadService::Replacer.new(post: post, replacement: self)
+        processor.process!
+      end
+    end
+
+    def reject!
+      update_attribute(:status, 'rejected')
+    end
   end
 
   concerning :Search do
     class_methods do
-      def post_tags_match(query)
-        where(post_id: PostQueryBuilder.new(query).build.reorder(""))
-      end
-
       def search(params = {})
         q = super
 
-        q = q.attribute_matches(:replacement_url, params[:replacement_url])
-        q = q.attribute_matches(:original_url, params[:original_url])
-        q = q.attribute_matches(:old_file_ext, params[:old_file_ext])
         q = q.attribute_matches(:file_ext, params[:file_ext])
-        q = q.attribute_matches(:old_md5, params[:old_md5])
         q = q.attribute_matches(:md5, params[:md5])
 
         if params[:creator_id].present?
@@ -46,19 +141,35 @@ class PostReplacement < ApplicationRecord
           q = q.where(post_id: params[:post_id].split(",").map(&:to_i))
         end
 
-        if params[:post_tags_match].present?
-          q = q.post_tags_match(params[:post_tags_match])
-        end
-
         q.apply_default_order(params)
+      end
+
+      def pending
+        where(status: 'pending')
+      end
+
+      def rejected
+        where(status: 'rejected')
+      end
+
+      def approved
+        where(status: 'approved')
+      end
+
+      def for_user(id)
+        where(creator_id: id.to_i)
       end
     end
   end
 
-  def suggested_tags_for_removal
-    tags = post.tag_array.select { |tag| Danbooru.config.remove_tag_after_replacement?(tag) }
-    tags = tags.map { |tag| "-#{tag}" }
-    tags.join(" ")
+  def file_visible_to?(user)
+    true if user.is_janitor? || creator_id == user.id && status == 'pending'
+    false
   end
+
+  include ApiMethods
+  include StorageMethods
+  include FileMethods
+  include ProcessingMethods
 
 end

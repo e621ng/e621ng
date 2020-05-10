@@ -1607,15 +1607,6 @@ class Post < ApplicationRecord
       move_files_on_undelete
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
-
-    def replace!(params)
-      transaction do
-        replacement = replacements.create(params)
-        processor = UploadService::Replacer.new(post: self, replacement: replacement)
-        processor.process!
-        replacement
-      end
-    end
   end
 
   module VersionMethods

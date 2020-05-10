@@ -8,9 +8,16 @@ class Upload < ApplicationRecord
       validate_file_ext(record)
       validate_md5_uniqueness(record)
       validate_file_size(record)
+      validate_file_integrity(record)
       validate_video_container_format(record)
       validate_video_duration(record)
       validate_resolution(record)
+    end
+
+    def validate_file_integrity(record)
+      if record.file_ext.in?(["jpg", "jpeg", "gif", "png"]) && DanbooruImageResizer.is_corrupt?(record.file.path)
+        record.errors[:file] << "File is corrupt"
+      end
     end
 
     def validate_file_ext(record)
@@ -31,6 +38,15 @@ class Upload < ApplicationRecord
 
     def validate_md5_uniqueness(record)
       if record.md5.nil?
+        return
+      end
+
+      replacements = PostReplacement.pending.where(md5: record.md5)
+
+      if !record.replaced_post && replacements.size > 0
+        replacements.each do |rep|
+          record.errors.add(:md5) << "duplicate of pending replacement: #{rep.post_id}"
+        end
         return
       end
 

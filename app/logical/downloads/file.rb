@@ -100,7 +100,7 @@ module Downloads
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
 
       if Danbooru.config.banned_ip_for_download?(ip_addr)
-        raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
+        # raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
       end
 
       super(uri, options)

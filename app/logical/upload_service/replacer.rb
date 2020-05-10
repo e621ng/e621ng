@@ -56,37 +56,35 @@ class UploadService
       end
     end
 
-    def undo!
-      undo_replacement = post.replacements.create(replacement_url: replacement.original_url)
-      undoer = Replacer.new(post: post, replacement: undo_replacement)
-      undoer.process!
-    end
-
-    def source_strategy(upload)
-      return Sources::Strategies.find(upload.source, upload.referer_url)
-    end
-
     def find_replacement_url(repl, upload)
       if repl.replacement_file.present?
-        return "file://#{repl.replacement_file.original_filename}"
+        return "file://#{repl.file_name}"
       end
 
       if !upload.source.present?
         raise "No source found in upload for replacement"
       end
 
-      if source_strategy(upload).canonical_url.present?
-        return source_strategy(upload).canonical_url
-      end
-
       return upload.source
     end
 
+    def create_backup_replacement
+      repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
+                                   image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
+                                   file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
+                                   source: post.source, reason: 'Backup of original file')
+      repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
+      repl.save
+    end
+
     def process!
+      replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
+      create_backup_replacement
+
       upload = Upload.create(
           rating: post.rating,
-          tag_string: replacement.tags,
-          source: replacement.replacement_url,
+          tag_string: post.tag_string,
+          source: replacement.source,
           file: replacement.replacement_file,
           replaced_post: post,
           original_post_id: post.id
@@ -109,26 +107,20 @@ class UploadService
       end
       md5_changed = upload.md5 != post.md5
 
-      replacement.replacement_url = find_replacement_url(replacement, upload)
-
       if md5_changed
-        post.queue_delete_files(PostReplacement::DELETION_GRACE_PERIOD)
+        post.delete_files
         post.generated_samples = nil
       end
-
-      replacement.file_ext = upload.file_ext
-      replacement.file_size = upload.file_size
-      replacement.image_height = upload.image_height
-      replacement.image_width = upload.image_width
-      replacement.md5 = upload.md5
 
       post.md5 = upload.md5
       post.file_ext = upload.file_ext
       post.image_width = upload.image_width
       post.image_height = upload.image_height
       post.file_size = upload.file_size
-      post.source = replacement.final_source.presence || replacement.replacement_url
+      post.source += "\n#{self.source}"
       post.tag_string = upload.tag_string
+      post.uploader_id = replacement.creator_id
+      post.uploader_ip_addr = replacement.creator_ip_addr
 
       rescale_notes(post)
       update_ugoira_frame_data(post, upload)
@@ -139,7 +131,7 @@ class UploadService
         end
       end
 
-      replacement.save!
+      replacement.update_attribute(:status, 'approved')
       post.save!
 
       if post.is_video?

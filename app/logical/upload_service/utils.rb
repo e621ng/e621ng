@@ -86,58 +86,14 @@ class UploadService
     end
 
     def generate_resizes(file, upload)
-      if upload.is_video?
-        video = FFMPEG::Movie.new(file.path)
-        crop_file = generate_video_crop_for(video, Danbooru.config.small_image_width)
-        preview_file = generate_video_preview_for(file.path, Danbooru.config.small_image_width)
-        sample_file = generate_video_sample_for(file.path)
-
-      elsif upload.is_ugoira?
+      if upload.is_ugoira?
         preview_file = PixivUgoiraConverter.generate_preview(file)
         crop_file = PixivUgoiraConverter.generate_crop(file)
         sample_file = PixivUgoiraConverter.generate_webm(file, upload.context["ugoira"]["frame_data"])
-
-      elsif upload.is_image?
-        preview_file = DanbooruImageResizer.resize(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 85)
-        crop_file = DanbooruImageResizer.crop(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 85)
-        if upload.image_width > Danbooru.config.large_image_width
-          sample_file = DanbooruImageResizer.resize(file, Danbooru.config.large_image_width, upload.image_height, 90)
-        end
+        [preview_file, crop_file, sample_file]
+      else
+        PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
       end
-
-      [preview_file, crop_file, sample_file]
-    end
-
-    def generate_video_crop_for(video, width)
-      vp = Tempfile.new(["video-preview", ".jpg"], binmode: true)
-      video.screenshot(vp.path, {:seek_time => 0, :resolution => "#{video.width}x#{video.height}"})
-      crop = DanbooruImageResizer.crop(vp, width, width, 85)
-      vp.close
-      return crop
-    end
-
-    def generate_video_preview_for(video, width)
-      output_file = Tempfile.new(["video-preview", ".jpg"], binmode: true)
-      stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, '-y', '-i', video, '-vf', "thumbnail,scale=#{width}:-1", '-frames:v', '1', output_file.path)
-
-      unless status == 0
-        Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
-        Rails.logger.warn("[FFMPEG PREVIEW STDERR] #{stderr.chomp!}")
-        raise CorruptFileError.new("could not generate thumbnail")
-      end
-      output_file
-    end
-
-    def generate_video_sample_for(video)
-      output_file = Tempfile.new(["video-sample", ".jpg"], binmode: true)
-      stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, '-y', '-i', video, '-vf', 'thumbnail', '-frames:v', '1', output_file.path)
-
-      unless status == 0
-        Rails.logger.warn("[FFMPEG SAMPLE STDOUT] #{stdout.chomp!}")
-        Rails.logger.warn("[FFMPEG SAMPLE STDERR] #{stderr.chomp!}")
-        raise CorruptFileError.new("could not generate sample")
-      end
-      output_file
     end
 
     def process_file(upload, file, original_post_id: nil)
@@ -214,24 +170,8 @@ class UploadService
       return file if file.present?
       raise RuntimeError, "No file or source URL provided" if upload.direct_url_parsed.blank?
 
-      attempts = 0
-
-      begin
-        download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
-        file, strategy = download.download!
-
-        if !DanbooruImageResizer.validate_shell(file)
-          raise CorruptFileError.new("File is corrupted")
-        end
-
-      rescue
-        if attempts == 3
-          raise
-        end
-
-        attempts += 1
-        retry
-      end
+      download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
+      file, strategy = download.download!
 
       if download.data[:ugoira_frame_data].present?
         upload.context = {

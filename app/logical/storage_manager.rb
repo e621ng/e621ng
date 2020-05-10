@@ -4,15 +4,17 @@ class StorageManager
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
   IMAGE_TYPES = %i[preview large crop original]
 
-  attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path
+  attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
   def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
                  large_image_prefix: Danbooru.config.large_image_prefix,
-                 protected_prefix: Danbooru.config.protected_path_prefix)
+                 protected_prefix: Danbooru.config.protected_path_prefix,
+                 replacement_prefix: Danbooru.config.replacement_path_prefix)
     @base_url = base_url.chomp("/")
     @base_dir = base_dir
     @base_path = base_path
     @protected_prefix = protected_prefix
+    @replacement_prefix = replacement_prefix
     @hierarchical = hierarchical
     @large_image_prefix = large_image_prefix
   end
@@ -48,6 +50,10 @@ class StorageManager
     store(io, file_path(post.md5, post.file_ext, type))
   end
 
+  def store_replacement(io, replacement, size)
+    store(io, replacement_path(replacement.storage_id, replacement.file_ext, size))
+  end
+
   def delete_file(post_id, md5, file_ext, type)
     delete(file_path(md5, file_ext, type))
     delete(file_path(md5, file_ext, type, true))
@@ -69,6 +75,11 @@ class StorageManager
     delete(file_path(md5, 'mp4', :original, true))
   end
 
+  def delete_replacement(replacement)
+    delete(replacement_path(replacement.storage_id, replacement.file_ext, :original))
+    delete(replacement_path(replacement.storage_id, replacement.file_ext, :thumb))
+  end
+
   def open_file(post, type)
     open(file_path(post.md5, post.file_ext, type))
   end
@@ -81,11 +92,15 @@ class StorageManager
     raise NotImplementedError, "move_file_undelete not implemented"
   end
 
-  def protected_params(url, post)
+  def move_file_replacement(post, replacement, direction)
+    raise NotImplementedError, "move_file_replacement not implemented"
+  end
+
+  def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
     ip = CurrentUser.ip_addr
     time = (Time.now + 15.minute).to_i
-    secret = Danbooru.config.protected_file_secret
+    secret = secret
     hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
@@ -116,6 +131,14 @@ class StorageManager
 
   def file_url(post, type)
     file_url_ext(post, type, post.file_ext)
+  end
+
+  def replacement_url(replacement, size = :original)
+    subdir = subdir_for(replacement.storage_id)
+    file = "#{replacement.storage_id}#{'_thumb' if size == :thumb}.#{replacement.file_ext}"
+    base = "#{base_path}/#{replacement_prefix}"
+    path = "#{base}/#{subdir}#{file}"
+    "#{path}#{protected_params(path, nil, secret: Danbooru.config.replacement_file_secret)}"
   end
 
   def root_url
@@ -159,6 +182,13 @@ class StorageManager
     when :scaled
       "#{md5}_#{scale_factor}.#{file_ext}"
     end
+  end
+
+  def replacement_path(replacement_or_storage_id, file_ext, size)
+    storage_id = replacement_or_storage_id.is_a?(String) ? replacement_or_storage_id : replacement_or_storage_id.storage_id
+    subdir = subdir_for(storage_id)
+    file = "#{storage_id}#{'_thumb' if size == :thumb}.#{file_ext}"
+    "#{base_dir}/#{replacement_prefix}/#{subdir}#{file}"
   end
 
   def subdir_for(md5)

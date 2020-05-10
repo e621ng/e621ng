@@ -162,6 +162,14 @@ fart'
       "abc123"
     end
 
+    def replacement_path_prefix
+      "replacements"
+    end
+
+    def replacement_file_secret
+      "abc123"
+    end
+
     def deleted_preview_url
       "/images/deleted-preview.png"
     end
@@ -269,6 +277,10 @@ fart'
     # Flat limit that applies to all users, regardless of level
     def hourly_upload_limit
       30
+    end
+
+    def replace_post_limit
+      10
     end
 
     def ticket_limit
