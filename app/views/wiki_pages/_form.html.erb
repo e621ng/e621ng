@@ -10,8 +10,6 @@
       <h1 id="wiki-page-title"><%= @wiki_page.pretty_title %></h1>
     <% end %>
 
-    <%= f.input :other_names_string, as: :text, label: "Other names (#{link_to "help", help_page_path(id: "translated_tags")})".html_safe, hint: "Names used for this tag on other sites such as Pixiv. Separate with spaces." %>
-
     <%= dtext_field "wiki_page", "body" %>
 
     <% if CurrentUser.is_janitor? && @wiki_page.is_deleted? %>
