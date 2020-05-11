@@ -8,6 +8,7 @@ class ForumTopicsController < ApplicationController
   skip_before_action :api_check
 
   def new
+    raise User::PrivilegeError.new("Must be at least 3 days old to create forum topics.") if CurrentUser.younger_than(3.days)
     @forum_topic = ForumTopic.new
     @forum_topic.original_post = ForumPost.new
     respond_with(@forum_topic)
@@ -53,6 +54,7 @@ class ForumTopicsController < ApplicationController
   end
 
   def create
+    raise User::PrivilegeError.new("Must be at least 3 days old to create forum topics.") if CurrentUser.younger_than(3.days)
     @forum_topic = ForumTopic.create(forum_topic_params(:create))
     respond_with(@forum_topic)
   end

@@ -20,6 +20,7 @@ class ForumPost < ApplicationRecord
   validate :validate_post_is_not_spam, on: :create
   validate :topic_is_not_restricted, :on => :create
   validate :category_allows_replies, on: :create
+  validate :validate_creator_is_not_limited, on: :create
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
@@ -146,6 +147,15 @@ class ForumPost < ApplicationRecord
       errors[:topic] << "is locked"
       throw :abort
     end
+  end
+
+  def validate_creator_is_not_limited
+    allowed = creator.can_comment_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      return false
+    end
+    true
   end
 
   def topic_id_not_invalid
