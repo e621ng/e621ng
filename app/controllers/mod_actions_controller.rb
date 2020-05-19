@@ -1,5 +1,5 @@
 class ModActionsController < ApplicationController
-  respond_to :html, :json
+  respond_to :html
 
   def index
     @mod_actions = ModActionDecorator.decorate_collection(
