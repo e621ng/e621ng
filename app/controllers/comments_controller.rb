@@ -54,6 +54,7 @@ class CommentsController < ApplicationController
 
   def show
     @comment = Comment.find(params[:id])
+    check_visible(@comment)
     @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
     respond_with(@comment)
   end
@@ -101,6 +102,12 @@ private
 
   def check_privilege(comment)
     if !comment.editable_by?(CurrentUser.user)
+      raise User::PrivilegeError
+    end
+  end
+
+  def check_visible(comment)
+    if !comment.visible_to?(CurrentUser.user)
       raise User::PrivilegeError
     end
   end
