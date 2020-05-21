@@ -88,7 +88,9 @@ private
   end
 
   def index_by_comment
-    @comments = Comment.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @comments = Comment
+    @comments = @comments.undeleted unless CurrentUser.is_moderator?
+    @comments = @comments.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     respond_with(@comments) do |format|
       format.atom do
