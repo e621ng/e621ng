@@ -24,7 +24,7 @@ gem 'streamio-ffmpeg'
 gem 'rubyzip', :require => "zip"
 gem 'twitter'
 gem 'responders'
-gem 'dtext_rb', :git => "https://github.com/zwagoth/dtext_rb.git", :require => "dtext"
+gem 'dtext_rb', :git => "https://github.com/zwagoth/dtext_rb.git", branch: "master", :require => "dtext"
 gem 'cityhash'
 gem 'memoist'
 gem 'daemons'
