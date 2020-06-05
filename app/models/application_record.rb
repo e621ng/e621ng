@@ -107,10 +107,6 @@ class ApplicationRecord < ActiveRecord::Base
           where_not_like(attr, params[:"#{attr}_not_like"])
         elsif params[:"#{attr}_not_ilike"].present?
           where_not_ilike(attr, params[:"#{attr}_not_ilike"])
-        elsif params[:"#{attr}_regex"].present?
-          where_regex(attr, params[:"#{attr}_regex"])
-        elsif params[:"#{attr}_not_regex"].present?
-          where_not_regex(attr, params[:"#{attr}_not_regex"])
         else
           all
         end

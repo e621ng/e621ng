@@ -318,8 +318,12 @@ class PostSet < ApplicationRecord
       end
 
       q = q.attribute_exact_matches(:creator_id, params[:creator_id])
-      q = q.search_text_attribute(:name, params)
-      q = q.attribute_exact_matches(:shortname, params[:shortname])
+      if params[:name].present?
+        q = q.where_ilike(:name, params[:name])
+      end
+      if params[:shortname].present?
+        q = q.where_ilike(:shortname, params[:shortname])
+      end
 
       case params[:order]
       when 'name'
