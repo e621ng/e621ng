@@ -563,7 +563,7 @@ class Tag < ApplicationRecord
 
     def pull_wildcard_tags(tag)
       matches = Tag.name_matches(tag).select("name").limit(Danbooru.config.tag_query_limit).order("post_count DESC").map(&:name)
-      matches = [] if matches.empty?
+      matches = ['~~not_found~~'] if matches.empty?
       matches
     end
 
