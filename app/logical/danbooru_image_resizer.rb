@@ -98,7 +98,7 @@ module DanbooruImageResizer
     image = Vips::Image.new_from_file(filename, fail: true)
     image.stats
     false
-  rescue Vips::Error
+  rescue
     true
   end
 end

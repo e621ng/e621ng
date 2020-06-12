@@ -1,8 +1,6 @@
 class UploadService
   class Replacer
     extend Memoist
-    class Error < Exception;
-    end
 
     attr_reader :post, :replacement
 
@@ -16,15 +14,15 @@ class UploadService
     end
 
     def replacement_message(post, replacement)
-      linked_source = linked_source(replacement.replacement_url)
-      linked_source_was = linked_source(post.source_was)
+      linked_source = replacement.replacement_url
+      linked_source_was = post.source_was
 
       <<-EOS.strip_heredoc
         [table]
           [tbody]
             [tr]
               [th]Old[/th]
-              [td]#{linked_source_was}[/td]
+              [td] #{linked_source_was} [/td]
               [td]#{post.md5_was}[/td]
               [td]#{post.file_ext_was}[/td]
               [td]#{post.image_width_was} x #{post.image_height_was}[/td]
@@ -32,7 +30,7 @@ class UploadService
             [/tr]
             [tr]
               [th]New[/th]
-              [td]#{linked_source}[/td]
+              [td] #{linked_source} [/td]
               [td]#{post.md5}[/td]
               [td]#{post.file_ext}[/td]
               [td]#{post.image_width} x #{post.image_height}[/td]
@@ -43,26 +41,13 @@ class UploadService
       EOS
     end
 
-    def linked_source(source)
-      return nil if source.nil?
-
-      # truncate long sources in the middle: "www.pixiv.net...lust_id=23264933"
-      truncated_source = source.gsub(%r{\Ahttps?://}, "").truncate(64, omission: "...#{source.last(32)}")
-
-      if source =~ %r{\Ahttps?://}i
-        %("#{truncated_source}":[#{source}])
-      else
-        truncated_source
-      end
-    end
-
     def find_replacement_url(repl, upload)
       if repl.replacement_file.present?
         return "file://#{repl.file_name}"
       end
 
       if !upload.source.present?
-        raise "No source found in upload for replacement"
+        raise ProcessingError "No source found in upload for replacement"
       end
 
       return upload.source
@@ -75,24 +60,32 @@ class UploadService
                                    source: post.source, reason: 'Backup of original file')
       repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
       repl.save
+    rescue
+
     end
 
     def process!
+      # Prevent trying to replace deleted posts
+      raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
+
       replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
       create_backup_replacement
 
       upload = Upload.create(
+          uploader_id: CurrentUser.id,
+          uploader_ip_addr: CurrentUser.ip_addr,
           rating: post.rating,
           tag_string: post.tag_string,
           source: replacement.source,
           file: replacement.replacement_file,
           replaced_post: post,
-          original_post_id: post.id
+          original_post_id: post.id,
+          replacement_id: replacement.id
       )
 
       begin
         if upload.invalid? || upload.is_errored?
-          raise Error, upload.status
+          raise ProcessingError, upload.status
         end
 
         upload.update(status: "processing")
@@ -103,7 +96,7 @@ class UploadService
         upload.save!
       rescue Exception => x
         upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
-        raise Error, upload.status
+        raise ProcessingError, upload.status
       end
       md5_changed = upload.md5 != post.md5
 
@@ -117,8 +110,9 @@ class UploadService
       post.image_width = upload.image_width
       post.image_height = upload.image_height
       post.file_size = upload.file_size
-      post.source += "\n#{self.source}"
+      post.source += "\n#{replacement.source}"
       post.tag_string = upload.tag_string
+      # Reset ownership information on post.
       post.uploader_id = replacement.creator_id
       post.uploader_ip_addr = replacement.creator_ip_addr
 
@@ -131,7 +125,7 @@ class UploadService
         end
       end
 
-      replacement.update_attribute(:status, 'approved')
+      replacement.update_attributes({status: 'approved', approver_id: CurrentUser.id})
       post.save!
 
       if post.is_video?

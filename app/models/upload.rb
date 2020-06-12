@@ -27,6 +27,9 @@ class Upload < ApplicationRecord
     end
 
     def validate_file_size(record)
+      if record.file_size <= 16
+        record.errors[:file_size] << "is too small"
+      end
       max_size = Danbooru.config.max_file_sizes.fetch(record.file_ext, 0)
       if record.file_size > max_size
         record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{max_size / (1024*1024)} MiB")
@@ -42,10 +45,11 @@ class Upload < ApplicationRecord
       end
 
       replacements = PostReplacement.pending.where(md5: record.md5)
+      replacements = replacements.where('id != ?', record.replacement_id) if record.replacement_id
 
       if !record.replaced_post && replacements.size > 0
         replacements.each do |rep|
-          record.errors.add(:md5) << "duplicate of pending replacement: #{rep.post_id}"
+          record.errors.add(:md5) << "duplicate of pending replacement on post ##{rep.post_id}"
         end
         return
       end
@@ -97,7 +101,7 @@ class Upload < ApplicationRecord
   end
 
 
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng, :original_post_id, :locked_tags, :locked_rating
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng, :original_post_id, :locked_tags, :locked_rating, :replacement_id
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
@@ -113,8 +117,6 @@ class Upload < ApplicationRecord
   serialize :context, JSON
 
   def initialize_attributes
-    self.uploader_id = CurrentUser.id
-    self.uploader_ip_addr = CurrentUser.ip_addr
     self.server = Danbooru.config.server_host
   end
 

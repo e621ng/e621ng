@@ -1,0 +1,7 @@
+div#c-post-replacements {
+  .replacement-pending-row {
+    @include themable {
+      background-color: darken( themed("color-danger"), 10%);
+    }
+  }
+}

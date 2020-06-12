@@ -63,6 +63,12 @@
     </div>
   <% end %>
 
+  <% if !CurrentUser.is_janitor? && post.replacements.pending.any? %>
+    <div class="notice notice-flagged">
+      <p>This post has <%= fast_link_to "pending replacements.", post_replacements_path(:search => {:post_id => @post.id}) %></p>
+    </div>
+  <% end %>
+
   <% if !CurrentUser.is_janitor? && (post.is_flagged? || post.is_deleted?) && post.appeals.any? %>
     <div class="notice notice-appealed">
       <p>This post was appealed:</p>

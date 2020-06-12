@@ -49,6 +49,7 @@ class Post < ApplicationRecord
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, :dependent => :destroy
   has_one :pixiv_ugoira_frame_data, :class_name => "PixivUgoiraFrameData", :dependent => :destroy
+  has_one :replacement, class_name: "PostImageHash", dependent: :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :appeals, :class_name => "PostAppeal", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
@@ -1580,6 +1581,11 @@ class Post < ApplicationRecord
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
       give_favorites_to_parent(options) if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
+      reject_pending_replacements
+    end
+
+    def reject_pending_replacements
+      replacements.where(status: 'pending').update_all(status: 'rejected')
     end
 
     def undelete!(options = {})

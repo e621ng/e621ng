@@ -5,7 +5,7 @@
 
   <%= simple_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), method: :post) do |f| %>
     <%= f.input :replacement_file, label: "File", as: :file %>
-    <%= f.input :replacement_url, label: "Replacement URL", hint: "The source URL to download the replacement from.", as: :string, input_html: { value: post_replacement.post.normalized_source } %>
+    <%= f.input :replacement_url, label: "Replacement URL", hint: "The source URL to download the replacement from.", as: :string %>
     <%= f.input :reason, label: "Reason", hint: "Tell us why this file should replace the original.", as: :string %>
     <%= f.submit "Submit" %>
   <% end %>

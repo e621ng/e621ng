@@ -1,19 +1,32 @@
 class PostReplacement < ApplicationRecord
+  self.table_name = 'post_replacements2'
   belongs_to :post
   belongs_to :creator, class_name: "User"
+  belongs_to :approver, class_name: "User", optional: true
   attr_accessor :replacement_file, :replacement_url, :final_source, :tags
 
+  validate :user_is_not_limited, on: :create
+  validate :post_is_valid, on: :create
   validate :set_file_name, on: :create
   validate :fetch_source_file, on: :create
   validate :update_file_attributes, on: :create
+  validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
-  validate :user_is_not_limited, on: :create
 
   before_destroy :remove_files
 
   def replacement_url_parsed
     return nil unless replacement_url =~ %r!\Ahttps?://!i
     Addressable::URI.heuristic_parse(replacement_url) rescue nil
+  end
+
+  module PostMethods
+    def post_is_valid
+      if post.is_deleted?
+        self.errors.add(:post, "is deleted")
+        return false
+      end
+    end
   end
 
   module FileMethods
@@ -34,6 +47,19 @@ class PostReplacement < ApplicationRecord
     end
   end
 
+  def no_pending_duplicates
+    post = Post.where(md5: md5).first
+    if post
+      self.errors.add(:md5, "duplicate of existing post ##{post.id}")
+      return false
+    end
+    replacements = self.where(status: 'pending', md5: md5)
+    replacements.each do |replacement|
+      self.errors.add(:md5, "duplicate of pending replacement on post ##{replacement.post_id}")
+    end
+    replacements.size == 0
+  end
+
   def user_is_not_limited
     return true if status == 'original'
     replaceable = creator.can_replace_post_with_reason
@@ -44,6 +70,18 @@ class PostReplacement < ApplicationRecord
     uploadable = creator.can_upload_with_reason
     if uploadable != true
       self.errors.add(:creator, User.upload_reason_string(uploadable))
+      return false
+    end
+
+    # Janitor bypass replacement limits
+    return true if creator.is_janitor?
+
+    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count > 2
+      self.errors.add(:creator, 'has already suggested too many replacement for this post today')
+      return false
+    end
+    if post.replacements.where(creator_id: creator.id).count > 5
+      self.errors.add(:creator, 'has already suggested too many total replacements for this post')
       return false
     end
     true
@@ -66,6 +104,10 @@ class PostReplacement < ApplicationRecord
 
     def update_file_attributes
       self.file_ext = UploadService::Utils.file_header_to_file_ext(replacement_file)
+      if file_ext == "bin"
+        self.errors.add(:base, "Unknown or invalid file format")
+        throw :abort
+      end
       self.file_size = replacement_file.size
       self.md5 = Digest::MD5.file(replacement_file.path).hexdigest
 
@@ -79,7 +121,10 @@ class PostReplacement < ApplicationRecord
       if replacement_file.present?
         self.file_name = replacement_file.try(:original_filename) || File.basename(replacement_file.path)
       else
-        raise RuntimeError, "No file or source URL provided" if replacement_url_parsed.blank?
+        if replacement_url_parsed.blank?
+          self.errors.add(:base, "No file or source URL provided")
+          throw :abort
+        end
         self.file_name = replacement_url_parsed.basename
       end
     end
@@ -111,13 +156,41 @@ class PostReplacement < ApplicationRecord
   module ProcessingMethods
     def approve!
       transaction do
+        ModAction.log(:post_replacement_accept, {post_id: post.id, replacement_id: self.id, old_md5: post.md5, new_md5: self.md5})
         processor = UploadService::Replacer.new(post: post, replacement: self)
         processor.process!
       end
     end
 
+    def promote!
+      transaction do
+        processor = UploadService.new(new_upload_params)
+        new_post = processor.start!
+        update_attribute(:status, 'promoted')
+        new_post
+      end
+    end
+
     def reject!
+      ModAction.log(:post_replacement_reject, {post_id: post.id, replacement_id: self.id})
       update_attribute(:status, 'rejected')
+    end
+  end
+
+  module PromotionMethods
+    def new_upload_params
+      {
+          uploader_id: creator_id,
+          uploader_ip_addr: creator_ip_addr,
+          file: Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(self, file_ext, :original)),
+          tag_string: post.tag_string,
+          rating: post.rating,
+          source: post.source,
+          parent_id: post.id,
+          description: post.description,
+          locked_tags: post.locked_tags,
+          replacement_id: self.id
+      }
     end
   end
 
@@ -126,8 +199,9 @@ class PostReplacement < ApplicationRecord
       def search(params = {})
         q = super
 
-        q = q.attribute_matches(:file_ext, params[:file_ext])
-        q = q.attribute_matches(:md5, params[:md5])
+        q = q.attribute_exact_matches(:file_ext, params[:file_ext])
+        q = q.attribute_exact_matches(:md5, params[:md5])
+        q = q.attribute_exact_matches(:status, params[:status])
 
         if params[:creator_id].present?
           q = q.where(creator_id: params[:creator_id].split(",").map(&:to_i))
@@ -141,7 +215,8 @@ class PostReplacement < ApplicationRecord
           q = q.where(post_id: params[:post_id].split(",").map(&:to_i))
         end
 
-        q.apply_default_order(params)
+
+        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 ELSE 1 END ASC, id DESC"))
       end
 
       def pending
@@ -159,11 +234,17 @@ class PostReplacement < ApplicationRecord
       def for_user(id)
         where(creator_id: id.to_i)
       end
+
+      def visible(user)
+        return where('status != ?', 'rejected') if user.is_anonymous?
+        return all if user.is_janitor?
+        where('creator_id = ? or status != ?', user.id, 'rejected')
+      end
     end
   end
 
   def file_visible_to?(user)
-    true if user.is_janitor? || creator_id == user.id && status == 'pending'
+    return true if user.is_janitor?
     false
   end
 
@@ -171,5 +252,7 @@ class PostReplacement < ApplicationRecord
   include StorageMethods
   include FileMethods
   include ProcessingMethods
+  include PromotionMethods
+  include PostMethods
 
 end

@@ -1,0 +1,7 @@
+<%= simple_form_for(:search, url: post_replacements_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
+  <%= f.input :md5, label: "MD5", input_html: { value: params[:search][:md5] } %>
+  <%= f.input :creator_name, label: "Creator", input_html: { value: params[:search][:creator_name] } %>
+  <%= f.input :post_id, label: "Post ID", input_html: { value: params[:search][:post_id] } %>
+  <%= f.input :status, label: "status", collection: ["pending", "rejected", "approved", "promoted"], include_blank: true, selected: params[:search][:status] %>
+  <%= f.submit "Search" %>
+<% end %>

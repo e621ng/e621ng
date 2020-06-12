@@ -60,6 +60,8 @@ class ApplicationController < ActionController::Base
     end
 
     case exception
+    when ProcessingError
+      render_expected_error(400, exception)
     when APIThrottled
       render_expected_error(429, "Throttled: Too many requests")
     when ActiveRecord::QueryCanceled

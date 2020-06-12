@@ -76,6 +76,6 @@ class UploadsController < ApplicationController
     permitted_params << :locked_tags if CurrentUser.is_admin?
     permitted_params << :locked_rating if CurrentUser.is_privileged?
 
-    params.require(:upload).permit(permitted_params)
+    params.require(:upload).permit(permitted_params).merge(uploader_id: CurrentUser.id, uploader_ip_addr: CurrentUser.ip_addr)
   end
 end
