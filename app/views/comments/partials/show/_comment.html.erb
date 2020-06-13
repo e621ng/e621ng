@@ -27,8 +27,10 @@
       </div>
         <div class="content-menu">
           <menu>
-            <% if @post || @posts %>
-              <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
+            <% if @post || @posts || comment.post.present? %>
+              <% if @post || @posts %>
+                <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
+              <% end %>
               <% if comment.editable_by?(CurrentUser.user) %>
                 <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
               <% end %>
