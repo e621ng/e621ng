@@ -71,7 +71,7 @@ class CommentVote < ApplicationRecord
         q = q.where('user_id = ?', params[:user_id].to_i)
       end
 
-      q.order(id: :desc)
+      q = q.order(id: :desc)
 
       q
     end
