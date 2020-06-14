@@ -15,7 +15,7 @@ module PostSetPresenters
       end
 
       posts.each do |post|
-        html << PostPresenter.preview(post, :pool_id => post_set.pool.id, show_cropped: true, show_deleted: true)
+        html << PostPresenter.preview(post, :pool_id => post_set.pool.id, show_cropped: true, show_deleted: true, thumbnail_blacklisted: true)
       end
 
       html.html_safe

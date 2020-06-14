@@ -89,7 +89,52 @@ Blacklist.domEntryToggle = function (e) {
   Blacklist.apply();
 };
 
+Blacklist.postSaveReplaceSrcPicture = function (post, picture) {
+  const sources = picture.children('source');
+  const img = picture.children('img');
+
+  if (!img || !sources || sources.length !== 2)
+    return;
+
+  if (!img.attr('data-crop-url'))
+    img.attr('data-crop-url', $(sources[0]).attr('srcset'));
+  if (!img.attr('data-orig-url'))
+    img.attr('data-orig-url', $(sources[1]).attr('srcset'));
+
+  if (post.hasClass('post-thumbnail-blacklisted')) {
+    post.removeClass('blacklisted-active');
+    img.attr('src', '/images/blacklisted-preview.png');
+    $(sources[0]).attr('srcset', '/images/blacklisted-preview.png');
+    $(sources[1]).attr('srcset', '/images/blacklisted-preview.png');
+  }
+};
+
+Blacklist.postRestoreSrcPicture = function (post, picture) {
+  const sources = picture.children('source');
+  const img = picture.children('img');
+
+  if (!img || !sources || sources.length !== 2)
+    return;
+
+  const cropUrl = img.attr('data-crop-url');
+  const origUrl = img.attr('data-orig-url');
+
+  if (!cropUrl || !origUrl) {
+    return;
+  }
+
+  $(sources[0]).attr('srcset', img.attr('data-crop-url'));
+  $(sources[1]).attr('srcset', img.attr('data-orig-url'));
+  img.attr('src', img.attr('data-orig-url'));
+};
+
 Blacklist.postSaveReplaceSrc = function (post) {
+  const picture = post.find("picture");
+  if (picture.length) {
+    Blacklist.postSaveReplaceSrcPicture(post, picture);
+    return;
+  }
+
   const img = post.children("img")[0];
   if (!img)
     return;
@@ -97,11 +142,18 @@ Blacklist.postSaveReplaceSrc = function (post) {
   if (!$img.attr('data-orig-url'))
     $img.attr("data-orig-url", $img.attr('src'));
 
-  if (post.attr('id') === 'image-container' || post.hasClass('post-thumbnail'))
+  if (post.attr('id') === 'image-container' || post.hasClass('post-thumbnail') || post.hasClass('post-thumbnail-blacklisted')) {
     $img.attr('src', '/images/blacklisted-preview.png');
+    post.removeClass('blacklisted-active');
+  }
 };
 
 Blacklist.postRestoreSrc = function (post) {
+  const picture = post.find("picture");
+  if (picture.length) {
+    Blacklist.postRestoreSrcPicture(post, picture);
+    return;
+  }
   const img = post.children("img")[0];
   if (!img)
     return;
@@ -126,8 +178,8 @@ Blacklist.postHide = function (post) {
 
 Blacklist.postShow = function (post) {
   const $post = $(post);
-  $post.addClass("blacklisted").removeClass("blacklisted-active");
   Blacklist.postRestoreSrc(post);
+  $post.addClass("blacklisted").removeClass("blacklisted-active");
 };
 
 Blacklist.sidebarUpdate = function () {

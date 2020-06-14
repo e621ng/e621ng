@@ -107,6 +107,7 @@ class PostPresenter < Presenter
     klass << "post-rating-questionable" if post.rating == 'q'
     klass << "post-rating-explicit" if post.rating == 'e'
     klass << "post-no-blacklist" if options[:no_blacklist]
+    klass << "post-thumbnail-blacklisted" if options[:thumbnail_blacklisted]
     klass
   end
 

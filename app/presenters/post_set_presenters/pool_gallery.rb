@@ -17,7 +17,7 @@ module PostSetPresenters
       pools.each do |pool|
         if pool.cover_post_id
           post = ::Post.find(pool.cover_post_id)
-          html << PostPresenter.preview(post, link_target: pool, pool: pool, show_deleted: true)
+          html << PostPresenter.preview(post, link_target: pool, pool: pool, show_deleted: true, thumbnail_blacklisted: true)
           html << "\n"
         end
       end
