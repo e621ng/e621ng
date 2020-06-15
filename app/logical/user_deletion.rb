@@ -30,7 +30,11 @@ class UserDeletion
                         blacklisted_tags: '',
                         time_zone: "Eastern Time (US & Canada)",
                         email: '',
-                        email_verification_key: '1')
+                        email_verification_key: '1',
+                        avatar_id: nil,
+                        profile_about: '',
+                        profile_artinfo: '',
+                        custom_style: '')
   end
 
   def reset_password
@@ -52,6 +56,14 @@ class UserDeletion
   end
 
   def validate
+    if user.is_blocked?
+      raise ValidationError.new("Banned users cannot delete their accounts")
+    end
+
+    if user.younger_than(1.week)
+      raise ValidationError.new("Account must be one week old to be deleted")
+    end
+
     if !User.authenticate(user.name, password)
       raise ValidationError.new("Password is incorrect")
     end

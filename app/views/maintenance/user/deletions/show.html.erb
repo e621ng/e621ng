@@ -5,13 +5,21 @@
     <p>You can delete your account. This will not actually remove your account from the database, but it will do the following things:</p>
 
     <ul>
-      <li>Rename your account to a generic string</li>
+      <li>Rename your account to a generic name</li>
       <li>Lock your account</li>
       <li>Remove all your favorites</li>
       <li>Blank out your settings (including email)</li>
     </ul>
 
-    <p>You must enter your password to delete your account.</p>
+    <p>This will not do any of the following:</p>
+
+    <ul>
+      <li>Remove uploads you have made to the site</li>
+      <li>Remove comments/forum topics/blips/wiki pages/sets/pools you have made</li>
+      <li>Remove the history of changes made by your account for any portion of the site</li>
+    </ul>
+
+    <p>You must enter your password to delete your account. Accounts cannot be deleted until they have existed for at least one week.</p>
 
     <%= form_tag(maintenance_user_deletion_path, :method => :delete, :class => "simple_form") do %>
       <div class="input">

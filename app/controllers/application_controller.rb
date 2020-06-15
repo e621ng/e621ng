@@ -175,6 +175,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def logged_in_only
+    if CurrentUser.is_anonymous?
+      access_denied("Must be logged in.")
+    end
+  end
+
   def set_title
     @page_title = Danbooru.config.app_name + "/#{params[:controller]}"
   end
