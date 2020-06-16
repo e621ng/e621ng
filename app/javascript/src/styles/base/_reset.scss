@@ -139,6 +139,13 @@ input::-moz-focus-inner {
   padding: 0;
 }
 
+// Remove Chrome 81+ forced outline.
+input:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
+
 button,
 input[type="button"],
 input[type="reset"],
