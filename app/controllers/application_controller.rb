@@ -177,7 +177,7 @@ class ApplicationController < ActionController::Base
 
   def logged_in_only
     if CurrentUser.is_anonymous?
-      access_denied("Must be logged in.")
+      access_denied("Must be logged in")
     end
   end
 
