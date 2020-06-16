@@ -1,18 +1,23 @@
+require_relative '../../logical/danbooru/paginator/elasticsearch_extensions'
 module Admin
   class UsersController < ApplicationController
     before_action :moderator_only
     respond_to :html, :json
 
     def alt_list
-      offset = params[:page].to_i || 0
-      offset *= 100
+      offset = params[:page].to_i || 1
+      offset -= 1
+      offset *= 250
       @alts = ::User.connection.select_all("
 SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.last_ip_addr, u1.email as u1email, u2.email as u2email, u2.last_logged_in_at,
 u2.created_at, u2.level as u2level, u2.bit_prefs as u2flags, u2.email_verification_key as u2activation, u1.level as u1level, u1.bit_prefs as u1flags, u1.email_verification_key as u1activation
-FROM (SELECT * FROM users ORDER BY id DESC LIMIT 100 OFFSET #{offset}) u1
+FROM (SELECT * FROM users ORDER BY id DESC LIMIT 250 OFFSET #{offset}) u1
 INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
 ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
       @alts = @alts.to_a.group_by {|i| i['u1id']}
+      @alts = ::Danbooru::Paginator::PaginatedArray.new(@alts.values,
+    {mode: :numbered, per_page: 250, total: 9999999999, current_page: params[:page].to_i}
+      )
       respond_with(@alts)
     end
 

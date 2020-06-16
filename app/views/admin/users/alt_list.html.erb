@@ -1,6 +1,8 @@
-<table class="table">
+<div id="c-admin">
+  <div id="a-alt-list">
+    <table class="table">
   <tbody>
-  <% @alts.each do |_, alt| %>
+  <% @alts.each do |alt| %>
   <tr class="alt-header" data-alt="<%= alt[0]['u1id'] %>">
     <td><%= link_to alt[0]['u1id'], user_path(id: alt[0]['u1id']) %></td>
     <td><%= link_to alt[0]['u1name'], user_path(id: alt[0]['u1id']), class: "with-style #{"user-banned" if (alt[0]['u1flags'] & 256) || alt[0]['u1level'] == 10} #{"user-"+User.level_string(alt[0]['u1level']).downcase}" %>
@@ -30,6 +32,10 @@
   <% end %>
   </tbody>
 </table>
+
+  <%= numbered_paginator(@alts) %>
+  </div>
+</div>
 
 <%= javascript_tag nonce: true do -%>
 $(function() {
