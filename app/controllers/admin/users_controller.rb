@@ -7,6 +7,7 @@ module Admin
     def alt_list
       offset = params[:page].to_i || 1
       offset -= 1
+      offset = offset.clamp(0, 9999)
       offset *= 250
       @alts = ::User.connection.select_all("
 SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.last_ip_addr, u1.email as u1email, u2.email as u2email, u2.last_logged_in_at,
