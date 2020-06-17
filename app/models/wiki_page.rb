@@ -13,6 +13,7 @@ class WikiPage < ApplicationRecord
   validate :validate_rename
   validate :validate_not_locked
 
+  before_destroy :log_destroy
   before_save :log_changes
 
   attr_accessor :skip_secondary_validations, :edit_reason
@@ -22,6 +23,10 @@ class WikiPage < ApplicationRecord
   has_one :tag, :foreign_key => "name", :primary_key => "title"
   has_one :artist, -> {where(:is_active => true)}, :foreign_key => "name", :primary_key => "title"
   has_many :versions, -> {order("wiki_page_versions.id ASC")}, :class_name => "WikiPageVersion", :dependent => :destroy
+
+  def log_destroy
+    ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})
+  end
 
   def log_changes
     if title_changed?
