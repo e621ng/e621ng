@@ -37,7 +37,7 @@
       <% end %>
 
       <% if CurrentUser.is_moderator? && !@wiki_page.is_deleted? %>
-        <%= subnav_link_to "Delete", wiki_page_path(@wiki_page), :method => :delete, :"data-shortcut" => "shift+d", :"data-confirm" => "Are you sure you want to delete this wiki page?" %>
+        <%= subnav_link_to "Delete", wiki_page_path(@wiki_page), :method => :delete, :"data-confirm" => "Are you sure you want to delete this wiki page?" %>
       <% end %>
 
       <% if CurrentUser.is_member? %>
