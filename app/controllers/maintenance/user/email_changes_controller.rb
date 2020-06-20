@@ -1,6 +1,8 @@
 module Maintenance
   module User
     class EmailChangesController < ApplicationController
+      before_action :logged_in_only
+
       def new
       end
 
@@ -11,7 +13,7 @@ module Maintenance
           flash[:notice] = CurrentUser.user.errors.full_messages.join("; ")
           redirect_to(new_maintenance_user_email_change_path)
         else
-          redirect_to(edit_user_path(CurrentUser.user.id), :notice => "Email was updated")
+          redirect_to(home_users_path, :notice => "Email was updated")
         end
       end
     end

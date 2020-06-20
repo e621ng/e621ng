@@ -8,6 +8,10 @@ class UserEmailChange
   end
 
   def process
+    if user.is_blocked?
+      raise ::User::PrivilegeError.new("Cannot change email while banned")
+    end
+
     if RateLimiter.check_limit("email:#{user.id}", 2, 24.hours)
       user.errors[:base] << "Email changed too recently"
       return
