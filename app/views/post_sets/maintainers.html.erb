@@ -21,10 +21,7 @@
 
           <td>
             <% if @post_set.is_owner?(CurrentUser) %>
-              <%= form_tag({controller: "set_maintainer", action: "destroy"}) do %>
-                <%= hidden_field_tag "id", m.id %>
-                <%= submit_tag "Remove" %>
-              <% end %>
+              <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, data: {confirm: "Are you sure you want to remove this maintainer?"} %>
             <% end %>
           </td>
         </tr>
