@@ -11,14 +11,14 @@ class PostVotesController < ApplicationController
     end
     render json: {score: @post.score, up: @post.up_score, down: @post.down_score, our_score: @post_vote != :need_unvote ? @post_vote.score : 0}
   rescue PostVote::Error, ActiveRecord::RecordInvalid => x
-    render_error_page(422, x)
+    render_expected_error(422, x)
   end
 
   def destroy
     @post = Post.find(params[:post_id])
     VoteManager.unvote!(post: @post, user: CurrentUser.user)
   rescue PostVote::Error => x
-    render_error_page(422, x)
+    render_expected_error(422, x)
   end
 
   def index
