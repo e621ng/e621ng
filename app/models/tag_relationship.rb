@@ -23,6 +23,7 @@ class TagRelationship < ApplicationRecord
   scope :old, ->{where("created_at >= ? and created_at < ?", EXPIRY.days.ago, EXPIRY_WARNING.days.ago)}
   scope :pending, ->{where(status: "pending")}
   scope :retired, ->{where(status: "retired")}
+  scope :duplicate_relevant, ->{where(status: %w[active processing queued pending])}
 
   before_validation :initialize_creator, :on => :create
   before_validation :normalize_names
