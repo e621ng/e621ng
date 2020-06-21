@@ -9,6 +9,18 @@
     <%= f.input :post_id, label: "Post #", input_html: {value: params[:search][:post_id]} %>
     <%= f.input :reason, label: "Reason", input_html: {value: params[:search][:reason]} %>
     <%= f.input :description, label: "Description", input_html: {value: params[:search][:description]} %>
+    <%= f.input :rating_changed, label: "Rating Changed To", collection: [
+      ["", ""],
+      ["Safe", "s"],
+      ["Questionable", "q"],
+      ["Explicit", "e"]
+    ], selected: params[:search][:rating_changed] %>
+    <%= f.input :rating, label: "Final Rating", collection: [
+      ["", ""],
+      ["Safe", "s"],
+      ["Questionable", "q"],
+      ["Explicit", "e"]
+    ], selected: params[:search][:rating] %>
     <%= f.input :tags, label: "Final Tags", input_html: {value: params[:search][:tags]} %>
     <%= f.input :tags_added, label: "Added Tags", input_html: {value: params[:search][:tags_added]} %>
     <%= f.input :tags_removed, label: "Removed Tags", input_html: {value: params[:search][:tags_removed]} %>

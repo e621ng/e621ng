@@ -46,6 +46,9 @@ class PostArchive < ApplicationRecord
         end
         target
       end
+      def to_rating(input)
+        input.to_s.downcase[0]
+      end
 
       if params[:updater_name].present?
         user_id = User.name_to_id(params[:updater_name])
@@ -62,6 +65,15 @@ class PostArchive < ApplicationRecord
 
       if params[:start_id].present?
         must << {range: {id: {gte: params[:start_id].to_i}}}
+      end
+
+      if params[:rating].present?
+        must << {term: {rating: to_rating(params[:rating])}}
+      end
+
+      if params[:rating_changed].present?
+        must << {term: {rating: to_rating(params[:rating_changed])}}
+        must << {term: {rating_changed: true}}
       end
 
       must = tag_list(:tags, params[:tags], must)
