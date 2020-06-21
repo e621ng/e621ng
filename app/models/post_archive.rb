@@ -76,6 +76,15 @@ class PostArchive < ApplicationRecord
         must << {term: {rating_changed: true}}
       end
 
+      if params[:parent_id].present?
+        must << {term: {parent_id: params[:parent_id].to_i}}
+      end
+
+      if params[:parent_id_changed].present?
+        must << {term: {parent_id: params[:parent_id_changed].to_i}}
+        must << {term: {parent_id_changed: true}}
+      end
+
       must = tag_list(:tags, params[:tags], must)
       must = tag_list(:tags_removed, params[:tags_removed], must)
       must = tag_list(:tags_added, params[:tags_added], must)

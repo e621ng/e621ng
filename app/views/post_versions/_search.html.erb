@@ -21,6 +21,8 @@
       ["Questionable", "q"],
       ["Explicit", "e"]
     ], selected: params[:search][:rating] %>
+    <%= f.input :parent_id, label: "Parent ID", input_html: {value: params[:search][:parent_id]} %>
+    <%= f.input :parent_id_changed, label: "Parent Changed To", input_html: {value: params[:search][:parent_id_changed]} %>
     <%= f.input :tags, label: "Final Tags", input_html: {value: params[:search][:tags]} %>
     <%= f.input :tags_added, label: "Added Tags", input_html: {value: params[:search][:tags_added]} %>
     <%= f.input :tags_removed, label: "Removed Tags", input_html: {value: params[:search][:tags_removed]} %>
