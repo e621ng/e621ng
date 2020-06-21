@@ -30,6 +30,11 @@ class TagImplicationsController < ApplicationController
     @tag_implication = TagImplication.find(params[:id])
     if @tag_implication.deletable_by?(CurrentUser.user)
       @tag_implication.reject!
+      if @tag_implication.errors.any?
+        flash[:notice] = @tag_implication.errors.full_messages.join('; ')
+        redirect_to(tag_implications_path)
+        return
+      end
       respond_with(@tag_implication) do |format|
         format.html do
           flash[:notice] = "Tag implication was deleted"
