@@ -18,6 +18,7 @@ module Danbooru
         end
 
         def validate_page_number(page)
+          return if page.is_a? Numeric
           return if page.blank?
           raise ::Danbooru::Paginator::PaginationError.new("Invalid page number.") unless page =~ /\A[ab]?\d+\z/i
         end
