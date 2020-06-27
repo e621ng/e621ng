@@ -56,6 +56,7 @@ module Danbooru
       def paginate(page, options = {})
         @paginator_options = options
 
+        validate_page_number(page)
         sequential = use_sequential_paginator?(page)
         paginated = if sequential
                       paginate_sequential(page)
@@ -70,6 +71,11 @@ module Danbooru
         else
           PaginatedArray.new(paginated.records(includes: options[:includes]).to_a, new_opts)
         end
+      end
+
+      def validate_page_number(page)
+        return if page.blank?
+        raise ::Danbooru::Paginator::PaginationError.new("Invalid page number.") unless page =~ /\A[ab]?\d+\z/i
       end
 
       def use_sequential_paginator?(page)

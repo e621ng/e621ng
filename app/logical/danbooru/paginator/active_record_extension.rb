@@ -9,11 +9,17 @@ module Danbooru
         def paginate(page, options = {})
           @paginator_options = options
 
+          validate_page_number(page)
           if use_sequential_paginator?(page)
             paginate_sequential(page)
           else
             paginate_numbered(page)
           end
+        end
+
+        def validate_page_number(page)
+          return if page.blank?
+          raise ::Danbooru::Paginator::PaginationError.new("Invalid page number.") unless page =~ /\A[ab]?\d+\z/i
         end
 
         def use_sequential_paginator?(page)
