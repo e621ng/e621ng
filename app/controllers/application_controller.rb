@@ -92,7 +92,17 @@ class ApplicationController < ActionController::Base
   end
 
   def render_404
-    render "static/404", formats: [:html, :json, :atom]
+    respond_to do |fmt|
+        fmt.html do
+          render "static/404", formats: [:html, :atom], status: 404
+        end
+        fmt.json do
+          render json: {:success => false, reason: "not found"}, :status => 404
+        end
+        fmt.atom do
+          render "static/404", formats: [:atom], status: 404
+        end
+    end
   end
 
   def render_expected_error(status, message, format: request.format.symbol)
