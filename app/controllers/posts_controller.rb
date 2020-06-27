@@ -150,7 +150,7 @@ private
       end
 
       format.json do
-        render :json => post.to_json
+        render :json => post
       end
     end
   end
