@@ -15,7 +15,7 @@ module ArtistsHelper
 
   def link_to_artists(names)
     names.map do |name|
-      link_to_artist(name)
+      link_to_artist(name.downcase)
     end.join(", ").html_safe
   end
 end
