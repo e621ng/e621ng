@@ -15,7 +15,7 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater artcomm
-    -pool pool ordpool -fav fav -favoritedby favoritedby ordfav md5 -rating rating note -note
+    -pool pool ordpool -fav fav -favoritedby favoritedby md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
@@ -769,7 +769,7 @@ class Tag < ApplicationRecord
 
           when "-fav", "-favoritedby"
             q[:fav_ids_neg] ||= []
-            favuser = User.find_by_name(g2)
+            favuser = User.find_by_name_or_id(g2)
 
             next unless favuser
 
@@ -781,7 +781,7 @@ class Tag < ApplicationRecord
 
           when "fav", "favoritedby"
             q[:fav_ids] ||= []
-            favuser = User.find_by_name(g2)
+            favuser = User.find_by_name_or_id(g2)
 
             next unless favuser
 

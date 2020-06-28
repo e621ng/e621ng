@@ -189,6 +189,14 @@ class User < ApplicationRecord
         where("lower(name) = ?", name.mb_chars.downcase.tr(" ", "_")).first
       end
 
+      def find_by_name_or_id(name)
+        if name =~ /\A!\d+\z/
+          where('id = ?', name[1..-1].to_i).first
+        else
+          find_by_name(name)
+        end
+      end
+
       def normalize_name(name)
         name.to_s.mb_chars.downcase.strip.tr(" ", "_").to_s
       end
