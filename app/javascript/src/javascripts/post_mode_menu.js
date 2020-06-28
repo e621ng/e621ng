@@ -83,7 +83,7 @@ PostModeMenu.initialize_edit_form = function() {
       },
       success: function(data) {
         Post.update_data(data);
-        Utility.notice("Post #" + data.id + " updated");
+        Utility.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       }
     });

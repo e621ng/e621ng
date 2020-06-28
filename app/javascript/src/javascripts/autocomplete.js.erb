@@ -104,7 +104,6 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "artcomm":
       case "fav":
       case "favoritedby":
-      case "ordfav":
       case "appealer":
       case "flagger":
       case "upvote":
@@ -112,7 +111,6 @@ Autocomplete.initialize_tag_autocomplete = function() {
         Autocomplete.user_source(term, resp, metatag + ":");
         break;
       case "pool":
-      case "ordpool":
         Autocomplete.pool_source(term, resp, metatag);
         break;
       default:
