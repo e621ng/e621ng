@@ -121,8 +121,8 @@ class PostsDecorator < ApplicationDecorator
       tooltip += "\nUploader: #{post.uploader_name}"
       if post.is_flagged? || post.is_deleted?
         flag = post.flags.order(id: :desc).first
-        tooltip += "\nFlag Reason: #{flag.reason}" if post.is_flagged?
-        tooltip += "\nDel Reason: #{flag.reason}" if post.is_deleted?
+        tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
+        tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
       end
     end
     tooltip += "\n\n#{post.tag_string}"
