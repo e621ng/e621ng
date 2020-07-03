@@ -1,6 +1,6 @@
 <template>
     <div>
-        <input type="text" size="50" v-model="realValue" @keyup.enter="add"/>
+        <input type="text" size="50" v-model="realValue" @keyup.enter="add" class="upload-source-input"/>
         <button @click="remove" v-if="index !== 0">-</button>
         <button @click="add" v-if="last && index < 9">+</button>
     </div>

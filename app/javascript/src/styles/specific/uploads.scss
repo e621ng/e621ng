@@ -99,6 +99,10 @@ div#c-uploads {
       float: none;
     }
 
+    .upload-source-input {
+      margin-bottom: 2px;
+    }
+
     @media only screen and (orientation: portrait), (max-width: 1100px) {
       #preview-sidebar {
         display: none;
