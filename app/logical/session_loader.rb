@@ -71,7 +71,7 @@ private
 
   def refresh_old_remember_token
     if cookies.encrypted[:remember]
-      cookies.encrypted[:remember] = {value: @remember_validator.generate(CurrentUser.id, purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true}
+      cookies.encrypted[:remember] = {value: @remember_validator.generate(CurrentUser.id, purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
     end
   end
 
