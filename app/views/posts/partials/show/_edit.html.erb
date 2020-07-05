@@ -72,13 +72,6 @@
     <div class="input" id="iqdb-similar" style="display: none;"></div>
   <% end %>
 
-  <% unless post.is_note_locked? %>
-    <div class="input">
-      <%= f.label :has_embedded_notes, "Embed notes" %>
-      <%= f.check_box :has_embedded_notes %>
-    </div>
-  <% end %>
-
   <% if CurrentUser.is_privileged? %>
     <div class="input">
       <%= f.label :blank, "Lock" %>

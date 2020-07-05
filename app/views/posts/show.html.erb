@@ -206,7 +206,7 @@
 
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">
-  <meta name="post-has-embedded-notes" content="<%= @post.has_embedded_notes? %>">
+  <meta name="post-has-embedded-notes" content="false">
   <%= tag.meta name: "og:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
 
   <% if @post.visible? %>

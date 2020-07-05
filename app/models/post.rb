@@ -1617,7 +1617,6 @@ class Post < ApplicationRecord
           other_post.add_tag(tag) if has_tag?(tag)
         end
 
-        other_post.has_embedded_notes = has_embedded_notes
         other_post.save
       end
     end
