@@ -1,7 +1,6 @@
 class EmailBlacklistsController < ApplicationController
   respond_to :html, :json, :js
   before_action :admin_only
-  before_action :load_whitelist, only: [:destroy]
 
   def index
     @blacklists = EmailBlacklist.search(search_params).paginate(params[:page], limit: params[:limit])
