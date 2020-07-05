@@ -98,7 +98,9 @@
         <% end %>
       </fieldset>
     </div>
+  <% end %>
 
+  <% if CurrentUser.is_janitor? %>
     <div class="input">
       <%= f.label :bg_color, "Background Color" %>
       <%= f.text_field :bg_color, :size => 6 %>
