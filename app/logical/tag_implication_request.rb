@@ -61,7 +61,7 @@ class TagImplicationRequest
         :original_post_attributes => {
             :body => TagImplicationRequest.command_string(antecedent_name, consequent_name, tag_implication_id) + "\n\nReason: #{reason}"
         },
-        :category_id => 1
+        :category_id => Danbooru.config.alias_implication_forum_category
     )
   end
 

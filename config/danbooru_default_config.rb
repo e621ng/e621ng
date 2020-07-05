@@ -24,6 +24,11 @@ module Danbooru
       "e621.net"
     end
 
+    # Force rating:s on this version of the site.
+    def safe_mode
+      false
+    end
+
     # The canonical hostname of the site.
     def hostname
       Socket.gethostname
@@ -169,6 +174,10 @@ fart'
     # List of memcached servers
     def memcached_servers
       %w(127.0.0.1:11211)
+    end
+
+    def alias_implication_forum_category
+      1
     end
 
     # After a post receives this many comments, new comments will no longer bump the post in comment/index.

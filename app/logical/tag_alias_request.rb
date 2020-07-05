@@ -60,7 +60,7 @@ class TagAliasRequest
         :original_post_attributes => {
             :body => TagAliasRequest.command_string(antecedent_name, consequent_name, tag_alias_id) + "\n\nReason: #{reason}"
         },
-        :category_id => 1
+        :category_id => Danbooru.config.alias_implication_forum_category
     )
   end
 

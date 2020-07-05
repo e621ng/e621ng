@@ -123,7 +123,7 @@ class BulkUpdateRequest < ApplicationRecord
         forum_post = forum_topic.posts.create(body: reason_with_link)
         update(forum_post_id: forum_post.id)
       else
-        forum_topic = ForumTopic.create(title: title, category_id: 1, original_post_attributes: {body: reason_with_link})
+        forum_topic = ForumTopic.create(title: title, category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: {body: reason_with_link})
         update(forum_topic_id: forum_topic.id, forum_post_id: forum_topic.posts.first.id)
       end
     end
