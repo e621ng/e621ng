@@ -31,6 +31,10 @@ module Sources
 
       end
 
+      def remove_duplicates(sources)
+        sources
+      end
+
       def original_url
         @url[0..2048] # Truncate to prevent abuse
       end

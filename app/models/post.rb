@@ -369,17 +369,24 @@ class Post < ApplicationRecord
       direct_sources = []
       additional_sources = []
 
+      alternate_processors = []
       sources.map! do |src|
         src.unicode_normalize!(:nfc)
         src = src.try(:strip)
         alternate = Sources::Alternates.find(src)
+        alternate_processors << alternate
         gallery_sources << alternate.gallery_url if alternate.gallery_url
         submission_sources << alternate.submission_url if alternate.submission_url
         direct_sources << alternate.submission_url if alternate.direct_url
         additional_sources += alternate.additional_urls if alternate.additional_urls
         alternate.original_url
       end
-      self.source = (sources + submission_sources + gallery_sources + direct_sources + additional_sources).compact.reject{ |e| e.strip.empty? }.uniq.first(10).join("\n")
+      sources = (sources + submission_sources + gallery_sources + direct_sources + additional_sources).compact.reject{ |e| e.strip.empty? }.uniq
+      alternate_processors.each do |alt_processor|
+        sources = alt_processor.remove_duplicates(sources)
+      end
+
+      self.source = sources.first(10).join("\n")
     end
   end
 

@@ -17,7 +17,24 @@ module Sources
       def parse
         id = illust_id
         if id
-          @submission_url = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{id}"
+          @submission_url = "https://www.pixiv.net/artworks/#{id}"
+        end
+      end
+
+      def remove_duplicates(sources)
+        our_illust_id = illust_id
+        return sources unless our_illust_id
+        sources.delete_if do |source|
+          url = Addressable::URI.heuristic_parse(source) rescue nil
+          next false if url.nil?
+          if url.host == "www.pixiv.net" && url.path == "/member_illust.php" && url.query_values["illust_id"].present?
+            next true if url.query_values["illust_id"].to_i == our_illust_id
+          elsif url.host == "www.pixiv.net" && url.path =~ %r!\A/i/(?<illust_id>\d+)\z!i
+            next true if $~[:illust_id].to_i == our_illust_id
+          elsif url.host == "www.pixiv.net" && url.path =~ %r!\A/en/artworks/(?<illust_id>\d+)\z!i
+            next true if $~[:illust_id].to_i == our_illust_id
+          end
+          false
         end
       end
 
@@ -35,6 +52,10 @@ module Sources
 
           # http://www.pixiv.net/i/18557054
         elsif url.host == "www.pixiv.net" && url.path =~ %r!\A/i/(?<illust_id>\d+)\z!i
+          return $~[:illust_id].to_i
+          # https://www.pixiv.net/en/artworks/80169645
+          # https://www.pixiv.net/artworks/80169645
+        elsif url.host == "www.pixiv.net" && url.path =~ %r!\A/(?:en/)?artworks/(?<illust_id>\d+)\z!i
           return $~[:illust_id].to_i
 
           # http://img18.pixiv.net/img/evazion/14901720.png
