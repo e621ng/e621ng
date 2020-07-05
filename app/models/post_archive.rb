@@ -216,19 +216,11 @@ class PostArchive < ApplicationRecord
       latest_tags = tag_array
     else
       latest_tags = post.tag_array
-      latest_tags << "rating:#{post.rating}" if post.rating.present?
-      latest_tags << "parent:#{post.parent_id}" if post.parent_id.present?
     end
 
     new_tags = tag_array
-    new_tags << "rating:#{rating}" if rating.present?
-    new_tags << "parent:#{parent_id}" if parent_id.present?
 
     old_tags = version.present? ? version.tag_array : []
-    if version.present?
-      old_tags << "rating:#{version.rating}" if version.rating.present?
-      old_tags << "parent:#{version.parent_id}" if version.parent_id.present?
-    end
 
     added_tags = new_tags - old_tags
     removed_tags = old_tags - new_tags
@@ -238,6 +230,16 @@ class PostArchive < ApplicationRecord
 
     added_locked = new_locked - old_locked
     removed_locked = old_locked - new_locked
+
+    if rating_changed
+      added_tags << "rating:#{rating}"
+      removed_tags << "rating:#{version.rating}" if version.present?
+    end
+
+    if parent_changed
+      added_tags << "parent:#{parent_id}"
+      removed_tags << "parent:#{version.parent_id}" if version.present?
+    end
 
     return {
         added_tags: added_tags,
