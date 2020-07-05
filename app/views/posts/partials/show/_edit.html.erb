@@ -79,13 +79,15 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.is_janitor? %>
+  <% if CurrentUser.is_privileged? %>
     <div class="input">
       <%= f.label :blank, "Lock" %>
 
       <fieldset class="locks">
-        <%= f.check_box :is_note_locked %>
-        <%= f.label :is_note_locked, "Notes" %>
+        <% if CurrentUser.is_janitor? %>
+          <%= f.check_box :is_note_locked %>
+          <%= f.label :is_note_locked, "Notes" %>
+        <% end %>
 
         <%= f.check_box :is_rating_locked %>
         <%= f.label :is_rating_locked, "Rating" %>
