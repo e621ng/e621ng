@@ -32,6 +32,8 @@ class TagRelationship < ApplicationRecord
   validates :creator, presence: { message: "must exist" }, if: -> { creator_id.present? }
   validates :approver, presence: { message: "must exist" }, if: -> { approver_id.present? }
   validates :forum_topic, presence: { message: "must exist" }, if: -> { forum_topic_id.present? }
+  validate :validate_creator_is_not_limited, on: :create
+  validates :antecedent_name, tag_name: { disable_ascii_check: true }, on: :create
   validates :consequent_name, tag_name: true, on: :create
   validate :antecedent_and_consequent_are_different
   after_save :update_notice
@@ -44,6 +46,15 @@ class TagRelationship < ApplicationRecord
   def normalize_names
     self.antecedent_name = antecedent_name.mb_chars.downcase.tr(" ", "_")
     self.consequent_name = consequent_name.mb_chars.downcase.tr(" ", "_")
+  end
+
+  def validate_creator_is_not_limited
+    allowed = creator.can_suggest_tag_with_reason
+    if allowed != true
+      errors.add(:creator, User.throttle_reason(allowed))
+      return false
+    end
+    true
   end
 
   def is_approved?
@@ -92,6 +103,10 @@ class TagRelationship < ApplicationRecord
       else
         where(status: status)
       end
+    end
+
+    def for_creator(id)
+      where("creator_id = ?", id)
     end
 
     def tag_matches(field, params)

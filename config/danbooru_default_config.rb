@@ -214,6 +214,10 @@ fart'
       1
     end
 
+    def tag_suggestion_limit
+      15
+    end
+
     # Blips created in the last hour
     def blip_limit
       25

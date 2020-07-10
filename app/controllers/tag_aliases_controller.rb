@@ -34,7 +34,6 @@ class TagAliasesController < ApplicationController
     @tag_alias = TagAlias.find(params[:id])
     if @tag_alias.deletable_by?(CurrentUser.user)
       @tag_alias.reject!
-      @tag_alias.destroy
       respond_with(@tag_alias, :location => tag_aliases_path)
     else
       access_denied

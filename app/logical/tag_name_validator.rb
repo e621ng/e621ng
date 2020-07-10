@@ -1,6 +1,7 @@
 class TagNameValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    case Tag.normalize_name(value)
+    normalized = Tag.normalize_name(value)
+    case normalized
     when /\A_*\z/
       record.errors[attribute] << "'#{value}' cannot be blank"
     when /\*/
@@ -29,12 +30,14 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors[attribute] << "'#{value}' cannot contain consecutive underscores, hyphens or tildes"
     when /[^[:graph:]]/
       record.errors[attribute] << "'#{value}' cannot contain non-printable characters"
-    when /[^[:ascii:]]/
-      record.errors[attribute] << "'#{value}' must consist of only ASCII characters"
     when /\A(#{Tag::METATAGS.join("|")}):(.+)\z/i
       record.errors[attribute] << "'#{value}' cannot begin with '#{$1}:'"
     when /\A(#{Tag.categories.regexp}):(.+)\z/i
       record.errors[attribute] << "'#{value}' cannot begin with '#{$1}:'"
+    end
+
+    if normalized =~ /[^[:ascii:]]/ && !options[:disable_ascii_check] == true
+      record.errors[attribute] << "'#{value}' must consist of only ASCII characters"
     end
   end
 end

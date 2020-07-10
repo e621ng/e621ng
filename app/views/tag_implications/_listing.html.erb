@@ -30,7 +30,7 @@
             <% end %>
 
             <% if tag_implication.deletable_by?(CurrentUser.user) %>
-              | <%= link_to "Delete", tag_implication_path(tag_implication), :method => :delete, :data => {:confirm => "Are you sure you want to delete this implication?"} %>
+              | <%= link_to "Reject", tag_implication_path(tag_implication), :method => :delete, :data => {:confirm => "Are you sure you want to delete this implication?"} %>
             <% end %>
 
             <% if tag_implication.is_pending? %>
