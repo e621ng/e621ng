@@ -21,7 +21,7 @@
     </div>
     <div class="content">
       <div class="body styled-dtext">
-        <%= format_text(comment.body) %>
+        <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
 
         <%= render "application/update_notice", record: comment %>
       </div>

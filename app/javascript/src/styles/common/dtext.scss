@@ -146,6 +146,16 @@
       border-left-color: themed("color-detail-expandable");
     }
   }
+
+  @each $tag-category, $tag-category-name in $tag-categories-short {
+    .dtext-color-#{$tag-category} {
+      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+    }
+
+    .dtext-color-#{$tag-category-name} {
+      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+    }
+  }
 }
 
 div.dtext-preview {

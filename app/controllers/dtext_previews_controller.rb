@@ -4,7 +4,7 @@ class DtextPreviewsController < ApplicationController
     @post_ids = Set.new
     @html = ""
     begin
-      parsed = DTextRagel.parse(@body, disable_mentions: true)
+      parsed = DTextRagel.parse(@body, disable_mentions: true, allow_color: CurrentUser.user.is_privileged?)
       raise DTextRagel::Error.new if parsed.nil?
       @post_ids.merge(parsed[1]) if parsed[1].present?
       @html = parsed[0].html_safe

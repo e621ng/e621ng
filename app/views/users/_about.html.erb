@@ -2,13 +2,13 @@
   <% if user.profile_about.present? %>
     <div class="box-section about-piece" id="about-info">
       <h3>About:</h3>
-      <div class="content styled-dtext"><%= format_text(user.profile_about) %></div>
+      <div class="content styled-dtext"><%= format_text(user.profile_about, allow_color: true) %></div>
     </div>
   <% end %>
   <% if user.profile_artinfo.present? %>
     <div class="box-section about-piece" id="about-artinfo">
       <h3>Artist Information:</h3>
-      <div class="content styled-dtext"><%= format_text(user.profile_artinfo) %></div>
+      <div class="content styled-dtext"><%= format_text(user.profile_artinfo, allow_color: true) %></div>
     </div>
   <% end %>
 </div>

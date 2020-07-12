@@ -21,7 +21,7 @@
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
       <div class="body styled-dtext">
-        <%= format_text(blip.body) %>
+        <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
       <div class="content-menu">
         <menu>

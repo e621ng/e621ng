@@ -28,7 +28,7 @@ module ForumTopicsHelper
       if obj.script.size < 700
         embedded_script = obj.script_with_links
       else
-        embedded_script = "[expand]#{obj.script_with_links}[/expand]"
+        embedded_script = "[section]#{obj.script_with_links}[/section]"
       end
 
       if obj.is_approved?

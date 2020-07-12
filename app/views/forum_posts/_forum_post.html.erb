@@ -20,7 +20,7 @@
     </div>
     <div class="content">
       <div class="styled-dtext">
-        <%= format_text(parse_embedded_tag_request_text(forum_post.body)) %>
+        <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: forum_post %>
       <div class="content-menu">
