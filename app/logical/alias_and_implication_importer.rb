@@ -1,22 +1,25 @@
 class AliasAndImplicationImporter
   class Error < RuntimeError; end
-  attr_accessor :text, :commands, :forum_id, :rename_aliased_pages, :skip_secondary_validations
+  attr_accessor :bur, :text, :commands, :forum_id, :rename_aliased_pages, :skip_secondary_validations, :creator_id, :creator_ip_addr
 
-  def initialize(text, forum_id, rename_aliased_pages = "0", skip_secondary_validations = true)
+  def initialize(bur, text, forum_id, rename_aliased_pages = "0", skip_secondary_validations = true, creator = nil, ip_addr = nil)
+    @bur = bur
     @forum_id = forum_id
     @text = text
     @rename_aliased_pages = rename_aliased_pages
     @skip_secondary_validations = skip_secondary_validations
+    @creator_id = creator
+    @creator_ip_addr = ip_addr
   end
 
   def process!(approver = CurrentUser.user)
     tokens = AliasAndImplicationImporter.tokenize(text)
-    parse(tokens, approver)
+    execute(tokens, approver)
   end
 
   def validate!
     tokens = AliasAndImplicationImporter.tokenize(text)
-    validate(tokens)
+    validate_annotate(tokens)
   end
 
   def rename_aliased_pages?
@@ -27,23 +30,23 @@ class AliasAndImplicationImporter
     text.split(/\r\n|\r|\n/).reject(&:blank?).map do |line|
       line = line.gsub(/[[:space:]]+/, " ").strip
 
-      if line =~ /^(?:create alias|aliasing|alias) (\S+) -> (\S+)$/i
-        [:create_alias, $1, $2]
+      if line =~ /^(?:create alias|aliasing|alias) (\S+) -> (\S+)( #.*)?$/i
+        [:create_alias, $1, $2, $3]
 
-      elsif line =~ /^(?:create implication|implicating|implicate|imply) (\S+) -> (\S+)$/i
-        [:create_implication, $1, $2]
+      elsif line =~ /^(?:create implication|implicating|implicate|imply) (\S+) -> (\S+)( #.*)?$/i
+        [:create_implication, $1, $2, $3]
 
-      elsif line =~ /^(?:remove alias|unaliasing|unalias) (\S+) -> (\S+)$/i
-        [:remove_alias, $1, $2]
+      elsif line =~ /^(?:remove alias|unaliasing|unalias) (\S+) -> (\S+)( #.*)?$/i
+        [:remove_alias, $1, $2, $3]
 
-      elsif line =~ /^(?:remove implication|unimplicating|unimplicate|unimply) (\S+) -> (\S+)$/i
-        [:remove_implication, $1, $2]
+      elsif line =~ /^(?:remove implication|unimplicating|unimplicate|unimply) (\S+) -> (\S+)( #.*)?$/i
+        [:remove_implication, $1, $2, $3]
 
-      elsif line =~ /^(?:mass update|updating|update|change) (.+?) -> (.*)$/i
-        [:mass_update, $1, $2]
+      elsif line =~ /^(?:mass update|updating|update|change) (.+?) -> (.*)( #.*)?$/i
+        [:mass_update, $1, $2, $3]
 
-      elsif line =~ /^category (\S+) -> (#{Tag.categories.regexp})/
-        [:change_category, $1, $2]
+      elsif line =~ /^category (\S+) -> (#{Tag.categories.regexp})( #.*)?$/i
+        [:change_category, $1, $2, $3]
 
       elsif line.strip.empty?
         # do nothing
@@ -54,28 +57,86 @@ class AliasAndImplicationImporter
     end
   end
 
-  def validate(tokens)
+  def self.untokenize(tokens)
     tokens.map do |token|
       case token[0]
       when :create_alias
-        tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
-        unless tag_alias.valid?
-          raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
-        end
+        comment = "# duplicate of #{token[3]}" if token[3].present?
+        "alias #{token[1]} -> #{token[2]} #{comment}".strip
+      when :create_implication
+        comment = "# duplicate of #{token[3]}" if token[3].present?
+        "implicate #{token[1]} -> #{token[2]} #{comment}".strip
+      when :remove_alias
+        comment = "# missing" if token[3] == false
+        "unalias #{token[1]} -> #{token[2]} #{comment}".strip
+      when :remove_implication
+        comment = "# missing" if token[3] == false
+        "unimplicate #{token[1]} -> #{token[2]} #{comment}".strip
+      when :change_category
+        "category #{token[1]} -> #{token[2]}".strip
+      when :mass_update
+        "update #{token[1]} -> #{token[2]}".strip
+      else
+        raise Error.new("Unknown token to reverse")
+      end
+
+    end
+  end
+
+  def validate_alias(token)
+    tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
+    return [nil, "alias ##{tag_alias.id}"] unless tag_alias.nil?
+    tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+    unless tag_alias.valid?
+      return ["Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})", nil]
+    end
+    return [nil, nil]
+  end
+
+  def validate_implication(token)
+    tag_implication = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
+    return [nil, "implication ##{tag_implication.id}"] unless tag_implication.nil?
+    tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+    unless tag_implication.valid?
+      return ["Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"]
+    end
+    return [nil, nil]
+  end
+
+  def validate_annotate(tokens)
+    errors = []
+    annotated = tokens.map do |token|
+      case token[0]
+      when :create_alias
+        output = validate_alias(token)
+        errors << output[0] if output[0].present?
+        token[3] = output[1]
+        token
 
       when :create_implication
-        tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
-        unless tag_implication.valid?
-          raise Error, "Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"
-        end
+        output = validate_implication(token)
+        errors << output[0] if output[0].present?
+        token[3] = output[1]
+        token
 
-      when :remove_alias, :remove_implication, :mass_update, :change_category
-        # okay
+      when :remove_alias
+        existing = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2]).present?
+        token[3] = existing
+        token
+
+      when :remove_implication
+        existing = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2]).present?
+        token[3] = existing
+        token
+
+      when :mass_update, :change_category
+        token
 
       else
-        raise Error, "Unknown token: #{token[0]}"
+        errors << "Unknown token: #{token[0]}"
       end
     end
+    [errors, AliasAndImplicationImporter.untokenize(annotated).join("\n")]
   end
 
   def estimate_update_count
@@ -126,24 +187,50 @@ class AliasAndImplicationImporter
 
 private
 
-  def parse(tokens, approver)
+  ## These functions will find and appropriate existing aliases or implications if needed. This reduces friction with accepting
+  # a BUR, and makes it much easier to work with.
+  def find_create_alias(token, approver)
+    tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
+    if tag_alias.present?
+      return unless tag_alias.status == 'pending'
+      tag_alias.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
+    else
+      tag_alias = TagAlias.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+      unless tag_alias.valid?
+        raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
+      end
+    end
+
+
+    tag_alias.rename_artist if rename_aliased_pages?
+    tag_alias.approve!(approver: approver, update_topic: false)
+  end
+
+  def find_create_implication(token, approver)
+    tag_implication = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
+    if tag_implication.present?
+      return unless tag_implication.status == 'pending'
+      tag_implication.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
+    else
+      tag_implication = TagImplication.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+      unless tag_implication.valid?
+        raise Error, "Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"
+      end
+    end
+
+    tag_implication.approve!(approver: approver, update_topic: false)
+  end
+
+  def execute(tokens, approver)
+    warnings = []
     ActiveRecord::Base.transaction do
       tokens.map do |token|
         case token[0]
         when :create_alias
-          tag_alias = TagAlias.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
-          unless tag_alias.valid?
-            raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
-          end
-          tag_alias.rename_artist if rename_aliased_pages?
-          tag_alias.approve!(approver: approver, update_topic: false)
+          find_create_alias(token, approver)
 
         when :create_implication
-          tag_implication = TagImplication.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
-          unless tag_implication.valid?
-            raise Error, "Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"
-          end
-          tag_implication.approve!(approver: approver, update_topic: false)
+          find_create_implication(token, approver)
 
         when :remove_alias
           tag_alias = TagAlias.active.find_by(antecedent_name: token[1], consequent_name: token[2])

@@ -1,5 +1,5 @@
 class BulkUpdateRequest < ApplicationRecord
-  attr_accessor :reason, :skip_secondary_validations, :skip_forum
+  attr_accessor :reason, :skip_secondary_validations, :skip_forum, :should_validate
 
   belongs_to :user
   belongs_to :forum_topic, optional: true
@@ -12,7 +12,8 @@ class BulkUpdateRequest < ApplicationRecord
   validates :status, inclusion: { :in => %w(pending approved rejected) }
   validate :script_formatted_correctly
   validate :forum_topic_id_not_invalid
-  validate :validate_script, :on => :create
+  validate :validate_script, on: :create
+  validate :check_validate_script, on: :update
   before_validation :initialize_attributes, :on => :create
   before_validation :normalize_text
   after_create :create_forum_topic
@@ -104,7 +105,7 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          AliasAndImplicationImporter.new(script, forum_topic_id, "1", true).process!
+          AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", true, user_id, user_ip_addr).process!
           update(status: "approved", approver: CurrentUser.user, skip_secondary_validations: true)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
@@ -159,13 +160,16 @@ class BulkUpdateRequest < ApplicationRecord
       end
     end
 
+    def check_validate_script
+      validate_script if should_validate
+    end
+
     def validate_script
-      begin
-        AliasAndImplicationImporter.new(script, forum_topic_id, "1", skip_secondary_validations).validate!
-      rescue RuntimeError => e
-        self.errors[:base] << e.message
-        return false
-      end
+        errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", skip_secondary_validations).validate!
+        if errors.size > 0
+          errors.each { |err| self.errors[:base] << err }
+        end
+        self.script = new_script
 
       errors.empty?
     end
@@ -204,7 +208,7 @@ class BulkUpdateRequest < ApplicationRecord
     lines = tokens.map do |token|
       case token[0]
       when :create_alias, :create_implication, :remove_alias, :remove_implication
-        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]]"
+        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3] if token[3]}"
 
       when :mass_update
         "mass update {{#{token[1]}}} -> #{token[2]}"
@@ -221,6 +225,7 @@ class BulkUpdateRequest < ApplicationRecord
 
   def initialize_attributes
     self.user_id = CurrentUser.user.id unless self.user_id
+    self.user_ip_addr = Currentuser.ip_addr unless self.user_ip_addr
     self.status = "pending"
   end
 
@@ -249,12 +254,12 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def estimate_update_count
-    AliasAndImplicationImporter.new(script, nil).estimate_update_count
+    AliasAndImplicationImporter.new(self, script, nil).estimate_update_count
   end
 
   def update_notice
     TagChangeNoticeService.update_cache(
-      AliasAndImplicationImporter.new(script, nil).affected_tags,
+      AliasAndImplicationImporter.new(self, script, nil).affected_tags,
       forum_topic_id
     )
   end

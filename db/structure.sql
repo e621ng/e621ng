@@ -338,7 +338,8 @@ CREATE TABLE public.artists (
     group_name character varying DEFAULT ''::character varying NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    other_names text[] DEFAULT '{}'::text[] NOT NULL
+    other_names text[] DEFAULT '{}'::text[] NOT NULL,
+    linked_user_id integer
 );
 
 
@@ -447,7 +448,8 @@ CREATE TABLE public.bulk_update_requests (
     updated_at timestamp without time zone,
     approver_id integer,
     forum_post_id integer,
-    title text
+    title text,
+    user_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL
 );
 
 
@@ -773,7 +775,8 @@ ALTER SEQUENCE public.favorite_groups_id_seq OWNED BY public.favorite_groups.id;
 CREATE TABLE public.favorites (
     id bigint NOT NULL,
     user_id integer NOT NULL,
-    post_id integer NOT NULL
+    post_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1114,26 +1117,10 @@ ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
 
 
 --
--- Name: mod_actions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.mod_actions (
-    id integer NOT NULL,
-    creator_id integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    category integer,
-    "values" json,
-    action character varying DEFAULT 'unknown_action'::character varying NOT NULL
-);
-
-
---
 -- Name: mod_actions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.mod_actions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1142,10 +1129,19 @@ CREATE SEQUENCE public.mod_actions_id_seq
 
 
 --
--- Name: mod_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: mod_actions; Type: TABLE; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.mod_actions_id_seq OWNED BY public.mod_actions.id;
+CREATE TABLE public.mod_actions (
+    id integer DEFAULT nextval('public.mod_actions_id_seq'::regclass) NOT NULL,
+    creator_id integer,
+    description text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    action text,
+    "values" json,
+    category integer
+);
 
 
 --
@@ -1519,6 +1515,40 @@ ALTER SEQUENCE public.post_flags_id_seq OWNED BY public.post_flags.id;
 
 
 --
+-- Name: post_image_hashes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_image_hashes (
+    id bigint NOT NULL,
+    post_id bigint NOT NULL,
+    nw double precision NOT NULL,
+    ne double precision NOT NULL,
+    sw double precision NOT NULL,
+    se double precision NOT NULL,
+    phash bytea
+);
+
+
+--
+-- Name: post_image_hashes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_image_hashes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_image_hashes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_image_hashes_id_seq OWNED BY public.post_image_hashes.id;
+
+
+--
 -- Name: post_replacements; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1526,20 +1556,20 @@ CREATE TABLE public.post_replacements (
     id integer NOT NULL,
     post_id integer NOT NULL,
     creator_id integer NOT NULL,
-    original_url text NOT NULL,
-    replacement_url text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_ext_was character varying,
-    file_size_was integer,
-    image_width_was integer,
-    image_height_was integer,
-    md5_was character varying,
     file_ext character varying,
     file_size integer,
     image_width integer,
     image_height integer,
-    md5 character varying
+    md5 character varying,
+    creator_ip_addr inet NOT NULL,
+    source character varying,
+    file_name character varying,
+    storage_id character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    reason character varying NOT NULL,
+    protected boolean DEFAULT false
 );
 
 
@@ -2750,13 +2780,6 @@ ALTER TABLE ONLY public.janitor_trials ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: mod_actions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.mod_actions ALTER COLUMN id SET DEFAULT nextval('public.mod_actions_id_seq'::regclass);
-
-
---
 -- Name: news_updates id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2824,6 +2847,13 @@ ALTER TABLE ONLY public.post_disapprovals ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.post_flags ALTER COLUMN id SET DEFAULT nextval('public.post_flags_id_seq'::regclass);
+
+
+--
+-- Name: post_image_hashes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_image_hashes ALTER COLUMN id SET DEFAULT nextval('public.post_image_hashes_id_seq'::regclass);
 
 
 --
@@ -3311,6 +3341,14 @@ ALTER TABLE ONLY public.post_disapprovals
 
 ALTER TABLE ONLY public.post_flags
     ADD CONSTRAINT post_flags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_image_hashes post_image_hashes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_image_hashes
+    ADD CONSTRAINT post_image_hashes_pkey PRIMARY KEY (id);
 
 
 --
@@ -3936,6 +3974,13 @@ CREATE INDEX index_janitor_trials_on_user_id ON public.janitor_trials USING btre
 
 
 --
+-- Name: index_mod_actions_on_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mod_actions_on_action ON public.mod_actions USING btree (action);
+
+
+--
 -- Name: index_news_updates_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4150,6 +4195,13 @@ CREATE INDEX index_post_flags_on_post_id ON public.post_flags USING btree (post_
 --
 
 CREATE INDEX index_post_flags_on_reason_tsvector ON public.post_flags USING gin (to_tsvector('english'::regconfig, reason));
+
+
+--
+-- Name: index_post_image_hashes_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_image_hashes_on_post_id ON public.post_image_hashes USING btree (post_id);
 
 
 --
@@ -4517,6 +4569,13 @@ CREATE INDEX index_user_feedback_on_user_id ON public.user_feedback USING btree 
 
 
 --
+-- Name: index_user_lower_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_lower_email ON public.users USING btree (lower((email)::text));
+
+
+--
 -- Name: index_user_name_change_requests_on_original_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4622,6 +4681,13 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: post_image_hashes_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX post_image_hashes_index ON public.post_image_hashes USING btree (nw, ne, sw, se);
+
+
+--
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4682,6 +4748,14 @@ CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON publ
 --
 
 CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'public.danbooru', 'body', 'title');
+
+
+--
+-- Name: post_image_hashes fk_rails_2b7afcc2f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_image_hashes
+    ADD CONSTRAINT fk_rails_2b7afcc2f0 FOREIGN KEY (post_id) REFERENCES public.posts(id);
 
 
 --
@@ -4928,6 +5002,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191013233447'),
 ('20191116032230'),
 ('20191231162515'),
-('20200113022639');
+('20200113022639'),
+('20200420032714'),
+('20200510005635'),
+('20200713053034');
 
 

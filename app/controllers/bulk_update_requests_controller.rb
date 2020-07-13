@@ -24,6 +24,7 @@ class BulkUpdateRequestsController < ApplicationController
 
   def update
     if @bulk_update_request.editable?(CurrentUser.user)
+      @bulk_update_request.should_validate = true
       @bulk_update_request.update(bur_params(:update))
       flash[:notice] = "Bulk update request updated"
       respond_with(@bulk_update_request, :location => bulk_update_requests_path)
