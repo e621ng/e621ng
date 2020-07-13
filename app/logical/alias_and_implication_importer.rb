@@ -98,7 +98,7 @@ class AliasAndImplicationImporter
     return [nil, "implication ##{tag_implication.id}"] unless tag_implication.nil?
     tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
     unless tag_implication.valid?
-      return ["Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"]
+      return ["Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})", nil]
     end
     return [nil, nil]
   end

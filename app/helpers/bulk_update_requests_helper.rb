@@ -92,5 +92,7 @@ module BulkUpdateRequestsHelper
     end.join("\n")
 
     escaped_script.gsub(/\n/m, "<br>").html_safe
+  rescue AliasAndImplicationImporter::Error
+    "!!!!!!Invalid Script!!!!!!"
   end
 end
