@@ -35,7 +35,12 @@ class BulkUpdateRequestsController < ApplicationController
 
   def approve
     @bulk_update_request.approve!(CurrentUser.user)
-    respond_with(@bulk_update_request, :location => bulk_update_requests_path)
+    if @bulk_update_request.errors.size > 0
+      flash[:notice] = @bulk_update_request.errors.full_messages.join(";")
+    else
+      flash[:notice] = "Bulk update approved"
+    end
+    respond_with(@bulk_update_request)
   end
 
   def destroy

@@ -116,6 +116,7 @@ class BulkUpdateRequest < ApplicationRecord
       CurrentUser.scoped(approver) do
         forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has failed: #{x.to_s}", "FAILED")
       end
+      self.errors[:base] << x.to_s
     end
 
     def date_timestamp
