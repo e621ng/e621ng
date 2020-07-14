@@ -199,6 +199,39 @@ class TagImplication < TagRelationship
       )
     end
     memoize :forum_updater
+
+    def process_undo!(update_topic: true)
+      unless valid?
+        raise errors.full_messages.join("; ")
+      end
+
+      CurrentUser.scoped(approver) do
+        update(status: "pending")
+        update_posts_undo
+        forum_updater.update(retirement_message, "UNDONE") if update_topic
+      end
+      tag_rel_undos.update_all(applied: true)
+    end
+
+    def update_posts_undo
+      Post.without_timeout do
+        tag_rel_undos.where(applied: false).each do |tu|
+          Post.where(id: tu.undo_data.keys).find_each do |post|
+            post.do_not_version_changes = true
+            if Tag.scan_tags(tu.undo_data[post.id]).include?(consequent_name)
+              Rails.logger.info("[TIU] Skipping post that already contains target tag.")
+              next
+            end
+            post.tag_string_diff = "-#{consequent_name}"
+            post.save
+          end
+        end
+
+        # TODO: Race condition with indexing jobs here.
+        antecedent_tag.fix_post_count if antecedent_tag
+        consequent_tag.fix_post_count if consequent_tag
+      end
+    end
   end
 
   include DescendantMethods
