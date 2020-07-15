@@ -16,7 +16,7 @@
       <li><strong>Status</strong>: <%= @tag_alias.status %></li>
 
       <% if @tag_alias.has_transitives %>
-
+        <br>
         <li><strong>Transitives</strong>:
         <ul>
           <% @tag_alias.list_transitives.each do |transitive| %>
@@ -24,6 +24,7 @@
           <% end %>
         </ul>
         </li>
+        <br>
       <% end %>
 
       <% if CurrentUser.is_admin? && @tag_alias.is_pending? %>
