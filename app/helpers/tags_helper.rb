@@ -37,4 +37,14 @@ module TagsHelper
 
     html.html_safe
   end
+
+  def format_transitive_item(transitive)
+    html = "<strong class=\"redtext\">#{transitive[0].to_s.titlecase}</strong> ".html_safe
+    if transitive[0] == :alias
+      html << "#{transitive[2]} -> #{transitive[3]} will become #{transitive[4]} -> #{transitive[3]}"
+    else
+      html << "#{transitive[2]} +> #{transitive[3]} will become #{transitive[4]} +> #{transitive[5]}"
+    end
+    html
+  end
 end

@@ -40,8 +40,35 @@ class TagAlias < TagRelationship
     end
   end
 
+  module TransitiveChecks
+    def list_transitives
+      return @transitives if @transitives
+      @transitives = []
+      aliases = TagAlias.where(["consequent_name = ?", antecedent_name])
+      aliases.each do |ta|
+        @transitives << [:alias, ta, ta.antecedent_name, ta.consequent_name, consequent_name]
+      end
+
+      implications = TagImplication.where("antecedent_name = ? or consequent_name = ?", antecedent_name, antecedent_name)
+      implications.each do |ti|
+        if ti.antecedent_name == antecedent_name
+          @transitives << [:implication, ti, ti.antecedent_name, ti.consequent_name, consequent_name, ti.consequent_name]
+        else
+          @transitives << [:implication, ti, ti.antecedent_name, ti.consequent_name, ti.antecedent_name, consequent_name]
+        end
+      end
+
+      @transitives
+    end
+
+    def has_transitives
+      @has_transitives ||= list_transitives.size > 0
+    end
+  end
+
   include ApprovalMethods
   include ForumMethods
+  include TransitiveChecks
 
   concerning :EmbeddedText do
     class_methods do
@@ -187,6 +214,8 @@ class TagAlias < TagRelationship
     if TagAlias.active.exists?(antecedent_name: consequent_name)
       errors[:base] << "A tag alias for #{consequent_name} already exists"
     end
+
+
   end
 
   def move_aliases_and_implications

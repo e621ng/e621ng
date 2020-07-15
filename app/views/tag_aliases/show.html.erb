@@ -15,6 +15,17 @@
       <% end %>
       <li><strong>Status</strong>: <%= @tag_alias.status %></li>
 
+      <% if @tag_alias.has_transitives %>
+
+        <li><strong>Transitives</strong>:
+        <ul>
+          <% @tag_alias.list_transitives.each do |transitive| %>
+          <li><%= format_transitive_item(transitive) %></li>
+          <% end %>
+        </ul>
+        </li>
+      <% end %>
+
       <% if CurrentUser.is_admin? && @tag_alias.is_pending? %>
         <li><strong>Commands</strong> <%= link_to "Approve", approve_tag_alias_path(@tag_alias), :method => :post %></li>
       <% end %>
