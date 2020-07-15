@@ -7,7 +7,8 @@ class TagAlias < TagRelationship
   validate :mininum_antecedent_count, on: :create, unless: :skip_secondary_validations
 
   module ApprovalMethods
-    def approve!(update_topic: true, approver: CurrentUser.user)
+    def approve!(update_topic: true, approver: CurrentUser.user, deny_transitives: false)
+      raise ::ValueError.new("Alias would modify other aliases or implications through transitive relationships.") if deny_transitives && has_transitives
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
         create_undo_information

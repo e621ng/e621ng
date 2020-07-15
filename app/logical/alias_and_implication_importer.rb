@@ -85,10 +85,16 @@ class AliasAndImplicationImporter
 
   def validate_alias(token)
     tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
+    if tag_alias.has_transitives
+      return [nil, "alias ##{tag_alias.id}, has blocking transitive relationships, cannot be applied through BUR"]
+    end
     return [nil, "alias ##{tag_alias.id}"] unless tag_alias.nil?
     tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
     unless tag_alias.valid?
       return ["Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})", nil]
+    end
+    if tag_alias.has_transitives
+      return [nil, "has blocking transitive relationships, cannot be applied through BUR"]
     end
     return [nil, nil]
   end
@@ -203,7 +209,8 @@ private
 
 
     tag_alias.rename_artist if rename_aliased_pages?
-    tag_alias.approve!(approver: approver, update_topic: false)
+    raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
+    tag_alias.approve!(approver: approver, update_topic: false, deny_transitives: true)
   end
 
   def find_create_implication(token, approver)
