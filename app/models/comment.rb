@@ -168,8 +168,7 @@ class Comment < ApplicationRecord
   end
 
   def editable_by?(user)
-    return true if user.is_moderator?
-    (creator_id == user.id) && (created_at < 10.minutes.ago) # limit editing to 10 minutes.
+    creator_id == user.id || user.is_moderator?
   end
 
   def can_hide?(user)
