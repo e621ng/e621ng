@@ -97,7 +97,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     should "create a forum topic" do
       assert_difference("ForumTopic.count", 1) do
-        BulkUpdateRequest.create(:title => "abc", :reason => "zzz", :script => "create alias aaa -> bbb", :skip_secondary_validations => true)
+        BulkUpdateRequest.create(:title => "abc", :reason => "zzz", :script => "create alias aaa -> bbb")
       end
     end
 

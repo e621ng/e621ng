@@ -16,7 +16,7 @@ class TagAliasRequestsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "render" do
         assert_difference("ForumTopic.count", 1) do
-          post_auth tag_alias_request_path, @user, params: {:tag_alias_request => {:antecedent_name => "aaa", :consequent_name => "bbb", :reason => "ccc", :skip_secondary_validations => true}}
+          post_auth tag_alias_request_path, @user, params: {:tag_alias_request => {:antecedent_name => "aaa", :consequent_name => "bbb", :reason => "ccc"}}
         end
         assert_redirected_to(forum_topic_path(ForumTopic.last))
       end

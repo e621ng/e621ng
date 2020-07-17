@@ -4,7 +4,6 @@ class TagAlias < TagRelationship
   after_save :create_mod_action
   validates :antecedent_name, uniqueness: true
   validate :absence_of_transitive_relation
-  validate :mininum_antecedent_count, on: :create, unless: :skip_secondary_validations
 
   module ApprovalMethods
     def approve!(update_topic: true, approver: CurrentUser.user, deny_transitives: false)
@@ -299,12 +298,6 @@ class TagAlias < TagRelationship
   def reject!(update_topic: true)
     update(status: "deleted")
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
-  end
-
-  def mininum_antecedent_count
-    if antecedent_tag.post_count < 20
-      errors[:base] << "The #{antecedent_name} tag must have at least 20 posts for an alias to be created"
-    end
   end
 
   def self.update_cached_post_counts_for_all

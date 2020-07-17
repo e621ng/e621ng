@@ -84,26 +84,8 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should "update redis" do
-        FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", skip_secondary_validations: true, forum_topic: @forum_topic)
+        FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @forum_topic)
         assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:aaa"))
-      end
-    end
-
-    context "on secondary validation" do
-      should "warn about missing wiki pages" do
-        ti = FactoryBot.build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", skip_secondary_validations: false)
-
-        assert(ti.invalid?)
-        assert_includes(ti.errors[:base], "The bbb tag needs a corresponding wiki page")
-      end
-
-      should "warn about conflicting wiki pages" do
-        FactoryBot.create(:wiki_page, title: "aaa", body: "aaa")
-        FactoryBot.create(:wiki_page, title: "bbb", body: "bbb")
-        ti = FactoryBot.build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", skip_secondary_validations: false)
-
-        assert(ti.invalid?)
-        assert_includes(ti.errors[:base], "The tag alias [[aaa]] -> [[bbb]]  has conflicting wiki pages. [[bbb]] should be updated to include information from [[aaa]] if necessary.")
       end
     end
 

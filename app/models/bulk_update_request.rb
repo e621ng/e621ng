@@ -1,5 +1,5 @@
 class BulkUpdateRequest < ApplicationRecord
-  attr_accessor :reason, :skip_secondary_validations, :skip_forum, :should_validate
+  attr_accessor :reason, :skip_forum, :should_validate
 
   belongs_to :user
   belongs_to :forum_topic, optional: true
@@ -106,7 +106,7 @@ class BulkUpdateRequest < ApplicationRecord
       transaction do
         CurrentUser.scoped(approver) do
           AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", true, user_id, user_ip_addr).process!
-          update(status: "approved", approver: CurrentUser.user, skip_secondary_validations: true)
+          update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
       end
@@ -166,7 +166,7 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def validate_script
-        errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", skip_secondary_validations).validate!
+        errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1").validate!
         if errors.size > 0
           errors.each { |err| self.errors[:base] << err }
         end
@@ -232,10 +232,6 @@ class BulkUpdateRequest < ApplicationRecord
 
   def normalize_text
     self.script = script.downcase
-  end
-
-  def skip_secondary_validations=(v)
-    @skip_secondary_validations = v.to_s.truthy?
   end
 
   def skip_forum=(v)

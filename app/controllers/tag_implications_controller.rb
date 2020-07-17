@@ -55,6 +55,6 @@ class TagImplicationsController < ApplicationController
 private
 
   def tag_implication_params
-    params.require(:tag_implication).permit(%i[antecedent_name consequent_name forum_topic_id skip_secondary_validations])
+    params.require(:tag_implication).permit(%i[antecedent_name consequent_name forum_topic_id])
   end
 end

@@ -49,6 +49,6 @@ class TagAliasesController < ApplicationController
   private
 
   def tag_alias_params
-    params.require(:tag_alias).permit(%i[antecedent_name consequent_name forum_topic_id skip_secondary_validations])
+    params.require(:tag_alias).permit(%i[antecedent_name consequent_name forum_topic_id])
   end
 end

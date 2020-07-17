@@ -17,7 +17,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
     context "#create" do
       should "succeed" do
         assert_difference("BulkUpdateRequest.count", 1) do
-          post_auth bulk_update_requests_path, @user, params: {bulk_update_request: {skip_secondary_validations: "1", script: "create alias aaa -> bbb", title: "xxx"}}
+          post_auth bulk_update_requests_path, @user, params: {bulk_update_request: {script: "create alias aaa -> bbb", title: "xxx"}}
         end
       end
     end
@@ -29,14 +29,8 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should "still handle enabled secondary validations correctly" do
-        put_auth bulk_update_request_path(@bulk_update_request.id), @user, params: {bulk_update_request: {script: "create alias zzz -> 222", skip_secondary_validations: "0"}}
-        @bulk_update_request.reload
-        assert_equal("create alias zzz -> 222", @bulk_update_request.script)
-      end
-
       should "still handle disabled secondary validations correctly" do
-        put_auth bulk_update_request_path(@bulk_update_request.id), @user, params: {bulk_update_request: {script: "create alias zzz -> 222", skip_secondary_validations: "1"}}
+        put_auth bulk_update_request_path(@bulk_update_request.id), @user, params: {bulk_update_request: {script: "create alias zzz -> 222"}}
         @bulk_update_request.reload
         assert_equal("create alias zzz -> 222", @bulk_update_request.script)
       end

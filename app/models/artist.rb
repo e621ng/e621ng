@@ -418,7 +418,7 @@ class Artist < ApplicationRecord
         CurrentUser.without_safe_mode do
           # potential race condition but unlikely
           unless TagImplication.where(:antecedent_name => name, :consequent_name => "avoid_posting").exists?
-            tag_implication = TagImplication.create!(:antecedent_name => name, :consequent_name => "avoid_posting", :skip_secondary_validations => true)
+            tag_implication = TagImplication.create!(:antecedent_name => name, :consequent_name => "avoid_posting")
             tag_implication.approve!(approver: CurrentUser.user)
           end
 

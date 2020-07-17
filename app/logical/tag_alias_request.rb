@@ -1,7 +1,7 @@
 class TagAliasRequest
   include ActiveModel::Validations
 
-  attr_reader :antecedent_name, :consequent_name, :reason, :skip_secondary_validations, :tag_alias, :forum_topic, :skip_forum
+  attr_reader :antecedent_name, :consequent_name, :reason, :tag_alias, :forum_topic, :skip_forum
 
   validate :validate_tag_alias
   validate :validate_forum_topic
@@ -22,7 +22,6 @@ class TagAliasRequest
     @antecedent_name = attributes[:antecedent_name].strip.tr(" ", "_")
     @consequent_name = attributes[:consequent_name].strip.tr(" ", "_")
     @reason = attributes[:reason]
-    self.skip_secondary_validations = attributes[:skip_secondary_validations]
     self.skip_forum = attributes[:skip_forum]
   end
 
@@ -47,8 +46,7 @@ class TagAliasRequest
   def build_tag_alias
     x = TagAlias.new(
         :antecedent_name => antecedent_name,
-        :consequent_name => consequent_name,
-        :skip_secondary_validations => skip_secondary_validations
+        :consequent_name => consequent_name
     )
     x.status = "pending"
     x
@@ -80,10 +78,6 @@ class TagAliasRequest
       self.errors.add(:base, ft.errors.full_messages.join("; "))
       return false
     end
-  end
-
-  def skip_secondary_validations=(v)
-    @skip_secondary_validations = v.to_s.truthy?
   end
 
   def skip_forum=(v)

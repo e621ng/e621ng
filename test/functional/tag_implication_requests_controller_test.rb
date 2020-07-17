@@ -18,7 +18,7 @@ class TagImplicationRequestsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create forum post" do
         assert_difference("ForumTopic.count", 1) do
-          post_auth tag_implication_request_path, @user, params: {:tag_implication_request => {:antecedent_name => "aaa", :consequent_name => "bbb", :reason => "ccc", :skip_secondary_validations => true}}
+          post_auth tag_implication_request_path, @user, params: {:tag_implication_request => {:antecedent_name => "aaa", :consequent_name => "bbb", :reason => "ccc"}}
         end
         assert_redirected_to(forum_topic_path(ForumTopic.last))
       end
@@ -28,8 +28,7 @@ class TagImplicationRequestsControllerTest < ActionDispatch::IntegrationTest
           :tag_implication_request => {
             :antecedent_name => "foo",
             :consequent_name => "bar",
-            :reason => "blah blah",
-            :skip_secondary_validations => true
+            :reason => "blah blah"
           }
         }
 

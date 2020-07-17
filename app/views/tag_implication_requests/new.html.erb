@@ -24,14 +24,6 @@
 
       <% if CurrentUser.is_moderator? %>
         <div class="input">
-          <label class="checkbox optional" for="tag_implication_request_skip_secondary_validations">
-            <%= check_box "tag_implication_request", "skip_secondary_validations" %>
-            Skip validations
-          </label>
-          <p class="hint">You can ignore the wiki page and minimum count requirements</p>
-        </div>
-
-        <div class="input">
           <label class="checkbox optional" for="tag_implication_request_skip_forum">
             <%= check_box "tag_implication_request", "skip_forum" %>
             Skip forum topic creation

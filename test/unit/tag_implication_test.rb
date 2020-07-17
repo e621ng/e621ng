@@ -82,18 +82,8 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       should "update redis" do
-        FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", skip_secondary_validations: true, forum_topic: @forum_topic)
+        FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @forum_topic)
         assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:aaa"))
-      end
-    end
-
-    context "on secondary validation" do
-      should "warn if either tag is missing a wiki" do
-        ti = FactoryBot.build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", skip_secondary_validations: false)
-
-        assert(ti.invalid?)
-        assert_includes(ti.errors[:base], "The aaa tag needs a corresponding wiki page")
-        assert_includes(ti.errors[:base], "The bbb tag needs a corresponding wiki page")
       end
     end
 

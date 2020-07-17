@@ -1,13 +1,12 @@
 class AliasAndImplicationImporter
   class Error < RuntimeError; end
-  attr_accessor :bur, :text, :commands, :forum_id, :rename_aliased_pages, :skip_secondary_validations, :creator_id, :creator_ip_addr
+  attr_accessor :bur, :text, :commands, :forum_id, :rename_aliased_pages, :creator_id, :creator_ip_addr
 
-  def initialize(bur, text, forum_id, rename_aliased_pages = "0", skip_secondary_validations = true, creator = nil, ip_addr = nil)
+  def initialize(bur, text, forum_id, rename_aliased_pages = "0", creator = nil, ip_addr = nil)
     @bur = bur
     @forum_id = forum_id
     @text = text
     @rename_aliased_pages = rename_aliased_pages
-    @skip_secondary_validations = skip_secondary_validations
     @creator_id = creator
     @creator_ip_addr = ip_addr
   end
@@ -89,7 +88,7 @@ class AliasAndImplicationImporter
       return [nil, "alias ##{tag_alias.id}, has blocking transitive relationships, cannot be applied through BUR"]
     end
     return [nil, "alias ##{tag_alias.id}"] unless tag_alias.nil?
-    tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+    tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
     unless tag_alias.valid?
       return ["Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})", nil]
     end
@@ -102,7 +101,7 @@ class AliasAndImplicationImporter
   def validate_implication(token)
     tag_implication = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
     return [nil, "implication ##{tag_implication.id}"] unless tag_implication.nil?
-    tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+    tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
     unless tag_implication.valid?
       return ["Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})", nil]
     end
@@ -201,7 +200,7 @@ private
       return unless tag_alias.status == 'pending'
       tag_alias.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
     else
-      tag_alias = TagAlias.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+      tag_alias = TagAlias.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
       unless tag_alias.valid?
         raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
       end
@@ -219,7 +218,7 @@ private
       return unless tag_implication.status == 'pending'
       tag_implication.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
     else
-      tag_implication = TagImplication.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2], :skip_secondary_validations => skip_secondary_validations)
+      tag_implication = TagImplication.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
       unless tag_implication.valid?
         raise Error, "Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})"
       end
