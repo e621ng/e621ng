@@ -2,7 +2,7 @@ class TagAlias < TagRelationship
   has_many :tag_rel_undos, as: :tag_rel
 
   after_save :create_mod_action
-  validates :antecedent_name, uniqueness: true
+  validates :antecedent_name, uniqueness: { conditions: -> { duplicate_relevant } }
   validate :absence_of_transitive_relation
 
   module ApprovalMethods
