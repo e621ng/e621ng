@@ -632,6 +632,10 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    def ad_tag_string
+      "#{tag_string_artist} #{tag_string_species} #{tag_string_character}"[0..1024]
+    end
+
     def should_process_tags?
       tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
     end

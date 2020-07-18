@@ -18,6 +18,10 @@
             return;
           el.setAttribute("data-revive-zoneid", zone.zone.toString());
           el.setAttribute("data-revive-id", zone.revive_id);
+          <% if @ad_tag_string.present? %>
+          // We run our own ad network. Tags are not logged anywhere, and are only used for filtering ads based on tags.
+          el.setAttribute("data-revive-tags", <%= raw(@ad_tag_string.to_json) %>);
+          <% end %>
           var s = document.createElement('script');
           s.async = true;
           s.src = "//ads.dragonfru.it/www/delivery/asyncjs.php";

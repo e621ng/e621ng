@@ -20,6 +20,10 @@ module PostSets
       @tag_string ||= tag_array.uniq.join(" ")
     end
 
+    def ad_tag_string
+      @ad_tag_string ||= tag_array.uniq.reject { |item| !Tag.is_simple_tag?(item) || %w[young loli shota scat watersports].include?(item) }.join(" ")[0..1024]
+    end
+
     def public_tag_string
       @public_tag_string ||= public_tag_array.uniq.join(" ")
     end
