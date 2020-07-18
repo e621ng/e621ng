@@ -84,7 +84,7 @@ class AliasAndImplicationImporter
 
   def validate_alias(token)
     tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
-    if tag_alias.has_transitives
+    if tag_alias.present? && tag_alias.has_transitives
       return [nil, "alias ##{tag_alias.id}, has blocking transitive relationships, cannot be applied through BUR"]
     end
     return [nil, "alias ##{tag_alias.id}"] unless tag_alias.nil?

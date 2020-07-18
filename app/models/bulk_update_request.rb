@@ -105,7 +105,7 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", true, user_id, user_ip_addr).process!
+          AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", user_id, user_ip_addr).process!
           update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
