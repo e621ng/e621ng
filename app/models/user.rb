@@ -534,11 +534,11 @@ class User < ApplicationRecord
                          :is_janitor?, 7.days)
 
     def can_remove_from_pools?
-      older_than 7.days
+      is_member? && older_than(7.days)
     end
 
     def can_discord?
-      older_than 7.days
+      is_member? && older_than(7.days)
     end
 
     def can_view_flagger?(flagger_id)
