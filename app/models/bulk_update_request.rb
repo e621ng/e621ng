@@ -173,6 +173,8 @@ class BulkUpdateRequest < ApplicationRecord
         self.script = new_script
 
       errors.empty?
+    rescue AliasAndImplicationImporter::Error => e
+      self.errors.add(:script, e)
     end
   end
 
