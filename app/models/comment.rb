@@ -176,7 +176,9 @@ class Comment < ApplicationRecord
   end
 
   def visible_to?(user)
-    is_hidden? == false || ((creator_id == user.id && user.show_hidden_comments?) || user.is_moderator?)
+    return true if user.is_moderator?
+    return true if is_hidden? == false
+    (creator_id == user.id) && user.show_hidden_comments?
   end
 
   def hidden_attributes

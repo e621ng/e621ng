@@ -91,6 +91,7 @@ Comment.delete = function (e) {
 };
 
 Comment.quote = function (e) {
+  e.preventDefault();
   const parent = $(e.target).parents('article.comment');
   const pid = parent.data('post-id');
   const cid = parent.data('comment-id');
@@ -129,16 +130,16 @@ Comment.toggle_post_tags = function (e) {
 }
 
 Comment.show_new_comment_form = function (e) {
+  e.preventDefault();
   $(e.target).hide();
   var $form = $(e.target).closest("div.new-comment").find("form");
   $form.show();
   $form[0].scrollIntoView(false);
-  e.preventDefault();
 }
 
 Comment.show_edit_form = function (e) {
-  $(this).closest(".comment").find(".edit_comment").show();
   e.preventDefault();
+  $(this).closest(".comment").find(".edit_comment").show();
 }
 
 Comment.vote_up = function (e) {
