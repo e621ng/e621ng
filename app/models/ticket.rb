@@ -234,7 +234,7 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        unless dmail and dmail.to_id == creator_id
+        unless dmail and dmail.owner_id == creator_id
           errors.add :dmail, "does not exist"
         end
       end
