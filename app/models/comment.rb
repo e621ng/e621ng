@@ -178,6 +178,11 @@ class Comment < ApplicationRecord
   def visible_to?(user)
     return true if user.is_moderator?
     return true if is_hidden? == false
+    creator_id == user.id # Can always see your own comments, even if hidden.
+  end
+
+  def should_see?(user)
+    return true unless is_hidden?
     (creator_id == user.id) && user.show_hidden_comments?
   end
 
