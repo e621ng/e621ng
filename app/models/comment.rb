@@ -182,6 +182,7 @@ class Comment < ApplicationRecord
   end
 
   def should_see?(user)
+    return true if user.is_moderator?
     return true unless is_hidden?
     (creator_id == user.id) && user.show_hidden_comments?
   end
