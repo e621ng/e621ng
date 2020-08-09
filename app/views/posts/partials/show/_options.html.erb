@@ -52,7 +52,7 @@
           <li><%= tag.a "Destroy", href: '#', id: 'destroy-post-link', 'data-pid': post.id %></li>
         <% end %>
       <% end %>
-      <% if CurrentUser.is_member? %>
+      <% if CurrentUser.is_janitor? %>
         <li><%= link_to "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
       <% end %>
     <% end %>
