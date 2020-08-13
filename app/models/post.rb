@@ -49,7 +49,6 @@ class Post < ApplicationRecord
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, :dependent => :destroy
   has_one :pixiv_ugoira_frame_data, :class_name => "PixivUgoiraFrameData", :dependent => :destroy
-  has_one :replacement, class_name: "PostImageHash", dependent: :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :appeals, :class_name => "PostAppeal", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
