@@ -146,7 +146,7 @@
         <% unless CurrentUser.hide_comments? %>
           <li class="active"><a href="#comments">Comments</a></li>
         <% end %>
-        <% if CurrentUser.is_member? && @post.visible? %>
+        <% if CurrentUser.is_member? %>
           <li><a href="#edit" id="post-edit-link" data-shortcut="e">Edit</a></li>
         <% end %>
       </menu>
@@ -165,7 +165,7 @@
         <% end %>
       </section>
 
-      <% if CurrentUser.is_member? && @post.visible? %>
+      <% if CurrentUser.is_member? %>
         <section id="edit" style="display: none;">
           <%= render "posts/partials/show/edit", :post => @post %>
         </section>

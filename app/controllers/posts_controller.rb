@@ -156,7 +156,6 @@ private
   end
 
   def ensure_can_edit(post)
-    raise User::PrivilegeError.new("Post not visible to you") unless post.visible?
     can_edit = CurrentUser.can_post_edit_with_reason
     raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
   end
