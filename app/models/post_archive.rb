@@ -336,14 +336,28 @@ class PostArchive < ApplicationRecord
   def undo
     raise RevertError unless post.visible?
 
+    if description_changed
+      post.description = previous.description
+    end
+
+    if rating_changed && !post.is_rating_locked?
+      post.rating = previous.rating
+    end
+
+    if parent_changed
+      post.parent_id = previous.parent_id
+    end
+
+    if source_changed
+      post.source = previous.source
+    end
+
     added = changes[:added_tags] - changes[:obsolete_added_tags]
     removed = changes[:removed_tags] - changes[:obsolete_removed_tags]
 
     added.each do |tag|
       if tag =~ /^source:/
-        post.source = ""
       elsif tag =~ /^parent:/
-        post.parent_id = nil
       else
         escaped_tag = Regexp.escape(tag)
         post.tag_string = post.tag_string.sub(/(?:\A| )#{escaped_tag}(?:\Z| )/, " ").strip
@@ -351,7 +365,7 @@ class PostArchive < ApplicationRecord
     end
     removed.each do |tag|
       if tag =~ /^source:(.+)$/
-        post.source = $1
+      elsif tag =~ /^parent:/
       else
         post.tag_string = "#{post.tag_string} #{tag}".strip
       end
