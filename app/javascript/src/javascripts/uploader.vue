@@ -70,6 +70,8 @@
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label" for="names">Artists</label>
+                        <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
+                        <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
                         <div>
@@ -120,6 +122,7 @@
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label">Body Types and Species</label>
+                        <div>One listed body type per visible character, listed options are mutually exclusive.</div>
                     </div>
                     <div class="col2">
                         <div class="flex-wrap">
@@ -178,6 +181,11 @@
                     <label class="section-label" for="post_tags">Other Tags</label>
                     <div>
                         Separate tags with spaces. (<a href="/help/tags" target="_blank">help</a>)
+                    </div>
+                    <div>
+                      <a href="/wiki_pages/tag_what_you_see">
+                        Outside information or other images should not be used when deciding what tags are used.
+                      </a>
                     </div>
                 </div>
                 <div class="col2">
