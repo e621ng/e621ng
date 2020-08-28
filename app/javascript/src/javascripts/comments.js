@@ -17,6 +17,22 @@ Comment.initialize_all = function () {
   }
 }
 
+Comment.reinitialize_all = function () {
+  if ($("#c-posts").length || $("#c-comments").length) {
+    $(".comment-reply-link").off('click');
+    $(".comment-hide-link").off('click');
+    $(".comment-unhide-link").off('click');
+    $(".comment-delete-link").off('click');
+    $(".show-all-comments-for-post-link").off('click');
+    $(".comment-tag-hide-link").off("click");
+    $(".edit_comment_link").off('click');
+    $(".expand-comment-response").off('click');
+    $('.comment-vote-up-link').off('click');
+    $(".comment-vote-down-link").off('click');
+    Comment.initialize_all();
+  }
+}
+
 Comment.show_all = function(e) {
   e.preventDefault();
   const target = $(e.target);
@@ -31,6 +47,7 @@ Comment.show_all = function(e) {
     const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
     current_comment_section.html(data.html);
     $(window).trigger("e621:add_deferred_posts", data.posts);
+    Comment.reinitialize_all();
   }).fail(function(data) {
     Utility.error("Failed to fetch all comments for this post.");
   });
