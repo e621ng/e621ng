@@ -2022,6 +2022,7 @@ class Post < ApplicationRecord
     has_cropped
     hide_from_anonymous
     hide_from_search_engines
+    has_scaled_video_samples
   )
   has_bit_flags BOOLEAN_ATTRIBUTES
 
