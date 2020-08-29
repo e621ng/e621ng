@@ -61,4 +61,5 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
   config.hosts << 'e621ng.local'
   config.hosts << 'magic.newtsin.space'
+  config.hosts << 'e621.lc'
 end
