@@ -16,6 +16,8 @@ class StorageManager
     @large_image_prefix = large_image_prefix
   end
 
+  #change to bucket name when using s3 with force_path_style: true or leave as "/" if force_path_style: false
+  #TODO change value based on storage type, bucketname, and force_path_style
   def default_base_path
     "/data"
   end
