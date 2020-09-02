@@ -85,6 +85,16 @@ GEM
     airbrussh (1.4.0)
       sshkit (>= 1.6.1, != 1.7.0)
     awesome_print (1.8.0)
+    aws-eventstream (1.1.0)
+    aws-sdk (2.11.575)
+      aws-sdk-resources (= 2.11.575)
+    aws-sdk-core (2.11.575)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.11.575)
+      aws-sdk-core (= 2.11.575)
+    aws-sigv4 (1.2.2)
+      aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.13)
     bootsnap (1.4.6)
       msgpack (~> 1.0)
@@ -183,6 +193,7 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.8.3)
       concurrent-ruby (~> 1.0)
+    jmespath (1.4.0)
     jquery-rails (4.4.0)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -435,6 +446,7 @@ DEPENDENCIES
   active_model_serializers (~> 0.10.0)
   addressable
   awesome_print
+  aws-sdk (~> 2)
   bcrypt
   bootsnap
   capistrano (~> 3.10)
