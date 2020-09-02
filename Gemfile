@@ -48,8 +48,7 @@ gem 'request_store'
 gem 'elasticsearch-model'
 gem 'elasticsearch-rails'
 
-#TODO update to aws-sdk v3
-gem 'aws-sdk', '~> 2'
+gem 'aws-sdk-s3', '~> 1'
 
 
 gem 'mailgun-ruby'
