@@ -15,6 +15,8 @@ class StorageManager::Local < StorageManager
   rescue StandardError => e
     FileUtils.rm_f(temp_path)
     raise Error, e
+  ensure
+    FileUtils.rm_f(temp_path) if temp_path
   end
 
   def delete(path)

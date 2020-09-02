@@ -101,10 +101,10 @@ class StorageManager
     origin
   end
 
-  def file_path(post_or_md5, file_ext, type, protected=false)
+  def file_path(post_or_md5, file_ext, type, protected=false, scale_factor: nil)
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
     subdir = subdir_for(md5)
-    file = file_name(md5, file_ext, type)
+    file = file_name(md5, file_ext, type, scale_factor: scale_factor)
     base = protected ? "#{base_dir}/#{protected_prefix}" : base_dir
 
     case type
@@ -114,12 +114,14 @@ class StorageManager
       "#{base}/crop/#{subdir}#{file}"
     when :large
       "#{base}/sample/#{subdir}#{file}"
+    when :scaled
+      "#{base}/sample/#{subdir}#{file}"
     when :original
       "#{base}/#{subdir}#{file}"
     end
   end
 
-  def file_name(md5, file_ext, type)
+  def file_name(md5, file_ext, type, scale_factor: nil)
     large_file_ext = (file_ext == "zip") ? "webm" : "jpg"
 
     case type
@@ -131,6 +133,8 @@ class StorageManager
       "#{large_image_prefix}#{md5}.#{large_file_ext}"
     when :original
       "#{md5}.#{file_ext}"
+    when :scaled
+      "#{md5}_#{scale_factor}.#{file_ext}"
     end
   end
 
