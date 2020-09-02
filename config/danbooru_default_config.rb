@@ -418,6 +418,69 @@ fart'
       "danbooru"
     end
 
+    # AWS config options
+    def aws_region
+      "us-east-1"
+    end
+
+    def aws_credentials
+      Aws::Credentials.new(Danbooru.config.aws_access_key_id, Danbooru.config.aws_secret_access_key)
+    end
+
+    def aws_access_key_id
+    end
+
+    def aws_secret_access_key
+    end
+
+    def aws_ses_enabled?
+      false
+    end
+
+    def aws_ses_options
+      # {:smtp_server_name => "smtp server", :user_name => "user name", :ses_smtp_user_name => "smtp user name", :ses_smtp_password => "smtp password"}
+    end
+
+    def aws_s3_enabled?
+      false
+    end
+
+    # Used for backing up images to S3. Must be changed to your own S3 bucket.
+    def aws_s3_bucket_name
+      "danbooru"
+    end
+
+    def aws_sqs_enabled?
+      false
+    end
+
+    def aws_sqs_saved_search_url
+    end
+
+    def aws_sqs_reltagcalc_url
+    end
+
+    def aws_sqs_post_versions_url
+    end
+
+    def aws_sqs_region
+    end
+
+    def aws_sqs_iqdb_url
+    end
+
+    def aws_sqs_archives_url
+    end
+
+    def ccs_server
+    end
+
+    def ccs_key
+    end
+
+    def aws_sqs_cropper_url
+    end
+
     # The method to use for storing image files.
     def storage_manager
       # Store files on the local filesystem.
