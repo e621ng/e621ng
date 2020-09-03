@@ -4,10 +4,10 @@ let Comment = {};
 
 Comment.initialize_all = function () {
   if ($("#c-posts").length || $("#c-comments").length) {
-    $(document).on("click.danbooru.comment", ".edit_comment_link", Comment.show_edit_form);
-    $(document).on("click.danbooru.comment", ".expand-comment-response", Comment.show_new_comment_form);
-    $(document).on("click.danbooru.comment", '.comment-vote-up-link', Comment.vote_up);
-    $(document).on("click.danbooru.comment", ".comment-vote-down-link", Comment.vote_down);
+    $(".edit_comment_link").on("click", Comment.show_edit_form);
+    $(".expand-comment-response").on("click", Comment.show_new_comment_form);
+    $('.comment-vote-up-link').on("click", Comment.vote_up);
+    $(".comment-vote-down-link").on("click", Comment.vote_down);
     $(".comment-reply-link").on('click', Comment.quote);
     $(".comment-hide-link").on('click', Comment.hide);
     $(".comment-unhide-link").on('click', Comment.unhide);
@@ -46,8 +46,8 @@ Comment.show_all = function(e) {
 
     const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
     current_comment_section.html(data.html);
-    $(window).trigger("e621:add_deferred_posts", data.posts);
     Comment.reinitialize_all();
+    $(window).trigger("e621:add_deferred_posts", data.posts);
   }).fail(function(data) {
     Utility.error("Failed to fetch all comments for this post.");
   });
