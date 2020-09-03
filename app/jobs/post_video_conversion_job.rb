@@ -9,25 +9,24 @@ class PostVideoConversionJob
     sm = Danbooru.config.storage_manager
     samples.each do |name, named_samples|
       next if name == :original
-      webm_path = sm.file_path(md5, 'webm', :scaled, scale_factor: name.to_s)
+      webm_path = sm.file_path(md5, 'webm', :scaled, post.is_deleted?, scale_factor: name.to_s)
       logger.info("FILE PATH: #{webm_path.inspect}")
       sm.store(named_samples[0], webm_path)
       named_samples[0].close!
-      mp4_path = sm.file_path("#{md5}", 'mp4', :scaled, scale_factor: name.to_s)
+      mp4_path = sm.file_path("#{md5}", 'mp4', :scaled, post.is_deleted?, scale_factor: name.to_s)
       logger.info("FILE PATH MP4: #{mp4_path.inspect}")
       sm.store(named_samples[1], mp4_path)
       named_samples[1].close!
     end
-    sm.store(samples[:original][1], sm.file_path(md5, 'mp4', :original))
+    sm.store(samples[:original][1], sm.file_path(md5, 'mp4', :original, post.is_deleted?))
     samples[:original].each do |sample|
       sample.close!
     end
   end
 
   def generate_video_samples(post)
-    target_dims = {'480': [640, 480], '720': [1280, 720]}
     outputs = {}
-    target_dims.each do |size, dims|
+    Danbooru.config.video_rescales.each do |size, dims|
       next if post.image_width <= dims[0] && post.image_height <= dims[1]
       outputs[size] = generate_scaled_video(post.file_path, [post.image_width, post.image_height], dims)
     end
@@ -59,23 +58,31 @@ class PostVideoConversionJob
         "-auto-alt-ref",
         "0",
         '-qmin',
-        '15',
+        '20',
         '-qmax',
-        '35',
+        '42',
         "-crf",
-        "30",
+        "35",
         '-b:v',
         '3M',
         "-vf",
         target_size,
         "-threads",
         "4",
+        '-row-mt',
+        '1',
         "-max_muxing_queue_size",
         "4096",
         "-slices",
         "8",
         '-c:a',
-        'libvorbis',
+        'libopus',
+        '-b:a',
+        '96k',
+        '-map_metadata',
+        '-1',
+        '-metadata',
+        'title="e621.net_preview_quality_conversion,_visit_site_for_full_quality_download"',
         webm_file.path
     ]
     mp4_args = [
@@ -86,9 +93,9 @@ class PostVideoConversionJob
         "-profile:v",
         "main",
         "-preset",
-        "medium",
+        "fast",
         "-crf",
-        "22",
+        "27",
         "-b:v",
         "3M",
         "-vf",
@@ -98,7 +105,13 @@ class PostVideoConversionJob
         "-max_muxing_queue_size",
         "4096",
         '-c:a',
-        'copy',
+        'aac',
+        '-b:a',
+        '128k',
+        '-map_metadata',
+        '-1',
+        '-metadata',
+        'title="e621.net_preview_quality_conversion,_visit_site_for_full_quality_download"',
         '-movflags',
         '+faststart',
         mp4_file.path
@@ -132,7 +145,10 @@ class PostVideoConversionJob
         post = Post.find(id)
         samples = generate_video_samples(post)
         move_videos(post, samples)
-        post.update_attribute(:has_scaled_video_samples, true)
+        post.reload
+        known_samples = post.generated_samples || []
+        known_samples += samples.keys.map(&:to_s)
+        post.update_column(:generated_samples, known_samples.uniq)
       end
     rescue ActiveRecord::RecordNotFound
       return

@@ -135,6 +135,14 @@ class Post < ApplicationRecord
       storage_manager.file_url(self, :original)
     end
 
+    def file_url_ext(ext)
+      storage_manager.file_url_ext(self, :original, ext)
+    end
+
+    def scaled_url_ext(scale, ext)
+      storage_manager.file_url_ext(self, :scaled, ext, scale: scale)
+    end
+
     def large_file_url
       storage_manager.file_url(self, :large)
     end
@@ -237,6 +245,10 @@ class Post < ApplicationRecord
 
     def has_ugoira_webm?
       true
+    end
+
+    def has_sample_size?(scale)
+      (generated_samples || []).include?(scale)
     end
   end
 
@@ -2022,7 +2034,6 @@ class Post < ApplicationRecord
     has_cropped
     hide_from_anonymous
     hide_from_search_engines
-    has_scaled_video_samples
   )
   has_bit_flags BOOLEAN_ATTRIBUTES
 

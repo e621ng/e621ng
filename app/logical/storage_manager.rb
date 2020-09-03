@@ -73,26 +73,30 @@ class StorageManager
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 
-  def file_url(post, type)
+  def file_url_ext(post, type, ext, scale: nil)
     subdir = subdir_for(post.md5)
-    file = file_name(post.md5, post.file_ext, type)
+    file = file_name(post.md5, ext, type, scale_factor: scale)
     base = post.protect_file? ? "#{base_path}/#{protected_prefix}" : base_path
 
     return "#{root_url}/images/download-preview.png" if type == :preview && !post.has_preview?
     path = if type == :preview
-      "#{base}/preview/#{subdir}#{file}"
-    elsif type == :crop
-      "#{base}/crop/#{subdir}#{file}"
-    elsif type == :large && post.has_large?
-      "#{base}/sample/#{subdir}#{file}"
-    else
-      "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
-    end
+             "#{base}/preview/#{subdir}#{file}"
+           elsif type == :crop
+             "#{base}/crop/#{subdir}#{file}"
+           elsif type == :large && post.has_large?
+             "#{base}/sample/#{subdir}#{file}"
+           else
+             "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
+           end
     if post.protect_file?
       "#{base_url}#{path}#{protected_params(path, post)}"
     else
       "#{base_url}#{path}"
     end
+  end
+
+  def file_url(post, type)
+    file_url_ext(post, type, post.file_ext)
   end
 
   def root_url

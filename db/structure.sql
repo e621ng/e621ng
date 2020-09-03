@@ -1563,14 +1563,59 @@ CREATE TABLE public.post_replacements (
     image_width integer,
     image_height integer,
     md5 character varying,
+    image_height_was integer,
+    image_width_was integer,
+    md5_was character varying,
+    file_size_was integer,
+    file_ext_was character varying,
+    replacement_url text,
+    original_url text
+);
+
+
+--
+-- Name: post_replacements2; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_replacements2 (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    post_id integer NOT NULL,
+    creator_id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
+    approver_id integer,
+    file_ext character varying NOT NULL,
+    file_size integer NOT NULL,
+    image_height integer NOT NULL,
+    image_width integer NOT NULL,
+    md5 character varying NOT NULL,
     source character varying,
     file_name character varying,
     storage_id character varying NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
     reason character varying NOT NULL,
-    protected boolean DEFAULT false
+    protected boolean DEFAULT false NOT NULL
 );
+
+
+--
+-- Name: post_replacements2_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_replacements2_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_replacements2_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_replacements2_id_seq OWNED BY public.post_replacements2.id;
 
 
 --
@@ -1844,7 +1889,8 @@ CREATE TABLE public.posts (
     comment_count integer DEFAULT 0 NOT NULL,
     change_seq bigint NOT NULL,
     tag_count_lore integer DEFAULT 0 NOT NULL,
-    bg_color character varying
+    bg_color character varying,
+    generated_samples character varying[]
 );
 
 
@@ -2864,6 +2910,13 @@ ALTER TABLE ONLY public.post_replacements ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: post_replacements2 id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_replacements2 ALTER COLUMN id SET DEFAULT nextval('public.post_replacements2_id_seq'::regclass);
+
+
+--
 -- Name: post_report_reasons id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3349,6 +3402,14 @@ ALTER TABLE ONLY public.post_flags
 
 ALTER TABLE ONLY public.post_image_hashes
     ADD CONSTRAINT post_image_hashes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_replacements2 post_replacements2_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_replacements2
+    ADD CONSTRAINT post_replacements2_pkey PRIMARY KEY (id);
 
 
 --
@@ -4205,6 +4266,20 @@ CREATE UNIQUE INDEX index_post_image_hashes_on_post_id ON public.post_image_hash
 
 
 --
+-- Name: index_post_replacements2_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_replacements2_on_creator_id ON public.post_replacements2 USING btree (creator_id);
+
+
+--
+-- Name: index_post_replacements2_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_replacements2_on_post_id ON public.post_replacements2 USING btree (post_id);
+
+
+--
 -- Name: index_post_replacements_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5004,7 +5079,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191231162515'),
 ('20200113022639'),
 ('20200420032714'),
-('20200510005635'),
-('20200713053034');
+('20200713053034'),
+('20200806101238'),
+('20200910015420');
 
 
