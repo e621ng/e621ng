@@ -11,27 +11,28 @@ Autocomplete.TAG_PREFIXES_REGEX = new RegExp("^(" + Autocomplete.TAG_PREFIXES + 
 Autocomplete.METATAGS_REGEX = new RegExp("^(" + Autocomplete.METATAGS.join("|") + "):(.*)$", "i");
 
 Autocomplete.initialize_all = function() {
-  if (Utility.meta("enable-auto-complete") === "true") {
-    $.widget("ui.autocomplete", $.ui.autocomplete, {
-      options: {
-        delay: 225,
-        minLength: 3,
-        autoFocus: false,
-        focus: function() { return false; },
-      },
-      _create: function() {
-        this.element.on("keydown.Autocomplete.tab", null, "tab", Autocomplete.on_tab);
-        this._super();
-      },
-      _renderItem: Autocomplete.render_item
-    });
+  if (Utility.meta("enable-auto-complete") !== "true")
+    return;
 
-    this.initialize_tag_autocomplete();
-    this.initialize_artist_autocomplete($('[data-autocomplete="artist"]'));
-    this.initialize_pool_autocomplete($('[data-autocomplete="pool"]'));
-    this.initialize_user_autocomplete($('[data-autocomplete="user"]'));
-    this.initialize_wiki_autocomplete($('[data-autocomplete="wiki-page"]'));
-  }
+  $.widget("ui.autocomplete", $.ui.autocomplete, {
+    options: {
+      delay: 225,
+      minLength: 3,
+      autoFocus: false,
+      focus: function() { return false; },
+    },
+    _create: function() {
+      this.element.on("keydown.Autocomplete.tab", null, "tab", Autocomplete.on_tab);
+      this._super();
+    },
+    _renderItem: Autocomplete.render_item
+  });
+
+  this.initialize_tag_autocomplete();
+  this.initialize_artist_autocomplete($('[data-autocomplete="artist"]'));
+  this.initialize_pool_autocomplete($('[data-autocomplete="pool"]'));
+  this.initialize_user_autocomplete($('[data-autocomplete="user"]'));
+  this.initialize_wiki_autocomplete($('[data-autocomplete="wiki-page"]'));
 }
 
 Autocomplete.initialize_tag_autocomplete = function() {

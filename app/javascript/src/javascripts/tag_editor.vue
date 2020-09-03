@@ -32,6 +32,7 @@
   import tagPreview from './uploader_preview.vue';
   import Post from './posts.js.erb';
   import Autocomplete from "./autocomplete.js.erb";
+  import Utility from "./utility.js";
 
   function tagSorter(a, b) {
     return a[0] > b[0] ? 1 : -1;
@@ -56,6 +57,8 @@
       };
     },
     mounted() {
+      if(Utility.meta("enable-auto-complete") !== "true")
+        return;
       Autocomplete.initialize_tag_autocomplete();
     },
     computed: {
