@@ -4,7 +4,7 @@ class PostVersionsController < ApplicationController
   respond_to :js, only: [:undo]
 
   def index
-    @post_versions = PostArchive.search(PostArchive.build_query(search_params)).paginate(params[:page], :limit => params[:limit], :search_count => params[:search], includes: [:updater, post: [:versions]])
+    @post_versions = PostArchive.__elasticsearch__.search(PostArchive.build_query(search_params)).paginate(params[:page], :limit => params[:limit], :search_count => params[:search], includes: [:updater, post: [:versions]])
     respond_with(@post_versions)
   end
 
