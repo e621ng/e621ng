@@ -82,7 +82,10 @@
 
       <tr>
         <th>Comments</th>
-        <td><%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts</td>
+        <td><%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts
+          <% if CurrentUser.is_moderator? %>
+            (<%= link_to "votes", action: "index", controller: "comment_votes", user_id: user.id %>)
+          <% end %></td>
         <th>Artist Changes</th>
         <td><%= presenter.artist_version_count(self) %></td>
       </tr>

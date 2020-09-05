@@ -53,66 +53,13 @@
       </tbody>
     </table>
     <br/>
+    <%= tag.button "Select All", id: "select-all-votes" %><br/>
     <%= tag.button "Lock Votes",  id: "lock-votes" %> Set the votes to 0, preventing the user
     from voting on the image again<br/>
     <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
 
     <%= javascript_tag nonce: true do -%>
-      $(function () {
-        var lastSelected = 0;
-        $("#votes").on('click', 'tbody tr', function (evt) {
-          evt.preventDefault();
-          if(evt.shiftKey) {
-            toggleRowsBetween([lastSelected, this.rowIndex]);
-          }
-          $(this).toggleClass('selected');
-          lastSelected = this.rowIndex;
-        });
-        $("#lock-votes").on('click', CommentVotes.lock);
-        $("#delete-votes").on('click', CommentVotes.delete);
-      });
-
-      function toggleRowsBetween(indices) {
-        lastSelected = indices[1];
-        var rows = $('#votes').find('tr');
-        indices = indices.sort();
-        rows = rows.slice(indices[0], indices[1]);
-        rows.toggleClass('selected');
-      }
-
-      function selectedVotes() {
-        return $("#votes>tbody>tr.selected").map(function () {
-          return $(this).attr('id').substr(1);
-        }).get();
-      }
-
-      CommentVotes = {};
-      CommentVotes.lock = function () {
-        const votes = selectedVotes();
-        if (!votes.length) return;
-        $.ajax({
-          url: '/comment_votes/lock.json',
-          method: "post",
-          data: {
-            ids: votes.join(',')
-          }
-        }).done(function () {
-          $(window).trigger('danbooru:notice', 'Comment votes locked.');
-        });
-      };
-      CommentVotes.delete = function () {
-        const votes = selectedVotes();
-        if (!votes.length) return;
-        $.ajax({
-          url: '/comment_votes/delete.json',
-          method: "post",
-          data: {
-            ids: votes.join(',')
-          }
-        }).done(function () {
-          $(window).trigger('danbooru:notice', 'Comment votes deleted.');
-        });
-      };
+      new Danbooru.VoteManager('comment');
     <% end -%>
 
     <div id="paginator">
