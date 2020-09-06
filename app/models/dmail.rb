@@ -218,12 +218,12 @@ class Dmail < ApplicationRecord
   end
 
   def recipient_accepts_dmails
-    return true if from_id == User.system.id
-    return true if from.is_janitor?
     unless to
       errors.add(:to_name, "not found")
       return false
     end
+    return true if from_id == User.system.id
+    return true if from.is_janitor?
     if to.disable_user_dmails
       errors.add(:to_name, "has disabled DMails")
       return false
