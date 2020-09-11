@@ -44,12 +44,12 @@ class TagAlias < TagRelationship
     def list_transitives
       return @transitives if @transitives
       @transitives = []
-      aliases = TagAlias.where(["consequent_name = ?", antecedent_name])
+      aliases = TagAlias.duplicate_relevant.where("consequent_name = ?", antecedent_name)
       aliases.each do |ta|
         @transitives << [:alias, ta, ta.antecedent_name, ta.consequent_name, consequent_name]
       end
 
-      implications = TagImplication.where("antecedent_name = ? or consequent_name = ?", antecedent_name, antecedent_name)
+      implications = TagImplication.duplicate_relevant.where("antecedent_name = ? or consequent_name = ?", antecedent_name, antecedent_name)
       implications.each do |ti|
         if ti.antecedent_name == antecedent_name
           @transitives << [:implication, ti, ti.antecedent_name, ti.consequent_name, consequent_name, ti.consequent_name]
