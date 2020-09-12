@@ -24,6 +24,8 @@ class IqdbQueriesController < ApplicationController
         render json: @matches, root: 'posts'
       end
     end
+  rescue IqdbProxy::Error => e
+    render_expected_error(500, e.message)
   end
 
 private

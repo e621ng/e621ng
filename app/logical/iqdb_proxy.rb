@@ -1,4 +1,5 @@
 class IqdbProxy
+  class Error < ::Exception; end
   def self.query(image_url)
     raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
 
@@ -37,6 +38,7 @@ class IqdbProxy
   end
 
   def self.decorate_posts(json)
+    raise Error.new("Server returned an error. Most likely the url is not found.") if json['error'].present?
     json.map do |x|
       begin
         x["post"] = Post.find(x["post_id"])
