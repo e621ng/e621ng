@@ -38,6 +38,7 @@ class IqdbProxy
   end
 
   def self.decorate_posts(json)
+    raise Error.new("Server returned an error. Most likely the url is not found.") unless json.kind_of?(Array)
     json.map do |x|
       begin
         x["post"] = Post.find(x["post_id"])
