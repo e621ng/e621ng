@@ -118,6 +118,7 @@ class ElasticPostQueryBuilder
   end
 
   def build
+    function_score = nil
     def should(*args)
       # Explicitly set minimum should match, even though it may not be required in this context.
       {bool: {minimum_should_match: 1, should: args}}
@@ -595,17 +596,17 @@ class ElasticPostQueryBuilder
 
     when "random"
       if q[:random].present?
-        must.push({function_score: {
+        function_score = {function_score: {
             query: {match_all: {}},
             random_score: {seed: q[:random].to_i, field: 'id'},
             boost_mode: :replace
-        }})
+        }}
       else
-        must.push({function_score: {
+        function_score = {function_score: {
             query: {match_all: {}},
             random_score: {},
             boost_mode: :replace
-        }})
+        }}
       end
 
       order.push({_score: :desc})
@@ -618,8 +619,13 @@ class ElasticPostQueryBuilder
       must.push({match_all: {}})
     end
 
+    query = {bool: {must: must, must_not: must_not}}
+    if function_score.present?
+      function_score[:function_score][:query] = query
+      query = function_score
+    end
     search_body = {
-        query: {bool: {must: must, must_not: must_not}},
+        query: query,
         sort: order,
         _source: false,
         timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
