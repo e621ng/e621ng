@@ -62,7 +62,7 @@ class PostSet < ApplicationRecord
   end
 
   def self.active_maintainer(user = CurrentUser.user)
-    joins(:post_set_maintainers).where(post_set_maintainers: {status: 'active', user_id: user.id})
+    joins(:post_set_maintainers).where(post_set_maintainers: {status: 'approved', user_id: user.id})
   end
 
   def if_names_changed?
@@ -306,7 +306,7 @@ class PostSet < ApplicationRecord
     end
 
     def where_has_maintainer(user_id)
-      joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'active', user_id)
+      joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'approved', user_id)
     end
 
     def search(params)
