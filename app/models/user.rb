@@ -505,9 +505,9 @@ class User < ApplicationRecord
     create_user_throttle(:wiki_edit, ->{ Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days)
     create_user_throttle(:pool, ->{ Danbooru.config.pool_limit - Pool.for_user(id).where('created_at > ?', 1.hour.ago).count },
-                         nil, 7.days)
+                         :is_janitor?, 7.days)
     create_user_throttle(:pool_edit, ->{ Danbooru.config.pool_edit_limit - PoolArchive.for_user(id).where('updated_at > ?', 1.hour.ago).count },
-                         nil, 3.days)
+                         :is_janitor?, 3.days)
     create_user_throttle(:pool_post_edit, -> { Danbooru.config.pool_post_edit_limit - PoolArchive.for_user(id).where('updated_at > ?', 1.hour.ago).group(:pool_id).count(:pool_id).length },
                           :general_bypass_throttle?, 7.days)
     create_user_throttle(:note_edit, ->{ Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where('updated_at > ?', 1.hour.ago).count },
