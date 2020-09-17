@@ -22,6 +22,7 @@ class Pool < ApplicationRecord
   after_save :create_version
   after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
+  before_destroy :remove_all_posts
 
   attr_accessor :skip_sync
 
@@ -215,7 +216,7 @@ class Pool < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_janitor?
+    user.is_moderator?
   end
 
   def updater_can_edit_deleted
@@ -314,6 +315,17 @@ class Pool < ApplicationRecord
   def synchronize!
     synchronize
     save if will_save_change_to_post_ids?
+  end
+
+  def remove_all_posts
+    with_lock do
+      transaction do
+        Post.where(id: post_ids).find_each do |post|
+          post.remove_pool!(self)
+          post.save
+        end
+      end
+    end
   end
 
   def post_count

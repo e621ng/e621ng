@@ -62,20 +62,9 @@ class PoolsController < ApplicationController
     if !@pool.deletable_by?(CurrentUser.user)
       raise User::PrivilegeError
     end
-    @pool.update_attribute(:is_deleted, true)
     @pool.create_mod_action_for_delete
+    @pool.destroy
     flash[:notice] = "Pool deleted"
-    respond_with(@pool)
-  end
-
-  def undelete
-    @pool = Pool.find(params[:id])
-    if !@pool.deletable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
-    @pool.update_attribute(:is_deleted, false)
-    @pool.create_mod_action_for_undelete
-    flash[:notice] = "Pool undeleted"
     respond_with(@pool)
   end
 
