@@ -21,7 +21,7 @@
         <% end %>
       <% end %>
       <%= subnav_link_to "History", pool_versions_path(:search => {:pool_id => @pool.id}) %>
-      <% if @pool.post_count <= 100 && CurrentUser.is_member? %>
+      <% if @pool.post_count <= 1_000 && CurrentUser.is_member? %>
         <%= subnav_link_to "Order", edit_pool_order_path(@pool) %>
       <% end %>
       <% if CurrentUser.is_member? %>
