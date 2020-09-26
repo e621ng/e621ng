@@ -2,7 +2,7 @@
 
 class PostVideoConversionJob
   include Sidekiq::Worker
-  sidekiq_options queue: 'video', lock: :until_executing, unique_args: ->(args) { args[1] }, retry: 3
+  sidekiq_options queue: 'video', lock: :until_executing, unique_args: ->(args) { args[0] }, retry: 3
 
   def move_videos(post, samples)
     md5 = post.md5
@@ -132,8 +132,8 @@ class PostVideoConversionJob
     stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, *args)
 
     unless status == 0
-      Rails.logger.warn("[FFMPEG TRANSCODE STDOUT] #{stdout.chomp}")
-      Rails.logger.warn("[FFMPEG TRANSCODE STDERR] #{stderr.chomp}")
+      logger.warn("[FFMPEG TRANSCODE STDOUT] #{stdout.chomp}")
+      logger.warn("[FFMPEG TRANSCODE STDERR] #{stderr.chomp}")
       raise Exception.new("unable to transcode files\n#{stdout.chomp}\n\n#{stderr.chomp}")
     end
     [webm_file, mp4_file]
@@ -143,6 +143,10 @@ class PostVideoConversionJob
     begin
       Post.transaction do
         post = Post.find(id)
+        if !post.is_video?
+          logger.info "Exiting as not a video"
+          return
+        end
         samples = generate_video_samples(post)
         move_videos(post, samples)
         post.reload

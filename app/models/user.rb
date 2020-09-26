@@ -79,7 +79,7 @@ class User < ApplicationRecord
 
 
   validates :name, user_name: true, on: :create
-  validates :default_image_size, inclusion: { :in => %w(large fit original) }
+  validates :default_image_size, inclusion: { :in => %w(large fit fitv original) }
   validates :per_page, inclusion: { :in => 1..320 }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }

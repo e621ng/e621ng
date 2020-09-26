@@ -361,176 +361,241 @@ Post.initialize_favlist = function() {
   });
 }
 
-Post.expand_image = function(e) {
-  return new Promise(function(resolve, reject) {
-    var $image = $("#image");
-    var $imageContainer = $('#image-container');
-    var $notice = $("#image-resize-notice");
-    $image.on("load.danbooru", function() {
-      $image.css("animation", "sharpen 0.5s forwards");
-      $notice.hide();
-      $image.off('load.danbooru').off('error.danbooru');
-      resolve(true);
-    });
-    $image.on("error.danbooru", function() {
-      $image.off('load.danbooru').off('error.danbooru');
-      reject(false);
-    });
-    $image.attr("src", $imageContainer.data('file-url'));
-    $image.css("filter", "blur(8px)");
-    $image.attr({height: $image.data("original-height"), width: $image.data("original-width")})
-    $notice.children().eq(0).hide();
-    $notice.children().eq(1).show(); // Loading message
-    Note.Box.scale_all();
-    $image.data("scale-factor", 1);
-  });
+Post.currentPost = function() {
+  if(!this._currentPost)
+    this._currentPost = this.fromDOM($("#image-container"));
+  return this._currentPost;
 }
 
-Post.shrink_image = function() {
-  return new Promise(function(resolve, reject) {
-    var $image = $("#image");
-    var $imageContainer = $('#image-container');
-    var $notice = $("#image-resize-notice");
-    $notice.show();
-    $notice.children().eq(0).hide();
-    $notice.children().eq(1).show(); // Loading message
-    $image.on("load.danbooru", function() {
-      $image.css("animation", "sharpen 0.5s forwards");
-      $notice.children().eq(0).show();
-      $notice.children().eq(1).hide();
-      $image.off('load.danbooru').off('error.danbooru');
-      resolve(true);
-    });
-    $image.on("error.danbooru", function() {
-      $image.off('load.danbooru').off('error.danbooru');
-      reject(false);
-    });
-    $image.attr("src", $imageContainer.data('large-file-url'));
-    $image.css("filter", "blur(8px)");
-    $image.attr({height: $image.data("large-height"), width: $image.data("large-width")})
-    Note.Box.scale_all();
-    $image.data("scale-factor", 1);
-  });
-}
+Post.fromDOM = function(element) {
+  if (!element)
+    return {};
 
-Post.resize_fit = function() {
-  const resizeToFit = function() {
-    const $image = $("#image");
-    $image.removeAttr('height');
-    $image.removeAttr('width');
-    $image.addClass("fit-window");
-    Post.resize_ugoira_controls();
-    Note.Box.scale_all();
-  }
-  if(Post.resizeMode === "large")
-    Post.expand_image().then(resizeToFit);
-  else
-    resizeToFit();
-}
-
-Post.resize_original = function() {
-  const resizeToOriginal = function() {
-    const $image = $("#image");
-    $image.removeClass("fit-window");
-    $image.attr({height: $image.data('original-height'), width: $image.data('original-width')});
-    Post.resize_ugoira_controls();
-    Note.Box.scale_all();
-  };
-  if(Post.resizeMode === "large")
-    Post.expand_image().then(resizeToOriginal);
-  else
-    resizeToOriginal();
-}
-
-Post.resize_sample = function() {
-  if(Post.resizeMode === "large")
-    return;
-  Post.shrink_image().then(function() {
-    const $image = $('#image');
-    $image.removeAttr('height', 'width');
-    $image.addClass('fit-window');
-    Post.resize_ugoira_controls();
-    Note.Box.scale_all();
-  });
-}
-
-Post.set_size_mode = function(mode) {
-  const modeMap = {large: "Sample", fit: "Scale To Fit", original: "Original"};
-  Post.resizeMode = mode;
-  $('#current-image-resize-mode').text(`Change Size Mode (${modeMap[mode] || "?Unknown?"})`);
+  const post = element.attr("data-post") || '{}';
+  return JSON.parse(post);
 }
 
 Post.resize_notes = function() {
   Note.Box.scale_all();
 }
 
+Post.resize_video = function (post, target_size) {
+  const $video = $("video#image");
+  const videoTag = $video[0];
+  videoTag.pause(); // Otherwise size changes won't take effect.
+  const $notice = $("#image-resize-notice");
+  $notice.hide()
+  let target_sources = [];
+  let desired_classes = [];
 
-Post.initialize_resize = function() {
-  const $image = $('#image');
-  if($image.length > 0 && $image[0]) {
-    if ($image[0].complete) {
-      Post.resize_notes();
-    } else {
-      $image.on('load', function (e) {
-        $image.off('load');
-        Post.resize_notes();
-      });
+  function original_sources() {
+    target_sources.push({type: 'video/webm', url: post?.file?.url});
+    if (typeof post?.sample?.alternates?.original !== 'unknown') {
+      target_sources.push({type: 'video/mp4', url: post?.sample?.alternates?.original?.urls[1]});
     }
   }
-  $("#current-image-resize-mode").on('click', function(e) {
-    Post.resize_cycle_mode(e);
-  });
-  const image_override = Utility.meta('image-override-size');
-  if(image_override)
-    Post.set_size_mode(image_override);
-  else
-    Post.set_size_mode(Utility.meta("default-image-size"));
 
-  this.initialize_change_resize_mode_link();
-  if(Post.resizeMode === "fit") {
-    Post.resize_fit();
+  switch (target_size) {
+    case 'original':
+      original_sources();
+      break;
+    case 'fit':
+      original_sources();
+      desired_classes.push('fit-window');
+      break;
+    case 'fitv':
+      original_sources();
+      desired_classes.push('fit-window-vertical');
+      break;
+    default:
+      $notice.show();
+      const alternate = post?.sample?.alternates[target_size];
+      target_sources.push({type: 'video/webm', url: alternate.urls[0]});
+      target_sources.push({type: 'video/mp4', url: alternate.urls[1]});
+      desired_classes.push('fit-window');
+      break;
   }
-  if(Post.resizeMode !== "original") {
+  $video.removeClass();
+  $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
+  for (const source of target_sources) {
+    // This works around some annoying choices where W3C said that changing source attributes for video tags doesn't work
+    // and that automatic media type selection can't be performed again, so you have to do it by hand. To add bonus points
+    // to this asshattery, the responses from the API are at best, vague and there are three of them. Seems that the best
+    // any browser can give me is a "maybe".
+    const canPlay = videoTag.canPlayType(source.type);
+    if(canPlay === "probably" || canPlay === "maybe") {
+      // This comparison fixes reloading the media on changing between fit modes.
+      if(source.url !== $video.attr('src')) {
+        $video.attr('src', source.url);
+        videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
+      }
+      break;
+    }
+  }
+  for (const class_name of desired_classes) {
+    $video.addClass(class_name);
+  }
+}
+
+Post.resize_image = function (post, target_size) {
+  const $image = $("img#image");
+  const $notice = $("#image-resize-notice");
+  $notice.hide();
+  let desired_url = '';
+  let desired_classes = [];
+  switch (target_size) {
+    case 'original':
+      desired_url = post?.file?.url;
+      break;
+    case 'fit':
+      desired_classes.push('fit-window');
+      desired_url = post?.file?.url;
+      break;
+    case 'fitv':
+      desired_classes.push('fit-window-vertical');
+      desired_url = post?.file?.url;
+      break;
+    case 'large':
+      $notice.show();
+      desired_classes.push('fit-window');
+      desired_url = post?.sample?.url;
+      break;
+    default:
+      $notice.show();
+      desired_classes.push('fit-window');
+      desired_url = post?.sample?.alternates[target_size]?.url;
+      break;
+  }
+  $image.removeClass();
+  if ($image.attr('src') !== desired_url) {
+    $("#image-container").addClass('image-loading');
+    $image.attr('src', desired_url);
+  }
+  for (const class_name of desired_classes) {
+    $image.addClass(class_name);
+  }
+}
+
+Post.resize_to_internal = function(target_size) {
+  if ($("#image-container").hasClass("blacklisted-active-visible"))
+    return;
+
+  const post = Post.currentPost();
+  if (is_video(post)) {
+    Post.resize_video(post, target_size);
+  } else {
+    Post.resize_image(post, target_size);
+  }
+}
+
+Post.resize_to = function (target_size) {
+  if ($("#image-container").hasClass("blacklisted-active-visible"))
+    return;
+
+  const selector = $("#image-resize-selector");
+  select_or_fit(selector, target_size);
+  Post.resize_to_internal(selector.val());
+}
+
+function is_video(post) {
+  switch (post.file.ext) {
+    case 'webm':
+    case 'mp4':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function sorted_samples() {
+  let samples = Object.entries(Post.currentPost().sample.alternates);
+  samples = samples.filter((x) => x[0] !== 'original');
+  return samples.sort((a, b) => (a[1].height * a[1].width) > (b[1].height * b[1].width) ? -1 : 1);
+}
+
+function select_or_fit(parent, choice) {
+  const choices = parent.find("option");
+  if(choice === "next") {
+    const index = parent[0].selectedIndex;
+    parent.val($(choices[(index+1) % choices.length]).val());
+    return;
+  }
+  for (const item of choices) {
+    if ($(item).val() == choice) {
+      parent.val(choice);
+      return;
+    }
+  }
+  parent.val('fit');
+}
+function most_relevant_sample_size() {
+  const samples = sorted_samples();
+  if(samples.length === 0) {
+    return 'fit';
+  }
+  const differences = samples.map((x) => [x[0], Math.abs(window.outerHeight - x[1].height) * Math.abs(window.outerWidth - x[1].width)]).sort((a,b) => a[1] < b[1] ? -1 : 1);
+  return differences[0][0];
+}
+
+function fill_size_options(has_sample) {
+  const $sel = $("#image-resize-selector").empty();
+  $sel.append($("<option>").val("original").text("Original"));
+  $sel.append($("<option>").val("fit").text("Fit (Horizontal)"));
+  $sel.append($("<option>").val("fitv").text("Fit (Vertical)"));
+  if(has_sample)
+    $sel.append($("<option>").val("large").text("Sample (800)"));
+
+  for (const sample of sorted_samples()) {
+    $sel.append($("<option>").val(sample[0]).text(`Sample (${sample[0]})`));
+  }
+}
+
+Post.initialize_resize = function () {
+  Post.initialize_change_resize_mode_link();
+  const post = Post.currentPost();
+  if (post?.file?.ext === 'swf')
+    return;
+
+  const is_post_video = is_video(post);
+
+  const $selector = $("#image-resize-selector");
+  fill_size_options(!is_post_video && post?.sample?.has);
+  if (!is_post_video) {
+    const $image = $('img#image');
+    if ($image.length > 0 && $image[0]) {
+      if ($image[0].complete)
+        Post.resize_notes();
+    }
+
+    $image.on('load', function (e) {
+      Post.resize_notes();
+      $("#image-container").removeClass("image-loading");
+    });
     $(window).on('resize', Post.resize_notes);
   }
+  let image_size = Utility.meta('image-override-size') || Utility.meta("default-image-size");
+  if(is_post_video && image_size === 'large') {
+    image_size = most_relevant_sample_size();
+  }
+  Post.resize_to(image_size);
+  $selector.on('change', () => Post.resize_to_internal($selector.val()));
 }
 
 Post.resize_cycle_mode = function(e) {
   if(e && e.target)
     e.preventDefault();
-  if ($("#image-container").hasClass("blacklisted-active"))
+
+  if ($("#image-container").hasClass("blacklisted-active-visible"))
     return;
-  const $target = $('#current-image-resize-mode');
-  const overrideMode = Utility.meta('image-override-size');
-  if(overrideMode)
-    return;
-  let allowedModes = ['large', 'fit', 'original'];
-  const hasSamples = $target.data('samples');
-  if (hasSamples != true)
-    allowedModes.splice(0,1);
-  $(window).off('resize', Post.resize_notes);
-  const nextMode = allowedModes[(allowedModes.indexOf(Post.resizeMode) + 1) % allowedModes.length];
-  const modeHandlers = {
-    large() {
-      Post.resize_sample();
-      $(window).on('resize', Post.resize_notes);
-      Post.set_size_mode("large");
-    },
-    fit() {
-      Post.resize_fit();
-      $(window).on('resize', Post.resize_notes);
-      Post.set_size_mode("fit");
-    },
-    original() {
-      Post.resize_original();
-      Post.set_size_mode("original");
-    }
-  }
-  modeHandlers[nextMode]();
+
+  Post.resize_to("next");
 }
 
 Post.initialize_change_resize_mode_link = function() {
-  $("#image-resize-link").on("click.danbooru", Post.resize_cycle_mode); // For top panel
+  $("#image-resize-link").on("click", (e) => {
+    e.preventDefault();
+    Post.resize_to('fit');
+  }); // For top panel
   Utility.keydown('v', 'resize', Post.resize_cycle_mode);
 }
 

@@ -83,6 +83,8 @@ class StorageManager
              "#{base}/preview/#{subdir}#{file}"
            elsif type == :crop
              "#{base}/crop/#{subdir}#{file}"
+           elsif type == :scaled
+             "#{base}/sample/#{subdir}#{file}"
            elsif type == :large && post.has_large?
              "#{base}/sample/#{subdir}#{file}"
            else
