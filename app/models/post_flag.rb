@@ -176,7 +176,7 @@ class PostFlag < ApplicationRecord
       return false
     end
 
-    flag = post.flags.in_cooldown.last
+    flag = post.flags.in_cooldown.first
     if flag.present?
       errors[:post] << "cannot be flagged more than once every #{COOLDOWN_PERIOD.inspect} (last flagged: #{flag.created_at.to_s(:long)})"
     end
