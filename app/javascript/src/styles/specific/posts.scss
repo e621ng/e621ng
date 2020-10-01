@@ -589,24 +589,17 @@ div#image-and-nav {
   grid-template-rows: repeat(5, auto);
 
   [data-th-nav=bottom] & {
-    #post-notices-top {
-      grid-row: 1;
+    #nav-links-top {
+      display: none;
     }
-    #adzone {
-      grid-row: 2;
-    }
-    #image-container {
-      grid-row: 3;
-    }
-    #image-resize-notice {
-      grid-row: 4;
-    }
-    #nav-links {
-      grid-row: 5;
+  }
+  [data-th-nav=top] & {
+    #nav-links-bottom {
+      display: none;
     }
   }
   [data-th-nav=none] & {
-    #nav-links {
+    #nav-links-top, #nav-links-bottom {
       display: none;
     }
   }

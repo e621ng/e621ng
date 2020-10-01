@@ -53,7 +53,10 @@
     <section id="content">
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
-          <%= render "posts/partials/show/nav_links", :post => @post, :position => "bottom" %>
+          <%= render "posts/partials/show/nav_links", :post => @post %>
+          <div id="nav-links-top" class="ui-corner-all nav-notice">
+            <%= content_for :nav_links_section %>
+          </div>
         <% end %>
 
         <div id="post-notices-top">
@@ -76,6 +79,12 @@
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
             <span>Viewing sample resized to <%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>
+          </div>
+        <% end %>
+
+        <% if @post.presenter.has_nav_links?(self) %>
+          <div id="nav-links-bottom" class="ui-corner-all nav-notice">
+            <%= content_for :nav_links_section %>
           </div>
         <% end %>
       </div>

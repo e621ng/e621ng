@@ -1,4 +1,4 @@
-<div id="nav-links" class="ui-corner-all nav-notice">
+<% content_for(:nav_links_section) do %>
   <% if post.presenter.has_sequential_navigation?(params) %>
     <%= render "posts/partials/show/search_seq", :post => post %>
   <% end %>
@@ -10,4 +10,4 @@
   <% if CurrentUser.is_member? && post.post_sets.owned.any? %>
     <%= render "posts/partials/show/post_set_list", post: post, post_sets: post.post_sets.owned.selected_first(params[:post_set_id]).limit(5) %>
   <% end %>
-</div>
+<% end %>
