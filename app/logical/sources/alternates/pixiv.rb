@@ -27,7 +27,7 @@ module Sources
         sources.delete_if do |source|
           url = Addressable::URI.heuristic_parse(source) rescue nil
           next false if url.nil?
-          if url.host == "www.pixiv.net" && url.path == "/member_illust.php" && url.query_values["illust_id"].present?
+          if url.host == "www.pixiv.net" && url.path == "/member_illust.php" && url.query_values.present? && url.query_values["illust_id"].present?
             next true if url.query_values["illust_id"].to_i == our_illust_id
           elsif url.host == "www.pixiv.net" && url.path =~ %r!\A/i/(?<illust_id>\d+)\z!i
             next true if $~[:illust_id].to_i == our_illust_id
@@ -47,7 +47,7 @@ module Sources
         # http://www.pixiv.net/member_illust.php?mode=big&illust_id=18557054
         # http://www.pixiv.net/member_illust.php?mode=manga&illust_id=18557054
         # http://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=18557054&page=1
-        if url.host == "www.pixiv.net" && url.path == "/member_illust.php" && url.query_values["illust_id"].present?
+        if url.host == "www.pixiv.net" && url.path == "/member_illust.php" && url.query_values.present? && url.query_values["illust_id"].present?
           return url.query_values["illust_id"].to_i
 
           # http://www.pixiv.net/i/18557054
