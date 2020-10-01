@@ -577,9 +577,9 @@ class Ticket < ApplicationRecord
         q = q.where('creator_id = ?', user_id) if user_id
       end
 
-      if params[:accused].present?
-        user_id = User::name_to_id(params[:accused])
-        q = q.where('disp_id = ? and qtype = ?', [user_id, 'user']) if user_id
+      if params[:accused_name].present?
+        user_id = User::name_to_id(params[:accused_name])
+        q = q.where('disp_id = ? and qtype = ?', user_id, 'user') if user_id
       end
 
       if params[:type].present?
@@ -634,6 +634,10 @@ class Ticket < ApplicationRecord
     else
       reason
     end
+  end
+
+  def open_duplicates
+    Ticket.where('qtype = ? and disp_id = ? and status = ?', qtype, disp_id, 'pending')
   end
 
   module ClaimMethods

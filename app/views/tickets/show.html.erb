@@ -44,6 +44,14 @@
             <td><span class='title'>IP</span></td>
             <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
           </tr>
+          <tr>
+            <td><span class="title">Open Duplicates</span></td>
+            <td><ul>
+              <% @ticket.open_duplicates.where('id != ?', @ticket.id).find_each do |dup| %>
+              <li><%= link_to("Ticket #{dup.id} - #{dup.subject}", ticket_path(dup.id)) %></li>
+              <% end %>
+            </ul></td>
+          </tr>
         <% end %>
 
         <%= render partial: "tickets/types/#{@ticket.qtype}" %>
