@@ -16,7 +16,7 @@
       <td><%= link_to post.id, post_path(post) %></td>
       <td><%= link_to_user post.uploader %></td>
       <td><%= post.tag_string %></td>
-      <td class="styled-dtext"><%= format_text(post.flags.last&.reason) %></td>
+      <td class="styled-dtext"><%= format_text(post.flags.order(id: :desc).first&.reason) %></td>
     </tr>
   <% end %>
   </tbody>
