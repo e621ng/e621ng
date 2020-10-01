@@ -158,7 +158,7 @@ class AliasAndImplicationImporter
         sum + ::Post.tag_match(token[1]).count
 
       when :change_category
-        sum + Tag.find_by_name(token[1]).try(:post_count) || 0
+        sum + (Tag.find_by_name(token[1]).try(:post_count) || 0)
 
       else
         sum + 0
