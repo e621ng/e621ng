@@ -24,7 +24,7 @@
   body.resp {
     div#c-posts {
       div#a-show {
-        #pool-nav, #search-seq-nav, #set-nav {
+        .pool-nav, .search-seq-nav, .set-nav {
           li {
             height: 2rem;
           }

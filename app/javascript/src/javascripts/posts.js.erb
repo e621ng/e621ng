@@ -169,11 +169,11 @@ Post.initialize_similar = function() {
 }
 
 Post.has_next_target = function() {
-  return $(".paginator a[rel~=next]").length || $("#search-seq-nav a[rel~=next]").length || $("#pool-nav li.pool-selected-true a[rel~=next], #set-nav a.active[rel~=next]").length;
+  return $(".paginator a[rel~=next]").length || $(".search-seq-nav a[rel~=next]").length || $(".pool-nav li.pool-selected-true a[rel~=next], .set-nav a.active[rel~=next]").length;
 }
 
 Post.has_prev_target = function() {
-  return $(".paginator a[rel~=prev]").length || $("#search-seq-nav a[rel~=prev]").length || $("#pool-nav li.pool-selected-true a[rel~=prev], #set-nav a.active[rel~=prev]").length
+  return $(".paginator a[rel~=prev]").length || $(".search-seq-nav a[rel~=prev]").length || $(".pool-nav li.pool-selected-true a[rel~=prev], .set-nav a.active[rel~=prev]").length
 }
 
 Post.initialize_gestures = function() {
@@ -182,8 +182,6 @@ Post.initialize_gestures = function() {
   }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
     return;
-  if (navigator.userAgent.toLowerCase().indexOf("firefox") !== -1)
-    return; // Bug with firefox doing strange normalization of touch inputs that breaks the detector used.
 
   const zing = new ZingTouch.Region(document.body, false, false);
   zing.bind(document.body, 'swipe', function(e) {
@@ -212,15 +210,15 @@ Post.initialize_gestures = function() {
 Post.nav_prev = function(e) {
   var href = "";
 
-  if ($("#search-seq-nav").length) {
-    href = $("#search-seq-nav a[rel~=prev]").attr("href");
+  if ($(".search-seq-nav").length) {
+    href = $(".search-seq-nav a[rel~=prev]").attr("href");
     if (href) {
       location.href = href;
     }
   } else if ($(".paginator a[rel~=prev]").length) {
     location.href = $("a[rel~=prev]").attr("href");
   } else {
-    href = $("#pool-nav li.pool-selected-true a[rel~=prev], #set-nav a.active[rel~=prev]").attr("href");
+    href = $(".pool-nav li.pool-selected-true a[rel~=prev], .set-nav li.set-selected-true a[rel~=prev]").attr("href");
     if (href) {
       location.href = href;
     }
@@ -232,13 +230,13 @@ Post.nav_prev = function(e) {
 Post.nav_next = function(e) {
   var href = "";
 
-  if ($("#search-seq-nav").length) {
-    href = $("#search-seq-nav a[rel~=next]").attr("href");
+  if ($(".search-seq-nav").length) {
+    href = $(".search-seq-nav a[rel~=next]").attr("href");
     location.href = href;
   } else if ($(".paginator a[rel~=next]").length) {
     location.href = $(".paginator a[rel~=next]").attr("href");
   } else {
-    href = $("#pool-nav li.pool-selected-true a[rel~=next], #set-nav a.active[rel~=next]").attr("href");
+    href = $(".pool-nav li.pool-selected-true a[rel~=next], .set-nav li.set-selected-true a[rel~=next]").attr("href");
     if (href) {
       location.href = href;
     }

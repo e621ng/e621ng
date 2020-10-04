@@ -461,11 +461,11 @@ div#c-posts {
       word-wrap: break-word;
     }
 
-    #search-seq-nav + #pool-nav, #search-seq-nav + #set-nav, #pool-nav + #set-nav {
+    .search-seq-nav + .pool-nav, .search-seq-nav + .set-nav, .pool-nav + .set-nav {
       margin-top: 0.5em;
     }
 
-    #pool-nav, #search-seq-nav, #set-nav {
+    .pool-nav, .search-seq-nav, .set-nav {
       @include themable {
         background: themed("color-section");
       }
