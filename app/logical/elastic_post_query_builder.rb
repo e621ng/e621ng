@@ -506,10 +506,10 @@ class ElasticPostQueryBuilder
       order.concat([{score: :asc}, {id: :asc}])
 
     when "duration", "duration_desc"
-      order.concat([{duration: :desc, missing: :_last}, {id: :desc}])
+      order.concat([{duration: :desc}, {id: :desc}])
 
     when "duration_asc"
-      order.concat([{duration: :asc, missing: :_last}, {id: :asc}])
+      order.concat([{duration: :asc}, {id: :asc}])
 
     when "favcount"
       order.concat([{fav_count: :desc}, {id: :desc}])
