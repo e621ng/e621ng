@@ -21,7 +21,7 @@ class Tag < ApplicationRecord
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
     -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
-    deletedby -deletedby votedup voteddown -votedup -voteddown
+    deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
@@ -41,6 +41,7 @@ class Tag < ApplicationRecord
     filesize filesize_asc
     tagcount tagcount_asc
     change change_desc change_asc
+    duration duration_desc duration_asc
     rank
     random
     custom
@@ -823,6 +824,9 @@ class Tag < ApplicationRecord
 
           when "ratio"
             q[:ratio] = parse_helper(g2, :ratio)
+
+          when "duration"
+            q[:duration] = parse_helper(g2, :float)
 
           when "score"
             q[:score] = parse_helper(g2)

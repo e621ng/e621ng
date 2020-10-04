@@ -45,6 +45,7 @@ module PostIndex
         indexes :height,        type: 'integer'
         indexes :mpixels,       type: 'float'
         indexes :aspect_ratio,  type: 'float'
+        indexes :duration,      type: 'float'
 
         indexes :tags,          type: 'keyword'
         indexes :md5,           type: 'keyword'
@@ -241,6 +242,7 @@ module PostIndex
       height:       image_height,
       mpixels:      image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
       aspect_ratio: image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
+      duration:     duration,
 
       tags:        tag_string.split(" "),
       md5:         md5,

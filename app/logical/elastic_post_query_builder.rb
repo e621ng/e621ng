@@ -147,6 +147,7 @@ class ElasticPostQueryBuilder
     add_range_relation(q[:ratio], :aspect_ratio, must)
     add_range_relation(q[:width], :width, must)
     add_range_relation(q[:height], :height, must)
+    add_range_relation(q[:duration], :duration, must)
     add_range_relation(q[:score], :score, must)
     add_range_relation(q[:fav_count], :fav_count, must)
     add_range_relation(q[:filesize], :file_size, must)
@@ -503,6 +504,12 @@ class ElasticPostQueryBuilder
 
     when "score_asc"
       order.concat([{score: :asc}, {id: :asc}])
+
+    when "duration", "duration_desc"
+      order.concat([{duration: :desc, missing: :_last}, {id: :desc}])
+
+    when "duration_asc"
+      order.concat([{duration: :asc, missing: :_last}, {id: :asc}])
 
     when "favcount"
       order.concat([{fav_count: :desc}, {id: :desc}])

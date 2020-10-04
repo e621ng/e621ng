@@ -101,7 +101,11 @@ class PostSerializer < ActiveModel::Serializer
     object.has_notes?
   end
 
+  def duration
+    object.duration ? object.duration.to_f : nil
+  end
+
   attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,
              :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :description,
-             :comment_count, :is_favorited, :has_notes
+             :comment_count, :is_favorited, :has_notes, :duration
 end

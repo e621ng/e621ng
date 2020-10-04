@@ -190,6 +190,11 @@ class Upload < ApplicationRecord
     def video
       @video ||= FFMPEG::Movie.new(file.path)
     end
+
+    def video_duration
+      return video.duration if is_video? && video.duration
+      nil
+    end
   end
 
   module SearchMethods
