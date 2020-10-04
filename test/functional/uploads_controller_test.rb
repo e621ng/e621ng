@@ -41,7 +41,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "preprocess action" do      
+    context "preprocess action" do
       should "prefer the file over the source when preprocessing" do
         file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
         post_auth preprocess_uploads_path, @user, params: {:upload => {:source => "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg", :file => file}}
@@ -198,7 +198,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
               end
             end
             post = Post.last
-            assert_match(/aaa/, post.tag_string)            
+            assert_match(/aaa/, post.tag_string)
           end
         end
 
@@ -218,7 +218,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
               end
             end
             post = Post.last
-            assert_match(/aaa/, post.tag_string)            
+            assert_match(/aaa/, post.tag_string)
           end
         end
       end

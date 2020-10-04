@@ -57,7 +57,7 @@ services:
       - CIRCLE_NODE_TOTAL
       - CIRCLE_NODE_INDEX
       - CIRCLE_BUILD_IMAGE
-    build: 
+    build:
       context: ../..
       dockerfile: config/docker/danbooru-ci
     command: sleep 1d

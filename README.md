@@ -7,8 +7,8 @@
 1. Download and install the prerequisites
 2. Open Command Prompt/Terminal and run the following commands:
    ```
-   vagrant plugin install vagrant-hostmanager  
-   vagrant plugin install vagrant-bindfs  
+   vagrant plugin install vagrant-hostmanager
+   vagrant plugin install vagrant-bindfs
    vagrant plugin install vagrant-vbguest
    ```
 3. Download and extract the repo
@@ -40,7 +40,7 @@ simple to adapt for other platforms.
 
 For best performance, you will need at least 256MB of RAM for
 PostgreSQL and Rails. The memory requirement will grow as your
-database gets bigger. 
+database gets bigger.
 
 On production Danbooru uses PostgreSQL 9.4, but any 9.x release should
 work.
@@ -71,7 +71,7 @@ debug your Nginx configuration file.
 
 ## Services
 
-Danbooru employs numerous external services to delegate some 
+Danbooru employs numerous external services to delegate some
 functionality.
 
 For development purposes, you can just run mocked version of these
@@ -80,7 +80,7 @@ automatically using Foreman and the provided Procfile.
 
 ### Amazon Web Services
 
-In order to enable the following features, you will need an AWS SQS 
+In order to enable the following features, you will need an AWS SQS
 account:
 
 * Pool versions
@@ -98,11 +98,11 @@ The following features requires a Google API account:
 
 ### IQDB Service
 
-IQDB integration is delegated to the [IQDBS service](https://github.com/r888888888/iqdbs). 
+IQDB integration is delegated to the [IQDBS service](https://github.com/r888888888/iqdbs).
 
 ### Archive Service
 
-In order to access versioned data for pools and posts you will 
+In order to access versioned data for pools and posts you will
 need to install and configure the [Archives service](https://github.com/r888888888/archives).
 
 ### Reportbooru Service

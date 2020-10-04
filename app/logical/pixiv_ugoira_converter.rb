@@ -10,7 +10,7 @@ class PixivUgoiraConverter
         path = File.join(tmpdir, "images", file.name)
         file.extract(path)
       end
-      
+
       # Duplicate last frame to avoid it being displayed only for a very short amount of time.
       last_file_name = folder.to_a.last.name
       last_file_name =~ /\A(\d{6})(\.\w{,4})\Z/
@@ -20,7 +20,7 @@ class PixivUgoiraConverter
       path_from = File.join(tmpdir, "images", last_file_name)
       path_to = File.join(tmpdir, "images", new_last_filename)
       FileUtils.cp(path_from, path_to)
-      
+
       delay_sum = 0
       timecodes_path = File.join(tmpdir, "timecodes.tc")
       File.open(timecodes_path, "w+") do |f|

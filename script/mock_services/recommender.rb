@@ -15,5 +15,5 @@ end
 
 get '/similar/:post_id' do
   content_type :json
-  POST_IDS[0..6].map {|x| [x, "1.000"]}.to_json  
+  POST_IDS[0..6].map {|x| [x, "1.000"]}.to_json
 end

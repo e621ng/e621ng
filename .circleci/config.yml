@@ -16,7 +16,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: 
+      - run:
           name: Create .env.test file
           command: env | egrep 'DEBUG|DANBOORU|RAILS|DATABASE_URL|SECRET' > .env.test
       - run:

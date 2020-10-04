@@ -21,7 +21,7 @@ class ArtistCommentariesControllerTest < ActionDispatch::IntegrationTest
         params = {
           search: {
             text_matches: @commentary1.original_title,
-            post_id: @commentary1.post_id, 
+            post_id: @commentary1.post_id,
             original_present: "yes",
             translated_present: "yes",
             post_tags_match: @commentary1.post.tag_array.first,

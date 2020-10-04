@@ -20,7 +20,7 @@ class NoteTest < ActiveSupport::TestCase
       end
 
       should "not increment version" do
-        @note.update(:x => 100)       
+        @note.update(:x => 100)
         assert_equal(1, @note.versions.count)
         assert_equal(1, @note.versions.first.version)
       end

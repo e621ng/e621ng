@@ -29,7 +29,7 @@ class RecommendedPostsControllerTest < ActionDispatch::IntegrationTest
         RecommenderService.stubs(:available_for_user?).returns(true)
         RecommenderService.stubs(:recommend_for_user).returns([@post])
       end
-      
+
       should "render" do
         get_auth recommended_posts_path, @user, params: {context: "user"}
         assert_response :success

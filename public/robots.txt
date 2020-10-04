@@ -70,5 +70,5 @@ User-agent: Yandex
 User-agent: magpie-crawler
 User-agent: SemrushBot
 User-agent: SemrushBot-SA
-User-agent: AhrefsBot 
+User-agent: AhrefsBot
 Disallow: /

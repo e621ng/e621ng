@@ -39,7 +39,7 @@ class ArtistTest < ActiveSupport::TestCase
       @artist = Artist.create(name: "blah", url_string: "-http://monet.com\nhttp://monet.com")
       assert_equal(1, @artist.urls.count)
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))
-      refute(@artist.urls[0].is_active?)      
+      refute(@artist.urls[0].is_active?)
     end
 
     should "allow deactivating a url" do

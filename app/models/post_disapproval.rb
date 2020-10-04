@@ -37,7 +37,7 @@ class PostDisapproval < ApplicationRecord
       )
     end
   end
-  
+
   concerning :SearchMethods do
     class_methods do
       def post_tags_match(query)

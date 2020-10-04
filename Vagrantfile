@@ -5,8 +5,8 @@ cd $home
 	echo "deb http://snapshot.debian.org/archive/debian/20190603T102115Z/ stretch main" | sudo tee -a /etc/apt/sources.list
 	sudo apt-get update
 	sudo apt-get install -y linux-headers-4.9.0-9-amd64
-  sudo apt-get update	 
-	 	 
+  sudo apt-get update
+
 echo Done.
 SCRIPT
 

@@ -28,7 +28,7 @@ module TagAutocomplete
     candidates = count_sort(
       query,
       search_exact(query, 8) +
-      search_prefix(query, 4) + 
+      search_prefix(query, 4) +
       search_correct(query, 2) +
       search_aliases(query, 3)
     )

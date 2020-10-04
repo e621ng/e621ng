@@ -68,7 +68,7 @@ module Sources
         if text.nil?
           return nil
         end
-        
+
         text = text.gsub(%r!https?://www\.pixiv\.net/member_illust\.php\?mode=medium&illust_id=([0-9]+)!i) do |match|
           pixiv_id = $1
           %(pixiv ##{pixiv_id} "»":[/posts?tags=pixiv:#{pixiv_id}])
@@ -135,7 +135,7 @@ module Sources
       rescue PixivApiClient::BadIDError
         nil
       end
-      
+
       def canonical_url
         return image_url
       end
@@ -182,7 +182,7 @@ module Sources
       rescue PixivApiClient::BadIDError
         nil
       end
-      
+
       def headers
         if fanbox_id.present?
           # need the session to download fanbox images

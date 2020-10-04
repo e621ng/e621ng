@@ -225,7 +225,7 @@ module Sources
         return nil if api_url.blank?
 
         options = Danbooru.config.httparty_options.deep_merge(
-          format: :plain, 
+          format: :plain,
           headers: { "Accept-Encoding" => "gzip" }
         )
         resp = HTTParty.get(api_url, **options)
@@ -257,8 +257,8 @@ module Sources
 
       def api_client
         api_client = DeviantArtApiClient.new(
-          Danbooru.config.deviantart_client_id, 
-          Danbooru.config.deviantart_client_secret, 
+          Danbooru.config.deviantart_client_id,
+          Danbooru.config.deviantart_client_secret,
           Danbooru.config.httparty_options
         )
         api_client.access_token = Cache.get("da-access-token", 55.minutes) do

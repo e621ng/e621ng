@@ -24,7 +24,7 @@ class PopularSearchService
 
   def fetch_data()
     return [] unless self.class.enabled?
-    
+
     dates = date.strftime("%Y-%m-%d")
 
     data = Cache.get("ps-day-#{dates}", 1.minute) do

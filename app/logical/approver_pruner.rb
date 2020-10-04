@@ -21,7 +21,7 @@ module ApproverPruner
           user.can_approve_posts = false
           user.save
         end
- 
+
         Dmail.create_automated(
           :to_id => user.id,
           :title => "Approver inactivity",
