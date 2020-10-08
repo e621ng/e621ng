@@ -82,7 +82,7 @@
           const tags = this.tags.toLowerCase().trim().replace(/\r?\n|\r/g, ' ').split(' ');
           if (tags.indexOf(tag) === -1) {
             // Ensure that input ends with a space, and if not, add one.
-            if(this.tags[this.tags.length-1] !== ' ')
+            if(this.tags.length && (this.tags[this.tags.length-1] !== ' '))
               this.tags += ' ';
             this.tags += tag + ' ';
           }
