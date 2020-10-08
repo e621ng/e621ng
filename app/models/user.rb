@@ -449,7 +449,7 @@ class User < ApplicationRecord
     def throttle_reason(reason)
       reasons = {
           REJ_NEWBIE: 'can not yet perform this action. User not old enough',
-          REJ_LIMITED: 'has reached the hourly limit for this action'
+          REJ_LIMITED: 'have reached the hourly limit for this action'
       }
       reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
     end
