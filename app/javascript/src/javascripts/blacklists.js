@@ -311,7 +311,7 @@ Blacklist.postMatch = function (post, entry) {
     uploader_id: $post.data('uploader-id'),
     user: $post.data('uploader').toString().toLowerCase(),
     flags: $post.data('flags'),
-    is_fav: $post.data('is-fav')
+    is_fav: $post.data('is-favorited')
   };
   return Blacklist.postMatchObject(post_data, entry);
 };
