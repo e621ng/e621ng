@@ -318,9 +318,9 @@ Blacklist.postMatch = function (post, entry) {
 
 Blacklist.postMatchObject = function (post, entry) {
   const rangeComparator = function (comparison, target) {
-    // Bad comparison, post pasts.
+    // Bad comparison, post matches score.
     if (!Array.isArray(comparison) || typeof target === 'undefined' || comparison.length !== 2)
-      return false;
+      return true;
     switch (comparison[0]) {
       case '<':
         return target < comparison[1];
@@ -333,7 +333,7 @@ Blacklist.postMatchObject = function (post, entry) {
       case '>':
         return target > comparison[1];
       default:
-        return false;
+        return true;
     }
   };
   const score_test = rangeComparator(entry.score_comparison, post.score);
