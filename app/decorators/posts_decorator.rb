@@ -34,7 +34,10 @@ class PostsDecorator < ApplicationDecorator
         "data-flags" => post.status_flags,
         "data-uploader-id" => post.uploader_id,
         "data-uploader" => post.uploader_name,
-        "data-file-ext" => post.file_ext
+        "data-file-ext" => post.file_ext,
+        "data-score" => post.score,
+        "data-fav-count" => post.fav_count,
+        "data-is-favorite" => post.favorited_by?(CurrentUser.user.id)
     }
 
     if post.visible?

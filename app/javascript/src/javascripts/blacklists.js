@@ -35,6 +35,20 @@ Blacklist.lineSet = function (line, enabled) {
 };
 
 Blacklist.entryParse = function (string) {
+  const fixInsanity = function(input) {
+    switch(input) {
+      case '=>':
+        return '>=';
+      case '=<':
+        return '<=';
+      case '=':
+        return '==';
+      case '':
+        return '==';
+      default:
+        return input;
+    }
+  };
   const entry = {
     "tags": string,
     "require": [],
@@ -42,7 +56,7 @@ Blacklist.entryParse = function (string) {
     "optional": [],
     "disabled": false,
     "hits": 0,
-    "min_score": null,
+    "score_comparison": null,
     "username": false,
     "user_id": 0
   };
@@ -52,9 +66,9 @@ Blacklist.entryParse = function (string) {
       entry.exclude.push(tag.slice(1));
     } else if (tag.charAt(0) === '~') {
       entry.optional.push(tag.slice(1));
-    } else if (tag.match(/^score:<.+/)) {
-      const score = tag.match(/^score:<(.+)/)[1];
-      entry.min_score = parseInt(score);
+    } else if (tag.match(/^score:[<=>]{0,2}-?\d+/)) {
+      const score = tag.match(/^score:([<=>]{0,2})(-?\d+)/);
+      entry.score_comparison = [fixInsanity(score[1]), parseInt(score[2], 10)];
     } else {
       entry.require.push(tag);
     }
@@ -296,13 +310,33 @@ Blacklist.postMatch = function (post, entry) {
     rating: $post.data('rating'),
     uploader_id: $post.data('uploader-id'),
     user: $post.data('uploader').toString().toLowerCase(),
-    flags: $post.data('flags')
+    flags: $post.data('flags'),
+    is_fav: $post.data('is-fav')
   };
   return Blacklist.postMatchObject(post_data, entry);
 };
 
 Blacklist.postMatchObject = function (post, entry) {
-  const score_test = entry.min_score === null || post.score < entry.min_score;
+  const rangeComparator = function (comparison, target) {
+    // Bad comparison, post pasts.
+    if (!Array.isArray(comparison) || typeof target === 'undefined' || comparison.length !== 2)
+      return false;
+    switch (comparison[0]) {
+      case '<':
+        return target < comparison[1];
+      case '<=':
+        return target <= comparison[1];
+      case '==':
+        return target == comparison[1];
+      case '>=':
+        return target >= comparison[1];
+      case '>':
+        return target > comparison[1];
+      default:
+        return false;
+    }
+  };
+  const score_test = rangeComparator(entry.score_comparison, post.score);
   const tags = post.tags.match(/\S+/g) || [];
   tags.push(`id:${post.id}`);
   tags.push(`rating:${post.rating}`);
@@ -310,6 +344,8 @@ Blacklist.postMatchObject = function (post, entry) {
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
+  if(post.is_fav)
+    tags.push('fav:me');
   $.each(post.flags.match(/\S+/g) || [], function (i, v) {
     tags.push(`status:${v}`);
   });
