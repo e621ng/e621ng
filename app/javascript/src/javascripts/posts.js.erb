@@ -384,6 +384,11 @@ Post.resize_video = function (post, target_size) {
   const videoTag = $video[0];
   videoTag.pause(); // Otherwise size changes won't take effect.
   const $notice = $("#image-resize-notice");
+  const update_resize_percentage = function(width, orig_width) {
+    const $percentage = $("#image-resize-size");
+    const scaled_percentage = Math.floor(100 * width / orig_width);
+    $percentage.text(`${scaled_percentage}%`);
+  };
   $notice.hide()
   let target_sources = [];
   let desired_classes = [];
@@ -413,6 +418,7 @@ Post.resize_video = function (post, target_size) {
       target_sources.push({type: 'video/webm', url: alternate.urls[0]});
       target_sources.push({type: 'video/mp4', url: alternate.urls[1]});
       desired_classes.push('fit-window');
+      update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
       break;
   }
   $video.removeClass();
@@ -440,6 +446,11 @@ Post.resize_video = function (post, target_size) {
 Post.resize_image = function (post, target_size) {
   const $image = $("img#image");
   const $notice = $("#image-resize-notice");
+  const update_resize_percentage = function(width, orig_width) {
+    const $percentage = $("#image-resize-size");
+    const scaled_percentage = Math.floor(100 * width / orig_width);
+    $percentage.text(`${scaled_percentage}%`);
+  };
   $notice.hide();
   let desired_url = '';
   let desired_classes = [];
@@ -459,11 +470,13 @@ Post.resize_image = function (post, target_size) {
       $notice.show();
       desired_classes.push('fit-window');
       desired_url = post?.sample?.url;
+      update_resize_percentage(post?.sample?.width, post?.file?.width);
       break;
     default:
       $notice.show();
       desired_classes.push('fit-window');
       desired_url = post?.sample?.alternates[target_size]?.url;
+      update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
       break;
   }
   $image.removeClass();

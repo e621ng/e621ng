@@ -10,11 +10,9 @@ class PostVideoConversionJob
     samples.each do |name, named_samples|
       next if name == :original
       webm_path = sm.file_path(md5, 'webm', :scaled, post.is_deleted?, scale_factor: name.to_s)
-      logger.info("FILE PATH: #{webm_path.inspect}")
       sm.store(named_samples[0], webm_path)
       named_samples[0].close!
       mp4_path = sm.file_path("#{md5}", 'mp4', :scaled, post.is_deleted?, scale_factor: name.to_s)
-      logger.info("FILE PATH MP4: #{mp4_path.inspect}")
       sm.store(named_samples[1], mp4_path)
       named_samples[1].close!
     end
@@ -28,22 +26,15 @@ class PostVideoConversionJob
     outputs = {}
     Danbooru.config.video_rescales.each do |size, dims|
       next if post.image_width <= dims[0] && post.image_height <= dims[1]
-      outputs[size] = generate_scaled_video(post.file_path, [post.image_width, post.image_height], dims)
+      scaled_dims = post.scaled_sample_dimensions(dims)
+      outputs[size] = generate_scaled_video(post.file_path, scaled_dims)
     end
-    outputs[:original] = generate_scaled_video(post.file_path, [post.image_width, post.image_height], [post.image_width, post.image_height], format: :mp4)
+    outputs[:original] = generate_scaled_video(post.file_path, [post.image_width, post.image_height], format: :mp4)
     outputs
   end
 
-  def mod2_dims(dims, target_dims)
-    ratio = [target_dims[0] / dims[0].to_f, target_dims[1] / dims[1].to_f].min
-    width = [([dims[0] * ratio, 2].max.ceil), target_dims[0]].min & ~1
-    height = [([dims[1] * ratio, 2].max.ceil), target_dims[1]].min  & ~1
-    [width, height]
-  end
-
-  def generate_scaled_video(infile, dimensions, target_size, format: :both)
-    width, height = mod2_dims(dimensions, target_size)
-    target_size = "scale=w=#{width}:h=#{height}"
+  def generate_scaled_video(infile, dimensions, format: :both)
+    target_size = "scale=w=#{dimensions[0]}:h=#{dimensions[1]}"
     webm_file = Tempfile.new(["video-sample", ".webm"], binmode: true)
     mp4_file = Tempfile.new(["video-sample", ".mp4"], binmode: true)
     webm_args = [

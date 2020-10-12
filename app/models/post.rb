@@ -269,6 +269,10 @@ class Post < ApplicationRecord
       height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
       [width, height]
     end
+
+    def generate_video_samples
+      PostVideoConversionJob.perform_later(self.id)
+    end
   end
 
   module ImageMethods
