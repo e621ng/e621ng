@@ -72,7 +72,7 @@
         <div>
           <%= form_tag(posts_path, method: "get") do %>
             <div>
-              <%= text_field_tag "tags", "", size: 30, autofocus: "autofocus", 'data-autocomplete': 'tags' %><br>
+              <%= text_field_tag "tags", "", size: 30, autofocus: "autofocus", 'data-autocomplete': 'tag-query' %><br>
               <input type="submit" value="Search">
               <input type="button" value="Change Mascot" id="change-mascot">
             </div>
@@ -100,3 +100,7 @@
 
   </div>
 </div>
+
+<% content_for(:html_header) do -%>
+  <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
+<%- end %>
