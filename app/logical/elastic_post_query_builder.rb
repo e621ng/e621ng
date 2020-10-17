@@ -523,10 +523,10 @@ class ElasticPostQueryBuilder
     when "created_at_asc"
       order.push({created_at: :asc})
 
-    when "change", "change_desc"
+    when "updated", "updated_desc"
       order.concat([{updated_at: :desc}, {id: :desc}])
 
-    when "change_asc"
+    when "updated_asc"
       order.concat([{updated_at: :asc}, {id: :asc}])
 
     when "comment", "comm"

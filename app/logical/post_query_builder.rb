@@ -494,9 +494,15 @@ class PostQueryBuilder
       relation = relation.order("posts.created_at ASC")
 
     when "change", "change_desc"
-      relation = relation.order("posts.updated_at DESC, posts.id DESC")
+      relation = relation.order("posts.change_seq DESC, posts.id DESC")
 
     when "change_asc"
+      relation = relation.order("posts.change_seq ASC, posts.id ASC")
+
+    when "updated", "updated_desc"
+      relation = relation.order("posts.updated_at DESC, posts.id DESC")
+
+    when "updated_asc"
       relation = relation.order("posts.updated_at ASC, posts.id ASC")
 
     when "comment", "comm"

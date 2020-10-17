@@ -31,7 +31,7 @@ class Tag < ApplicationRecord
     score score_asc
     favcount favcount_asc
     created_at created_at_asc
-    change change_asc
+    updated updated_desc updated_asc
     comment comment_asc
     comment_bumped comment_bumped_asc
     note note_asc
