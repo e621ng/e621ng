@@ -271,7 +271,7 @@ class Post < ApplicationRecord
     end
 
     def generate_video_samples
-      PostVideoConversionJob.perform_later(self.id)
+      PostVideoConversionJob.perform_async(self.id)
     end
   end
 
