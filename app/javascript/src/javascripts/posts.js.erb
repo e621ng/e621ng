@@ -487,6 +487,7 @@ Post.resize_image = function (post, target_size) {
   for (const class_name of desired_classes) {
     $image.addClass(class_name);
   }
+  Post.resize_notes();
 }
 
 Post.resize_to_internal = function(target_size) {
@@ -541,10 +542,13 @@ function select_or_fit(parent, choice) {
   }
   parent.val('fit');
 }
-function most_relevant_sample_size() {
+function most_relevant_sample_size(post) {
   const samples = sorted_samples();
   if(samples.length === 0) {
     return 'fit';
+  }
+  if(post?.file?.width <= 1280 && post?.file?.height <= 720) {
+    return 'fit'; // Don't force people onto 480p samples for <720 videos.
   }
   const differences = samples.map((x) => [x[0], Math.abs(window.outerHeight - x[1].height) * Math.abs(window.outerWidth - x[1].width)]).sort((a,b) => a[1] < b[1] ? -1 : 1);
   return differences[0][0];
@@ -588,7 +592,7 @@ Post.initialize_resize = function () {
   }
   let image_size = Utility.meta('image-override-size') || Utility.meta("default-image-size");
   if(is_post_video && image_size === 'large') {
-    image_size = most_relevant_sample_size();
+    image_size = most_relevant_sample_size(post);
   }
   Post.resize_to(image_size);
   $selector.on('change', () => Post.resize_to_internal($selector.val()));

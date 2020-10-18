@@ -174,7 +174,8 @@ let Note = {
 
     scale: function($note_box) {
       var $image = $("#image");
-      var ratio = $image.width() / parseFloat($image.data("original-width"));
+      var $image_container = $("#image-container")
+      var ratio = $image.width() / parseFloat($image_container.data("width"));
       var MIN_SIZE = 5;
       $note_box.css({
         top: Math.ceil(parseFloat($note_box.data("y")) * ratio),
