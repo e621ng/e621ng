@@ -29,7 +29,7 @@ class PostVideoConversionJob
       scaled_dims = post.scaled_sample_dimensions(dims)
       outputs[size] = generate_scaled_video(post.file_path, scaled_dims)
     end
-    outputs[:original] = generate_scaled_video(post.file_path, [post.image_width, post.image_height], format: :mp4)
+    outputs[:original] = generate_scaled_video(post.file_path, post.scaled_sample_dimensions([post.image_width, post.image_height]), format: :mp4)
     outputs
   end
 
