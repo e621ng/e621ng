@@ -15,6 +15,8 @@ class StorageManager::Local < StorageManager
   rescue StandardError => e
     FileUtils.rm_f(temp_path)
     raise Error, e
+  ensure
+    FileUtils.rm_f(temp_path) if temp_path
   end
 
   def delete(path)
@@ -31,6 +33,17 @@ class StorageManager::Local < StorageManager
       new_path = file_path(post, post.file_ext, type, true)
       move_file(path, new_path)
     end
+    return unless post.is_video?
+    Danbooru.config.video_rescales.each do |k,v|
+      ['mp4','webm'].each do |ext|
+        path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
+        new_path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
+        move_file(path, new_path)
+      end
+    end
+    path = file_path(post, 'mp4', :original, false)
+    new_path = file_path(post, 'mp4', :original, true)
+    move_file(path, new_path)
   end
 
   def move_file_undelete(post)
@@ -39,6 +52,17 @@ class StorageManager::Local < StorageManager
       new_path = file_path(post, post.file_ext, type, false)
       move_file(path, new_path)
     end
+    return unless post.is_video?
+    Danbooru.config.video_rescales.each do |k,v|
+      ['mp4','webm'].each do |ext|
+        path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
+        new_path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
+        move_file(path, new_path)
+      end
+    end
+    path = file_path(post, 'mp4', :original, true)
+    new_path = file_path(post, 'mp4', :original, false)
+    move_file(path, new_path)
   end
 
   private

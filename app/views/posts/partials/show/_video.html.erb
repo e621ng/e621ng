@@ -1,7 +1,10 @@
-<% if post.is_ugoira? %>
-	<%= content_tag(:video, nil, :id => "image", class: post.display_class_for(CurrentUser.user), :"data-original-width" => post.image_width, :"data-original-height" => post.image_height, :loop => "true", :controls => "controls", :src => post.tagged_large_file_url) %>
-<% else %>
-	<%= content_tag(:video, nil, :id => "image", class: post.display_class_for(CurrentUser.user), :"data-original-width" => post.image_width, :"data-original-height" => post.image_height, :loop => "true", :controls => "controls",  poster: post.large_file_url, :src => post.tagged_file_url) %>
+<%= content_tag(:video, nil, id: 'image', class: post.display_class_for(CurrentUser.user) ,:loop => "true", :controls => "controls", poster: post.is_ugoira? ? nil : post.large_file_url) do %>
+  <% if post.is_ugoira? %>
+    <%= content_tag(:source, nil, src: post.large_file_url, type: 'video/webm') %>
+  <% else %>
+    <%= content_tag(:source, nil, src: post.file_url_ext_for(CurrentUser.user, 'webm'), type: 'video/webm') %>
+    <%= content_tag(:source, nil, src: post.file_url_ext_for(CurrentUser.user, 'mp4'), type: 'video/mp4') %>
+  <% end %>
 <% end %>
 
 <%= javascript_tag nonce: true do -%>

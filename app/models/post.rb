@@ -135,6 +135,14 @@ class Post < ApplicationRecord
       storage_manager.file_url(self, :original)
     end
 
+    def file_url_ext(ext)
+      storage_manager.file_url_ext(self, :original, ext)
+    end
+
+    def scaled_url_ext(scale, ext)
+      storage_manager.file_url_ext(self, :scaled, ext, scale: scale)
+    end
+
     def large_file_url
       storage_manager.file_url(self, :large)
     end
@@ -144,15 +152,15 @@ class Post < ApplicationRecord
     end
 
     def file_path
-      storage_manager.file_path(self, file_ext, :original)
+      storage_manager.file_path(self, file_ext, :original, is_deleted?)
     end
 
     def large_file_path
-      storage_manager.file_path(self, file_ext, :large)
+      storage_manager.file_path(self, file_ext, :large, is_deleted?)
     end
 
     def preview_file_path
-      storage_manager.file_path(self, file_ext, :preview)
+      storage_manager.file_path(self, file_ext, :preview, is_deleted?)
     end
 
     def crop_file_url
@@ -173,9 +181,17 @@ class Post < ApplicationRecord
 
     def file_url_for(user)
       if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        tagged_large_file_url
+        large_file_url
       else
-        tagged_file_url
+        file_url
+      end
+    end
+
+    def file_url_ext_for(user, ext)
+      if user.default_image_size == "large" && is_video? && has_sample_size?('720p')
+        scaled_url_ext('720p', ext)
+      else
+        file_url_ext(ext)
       end
     end
 
@@ -207,8 +223,12 @@ class Post < ApplicationRecord
       file_ext =~ /webm/i
     end
 
+    def is_mp4?
+      file_ext =~ /mp4/i
+    end
+
     def is_video?
-      is_webm?
+      is_webm? || is_mp4?
     end
 
     def is_ugoira?
@@ -237,6 +257,21 @@ class Post < ApplicationRecord
 
     def has_ugoira_webm?
       true
+    end
+
+    def has_sample_size?(scale)
+      (generated_samples || []).include?(scale)
+    end
+
+    def scaled_sample_dimensions(box)
+      ratio = [box[0] / image_width.to_f, box[1] / image_height.to_f].min
+      width = [([image_width * ratio, 2].max.ceil), box[0]].min & ~1
+      height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
+      [width, height]
+    end
+
+    def generate_video_samples
+      PostVideoConversionJob.perform_later(self.id)
     end
   end
 
@@ -2048,7 +2083,6 @@ class Post < ApplicationRecord
   def allow_sample_resize?
     return false if is_flash?
     return false if is_ugoira?
-    return false if is_video?
     true
   end
 

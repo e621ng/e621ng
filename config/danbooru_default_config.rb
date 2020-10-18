@@ -991,6 +991,14 @@ fart'
     def metrika_enabled?
         false
     end
+
+    def video_rescales
+      {'480p' => [640, 480], '720p' => [1280, 720]}
+    end
+
+    def image_rescales
+      []
+    end
   end
 
   class EnvironmentConfiguration

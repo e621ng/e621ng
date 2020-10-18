@@ -158,7 +158,7 @@ Blacklist.postSaveReplaceSrc = function (post) {
 
   if (post.attr('id') === 'image-container' || post.hasClass('post-thumbnail') || post.hasClass('post-thumbnail-blacklisted')) {
     $img.attr('src', '/images/blacklisted-preview.png');
-    post.removeClass('blacklisted-active');
+    post.removeClass('blacklisted-active').addClass('blacklisted-active-visible');
   }
 };
 
@@ -193,7 +193,7 @@ Blacklist.postHide = function (post) {
 Blacklist.postShow = function (post) {
   const $post = $(post);
   Blacklist.postRestoreSrc(post);
-  $post.addClass("blacklisted").removeClass("blacklisted-active");
+  $post.addClass("blacklisted").removeClass("blacklisted-active").removeClass("blacklisted-active-visible");
 };
 
 Blacklist.sidebarUpdate = function () {

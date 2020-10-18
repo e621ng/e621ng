@@ -73,26 +73,32 @@ class StorageManager
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 
-  def file_url(post, type)
+  def file_url_ext(post, type, ext, scale: nil)
     subdir = subdir_for(post.md5)
-    file = file_name(post.md5, post.file_ext, type)
+    file = file_name(post.md5, ext, type, scale_factor: scale)
     base = post.protect_file? ? "#{base_path}/#{protected_prefix}" : base_path
 
     return "#{root_url}/images/download-preview.png" if type == :preview && !post.has_preview?
     path = if type == :preview
-      "#{base}/preview/#{subdir}#{file}"
-    elsif type == :crop
-      "#{base}/crop/#{subdir}#{file}"
-    elsif type == :large && post.has_large?
-      "#{base}/sample/#{subdir}#{file}"
-    else
-      "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
-    end
+             "#{base}/preview/#{subdir}#{file}"
+           elsif type == :crop
+             "#{base}/crop/#{subdir}#{file}"
+           elsif type == :scaled
+             "#{base}/sample/#{subdir}#{file}"
+           elsif type == :large && post.has_large?
+             "#{base}/sample/#{subdir}#{file}"
+           else
+             "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
+           end
     if post.protect_file?
       "#{base_url}#{path}#{protected_params(path, post)}"
     else
       "#{base_url}#{path}"
     end
+  end
+
+  def file_url(post, type)
+    file_url_ext(post, type, post.file_ext)
   end
 
   def root_url
@@ -101,10 +107,10 @@ class StorageManager
     origin
   end
 
-  def file_path(post_or_md5, file_ext, type, protected=false)
+  def file_path(post_or_md5, file_ext, type, protected=false, scale_factor: nil)
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
     subdir = subdir_for(md5)
-    file = file_name(md5, file_ext, type)
+    file = file_name(md5, file_ext, type, scale_factor: scale_factor)
     base = protected ? "#{base_dir}/#{protected_prefix}" : base_dir
 
     case type
@@ -114,12 +120,14 @@ class StorageManager
       "#{base}/crop/#{subdir}#{file}"
     when :large
       "#{base}/sample/#{subdir}#{file}"
+    when :scaled
+      "#{base}/sample/#{subdir}#{file}"
     when :original
       "#{base}/#{subdir}#{file}"
     end
   end
 
-  def file_name(md5, file_ext, type)
+  def file_name(md5, file_ext, type, scale_factor: nil)
     large_file_ext = (file_ext == "zip") ? "webm" : "jpg"
 
     case type
@@ -131,6 +139,8 @@ class StorageManager
       "#{large_image_prefix}#{md5}.#{large_file_ext}"
     when :original
       "#{md5}.#{file_ext}"
+    when :scaled
+      "#{md5}_#{scale_factor}.#{file_ext}"
     end
   end
 
