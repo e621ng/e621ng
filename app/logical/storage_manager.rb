@@ -88,7 +88,7 @@ class StorageManager
            elsif type == :large && post.has_large?
              "#{base}/sample/#{subdir}#{file}"
            else
-             "#{base}/#{subdir}#{post.md5}.#{post.file_ext}"
+             "#{base}/#{subdir}#{file}"
            end
     if post.protect_file?
       "#{base_url}#{path}#{protected_params(path, post)}"
