@@ -139,6 +139,7 @@ class PostVideoConversionJob
           return
         end
         samples = generate_video_samples(post)
+        post.reload # Needed to prevent moving files into undeleted folder if the post is deleted while samples are being generated.
         move_videos(post, samples)
         post.reload
         known_samples = post.generated_samples || []
