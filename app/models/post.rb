@@ -144,6 +144,7 @@ class Post < ApplicationRecord
     end
 
     def large_file_url
+      return file_url if !has_large?
       storage_manager.file_url(self, :large)
     end
 
