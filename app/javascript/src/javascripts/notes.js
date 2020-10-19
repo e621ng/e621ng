@@ -48,7 +48,8 @@ let Note = {
 
     update_data_attributes: function($note_box) {
       var $image = $("#image");
-      var ratio = $image.width() / parseFloat($image.data("original-width"));
+      var $image_container = $("#image-container")
+      var ratio = $image.width() / parseFloat($image_container.data("width"));
       var new_x = parseFloat($note_box.css("left"));
       var new_y = parseFloat($note_box.css("top"));
       var new_width = parseFloat($note_box.css("width"));
@@ -436,7 +437,8 @@ let Note = {
 
     parameterize_note: function($note_box, $note_body) {
       var $image = $("#image");
-      var original_width = parseInt($image.data("original-width"));
+      var $image_container = $("#image-container");
+      var original_width = parseInt($image_container.data("width"));
       var ratio = parseInt($image.width()) / original_width;
 
       var hash = {
