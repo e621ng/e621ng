@@ -224,6 +224,7 @@
       <%= tag.meta name: "og:video", content: @post.scaled_url_ext('480p', 'mp4') %>
       <%= tag.meta name: "og:video:url", content: @post.scaled_url_ext('480p', 'mp4') %>
       <meta name="og:video:type" content="video/mp4">
+      <%= tag.meta name: "og:image", content: @post.open_graph_image_url %>
     <% else %>
       <%= tag.meta name: "og:image", content: @post.open_graph_image_url %>
     <% end %>
