@@ -40,6 +40,7 @@ class UploadService
   def create_post_from_upload(upload)
     @post = convert_to_post(upload)
     @post.save!
+    @post.generate_video_samples if @post.is_video?
 
     if upload.context && upload.context["ugoira"]
       PixivUgoiraFrameData.create(
