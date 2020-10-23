@@ -221,8 +221,8 @@
 
   <% if @post.visible? %>
     <% if @post.is_video? && @post.has_sample_size?('480p') %>
-      <%= tag.meta name: "og:video", content: @post.object.scaled_url_ext('480p', 'mp4') %>
-      <%= tag.meta name: "og:video:url", content: @post.object.scaled_url_ext('480p', 'mp4') %>
+      <%= tag.meta name: "og:video", content: @post.scaled_url_ext('480p', 'mp4') %>
+      <%= tag.meta name: "og:video:url", content: @post.scaled_url_ext('480p', 'mp4') %>
       <meta name="og:video:type" content="video/mp4">
     <% else %>
       <%= tag.meta name: "og:image", content: @post.open_graph_image_url %>
