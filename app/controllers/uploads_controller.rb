@@ -33,8 +33,10 @@ class UploadsController < ApplicationController
   end
 
   def create
-    @service = UploadService.new(upload_params)
-    @upload = @service.start!
+    Post.transaction do
+      @service = UploadService.new(upload_params)
+      @upload = @service.start!
+    end
 
     if @upload.invalid?
       flash[:notice] = @upload.errors.full_messages.join("; ")
