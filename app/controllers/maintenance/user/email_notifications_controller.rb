@@ -10,7 +10,7 @@ module Maintenance
       end
 
       def destroy
-        @user = User.find(params[:user_id])
+        @user = ::User.find(params[:user_id])
         @user.receive_email_notifications = false
         @user.save
       end
