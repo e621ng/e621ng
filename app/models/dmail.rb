@@ -277,6 +277,7 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user)
+    return true if user.is_admin? && from_id == ::User.system.id
     owner_id == user.id || (user.is_admin? && (to.is_admin? || from.is_admin? || Ticket.exists?(qtype: 'dmail', disp_id: id)))
   end
 end
