@@ -49,14 +49,14 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
 
       context "with matches" do
         setup do
-          json = @posts.map {|x| {"post_id" => x.id, "score" => 1}}.to_json          
+          json = @posts.map {|x| {"post_id" => x.id, "score" => 1}}.to_json
           @params = { matches: json }
         end
 
         should "render with matches" do
           get_auth iqdb_queries_path, @user, params: @params
           assert_response :success
-        end        
+        end
       end
     end
   end

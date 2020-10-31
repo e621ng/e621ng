@@ -25,7 +25,7 @@ class TwitterService
 
   def status(id, options = {})
     Cache.get("twitterapi:#{id}", 60) do
-      client.status(id, options)      
+      client.status(id, options)
     end
   end
 

@@ -5,7 +5,7 @@ class CurrentUserTest < ActiveSupport::TestCase
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
-  
+
   context "The current user" do
     should "be set only within the scope of the block" do
       user = FactoryBot.create(:user)

@@ -2,7 +2,7 @@ require 'resolv-replace'
 
 class PixivApiClient
   extend Memoist
-  
+
   API_VERSION = "1"
   CLIENT_ID = "bYGKuGVw91e0NMfPGp44euvGt59s"
   CLIENT_SECRET = "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK"
@@ -92,7 +92,7 @@ class PixivApiClient
     end
 
     def pages
-      # ex: 
+      # ex:
       # https://i.pximg.net/c/150x150_80/novel-cover-master/img/2017/07/27/23/14/17/8465454_80685d10e6df4d7d53ad347ddc18a36b_master1200.jpg (6096b)
       # =>
       # https://i.pximg.net/novel-cover-original/img/2017/07/27/23/14/17/8465454_80685d10e6df4d7d53ad347ddc18a36b.jpg (532129b)
@@ -122,7 +122,7 @@ class PixivApiClient
     def name
       json["body"]["user"]["name"]
     end
-    
+
     def user_id
       json["body"]["user"]["userId"]
     end

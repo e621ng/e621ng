@@ -13,7 +13,7 @@ class RemoteFileManager
     uuid = SecureRandom.uuid
     dest_path = "/var/www/#{dir_name}#{uri.path}"
     temp_path = "/tmp/rfm-#{Danbooru.config.server_host}-#{uuid}"
-    
+
     Net::SFTP.start(uri.host, Danbooru.config.archive_server_login) do |ftp|
       ftp.upload!(path, temp_path)
       begin

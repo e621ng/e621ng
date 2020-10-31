@@ -29,7 +29,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context "#get_file_for_upload" do
       context "for a non-source site" do
         setup do
-          @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"          
+          @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"
           @upload = Upload.new
           @upload.source = @source
         end
@@ -173,7 +173,7 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
       end
 
-      context "for an image" do 
+      context "for an image" do
         setup do
           @file = File.open("test/files/test.jpg", "rb")
           @upload = Upload.new(file_ext: "jpg")
@@ -515,7 +515,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
           HTTParty.stubs(:get).raises(Net::ReadTimeout)
         end
-        
+
         should "leave the upload in an error state" do
           @service = subject.new(source: @source)
           @upload = @service.start!
@@ -542,7 +542,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       should "overwrite the attributes" do
         @service = subject.new(source: @source, rating: 'e')
-        @upload = @service.start!        
+        @upload = @service.start!
         @service.finish!
         @upload.reload
         assert_equal('e', @upload.rating)
@@ -564,7 +564,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @post.stubs(:queue_delete_files)
           @replacement = FactoryBot.create(:post_replacement, post: @post, replacement_url: "", replacement_file: @new_file)
         end
-      end      
+      end
 
       subject { UploadService::Replacer.new(post: @post, replacement: @replacement) }
 
@@ -873,7 +873,7 @@ class UploadServiceTest < ActiveSupport::TestCase
         should "not delete the original files" do
           begin
             # this is called thrice to delete the file for 62247364
-            FileUtils.expects(:rm_f).times(3) 
+            FileUtils.expects(:rm_f).times(3)
 
             as_user do
               @post.replace!(replacement_url: "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=62247350")
@@ -1176,7 +1176,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       should "record the canonical source" do
         post = subject.new({}).create_post_from_upload(@upload)
         assert_equal(@ref, post.source)
-      end 
+      end
     end
 
     context "for a pixiv ugoira" do

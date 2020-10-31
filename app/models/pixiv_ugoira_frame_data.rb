@@ -4,7 +4,7 @@ class PixivUgoiraFrameData < ApplicationRecord
 
   def normalize_data
     return if data.nil?
-    
+
     if data[0]["delay_msec"]
       self.data = data.map.with_index do |datum, i|
         filename = "%06d.jpg" % [i]

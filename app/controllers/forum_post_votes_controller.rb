@@ -15,7 +15,7 @@ class ForumPostVotesController < ApplicationController
   end
 
 private
-  
+
   def load_vote
     @forum_post_vote = @forum_post.votes.where(creator_id: CurrentUser.id).first
     raise ActiveRecord::RecordNotFound.new if @forum_post_vote.nil?
@@ -24,7 +24,7 @@ private
   def load_forum_post
     @forum_post = ForumPost.find(params[:forum_post_id])
   end
-  
+
   def forum_post_vote_params
     params.fetch(:forum_post_vote, {}).permit(:score)
   end
