@@ -40,6 +40,15 @@
       <option value="none">Off(not recommended)</option>
     </select>
   </div>
+  <hr>
+  <div class="input">
+    <label for="gestures_disable">Disable Mobile Gestures</label>
+    <select id="gestures_disable">
+      <option value="false">No</option>
+      <option value="true">Yes</option>
+    </select>
+    <div class="hint">This allows you to disable mobile gestures on specific devices or while logged out. This overrides the choice you have in your account settings if used.</div>
+  </div>
 </div>
 
 <%= javascript_tag nonce: true do -%>
@@ -52,9 +61,11 @@
       var theme = ls.getItem('theme') || 'hexagon';
       var extra = ls.getItem('theme-extra') || 'hexagon';
       var nav = ls.getItem('theme-nav') || 'top';
+      var dmg = ls.getItem('dmg') || 'false';
       $('#theme_name').val(theme);
       $('#theme_extra').val(extra);
       $('#theme_navbar').val(nav);
+      $('#gestures_disable').val(dmg);
     } catch(e) {
       $("#no_save_warning").show();
     }
@@ -72,6 +83,10 @@
       var pos = e.target.value;
       $body.attr('data-th-nav', pos);
       window.localStorage.setItem('theme-nav', pos);
+    });
+    $("#gestures_disable").on('change', function(e) {
+      var dmg = e.target.value;
+      window.localStorage.setItem('dmg', dmg);
     });
   });
 <% end -%>

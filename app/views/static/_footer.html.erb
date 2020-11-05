@@ -1,11 +1,11 @@
 <footer id="page-footer">
   Running <%= Danbooru.config.app_name %>
-  - <%= link_to "Themes", theme_path %>
+  - <%= link_to "Themes / Gestures", theme_path %>
   &ndash; <%= link_to "Rules", terms_of_service_path %>
   - <%= link_to "Takedowns", takedown_static_path %>
   &ndash; <%= link_to "Contact", contact_path %>
   <% if CurrentUser.user.enable_keyboard_navigation %>
-    &ndash; <%= link_to "Keyboard shortcuts available", keyboard_shortcuts_path %>
+    &ndash; <%= link_to "Keyboard Shortcuts", keyboard_shortcuts_path %>
   <% end %>
     &ndash; <%= link_to disable_mobile_mode? ? "Enable mobile mode support": "Disable mobile mode support", disable_mobile_mode_path, :rel => "nofollow" %>
 </footer>

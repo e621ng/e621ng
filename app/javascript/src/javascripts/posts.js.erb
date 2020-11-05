@@ -254,6 +254,9 @@ Post.initialize_gestures = function() {
   if (Utility.meta("disable-mobile-gestures") === "true") {
     return;
   }
+  if (LS.get("dmg") === "true") {
+    return;
+  }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
     return;
 
