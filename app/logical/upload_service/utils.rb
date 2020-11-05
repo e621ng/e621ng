@@ -3,6 +3,8 @@ class UploadService
     extend self
     class CorruptFileError < RuntimeError; end
 
+    IMAGE_TYPES = %i[original large preview crop]
+
     def file_header_to_file_ext(file)
       case File.read(file.path, 16)
       when /^\xff\xd8/n
@@ -36,7 +38,7 @@ class UploadService
           Upload.find(upload_id).update(status: "preprocessed + deleted")
         end
       end
-
+      
       Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
     end
 

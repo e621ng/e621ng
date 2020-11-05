@@ -54,9 +54,9 @@ class StorageManager
     store(io, replacement_path(replacement.storage_id, replacement.file_ext, size))
   end
 
-  def delete_file(post_id, md5, file_ext, type)
-    delete(file_path(md5, file_ext, type))
-    delete(file_path(md5, file_ext, type, true))
+  def delete_file(post_id, md5, file_ext, type, scale_factor: nil)
+    delete(file_path(md5, file_ext, type, scale_factor: scale_factor))
+    delete(file_path(md5, file_ext, type, true, scale_factor: scale_factor))
   end
 
   def delete_post_files(post_or_md5, file_ext)

@@ -65,6 +65,8 @@ class Post < ApplicationRecord
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
+  IMAGE_TYPES = %i[original large preview crop]
+
   module FileMethods
     extend ActiveSupport::Concern
 

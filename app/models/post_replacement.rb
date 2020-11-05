@@ -53,7 +53,7 @@ class PostReplacement < ApplicationRecord
       self.errors.add(:md5, "duplicate of existing post ##{post.id}")
       return false
     end
-    replacements = self.where(status: 'pending', md5: md5)
+    replacements = PostReplacement.where(status: 'pending', md5: md5)
     replacements.each do |replacement|
       self.errors.add(:md5, "duplicate of pending replacement on post ##{replacement.post_id}")
     end

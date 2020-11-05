@@ -60,16 +60,15 @@ class UploadService
                                    source: post.source, reason: 'Backup of original file')
       repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
       repl.save
-    rescue
-
+      raise ::Exception.new "couldn't create backup?" if repl.invalid?
     end
 
     def process!
       # Prevent trying to replace deleted posts
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
 
-      replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
       create_backup_replacement
+      replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
 
       upload = Upload.create(
           uploader_id: CurrentUser.id,
@@ -101,6 +100,7 @@ class UploadService
       md5_changed = upload.md5 != post.md5
 
       if md5_changed
+        Rails.logger.error "DELETING ORIGINAL POST FILES"
         post.delete_files
         post.generated_samples = nil
       end
@@ -127,6 +127,7 @@ class UploadService
 
       replacement.update_attributes({status: 'approved', approver_id: CurrentUser.id})
       post.save!
+      post.generate_video_samples if post.is_video?
 
       if post.is_video?
         post.generate_video_samples(later: true)
