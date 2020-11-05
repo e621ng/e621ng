@@ -26,7 +26,7 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name, :user_reason
+  attr_accessor :parent_id, :reason_name, :user_reason, :force_flag
 
   module SearchMethods
     def duplicate
@@ -183,7 +183,7 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
-    errors[:post] << "is locked and cannot be flagged" if post.is_status_locked? && !creator.is_admin?
+    errors[:post] << "is locked and cannot be flagged" if post.is_status_locked? && !(creator.is_admin? || force_flag)
     errors[:post] << "is deleted" if post.is_deleted?
   end
 
