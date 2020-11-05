@@ -38,6 +38,7 @@
     margin: 10px auto;
     padding:2px 0;
     width:480px;
+    max-width: 98vw;
     border-radius: 5px;
     box-shadow: 0 0 5px #000;
     text-shadow: 0 0 2px black, 0 0 6px black;
@@ -104,3 +105,5 @@
 <% content_for(:html_header) do -%>
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
 <%- end %>
+
+<% content_for(:page_title) do %><%= Danbooru.config.app_name %><% end %>

@@ -2,7 +2,7 @@ require 'dtext'
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.is_member?
+    if CurrentUser && CurrentUser.is_member?
       return CurrentUser.disable_responsive_mode?
     end
     cookies[:nmm].present?
