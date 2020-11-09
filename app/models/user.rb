@@ -69,6 +69,7 @@ class User < ApplicationRecord
     validates :email, presence: { on: :create }
     validates :email, presence: { on: :update, if: ->(rec) { rec.email_changed? } }
     validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? } }
+    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.email_changed? } }
     validates :email, uniqueness: { case_sensitive: false, on: :create }
     validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create }
     validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? } }
