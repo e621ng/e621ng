@@ -3,7 +3,7 @@ class PostReplacement < ApplicationRecord
   belongs_to :post
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
-  attr_accessor :replacement_file, :replacement_url, :final_source, :tags
+  attr_accessor :replacement_file, :replacement_url, :final_source, :tags, :is_backup
 
   validate :user_is_not_limited, on: :create
   validate :post_is_valid, on: :create
@@ -48,6 +48,7 @@ class PostReplacement < ApplicationRecord
   end
 
   def no_pending_duplicates
+    return true if is_backup
     post = Post.where(md5: md5).first
     if post
       self.errors.add(:md5, "duplicate of existing post ##{post.id}")

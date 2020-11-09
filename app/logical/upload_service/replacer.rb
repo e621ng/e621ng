@@ -57,10 +57,11 @@ class UploadService
       repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
                                    image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
                                    file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
-                                   source: post.source, reason: 'Backup of original file')
+                                   source: post.source, reason: 'Backup of original file', is_backup: true)
       repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
       repl.save
-      raise ::Exception.new "couldn't create backup?" if repl.invalid?
+      Rails.logger.error("BACKUP REPLACEMENT: #{repl.errors.inspect}: #{repl.valid?.inspect} : #{repl.invalid?.inspect}")
+      raise ::Exception.new "couldn't create backup?" if !repl.valid?
     end
 
     def process!
