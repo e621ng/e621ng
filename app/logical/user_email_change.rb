@@ -12,10 +12,10 @@ class UserEmailChange
       raise ::User::PrivilegeError.new("Cannot change email while banned")
     end
 
-    # if RateLimiter.check_limit("email:#{user.id}", 2, 24.hours)
-    #   user.errors[:base] << "Email changed too recently"
-    #   return
-    # end
+    if RateLimiter.check_limit("email:#{user.id}", 2, 24.hours)
+      user.errors[:base] << "Email changed too recently"
+      return
+    end
 
     if User.authenticate(user.name, password).nil?
       user.errors[:base] << "Password was incorrect"
