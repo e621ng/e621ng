@@ -1482,7 +1482,8 @@ class Post < ApplicationRecord
         Post.without_timeout do
           ModAction.log(:post_destroy, {post_id: id, md5: md5})
 
-          give_favorites_to_parent! # Must be inline or else the post and favorites won't exist for the background job.
+          # TODO: Fix this. Cannot change isolation level during transaction.
+          # give_favorites_to_parent! # Must be inline or else the post and favorites won't exist for the background job.
           update_children_on_destroy
           decrement_tag_post_counts
           remove_from_all_pools
