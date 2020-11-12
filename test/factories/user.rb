@@ -4,6 +4,7 @@ FactoryBot.define do
       "user#{n}"
     end
     password { "password" }
+    password_confirmation { "password" }
     password_hash {"password"}
     email {FFaker::Internet.email}
     default_image_size { "large" }

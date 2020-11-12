@@ -1901,7 +1901,7 @@ class Post < ApplicationRecord
 
     def raw_tag_match(tag)
       tags = {related: tag.split(' '), include: [], exclude: []}
-      ElasticPostQueryBuilder.new(tag_count: tags[:related].size, tags: tags).build
+      ElasticPostQueryBuilder.new({tag_count: tags[:related].size, tags: tags}).build
     end
 
     def tag_match(query)

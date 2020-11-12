@@ -115,7 +115,7 @@ class ApplicationController < ActionController::Base
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
     @exception = exception
     @expected = status < 500
-    @message = message.encode("utf-8", { invalid: :replace, undef: :replace })
+    @message = message.encode("utf-8", invalid: :replace, undef: :replace )
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 

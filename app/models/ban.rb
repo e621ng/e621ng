@@ -97,11 +97,11 @@ class Ban < ApplicationRecord
   end
 
   def update_user_on_create
-    user.update_attributes(is_banned: true, level: 10)
+    user.update(is_banned: true, level: 10)
   end
 
   def update_user_on_destroy
-    user.update_attributes(is_banned: false, level: 20)
+    user.update(is_banned: false, level: 20)
   end
 
   def user_name

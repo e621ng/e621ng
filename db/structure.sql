@@ -1890,7 +1890,8 @@ CREATE TABLE public.posts (
     change_seq bigint NOT NULL,
     tag_count_lore integer DEFAULT 0 NOT NULL,
     bg_color character varying,
-    generated_samples character varying[]
+    generated_samples character varying[],
+    duration numeric
 );
 
 

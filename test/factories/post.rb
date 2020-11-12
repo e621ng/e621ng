@@ -13,6 +13,7 @@ FactoryBot.define do
     image_height { 1000 }
     file_size { 2000 }
     rating { "q" }
+    duration { 0.0 }
     source { FFaker::Internet.http_url }
   end
 end
