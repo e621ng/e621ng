@@ -551,6 +551,44 @@ ALTER SEQUENCE public.comments_id_seq OWNED BY public.comments.id;
 
 
 --
+-- Name: destroyed_posts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.destroyed_posts (
+    id bigint NOT NULL,
+    post_id integer NOT NULL,
+    md5 character varying NOT NULL,
+    destroyer_id integer NOT NULL,
+    destroyer_ip_addr inet NOT NULL,
+    uploader_id integer,
+    uploader_ip_addr inet,
+    upload_date timestamp without time zone,
+    post_data json NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: destroyed_posts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.destroyed_posts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: destroyed_posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.destroyed_posts_id_seq OWNED BY public.destroyed_posts.id;
+
+
+--
 -- Name: dmail_filters; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2715,6 +2753,13 @@ ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.com
 
 
 --
+-- Name: destroyed_posts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.destroyed_posts ALTER COLUMN id SET DEFAULT nextval('public.destroyed_posts_id_seq'::regclass);
+
+
+--
 -- Name: dmail_filters id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3179,6 +3224,14 @@ ALTER TABLE ONLY public.comment_votes
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: destroyed_posts destroyed_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.destroyed_posts
+    ADD CONSTRAINT destroyed_posts_pkey PRIMARY KEY (id);
 
 
 --
@@ -5082,6 +5135,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200420032714'),
 ('20200713053034'),
 ('20200806101238'),
-('20200910015420');
+('20200910015420'),
+('20201113073842');
 
 

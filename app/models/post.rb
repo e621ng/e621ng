@@ -1472,10 +1472,41 @@ class Post < ApplicationRecord
   end
 
   module DeletionMethods
+    def backup_post_data_destroy
+      post_data = {
+          id: id,
+          description: description,
+          md5: md5,
+          tags: tag_string,
+          height: image_height,
+          width: image_width,
+          file_size: file_size,
+          sources: source,
+          approver_id: approver_id,
+          locked_tags: locked_tags,
+          rating: rating,
+          parent_id: parent_id,
+          change_seq: change_seq,
+          is_deleted: is_deleted,
+          is_pending: is_pending,
+          duration: duration,
+          fav_count: fav_count,
+          comment_count: comment_count
+      }
+      DestroyedPost.create!(post_id: id, post_data: post_data, md5: md5,
+                            uploader_ip_addr: uploader_ip_addr, uploader_id: uploader_id,
+                            destroyer_id: CurrentUser.id, destroyer_ip_addr: CurrentUser.ip_addr,
+                            upload_date: created_at)
+    end
+
     def expunge!
       if is_status_locked?
         self.errors.add(:is_status_locked, "; cannot delete post")
         return false
+      end
+
+      transaction do
+        backup_post_data_destroy
       end
 
       transaction do

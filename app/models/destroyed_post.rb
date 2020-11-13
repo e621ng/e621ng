@@ -1,0 +1,3 @@
+class DestroyedPost < ApplicationRecord
+  
+end
