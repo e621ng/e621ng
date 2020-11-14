@@ -69,7 +69,7 @@ img {
   vertical-align: middle;
 }
 
-menu {
+menu, .menu {
   margin: 0;
   padding: 0;
 
@@ -84,6 +84,9 @@ menu {
     list-style-type: none;
     display: inline;
   }
+}
+.menu {
+  font-size: $h3-size;
 }
 
 p {

@@ -1,4 +1,6 @@
-
+.mobile-only {
+  display: none;
+}
 
 #desktop-version-link {
   display: none;
@@ -21,6 +23,10 @@
 }
 
 @media screen and (max-width: 800px) {
+  .mobile-only {
+    display: unset;
+  }
+
   body.resp {
     div#c-posts {
       div#a-show {

@@ -151,6 +151,10 @@
         </div>
       <% end %>
 
+      <ul class="menu mobile-only">
+        <li><a href="#image-and-nav">Image</a></li>
+        <li><a href="#tag-list">Tags/Info</a></li>
+      </ul>
       <menu id="post-sections">
         <% unless CurrentUser.hide_comments? %>
           <li class="active"><a href="#comments">Comments</a></li>
@@ -165,6 +169,13 @@
           <%= render "comments/partials/index/list", :comments => @post.comments.visible(CurrentUser.user), :post => @post, :show_header => false %>
         </section>
       <% end %>
+
+      <ul class="menu mobile-only">
+        <li><a href="#image-and-nav">Image</a></li>
+        <% unless CurrentUser.hide_comments? %>
+          <li><a href="#comments">Comments</a></li>
+        <% end %>
+      </ul>
 
       <section id="notes" style="display: none;">
         <% if @post.has_notes? %>
