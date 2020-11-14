@@ -2,7 +2,7 @@ module PaginationHelper
   def sequential_paginator(records)
     html = '<div class="paginator"><menu>'
 
-    if records.any?
+    if records.respond_to?(:any?) && records.any?
       if params[:page] =~ /[ab]/ && !records.is_first_page?
         html << '<li>' + link_to("< Previous", nav_params_for("a#{records[0].id}"), rel: "prev", id: "paginator-prev", "data-shortcut": "a left") + '</li>'
       end
@@ -17,7 +17,7 @@ module PaginationHelper
   end
 
   def use_sequential_paginator?(records)
-    params[:page] =~ /[ab]/ || records.current_page >= Danbooru.config.max_numbered_pages
+    params[:page] =~ /\A[ab]\d+\z/ || records.current_page >= Danbooru.config.max_numbered_pages
   end
 
   def numbered_paginator(records, switch_to_sequential = true)
