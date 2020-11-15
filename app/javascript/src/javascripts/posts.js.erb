@@ -18,7 +18,7 @@ Post.initialize_all = function() {
 
   if ($("#c-posts").length && $("#a-index").length) {
     this.initialize_excerpt();
-//    this.initialize_gestures();
+    this.initialize_gestures();
   }
 
   if ($("#c-posts").length && $("#a-show").length) {
@@ -28,7 +28,7 @@ Post.initialize_all = function() {
     this.initialize_post_sections();
     this.initialize_resize();
     this.initialize_similar();
-//    this.initialize_gestures();
+    this.initialize_gestures();
     this.initialize_voting();
     this.initialize_moderation();
   }
@@ -185,6 +185,7 @@ class E6Swipe extends ZingTouch.Swipe {
   constructor(options) {
     super(options);
     this.type = 'e6swipe';
+    this.minDistance = 150;
   }
 
   end(inputs) {
@@ -203,6 +204,12 @@ class E6Swipe extends ZingTouch.Swipe {
     if(this.numInputs !== inputs.length) {
       return null;
     }
+
+    // Prevent gestures from triggering while inputs are active.
+    const activeElement = document.activeElement;
+    if(activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].indexOf(activeElement.tagName) !== -1)
+      return null;
+
     let output = {
       data: [],
     };
@@ -226,21 +233,26 @@ class E6Swipe extends ZingTouch.Swipe {
       const angle = getAngle([acc.last.x, acc.last.y], [move.x, move.y]);
       const dist = distanceBetweenTwoPoints([acc.last.x, acc.last.y], [move.x, move.y]);
       return {vel: acc.vel + vel, angle: [acc.angle[0] + Math.cos(angle), acc.angle[1] + Math.sin(angle)], dist: acc.dist + dist, last: move};
-    }, {vel: 0, angle: 0, last: null});
+    }, {vel: 0, angle: 0, dist: 0, last: null});
     const initial = input.initial;
     // Add total gesture motion as a bias.
 //    totals.vel += getVelocity([initial.x, initial.y, initial.time], [input.current.x, input.current.y, input.current.time]);
 //    totals.angle += getAngle([initial.x, initial.y], [input.current.x, input.current.y]) + Math.PI;
 //    totals.dist += distanceBetweenTwoPoints([initial.x, initial.y], [input.current.x, input.current.y]);
     const avgMoves = progress.moves.length - 2;
-    const averages = {vel: totals.vel / avgMoves, angle: Math.atan2(totals.angle[0], totals.angle[1]), dist: totals.dist / avgMoves};
+    const averages = {vel: totals.vel / avgMoves, angle: Math.atan2(totals.angle[0], totals.angle[1])};
     output.data[0] = {
       velocity: averages.vel,
-      distance: averages.dist,
+      distance: totals.dist,
       duration: 1,
       currentDirection: averages.angle,
     };
+
+    // Minimum velocity requirement.
     if(output.data[0].velocity < this.escapeVelocity)
+      return null;
+    // Minimum distance requirement. Helps to prevent phantom strokes on bad digitizers.
+    if(output.data[0].distance < this.minDistance)
       return null;
 
     if(output.data.length > 0)
@@ -251,19 +263,23 @@ class E6Swipe extends ZingTouch.Swipe {
 }
 
 Post.initialize_gestures = function() {
-  if (Utility.meta("disable-mobile-gestures") === "true") {
-    return;
-  }
-  if (LS.get("dmg") === "true") {
+  if (LS.get("emg") !== "true") {
     return;
   }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
+    return;
+  // Need activeElement to make sure that this doesn't go off during input.
+  if(!('activeElement' in document))
+    return;
+
+  const $body = $("body");
+  if($body.data('zing'))
     return;
 
   const zing = new ZingTouch.Region(document.body, false, false);
   zing.bind(document.body, new E6Swipe(), function(e) {
     const angle = e.detail.data[0].currentDirection * 180 / Math.PI;
-//    console.log(angle);
+    console.log(angle, e.detail.data[0]);
     const hasPrev = Post.has_prev_target();
     const hasNext = Post.has_next_target();
     if (hasPrev && (angle > 90-25 && angle < 90+25)) { // right swipe
@@ -275,10 +291,6 @@ Post.initialize_gestures = function() {
         Utility.delay(200).then(function() { Post.nav_next(e); });
     }
   });
-
-  const $body = $("body");
-  if($body.data('zing'))
-    return;
 
   $body.data("zing", zing);
   $("#image-container").css({overflow: "visible"});

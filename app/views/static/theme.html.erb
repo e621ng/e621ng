@@ -42,12 +42,12 @@
   </div>
   <hr>
   <div class="input">
-    <label for="gestures_disable">Disable Mobile Gestures</label>
-    <select id="gestures_disable">
+    <label for="gestures_enable">Enable Mobile Gestures</label>
+    <select id="gestures_enable">
       <option value="false">No</option>
       <option value="true">Yes</option>
     </select>
-    <div class="hint">This allows you to disable mobile gestures on specific devices or while logged out. This overrides the choice you have in your account settings if used.</div>
+    <div class="hint">Swipe left for next page/image. Swipe right for previous page/image.</div>
   </div>
 </div>
 
@@ -61,11 +61,11 @@
       var theme = ls.getItem('theme') || 'hexagon';
       var extra = ls.getItem('theme-extra') || 'hexagon';
       var nav = ls.getItem('theme-nav') || 'top';
-      var dmg = ls.getItem('dmg') || 'false';
+      var emg = ls.getItem('emg') || 'false';
       $('#theme_name').val(theme);
       $('#theme_extra').val(extra);
       $('#theme_navbar').val(nav);
-      $('#gestures_disable').val(dmg);
+      $('#gestures_enable').val(emg);
     } catch(e) {
       $("#no_save_warning").show();
     }
@@ -84,9 +84,9 @@
       $body.attr('data-th-nav', pos);
       window.localStorage.setItem('theme-nav', pos);
     });
-    $("#gestures_disable").on('change', function(e) {
-      var dmg = e.target.value;
-      window.localStorage.setItem('dmg', dmg);
+    $("#gestures_enable").on('change', function(e) {
+      var emg = e.target.value;
+      window.localStorage.setItem('emg', emg);
     });
   });
 <% end -%>

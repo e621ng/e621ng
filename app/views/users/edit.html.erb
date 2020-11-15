@@ -83,9 +83,6 @@
                       :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
         <% end %>
 
-        <%= f.input :disable_mobile_gestures, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-        hint: "Disabled swipe left/right gestures on post lists and post pages for navigating between pages." %>
-
         <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
         hint: "Disables displaying cropped thumbnails on the mobile layout of the site in favor of scaled thumbnails. Has no effect on the desktop site." %>
 
