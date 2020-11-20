@@ -126,7 +126,7 @@ class UploadService
         end
       end
 
-      replacement.update_attributes({status: 'approved', approver_id: CurrentUser.id})
+      replacement.update({status: 'approved', approver_id: CurrentUser.id})
       post.save!
       post.generate_video_samples if post.is_video?
 

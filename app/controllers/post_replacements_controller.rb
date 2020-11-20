@@ -43,8 +43,11 @@ class PostReplacementsController < ApplicationController
   def promote
     @post_replacement = PostReplacement.find(params[:id])
     @post = @post_replacement.promote!
-
-    respond_with(@post)
+    if @post.errors.any?
+      respond_with(@post)
+    else
+      respond_with(@post.post)
+    end
   end
 
   def index
