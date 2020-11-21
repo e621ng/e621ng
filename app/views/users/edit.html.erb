@@ -86,6 +86,9 @@
         <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
         hint: "Disables displaying cropped thumbnails on the mobile layout of the site in favor of scaled thumbnails. Has no effect on the desktop site." %>
 
+        <%= f.input :show_hidden_comments, label: "Show Own Hidden Comments", :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
+                    hint: "Show your own hidden comments on comment pages." %>
+
         <% if @user.post_upload_count >= 10 %>
           <%= f.input :enable_compact_uploader, label: "Enable Compact Uploader", as: :select,
           collection: [["No", "false"], ["Yes", "true"]], include_blank: false,
