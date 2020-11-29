@@ -50,8 +50,8 @@ class StorageManager
     store(io, file_path(post.md5, post.file_ext, type))
   end
 
-  def store_replacement(io, replacement, size)
-    store(io, replacement_path(replacement.storage_id, replacement.file_ext, size))
+  def store_replacement(io, replacement, image_size)
+    store(io, replacement_path(replacement.storage_id, replacement.file_ext, image_size))
   end
 
   def delete_file(post_id, md5, file_ext, type, scale_factor: nil)
@@ -77,7 +77,7 @@ class StorageManager
 
   def delete_replacement(replacement)
     delete(replacement_path(replacement.storage_id, replacement.file_ext, :original))
-    delete(replacement_path(replacement.storage_id, replacement.file_ext, :thumb))
+    delete(replacement_path(replacement.storage_id, replacement.file_ext, :preview))
   end
 
   def open_file(post, type)
@@ -133,9 +133,9 @@ class StorageManager
     file_url_ext(post, type, post.file_ext)
   end
 
-  def replacement_url(replacement, size = :original)
+  def replacement_url(replacement, image_size = :original)
     subdir = subdir_for(replacement.storage_id)
-    file = "#{replacement.storage_id}#{'_thumb' if size == :thumb}.#{replacement.file_ext}"
+    file = "#{replacement.storage_id}#{'_thumb' if image_size == :preview}.#{replacement.file_ext}"
     base = "#{base_path}/#{replacement_prefix}"
     path = "#{base}/#{subdir}#{file}"
     "#{path}#{protected_params(path, nil, secret: Danbooru.config.replacement_file_secret)}"
@@ -184,10 +184,10 @@ class StorageManager
     end
   end
 
-  def replacement_path(replacement_or_storage_id, file_ext, size)
+  def replacement_path(replacement_or_storage_id, file_ext, image_size)
     storage_id = replacement_or_storage_id.is_a?(String) ? replacement_or_storage_id : replacement_or_storage_id.storage_id
     subdir = subdir_for(storage_id)
-    file = "#{storage_id}#{'_thumb' if size == :thumb}.#{file_ext}"
+    file = "#{storage_id}#{'_thumb' if image_size == :preview}.#{file_ext}"
     "#{base_dir}/#{replacement_prefix}/#{subdir}#{file}"
   end
 

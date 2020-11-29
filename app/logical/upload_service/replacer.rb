@@ -54,14 +54,17 @@ class UploadService
     end
 
     def create_backup_replacement
-      repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
-                                   image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
-                                   file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
-                                   source: post.source, reason: 'Backup of original file', is_backup: true)
-      repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
-      repl.save
-      Rails.logger.error("BACKUP REPLACEMENT: #{repl.errors.inspect}: #{repl.valid?.inspect} : #{repl.invalid?.inspect}")
-      raise ::Exception.new "couldn't create backup?" if !repl.valid?
+      begin
+        repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
+                                     image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
+                                     file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
+                                     source: post.source, reason: 'Backup of original file', is_backup: true)
+        repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
+        repl.save
+      rescue Exception => e
+        raise ProcessingError, "Failed to create post file backup: #{e.message}"
+      end
+      raise ProcessingError, "Could not create post file backup?" if !repl.valid?
     end
 
     def process!
@@ -101,7 +104,6 @@ class UploadService
       md5_changed = upload.md5 != post.md5
 
       if md5_changed
-        Rails.logger.error "DELETING ORIGINAL POST FILES"
         post.delete_files
         post.generated_samples = nil
       end

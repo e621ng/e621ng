@@ -28,6 +28,30 @@ FactoryBot.define do
       end
     end
 
+    factory(:jpg_invalid_replacement) do
+      replacement_file do
+        f = Tempfile.new
+        IO.copy_stream("#{Rails.root}/test/files/test-corrupt.jpg", f.path)
+        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
+      end
+    end
+
+    factory(:gif_replacement) do
+      replacement_file do
+        f = Tempfile.new
+        IO.copy_stream("#{Rails.root}/test/files/test.gif", f.path)
+        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.gif")
+      end
+    end
+
+    factory(:empty_replacement) do
+      replacement_file do
+        f = Tempfile.new
+        IO.copy_stream("#{Rails.root}/test/files/empty.jpg", f.path)
+        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
+      end
+    end
+
     factory(:png_replacement) do
       replacement_file do
         f = Tempfile.new

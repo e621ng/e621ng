@@ -77,11 +77,11 @@ class PostReplacement < ApplicationRecord
     # Janitor bypass replacement limits
     return true if creator.is_janitor?
 
-    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count > 2
-      self.errors.add(:creator, 'has already suggested too many replacement for this post today')
+    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count > Danbooru.config.post_replacement_per_day_limit
+      self.errors.add(:creator, 'has already suggested too many replacements for this post today')
       return false
     end
-    if post.replacements.where(creator_id: creator.id).count > 5
+    if post.replacements.where(creator_id: creator.id).count > Danbooru.config.post_replacement_per_post_limit
       self.errors.add(:creator, 'has already suggested too many total replacements for this post')
       return false
     end
@@ -134,9 +134,17 @@ class PostReplacement < ApplicationRecord
       self.storage_id = SecureRandom.hex(16)
       Danbooru.config.storage_manager.store_replacement(replacement_file, self, :original)
       thumbnail_file = PostThumbnailer.generate_thumbnail(replacement_file, is_video? ? :video : :image)
-      Danbooru.config.storage_manager.store_replacement(thumbnail_file, self, :thumb)
+      Danbooru.config.storage_manager.store_replacement(thumbnail_file, self, :preview)
     ensure
       thumbnail_file.try(:close!)
+    end
+
+    def replacement_file_path
+      Danbooru.config.storage_manager.replacement_path(self, file_ext, :original)
+    end
+
+    def replacement_thumb_path
+      Danbooru.config.storage_manager.replacement_path(self, file_ext, :preview)
     end
 
     def replacement_file_url
@@ -144,7 +152,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def replacement_thumb_url
-      Danbooru.config.storage_manager.replacement_url(self, :thumb)
+      Danbooru.config.storage_manager.replacement_url(self, :preview)
     end
   end
 

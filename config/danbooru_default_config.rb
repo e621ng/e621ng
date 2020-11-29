@@ -292,6 +292,14 @@ fart'
       30
     end
 
+    def post_replacement_per_day_limit
+      2
+    end
+
+    def post_replacement_per_post_limit
+      5
+    end
+
     def remember_key
       "abc123"
     end
