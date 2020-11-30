@@ -77,11 +77,11 @@ class PostReplacement < ApplicationRecord
     # Janitor bypass replacement limits
     return true if creator.is_janitor?
 
-    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count > Danbooru.config.post_replacement_per_day_limit
+    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
       self.errors.add(:creator, 'has already suggested too many replacements for this post today')
       return false
     end
-    if post.replacements.where(creator_id: creator.id).count > Danbooru.config.post_replacement_per_post_limit
+    if post.replacements.where(creator_id: creator.id).count >= Danbooru.config.post_replacement_per_post_limit
       self.errors.add(:creator, 'has already suggested too many total replacements for this post')
       return false
     end
