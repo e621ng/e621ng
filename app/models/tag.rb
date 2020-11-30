@@ -532,8 +532,8 @@ class Tag < ApplicationRecord
       if result[0] == :eq && type == :filesize && range !~ /[km]b?\Z/i
         result
       elsif result[0] == :eq
-        new_min = (result[1] * 0.95).to_i
-        new_max = (result[1] * 1.05).to_i
+        new_min = [(result[1] * 0.95).to_i, -2147483648].max
+        new_max = [(result[1] * 1.05).to_i, 2147483647].min
         [:between, new_min, new_max]
       else
         result
