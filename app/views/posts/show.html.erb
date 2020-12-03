@@ -233,8 +233,8 @@
   <%= tag.meta property: "og:url", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>
 
   <% if @post.visible? %>
-    <% if @post.is_video? && @post.has_sample_size?('480p') %>
-      <%= tag.meta property: "og:video", content: @post.scaled_url_ext('480p', 'mp4') %>
+    <% if @post.is_video? && @post.has_sample_size?('original') %>
+      <%= tag.meta property: "og:video", content: @post.open_graph_video_url %>
       <%= tag.meta property: "og:image", content: @post.open_graph_image_url %>
     <% else %>
       <%= tag.meta property: "og:image", content: @post.open_graph_image_url %>

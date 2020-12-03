@@ -168,6 +168,13 @@ class Post < ApplicationRecord
       storage_manager.file_url(self, :crop)
     end
 
+    def open_graph_video_url
+      if image_height > 720 && has_sample_size?('720p')
+        return scaled_url_ext('720p', 'mp4')
+      end
+      file_url_ext('mp4')
+    end
+
     def open_graph_image_url
       if is_image?
         if has_large?
