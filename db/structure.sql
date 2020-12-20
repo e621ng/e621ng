@@ -4404,27 +4404,6 @@ CREATE INDEX index_posts_on_created_at ON public.posts USING btree (created_at);
 
 
 --
--- Name: index_posts_on_file_size; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_file_size ON public.posts USING btree (file_size);
-
-
---
--- Name: index_posts_on_image_height; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_image_height ON public.posts USING btree (image_height);
-
-
---
--- Name: index_posts_on_image_width; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_image_width ON public.posts USING btree (image_width);
-
-
---
 -- Name: index_posts_on_is_flagged; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4439,31 +4418,10 @@ CREATE INDEX index_posts_on_is_pending ON public.posts USING btree (is_pending) 
 
 
 --
--- Name: index_posts_on_last_comment_bumped_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_last_comment_bumped_at ON public.posts USING btree (last_comment_bumped_at DESC NULLS LAST);
-
-
---
--- Name: index_posts_on_last_noted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_last_noted_at ON public.posts USING btree (last_noted_at DESC NULLS LAST);
-
-
---
 -- Name: index_posts_on_md5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_posts_on_md5 ON public.posts USING btree (md5);
-
-
---
--- Name: index_posts_on_mpixels; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_mpixels ON public.posts USING btree (((((image_width * image_height))::numeric / 1000000.0)));
 
 
 --
@@ -4478,13 +4436,6 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 --
 
 CREATE INDEX index_posts_on_pixiv_id ON public.posts USING btree (pixiv_id) WHERE (pixiv_id IS NOT NULL);
-
-
---
--- Name: index_posts_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_source ON public.posts USING btree (lower((source)::text));
 
 
 --
@@ -5136,6 +5087,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200713053034'),
 ('20200806101238'),
 ('20200910015420'),
-('20201113073842');
+('20201113073842'),
+('20201220172926');
 
 
