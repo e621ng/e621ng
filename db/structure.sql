@@ -4439,13 +4439,6 @@ CREATE INDEX index_posts_on_pixiv_id ON public.posts USING btree (pixiv_id) WHER
 
 
 --
--- Name: index_posts_on_source_pattern; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_source_pattern ON public.posts USING btree (public.sourcepattern(lower((source)::text)) text_pattern_ops);
-
-
---
 -- Name: index_posts_on_tags_index; Type: INDEX; Schema: public; Owner: -
 --
 
