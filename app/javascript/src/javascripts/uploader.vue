@@ -545,6 +545,13 @@
     },
     mounted() {
       const self = this;
+      const unloadWarning = function() {
+          const post_file = self.$refs['post_file'];
+          if ((post_file && post_file.files && post_file.files.length) || self.uploadURL) {
+            return true;
+          }
+      }
+      window.onbeforeunload = unloadWarning;
       const params = new URLSearchParams(window.location.search);
       const fillField = function(field, key) {
         if(params.has(key)) {
