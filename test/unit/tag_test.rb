@@ -37,8 +37,8 @@ class TagTest < ActiveSupport::TestCase
     end
 
     should "fetch for a single tag with strange markup" do
-      FactoryBot.create(:artist_tag, :name => "!@$%")
-      assert_equal(Tag.categories.artist, Tag.category_for("!@$%"))
+      FactoryBot.create(:artist_tag, :name => "!@ab")
+      assert_equal(Tag.categories.artist, Tag.category_for("!@ab"))
     end
 
     should "fetch for multiple tags" do
@@ -61,7 +61,7 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(1, Tag.categories.artist)
       assert_equal(3, Tag.categories.copyright)
       assert_equal(4, Tag.categories.character)
-      assert_equal(5, Tag.categories.meta)
+      assert_equal(7, Tag.categories.meta)
     end
 
     should "have a regular expression for matching category names and shortcuts" do
@@ -85,7 +85,7 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(0, Tag.categories.value_for("gen"))
       assert_equal(1, Tag.categories.value_for("artist"))
       assert_equal(1, Tag.categories.value_for("art"))
-      assert_equal(5, Tag.categories.value_for("meta"))
+      assert_equal(7, Tag.categories.value_for("meta"))
       assert_equal(0, Tag.categories.value_for("unknown"))
     end
   end
@@ -244,9 +244,9 @@ class TagTest < ActiveSupport::TestCase
 
       should_not allow_value("").for(:name).on(:create)
       should_not allow_value("___").for(:name).on(:create)
-      should_not allow_value("~foo").for(:name).on(:create)
-      should_not allow_value("-foo").for(:name).on(:create)
-      should_not allow_value("_foo").for(:name).on(:create)
+      %w|- ~ + _ ` ( ) { } [ ] /|.each do |x|
+        should_not allow_value("#{x}foo").for(:name).on(:create)
+      end
       should_not allow_value("foo_").for(:name).on(:create)
       should_not allow_value("foo__bar").for(:name).on(:create)
       should_not allow_value("foo*bar").for(:name).on(:create)

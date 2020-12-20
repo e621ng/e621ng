@@ -79,7 +79,7 @@ group :test do
   gem "shoulda-context"
   gem "shoulda-matchers"
   gem "factory_bot"
-  gem "mocha", :require => "mocha/setup"
+  gem "mocha", :require => "mocha/minitest"
   gem "ffaker"
   gem "simplecov", :require => false
   gem "timecop"

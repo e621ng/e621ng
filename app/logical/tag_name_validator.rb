@@ -3,41 +3,43 @@ class TagNameValidator < ActiveModel::EachValidator
     normalized = Tag.normalize_name(value)
     case normalized
     when /\A_*\z/
-      record.errors[attribute] << "'#{value}' cannot be blank"
+      record.errors.add(attribute,  "'#{value}' cannot be blank")
     when /\*/
-      record.errors[attribute] << "'#{value}' cannot contain asterisks ('*')"
+      record.errors.add(attribute,  "'#{value}' cannot contain asterisks ('*')")
     when /,/
-      record.errors[attribute] << "'#{value}' cannot contain commas (',')"
+      record.errors.add(attribute,  "'#{value}' cannot contain commas (',')")
     when /#/
-      record.errors[attribute] << "'#{value}' cannot contain octothorpes ('#')"
+      record.errors.add(attribute,  "'#{value}' cannot contain octothorpes ('#')")
     when /\$/
-      record.errors[attribute] << "'#{value}' cannot contain peso signs ('$')"
+      record.errors.add(attribute,  "'#{value}' cannot contain peso signs ('$')")
     when /%/
-      record.errors[attribute] << "'#{value}' cannot contain percent signs ('%')"
+      record.errors.add(attribute,  "'#{value}' cannot contain percent signs ('%')")
     when /\\/
-      record.errors[attribute] << "'#{value}' cannot contain back slashes ('\\')"
+      record.errors.add(attribute,  "'#{value}' cannot contain back slashes ('\\')")
     when /\A~/
-      record.errors[attribute] << "'#{value}' cannot begin with a tilde ('~')"
+      record.errors.add(attribute,  "'#{value}' cannot begin with a tilde ('~')")
     when /\A-/
-      record.errors[attribute] << "'#{value}' cannot begin with a dash ('-')"
+      record.errors.add(attribute,  "'#{value}' cannot begin with a dash ('-')")
     when /\A:/
-      record.errors[attribute] << "'#{value}' cannot begin with a colon (':')"
+      record.errors.add(attribute,  "'#{value}' cannot begin with a colon (':')")
     when /\A_/
-      record.errors[attribute] << "'#{value}' cannot begin with an underscore ('_')"
+      record.errors.add(attribute, "'#{value}' cannot begin with an underscore ('_')")
     when /_\z/
-      record.errors[attribute] << "'#{value}' cannot end with an underscore ('_')"
+      record.errors.add(attribute, "'#{value}' cannot end with an underscore ('_')")
     when /[_\-~]{2}/
-      record.errors[attribute] << "'#{value}' cannot contain consecutive underscores, hyphens or tildes"
+      record.errors.add(attribute, "'#{value}' cannot contain consecutive underscores, hyphens or tildes")
     when /[^[:graph:]]/
-      record.errors[attribute] << "'#{value}' cannot contain non-printable characters"
+      record.errors.add(attribute, "'#{value}' cannot contain non-printable characters")
+    when /\A[-~+_`(){}\[\]\/]/
+      record.errors.add(attribute, "'#{value}' cannot begin with a '#{value[0]}'")
     when /\A(#{Tag::METATAGS.join("|")}):(.+)\z/i
-      record.errors[attribute] << "'#{value}' cannot begin with '#{$1}:'"
+      record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
     when /\A(#{Tag.categories.regexp}):(.+)\z/i
-      record.errors[attribute] << "'#{value}' cannot begin with '#{$1}:'"
+      record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
     end
 
     if normalized =~ /[^[:ascii:]]/ && !options[:disable_ascii_check] == true
-      record.errors[attribute] << "'#{value}' must consist of only ASCII characters"
+      record.errors.add(attribute,  "'#{value}' must consist of only ASCII characters")
     end
   end
 end
