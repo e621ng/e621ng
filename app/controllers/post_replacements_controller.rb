@@ -36,7 +36,7 @@ private
 
   def update_params
     params.require(:post_replacement).permit(
-      :file_ext_was, :file_size_was, :image_width_was, :image_height_was, :md5_was,
+      :old_file_ext, :old_file_size, :old_image_width, :old_image_height, :old_md5,
       :file_ext, :file_size, :image_width, :image_height, :md5,
       :original_url, :replacement_url
     )

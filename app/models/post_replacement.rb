@@ -11,11 +11,11 @@ class PostReplacement < ApplicationRecord
     self.original_url = post.source
     self.tags = post.tag_string + " " + self.tags.to_s
 
-    self.file_ext_was =  post.file_ext
-    self.file_size_was = post.file_size
-    self.image_width_was = post.image_width
-    self.image_height_was = post.image_height
-    self.md5_was = post.md5
+    self.old_file_ext =  post.file_ext
+    self.old_file_size = post.file_size
+    self.old_image_width = post.image_width
+    self.old_image_height = post.image_height
+    self.old_md5 = post.md5
   end
 
   concerning :Search do
@@ -29,9 +29,9 @@ class PostReplacement < ApplicationRecord
 
         q = q.attribute_matches(:replacement_url, params[:replacement_url])
         q = q.attribute_matches(:original_url, params[:original_url])
-        q = q.attribute_matches(:file_ext_was, params[:file_ext_was])
+        q = q.attribute_matches(:old_file_ext, params[:old_file_ext])
         q = q.attribute_matches(:file_ext, params[:file_ext])
-        q = q.attribute_matches(:md5_was, params[:md5_was])
+        q = q.attribute_matches(:old_md5, params[:old_md5])
         q = q.attribute_matches(:md5, params[:md5])
 
         if params[:creator_id].present?

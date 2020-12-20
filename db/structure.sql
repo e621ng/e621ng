@@ -1601,11 +1601,11 @@ CREATE TABLE public.post_replacements (
     image_width integer,
     image_height integer,
     md5 character varying,
-    image_height_was integer,
-    image_width_was integer,
-    md5_was character varying,
-    file_size_was integer,
-    file_ext_was character varying,
+    old_image_height integer,
+    old_image_width integer,
+    old_md5 character varying,
+    old_file_size integer,
+    old_file_ext character varying,
     replacement_url text,
     original_url text
 );
@@ -5081,6 +5081,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200806101238'),
 ('20200910015420'),
 ('20201113073842'),
-('20201220172926');
+('20201220172926'),
+('20201220190335');
 
 
