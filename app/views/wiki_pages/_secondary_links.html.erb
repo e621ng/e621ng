@@ -28,6 +28,9 @@
 
       <% if CurrentUser.is_member? && @wiki_page.try(:tag).present? %>
         <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
+        <% if CurrentUser.is_janitor? %>
+          <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
+        <% end %>
       <% end %>
 
       <%= subnav_link_to "History", wiki_page_versions_path(:search => {:wiki_page_id => @wiki_page.id}) %>
