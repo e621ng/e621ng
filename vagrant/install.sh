@@ -150,6 +150,10 @@ if ! which vipsthumbnail >/dev/null; then
     rm -fr /tmp/vips-$VIPS_VERSION.tar.gz /tmp/vips-$VIPS_VERSION
 fi
 
+script_log "Enabling redis server"
+systemctl enable redis-server 2>/dev/null
+systemctl start redis-server
+
 script_log "Stopping danbooru systemd service..."
 service danbooru stop 2>/dev/null
 
