@@ -16,9 +16,6 @@ gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
 gem 'draper'
 gem 'statistics2'
-gem 'capistrano', '~> 3.10'
-gem 'capistrano-rails'
-gem 'capistrano-rbenv'
 gem 'radix62', '~> 1.0.1'
 gem 'streamio-ffmpeg'
 gem 'rubyzip', :require => "zip"
@@ -56,13 +53,11 @@ gem 'ruby-imagespec', :require => "image_spec", :git => "https://github.com/r888
 
 group :production, :staging do
   gem 'unicorn', :platforms => :ruby
-  gem 'capistrano3-unicorn'
 end
 
 group :production do
   gem 'unicorn-worker-killer'
   gem 'newrelic_rpm'
-  gem 'capistrano-deploytags', '~> 1.0.0', require: false
 end
 
 group :development do

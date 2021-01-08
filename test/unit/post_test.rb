@@ -2,23 +2,27 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id))
+    assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
   end
 
   def setup
     super
 
+    Sidekiq::Testing::inline!
     Timecop.travel(2.weeks.ago) do
       @user = FactoryBot.create(:user)
     end
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
     mock_pool_archive_service!
+    Post.__elasticsearch__.index_name = "posts_test"
+    Post.__elasticsearch__.create_index!
   end
 
   def teardown
     super
 
+    Sidekiq::Testing::fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
@@ -74,7 +78,6 @@ class PostTest < ActiveSupport::TestCase
 
       should "remove the post from iqdb" do
         mock_iqdb_service!
-        Post.iqdb_sqs_service.expects(:send_message).with("remove\n#{@post.id}")
 
         @post.expunge!
       end
@@ -95,7 +98,6 @@ class PostTest < ActiveSupport::TestCase
           # must be a janitor to update deleted pools. must be >1 week old to remove posts from pools.
           CurrentUser.user = FactoryBot.create(:janitor_user, created_at: 1.month.ago)
 
-          SqsService.any_instance.stubs(:send_message)
           @pool = FactoryBot.create(:pool)
           @pool.add!(@post)
 
@@ -630,6 +632,7 @@ class PostTest < ActiveSupport::TestCase
 
         context 'with aliases' do
           setup do
+
             FactoryBot.create(:tag_alias, :antecedent_name => "abc", :consequent_name => "xyz")
             FactoryBot.create(:tag_alias, :antecedent_name => "def", :consequent_name => "what")
             @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
@@ -669,71 +672,73 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "tagged with a valid tag" do
-        subject { @post }
+      # TODO: Invalid tags are now reported as warnings, and don't trigger these.
+      # context "tagged with a valid tag" do
+      #   subject { @post }
+      #
+      #   should allow_value("touhou 100%").for(:tag_string)
+      #   should allow_value("touhou FOO").for(:tag_string)
+      #   should allow_value("touhou -foo").for(:tag_string)
+      #   should allow_value("touhou pool:foo").for(:tag_string)
+      #   should allow_value("touhou -pool:foo").for(:tag_string)
+      #   should allow_value("touhou newpool:foo").for(:tag_string)
+      #   should allow_value("touhou fav:self").for(:tag_string)
+      #   should allow_value("touhou -fav:self").for(:tag_string)
+      #   should allow_value("touhou upvote:self").for(:tag_string)
+      #   should allow_value("touhou downvote:self").for(:tag_string)
+      #   should allow_value("touhou parent:1").for(:tag_string)
+      #   should allow_value("touhou child:1").for(:tag_string)
+      #   should allow_value("touhou source:foo").for(:tag_string)
+      #   should allow_value("touhou rating:z").for(:tag_string)
+      #   should allow_value("touhou locked:rating").for(:tag_string)
+      #   should allow_value("touhou -locked:rating").for(:tag_string)
+      #
+      #   # \u3000 = ideographic space, \u00A0 = no-break space
+      #   should allow_value("touhou\u3000foo").for(:tag_string)
+      #   should allow_value("touhou\u00A0foo").for(:tag_string)
+      # end
 
-        should allow_value("touhou 100%").for(:tag_string)
-        should allow_value("touhou FOO").for(:tag_string)
-        should allow_value("touhou -foo").for(:tag_string)
-        should allow_value("touhou pool:foo").for(:tag_string)
-        should allow_value("touhou -pool:foo").for(:tag_string)
-        should allow_value("touhou newpool:foo").for(:tag_string)
-        should allow_value("touhou fav:self").for(:tag_string)
-        should allow_value("touhou -fav:self").for(:tag_string)
-        should allow_value("touhou upvote:self").for(:tag_string)
-        should allow_value("touhou downvote:self").for(:tag_string)
-        should allow_value("touhou parent:1").for(:tag_string)
-        should allow_value("touhou child:1").for(:tag_string)
-        should allow_value("touhou source:foo").for(:tag_string)
-        should allow_value("touhou rating:z").for(:tag_string)
-        should allow_value("touhou locked:rating").for(:tag_string)
-        should allow_value("touhou -locked:rating").for(:tag_string)
-
-        # \u3000 = ideographic space, \u00A0 = no-break space
-        should allow_value("touhou\u3000foo").for(:tag_string)
-        should allow_value("touhou\u00A0foo").for(:tag_string)
-      end
-
-      context "tagged with an invalid tag" do
-        subject { @post }
-
-        context "that doesn't already exist" do
-          should_not allow_value("touhou user:evazion").for(:tag_string)
-          should_not allow_value("touhou *~foo").for(:tag_string)
-          should_not allow_value("touhou *-foo").for(:tag_string)
-          should_not allow_value("touhou ,-foo").for(:tag_string)
-
-          should_not allow_value("touhou ___").for(:tag_string)
-          should_not allow_value("touhou ~foo").for(:tag_string)
-          should_not allow_value("touhou _foo").for(:tag_string)
-          should_not allow_value("touhou foo_").for(:tag_string)
-          should_not allow_value("touhou foo__bar").for(:tag_string)
-          should_not allow_value("touhou foo*bar").for(:tag_string)
-          should_not allow_value("touhou foo,bar").for(:tag_string)
-          should_not allow_value("touhou foo\abar").for(:tag_string)
-          should_not allow_value("touhou café").for(:tag_string)
-          should_not allow_value("touhou 東方").for(:tag_string)
-        end
-
-        context "that already exists" do
-          setup do
-            %W(___ ~foo _foo foo_ foo__bar foo*bar foo,bar foo\abar café 東方).each do |tag|
-              FactoryBot.build(:tag, name: tag).save(validate: false)
-            end
-          end
-
-          should allow_value("touhou ___").for(:tag_string)
-          should allow_value("touhou ~foo").for(:tag_string)
-          should allow_value("touhou _foo").for(:tag_string)
-          should allow_value("touhou foo_").for(:tag_string)
-          should allow_value("touhou foo__bar").for(:tag_string)
-          should allow_value("touhou foo*bar").for(:tag_string)
-          should allow_value("touhou foo,bar").for(:tag_string)
-          should allow_value("touhou foo\abar").for(:tag_string)
-          should allow_value("touhou café").for(:tag_string)
-          should allow_value("touhou 東方").for(:tag_string)
-        end
-      end
+      # TODO: These are now warnings and don't trigger these.
+      # context "tagged with an invalid tag" do
+      #   subject { @post }
+      #
+      #   context "that doesn't already exist" do
+      #     should_not allow_value("touhou user:evazion").for(:tag_string)
+      #     should_not allow_value("touhou *~foo").for(:tag_string)
+      #     should_not allow_value("touhou *-foo").for(:tag_string)
+      #     should_not allow_value("touhou ,-foo").for(:tag_string)
+      #
+      #     should_not allow_value("touhou ___").for(:tag_string)
+      #     should_not allow_value("touhou ~foo").for(:tag_string)
+      #     should_not allow_value("touhou _foo").for(:tag_string)
+      #     should_not allow_value("touhou foo_").for(:tag_string)
+      #     should_not allow_value("touhou foo__bar").for(:tag_string)
+      #     should_not allow_value("touhou foo*bar").for(:tag_string)
+      #     should_not allow_value("touhou foo,bar").for(:tag_string)
+      #     should_not allow_value("touhou foo\abar").for(:tag_string)
+      #     should_not allow_value("touhou café").for(:tag_string)
+      #     should_not allow_value("touhou 東方").for(:tag_string)
+      #   end
+      #
+      #   context "that already exists" do
+      #     setup do
+      #       %W(___ ~foo _foo foo_ foo__bar foo*bar foo,bar foo\abar café 東方).each do |tag|
+      #         FactoryBot.build(:tag, name: tag).save(validate: false)
+      #       end
+      #     end
+      #
+      #     should allow_value("touhou ___").for(:tag_string)
+      #     should allow_value("touhou ~foo").for(:tag_string)
+      #     should allow_value("touhou _foo").for(:tag_string)
+      #     should allow_value("touhou foo_").for(:tag_string)
+      #     should allow_value("touhou foo__bar").for(:tag_string)
+      #     should allow_value("touhou foo*bar").for(:tag_string)
+      #     should allow_value("touhou foo,bar").for(:tag_string)
+      #     should allow_value("touhou foo\abar").for(:tag_string)
+      #     should allow_value("touhou café").for(:tag_string)
+      #     should allow_value("touhou 東方").for(:tag_string)
+      #   end
+      # end
 
       context "tagged with a metatag" do
 
@@ -1022,11 +1027,6 @@ class PostTest < ActiveSupport::TestCase
             @post.update(:tag_string => "source:none")
             assert_equal("", @post.source)
           end
-
-          should "set the pixiv id with source:https://img18.pixiv.net/img/evazion/14901720.png" do
-            @post.update(:tag_string => "source:https://img18.pixiv.net/img/evazion/14901720.png")
-            assert_equal(14901720, @post.pixiv_id)
-          end
         end
 
         context "of" do
@@ -1152,8 +1152,8 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "resolve aliases" do
-          FactoryBot.create(:tag_alias, :antecedent_name => "/tr", :consequent_name => "translation_request")
-          @post.update(:tag_string => "aaa translation_request -/tr")
+          FactoryBot.create(:tag_alias, :antecedent_name => "tr", :consequent_name => "translation_request")
+          @post.update(:tag_string => "aaa translation_request -tr")
 
           assert_equal("aaa", @post.tag_string)
         end
@@ -1245,20 +1245,6 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "with *_(cosplay) tags" do
-        setup do
-          @post.add_tag("hakurei_reimu_(cosplay)")
-          @post.add_tag("hatsune_miku_(cosplay)")
-          @post.save
-        end
-
-        should "add the character tags and the cosplay tag" do
-          assert(@post.has_tag?("hakurei_reimu"))
-          assert(@post.has_tag?("hatsune_miku"))
-          assert(@post.has_tag?("cosplay"))
-        end
-      end
-
       context "that has been updated" do
         should "create a new version if it's the first version" do
           assert_difference("PostArchive.count", 1) do
@@ -1284,7 +1270,6 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "increment the updater's post_update_count" do
-          PostArchive.sqs_service.stubs(:merge?).returns(false)
           post = FactoryBot.create(:post, :tag_string => "aaa bbb ccc")
 
           # XXX in the test environment the update count gets bumped twice: and
@@ -1436,26 +1421,6 @@ class PostTest < ActiveSupport::TestCase
       end
 
       context "with a source" do
-        context "that is not from pixiv" do
-          should "clear the pixiv id" do
-            @post.pixiv_id = 1234
-            @post.update(source: "http://fc06.deviantart.net/fs71/f/2013/295/d/7/you_are_already_dead__by_mar11co-d6rgm0e.jpg")
-            assert_nil(@post.pixiv_id)
-
-            @post.pixiv_id = 1234
-            @post.update(source: "http://pictures.hentai-foundry.com//a/AnimeFlux/219123.jpg")
-            assert_nil(@post.pixiv_id)
-          end
-        end
-
-        context "that is from pixiv" do
-          should "save the pixiv id" do
-            @post.update(source: "http://i1.pixiv.net/img-original/img/2014/10/02/13/51/23/46304396_p0.png")
-            assert_equal(46304396, @post.pixiv_id)
-            @post.pixiv_id = nil
-          end
-        end
-
         should "normalize pixiv links" do
           @post.source = "http://i2.pixiv.net/img12/img/zenze/39749565.png"
           assert_equal("https://www.pixiv.net/member_illust.php?mode=medium&illust_id=39749565", @post.normalized_source)
@@ -1610,21 +1575,21 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @user = FactoryBot.create(:contributor_user)
         @post = FactoryBot.create(:post)
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
         @user.reload
       end
 
       should "decrement the user's favorite_count" do
         assert_difference("@user.favorite_count", -1) do
-          @post.remove_favorite!(@user)
+          FavoriteManager.remove!(user: @user, post: @post)
         end
       end
 
       should "not decrement the post's score" do
         @member = FactoryBot.create(:user)
 
-        assert_no_difference("@post.score") { @post.add_favorite!(@member) }
-        assert_no_difference("@post.score") { @post.remove_favorite!(@member) }
+        assert_no_difference("@post.score") { FavoriteManager.add!(user: @member, post: @post) }
+        assert_no_difference("@post.score") { FavoriteManager.remove!(user: @member, post: @post) }
       end
 
       should "not decrement the user's favorite_count if the user did not favorite the post" do
@@ -1652,13 +1617,13 @@ class PostTest < ActiveSupport::TestCase
 
       should "increment the user's favorite_count" do
         assert_difference("@user.favorite_count", 1) do
-          @post.add_favorite!(@user)
+          FavoriteManager.add!(user: @user, post: @post)
         end
       end
 
       should "not increment the post's score" do
         @member = FactoryBot.create(:user)
-        @post.add_favorite!(@member)
+        FavoriteManager.add!(user: @user, post: @post)
         assert_equal(0, @post.score)
       end
 
@@ -1692,7 +1657,7 @@ class PostTest < ActiveSupport::TestCase
 
         @user1 = FactoryBot.create(:user, enable_privacy_mode: true)
         @privileged1 = FactoryBot.create(:privileged_user)
-        @supervoter1 = FactoryBot.create(:user, is_super_voter: true)
+        @supervoter1 = FactoryBot.create(:user)
 
         @child.add_favorite!(@user1)
         @child.add_favorite!(@privileged1)
@@ -1717,10 +1682,6 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Pools:" do
-    setup do
-      SqsService.any_instance.stubs(:send_message)
-    end
-
     context "Removing a post from a pool" do
       should "update the post's pool string" do
         post = FactoryBot.create(:post)
@@ -1919,8 +1880,6 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "return posts for the pool:<name> metatag" do
-      SqsService.any_instance.stubs(:send_message)
-
       FactoryBot.create(:pool, name: "test_a", category: "series")
       FactoryBot.create(:pool, name: "test_b", category: "collection")
       post1 = FactoryBot.create(:post, tag_string: "pool:test_a")
@@ -2160,41 +2119,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([],     "source:pixiv/artist-fake/*")
     end
 
-    should "return posts for a pixiv id search (type 1)" do
-      url = "http://i1.pixiv.net/img-inf/img/2013/03/14/03/02/36/34228050_s.jpg"
-      post = FactoryBot.create(:post, :source => url)
-      assert_tag_match([post], "pixiv_id:34228050")
-    end
-
-    should "return posts for a pixiv id search (type 2)" do
-      url = "http://i1.pixiv.net/img123/img/artist-name/789.png"
-      post = FactoryBot.create(:post, :source => url)
-      assert_tag_match([post], "pixiv_id:789")
-    end
-
-    should "return posts for a pixiv id search (type 3)" do
-      url = "http://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=19113635&page=0"
-      post = FactoryBot.create(:post, :source => url)
-      assert_tag_match([post], "pixiv_id:19113635")
-    end
-
-    should "return posts for a pixiv id search (type 4)" do
-      url = "http://i2.pixiv.net/img70/img/disappearedstump/34551381_p3.jpg?1364424318"
-      post = FactoryBot.create(:post, :source => url)
-      assert_tag_match([post], "pixiv_id:34551381")
-    end
-
-    should "return posts for a pixiv_id:any search" do
-      url = "http://i1.pixiv.net/img-original/img/2014/10/02/13/51/23/46304396_p0.png"
-      post = FactoryBot.create(:post, source: url)
-      assert_tag_match([post], "pixiv_id:any")
-    end
-
-    should "return posts for a pixiv_id:none search" do
-      post = FactoryBot.create(:post)
-      assert_tag_match([post], "pixiv_id:none")
-    end
-
     should "return posts for a rating:<s|q|e> metatag" do
       s = FactoryBot.create(:post, :rating => "s")
       q = FactoryBot.create(:post, :rating => "q")
@@ -2380,24 +2304,6 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Voting:" do
-    context "with a super voter" do
-      setup do
-        @user = FactoryBot.create(:user)
-        FactoryBot.create(:super_voter, user: @user)
-        @post = FactoryBot.create(:post)
-      end
-
-      should "account for magnitude" do
-        CurrentUser.scoped(@user, "127.0.0.1") do
-          assert_nothing_raised {@post.vote!("up")}
-          assert_raises(PostVote::Error) {@post.vote!("up")}
-          @post.reload
-          assert_equal(1, PostVote.count)
-          assert_equal(SuperVoter::MAGNITUDE, @post.score)
-        end
-      end
-    end
-
     should "not allow members to vote" do
       @user = FactoryBot.create(:user)
       @post = FactoryBot.create(:post)
@@ -2449,17 +2355,13 @@ class PostTest < ActiveSupport::TestCase
   context "Counting:" do
     context "Creating a post" do
       setup do
+        Post.__elasticsearch__.index_name = "posts_test"
+        Post.__elasticsearch__.delete_index!
+        Post.__elasticsearch__.create_index!
         Danbooru.config.stubs(:blank_tag_search_fast_count).returns(nil)
         Danbooru.config.stubs(:estimate_post_counts).returns(false)
         FactoryBot.create(:tag_alias, :antecedent_name => "alias", :consequent_name => "aaa")
         FactoryBot.create(:post, :tag_string => "aaa", "score" => 42)
-      end
-
-      context "a single basic tag" do
-        should "return the cached count" do
-          Tag.find_or_create_by_name("aaa").update_columns(post_count: 100)
-          assert_equal(100, Post.fast_count("aaa"))
-        end
       end
 
       context "a single metatag" do
@@ -2597,7 +2499,6 @@ class PostTest < ActiveSupport::TestCase
 
     context "a post that has been updated" do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         @post = FactoryBot.create(:post, :rating => "q", :tag_string => "aaa", :source => "")
         @post.reload
         @post.update(:tag_string => "aaa bbb ccc ddd")

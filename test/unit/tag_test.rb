@@ -2,12 +2,16 @@ require 'test_helper'
 
 class TagTest < ActiveSupport::TestCase
   setup do
+    Sidekiq::Testing::inline!
     @janitor = FactoryBot.create(:janitor_user)
     CurrentUser.user = @janitor
     CurrentUser.ip_addr = "127.0.0.1"
+    Post.__elasticsearch__.index_name = "posts_test"
+    Post.__elasticsearch__.create_index!
   end
 
   teardown do
+    Sidekiq::Testing::fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
@@ -47,7 +51,7 @@ class TagTest < ActiveSupport::TestCase
       categories = Tag.categories_for(%w(aaa bbb ccc))
       assert_equal(Tag.categories.artist, categories["aaa"])
       assert_equal(Tag.categories.copyright, categories["bbb"])
-      assert_equal(0, categories["ccc"])
+      assert_nil(categories["ccc"])
     end
   end
 
@@ -213,7 +217,9 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(1, post.tag_count_general)
       assert_equal(0, post.tag_count_character)
 
-      tag = Tag.find_or_create_by_name("char:test")
+      tag = Tag.find_by_normalized_name('test')
+      tag.update_attribute(:category, 4)
+      assert_equal tag.errors.full_messages, []
       post.reload
       assert_equal(0, post.tag_count_general)
       assert_equal(1, post.tag_count_character)
