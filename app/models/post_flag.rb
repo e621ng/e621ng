@@ -189,15 +189,17 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
+    when 'test'
+      errors.add(:reason, "is not one of the available choices") unless Rails.env.test?
     when 'deletion'
       # You're probably looking at this line as you get this validation failure
-      errors[:reason] << "is not one of the available choices" unless is_deletion
+      errors.add(:reason, "is not one of the available choices") unless is_deletion
     when 'inferior'
       unless parent_post.present?
-        errors[:parent_id] << "must exist"
+        errors.add(:parent_id, "must exist")
         return false
       end
-      errors[:parent_id] << "cannot be set to the post being flagged" if parent_post.id == post.id
+      errors.add(:parent_id,  "cannot be set to the post being flagged") if parent_post.id == post.id
     when 'user'
       errors[:user_reason] << "cannot be blank" unless user_reason.present? && user_reason.strip.length > 0
       errors[:user_reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
@@ -208,6 +210,8 @@ class PostFlag < ApplicationRecord
 
   def update_reason
     case reason_name
+    when 'test'
+      self.reason = user_reason if Rails.env.test?
     when 'deletion'
       # NOP
     when 'inferior'

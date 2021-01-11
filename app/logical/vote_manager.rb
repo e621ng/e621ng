@@ -6,7 +6,8 @@ class VoteManager
     begin
       raise PostVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
-      PostVote.transaction(isolation: :serializable) do
+      target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+      PostVote.transaction(**target_isolation) do
         PostVote.uncached do
           old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
           if old_vote
@@ -45,7 +46,8 @@ class VoteManager
   def self.unvote!(user:, post:, force: false)
     retries = 5
     begin
-      PostVote.transaction(isolation: :serializable) do
+      target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+      PostVote.transaction(**target_isolation) do
         PostVote.uncached do
           vote = PostVote.where(user_id: user.id, post_id: post.id).first
           return unless vote
@@ -65,7 +67,8 @@ class VoteManager
 
   def self.lock!(id)
     post = nil
-    PostVote.transaction(isolation: :serializable) do
+    target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+    PostVote.transaction(**target_isolation) do
       vote = PostVote.find_by(id: id)
       return unless vote
       post = vote.post
@@ -89,7 +92,8 @@ class VoteManager
       raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
       reason = user.can_comment_vote_with_reason
       raise CommentVote::Error.new("You #{User.throttle_reason(reason)}") unless reason == true
-      CommentVote.transaction(isolation: :serializable) do
+      target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+      CommentVote.transaction(**target_isolation) do
         CommentVote.uncached do
           old_vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
           if old_vote
@@ -116,7 +120,8 @@ class VoteManager
   end
 
   def self.comment_unvote!(user:, comment:, force: false)
-    CommentVote.transaction(isolation: :serializable) do
+    target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+    CommentVote.transaction(**target_isolation) do
       CommentVote.uncached do
         vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
         return unless vote
@@ -128,7 +133,8 @@ class VoteManager
   end
 
   def self.comment_lock!(id)
-    CommentVote.transaction(isolation: :serializable) do
+    target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
+    CommentVote.transaction(**target_isolation) do
       vote = CommentVote.find_by(id: id)
       return unless vote
       comment = vote.comment

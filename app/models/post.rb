@@ -366,10 +366,13 @@ class Post < ApplicationRecord
     def unapprove!(unapprover = CurrentUser.user)
       update(approver: nil, is_pending: true)
     end
-
-
+    
     def approve!(approver = CurrentUser.user, force: false)
       raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
+      if is_deleted?
+        ModAction.log(:post_undelete, {post_id: id})
+      end
+
       approv = approvals.create(user: approver)
       flags.each(&:resolve!)
       update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
@@ -1033,15 +1036,6 @@ class Post < ApplicationRecord
           set = PostSet.find_by_shortname($1)
           set.remove!(self) if set && set.can_edit?(CurrentUser.user)
 
-        when /^fav:(.+)$/i
-          FavoriteManager.add!(user: CurrentUser.user, post: self)
-
-        when /^-fav:(.+)$/i
-          FavoriteManager.remove!(user: CurrentUser.user, post: self)
-
-        when /^(up|down)vote:(.+)$/i
-          VoteManager.vote!(user: CurrentUser.user, post: self, score: $1)
-
         when /^child:none$/i
           children.each do |post|
             post.update!(parent_id: nil)
@@ -1519,8 +1513,6 @@ class Post < ApplicationRecord
         Post.without_timeout do
           ModAction.log(:post_destroy, {post_id: id, md5: md5})
 
-          # TODO: Fix this. Cannot change isolation level during transaction.
-          # give_favorites_to_parent! # Must be inline or else the post and favorites won't exist for the background job.
           update_children_on_destroy
           decrement_tag_post_counts
           remove_from_all_pools

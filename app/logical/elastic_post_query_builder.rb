@@ -185,9 +185,9 @@ class ElasticPostQueryBuilder
     elsif q[:status] == "deleted"
       must.push({term: {deleted: true}})
     elsif q[:status] == "active"
-      must.push([{term: {pending: false}},
-                 {term: {deleted: false}},
-                 {term: {flagged: false}}])
+      must.concat([{term: {pending: false}},
+                   {term: {deleted: false}},
+                   {term: {flagged: false}}])
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
@@ -231,7 +231,7 @@ class ElasticPostQueryBuilder
 
     if q[:source_neg]
       if q[:source_neg] == "none%"
-        relation.push({exists: {field: :source}})
+        must.push({exists: {field: :source}})
       elsif q[:source_neg] == "http%"
         must_not.push({prefix: {source: "http"}})
       else

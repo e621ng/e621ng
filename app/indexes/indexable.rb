@@ -24,7 +24,7 @@ module Indexable
   end
 
   def update_index(defer: true, priority: :high)
-    if defer
+    if defer && !Rails.env.test?
       if priority == :high
         IndexUpdateJob.perform_async(self.class.to_s, id)
       elsif priority == :rebuild

@@ -1,8 +1,9 @@
 class FavoriteManager
-  def self.add!(user:, post:, force: false)
+  def self.add!(user:, post:, force: false, isolation: true)
     retries = 5
     begin
-      Favorite.transaction(isolation: :serializable) do
+      target_isolation = Rails.env.test? || !isolation ? {} : {isolation: :serializable}
+      Favorite.transaction(**target_isolation) do
         unless force
           if user.favorite_count >= user.favorite_limit
             raise Favorite::Error, "You can only keep up to #{user.favorite_limit} favorites."
@@ -23,12 +24,13 @@ class FavoriteManager
     end
   end
 
-  def self.remove!(user:, post:, post_id: nil)
+  def self.remove!(user:, post:, post_id: nil, isolation: true)
     post_id = post ? post.id : post_id
     raise Favorite::Error, "Must specify a post or post_id to remove favorite" unless post_id
     retries = 5
     begin
-      Favorite.transaction(isolation: :serializable) do
+      target_isolation = Rails.env.test? || !isolation ? {} : {isolation: :serializable}
+      Favorite.transaction(**target_isolation) do
         unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
           return
         end
@@ -45,15 +47,15 @@ class FavoriteManager
     end
   end
 
-  def self.give_to_parent!(post)
+  def self.give_to_parent!(post, isolation: true)
     # TODO Much better and more intelligent logic can exist for this
     parent = post.parent
     return false unless parent
     post.favorites.each do |fav|
       tries = 5
       begin
-        FavoriteManager.remove!(user: fav.user, post: post)
-        FavoriteManager.add!(user: fav.user, post: parent, force: true)
+        FavoriteManager.remove!(user: fav.user, post: post, isolation: isolation)
+        FavoriteManager.add!(user: fav.user, post: parent, force: true, isolation: isolation)
       rescue ActiveRecord::SerializationFailure
         tries -= 1
         retry if tries > 0
