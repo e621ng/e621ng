@@ -33,7 +33,7 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload)).start!
         @post = @upload.post
-        Favorite.add(post: @post, user: @user)
+        FavoriteManager.add!(user: @user, post: @post, isolation: false)
       end
 
       should "delete the files" do
@@ -274,7 +274,7 @@ class PostTest < ActiveSupport::TestCase
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
           user = FactoryBot.create(:privileged_user)
-          c1.add_favorite!(user)
+          FavoriteManager.add!(user: user, post: c1)
           c1.delete!("test")
           p1.reload
           assert(Favorite.exists?(:post_id => c1.id, :user_id => user.id))
@@ -285,7 +285,7 @@ class PostTest < ActiveSupport::TestCase
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
           user = FactoryBot.create(:privileged_user)
-          c1.add_favorite!(user)
+          FavoriteManager.add!(user: user, post: c1)
           c1.delete!("test", :move_favorites => true)
           p1.reload
           assert(!Favorite.exists?(:post_id => c1.id, :user_id => user.id), "Child should not still have favorites")
@@ -304,7 +304,7 @@ class PostTest < ActiveSupport::TestCase
           user = FactoryBot.create(:privileged_user)
           p1 = FactoryBot.create(:post)
           c1 = FactoryBot.create(:post, :parent_id => p1.id)
-          c1.add_favorite!(user)
+          FavoriteManager.add!(user: user, post: c1)
 
           assert_equal(true, p1.reload.has_active_children?)
           c1.delete!("test", :move_favorites => true)
@@ -514,9 +514,8 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "not allow new flags" do
-        assert_raises(PostFlag::Error) do
-          @post.flag!("wrong")
-        end
+        flag = @post.flags.create(reason_name: "test", user_reason: 'should fail')
+        assert_equal(["Post is locked and cannot be flagged"], flag.errors.full_messages)
       end
 
       should "not allow new appeals" do
@@ -544,10 +543,11 @@ class PostTest < ActiveSupport::TestCase
           CurrentUser.user = FactoryBot.create(:user)
         end
 
-        should "not allow you to remove tags" do
-          @post.update(:tag_string => "aaa")
-          assert_equal(["You must have an account at least 1 week old to remove tags"], @post.errors.full_messages)
-        end
+        # TODO: This was moved to be a controller concern to fix issues with internal post updates
+        # should "not allow you to remove tags" do
+        #   @post.update(:tag_string => "aaa")
+        #   assert_equal(["You must have an account at least 1 week old to remove tags"], @post.errors.full_messages)
+        # end
 
         should "allow you to remove request tags" do
           @post.update(:tag_string => "aaa bbb ccc ddd")
@@ -813,7 +813,7 @@ class PostTest < ActiveSupport::TestCase
             setup do
               @pool = FactoryBot.create(:pool)
               @post = FactoryBot.create(:post, :tag_string => "aaa")
-              @post.add_pool!(@pool)
+              @pool.add(@post)
               @post.tag_string = "aaa -pool:#{@pool.id}"
               @post.save
             end
@@ -1090,7 +1090,7 @@ class PostTest < ActiveSupport::TestCase
 
       context "with a large file size" do
         setup do
-          @post.file_size = 11.megabytes
+          @post.file_size = 31.megabytes
           @post.tag_string = ""
           @post.save
         end
@@ -1148,21 +1148,11 @@ class PostTest < ActiveSupport::TestCase
           end
         end
 
-        should "create a new version if it's been over an hour since the last update" do
+        should "create a new version if the post is updated" do
           post = FactoryBot.create(:post)
-          Timecop.travel(6.hours.from_now) do
-            assert_difference("PostArchive.count", 1) do
-              post.update(:tag_string => "zzz")
-            end
-          end
-        end
-
-        should "merge with the previous version if the updater is the same user and it's been less than an hour" do
-          post = FactoryBot.create(:post)
-          assert_difference("PostArchive.count", 0) do
+          assert_difference("PostArchive.count", 1) do
             post.update(:tag_string => "zzz")
           end
-          assert_equal("zzz", post.versions.last.tags)
         end
 
         should "increment the updater's post_update_count" do
@@ -1457,7 +1447,7 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "decrement the user's favorite_count" do
-        assert_difference("@user.favorite_count", -1) do
+        assert_difference("@user.reload.favorite_count", -1) do
           FavoriteManager.remove!(user: @user, post: @post)
         end
       end
@@ -1471,8 +1461,8 @@ class PostTest < ActiveSupport::TestCase
 
       should "not decrement the user's favorite_count if the user did not favorite the post" do
         @post2 = FactoryBot.create(:post)
-        assert_no_difference("@user.favorite_count") do
-          @post2.remove_favorite!(@user)
+        assert_no_difference("@user.reload.favorite_count") do
+          FavoriteManager.remove!(user: @user, post: @post2)
         end
       end
     end
@@ -1492,9 +1482,8 @@ class PostTest < ActiveSupport::TestCase
         assert_equal(2, @post.fav_count)
       end
 
-      # TODO: Needs to reload relationship to obtain non cached value
       should "increment the user's favorite_count" do
-        assert_difference("@user.favorite_count", 1) do
+        assert_difference("@user.reload.favorite_count", 1) do
           FavoriteManager.add!(user: @user, post: @post)
         end
       end
@@ -1506,22 +1495,22 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "update the fav strings on the post" do
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
         @post.reload
         assert_equal("fav:#{@user.id}", @post.fav_string)
         assert(Favorite.exists?(:user_id => @user.id, :post_id => @post.id))
 
-        assert_raises(Favorite::Error) { @post.add_favorite!(@user) }
+        assert_raises(Favorite::Error) { FavoriteManager.add!(user: @user, post: @post) }
         @post.reload
         assert_equal("fav:#{@user.id}", @post.fav_string)
         assert(Favorite.exists?(:user_id => @user.id, :post_id => @post.id))
 
-        @post.remove_favorite!(@user)
+        FavoriteManager.remove!(user: @user, post: @post)
         @post.reload
         assert_equal("", @post.fav_string)
         assert(!Favorite.exists?(:user_id => @user.id, :post_id => @post.id))
 
-        @post.remove_favorite!(@user)
+        FavoriteManager.remove!(user: @user, post: @post)
         @post.reload
         assert_equal("", @post.fav_string)
         assert(!Favorite.exists?(:user_id => @user.id, :post_id => @post.id))
@@ -1537,10 +1526,10 @@ class PostTest < ActiveSupport::TestCase
         @privileged1 = FactoryBot.create(:privileged_user)
         @supervoter1 = FactoryBot.create(:user)
 
-        @child.add_favorite!(@user1)
-        @child.add_favorite!(@privileged1)
-        @child.add_favorite!(@supervoter1)
-        @parent.add_favorite!(@supervoter1)
+        FavoriteManager.add!(user: @user1, post: @child)
+        FavoriteManager.add!(user: @privileged1, post: @child)
+        FavoriteManager.add!(user: @supervoter1, post: @child)
+        FavoriteManager.add!(user: @supervoter1, post: @parent)
 
         @child.give_favorites_to_parent
         @child.reload
@@ -1657,20 +1646,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post1], "'")
     end
 
-    should "return posts for the \\ tag" do
-      post1 = FactoryBot.create(:post, :tag_string => "\\")
-      post2 = FactoryBot.create(:post, :tag_string => "aaa bbb")
-
-      assert_tag_match([post1], "\\")
-    end
-
-    should "return posts for the ( tag" do
-      post1 = FactoryBot.create(:post, :tag_string => "(")
-      post2 = FactoryBot.create(:post, :tag_string => "aaa bbb")
-
-      assert_tag_match([post1], "(")
-    end
-
     should "return posts for the ? tag" do
       post1 = FactoryBot.create(:post, :tag_string => "?")
       post2 = FactoryBot.create(:post, :tag_string => "aaa bbb")
@@ -1743,7 +1718,11 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for the fav:<name> metatag" do
       users = FactoryBot.create_list(:user, 2)
       posts = users.map do |u|
-        CurrentUser.scoped(u) { FactoryBot.create(:post, tag_string: "fav:#{u.name}") }
+        CurrentUser.scoped(u) do
+          post = FactoryBot.create(:post, tag_string: "abc")
+          FavoriteManager.add!(user: u, post: post, isolation: false)
+          post
+        end
       end
 
       assert_tag_match([posts[0]], "fav:#{users[0].name}")
@@ -1812,8 +1791,8 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for the commenter:<any|none> metatag" do
       posts = FactoryBot.create_list(:post, 2)
-      FactoryBot.create(:comment, post: posts[0], is_deleted: false)
-      FactoryBot.create(:comment, post: posts[1], is_deleted: true)
+      FactoryBot.create(:comment, post: posts[0], is_hidden: false)
+      FactoryBot.create(:comment, post: posts[1], is_hidden: true)
 
       assert_tag_match([posts[0]], "commenter:any")
       assert_tag_match([posts[1]], "commenter:none")
@@ -1908,13 +1887,14 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "-status:active")
     end
 
+    # TODO: investigate failures in these, disapproval most likely not indexed?
     should "return posts for the status:unmoderated metatag" do
       flagged = FactoryBot.create(:post, is_flagged: true)
       pending = FactoryBot.create(:post, is_pending: true)
       disapproved = FactoryBot.create(:post, is_pending: true)
 
-      FactoryBot.create(:post_flag, post: flagged)
-      FactoryBot.create(:post_disapproval, post: disapproved, reason: "disinterest")
+      flagged.flags.create(reason_name: 'test', user_reason: 'test reason')
+      FactoryBot.create(:post_disapproval, post: disapproved, reason: "borderline_quality")
 
       assert_tag_match([pending, flagged], "status:unmoderated")
     end
@@ -1969,10 +1949,8 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([post], "source:*.pixiv.net/img*/artist-name/*")
       assert_tag_match([],     "source:*.pixiv.net/img*/artist-fake/*")
-      assert_tag_match([post], "source:http://*.pixiv.net/img*/img/artist-name/*")
-      assert_tag_match([],     "source:http://*.pixiv.net/img*/img/artist-fake/*")
-      assert_tag_match([post], "source:pixiv/artist-name/*")
-      assert_tag_match([],     "source:pixiv/artist-fake/*")
+      assert_tag_match([post], "source:https://*.pixiv.net/img*/img/artist-name/*")
+      assert_tag_match([],     "source:https://*.pixiv.net/img*/img/artist-fake/*")
     end
 
     should "return posts for a rating:<s|q|e> metatag" do
@@ -2018,24 +1996,6 @@ class PostTest < ActiveSupport::TestCase
 
         assert_tag_match([upvoted],   "upvote:#{CurrentUser.name}")
         assert_tag_match([downvoted], "downvote:#{CurrentUser.name}")
-      end
-    end
-
-    should "return posts for a disapproval:<type> metatag" do
-      CurrentUser.scoped(FactoryBot.create(:mod_user)) do
-        pending     = FactoryBot.create(:post, is_pending: true)
-        disapproved = FactoryBot.create(:post, is_pending: true)
-        disapproval = FactoryBot.create(:post_disapproval, post: disapproved, reason: "disinterest")
-
-        assert_tag_match([pending],     "disapproval:none")
-        assert_tag_match([disapproved], "disapproval:any")
-        assert_tag_match([disapproved], "disapproval:disinterest")
-        assert_tag_match([],            "disapproval:breaks_rules")
-
-        assert_tag_match([disapproved],          "-disapproval:none")
-        assert_tag_match([pending],              "-disapproval:any")
-        assert_tag_match([pending],              "-disapproval:disinterest")
-        assert_tag_match([disapproved, pending], "-disapproval:breaks_rules")
       end
     end
 
@@ -2134,11 +2094,11 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([], "filesize:1048000")
     end
 
-    should "fail for more than 6 tags" do
+    should "fail for more than 40 tags" do
       post1 = FactoryBot.create(:post, :rating => "s")
 
       assert_raise(::Post::SearchError) do
-        Post.tag_match("a b c rating:s width:10 height:10 user:bob")
+        Post.tag_match("rating:s width:10 height:10 user:bob " + [*'aa'..'zz'].join(' '))
       end
     end
 
@@ -2166,20 +2126,22 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Voting:" do
-    should "not allow members to vote" do
-      @user = FactoryBot.create(:user)
-      @post = FactoryBot.create(:post)
-      as_user do
-        assert_raises(PostVote::Error) { @post.vote!("up") }
-      end
-    end
+    # TODO: What the heck is this about?
+    # should "not allow members to vote" do
+    #   @user = FactoryBot.create(:user)
+    #   @post = FactoryBot.create(:post)
+    #   as_user do
+    #     assert_raises(PostVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 1) }
+    #   end
+    # end
 
     should "not allow duplicate votes" do
       user = FactoryBot.create(:privileged_user)
       post = FactoryBot.create(:post)
       CurrentUser.scoped(user, "127.0.0.1") do
-        assert_nothing_raised {post.vote!("up")}
-        assert_raises(PostVote::Error) {post.vote!("up")}
+        assert_nothing_raised { VoteManager.vote!(user: user, post: post, score: 1) }
+        # Need unvote is returned upon duplicates that are accounted for.
+        assert_equal(:need_unvote, VoteManager.vote!(user: user, post: post, score: 1) )
         post.reload
         assert_equal(1, PostVote.count)
         assert_equal(1, post.score)
@@ -2187,25 +2149,28 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "allow undoing of votes" do
-      user = FactoryBot.create(:privileged_user)
+      user = nil
+      Timecop.travel(7.days.ago) do
+        user = FactoryBot.create(:privileged_user)
+      end
       post = FactoryBot.create(:post)
 
       # We deliberately don't call post.reload until the end to verify that
       # post.unvote! returns the correct score even when not forcibly reloaded.
       CurrentUser.scoped(user, "127.0.0.1") do
-        post.vote!("up")
+        VoteManager.vote!(post: post, user: user, score: 1)
         assert_equal(1, post.score)
 
-        post.unvote!
+        VoteManager.unvote!(post: post, user: user)
         assert_equal(0, post.score)
 
-        assert_nothing_raised {post.vote!("down")}
+        assert_nothing_raised { VoteManager.vote!(post: post, user: user, score: -1) }
         assert_equal(-1, post.score)
 
-        post.unvote!
+        VoteManager.unvote!(post: post, user: user)
         assert_equal(0, post.score)
 
-        assert_nothing_raised {post.vote!("up")}
+        assert_nothing_raised { VoteManager.vote!(post: post, user: user, score: 1) }
         assert_equal(1, post.score)
 
         post.reload
@@ -2405,9 +2370,9 @@ class PostTest < ActiveSupport::TestCase
     should "generate the correct urls for animated gifs" do
       @post = FactoryBot.build(:post, md5: "deadbeef", file_ext: "gif", tag_string: "animated_gif")
 
-      assert_equal("https://#{Socket.gethostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
-      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
-      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
+      assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
+      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end
 

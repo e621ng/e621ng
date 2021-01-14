@@ -505,12 +505,12 @@ class Post < ApplicationRecord
         "https://deviantart.com/deviation/#{id}"
 
       when %r{\Ahttp://www\.karabako\.net/images(?:ub)?/karabako_(\d+)(?:_\d+)?\.}i
-        "http://www.karabako.net/post/view/#{$1}"
+        "https://www.karabako.net/post/view/#{$1}"
 
         # XXX http://twipple.jp is defunct
         # http://p.twpl.jp/show/orig/myRVs
       when %r{\Ahttp://p\.twpl\.jp/show/(?:large|orig)/([a-z0-9]+)}i
-        "http://p.twipple.jp/#{$1}"
+        "https://p.twipple.jp/#{$1}"
 
       when %r{\Ahttps?://pictures\.hentai-foundry\.com//?[^/]/([^/]+)/(\d+)}i
         "https://www.hentai-foundry.com/pictures/user/#{$1}/#{$2}"
@@ -518,7 +518,7 @@ class Post < ApplicationRecord
       when %r{\Ahttp://blog(?:(?:-imgs-)?\d*(?:-origin)?)?\.fc2\.com/(?:(?:[^/]/){3}|(?:[^/]/))([^/]+)/(?:file/)?([^\.]+\.[^\?]+)}i
         username = $1
         filename = $2
-        "http://#{username}.blog.fc2.com/img/#{filename}/"
+        "https://#{username}.blog.fc2.com/img/#{filename}/"
 
       when %r{\Ahttp://diary(\d)?\.fc2\.com/user/([^/]+)/img/(\d+)_(\d+)/(\d+)\.}i
         server_id = $1
@@ -526,7 +526,7 @@ class Post < ApplicationRecord
         year = $3
         month = $4
         day = $5
-        "http://diary#{server_id}.fc2.com/cgi-sys/ed.cgi/#{username}?Y=#{year}&M=#{month}&D=#{day}"
+        "https://diary#{server_id}.fc2.com/cgi-sys/ed.cgi/#{username}?Y=#{year}&M=#{month}&D=#{day}"
 
       when %r{\Ahttps?://(?:fbcdn-)?s(?:content|photos)-[^/]+\.(?:fbcdn|akamaihd)\.net/hphotos-.+/\d+_(\d+)_(?:\d+_){1,3}[no]\.}i
         "https://www.facebook.com/photo.php?fbid=#{$1}"
@@ -538,7 +538,7 @@ class Post < ApplicationRecord
         "https://www.zerochan.net/#{$1}#full"
 
       when %r{\Ahttp://static[1-6]?\.minitokyo\.net/(?:downloads|view)/(?:\d{2}/){2}(\d+)}i
-        "http://gallery.minitokyo.net/download/#{$1}"
+        "https://gallery.minitokyo.net/download/#{$1}"
 
         # https://gelbooru.com//images/ee/5c/ee5c9a69db9602c95debdb9b98fb3e3e.jpeg
         # http://simg.gelbooru.com//images/2003/edd1d2b3881cf70c3acf540780507531.png
@@ -549,26 +549,26 @@ class Post < ApplicationRecord
       when %r{\Ahttps?://(?:slot\d*\.)?im(?:g|ages)\d*\.wikia\.(?:nocookie\.net|com)/(?:_{2}cb\d{14}/)?([^/]+)(?:/[a-z]{2})?/images/(?:(?:thumb|archive)?/)?[a-f0-9]/[a-f0-9]{2}/(?:\d{14}(?:!|%21))?([^/]+)}i
         subdomain = $1
         filename = $2
-        "http://#{subdomain}.wikia.com/wiki/File:#{filename}"
+        "https://#{subdomain}.wikia.com/wiki/File:#{filename}"
 
       when %r{\Ahttps?://vignette(?:\d*)\.wikia\.nocookie\.net/([^/]+)/images/[a-f0-9]/[a-f0-9]{2}/([^/]+)}i
         subdomain = $1
         filename = $2
-        "http://#{subdomain}.wikia.com/wiki/File:#{filename}"
+        "https://#{subdomain}.wikia.com/wiki/File:#{filename}"
 
       when %r{\Ahttp://(?:(?:\d{1,3}\.){3}\d{1,3}):(?:\d{1,5})/h/([a-f0-9]{40})-(?:\d+-){3}(?:png|gif|(?:jpe?g?))/keystamp=\d+-[a-f0-9]{10}/([^/]+)}i
         sha1hash = $1
         filename = $2
-        "http://g.e-hentai.org/?f_shash=#{sha1hash}&fs_from=#{filename}"
+        "https://g.e-hentai.org/?f_shash=#{sha1hash}&fs_from=#{filename}"
 
       when %r{\Ahttp://e-shuushuu.net/images/\d{4}-(?:\d{2}-){2}(\d+)}i
-        "http://e-shuushuu.net/image/#{$1}"
+        "https://e-shuushuu.net/image/#{$1}"
 
       when %r{\Ahttp://jpg\.nijigen-daiaru\.com/(\d+)}i
-        "http://nijigen-daiaru.com/book.php?idb=#{$1}"
+        "https://nijigen-daiaru.com/book.php?idb=#{$1}"
 
       when %r{\Ahttps?://sozai\.doujinantena\.com/contents_jpg/([a-f0-9]{32})/}i
-        "http://doujinantena.com/page.php?id=#{$1}"
+        "https://doujinantena.com/page.php?id=#{$1}"
 
       when %r{\Ahttp://rule34-(?:data-\d{3}|images)\.paheal\.net/(?:_images/)?([a-f0-9]{32})}i
         "https://rule34.paheal.net/post/list/md5:#{$1}/1"
@@ -592,7 +592,7 @@ class Post < ApplicationRecord
 
         # XXX site is defunct
       when %r{\Ahttp://i(?:\d)?\.minus\.com/(?:i|j)([^\.]{12,})}i
-        "http://minus.com/i/#{$1}"
+        "https://minus.com/i/#{$1}"
 
       when %r{\Ahttps?://pic0[1-4]\.nijie\.info/nijie_picture/(?:diff/main/)?\d+_(\d+)_(?:\d+{10}|\d+_\d+{14})}i
         "https://nijie.info/view.php?id=#{$1}"
