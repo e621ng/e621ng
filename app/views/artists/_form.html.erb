@@ -8,6 +8,7 @@
   <% end %>
   <% if CurrentUser.is_janitor? %>
     <%= f.input :linked_user_id, label: "Linked User ID" %>
+    <%= f.input :is_locked, label: "Locked" %>
   <% end %>
   <%= f.input :other_names_string, label: "Other names", as: :text, hint: '<b style="color: red;">NEW</b> Separate names with spaces, not commas. Use underscores for spaces inside names. Limit 25.'.html_safe %>
   <%= f.input :group_name %>

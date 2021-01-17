@@ -339,7 +339,8 @@ CREATE TABLE public.artists (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
-    linked_user_id integer
+    linked_user_id integer,
+    is_locked boolean DEFAULT false
 );
 
 
@@ -5082,6 +5083,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200910015420'),
 ('20201113073842'),
 ('20201220172926'),
-('20201220190335');
+('20201220190335'),
+('20210117173030');
 
 

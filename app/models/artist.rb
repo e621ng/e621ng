@@ -8,12 +8,15 @@ class Artist < ApplicationRecord
   belongs_to_creator
   before_validation :normalize_name
   before_validation :normalize_other_names
+  validate :validate_user_can_edit?
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true
   validates :group_name, length: { maximum: 100 }
+  before_save :log_changes
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
+  after_save :propagate_locked, if: :should_propagate_locked
   after_save :clear_url_string_changed
 
 
@@ -30,6 +33,15 @@ class Artist < ApplicationRecord
   scope :deleted, -> { where(is_active: false) }
   scope :banned, -> { where(is_banned: true) }
   scope :unbanned, -> { where(is_banned: false) }
+
+  def log_changes
+    if name_changed?
+      ModAction.log(:artist_page_rename, {new_name: name, old_name: name_was})
+    end
+    if is_locked_changed?
+      ModAction.log(is_locked ? :artist_page_lock : :artist_page_unlock, {artist_page: id})
+    end
+  end
 
   module UrlMethods
     extend ActiveSupport::Concern
@@ -429,6 +441,27 @@ class Artist < ApplicationRecord
     end
   end
 
+  module LockMethods
+    def propagate_locked
+      if wiki_page.present?
+        wiki_page.update_column(:is_locked, is_locked?)
+      end
+    end
+
+    def should_propagate_locked
+      saved_change_to_is_locked?
+    end
+
+    def validate_user_can_edit?
+      return if CurrentUser.is_janitor?
+
+      if is_locked?
+        errors.add(:base, "Artist is locked")
+        throw :abort
+      end
+    end
+  end
+
   module SearchMethods
     def any_other_name_matches(regex)
       where(id: Artist.from("unnest(other_names) AS other_name").where("other_name ~ ?", regex))
@@ -531,6 +564,7 @@ class Artist < ApplicationRecord
   include NoteMethods
   include TagMethods
   include BanMethods
+  include LockMethods
   extend SearchMethods
 
   def status
