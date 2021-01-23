@@ -334,10 +334,10 @@ fart'
           'jpg' => 100.megabytes,
           'gif' => 20.megabytes,
           'png' => 100.megabytes,
-          'swf' => 100.megabytes,
+          'swf' => 0,
           'webm' => 100.megabytes,
           'mp4' => 100.megabytes,
-          'zip' => 100.megabytes
+          'zip' => 0
       }
     end
 

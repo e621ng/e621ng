@@ -11,8 +11,6 @@ class UploadService
         "gif"
       when /^\x89PNG\r\n\x1a\n/n
         "png"
-      when /^CWS/, /^FWS/, /^ZWS/
-        "swf"
       when /^\x1a\x45\xdf\xa3/n
         "webm"
       # when /^PK\x03\x04/
@@ -65,7 +63,7 @@ class UploadService
         w, h = calculate_ugoira_dimensions(file.path)
         yield(w, h)
 
-      elsif upload.is_image? || upload.is_flash?
+      elsif upload.is_image?
         image_size = ImageSpec.new(file.path)
         yield(image_size.width, image_size.height)
 
