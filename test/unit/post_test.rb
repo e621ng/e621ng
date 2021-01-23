@@ -30,6 +30,7 @@ class PostTest < ActiveSupport::TestCase
 
   context "Deletion:" do
     context "Expunging a post" do
+      # That belonged in a museum!
       setup do
         @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload)).start!
         @post = @upload.post
@@ -732,20 +733,6 @@ class PostTest < ActiveSupport::TestCase
           end
 
           should "change the type" do
-            assert(Tag.where(name: "hoge", category: 4).exists?, "expected 'moge' tag to be created as a character")
-          end
-        end
-
-        context "for typing an aliased tag" do
-          setup do
-            @alias = FactoryBot.create(:tag_alias, antecedent_name: "hoge", consequent_name: "moge")
-            @post = FactoryBot.create(:post, tag_string: "char:hoge")
-            @tags = @post.tag_array
-          end
-
-          should "change the type" do
-            assert_equal(["moge"], @tags)
-            assert(Tag.where(name: "moge", category: 0).exists?, "expected 'moge' tag to be created as a character")
             assert(Tag.where(name: "hoge", category: 4).exists?, "expected 'moge' tag to be created as a character")
           end
         end
@@ -1567,10 +1554,10 @@ class PostTest < ActiveSupport::TestCase
       should "update the post's pool string" do
         post = FactoryBot.create(:post)
         pool = FactoryBot.create(:pool)
-        pool.add(post)
+        pool.add!(post)
         post.reload
         assert_equal("pool:#{pool.id}", post.pool_string)
-        pool.add(post)
+        pool.add!(post)
         post.reload
         assert_equal("pool:#{pool.id}", post.pool_string)
         pool.remove!(post)

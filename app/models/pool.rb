@@ -216,7 +216,7 @@ class Pool < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_moderator?
+    user.is_janitor?
   end
 
   def updater_can_edit_deleted
@@ -391,6 +391,10 @@ class Pool < ApplicationRecord
       errors[:name] << "cannot be blank"
     when /\A[0-9]+\z/
       errors[:name] << "cannot contain only digits"
+    when /,/
+      errors.add(:name, "cannot contain commas")
+    when /[_- ]{2}/
+      errors.add(:name, "cannot contain consecutive underscores, hyphens or spaces")
     end
   end
 

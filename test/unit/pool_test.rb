@@ -11,8 +11,6 @@ class PoolTest < ActiveSupport::TestCase
 
     CurrentUser.ip_addr = "127.0.0.1"
 
-    mock_pool_archive_service!
-    PoolArchive.sqs_service.stubs(:merge?).returns(false)
     start_pool_archive_transaction
   end
 
@@ -66,7 +64,7 @@ class PoolTest < ActiveSupport::TestCase
       assert_equal(@posts.map(&:id), @pool.post_ids)
 
       @posts.each(&:reload)
-      assert_equal(["pool:#{@pool.id} pool:series"] * @posts.size, @posts.map(&:pool_string))
+      assert_equal(["pool:#{@pool.id}"] * @posts.size, @posts.map(&:pool_string))
     end
   end
 
@@ -121,7 +119,7 @@ class PoolTest < ActiveSupport::TestCase
 
     should "update any new posts that were added" do
       @p1.reload
-      assert_equal("pool:#{@pool.id} pool:series", @p1.pool_string)
+      assert_equal("pool:#{@pool.id}", @p1.pool_string)
     end
   end
 
@@ -154,7 +152,7 @@ class PoolTest < ActiveSupport::TestCase
       end
 
       should "add the pool to the post" do
-        assert_equal("pool:#{@pool.id} pool:series", @p1.pool_string)
+        assert_equal("pool:#{@pool.id}", @p1.pool_string)
       end
 
       should "increment the post count" do
@@ -171,7 +169,7 @@ class PoolTest < ActiveSupport::TestCase
         end
 
         should "not double add the pool to the post" do
-          assert_equal("pool:#{@pool.id} pool:series", @p1.pool_string)
+          assert_equal("pool:#{@pool.id}", @p1.pool_string)
         end
 
         should "not double increment the post count" do
@@ -239,7 +237,7 @@ class PoolTest < ActiveSupport::TestCase
         end
 
         should "not affect the post" do
-          assert_equal("pool:#{@pool.id} pool:series", @p1.pool_string)
+          assert_equal("pool:#{@pool.id}", @p1.pool_string)
         end
 
         should "not affect the post count" do
@@ -364,7 +362,7 @@ class PoolTest < ActiveSupport::TestCase
         @p2.reload
         @p3.reload
         assert_equal("", @p1.pool_string)
-        assert_equal("pool:#{@pool.id} pool:series", @p2.pool_string)
+        assert_equal("pool:#{@pool.id}", @p2.pool_string)
         assert_equal("", @p3.pool_string)
       end
     end
