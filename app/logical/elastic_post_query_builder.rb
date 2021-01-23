@@ -191,16 +191,15 @@ class ElasticPostQueryBuilder
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
-      must.push({term: {pending: false}})
+      must_not.push({term: {pending: true}})
     elsif q[:status_neg] == "flagged"
-      must.push({term: {flagged: false}})
+      must_not.push({term: {flagged: true}})
     elsif q[:status_neg] == "modqueue"
-      must.concat([
-                      {term: {pending: false}},
-                      {term: {flagged: false}},
-                  ])
+      must_not.push(should({term: {pending: true}},
+                      {term: {flagged: true}},
+                  ))
     elsif q[:status_neg] == "deleted"
-      must.push({term: {deleted: false}})
+      must_not.push({term: {deleted: true}})
     elsif q[:status_neg] == "active"
       must.push(should({term: {pending: true}},
                        {term: {deleted: true}},

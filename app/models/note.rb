@@ -120,6 +120,7 @@ class Note < ApplicationRecord
       else
         execute_sql("UPDATE posts SET last_noted_at = NULL WHERE id = ?", post_id)
       end
+      post.reload.update_index
     end
   end
 

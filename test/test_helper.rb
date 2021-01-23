@@ -81,6 +81,7 @@ class ActiveSupport::TestCase
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles).returns(true)
 
+    FileUtils.mkdir_p("#{Rails.root}/tmp/test-storage2")
     storage_manager = StorageManager::Local.new(base_dir: "#{Rails.root}/tmp/test-storage2")
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
