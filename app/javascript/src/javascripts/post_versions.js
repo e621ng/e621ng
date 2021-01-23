@@ -59,7 +59,7 @@ PostVersion.tag_script_selected = function() {
   const script = $("#update-tag-script").val();
 
   for (let row of selected_rows) {
-    let id = $(row).data("post-version-id");
+    let id = $(row).data("post-id");
 
     SendQueue.add(function () {
       Post.tagScript(id, script);

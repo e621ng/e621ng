@@ -1,6 +1,6 @@
 <div id="p-revert-listing">
   <% @post_versions.each do |post_version| %>
-    <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" class="post-version">
+    <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" data-post-id="<%= post_version.post_id %>" class="post-version">
       <div class="post-version-row-select pv-check pv-label">
         <input type="checkbox" class="post-version-select" <%= "disabled" unless post_version.can_undo?(CurrentUser.user) %> >
       </div>
