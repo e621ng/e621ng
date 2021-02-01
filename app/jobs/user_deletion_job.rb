@@ -10,6 +10,7 @@ class UserDeletionJob < ApplicationJob
   def remove_favorites(user)
     Favorite.without_timeout do
       Favorite.for_user(user.id).includes(:post).find_each do |fav|
+        tries = 5
         begin
           FavoriteManager.remove!(user: user, post: fav.post)
         rescue ActiveRecord::SerializationFailure
