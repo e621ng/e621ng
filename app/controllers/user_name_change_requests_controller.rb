@@ -1,6 +1,6 @@
 class UserNameChangeRequestsController < ApplicationController
-  before_action :member_only, :only => [:index, :show, :new, :create]
-  before_action :admin_only, :only => [:approve, :reject]
+  before_action :member_only, :only => [:new, :create, :show]
+  before_action :admin_only, :only => [:index, :approve, :reject]
   respond_to :html, :json
 
   def new

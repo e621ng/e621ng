@@ -11,6 +11,7 @@ class UserDeletion
 
   def delete!
     validate
+    create_name_history
     rename_user
     clear_user_settings
     reset_password
@@ -19,6 +20,10 @@ class UserDeletion
   end
 
   private
+
+  def create_name_history
+    UserNameChangeRequest.create(desired_name: "user_#{user.id}", change_reason: "user deletion", status: "approved", skip_limited_validation: true)
+  end
 
   def create_mod_action
     ModAction.log(:user_delete, {user_id: user.id})
