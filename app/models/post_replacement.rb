@@ -1,5 +1,5 @@
 class PostReplacement < ApplicationRecord
-  DELETION_GRACE_PERIOD = 30.days
+  DELETION_GRACE_PERIOD = 24.hours
 
   belongs_to :post
   belongs_to :creator, class_name: "User"

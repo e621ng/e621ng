@@ -74,14 +74,7 @@ class Post < ApplicationRecord
           raise DeletionError.new("Files still in use; skipping deletion.")
         end
 
-        Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :original)
-        Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :large)
-        Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :preview)
-        Danbooru.config.storage_manager.delete_file(post_id, md5, file_ext, :crop)
-
-        if Danbooru.config.cloudflare_key
-          CloudflareService.new.delete(md5, file_ext)
-        end
+        Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
       end
     end
 
@@ -105,10 +98,6 @@ class Post < ApplicationRecord
       storage_manager.store_file(file, self, :original)
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
-
-      backup_storage_manager.store_file(file, self, :original)
-      backup_storage_manager.store_file(sample_file, self, :large) if sample_file.present?
-      backup_storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
     end
 
     def backup_storage_manager
@@ -278,8 +267,12 @@ class Post < ApplicationRecord
       [width, height]
     end
 
-    def generate_video_samples
-      PostVideoConversionJob.perform_async(self.id)
+    def generate_video_samples(later: false)
+      if later
+        PostVideoConversionJob.perform_in(1.minute, self.id)
+      else
+        PostVideoConversionJob.perform_async(self.id)
+      end
     end
   end
 

@@ -1,6 +1,5 @@
 class StorageManager::Local < StorageManager
   DEFAULT_PERMISSIONS = 0644
-  IMAGE_TYPES = %i[preview large crop original]
 
   def store(io, dest_path)
     temp_path = dest_path + "-" + SecureRandom.uuid + ".tmp"

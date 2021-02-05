@@ -37,12 +37,7 @@ class UploadService
         end
       end
 
-      Danbooru.config.storage_manager.delete_file(nil, md5, file_ext, :original)
-      Danbooru.config.storage_manager.delete_file(nil, md5, file_ext, :large)
-      Danbooru.config.storage_manager.delete_file(nil, md5, file_ext, :preview)
-      Danbooru.config.backup_storage_manager.delete_file(nil, md5, file_ext, :original)
-      Danbooru.config.backup_storage_manager.delete_file(nil, md5, file_ext, :large)
-      Danbooru.config.backup_storage_manager.delete_file(nil, md5, file_ext, :preview)
+      Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
     end
 
     def calculate_ugoira_dimensions(source_path)

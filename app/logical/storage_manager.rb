@@ -2,6 +2,7 @@ class StorageManager
   class Error < StandardError; end
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
+  IMAGE_TYPES = %i[preview large crop original]
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path
 
@@ -50,6 +51,22 @@ class StorageManager
   def delete_file(post_id, md5, file_ext, type)
     delete(file_path(md5, file_ext, type))
     delete(file_path(md5, file_ext, type, true))
+  end
+
+  def delete_post_files(post_or_md5, file_ext)
+    md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
+    IMAGE_TYPES.each do |type|
+      delete(file_path(md5, file_ext, type, false))
+      delete(file_path(md5, file_ext, type, true))
+    end
+    Danbooru.config.video_rescales.each do |k,v|
+      ['mp4','webm'].each do |ext|
+        delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
+        delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))
+      end
+    end
+    delete(file_path(md5, 'mp4', :original, false))
+    delete(file_path(md5, 'mp4', :original, true))
   end
 
   def open_file(post, type)

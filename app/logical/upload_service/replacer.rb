@@ -113,6 +113,7 @@ class UploadService
 
       if md5_changed
         post.queue_delete_files(PostReplacement::DELETION_GRACE_PERIOD)
+        post.generated_samples = nil
       end
 
       replacement.file_ext = upload.file_ext
@@ -140,6 +141,10 @@ class UploadService
 
       replacement.save!
       post.save!
+
+      if post.is_video?
+        post.generate_video_samples(later: true)
+      end
 
       post.update_iqdb_async
     end
