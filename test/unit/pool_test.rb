@@ -270,8 +270,8 @@ class PoolTest < ActiveSupport::TestCase
 
         assert_equal(true, @pool.valid?)
         assert_equal("collection", @pool.category)
-        assert_equal("pool:#{@pool.id} pool:collection", @p1.reload.pool_string)
-        assert_equal("pool:#{@pool.id} pool:collection", @p2.reload.pool_string)
+        assert_equal("pool:#{@pool.id}", @p1.reload.pool_string)
+        assert_equal("pool:#{@pool.id}", @p2.reload.pool_string)
       end
     end
 

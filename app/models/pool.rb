@@ -255,6 +255,7 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids + [post.id])
+      self.skip_sync = false
       post.add_pool!(self, true)
       post.save
     end
@@ -276,6 +277,7 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids - [post.id])
+      self.skip_sync = false
       post.remove_pool!(self)
       post.save
     end
