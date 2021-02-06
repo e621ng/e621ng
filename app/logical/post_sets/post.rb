@@ -111,7 +111,7 @@ module PostSets
     end
 
     def is_random?
-      random || Tag.has_metatag?(tag_array, :order) == "random"
+      random || (Tag.has_metatag?(tag_array, :order) == "random" && !Tag.has_metatag?(tag_array, :randseed))
     end
 
     def use_sequential_paginator?
