@@ -18,17 +18,18 @@ class FavoriteTest < ActiveSupport::TestCase
 
   context "A favorite" do
     should "delete from all tables" do
-      @p1.add_favorite!(@user1)
+      FavoriteManager.add!(user: @user1, post: @p1)
+      @user1.reload
       assert_equal(1, @user1.favorite_count)
 
-      Favorite.where(:user_id => @user1.id, :post_id => @p1.id).delete_all
+      FavoriteManager.remove!(user: @user1, post: @p1)
       assert_equal(0, Favorite.count)
     end
 
     should "know which table it belongs to" do
-      @p1.add_favorite!(@user1)
-      @p2.add_favorite!(@user1)
-      @p1.add_favorite!(@user2)
+      FavoriteManager.add!(user: @user1, post: @p1)
+      FavoriteManager.add!(user: @user1, post: @p2)
+      FavoriteManager.add!(user: @user2, post: @p1)
 
       favorites = @user1.favorites.order("id desc")
       assert_equal(2, favorites.count)
@@ -41,18 +42,19 @@ class FavoriteTest < ActiveSupport::TestCase
     end
 
     should "not allow duplicates" do
-      @p1.add_favorite!(@user1)
-      error = assert_raises(Favorite::Error) { @p1.add_favorite!(@user1) }
+      FavoriteManager.add!(user: @user1, post: @p1)
+      error = assert_raises(Favorite::Error) { FavoriteManager.add!(user: @user1, post: @p1) }
 
       assert_equal("You have already favorited this post", error.message)
+      @user1.reload
       assert_equal(1, @user1.favorite_count)
     end
 
     should "not allow exceeding the user's favorite limit" do
       @user1.stubs(:favorite_limit).returns(0)
-      error = assert_raises(Favorite::Error) { @p1.add_favorite!(@user1) }
+      error = assert_raises(Favorite::Error) { FavoriteManager.add!(user: @user1, post: @p1) }
 
-      assert_equal("You can only keep up to 0 favorites. Upgrade your account to save more.", error.message)
+      assert_equal("You can only keep up to 0 favorites.", error.message)
     end
   end
 end
