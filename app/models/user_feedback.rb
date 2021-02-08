@@ -94,10 +94,10 @@ class UserFeedback < ApplicationRecord
 
   def creator_is_moderator
     if !creator.is_moderator?
-      errors[:creator] << "must be moderator"
+      errors.add(:creator, "must be moderator")
       return false
     elsif creator.no_feedback?
-      errors[:creator] << "cannot submit feedback"
+      errors.add(:creator, "cannot submit feedback")
       return false
     else
       return true
@@ -106,7 +106,7 @@ class UserFeedback < ApplicationRecord
 
   def user_is_not_creator
     if user_id == creator_id
-      errors[:creator] << "cannot submit feedback for yourself"
+      errors.add(:creator, "cannot submit feedback for yourself")
       return false
     else
       return true

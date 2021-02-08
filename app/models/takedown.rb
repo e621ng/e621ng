@@ -48,7 +48,7 @@ class Takedown < ApplicationRecord
   module ValidationMethods
     def valid_posts_or_instructions
       if post_array.size <= 0 && instructions.blank?
-        errors[:base] << "You must provide post ids or instructions."
+        errors.add(:base, "You must provide post ids or instructions.")
         return false
       end
     end
@@ -56,11 +56,11 @@ class Takedown < ApplicationRecord
     def can_create_takedown
       return true if creator && creator.is_moderator?
       if Takedown.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr.to_s, 5.minutes.ago).count > 0
-        errors[:base] << "You have created a takedown too recently"
+        errors.add(:base, "You have created a takedown too recently")
         return false
       end
       if creator_id && Takedown.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
-        errors[:base] << "You have created a takedown too recently"
+        errors.add(:base, "You have created a takedown too recently")
         return false
       end
     end

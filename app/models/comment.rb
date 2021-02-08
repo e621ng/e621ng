@@ -129,7 +129,7 @@ class Comment < ApplicationRecord
   end
 
   def validate_comment_is_not_spam
-    errors[:base] << "Failed to create comment" if SpamDetector.new(self).spam?
+    errors.add(:base, "Failed to create comment") if SpamDetector.new(self).spam?
   end
 
   def update_last_commented_at_on_create

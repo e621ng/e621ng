@@ -136,7 +136,7 @@ class ForumPost < ApplicationRecord
   end
 
   def validate_post_is_not_spam
-    errors[:base] << "Failed to create forum post" if SpamDetector.new(self, user_ip: CurrentUser.ip_addr).spam?
+    errors.add(:base, "Failed to create forum post") if SpamDetector.new(self, user_ip: CurrentUser.ip_addr).spam?
   end
 
   def validate_topic_is_unlocked
@@ -144,7 +144,7 @@ class ForumPost < ApplicationRecord
     return if topic.nil?
 
     if topic.is_locked?
-      errors[:topic] << "is locked"
+      errors.add(:topic, "is locked")
       throw :abort
     end
   end
@@ -160,21 +160,21 @@ class ForumPost < ApplicationRecord
 
   def topic_id_not_invalid
     if topic_id && !topic
-      errors[:base] << "Topic ID is invalid"
+      errors.add(:base, "Topic ID is invalid")
       return false
     end
   end
 
   def topic_is_not_restricted
     if topic && !topic.visible?(creator)
-      errors[:topic] << "is restricted"
+      errors.add(:topic, "is restricted")
       return false
     end
   end
 
   def category_allows_replies
     if topic && !topic.can_reply?(creator)
-      errors[:topic] << "does not allow replies"
+      errors.add(:topic, "does not allow replies")
       return false
     end
   end

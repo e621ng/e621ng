@@ -212,7 +212,7 @@ class TagAlias < TagRelationship
     # We don't want a -> b && b -> c chains if the b -> c alias was created first.
     # If the a -> b alias was created first, the new one will be allowed and the old one will be moved automatically instead.
     if TagAlias.active.exists?(antecedent_name: consequent_name)
-      errors[:base] << "A tag alias for #{consequent_name} already exists"
+      errors.add(:base, "A tag alias for #{consequent_name} already exists")
     end
 
 

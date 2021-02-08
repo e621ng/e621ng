@@ -221,7 +221,7 @@ class Pool < ApplicationRecord
 
   def updater_can_edit_deleted
     if is_deleted? && !deletable_by?(CurrentUser.user)
-      errors[:base] << "You cannot update pools that are deleted"
+      errors.add(:base, "You cannot update pools that are deleted")
     end
   end
 
@@ -379,20 +379,20 @@ class Pool < ApplicationRecord
 
   def updater_can_change_category
     if category_changed? && !category_changeable_by?(CurrentUser.user)
-      errors[:base] << "You cannot change the category of pools with greater than #{Danbooru.config.pool_category_change_limit} posts"
+      errors.add(:base, "You cannot change the category of pools with greater than #{Danbooru.config.pool_category_change_limit} posts")
     end
   end
 
   def validate_name
     case name
     when /\A(any|none|series|collection)\z/i
-      errors[:name] << "cannot be any of the following names: any, none, series, collection"
+      errors.add(:name, "cannot be any of the following names: any, none, series, collection")
     when /\*/
-      errors[:name] << "cannot contain asterisks"
+      errors.add(:name, "cannot contain asterisks")
     when ""
-      errors[:name] << "cannot be blank"
+      errors.add(:name, "cannot be blank")
     when /\A[0-9]+\z/
-      errors[:name] << "cannot contain only digits"
+      errors.add(:name, "cannot contain only digits")
     when /,/
       errors.add(:name, "cannot contain commas")
     when /[_\- ]{2}/
@@ -403,7 +403,7 @@ class Pool < ApplicationRecord
   def updater_can_remove_posts
     removed = post_ids_was - post_ids
     if removed.any? && !CurrentUser.user.can_remove_from_pools?
-      errors[:base] << "You cannot removes posts from pools within the first week of sign up"
+      errors.add(:base, "You cannot removes posts from pools within the first week of sign up")
     end
   end
 end

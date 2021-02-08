@@ -116,7 +116,7 @@ class BulkUpdateRequest < ApplicationRecord
       CurrentUser.scoped(approver) do
         forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has failed: #{x.to_s}", "FAILED")
       end
-      self.errors[:base] << x.to_s
+      self.errors.add(:base, x.to_s)
     end
 
     def date_timestamp
@@ -151,13 +151,13 @@ class BulkUpdateRequest < ApplicationRecord
       AliasAndImplicationImporter.tokenize(script)
       return true
     rescue StandardError => e
-      errors[:base] << e.message
+      errors.add(:base, e.message)
       return false
     end
 
     def forum_topic_id_not_invalid
       if forum_topic_id && !forum_topic
-        errors[:base] << "Forum topic ID is invalid"
+        errors.add(:base, "Forum topic ID is invalid")
       end
     end
 
@@ -168,7 +168,7 @@ class BulkUpdateRequest < ApplicationRecord
     def validate_script
         errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1").validate!
         if errors.size > 0
-          errors.each { |err| self.errors[:base] << err }
+          errors.each { |err| self.errors.add(:base, err) }
         end
         self.script = new_script
 

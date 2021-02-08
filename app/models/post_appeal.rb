@@ -74,7 +74,7 @@ class PostAppeal < ApplicationRecord
 
   def validate_creator_is_not_limited
     if appeal_count_for_creator >= Danbooru.config.max_appeals_per_day
-      errors[:creator] << "can appeal at most #{Danbooru.config.max_appeals_per_day} post a day"
+      errors.add(:creator, "can appeal at most #{Danbooru.config.max_appeals_per_day} post a day")
       false
     else
       true
@@ -83,7 +83,7 @@ class PostAppeal < ApplicationRecord
 
   def validate_post_is_inactive
     if resolved?
-      errors[:post] << "is active"
+      errors.add(:post, "is active")
       false
     else
       true

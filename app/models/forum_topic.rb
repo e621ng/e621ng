@@ -44,7 +44,7 @@ class ForumTopic < ApplicationRecord
 
     def category_allows_creation
       if category && !category.can_create_within?(creator)
-        errors[:category] << "doesn't allow new topics"
+        errors.add(:category, "does not allow new topics")
         return false
       end
     end

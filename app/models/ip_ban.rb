@@ -25,13 +25,13 @@ class IpBan < ApplicationRecord
 
   def validate_ip_addr
     if ip_addr.blank?
-      errors[:ip_addr] << "is invalid"
+      errors.add(:ip_addr, "is invalid")
     elsif ip_addr.ipv4? && ip_addr.prefix < 24
-      errors[:ip_addr] << "may not have a subnet bigger than /24"
+      errors.add(:ip_addr, "may not have a subnet bigger than /24")
     elsif ip_addr.ipv6? && ip_addr.prefix < 64
-      errors[:ip_addr] << "may not have a subnet bigger than /64"
+      errors.add(:ip_addr, "may not have a subnet bigger than /64")
     elsif ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
-      errors[:ip_addr] << "must be a public address"
+      errors.add(:ip_addr, "must be a public address")
     end
   end
 

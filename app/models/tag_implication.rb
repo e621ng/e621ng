@@ -80,7 +80,7 @@ class TagImplication < TagRelationship
     def absence_of_circular_relation
       # We don't want a -> b && b -> a chains
       if descendants.include?(antecedent_name)
-        errors[:base] << "Tag implication can not create a circular relation with another tag implication"
+        errors.add(:base, "Tag implication can not create a circular relation with another tag implication")
       end
     end
 
@@ -90,21 +90,21 @@ class TagImplication < TagRelationship
       implications = TagImplication.active.where("antecedent_name = ? and consequent_name != ?", antecedent_name, consequent_name)
       implied_tags = implications.flat_map(&:descendant_names)
       if implied_tags.include?(consequent_name)
-        errors[:base] << "#{antecedent_name} already implies #{consequent_name} through another implication"
+        errors.add(:base, "#{antecedent_name} already implies #{consequent_name} through another implication")
       end
     end
 
     def antecedent_is_not_aliased
       # We don't want to implicate a -> b if a is already aliased to c
       if TagAlias.active.exists?(["antecedent_name = ?", antecedent_name])
-        errors[:base] << "Antecedent tag must not be aliased to another tag"
+        errors.add(:base, "Antecedent tag must not be aliased to another tag")
       end
     end
 
     def consequent_is_not_aliased
       # We don't want to implicate a -> b if b is already aliased to c
       if TagAlias.active.exists?(["antecedent_name = ?", consequent_name])
-        errors[:base] << "Consequent tag must not be aliased to another tag"
+        errors.add(:base, "Consequent tag must not be aliased to another tag")
       end
     end
   end

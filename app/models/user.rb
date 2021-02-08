@@ -129,7 +129,7 @@ class User < ApplicationRecord
   module BanMethods
     def validate_ip_addr_is_not_banned
       if IpBan.is_banned?(CurrentUser.ip_addr)
-        self.errors[:base] << "IP address is banned"
+        self.errors.add(:base, "IP address is banned")
         return false
       end
     end
@@ -232,7 +232,7 @@ class User < ApplicationRecord
         self.bcrypt_password_hash = User.bcrypt(password)
         return true
       else
-        errors[:old_password] << "is incorrect"
+        errors.add(:old_password, "is incorrect")
         return false
       end
     end
@@ -413,7 +413,7 @@ class User < ApplicationRecord
 
     def validate_email_address_allowed
       if EmailBlacklist.is_banned?(self.email)
-        self.errors[:base] << "Email address may not be used"
+        self.errors.add(:base, "Email address may not be used")
         return false
       end
     end
