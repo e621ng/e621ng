@@ -80,17 +80,17 @@ class Ban < ApplicationRecord
   def user_is_inferior
     if user
       if user.is_admin?
-        errors[:base] << "You can never ban an admin."
+        errors.add(:base, "You can never ban an admin.")
         false
       elsif user.is_moderator? && banner.is_admin?
         true
       elsif user.is_moderator?
-        errors[:base] << "Only admins can ban moderators."
+        errors.add(:base, "Only admins can ban moderators.")
         false
       elsif banner.is_admin? || banner.is_moderator?
         true
       else
-        errors[:base] << "No one else can ban."
+        errors.add(:base, "No one else can ban.")
         false
       end
     end

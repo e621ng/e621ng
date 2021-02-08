@@ -156,7 +156,7 @@ class PostFlag < ApplicationRecord
     return if is_deletion
 
     if creator.no_flagging?
-      errors[:creator] << "cannot flag posts"
+      errors.add(:creator, "cannot flag posts")
     end
 
     return if creator.is_janitor?
@@ -178,13 +178,13 @@ class PostFlag < ApplicationRecord
 
     flag = post.flags.in_cooldown.last
     if flag.present?
-      errors[:post] << "cannot be flagged more than once every #{COOLDOWN_PERIOD.inspect} (last flagged: #{flag.created_at.to_s(:long)})"
+      errors.add(:post, "cannot be flagged more than once every #{COOLDOWN_PERIOD.inspect} (last flagged: #{flag.created_at.to_s(:long)})")
     end
   end
 
   def validate_post
-    errors[:post] << "is locked and cannot be flagged" if post.is_status_locked? && !(creator.is_admin? || force_flag)
-    errors[:post] << "is deleted" if post.is_deleted?
+    errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_admin? || force_flag)
+    errors.add(:post, "is deleted") if post.is_deleted?
   end
 
   def validate_reason
@@ -201,10 +201,10 @@ class PostFlag < ApplicationRecord
       end
       errors.add(:parent_id,  "cannot be set to the post being flagged") if parent_post.id == post.id
     when 'user'
-      errors[:user_reason] << "cannot be blank" unless user_reason.present? && user_reason.strip.length > 0
-      errors[:user_reason] << "cannot be used after 48 hours or on posts you didn't upload" if post.created_at < 48.hours.ago || post.uploader_id != creator_id
+      errors.add(:user_reason, "cannot be blank") unless user_reason.present? && user_reason.strip.length > 0
+      errors.add(:user_reason, "cannot be used after 48 hours or on posts you didn't upload") if post.created_at < 48.hours.ago || post.uploader_id != creator_id
     else
-      errors[:reason] << "is not one of the available choices" unless MAPPED_REASONS.key?(reason_name)
+      errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end
   end
 

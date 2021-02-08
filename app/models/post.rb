@@ -867,7 +867,7 @@ class Post < ApplicationRecord
         overlap = tags & to_remove
         n = overlap.size
         if n > 0
-          self.warnings[:base] << "Forcefully removed #{n} locked #{n == 1 ? "tag" : "tags"}: #{overlap.join(", ")}"
+          self.warnings.add(:base,  "Forcefully removed #{n} locked #{n == 1 ? "tag" : "tags"}: #{overlap.join(", ")}")
         end
         tags -= to_remove
       end
@@ -875,7 +875,7 @@ class Post < ApplicationRecord
         missing = to_add - tags
         n = missing.size
         if n > 0
-          self.warnings[:base] << "Forcefully added #{n} locked #{n == 1 ? "tag" : "tags"}: #{missing.join(", ")}"
+          self.warnings.add(:base, "Forcefully added #{n} locked #{n == 1 ? "tag" : "tags"}: #{missing.join(", ")}")
         end
         tags += to_add
       end
@@ -885,7 +885,7 @@ class Post < ApplicationRecord
     def remove_invalid_tags(tags)
       tags = tags.reject do |tag|
         if tag.errors.size > 0
-          self.warnings[:base] << "Can't add tag #{tag.name}: #{tag.errors.full_messages.join('; ')}"
+          self.warnings.add(:base, "Can't add tag #{tag.name}: #{tag.errors.full_messages.join('; ')}")
         end
         tag.errors.size > 0
       end
@@ -980,7 +980,7 @@ class Post < ApplicationRecord
       apply_pre_metatags
       if @bad_type_changes.size > 0
         bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
-        self.warnings[:base] << "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website"
+        self.warnings.add(:base, "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website")
       end
       tags
     end
@@ -1981,7 +1981,7 @@ class Post < ApplicationRecord
 
     def post_is_not_its_own_parent
       if !new_record? && id == parent_id
-        errors[:base] << "Post cannot have itself as a parent"
+        errors.add(:base, "Post cannot have itself as a parent")
         false
       end
     end
@@ -2007,25 +2007,25 @@ class Post < ApplicationRecord
       if added_invalid_tags.present?
         n = added_invalid_tags.size
         tag_wiki_links = added_invalid_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings[:base] << "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}"
+        self.warnings.add(:base, "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
       end
 
       if new_general_tags.present?
         n = new_general_tags.size
         tag_wiki_links = new_general_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings[:base] << "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}"
+        self.warnings.add(:base, "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
       end
 
       if repopulated_tags.present?
         n = repopulated_tags.size
         tag_wiki_links = repopulated_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings[:base] << "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}"
+        self.warnings.add(:base, "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
       end
 
       ActiveRecord::Associations::Preloader.new.preload(new_artist_tags, :artist)
       new_artist_tags.each do |tag|
         if tag.artist.blank?
-          self.warnings[:base] << "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]"
+          self.warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]")
         end
       end
     end
@@ -2036,7 +2036,7 @@ class Post < ApplicationRecord
 
       if unremoved_tags.present?
         unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
-        self.warnings[:base] << "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again"
+        self.warnings.add(:base, "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again")
       end
     end
 
@@ -2047,14 +2047,14 @@ class Post < ApplicationRecord
       return if tags.any? {|t| t.category == Tag.categories.artist}
       return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
 
-      self.warnings[:base] << "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help"
+      self.warnings.add(:base, "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help")
     end
 
     def has_enough_tags
       return if !new_record?
 
       if tags.count {|t| t.category == Tag.categories.general} < 10
-        self.warnings[:base] << "Uploads must have at least 10 general tags. Read [[howto:tag]] for guidelines on tagging your uploads"
+        self.warnings.add(:base, "Uploads must have at least 10 general tags. Read [[howto:tag]] for guidelines on tagging your uploads")
       end
     end
   end
