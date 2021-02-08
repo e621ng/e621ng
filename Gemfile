@@ -2,7 +2,7 @@ source 'https://rubygems.org/'
 
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 
-gem "rails", "~> 6.0"
+gem "rails", "~> 6.1"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
