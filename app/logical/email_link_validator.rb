@@ -17,6 +17,6 @@ class EmailLinkValidator
   private
 
   def self.validator
-    @validator ||= ActiveSupport::MessageVerifier.new(Danbooru.config.email_key, serializer: JSON, hash: "SHA256")
+    @validator ||= ActiveSupport::MessageVerifier.new(Danbooru.config.email_key, serializer: JSON, digest: "SHA256")
   end
 end

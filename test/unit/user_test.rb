@@ -69,15 +69,15 @@ class UserTest < ActiveSupport::TestCase
     should "limit comment votes" do
       Danbooru.config.stubs(:member_comment_time_threshold).returns(1.week.from_now)
       Danbooru.config.stubs(:member_comment_limit).returns(10)
-      assert(@user.can_comment_vote?)
+      assert_equal(@user.can_comment_vote_with_reason?, true)
       10.times do
         comment = FactoryBot.create(:comment)
         FactoryBot.create(:comment_vote, :comment_id => comment.id, :score => -1)
       end
 
-      assert(!@user.can_comment_vote?)
+      assert_equal(@user.can_comment_vote_with_reason?, :throttled)
       CommentVote.update_all("created_at = '1990-01-01'")
-      assert(@user.can_comment_vote?)
+      assert_equal(@user.can_comment_vote_with_reason?, true)
     end
 
     should "limit comments" do
@@ -97,19 +97,15 @@ class UserTest < ActiveSupport::TestCase
     should "verify" do
       assert(@user.is_verified?)
       @user = FactoryBot.create(:user)
-      @user.generate_email_verification_key
-      @user.save
+      @user.mark_unverified!
       assert(!@user.is_verified?)
-      assert_raise(User::Error) {@user.verify!("bbb")}
-      assert_nothing_raised {@user.verify!(@user.email_verification_key)}
+      assert_nothing_raised {@user.mark_verified!}
       assert(@user.is_verified?)
     end
 
     should "authenticate" do
       assert(User.authenticate(@user.name, "password"), "Authentication should have succeeded")
       assert(!User.authenticate(@user.name, "password2"), "Authentication should not have succeeded")
-      assert(User.authenticate_hash(@user.name, User.sha1("password")), "Authentication should have succeeded")
-      assert(!User.authenticate_hash(@user.name, User.sha1("xxx")), "Authentication should not have succeeded")
     end
 
     should "normalize its level" do
@@ -142,19 +138,19 @@ class UserTest < ActiveSupport::TestCase
         # U+2007: https://en.wikipedia.org/wiki/Figure_space
         user = FactoryBot.build(:user, :name => "foo\u2007bar")
         user.save
-        assert_equal(["Name cannot have whitespace or colons"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not contain a colon" do
         user = FactoryBot.build(:user, :name => "a:b")
         user.save
-        assert_equal(["Name cannot have whitespace or colons"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not begin with an underscore" do
         user = FactoryBot.build(:user, :name => "_x")
         user.save
-        assert_equal(["Name cannot begin or end with an underscore"], user.errors.full_messages)
+        assert_equal(["Name must not begin with a special character", "Name cannot begin or end with an underscore"], user.errors.full_messages)
       end
 
       should "not end with an underscore" do
@@ -185,12 +181,6 @@ class UserTest < ActiveSupport::TestCase
           assert(@user.to_json !~ /addr/)
         end
       end
-
-      context "in the xml representation" do
-        should "not appear" do
-          assert(@user.to_xml !~ /addr/)
-        end
-      end
     end
 
     context "password" do
@@ -217,7 +207,7 @@ class UserTest < ActiveSupport::TestCase
         @user.password = "x5"
         @user.password_confirmation = "x5"
         @user.save
-        assert_equal(["Password is too short (minimum is 5 characters)"], @user.errors.full_messages)
+        assert_equal(["Password is too short (minimum is 6 characters)"], @user.errors.full_messages)
       end
 
       should "should be reset" do
@@ -229,25 +219,25 @@ class UserTest < ActiveSupport::TestCase
       should "not change the password if the password and old password are blank" do
         @user = FactoryBot.create(:user, :password => "67890")
         @user.update(:password => "", :old_password => "")
-        assert(@user.bcrypt_password == User.sha1("67890"))
+        assert(@user.bcrypt_password == "67890")
       end
 
       should "not change the password if the old password is incorrect" do
         @user = FactoryBot.create(:user, :password => "67890")
         @user.update(:password => "12345", :old_password => "abcdefg")
-        assert(@user.bcrypt_password == User.sha1("67890"))
+        assert(@user.bcrypt_password == "67890")
       end
 
       should "not change the password if the old password is blank" do
         @user = FactoryBot.create(:user, :password => "67890")
         @user.update(:password => "12345", :old_password => "")
-        assert(@user.bcrypt_password == User.sha1("67890"))
+        assert(@user.bcrypt_password == "67890")
       end
 
       should "change the password if the old password is correct" do
         @user = FactoryBot.create(:user, :password => "67890")
         @user.update(:password => "12345", :old_password => "67890")
-        assert(@user.bcrypt_password == User.sha1("12345"))
+        assert(@user.bcrypt_password == "12345")
       end
 
       context "in the json representation" do
@@ -257,16 +247,6 @@ class UserTest < ActiveSupport::TestCase
 
         should "not appear" do
           assert(@user.to_json !~ /password/)
-        end
-      end
-
-      context "in the xml representation" do
-        setup do
-          @user = FactoryBot.create(:user)
-        end
-
-        should "not appear" do
-          assert(@user.to_xml !~ /password/)
         end
       end
     end

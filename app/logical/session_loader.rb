@@ -8,7 +8,7 @@ class SessionLoader
     @session = request.session
     @cookies = request.cookie_jar
     @params = request.parameters
-    @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, hash: "SHA256")
+    @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")
   end
 
   def load

@@ -3,6 +3,8 @@ require 'test_helper'
 class TagAliasTest < ActiveSupport::TestCase
   setup do
     Sidekiq::Testing::inline!
+
+    category = ForumCategory.create(id: Danbooru.config.alias_implication_forum_category, name: 'Tag Requests')
   end
 
   teardown do

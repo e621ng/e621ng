@@ -13,12 +13,12 @@ class UserEmailChange
     end
 
     if RateLimiter.check_limit("email:#{user.id}", 2, 24.hours)
-      user.errors[:base] << "Email changed too recently"
+      user.errors.add(:base, "Email changed too recently")
       return
     end
 
     if User.authenticate(user.name, password).nil?
-      user.errors[:base] << "Password was incorrect"
+      user.errors.add(:base, "Password was incorrect")
     else
       user.email = new_email
       user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
