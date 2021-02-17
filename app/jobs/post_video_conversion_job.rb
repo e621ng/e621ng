@@ -2,7 +2,11 @@
 
 class PostVideoConversionJob
   include Sidekiq::Worker
-  sidekiq_options queue: 'video', lock: :until_executing, unique_args: ->(args) { args[0] }, retry: 3
+  sidekiq_options queue: 'video', lock: :until_executed, lock_args_method: :lock_args, retry: 3
+
+  def self.lock_args(args)
+    [args[0]]
+  end
 
   def move_videos(post, samples)
     md5 = post.md5

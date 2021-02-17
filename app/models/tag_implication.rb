@@ -14,7 +14,6 @@ class TagImplication < TagRelationship
   validate :absence_of_transitive_relation
   validate :antecedent_is_not_aliased
   validate :consequent_is_not_aliased
-  scope :old, ->{where("created_at between ? and ?", 2.months.ago, 1.month.ago)}
 
   module DescendantMethods
     extend ActiveSupport::Concern
@@ -157,7 +156,7 @@ class TagImplication < TagRelationship
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
       create_undo_information
-      TagImplicationJob.perform_later(id, update_topic)
+      TagImplicationJob.perform_async(id, update_topic)
     end
 
     def reject!(update_topic: true)

@@ -12,9 +12,4 @@ class IndexUpdateJob
       return
     end
   end
-
-  def unique_args(args)
-    Rails.logger.error("Unique args called: #{args.inspect}")
-    [args[1]]
-  end
 end

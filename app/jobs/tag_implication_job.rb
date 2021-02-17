@@ -1,5 +1,10 @@
-class TagImplicationJob < ApplicationJob
-  queue_as :tags
+class TagImplicationJob
+  include Sidekiq::Worker
+  sidekiq_options queue: 'tags', lock: :until_executed, lock_args_method: :lock_args
+
+  def self.lock_args(args)
+    [args[0]]
+  end
 
   def perform(*args)
     ti = TagImplication.find(args[0])

@@ -1,10 +1,16 @@
-class TakedownJob < ApplicationJob
-  queue_as :high_prio
+# frozen_string_literal: true
 
-  def perform(*args)
-    del_reason = args[2]
-    @takedown = Takedown.find(args[0])
-    @approver = User.find(args[1])
+class TakedownJob
+  include Sidekiq::Worker
+  sidekiq_options queue: 'high_prio', lock: :until_executing, lock_args_method: :lock_args
+
+  def self.lock_args(args)
+    [args[0]]
+  end
+
+  def perform(id, approver, del_reason)
+    @takedown = Takedown.find(id)
+    @approver = User.find(approver)
     @takedown.approver_id = @approver.id
     CurrentUser.as(@approver) do
       ModAction.log(:takedown_process, {takedown_id: @takedown.id})
