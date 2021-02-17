@@ -3,6 +3,7 @@ require 'test_helper'
 class TagSetPresenterTest < ActiveSupport::TestCase
   context "TagSetPresenter" do
     setup do
+      CurrentUser.user = FactoryBot.create(:mod_user)
       FactoryBot.create(:tag, name: "bkub", category: Tag.categories.artist)
       FactoryBot.create(:tag, name: "chen", category: Tag.categories.character)
       FactoryBot.create(:tag, name: "cirno", category: Tag.categories.character)

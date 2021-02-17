@@ -52,17 +52,10 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         posts = FactoryBot.create_list(:post, 3)
 
         get show_seq_post_path(posts[1].id), params: { seq: "prev" }
-        assert_redirected_to(posts[2])
+        assert_response :success
 
         get show_seq_post_path(posts[1].id), params: { seq: "next" }
-        assert_redirected_to(posts[0])
-      end
-    end
-
-    context "random action" do
-      should "render" do
-        get random_posts_path, params: { tags: "aaaa" }
-        assert_redirected_to(post_path(@post, tags: "aaaa"))
+        assert_response :success
       end
     end
 
@@ -70,19 +63,6 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
       should "render" do
         get post_path(@post), params: {:id => @post.id}
         assert_response :success
-      end
-
-      context "when the recommend service is enabled" do
-        setup do
-          @post2 = create(:post)
-          RecommenderService.stubs(:enabled?).returns(true)
-          RecommenderService.stubs(:available_for_post?).returns(true)
-        end
-
-        should "not error out" do
-          get_auth post_path(@post), @user
-          assert_response :success
-        end
       end
     end
 

@@ -5,7 +5,6 @@
 =end
 
 class TagSetPresenter < Presenter
-  extend Memoist
   attr_reader :tag_names
 
   # @param [Array<String>] a list of tags to present. Tags will be presented in
@@ -13,6 +12,7 @@ class TagSetPresenter < Presenter
   # contain tags that do not exist in the tags table, such as metatags.
   def initialize(tag_names)
     @tag_names = tag_names
+    @_cached = {}
   end
 
   def tag_list_html(current_query: "", show_extra_links: false, name_only: false)
@@ -62,6 +62,7 @@ class TagSetPresenter < Presenter
   end
 
   def humanized_essential_tag_string(category_list: TagCategory.humanized_list, default: "")
+    return @_humanized if @_cached[:humanized]
     strings = category_list.map do |category|
       mapping = TagCategory.humanized_mapping[category]
       max_tags = mapping["slice"]
@@ -88,17 +89,20 @@ class TagSetPresenter < Presenter
     end
 
     strings = strings.compact.join(" ").tr("_", " ")
-    strings.blank? ? default : strings
+    output = strings.blank? ? default : strings
+    @_humanized = output
+    @_cached[:humanized] = true
+    output
   end
 
   private
 
   def tags
-    Tag.where(name: tag_names).select(:name, :post_count, :category)
+    @_tags ||= Tag.where(name: tag_names).select(:name, :post_count, :category)
   end
 
   def tags_by_category
-    ordered_tags.group_by(&:category)
+    @_tags_by_category ||= ordered_tags.group_by(&:category)
   end
 
   def tags_for_category(category_name)
@@ -107,11 +111,15 @@ class TagSetPresenter < Presenter
   end
 
   def ordered_tags
+    return @_ordered_tags if @_cached[:ordered_tags]
     names_to_tags = tags.map { |tag| [tag.name, tag] }.to_h
 
-    tag_names.map do |name|
+    ordered = tag_names.map do |name|
       names_to_tags[name] || Tag.new(name: name).freeze
     end
+    @_ordered_tags = ordered
+    @_cached[:ordered_tags] = true
+    ordered
   end
 
   def build_list_item(tag, name_only: false, humanize_tags: true, show_extra_links: false, current_query: "")
@@ -157,6 +165,4 @@ class TagSetPresenter < Presenter
     html << "</li>"
     html
   end
-
-  memoize :tags, :tags_by_category, :ordered_tags, :humanized_essential_tag_string
 end
