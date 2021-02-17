@@ -22,7 +22,7 @@ require 'elasticsearch/rails/instrumentation'
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults '6.0'
+    config.load_defaults '6.1'
     config.active_record.schema_format = :sql
     config.encoding = "utf-8"
     config.filter_parameters += [:password, :password_hash, :api_key]

@@ -1601,6 +1601,15 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Searching:" do
+    setup do
+      Post.__elasticsearch__.index_name = "posts_test"
+      Post.__elasticsearch__.create_index!
+    end
+
+    teardown do
+      Post.__elasticsearch__.delete_index!
+    end
+
     should "return posts for the age:<1minute tag" do
       post = FactoryBot.create(:post)
       assert_tag_match([post], "age:<1minute")

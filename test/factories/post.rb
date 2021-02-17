@@ -15,5 +15,12 @@ FactoryBot.define do
     rating { "q" }
     duration { 0.0 }
     source { FFaker::Internet.http_url }
+
+    before(:create) do |post|
+      Post.__elasticsearch__.index_name = "posts_test"
+    end
+    after(:create) do |post|
+      post.update_index
+    end
   end
 end

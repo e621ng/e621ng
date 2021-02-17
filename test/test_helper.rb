@@ -134,4 +134,4 @@ class ActionDispatch::IntegrationTest
   end
 end
 
-Rails.application.load_seed
+# Rails.application.load_seed
