@@ -130,7 +130,6 @@ class UploadService
 
       replacement.update({status: 'approved', approver_id: CurrentUser.id})
       post.save!
-      post.generate_video_samples if post.is_video?
 
       if post.is_video?
         post.generate_video_samples(later: true)
