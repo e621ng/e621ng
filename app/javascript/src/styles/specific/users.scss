@@ -81,6 +81,9 @@ div#c-users {
         text-align: right;
         padding-right: 1em;
         vertical-align: top;
+        /* Fix for premature collapsing of titles. */
+        min-width: fit-content;
+        white-space: nowrap;
       }
 
       td {
