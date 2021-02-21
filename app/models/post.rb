@@ -363,7 +363,8 @@ class Post < ApplicationRecord
     end
 
 
-    def approve!(approver = CurrentUser.user)
+    def approve!(approver = CurrentUser.user, force: false)
+      raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
       approv = approvals.create(user: approver)
       flags.each(&:resolve!)
       update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
