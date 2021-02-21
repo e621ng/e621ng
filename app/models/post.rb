@@ -141,6 +141,11 @@ class Post < ApplicationRecord
       storage_manager.file_url(self, :preview)
     end
 
+    def reverse_image_url
+      return large_file_url if has_large?
+      preview_file_url
+    end
+
     def file_path
       storage_manager.file_path(self, file_ext, :original, is_deleted?)
     end
