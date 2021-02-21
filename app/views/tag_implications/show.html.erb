@@ -15,8 +15,16 @@
       <% end %>
       <li><strong>Status</strong>: <%= @tag_implication.status %></li>
 
-      <% if CurrentUser.is_admin? && @tag_implication.is_pending? %>
-        <li><strong>Commands</strong> <span class="tag-implication" data-implication-id="<%= @tag_implication.id %>"><%= link_to "Approve", "#", class: "tag-implication-accept" %></span></li>
+      <% if CurrentUser.is_moderator? %>
+        <li><strong>Commands</strong> <span class="tag-implication" data-implication-id="<%= @tag_implication.id %>">
+          <% if @tag_implication.is_pending? %>
+            <%= link_to "Approve", "#", class: "tag-implication-accept" %>
+          <% end %>
+          <% if @tag_implication.deletable_by?(CurrentUser.user) %>
+            | <%= link_to "Reject", "#", class: "tag-implication-reject" %>
+          <% end %>
+            </span>
+        </li>
       <% end %>
     </ul>
   </div>

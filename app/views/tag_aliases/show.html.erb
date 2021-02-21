@@ -27,8 +27,16 @@
         <br>
       <% end %>
 
-      <% if CurrentUser.is_admin? && @tag_alias.is_pending? %>
-        <li><strong>Commands</strong> <%= link_to "Approve", approve_tag_alias_path(@tag_alias), :method => :post %></li>
+      <% if CurrentUser.is_moderator? %>
+        <li><strong>Commands</strong> <span class="tag-alias" data-alias-id="<%= @tag_alias.id %>">
+          <% if @tag_alias.is_pending? %>
+            <%= link_to "Approve", "#", class: "tag-alias-accept" %>
+          <% end %>
+          <% if @tag_alias.deletable_by?(CurrentUser.user) %>
+            | <%= link_to "Reject", "#", class: "tag-alias-reject" %>
+          <% end %>
+            </span>
+          </li>
       <% end %>
     </ul>
   </div>
