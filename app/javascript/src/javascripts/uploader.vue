@@ -24,7 +24,7 @@
                             You should review <a href="/wiki/show/howto:sites_and_sources">the sourcing guide</a>.
                         </div>
                         <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
-                            <input type="text" size="50" v-model="uploadURL" @keyup="updatePreview"
+                            <input type="text" size="50" v-model="uploadURL" @keyup="updatePreview" @paste="updatePreviewOnPaste($event)"
                                    :disabled="disableURLUpload"/>
                         </label>
                         <div id="whitelist-warning" v-show="whitelist.visible"
@@ -583,6 +583,11 @@
     },
     methods: {
       updatePreview,
+      updatePreviewOnPaste(evt) {
+        this.uploadURL = (event.clipboardData || window.clipboardData).getData('text');
+        this.updatePreview();
+        evt.preventDefault();
+      },
       updatePreviewDims,
       previewError,
       clearFile: clearFileUpload,
