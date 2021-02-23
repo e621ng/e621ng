@@ -1,8 +1,8 @@
 module Maintenance
   module User
     class EmailConfirmationMailer < ActionMailer::Base
-      add_template_helper ApplicationHelper
-      add_template_helper UsersHelper
+      helper ApplicationHelper
+      helper UsersHelper
       default :from => Danbooru.config.mail_from_addr, :content_type => "text/html"
 
       def confirmation(user)
