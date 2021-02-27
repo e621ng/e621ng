@@ -35,7 +35,7 @@ class PostFlagsController < ApplicationController
     if params[:approval] == 'unapprove'
       @post.unapprove!
     elsif params[:approval] == 'approve'
-      @post.approve!
+      @post.approve!(force: true)
     end
     respond_with(nil)
   end

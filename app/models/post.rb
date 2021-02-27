@@ -364,9 +364,10 @@ class Post < ApplicationRecord
     end
 
     def unapprove!(unapprover = CurrentUser.user)
+      ModAction.log(:post_unapprove, {post_id: id})
       update(approver: nil, is_pending: true)
     end
-    
+
     def approve!(approver = CurrentUser.user, force: false)
       raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
       if is_deleted?
