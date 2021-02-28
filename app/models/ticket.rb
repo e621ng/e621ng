@@ -587,7 +587,14 @@ class Ticket < ApplicationRecord
       end
 
       if params[:status].present?
-        q = q.where('status = ?', params[:status])
+        case params[:status]
+        when "pending_claimed"
+          q = q.where('status = ? and claimant_id is not null', 'pending')
+        when "pending_unclaimed"
+          q = q.where('status = ? and claimant_id is null', 'pending')
+        else
+          q = q.where('status = ?', params[:status])
+        end
       end
 
 

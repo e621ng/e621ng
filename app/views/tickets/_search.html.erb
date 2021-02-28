@@ -22,6 +22,8 @@
   ], selected: params[:search][:type] %>
   <%= f.input :status, collection: [
       ["Any", ""],
+      ["Pending + Unclaimed", "pending_unclaimed"],
+      ["Pending + Claimed", "pending_claimed"],
       ["Approved/investigated", "approved"],
       ["Under investigation", "partial"],
       ["Pending", "pending"],
