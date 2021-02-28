@@ -248,6 +248,7 @@ class TagAlias < TagRelationship
   end
 
   def ensure_category_consistency
+    return if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
     if antecedent_tag.category != consequent_tag.category && antecedent_tag.category != Tag.categories.general
       consequent_tag.update_attribute(:category, antecedent_tag.category)
     end

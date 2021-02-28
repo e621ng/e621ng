@@ -78,19 +78,6 @@ class TagAliasTest < ActiveSupport::TestCase
       end
     end
 
-    context "#update_notice" do
-      setup do
-        @mock_redis = MockRedis.new
-        @forum_topic = FactoryBot.create(:forum_topic)
-        TagChangeNoticeService.stubs(:redis_client).returns(@mock_redis)
-      end
-
-      should "update redis" do
-        FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @forum_topic)
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:aaa"))
-      end
-    end
-
     should "populate the creator information" do
       ta = FactoryBot.create(:tag_alias, :antecedent_name => "aaa", :consequent_name => "bbb")
       assert_equal(CurrentUser.user.id, ta.creator_id)
@@ -105,7 +92,7 @@ class TagAliasTest < ActiveSupport::TestCase
       assert_equal(["bbb"], TagAlias.to_aliased("aaa".mb_chars))
       assert_equal(["bbb", "ccc"], TagAlias.to_aliased(["aaa", "ccc"]))
       assert_equal(["ccc", "bbb"], TagAlias.to_aliased(["ccc", "bbb"]))
-      assert_equal(["bbb", "bbb"], TagAlias.to_aliased(["aaa", "aaa"]))
+      assert_equal(["bbb"], TagAlias.to_aliased(["aaa", "aaa"]))
     end
 
     should "update any affected posts when saved" do
@@ -164,6 +151,15 @@ class TagAliasTest < ActiveSupport::TestCase
       assert_equal(1, tag2.reload.category)
     end
 
+    should "not push the antecedent's category if the consequent is locked" do
+      tag1 = FactoryBot.create(:tag, name: "aaa", category: 1)
+      tag2 = FactoryBot.create(:tag, name: "bbb", category: 3, is_locked: true)
+      ta = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      ta.approve!(approver: @admin)
+
+      assert_equal(3, tag2.reload.category)
+    end
+
     context "with an associated forum topic" do
       setup do
         @admin = FactoryBot.create(:admin_user)
@@ -171,27 +167,6 @@ class TagAliasTest < ActiveSupport::TestCase
           @topic = FactoryBot.create(:forum_topic, :title => TagAliasRequest.topic_title("aaa", "bbb"))
           @post = FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => TagAliasRequest.command_string("aaa", "bbb"))
           @alias = FactoryBot.create(:tag_alias, :antecedent_name => "aaa", :consequent_name => "bbb", :forum_topic => @topic, :forum_post => @post, :status => "pending")
-        end
-      end
-
-      context "and conflicting wiki pages" do
-        setup do
-          CurrentUser.scoped(@admin) do
-            @wiki1 = FactoryBot.create(:wiki_page, :title => "aaa")
-            @wiki2 = FactoryBot.create(:wiki_page, :title => "bbb")
-            @alias.approve!(approver: @admin)
-          end
-          @admin.reload # reload to get the forum post the approval created.
-          @topic.reload
-        end
-
-        should "update the forum topic when approved" do
-          assert_equal("[APPROVED] Tag alias: aaa -> bbb", @topic.title)
-          assert_match(/The tag alias .* been approved/m, @topic.posts[-2].body)
-        end
-
-        should "warn about conflicting wiki pages when approved" do
-          assert_match(/has conflicting wiki pages/m, @topic.posts[-1].body)
         end
       end
 
