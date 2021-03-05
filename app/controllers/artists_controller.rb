@@ -55,6 +55,7 @@ class ArtistsController < ApplicationController
   end
 
   def update
+    ensure_can_edit(CurrentUser.user)
     @artist.update(artist_params)
     flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
     respond_with(@artist)
@@ -70,6 +71,7 @@ class ArtistsController < ApplicationController
 
   def revert
     @artist = Artist.find(params[:id])
+    ensure_can_edit(CurrentUser.user)
     @version = @artist.versions.find(params[:version_id])
     @artist.revert_to!(@version)
     respond_with(@artist)
@@ -96,6 +98,12 @@ private
     sp = params.fetch(:search, {})
     sp[:name] = params[:name] if params[:name]
     sp.permit!
+  end
+
+  def ensure_can_edit(user)
+    return user.is_janitor?
+    raise User::PrivilegeError if @artist.is_locked?
+    raise User::PrivilegeError if !@artist.is_active?
   end
 
   def artist_params(context = nil)

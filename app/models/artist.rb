@@ -301,7 +301,6 @@ class Artist < ApplicationRecord
 
       self.name = version.name
       self.url_string = version.urls.join("\n")
-      self.is_active = version.is_active
       self.other_names = version.other_names
       self.group_name = version.group_name
       save
@@ -454,6 +453,11 @@ class Artist < ApplicationRecord
 
     def validate_user_can_edit?
       return if CurrentUser.is_janitor?
+
+      if !is_active?
+        errors.add(:base, "Artist is inactive")
+        throw :abort
+      end
 
       if is_locked?
         errors.add(:base, "Artist is locked")
