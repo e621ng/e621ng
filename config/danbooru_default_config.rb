@@ -218,6 +218,10 @@ fart'
       15
     end
 
+    def forum_vote_limit
+      30
+    end
+
     # Blips created in the last hour
     def blip_limit
       25

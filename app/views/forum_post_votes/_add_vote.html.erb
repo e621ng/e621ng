@@ -2,10 +2,10 @@
 # forum_post
 %>
 
-<li>
-  <%= link_to content_tag(:i, nil, class: "far fa-thumbs-up"), forum_post_votes_path(forum_post_id: forum_post.id, format: "js"), remote: true, method: :post, data: {params: "forum_post_vote[score]=1"}, title: "Vote up" %>
+<li class="forum-post-vote-block">
+  <%= link_to content_tag(:i, nil, class: "far fa-thumbs-up"), "#", title: "Vote up", class: "forum-vote-up", 'data-forum-id': forum_post.id %>
 
-  <%= link_to content_tag(:i, nil, class: "far fa-meh"), forum_post_votes_path(forum_post_id: forum_post.id, format: "js"), remote: true, method: :post, data: {params: "forum_post_vote[score]=0"}, title: "Vote meh" %>
+  <%= link_to content_tag(:i, nil, class: "far fa-meh"), "#", title: "Vote meh", class: "forum-vote-meh", 'data-forum-id': forum_post.id %>
 
-  <%= link_to content_tag(:i, nil, class: "far fa-thumbs-down"), forum_post_votes_path(forum_post_id: forum_post.id, format: "js"), remote: true, method: :post, data: {params: "forum_post_vote[score]=-1"}, title: "Vote down" %>
+  <%= link_to content_tag(:i, nil, class: "far fa-thumbs-down"), "#", title: "Vote down", class: "forum-vote-down", 'data-forum-id': forum_post.id %>
 </li>

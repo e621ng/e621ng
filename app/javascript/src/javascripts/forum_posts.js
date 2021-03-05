@@ -1,5 +1,4 @@
 import Utility from "./utility";
-import Comment from "./comments";
 
 let ForumPost = {};
 
@@ -9,7 +8,62 @@ ForumPost.initialize_all = function() {
     $(".forum-post-reply-link").on('click', ForumPost.quote);
     $(".forum-post-hide-link").on('click', ForumPost.hide);
     $(".forum-post-unhide-link").on('click', ForumPost.unhide);
+    $(".forum-vote-up").on('click', ForumPost.vote_up);
+    $(".forum-vote-meh").on('click', ForumPost.vote_meh);
+    $(".forum-vote-down").on('click', ForumPost.vote_down);
+    $(document).on('click', ".forum-vote-remove", ForumPost.vote_remove);
   }
+}
+
+ForumPost.vote = function(id, score) {
+  const create_post = function(new_vote) {
+    const score_map = {'1': 'fa-thumbs-up', '0': 'fa-meh', '-1': 'fa-thumbs-down' };
+    const score_map_2 = {'1': 'up', '0': 'meh', '-1': 'down'};
+    const link1 = $('<a>').attr('href', '#').attr('data-forum-id', new_vote.forum_post_id).addClass('forum-vote-remove').append($('<i>').addClass('far').addClass(score_map[new_vote.score.toString()]));
+    const link2 = $('<a>').attr('href', `/users/${new_vote.creator_id}`).text(new_vote.creator_name);
+    const container = $('<li>').addClass(`vote-score-${score_map_2[new_vote.score]}`).addClass('own-forum-vote');
+    container.append(link1).append(' ').append(link2);
+    $(`#forum-post-votes-for-${new_vote.forum_post_id}`).prepend(container);
+  };
+  $.ajax({
+    url: `/forum_posts/${id}/votes.json`,
+    type: 'POST',
+    dataType: 'json',
+    accept: 'text/javascript',
+    data: {'forum_post_vote[score]': score}
+  }).done(function(data) {
+    create_post(data);
+    $('.forum-post-vote-block').remove();
+  }).fail(function(data) {
+    Utility.error("Failed to vote on forum post.");
+  });
+}
+
+ForumPost.vote_up = function(evt) {
+  ForumPost.vote($(evt.target.parentNode).data('forum-id'), 1);
+}
+
+ForumPost.vote_meh = function(evt) {
+  ForumPost.vote($(evt.target.parentNode).data('forum-id'), 0);
+}
+
+ForumPost.vote_down = function(evt) {
+  ForumPost.vote($(evt.target.parentNode).data('forum-id'), -1);
+}
+
+ForumPost.vote_remove = function(evt) {
+  const id = $(evt.target.parentNode).data('forum-id');
+  $.ajax({
+    url: `/forum_posts/${id}/votes.json`,
+    type: 'DELETE',
+    dataType: 'json',
+    accept: 'text/javascript',
+  }).done(function(data) {
+    $(evt.target).parents(".own-forum-vote").remove();
+    Utility.notice("Vote removed.");
+  }).fail(function(data) {
+    Utility.error("Failed to unvote on forum post.");
+  })
 }
 
 ForumPost.quote = function (e) {
