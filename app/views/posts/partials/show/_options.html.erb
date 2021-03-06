@@ -54,6 +54,10 @@
       <% end %>
       <% if CurrentUser.is_janitor? %>
         <li><%= link_to "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
+        <li><%= tag.a "Regenerate Thumbnails", href: '#', id: 'regenerate-image-samples-link', 'data-pid': post.id %></li>
+        <% if post.is_video? %>
+          <li><%= tag.a "Regenerate Video Samples", href: '#', id: 'regenerate-video-samples-link', 'data-pid': post.id %></li>
+        <% end %>
       <% end %>
     <% end %>
   <% end %>

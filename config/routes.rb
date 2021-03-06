@@ -52,6 +52,8 @@ Rails.application.routes.draw do
           get :confirm_ban
           post :ban
           post :unban
+          post :regenerate_thumbnails
+          post :regenerate_videos
         end
       end
     end

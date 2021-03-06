@@ -361,6 +361,14 @@ Post.initialize_links = function() {
       return;
     Post.destroy($(e.target).data('pid'));
   });
+  $("#regenerate-image-samples-link").on('click', e => {
+    e.preventDefault();
+    Post.regenerate_image_samples($(e.target).data('pid'));
+  });
+  $("#regenerate-video-samples-link").on('click', e => {
+    e.preventDefault();
+    Post.regenerate_video_samples($(e.target).data('pid'));
+  });
   $(".disapprove-post-link").on('click', e => {
     e.preventDefault();
     const target = $(e.target);
@@ -904,6 +912,24 @@ Post.destroy = function(post_id) {
     $(window).trigger("danbooru:error", "Error: " + message);
   }).done(data => {
     location.reload();
+  });
+};
+
+Post.regenerate_image_samples = function(post_id) {
+  $.post(`/moderator/post/posts/${post_id}/regenerate_thumbnails.json`, {}
+  ).fail(data => {
+    Utility.error("Error: " + data.responseJSON.reason);
+  }).done(data => {
+    Utility.notice("Image samples regenerated.");
+  });
+};
+
+Post.regenerate_video_samples = function(post_id) {
+  $.post(`/moderator/post/posts/${post_id}/regenerate_videos.json`, {}
+  ).fail(data => {
+    Utility.error("Error: " + data.responseJSON.reason);
+  }).done(data => {
+    Utility.notice("Video samples will be regenerated in a few minutes.");
   });
 };
 
