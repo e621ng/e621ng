@@ -10,7 +10,7 @@ class Artist < ApplicationRecord
   before_validation :normalize_other_names
   validate :validate_user_can_edit?
   validate :user_not_limited
-  validates :name, tag_name: true, uniqueness: true
+  validates :name, tag_name: true, uniqueness: true, on: :create
   validates :group_name, length: { maximum: 100 }
   before_save :log_changes
   after_save :create_version
