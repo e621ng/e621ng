@@ -395,7 +395,7 @@ class Pool < ApplicationRecord
       errors.add(:name, "cannot contain only digits")
     when /,/
       errors.add(:name, "cannot contain commas")
-    when /[_\- ]{2}/
+    when /(__|\-\-|  )/
       errors.add(:name, "cannot contain consecutive underscores, hyphens or spaces")
     end
   end

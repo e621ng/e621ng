@@ -327,8 +327,12 @@ class PoolTest < ActiveSupport::TestCase
     end
 
     context "when validating names" do
-      ["foo,bar", "foo*bar", "123", "___", "   ", "any", "none", "series", "collection"].each do |bad_name|
+      ["foo,bar", "foo*bar", "123", "--", "___", "   ", "any", "none", "series", "collection"].each do |bad_name|
         should_not allow_value(bad_name).for(:name)
+      end
+
+      ["_-_", " - "].each do |good_name|
+        should allow_value(good_name).for(:name)
       end
     end
   end
