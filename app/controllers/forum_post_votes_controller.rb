@@ -7,6 +7,7 @@ class ForumPostVotesController < ApplicationController
 
   def create
     @forum_post_vote = @forum_post.votes.create(forum_post_vote_params)
+    raise User::PrivilegeError.new(@forum_post_vote.errors.full_messages.join('; ')) if @forum_post_vote.errors.size > 0
     respond_with(@forum_post_vote) do |fmt|
       fmt.json { render json: @forum_post_vote, code: 201 }
     end
