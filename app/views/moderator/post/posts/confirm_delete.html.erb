@@ -16,6 +16,14 @@
         <%= check_box_tag "move_favorites", true, true %>
         Move favorites to parent?
       </label>
+      <label for="copy_tags">
+        <%= check_box_tag "copy_tags", false, false %>
+        Merge tags into parent?
+      </label>
+      <label for="copy_sources">
+        <%= check_box_tag "copy_sources", false, false %>
+        Merge sources into parent?
+      </label>
       <%= PostPresenter.preview(@post.parent, tags: 'status:any', no_blacklist: true) %>
     </div>
   <% end %>

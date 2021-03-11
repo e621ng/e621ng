@@ -178,6 +178,23 @@ class PostTest < ActiveSupport::TestCase
     end
   end
 
+  context "Parent:" do
+    setup do
+      @parent = FactoryBot.create(:post, tag_string: "a b c d", source: "a\nb\nc")
+      @post = FactoryBot.create(:post, parent_id: @parent.id, tag_string: "c d e f", source: "b\nc\nd")
+    end
+    should "Copy tags to parent" do
+      @post.copy_tags_to_parent
+      @post.parent.save
+      assert_equal(@parent.reload.tag_string, "a b c d e f")
+    end
+    should "Copy sources to parent" do
+      @post.copy_sources_to_parent
+      @post.parent.save
+      assert_equal(@parent.reload.source, "a\nb\nc\nd")
+    end
+  end
+
   context "Parenting:" do
     context "Assigning a parent to a post" do
       should "update the has_children flag on the parent" do

@@ -17,6 +17,9 @@ module Moderator
         @post = ::Post.find(params[:id])
         if params[:commit] == "Delete"
           @post.delete!(params[:reason], :move_favorites => params[:move_favorites].present?)
+          @post.copy_sources_to_parent if params[:copy_sources].present?
+          @post.copy_tags_to_parent if params[:copy_tags].present?
+          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present?
         end
         redirect_to(post_path(@post))
       end

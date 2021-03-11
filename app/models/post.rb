@@ -434,6 +434,11 @@ class Post < ApplicationRecord
 
       self.source = sources.first(10).join("\n")
     end
+
+    def copy_sources_to_parent
+      return unless parent_id.present?
+      parent.source += "\n#{self.source}"
+    end
   end
 
   module PresenterMethods
@@ -1120,6 +1125,11 @@ class Post < ApplicationRecord
       define_method("tag_string_#{category}") do
         typed_tags(category).join(" ")
       end
+    end
+
+    def copy_tags_to_parent
+      return unless parent_id.present?
+      parent.tag_string += " #{tag_string}"
     end
   end
 
