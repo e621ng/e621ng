@@ -62,6 +62,7 @@ Disallow: /uploads
 Disallow: /user_feedback
 Disallow: /users
 Disallow: /wiki_page_versions
+Disallow: /wiki_pages*?*title=*
 Disallow: /wiki_pages/new
 Disallow: /wiki_pages/revert
 Disallow: /wiki_pages/show_or_new
