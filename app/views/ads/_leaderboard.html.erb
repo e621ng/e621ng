@@ -13,6 +13,9 @@
           if(width <= 900) {
             zone = zones.mobile;
           }
+          if(!zone.zone) {
+            return;
+          }
           var el = document.getElementById('ad-insert-element');
           if(!el)
             return;
