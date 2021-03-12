@@ -52,6 +52,8 @@ Disallow: /posts*?*q=*
 Disallow: /posts*?*md5*
 Disallow: /posts*?*limit*
 Disallow: /posts*?*random*
+Disallow: /posts*?*pool_id*
+Disallow: /posts*?*post_set_id*
 Disallow: /posts.json
 Disallow: /posts.xml
 Disallow: /reports
