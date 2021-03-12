@@ -12,6 +12,7 @@ Disallow: /comments
 Disallow: /comments.atom
 Disallow: /comments/*.atom
 Disallow: /counts
+Disallow: /data
 Disallow: /delayed_jobs
 Disallow: /dmails
 Disallow: /explore
