@@ -8,12 +8,12 @@ Disallow: /artist_commentary_versions
 Disallow: /artist_versions
 Disallow: /bans
 Disallow: /comment_votes
-Disallow: /comment
+Disallow: /comment/
 Disallow: /comments
 Disallow: /comments.atom
 Disallow: /comments/*.atom
 Disallow: /counts
-Disallow: /data
+Disallow: /data/
 Disallow: /delayed_jobs
 Disallow: /dmails
 Disallow: /explore
@@ -41,7 +41,7 @@ Disallow: /post_flags
 Disallow: /post_sets
 Disallow: /post_versions
 Disallow: /post_votes
-Disallow: /post
+Disallow: /post/
 Disallow: /posts.atom
 Disallow: /posts/random
 Disallow: /posts/copy_notes
@@ -69,8 +69,9 @@ Disallow: /tickets
 Disallow: /takedowns
 Disallow: /uploads
 Disallow: /user_feedback
+Disallow: /user/
 Disallow: /users
-Disallow: /wiki
+Disallow: /wiki/
 Disallow: /wiki_page_versions
 Disallow: /wiki_pages*?*title=*
 Disallow: /wiki_pages/new
