@@ -32,12 +32,18 @@ Disallow: /post_sets
 Disallow: /post_versions
 Disallow: /post_votes
 Disallow: /post
-Disallow: /posts
 Disallow: /posts.atom
 Disallow: /posts/random
 Disallow: /posts/copy_notes
 Disallow: /posts/revert
+Disallow: /posts/show_seq
 Disallow: /posts*?*tags=*
+Disallow: /posts*?*q=*
+Disallow: /posts*?*md5*
+Disallow: /posts*?*limit*
+Disallow: /posts*?*random*
+Disallow: /posts.json
+Disallow: /posts.xml
 Disallow: /reports
 Disallow: /session
 Disallow: /sources
@@ -70,5 +76,5 @@ User-agent: Yandex
 User-agent: magpie-crawler
 User-agent: SemrushBot
 User-agent: SemrushBot-SA
-User-agent: AhrefsBot 
+User-agent: AhrefsBot
 Disallow: /
