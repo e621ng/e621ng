@@ -8,6 +8,7 @@ Disallow: /artist_commentary_versions
 Disallow: /artist_versions
 Disallow: /bans
 Disallow: /comment_votes
+Disallow: /comment
 Disallow: /comments
 Disallow: /comments.atom
 Disallow: /comments/*.atom
@@ -18,6 +19,7 @@ Disallow: /dmails
 Disallow: /explore
 Disallow: /favorite
 Disallow: /forum_topics.atom
+Disallow: /forum_posts
 Disallow: /forum_posts.atom
 Disallow: /forum_topics/*.atom
 Disallow: /forum_posts/*.atom
@@ -68,6 +70,7 @@ Disallow: /takedowns
 Disallow: /uploads
 Disallow: /user_feedback
 Disallow: /users
+Disallow: /wiki
 Disallow: /wiki_page_versions
 Disallow: /wiki_pages*?*title=*
 Disallow: /wiki_pages/new
