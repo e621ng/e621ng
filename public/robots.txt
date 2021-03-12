@@ -9,11 +9,17 @@ Disallow: /artist_versions
 Disallow: /bans
 Disallow: /comment_votes
 Disallow: /comments
+Disallow: /comments.atom
+Disallow: /comments/*.atom
 Disallow: /counts
 Disallow: /delayed_jobs
 Disallow: /dmails
 Disallow: /explore
 Disallow: /favorite
+Disallow: /forum_topics.atom
+Disallow: /forum_posts.atom
+Disallow: /forum_topics/*.atom
+Disallow: /forum_posts/*.atom
 Disallow: /iqdb_queries
 Disallow: /ip_bans
 Disallow: /janitor_trials
