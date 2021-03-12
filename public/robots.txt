@@ -12,6 +12,7 @@ Disallow: /comments
 Disallow: /counts
 Disallow: /delayed_jobs
 Disallow: /dmails
+Disallow: /explore
 Disallow: /favorite
 Disallow: /iqdb_queries
 Disallow: /ip_bans
