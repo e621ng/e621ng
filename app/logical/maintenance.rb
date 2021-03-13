@@ -4,8 +4,8 @@ module Maintenance
   def daily
     ignoring_exceptions { PostPruner.new.prune! }
     ignoring_exceptions { Upload.where('created_at < ?', 1.week.ago).delete_all }
-    ignoring_exceptions { ApiCacheGenerator.new.generate_tag_cache }
-    ignoring_exceptions { PostDisapproval.prune! }
+    #ignoring_exceptions { ApiCacheGenerator.new.generate_tag_cache }
+    #ignoring_exceptions { PostDisapproval.prune! }
     ignoring_exceptions { ForumSubscription.process_all! }
     ignoring_exceptions { TagAlias.update_cached_post_counts_for_all }
     #ignoring_exceptions { PostDisapproval.dmail_messages! }
@@ -14,6 +14,7 @@ module Maintenance
     #ignoring_exceptions { TagChangeRequestPruner.reject_all }
     ignoring_exceptions { Ban.prune! }
     ignoring_exceptions { UserPasswordResetNonce.prune! }
+    ignoring_exceptions { StatsUpdateJob.perform_async }
   end
 
   def weekly

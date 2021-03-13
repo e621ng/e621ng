@@ -298,6 +298,7 @@ Rails.application.routes.draw do
     get :sign_out, on: :collection
   end
   resource :source, :only => [:show]
+  resources :stats, only: [:index]
   resources :tags do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
     collection do

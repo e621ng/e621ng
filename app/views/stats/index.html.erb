@@ -1,0 +1,597 @@
+<%= javascript_include_tag "/vendor/highcharts.js", integrity: "sha256-9ZO13Nj+v8YaXhyFvZZcV0ikZ/pM3YslopQknNxdb0c=", crossorigin: "anonymous" %>
+<%= javascript_include_tag "/vendor/highcharts-export.js", integrity: "sha256-NjBgWc8u4XRI29JcQRbzo+dwShOdAXWrlxIxGJc+0WA=", crossorigin: "anonymous" %>
+<style>
+  .stats-column {
+    width:400px;
+    display:inline-block;
+    vertical-align:top;
+  }
+
+  .stats-chart {
+    display:inline-block;
+    width:300px;
+    height:300px;
+  }
+
+  .stats-chart-container {
+    white-space:nowrap;
+  }
+
+  .stats-pct {
+    text-align:right;
+  }
+
+  #stats-column-1 table {
+    margin-bottom:60px;
+  }
+
+  #stats-column-2 table {
+    margin-bottom:19px;
+  }
+
+  #stats-column-3 table {
+    margin-bottom:5px;
+  }
+
+  .stats-column table:last-child {
+    margin-bottom:10px !important;
+  }
+
+
+  table {
+    margin-bottom:2em;
+    padding:3px;
+    border-spacing:0;
+  }
+  td { padding:1px 4px; vertical-align:top; }
+  th { font-weight:bold; text-align:left; vertical-align:top; padding:0.2em 0.5em; white-space:nowrap; }
+
+  tr.selected { background-color:#288233 !important; /* green */ }
+
+
+  .rounded {
+    background-color:#203f6c;
+    border-radius:8px;
+    box-shadow:2px 2px 5px #07162D;
+  }
+
+  .rounded th { border-bottom:2px solid #6388c3; padding: 2px 10px; }
+  .rounded tr:nth-child(even) { background-color:#204274; }
+  .rounded tr:nth-child(even) td { border-top:1px solid #255193; border-bottom:1px solid #255193; }
+  .rounded tr:last-child td{ border-bottom:0; }
+  .rounded td { padding:2px 10px; }
+
+  .rounded-even	{ background-color:#204274; }
+  .rounded-even td	{ border-top:1px solid #255193; border-bottom:1px solid #255193; }
+  .rounded-odd	{ background-color:transparent; }
+  .rounded-odd td	{ border-top:none; border-bottom:none; }
+</style>
+<%= javascript_tag nonce: true do -%>
+  function pct(current,total) {
+    return Math.round((current/total)*100) + "%"
+  }
+
+  jQuery(function(){
+    // Do all the math on the clientside (JS) instead of serverside (Ruby)
+
+    jQuery("#stats-pct-activeposts").html(pct(stats.posts.active, stats.posts.total));
+    jQuery("#stats-pct-deletedposts").html(pct(stats.posts.deleted, stats.posts.total));
+    jQuery("#stats-pct-destroyedposts").html(pct(stats.posts.destroyed, stats.posts.total));
+
+    jQuery("#stats-pct-publicsets").html(pct(stats.sets.public, stats.sets.public+stats.sets.private));
+    jQuery("#stats-pct-privatesets").html(pct(stats.sets.private, stats.sets.public+stats.sets.private));
+
+    jQuery("#stats-pct-jpgposts").html(pct(stats.posts.jpg, stats.posts.active+stats.posts.deleted));
+    jQuery("#stats-pct-pngposts").html(pct(stats.posts.png, stats.posts.active+stats.posts.deleted));
+    jQuery("#stats-pct-gifposts").html(pct(stats.posts.gif, stats.posts.active+stats.posts.deleted));
+    jQuery("#stats-pct-swfposts").html(pct(stats.posts.swf, stats.posts.active+stats.posts.deleted));
+    jQuery("#stats-pct-webmposts").html(pct(stats.posts.webm, stats.posts.active+stats.posts.deleted));
+
+    jQuery("#stats-pct-unactivatedusers").html(pct(stats.users.unactivated, stats.users.total));
+    jQuery("#stats-pct-blockedusers").html(pct(stats.users.blocked, stats.users.total));
+    jQuery("#stats-pct-memberusers").html(pct(stats.users.member, stats.users.total));
+    jQuery("#stats-pct-privilegedusers").html(pct(stats.users.privileged, stats.users.total));
+    jQuery("#stats-pct-contributorusers").html(pct(stats.users.contributor, stats.users.total));
+    jQuery("#stats-pct-janitorusers").html(pct(stats.users.janitor, stats.users.total));
+    jQuery("#stats-pct-modusers").html(pct(stats.users.mod, stats.users.total));
+    jQuery("#stats-pct-adminusers").html(pct(stats.users.admin, stats.users.total));
+
+    jQuery("#stats-pct-activecomments").html(pct(stats.comments.active, stats.comments.total));
+    jQuery("#stats-pct-hiddencomments").html(pct(stats.comments.hidden, stats.comments.total));
+    jQuery("#stats-pct-deletedcomments").html(pct(stats.comments.deleted, stats.comments.total));
+
+    jQuery("#stats-pct-activeblips").html(pct(stats.blips.active, stats.blips.total));
+    jQuery("#stats-pct-hiddenblips").html(pct(stats.blips.hidden, stats.blips.total));
+    jQuery("#stats-pct-deletedblips").html(pct(stats.blips.deleted, stats.blips.total));
+
+    jQuery("#stats-pct-generaltags").html(pct(stats.tags.general, stats.tags.total));
+    jQuery("#stats-pct-artisttags").html(pct(stats.tags.artist, stats.tags.total));
+    jQuery("#stats-pct-charactertags").html(pct(stats.tags.character, stats.tags.total));
+    jQuery("#stats-pct-copyrighttags").html(pct(stats.tags.copyright, stats.tags.total));
+    jQuery("#stats-pct-speciestags").html(pct(stats.tags.species, stats.tags.total));
+    jQuery("#stats-pct-metatags").html(pct(stats.tags.meta, stats.tags.total));
+    jQuery("#stats-pct-invalidtags").html(pct(stats.tags.invalid, stats.tags.total));
+  });
+
+  var stats = {
+    posts: {
+      total:       <%= @stats['total_posts'] %>,
+      active:      <%= @stats['active_posts'] %>,
+      deleted:     <%= @stats['deleted_posts'] %>,
+      destroyed:   <%= @stats['destroyed_posts'] %>,
+
+      jpg:         <%= @stats['jpg_posts'] %>,
+      png:         <%= @stats['png_posts'] %>,
+      gif:         <%= @stats['gif_posts'] %>,
+      swf:         <%= @stats['swf_posts'] %>,
+      webm:        <%= @stats['webm_posts'] %>,
+    },
+
+    sets: {
+      public:      <%= @stats['public_sets'] %>,
+      private:     <%= @stats['private_sets'] %>,
+    },
+
+    users: {
+      total:       <%= @stats['total_users'] %>,
+      blocked:     <%= @stats['blocked_users'] %>,
+      member:      <%= @stats['member_users'] %>,
+      privileged:  <%= @stats['privileged_users'] %>,
+      contributor: <%= @stats['contributor_users'] %>,
+      janitor:     <%= @stats['janitor_users'] %>,
+      mod:         <%= @stats['moderator_users'] %>,
+      admin:       <%= @stats['admin_users'] %>,
+      unactivated: <%= @stats['unactivated_users'] %>
+    },
+
+    comments: {
+      total:       <%= @stats['total_comments'] %>,
+      active:      <%= @stats['active_comments'] %>,
+      hidden:      <%= @stats['hidden_comments'] %>,
+      deleted:     <%= @stats['deleted_comments'] %>,
+    },
+
+    blips: {
+      total:       <%= @stats['total_blips'] %>,
+      active:      <%= @stats['active_blips'] %>,
+      hidden:      <%= @stats['hidden_blips'] %>,
+      deleted:     <%= @stats['deleted_blips'] %>,
+    },
+
+    tags: {
+      total:       <%= @stats['total_tags'] %>,
+      general:     <%= @stats['general_tags'] %>,
+      artist:      <%= @stats['artist_tags'] %>,
+      character:   <%= @stats['character_tags'] %>,
+      copyright:   <%= @stats['copyright_tags'] %>,
+      species:     <%= @stats['species_tags'] %>,
+      meta:        <%= @stats['meta_tags'] %>,
+      invalid:     <%= @stats['invalid_tags'] %>
+    }
+  };
+<% end -%>
+
+
+<div>
+  <p>Refreshed once a day. Click chart legend entries to turn them on/off. Charts by <a href='http://highcharts.com'>Highcharts</a></p>
+  <div class='stats-column' id='stats-column-1'>
+    <h2>Site</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Started</td>
+        <td style='width:105px;'><%= @stats['started'] %></td>
+      </tr>
+      <tr>
+        <td>Average registrations per day</td>
+        <td><%= del(@stats['average_registrations_per_day']) %></td>
+      </tr>
+      <tr>
+        <td>Average posts per day</td>
+        <td><%= del(@stats['average_posts_per_day']) %></td>
+      </tr>
+      <tr>
+        <td>Average comments per day</td>
+        <td><%= del(@stats['average_comments_per_day']) %></td>
+      </tr>
+      <tr>
+        <td>Average forum posts per day</td>
+        <td><%= del(@stats['average_forum_posts_per_day']) %></td>
+      </tr>
+      <tr>
+        <td>Average blips per day</td>
+        <td><%= del(@stats['average_blips_per_day']) %></td>
+      </tr>
+    </table>
+
+    <h2>Posts</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Total posts</td>
+        <td style='width:50px;'><%= del(@stats['total_posts']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+      <tr>
+        <td>Active posts</td>
+        <td><%= del(@stats['active_posts']) %></td><td class='stats-pct' id='stats-pct-activeposts'></td>
+      </tr>
+      <tr>
+        <td>Deleted posts</td>
+        <td><%= del(@stats['deleted_posts']) %></td><td class='stats-pct' id='stats-pct-deletedposts'></td>
+      </tr>
+      <tr>
+        <td>Destroyed posts</td>
+        <td><%= del(@stats['destroyed_posts']) %></td><td class='stats-pct' id='stats-pct-destroyedposts'></td>
+      </tr>
+      <tr>
+        <td>Total post votes</td>
+        <td><%= del(@stats['total_votes']) %></td><td></td>
+      </tr>
+      <tr>
+        <td>Note count</td>
+        <td><%= del(@stats['total_notes']) %></td><td></td>
+      </tr>
+      <tr>
+        <td>Total favorited posts</td>
+        <td><%= del(@stats['total_favorites']) %></td><td></td>
+      </tr>
+      <tr>
+        <td>Pools</td>
+        <td><%= del(@stats['total_pools']) %></td><td></td>
+      </tr>
+      <tr>
+        <td>Average posts per pool</td>
+        <td><%= del(@stats['average_posts_per_pool']) %></td><td></td>
+      </tr>
+
+      <tr>
+        <td>Public sets</td>
+        <td><%= del(@stats['public_sets']) %></td><td class='stats-pct' id='stats-pct-publicsets'></td>
+      </tr>
+
+      <tr>
+        <td>Private sets</td>
+        <td><%= del(@stats['private_sets']) %></td><td class='stats-pct' id='stats-pct-privatesets'></td>
+      </tr>
+
+      <tr>
+        <td>Average posts per set</td>
+        <td><%= del(@stats['average_posts_per_set']) %></td><td></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class='stats-column' id='stats-column-2'>
+    <h2>Image files</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Total existing posts</td>
+        <td style='width:50px;'><%= del(@stats['active_posts']+@stats['deleted_posts']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+
+      <tr>
+        <td style='width:250px;'>JPG posts</td>
+        <td style='width:50px;'><%= del(@stats['jpg_posts']) %></td><td class='stats-pct' id='stats-pct-jpgposts'></td>
+      </tr>
+      <tr>
+        <td>PNG posts</td>
+        <td><%= del(@stats['png_posts']) %></td><td class='stats-pct' id='stats-pct-pngposts'></td>
+      </tr>
+      <tr>
+        <td>GIF posts</td>
+        <td><%= del(@stats['gif_posts']) %></td><td class='stats-pct' id='stats-pct-gifposts'></td>
+      </tr>
+      <tr>
+        <td>Flash posts</td>
+        <td><%= del(@stats['swf_posts']) %></td><td class='stats-pct' id='stats-pct-swfposts'></td>
+      </tr>
+      <tr>
+        <td>WebM posts</td>
+        <td><%= del(@stats['webm_posts']) %></td><td class='stats-pct' id='stats-pct-webmposts'></td>
+      </tr>
+      <tr>
+        <td>Average file size</td>
+        <td><%= humansize(@stats['average_file_size']) %></td><td></td>
+      </tr>
+      <tr>
+        <td>Total file size</td>
+        <td><%= humansize(@stats['total_file_size'],1) %></td><td></td>
+      </tr>
+    </table>
+    <h2>Users</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>User count</td>
+        <td style='width:50px;'><%= del(@stats['total_users']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+      <tr>
+        <td>Unactivated users</td>
+        <td><%= del(@stats['unactivated_users']) %></td><td class='stats-pct' id='stats-pct-unactivatedusers'></td>
+      </tr>
+      <tr>
+        <td>Banned users</td>
+        <td><%= del(@stats['blocked_users']) %></td><td class='stats-pct' id='stats-pct-blockedusers'></td>
+      </tr>
+      <tr>
+        <td>Members</td>
+        <td><%= del(@stats['member_users']) %></td><td class='stats-pct' id='stats-pct-memberusers'></td>
+      </tr>
+      <tr>
+        <td>Privileged users</td>
+        <td><%= del(@stats['privileged_users']) %></td><td class='stats-pct' id='stats-pct-privilegedusers'></td>
+      </tr>
+      <tr>
+        <td>Contributors</td>
+        <td><%= del(@stats['contributor_users']) %></td><td class='stats-pct' id='stats-pct-contributorusers'></td>
+      </tr>
+      <tr>
+        <td>Janitors</td>
+        <td><%= del(@stats['janitor_users']) %></td><td class='stats-pct' id='stats-pct-janitorusers'></td>
+      </tr>
+      <tr>
+        <td>Mods</td>
+        <td><%= del(@stats['moderator_users']) %></td><td class='stats-pct' id='stats-pct-modusers'></td>
+      </tr>
+      <tr>
+        <td>Admins</td>
+        <td><%= del(@stats['admin_users']) %></td><td class='stats-pct' id='stats-pct-adminusers'></td>
+      </tr>
+      <tr>
+        <td>Dmails sent</td>
+        <td><%= del(@stats['total_dmails']) %></td><td></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class='stats-column' id='stats-column-3'>
+    <h2>Comments</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Comment count</td>
+        <td style='width:50px;'><%= del(@stats['total_comments']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+      <tr>
+        <td>Active comments</td>
+        <td><%= del(@stats['active_comments']) %></td><td class='stats-pct' id='stats-pct-activecomments'></td>
+      </tr>
+      <tr>
+        <td>Hidden comments</td>
+        <td><%= del(@stats['hidden_comments']) %></td><td class='stats-pct' id='stats-pct-hiddencomments'></td>
+      </tr>
+      <tr>
+        <td>Deleted comments</td>
+        <td><%= del(@stats['deleted_comments']) %></td><td class='stats-pct' id='stats-pct-deletedcomments'></td>
+      </tr>
+    </table>
+
+    <h2>Forum Posts</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Thread count</td>
+        <td style='width:100px;'><%= del(@stats['total_forum_threads']) %></td>
+      </tr>
+      <tr>
+        <td>Post count</td>
+        <td><%= del(@stats['total_forum_posts']) %></td>
+      </tr>
+      <tr>
+        <td>Average posts per thread</td>
+        <td><%= del(@stats['average_posts_per_thread']) %></td>
+      </tr>
+    </table>
+
+    <h2>Blips</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Blip count</td>
+        <td style='width:50px;'><%= del(@stats['total_blips']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+      <tr>
+        <td>Active blips</td>
+        <td><%= del(@stats['active_blips']) %></td><td class='stats-pct' id='stats-pct-activeblips'></td>
+      </tr>
+      <tr>
+        <td>Hidden blips</td>
+        <td><%= del(@stats['hidden_blips']) %></td><td class='stats-pct' id='stats-pct-hiddenblips'></td>
+      </tr>
+      <tr>
+        <td>Deleted blips</td>
+        <td><%= del(@stats['deleted_blips']) %></td><td class='stats-pct' id='stats-pct-deletedblips'></td>
+      </tr>
+    </table>
+
+    <h2>Tags</h2>
+    <table class='rounded'>
+      <tr>
+        <td style='width:250px;'>Tag count</td>
+        <td style='width:50px;'><%= del(@stats['total_tags']) %></td>
+        <td style='width:50px;'></td>
+      </tr>
+      <tr>
+        <td>General tag count</td>
+        <td><%= del(@stats['general_tags']) %></td><td class='stats-pct' id='stats-pct-generaltags'></td>
+      </tr>
+      <tr>
+        <td>Artist tag count</td>
+        <td><%= del(@stats['artist_tags']) %></td><td class='stats-pct' id='stats-pct-artisttags'></td>
+      </tr>
+      <tr>
+        <td>Character tag count</td>
+        <td><%= del(@stats['character_tags']) %></td><td class='stats-pct' id='stats-pct-charactertags'></td>
+      </tr>
+      <tr>
+        <td>Copyright tag count</td>
+        <td><%= del(@stats['copyright_tags']) %></td><td class='stats-pct' id='stats-pct-copyrighttags'></td>
+      </tr>
+      <tr>
+        <td>Species tag count</td>
+        <td><%= del(@stats['species_tags']) %></td><td class='stats-pct' id='stats-pct-speciestags'></td>
+      </tr>
+      <tr>
+        <td>Meta tag count</td>
+        <td><%= del(@stats['meta_tags']) %></td><td class='stats-pct' id='stats-pct-metatags'></td>
+      </tr>
+      <tr>
+        <td>Invalid tag count</td>
+        <td><%= del(@stats['invalid_tags']) %></td><td class='stats-pct' id='stats-pct-invalidtags'></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class='stats-chart-container'>
+    <div id='chart-users' class='stats-chart'></div>
+    <div id='chart-posts' class='stats-chart'></div>
+    <div id='chart-post-types' class='stats-chart'></div>
+    <div id='chart-tags' class='stats-chart'></div>
+  </div>
+
+</div>
+
+<%= javascript_tag nonce: true do -%>
+  $(function () {
+    Highcharts.setOptions({ // Set global options for all charts
+      chart: {
+        backgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        height:300,
+        width:300,
+        style: {
+          fontFamily: 'tahoma'
+        }
+      },
+
+      title: {
+        style: {
+          color: 'white'
+        }
+      },
+
+      credits: {
+        enabled: false
+      },
+
+      exporting: {
+        enabled: false
+      },
+
+      tooltip: {
+        formatter: function(){
+          return '<b>' + this.point.name + '</b>: <b>' + this.point.y + '</b> (<b>' + this.point.percentage.toFixed(1) + '</b>%)';
+        },
+        hideDelay: 0
+      },
+
+      plotOptions: {
+        pie: {
+          borderColor: '#aaa',
+          allowPointSelect: true,
+          cursor: 'pointer',
+          dataLabels: {
+            enabled: false,
+          },
+          showInLegend: true
+        }
+      },
+
+      legend: {
+        enabled: true,
+        align: 'center',
+        layout: 'horizontal',
+        padding: 8,
+        verticalAlign: 'bottom',
+        itemStyle: {
+          color: 'white'
+        },
+        itemHoverStyle: {
+          color: 'gold'
+        },
+        itemHiddenStyle: {
+          color: '#555'
+        }
+      },
+    });
+
+
+    $('#chart-users').highcharts({
+      title: {
+        text: 'User Types',
+      },
+
+      series: [{
+        type: 'pie',
+        name: 'User types',
+        data: [
+          {name: 'Unactivated',y: stats.users.unactivated,	color: '#79796A'},
+          {name: 'Blocked',	 y: stats.users.blocked,		color: '#9A1414'},
+          {name: 'Member',	 y: stats.users.member,			color: '#2f7ed8'},
+          {name: 'Privileged', y: stats.users.privileged,		color: '#a6c96a'},
+          {name: 'Contributor',y: stats.users.contributor,	color: '#1D9E00'},
+          {name: 'Janitor',	 y: stats.users.janitor,		color: '#FFFF00'},
+          {name: 'Mod',		 y: stats.users.mod,			color: '#EF8412'},
+          {name: 'Admin',		 y: stats.users.admin,			color: '#FFFFFF'},
+        ]
+      }]
+    });
+
+
+    $('#chart-tags').highcharts({
+      title: {
+        text: 'Tag Types',
+      },
+
+      series: [{
+        type: 'pie',
+        name: 'Tag types',
+        data: [
+          {name: 'General',	y: stats.tags.general,		color: '#b4c7d9'},
+          {name: 'Artist',	y: stats.tags.artist,		color: '#f2ac08'},
+          {name: 'Copyright', y: stats.tags.copyright,	color: '#D0D'},
+          {name: 'Character',	y: stats.tags.character,	color: '#0A0'},
+          {name: 'Species',	y: stats.tags.species,		color: '#ED5D1F'},
+          {name: 'Meta', y: stats.tags.meta },
+          {name: 'Invalid', y: stats.tags.invalid }
+        ]
+      }]
+    });
+
+
+    $('#chart-post-types').highcharts({
+      title: {
+        text: 'Post Types',
+      },
+
+      series: [{
+        type: 'pie',
+        name: 'Post Types',
+        data: [
+          {name: 'JPG',	y: stats.posts.jpg,		color: '#1D9E00'},
+          {name: 'PNG',	y: stats.posts.png,		color: '#EF8412'},
+          {name: 'GIF',	y: stats.posts.gif,		color: '#9A1414'},
+          {name: 'SWF',	y: stats.posts.swf,		color: '#2f7ed8'},
+          {name: 'WebM',	y: stats.posts.webm,	color: '#FFFF00'},
+        ]
+      }]
+    });
+
+
+    $('#chart-posts').highcharts({
+      title: {
+        text: 'Post Statuses',
+      },
+
+      series: [{
+        type: 'pie',
+        name: 'Post Statuses',
+        data: [
+          {name: 'Normal',	y: stats.posts.active,		color: '#1D9E00'},
+          {name: 'Deleted',	y: stats.posts.deleted,		color: '#EF8412'},
+          {name: 'Destroyed',	y: stats.posts.destroyed,	color: '#9A1414'},
+        ]
+      }]
+    });
+  });
+<% end -%>
