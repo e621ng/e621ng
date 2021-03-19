@@ -138,7 +138,7 @@ class StorageManager
     file = "#{replacement.storage_id}#{'_thumb' if image_size == :preview}.#{replacement.file_ext}"
     base = "#{base_path}/#{replacement_prefix}"
     path = "#{base}/#{subdir}#{file}"
-    "#{path}#{protected_params(path, nil, secret: Danbooru.config.replacement_file_secret)}"
+    "#{base_url}#{path}#{protected_params(path, nil, secret: Danbooru.config.replacement_file_secret)}"
   end
 
   def root_url
