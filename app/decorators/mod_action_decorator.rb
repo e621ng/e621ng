@@ -64,7 +64,7 @@ class ModActionDecorator < ApplicationDecorator
     when "user_level_change"
       "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
     when "user_flags_change"
-      "Changed #{user} flags. Added: #{vals['added'].join(', ')}. Removed: #{vals['removed'].join(', ')}"
+      "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
     when "edited_user"
       "Edited #{user}"
     when "user_blacklist_changed"
