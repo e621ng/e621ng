@@ -45,6 +45,16 @@ class ModActionDecorator < ApplicationDecorator
       "Marked artist ##{vals['artist_id']} as DNP"
     when "artist_unban"
       "Marked artist ##{vals['artist_id']} as no longer DNP"
+    when "artist_page_rename"
+      if vals['old_name'].nil?
+        "Created artist page \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']}"
+      else
+        "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+      end
+    when "artist_page_lock"
+      "Locked artist page artist ##{vals['artist_page']}"
+    when "artist_page_unlock"
+      "Unlocked artist page artist ##{vals['artist_page']}"
 
       ### User ###
 
@@ -102,6 +112,8 @@ class ModActionDecorator < ApplicationDecorator
       "Destroyed post ##{vals['post_id']}"
     when "post_rating_lock"
       "Post rating was #{vals['locked'] ? 'locked' : 'unlocked'} on post ##{vals['post_id']}"
+    when "post_unapprove"
+      "Unapproved post ##{vals['post_id']}"
 
       ### Set ###
 
