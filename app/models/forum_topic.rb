@@ -27,6 +27,12 @@ class ForumTopic < ApplicationRecord
   after_save(:if => ->(rec) {!rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(:forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
+  after_save(:if => ->(rec) {rec.is_sticky? && rec.saved_change_to_is_sticky?}) do |rec|
+    ModAction.log(:forum_topic_stick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  end
+  after_save(:if => ->(rec) {!rec.is_sticky? && rec.saved_change_to_is_sticky?}) do |rec|
+    ModAction.log(:forum_topic_unstick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  end
 
   module CategoryMethods
     extend ActiveSupport::Concern
