@@ -51,8 +51,8 @@ class ModActionDecorator < ApplicationDecorator
     when "user_delete"
       "Deleted user #{user}"
     when "user_ban"
-      if vals['duration'] == "permanent"
-        "Permanently banned #{user}"
+      if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
+        "Banned #{user} permanently"
       elsif vals['duration']
         "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
       else
