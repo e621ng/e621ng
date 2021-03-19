@@ -295,7 +295,11 @@ class ModActionDecorator < ApplicationDecorator
     when "wiki_page_unlock"
       "Unlocked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_rename"
-      "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
+      if vals['old_title'].nil?
+        "Created wiki page [[#{vals['new_title']}]]"
+      else
+        "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
+      end
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
