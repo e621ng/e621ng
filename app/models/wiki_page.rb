@@ -29,7 +29,7 @@ class WikiPage < ApplicationRecord
   end
 
   def log_changes
-    if title_changed?
+    if title_changed? && !new_record?
       ModAction.log(:wiki_page_rename, {new_title: title, old_title: title_was})
     end
     if is_deleted_changed?

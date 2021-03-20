@@ -35,7 +35,7 @@ class Artist < ApplicationRecord
   scope :unbanned, -> { where(is_banned: false) }
 
   def log_changes
-    if name_changed?
+    if name_changed? && !new_record?
       ModAction.log(:artist_page_rename, {new_name: name, old_name: name_was})
     end
     if is_locked_changed?

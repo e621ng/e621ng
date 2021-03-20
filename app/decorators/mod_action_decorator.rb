@@ -46,11 +46,7 @@ class ModActionDecorator < ApplicationDecorator
     when "artist_unban"
       "Marked artist ##{vals['artist_id']} as no longer DNP"
     when "artist_page_rename"
-      if vals['old_name'].nil?
-        "Created artist page \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']}"
-      else
-        "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
-      end
+      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"
       "Locked artist page artist ##{vals['artist_page']}"
     when "artist_page_unlock"
@@ -307,11 +303,7 @@ class ModActionDecorator < ApplicationDecorator
     when "wiki_page_unlock"
       "Unlocked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_rename"
-      if vals['old_title'].nil?
-        "Created wiki page [[#{vals['new_title']}]]"
-      else
-        "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
-      end
+      "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
