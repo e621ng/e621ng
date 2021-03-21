@@ -4,7 +4,6 @@ class ApplicationController < ActionController::Base
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
   before_action :reset_current_user
   before_action :set_current_user
-  before_action :set_title
   before_action :normalize_search
   before_action :api_check
   before_action :set_variant
@@ -12,6 +11,7 @@ class ApplicationController < ActionController::Base
   after_action :reset_current_user
   layout "default"
 
+  include TitleHelper
   include DeferredPosts
   helper_method :deferred_post_ids, :deferred_posts
 
@@ -189,10 +189,6 @@ class ApplicationController < ActionController::Base
     if CurrentUser.is_anonymous?
       access_denied("Must be logged in")
     end
-  end
-
-  def set_title
-    @page_title = Danbooru.config.app_name + "/#{params[:controller]}"
   end
 
   # Remove blank `search` params from the url.
