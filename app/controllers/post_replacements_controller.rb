@@ -1,7 +1,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html
-  before_action :moderator_only, except: [:index, :create, :new]
-  before_action :janitor_only, only: [:create, :new]
+  before_action :moderator_only, only: [:destroy]
+  before_action :janitor_only, only: [:create, :new, :approve, :reject, :promote]
 
   def new
     @post_replacement = Post.find(params[:post_id]).replacements.new
