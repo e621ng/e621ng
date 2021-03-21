@@ -88,6 +88,10 @@ class PostReplacement < ApplicationRecord
     true
   end
 
+  def source_list
+    source.split("\n").uniq.reject(&:blank?)
+  end
+
   module StorageMethods
     def remove_files
       ModAction.log(:post_replacement_delete, {id: id, post_id: post_id, md5: md5, storage_id: storage_id})
@@ -101,6 +105,10 @@ class PostReplacement < ApplicationRecord
       file, strategy = download.download!
 
       self.replacement_file = file
+      self.source = replacement_url + "\n#{self.source}"
+    rescue Downloads::File::Error
+      self.errors.add(:replacement_url, "failed to fetch file")
+      throw :abort
     end
 
     def update_file_attributes
@@ -194,7 +202,7 @@ class PostReplacement < ApplicationRecord
           file: Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(self, file_ext, :original)),
           tag_string: post.tag_string,
           rating: post.rating,
-          source: post.source,
+          source: "#{self.source}\n" + post.source,
           parent_id: post.id,
           description: post.description,
           locked_tags: post.locked_tags,

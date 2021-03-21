@@ -28,7 +28,11 @@
                 <dt>Replacement Source</dt>
                 <dd>
                   <% if post_replacement.source.present? %>
-                    <%= external_link_to post_replacement.source, truncate: 64 %>
+                    <ul>
+                      <% post_replacement.source_list.each do |source| %>
+                        <li><%= external_link_to source, truncate: 64 %></li>
+                      <% end %>
+                    </ul>
                   <% else %>
                     <em>file</em>
                   <% end %>

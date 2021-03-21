@@ -14,7 +14,7 @@ class UploadService
     end
 
     def replacement_message(post, replacement)
-      linked_source = replacement.replacement_url
+      linked_source = replacement.source
       linked_source_was = post.source_was
 
       <<-EOS.strip_heredoc
