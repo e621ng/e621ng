@@ -141,3 +141,7 @@
 <% end %>
 
 <% render partial: 'secondary_links' %>
+
+<% content_for(:page_title) do %>
+  <%= @ticket.type_title %> Ticket
+<% end %>
