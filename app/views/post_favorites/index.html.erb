@@ -1,0 +1,28 @@
+<div id="c-users">
+  <div id="a-index">
+    <h1>Post Favorites</h1>
+
+    <table width="100%" class="striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td>
+              <%= link_to_user user %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%= render "posts/partials/common/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Post Favorites - #<%= params[:post_id] %>
+<% end %>
