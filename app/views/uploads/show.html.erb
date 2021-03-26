@@ -46,7 +46,7 @@
 <%= render "uploads/secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Upload - <%= Danbooru.config.app_name %>
+  Upload
 <% end %>
 
 <% if @upload.is_pending? || @upload.is_processing? || @upload.is_preprocessing? || @upload.is_preprocessed? %>

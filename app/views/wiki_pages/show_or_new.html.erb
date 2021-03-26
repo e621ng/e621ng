@@ -24,5 +24,5 @@
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Wiki - <%= params[:title] %> - <%= Danbooru.config.app_name %>
+  Wiki - <%= @wiki_page.title %>
 <% end %>

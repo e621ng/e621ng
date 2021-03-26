@@ -77,3 +77,7 @@
 <% end %>
 
 <%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Set - <%= @post_set.name %>
+<% end %>

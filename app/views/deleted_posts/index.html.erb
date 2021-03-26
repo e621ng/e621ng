@@ -25,3 +25,7 @@
 <div id="paginator">
   <%= numbered_paginator(@posts) %>
 </div>
+
+<% content_for(:page_title) do %>
+  Deleted Posts
+<% end %>

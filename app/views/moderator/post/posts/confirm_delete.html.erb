@@ -31,3 +31,7 @@
   <%= submit_tag "Delete" %>
   <%= submit_tag "Cancel" %>
 <% end %>
+
+<% content_for(:page_title) do %>
+  Delete Post - #<%= @post.id %>
+<% end %>

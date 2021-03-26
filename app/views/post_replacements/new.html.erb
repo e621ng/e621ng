@@ -3,3 +3,7 @@
     <%= render "new", post_replacement: @post_replacement %>
   </div>
 </div>
+
+<% content_for(:page_title) do %>
+  New Post Replacement - #<%= @post_replacement.post_id %>
+<% end %>

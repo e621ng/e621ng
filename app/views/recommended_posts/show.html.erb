@@ -5,12 +5,12 @@
     <p>Based on your favorites, you may enjoy these posts. Favorite more to get more accurate results. These recommendations update every hour.</p>
 
     <%= render "posts/partials/common/inline_blacklist" %>
-    <%= render partial: "show" %> 
+    <%= render partial: "show" %>
   </div>
 </div>
 
 <%= render "posts/partials/common/secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Recommended Posts - <%= Danbooru.config.app_name %>
+  Recommended Posts
 <% end %>

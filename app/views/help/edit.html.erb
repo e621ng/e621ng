@@ -9,3 +9,7 @@
 
 
 <%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Edit Help Entry - <%= @help.title %>
+<% end %>
