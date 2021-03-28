@@ -2,6 +2,9 @@ class PostReplacementsController < ApplicationController
   respond_to :html
   before_action :moderator_only, only: [:destroy]
   before_action :janitor_only, only: [:create, :new, :approve, :reject, :promote]
+  content_security_policy only: [:new] do |p|
+    p.img_src :self, :data, "*"
+  end
 
   def new
     @post_replacement = Post.find(params[:post_id]).replacements.new
