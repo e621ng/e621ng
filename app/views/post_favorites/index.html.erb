@@ -1,11 +1,12 @@
-<div id="c-users">
+<div id="c-post-favorites">
   <div id="a-index">
     <h1>Post Favorites</h1>
-
+    <%= PostPresenter.preview(@post) %>
     <table width="100%" class="striped">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Favorited by</th>
+          <th>Other Favorites</th>
         </tr>
       </thead>
       <tbody>
@@ -14,10 +15,14 @@
             <td>
               <%= link_to_user user %>
             </td>
+            <td>
+              <%= link_to(user.favorite_count, favorites_path(:user_id => user.id)) %>
+            </td>
           </tr>
         <% end %>
       </tbody>
     </table>
+    <%= numbered_paginator(@users) %>
   </div>
 </div>
 
