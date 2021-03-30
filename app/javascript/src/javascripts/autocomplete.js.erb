@@ -138,27 +138,7 @@ Autocomplete.initialize_artist_autocomplete = function($fields) {
       $(this).data("ui-autocomplete").menu.bindings = $();
     },
     source: function(req, resp) {
-      $.ajax({
-        url: "/artists.json",
-        data: {
-          "search[name_like]": req.term.trim().replace(/\s+/g, "_") + "*",
-          "search[is_active]": true,
-          "search[order]": "post_count",
-          "limit": 10,
-          "expiry": 7
-        },
-        method: "get",
-        success: function(data) {
-          resp($.map(data, function(artist) {
-            return {
-              type: "tag",
-              label: artist.name.replace(/_/g, " "),
-              value: artist.name,
-              category: Autocomplete.TAG_CATEGORIES.artist,
-            };
-          }));
-        }
-      });
+      Autocomplete.artist_source(req.term, resp);
     }
   });
 };
@@ -191,60 +171,10 @@ Autocomplete.initialize_wiki_autocomplete = function($fields) {
       $(this).data("ui-autocomplete").menu.bindings = $();
     },
     source: function(req, resp) {
-      $.ajax({
-        url: "/wiki_pages.json",
-        data: {
-          "search[title]": req.term + "*",
-          "search[hide_deleted]": "Yes",
-          "search[order]": "post_count",
-          "limit": 10,
-          "expiry": 7
-        },
-        method: "get",
-        success: function(data) {
-          resp($.map(data, function(wiki_page) {
-            return {
-              type: "tag",
-              label: wiki_page.title.replace(/_/g, " "),
-              value: wiki_page.title,
-              category: wiki_page.category_name
-            };
-          }));
-        }
-      });
+      Autocomplete.wiki_source(req.term, resp);
     }
   });
 };
-
-Autocomplete.normal_source = function(term, resp) {
-  if (term.length < 3) {
-    return;
-  }
-  return $.ajax({
-    url: "/tags/autocomplete.json",
-    data: {
-      "search[name_matches]": term,
-      "expiry": 7
-    },
-    method: "get",
-    success: function(data) {
-      var d = $.map(data, function(tag) {
-        return {
-          type: "tag",
-          label: tag.name.replace(/_/g, " "),
-          antecedent: tag.antecedent_name,
-          value: tag.name,
-          category: tag.category,
-          source: tag.source,
-          weight: tag.weight,
-          post_count: tag.post_count
-        };
-      });
-
-      resp(d);
-    }
-  });
-}
 
 Autocomplete.parse_query = function(text, caret) {
   var metatag = "";
@@ -365,6 +295,36 @@ Autocomplete.render_item = function(list, item) {
   return $list_item.appendTo(list);
 };
 
+Autocomplete.normal_source = function(term, resp) {
+  if (term.length < 3) {
+    return;
+  }
+  return $.ajax({
+    url: "/tags/autocomplete.json",
+    data: {
+      "search[name_matches]": term,
+      "expiry": 7
+    },
+    method: "get",
+    success: function(data) {
+      var d = $.map(data, function(tag) {
+        return {
+          type: "tag",
+          label: tag.name.replace(/_/g, " "),
+          antecedent: tag.antecedent_name,
+          value: tag.name,
+          category: tag.category,
+          source: tag.source,
+          weight: tag.weight,
+          post_count: tag.post_count
+        };
+      });
+
+      resp(d);
+    }
+  });
+}
+
 Autocomplete.static_metatags = {
   order: Autocomplete.ORDER_METATAGS,
   status: [
@@ -447,9 +407,56 @@ Autocomplete.pool_source = function(term, resp, metatag) {
   });
 }
 
+Autocomplete.artist_source = function(term, resp) {
+  return $.ajax({
+    url: "/artists.json",
+    data: {
+      "search[name_like]": term.trim().replace(/\s+/g, "_") + "*",
+      "search[is_active]": true,
+      "search[order]": "post_count",
+      "limit": 10,
+      "expiry": 7
+    },
+    method: "get",
+    success: function(data) {
+      resp($.map(data, function(artist) {
+        return {
+          type: "tag",
+          label: artist.name.replace(/_/g, " "),
+          value: artist.name,
+          category: Autocomplete.TAG_CATEGORIES.artist,
+        };
+      }));
+    }
+  });
+}
+
+Autocomplete.wiki_source = function(term, resp) {
+  return $.ajax({
+    url: "/wiki_pages.json",
+    data: {
+      "search[title]": term + "*",
+      "search[hide_deleted]": "Yes",
+      "search[order]": "post_count",
+      "limit": 10,
+      "expiry": 7
+    },
+    method: "get",
+    success: function(data) {
+      resp($.map(data, function(wiki_page) {
+        return {
+          type: "tag",
+          label: wiki_page.title.replace(/_/g, " "),
+          value: wiki_page.title,
+          category: wiki_page.category_name
+        };
+      }));
+    }
+  });
+}
+
 $(document).ready(function() {
   Autocomplete.initialize_all();
 });
 
 export default Autocomplete;
-
