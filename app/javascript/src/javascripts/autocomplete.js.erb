@@ -246,7 +246,7 @@ Autocomplete.on_tab = function(event) {
 Autocomplete.render_item = function(list, item) {
   var $link = $("<a/>");
   $link.text(item.label);
-  $link.attr("href", "/posts?tags=" + encodeURIComponent(item.value));
+  $link.attr("href", Autocomplete.get_href(item));
   $link.on("click.danbooru", function(e) {
     e.preventDefault();
   });
@@ -294,6 +294,22 @@ Autocomplete.render_item = function(list, item) {
 
   return $list_item.appendTo(list);
 };
+
+Autocomplete.get_href = function(item) {
+  switch(item.type) {
+  case "user":
+    return "/users/" + item.id;
+  case "pool":
+    return "/pools/" + item.id;
+  case "artist":
+    return "/artists/" + item.id;
+  case "wiki_page":
+    return "/wiki_pages/" + item.id;
+  case "tag":
+  default:
+    return "/posts?tags=" + encodeURIComponent(item.value);
+  }
+}
 
 Autocomplete.normal_source = function(term, resp) {
   if (term.length < 3) {
@@ -425,7 +441,7 @@ Autocomplete.artist_source = function(term, resp) {
       resp($.map(data, function(artist) {
         return {
           id: artist.id,
-          type: "tag",
+          type: "artist",
           label: artist.name.replace(/_/g, " "),
           value: artist.name,
           category: Autocomplete.TAG_CATEGORIES.artist,
@@ -450,7 +466,7 @@ Autocomplete.wiki_source = function(term, resp) {
       resp($.map(data, function(wiki_page) {
         return {
           id: wiki_page.id,
-          type: "tag",
+          type: "wiki_page",
           label: wiki_page.title.replace(/_/g, " "),
           value: wiki_page.title,
           category: wiki_page.category_name
