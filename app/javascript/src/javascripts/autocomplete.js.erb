@@ -287,7 +287,7 @@ Autocomplete.render_item = function(list, item) {
   var $menu_item = $("<div/>").append($link);
   var $list_item = $("<li/>").data("item.autocomplete", item).append($menu_item);
 
-  var data_attributes = ["type", "source", "antecedent", "value", "category", "post_count", "weight"];
+  var data_attributes = ["id", "type", "source", "antecedent", "value", "category", "post_count", "weight"];
   data_attributes.forEach(attr => {
     $list_item.attr(`data-autocomplete-${attr.replace(/_/g, "-")}`, item[attr]);
   });
@@ -309,6 +309,7 @@ Autocomplete.normal_source = function(term, resp) {
     success: function(data) {
       var d = $.map(data, function(tag) {
         return {
+          id: tag.id,
           type: "tag",
           label: tag.name.replace(/_/g, " "),
           antecedent: tag.antecedent_name,
@@ -374,6 +375,7 @@ Autocomplete.user_source = function(term, resp, prefix) {
     success: function(data) {
       resp($.map(data, function(user) {
         return {
+          id: user.id,
           type: "user",
           label: user.name.replace(/_/, " "),
           value: prefix + user.name,
@@ -396,6 +398,7 @@ Autocomplete.pool_source = function(term, resp, metatag) {
     success: function(data) {
       resp($.map(data, function(pool) {
         return {
+          id: pool.id,
           type: "pool",
           label: pool.name.replace(/_/g, " "),
           value: (metatag ? (metatag + ":" + pool.name) : pool.name),
@@ -421,6 +424,7 @@ Autocomplete.artist_source = function(term, resp) {
     success: function(data) {
       resp($.map(data, function(artist) {
         return {
+          id: artist.id,
           type: "tag",
           label: artist.name.replace(/_/g, " "),
           value: artist.name,
@@ -445,6 +449,7 @@ Autocomplete.wiki_source = function(term, resp) {
     success: function(data) {
       resp($.map(data, function(wiki_page) {
         return {
+          id: wiki_page.id,
           type: "tag",
           label: wiki_page.title.replace(/_/g, " "),
           value: wiki_page.title,
