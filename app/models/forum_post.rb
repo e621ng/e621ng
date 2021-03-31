@@ -153,7 +153,7 @@ class ForumPost < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
-    allowed = creator.can_comment_with_reason
+    allowed = creator.can_forum_post_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
       return false
