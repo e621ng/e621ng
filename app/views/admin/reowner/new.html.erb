@@ -1,0 +1,21 @@
+<div>
+  <h4>Change post ownership</h4>
+  <%= form_tag(admin_reowner_path, :method => :post, :class => "simple_form") do %>
+    <div class="input">
+      <label>Old Owner</label>
+      <%= text_field :reowner, :old_owner, placeholder: 'Use ! in front of an id for an id.', size: 40 %>
+    </div>
+    <div class="input">
+      <label>New Owner</label>
+      <%= text_field :reowner, :new_owner, placeholder: 'Use ! in front of an id for an id.', size: 40 %>
+    </div>
+    <div class="input">
+      <label>Search Query</label>
+      <%= text_field :reowner, :search, size: 40 %>
+    </div>
+
+    <div class="input">
+      <%= submit_tag "Submit" %>
+    </div>
+  <% end %>
+</div>

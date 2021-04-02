@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
+    resource :reowner, controller: 'reowner', only: [:new, :create]
   end
   resources :edit_histories
   namespace :moderator do
