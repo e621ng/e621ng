@@ -4,10 +4,10 @@
       <%= f.simple_fields_for :artist do |fa| %>
         <%= fa.input :name, label: "Artist Name", input_html: { value: params.dig(:search, :artist, :name), "data-autocomplete": "artist" } %>
       <% end %>
-      <%= f.input :url_matches, label: "URL", input_html: { value: params[:search][:url_matches] } %>
-      <%= f.input :normalized_url_matches, label: "Normalized URL", input_html: { value: params[:search][:normalized_url_matches] } %>
-      <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params[:search][:is_active] %>
-      <%= f.input :order, collection: [["ID", "id"], ["Created", "created_at"], ["Updated", "updated_at"]], selected: params[:search][:order] %>
+      <%= f.input :url_matches, label: "URL", input_html: { value: params.dig(:search, :url_matches) } %>
+      <%= f.input :normalized_url_matches, label: "Normalized URL", input_html: { value: params.dig(:search, :normalized_url_matches) } %>
+      <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params.dig(:search, :is_active) %>
+      <%= f.input :order, collection: [["ID", "id"], ["Created", "created_at"], ["Updated", "updated_at"]], selected: params.dig(:search, :order) %>
       <%= f.submit "Search" %>
     <% end %>
 
