@@ -65,10 +65,6 @@ module Danbooru
       ForumTopic.where(title: "Upload Feedback Thread").first
     end
 
-    def upgrade_account_email
-      contact_email
-    end
-
     def source_code_url
       "https://github.com/zwagoth/e621ng"
     end
@@ -93,11 +89,6 @@ module Danbooru
     # The default name to use for anyone who isn't logged in.
     def default_guest_name
       "Anonymous"
-    end
-
-    # This is a salt used to make dictionary attacks on account passwords harder.
-    def password_salt
-      "choujin-steiner"
     end
 
     def levels
@@ -371,10 +362,6 @@ fart'
 
     def max_tags_per_post
       2000
-    end
-
-    def member_comment_time_threshold
-      1.week.ago
     end
 
     # Permanently redirect all HTTP requests to HTTPS.
@@ -719,27 +706,11 @@ fart'
       nil
     end
 
-    def tinami_login
-      nil
-    end
-
-    def tinami_password
-      nil
-    end
-
     def nico_seiga_login
       nil
     end
 
     def nico_seiga_password
-      nil
-    end
-
-    def pixa_login
-      nil
-    end
-
-    def pixa_password
       nil
     end
 
@@ -798,12 +769,6 @@ fart'
       "/var/www/danbooru2/shared"
     end
 
-    def stripe_secret_key
-    end
-
-    def stripe_publishable_key
-    end
-
     def twitter_api_key
     end
 
@@ -845,11 +810,6 @@ fart'
       'noreply@localhost'
     end
 
-    # impose additional requirements to create tag aliases and implications
-    def strict_tag_requirements
-      true
-    end
-
     # For downloads, if the host matches any of these IPs, block it
     def banned_ip_for_download?(ip_addr)
       raise ArgumentError unless ip_addr.is_a?(IPAddr)
@@ -869,19 +829,6 @@ fart'
     def twitter_site
     end
 
-    def addthis_key
-    end
-
-    # enable s3-nginx proxy caching
-    def use_s3_proxy?(post)
-      false
-    end
-
-    # include essential tags in image urls (requires nginx/apache rewrites)
-    def enable_seo_post_urls
-      false
-    end
-
     # enable some (donmai-specific) optimizations for post counts
     def estimate_post_counts
       false
@@ -892,17 +839,8 @@ fart'
       true
     end
 
-    # Enables recording of popular searches, missed searches, and post view
-    # counts. Requires Reportbooru to be configured and running - see below.
-    def enable_post_search_counts
-      false
-    end
-
     # reportbooru options - see https://github.com/r888888888/reportbooru
     def reportbooru_server
-    end
-
-    def reportbooru_key
     end
 
     def iqdb_enabled?
