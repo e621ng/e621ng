@@ -41,7 +41,7 @@ class UserFeedbacksController < ApplicationController
     @user_feedback = UserFeedback.visible.find(params[:id])
     check_privilege(@user_feedback)
     @user_feedback.destroy
-    respond_with(@user_feedback)
+    redirect_back fallback_location: user_feedbacks_path
   end
 
   private
