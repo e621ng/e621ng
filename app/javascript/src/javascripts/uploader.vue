@@ -21,7 +21,7 @@
                     <div v-if="!disableURLUpload">
                         <div class="box-section sect_red" v-if="badDirectURL">
                             The direct URL entered has the following problem: {{ directURLProblem }}<br>
-                            You should review <a href="/wiki/show/howto:sites_and_sources">the sourcing guide</a>.
+                            You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
                         </div>
                         <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
                             <input type="text" size="50" v-model="uploadURL" @keyup="updatePreview" @paste="updatePreviewOnPaste($event)"
