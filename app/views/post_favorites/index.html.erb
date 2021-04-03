@@ -1,0 +1,33 @@
+<div id="c-post-favorites">
+  <div id="a-index">
+    <h1>Post Favorites</h1>
+    <%= PostPresenter.preview(@post) %>
+    <table width="100%" class="striped">
+      <thead>
+        <tr>
+          <th>Favorited by</th>
+          <th>Other Favorites</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td>
+              <%= link_to_user user %>
+            </td>
+            <td>
+              <%= link_to(user.favorite_count, favorites_path(:user_id => user.id)) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= numbered_paginator(@users) %>
+  </div>
+</div>
+
+<%= render "posts/partials/common/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Post Favorites - #<%= params[:post_id] %>
+<% end %>

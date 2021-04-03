@@ -122,7 +122,7 @@ class User < ApplicationRecord
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
   has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.id desc")}
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
-  has_many :favorites, ->(rec) {where("user_id = ?", rec.id).order("id desc")}
+  has_many :favorites, -> {order(id: :desc)}
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
 
