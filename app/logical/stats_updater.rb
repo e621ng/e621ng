@@ -1,8 +1,5 @@
-class StatsUpdateJob
-  include Sidekiq::Worker
-  sidekiq_options queue: 'low_prio', lock: :until_executed
-
-  def perform()
+class StatsUpdater
+  def self.run!
     stats = Hash.new
     stats[:started] = Post.find(Post.minimum("id")).created_at
 

@@ -14,7 +14,7 @@ module Maintenance
     #ignoring_exceptions { TagChangeRequestPruner.reject_all }
     ignoring_exceptions { Ban.prune! }
     ignoring_exceptions { UserPasswordResetNonce.prune! }
-    ignoring_exceptions { StatsUpdateJob.perform_async }
+    ignoring_exceptions { StatsUpdater.run! }
   end
 
   def weekly
