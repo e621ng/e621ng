@@ -458,6 +458,15 @@
     return a[0] > b[0] ? 1 : -1;
   }
 
+  function unloadWarning() {
+    if (this.allowNavigate)
+      return;
+    const post_file = this.$refs['post_file'];
+    if ((post_file && post_file.files && post_file.files.length) || this.uploadURL) {
+      return true;
+    }
+  }
+
   export default {
     components: {
       'image-source': source,
@@ -489,6 +498,7 @@
           allowed: false,
           domain: ''
         },
+        allowNavigate: false,
         submitting: false,
         disableFileUpload: false,
         disableURLUpload: false,
@@ -545,6 +555,7 @@
     },
     mounted() {
       const self = this;
+      window.onbeforeunload = unloadWarning.bind(self);
       const params = new URLSearchParams(window.location.search);
       const fillField = function(field, key) {
         if(params.has(key)) {
@@ -671,6 +682,7 @@
           data: data,
           success(data) {
             self.submitting = false;
+            self.allowNavigate = true;
             Danbooru.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
