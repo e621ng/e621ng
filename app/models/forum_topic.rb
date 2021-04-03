@@ -21,11 +21,11 @@ class ForumTopic < ApplicationRecord
   accepts_nested_attributes_for :original_post
   before_destroy :create_mod_action_for_delete
   after_update :update_original_post
-  after_save(:if => ->(rec) {rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
-    ModAction.log(:forum_topic_lock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
+    ModAction.log(rec.is_locked ? :forum_topic_lock : :forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
-  after_save(:if => ->(rec) {!rec.is_locked? && rec.saved_change_to_is_locked?}) do |rec|
-    ModAction.log(:forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  after_save(:if => ->(rec) {rec.saved_change_to_is_sticky?}) do |rec|
+    ModAction.log(rec.is_sticky ? :forum_topic_stick : :forum_topic_unstick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
 
   module CategoryMethods

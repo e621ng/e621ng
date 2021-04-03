@@ -18,9 +18,9 @@ class ModActionDecorator < ApplicationDecorator
     case object.action
       ### Pools ###
     when "pool_delete"
-      "Deleted pool ##{vals['pool_id']}(named #{vals['pool_name']}) by #{user}"
+      "Deleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
     when "pool_undelete"
-      "Undeleted pool ##{vals['pool_id']}(named #{vals['pool_name']}) by #{user}"
+      "Undeleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
 
       ### Takedowns ###
     when "takedown_process"
@@ -29,7 +29,7 @@ class ModActionDecorator < ApplicationDecorator
       ### IP Ban ###
     when "ip_ban_create"
       "Created ip ban"
-    when "ip_ban_deleted"
+    when "ip_ban_delete"
       "Removed ip ban"
 
       ### Ticket ###
@@ -45,14 +45,20 @@ class ModActionDecorator < ApplicationDecorator
       "Marked artist ##{vals['artist_id']} as DNP"
     when "artist_unban"
       "Marked artist ##{vals['artist_id']} as no longer DNP"
+    when "artist_page_rename"
+      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+    when "artist_page_lock"
+      "Locked artist page artist ##{vals['artist_page']}"
+    when "artist_page_unlock"
+      "Unlocked artist page artist ##{vals['artist_page']}"
 
       ### User ###
 
     when "user_delete"
       "Deleted user #{user}"
     when "user_ban"
-      if vals['duration'] == "permanent"
-        "Permanently banned #{user}"
+      if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
+        "Banned #{user} permanently"
       elsif vals['duration']
         "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
       else
@@ -64,15 +70,15 @@ class ModActionDecorator < ApplicationDecorator
     when "user_level_change"
       "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
     when "user_flags_change"
-      "Changed #{user} flags. Added: #{vals['added'].join(', ')}. Removed: #{vals['removed'].join(', ')}"
+      "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
     when "edited_user"
       "Edited #{user}"
-    when "changed_user_blacklist"
+    when "user_blacklist_changed"
       "Edited blacklist of #{user}"
     when "changed_user_text"
       "Changed profile text of #{user}"
     when "user_name_change"
-      "Changed named of #{user} from #{vals['old_name']} to #{vals['new_naame']}"
+      "Changed name of #{user} from #{vals['old_name']} to #{vals['new_name']}"
 
       ### User Record ###
 
@@ -102,6 +108,8 @@ class ModActionDecorator < ApplicationDecorator
       "Destroyed post ##{vals['post_id']}"
     when "post_rating_lock"
       "Post rating was #{vals['locked'] ? 'locked' : 'unlocked'} on post ##{vals['post_id']}"
+    when "post_unapprove"
+      "Unapproved post ##{vals['post_id']}"
 
       ### Set ###
 
@@ -155,11 +163,11 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Forum Category ###
 
-    when "created_forum_category"
+    when "forum_category_create"
       "Created forum category ##{vals['forum_category_id']}"
-    when "edited_forum_category"
+    when "forum_category_update"
       "Edited forum category ##{vals['forum_category_id']}"
-    when "deleted_forum_category"
+    when "forum_category_delete"
       "Deleted forum category ##{vals['forum_category_id']}"
 
       ### Blip ###

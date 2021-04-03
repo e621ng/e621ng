@@ -266,6 +266,9 @@ module ApplicationHelper
 
 protected
   def nav_link_match(controller, url)
+    # Static routes must match completely
+    return url == request.path if controller == "static"
+
     url =~ case controller
     when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "admin/users", "dmails"
       /^\/(session|users)/
@@ -309,8 +312,9 @@ protected
     when "help"
       /^\/help/
 
+    # If there is no match activate the site map only
     else
-      /^\/static/
+      /^#{site_map_path}/
     end
   end
 end

@@ -58,6 +58,9 @@ class ModAction < ApplicationRecord
   KnownActions = [
       :artist_ban,
       :artist_unban,
+      :artist_page_rename,
+      :artist_page_lock,
+      :artist_page_unlock,
       :blip_delete,
       :blip_hide,
       :blip_unhide,
@@ -90,6 +93,7 @@ class ModAction < ApplicationRecord
       :post_destroy,
       :post_delete,
       :post_undelete,
+      :post_unapprove,
       :post_rating_lock,
       :report_reason_create,
       :report_reason_delete,

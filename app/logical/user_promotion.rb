@@ -63,7 +63,7 @@ private
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "no_feedback", "feedback_ban")
 
-    if added || removed
+    unless added.empty? && removed.empty?
       ModAction.log(:user_flags_change, {user_id: user.id, added: added, removed: removed})
     end
 

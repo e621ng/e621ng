@@ -10,3 +10,7 @@
 </div>
 
 <%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Set Post List - <%= @post_set.name %>
+<% end %>

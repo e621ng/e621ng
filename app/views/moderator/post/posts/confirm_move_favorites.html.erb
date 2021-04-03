@@ -10,3 +10,7 @@
   <%= submit_tag "Submit" %>
   <%= submit_tag "Cancel" %>
 <% end %>
+
+<% content_for(:page_title) do %>
+  Move Favorites - #<%= @post.id %>
+<% end %>
