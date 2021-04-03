@@ -2065,7 +2065,7 @@ class Post < ApplicationRecord
       return if !new_record?
 
       if tags.count {|t| t.category == Tag.categories.general} < 10
-        self.warnings.add(:base, "Uploads must have at least 10 general tags. Read [[howto:tag]] for guidelines on tagging your uploads")
+        self.warnings.add(:base, "Uploads must have at least 10 general tags. Read [[e621:tags]] for guidelines on tagging your uploads")
       end
     end
   end
