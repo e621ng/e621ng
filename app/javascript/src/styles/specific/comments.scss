@@ -9,6 +9,10 @@ div.comments-for-post {
       word-wrap: break-word;
       margin-bottom: $padding-050;
 
+      &:target {
+        background-color: $comment-highlight-background;
+      }
+
       &[data-is-sticky="true"] {
         background: $comment-sticky-background;
       }

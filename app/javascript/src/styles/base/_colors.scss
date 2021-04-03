@@ -179,6 +179,7 @@ $comment-list-background: none;
 $comment-background: $lighten-background-5;
 $comment-author-background: $lighten-background-5;
 $comment-sticky-background: saturate($section-background, 10%);
+$comment-highlight-background: rgba(255,255,255,0.25);
 $comment-hidden-background: $section-red-background;
 $comment-vote-background: rgba(255, 255, 255, 0.2);
 $comment-post-background: $section-background;
