@@ -1139,10 +1139,10 @@ class Tag < ApplicationRecord
       name = normalize_name(name)
       wildcard_name = name + '*'
 
-      query1 = Tag.select("tags.name, tags.post_count, tags.category, null AS antecedent_name")
+      query1 = Tag.select("tags.id, tags.name, tags.post_count, tags.category, null AS antecedent_name")
                    .search(:name_matches => wildcard_name, :order => "count").limit(10)
 
-      query2 = TagAlias.select("tags.name, tags.post_count, tags.category, tag_aliases.antecedent_name")
+      query2 = TagAlias.select("tags.id, tags.name, tags.post_count, tags.category, tag_aliases.antecedent_name")
                    .joins("INNER JOIN tags ON tags.name = tag_aliases.consequent_name")
                    .where("tag_aliases.antecedent_name LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
                    .active
@@ -1155,7 +1155,7 @@ class Tag < ApplicationRecord
       tags = Tag.select("DISTINCT ON (name, post_count) *").from(sql_query).order("post_count desc").limit(10).to_a
 
       if tags.size == 0
-        tags = Tag.select("tags.name, tags.post_count, tags.category, null AS antecedent_name").fuzzy_name_matches(name).order_similarity(name).nonempty.limit(10)
+        tags = Tag.select("tags.id, tags.name, tags.post_count, tags.category, null AS antecedent_name").fuzzy_name_matches(name).order_similarity(name).nonempty.limit(10)
       end
 
       tags
