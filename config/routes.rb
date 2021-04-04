@@ -253,6 +253,7 @@ Rails.application.routes.draw do
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
     resource :flag, controller: 'post_flags', only: [:destroy]
+    resources :favorites, :controller => "post_favorites", :only => [:index]
     collection do
       get :random
     end

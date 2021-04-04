@@ -56,6 +56,7 @@ Disallow: /posts*?*pool_id*
 Disallow: /posts*?*post_set_id*
 Disallow: /posts.json
 Disallow: /posts.xml
+Disallow: /posts/*/favorites
 Disallow: /reports
 Disallow: /session
 Disallow: /sources
