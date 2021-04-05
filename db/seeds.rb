@@ -52,10 +52,16 @@ unless Rails.env.test?
     file = Tempfile.new.binmode
     file.write data
 
+    post["tags"].each do |category, tags|
+      Tag.find_or_create_by_name_list(tags.map {|tag| category + ":" + tag})
+    end
+
     md5 = Digest::MD5.hexdigest(data)
     service = UploadService.new({
                                     file: file,
                                     tag_string: post["tags"].values.flatten.join(" "),
+                                    source: post["sources"].join("\n"),
+                                    description: post["description"],
                                     rating: post["rating"],
                                     md5: md5,
                                     md5_confirmation: md5
