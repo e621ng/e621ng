@@ -136,6 +136,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
   end
   resources :comment_votes, only: [:index, :delete, :lock] do
@@ -167,6 +168,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
     collection do
       get :search
@@ -365,6 +367,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
   end
   resources :post_report_reasons

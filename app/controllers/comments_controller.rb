@@ -1,7 +1,7 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :search, :show]
-  before_action :moderator_only, only: [:unhide, :destroy]
+  before_action :moderator_only, only: [:unhide, :destroy, :warning]
   skip_before_action :api_check
 
   def index
@@ -76,6 +76,16 @@ class CommentsController < ApplicationController
     @comment = Comment.find(params[:id])
     check_privilege(@comment)
     @comment.unhide!
+    respond_with(@comment)
+  end
+
+  def warning
+    @comment = Comment.find(params[:id])
+    if params[:record_type] == 'unmark'
+      @comment.remove_user_warning!
+    else
+      @comment.user_warned!(params[:record_type])
+    end
     respond_with(@comment)
   end
 

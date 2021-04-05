@@ -2,7 +2,7 @@ class BlipsController < ApplicationController
   class BlipTooOld < Exception ; end
   respond_to :html, :json
   before_action :member_only, only: [:create, :new, :update, :edit, :hide]
-  before_action :moderator_only, only: [:unhide, :destroy]
+  before_action :moderator_only, only: [:unhide, :destroy, :warning]
 
   rescue_from BlipTooOld, with: :blip_too_old
 
@@ -82,6 +82,16 @@ class BlipsController < ApplicationController
         redirect_back(fallback_location: blips_path)
       end
     end
+  end
+
+  def warning
+    @blip = Blip.find(params[:id])
+    if params[:record_type] == 'unmark'
+      @blip.remove_user_warning!
+    else
+      @blip.user_warned!(params[:record_type])
+    end
+    respond_with(@blip)
   end
 
   private

@@ -412,7 +412,9 @@ CREATE TABLE public.blips (
     is_hidden boolean DEFAULT false,
     body_index tsvector NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -527,7 +529,9 @@ CREATE TABLE public.comments (
     updater_ip_addr inet,
     do_not_bump_post boolean DEFAULT false NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    is_sticky boolean DEFAULT false NOT NULL
+    is_sticky boolean DEFAULT false NOT NULL,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -919,7 +923,9 @@ CREATE TABLE public.forum_posts (
     is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    creator_ip_addr inet
+    creator_ip_addr inet,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -5084,6 +5090,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201113073842'),
 ('20201220172926'),
 ('20201220190335'),
-('20210117173030');
+('20210117173030'),
+('20210405040522');
 
 
