@@ -5,7 +5,7 @@ class ForumCategoriesController < ApplicationController
   def index
     @forum_cats = ForumCategory.paginate(params[:page], limit: 50, order: "forum_categories.order ASC, forum_categories.id ASC")
     @new_cat = ForumCategory.new
-    @user_levels = [['Anyone', 0]] + User.level_hash.to_a
+    @user_levels = User.level_hash.to_a
   end
 
   def create
