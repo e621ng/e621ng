@@ -39,18 +39,24 @@ unless Rails.env.test?
   CurrentUser.ip_addr = "127.0.0.1"
 
   resources = YAML.load_file Rails.root.join("db", "seeds.yml")
-  resources["images"].each do |image|
-    puts image["url"]
+  url = "https://e621.net/posts.json?limit=100&tags=id:" + resources["post_ids"].join(",")
+  response = HTTParty.get(url, {
+    headers: {"User-Agent" => "e621ng/seeding"}
+  })
+  json = JSON.parse(response.body)
 
-    data = Net::HTTP.get(URI(image["url"]))
+  json["posts"].each do |post|
+    puts post["file"]["url"]
+
+    data = Net::HTTP.get(URI(post["file"]["url"]))
     file = Tempfile.new.binmode
     file.write data
 
     md5 = Digest::MD5.hexdigest(data)
     service = UploadService.new({
                                     file: file,
-                                    tag_string: image["tags"],
-                                    rating: "s",
+                                    tag_string: post["tags"].values.flatten.join(" "),
+                                    rating: post["rating"],
                                     md5: md5,
                                     md5_confirmation: md5
                                 })
