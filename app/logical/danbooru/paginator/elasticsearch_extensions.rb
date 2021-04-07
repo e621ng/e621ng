@@ -148,8 +148,8 @@ module Danbooru
         case key
         when :limit
           limit = @paginator_options.try(:[], :limit) || Danbooru.config.posts_per_page
-          if limit.to_i > 1_000
-            limit = 1_000
+          if limit.to_i > 320
+            limit = 320
           end
           limit
 

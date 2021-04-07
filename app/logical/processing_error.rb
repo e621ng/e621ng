@@ -1,0 +1,3 @@
+class ProcessingError < Exception
+
+end

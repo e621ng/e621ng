@@ -162,6 +162,14 @@ fart'
       "abc123"
     end
 
+    def replacement_path_prefix
+      "replacements"
+    end
+
+    def replacement_file_secret
+      "abc123"
+    end
+
     def deleted_preview_url
       "/images/deleted-preview.png"
     end
@@ -271,6 +279,10 @@ fart'
       30
     end
 
+    def replace_post_limit
+      10
+    end
+
     def ticket_limit
       30
     end
@@ -278,6 +290,14 @@ fart'
     # Members cannot change the category of pools with more than this many posts.
     def pool_category_change_limit
       30
+    end
+
+    def post_replacement_per_day_limit
+      2
+    end
+
+    def post_replacement_per_post_limit
+      5
     end
 
     def remember_key

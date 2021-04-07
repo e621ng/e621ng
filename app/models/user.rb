@@ -535,6 +535,8 @@ class User < ApplicationRecord
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
                          :is_janitor?, 3.days)
+    create_user_throttle(:replace_post, ->{ Danbooru.config.replace_post_limit - PostReplacement.for_user(id).where("created_at > ?", 1.hour.ago).count },
+                         :can_approve_posts?, 7.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)
@@ -590,10 +592,12 @@ class User < ApplicationRecord
 
     def upload_limit_pieces
       deleted_count = Post.deleted.for_user(id).count
+      rejected_replacement_count = PostReplacement.rejected.for_user(id).count
       unapproved_count = Post.pending_or_flagged.for_user(id).count
+      unapproved_replacements_count = PostReplacement.pending.for_user(id).count
       approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
 
-      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count}
+      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count + unapproved_replacements_count}
     end
     memoize :upload_limit_pieces
 

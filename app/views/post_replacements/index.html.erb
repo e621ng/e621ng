@@ -2,49 +2,49 @@
   <div id="a-index">
     <h1>Post Replacements</h1>
 
+    <%= render "search" %>
     <%= render "posts/partials/common/inline_blacklist" %>
-
-    <%= simple_form_for(:search, url: post_replacements_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-      <%= f.input :creator_name, label: "Replacer", input_html: { value: params.dig(:search, :creator_name), data: { autocomplete: "user" } } %>
-      <%= f.input :post_tags_match, label: "Tags", input_html: { value: params.dig(:search, :post_tags_match), data: { autocomplete: "tag-query" } } %>
-      <%= f.submit "Search" %>
-    <% end %>
 
     <table width="100%" class="striped autofit">
       <thead>
         <tr>
           <th width="1%">Post</th>
+          <th width="1%">Replacement</th>
           <th>Source</th>
           <th>MD5</th>
           <th>Size</th>
+          <th>Status</th>
           <th>Replacer</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <% @post_replacements.each do |post_replacement| %>
-          <tr>
+          <tr class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
             <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
+            <td><%= replacement_thumbnail(post_replacement) %></td>
             <td>
               <dl>
-                <dt>Original Source</dt>
-                <dd><%= external_link_to post_replacement.original_url, truncate: 64 %></dd>
                 <dt>Replacement Source</dt>
                 <dd>
-                  <% if post_replacement.replacement_url.present? %>
-                    <%= external_link_to post_replacement.replacement_url, truncate: 64 %>
+                  <% if post_replacement.source.present? %>
+                    <ul>
+                      <% post_replacement.source_list.each do |source| %>
+                        <li><%= external_link_to source, truncate: 64 %></li>
+                      <% end %>
+                    </ul>
                   <% else %>
                     <em>file</em>
                   <% end %>
                 </dd>
+                <dt>Filename</dt>
+                <dd><%= post_replacement.file_name %></dd>
               </dl>
             </td>
 
             <td>
-              <% if post_replacement.old_md5.present? && post_replacement.md5.present? %>
+              <% if post_replacement.md5.present? %>
                 <dl>
-                  <dt>Original MD5</dt>
-                  <dd><%= post_replacement.old_md5 %></dd>
-
                   <dt>Replacement MD5</dt>
                   <dd><%= post_replacement.md5 %></dd>
                 </dl>
@@ -52,27 +52,52 @@
             </td>
 
             <td>
-              <% if %i[old_image_width old_image_height old_file_size old_file_ext image_width image_height file_size file_ext].all? { |k| post_replacement[k].present? } %>
-                <dl>
-                  <dt>Original Size</dt>
-                  <dd>
-                    <%= post_replacement.old_image_width %>x<%= post_replacement.old_image_height %>
-                    (<%= post_replacement.old_file_size.to_s(:human_size, precision: 4) %>, <%= post_replacement.old_file_ext %>)
-                  </dd>
-
+              <dl>
+              <% if post_replacement.post %>
+                <dt>Current Size</dt>
+                <dd>
+                  <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %>
+                  (<%= post_replacement.post.file_size.to_s(:human_size, precision: 5) %>, <%= post_replacement.post.file_ext %>)
+                </dd>
+              <% end %>
+              <% if %i[image_width image_height file_size file_ext].all? { |k| post_replacement[k].present? } %>
                   <dt>Replacement Size</dt>
                   <dd>
                     <%= post_replacement.image_width %>x<%= post_replacement.image_height %>
-                    (<%= post_replacement.file_size.to_s(:human_size, precision: 4) %>, <%= post_replacement.file_ext %>)
+                    (<%= post_replacement.file_size.to_s(:human_size, precision: 5) %>, <%= post_replacement.file_ext %>)
                   </dd>
-                </dl>
               <% end %>
+                </dl>
+            </td>
+
+            <td>
+              <dl>
+                <dt>Status</dt>
+                <dd><%= post_replacement.status %></dd>
+                <dt>Reason</dt>
+                <dd><%= post_replacement.reason %></dd>
+                <% if post_replacement.status == 'approved' %>
+                  <dt>Approver</dt>
+                  <dd><%= link_to_user post_replacement.approver %></dd>
+                <% end %>
+              </dl>
             </td>
 
             <td>
               <%= compact_time post_replacement.created_at %>
               <br> by <%= link_to_user post_replacement.creator %>
               <%= link_to "»", post_replacements_path(search: params[:search].merge(creator_name: post_replacement.creator.name)) %>
+            </td>
+
+            <td>
+              <% if CurrentUser.is_janitor? %>
+                <%= link_to "Approve", approve_post_replacement_path(post_replacement), method: :PUT %><br>
+                <%= link_to "Reject", reject_post_replacement_path(post_replacement), method: :PUT %><br>
+                <%= link_to "Promote", promote_post_replacement_path(post_replacement), method: :PUT %><br>
+              <% end %>
+              <% if CurrentUser.is_moderator? %>
+                <%= link_to "Destroy", post_replacement_path(post_replacement), method: :DELETE, 'data-confirm': 'Are you sure you want to destroy this replacement?' %>
+              <% end %>
             </td>
           </tr>
         <% end %>

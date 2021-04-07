@@ -52,6 +52,8 @@ Rails.application.routes.draw do
           get :confirm_ban
           post :ban
           post :unban
+          post :regenerate_thumbnails
+          post :regenerate_videos
         end
       end
     end
@@ -246,7 +248,13 @@ Rails.application.routes.draw do
       get :diff
     end
   end
-  resources :post_replacements, :only => [:index, :new, :create, :update]
+  resources :post_replacements, :only => [:index, :new, :create, :destroy] do
+    member do
+      put :approve
+      put :reject
+      put :promote
+    end
+  end
   resources :deleted_posts, only: [:index]
   resources :posts, :only => [:index, :show, :update] do
     resources :events, :only => [:index], :controller => "post_events"

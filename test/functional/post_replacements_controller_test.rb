@@ -14,19 +14,20 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)
       @user.as_current do
-        UploadWhitelist.create!(pattern: "*raikou1.donmai.us/*", reason: "test")
-        @post = create(:post, source: "https://google.com")
-        @post_replacement = create(:post_replacement, post: @post)
+        @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload).merge({uploader: @user})).start!
+        @post = @upload.post
+        @replacement = create(:png_replacement, creator: @user, post: @post)
       end
     end
 
     context "create action" do
-      should "render" do
+      should "accept new non duplicate replacement" do
+        file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/alpha.png", "image/png")
         params = {
-          format: :json,
           post_id: @post.id,
           post_replacement: {
-            replacement_url: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg",
+            replacement_file: file,
+            reason: 'test replacement'
           }
         }
 
@@ -35,38 +36,54 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           @post.reload
         end
 
-        # travel_to(Time.now + PostReplacement::DELETION_GRACE_PERIOD + 1.day) do
-        #   Delayed::Worker.new.work_off
-        # end
-
-        assert_response :success
-        assert_equal("https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg", @post.source)
-        assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", @post.md5)
-        assert_equal("d34e4cf0a437a5d65f8e82b7bcd02606", Digest::MD5.file(@post.file(:original)).hexdigest)
+        assert_redirected_to post_path(@post)
       end
     end
 
-    context "update action" do
-      should "update the replacement" do
-        params = {
-          format: :json,
-          id: @post_replacement.id,
-          post_replacement: {
-            file_size_was: 23,
-            file_size: 42,
-          }
-        }
+    context "reject action" do
+      should "reject replacement" do
+        put_auth reject_post_replacement_path(@replacement), @user
+        assert_redirected_to post_replacement_path(@replacement)
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.status, "rejected"
+        assert_not_equal @post.md5, @replacement.md5
+      end
+    end
 
-        put_auth post_replacement_path(@post_replacement), @user, params: params
-        @post_replacement.reload
-        assert_equal(23, @post_replacement.file_size_was)
-        assert_equal(42, @post_replacement.file_size)
+    context "approve action" do
+      should "replace post" do
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_redirected_to post_path(@post)
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+      end
+    end
+
+    context "promote action" do
+      should "create post" do
+        put_auth promote_post_replacement_path(@replacement), @user
+        last_post = Post.last
+        assert_redirected_to post_path(last_post)
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, last_post.md5
+        assert_equal @replacement.status, "promoted"
       end
     end
 
     context "index action" do
       should "render" do
-        get post_replacements_path, params: {format: "json"}
+        get post_replacements_path
+        assert_response :success
+      end
+    end
+
+    context "new action" do
+      should "render" do
+        get_auth new_post_replacement_path, @user, params: {post_id: @post.id}
         assert_response :success
       end
     end
