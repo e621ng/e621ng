@@ -1,0 +1,3 @@
+.user-warning em {
+  @include themable { color: themed("color-rating-explicit"); }
+}

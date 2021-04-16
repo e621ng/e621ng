@@ -1,5 +1,5 @@
 class Comment < ApplicationRecord
-
+  include UserWarnable
   simple_versioning
   belongs_to_creator
   belongs_to_updater
@@ -168,6 +168,7 @@ class Comment < ApplicationRecord
   end
 
   def editable_by?(user)
+    return false if was_warned? && !user.is_moderator?
     creator_id == user.id || user.is_moderator?
   end
 

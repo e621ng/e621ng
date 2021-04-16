@@ -1,5 +1,5 @@
 class ForumPost < ApplicationRecord
-
+  include UserWarnable
   simple_versioning
   attr_readonly :topic_id
   belongs_to_creator
@@ -183,6 +183,7 @@ class ForumPost < ApplicationRecord
   end
 
   def editable_by?(user)
+    return false if was_warned? && !user.is_moderator?
     (creator_id == user.id || user.is_moderator?) && visible?(user)
   end
 
