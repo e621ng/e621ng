@@ -9,38 +9,6 @@ class UploadService
       @replacement = replacement
     end
 
-    def comment_replacement_message(post, replacement)
-      %("#{replacement.creator.name}":[/users/#{replacement.creator.id}] replaced this post with a new image:\n\n#{replacement_message(post, replacement)})
-    end
-
-    def replacement_message(post, replacement)
-      linked_source = replacement.source
-      linked_source_was = post.source_was
-
-      <<-EOS.strip_heredoc
-        [table]
-          [tbody]
-            [tr]
-              [th]Old[/th]
-              [td] #{linked_source_was} [/td]
-              [td]#{post.md5_was}[/td]
-              [td]#{post.file_ext_was}[/td]
-              [td]#{post.image_width_was} x #{post.image_height_was}[/td]
-              [td]#{post.file_size_was.to_s(:human_size, precision: 4)}[/td]
-            [/tr]
-            [tr]
-              [th]New[/th]
-              [td] #{linked_source} [/td]
-              [td]#{post.md5}[/td]
-              [td]#{post.file_ext}[/td]
-              [td]#{post.image_width} x #{post.image_height}[/td]
-              [td]#{post.file_size.to_s(:human_size, precision: 4)}[/td]
-            [/tr]
-          [/tbody]
-        [/table]
-      EOS
-    end
-
     def find_replacement_url(repl, upload)
       if repl.replacement_file.present?
         return "file://#{repl.file_name}"
@@ -113,7 +81,7 @@ class UploadService
       post.image_width = upload.image_width
       post.image_height = upload.image_height
       post.file_size = upload.file_size
-      post.source += "\n#{replacement.source}"
+      post.source = "#{replacement.source}\n" + post.source
       post.tag_string = upload.tag_string
       # Reset ownership information on post.
       post.uploader_id = replacement.creator_id
@@ -121,12 +89,6 @@ class UploadService
 
       rescale_notes(post)
       update_ugoira_frame_data(post, upload)
-
-      if md5_changed
-        CurrentUser.as(User.system) do
-          post.comments.create!(body: comment_replacement_message(post, replacement), do_not_bump_post: true)
-        end
-      end
 
       replacement.update({status: 'approved', approver_id: CurrentUser.id})
       post.save!

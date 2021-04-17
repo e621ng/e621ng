@@ -134,12 +134,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       end
     end
 
-    should "create comment on post signaling replacement" do
-      assert_difference("@post.comments.count", 1) do
-        @replacement.approve!
-      end
-    end
-
     should "update post with new image" do
       old_md5 = @post.md5
       @replacement.approve!
