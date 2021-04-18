@@ -7,7 +7,6 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       @user = FactoryBot.create(:member_user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
-      Danbooru.config.stubs(:member_comment_time_threshold).returns(1.week.from_now)
 
       @post = FactoryBot.create(:post)
       @comment = FactoryBot.create(:comment, :post => @post)

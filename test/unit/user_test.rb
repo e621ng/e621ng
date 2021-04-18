@@ -67,7 +67,6 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should "limit comment votes" do
-      Danbooru.config.stubs(:member_comment_time_threshold).returns(1.week.from_now)
       Danbooru.config.stubs(:member_comment_limit).returns(10)
       assert_equal(@user.can_comment_vote_with_reason?, true)
       10.times do
