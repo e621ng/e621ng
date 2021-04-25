@@ -3886,6 +3886,13 @@ CREATE INDEX index_comments_on_body_index ON public.comments USING gin (body_ind
 
 
 --
+-- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_creator_id ON public.comments USING btree (creator_id);
+
+
+--
 -- Name: index_comments_on_creator_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3974,6 +3981,20 @@ CREATE INDEX index_favorite_groups_on_creator_id ON public.favorite_groups USING
 --
 
 CREATE INDEX index_favorite_groups_on_lower_name ON public.favorite_groups USING btree (lower(name));
+
+
+--
+-- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_post_id ON public.favorites USING btree (post_id);
+
+
+--
+-- Name: index_favorites_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
 
 
 --
@@ -4387,6 +4408,20 @@ CREATE INDEX index_post_versions_on_updater_id ON public.post_versions USING btr
 --
 
 CREATE INDEX index_post_versions_on_updater_ip_addr ON public.post_versions USING btree (updater_ip_addr);
+
+
+--
+-- Name: index_post_votes_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_post_id ON public.post_votes USING btree (post_id);
+
+
+--
+-- Name: index_post_votes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_id);
 
 
 --
@@ -5091,5 +5126,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201220172926'),
 ('20201220190335'),
 ('20210117173030'),
-('20210405040522');
+('20210405040522'),
+('20210425020131');
+
 
