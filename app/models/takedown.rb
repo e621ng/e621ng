@@ -88,6 +88,7 @@ class Takedown < ApplicationRecord
     def add_posts_by_ids!(ids)
       added_ids = []
       with_lock do
+        ids = ids.gsub(/(https?:\/\/)?(e621|e926)\.net\/posts\/(\d+)/i, '\3')
         self.post_ids = (post_array + ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
         added_ids = self.post_array - self.post_array_was
         save!
