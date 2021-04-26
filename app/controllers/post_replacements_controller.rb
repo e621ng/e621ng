@@ -7,7 +7,8 @@ class PostReplacementsController < ApplicationController
   end
 
   def new
-    @post_replacement = Post.find(params[:post_id]).replacements.new
+    @post = Post.find(params[:post_id])
+    @post_replacement = @post.replacements.new
     respond_with(@post_replacement)
   end
 
