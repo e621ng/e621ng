@@ -559,15 +559,15 @@ class User < ApplicationRecord
     end
 
     def can_upload_with_reason
-      if hourly_upload_limit <= 0
+      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_HOURLY
       elsif can_upload_free? || is_admin?
           true
-      elsif younger_than(7.days) && !Danbooru.config.disable_throttles
+      elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
-      elsif !is_privileged? && post_edit_limit <= 0
+      elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0
+      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_LIMIT
       else
         true
