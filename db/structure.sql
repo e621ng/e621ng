@@ -2558,7 +2558,7 @@ CREATE TABLE public.users (
     password_hash character varying NOT NULL,
     email character varying,
     email_verification_key character varying,
-    level integer DEFAULT 0 NOT NULL,
+    level integer DEFAULT 20 NOT NULL,
     base_upload_limit integer DEFAULT 10 NOT NULL,
     last_logged_in_at timestamp without time zone,
     last_forum_read_at timestamp without time zone,
@@ -5127,6 +5127,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201220190335'),
 ('20210117173030'),
 ('20210405040522'),
-('20210425020131');
+('20210425020131'),
+('20210430201028');
 
 
