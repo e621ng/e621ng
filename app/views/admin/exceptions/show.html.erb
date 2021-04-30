@@ -12,5 +12,7 @@
   <strong>Extra Params:</strong>
   <pre class="box-section"><%= JSON.pretty_generate(@exception_log.extra_params) %></pre>
   <strong>Stacktrace:</strong>
+  <pre class="box-section"><%= Rails.backtrace_cleaner.clean(@exception_log.trace.split("\n")).join("\n") %></pre>
+  <strong>Raw Stacktrace:</strong>
   <pre class="box-section"><%= @exception_log.trace %></pre>
 </div>
