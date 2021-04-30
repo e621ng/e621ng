@@ -3,14 +3,31 @@
     <div class="profile-container">
       <%= render "statistics", :presenter => @presenter, :user => @user %>
 
+      <% if @presenter.show_staff_notes? %>
+        <div class="styled-dtext">
+          <div class="expandable">
+            <div class="expandable-header">
+              <span class="section-arrow"></span>
+              <span>Staff Notes (<%= @presenter.staff_notes.count %>)</span>
+            </div>
+            <div class="expandable-content">
+              <h4><%= link_to "Staff Notes", user_staff_notes_path(user_id: @user.id) %></h4>
+              <%= render "admin/staff_notes/partials/list_of_notes", staff_notes: @presenter.staff_notes %>
+              <h4>New Staff Note</h4>
+              <%= render "admin/staff_notes/partials/new", staff_note: @presenter.new_staff_note, user: @user %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
       <div class="bottom-section">
         <div class="posts-section">
           <% if @presenter.can_view_favorites? %>
             <div class="blacklist">
-            <%= render "posts/partials/common/inline_blacklist" %>
+              <%= render "posts/partials/common/inline_blacklist" %>
             </div>
             <div class="posts">
-            <%= render "post_summary", :presenter => @presenter, :user => @user %>
+              <%= render "post_summary", :presenter => @presenter, :user => @user %>
             </div>
           <% end %>
         </div>

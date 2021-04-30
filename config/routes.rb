@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
+    resources :staff_notes, only: [:index]
   end
   resources :edit_histories
   namespace :moderator do
@@ -336,6 +337,7 @@ Rails.application.routes.draw do
     resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do
       post :view
     end
+    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
 
     collection do
       get :home
