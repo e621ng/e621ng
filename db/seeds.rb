@@ -58,6 +58,8 @@ unless Rails.env.test?
 
     md5 = Digest::MD5.hexdigest(data)
     service = UploadService.new({
+                                    uploader_id: CurrentUser.id,
+                                    uploader_ip_addr: CurrentUser.ip_addr,
                                     file: file,
                                     tag_string: post["tags"].values.flatten.join(" "),
                                     source: post["sources"].join("\n"),
