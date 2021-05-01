@@ -22,6 +22,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_hash = ""
   user.email = "admin@e621.net"
   user.can_upload_free = true
+  user.can_approve_posts = true
   user.level = User::Levels::ADMIN
 end
 
@@ -31,6 +32,7 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password_hash = ""
   user.email = "system@e621.net"
   user.can_upload_free = true
+  user.can_approve_posts = true
   user.level = User::Levels::JANITOR
 end
 
