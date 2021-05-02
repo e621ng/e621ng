@@ -58,7 +58,7 @@ module Danbooru
     #
     # Run `rake db:seed` to create this account if it doesn't already exist in your install.
     def system_user
-      "E621_Bot"
+      "auto_moderator"
     end
 
     def upload_feedback_topic

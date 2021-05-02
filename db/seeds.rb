@@ -22,6 +22,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_hash = ""
   user.email = "admin@e621.net"
   user.can_upload_free = true
+  user.can_approve_posts = true
   user.level = User::Levels::ADMIN
 end
 
@@ -31,7 +32,8 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password_hash = ""
   user.email = "system@e621.net"
   user.can_upload_free = true
-  user.level = User::Levels::ADMIN
+  user.can_approve_posts = true
+  user.level = User::Levels::JANITOR
 end
 
 unless Rails.env.test?
@@ -58,6 +60,8 @@ unless Rails.env.test?
 
     md5 = Digest::MD5.hexdigest(data)
     service = UploadService.new({
+                                    uploader_id: CurrentUser.id,
+                                    uploader_ip_addr: CurrentUser.ip_addr,
                                     file: file,
                                     tag_string: post["tags"].values.flatten.join(" "),
                                     source: post["sources"].join("\n"),

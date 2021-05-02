@@ -100,7 +100,6 @@ class User < ApplicationRecord
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
-  before_create :promote_to_admin_if_first_user
   #after_create :notify_sock_puppets
   after_create :create_user_status
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
@@ -302,18 +301,6 @@ class User < ApplicationRecord
 
     def promote_to!(new_level, options = {})
       UserPromotion.new(self, CurrentUser.user, new_level, options).promote!
-    end
-
-    def promote_to_admin_if_first_user
-      return if Rails.env.test?
-
-      if User.admins.count == 0
-        self.level = Levels::ADMIN
-        self.can_approve_posts = true
-        self.can_upload_free = true
-      else
-        self.level = Levels::MEMBER
-      end
     end
 
     def role
