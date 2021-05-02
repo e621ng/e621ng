@@ -324,7 +324,7 @@ class ElasticPostQueryBuilder
     end
 
     if q[:note_neg]
-      must_not.push({match: {notes: q[:note]}})
+      must_not.push({match: {notes: q[:note_neg]}})
     end
 
     if q[:delreason]
