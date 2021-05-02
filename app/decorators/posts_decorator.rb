@@ -88,7 +88,7 @@ class PostsDecorator < ApplicationDecorator
       return "<em>none</em>".html_safe
     end
 
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/ && !options[:raw]
+    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i && !options[:raw]
       return ""
     end
 
