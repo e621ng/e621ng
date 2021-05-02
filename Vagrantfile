@@ -25,7 +25,7 @@ Vagrant.configure('2') do |config|
   # end
 
   VAGRANT_COMMAND = ARGV[0]
-  # config.ssh.username = 'danbooru' if VAGRANT_COMMAND == 'ssh'
+  config.ssh.username = 'danbooru' if VAGRANT_COMMAND == 'ssh'
 
   config.vm.define 'default' do |node|
     node.vm.hostname = 'e621.local'
@@ -34,4 +34,3 @@ Vagrant.configure('2') do |config|
 
   config.vm.provision 'shell', path: 'vagrant/install.sh'
 end
-
