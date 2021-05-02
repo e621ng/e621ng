@@ -169,7 +169,6 @@ class WikiPage < ApplicationRecord
   end
 
   def revert_to!(version)
-    raise RevertError.new("You cannot revert locked wiki pages") if is_locked
     revert_to(version)
     save!
   end
