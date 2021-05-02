@@ -15,10 +15,9 @@
 4. `cd` into the repo using Command Prompt/Terminal
 5. Run the following command:
      `vagrant up`
-6. Once vagrant exists with an error, execute `vagrant up` again (Workaround to install the linux headers required by the guest additions)
-7. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
+6. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
-8. To confirm the installation worked, open the web browser of your choice and enter `http://e621.lc` into the address bar and see if the website loads correctly.
+7. To confirm the installation worked, open the web browser of your choice and enter `http://e621.local` into the address bar and see if the website loads correctly.
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
 
