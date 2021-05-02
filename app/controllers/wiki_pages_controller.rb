@@ -19,6 +19,7 @@ class WikiPagesController < ApplicationController
         return
       end
     end
+    validate_can_edit(@wiki_page, CurrentUser.user)
     respond_with(@wiki_page)
   end
 
@@ -67,6 +68,7 @@ class WikiPagesController < ApplicationController
 
   def update
     @wiki_page = WikiPage.find(params[:id])
+    validate_can_edit(@wiki_page, CurrentUser.user)
     @wiki_page.update(wiki_page_params(:update))
     respond_with(@wiki_page)
   end
@@ -79,6 +81,7 @@ class WikiPagesController < ApplicationController
 
   def revert
     @wiki_page = WikiPage.find(params[:id])
+    validate_can_edit(@wiki_page, CurrentUser.user)
     @version = @wiki_page.versions.find(params[:version_id])
     @wiki_page.revert_to!(@version)
     flash[:notice] = "Page was reverted"
@@ -96,6 +99,11 @@ class WikiPagesController < ApplicationController
   end
 
   private
+
+  def validate_can_edit(page, user)
+    return if user.is_janitor?
+    raise User::PrivilegeError.new("Wiki page is locked.") if page.is_locked
+  end
 
   def normalize_search_params
     if params[:title]

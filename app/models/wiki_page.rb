@@ -165,11 +165,11 @@ class WikiPage < ApplicationRecord
 
     self.title = version.title
     self.body = version.body
-    self.is_locked = version.is_locked
     self.other_names = version.other_names
   end
 
   def revert_to!(version)
+    raise RevertError.new("You cannot revert locked wiki pages") if is_locked
     revert_to(version)
     save!
   end
