@@ -11,7 +11,6 @@ class UploadsController < ApplicationController
       return access_denied("You can not upload during your first week.")
     end
     @source = Sources::Strategies.find(params[:url], params[:ref]) if params[:url].present?
-    @upload_notice_wiki = WikiPage.titled(Danbooru.config.upload_notice_wiki_page).first
     @upload = Upload.new
     respond_with(@upload)
   end

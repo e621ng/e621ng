@@ -660,10 +660,6 @@ fart'
       nil
     end
 
-    def upload_notice_wiki_page
-      "help:upload_notice"
-    end
-
     def flag_notice_wiki_page
       "help:flag_notice"
     end
