@@ -28,12 +28,6 @@ class TagImplication < TagRelationship
       def descendants_with_originals(names)
         active.where(antecedent_name: names).map { |x| [x.antecedent_name, x.descendant_names] }.uniq
       end
-
-      def automatic_tags_for(names)
-        # TODO: Remove this?
-        tags = []
-        tags.uniq
-      end
     end
 
     def descendants
