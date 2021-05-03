@@ -11,8 +11,8 @@
         <%= form_tag(post_set_maintainers_path) do %>
           <label for="set_maintainer_name">Username</label><br/>
           <%= hidden_field_tag "post_set_id", @post_set.id %>
-          <%= text_field_tag "username" %>
-          <%= submit_tag "Create" %>
+          <%= text_field_tag "username", nil, data: { autocomplete: "user" }  %>
+          <%= submit_tag "Invite" %>
         <% end %>
       </div>
     <% end %>
@@ -22,15 +22,16 @@
       <tr>
         <th>Username</th>
         <th>Status</th>
+        <th>Date</th>
         <th></th>
       </tr>
       </thead>
       <tbody>
-      <% @maintainers.where(status: ["pending", "approved"]).each do |m| %>
+      <% @maintainers.where(status: ["pending", "approved"]).order(updated_at: :desc).each do |m| %>
         <tr>
           <td><%= link_to_user m.user %></td>
           <td><%= m.status.capitalize %></td>
-
+          <td><%= compact_time m.updated_at %></td>
           <td>
             <% if @post_set.is_owner?(CurrentUser) && m.status == "approved" %>
               <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, data: {confirm: "Are you sure you want to remove this maintainer?"} %>

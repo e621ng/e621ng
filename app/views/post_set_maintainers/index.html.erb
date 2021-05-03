@@ -5,6 +5,7 @@
       <thead>
         <th>Set</th>
         <th>Status</th>
+        <th>Date</th>
         <th>Action</th>
       </thead>
       <tbody>
@@ -13,6 +14,7 @@
           <tr>
             <td><%= link_to m.post_set.name, post_set_path(m.post_set) %></td>
             <td><%= m.status.capitalize %></td>
+            <td><%= compact_time m.updated_at %></td>
             <td><%= invite_links m %></td>
           </tr>
         <% end %>
