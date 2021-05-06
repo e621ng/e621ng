@@ -74,7 +74,7 @@ Replacer.set_preview_dims = function (height, width) {
   if (height <= 0 && width <= 0) {
     $('#replacement_preview_dims').text('');
   } else {
-    $('#replacement_preview_dims').text(`${height}x${width}`);
+    $('#replacement_preview_dims').text(`${width}x${height}`);
   }
 };
 
