@@ -9,6 +9,7 @@ module DanbooruImageResizer
   # http://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave
   JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }
   CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE, crop: :attention }
+  CROP_OPTIONS_NO_ICC = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, crop: :attention }
 
   # XXX libvips-8.4 on Debian doesn't support the `Vips::Image.thumbnail` method.
   # On 8.4 we have to shell out to vipsthumbnail instead. Remove when Debian supports 8.5.
@@ -51,7 +52,7 @@ module DanbooruImageResizer
       resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS)
     rescue Vips::Error => e
       raise e unless e.message =~ /icc_transform/i
-      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS_NO_ICC)
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS_NO_ICC)
     end
     resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
 
