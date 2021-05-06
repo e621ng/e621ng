@@ -5,6 +5,7 @@ module DanbooruImageResizer
   SRGB_PROFILE = "#{Rails.root}/config/sRGB.icm"
   # http://jcupitt.github.io/libvips/API/current/libvips-resample.html#vips-thumbnail
   THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE }
+  THUMBNAIL_OPTIONS_NO_ICC = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE }
   # http://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave
   JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }
   CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE, crop: :attention }
@@ -31,7 +32,12 @@ module DanbooruImageResizer
   # http://jcupitt.github.io/libvips/API/current/Using-vipsthumbnail.md.html
   def resize_ruby(file, width, height, resize_quality)
     output_file = Tempfile.new
-    resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS)
+    begin
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS)
+    rescue Vips::Error => e
+      raise e unless e.message =~ /icc_transform/i
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS_NO_ICC)
+    end
     resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
 
     output_file
@@ -41,7 +47,12 @@ module DanbooruImageResizer
     return nil unless Danbooru.config.enable_image_cropping
 
     output_file = Tempfile.new
-    resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS)
+    begin
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS)
+    rescue Vips::Error => e
+      raise e unless e.message =~ /icc_transform/i
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS_NO_ICC)
+    end
     resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
 
     output_file
