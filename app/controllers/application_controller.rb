@@ -139,7 +139,7 @@ class ApplicationController < ActionController::Base
     }
     # Required to unwrap exceptions that occur inside template rendering.
     new_exception = exception
-    if exception.respond_to?(:cause)
+    if exception.respond_to?(:cause) && exception.is_a?(ActionView::Template::Error)
       new_exception = exception.cause
     end
     if new_exception&.is_a?(ActiveRecord::QueryCanceled)
