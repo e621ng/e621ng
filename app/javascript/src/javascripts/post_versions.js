@@ -57,6 +57,8 @@ PostVersion.tag_script_selected = function() {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
   const script = $("#update-tag-script").val();
+  if(!script)
+    return;
 
   for (let row of selected_rows) {
     let id = $(row).data("post-id");
