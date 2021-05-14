@@ -25,54 +25,6 @@ class ForumPostTest < ActiveSupport::TestCase
       end
     end
 
-    context "that mentions a user" do
-      context "in a quote block" do
-        setup do
-          @user2 = FactoryBot.create(:user)
-        end
-
-        should "not create a dmail" do
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => "[quote]@#{@user2.name}[/quote]")
-          end
-
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => "[quote]@#{@user2.name}[/quote] blah [quote]@#{@user2.name}[/quote]")
-          end
-
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => "[quote][quote]@#{@user2.name}[/quote][/quote]")
-          end
-
-          assert_difference("Dmail.count", 1) do
-            FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => "[quote]@#{@user2.name}[/quote] @#{@user2.name}")
-          end
-        end
-      end
-
-      context "outside a quote block" do
-        setup do
-          @user2 = FactoryBot.create(:user)
-          @post = FactoryBot.build(:forum_post, :topic_id => @topic.id, :body => "Hey @#{@user2.name} check this out!")
-        end
-
-        should "create a dmail" do
-          assert_difference("Dmail.count", 1) do
-            @post.save
-          end
-
-          dmail = Dmail.last
-          assert_equal(<<-EOS.strip_heredoc, dmail.body)
-            @#{CurrentUser.name} mentioned you in topic ##{@topic.id} (\"#{@topic.title}\":[/forum_topics/#{@topic.id}?page=1]):
-
-            [quote]
-            Hey @#{@user2.name} check this out!
-            [/quote]
-          EOS
-        end
-      end
-    end
-
     context "that belongs to a topic with several pages of posts" do
       setup do
         Danbooru.config.stubs(:posts_per_page).returns(3)
@@ -89,11 +41,11 @@ class ForumPostTest < ActiveSupport::TestCase
         setup do
           CurrentUser.user = FactoryBot.create(:moderator_user)
         end
-        
+
         should "update the topic's updated_at timestamp" do
           @topic.reload
           assert_equal(@posts[-1].updated_at.to_i, @topic.updated_at.to_i)
-          @posts[-1].delete!
+          @posts[-1].hide!
           @topic.reload
           assert_equal(@posts[-2].updated_at.to_i, @topic.updated_at.to_i)
         end
@@ -106,7 +58,7 @@ class ForumPostTest < ActiveSupport::TestCase
         assert_equal(3, @posts[6].forum_topic_page)
       end
 
-      should "update the topic's updated_at when deleted" do
+      should "update the topic's updated_at when destroyed" do
         @posts.last.destroy
         @topic.reload
         assert_equal(@posts[8].updated_at.to_s, @topic.updated_at.to_s)
@@ -140,26 +92,6 @@ class ForumPostTest < ActiveSupport::TestCase
       end
       @topic.reload
       assert_not_equal(@original_topic_updated_at.to_s, @topic.updated_at.to_s)
-    end
-
-    should "update the topic when updated only for the original post" do
-      posts = []
-      3.times do
-        posts << FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => rand(100_000))
-      end
-      
-      # updating the original post
-      Timecop.travel(1.second.from_now) do
-        posts.first.update(:body => "xxx")
-      end
-      @topic.reload
-      assert_equal(posts.first.updated_at.to_s, @topic.updated_at.to_s)
-
-      # updating a non-original post
-      Timecop.travel(2.seconds.from_now) do
-        posts.last.update(:body => "xxx")
-      end
-      assert_equal(posts.first.updated_at.to_s, @topic.updated_at.to_s)
     end
 
     should "be searchable by body content" do

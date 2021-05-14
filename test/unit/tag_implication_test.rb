@@ -3,13 +3,11 @@ require 'test_helper'
 class TagImplicationTest < ActiveSupport::TestCase
 
   setup do
-    Sidekiq::Testing::inline!
-
-    category = ForumCategory.create(id: Danbooru.config.alias_implication_forum_category, name: 'Tag Requests')
+    Sidekiq::Testing.inline!
   end
 
   teardown do
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
   end
 
   context "A tag implication" do
