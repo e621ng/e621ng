@@ -373,10 +373,6 @@ fart'
       2000
     end
 
-    def member_comment_time_threshold
-      1.week.ago
-    end
-
     # Permanently redirect all HTTP requests to HTTPS.
     #
     # https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
