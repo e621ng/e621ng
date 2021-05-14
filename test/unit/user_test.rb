@@ -95,6 +95,16 @@ class UserTest < ActiveSupport::TestCase
       assert_equal(@user.can_comment_with_reason, :REJ_LIMITED)
     end
 
+    should "limit forum post/topics" do
+      assert_equal(@user.can_forum_post_with_reason, :REJ_NEWBIE)
+      @user.update_column(:created_at, 1.year.ago)
+      topic = FactoryBot.create(:forum_topic)
+      Danbooru.config.member_comment_limit.times do
+        FactoryBot.create(:forum_post, :topic_id => topic.id)
+      end
+      assert_equal(@user.can_forum_post_with_reason, :REJ_LIMITED)
+    end
+
     should "verify" do
       assert(@user.is_verified?)
       @user = FactoryBot.create(:user)
