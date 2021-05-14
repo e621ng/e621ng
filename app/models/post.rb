@@ -860,7 +860,6 @@ class Post < ApplicationRecord
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
-      # normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
