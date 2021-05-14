@@ -1,0 +1,10 @@
+<% if invite.status == "pending" %>
+  <%= link_to("Accept", approve_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to accept this invite?"}) %>
+  <%= link_to("Ignore", deny_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to ignore this invite?"}) %>
+  <%= link_to("Block", block_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to ignore and block future invites for this set?"}) %>
+<% elsif invite.status == "approved" %>
+  <%= link_to("Remove", deny_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to remove yourself as maintainer of this set?"}) %>
+  <%= link_to("Block", block_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to remove yourself and block future invites for this set?"}) %>
+<% elsif invite.status == "blocked" %>
+  <%= link_to("Unblock", deny_post_set_maintainer_path(invite), data: {confirm: "Are you sure you want to unblock invites for this set?"}) %>
+<% end %>
