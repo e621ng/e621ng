@@ -69,15 +69,21 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should "limit comment votes" do
-      Danbooru.config.stubs(:member_comment_limit).returns(10)
+      # allow creating one more comment than votes so creating a vote can fail later on
+      Danbooru.config.stubs(:member_comment_limit).returns(Danbooru.config.comment_vote_limit + 1)
       assert_equal(@user.can_comment_vote_with_reason, :REJ_NEWBIE)
       @user.update_column(:created_at, 1.year.ago)
-      10.times do
+      Danbooru.config.comment_vote_limit.times do
         comment = FactoryBot.create(:comment)
-        FactoryBot.create(:comment_vote, :comment_id => comment.id, :score => -1)
+        VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
       end
 
       assert_equal(@user.can_comment_vote_with_reason, :REJ_LIMITED)
+      comment = FactoryBot.create(:comment)
+      assert_raises ActiveRecord::RecordInvalid do
+        VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
+      end
+
       CommentVote.update_all("created_at = '1990-01-01'")
       assert_equal(@user.can_comment_vote_with_reason, true)
     end

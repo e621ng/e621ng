@@ -90,8 +90,6 @@ class VoteManager
     begin
       raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
-      reason = user.can_comment_vote_with_reason
-      raise CommentVote::Error.new("You #{User.throttle_reason(reason)}") unless reason == true
       target_isolation = !Rails.env.test? ? {isolation: :serializable} : {}
       CommentVote.transaction(**target_isolation) do
         CommentVote.uncached do
