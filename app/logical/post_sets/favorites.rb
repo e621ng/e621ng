@@ -6,7 +6,7 @@ module PostSets
     def initialize(user, page = 1, limit = CurrentUser.per_page)
       @user = user
       @page = page
-      @limit = limit
+      @limit = limit || CurrentUser.per_page
     end
 
     def public_tag_string
