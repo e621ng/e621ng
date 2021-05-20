@@ -5,7 +5,7 @@ module Admin
 
     def index
       @user = User.where('id = ?', params[:user_id]).first
-      @notes = StaffNote.search(search_params).paginate(params[:page])
+      @notes = StaffNote.search(search_params.merge({user_id: params[:user_id]})).includes(:user, :creator).paginate(params[:page])
       respond_with(@notes)
     end
 

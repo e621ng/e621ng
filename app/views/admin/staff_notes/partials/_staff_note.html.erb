@@ -9,6 +9,9 @@
     </div>
   </div>
   <div class="content">
+    <% unless @user %>
+    <h4>On <%= link_to_user staff_note.user %></h4>
+    <% end %>
     <div class="body styled-dtext">
       <%= format_text(staff_note.body, allow_color: true) %>
     </div>

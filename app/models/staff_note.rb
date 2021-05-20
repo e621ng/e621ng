@@ -28,6 +28,10 @@ class StaffNote < ApplicationRecord
         q = q.attribute_matches(:resolved, params[:resolved])
       end
 
+      if params[:user_id].present?
+        q = q.where('user_id = ?', params[:user_id])
+      end
+
       if params[:user_name].present?
         q = q.for_user_name(params[:user_name])
       end

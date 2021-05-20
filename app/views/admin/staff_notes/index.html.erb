@@ -1,6 +1,10 @@
 <div id="c-staff-notes">
   <div id="a-index">
-    <h1><%= @user ? "Staff Notes for #{@user.name}" : "Staff Notes" %></h1>
+    <% if @user %>
+      <h1>Staff Notes for <%= link_to_user @user %></h1>
+    <% else %>
+      <h1>Staff Notes</h1>
+    <% end %>
     <%= render "search" %>
 
     <%= render "admin/staff_notes/partials/list_of_notes", staff_notes: @notes %>
