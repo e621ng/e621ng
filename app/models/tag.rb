@@ -1111,9 +1111,9 @@ class Tag < ApplicationRecord
       end
 
       if params[:has_artist].to_s.truthy?
-        q = q.joins("INNER JOIN artists ON tags.name = artists.name").where("artists.is_active = true")
+        q = q.joins("INNER JOIN artists ON tags.name = artists.name")
       elsif params[:has_artist].to_s.falsy?
-        q = q.joins("LEFT JOIN artists ON tags.name = artists.name").where("artists.name IS NULL OR artists.is_active = false")
+        q = q.joins("LEFT JOIN artists ON tags.name = artists.name").where("artists.name IS NULL")
       end
 
       q = q.attribute_matches(:is_locked, params[:is_locked])
