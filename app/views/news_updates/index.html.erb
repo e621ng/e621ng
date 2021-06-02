@@ -6,15 +6,19 @@
       <thead>
         <tr>
           <th>Creator</th>
+          <th>Date</th>
           <th>Message</th>
-          <th></th>
+          <% if CurrentUser.is_moderator? %>
+            <th></th>
+          <% end %>
         </tr>
       </thead>
       <tbody>
         <% @news_updates.each do |news_update| %>
           <tr id="news-update-<%= news_update.id %>">
             <td><%= link_to_user news_update.creator %></td>
-            <td><%= news_update.message %></td>
+            <td><%= compact_time news_update.updated_at %></td>
+            <td><div class="styled-dtext"><%= format_text news_update.message %></div></td>
             <% if CurrentUser.is_moderator? %>
               <td><%= link_to "Edit", edit_news_update_path(news_update) %> | <%= link_to "Delete", news_update_path(news_update), :method => :delete %></td>
             <% end %>

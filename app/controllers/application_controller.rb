@@ -60,6 +60,8 @@ class ApplicationController < ActionController::Base
     end
 
     case exception
+    when ProcessingError
+      render_expected_error(400, exception)
     when APIThrottled
       render_expected_error(429, "Throttled: Too many requests")
     when ActiveRecord::QueryCanceled
@@ -128,13 +130,24 @@ class ApplicationController < ActionController::Base
 
 
     DanbooruLogger.log(@exception, expected: @expected)
-    log = ExceptionLog.add(exception, CurrentUser.ip_addr, {
+    log_params = {
         host: Socket.gethostname,
-        params: params,
+        params: request.filtered_parameters,
         user_id: CurrentUser.id,
         referrer: request.referrer,
         user_agent: request.user_agent
-    }) if !@expected
+    }
+    # Required to unwrap exceptions that occur inside template rendering.
+    new_exception = exception
+    if exception.respond_to?(:cause) && exception.is_a?(ActionView::Template::Error)
+      new_exception = exception.cause
+    end
+    if new_exception&.is_a?(ActiveRecord::QueryCanceled)
+      log_params[:sql] = {}
+      log_params[:sql][:query] = new_exception&.sql || "[NOT FOUND?]"
+      log_params[:sql][:binds] = new_exception&.binds
+    end
+    log = ExceptionLog.add(exception, CurrentUser.ip_addr, log_params) if !@expected
     @log_code = log&.code
     render "static/error", layout: layout, status: status, formats: format
   end

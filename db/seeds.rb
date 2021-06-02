@@ -22,6 +22,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_hash = ""
   user.email = "admin@e621.net"
   user.can_upload_free = true
+  user.can_approve_posts = true
   user.level = User::Levels::ADMIN
 end
 
@@ -31,7 +32,8 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password_hash = ""
   user.email = "system@e621.net"
   user.can_upload_free = true
-  user.level = User::Levels::ADMIN
+  user.can_approve_posts = true
+  user.level = User::Levels::JANITOR
 end
 
 ForumCategory.find_or_create_by!(id: Danbooru.config.alias_implication_forum_category) do |category|
@@ -44,18 +46,32 @@ unless Rails.env.test?
   CurrentUser.ip_addr = "127.0.0.1"
 
   resources = YAML.load_file Rails.root.join("db", "seeds.yml")
-  resources["images"].each do |image|
-    puts image["url"]
+  url = "https://e621.net/posts.json?limit=100&tags=id:" + resources["post_ids"].join(",")
+  response = HTTParty.get(url, {
+    headers: {"User-Agent" => "e621ng/seeding"}
+  })
+  json = JSON.parse(response.body)
 
-    data = Net::HTTP.get(URI(image["url"]))
+  json["posts"].each do |post|
+    puts post["file"]["url"]
+
+    data = Net::HTTP.get(URI(post["file"]["url"]))
     file = Tempfile.new.binmode
     file.write data
 
+    post["tags"].each do |category, tags|
+      Tag.find_or_create_by_name_list(tags.map {|tag| category + ":" + tag})
+    end
+
     md5 = Digest::MD5.hexdigest(data)
     service = UploadService.new({
+                                    uploader_id: CurrentUser.id,
+                                    uploader_ip_addr: CurrentUser.ip_addr,
                                     file: file,
-                                    tag_string: image["tags"],
-                                    rating: "s",
+                                    tag_string: post["tags"].values.flatten.join(" "),
+                                    source: post["sources"].join("\n"),
+                                    description: post["description"],
+                                    rating: post["rating"],
                                     md5: md5,
                                     md5_confirmation: md5
                                 })

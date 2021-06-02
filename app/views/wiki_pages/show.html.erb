@@ -18,7 +18,7 @@
 
       <div id="wiki-page-body" class="styled-dtext">
         <% if @wiki_page.visible? %>
-          <%= format_text(@wiki_page.body, allow_color: true) %>
+          <%= format_text(@wiki_page.body, allow_color: true, max_thumbs: 75) %>
 
           <% if @wiki_page.artist %>
             <p><%= link_to "View artist", @wiki_page.artist %></p>

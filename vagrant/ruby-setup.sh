@@ -32,12 +32,12 @@ gem install bundler:2.0.1 >/dev/null
 bundler config github.https true
 
 script_log "Dropping existing databases (if any)..."
-dropdb danbooru2
-dropdb danbooru2_test
+dropdb --if-exists danbooru2
+dropdb --if-exists danbooru2_test
 
 script_log "Creating config files..."
 sed -s "s/url: <%= .* %>/host: localhost/g" script/install/database.yml.templ > config/database.yml
-cp script/install/danbooru_local_config.rb.templ config/danbooru_local_config.rb
+cp -n script/install/danbooru_local_config.rb.templ config/danbooru_local_config.rb
 mkdir -p ~/.danbooru/
 openssl rand -hex 32 > ~/.danbooru/secret_token
 openssl rand -hex 32 > ~/.danbooru/session_secret_key

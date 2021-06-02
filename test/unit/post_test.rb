@@ -1484,6 +1484,7 @@ class PostTest < ActiveSupport::TestCase
         assert_equal(2, @post.fav_count)
       end
 
+      # TODO: Needs to reload relationship to obtain non cached value
       should "increment the user's favorite_count" do
         assert_difference("@user.reload.favorite_count", 1) do
           FavoriteManager.add!(user: @user, post: @post)
@@ -1890,6 +1891,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
       assert_tag_match(all - [deleted, pending], "-status:pending")
       assert_tag_match(all - [deleted, flagged], "-status:flagged")
+
       assert_tag_match(all - [deleted], "-status:deleted")
       assert_tag_match(all, "-status:active")
     end
@@ -2364,29 +2366,30 @@ class PostTest < ActiveSupport::TestCase
       @post = FactoryBot.build(:post, md5: "deadbeef", file_ext: "gif", tag_string: "animated_gif")
 
       assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
-      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
-      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
-    end
-  end
 
-  context "Notes:" do
-    context "#copy_notes_to" do
-      setup do
-        @src = FactoryBot.create(:post, image_width: 100, image_height: 100, tag_string: "translated partially_translated", has_embedded_notes: true)
-        @dst = FactoryBot.create(:post, image_width: 200, image_height: 200, tag_string: "translation_request")
-
-        @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "test")
-        @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "deleted", is_active: false)
-        @src.reload
-
-        @src.copy_notes_to(@dst)
+            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
+            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
+          end
       end
 
-      should "copy notes and tags" do
-        assert_equal(1, @dst.notes.active.length)
-        assert_equal(true, @dst.has_embedded_notes)
-        assert_equal("lowres partially_translated translated", @dst.tag_string)
-      end
+    context "Notes:" do
+      context "#copy_notes_to" do
+        setup do
+            @src = FactoryBot.create(:post, image_width: 100, image_height: 100, tag_string: "translated partially_translated", has_embedded_notes: true)
+            @dst = FactoryBot.create(:post, image_width: 200, image_height: 200, tag_string: "translation_request")
+
+            @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "test")
+            @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "deleted", is_active: false)
+            @src.reload
+
+            @src.copy_notes_to(@dst)
+          end
+
+        should "copy notes and tags" do
+          assert_equal(1, @dst.notes.active.length)
+          assert_equal(true, @dst.has_embedded_notes)
+         assert_equal("lowres partially_translated translated", @dst.tag_string)
+        end
 
       should "rescale notes" do
         note = @dst.notes.active.first

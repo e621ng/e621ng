@@ -3,7 +3,6 @@ Rails.application.routes.draw do
   require 'sidekiq/web'
   require 'sidekiq_unique_jobs/web'
 
-  Sidekiq::Web.set :session_secret, Rails.application.credentials[:secret_key_base]
   mount Sidekiq::Web => '/sidekiq', constraints: AdminRouteConstraint.new
 
   namespace :admin do
@@ -22,6 +21,7 @@ Rails.application.routes.draw do
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
+    resources :staff_notes, only: [:index]
   end
   resources :edit_histories
   namespace :moderator do
@@ -52,6 +52,8 @@ Rails.application.routes.draw do
           get :confirm_ban
           post :ban
           post :unban
+          post :regenerate_thumbnails
+          post :regenerate_videos
         end
       end
     end
@@ -136,6 +138,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
   end
   resources :comment_votes, only: [:index, :delete, :lock] do
@@ -167,6 +170,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
     collection do
       get :search
@@ -246,7 +250,13 @@ Rails.application.routes.draw do
       get :diff
     end
   end
-  resources :post_replacements, :only => [:index, :new, :create, :update]
+  resources :post_replacements, :only => [:index, :new, :create, :destroy] do
+    member do
+      put :approve
+      put :reject
+      put :promote
+    end
+  end
   resources :deleted_posts, only: [:index]
   resources :posts, :only => [:index, :show, :update] do
     resources :events, :only => [:index], :controller => "post_events"
@@ -327,6 +337,7 @@ Rails.application.routes.draw do
     resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do
       post :view
     end
+    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
 
     collection do
       get :home
@@ -365,6 +376,7 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
+      post :warning
     end
   end
   resources :post_report_reasons

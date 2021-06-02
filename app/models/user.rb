@@ -100,7 +100,6 @@ class User < ApplicationRecord
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
-  before_create :promote_to_admin_if_first_user
   #after_create :notify_sock_puppets
   after_create :create_user_status
   has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
@@ -302,18 +301,6 @@ class User < ApplicationRecord
 
     def promote_to!(new_level, options = {})
       UserPromotion.new(self, CurrentUser.user, new_level, options).promote!
-    end
-
-    def promote_to_admin_if_first_user
-      return if Rails.env.test?
-
-      if User.admins.count == 0
-        self.level = Levels::ADMIN
-        self.can_approve_posts = true
-        self.can_upload_free = true
-      else
-        self.level = Levels::MEMBER
-      end
     end
 
     def role
@@ -535,6 +522,8 @@ class User < ApplicationRecord
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
                          :is_janitor?, 3.days)
+    create_user_throttle(:replace_post, ->{ Danbooru.config.replace_post_limit - PostReplacement.for_user(id).where("created_at > ?", 1.hour.ago).count },
+                         :can_approve_posts?, 7.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)
@@ -557,15 +546,15 @@ class User < ApplicationRecord
     end
 
     def can_upload_with_reason
-      if hourly_upload_limit <= 0
+      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_HOURLY
       elsif can_upload_free? || is_admin?
           true
-      elsif younger_than(7.days) && !Danbooru.config.disable_throttles
+      elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
-      elsif !is_privileged? && post_edit_limit <= 0
+      elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0
+      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles
         :REJ_UPLOAD_LIMIT
       else
         true
@@ -590,10 +579,12 @@ class User < ApplicationRecord
 
     def upload_limit_pieces
       deleted_count = Post.deleted.for_user(id).count
+      rejected_replacement_count = PostReplacement.rejected.for_user(id).count
       unapproved_count = Post.pending_or_flagged.for_user(id).count
+      unapproved_replacements_count = PostReplacement.pending.for_user(id).count
       approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
 
-      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count}
+      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count + unapproved_replacements_count}
     end
     memoize :upload_limit_pieces
 

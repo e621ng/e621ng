@@ -7,18 +7,17 @@
 1. Download and install the prerequisites
 2. Open Command Prompt/Terminal and run the following commands:
    ```
-   vagrant plugin install vagrant-hostmanager  
-   vagrant plugin install vagrant-bindfs  
+   vagrant plugin install vagrant-hostmanager
+   vagrant plugin install vagrant-bindfs
    vagrant plugin install vagrant-vbguest
    ```
 3. Download and extract the repo
 4. `cd` into the repo using Command Prompt/Terminal
 5. Run the following command:
      `vagrant up`
-6. Once vagrant exists with an error, execute `vagrant up` again (Workaround to install the linux headers required by the guest additions)
-7. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
+6. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
-8. To confirm the installation worked, open the web browser of your choice and enter `http://e621.lc` into the address bar and see if the website loads correctly.
+7. To confirm the installation worked, open the web browser of your choice and enter `http://e621.local` into the address bar and see if the website loads correctly.
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
 
@@ -26,28 +25,20 @@ By the time you get back the install will surely have completed.<sup>1</sup>
 
 In case the VM doesn't start with the error `VT-x not available` and the error description `WHvCapabilityCodeHypervisorPresent is FALSE!` the the following solution should resolve the issue:
 
-This error usually occours, when the `Hyper-V` or the `Windows Hypervisor Platform` features are activated. <br/>
+This error usually occurs, when the `Hyper-V` or the `Windows Hypervisor Platform` features are activated. <br/>
 To deactivate these features, press the windows key and enter `Turn Windows features on or off`, here you can deactivate both features by unchecking their respective checkboxes.
 Don't forget to restart the computer after deactivating the features.
 
 ## Installation
 
-It is recommended that you install Danbooru on a Debian-based system
-since most of the required packages are available on APT. Danbooru
-has been successfully installed on Fedora, CentOS, FreeBSD, and OS X.
-The INSTALL.debian install script is straightforward and should be
-simple to adapt for other platforms.
+Installation follows the same steps as the vagrant setup script. Ubuntu 20.04 is the current installation target.
+There is no script that performs these steps for you, as you need to split them up to match your infrastructure.
+Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between postgresql and elasticsearch.
+Minimum RAM is 4GB. You will need to adjust values in config files to match how much RAM is available.
+If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for postgresql and elasticsearch for help planning these requirements.
 
-For best performance, you will need at least 256MB of RAM for
-PostgreSQL and Rails. The memory requirement will grow as your
-database gets bigger. 
 
-On production Danbooru uses PostgreSQL 9.4, but any 9.x release should
-work.
-
-Use your operating system's package management system whenever
-possible.  This will simplify the process of installing init scripts,
-which will not always happen when compiling from source.
+There are some forks that contain full docker setups. If you are looking for a Docker deployment and don't want to wait for this repo to slowly get there, look into those.
 
 ## Troubleshooting
 
@@ -69,55 +60,9 @@ debug your Nginx configuration file.
 
 4) Check all log files.
 
-## Services
-
-Danbooru employs numerous external services to delegate some 
-functionality.
-
-For development purposes, you can just run mocked version of these
-services. They're available in `scrtip/mock_services` and can be started
-automatically using Foreman and the provided Procfile.
-
-### Amazon Web Services
-
-In order to enable the following features, you will need an AWS SQS 
-account:
-
-* Pool versions
-* Post versions
-* IQDB
-* Saved searches
-* Related tags
-
-### Google APIs
-
-The following features requires a Google API account:
-
-* Bulk revert
-* Post versions report
-
 ### IQDB Service
 
-IQDB integration is delegated to the [IQDBS service](https://github.com/r888888888/iqdbs). 
-
-### Archive Service
-
-In order to access versioned data for pools and posts you will 
-need to install and configure the [Archives service](https://github.com/r888888888/archives).
-
-### Reportbooru Service
-
-The following features are delegated to the [Reportbooru service](https://github.com/r888888888/reportbooru):
-
-* Related tags
-* Missed searches report
-* Popular searches report
-* Favorite searches
-* Upload trend graphs
-
-### Recommender Service
-
-Post recommendations require the [Recommender service](https://github.com/r888888888/recommender).
+IQDB integration is delegated to the [IQDBS service](https://github.com/zwagoth/iqdbs).
 
 ### Cropped Thumbnails
 

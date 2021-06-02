@@ -58,15 +58,11 @@ module Danbooru
     #
     # Run `rake db:seed` to create this account if it doesn't already exist in your install.
     def system_user
-      "E621_Bot"
+      "auto_moderator"
     end
 
     def upload_feedback_topic
       ForumTopic.where(title: "Upload Feedback Thread").first
-    end
-
-    def upgrade_account_email
-      contact_email
     end
 
     def source_code_url
@@ -93,11 +89,6 @@ module Danbooru
     # The default name to use for anyone who isn't logged in.
     def default_guest_name
       "Anonymous"
-    end
-
-    # This is a salt used to make dictionary attacks on account passwords harder.
-    def password_salt
-      "choujin-steiner"
     end
 
     def levels
@@ -159,6 +150,14 @@ fart'
     end
 
     def protected_file_secret
+      "abc123"
+    end
+
+    def replacement_path_prefix
+      "replacements"
+    end
+
+    def replacement_file_secret
       "abc123"
     end
 
@@ -271,6 +270,10 @@ fart'
       30
     end
 
+    def replace_post_limit
+      10
+    end
+
     def ticket_limit
       30
     end
@@ -278,6 +281,14 @@ fart'
     # Members cannot change the category of pools with more than this many posts.
     def pool_category_change_limit
       30
+    end
+
+    def post_replacement_per_day_limit
+      2
+    end
+
+    def post_replacement_per_post_limit
+      5
     end
 
     def remember_key
@@ -649,10 +660,6 @@ fart'
       nil
     end
 
-    def upload_notice_wiki_page
-      "help:upload_notice"
-    end
-
     def flag_notice_wiki_page
       "help:flag_notice"
     end
@@ -715,27 +722,11 @@ fart'
       nil
     end
 
-    def tinami_login
-      nil
-    end
-
-    def tinami_password
-      nil
-    end
-
     def nico_seiga_login
       nil
     end
 
     def nico_seiga_password
-      nil
-    end
-
-    def pixa_login
-      nil
-    end
-
-    def pixa_password
       nil
     end
 
@@ -794,12 +785,6 @@ fart'
       "/var/www/danbooru2/shared"
     end
 
-    def stripe_secret_key
-    end
-
-    def stripe_publishable_key
-    end
-
     def twitter_api_key
     end
 
@@ -841,11 +826,6 @@ fart'
       'noreply@localhost'
     end
 
-    # impose additional requirements to create tag aliases and implications
-    def strict_tag_requirements
-      true
-    end
-
     # For downloads, if the host matches any of these IPs, block it
     def banned_ip_for_download?(ip_addr)
       raise ArgumentError unless ip_addr.is_a?(IPAddr)
@@ -865,19 +845,6 @@ fart'
     def twitter_site
     end
 
-    def addthis_key
-    end
-
-    # enable s3-nginx proxy caching
-    def use_s3_proxy?(post)
-      false
-    end
-
-    # include essential tags in image urls (requires nginx/apache rewrites)
-    def enable_seo_post_urls
-      false
-    end
-
     # enable some (donmai-specific) optimizations for post counts
     def estimate_post_counts
       false
@@ -888,17 +855,8 @@ fart'
       true
     end
 
-    # Enables recording of popular searches, missed searches, and post view
-    # counts. Requires Reportbooru to be configured and running - see below.
-    def enable_post_search_counts
-      false
-    end
-
     # reportbooru options - see https://github.com/r888888888/reportbooru
     def reportbooru_server
-    end
-
-    def reportbooru_key
     end
 
     def iqdb_enabled?

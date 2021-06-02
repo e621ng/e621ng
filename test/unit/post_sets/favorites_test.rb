@@ -1,7 +1,7 @@
 require 'test_helper'
 
 module PostSets
-  class FavoriteTest < ActiveSupport::TestCase
+  class FavoritesTest < ActiveSupport::TestCase
     context "In all cases" do
       setup do
         @user = FactoryBot.create(:user)
@@ -11,9 +11,9 @@ module PostSets
         @post_1 = FactoryBot.create(:post)
         @post_2 = FactoryBot.create(:post)
         @post_3 = FactoryBot.create(:post)
-        @post_2.add_favorite!(@user)
-        @post_1.add_favorite!(@user)
-        @post_3.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post_2)
+        FavoriteManager.add!(user: @user, post: @post_1)
+        FavoriteManager.add!(user: @user, post: @post_3)
       end
 
       teardown do
@@ -23,8 +23,8 @@ module PostSets
 
       context "a favorite set for before the most recent post" do
         setup do
-          id = ::Favorite.where(:user_id => @user.id, :post_id => @post_3.id).first.id
-          @set = PostSets::Favorite.new(@user.id, "b#{id}", limit: 1)
+          id = ::Favorite.where(user_id: @user.id, post_id: @post_3.id).first.id
+          @set = PostSets::Favorites.new(@user, "b#{id}", 1)
         end
 
         context "a sequential paginator" do
@@ -33,17 +33,17 @@ module PostSets
           end
 
           should "know what page it's on" do
-            refute(@set.favorites.is_first_page?)
-            refute(@set.favorites.is_last_page?)
+            refute(@set.posts.is_first_page?)
+            refute(@set.posts.is_last_page?)
           end
         end
       end
 
       context "a favorite set for after the third most recent post" do
         setup do
-          id = ::Favorite.where(:user_id => @user.id, :post_id => @post_2.id).first.id
+          id = ::Favorite.where(user_id: @user.id, post_id: @post_2.id).first.id
           ::Favorite.stubs(:records_per_page).returns(1)
-          @set = PostSets::Favorite.new(@user.id, "a#{id}")
+          @set = PostSets::Favorites.new(@user, "a#{id}")
         end
 
         context "a sequential paginator" do
@@ -52,17 +52,17 @@ module PostSets
           end
 
           should "know what page it's on" do
-            refute(@set.favorites.is_first_page?)
-            refute(@set.favorites.is_last_page?)
+            refute(@set.posts.is_first_page?)
+            refute(@set.posts.is_last_page?)
           end
         end
       end
 
       context "a favorite set for before the second most recent post" do
         setup do
-          id = ::Favorite.where(:user_id => @user.id, :post_id => @post_1.id).first.id
+          id = ::Favorite.where(user_id: @user.id, post_id: @post_1.id).first.id
           ::Favorite.stubs(:records_per_page).returns(1)
-          @set = PostSets::Favorite.new(@user.id, "b#{id}")
+          @set = PostSets::Favorites.new(@user, "b#{id}")
         end
 
         context "a sequential paginator" do
@@ -71,17 +71,17 @@ module PostSets
           end
 
           should "know what page it's on" do
-            refute(@set.favorites.is_first_page?)
-            assert(@set.favorites.is_last_page?)
+            refute(@set.posts.is_first_page?)
+            assert(@set.posts.is_last_page?)
           end
         end
       end
 
       context "a favorite set for after the second most recent post" do
         setup do
-          id = ::Favorite.where(:user_id => @user.id, :post_id => @post_1.id).first.id
+          id = ::Favorite.where(user_id: @user.id, post_id: @post_1.id).first.id
           ::Favorite.stubs(:records_per_page).returns(1)
-          @set = PostSets::Favorite.new(@user.id, "a#{id}")
+          @set = PostSets::Favorites.new(@user, "a#{id}")
         end
 
         context "a sequential paginator" do
@@ -90,8 +90,8 @@ module PostSets
           end
 
           should "know what page it's on" do
-            assert(@set.favorites.is_first_page?)
-            refute(@set.favorites.is_last_page?)
+            assert(@set.posts.is_first_page?)
+            refute(@set.posts.is_last_page?)
           end
         end
       end
@@ -99,7 +99,7 @@ module PostSets
       context "a favorite set for page 2" do
         setup do
           ::Favorite.stubs(:records_per_page).returns(1)
-          @set = PostSets::Favorite.new(@user.id, 2)
+          @set = PostSets::Favorites.new(@user, 2, 1)
         end
 
         context "a numbered paginator" do
@@ -108,8 +108,8 @@ module PostSets
           end
 
           should "know what page it's on" do
-            refute(@set.favorites.is_first_page?)
-            refute(@set.favorites.is_last_page?)
+            refute(@set.posts.is_first_page?)
+            refute(@set.posts.is_last_page?)
           end
         end
       end
@@ -117,7 +117,7 @@ module PostSets
       context "a favorite set with no page specified" do
         setup do
           ::Favorite.stubs(:records_per_page).returns(1)
-          @set = PostSets::Favorite.new(@user.id)
+          @set = PostSets::Favorites.new(@user)
         end
 
         should "return the most recent element" do
@@ -125,8 +125,8 @@ module PostSets
         end
 
         should "know what page it's on" do
-          assert(@set.favorites.is_first_page?)
-          refute(@set.favorites.is_last_page?)
+          assert(@set.posts.is_first_page?)
+          refute(@set.posts.is_last_page?)
         end
       end
     end

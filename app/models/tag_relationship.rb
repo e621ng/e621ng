@@ -150,9 +150,9 @@ class TagRelationship < ApplicationRecord
       params[:order] ||= "status"
       case params[:order].downcase
       when "created_at"
-        q = q.order("created_at desc")
+        q = q.order("created_at desc nulls last, id desc")
       when "updated_at"
-        q = q.order("updated_at desc")
+        q = q.order("updated_at desc nulls last, id desc")
       when "name"
         q = q.order("antecedent_name asc, consequent_name asc")
       when "tag_count"

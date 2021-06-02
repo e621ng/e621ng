@@ -23,13 +23,21 @@
       <div class="body styled-dtext">
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
+      <% if blip.was_warned? %>
+        <div class="user-warning">
+          <hr>
+          <em><%= blip.warning_type_string %></em>
+        </div>
+      <% end %>
       <div class="content-menu">
         <menu>
-          <li><%= tag.a "Reply", href: '#', class: 'blip-reply-link', 'data-bid': blip.id %></li>
-          <% if blip.can_edit?(CurrentUser.user) %>
-            <li><%= link_to "Edit", edit_blip_path(blip) %></li>
+          <% if CurrentUser.is_member? %>
+            <li><%= tag.a "Reply", href: '#', class: 'blip-reply-link', 'data-bid': blip.id %></li>
+            <% if blip.can_edit?(CurrentUser.user) %>
+              <li><%= link_to "Edit", edit_blip_path(blip) %></li>
+            <% end %>
+            <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
           <% end %>
-          <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
 
           <% if !blip.is_hidden && blip.can_hide?(CurrentUser.user) %>
             <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
@@ -56,6 +64,15 @@
               <strong>IP</strong>
               <span><%= link_to_ip blip.creator_ip_addr %></span>
             </li>
+            <li>|</li>
+            <% if !blip.was_warned? %>
+              <li>Mark for:</li>
+              <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'blip', 'item-id': blip.id, 'record-type': 'warning' } %></li>
+              <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'blip', 'item-id': blip.id, 'record-type': 'record' } %></li>
+              <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'blip', 'item-id': blip.id, 'record-type': 'ban' } %></li>
+            <% else %>
+              <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'blip', 'item-id': blip.id, 'record-type': 'unmark' } %></li>
+            <% end %>
           <% end %>
         </menu>
       </div>

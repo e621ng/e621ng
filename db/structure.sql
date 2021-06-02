@@ -412,7 +412,9 @@ CREATE TABLE public.blips (
     is_hidden boolean DEFAULT false,
     body_index tsvector NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -527,7 +529,9 @@ CREATE TABLE public.comments (
     updater_ip_addr inet,
     do_not_bump_post boolean DEFAULT false NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    is_sticky boolean DEFAULT false NOT NULL
+    is_sticky boolean DEFAULT false NOT NULL,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -919,7 +923,9 @@ CREATE TABLE public.forum_posts (
     is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    creator_ip_addr inet
+    creator_ip_addr inet,
+    warning_type integer,
+    warning_user_id integer
 );
 
 
@@ -2017,6 +2023,73 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: staff_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_audit_logs (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_id bigint NOT NULL,
+    action character varying DEFAULT 'unknown_action'::character varying NOT NULL,
+    "values" json
+);
+
+
+--
+-- Name: staff_audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.staff_audit_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: staff_audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.staff_audit_logs_id_seq OWNED BY public.staff_audit_logs.id;
+
+
+--
+-- Name: staff_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_notes (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_id bigint NOT NULL,
+    creator_id integer NOT NULL,
+    body character varying,
+    resolved boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: staff_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.staff_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: staff_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.staff_notes_id_seq OWNED BY public.staff_notes.id;
+
+
+--
 -- Name: tag_aliases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2552,7 +2625,7 @@ CREATE TABLE public.users (
     password_hash character varying NOT NULL,
     email character varying,
     email_verification_key character varying,
-    level integer DEFAULT 0 NOT NULL,
+    level integer DEFAULT 20 NOT NULL,
     base_upload_limit integer DEFAULT 10 NOT NULL,
     last_logged_in_at timestamp without time zone,
     last_forum_read_at timestamp without time zone,
@@ -3017,6 +3090,20 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('public.saved_searches_id_seq'::regclass);
+
+
+--
+-- Name: staff_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_audit_logs ALTER COLUMN id SET DEFAULT nextval('public.staff_audit_logs_id_seq'::regclass);
+
+
+--
+-- Name: staff_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_notes ALTER COLUMN id SET DEFAULT nextval('public.staff_notes_id_seq'::regclass);
 
 
 --
@@ -3542,6 +3629,22 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: staff_audit_logs staff_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_audit_logs
+    ADD CONSTRAINT staff_audit_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_notes staff_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_notes
+    ADD CONSTRAINT staff_notes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tag_aliases tag_aliases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3880,6 +3983,13 @@ CREATE INDEX index_comments_on_body_index ON public.comments USING gin (body_ind
 
 
 --
+-- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_creator_id ON public.comments USING btree (creator_id);
+
+
+--
 -- Name: index_comments_on_creator_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3968,6 +4078,20 @@ CREATE INDEX index_favorite_groups_on_creator_id ON public.favorite_groups USING
 --
 
 CREATE INDEX index_favorite_groups_on_lower_name ON public.favorite_groups USING btree (lower(name));
+
+
+--
+-- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_post_id ON public.favorites USING btree (post_id);
+
+
+--
+-- Name: index_favorites_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
 
 
 --
@@ -4384,6 +4508,20 @@ CREATE INDEX index_post_versions_on_updater_ip_addr ON public.post_versions USIN
 
 
 --
+-- Name: index_post_votes_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_post_id ON public.post_votes USING btree (post_id);
+
+
+--
+-- Name: index_post_votes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_id);
+
+
+--
 -- Name: index_post_votes_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4479,6 +4617,27 @@ CREATE INDEX index_saved_searches_on_query ON public.saved_searches USING btree 
 --
 
 CREATE INDEX index_saved_searches_on_user_id ON public.saved_searches USING btree (user_id);
+
+
+--
+-- Name: index_staff_audit_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_audit_logs_on_user_id ON public.staff_audit_logs USING btree (user_id);
+
+
+--
+-- Name: index_staff_notes_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_notes_on_creator_id ON public.staff_notes USING btree (creator_id);
+
+
+--
+-- Name: index_staff_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_notes_on_user_id ON public.staff_notes USING btree (user_id);
 
 
 --
@@ -4825,6 +4984,14 @@ CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wi
 
 
 --
+-- Name: staff_audit_logs fk_rails_02329e5ef9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_audit_logs
+    ADD CONSTRAINT fk_rails_02329e5ef9 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: post_image_hashes fk_rails_2b7afcc2f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4838,6 +5005,14 @@ ALTER TABLE ONLY public.post_image_hashes
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT fk_rails_a7668ef613 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: staff_notes fk_rails_bab7e2d92a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_notes
+    ADD CONSTRAINT fk_rails_bab7e2d92a FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -5084,6 +5259,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201113073842'),
 ('20201220172926'),
 ('20201220190335'),
-('20210117173030');
+('20210117173030'),
+('20210405040522'),
+('20210425020131'),
+('20210426025625'),
+('20210430201028'),
+('20210506235640');
 
 

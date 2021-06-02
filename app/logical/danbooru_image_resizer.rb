@@ -5,9 +5,11 @@ module DanbooruImageResizer
   SRGB_PROFILE = "#{Rails.root}/config/sRGB.icm"
   # http://jcupitt.github.io/libvips/API/current/libvips-resample.html#vips-thumbnail
   THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE }
+  THUMBNAIL_OPTIONS_NO_ICC = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE }
   # http://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave
   JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }
   CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE, crop: :attention }
+  CROP_OPTIONS_NO_ICC = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, crop: :attention }
 
   # XXX libvips-8.4 on Debian doesn't support the `Vips::Image.thumbnail` method.
   # On 8.4 we have to shell out to vipsthumbnail instead. Remove when Debian supports 8.5.
@@ -31,7 +33,12 @@ module DanbooruImageResizer
   # http://jcupitt.github.io/libvips/API/current/Using-vipsthumbnail.md.html
   def resize_ruby(file, width, height, resize_quality)
     output_file = Tempfile.new
-    resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS)
+    begin
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS)
+    rescue Vips::Error => e
+      raise e unless e.message =~ /icc_transform/i
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **THUMBNAIL_OPTIONS_NO_ICC)
+    end
     resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
 
     output_file
@@ -41,7 +48,12 @@ module DanbooruImageResizer
     return nil unless Danbooru.config.enable_image_cropping
 
     output_file = Tempfile.new
-    resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS)
+    begin
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS)
+    rescue Vips::Error => e
+      raise e unless e.message =~ /icc_transform/i
+      resized_image = Vips::Image.thumbnail(file.path, width, height: height, **CROP_OPTIONS_NO_ICC)
+    end
     resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
 
     output_file
@@ -94,19 +106,11 @@ module DanbooruImageResizer
     output_file
   end
 
-  def validate_shell(file)
-    temp = Tempfile.new("validate")
-    output, status = Open3.capture2e("vips", "stats", file.path, "#{temp.path}.v")
-
-    # png | jpeg | gif
-    if output =~ /Read Error|Premature end of JPEG file|Failed to read from given file/m
-      return false
-    end
-
-    return true
-
-  ensure
-    temp.close
-    temp.unlink
+  def is_corrupt?(filename)
+    image = Vips::Image.new_from_file(filename, fail: true)
+    image.stats
+    false
+  rescue
+    true
   end
 end

@@ -1,10 +1,10 @@
 module Maintenance
   module User
     class ApiKeysController < ApplicationController
-      before_action :check_privilege
+      before_action :member_only
       before_action :authenticate!, :except => [:show]
       rescue_from ::SessionLoader::AuthenticationFailure, :with => :authentication_failed
-      respond_to :html, :json
+      respond_to :html
 
       def view
         respond_with(CurrentUser.user, @api_key)
@@ -21,10 +21,6 @@ module Maintenance
       end
 
       protected
-
-      def check_privilege
-        raise ::User::PrivilegeError unless params[:user_id].to_i == CurrentUser.id
-      end
 
       def authenticate!
         if ::User.authenticate(CurrentUser.user.name, params[:user][:password]) == CurrentUser.user

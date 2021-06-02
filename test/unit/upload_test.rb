@@ -26,7 +26,7 @@ class UploadTest < ActiveSupport::TestCase
         should "fail creation" do
           @upload = FactoryBot.build(:jpg_upload, :tag_string => "")
           @upload.save
-          assert_equal(["You have reached your upload limit for the day"], @upload.errors.full_messages)
+          assert_equal(["You have reached your upload limit"], @upload.errors.full_messages)
         end
       end
     end

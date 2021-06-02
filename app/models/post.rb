@@ -65,6 +65,8 @@ class Post < ApplicationRecord
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
+  IMAGE_TYPES = %i[original large preview crop]
+
   module FileMethods
     extend ActiveSupport::Concern
 
@@ -278,6 +280,23 @@ class Post < ApplicationRecord
       else
         PostVideoConversionJob.perform_async(self.id)
       end
+    end
+
+    def regenerate_video_samples!
+      # force code to assume no samples exist
+      update_column(:generated_samples, nil)
+      generate_video_samples(later: true)
+    end
+
+    def regenerate_image_samples!
+      file = self.file()
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image)
+      storage_manager.store_file(sample_file, self, :large) if sample_file.present?
+      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
+      storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
+      update({has_cropped: crop_file.present?})
+    ensure
+      file.close
     end
   end
 
@@ -841,7 +860,6 @@ class Post < ApplicationRecord
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
       normalized_tags = %w(tagme) if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
-      # normalized_tags = normalized_tags + Tag.create_for_list(TagImplication.automatic_tags_for(normalized_tags))
       normalized_tags = TagImplication.with_descendants(normalized_tags)
       enforce_dnp_tags(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
@@ -1580,6 +1598,11 @@ class Post < ApplicationRecord
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
       give_favorites_to_parent(options) if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
+      reject_pending_replacements
+    end
+
+    def reject_pending_replacements
+      replacements.where(status: 'pending').update_all(status: 'rejected')
     end
 
     def undelete!(options = {})
@@ -1606,15 +1629,6 @@ class Post < ApplicationRecord
       end
       move_files_on_undelete
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
-    end
-
-    def replace!(params)
-      transaction do
-        replacement = replacements.create(params)
-        processor = UploadService::Replacer.new(post: self, replacement: replacement)
-        processor.process!
-        replacement
-      end
     end
   end
 

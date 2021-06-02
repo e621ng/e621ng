@@ -165,7 +165,6 @@ class WikiPage < ApplicationRecord
 
     self.title = version.title
     self.body = version.body
-    self.is_locked = version.is_locked
     self.other_names = version.other_names
   end
 

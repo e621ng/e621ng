@@ -1,8 +1,8 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show, :search]
-  before_action :moderator_only, only: [:destroy, :unhide]
-  before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
+  before_action :moderator_only, only: [:destroy, :unhide, :warning]
+  before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :warning]
   before_action :check_min_level, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
   skip_before_action :api_check
 
@@ -67,6 +67,15 @@ class ForumPostsController < ApplicationController
   def unhide
     check_privilege(@forum_post)
     @forum_post.unhide!
+    respond_with(@forum_post)
+  end
+
+  def warning
+    if params[:record_type] == 'unmark'
+      @forum_post.remove_user_warning!
+    else
+      @forum_post.user_warned!(params[:record_type])
+    end
     respond_with(@forum_post)
   end
 

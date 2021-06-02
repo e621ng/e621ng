@@ -3,10 +3,10 @@ module PostSets
   class Favorites < PostSets::Base
     attr_reader :page, :limit
 
-    def initialize(user, page)
+    def initialize(user, page = 1, limit = CurrentUser.per_page)
       @user = user
       @page = page
-      @limit = CurrentUser.per_page
+      @limit = limit || CurrentUser.per_page
     end
 
     def public_tag_string

@@ -24,6 +24,12 @@
 
         <%= render "application/update_notice", record: comment %>
       </div>
+      <% if comment.was_warned? %>
+        <div class="user-warning">
+          <hr>
+          <em><%= comment.warning_type_string %></em>
+        </div>
+      <% end %>
         <div class="content-menu">
           <menu>
             <% if @post || @posts || comment.post.present? %>
@@ -58,6 +64,15 @@
                   <strong>IP</strong>
                   <span><%= link_to_ip comment.creator_ip_addr %></span>
                 </li>
+                <li>|</li>
+                <% if !comment.was_warned? %>
+                  <li>Mark for:</li>
+                  <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'warning' } %></li>
+                  <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'record' } %></li>
+                  <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'ban' } %></li>
+                <% else %>
+                  <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'unmark' } %></li>
+                <% end %>
               <% end %>
             <% end %>
           </menu>

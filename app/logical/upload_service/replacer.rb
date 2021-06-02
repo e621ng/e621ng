@@ -1,8 +1,6 @@
 class UploadService
   class Replacer
     extend Memoist
-    class Error < Exception;
-    end
 
     attr_reader :post, :replacement
 
@@ -11,90 +9,54 @@ class UploadService
       @replacement = replacement
     end
 
-    def comment_replacement_message(post, replacement)
-      %("#{replacement.creator.name}":[/users/#{replacement.creator.id}] replaced this post with a new image:\n\n#{replacement_message(post, replacement)})
-    end
-
-    def replacement_message(post, replacement)
-      linked_source = linked_source(replacement.replacement_url)
-      linked_source_was = linked_source(post.source_was)
-
-      <<-EOS.strip_heredoc
-        [table]
-          [tbody]
-            [tr]
-              [th]Old[/th]
-              [td]#{linked_source_was}[/td]
-              [td]#{post.md5_was}[/td]
-              [td]#{post.file_ext_was}[/td]
-              [td]#{post.image_width_was} x #{post.image_height_was}[/td]
-              [td]#{post.file_size_was.to_s(:human_size, precision: 4)}[/td]
-            [/tr]
-            [tr]
-              [th]New[/th]
-              [td]#{linked_source}[/td]
-              [td]#{post.md5}[/td]
-              [td]#{post.file_ext}[/td]
-              [td]#{post.image_width} x #{post.image_height}[/td]
-              [td]#{post.file_size.to_s(:human_size, precision: 4)}[/td]
-            [/tr]
-          [/tbody]
-        [/table]
-      EOS
-    end
-
-    def linked_source(source)
-      return nil if source.nil?
-
-      # truncate long sources in the middle: "www.pixiv.net...lust_id=23264933"
-      truncated_source = source.gsub(%r{\Ahttps?://}, "").truncate(64, omission: "...#{source.last(32)}")
-
-      if source =~ %r{\Ahttps?://}i
-        %("#{truncated_source}":[#{source}])
-      else
-        truncated_source
-      end
-    end
-
-    def undo!
-      undo_replacement = post.replacements.create(replacement_url: replacement.original_url)
-      undoer = Replacer.new(post: post, replacement: undo_replacement)
-      undoer.process!
-    end
-
-    def source_strategy(upload)
-      return Sources::Strategies.find(upload.source, upload.referer_url)
-    end
-
     def find_replacement_url(repl, upload)
       if repl.replacement_file.present?
-        return "file://#{repl.replacement_file.original_filename}"
+        return "file://#{repl.file_name}"
       end
 
       if !upload.source.present?
-        raise "No source found in upload for replacement"
-      end
-
-      if source_strategy(upload).canonical_url.present?
-        return source_strategy(upload).canonical_url
+        raise ProcessingError "No source found in upload for replacement"
       end
 
       return upload.source
     end
 
+    def create_backup_replacement
+      begin
+        repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
+                                     image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
+                                     file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
+                                     source: post.source, reason: 'Backup of original file', is_backup: true)
+        repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
+        repl.save
+      rescue Exception => e
+        raise ProcessingError, "Failed to create post file backup: #{e.message}"
+      end
+      raise ProcessingError, "Could not create post file backup?" if !repl.valid?
+    end
+
     def process!
+      # Prevent trying to replace deleted posts
+      raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
+
+      create_backup_replacement
+      replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
+
       upload = Upload.create(
+          uploader_id: CurrentUser.id,
+          uploader_ip_addr: CurrentUser.ip_addr,
           rating: post.rating,
-          tag_string: replacement.tags,
-          source: replacement.replacement_url,
+          tag_string: post.tag_string,
+          source: replacement.source,
           file: replacement.replacement_file,
           replaced_post: post,
-          original_post_id: post.id
+          original_post_id: post.id,
+          replacement_id: replacement.id
       )
 
       begin
         if upload.invalid? || upload.is_errored?
-          raise Error, upload.status
+          raise ProcessingError, upload.status
         end
 
         upload.update(status: "processing")
@@ -105,41 +67,30 @@ class UploadService
         upload.save!
       rescue Exception => x
         upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
-        raise Error, upload.status
+        raise ProcessingError, upload.status
       end
       md5_changed = upload.md5 != post.md5
 
-      replacement.replacement_url = find_replacement_url(replacement, upload)
-
       if md5_changed
-        post.queue_delete_files(PostReplacement::DELETION_GRACE_PERIOD)
+        post.delete_files
         post.generated_samples = nil
       end
-
-      replacement.file_ext = upload.file_ext
-      replacement.file_size = upload.file_size
-      replacement.image_height = upload.image_height
-      replacement.image_width = upload.image_width
-      replacement.md5 = upload.md5
 
       post.md5 = upload.md5
       post.file_ext = upload.file_ext
       post.image_width = upload.image_width
       post.image_height = upload.image_height
       post.file_size = upload.file_size
-      post.source = replacement.final_source.presence || replacement.replacement_url
+      post.source = "#{replacement.source}\n" + post.source
       post.tag_string = upload.tag_string
+      # Reset ownership information on post.
+      post.uploader_id = replacement.creator_id
+      post.uploader_ip_addr = replacement.creator_ip_addr
 
       rescale_notes(post)
       update_ugoira_frame_data(post, upload)
 
-      if md5_changed
-        CurrentUser.as(User.system) do
-          post.comments.create!(body: comment_replacement_message(post, replacement), do_not_bump_post: true)
-        end
-      end
-
-      replacement.save!
+      replacement.update({status: 'approved', approver_id: CurrentUser.id})
       post.save!
 
       if post.is_video?

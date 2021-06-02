@@ -2,6 +2,7 @@ module Moderator
   module Post
     class PostsController < ApplicationController
       before_action :approver_only
+      before_action :janitor_only, only: [:regenerate_thumbnails, :regenerate_videos]
       before_action :admin_only, :only => [:expunge]
       skip_before_action :api_check
 
@@ -45,6 +46,20 @@ module Moderator
       def expunge
         @post = ::Post.find(params[:id])
         @post.expunge!
+        respond_with(@post)
+      end
+
+      def regenerate_thumbnails
+        @post = ::Post.find(params[:id])
+        raise ::User::PrivilegeError.new "Cannot regenerate thumbnails on deleted images" if @post.is_deleted?
+        @post.regenerate_image_samples!
+        respond_with(@post)
+      end
+
+      def regenerate_videos
+        @post = ::Post.find(params[:id])
+        raise ::User::PrivilegeError.new "Cannot regenerate thumbnails on deleted images" if @post.is_deleted?
+        @post.regenerate_video_samples!
         respond_with(@post)
       end
     end

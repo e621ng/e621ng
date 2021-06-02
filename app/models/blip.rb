@@ -1,4 +1,5 @@
 class Blip < ApplicationRecord
+  include UserWarnable
   simple_versioning
   belongs_to_creator
   user_status_counter :blip_count
@@ -48,6 +49,7 @@ class Blip < ApplicationRecord
     end
 
     def can_edit?(user)
+      return false if was_warned? && !user.is_moderator?
       (creator_id == user.id && created_at > 5.minutes.ago) || user.is_moderator?
     end
 
