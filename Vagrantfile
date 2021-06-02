@@ -2,7 +2,7 @@ Vagrant.configure('2') do |config|
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
 
-  config.vm.box = 'generic/ubuntu1804'
+  config.vm.box = 'generic/ubuntu2004'
 
   config.vm.provider 'virtualbox' do |v|
     v.cpus = 2

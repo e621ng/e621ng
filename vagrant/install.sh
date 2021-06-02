@@ -42,9 +42,9 @@ if ! package_installed elasticsearch; then
     script_log "Elasticsearch repository added"
 fi
 
-if ! package_installed postgresql-11; then
+if ! package_installed postgresql-12; then
     add_key https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    echo "deb https://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+    echo "deb https://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     script_log "PostgreSQL repository added"
 fi
 
@@ -81,6 +81,9 @@ fi
 
 script_log "Setting up elasticsearch..."
 sed -i -e 's/\(-Xm[sx]\)1g/\1256m/' /etc/elasticsearch/jvm.options
+if ! grep -Fq "xpack.security.enabled" /etc/elasticsearch/elasticsearch.yml; then
+    echo "xpack.security.enabled: false" >> /etc/elasticsearch/elasticsearch.yml
+fi
 systemctl enable elasticsearch 2>/dev/null
 service elasticsearch start
 
