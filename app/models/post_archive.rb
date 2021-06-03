@@ -215,12 +215,12 @@ class PostArchive < ApplicationRecord
     if post.nil?
       latest_tags = tag_array
     else
-      latest_tags = post.tag_array
+      latest_tags = post.tag_array + parent_rating_tags(post)
     end
 
-    new_tags = tag_array
+    new_tags = tag_array + parent_rating_tags(self)
 
-    old_tags = version.present? ? version.tag_array : []
+    old_tags = version.present? ? version.tag_array + parent_rating_tags(version) : []
 
     added_tags = new_tags - old_tags
     removed_tags = old_tags - new_tags
@@ -230,16 +230,6 @@ class PostArchive < ApplicationRecord
 
     added_locked = new_locked - old_locked
     removed_locked = old_locked - new_locked
-
-    if rating_changed
-      added_tags << "rating:#{rating}"
-      removed_tags << "rating:#{version.rating}" if version.present?
-    end
-
-    if parent_changed
-      added_tags << "parent:#{parent_id}"
-      removed_tags << "parent:#{version.parent_id}" if version.present?
-    end
 
     return {
         added_tags: added_tags,
@@ -251,6 +241,12 @@ class PostArchive < ApplicationRecord
         removed_locked_tags: removed_locked,
         unchanged_locked_tags: new_locked & old_locked
     }
+  end
+
+  def parent_rating_tags(post)
+    result = ["rating:#{post.rating}"]
+    result << "parent:#{post.parent_id}" unless post.parent_id.nil?
+    result
   end
 
   def changes
