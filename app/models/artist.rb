@@ -192,7 +192,7 @@ class Artist < ApplicationRecord
     end
 
     def sorted_urls
-      urls.sort {|a, b| a.priority <=> b.priority}
+      urls.sort {|a, b| b.priority <=> a.priority}
     end
 
     def url_array
