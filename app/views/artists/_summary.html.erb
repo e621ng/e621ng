@@ -27,7 +27,7 @@
     <% if artist.urls.present? %>
       <li><strong>URLs</strong></li>
       <ul>
-        <% artist.urls.each do |url| %>
+        <% artist.sorted_urls.each do |url| %>
           <li>
             <% if url.is_active? %>
               <%= link_to h(url.to_s), h(url) %>

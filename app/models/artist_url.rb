@@ -87,22 +87,57 @@ class ArtistUrl < ApplicationRecord
     end
   end
 
+  # sites apearing at the start have higher priority than those below
+  SITES_PRIORITY_ORDER = [
+    "furaffinity.net",
+    "deviantart.com",
+    "twitter.com",
+    "pixiv.net",
+    "inkbunny.net",
+    "sofurry.com",
+    "weasyl.com",
+    "furrynetwork.com",
+    "tumblr.com",
+    "newgrounds.com",
+    "hentai-foundry.com",
+    "artstation.com",
+    "baraag.net",
+    "pawoo.net",
+    "pillowfort.social",
+    "reddit.com",
+    "youtube.com",
+    "instagram.com",
+    "vk.com",
+    "facebook.com",
+    # livestreams
+    "picarto.tv",
+    "piczel.tv",
+    "twitch.tv",
+    # support the artist
+    "patreon.com",
+    "subscribestar.adult",
+    "ko-fi.com",
+    "commishes.com",
+    "fanbox.cc",
+    "gumroad.com",
+    "redbubble.com",
+    # misc
+    "discord.gg",
+    "trello.com",
+    "curiouscat.me",
+    "toyhou.se",
+    "linktr.ee",
+    "carrd.co",
+  ].reverse!
+
+  # higher priority will apear higher in the artist url list
+  # inactive urls will be pushed to the bottom
   def priority
-    if normalized_url =~ /pixiv\.net\/member\.php/
-      10
-
-    elsif normalized_url =~ /seiga\.nicovideo\.jp\/user\/illust/
-      10
-
-    elsif normalized_url =~ /twitter\.com/ && normalized_url !~ /status/
-      15
-
-    elsif normalized_url =~ /tumblr|patreon|deviantart|artstation/
-      20
-
-    else
-      100
-    end
+    prio = 0
+    prio -= 1000 unless is_active
+    host = Addressable::URI.parse(url).domain
+    prio += SITES_PRIORITY_ORDER.index(host).to_i
+    prio
   end
 
   def normalize

@@ -166,13 +166,15 @@ class Artist < ApplicationRecord
         %r!\Ahttps?://(?:[a-zA-Z0-9_-]+\.)*#{domain}/\z!i
       end)
 
+      # Looks at the url and goes one directory down if no results are found.
+      # Should the domain of the url match one of the domains in the site blacklist stop immediately
+      # http://www.explame.com/cool/page/ => http://www.explame.com/cool/ => http://www.explame.com/
+      # This was presumably made so you only get specific matches for user pages and not some unrelated
+      # results when that specific user doesn't exist
       def find_artists(url)
         url = ArtistUrl.normalize(url)
         artists = []
-
-        # return [] unless Sources::Strategies.find(url).normalized_for_artist_finder?
-
-        while artists.empty? && url.size > 10
+        while artists.empty? && url.length > 10
           u = url.sub(/\/+$/, "") + "/"
           u = u.to_escaped_for_sql_like.gsub(/\*/, '%') + '%'
           artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url LIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
@@ -190,7 +192,7 @@ class Artist < ApplicationRecord
     end
 
     def sorted_urls
-      urls.sort {|a, b| a.priority <=> b.priority}
+      urls.sort {|a, b| b.priority <=> a.priority}
     end
 
     def url_array
