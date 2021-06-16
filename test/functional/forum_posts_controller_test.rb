@@ -132,33 +132,29 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("ForumPost.count", 1) do
           post_auth forum_posts_path, @user, params: {:forum_post => {:body => "xaxaxa", :topic_id => @forum_topic.id}}
         end
-
-        forum_post = ForumPost.last
-        assert_redirected_to(forum_topic_path(@forum_topic))
       end
     end
 
     context "destroy action" do
       should "destroy the posts" do
         delete_auth forum_post_path(@forum_post), @mod
-        assert_redirected_to(forum_post_path(@forum_post))
-        @forum_post.reload
-        assert_equal(true, @forum_post.is_deleted?)
+        get_auth forum_post_path(@forum_post), @mod
+        assert_response :not_found
       end
     end
 
-    context "undelete action" do
+    context "unhide action" do
       setup do
         as(@mod) do
-          @forum_post.update(is_deleted: true)
+          @forum_post.hide!
         end
       end
 
       should "restore the post" do
-        post_auth undelete_forum_post_path(@forum_post), @mod
+        post_auth unhide_forum_post_path(@forum_post), @mod
         assert_redirected_to(forum_post_path(@forum_post))
         @forum_post.reload
-        assert_equal(false, @forum_post.is_deleted?)
+        assert_equal(false, @forum_post.is_hidden?)
       end
     end
   end

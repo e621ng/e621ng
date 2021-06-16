@@ -21,7 +21,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
       should "not allow users to see the topic" do
         get_auth forum_topic_path(@forum_topic), @user
-        assert_redirected_to forum_topics_path
+        assert_response :forbidden
       end
 
       should "not bump the forum for users without access" do
@@ -151,7 +151,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a new forum topic and post" do
         assert_difference(["ForumPost.count", "ForumTopic.count"], 1) do
-          post_auth forum_topics_path, @user, params: {:forum_topic => {:title => "bababa", :original_post_attributes => {:body => "xaxaxa"}}}
+          post_auth forum_topics_path, @user, params: {:forum_topic => {:title => "bababa", :category_id => Danbooru.config.alias_implication_forum_category, :original_post_attributes => {:body => "xaxaxa"}}}
         end
 
         forum_topic = ForumTopic.last
@@ -168,24 +168,22 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
       should "destroy the topic and any associated posts" do
         delete_auth forum_topic_path(@forum_topic), @mod
-        assert_redirected_to(forum_topic_path(@forum_topic))
-        @forum_topic.reload
-        assert(@forum_topic.is_deleted?)
+        assert_response :no_content
       end
     end
 
-    context "undelete action" do
+    context "unhide action" do
       setup do
         as(@mod) do
-          @forum_topic.update(is_deleted: true)
+          @forum_topic.hide!
         end
       end
 
       should "restore the topic" do
-        post_auth undelete_forum_topic_path(@forum_topic), @mod
+        post_auth unhide_forum_topic_path(@forum_topic), @mod
         assert_redirected_to(forum_topic_path(@forum_topic))
         @forum_topic.reload
-        assert(!@forum_topic.is_deleted?)
+        assert(!@forum_topic.is_hidden?)
       end
     end
   end

@@ -1,6 +1,6 @@
 module ForumTopicsHelper
   def forum_topic_category_select(object, field, options = {})
-    select(object, field, ForumCategory.reverse_mapping, options)
+    select(object, field, ForumCategory.visible.reverse_mapping, options)
   end
 
   def available_min_user_levels

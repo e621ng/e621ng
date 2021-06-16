@@ -36,6 +36,11 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.level = User::Levels::JANITOR
 end
 
+ForumCategory.find_or_create_by!(id: Danbooru.config.alias_implication_forum_category) do |category|
+  category.name = "Tag Alias and Implication Suggestions"
+  category.can_view = 0
+end
+
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"

@@ -1,15 +1,13 @@
 <div id="c-forum-categories">
   <div id="a-index">
-    <p>Note: If any levels are set to "Member", logged-out users will not be able to use that category. Use "Anyone" as
-      the default.</p>
     <div class="box-section">
       <h4>New Category</h4>
       <%= simple_form_for(@new_cat) do |f| %>
         <%= f.input :name %>
         <%= f.input :description %>
-        <%= f.input :can_create, collection: @user_levels %>
-        <%= f.input :can_reply, collection: @user_levels %>
-        <%= f.input :can_view, collection: @user_levels %>
+        <%= f.input :can_create, collection: @user_levels, include_blank: false %>
+        <%= f.input :can_reply, collection: @user_levels, include_blank: false %>
+        <%= f.input :can_view, collection: @user_levels, include_blank: false %>
         <%= f.button :submit, "Create" %>
       <% end %>
     </div>
