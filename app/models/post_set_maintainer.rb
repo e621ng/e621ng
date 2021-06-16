@@ -24,10 +24,6 @@ class PostSetMaintainer < ApplicationRecord
     )
   end
 
-  def notify_destroy
-
-  end
-
   def cancel!
     if status == 'pending'
       self.status = 'cooldown'

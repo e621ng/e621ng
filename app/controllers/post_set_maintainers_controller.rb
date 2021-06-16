@@ -5,12 +5,17 @@ class PostSetMaintainersController < ApplicationController
 
 
   def index
-    @invites = PostSetMaintainer.where(user_id: CurrentUser.id).includes(:post_set)
+    @invites = PostSetMaintainer.where(user_id: CurrentUser.id).order(updated_at: :desc).includes(:post_set)
   end
 
   def create
     @set = PostSet.find(params[:post_set_id])
     @user = User.find_by_name(params[:username])
+    if @user.nil?
+      flash[:notice] = "User #{params[:username]} not found"
+      redirect_to maintainers_post_set_path(@set)
+      return
+    end
     check_edit_access(@set)
     @invite = PostSetMaintainer.new(post_set_id: @set.id, user_id: @user.id, status: 'pending')
     @invite.validate
@@ -23,7 +28,6 @@ class PostSetMaintainersController < ApplicationController
 
     if RateLimiter.check_limit("set.invite.#{CurrentUser.id}", 5, 1.hours)
       flash[:notice] = "You must wait an hour before inviting more set maintainers."
-
     end
 
     PostSetMaintainer.where(user_id: @user.id, post_set_id: @set.id).destroy_all

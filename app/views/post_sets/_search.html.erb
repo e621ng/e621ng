@@ -6,7 +6,7 @@
     <%= f.input :name, label: "Name", input_html: { value: params.dig(:search, :name) } %>
     <%= f.input :shortname, label: "Short Name", input_html: {value: params.dig(:search, :shortname)} %>
     <%= f.input :creator_name, label: "Username", input_html: {value: params.dig(:search, :creator_name), data: {autocomplete: 'users'}} %>
-    <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'postcount'], %w[Created created], %w[Updated updated]], include_blank: false, selected: params.dig(:search, :order) %>
+    <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'postcount'], %w[Created created_at], %w[Updated update]], include_blank: false, selected: params.dig(:search, :order) %>
     <%= f.submit "Search" %>
   <% end %>
   <% unless params[:show] %><%= search_hide_link %><% end %>
