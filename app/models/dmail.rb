@@ -74,6 +74,7 @@ class Dmail < ApplicationRecord
 
           # sender's copy
           copy = Dmail.new(params)
+          copy.bypass_limits = true
           copy.owner_id = copy.from_id
           copy.is_read = true
           copy.save
