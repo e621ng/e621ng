@@ -8,11 +8,13 @@ function initSearch() {
   const $searchHide = $("#search-form-hide-link");
   if ($searchForm.length) {
     $searchShow.on('click', e => {
+      e.preventDefault();
       $searchForm.fadeIn('fast');
       $searchShow.hide();
       $searchHide.show();
     });
     $searchHide.on('click', e => {
+      e.preventDefault();
       $searchForm.fadeOut('fast');
       $searchShow.show();
       $searchHide.hide();
