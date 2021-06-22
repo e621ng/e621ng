@@ -17,16 +17,6 @@ function initSearch() {
       $searchShow.show();
       $searchHide.hide();
     });
-    const urlSearch = new URLSearchParams(window.location.search);
-    if (Array.from(urlSearch.keys()).filter(e => e.startsWith("search")).length) {
-      $searchForm.show('fast');
-      $searchShow.hide();
-      $searchHide.show();
-    } else {
-      $searchForm.hide('fast');
-      $searchShow.show();
-      $searchHide.hide();
-    }
   }
 }
 

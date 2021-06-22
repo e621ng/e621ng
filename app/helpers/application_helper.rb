@@ -76,12 +76,9 @@ module ApplicationHelper
     raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
   end
 
-  def search_show_link
-    tag.a "Show Search Options", href: '#', id: 'search-form-show-link'
-  end
-
-  def search_hide_link
-    tag.a "Hide Search Options", href: '#', id: 'search-form-hide-link'
+  def hideable_form_search(path:, always_display: false, &block)
+    show_on_load = !params[:search].empty? || always_display
+    render "application/hideable_form_search", path: path, show_on_load: show_on_load, block: block
   end
 
   def format_text(text, **options)

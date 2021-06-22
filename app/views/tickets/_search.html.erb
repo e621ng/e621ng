@@ -1,6 +1,4 @@
-<%= search_show_link %>
-<%= search_hide_link %>
-<%= simple_form_for(:search, method: :get, defaults: {required: false}, html: {id: 'searchform', class: "inline-form"}) do |f| %>
+<%= hideable_form_search path: tickets_path do |f| %>
   <% if CurrentUser.is_admin? %>
     <%= f.input :creator_name, label: "Reporter", input_html: {value: params.dig(:search, :creator_name)} %>
     <%= f.input :creator_id, label: "Reporter ID", input_html: {value: params.dig(:search, :creator_id)} %>
