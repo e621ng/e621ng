@@ -121,8 +121,8 @@
           <%= hidden_field_tag :pool_id, params[:pool_id] %>
 
           <fieldset>
-            <label for="post_check_translation">
-              <%= check_box "post", "check_translation", :checked => @post.has_tag?("check_translation") %>
+            <label for="post_translation_check">
+              <%= check_box "post", "translation_check", :checked => @post.has_tag?("translation_check") %>
               Check translation
             </label>
 
