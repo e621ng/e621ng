@@ -1,19 +1,17 @@
-
-
 #c-bans #a-index {
   tr[data-expired="true"] {
-    background-color: $ban-expired-background !important;
+    background-color: $positive-record-background;
 
     &:hover {
-      background-color: $ban-expired-hover-background !important;
+      background-color: darken($positive-record-background, 5%);
     }
   }
 
   tr[data-expired="false"] {
-    background-color: $ban-background !important;
+    background-color: $negative-record-background;
 
     &:hover {
-      background-color: $ban-hover-background !important;
+      background-color: darken($negative-record-background, 5%);
     }
   }
 }
