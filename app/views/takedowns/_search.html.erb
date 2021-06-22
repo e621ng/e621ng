@@ -1,8 +1,6 @@
-<% unless params[:search][:show] %>
-  <div id='searchform_hide'><%= search_show_link %></div>
-<% end %>
-
-<div class='section' style='width:400px;<%= 'display:none;' unless params[:search][:show] %>' id='searchform'>
+<%= search_show_link %>
+<%= search_hide_link %>
+<div class='section' style='width:400px;' id='searchform'>
   <%= simple_form_for(:search, url: path, method: :get, defaults: {required: false}, html: {class: 'inline-form'}) do |f| %>
     <%= f.input :status, label: "Status", collection: [["Pending", "pending"],
                                                        ["Inactive", "inactive"],
@@ -33,7 +31,5 @@
 
     <%= f.input :show, as: :hidden, value: '1' %>
     <%= f.submit "Submit" %>
-  <% end %>
-  <% unless params[:search][:show] %><%= search_hide_link %>
   <% end %>
 </div>

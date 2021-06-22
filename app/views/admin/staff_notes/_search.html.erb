@@ -1,13 +1,10 @@
-<div id='searchform_hide'>
-  <%= search_show_link %>
-</div>
-<div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;
-  <% end %>'>
+<%= search_show_link %>
+<%= search_hide_link %>
+<div class='section' id='searchform' style='width:400px;'>
   <%= simple_form_for(:search, :method => :get, url: admin_staff_notes_path, defaults: {required: false}, html: {class: "inline-form"}) do |f| %>
     <%= f.input :creator_name, label: "Creator Name", input_html: {data: {autocomplete: "user"}} %>
     <%= f.input :user_name, label: "User Name", input_html: {data: {autocomplete: "user"}} %>
     <%= f.input :body_matches, label: "Body" %>
     <%= f.submit "Search" %>
   <% end %>
-  <%= search_hide_link %>
 </div>

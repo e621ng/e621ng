@@ -1,6 +1,5 @@
-<div id='searchform_hide'>
-  <%= search_show_link %>
-</div>
+<%= search_show_link %>
+<%= search_hide_link %>
 <%= simple_form_for(:search, method: :get, defaults: {required: false}, html: {id: 'searchform', class: "inline-form"}) do |f| %>
   <% if CurrentUser.is_admin? %>
     <%= f.input :creator_name, label: "Reporter", input_html: {value: params.dig(:search, :creator_name)} %>
@@ -30,6 +29,4 @@
       ["Denied", "denied"]
   ], selected: params.dig(:search, :status) %>
   <%= f.submit "Search" %>
-  <%= search_hide_link %>
 <% end %>
-
