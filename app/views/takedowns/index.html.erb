@@ -13,7 +13,9 @@
         <th>Status</th>
         <th>Post count</th>
         <th>Date</th>
-        <th width="5%"></th>
+        <% if CurrentUser.is_admin? %>
+          <th width="5%"></th>
+        <% end %>
       </tr>
       </thead>
       <tbody>
