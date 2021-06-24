@@ -86,12 +86,12 @@ class UploadService
       # Reset ownership information on post.
       post.uploader_id = replacement.creator_id
       post.uploader_ip_addr = replacement.creator_ip_addr
+      post.save!
 
       rescale_notes(post)
       update_ugoira_frame_data(post, upload)
 
       replacement.update({status: 'approved', approver_id: CurrentUser.id})
-      post.save!
 
       if post.is_video?
         post.generate_video_samples(later: true)
@@ -101,8 +101,8 @@ class UploadService
     end
 
     def rescale_notes(post)
-      x_scale = post.image_width.to_f / post.image_width_was.to_f
-      y_scale = post.image_height.to_f / post.image_height_was.to_f
+      x_scale = post.image_width.to_f / post.image_width_before_last_save.to_f
+      y_scale = post.image_height.to_f / post.image_height_before_last_save.to_f
 
       post.notes.each do |note|
         note.rescale!(x_scale, y_scale)
