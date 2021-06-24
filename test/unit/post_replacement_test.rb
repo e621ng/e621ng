@@ -117,6 +117,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context "Approve:" do
     setup do
+      @note = FactoryBot.create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
       @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
       assert @replacement
     end
@@ -191,6 +192,15 @@ class PostReplacementTest < ActiveSupport::TestCase
           @replacement.approve!
         end
       end
+    end
+
+    should "correctly resize the posts notes" do
+      @replacement.approve!
+      @note.reload
+      assert_equal 153, @note.x
+      assert_equal 611, @note.y
+      assert_equal 153, @note.width
+      assert_equal 152, @note.height
     end
   end
 
