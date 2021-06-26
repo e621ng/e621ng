@@ -1638,7 +1638,9 @@ CREATE TABLE public.post_replacements2 (
     storage_id character varying NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
     reason character varying NOT NULL,
-    protected boolean DEFAULT false NOT NULL
+    protected boolean DEFAULT false NOT NULL,
+    uploader_id_on_approve integer,
+    penalize_uploader_on_approve boolean
 );
 
 
@@ -2588,7 +2590,10 @@ CREATE TABLE public.user_statuses (
     pool_edit_count integer DEFAULT 0 NOT NULL,
     blip_count integer DEFAULT 0 NOT NULL,
     set_count integer DEFAULT 0 NOT NULL,
-    artist_edit_count integer DEFAULT 0 NOT NULL
+    artist_edit_count integer DEFAULT 0 NOT NULL,
+    own_post_replaced_count integer DEFAULT 0,
+    own_post_replaced_penalize_count integer DEFAULT 0,
+    post_replacement_rejected_count integer DEFAULT 0
 );
 
 
@@ -5263,6 +5268,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210426025625'),
 ('20210430201028'),
 ('20210506235640'),
-('20210718172512');
-
+('20210718172512'),
+('20210625155528');
 
