@@ -11,9 +11,9 @@
 
         <p class='nomargin'>Example:</p>
         <ul>
-          <li>http://www.furaffinity.net/user/your_name</li>
-          <li>http://your_name.deviantart.com</li>
-          <li>http://mywebsite.com</li>
+          <li>https://www.furaffinity.net/user/your_name</li>
+          <li>https://www.deviantart.com/your_name</li>
+          <li>https://mywebsite.com</li>
         </ul>
         <p class='nomargin'>In the next step, you will send a private message from the gallery account you specify, or an e-mail from your website's address/domain.</p>
         <%= f.input :source, as: :string, required: true %>
@@ -28,7 +28,7 @@
 
       <div class='section' style='width:600px;'>
         <label for="takedown_post_list">IDs or URLs of the offending images</label>
-        <p class='nomargin'>A list of either image IDs (like 75512) or URLs (like http://<%= Danbooru.config.server_host %>/post/show/75512), one per line.</p>
+        <p class='nomargin'>A list of either image IDs (like 75512) or URLs (like <%= post_url 75512 %>), one per line.</p>
         <%= f.input :post_ids, as: :text, label: 'Posts' %>
 
         <div class='takedown-instructions-header'>OR</div>
