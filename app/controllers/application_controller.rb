@@ -88,6 +88,8 @@ class ApplicationController < ActionController::Base
       render_error_page(501, exception, message: "This feature isn't available: #{exception.message}")
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
+    when ActionController::ParameterMissing
+      render_expected_error(400, exception.message)
     else
       render_error_page(500, exception)
     end
