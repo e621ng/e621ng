@@ -9,7 +9,7 @@ class Post < ApplicationRecord
   class TimeoutError < Exception ; end
 
   # Tags to copy when copying notes.
-  NOTE_COPY_TAGS = %w[translated partially_translated check_translation translation_request reverse_translation]
+  NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request]
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -2160,13 +2160,13 @@ class Post < ApplicationRecord
   end
 
   def mark_as_translated(params)
-    add_tag("check_translation") if params["check_translation"].to_s.truthy?
-    remove_tag("check_translation") if params["check_translation"].to_s.falsy?
+    add_tag("translation_check") if params["translation_check"].to_s.truthy?
+    remove_tag("translation_check") if params["translation_check"].to_s.falsy?
 
     add_tag("partially_translated") if params["partially_translated"].to_s.truthy?
     remove_tag("partially_translated") if params["partially_translated"].to_s.falsy?
 
-    if has_tag?("check_translation") || has_tag?("partially_translated")
+    if has_tag?("translation_check") || has_tag?("partially_translated")
       add_tag("translation_request")
       remove_tag("translated")
     else
