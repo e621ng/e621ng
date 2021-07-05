@@ -113,8 +113,6 @@ if ! type ruby-install >/dev/null 2>&1; then
     cd ruby-install-0.8.1/
     sudo make install >/dev/null
     rm /usr/local/src/ruby-install-0.8.1.tar.gz
-
-    echo "export RAILS_ENV=development" > /etc/profile.d/rails_env.sh
 fi
 
 if [ -f "$CHRUBY_PATH" ]; then
