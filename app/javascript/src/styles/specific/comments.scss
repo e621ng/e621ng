@@ -83,6 +83,7 @@ div#c-comments {
       padding-left: $padding-050;
       padding-bottom: $padding-025;
       margin-bottom: $padding-100;
+      word-wrap: break-word;
 
       .comments {
         margin-left: 2rem;

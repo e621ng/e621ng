@@ -1,13 +1,7 @@
-<% unless params[:show] %>
-  <div id='searchform_hide'><%= search_show_link %></div>
+<%= hideable_form_search path: post_sets_path do |f| %>
+  <%= f.input :name, label: "Name", input_html: { value: params.dig(:search, :name) } %>
+  <%= f.input :shortname, label: "Short Name", input_html: {value: params.dig(:search, :shortname)} %>
+  <%= f.input :creator_name, label: "Username", input_html: {value: params.dig(:search, :creator_name), data: {autocomplete: 'users'}} %>
+  <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'postcount'], %w[Created created_at], %w[Updated update]], include_blank: false, selected: params.dig(:search, :order) %>
+  <%= f.submit "Search" %>
 <% end %>
-<div class='section' id='searchform' style='width:400px;<% unless params[:show] %>display:none;<% end %>'>
-  <%= simple_form_for(:search, url: post_sets_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-    <%= f.input :name, label: "Name", input_html: { value: params.dig(:search, :name) } %>
-    <%= f.input :shortname, label: "Short Name", input_html: {value: params.dig(:search, :shortname)} %>
-    <%= f.input :creator_name, label: "Username", input_html: {value: params.dig(:search, :creator_name), data: {autocomplete: 'users'}} %>
-    <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'postcount'], %w[Created created_at], %w[Updated update]], include_blank: false, selected: params.dig(:search, :order) %>
-    <%= f.submit "Search" %>
-  <% end %>
-  <% unless params[:show] %><%= search_hide_link %><% end %>
-</div>

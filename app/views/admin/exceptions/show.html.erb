@@ -16,3 +16,7 @@
   <strong>Raw Stacktrace:</strong>
   <pre class="box-section"><%= @exception_log.trace %></pre>
 </div>
+
+<% content_for(:page_title) do %>
+  Exceptions - <%= @exception_log.code %>
+<% end %>

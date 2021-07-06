@@ -14,6 +14,7 @@ class ForumTopic < ApplicationRecord
   before_validation :initialize_is_hidden, :on => :create
   validates :title, :creator_id, presence: true
   validates_associated :original_post
+  validates_presence_of :original_post
   validates_associated :category
   validates :min_level, inclusion: { :in => MIN_LEVELS.values }
   validates :title, :length => {:maximum => 250}

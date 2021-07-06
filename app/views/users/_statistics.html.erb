@@ -40,7 +40,13 @@
           <% end %>
         </td>
         <th>Upload Limit</th>
-        <td><%= presenter.upload_limit(self) %> (<%= link_to "help", wiki_page_path(id: "upload_limit") %>)
+        <td>
+          <%= presenter.upload_limit(self) %>
+          <% if CurrentUser.user.id == user.id  %>
+            (<%= link_to "help", upload_limit_users_path %>)
+          <% else %>
+            (<%= link_to "help", wiki_page_path(id: "upload_limit") %>)
+          <% end %>
         </td>
       </tr>
 

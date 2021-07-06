@@ -25,6 +25,10 @@
   </tbody>
 </table>
 
+<% content_for(:page_title) do %>
+  Exceptions
+<% end %>
+
 <div id="paginator">
   <%= numbered_paginator(@exception_logs) %>
 </div>

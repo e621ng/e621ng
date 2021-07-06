@@ -3,22 +3,22 @@ import LS from './local_storage'
 import Utility from './utility'
 
 function initSearch() {
-  const $s = $("#searchform");
-  const $sh = $("#searchform_hide");
-  if ($s.length) {
-    $("#search-form-show-link").on('click', e => {
-      $s.fadeIn('fast');
-      $sh.hide();
+  const $searchForm = $("#searchform");
+  const $searchShow = $("#search-form-show-link");
+  const $searchHide = $("#search-form-hide-link");
+  if ($searchForm.length) {
+    $searchShow.on('click', e => {
+      e.preventDefault();
+      $searchForm.fadeIn('fast');
+      $searchShow.hide();
+      $searchHide.show();
     });
-    $("#search-form-hide-link").on('click', e => {
-      $s.fadeOut('fast');
-      $sh.show();
+    $searchHide.on('click', e => {
+      e.preventDefault();
+      $searchForm.fadeOut('fast');
+      $searchShow.show();
+      $searchHide.hide();
     });
-    const urlSearch = new URLSearchParams(window.location.search);
-    if (Array.from(urlSearch.keys()).filter(e => e.startsWith("search")).length) {
-      $s.show();
-      $sh.hide();
-    }
   }
 }
 

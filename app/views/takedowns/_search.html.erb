@@ -1,39 +1,29 @@
-<% unless params[:search][:show] %>
-  <div id='searchform_hide'><%= search_show_link %></div>
-<% end %>
-
-<div class='section' style='width:400px;<%= 'display:none;' unless params[:search][:show] %>' id='searchform'>
-  <%= simple_form_for(:search, url: path, method: :get, defaults: {required: false}, html: {class: 'inline-form'}) do |f| %>
+<%= hideable_form_search path: path do |f| %>
+  <%= f.input :status, label: "Status", collection: [["Pending", "pending"],
+                                                      ["Inactive", "inactive"],
+                                                      ["Denied", "denied"],
+                                                      ["Partially Approved", "partial"],
+                                                      ["Approved", "approved"]], include_blank: true, selected: params[:search][:status] %>
+  <% if CurrentUser.is_admin? %>
     <%= f.input :source, label: 'Source', input_html: {value: params[:search][:source]} %>
     <%= f.input :reason, label: 'Reason', input_html: {value: params[:search][:reason]} %>
     <%= f.input :notes, label: 'Admin Response', input_html: {value: params[:search][:notes]} %>
-    <% if CurrentUser.is_admin? %>
-      <%= f.input :reason_hidden, label: 'Reason hidden?', collection: [
-        ["Yes", true],
-        ["No", false],
-      ], include_blank: true, selected: params[:search][:reason_hidden] %>
-      <%= f.input :instructions, label: "Instructions", input_html: {value: params[:search][:instructions]} %>
-      <%= f.input :post_id, label: "Post ID", input_html: {value: params[:search][:post_id]} %>
-      <%= f.input :email, label: "Email", input_html: {value: params[:search][:email]} %>
-      <%= f.input :ip_addr, label: "IP Address", input_html: {value: params[:search][:ip_addr]} %>
-      <%= f.input :vericode, label: "Vericode", input_html: {value: params[:search][:vericode]} %>
-    <% end %>
+    <%= f.input :reason_hidden, label: 'Reason hidden?', collection: [
+      ["Yes", true],
+      ["No", false],
+    ], include_blank: true, selected: params[:search][:reason_hidden] %>
+    <%= f.input :instructions, label: "Instructions", input_html: {value: params[:search][:instructions]} %>
+    <%= f.input :post_id, label: "Post ID", input_html: {value: params[:search][:post_id]} %>
+    <%= f.input :email, label: "Email", input_html: {value: params[:search][:email]} %>
+    <%= f.input :ip_addr, label: "IP Address", input_html: {value: params[:search][:ip_addr]} %>
+    <%= f.input :vericode, label: "Vericode", input_html: {value: params[:search][:vericode]} %>
 
-    <%= f.input :status, label: "Status", collection: [["Pending", "pending"],
-                                                       ["Inactive", "inactive"],
-                                                       ["Denied", "denied"],
-                                                       ["Partially Approved", "partial"],
-                                                       ["Approved", "approved"]], include_blank: true, selected: params[:search][:status] %>
     <%= f.input :order, label: 'Order', collection: [["Date", "date"],
-                                                     ["Source", "source"],
-                                                     ["Email", "email"],
-                                                     ["IP Address", "ip_addr"],
-                                                     ["Status", "status"],
-                                                     ["Post count", "post_count"]], selected: params[:search][:order] %>
-
-    <%= f.input :show, as: :hidden, value: '1' %>
-    <%= f.submit "Submit" %>
+                                                      ["Source", "source"],
+                                                      ["Email", "email"],
+                                                      ["IP Address", "ip_addr"],
+                                                      ["Status", "status"],
+                                                      ["Post count", "post_count"]], selected: params[:search][:order] %>
   <% end %>
-  <% unless params[:search][:show] %><%= search_hide_link %>
-  <% end %>
-</div>
+  <%= f.submit "Submit" %>
+<% end %>

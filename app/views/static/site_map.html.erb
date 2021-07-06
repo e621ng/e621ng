@@ -86,7 +86,7 @@
       <ul>
         <li><h1>Blips</h1></li>
         <li><%= link_to("Listing", blips_path) %></li>
-        <li><%= link_to("Help", wiki_pages_path(title: "e621:blips")) %></li>
+        <li><%= link_to("Help", help_page_path(id: "blips")) %></li>
       </ul>
     </section>
     <section>
@@ -95,17 +95,18 @@
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to("Dashboard", moderator_dashboard_path) %></li>
         <% end %>
-        <li><%= link_to("Bans", bans_path) %></li>
         <li><%= link_to("Listing", users_path) %></li>
-        <% unless CurrentUser.is_anonymous? %>
+        <li><%= link_to("Bans", bans_path) %></li>
+        <% if CurrentUser.is_anonymous? %>
+          <li><%= link_to("Signup", new_user_path) %></li>
+        <% else %>
           <li><%= link_to("Profile", user_path(CurrentUser.user)) %></li>
           <li><%= link_to("Settings", edit_user_path(CurrentUser.user)) %></li>
+          <li><%= link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
         <% end %>
         <li><%= link_to("Feedback", user_feedbacks_path) %></li>
-        <li><%= link_to("Signup", new_user_path) %></li>
         <li><%= link_to("Terms of Service", terms_of_service_path) %></li>
-        <li><%= link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
-        <li><%= link_to("Help", help_page_path(id: "users")) %></li>
+        <li><%= link_to("Help", help_page_path(id: "accounts")) %></li>
       </ul>
       <ul>
         <li><h1>Admin</h1></li>

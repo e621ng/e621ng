@@ -111,6 +111,15 @@ class ModActionDecorator < ApplicationDecorator
     when "post_unapprove"
       "Unapproved post ##{vals['post_id']}"
 
+      ### Post Replacements ###
+
+    when "post_replacement_accept"
+      "Post replacement for post ##{vals['post_id']} was accepted"
+    when "post_replacement_reject"
+      "Post replacement for post ##{vals['post_id']} was rejected"
+    when "post_replacement_delete"
+      "Post replacement for post ##{vals['post_id']} was deleted"
+
       ### Set ###
 
     when "set_mark_private"

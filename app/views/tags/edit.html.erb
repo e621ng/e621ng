@@ -1,6 +1,6 @@
 <div id="c-tags">
   <div id="a-edit">
-    <h1>Tag: <%= @tag.name %></h1>
+    <h1>Tag: <%= link_to @tag.name, posts_path(:tags => @tag.name), :class => "tag-type-#{@tag.category}" %></h1>
 
     <%= simple_form_for(@tag) do |f| %>
       <% if @tag.is_locked? %>
