@@ -210,10 +210,16 @@ Autocomplete.insert_completion = function(input, completion) {
   var after_caret_text = input.value.substring(input.selectionStart).trim();
 
   var regexp = new RegExp("(" + Autocomplete.TAG_PREFIXES + ")?\\S+$", "g");
-  before_caret_text = before_caret_text.replace(regexp, "$1") + completion + " ";
+  before_caret_text = before_caret_text.replace(regexp, "$1") + completion;
 
-  input.value = before_caret_text + after_caret_text + " ";
-  input.selectionStart = input.selectionEnd = before_caret_text.length;
+  // Only insert a space if we're at the end or if there's some text and it doesn't alreay start with a space
+  if(after_caret_text.length === 0 || (after_caret_text.length !== 0 && !after_caret_text.startsWith(" "))) {
+    before_caret_text += " ";
+  }
+
+  input.value = before_caret_text + after_caret_text;
+  input.selectionStart = before_caret_text.length;
+  input.selectionEnd = before_caret_text.length;
 
   // Force watched fields to fire input change callbacks.
   const event = new Event('input', {bubbles: true});
