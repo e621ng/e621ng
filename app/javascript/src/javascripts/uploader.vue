@@ -757,6 +757,12 @@
       },
       findRelated(type) {
         const self = this;
+        if (self.loadingRelated)
+          return;
+        if (self.relatedTags.length > 0 && self.lastRelatedType === type) {
+          self.relatedTags = [];
+          return;
+        }
         const convertResponse = function (respData) {
           const sortedRelated = [];
           for (const key in respData) {
@@ -786,6 +792,7 @@
           params['category'] = type;
         $.getJSON("/related_tag/bulk.json", params, function (data) {
           self.relatedTags = convertResponse(data);
+          self.lastRelatedType = type;
         }).always(function () {
           self.loadingRelated = false;
         });
