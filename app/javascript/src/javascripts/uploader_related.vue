@@ -30,7 +30,7 @@
         this.$emit('tag-active', tag[0], !this.tagActive(tag));
       },
       tagLink: function (tag) {
-        return '/post/index?tags=' + encodeURIComponent(tag[0]);
+        return '/wiki_pages/show_or_new?name=' + encodeURIComponent(tag[0]);
       },
       tagActive: function (tag) {
         return this.tags.indexOf(tag[0]) !== -1;
