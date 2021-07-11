@@ -19,22 +19,26 @@
     functional: true,
     props: ['tag'],
     render: function (h, ctx) {
+      function create_tag_link(name, tagType) {
+        return h('a', {
+            staticClass: 'tag-type-' + tagType,
+            attrs: { href: "/wiki_pages/show_or_new?name=" + name, target: "_blank" }
+          }, name);
+      }
       var tag = ctx.props.tag;
       switch (tag.type) {
         default:
         case 'tag':
-          return h('a', {
-            staticClass: 'tag-preview tag-type-' + tag.tagType
-          }, tag.a);
+          return h('span', {staticClass: 'tag-preview'}, [create_tag_link(tag.a, tag.tagType)]);
         case 'alias':
           return h('span', {staticClass: 'tag-preview tag-preview-alias'}, [
             h('del', undefined, [
-              h('a', {staticClass: 'tag-type-' + tag.tagType}, tag.a)
-            ]), ' → ', h('a', {staticClass: 'tag-type-' + tag.tagType}, tag.b)
+              create_tag_link(tag.a, tag.tagType)
+            ]), ' → ', create_tag_link(tag.b, tag.tagType)
           ]);
         case 'implication':
           return h('span', {staticClass: 'tag-preview tag-preview-implication'}, [
-            h('a', {staticClass: 'tag-type-' + tag.tagType}, tag.a), ' ⇐ ', h('a', {staticClass: 'tag-type-' + tag.tagType}, tag.b)
+            create_tag_link(tag.a, tag.tagType), ' ⇐ ', create_tag_link(tag.b, tag.tagType)
           ]);
       }
     }
