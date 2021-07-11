@@ -11,9 +11,7 @@
     <% if CurrentUser.can_approve_posts? %>
       <%= subnav_link_to "Moderate", moderator_post_queue_path %>
     <% end %>
-    <% if CurrentUser.is_anonymous? %>
-      <li><a href="#" id="anonymous-blacklist-link">Blacklist</a></li>
-    <% end %>
+    <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
     <%= subnav_link_to "Help", help_page_path(id: "posts") %>
   </menu>
 <% end %>
