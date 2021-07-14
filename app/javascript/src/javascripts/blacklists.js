@@ -364,33 +364,53 @@ Blacklist.initialize_all = function () {
 }
 
 Blacklist.initialize_anonymous_blacklist = function () {
-  if ($(document.body).data('user-is-anonymous') !== true)
+  if ($(document.body).data('user-is-anonymous') !== true) {
     return;
+  }
 
   const anonBlacklist = LS.get('anonymous-blacklist');
-
-  if (anonBlacklist)
+  if (anonBlacklist) {
     $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
+  }
+}
 
-  $("#anonymous-blacklist-dialog").dialog({autoOpen: false});
+Blacklist.initialize_blacklist_editor = function () {
+  $("#blacklist-edit-dialog").dialog({ autoOpen: false });
 
-  $("#anonymous-blacklist-cancel").on('click', function () {
-    $("#anonymous-blacklist-dialog").dialog('close');
+  $("#blacklist-cancel").on('click', function () {
+    $("#blacklist-edit-dialog").dialog('close');
   });
 
-  $("#anonymous-blacklist-save").on('click', function () {
-    LS.put('anonymous-blacklist', JSON.stringify($("#anonymous-blacklist-edit").val().split(/\n\r?/)));
-    $("#anonymous-blacklist-dialog").dialog('close');
-    $("meta[name=blacklisted-tags]").attr("content", LS.get('anonymous-blacklist'));
+  $("#blacklist-save").on('click', function () {
+    const blacklist_content = $("#blacklist-edit").val();
+    const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
+    if($(document.body).data('user-is-anonymous') === true) {
+      LS.put('anonymous-blacklist', blacklist_json);
+    } else {
+      $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
+        method: "PUT",
+        data: {
+          "user[blacklisted_tags]": blacklist_content
+        }
+      }).done(function () {
+        Utility.notice("Blacklist updated");
+      }).fail(function (data, status, xhr) {
+        Utility.error("Failed to update blacklist");
+      });
+    }
+
+    $("#blacklist-edit-dialog").dialog('close');
+    $("meta[name=blacklisted-tags]").attr("content", blacklist_json);
     Blacklist.initialize_all();
   });
 
-  $("#anonymous-blacklist-link").on('click', function () {
+  $("#blacklist-edit-link").on('click', function (event) {
+    event.preventDefault();
     let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
     entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
     entries = entries.filter(e => e.trim() !== "");
-    $("#anonymous-blacklist-edit").val(entries.join('\n'));
-    $("#anonymous-blacklist-dialog").dialog('open');
+    $("#blacklist-edit").val(entries.join('\n'));
+    $("#blacklist-edit-dialog").dialog('open');
   });
 };
 
@@ -426,6 +446,7 @@ Blacklist.initialize_collapse = function () {
 $(document).ready(function () {
   Blacklist.initialize_collapse();
   Blacklist.initialize_anonymous_blacklist();
+  Blacklist.initialize_blacklist_editor();
   Blacklist.initialize_all();
 });
 
