@@ -1,5 +1,5 @@
 import Utility from './utility';
-import Post from './posts.js.erb';
+import Post from './posts';
 
 let RelatedTag = {};
 
@@ -151,4 +151,3 @@ $(function() {
 });
 
 export default RelatedTag
-

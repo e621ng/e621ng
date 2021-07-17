@@ -1,6 +1,6 @@
 import Utility from './utility'
 import LS from './local_storage'
-import Post from './posts.js.erb'
+import Post from './posts'
 import Favorite from './favorites'
 import PostSet from './post_sets'
 import TagScript from './tag_script'

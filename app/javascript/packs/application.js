@@ -34,7 +34,7 @@ export { default as Blip } from '../src/javascripts/blips.js';
 export { default as Comment } from '../src/javascripts/comments.js';
 export { default as Dtext } from '../src/javascripts/dtext.js';
 export { default as Note } from '../src/javascripts/notes.js';
-export { default as Post } from '../src/javascripts/posts.js.erb';
+export { default as Post } from '../src/javascripts/posts.js';
 export { default as PostModeMenu } from '../src/javascripts/post_mode_menu.js';
 export { default as PostVersions } from '../src/javascripts/post_versions.js';
 export { default as RelatedTag } from '../src/javascripts/related_tag.js';

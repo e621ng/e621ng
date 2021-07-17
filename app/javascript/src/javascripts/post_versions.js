@@ -1,6 +1,6 @@
 import Utility from './utility';
 import {SendQueue} from "./send_queue";
-import Post from './posts.js.erb';
+import Post from './posts';
 
 let PostVersion = {};
 
