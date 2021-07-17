@@ -604,12 +604,6 @@ function is_video(post) {
   }
 }
 
-function sorted_samples() {
-  let samples = Object.entries(Post.currentPost().sample.alternates);
-  samples = samples.filter((x) => x[0] !== 'original');
-  return samples.sort((a, b) => (a[1].height * a[1].width) > (b[1].height * b[1].width) ? -1 : 1);
-}
-
 function update_size_selector(choice) {
   const selector = $("#image-resize-selector");
   const choices = selector.find("option");
@@ -630,7 +624,8 @@ function update_size_selector(choice) {
 }
 
 function most_relevant_sample_size(post) {
-  const samples = sorted_samples();
+  let samples = Object.entries(Post.currentPost().sample.alternates);
+  samples = samples.filter((x) => x[0] !== 'original');
   if(samples.length === 0) {
     return 'fit';
   }
@@ -641,19 +636,6 @@ function most_relevant_sample_size(post) {
   return differences[0][0];
 }
 
-function fill_size_options(has_sample) {
-  const $sel = $("#image-resize-selector").empty();
-  $sel.append($("<option>").val("original").text("Original"));
-  $sel.append($("<option>").val("fit").text("Fit (Horizontal)"));
-  $sel.append($("<option>").val("fitv").text("Fit (Vertical)"));
-  if(has_sample)
-    $sel.append($("<option>").val("large").text("Sample (800)"));
-
-  for (const sample of sorted_samples()) {
-    $sel.append($("<option>").val(sample[0]).text(`Sample (${sample[0]})`));
-  }
-}
-
 Post.initialize_resize = function () {
   Post.initialize_change_resize_mode_link();
   const post = Post.currentPost();
@@ -661,9 +643,6 @@ Post.initialize_resize = function () {
     return;
 
   const is_post_video = is_video(post);
-
-  const $selector = $("#image-resize-selector");
-  fill_size_options(!is_post_video && post?.sample?.has);
   if (!is_post_video) {
     const $image = $('img#image');
     if ($image.length > 0 && $image[0]) {
@@ -682,6 +661,7 @@ Post.initialize_resize = function () {
     image_size = most_relevant_sample_size(post);
   }
   Post.resize_to(image_size);
+  const $selector = $("#image-resize-selector");
   $selector.on('change', () => Post.resize_to($selector.val()));
 }
 
