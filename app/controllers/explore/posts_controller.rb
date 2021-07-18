@@ -22,9 +22,14 @@ module Explore
       render :layout => "blank"
     end
 
-  private
+    private
+
     def set_date
       @date = params[:date] ? Date.parse(params[:date]) : Date.today
+    end
+
+    def allowed_readonly_actions
+      super + ["popular"]
     end
   end
 end

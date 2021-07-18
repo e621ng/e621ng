@@ -957,6 +957,10 @@ fart'
     def image_rescales
       []
     end
+
+    def readonly_mode
+      return false
+    end
   end
 
   class EnvironmentConfiguration
