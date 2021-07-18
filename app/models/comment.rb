@@ -58,7 +58,7 @@ class Comment < ApplicationRecord
     end
 
     def poster_id(user_id)
-      where(post_id: PostQueryBuilder.new("user_id:#{user_id}").build.reorder(id: :desc).limit(300))
+      joins(:post).where("posts.uploader_id = ?", user_id)
     end
 
     def for_creator(user_id)
