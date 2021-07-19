@@ -1,6 +1,6 @@
 module Moderator
   class DashboardsController < ApplicationController
-    before_action :member_only
+    before_action :janitor_only
     helper :post_flags, :post_appeals
 
     def show
