@@ -24,6 +24,12 @@ class BulkUpdateRequest < ApplicationRecord
   scope :expired, -> {where("created_at < ?", TagRelationship::EXPIRY.days.ago)}
   scope :old, -> {where("created_at between ? and ?", TagRelationship::EXPIRY.days.ago, TagRelationship::EXPIRY_WARNING.days.ago)}
 
+  module ApiMethods
+    def hidden_attributes
+      super + [:user_ip_addr]
+    end
+  end
+
   module SearchMethods
     def for_creator(id)
       where("user_id = ?", id)
@@ -181,6 +187,7 @@ class BulkUpdateRequest < ApplicationRecord
   extend SearchMethods
   include ApprovalMethods
   include ValidationMethods
+  include ApiMethods
 
   concerning :EmbeddedText do
     class_methods do
