@@ -39,60 +39,81 @@ module BulkUpdateRequestsHelper
     end
   end
 
-  def script_with_line_breaks(script)
-    escaped_script = AliasAndImplicationImporter.tokenize(script).map do |cmd, arg1, arg2|
+  def collect_script_tags(tokenized)
+    names = ::Set.new()
+    tokenized.each do |cmd, arg1, arg2|
       case cmd
-      when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update, :change_category
-        if approved?(cmd, arg1, arg2)
-          btag = '<s class="approved">'
-          etag = '</s>'
-        elsif failed?(cmd, arg1, arg2)
-          btag = '<s class="failed">'
-          etag = "</s>"
-        else
-          btag = nil
-          etag = nil
-        end
-      end
-
-      case cmd
-      when :create_alias
-        arg1_count = Tag.find_by_name(arg1).try(:post_count).to_i
-        arg2_count = Tag.find_by_name(arg2).try(:post_count).to_i
-
-        "#{btag}create alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-      when :create_implication
-        arg1_count = Tag.find_by_name(arg1).try(:post_count).to_i
-        arg2_count = Tag.find_by_name(arg2).try(:post_count).to_i
-
-        "#{btag}create implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-      when :remove_alias
-        arg1_count = Tag.find_by_name(arg1).try(:post_count).to_i
-        arg2_count = Tag.find_by_name(arg2).try(:post_count).to_i
-
-        "#{btag}remove alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-      when :remove_implication
-        arg1_count = Tag.find_by_name(arg1).try(:post_count).to_i
-        arg2_count = Tag.find_by_name(arg2).try(:post_count).to_i
-
-        "#{btag}remove implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-      when :mass_update
-        "#{btag}mass update " + link_to(arg1, posts_path(:tags => arg1)) + " -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + "#{etag}"
-
+      when :create_alias, :create_implication, :remove_alias, :remove_implication
+        names.add(arg1)
+        names.add(arg2)
       when :change_category
-        arg1_count = Tag.find_by_name(arg1).try(:post_count).to_i
-
-        "#{btag}category " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; (#{arg2})#{etag}"
-
+        names.add(arg1)
       end
-    end.join("\n")
+    end
+    Tag.find_by_name_list(names)
+  end
 
-    escaped_script.gsub(/\n/m, "<br>").html_safe
-  rescue AliasAndImplicationImporter::Error
-    "!!!!!!Invalid Script!!!!!!"
+  def script_with_line_breaks(script)
+    output = Cache.get(Cache.hash((CurrentUser.is_moderator? ? "mod" : "") + script), 3600) do
+      script_tokenized = AliasAndImplicationImporter.tokenize(script)
+      script_tags = collect_script_tags(script_tokenized)
+      escaped_script = script_tokenized.map do |cmd, arg1, arg2|
+        case cmd
+        when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update, :change_category
+          if approved?(cmd, arg1, arg2)
+            btag = '<s class="approved">'
+            etag = '</s>'
+          elsif failed?(cmd, arg1, arg2)
+            btag = '<s class="failed">'
+            etag = "</s>"
+          else
+            btag = nil
+            etag = nil
+          end
+        end
+
+        case cmd
+        when :create_alias
+          arg1_count = script_tags[arg1].try(:post_count).to_i
+          arg2_count = script_tags[arg2].try(:post_count).to_i
+
+          "#{btag}create alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+
+        when :create_implication
+          arg1_count = script_tags[arg1].try(:post_count).to_i
+          arg2_count = script_tags[arg2].try(:post_count).to_i
+
+          "#{btag}create implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+
+        when :remove_alias
+          arg1_count = script_tags[arg1].try(:post_count).to_i
+          arg2_count = script_tags[arg2].try(:post_count).to_i
+
+          "#{btag}remove alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+
+        when :remove_implication
+          arg1_count = script_tags[arg1].try(:post_count).to_i
+          arg2_count = script_tags[arg2].try(:post_count).to_i
+
+          "#{btag}remove implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+
+        when :mass_update
+          "#{btag}mass update " + link_to(arg1, posts_path(:tags => arg1)) + " -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + "#{etag}"
+
+        when :change_category
+          arg1_count = script_tags[arg1].try(:post_count).to_i
+
+          "#{btag}category " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; (#{arg2})#{etag}"
+
+        end
+      end.join("\n")
+
+      escaped_script.gsub(/\n/m, "<br>")
+    rescue AliasAndImplicationImporter::Error
+      "!!!!!!Invalid Script!!!!!!"
+    end
+
+    output.html_safe
+
   end
 end

@@ -1,7 +1,7 @@
 module Admin
   class DashboardsController < ApplicationController
     before_action :admin_only
-    
+
     def show
       @dashboard = AdminDashboard.new
     end

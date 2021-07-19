@@ -287,6 +287,15 @@ class Tag < ApplicationRecord
       find_by_name(normalize_name(name))
     end
 
+    def find_by_name_list(names)
+      names = names.map {|x| [normalize_name(x), nil]}.to_h
+      existing = Tag.where(name: names.keys).to_a
+      existing.each do |x|
+        names[x.name] = x
+      end
+      names
+    end
+
     def find_or_create_by_name_list(names, creator: CurrentUser.user)
       names = names.map {|x| normalize_name(x)}
       names = names.map do |x|
