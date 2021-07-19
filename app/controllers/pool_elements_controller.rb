@@ -27,12 +27,6 @@ class PoolElementsController < ApplicationController
     respond_with(@pool, :location => post_path(@post))
   end
 
-  def all_select
-    @pools = Pool.undeleted.where("is_active = true").order("name").select("id, name")
-    @pools.each # hack to force rails to eager load
-    @pools
-  end
-
   private
 
   def append_pool_to_session(pool)
