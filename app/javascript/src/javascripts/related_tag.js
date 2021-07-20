@@ -34,6 +34,7 @@ RelatedTag.init_post_show_editor = function() {
   setTimeout(function() {
     // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
     const el = app.$children[0].$refs['otherTags'];
+    el.style.height = el.scrollHeight + "px";
     el.focus();
     el.scrollIntoView();
   }, 20);
@@ -151,4 +152,3 @@ $(function() {
 });
 
 export default RelatedTag
-
