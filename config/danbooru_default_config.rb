@@ -559,7 +559,7 @@ fart'
             "slice" => 0,
             "exclusion" => %w(avoid_posting conditional_dnp),
             "regexmap" => //,
-            "formatstr" => "drawn by %s"
+            "formatstr" => "created by %s"
           },
           "mod_only" => false,
           "relatedbutton" => "Artists",
