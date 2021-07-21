@@ -24,7 +24,6 @@
         <li><h1>Post Events</h1></li>
         <li><%= link_to("Changes", post_versions_path) %></li>
         <li><%= link_to("Approvals", post_approvals_path) %></li>
-        <li><%= link_to("Appeals", post_appeals_path) %></li>
         <li><%= link_to("Flags", post_flags_path) %></li>
         <li><%= link_to("Replacements", post_replacements_path) %></li>
       </ul>
@@ -34,10 +33,13 @@
         <li><%= link_to("Source Code", Danbooru.config.source_code_url) %></li>
         <li><%= link_to("Keyboard Shortcuts", keyboard_shortcuts_path) %></li>
         <li><%= link_to("API Documentation", help_page_path(id: "api")) %></li>
+        <li><%= link_to("Stats", stats_path) %></li>
+        <li><%= link_to("DB Export", "/db_export/") %></li>
       </ul>
       <ul>
         <li><h1>Artists</h1></li>
         <li><%= link_to("Listing", artists_path) %></li>
+        <li><%= link_to("Avoid Posting", help_page_path(id: "avoid_posting")) %></li>
         <li><%= link_to("Changes", artist_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "artists")) %></li>
       </ul>
@@ -59,7 +61,7 @@
       </ul>
       <ul>
         <li><h1>Pools</h1></li>
-        <li><%= link_to("Listing", pools_path) %></li>
+        <li><%= link_to("Listing", gallery_pools_path) %></li>
         <li><%= link_to("Changes", pool_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "pools")) %></li>
       </ul>
@@ -122,6 +124,7 @@
         <% end %>
         <li><%= link_to("Mod Actions", mod_actions_path) %></li>
         <li><%= link_to("Bulk Update Requests", bulk_update_requests_path) %></li>
+        <li><%= link_to("Takedowns", takedowns_path) %></li>
         <li><%= link_to("Tickets", tickets_path) %></li>
       </ul>
     </section>
