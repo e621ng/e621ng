@@ -26,7 +26,10 @@ class TagImplication < TagRelationship
       end
 
       def descendants_with_originals(names)
-        active.where(antecedent_name: names).map { |x| [x.antecedent_name, x.descendant_names] }.uniq
+        active.where(antecedent_name: names).each_with_object({}) do |x, result|
+          result[x.antecedent_name] ||= Set.new
+          result[x.antecedent_name].merge x.descendant_names
+        end
       end
     end
 
