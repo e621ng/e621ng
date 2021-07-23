@@ -27,10 +27,11 @@ class TagsPreview
   end
 
   def tag_types
-    names = @tags.map { |tag| tag[:b] || tag[:a] }
+    names = @tags.map { |tag| [tag[:a], tag[:b]] }.flatten.compact.uniq
     categories = Tag.categories_for(names)
     @tags.map! do |tag|
-      tag[:tagType] = categories.fetch(tag[:b] || tag[:a], -1)
+      tag[:tagTypeA] = categories.fetch(tag[:a], -1)
+      tag[:tagTypeB] = categories.fetch(tag[:b], -1) if tag[:b]
       tag
     end
   end

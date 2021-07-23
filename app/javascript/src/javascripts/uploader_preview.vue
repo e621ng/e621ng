@@ -29,16 +29,16 @@
       switch (tag.type) {
         default:
         case 'tag':
-          return h('span', {staticClass: 'tag-preview'}, [create_tag_link(tag.a, tag.tagType)]);
+          return h('span', {staticClass: 'tag-preview'}, [create_tag_link(tag.a, tag.tagTypeA)]);
         case 'alias':
           return h('span', {staticClass: 'tag-preview tag-preview-alias'}, [
             h('del', undefined, [
-              create_tag_link(tag.a, tag.tagType)
-            ]), ' → ', create_tag_link(tag.b, tag.tagType)
+              create_tag_link(tag.a, tag.tagTypeA)
+            ]), ' → ', create_tag_link(tag.b, tag.tagTypeB)
           ]);
         case 'implication':
           return h('span', {staticClass: 'tag-preview tag-preview-implication'}, [
-            create_tag_link(tag.a, tag.tagType), ' ⇐ ', create_tag_link(tag.b, tag.tagType)
+            create_tag_link(tag.a, tag.tagTypeA), ' ⇐ ', create_tag_link(tag.b, tag.tagTypeB)
           ]);
       }
     }
