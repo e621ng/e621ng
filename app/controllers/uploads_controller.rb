@@ -32,6 +32,11 @@ class UploadsController < ApplicationController
   end
 
   def create
+    client = redis_client
+    if client.get("disable_uploads") == "y"
+      return access_denied("Uploads are disabled.")
+    end
+
     Post.transaction do
       @service = UploadService.new(upload_params)
       @upload = @service.start!
@@ -66,6 +71,10 @@ class UploadsController < ApplicationController
   end
 
   private
+
+  def redis_client
+    @@client ||= ::Redis.new(url: Danbooru.config.redis_url)
+  end
 
   def upload_params
     permitted_params = %i[
