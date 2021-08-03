@@ -1180,12 +1180,10 @@ CREATE SEQUENCE public.mod_actions_id_seq
 CREATE TABLE public.mod_actions (
     id integer DEFAULT nextval('public.mod_actions_id_seq'::regclass) NOT NULL,
     creator_id integer,
-    description text,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     action text,
-    "values" json,
-    category integer
+    "values" json
 );
 
 
@@ -5264,6 +5262,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210425020131'),
 ('20210426025625'),
 ('20210430201028'),
-('20210506235640');
+('20210506235640'),
+('20210718172512');
 
 
