@@ -28,7 +28,7 @@
       <% end %>
     </select>
   </form>
-  <select id="set-id"></select>
+  <select id="set-id" style="display: none; margin-top: 0.5em;"></select>
   <% if CurrentUser.is_privileged? %>
     <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none; margin-top: 0.5em;"/>
     <input id="quick-mode-reason" placeholder="Reason" style="display: none; margin-top: 0.5em;"/>
