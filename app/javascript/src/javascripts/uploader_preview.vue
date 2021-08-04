@@ -22,7 +22,7 @@
       function create_tag_link(name, tagType) {
         return h('a', {
             staticClass: 'tag-type-' + tagType,
-            attrs: { href: "/wiki_pages/show_or_new?name=" + name, target: "_blank" }
+            attrs: { href: "/wiki_pages/show_or_new?title=" + name, target: "_blank" }
           }, name);
       }
       var tag = ctx.props.tag;
