@@ -9,9 +9,10 @@
         </div>
       </li>
     </ul>
-
-    <%= form_tag(ban_path(@ban), :method => :delete) do %>
-      <%= submit_tag "Unban" %>
+    <% if CurrentUser.is_moderator? %>
+      <%= form_tag(ban_path(@ban), :method => :delete) do %>
+        <%= submit_tag "Unban" %>
+      <% end %>
     <% end %>
   </div>
 </div>
