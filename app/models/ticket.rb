@@ -237,6 +237,9 @@ class Ticket < ApplicationRecord
         unless dmail and dmail.owner_id == creator_id
           errors.add :dmail, "does not exist"
         end
+        unless dmail and dmail.to_id == creator_id
+          errors.add :dmail, "must be a dmail you received"
+        end
       end
 
       def dmail=(new_dmail)
@@ -252,7 +255,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        dmail.visible_to?(user)
+        dmail.visible_to?(user) && dmail.to_id == user.id
       end
 
       def can_see_details?(user)

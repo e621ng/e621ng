@@ -28,7 +28,7 @@
         <%= link_to "Respond", new_dmail_path(:respond_to_id => @dmail) %>
         | <%= link_to "Forward", new_dmail_path(:respond_to_id => @dmail, :forward => true) %>
         | <%= link_to "Filter messages like these", edit_maintenance_user_dmail_filter_path(:dmail_id => @dmail.id) %>
-        <% if CurrentUser.is_member? %>
+        <% if CurrentUser.is_member? && @dmail.to_id == CurrentUser.id %>
           | <%= link_to "Report", new_ticket_path(disp_id: @dmail.id, type: 'dmail') %>
         <% end %>
       </p>
