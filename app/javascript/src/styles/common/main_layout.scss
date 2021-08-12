@@ -126,3 +126,9 @@ div.clearfix {
   float: right;
   font-size: 70%;
 }
+
+div#readonly-notice  {
+  background: $news-background;
+  border-radius: $border-radius-full;
+  text-align: center;
+}

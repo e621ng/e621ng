@@ -21,6 +21,12 @@ class SessionsController < ApplicationController
   end
 
   def sign_out
-    destroy()
+    destroy
+  end
+
+  private
+
+  def allowed_readonly_actions
+    super + %w[destroy sign_out]
   end
 end

@@ -30,7 +30,7 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_member?
+    if CurrentUser.is_member? && !Danbooru.config.readonly_mode
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
@@ -58,5 +58,8 @@ class StaticController < ApplicationController
 
       redirect_to(Danbooru.config.discord_site + user_hash)
     end
+  end
+
+  def enforce_readonly
   end
 end
