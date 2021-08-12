@@ -142,4 +142,8 @@ class UsersController < ApplicationController
     permitted_params += [:email_matches] if CurrentUser.is_admin?
     params.fetch(:search, {}).permit(permitted_params)
   end
+
+  def allowed_readonly_actions
+    super + %w[home upload_limit]
+  end
 end
