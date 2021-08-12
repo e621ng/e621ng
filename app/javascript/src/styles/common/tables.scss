@@ -56,7 +56,7 @@ table.table {
 
 // Needed so that unconverted tables work.
 table.striped {
-  @extend table.table;
+  @extend .table;
 }
 
 /*
@@ -96,7 +96,7 @@ table.search {
 }
 
 table.aligned-vertical {
-  @extend table.search;
+  @extend .search;
 
   tr {
     height: 1.75em;
