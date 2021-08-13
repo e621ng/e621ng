@@ -1,18 +1,29 @@
-
-
-.spoiler {
+.styled-dtext .spoiler {
   color: $spoiler-color;
   background: $spoiler-background;
-}
 
-.spoiler a {
-  color: $spoiler-link-color;
-}
+  a {
+    color: $spoiler-color;
+  }
 
-.spoiler:hover {
-  color: $spoiler-hover-color;
-}
+  .inline-code, pre, blockquote, div.expandable {
+    background-color: $spoiler-background;
+  }
 
-.spoiler:hover a{
-  color: $spoiler-link-hover-color;
+  &:hover {
+    color: $spoiler-hover-color;
+
+    a {
+      @include themable {
+        color: themed('color-spoiler-link');
+        &:hover {
+          color: themed('color-spoiler-link-hover');
+        }
+      }
+    }
+
+    .inline-code {
+      background-color: $dtext-code-background;
+    }
+  }
 }
