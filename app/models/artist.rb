@@ -218,28 +218,18 @@ class Artist < ApplicationRecord
       self.url_string_changed = false
     end
 
-    def map_domain(x)
-      case x
-      when "pximg.net"
-        "pixiv.net"
-
-      when "deviantart.net"
-        "deviantart.com"
-
-      else
-        x
-      end
-    end
-
     def domains
       Cache.get("artist-domains-#{id}", 1.day) do
-        Post.raw_tag_match(name).records.pluck(:source).map do |x|
-          begin
-            map_domain(Addressable::URI.parse(x).domain)
-          rescue Addressable::URI::InvalidURIError
-            nil
-          end
-        end.compact.inject(Hash.new(0)) {|h, x| h[x] += 1; h}.sort {|a, b| b[1] <=> a[1]}
+        re = /\.(png|jpeg|jpg|webm|mp4)$/m
+        sources = Post.raw_tag_match(name).records.pluck(:source).map {|s| s.split("\n")}.flatten
+        # try to filter out direct file urls
+        domains = sources.filter {|s| !re.match?(s) }.map do |x|
+          Addressable::URI.parse(x).domain
+        rescue Addressable::URI::InvalidURIError
+          nil
+        end
+        counted = domains.compact.each_with_object(Hash.new(0)) {|domain, result| result[domain] += 1}
+        counted.sort {|a, b| b[1] <=> a[1]}
       end
     end
   end
