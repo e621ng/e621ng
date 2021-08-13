@@ -1,4 +1,5 @@
-$hexagon-color-background:        #020F23;
+$hexagon-color-background:        #020f23;
+$hexagon-color-link:              #b4c7d9;
 $hexagon-color-link-hover:        #e9f2fa;
 $hexagon-color-text-muted:        #999999;
 $hexagon-color-section:           #1f3c67;
@@ -21,8 +22,8 @@ $theme_hexagon: (
   "color-text-muted":             #999999,
   "color-text-white":             #ffffff,
 
-  "color-link":                   #b4c7d9,
-  "color-link-hover":             #e9f2fa,
+  "color-link":                   $hexagon-color-link,
+  "color-link-hover":             $hexagon-color-link-hover,
   "color-link-active":            #e8c446,
 
   "color-link-last-page":         $hexagon-color-text-muted,
@@ -90,4 +91,7 @@ $theme_hexagon: (
   "color-tag-pool":               wheat,
   "color-tag-pool-alt":           #d0b27a,
 
+  // Spoilers
+  "color-spoiler-link":           $hexagon-color-link,
+  "color-spoiler-link-hover":     $hexagon-color-link-hover,
 );

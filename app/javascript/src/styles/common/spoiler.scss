@@ -5,14 +5,19 @@
   background: $spoiler-background;
 }
 
-.spoiler a {
-  color: $spoiler-link-color;
+.spoiler a.dtext-link {
+  color: $spoiler-color;
 }
 
 .spoiler:hover {
   color: $spoiler-hover-color;
 }
 
-.spoiler:hover a{
-  color: $spoiler-link-hover-color;
+.spoiler:hover a.dtext-link {
+  @include themable {
+    color: themed('color-spoiler-link');
+    &:hover {
+      color: themed('color-spoiler-link-hover');  
+    }
+  }
 }
