@@ -6,12 +6,12 @@ class NewsUpdate < ApplicationRecord
   after_destroy :invalidate_cache
 
   def self.recent
-    @recent_news ||= Cache.get('recent_news', 1.day) do
-      self.order('id desc').first(1)
+    Cache.get('most_recent_news_entry', 1.day) do
+      order('id desc').first
     end
   end
 
   def invalidate_cache
-    Cache.delete('recent_news')
+    Cache.delete('most_recent_news_entry')
   end
 end
