@@ -12,6 +12,8 @@ class TicketsController < ApplicationController
   def new
     @ticket = Ticket.new(qtype: params[:type], disp_id: params[:disp_id])
     check_new_permission(@ticket)
+    @duplicates = Ticket.open_duplicates(params[:type], params[:disp_id])
+    @duplicates = @duplicates.select {|t| t.can_see_details?(CurrentUser.user)}
   end
 
   def create

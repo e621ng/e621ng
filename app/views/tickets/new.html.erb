@@ -21,6 +21,12 @@
         </div>
       <% elsif @ticket.type_valid %>
         <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
+        <% if @duplicates.any? %>
+          <p class='nomargin'>There are already pending tickets. Please check them before filing one yourself: 
+          <% @duplicates.each do |dup| %>
+            <%= link_to("ticket ##{dup.id}", ticket_path(dup.id)) %>
+          <% end %></p>
+        <% end %>
       <% else %>
         <% @found_item = false %>
         <div class='section' style='width:80em;'>

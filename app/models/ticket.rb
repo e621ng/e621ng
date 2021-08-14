@@ -646,7 +646,7 @@ class Ticket < ApplicationRecord
     end
   end
 
-  def open_duplicates
+  def self.open_duplicates(qtype, disp_id)
     Ticket.where('qtype = ? and disp_id = ? and status = ?', qtype, disp_id, 'pending')
   end
 
