@@ -218,17 +218,22 @@ class Artist < ApplicationRecord
       self.url_string_changed = false
     end
 
+    # Returns a count of sourced domains for the artist.
+    # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
       Cache.get("artist-domains-#{id}", 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
-        sources = Post.raw_tag_match(name).records.pluck(:source).map {|s| s.split("\n")}.flatten
-        # try to filter out direct file urls
-        domains = sources.filter {|s| !re.match?(s) }.map do |x|
-          Addressable::URI.parse(x).domain
-        rescue Addressable::URI::InvalidURIError
-          nil
+        counted = Hash.new(0)
+        sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|
+          sources = source_string.split("\n")
+          # try to filter out direct file urls
+          domains = sources.filter {|s| !re.match?(s) }.map do |x|
+            Addressable::URI.parse(x).domain
+          rescue Addressable::URI::InvalidURIError
+            nil
+          end.compact.uniq
+          domains.each {|domain| counted[domain] += 1}
         end
-        counted = domains.compact.each_with_object(Hash.new(0)) {|domain, result| result[domain] += 1}
         counted.sort {|a, b| b[1] <=> a[1]}
       end
     end
