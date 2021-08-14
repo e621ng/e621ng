@@ -230,76 +230,6 @@ class PostQueryBuilder
       end
     end
 
-    if q[:disapproval]
-      q[:disapproval].each do |disapproval|
-        disapprovals = CurrentUser.user.post_disapprovals.select(:post_id)
-
-        if disapproval.in?(%w[none false])
-          relation = relation.where.not("posts.id": disapprovals)
-        elsif disapproval.in?(%w[any all true])
-          relation = relation.where("posts.id": disapprovals)
-        else
-          relation = relation.where("posts.id": disapprovals.where(reason: disapproval))
-        end
-      end
-    end
-
-    if q[:disapproval_neg]
-      q[:disapproval_neg].each do |disapproval|
-        disapprovals = CurrentUser.user.post_disapprovals.select(:post_id)
-
-        if disapproval.in?(%w[none false])
-          relation = relation.where("posts.id": disapprovals)
-        elsif disapproval.in?(%w[any all true])
-          relation = relation.where.not("posts.id": disapprovals)
-        else
-          relation = relation.where.not("posts.id": disapprovals.where(reason: disapproval))
-        end
-      end
-    end
-
-    if q[:flagger_ids_neg]
-      q[:flagger_ids_neg].each do |flagger_id|
-        if CurrentUser.can_view_flagger?(flagger_id)
-          post_ids = PostFlag.unscoped.search({:creator_id => flagger_id, :category => "normal"}).reorder("").pluck(:post_id).uniq
-          if post_ids.any?
-            relation = relation.where.not("posts.id": post_ids)
-          end
-        end
-      end
-    end
-
-    if q[:flagger_ids]
-      q[:flagger_ids].each do |flagger_id|
-        if flagger_id == "any"
-          relation = relation.where('EXISTS (' + PostFlag.unscoped.search({:category => "normal"}).where('post_id = posts.id').reorder('').select('1').to_sql + ')')
-        elsif flagger_id == "none"
-          relation = relation.where('NOT EXISTS (' + PostFlag.unscoped.search({:category => "normal"}).where('post_id = posts.id').reorder('').select('1').to_sql + ')')
-        elsif CurrentUser.can_view_flagger?(flagger_id)
-          post_ids = PostFlag.unscoped.search({:creator_id => flagger_id, :category => "normal"}).reorder("").pluck(:post_id).uniq
-          relation = relation.where("posts.id": post_ids)
-        end
-      end
-    end
-
-    if q[:appealer_ids_neg]
-      q[:appealer_ids_neg].each do |appealer_id|
-        relation = relation.where.not("posts.id":  PostAppeal.unscoped.where(creator_id: appealer_id).select(:post_id).distinct)
-      end
-    end
-
-    if q[:appealer_ids]
-      q[:appealer_ids].each do |appealer_id|
-        if appealer_id == "any"
-          relation = relation.where('EXISTS (' + PostAppeal.unscoped.where('post_id = posts.id').select('1').to_sql + ')')
-        elsif appealer_id == "none"
-          relation = relation.where('NOT EXISTS (' + PostAppeal.unscoped.where('post_id = posts.id').select('1').to_sql + ')')
-        else
-          relation = relation.where("posts.id": PostAppeal.unscoped.where(creator_id: appealer_id).select(:post_id).distinct)
-        end
-      end
-    end
-
     if q[:commenter_ids]
       q[:commenter_ids].each do |commenter_id|
         if commenter_id == "any"
@@ -327,12 +257,6 @@ class PostQueryBuilder
     if q[:note_updater_ids]
       q[:note_updater_ids].each do |note_updater_id|
         relation = relation.where("posts.id": NoteVersion.unscoped.where(updater_id: note_updater_id).select("post_id").distinct)
-      end
-    end
-
-    if q[:artcomm_ids]
-      q[:artcomm_ids].each do |artcomm_id|
-        relation = relation.where("posts.id": ArtistCommentaryVersion.unscoped.where(updater_id: artcomm_id).select("post_id").distinct)
       end
     end
 
@@ -413,26 +337,6 @@ class PostQueryBuilder
       relation = relation.joins("JOIN (#{pool_posts.to_sql}) pool_posts ON pool_posts.post_id = posts.id").order("pool_posts.pool_index ASC")
     end
 
-    if q[:favgroups_neg].present?
-      q[:favgroups_neg].each do |favgroup_rec|
-        favgroup_id = favgroup_rec.to_i
-        favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
-        if favgroup
-          relation = relation.where.not("posts.id": favgroup.post_id_array)
-        end
-      end
-    end
-
-    if q[:favgroups].present?
-      q[:favgroups].each do |favgroup_rec|
-        favgroup_id = favgroup_rec.to_i
-        favgroup = FavoriteGroup.where("favorite_groups.id = ?", favgroup_id).first
-        if favgroup
-          relation = relation.where("posts.id": favgroup.post_id_array)
-        end
-      end
-    end
-
     if q[:upvote].present?
       user_id = q[:upvote]
       post_ids = PostVote.where(:user_id => user_id).where("score > 0").limit(400).pluck(:post_id)
@@ -443,12 +347,6 @@ class PostQueryBuilder
       user_id = q[:downvote]
       post_ids = PostVote.where(:user_id => user_id).where("score < 0").limit(400).pluck(:post_id)
       relation = relation.where("posts.id": post_ids)
-    end
-
-    if q[:ordfav].present?
-      user_id = q[:ordfav].to_i
-      relation = relation.joins("INNER JOIN favorites ON favorites.post_id = posts.id")
-      relation = relation.where("favorites.user_id % 100 = ? and favorites.user_id = ?", user_id % 100, user_id).order("favorites.id DESC")
     end
 
     # HACK: if we're using a date: or age: metatag, default to ordering by
