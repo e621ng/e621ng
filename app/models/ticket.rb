@@ -176,14 +176,6 @@ class Ticket < ApplicationRecord
       def can_create_for?(user)
         forum.visible?(user)
       end
-
-      def can_see_details?(user)
-        if forum
-          forum.visible?(user)
-        else
-          true
-        end
-      end
     end
 
     module CommentType
