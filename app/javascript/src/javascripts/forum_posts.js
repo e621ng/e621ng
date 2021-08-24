@@ -8,14 +8,15 @@ ForumPost.initialize_all = function() {
     $(".forum-post-reply-link").on('click', ForumPost.quote);
     $(".forum-post-hide-link").on('click', ForumPost.hide);
     $(".forum-post-unhide-link").on('click', ForumPost.unhide);
-    $(".forum-vote-up").on('click', ForumPost.vote_up);
-    $(".forum-vote-meh").on('click', ForumPost.vote_meh);
-    $(".forum-vote-down").on('click', ForumPost.vote_down);
+    $(".forum-vote-up").on('click', evt => ForumPost.vote(evt, 1));
+    $(".forum-vote-meh").on('click', evt => ForumPost.vote(evt, 0));
+    $(".forum-vote-down").on('click', evt => ForumPost.vote(evt, -1));
     $(document).on('click', ".forum-vote-remove", ForumPost.vote_remove);
   }
 }
 
-ForumPost.vote = function(id, score) {
+ForumPost.vote = function(evt, score) {
+  evt.preventDefault();
   const create_post = function(new_vote) {
     const score_map = {'1': 'fa-thumbs-up', '0': 'fa-meh', '-1': 'fa-thumbs-down' };
     const score_map_2 = {'1': 'up', '0': 'meh', '-1': 'down'};
@@ -25,6 +26,7 @@ ForumPost.vote = function(id, score) {
     container.append(link1).append(' ').append(link2);
     $(`#forum-post-votes-for-${new_vote.forum_post_id}`).prepend(container);
   };
+  const id = $(evt.target.parentNode).data('forum-id');
   $.ajax({
     url: `/forum_posts/${id}/votes.json`,
     type: 'POST',
@@ -39,19 +41,8 @@ ForumPost.vote = function(id, score) {
   });
 }
 
-ForumPost.vote_up = function(evt) {
-  ForumPost.vote($(evt.target.parentNode).data('forum-id'), 1);
-}
-
-ForumPost.vote_meh = function(evt) {
-  ForumPost.vote($(evt.target.parentNode).data('forum-id'), 0);
-}
-
-ForumPost.vote_down = function(evt) {
-  ForumPost.vote($(evt.target.parentNode).data('forum-id'), -1);
-}
-
 ForumPost.vote_remove = function(evt) {
+  evt.preventDefault();
   const id = $(evt.target.parentNode).data('forum-id');
   $.ajax({
     url: `/forum_posts/${id}/votes.json`,
