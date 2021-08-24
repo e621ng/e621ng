@@ -1,6 +1,10 @@
+.styled-dtext  {
+  display: grid;
+}
 
-
-.styled-dtext {
+.dtext-content {
+  overflow: auto;
+  display: inline;
   line-height: 1.4em;
 
   h1, h2, h3 {

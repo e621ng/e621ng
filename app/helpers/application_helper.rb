@@ -82,6 +82,14 @@ module ApplicationHelper
   end
 
   def format_text(text, **options)
+    raw %(<div class="dtext-content">#{dtext_ragel(text, options)}</div>)
+  end
+
+  def strip_dtext(text)
+    dtext_ragel(text, strip: true)
+  end
+
+  def dtext_ragel(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
     return raw "" if parsed.nil?
@@ -89,10 +97,6 @@ module ApplicationHelper
     raw parsed[0]
   rescue DTextRagel::Error => e
     raw ""
-  end
-
-  def strip_dtext(text)
-    format_text(text, strip: true)
   end
 
   def error_messages_for(instance_name)
