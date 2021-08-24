@@ -14,6 +14,7 @@
                     <div v-if="!disableFileUpload">
                         <label>File:
                             <input type="file" ref="post_file" @change="updatePreview" @keyup="updatePreview"
+                                   accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
                                    :disabled="disableFileUpload"/>
                         </label>
                         <button @click="clearFile" v-show="disableURLUpload">Clear</button>
