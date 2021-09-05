@@ -1,13 +1,15 @@
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
+  class ReadOnlyException < Exception; end
 
-  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
+  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
   before_action :set_current_user
   before_action :normalize_search
   before_action :api_check
   before_action :set_variant
   before_action :enable_cors
+  before_action :enforce_readonly
   after_action :reset_current_user
   layout "default"
 
@@ -23,16 +25,17 @@ class ApplicationController < ActionController::Base
   # here, so calling `rescue_exception` would cause a double render error.
   rescue_from ActionController::InvalidCrossOriginRequest, with: -> {}
 
+  def enable_cors
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization"
+  end
+
   protected
 
   def self.rescue_with(*klasses, status: 500)
     rescue_from *klasses do |exception|
       render_error_page(status, exception)
     end
-  end
-
-  def enable_cors
-    response.headers["Access-Control-Allow-Origin"] = "*"
   end
 
   def api_check
@@ -89,6 +92,8 @@ class ApplicationController < ActionController::Base
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
+      render_expected_error(400, exception.message)
+    when ReadOnlyException
       render_expected_error(400, exception.message)
     else
       render_error_page(500, exception)
@@ -227,5 +232,14 @@ class ApplicationController < ActionController::Base
 
   def search_params
     params.fetch(:search, {}).permit!
+  end
+
+  def enforce_readonly
+    return unless Danbooru.config.readonly_mode
+    raise ReadOnlyException.new "The site is in readonly mode" unless allowed_readonly_actions.include? action_name
+  end
+
+  def allowed_readonly_actions
+    %w[index show search]
   end
 end

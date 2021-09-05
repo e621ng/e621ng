@@ -109,7 +109,7 @@ class PostsController < ApplicationController
     respond_with_post_after_update(@post)
   end
 
-private
+  private
 
   def tag_query
     params[:tags] || (params[:post] && params[:post][:tags])
@@ -176,5 +176,9 @@ private
     permitted_params += %i[is_status_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
+  end
+
+  def allowed_readonly_actions
+    super + %w[random show_seq]
   end
 end

@@ -1,7 +1,7 @@
 $theme_hotdog: (
   // Layout Colors
-  "color-background":             #FFFF00,                // Main background (dark blue, large hexagons)
-  "color-foreground":             #FF0000,                // Foreground (lighter blue, small hexagons)
+  "color-background":             #ffff00,                // Main background (dark blue, large hexagons)
+  "color-foreground":             #ff0000,                // Foreground (lighter blue, small hexagons)
   "color-section":                #c53c38,                // Foreground sections - boxes, sections, etc
 
   // Main Colors
@@ -22,8 +22,8 @@ $theme_hotdog: (
 
   // Detail Colors
   "color-detail-quote":           #67717b,
-  "color-detail-code":      #ffe380,
-  "color-detail-expandable":            #427982,
+  "color-detail-code":            #ffe380,
+  "color-detail-expandable":      #427982,
 
   // User Groups
   "color-user-member":            #000000,
@@ -39,4 +39,8 @@ $theme_hotdog: (
   // Tag Categories
   "color-tag-general":            #000000,
   "color-tag-general-alt":        #999999,
+
+  // Spoilers
+  "color-spoiler-link":           #ffff00,
+  "color-spoiler-link-hover":     #ff0000,
 );

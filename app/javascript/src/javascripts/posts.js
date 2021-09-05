@@ -718,7 +718,6 @@ Post.initialize_post_sections = function() {
     } else if (e.target.hash === "#edit") {
       $("#edit").show();
       $("#comments").hide();
-      $("#post_tag_string").focus().selectEnd().height($("#post_tag_string")[0].scrollHeight);
       $(document).trigger("danbooru:open-post-edit-tab");
       Post.update_tag_count({target: $("#post_tag_string")});
     } else {
@@ -1022,7 +1021,7 @@ Post.vote = function (id, score, prevent_unvote) {
       $(".post-vote-up-"+postID).removeClass(scoreClasses);
       $(".post-vote-down-"+postID).removeClass(scoreClasses);
       $('.post-score-'+postID).text(postScore);
-      $('.post-score-'+postID).attr('title', `${data.up_score} up/${data.down_score} down`);
+      $('.post-score-'+postID).attr('title', `${data.up} up/${data.down} down`);
       $(".post-score-"+postID).addClass(scoreToClass(postScore));
       $('.post-vote-up-'+postID).addClass(ourScore > 0 ? 'score-positive' : 'score-neutral');
       $('.post-vote-down-'+postID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');

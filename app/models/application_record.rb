@@ -155,7 +155,7 @@ class ApplicationRecord < ActiveRecord::Base
     protected
 
     def hidden_attributes
-      [:uploader_ip_addr, :updater_ip_addr, :creator_ip_addr]
+      [:uploader_ip_addr, :updater_ip_addr, :creator_ip_addr, :user_ip_addr, :ip_addr]
     end
 
     def method_attributes

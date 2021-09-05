@@ -51,7 +51,8 @@ class TagsController < ApplicationController
     respond_with(@tag)
   end
 
-private
+  private
+
   def check_privilege(tag)
     raise User::PrivilegeError unless tag.category_editable_by?(CurrentUser.user)
   end
@@ -61,5 +62,9 @@ private
     permitted_params << :is_locked if CurrentUser.is_moderator?
 
     params.require(:tag).permit(permitted_params)
+  end
+
+  def allowed_readonly_actions
+    super + %w[autocomplete]
   end
 end

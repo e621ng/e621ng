@@ -71,7 +71,7 @@
                     <div class="col">
                         <label class="section-label" for="names">Artists</label>
                         <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
-                        <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
+                        <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
                         <div>

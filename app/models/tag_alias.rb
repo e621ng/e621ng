@@ -95,13 +95,23 @@ class TagAlias < TagRelationship
     # Remove tag types (comma syntax)
     query.gsub!(/, (-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join("|")}):([\S])/i, ', \1\3')
     lines = query.downcase.split("\n")
-    lines = lines.map do |line|
+    collected_tags = []
+    lines.each do |line|
       tags = line.split(" ").reject(&:blank?).map do |x|
         negated = x[0] == '-'
         [negated ? x[1..-1] : x, negated]
       end
-      aliased = to_aliased_with_originals(tags.map { |t| t[0] })
-      aliased.merge!(overrides) if overrides
+      tags.each do |t|
+        collected_tags << t[0]
+      end
+    end
+    aliased = to_aliased_with_originals(collected_tags)
+    aliased.merge!(overrides) if overrides
+    lines = lines.map do |line|
+      tags = line.split(" ").reject(&:blank?).reject {|t| t == '-'}.map do |x|
+        negated = x[0] == '-'
+        [negated ? x[1..-1] : x, negated]
+      end
       tags.map { |t| "#{t[1] ? '-' : ''}#{aliased[t[0]]}" }.join(" ")
     end
     lines.uniq.join("\n")
