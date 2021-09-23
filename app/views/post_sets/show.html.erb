@@ -20,7 +20,7 @@
     <span class="date" title="<%= @post_set.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.created_at) + " ago" %></span>
     |
     Updated:
-    <span class="date" title="<%= @post_set.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.updated_at) + " ago" %></span><br/>
+    <span class="date" title="<%= @post_set.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.updated_at) + " ago" %></span><br/><br/>
 
     <% if @post_set.description.blank? %>
       <div class='set-description'>No description.</div>

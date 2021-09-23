@@ -271,7 +271,7 @@ class PostPresenter < Presenter
   end
 
   def has_sequential_navigation?(params)
-    return false if Tag.has_metatag?(params[:q], :order, :ordfav, :ordpool)
+    return false if Tag.has_metatag?(params[:q], :order, :ordpool)
     return false if params[:pool_id].present? || params[:post_set_id].present?
     true
   end

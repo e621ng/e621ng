@@ -144,30 +144,6 @@ class PostFlagTest < ActiveSupport::TestCase
       end
     end
 
-    context "a moderator user" do
-      setup do
-        travel_to(2.weeks.ago) do
-          @dave = create(:moderator_user)
-        end
-      end
-
-      should "not be able to view flags on their own uploads" do
-        @modpost = create(:post, :tag_string => "mmm", :uploader => @dave)
-        as(@alice) do
-          @flag1 = PostFlag.create(:post => @modpost, :reason => "aaa", :is_resolved => false)
-        end
-
-        assert_equal(false, @dave.can_view_flagger_on_post?(@flag1))
-
-        as(@dave) do
-          flag2 = PostFlag.search(:creator_id => @alice.id)
-          assert_equal(0, flag2.length)
-          flag3 = PostFlag.search({})
-          assert_nil(JSON.parse(flag3.to_json)[0]["creator_id"])
-        end
-      end
-    end
-
     context "a user with no_flag=true" do
       setup do
         travel_to(2.weeks.ago) do

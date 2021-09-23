@@ -342,10 +342,11 @@ class Artist < ApplicationRecord
     end
 
     def notes=(text)
-      if notes != text
-        notes_will_change!
-        @notes = text
-      end
+      return if wiki_page.blank? && text.empty?
+      return if notes == text
+
+      notes_will_change!
+      @notes = text
     end
 
     def reload(options = nil)
