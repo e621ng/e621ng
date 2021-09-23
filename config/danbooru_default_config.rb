@@ -192,6 +192,10 @@ fart'
       false
     end
 
+    def disable_cache_store
+      false
+    end
+
     # Members cannot post more than X comments in an hour.
     def member_comment_limit
       15
