@@ -218,28 +218,23 @@ class Artist < ApplicationRecord
       self.url_string_changed = false
     end
 
-    def map_domain(x)
-      case x
-      when "pximg.net"
-        "pixiv.net"
-
-      when "deviantart.net"
-        "deviantart.com"
-
-      else
-        x
-      end
-    end
-
+    # Returns a count of sourced domains for the artist.
+    # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
       Cache.get("artist-domains-#{id}", 1.day) do
-        Post.raw_tag_match(name).records.pluck(:source).map do |x|
-          begin
-            map_domain(Addressable::URI.parse(x).domain)
+        re = /\.(png|jpeg|jpg|webm|mp4)$/m
+        counted = Hash.new(0)
+        sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|
+          sources = source_string.split("\n")
+          # try to filter out direct file urls
+          domains = sources.filter {|s| !re.match?(s) }.map do |x|
+            Addressable::URI.parse(x).domain
           rescue Addressable::URI::InvalidURIError
             nil
-          end
-        end.compact.inject(Hash.new(0)) {|h, x| h[x] += 1; h}.sort {|a, b| b[1] <=> a[1]}
+          end.compact.uniq
+          domains.each {|domain| counted[domain] += 1}
+        end
+        counted.sort {|a, b| b[1] <=> a[1]}
       end
     end
   end
