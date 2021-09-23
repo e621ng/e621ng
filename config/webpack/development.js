@@ -1,8 +1,5 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
-const environment = require('./environment')
-const eslint = require('./loaders/eslint')
+const webpackConfig = require('./base')
 
-environment.loaders.append('eslint', eslint);
-
-module.exports = environment.toWebpackConfig()
+module.exports = webpackConfig
