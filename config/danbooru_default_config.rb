@@ -954,8 +954,10 @@ fart'
         false
     end
 
+    # Additional video samples will be generated in these dimensions if it makes sense to do so
+    # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
-      {'480p' => [640, 480], '720p' => [1280, 720]}
+      {'720p' => [1280, 720], '480p' => [640, 480]}
     end
 
     def image_rescales

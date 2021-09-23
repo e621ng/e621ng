@@ -1,4 +1,4 @@
-import Post from './posts.js.erb'
+import Post from './posts'
 import Utility from './utility'
 import {SendQueue} from './send_queue'
 
@@ -69,4 +69,3 @@ Favorite.destroy = function (post_id) {
 $(Favorite.initialize_actions);
 
 export default Favorite
-
