@@ -68,7 +68,6 @@ class PostFlag < ApplicationRecord
 
       if params[:creator_id].present?
         if CurrentUser.can_view_flagger?(params[:creator_id].to_i)
-          q = q.where.not(post_id: CurrentUser.user.posts)
           q = q.where("creator_id = ?", params[:creator_id].to_i)
         else
           q = q.none
@@ -78,7 +77,6 @@ class PostFlag < ApplicationRecord
       if params[:creator_name].present?
         flagger_id = User.name_to_id(params[:creator_name].strip)
         if flagger_id && CurrentUser.can_view_flagger?(flagger_id)
-          q = q.where.not(post_id: CurrentUser.user.posts)
           q = q.where("creator_id = ?", flagger_id)
         else
           q = q.none
@@ -236,14 +234,6 @@ class PostFlag < ApplicationRecord
 
   def flag_count_for_creator
     PostFlag.where(:creator_id => creator_id).recent.count
-  end
-
-  def uploader_id
-    @uploader_id ||= Post.find(post_id).uploader_id
-  end
-
-  def not_uploaded_by?(userid)
-    uploader_id != userid
   end
 
   def parent_post

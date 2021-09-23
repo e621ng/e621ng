@@ -1,5 +1,4 @@
 class PostArchive < ApplicationRecord
-  class RevertError < Exception ; end
   extend Memoist
 
   belongs_to :post
@@ -330,8 +329,6 @@ class PostArchive < ApplicationRecord
   end
 
   def undo
-    raise RevertError unless post.visible?
-
     if description_changed
       post.description = previous.description
     end
@@ -374,12 +371,11 @@ class PostArchive < ApplicationRecord
   end
 
   def can_undo?(user)
-    return version > 1 if user.is_admin?
-    version > 1 && post&.visible? && user.is_member?
+    version > 1 && user.is_member?
   end
 
   def can_revert_to?(user)
-    post&.visible? && user.is_member?
+    user.is_member?
   end
 
   def method_attributes
