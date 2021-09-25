@@ -21,6 +21,10 @@ By the time you get back the install will surely have completed.<sup>1</sup>
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
 
+#### Development Database
+
+The postgres server accepts outside connections which you can use to connect with a local client. Use `192.168.64.78:5432` to connect to a database named `danbooru2` with the user `danbooru`. Leave the password blank, anything will work.
+
 #### VirtualBox Troubleshooting
 
 In case the VM doesn't start with the error `VT-x not available` and the error description `WHvCapabilityCodeHypervisorPresent is FALSE!` the the following solution should resolve the issue:
