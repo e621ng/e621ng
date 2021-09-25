@@ -1,63 +1,53 @@
-module.exports = function(api) {
+module.exports = function (api) {
   var validEnv = ['development', 'test', 'production']
   var currentEnv = api.env()
   var isDevelopmentEnv = api.env('development')
   var isProductionEnv = api.env('production')
   var isTestEnv = api.env('test')
+  const { moduleExists } = require('@rails/webpacker')
 
   if (!validEnv.includes(currentEnv)) {
     throw new Error(
       'Please specify a valid `NODE_ENV` or ' +
-        '`BABEL_ENV` environment variables. Valid values are "development", ' +
-        '"test", and "production". Instead, received: ' +
-        JSON.stringify(currentEnv) +
-        '.'
+      '`BABEL_ENV` environment variables. Valid values are "development", ' +
+      '"test", and "production". Instead, received: ' +
+      JSON.stringify(currentEnv) +
+      '.'
     )
   }
 
   return {
     presets: [
-      isTestEnv && [
-        require('@babel/preset-env').default,
+      isTestEnv && ['@babel/preset-env', { targets: { node: 'current' } }],
+      (isProductionEnv || isDevelopmentEnv) && [
+        '@babel/preset-env',
         {
-          targets: {
-            node: 'current'
-          }
+          useBuiltIns: 'entry',
+          corejs: '3.8',
+          modules: 'auto',
+          bugfixes: true,
+          exclude: ['transform-typeof-symbol']
         }
       ],
-      (isProductionEnv || isDevelopmentEnv) && [
-        require('@babel/preset-env').default,
+      moduleExists('@babel/preset-typescript') && [
+        '@babel/preset-typescript',
+        { allExtensions: true, isTSX: true }
+      ],
+      moduleExists('@babel/preset-react') && [
+        '@babel/preset-react',
         {
-          forceAllTransforms: true,
-          useBuiltIns: 'entry',
-          corejs: 3,
-          modules: false,
-          exclude: ['transform-typeof-symbol']
+          development: isDevelopmentEnv || isTestEnv,
+          useBuiltIns: true
         }
       ]
     ].filter(Boolean),
     plugins: [
-      require('babel-plugin-macros'),
-      require('@babel/plugin-syntax-dynamic-import').default,
-      isTestEnv && require('babel-plugin-dynamic-import-node'),
-      require('@babel/plugin-transform-destructuring').default,
-      ["@babel/plugin-proposal-class-properties", { loose: true }],
-      ["@babel/plugin-proposal-private-property-in-object", { "loose": true }],
-      ["@babel/plugin-proposal-private-methods", { "loose": true }],
-      ['@babel/plugin-proposal-object-rest-spread', {useBuiltIns: true}],
-      [
-        require('@babel/plugin-transform-runtime').default,
-        {
-          helpers: false,
-          regenerator: true,
-          corejs: false
-        }
-      ],
-      [
-        require('@babel/plugin-transform-regenerator').default,
-        {
-          async: false
-        }
+      ['@babel/plugin-proposal-class-properties', { loose: true }],
+      ['@babel/plugin-transform-runtime', { helpers: false }],
+      isProductionEnv &&
+      moduleExists('babel-plugin-transform-react-remove-prop-types') && [
+        'babel-plugin-transform-react-remove-prop-types',
+        { removeImport: true }
       ]
     ].filter(Boolean)
   }

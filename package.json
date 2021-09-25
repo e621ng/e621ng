@@ -4,6 +4,7 @@
   "dependencies": {
     "@rails/webpacker": "^6.0.0-rc.5",
     "babel-plugin-macros": "^3.1.0",
+    "core-js": "3.8",
     "css-loader": "^6.3.0",
     "css-minimizer-webpack-plugin": "^3.0.2",
     "jquery-ui": "^1.12.1",
@@ -23,11 +24,6 @@
     "zingtouch": "^1.0.6"
   },
   "version": "0.1.0",
-  "babel": {
-    "presets": [
-      "./node_modules/@rails/webpacker/package/babel/preset.js"
-    ]
-  },
   "devDependencies": {
     "webpack-dev-server": "^4.2.1"
   }
