@@ -200,11 +200,11 @@ PostModeMenu.click = function(e) {
   } else if (s === 'remove-from-set') {
     PostSet.remove_post($("#set-id").val(), post_id);
   } else if (s === 'rating-q') {
-    Post.update(post_id, {"post[rating]": "questionable"})
+    Post.update(post_id, {"post[rating]": "q"})
   } else if (s === 'rating-s') {
-    Post.update(post_id, {"post[rating]": "safe"})
+    Post.update(post_id, {"post[rating]": "s"})
   } else if (s === 'rating-e') {
-    Post.update(post_id, {"post[rating]": "explicit"})
+    Post.update(post_id, {"post[rating]": "e"})
   } else if (s === 'lock-rating') {
     Post.update(post_id, {"post[is_rating_locked]": "1"});
   } else if (s === 'lock-note') {
