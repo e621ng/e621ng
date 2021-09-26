@@ -74,7 +74,7 @@ if ! install_packages \
       libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
       libexpat1-dev nodejs optipng redis-server postgresql-server-dev-12 \
       liblcms2-dev libjpeg-turbo8-dev libgif-dev libpng-dev libexif-dev \
-      elasticsearch; then
+      elasticsearch libgd-dev; then
     >&2 script_log "Installation of dependencies failed, please see the errors above and re-run \`vagrant provision\`"
     exit 1
 fi
@@ -156,6 +156,18 @@ if ! which vipsthumbnail >/dev/null; then
     ldconfig
     popd
     rm -fr /tmp/vips-$VIPS_VERSION.tar.gz /tmp/vips-$VIPS_VERSION
+fi
+
+script_log "Installing iqdb..."
+if ! which iqdb >/dev/null; then
+    IQDB_VERSION=20161008
+    cd /tmp
+    wget -q  https://iqdb.org/code/iqdb-$IQDB_VERSION.tar.bz2
+    tar xjf iqdb-$IQDB_VERSION.tar.bz2
+    cd iqdb
+    patch -N -i $APP_DIR/vagrant/iqdb.patch
+    make
+    cp iqdb /usr/bin/
 fi
 
 script_log "Enabling redis server"

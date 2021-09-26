@@ -31,6 +31,11 @@ script_log "Installing bundler gem..."
 gem install bundler:2.0.1 >/dev/null
 bundler config github.https true
 
+script_log "Installing iqdbs..."
+git -C iqdbs pull || git clone https://github.com/zwagoth/iqdbs
+bundler install --gemfile=iqdbs/Gemfile
+cp -n vagrant/iqdbs.env iqdbs/.env
+
 script_log "Dropping existing databases (if any)..."
 dropdb --if-exists danbooru2
 dropdb --if-exists danbooru2_test
