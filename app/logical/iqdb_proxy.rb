@@ -1,7 +1,7 @@
 class IqdbProxy
   class Error < ::Exception; end
   def self.query(image_url)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+    raise NotImplementedError if Danbooru.config.iqdbs_server.blank?
 
     url = URI.parse(Danbooru.config.iqdbs_server)
     url.path = "/similar"
@@ -12,7 +12,7 @@ class IqdbProxy
   end
 
   def self.query_file(image)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+    raise NotImplementedError if Danbooru.config.iqdbs_server.blank?
 
     url = URI.parse(Danbooru.config.iqdbs_server)
     url.path = "/similar"
@@ -24,7 +24,7 @@ class IqdbProxy
   end
 
   def self.query_path(image_path)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+    raise NotImplementedError if Danbooru.config.iqdbs_server.blank?
 
     f = File.open(image_path)
     url = URI.parse(Danbooru.config.iqdbs_server)

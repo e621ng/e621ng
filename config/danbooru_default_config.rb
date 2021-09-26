@@ -863,14 +863,13 @@ fart'
     def reportbooru_server
     end
 
-    def iqdb_enabled?
-      true
-    end
-
     # iqdbs options - see https://github.com/r888888888/iqdbs
     def iqdbs_auth_key
     end
 
+    # Reverse image search provider
+    # https://github.com/zwagoth/iqdbs
+    # Return nil to disable
     def iqdbs_server
       "http://localhost:4567"
     end
