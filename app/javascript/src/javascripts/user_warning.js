@@ -2,6 +2,7 @@ import Utility from './utility.js';
 
 $(() => {
   $('.item-mark-user-warned').on('click', function(evt) {
+    evt.preventDefault();
     const target = $(evt.target);
     const type = target.data('item-type');
     const id = target.data('item-id');
