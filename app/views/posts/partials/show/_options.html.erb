@@ -48,7 +48,9 @@
         <% end %>
 
         <% if CurrentUser.is_admin? %>
-          <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
+          <% if Danbooru.config.iqdb_enabled? %>
+            <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
+          <% end %>
           <li><%= tag.a "Destroy", href: '#', id: 'destroy-post-link', 'data-pid': post.id %></li>
         <% end %>
       <% end %>
