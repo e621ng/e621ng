@@ -26,7 +26,6 @@ Post.initialize_all = function() {
     this.initialize_post_relationship_previews();
     this.initialize_post_sections();
     this.initialize_resize();
-    this.initialize_similar();
     this.initialize_gestures();
     this.initialize_voting();
     this.initialize_moderation();
@@ -158,13 +157,6 @@ Post.close_edit_dialog = function(e, ui) {
   $("#open-edit-dialog").show();
   $tag_string.css({"resize": "", "width": ""});
   $(document).trigger("danbooru:close-post-edit-dialog");
-}
-
-Post.initialize_similar = function() {
-  $("#similar-button").on("click.danbooru", function(e) {
-    $.get("/iqdb_queries", {"url": $("#post_source").val()}).done(function(html) {$("#iqdb-similar").html(html).show()});
-    e.preventDefault();
-  });
 }
 
 Post.has_next_target = function() {

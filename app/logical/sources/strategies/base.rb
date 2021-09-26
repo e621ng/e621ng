@@ -245,18 +245,6 @@ module Sources
         return {}
       end
 
-      # A search query that should return any posts that were previously
-      # uploaded from the same source. These may be duplicates, or they may be
-      # other posts from the same gallery.
-      def related_posts_search_query
-        "source:#{canonical_url}"
-      end
-
-      def related_posts(limit = 5)
-        CurrentUser.as_system { Post.tag_match(related_posts_search_query).paginate(1, limit: limit) }
-      end
-      memoize :related_posts
-
       # A hash containing the results of any API calls made by the strategy. For debugging purposes only.
       def api_response
         nil

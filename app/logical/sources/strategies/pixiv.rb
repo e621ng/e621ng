@@ -231,10 +231,6 @@ module Sources
         translated_tags
       end
 
-      def related_posts_search_query
-        illust_id.present? ? "pixiv:#{illust_id}" : "source:#{canonical_url}"
-      end
-
     public
 
       def image_urls_sub
