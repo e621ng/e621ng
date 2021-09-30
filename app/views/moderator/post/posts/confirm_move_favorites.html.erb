@@ -11,6 +11,8 @@
   <%= submit_tag "Cancel" %>
 <% end %>
 
+<%= render "posts/partials/common/secondary_links" %>
+
 <% content_for(:page_title) do %>
   Move Favorites - #<%= @post.id %>
 <% end %>
