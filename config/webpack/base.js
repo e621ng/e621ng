@@ -16,9 +16,13 @@ const customConfig = {
   output: {
     library: ["Danbooru"]
   },
+  optimization: {
+    runtimeChunk: false
+  },
   externals: {
     jquery: "jQuery"
-  }
+  },
+  target: ['web', 'es5']
 }
 
 module.exports = merge(vueConfig, webpackConfig, customConfig)

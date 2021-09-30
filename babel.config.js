@@ -25,7 +25,7 @@ module.exports = function (api) {
           useBuiltIns: 'entry',
           corejs: '3.8',
           modules: 'auto',
-          bugfixes: true,
+          forceAllTransforms: true,
           exclude: ['transform-typeof-symbol']
         }
       ],
@@ -42,7 +42,6 @@ module.exports = function (api) {
       ]
     ].filter(Boolean),
     plugins: [
-      ['@babel/plugin-proposal-class-properties', { loose: true }],
       ['@babel/plugin-transform-runtime', { helpers: false }],
       isProductionEnv &&
       moduleExists('babel-plugin-transform-react-remove-prop-types') && [

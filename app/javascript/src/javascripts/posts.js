@@ -966,6 +966,7 @@ Post.disapprove = function(post_id, reason, should_reload) {
 Post.update_tag_count = function(event) {
   let string = "0 tags";
   let count = 0;
+  let count2 = 0;
 
   if (event) {
     let tags = [...new Set($(event.target).val().match(/\S+/g))];
