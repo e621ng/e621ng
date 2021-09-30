@@ -1,8 +1,12 @@
 <% content_for(:secondary_links) do %>
   <menu>
     <%= subnav_link_to "Dashboard", admin_dashboard_path %>
+    <li>|</li>
     <%= subnav_link_to "Exceptions", admin_exceptions_path %>
     <%= subnav_link_to "Staff Notes", admin_staff_notes_path %>
     <%= subnav_link_to "BUR Import", new_admin_alias_and_implication_import_path %>
+    <li>|</li>
+    <%= subnav_link_to "Post  Votes", controller: "/post_votes", action: "index" %>
+    <%= subnav_link_to "Comment Votes", controller: "/comment_votes", action: "index" %>
   </menu>
 <% end %>

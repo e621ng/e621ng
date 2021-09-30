@@ -1,0 +1,12 @@
+<% content_for(:secondary_links) do %>
+  <menu>
+    <%= subnav_link_to "Mod Actions", mod_actions_path %>
+    <li>|</li>
+    <%= subnav_link_to "Approvals", post_approvals_path %>
+    <% if CurrentUser.can_approve_posts? %>
+        <%= subnav_link_to "Disapprovals", moderator_post_disapprovals_path %>
+    <% end %>
+    <%= subnav_link_to "Deletions", deleted_posts_path %>
+  </menu>
+<% end %>
+
