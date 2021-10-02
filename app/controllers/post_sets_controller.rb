@@ -1,6 +1,6 @@
 class PostSetsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, except: [:index, :atom, :show]
+  before_action :member_only, except: [:index, :show]
 
   def index
     if !params[:post_id].blank?
@@ -20,17 +20,6 @@ class PostSetsController < ApplicationController
     end
 
     respond_with(@post_sets)
-  end
-
-  def atom
-    begin
-      @post_sets = PostSet.visible.order(id: :desc).limit(32)
-      headers["Content-Type"] = "application/atom+xml"
-    rescue RuntimeError => e
-      @post_sets = []
-    end
-
-    render layout: false
   end
 
   def new
