@@ -164,7 +164,7 @@ class ModActionDecorator < ApplicationDecorator
     when "forum_topic_stick"
       "Stickied topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unstick"
-      "Unstickied forum ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+      "Unstickied topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_lock"
       "Locked topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unlock"
@@ -229,7 +229,7 @@ class ModActionDecorator < ApplicationDecorator
       if vals[:tag1]
         "Created tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
       else
-        "Created tag implicaiton #{vals['implication_desc']}"
+        "Created tag implication #{vals['implication_desc']}"
       end
     when "tag_implication_approve"
       if vals[:tag1]
