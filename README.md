@@ -15,6 +15,7 @@
 4. `cd` into the repo using Command Prompt/Terminal
 5. Run the following command:
      `vagrant up`
+     On Windows you will need to run this as admin, otherwise symlink creation will not work.
 6. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
 7. To confirm the installation worked, open the web browser of your choice and enter `http://e621.local` into the address bar and see if the website loads correctly.
@@ -25,8 +26,24 @@ By the time you get back the install will surely have completed.<sup>1</sup>
 
 The postgres server accepts outside connections which you can use to connect with a local client. Use `192.168.64.78:5432` to connect to a database named `danbooru2` with the user `danbooru`. Leave the password blank, anything will work.
 
-#### VirtualBox Troubleshooting
+## Vagrant Troubleshooting
 
+#### Yarn install fails - EPROTO
+
+Make sure that you have executed `vagrant up` as admin if you are on Windows, as vagrant will not be able to create symlinks otherwise.
+
+If it still does not work after that, execute `yarn install` on your host machine instead.
+
+#### Danbooru service fails with ruby\r: No such file or directory
+
+Git has converted the files in your repository to Windows line-endings; you must disable this behavior and recreate your working directory to fix it.
+```
+git config core.autocrlf false
+rm -rf *
+git checkout -- .
+```
+
+#### VM does not start
 In case the VM doesn't start with the error `VT-x not available` and the error description `WHvCapabilityCodeHypervisorPresent is FALSE!` the the following solution should resolve the issue:
 
 This error usually occurs, when the `Hyper-V` or the `Windows Hypervisor Platform` features are activated. <br/>
