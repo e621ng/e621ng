@@ -118,13 +118,6 @@ fart'
       true
     end
 
-    # What method to use to store images.
-    # local_flat: Store every image in one directory.
-    # local_hierarchy: Store every image in a hierarchical directory, based on the post's MD5 hash. On some file systems this may be faster.
-    def image_store
-      :local_flat
-    end
-
     # This allows using statically linked copies of ffmpeg in non default locations. Not universally supported across
     # the codebase at this time.
     def ffmpeg_path
@@ -865,10 +858,6 @@ fart'
 
     def iqdb_enabled?
       false
-    end
-
-    # iqdbs options - see https://github.com/r888888888/iqdbs
-    def iqdbs_auth_key
     end
 
     def iqdbs_server
