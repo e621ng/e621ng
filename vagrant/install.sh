@@ -69,10 +69,10 @@ apt-get update
 if ! install_packages \
       build-essential automake libxml2-dev libxslt1-dev yarn nginx libncurses5-dev \
       libreadline-dev flex bison ragel memcached libmemcached-dev git curl \
-      libcurl4-openssl-dev nginx ssh libglib2.0-dev \
-      mkvtoolnix cmake ffmpeg git postgresql-12 libcurl4-openssl-dev ffmpeg \
-      libicu-dev libjpeg-progs libpq-dev libreadline-dev libxml2-dev \
-      libexpat1-dev nodejs optipng redis-server postgresql-server-dev-12 \
+      libcurl4-openssl-dev ssh libglib2.0-dev \
+      mkvtoolnix cmake ffmpeg postgresql-12 postgresql-server-dev-12 \
+      libicu-dev libjpeg-progs libpq-dev \
+      libexpat1-dev nodejs optipng redis-server \
       liblcms2-dev libjpeg-turbo8-dev libgif-dev libpng-dev libexif-dev \
       elasticsearch; then
     >&2 script_log "Installation of dependencies failed, please see the errors above and re-run \`vagrant provision\`"
