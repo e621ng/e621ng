@@ -276,9 +276,6 @@
   <% if @post.rating == "e" %>
     <meta name="rating" content="adult">
   <% end %>
-
-
-  <%= auto_discovery_link_tag(:atom, comments_url(:atom, search: { post_id: @post.id }), title: "Comments for post ##{@post.id}") %>
 <% end %>
 
 <%= render "posts/partials/common/secondary_links" %>

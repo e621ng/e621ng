@@ -5,7 +5,7 @@ class CommentsController < ApplicationController
   skip_before_action :api_check
 
   def index
-    if params[:group_by] == "comment" || request.format == Mime::Type.lookup("application/atom+xml")
+    if params[:group_by] == "comment"
       index_by_comment
     else
       index_by_post
@@ -103,12 +103,7 @@ private
     @comments = @comments.undeleted unless CurrentUser.is_moderator?
     @comments = @comments.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
-    respond_with(@comments) do |format|
-      format.atom do
-        @comments = @comments.includes(:post, :creator).load
-        @comments = @comments.select { |comment| comment.post.visible? }
-      end
-    end
+    respond_with(@comments)
   end
 
   def check_privilege(comment)

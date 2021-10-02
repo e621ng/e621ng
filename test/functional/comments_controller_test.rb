@@ -35,11 +35,6 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         get comments_path(group_by: "comment")
         assert_response :success
       end
-
-      should "render for atom feeds" do
-        get comments_path(format: "atom")
-        assert_response :success
-      end
     end
 
     context "search action" do
