@@ -45,8 +45,6 @@
 <% end %>
 
 <% content_for(:html_header) do %>
-  <%= auto_discovery_link_tag(:atom, {format: :atom}, {title: @forum_topic.title}) %>
-
   <%= javascript_tag nonce: true do -%>
     $(function() {
       $("#new-response-link").click(function(e) {

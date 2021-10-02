@@ -74,11 +74,6 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         @user.reload
         assert_nil(@user.last_forum_read_at)
       end
-
-      should "render for atom feed" do
-        get forum_topic_path(@forum_topic), params: {:format => :atom}
-        assert_response :success
-      end
     end
 
     context "index action" do
