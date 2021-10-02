@@ -38,11 +38,7 @@
                     </div>
                 </div>
             </div>
-            <div class="box-section upload_preview_container in-editor below-upload">
-                <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"
-                     referrerpolicy="no-referrer"/>
-            </div>
+            <file-preview classes="box-section in-editor below-upload" :addListeners="false"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -190,11 +186,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section upload_preview_container in-editor">
-                        <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"
-                             referrerpolicy="no-referrer"/>
-                    </div>
+                  <file-preview classes="box-section in-editor" :addListeners="false"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -279,11 +271,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <div class="upload_preview_container in-sidebar">
-                <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;" @load="updatePreviewDims"
-                     @error="previewError"/>
-            </div>
+            <file-preview classes="in-sidebar" :addListeners="true"></file-preview>
         </div>
     </div>
 </template>
@@ -293,7 +281,8 @@
   import source from './uploader_source.vue';
   import checkbox from './uploader_checkbox.vue';
   import relatedTags from './uploader_related.vue';
-  import tagPreview from './uploader_preview.vue';
+  import tagPreview from './uploader_tag_preview.vue';
+  import filePreview from './uploader_file_preview.vue';
 
   const thumbURLs = [
     "/images/notfound-preview.png",
@@ -473,7 +462,8 @@
       'image-source': source,
       'image-checkbox': checkbox,
       'related-tags': relatedTags,
-      'tag-preview': tagPreview
+      'tag-preview': tagPreview,
+      'file-preview': filePreview
     },
     data() {
       const allChecks = {};
