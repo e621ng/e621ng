@@ -100,11 +100,6 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         assert_equal([@topic2.id, @topic1.id, @forum_topic.id], forum_topics.map {|t| t["id"]})
       end
 
-      should "render for atom feed" do
-        get forum_topics_path, params: {:format => :atom}
-        assert_response :success
-      end
-
       context "with search conditions" do
         should "list all matching forum topics" do
           get forum_topics_path, params: {:search => {:title_matches => "forum"}}
