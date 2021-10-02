@@ -4,7 +4,7 @@ class IqdbQueriesController < ApplicationController
 
   def show
     if params[:file]
-      @matches = IqdbProxy.query_file(params[:file])
+      @matches = IqdbProxy.query_file(params[:file].tempfile)
     elsif params[:url].present?
       parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
       raise User::PrivilegeError.new("Invalid URL") unless parsed_url
