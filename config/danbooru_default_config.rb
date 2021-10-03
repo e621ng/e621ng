@@ -711,6 +711,8 @@ fart'
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
         "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
       ]
+    def flag_reason_48hours
+      "If you are the artist, and want this image to be taken down [b]permanently[/b], file a \"takedown\":/static/takedowns instead.\nTo replace the image with a \"fixed\" version, upload that image first, and then use the \"Duplicate or inferior version\" reason above.\nFor accidentally released paysite or private content, use the \"Paysite, commercial, or private content\" reason above."
     end
 
     # Any custom code you want to insert into the default layout without
