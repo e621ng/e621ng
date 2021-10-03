@@ -377,7 +377,9 @@
     if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
       this.disableFileUpload = false;
       this.oldDomain = '';
-      this.overDims = false;
+      this.previewWidth = 0;
+      this.previewHeight = 0;
+      this.resetPreview();
       self.clearWhitelistWarning();
       return;
     }
