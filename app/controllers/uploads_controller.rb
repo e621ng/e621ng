@@ -4,6 +4,7 @@ class UploadsController < ApplicationController
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, "*"
+    p.media_src :self, :data, "*"
   end
 
   def new

@@ -38,7 +38,7 @@
                     </div>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload" :addListeners="false"></file-preview>
+            <file-preview classes="box-section in-editor below-upload"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -186,7 +186,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor" :addListeners="false"></file-preview>
+                  <file-preview classes="box-section in-editor"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -271,7 +271,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :addListeners="true"></file-preview>
+            <file-preview classes="in-sidebar" add-listeners></file-preview>
         </div>
     </div>
 </template>
@@ -287,11 +287,9 @@
   const thumbURLs = [
     "/images/notfound-preview.png",
     "/images/download-preview.png",
-    "/images/webm-preview.png",
     "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
   ];
   const thumbs = {
-    webm: "/images/webm-preview.png",
     flash: "/images/download-preview.png",
     notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
@@ -332,23 +330,23 @@
     {name: 'Taur'}];
 
   function updatePreviewDims(e) {
-    const img = e.target;
+    const target = e.target;
     if (thumbURLs.filter(function (x) {
-      return img.src.indexOf(x) !== -1;
+      return target.src.indexOf(x) !== -1;
     }).length !== 0)
       return;
-    this.previewHeight = img.naturalHeight;
-    this.previewWidth = img.naturalWidth;
-    this.overDims = (img.naturalHeight > 15000 || img.naturalWidth > 15000);
+    this.previewHeight = target.naturalHeight || target.videoHeight;
+    this.previewWidth = target.naturalWidth || target.videoHeight;
+    this.overDims = (this.previewHeight > 15000 || this.previewWidth > 15000);
   }
 
   function previewError() {
     this.previewWidth = this.previewHeight = 0;
     this.overDims = false;
     if (this.uploadURL === '' && !this.$refs['post_file']) {
-      this.previewURL = thumbs.none;
+      this.setPreviewImage(thumbs.none);
     } else {
-      this.previewURL = thumbs.notfound;
+      this.setPreviewImage(thumbs.notfound);
     }
   }
 
@@ -358,14 +356,16 @@
     const file = this.$refs['post_file'].files[0];
     this.previewHeight = 0;
     this.previewWidth = 0;
+    this.resetPreview();
     reader.onload = function (e) {
       let src = e.target.result;
 
       if (file.type.match('video/webm'))
-        src = thumbs.webm;
+        self.setPreviewVideo(src);
       else if (file.type.match('application/x-shockwave-flash'))
-        src = thumbs.flash;
-      self.previewURL = src;
+        self.setPreviewImage(thumbs.flash);
+      else 
+        self.setPreviewImage(src);
     };
     reader.readAsDataURL(file);
 
@@ -389,7 +389,7 @@
         if (data.domain) {
           self.whitelistWarning(data.is_allowed, data.domain, data.reason);
           if (!data.is_allowed)
-            self.previewURL = thumbs.none;
+            self.setPreviewImage(thumbs.none);
         }
       });
     } else if (!domain) {
@@ -397,15 +397,14 @@
     }
     this.oldDomain = domain;
 
-    let src = thumbs.none;
     if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(swf)$/))
-      src = thumbs.flash;
+      this.setPreviewImage(thumbs.flash);
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
-      src = thumbs.webm;
+      this.setPreviewVideo(this.uploadURL);
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/))
-      src = this.uploadURL;
-
-    this.previewURL = src;
+      this.setPreviewImage(this.uploadURL);
+    else
+      this.setPreviewImage(thumbs.none);
   }
 
   function updatePreview() {
@@ -413,6 +412,22 @@
       updatePreviewFile.call(this);
     else
       updatePreviewURL.call(this);
+  }
+
+  function setPreviewImage(url) {
+    this.previewIsVideo = false;
+    this.previewURL = url;
+  }
+
+  function setPreviewVideo(url) {
+    this.previewIsVideo = true;
+    this.previewURL = url;
+  }
+
+  function resetPreview() {
+    this.previewIsVideo = false;
+    this.previewURL = thumbs.none;
+    this.overDims = false;
   }
 
   function directURLCheck(url) {
@@ -438,9 +453,7 @@
       return;
     this.$refs['post_file'].value = null;
     this.disableURLUpload = this.disableFileUpload = false;
-    this.previewURL = thumbs.none;
-    this.previewHeight = this.previewWidth = 0;
-    this.overDims = false;
+    this.resetPreview();
     this.updatePreview();
   }
 
@@ -499,6 +512,7 @@
         overDims: false,
         uploadURL: '',
         previewURL: thumbs.none,
+        previewIsVideo: false,
 
         oldDomain: '',
 
@@ -591,6 +605,9 @@
         evt.preventDefault();
       },
       updatePreviewDims,
+      setPreviewImage,
+      setPreviewVideo,
+      resetPreview,
       previewError,
       clearFile: clearFileUpload,
       whitelistWarning(allowed, domain, reason) {
