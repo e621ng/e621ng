@@ -38,7 +38,7 @@
                     </div>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload"></file-preview>
+            <file-preview classes="box-section in-editor below-upload" :preview="filePreview"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -186,7 +186,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor"></file-preview>
+                  <file-preview classes="box-section in-editor" :preview="filePreview"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -271,7 +271,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" add-listeners></file-preview>
+            <file-preview classes="in-sidebar" :preview="filePreview" @load="updateFilePreviewDims" @error="filePreviewError"></file-preview>
         </div>
     </div>
 </template>
@@ -823,11 +823,6 @@
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
-      },
-      previewDimensions() {
-        if (this.filePreview.width && this.filePreview.height)
-          return this.filePreview.width + '×' + this.filePreview.height;
-        return '';
       },
       directURLProblem: function () {
         return directURLCheck(this.uploadURL);
