@@ -2118,6 +2118,31 @@ class PostTest < ActiveSupport::TestCase
         relation = Post.tag_match("-aaa id:>0")
       end
     end
+
+    should "return posts for replacements" do
+      assert_tag_match([], "pending_replacements:true")
+      assert_tag_match([], "pending_replacements:false")
+      post = FactoryBot.create(:post)
+      replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post)
+      assert_tag_match([post], "pending_replacements:true")
+    end
+
+    should "return no posts when the replacement is not pending anymore" do
+      post1 = FactoryBot.create(:post)
+      post2 = FactoryBot.create(:post)
+      post3 = FactoryBot.create(:post)
+      post4 = FactoryBot.create(:post)
+      replacement1 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post1)
+      replacement1.reject!
+      replacement2 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post2)
+      replacement2.approve!
+      replacement3 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post3)
+      replacement3.promote!
+      replacement4 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post4)
+      replacement4.destroy!
+      assert_tag_match([], "pending_replacements:true")
+      assert_tag_match([post1, post2, post3, post4], "pending_replacements:false")
+    end
   end
 
   context "Voting:" do

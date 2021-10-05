@@ -13,7 +13,9 @@ class PostReplacement < ApplicationRecord
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
 
+  after_create -> { post.update_index }
   before_destroy :remove_files
+  after_destroy -> { post.update_index }
 
   def replacement_url_parsed
     return nil unless replacement_url =~ %r!\Ahttps?://!i
@@ -177,6 +179,7 @@ class PostReplacement < ApplicationRecord
         processor = UploadService::Replacer.new(post: post, replacement: self)
         processor.process!
       end
+      post.update_index
     end
 
     def promote!
@@ -186,11 +189,13 @@ class PostReplacement < ApplicationRecord
         update_attribute(:status, 'promoted')
         new_post
       end
+      post.update_index
     end
 
     def reject!
       ModAction.log(:post_replacement_reject, {post_id: post.id, replacement_id: self.id})
       update_attribute(:status, 'rejected')
+      post.update_index
     end
   end
 
