@@ -1,0 +1,54 @@
+#reason { width: 100%; }
+#delreason-clear { width: 5rem; }
+
+.post_delete_options {
+  display: flex;
+}
+
+#delreason-prebuilt {
+  a.delreason-button {
+    display: block;
+    cursor: pointer;
+    width: fit-content;
+    margin: 0.125rem 0;
+    padding: 0;
+    
+    // Minus / plus icons
+    &::before {
+      content: "+";
+      margin-right: 0.5em;
+      font-family: monospace;
+      font-size: 1.25em;
+    }
+    
+    // Customized inputs
+    input[type="text"] {
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid white;
+      color: white;
+      &:focus { color: white !important; }
+      background: #ffffff10;
+      border-radius: 0.125rem;
+      padding: 0 0.25rem;
+    }
+    
+    // Highlight enabled elements
+    &.enabled {
+      color: #e8c446;
+      &::before { content: "-"; }
+      input[type="text"] {
+        color: #e8c446;
+        border-color: #e8c446;
+      }
+    }
+    
+    &:hover {
+      color: #f68b00;
+      input[type="text"] {
+        color: #f68b00;
+        border-color: #f68b00;
+      }
+    }
+  }
+}
