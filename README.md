@@ -28,27 +28,7 @@ The postgres server accepts outside connections which you can use to connect wit
 
 ## Vagrant Troubleshooting
 
-#### Yarn install fails - EPROTO
-
-Make sure that you have executed `vagrant up` as admin if you are on Windows, as vagrant will not be able to create symlinks otherwise.
-
-If it still does not work after that, execute `yarn install` on your host machine instead.
-
-#### Danbooru service fails with ruby\r: No such file or directory
-
-Git has converted the files in your repository to Windows line-endings; you must disable this behavior and recreate your working directory to fix it.
-```
-git config core.autocrlf false
-rm -rf *
-git checkout -- .
-```
-
-#### VM does not start
-In case the VM doesn't start with the error `VT-x not available` and the error description `WHvCapabilityCodeHypervisorPresent is FALSE!` the the following solution should resolve the issue:
-
-This error usually occurs, when the `Hyper-V` or the `Windows Hypervisor Platform` features are activated. <br/>
-To deactivate these features, press the windows key and enter `Turn Windows features on or off`, here you can deactivate both features by unchecking their respective checkboxes.
-Don't forget to restart the computer after deactivating the features.
+See [Troubleshooting](Troubleshooting.md).
 
 ## Installation
 
