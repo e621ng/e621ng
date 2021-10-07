@@ -364,17 +364,17 @@ fart'
 
     # Maximum resolution (width * height) of an upload. Default: 441 megapixels (21000x21000 pixels).
     def max_image_resolution
-      15000 * 15000
+      15360 * 15360
     end
 
     # Maximum width of an upload.
     def max_image_width
-      15000
+      15360
     end
 
     # Maximum height of an upload.
     def max_image_height
-      15000
+      15360
     end
 
     def max_tags_per_post
