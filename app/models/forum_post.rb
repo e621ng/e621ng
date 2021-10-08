@@ -108,6 +108,10 @@ class ForumPost < ApplicationRecord
     def hidden_attributes
       super + [:text_index]
     end
+
+    def method_attributes
+      super + [:creator_name, :updater_name]
+    end
   end
 
   extend SearchMethods
