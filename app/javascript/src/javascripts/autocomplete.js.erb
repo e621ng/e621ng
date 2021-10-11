@@ -256,6 +256,15 @@ Autocomplete.render_item = function(list, item) {
   $link.on("click.danbooru", function(e) {
     e.preventDefault();
   });
+  
+  // Open the wiki page on middle-click
+  if(item.type === "tag") {
+    $link.on("auxclick", function(e) {
+      if (e.button !== 1) return;
+      e.preventDefault();
+      window.open("/wiki_pages/show_or_new?title=" + encodeURIComponent(item.value), "_blank");
+    });
+  }
 
   if (item.antecedent) {
     var antecedent = item.antecedent.replace(/_/g, " ");
