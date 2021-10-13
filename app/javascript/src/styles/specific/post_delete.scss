@@ -25,29 +25,37 @@
     input[type="text"] {
       background: transparent;
       border: 0;
-      border-bottom: 1px solid white;
-      color: white;
-      &:focus { color: white !important; }
       background: #ffffff10;
       border-radius: 0.125rem;
       padding: 0 0.25rem;
     }
     
     // Highlight enabled elements
-    &.enabled {
-      color: #e8c446;
-      &::before { content: "-"; }
-      input[type="text"] {
-        color: #e8c446;
-        border-color: #e8c446;
-      }
-    }
+    &.enabled::before { content: "-"; }
     
-    &:hover {
-      color: #f68b00;
+    @include themable {
+      color: themed('color-link');
+      
+      &:hover {
+        color: themed('color-link-hover');
+        input[type="text"] {
+          color: themed('color-link-hover');
+          border-color: themed('color-link-hover');
+        }
+      }
+      
       input[type="text"] {
-        color: #f68b00;
-        border-color: #f68b00;
+        border-bottom: 1px solid themed('color-link');;
+        color: themed('color-link');
+        &:focus { color: themed('color-link') !important; }
+      }
+      
+      &.enabled {
+        color: themed('color-link-active');
+        input[type="text"] {
+          color: themed('color-link-active');
+          border-color: themed('color-link-active');
+        }
       }
     }
   }
