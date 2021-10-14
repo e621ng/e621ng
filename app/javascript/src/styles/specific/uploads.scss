@@ -17,7 +17,7 @@ div#c-uploads {
     .toggle-button:last-child { margin-right: 0; }
 
     .toggle-button.active {
-      @include themable { background-color: themed("color-link-active"); }
+      @include themable { background-color: themed("color-button-active"); }
     }
 
     .rating-e.active {
