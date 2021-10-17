@@ -2,7 +2,7 @@
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
             <div class="the_secret_switch" @click="toggleNormalMode"></div>
-            <div class="box-section sect_red" v-show="overDims">
+            <div class="box-section sect_red" v-show="filePreview.overDims">
                 One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
             </div>
             <div class="flex-grid border-bottom">
@@ -13,7 +13,7 @@
                 <div class="col2">
                     <div v-if="!disableFileUpload">
                         <label>File:
-                            <input type="file" ref="post_file" @change="updatePreview" @keyup="updatePreview"
+                            <input type="file" ref="post_file" @change="updateFilePreview" @keyup="updateFilePreview"
                                    accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
                                    :disabled="disableFileUpload"/>
                         </label>
@@ -25,7 +25,7 @@
                             You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
                         </div>
                         <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
-                            <input type="text" size="50" v-model="uploadURL" @keyup="updatePreview" @paste="updatePreviewOnPaste($event)"
+                            <input type="text" size="50" v-model="uploadURL" @keyup="updateFilePreview" @paste="updateFilePreviewOnPaste($event)"
                                    :disabled="disableURLUpload"/>
                         </label>
                         <div id="whitelist-warning" v-show="whitelist.visible"
@@ -38,11 +38,7 @@
                     </div>
                 </div>
             </div>
-            <div class="box-section upload_preview_container in-editor below-upload">
-                <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"
-                     referrerpolicy="no-referrer"/>
-            </div>
+            <file-preview classes="box-section in-editor below-upload" :preview="filePreview"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -190,21 +186,17 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section upload_preview_container in-editor">
-                        <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                        <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;"
-                             referrerpolicy="no-referrer"/>
-                    </div>
+                  <file-preview classes="box-section in-editor" :preview="filePreview"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
-                    <div v-show="!preview.show">
+                    <div v-show="!tagPreview.show">
                         <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
                                   ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     </div>
-                    <div v-show="preview.show">
-                        <tag-preview :tags="preview.tags" :loading="preview.loading"
+                    <div v-show="tagPreview.show">
+                        <tag-preview :tags="tagPreview.tags" :loading="tagPreview.loading"
                                      @close="previewFinalTags"></tag-preview>
                     </div>
 
@@ -279,11 +271,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <div class="upload_preview_container in-sidebar">
-                <div class="upload_preview_dims">{{ previewDimensions }}</div>
-                <img class="upload_preview_img" :src="previewURL" style="max-width: 100%;" @load="updatePreviewDims"
-                     @error="previewError"/>
-            </div>
+            <file-preview classes="in-sidebar" :preview="filePreview" @load="updateFilePreviewDims" @error="filePreviewError"></file-preview>
         </div>
     </div>
 </template>
@@ -293,16 +281,15 @@
   import source from './uploader_source.vue';
   import checkbox from './uploader_checkbox.vue';
   import relatedTags from './uploader_related.vue';
-  import tagPreview from './uploader_preview.vue';
+  import tagPreview from './uploader_tag_preview.vue';
+  import filePreview from './uploader_file_preview.vue';
 
   const thumbURLs = [
     "/images/notfound-preview.png",
     "/images/download-preview.png",
-    "/images/webm-preview.png",
     "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
   ];
   const thumbs = {
-    webm: "/images/webm-preview.png",
     flash: "/images/download-preview.png",
     notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
@@ -342,24 +329,24 @@
     {name: 'Human'},
     {name: 'Taur'}];
 
-  function updatePreviewDims(e) {
-    const img = e.target;
+  function updateFilePreviewDims(e) {
+    const target = e.target;
     if (thumbURLs.filter(function (x) {
-      return img.src.indexOf(x) !== -1;
+      return target.src.indexOf(x) !== -1;
     }).length !== 0)
       return;
-    this.previewHeight = img.naturalHeight;
-    this.previewWidth = img.naturalWidth;
-    this.overDims = (img.naturalHeight > 15000 || img.naturalWidth > 15000);
+    this.filePreview.height = target.naturalHeight || target.videoHeight;
+    this.filePreview.width = target.naturalWidth || target.videoHeight;
+    this.filePreview.overDims = (this.filePreview.height > 15000 || this.filePreview.width > 15000);
   }
 
-  function previewError() {
-    this.previewWidth = this.previewHeight = 0;
-    this.overDims = false;
+  function filePreviewError() {
+    this.filePreview.width = this.filePreview.height = 0;
+    this.filePreview.overDims = false;
     if (this.uploadURL === '' && !this.$refs['post_file']) {
-      this.previewURL = thumbs.none;
+      this.setPreviewImage(thumbs.none);
     } else {
-      this.previewURL = thumbs.notfound;
+      this.setPreviewImage(thumbs.notfound);
     }
   }
 
@@ -367,16 +354,18 @@
     const self = this;
     const reader = new FileReader();
     const file = this.$refs['post_file'].files[0];
-    this.previewHeight = 0;
-    this.previewWidth = 0;
+    this.filePreview.height = 0;
+    this.filePreview.width = 0;
+    this.resetFilePreview();
     reader.onload = function (e) {
       let src = e.target.result;
 
       if (file.type.match('video/webm'))
-        src = thumbs.webm;
+        self.setPreviewVideo(src);
       else if (file.type.match('application/x-shockwave-flash'))
-        src = thumbs.flash;
-      self.previewURL = src;
+        self.setPreviewImage(thumbs.flash);
+      else 
+        self.setPreviewImage(src);
     };
     reader.readAsDataURL(file);
 
@@ -388,7 +377,9 @@
     if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
       this.disableFileUpload = false;
       this.oldDomain = '';
-      this.overDims = false;
+      this.filePreview.width = 0;
+      this.filePreview.height = 0;
+      this.resetFilePreview();
       self.clearWhitelistWarning();
       return;
     }
@@ -400,7 +391,7 @@
         if (data.domain) {
           self.whitelistWarning(data.is_allowed, data.domain, data.reason);
           if (!data.is_allowed)
-            self.previewURL = thumbs.none;
+            self.setPreviewImage(thumbs.none);
         }
       });
     } else if (!domain) {
@@ -408,22 +399,37 @@
     }
     this.oldDomain = domain;
 
-    let src = thumbs.none;
     if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(swf)$/))
-      src = thumbs.flash;
+      this.setPreviewImage(thumbs.flash);
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
-      src = thumbs.webm;
+      this.setPreviewVideo(this.uploadURL);
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/))
-      src = this.uploadURL;
-
-    this.previewURL = src;
+      this.setPreviewImage(this.uploadURL);
+    else
+      this.setPreviewImage(thumbs.none);
   }
 
-  function updatePreview() {
+  function updateFilePreview() {
     if (this.$refs['post_file'] && this.$refs['post_file'].files[0])
       updatePreviewFile.call(this);
     else
       updatePreviewURL.call(this);
+  }
+
+  function setPreviewImage(url) {
+    this.filePreview.isVideo = false;
+    this.filePreview.url = url;
+  }
+
+  function setPreviewVideo(url) {
+    this.filePreview.isVideo = true;
+    this.filePreview.url = url;
+  }
+
+  function resetFilePreview() {
+    this.filePreview.isVideo = false;
+    this.filePreview.url = thumbs.none;
+    this.filePreview.overDims = false;
   }
 
   function directURLCheck(url) {
@@ -449,10 +455,8 @@
       return;
     this.$refs['post_file'].value = null;
     this.disableURLUpload = this.disableFileUpload = false;
-    this.previewURL = thumbs.none;
-    this.previewHeight = this.previewWidth = 0;
-    this.overDims = false;
-    this.updatePreview();
+    this.resetFilePreview();
+    this.updateFilePreview();
   }
 
   function tagSorter(a, b) {
@@ -473,7 +477,8 @@
       'image-source': source,
       'image-checkbox': checkbox,
       'related-tags': relatedTags,
-      'tag-preview': tagPreview
+      'tag-preview': tagPreview,
+      'file-preview': filePreview
     },
     data() {
       const allChecks = {};
@@ -504,12 +509,15 @@
         disableFileUpload: false,
         disableURLUpload: false,
 
-        previewHeight: 0,
-        previewWidth: 0,
-        overDims: false,
-        uploadURL: '',
-        previewURL: thumbs.none,
+        filePreview: {
+          heigth: 0,
+          width: 0,
+          overDims: false,
+          url: thumbs.none,
+          isVideo: false,
+        },
 
+        uploadURL: '',
         oldDomain: '',
 
         noSource: false,
@@ -533,7 +541,7 @@
           other: '',
         },
 
-        preview: {
+        tagPreview: {
           loading: false,
           show: false,
           tags: []
@@ -581,7 +589,7 @@
       };
       fillField('uploadURL', 'upload_url');
       if(params.has('upload_url'))
-        this.updatePreview();
+        this.updateFilePreview();
       fillField('parentID', 'parent');
       fillField('description', 'description');
       fillTags();
@@ -594,14 +602,17 @@
         fillField('lockedTags', 'locked_tags');
     },
     methods: {
-      updatePreview,
-      updatePreviewOnPaste(evt) {
+      updateFilePreview,
+      updateFilePreviewOnPaste(evt) {
         this.uploadURL = (event.clipboardData || window.clipboardData).getData('text');
-        this.updatePreview();
+        this.updateFilePreview();
         evt.preventDefault();
       },
-      updatePreviewDims,
-      previewError,
+      updateFilePreviewDims,
+      setPreviewImage,
+      setPreviewVideo,
+      resetFilePreview,
+      filePreviewError,
       clearFile: clearFileUpload,
       whitelistWarning(allowed, domain, reason) {
         this.whitelist.allowed = allowed;
@@ -708,7 +719,7 @@
         });
       },
       pushTag(tag, add) {
-        this.preview.show = false;
+        this.tagPreview.show = false;
         const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
         // In advanced mode we need to push these into the tags area because there are no checkboxes or other
         // tag fields so we can't see them otherwise.
@@ -729,15 +740,15 @@
         this.tagEntries.other = tags.join(' ') + ' ';
       },
       previewFinalTags() {
-        if (this.preview.loading)
+        if (this.tagPreview.loading)
           return;
-        if (this.preview.show) {
-          this.preview.show = false;
+        if (this.tagPreview.show) {
+          this.tagPreview.show = false;
           return;
         }
-        this.preview.loading = true;
-        this.preview.show = true;
-        this.preview.tags = [];
+        this.tagPreview.loading = true;
+        this.tagPreview.show = true;
+        this.tagPreview.tags = [];
         const self = this;
         const data = {tags: this.tags};
         jQuery.ajax("/tags/preview.json", {
@@ -745,13 +756,13 @@
           type: 'POST',
           data: data,
           success: function (result) {
-            self.preview.loading = false;
-            self.preview.tags = result;
+            self.tagPreview.loading = false;
+            self.tagPreview.tags = result;
           },
           error: function (result) {
-            self.preview.loading = false;
-            self.preview.tags = [];
-            self.preview.show = false;
+            self.tagPreview.loading = false;
+            self.tagPreview.tags = [];
+            self.tagPreview.show = false;
             Danbooru.error('Error loading tag preview ' + result);
           }
         })
@@ -812,11 +823,6 @@
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
-      },
-      previewDimensions() {
-        if (this.previewWidth && this.previewHeight)
-          return this.previewWidth + '×' + this.previewHeight;
-        return '';
       },
       directURLProblem: function () {
         return directURLCheck(this.uploadURL);
