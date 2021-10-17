@@ -663,6 +663,7 @@ fart'
         "Does not meet minimum quality standards (Compression)",
         "Does not meet minimum quality standards (Low quality/effort edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
+        "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
         "Broken/corrupted file",
         "JPG resaved as PNG",
@@ -674,10 +675,11 @@ fart'
         "",
         "Paysite/commercial content",
         "Traced artwork",
+        "Traced artwork (post #%PARENT_ID%)",
         "Takedown #%OTHER_ID%",
         "The artist of this post is on the [[avoid_posting|avoid posting list]]",
-        "Conditional DNP: Only the artist is allowed to post",
-        "Conditional DNP: %OTHER_ID%",
+        "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
+        "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
       ]
     end
 
