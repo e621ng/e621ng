@@ -51,4 +51,9 @@ PostDeletion.init = function() {
   });
 }
 
+$(function() {
+  if($("div#c-confirm-delete").length)
+    Danbooru.PostDeletion.init();
+});
+
 export default PostDeletion
