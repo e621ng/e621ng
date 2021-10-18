@@ -650,6 +650,38 @@ fart'
           {name: 'corrupt', reason: "The file in this post is either corrupted, broken, or otherwise doesn't work"}
       ]
     end
+    
+    def deletion_reasons
+      [
+        "Inferior version/duplicate of post #%PARENT_ID%",
+        "Previously deleted (post #%PARENT_ID%)",
+        "Excessive same base image set",
+        "Colored base",
+        "",
+        "Does not meet minimum quality standards (Artistic)",
+        "Does not meet minimum quality standards (Resolution)",
+        "Does not meet minimum quality standards (Compression)",
+        "Does not meet minimum quality standards (Low quality/effort edit)",
+        "Does not meet minimum quality standards (Bad digitization of traditional media)",
+        "Does not meet minimum quality standards (Photo)",
+        "Does not meet minimum quality standards (%OTHER_ID%)",
+        "Broken/corrupted file",
+        "JPG resaved as PNG",
+        "",
+        "Irrelevant to site (Human only)",
+        "Irrelevant to site (Screencap)",
+        "Irrelevant to site (Zero pictured)",
+        "Irrelevant to site (%OTHER_ID%)",
+        "",
+        "Paysite/commercial content",
+        "Traced artwork",
+        "Traced artwork (post #%PARENT_ID%)",
+        "Takedown #%OTHER_ID%",
+        "The artist of this post is on the [[avoid_posting|avoid posting list]]",
+        "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
+        "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
+      ]
+    end
 
     # Any custom code you want to insert into the default layout without
     # having to modify the templates.

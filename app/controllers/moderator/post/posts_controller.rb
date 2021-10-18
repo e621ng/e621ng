@@ -11,7 +11,7 @@ module Moderator
       def confirm_delete
         @post = ::Post.find(params[:id])
         @reason = @post.flags.where(is_resolved: false)&.last&.reason || ''
-        @reason = "Inferior version of post ##{@post.parent_id}." if @post.parent_id && @reason == ''
+        @reason = "Inferior version/duplicate of post ##{@post.parent_id}" if @post.parent_id && @reason == ''
       end
 
       def delete

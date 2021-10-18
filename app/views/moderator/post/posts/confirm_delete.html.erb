@@ -1,36 +1,58 @@
-<h1>Delete Post</h1>
+<div id="c-confirm-delete">
+  <h1>Delete Post</h1>
 
-<div>
-  <%= PostPresenter.preview(@post, tags: "status:any", no_blacklist: true) %>
-</div>
-
-<%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
-  <div class="input">
-    <label for="reason">Reason</label>
-    <%= text_field_tag "reason", @reason, size: 50 %>
+  <div>
+    <%= PostPresenter.preview(@post, tags: "status:any", no_blacklist: true) %>
   </div>
 
-  <% if @post.parent_id %>
+  <%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
     <div class="input">
-      <label for="move_favorites">
-        <%= check_box_tag "move_favorites", true, true %>
-        Move favorites to parent?
-      </label>
-      <label for="copy_tags">
-        <%= check_box_tag "copy_tags", false, false %>
-        Merge tags into parent?
-      </label>
-      <label for="copy_sources">
-        <%= check_box_tag "copy_sources", false, false %>
-        Merge sources into parent?
-      </label>
-      <%= PostPresenter.preview(@post.parent, tags: 'status:any', no_blacklist: true) %>
+      <label for="delreason-input">Reason</label>
+      <%= text_field_tag "delreason-input", @reason %>
     </div>
+
+    <% if @post.parent_id %>
+      <div class="post_delete_options">
+        <%= PostPresenter.preview(@post.parent, tags: 'status:any', no_blacklist: true) %>
+        <div class="input">
+          <label for="move_favorites">
+            <%= check_box_tag "move_favorites", true, true %>
+            Move favorites to parent?
+          </label>
+          <label for="copy_tags">
+            <%= check_box_tag "copy_tags", false, false %>
+            Merge tags into parent?
+          </label>
+          <label for="copy_sources">
+            <%= check_box_tag "copy_sources", false, false %>
+            Merge sources into parent?
+          </label>
+        </div>
+      </div>
+    <% end %>
+
+    <%= submit_tag "Delete" %>
+    <%= submit_tag "Cancel" %>
+    <%= button_tag "Clear", :type => "button", :id => "delreason-clear" %>
   <% end %>
 
-  <%= submit_tag "Delete" %>
-  <%= submit_tag "Cancel" %>
-<% end %>
+  <div id="delreason-prebuilt" class="simple_form">
+    <b>Reason</b>
+    <% Danbooru.config.deletion_reasons.each do |deletion_reason| %>
+      <% if deletion_reason.nil? || deletion_reason.empty? %>
+        <br />
+      <% else %>
+        <a class="button delreason-button" data-text="<%= deletion_reason.gsub(/%(PARENT|OTHER)_ID%/, "%ID%") %>">
+          <%= deletion_reason
+                .gsub("%PARENT_ID%", "<input type=\"text\" value=\"" + (@post.parent_id || "").to_s + "\" />")
+                .gsub("%OTHER_ID%", "<input type=\"text\" />")
+                .html_safe
+          %>
+        </a>
+      <% end %>
+    <% end %>
+  </div>
+</div>
 
 <% content_for(:page_title) do %>
   Delete Post - #<%= @post.id %>
