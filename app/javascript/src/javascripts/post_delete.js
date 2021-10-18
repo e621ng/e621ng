@@ -1,7 +1,7 @@
 let PostDeletion = {};
 
 PostDeletion.init = function() {
-  const input = $("#reason");
+  const input = $("#delreason-input");
   let inputVal = input.val() + "";
 
   const buttons = $("a.delreason-button")

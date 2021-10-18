@@ -7,8 +7,8 @@
 
   <%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
     <div class="input">
-      <label for="reason">Reason</label>
-      <%= text_field_tag "reason", @reason %>
+      <label for="delreason-input">Reason</label>
+      <%= text_field_tag "delreason-input", @reason %>
     </div>
 
     <% if @post.parent_id %>
