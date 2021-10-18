@@ -169,7 +169,7 @@ class PostReplacement < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      super + [:storage_id]
+      super + %i[storage_id protected uploader_id_on_approve penalize_uploader_on_approve]
     end
   end
 
