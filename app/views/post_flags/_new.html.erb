@@ -1,11 +1,17 @@
-<div class="flag-dialog-body">
-  <div class="styled-dtext">
-    <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
-  </div>
+<div class="flag-dialog-preview">
 
   <div class="flag_post">
     <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
   </div>
+  
+  
+  <div class="styled-dtext">
+    <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
+  </div>
+</div>
+
+
+<div class="flag-dialog-body">
 
   <%= error_messages_for :post_flag %>
 
@@ -16,22 +22,25 @@
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
       <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
-      <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label><br>
+      <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label>
+      <div class="styled-dtext"><%= format_text(flag_reason[:text]) %></div>
+      
+      <% if flag_reason[:parent] %>
+        <%= f.input :parent_id, as: :integer, label: "Inferior of Post #" %>
+      <% end %>
+      
     <% end %>
-    <%= radio_button_tag "post_flag[reason_name]", "inferior", false %>
-    <label for="post_flag_reason_name_inferior">This post is a duplicate or an inferior version of another post
-      (smaller, lower quality, etc.)</label>
-    <%= f.input :parent_id, as: :integer, label: 'Inferior of Post #' %>
+    
+    <hr />
+    <h3>Only use if no other option fits:</h3>
+        
+    <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: !(@post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago) %>
+    <label for="post_flag_reason_name_user">I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).</label>
+    <div class="styled-dtext"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
     <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
-      <%= radio_button_tag "post_flag[reason_name]", "user" %>
-      <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48
-        hours of uploading). Only use if no other reason above fits.</label>
       <%= dtext_field "post_flag", "user_reason", name: "Reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
-    <% else %>
-      <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: true %>
-      <label for="post_flag_reason_name_user">I'm the uploader and I uploaded the file by mistake (only possible within 48
-        hours of uploading). Only use if no other reason above fits.</label>
     <% end %>
+    
     <div>
       <%= f.submit "Submit" %>
     </div>
