@@ -40,8 +40,8 @@ div#c-users {
       }
       div {
         flex-basis: 50%;
-        overflow-wrap: break-word;
-        word-break: break-all;
+        word-wrap: anywhere;
+        overflow-wrap: anywhere;
       }
     }
 
