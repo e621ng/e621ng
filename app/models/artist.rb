@@ -218,6 +218,13 @@ class Artist < ApplicationRecord
       self.url_string_changed = false
     end
 
+    # Some sites do not include the file extension directly in their path, or it's not useable for the regex
+    DOMAINS_COUNT_BLACKLIST = [
+      "twimg.com", # https://pbs.twimg.com/media/E627JTbVcAI94NW?format=jpg&name=orig
+      "wixmp.com", # https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/885a6dec-35b8-456f-a409-43b214729c22/desps0r-87920cf6-c246-4b04-8144-06f0ed108aaa.jpg/v1/fill/w_980,h_735,q_75,strp/3136__tortie_cat_by_cryptid_creations_desps0r-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NzM1IiwicGF0aCI6IlwvZlwvODg1YTZkZWMtMzViOC00NTZmLWE0MDktNDNiMjE0NzI5YzIyXC9kZXNwczByLTg3OTIwY2Y2LWMyNDYtNGIwNC04MTQ0LTA2ZjBlZDEwOGFhYS5qcGciLCJ3aWR0aCI6Ijw9OTgwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.qOCiaQZhVwya39kW1hxEY6ufK-0fYw-cJgtBG8wOpLo
+      "ngfiles.com", # https://art.ngfiles.com/images/224000/224977_signhereplease_razeal-s-trick.jpg?f1353472836
+    ]
+
     # Returns a count of sourced domains for the artist.
     # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
@@ -232,6 +239,7 @@ class Artist < ApplicationRecord
           rescue Addressable::URI::InvalidURIError
             nil
           end.compact.uniq
+          domains = domains.filter { |d| DOMAINS_COUNT_BLACKLIST.exclude?(d) }
           domains.each {|domain| counted[domain] += 1}
         end
         counted.sort {|a, b| b[1] <=> a[1]}
