@@ -105,7 +105,7 @@ class PostReplacement < ApplicationRecord
       file, strategy = download.download!
 
       self.replacement_file = file
-      self.source = replacement_url + "\n#{self.source}"
+      self.source = "#{self.source}\n" + replacement_url
     rescue Downloads::File::Error
       self.errors.add(:replacement_url, "failed to fetch file")
       throw :abort
