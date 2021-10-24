@@ -2,7 +2,14 @@
   <ul>
     <li class="active">
       <%= link_to "&lsaquo;&thinsp;prev".html_safe, show_seq_post_path(post, :q => params[:q], :seq => "prev"), :rel => "prev nofollow", :class => "prev" %>
-      <span class="search-name">Search: <%= params[:q].presence || "(none)" %></span>
+      <span class="search-name">
+        Search: 
+        <% if params[:q].presence.nil? %>
+          (none)
+        <% else %>
+          <%= link_to params[:q].presence, posts_path(:tags => params[:q].presence) %>
+        <% end %>
+      </span>
       <%= link_to "next&thinsp;&rsaquo;".html_safe, show_seq_post_path(post, :q => params[:q], :seq => "next"), :rel => "next nofollow", :class => "next" %>
     </li>
   </ul>
