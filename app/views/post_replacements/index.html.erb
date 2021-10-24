@@ -72,9 +72,9 @@
                 <% if post_replacement.status == 'approved' %>
                   <dt>Original Uploader</dt>
                   <dd>
-                    <%= link_to_user post_replacement.uploader_on_approve %>,
-                    penalized: <%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %>
+                    <%= link_to_user post_replacement.uploader_on_approve %>
                     <% if CurrentUser.is_janitor? %>
+                      | penalized: <%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %>
                       <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                     <% end %>
                   </dd>
