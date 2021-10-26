@@ -1,7 +1,7 @@
 div#c-confirm-delete {
-  
+
   // Raw text input and clear-all button
-  #delreason-input { width: 100%; }
+  #reason { width: 100%; }
   #delreason-clear { width: 5rem; }
 
   // "Move to parent" checkboxes
@@ -17,7 +17,7 @@ div#c-confirm-delete {
       width: fit-content;
       margin: 0.125rem 0;
       padding: 0;
-      
+
       // Minus / plus icons
       &::before {
         content: "+";
@@ -25,7 +25,7 @@ div#c-confirm-delete {
         font-family: monospace;
         font-size: 1.25em;
       }
-      
+
       // Customized inputs
       input[type="text"] {
         background: transparent;
@@ -34,13 +34,13 @@ div#c-confirm-delete {
         border-radius: 0.125rem;
         padding: 0 0.25rem;
       }
-      
+
       // Highlight enabled elements
       &.enabled::before { content: "-"; }
-      
+
       @include themable {
         color: themed("color-link");
-        
+
         &:hover {
           color: themed("color-link-hover");
           input[type="text"] {
@@ -48,13 +48,13 @@ div#c-confirm-delete {
             border-color: themed("color-link-hover");
           }
         }
-        
+
         input[type="text"] {
           border-bottom: 1px solid themed("color-link");
           color: themed("color-link");
           &:focus { color: themed("color-link") !important; }
         }
-        
+
         &.enabled {
           color: themed("color-link-active");
           input[type="text"] {
