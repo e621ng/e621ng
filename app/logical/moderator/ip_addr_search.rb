@@ -30,19 +30,14 @@ module Moderator
       end
 
       sums = {}
-      add_by_ip_addr(sums, :wiki_page, ip_addrs, ::WikiPageVersion, :updater_ip_addr, :updater_id)
       add_by_ip_addr(sums, :comment, ip_addrs, ::Comment, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :dmail, ip_addrs, ::Dmail, :creator_ip_addr, :from_id)
       add_by_ip_addr(sums, :blip, ip_addrs, ::Blip, :creator_ip_addr, :creator_id)
-      add_by_ip_addr(sums, :post_appeal, ip_addrs, ::PostAppeal, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :post_flag, ip_addrs, ::PostFlag, :creator_ip_addr, :creator_id)
-      add_by_ip_addr(sums, :upload, ip_addrs, ::Upload, :uploader_ip_addr, :uploader_id)
-      add_by_ip_addr(sums, :user_record, ip_addrs, ::UserFeedback, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :posts, ip_addrs, ::Post, :uploader_ip_addr, :uploader_id)
       sums[:last_login] = Hash[User.where(last_ip_addr: ip_addrs).collect { |user| [user.id, 1] }]
 
       if with_history
-        add_by_ip_addr(sums, :artist_commentary_version, ip_addrs, ::ArtistCommentaryVersion, :updater_ip_addr, :updater_id)
         add_by_ip_addr(sums, :artist_version, ip_addrs, ::ArtistVersion, :updater_ip_addr, :updater_id)
         add_by_ip_addr(sums, :note_version, ip_addrs, ::NoteVersion, :updater_ip_addr, :updater_id)
         add_by_ip_addr(sums, :pool_version, ip_addrs, ::PoolArchive, :updater_ip_addr, :updater_id)
@@ -66,19 +61,14 @@ module Moderator
       end
 
       sums = {}
-      add_by_user_id(sums, :wiki_page, user_ids, ::WikiPageVersion, :updater_ip_addr, :updater_id)
       add_by_user_id(sums, :comment, user_ids, ::Comment, :creator_ip_addr, :creator_id)
       add_by_user_id(sums, :dmail, user_ids, ::Dmail, :creator_ip_addr, :from_id)
       add_by_user_id(sums, :blip, user_ids, ::Blip, :creator_ip_addr, :creator_id)
-      add_by_user_id(sums, :post_appeal, user_ids, ::PostAppeal, :creator_ip_addr, :creator_id)
       add_by_user_id(sums, :post_flag, user_ids, ::PostFlag, :creator_ip_addr, :creator_id)
-      add_by_user_id(sums, :upload, user_ids, ::Upload, :uploader_ip_addr, :uploader_id)
-      add_by_user_id(sums, :user_record, user_ids, ::UserFeedback, :creator_ip_addr, :creator_id)
       add_by_user_id(sums, :posts, user_ids, ::Post, :uploader_ip_addr, :uploader_id)
       add_by_user_id(sums, :users, user_ids, ::User, :last_ip_addr, :id)
 
       if with_history
-        add_by_user_id(sums, :artist_commentary_version, user_ids, ::ArtistCommentaryVersion, :updater_ip_addr, :updater_id)
         add_by_user_id(sums, :artist_version, user_ids, ::ArtistVersion, :updater_ip_addr, :updater_id)
         add_by_user_id(sums, :note_version, user_ids, ::NoteVersion, :updater_ip_addr, :updater_id)
         add_by_user_id(sums, :pool_version, user_ids, ::PoolArchive, :updater_ip_addr, :updater_id)
