@@ -29,6 +29,10 @@ class WikiPageVersion < ApplicationRecord
       q = q.attribute_matches(:is_locked, params[:is_locked])
       q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
+      if params[:ip_addr].present?
+        q = q.where("updater_ip_addr <<= ?", params[:ip_addr])
+      end
+
       q.apply_default_order(params)
     end
   end

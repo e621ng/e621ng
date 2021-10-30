@@ -94,6 +94,10 @@ class Comment < ApplicationRecord
         q = q.poster_id(params[:poster_id].to_i)
       end
 
+      if params[:ip_addr].present?
+        q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
+      end
+
       q = q.attribute_matches(:is_hidden, params[:is_hidden])
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:do_not_bump_post, params[:do_not_bump_post])

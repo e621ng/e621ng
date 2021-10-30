@@ -856,9 +856,8 @@ class User < ApplicationRecord
                     {:len => bitprefs_length, :bits => bitprefs_exclude})
       end
 
-      # TODO: Fix this as soon as possible.
-      if params[:current_user_first].to_s.truthy? && !CurrentUser.is_anonymous?
-        q = q.order(Arel.sql("users.id = #{CurrentUser.user.id.to_i} desc"))
+      if params[:ip_addr].present?
+        q = q.where("last_ip_addr <<= ?", params[:ip_addr])
       end
 
       case params[:order]

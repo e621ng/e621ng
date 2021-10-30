@@ -14,7 +14,7 @@
       <tr>
         <td><%= link_to_ip ip_addr %></td>
         <td><%= name.to_s.tr '_', ' ' %></td>
-        <td><%= count %></td>
+        <td><%= link_to_ip_search name, ip_addr, count %></td>
       </tr>
     <% end %>
   <% end %>

@@ -139,6 +139,7 @@ class UsersController < ApplicationController
 
   def user_search_params
     permitted_params = %i[name_matches level min_level max_level can_upload_free can_approve_posts order]
+    permitted_params += [:ip_addr] if CurrentUser.is_moderator?
     permitted_params += [:email_matches] if CurrentUser.is_admin?
     params.fetch(:search, {}).permit(permitted_params)
   end

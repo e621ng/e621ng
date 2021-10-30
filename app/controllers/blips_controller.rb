@@ -97,7 +97,9 @@ class BlipsController < ApplicationController
   private
 
   def search_params
-    params.fetch(:search, {}).permit!
+    permitted_params = %i[body_matches response_to creator_name creator_id order]
+    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    params.fetch(:search, {}).permit(permitted_params)
   end
 
   def blip_params(mode)
