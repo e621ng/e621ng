@@ -5,8 +5,8 @@ class ArtistCommentary < ApplicationRecord
   validates :post_id, uniqueness: true
   validates :original_title, length: { maximum: 150 }
   validates :translated_title, length: { maximum: 150 }
-  validates :original_description, length: { maximum: 50000 }
-  validates :translated_description, length: { maximum: 50000 }
+  validates :original_description, length: { maximum: Danbooru.config.wiki_page_max_size }
+  validates :translated_description, length: { maximum: Danbooru.config.wiki_page_max_size }
   belongs_to :post, required: true
   has_many :versions, -> {order("artist_commentary_versions.id ASC")}, :class_name => "ArtistCommentaryVersion", :dependent => :destroy, :foreign_key => :post_id, :primary_key => :post_id
   has_one :previous_version, -> {order(id: :desc)}, :class_name => "ArtistCommentaryVersion", :foreign_key => :post_id, :primary_key => :post_id
