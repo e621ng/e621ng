@@ -316,7 +316,7 @@ fart'
 
     # After this many pages, the paginator will switch to sequential mode.
     def max_numbered_pages
-      1_000
+      750
     end
 
     def beta_notice

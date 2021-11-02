@@ -123,7 +123,7 @@ module Danbooru
           raise ::Danbooru::Paginator::PaginationError.new("You cannot go beyond page #{Danbooru.config.max_numbered_pages}. Please narrow your search terms.")
         end
 
-        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: 750*records_per_page + 1)
+        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: Danbooru.config.max_numbered_pages * records_per_page + 1)
         @current_page = page
 
         self
