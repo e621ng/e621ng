@@ -61,10 +61,6 @@ module Danbooru
       "auto_moderator"
     end
 
-    def upload_feedback_topic
-      ForumTopic.where(title: "Upload Feedback Thread").first
-    end
-
     def source_code_url
       "https://github.com/zwagoth/e621ng"
     end
