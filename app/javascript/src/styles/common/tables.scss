@@ -13,6 +13,16 @@ table.table {
     tr {
       td {
         padding: $padding-050 $padding-025;
+
+        &.full-width-link {
+          padding: 0;
+
+          > a {
+            width: 100%;
+            display: inline-block;
+            padding: $padding-050 $padding-025;
+          }
+        }
       }
       @include themable {
         background-color: themed("color-section");
