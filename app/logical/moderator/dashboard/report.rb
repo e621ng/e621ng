@@ -32,18 +32,6 @@ module Moderator
         end
       end
 
-      def appeals
-        ApplicationRecord.without_timeout do
-          Queries::PostAppeal.all(min_date)
-        end
-      end
-
-      def flags
-        ApplicationRecord.without_timeout do
-          Queries::PostFlag.all(min_date)
-        end
-      end
-
       def tags
         Queries::Tag.all(min_date, max_level)
       end
