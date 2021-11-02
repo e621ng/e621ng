@@ -7,7 +7,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       @user = FactoryBot.create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
-      @topic = FactoryBot.create(:forum_topic, :title => "xxx")
+      @topic = FactoryBot.create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
     end
 
     teardown do
@@ -113,9 +113,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
     context "#merge" do
       setup do
-        @topic2 = FactoryBot.create(:forum_topic, :title => "yyy")
-        FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => "xxx")
-        FactoryBot.create(:forum_post, :topic_id => @topic2.id, :body => "xxx")
+        @topic2 = FactoryBot.create(:forum_topic, title: "yyy", original_post_attributes: { body: "bbb" })
       end
 
       should "merge all the posts in one topic into the other" do
@@ -166,7 +164,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       end
 
       should "delete any associated posts" do
-        assert_difference("ForumPost.count", -5) do
+        assert_difference("ForumPost.count", -6) do
           @topic.destroy
         end
       end

@@ -7,8 +7,8 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       @other_user = create(:user)
       @mod = create(:moderator_user)
       as_user do
-        @forum_topic = create(:forum_topic, :title => "my forum topic")
-        @forum_post = create(:forum_post, :topic_id => @forum_topic.id, :body => "alias xxx -> yyy")
+        @forum_topic = create(:forum_topic, title: "my forum topic", original_post_attributes: { body: "alias xxx -> yyy" })
+        @forum_post = @forum_topic.original_post
       end
     end
 
@@ -19,6 +19,11 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
           @vote = create(:forum_post_vote, forum_post: @forum_post, score: 1)
           @forum_post.reload
         end
+      end
+
+      should "not render the vote links for the requesting user" do
+        get_auth forum_topic_path(@forum_topic), @user
+        assert_select "a[title='Vote up']", false
       end
 
       should "render the vote links" do
@@ -78,7 +83,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       context "with private topics" do
         setup do
           as(@mod) do
-            @mod_topic = create(:mod_up_forum_topic)
+            @mod_topic = create(:mod_up_forum_topic, original_post_attributes: { body: "mod only" })
             @mod_posts = 2.times.map do
               create(:forum_post, :topic_id => @mod_topic.id)
             end

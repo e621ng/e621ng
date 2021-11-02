@@ -3,6 +3,7 @@ class ForumPostVotesController < ApplicationController
   before_action :member_only
   before_action :load_forum_post
   before_action :validate_forum_post
+  before_action :validate_no_vote_on_own_post, only: [:create]
   before_action :load_vote, only: [:destroy]
 
   def create
@@ -34,6 +35,10 @@ private
   def validate_forum_post
     raise User::PrivilegeError.new unless @forum_post.visible?(CurrentUser.user)
     raise User::PrivilegeError.new unless @forum_post.votable?
+  end
+
+  def validate_no_vote_on_own_post
+    raise User::PrivilegeError.new if @forum_post.creator == CurrentUser.user
   end
 
   def forum_post_vote_params
