@@ -188,21 +188,16 @@ let Note = {
     },
 
     scale_all: function() {
-      var container = document.getElementById('note-container');
-      if (container === null) {
+      var $container = $("#note-container");
+      if ($container.length === 0) {
         return;
       }
       // Hide notes while rescaling, to prevent unnecessary reflowing
-      var was_visible = container.style.display !== 'none';
-      if (was_visible) {
-        container.style.display = 'none';
-      }
+      $container.data("resizing", true);
       $(".note-box").each(function(i, v) {
         Note.Box.scale($(v));
       });
-      if (was_visible) {
-        container.style.display = 'block';
-      }
+      $container.data("resizing", false);
     },
 
     toggle_all: function() {
