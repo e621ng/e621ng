@@ -582,9 +582,6 @@ Post.resize_image = function (post, target_size) {
 Post.resize_to = function(target_size) {
   target_size = update_size_selector(target_size);
 
-  if ($("#image-container").hasClass("blacklisted-active-visible"))
-    return;
-
   const post = Post.currentPost();
   if (is_video(post)) {
     Post.resize_video(post, target_size);
@@ -668,9 +665,6 @@ Post.initialize_resize = function () {
 Post.resize_cycle_mode = function(e) {
   if(e && e.target)
     e.preventDefault();
-
-  if ($("#image-container").hasClass("blacklisted-active-visible"))
-    return;
 
   Post.resize_to("next");
 }

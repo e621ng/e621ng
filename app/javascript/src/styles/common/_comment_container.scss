@@ -13,7 +13,7 @@
     background: $lighten-background-5;
 
     .avatar {
-      .post-thumbnail {
+      .post-thumbnail:not(.blacklisted) {
         img {
           height: auto;
           width: auto;
