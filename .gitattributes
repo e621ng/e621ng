@@ -1,0 +1,5 @@
+# This "unsets" the git "text" attribute on all files, which tells git to
+# not do any line-ending conversion between LF and CRLF on check-in and
+# check-out. This is like core.autocrlf=false, but doesn't require the user to
+# edit their git config, instead it overrides it.
+* -text
