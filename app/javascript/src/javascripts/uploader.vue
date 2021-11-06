@@ -336,7 +336,7 @@
     }).length !== 0)
       return;
     this.filePreview.height = target.naturalHeight || target.videoHeight;
-    this.filePreview.width = target.naturalWidth || target.videoHeight;
+    this.filePreview.width = target.naturalWidth || target.videoWidth;
     this.filePreview.overDims = (this.filePreview.height > 15000 || this.filePreview.width > 15000);
   }
 
