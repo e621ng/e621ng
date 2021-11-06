@@ -20,13 +20,13 @@
           <td><%= link_to "#{commentary_version.post_id}.#{commentary_version.id}»", artist_commentary_versions_path(search: {post_id: commentary_version.post_id}) %></td>
           <td>
             <h3><%= h(commentary_version.original_title) %></h3>
-            <div class="styled-dtext">
+            <div class="dtext-container">
               <%= format_text(commentary_version.original_description) %>
             </div>
           </td>
           <td>
             <h3><%= h(commentary_version.translated_title) %></h3>
-            <div class="styled-dtext">
+            <div class="dtext-container">
               <%= format_text(commentary_version.translated_description) %>
             </div>
           </td>

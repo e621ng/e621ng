@@ -5,7 +5,7 @@
   </div>
   
   
-  <div class="styled-dtext">
+  <div class="dtext-container">
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
   </div>
 </div>
@@ -23,7 +23,7 @@
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
       <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
       <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label>
-      <div class="styled-dtext"><%= format_text(flag_reason[:text]) %></div>
+      <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>
       
       <% if flag_reason[:parent] %>
         <%= f.input :parent_id, as: :integer, label: "Inferior of Post #" %>
@@ -36,7 +36,7 @@
         
     <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: !(@post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago) %>
     <label for="post_flag_reason_name_user">I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).</label>
-    <div class="styled-dtext"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
+    <div class="dtext-container"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
     <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
       <%= dtext_field "post_flag", "user_reason", name: "Reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
     <% end %>

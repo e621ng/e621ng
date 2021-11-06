@@ -8,7 +8,7 @@
     <% else %>
       <input type="text" id="<%= input_id %>" class="text optional <%= input_classes %>" name="<%= input_name %>" value="<%= value %>">
     <% end %>
-    <div id="<%= preview_id %>" class="dtext-preview styled-dtext"></div>
+    <div id="<%= preview_id %>" class="dtext-preview dtext-container"></div>
   </div>
    <span class="hint">All text is formatted using <%= link_to "DText", help_page_path(id: "dtext"), :target => "_blank", tabindex: "-1" %></span>
 </div>

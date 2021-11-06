@@ -81,7 +81,7 @@ module ApplicationHelper
     render "application/hideable_form_search", path: path, show_on_load: show_on_load, block: block
   end
 
-  def format_text(text, **options)
+  def dtext_ragel(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
     return raw "" if parsed.nil?
@@ -91,8 +91,17 @@ module ApplicationHelper
     raw ""
   end
 
+  def format_text(text, **options)
+    # preserve the currrent inline behaviour
+    if options[:inline]
+      dtext_ragel(text, options)
+    else
+      raw %(<div class="styled-dtext">#{dtext_ragel(text, options)}</div>)
+    end
+  end
+
   def strip_dtext(text)
-    format_text(text, strip: true)
+    dtext_ragel(text, strip: true)
   end
 
   def error_messages_for(instance_name)
