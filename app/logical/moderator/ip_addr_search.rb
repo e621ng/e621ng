@@ -35,7 +35,7 @@ module Moderator
       add_by_ip_addr(sums, :blip, ip_addrs, ::Blip, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :post_flag, ip_addrs, ::PostFlag, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :posts, ip_addrs, ::Post, :uploader_ip_addr, :uploader_id)
-      sums[:last_login] = Hash[User.where(last_ip_addr: ip_addrs).collect { |user| [user.id, 1] }]
+      add_by_ip_addr(sums, :last_login, ip_addrs, ::User, :last_ip_addr, :id)
 
       if with_history
         add_by_ip_addr(sums, :artist_version, ip_addrs, ::ArtistVersion, :updater_ip_addr, :updater_id)
