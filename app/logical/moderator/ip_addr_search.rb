@@ -7,12 +7,13 @@ module Moderator
     end
 
     def execute
+      with_history = params[:with_history].to_s.truthy?
       if params[:user_id].present?
-        search_by_user_id(params[:user_id].split(/,/).map(&:strip), params[:with_history])
+        search_by_user_id(params[:user_id].split(/,/).map(&:strip), with_history)
       elsif params[:user_name].present?
-        search_by_user_name(params[:user_name].split(/,/).map(&:strip), params[:with_history])
+        search_by_user_name(params[:user_name].split(/,/).map(&:strip), with_history)
       elsif params[:ip_addr].present?
-        search_by_ip_addr(params[:ip_addr].split(/,/).map(&:strip), params[:with_history])
+        search_by_ip_addr(params[:ip_addr].split(/,/).map(&:strip), with_history)
       else
         []
       end
@@ -20,7 +21,7 @@ module Moderator
 
     private
 
-    def search_by_ip_addr(ip_addrs, with_history = false)
+    def search_by_ip_addr(ip_addrs, with_history)
       def add_by_ip_addr(target, name, ips, klass, ip_field, id_field)
         if ips.size == 1
           target.merge!({name => klass.where("#{ip_field} <<= ?", ips[0]).group(id_field).count})
@@ -50,12 +51,12 @@ module Moderator
       {sums: sums, users: users}
     end
 
-    def search_by_user_name(user_names, with_history = false)
+    def search_by_user_name(user_names, with_history)
       user_ids = user_names.map { |name| ::User.name_to_id(name) }
       search_by_user_id(user_ids, with_history)
     end
 
-    def search_by_user_id(user_ids, with_history = false)
+    def search_by_user_id(user_ids, with_history)
       def add_by_user_id(target, name, ids, klass, ip_field, id_field)
           target.merge!({name => klass.where(id_field => ids).where.not(ip_field => nil).group(ip_field).count})
       end
