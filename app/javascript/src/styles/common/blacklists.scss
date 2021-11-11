@@ -64,11 +64,12 @@
   }
 }
 
-.post-preview.blacklisted, #c-comments .post.blacklisted {
-  display: none !important;
+// Hide blacklist box on post index page only
+#c-posts #a-index .post-preview.blacklisted {
+  display: none;
 }
 
-#image-container.blacklisted, .post-thumbnail.blacklisted {
+#image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
   img, video {
     height: 0px;
     width: 0px;
