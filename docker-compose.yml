@@ -52,6 +52,9 @@ services:
   
   redis:
     image: redis:alpine
+    command: redis-server --save 10 1 --loglevel warning
+    volumes:
+      - redis_data:/data
 
   memcached:
     image: memcached:alpine
@@ -69,6 +72,7 @@ volumes:
   post_data:
   elastic_data:
   db_data:
+  redis_data:
   gems:
   node_modules:
   public_packs:
