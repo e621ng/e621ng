@@ -161,7 +161,7 @@ fart'
 
     # List of memcached servers
     def memcached_servers
-      %w(127.0.0.1:11211)
+      %w(memcached:11211)
     end
 
     def alias_implication_forum_category
@@ -926,7 +926,7 @@ fart'
     end
 
     def elasticsearch_host
-      '127.0.0.1'
+      'elastic'
     end
 
     # Use a recaptcha on the signup page to protect against spambots creating new accounts.
@@ -970,6 +970,7 @@ fart'
     end
 
     def redis_url
+      "redis://redis"
     end
 
     def bypass_upload_whitelist?(user)

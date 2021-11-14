@@ -1,0 +1,81 @@
+version: "2.4"
+
+services:
+  e621:
+    build: ./
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - public_packs:/app/public/packs
+      - public_packs:/app/public/packs-test
+      - post_data:/app/public/data
+      - gems:/home/danbooru/gems
+    environment:
+      DATABASE_URL: postgresql://postgres
+      RAILS_ENV: development
+      GEM_HOME: /home/danbooru/gems
+    depends_on:
+      - postgres
+      - redis
+      - memcached
+      - elastic
+
+  nginx:
+    image: nginx:stable
+    volumes:
+      - ./public:/app/public
+      - post_data:/app/public/data
+      - public_packs:/app/public/packs
+      - public_packs:/app/public/packs-test
+      - ./docker/default.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      NGINX_HOST: e621.local
+    depends_on:
+      - e621
+    networks:
+      default:
+        ipv4_address: 192.168.64.78
+    
+  postgres:
+    build:  ./docker/postgres
+    environment:
+      - POSTGRES_USER=danbooru
+      - POSTGRES_DB=danbooru2
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "34517:5432"
+  
+  redis:
+    image: redis:latest
+
+  memcached:
+    image: memcached:latest
+
+  elastic:
+    image: elasticsearch:7.14.2
+    mem_limit: 1gb
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+
+volumes:
+  gems:
+  db_data:
+  elastic_data:
+  node_modules:
+  post_data:
+  public_packs:
+
+networks:
+  default:
+    name: e621
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.64.0/24
+          gateway: 192.168.64.1
