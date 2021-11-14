@@ -13,7 +13,7 @@
 3. `cd` into the repo.
 4. Run the following commands:
     ```
-    docker-compose run e621 /app/bin/setup
+    docker-compose run -e DANBOORU_DISABLE_THROTTLES=true e621 /app/bin/setup
     docker-compose up
     ```
     After running the commands once only `docker-compose up` is needed to bring up the containers.
@@ -62,5 +62,5 @@ IQDB integration is delegated to the [IQDBS service](https://github.com/zwagoth/
 ### Cropped Thumbnails
 
 There's optional support for cropped thumbnails. This relies on installing
-`libvips-8.6` or higher and setting `Danbooru.config.enable_image_cropping`
+`libvips-8.6` or higher and setting `Danbooru.config.enable_image_cropping?`
 to true.

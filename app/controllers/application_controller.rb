@@ -189,7 +189,7 @@ class ApplicationController < ActionController::Base
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
-    CurrentUser.safe_mode = Danbooru.config.safe_mode
+    CurrentUser.safe_mode = Danbooru.config.safe_mode?
     CurrentUser.root_url = root_url.chomp("/")
   end
 
@@ -235,7 +235,7 @@ class ApplicationController < ActionController::Base
   end
 
   def enforce_readonly
-    return unless Danbooru.config.readonly_mode
+    return unless Danbooru.config.readonly_mode?
     raise ReadOnlyException.new "The site is in readonly mode" unless allowed_readonly_actions.include? action_name
   end
 

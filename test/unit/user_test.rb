@@ -4,7 +4,7 @@ class UserTest < ActiveSupport::TestCase
   context "A user" do
     setup do
       # stubbed to true in test_helper.rb
-      Danbooru.config.stubs(:disable_throttles).returns(false)
+      Danbooru.config.stubs(:disable_throttles?).returns(false)
       @user = FactoryBot.create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"

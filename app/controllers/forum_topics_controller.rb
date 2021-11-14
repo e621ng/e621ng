@@ -37,7 +37,7 @@ class ForumTopicsController < ApplicationController
   end
 
   def show
-    if request.format == Mime::Type.lookup("text/html") && !Danbooru.config.readonly_mode
+    if request.format == Mime::Type.lookup("text/html") && !Danbooru.config.readonly_mode?
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
     @forum_posts = ForumPost.includes(topic: [:category]).search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])

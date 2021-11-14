@@ -2,7 +2,7 @@ module Maintenance
   module_function
 
   def daily
-    return if Danbooru.config.readonly_mode
+    return if Danbooru.config.readonly_mode?
 
     ignoring_exceptions { PostPruner.new.prune! }
     ignoring_exceptions { Upload.where('created_at < ?', 1.week.ago).delete_all }
@@ -20,7 +20,7 @@ module Maintenance
   end
 
   def weekly
-    return if Danbooru.config.readonly_mode
+    return if Danbooru.config.readonly_mode?
 
     #ignoring_exceptions { ApproverPruner.prune! }
     #ignoring_exceptions { TagRelationshipRetirementService.find_and_retire! }
