@@ -1,11 +1,17 @@
 ## Installation (Easy mode - For development environments)
 #### Prerequisites
- * Latest version of Docker ([download](https://docs.docker.com/get-docker))
+ * Latest version of Docker ([download](https://docs.docker.com/get-docker)). The WSL2 backend on Windows is required.
  * Latest version of Docker Compose ([download](https://docs.docker.com/compose/install))
  * Git ([download](https://git-scm.com/downloads))
  
  If you are on Windows Docker Compose is already included, you do not need to install it yourself.
  If you are on Linux/MacOS you can probably use your package manager.
+
+#### Windows development environment
+
+Developing on Windows requires some special setup to get good response times. Unfortunately performance across file systems is not great for WSL2 and recieving inotify events isn't possible. This leads to an all-around unpleasant experience. Read more about this [here](https://docs.docker.com/desktop/windows/wsl/#best-practices).
+
+To mitigate this you can install a WSL distribution and clone the project inside there. Executing docker inside the container will still work, without directly accessing the host. Access the code with [Remote Development for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) or simply use the network address `\\wsl$`.
 
 #### Installation
 1. Download and install the prerequisites.
