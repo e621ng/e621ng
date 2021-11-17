@@ -4821,10 +4821,66 @@ CREATE INDEX index_user_name_change_requests_on_user_id ON public.user_name_chan
 
 
 --
+-- Name: index_user_statuses_on_artist_edit_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_artist_edit_count ON public.user_statuses USING btree (artist_edit_count);
+
+
+--
+-- Name: index_user_statuses_on_comment_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_comment_count ON public.user_statuses USING btree (comment_count);
+
+
+--
+-- Name: index_user_statuses_on_forum_post_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_forum_post_count ON public.user_statuses USING btree (forum_post_count);
+
+
+--
+-- Name: index_user_statuses_on_note_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_note_count ON public.user_statuses USING btree (note_count);
+
+
+--
+-- Name: index_user_statuses_on_pool_edit_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_pool_edit_count ON public.user_statuses USING btree (pool_edit_count);
+
+
+--
+-- Name: index_user_statuses_on_post_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_post_count ON public.user_statuses USING btree (post_count);
+
+
+--
+-- Name: index_user_statuses_on_post_update_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_post_update_count ON public.user_statuses USING btree (post_update_count);
+
+
+--
 -- Name: index_user_statuses_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING btree (user_id);
+
+
+--
+-- Name: index_user_statuses_on_wiki_edit_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_statuses_on_wiki_edit_count ON public.user_statuses USING btree (wiki_edit_count);
 
 
 --
@@ -5263,6 +5319,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210426025625'),
 ('20210430201028'),
 ('20210506235640'),
-('20210718172512');
+('20210718172512'),
+('20211117180854');
 
 
