@@ -188,9 +188,15 @@ function update_preview(input, preview) {
 DText.process_formatting = function (content, input) {
   const currentText = input.val() + "";
   const position = {
-      start: input.prop("selectionStart"),
-      end: input.prop("selectionEnd"),
+    start: input.prop("selectionStart"),
+    end: input.prop("selectionEnd"),
   };
+  
+  const offset = {
+    start: content.indexOf("%selection%"),
+    end: content.length - (content.indexOf("%selection%") + 11),
+  };
+  
   content = content.replace(/%selection%/g, currentText.substring(position.start, position.end));
   input.trigger("focus");
 
@@ -199,8 +205,8 @@ DText.process_formatting = function (content, input) {
   if (!document.execCommand("insertText", false, content))
     input.val(currentText.substring(0, position.start) + content + currentText.substring(position.end, currentText.length));
   
-  input.prop("selectionStart", position.start);
-  input.prop("selectionEnd", position.start + content.length);
+  input.prop("selectionStart", position.start + offset.start);
+  input.prop("selectionEnd", position.start + content.length - offset.end);
   input.trigger("focus");
 }
 
