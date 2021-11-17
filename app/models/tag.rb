@@ -10,7 +10,7 @@ class Tag < ApplicationRecord
 
   BOOLEAN_METATAGS = %w[
     hassource hasdescription ratinglocked notelocked statuslocked
-    tagslocked hideanon hidegoogle isparent ischild inpool
+    tagslocked hideanon hidegoogle isparent ischild inpool pending_replacements
   ]
 
   METATAGS = %w[

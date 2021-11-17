@@ -443,6 +443,10 @@ class ElasticPostQueryBuilder
       (q[:inpool] ? must : must_not).push({exists: {field: :pools}})
     end
 
+    if q.include?(:pending_replacements)
+      must.push({term: {has_pending_replacements: q[:pending_replacements]}})
+    end
+
     add_tag_string_search_relation(q[:tags], must)
 
     if q[:upvote].present?
