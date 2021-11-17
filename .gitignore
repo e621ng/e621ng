@@ -30,7 +30,6 @@ test/fixtures/vcr_cassettes
 test/reports
 
 .idea
-.vagrant
 
 /public/packs
 /public/packs-test

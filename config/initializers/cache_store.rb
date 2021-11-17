@@ -1,7 +1,7 @@
 def get_cache_store
   if Rails.env.test?
     [:memory_store, { size: 32.megabytes }]
-  elsif Danbooru.config.disable_cache_store
+  elsif Danbooru.config.disable_cache_store?
     :null_store
   else
     [:mem_cache_store, Danbooru.config.memcached_servers, { namespace: Danbooru.config.safe_app_name }]
