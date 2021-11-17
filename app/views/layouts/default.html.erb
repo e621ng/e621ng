@@ -89,7 +89,7 @@
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
   <%= render "layouts/theme_include" %>
-  <% if Danbooru.config.beta_notice %>
+  <% if Danbooru.config.beta_notice? %>
   <div id="news-updates">
     <ul>
       <li>
@@ -114,7 +114,7 @@
   </header>
 
   <div id="page">
-    <% if Danbooru.config.readonly_mode %>
+    <% if Danbooru.config.readonly_mode? %>
     <div id="readonly-notice">
       <h1>The site is currently in readonly mode. </h1>
     </div>

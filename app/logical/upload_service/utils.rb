@@ -160,7 +160,7 @@ class UploadService
     end
 
     def automatic_tags(upload, file)
-      return "" unless Danbooru.config.enable_dimension_autotagging
+      return "" unless Danbooru.config.enable_dimension_autotagging?
 
       tags = []
       tags += ["animated_gif", "animated"] if is_animated_gif?(upload, file)

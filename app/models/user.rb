@@ -457,12 +457,12 @@ class User < ApplicationRecord
     extend Memoist
 
     def younger_than(duration)
-      return false if Danbooru.config.disable_age_checks
+      return false if Danbooru.config.disable_age_checks?
       created_at > duration.ago
     end
 
     def older_than(duration)
-      return true if Danbooru.config.disable_age_checks
+      return true if Danbooru.config.disable_age_checks?
       created_at < duration.ago
     end
 
@@ -470,7 +470,7 @@ class User < ApplicationRecord
       define_method("#{name}_limit".to_sym, limiter)
 
       define_method("can_#{name}_with_reason".to_sym) do
-        return true if Danbooru.config.disable_throttles
+        return true if Danbooru.config.disable_throttles?
         return send(checker) if checker && send(checker)
         return :REJ_NEWBIE if newbie_duration && younger_than(newbie_duration)
         return :REJ_LIMITED if send("#{name}_limit") <= 0
@@ -546,15 +546,15 @@ class User < ApplicationRecord
     end
 
     def can_upload_with_reason
-      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles
+      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
       elsif can_upload_free? || is_admin?
           true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
-      elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles
+      elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles
+      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
       else
         true

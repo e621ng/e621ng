@@ -87,7 +87,7 @@ class PostArchive < ApplicationRecord
       must = tag_list(:tags, params[:tags], must)
       must = tag_list(:tags_removed, params[:tags_removed], must)
       must = tag_list(:tags_added, params[:tags_added], must)
-      must = tag_list(:locked_tags, params[:locket_tags], must)
+      must = tag_list(:locked_tags, params[:locked_tags], must)
       must = tag_list(:locked_tags_removed, params[:locked_tags_removed], must)
       must = tag_list(:locked_tags_added, params[:locked_tags_added], must)
 

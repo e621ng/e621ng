@@ -924,7 +924,7 @@ class Post < ApplicationRecord
     end
 
     def add_automatic_tags(tags)
-      return tags if !Danbooru.config.enable_dimension_autotagging
+      return tags if !Danbooru.config.enable_dimension_autotagging?
 
       tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image ugoira)
 
@@ -1329,7 +1329,7 @@ class Post < ApplicationRecord
 
       # optimize some cases. these are just estimates but at these
       # quantities being off by a few hundred doesn't matter much
-      if Danbooru.config.estimate_post_counts
+      if Danbooru.config.estimate_post_counts?
         if tags == ""
           return (Post.maximum(:id) * (2200402.0 / 2232212)).floor
 
@@ -2118,7 +2118,7 @@ class Post < ApplicationRecord
   has_bit_flags BOOLEAN_ATTRIBUTES
 
   def safeblocked?
-    return true if Danbooru.config.safe_mode && rating != "s"
+    return true if Danbooru.config.safe_mode? && rating != "s"
     CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|rape|bestiality|beastiality|lolita|loli|shota|pussy|penis|genitals"))
   end
 

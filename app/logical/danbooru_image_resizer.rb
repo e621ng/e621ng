@@ -45,7 +45,7 @@ module DanbooruImageResizer
   end
 
   def crop_ruby(file, width, height, resize_quality)
-    return nil unless Danbooru.config.enable_image_cropping
+    return nil unless Danbooru.config.enable_image_cropping?
 
     output_file = Tempfile.new
     begin
@@ -83,7 +83,7 @@ module DanbooruImageResizer
   end
 
   def crop_shell(file, width, height, quality)
-    return nil unless Danbooru.config.enable_image_cropping
+    return nil unless Danbooru.config.enable_image_cropping?
 
     output_file = Tempfile.new(["crop", ".jpg"])
 

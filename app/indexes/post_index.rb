@@ -63,6 +63,7 @@ module PostIndex
         indexes :pending,         type: 'boolean'
         indexes :deleted,         type: 'boolean'
         indexes :has_children,    type: 'boolean'
+        indexes :has_pending_replacements, type: 'boolean'
       end
     end
 
@@ -138,6 +139,11 @@ module PostIndex
              GROUP BY post_id) pfi
           INNER JOIN post_flags pf ON pf.id = pfi.mid;
         SQL
+        pending_replacements_sql = <<-SQL
+          SELECT DISTINCT p.id, CASE WHEN pr.post_id IS NULL THEN false ELSE true END FROM posts p
+            LEFT OUTER JOIN post_replacements2 pr ON p.id = pr.post_id AND pr.status = 'pending'
+          WHERE p.id IN (#{post_ids})
+        SQL
 
         # Run queries
         conn = ApplicationRecord.connection
@@ -153,6 +159,7 @@ module PostIndex
         child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
         notes          = Hash.new { |h,k| h[k] = [] }
         conn.execute(note_sql).values.each { |p,b| notes[p] << b }
+        pending_replacements = conn.execute(pending_replacements_sql).values.to_h
 
         # Special handling for votes to do it with one query
         vote_ids = conn.execute(votes_sql).values.map do |pid, uids, scores|
@@ -178,7 +185,8 @@ module PostIndex
             noters:        noter_ids[p.id]      || empty,
             notes:         notes[p.id]          || empty,
             deleter:       deleter_ids[p.id]    || empty,
-            del_reason:    del_reasons[p.id]    || empty
+            del_reason:    del_reasons[p.id]    || empty,
+            has_pending_replacements: pending_replacements[p.id]
           }
 
           {
@@ -258,6 +266,7 @@ module PostIndex
       pending:        is_pending,
       deleted:        is_deleted,
       has_children:   has_children,
+      has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?
     }
   end
 end

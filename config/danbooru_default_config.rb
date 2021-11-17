@@ -25,7 +25,7 @@ module Danbooru
     end
 
     # Force rating:s on this version of the site.
-    def safe_mode
+    def safe_mode?
       false
     end
 
@@ -59,10 +59,6 @@ module Danbooru
     # Run `rake db:seed` to create this account if it doesn't already exist in your install.
     def system_user
       "auto_moderator"
-    end
-
-    def upload_feedback_topic
-      ForumTopic.where(title: "Upload Feedback Thread").first
     end
 
     def source_code_url
@@ -177,15 +173,15 @@ fart'
       40
     end
 
-    def disable_throttles
+    def disable_throttles?
       false
     end
 
-    def disable_age_checks
+    def disable_age_checks?
       false
     end
 
-    def disable_cache_store
+    def disable_cache_store?
       false
     end
 
@@ -320,7 +316,7 @@ fart'
 
     # After this many pages, the paginator will switch to sequential mode.
     def max_numbered_pages
-      1_000
+      750
     end
     
     def blip_max_size
@@ -363,7 +359,7 @@ fart'
       250_000
     end
 
-    def beta_notice
+    def beta_notice?
       false
     end
 
@@ -684,7 +680,7 @@ fart'
       [
           {
             name: 'dnp_artist',
-            reason: "The artist of is on the [[avoid_posting|avoid posting list]]",
+            reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]",
             text: "Certain artists have requested that their work is not to be published on this site, and were granted [[avoid_posting|Do Not Post]] status.\nSometimes, that status comes with conditions; see [[conditional_dnp]] for more information"
           },
           {
@@ -720,11 +716,11 @@ fart'
           },
       ]
     end
-    
+
     def flag_reason_48hours
       "If you are the artist, and want this image to be taken down [b]permanently[/b], file a \"takedown\":/static/takedown instead.\nTo replace the image with a \"fixed\" version, upload that image first, and then use the \"Duplicate or inferior version\" reason above.\nFor accidentally released paysite or private content, use the \"Paysite, commercial, or private content\" reason above."
     end
-    
+
     def deletion_reasons
       [
         "Inferior version/duplicate of post #%PARENT_ID%",
@@ -865,7 +861,7 @@ fart'
       nil
     end
 
-    def enable_dimension_autotagging
+    def enable_dimension_autotagging?
       true
     end
 
@@ -949,7 +945,7 @@ fart'
     end
 
     # enable some (donmai-specific) optimizations for post counts
-    def estimate_post_counts
+    def estimate_post_counts?
       false
     end
 
@@ -985,7 +981,7 @@ fart'
     def recaptcha_secret_key
     end
 
-    def enable_image_cropping
+    def enable_image_cropping?
       true
     end
 
@@ -1046,7 +1042,7 @@ fart'
     end
 
     def metrika_enabled?
-        false
+      false
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so
@@ -1059,8 +1055,8 @@ fart'
       []
     end
 
-    def readonly_mode
-      return false
+    def readonly_mode?
+      false
     end
   end
 
@@ -1069,11 +1065,18 @@ fart'
       @custom_configuration ||= CustomConfiguration.new
     end
 
+    def env_to_boolean(method, var)
+      is_boolean = method.to_s.end_with? "?"
+      return true if is_boolean && var.truthy?
+      return false if is_boolean && var.falsy?
+      var
+    end
+
     def method_missing(method, *args)
       var = ENV["DANBOORU_#{method.to_s.upcase.chomp("?")}"]
 
       if var.present?
-        var
+        env_to_boolean(method, var)
       else
         custom_configuration.send(method, *args)
       end
