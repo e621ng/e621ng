@@ -4,7 +4,6 @@
   <%= f.input :user_name, :as => :string, :input_html => { data: { autocomplete: "user" } } %>
   <%= f.input :duration, :hint => "in days" %>
   <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
-  <%= dtext_field "ban", "reason", name: "Reason", :input_id => "ban_reason", :preview_id => "dtext-preview-for-ban-reason" %>
+  <%= dtext_field "ban", "reason", name: "Reason", :input_id => "ban_reason" %>
   <%= f.button :submit, :value => "Ban" %>
-  <%= dtext_preview_button "ban", "reason", :input_id => "ban_reason", :preview_id => "dtext-preview-for-ban-reason" %>
 <% end %>

@@ -1,7 +1,6 @@
 <%= error_messages_for :staff_note %>
 
 <%= simple_form_for(staff_note, url: user_staff_notes_path(user_id: user.id), method: :post) do |f| %>
-  <%= dtext_field "staff_note", "body", name: "", :value => staff_note.body, :input_id => "staff_note_body_for_#{staff_note.id}", :preview_id => "dtext-preview-for-#{staff_note.id}" %>
+  <%= dtext_field "staff_note", "body", name: "", :value => staff_note.body, :input_id => "staff_note_body_for_#{staff_note.id}" %>
   <%= f.button :submit, "Submit" %>
-  <%= dtext_preview_button "staff_note", "body", :input_id => "staff_note_body_for_#{staff_note.id}", :preview_id => "dtext-preview-for-#{staff_note.id}" %>
 <% end %>

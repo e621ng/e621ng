@@ -246,7 +246,7 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <textarea class="tag-textarea" id="post_description" v-model="description" rows="5"></textarea>
+                    <textarea class="tag-textarea dtext-previewable" id="post_description" v-model="description" rows="10" :data-limit="descrLimit"></textarea>
                 </div>
             </div>
             <div class="flex-grid">
@@ -559,7 +559,9 @@
         description: '',
         rating: '',
         error: '',
-        duplicateId: 0
+        duplicateId: 0,
+        
+        descrLimit: window.uploaderSettings.descrLimit
       };
     },
     mounted() {

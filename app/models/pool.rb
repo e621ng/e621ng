@@ -7,7 +7,7 @@ class Pool < ApplicationRecord
 
   validates :name, uniqueness: { case_sensitive: false, if: :name_changed? }
   validates :name, length: { minimum: 1, maximum: 250 }
-  validates :description, length: { maximum: 10_000 }
+  validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update, if: :limited_attribute_changed?
   validate :user_not_posts_limited, on: :update, if: :post_ids_changed?

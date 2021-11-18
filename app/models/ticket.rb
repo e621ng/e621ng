@@ -7,7 +7,7 @@ class Ticket < ApplicationRecord
   after_initialize :classify
   validates :qtype, presence: true
   validates :reason, presence: true
-  validates :reason, length: { minimum: 2, maximum: 5_000 }
+  validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_can_see_target, on: :create

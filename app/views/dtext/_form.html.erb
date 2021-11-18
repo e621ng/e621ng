@@ -1,14 +1,18 @@
-<%# name, input_id, input_name, preview_id, value, type %>
+<%# name, input_id, input_name, value, type %>
 <div class="input text optional <%= classes %>">
   <label class="text optional" for="<%= input_id %>"><%= name %></label>
 
-  <div class="dtext-previewable">
-    <% if type == "text" %>
-      <textarea id="<%= input_id %>" class="text optional <%= input_classes %>" rows="<%= rows %>" name="<%= input_name %>" cols="<%= cols %>"><%= value %></textarea>
-    <% else %>
-      <input type="text" id="<%= input_id %>" class="text optional <%= input_classes %>" name="<%= input_name %>" value="<%= value %>">
-    <% end %>
-    <div id="<%= preview_id %>" class="dtext-preview dtext-container"></div>
-  </div>
+  <% if type == "text" %>
+    <textarea
+      id="<%= input_id %>"
+      class="dtext-previewable text optional <%= input_classes %>"
+      cols="<%= cols %>"
+      rows="<%= rows %>"
+      name="<%= input_name %>"
+      data-limit="<%= limit %>"
+    ><%= value %></textarea>
+  <% else %>
+    <input type="text" id="<%= input_id %>" class="text optional <%= input_classes %>" name="<%= input_name %>" value="<%= value %>" data-limit="<%= limit %>">
+  <% end %>
    <span class="hint">All text is formatted using <%= link_to "DText", help_page_path(id: "dtext"), :target => "_blank", tabindex: "-1" %></span>
 </div>

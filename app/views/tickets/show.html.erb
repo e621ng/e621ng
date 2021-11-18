@@ -123,12 +123,11 @@
             <table>
               <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
               <tr>
-                <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %></td>
+                <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", limit: Danbooru.config.dmail_max_size %></td>
               </tr>
             </table>
             <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
             <%= f.button :submit, "Submit" %>
-            <%= dtext_preview_button "ticket", "response", :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %>
           <% end %>
         </div>
       <% end %>

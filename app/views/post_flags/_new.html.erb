@@ -38,7 +38,7 @@
     <label for="post_flag_reason_name_user">I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).</label>
     <div class="dtext-container"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
     <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
-      <%= dtext_field "post_flag", "user_reason", name: "Reason", preview_id: "dtext-preview-for-post-flag", type: "string" %>
+      <%= dtext_field "post_flag", "user_reason", name: "Reason", type: "string" %>
     <% end %>
     
     <div>
