@@ -5,7 +5,7 @@
       <% @found_item = true %>
       <% if params[:type].nil? %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           To submit a ticket about a problematic comment, click "Report" on the comment itself.<br/>
           To submit a ticket about a problematic forum post, click "Report" on the post itself.<br/>
           To submit a ticket about a problematic pool, click "Report" on the pool page itself.<br/>
@@ -16,14 +16,14 @@
         </div>
       <% elsif CurrentUser.is_anonymous? %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           You must be logged in to submit a ticket. Please <a href='/user/login'>log in</a> and try again.
         </div>
       <% elsif @ticket.type_valid %>
         <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
       <% else %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           Hmm, it seems you tried to report something that doesn't make sense.
         </div>
       <% end %>
@@ -32,7 +32,7 @@
         <%= f.hidden_field :disp_id %>
         <%= f.hidden_field :qtype %>
 
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           <label for="ticket_reason">
             <% if params[:type] == "namechange" %>
               Desired username
