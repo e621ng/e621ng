@@ -26,7 +26,7 @@ class PostSet < ApplicationRecord
   validates :shortname, length: { in: 1..50, message: 'must be between one and fifty characters long' }
   validates :shortname, format: { with: /\A[\w]+\z/, message: "must only contain numbers, lowercase letters, and underscores" }
   validates :shortname, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one lowercase letter or underscore" }
-  validates :description, length: { maximum: 10_000 }
+  validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
   validate :validate_number_of_posts
   validate :can_make_public, if: :is_public_changed?
   validate :set_per_hour_limit, on: :create

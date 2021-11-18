@@ -10,7 +10,7 @@
           <%= f.input :shortname, label: 'Short Name', as: :string, input_html: {onchange: 'shortNameChanged()'},
                       hint: "The short name is used for the set's metatag name. Can only contain letters, numbers, and underscores
                 and must contain at least one letter or underscore. <a href=\"/post?tags=set%3Aexample\">set:example</a>".html_safe %>
-          <%= dtext_field "post_set", "description", :input_id => "set_description", :preview_id => "dtext-preview" %>
+          <%= dtext_field "post_set", "description", :input_id => "set_description", :limit => Danbooru.config.pool_descr_max_size %>
 
           <%= f.input :is_public, label: 'Public', hint: "Private sets are only visible to you. Public sets are visible to anyone, but only you and users you
                   assign as maintainers can edit the set. Only accounts three days or older can make public sets." %>
@@ -19,7 +19,6 @@
                   added to this set in its place. Disable if you want posts to simply be removed from this set with no
                   replacement.' %>
           <%= f.button :submit, "Update" %>
-          <%= dtext_preview_button :post_set, :body, :input_id => "set_description", :preview_id => "dtext-preview" %>
         <% end %>
       </div>
     <% end %>

@@ -49,14 +49,14 @@
             <%= f.input :reason, as: :text, maxlength: 20 %><br/>
           <% else %>
             <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
-            <%= dtext_field "ticket", "reason", :value => @ticket.reason, :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
+            <%= dtext_field "ticket", "reason", :value => @ticket.reason, :input_id => "ticket_reason", limit: Danbooru.config.ticket_max_size %>
           <% end %>
 
         </div>
         <% if params[:type] == "namechange" %>
           <%= submit_tag "Submit Request" %>
         <% else %>
-          <%= submit_tag "Submit Complaint" %> <%= dtext_preview_button "ticket", "reason", :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
+          <%= submit_tag "Submit Complaint" %>
         <% end %>
       <% end %>
     <% end %>

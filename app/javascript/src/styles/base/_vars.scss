@@ -71,16 +71,33 @@ $box-shadow-size: 2px 2px 5px;
 }
 
 // https://fontawesome.com/how-to-use/on-the-web/advanced/css-pseudo-elements
-@mixin fa-solid-icon($content) {
+@mixin font-awesome-icon {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
   display: inline-block;
   font-style: normal;
   font-variant: normal;
   text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-
+  
   font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro";
   font-weight: 900;
-  content: $content;
+}
+
+// Prevent the user from selecting the text
+// This is useful for links styled as buttons
+@mixin nonselectable {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Chrome, Edge, Opera and Firefox */
+}
+
+// SASS converts UTF-8 character codes to their actual characters.
+// This occasionally causes issues. See https://github.com/sass/sass/issues/1395
+@function unicode($str) {
+  @return unquote("\"")+unquote(str-insert($str, "\\", 1))+unquote("\"");
 }
 
 @mixin section-box-shadow($size: $box-shadow-size, $color: $box-shadow-color) {

@@ -200,18 +200,14 @@ module ApplicationHelper
     options[:input_id] ||= "#{object}_#{name}"
     options[:input_name] ||= "#{object}[#{name}]"
     options[:value] ||= instance_variable_get("@#{object}").try(name)
-    options[:preview_id] ||= "dtext-preview"
     options[:classes] ||= ""
     options[:input_classes] ||= ""
     options[:rows] ||= 10
     options[:cols] ||= 80
     options[:type] ||= "text"
+    options[:limit] ||= 0
 
     render "dtext/form", options
-  end
-
-  def dtext_preview_button(object, name, input_id: "#{object}_#{name}", preview_id: "dtext-preview")
-    tag.input value: "Preview DText", type: "button", class: "dtext-preview-button", "data-input-id": input_id, "data-preview-id": preview_id
   end
 
   def search_field(method, label: method.titleize, hint: nil, value: nil, **attributes)

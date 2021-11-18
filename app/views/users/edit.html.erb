@@ -34,9 +34,9 @@
 
         <%= f.input :avatar_id, type: :number, label: 'Avatar Post ID', input_html: {min: 0} %>
 
-        <%= f.input :profile_about, label: "About Me", :input_html => {:size => "40x5"} %>
+        <%= f.input :profile_about, label: "About Me", :input_html => {:rows => "10", :class => "dtext-previewable", :data => { :limit => Danbooru.config.user_about_max_size } } %>
 
-        <%= f.input :profile_artinfo, label: "Commission Info", :input_html => {:size => "40x5"} %>
+        <%= f.input :profile_artinfo, label: "Commission Info", :input_html => {:rows => "10", :class => "dtext-previewable", :data => { :limit => Danbooru.config.user_about_max_size } } %>
 
         <%= f.input :time_zone, :include_blank => false %>
 
