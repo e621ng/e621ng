@@ -918,10 +918,6 @@ fart'
     def reportbooru_server
     end
 
-    def iqdb_enabled?
-      false
-    end
-
     def iqdbs_server
     end
 
