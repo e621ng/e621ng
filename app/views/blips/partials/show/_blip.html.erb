@@ -20,7 +20,7 @@
       <% if blip.response? %>
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
-      <div class="body styled-dtext">
+      <div class="body dtext-container">
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
       <% if blip.was_warned? %>

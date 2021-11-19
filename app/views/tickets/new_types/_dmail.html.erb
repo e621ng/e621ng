@@ -8,6 +8,9 @@
     <div class='author'><%= link_to_user @dmail.from %></div>
     <span class="date" title="Sent on <%= @dmail.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@dmail.created_at) %>
       ago</span>
-    <%= format_text(@dmail.body) %>
+    <br><br>
+    <div class="dtext-container">
+      <%= format_text(@dmail.body) %>
+    </div>
   </div>
 <% end %>

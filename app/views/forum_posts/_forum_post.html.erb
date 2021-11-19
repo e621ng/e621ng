@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="content">
-      <div class="styled-dtext">
+      <div class="dtext-container">
         <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: forum_post %>

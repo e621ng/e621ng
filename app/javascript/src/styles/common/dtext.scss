@@ -1,4 +1,8 @@
-
+.dtext-container {
+  overflow: auto;
+  word-wrap: anywhere;
+  overflow-wrap: anywhere;
+}
 
 .styled-dtext {
   line-height: 1.4em;

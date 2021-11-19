@@ -3,7 +3,7 @@
 <body>
 <p><%= @dmail.from.name %> said:</p>
 
-<div class="styled-dtext">
+<div class="dtext-container">
   <%= format_text(@dmail.body, base_url: root_url, max_thumbs: 0) %>
 </div>
 

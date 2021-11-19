@@ -17,7 +17,7 @@
           <tr>
             <td><%= compact_time mod_action.created_at %></td>
             <td><%= link_to_user mod_action.creator %></td>
-            <td class="styled-dtext"><%= format_text(mod_action.format_description) %></td>
+            <td class="dtext-container"><%= format_text(mod_action.format_description) %></td>
           </tr>
         <% end %>
       </tbody>

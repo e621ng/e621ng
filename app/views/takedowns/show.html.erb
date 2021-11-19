@@ -101,7 +101,7 @@
 
     <% if !@takedown.notes.blank? && @takedown.notes.downcase != "none" %>
       <h3>Admin notes</h3>
-      <div class="box-section styled-dtext">
+      <div class="box-section dtext-container">
         <% if !@takedown.reason_hidden || CurrentUser.is_admin? %>
           <%= format_text(@takedown.notes) %>
           <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %>

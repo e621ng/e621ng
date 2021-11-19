@@ -16,7 +16,7 @@
         <% end %>
       </h1>
 
-      <div id="wiki-page-body" class="styled-dtext">
+      <div id="wiki-page-body" class="dtext-container">
         <% if @wiki_page.visible? %>
           <%= format_text(@wiki_page.body, allow_color: true, max_thumbs: 75) %>
 

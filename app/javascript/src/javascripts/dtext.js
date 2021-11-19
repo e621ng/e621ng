@@ -101,7 +101,7 @@ function build_buttons(wrapper, textarea) {
 
 function build_preview(wrapper, textarea) {
   const preview = $("<div>")
-    .addClass("dtext-formatter-preview styled-dtext")
+    .addClass("dtext-formatter-preview dtext-container")
     .appendTo(wrapper);
   
   wrapper.on("e621:toggle", () => {
