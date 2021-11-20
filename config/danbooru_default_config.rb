@@ -993,16 +993,6 @@ fart'
       "https://#{hostname}"
     end
 
-    # Cloudflare data
-    def cloudflare_email
-    end
-
-    def cloudflare_zone
-    end
-
-    def cloudflare_key
-    end
-
     def recommender_server
     end
 
