@@ -827,10 +827,6 @@ fart'
       %w[duplicate image_sample md5_mismatch resized upscaled downscaled]
     end
 
-    def shared_dir_path
-      "/var/www/danbooru2/shared"
-    end
-
     # The default headers to be sent with outgoing http requests. Some external
     # services will fail if you don't set a valid User-Agent.
     def http_headers

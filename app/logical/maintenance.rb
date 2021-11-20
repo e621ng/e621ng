@@ -6,7 +6,6 @@ module Maintenance
 
     ignoring_exceptions { PostPruner.new.prune! }
     ignoring_exceptions { Upload.where('created_at < ?', 1.week.ago).delete_all }
-    #ignoring_exceptions { ApiCacheGenerator.new.generate_tag_cache }
     #ignoring_exceptions { PostDisapproval.prune! }
     ignoring_exceptions { ForumSubscription.process_all! }
     ignoring_exceptions { TagAlias.update_cached_post_counts_for_all }
