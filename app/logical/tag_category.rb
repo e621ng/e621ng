@@ -34,11 +34,6 @@ class TagCategory
       @@header_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["header"]]}]
     end
 
-    # Returns a hash mapping for related tag buttons (javascripts/related_tag.js.erb)
-    def related_button_mapping
-      @@related_button_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["relatedbutton"]]}]
-    end
-
     def mod_only_mapping
       @@mod_only_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["mod_only"] || false]}]
     end
@@ -72,10 +67,6 @@ class TagCategory
 
     def categorized_list
       Danbooru.config.categorized_tag_list
-    end
-
-    def related_button_list
-      Danbooru.config.related_tag_button_list
     end
   end
 
