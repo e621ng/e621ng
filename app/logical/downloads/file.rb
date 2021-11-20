@@ -5,14 +5,12 @@ module Downloads
 
     RETRIABLE_ERRORS = [Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::EIO, Errno::EHOSTUNREACH, Errno::ECONNREFUSED, Timeout::Error, IOError]
 
-    delegate :data, to: :strategy
-    attr_reader :url, :referer
+    attr_reader :url
 
     validate :validate_url
 
-    def initialize(url, referer=nil)
+    def initialize(url)
       @url = Addressable::URI.parse(url) rescue nil
-      @referer = referer
       validate!
     end
 
@@ -28,8 +26,7 @@ module Downloads
 
     def download!(tries: 3, **options)
       Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
-        file = http_get_streaming(uncached_url, headers: strategy.headers, **options)
-        return [file, strategy]
+        http_get_streaming(uncached_url, **options)
       end
     end
 
@@ -41,7 +38,7 @@ module Downloads
       errors.add(:base, "'#{url}' is not whitelisted and can't be direct downloaded: #{reason}") if !valid
     end
 
-    def http_get_streaming(url, file: Tempfile.new(binmode: true), headers: {}, max_size: Danbooru.config.max_file_size)
+    def http_get_streaming(url, file: Tempfile.new(binmode: true), max_size: Danbooru.config.max_file_size)
       size = 0
 
       res = HTTParty.get(url, httparty_options) do |chunk|
@@ -69,11 +66,11 @@ module Downloads
     end
 
     def file_url
-      @file_url ||= Addressable::URI.parse(strategy.image_url)
+      @file_url ||= Addressable::URI.parse(strategy.url)
     end
 
     def strategy
-      @strategy ||= Sources::Strategies.find(url.to_s, referer)
+      @strategy ||= Sources::Alternates.find(url.to_s)
     end
 
     def httparty_options

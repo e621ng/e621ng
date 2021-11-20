@@ -172,19 +172,8 @@ class UploadService
       return file if file.present?
       raise RuntimeError, "No file or source URL provided" if upload.direct_url_parsed.blank?
 
-      download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
-      file, strategy = download.download!
-
-      if download.data[:ugoira_frame_data].present?
-        upload.context = {
-          "ugoira" => {
-            "frame_data" => download.data[:ugoira_frame_data],
-            "content_type" => "image/jpeg"
-          }
-        }
-      end
-
-      return file
+      download = Downloads::File.new(upload.direct_url_parsed)
+      download.download!
     end
   end
 end

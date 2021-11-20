@@ -1852,12 +1852,10 @@ class Post < ApplicationRecord
 
     def has_artist_tag
       return if !new_record?
-      return if source !~ %r!\Ahttps?://!
-      return if has_tag?("artist_request") || has_tag?("official_art")
+      return if has_tag?("official_art")
       return if tags.any? {|t| t.category == Tag.categories.artist}
-      return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
 
-      self.warnings.add(:base, "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help")
+      warnings.add(:base, "Artist tag is needed. If you need to know how to make one \"click here\":[/wiki_pages/e621:tag_types]")
     end
 
     def has_enough_tags

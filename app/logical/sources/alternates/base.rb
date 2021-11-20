@@ -27,6 +27,10 @@ module Sources
         []
       end
 
+      def headers
+        {}
+      end
+
       def parse
 
       end

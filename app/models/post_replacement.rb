@@ -103,8 +103,8 @@ class PostReplacement < ApplicationRecord
     def fetch_source_file
       return if replacement_file.present?
 
-      download = Downloads::File.new(replacement_url_parsed, "")
-      file, strategy = download.download!
+      download = Downloads::File.new(replacement_url_parsed)
+      file = download.download!
 
       self.replacement_file = file
       self.source = "#{self.source}\n" + replacement_url

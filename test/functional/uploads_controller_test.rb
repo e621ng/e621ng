@@ -16,31 +16,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       mock_iqdb_service!
     end
 
-    context "batch action" do
-      context "for twitter galleries" do
-        should "render" do
-          skip "Twitter keys are not set" unless Danbooru.config.twitter_api_key
-          get_auth batch_uploads_path, @user, params: {:url => "https://twitter.com/lvlln/status/567054278486151168"}
-          assert_response :success
-        end
-      end
-
-      context "for pixiv ugoira galleries" do
-        should "render" do
-          get_auth batch_uploads_path, @user, params: {:url => "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=59523577"}
-          assert_response :success
-          assert_no_match(/59523577_ugoira0\.jpg/, response.body)
-        end
-      end
-
-      context "for a blank source" do
-        should "render" do
-          get_auth batch_uploads_path, @user
-          assert_response :success
-        end
-      end
-    end
-
     context "preprocess action" do      
       should "prefer the file over the source when preprocessing" do
         file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
@@ -94,13 +69,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "render" do
-          skip "Twitter keys are not set" unless Danbooru.config.twitter_api_key
           get_auth new_upload_path, @user, params: {:url => @source}
           assert_response :success
         end
 
         should "set the correct source" do
-          skip "Twitter keys are not set" unless Danbooru.config.twitter_api_key
           get_auth new_upload_path, @user, params: {:url => @source}
           assert_response :success
           upload = Upload.last

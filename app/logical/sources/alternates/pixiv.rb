@@ -14,6 +14,10 @@ module Sources
         ["pixiv.net", "pximg.net"]
       end
 
+      def headers
+        { "Referer" => "https://www.pixiv.net" }
+      end
+
       def parse
         id = illust_id
         if id

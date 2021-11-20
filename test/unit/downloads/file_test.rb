@@ -49,7 +49,7 @@ module Downloads
 
           HTTParty.expects(:get).twice.multiple_yields("a", bomb, "b", "c").then.multiple_yields("a", "b", "c").returns(resp)
           @download.stubs(:is_cloudflare?).returns(false)
-          tempfile, _ = @download.download!
+          tempfile = @download.download!
 
           assert_equal("abc", tempfile.read)
         end
@@ -62,7 +62,7 @@ module Downloads
       end
 
       should "store the file in the tempfile path" do
-        tempfile, strategy = @download.download!
+        tempfile = @download.download!
         assert_operator(tempfile.size, :>, 0, "should have data")
       end
     end

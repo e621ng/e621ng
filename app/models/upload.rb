@@ -107,7 +107,6 @@ class Upload < ApplicationRecord
 
   before_validation :initialize_attributes, on: :create
   before_validation :assign_rating_from_tags
-  before_validation :fixup_source, on: :create
   validate :uploader_is_not_limited, on: :create
   validate :direct_url_is_whitelisted, on: :create
   # validates :source, format: { with: /\Ahttps?/ }, if: ->(record) {record.file.blank?}, on: :create
@@ -325,13 +324,6 @@ class Upload < ApplicationRecord
   def assign_rating_from_tags
     if rating = Tag.has_metatag?(tag_string, :rating)
       self.rating = rating.downcase.first
-    end
-  end
-
-  def fixup_source
-    if direct_url_parsed.present?
-      canonical = Sources::Strategies.find(direct_url_parsed, referer_url).canonical_url
-      self.source += "\n#{canonical}" if canonical
     end
   end
 

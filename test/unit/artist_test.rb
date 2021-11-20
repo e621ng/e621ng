@@ -6,7 +6,7 @@ class ArtistTest < ActiveSupport::TestCase
 
     assert_equal(1, artists.size)
     assert_equal(expected_name, artists.first.name, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout, PixivApiClient::Error
+  rescue Net::OpenTimeout
     skip "Remote connection failed for #{source_url}"
   end
 
@@ -290,7 +290,6 @@ class ArtistTest < ActiveSupport::TestCase
 
     context "when finding twitter artists" do
       setup do
-        skip "Twitter key is not set" unless Danbooru.config.twitter_api_key
         FactoryBot.create(:artist, :name => "hammer_(sunset_beach)", :url_string => "http://twitter.com/hamaororon")
         FactoryBot.create(:artist, :name => "haruyama_kazunori",  :url_string => "https://twitter.com/kazuharoom")
       end
@@ -324,7 +323,6 @@ class ArtistTest < ActiveSupport::TestCase
 
     context "when finding pawoo artists" do
       setup do
-        skip "Pawoo keys not set" unless Danbooru.config.pawoo_client_id
         FactoryBot.create(:artist, :name => "evazion", :url_string => "https://pawoo.net/@evazion")
         FactoryBot.create(:artist, :name => "yasumo01", :url_string => "https://pawoo.net/web/accounts/28816")
       end
@@ -516,29 +514,6 @@ class ArtistTest < ActiveSupport::TestCase
 
       should "preserve the url string" do
         assert_equal(1, @artist.urls.count)
-      end
-    end
-
-    context "#new_with_defaults" do
-      should "fetch the defaults from the given source" do
-        source = "https://i.pximg.net/img-original/img/2018/01/28/23/56/50/67014762_p0.jpg"
-        artist = Artist.new_with_defaults(source: source)
-
-        assert_equal("niceandcool", artist.name)
-        assert_equal("nice_and_cool", artist.other_names_string)
-        assert_includes(artist.urls.map(&:url), "https://www.pixiv.net/member.php?id=906442")
-        assert_includes(artist.urls.map(&:url), "https://www.pixiv.net/stacc/niceandcool")
-      end
-
-      should "fetch the defaults from the given tag" do
-        source = "https://i.pximg.net/img-original/img/2018/01/28/23/56/50/67014762_p0.jpg"
-        FactoryBot.create(:post, source: source, tag_string: "test_artist")
-        artist = Artist.new_with_defaults(name: "test_artist")
-
-        assert_equal("test_artist", artist.name)
-        assert_equal("nice_and_cool niceandcool", artist.other_names_string)
-        assert_includes(artist.urls.map(&:url), "https://www.pixiv.net/member.php?id=906442")
-        assert_includes(artist.urls.map(&:url), "https://www.pixiv.net/stacc/niceandcool")
       end
     end
   end

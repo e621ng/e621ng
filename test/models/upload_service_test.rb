@@ -50,7 +50,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @mock_upload.stubs(:direct_url_parsed).returns(@source)
           @mock_upload.stubs(:referer_url).returns(nil)
           @bad_file = File.open("#{Rails.root}/test/files/test-corrupt.jpg", "rb")
-          Downloads::File.any_instance.stubs(:download!).returns([@bad_file, nil])
+          Downloads::File.any_instance.stubs(:download!).returns(@bad_file)
         end
 
         teardown do
@@ -719,17 +719,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           as_user { @post.replace!(replacement_url: replacement_url, final_source: final_source) }
 
           assert_equal(final_source, @post.source)
-        end
-      end
-
-      context "a post when replaced with a HTML source" do
-        should "record the image URL as the replacement URL, not the HTML source" do
-          skip "Twitter key not set" unless Danbooru.config.twitter_api_key
-          replacement_url = "https://twitter.com/nounproject/status/540944400767922176"
-          image_url = "https://pbs.twimg.com/media/B4HSEP5CUAA4xyu.png:orig"
-          as_user { @post.replace!(replacement_url: replacement_url) }
-
-          assert_equal(replacement_url, @post.replacements.last.replacement_url)
         end
       end
 

@@ -22,25 +22,6 @@ class ArtistUrl < ApplicationRecord
     else
       url = url.sub(%r!^https://!, "http://")
       url = url.sub(%r!^http://([^/]+)!i) { |domain| domain.downcase }
-      url = url.sub(%r!^http://blog\d+\.fc2!, "http://blog.fc2")
-      url = url.sub(%r!^http://blog-imgs-\d+\.fc2!, "http://blog.fc2")
-      url = url.sub(%r!^http://blog-imgs-\d+-\w+\.fc2!, "http://blog.fc2")
-      # url = url.sub(%r!^(http://seiga.nicovideo.jp/user/illust/\d+)\?.+!, '\1/')
-      url = url.sub(%r!^http://pictures.hentai-foundry.com//!, "http://pictures.hentai-foundry.com/")
-
-      # the strategy won't always work for twitter because it looks for a status
-      url = url.downcase if url =~ %r!^https?://(?:mobile\.)?twitter\.com!
-
-      begin
-        source = Sources::Strategies.find(url)
-
-        if !source.normalized_for_artist_finder? && source.normalizable_for_artist_finder?
-          url = source.normalize_for_artist_finder
-        end
-      rescue Net::OpenTimeout, PixivApiClient::Error
-        raise if Rails.env.test?
-      end
-
       url = url.gsub(/\/+\Z/, "")
       url = url.gsub(%r!^https://!, "http://")
       url + "/"
