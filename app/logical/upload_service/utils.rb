@@ -81,14 +81,7 @@ class UploadService
     end
 
     def generate_resizes(file, upload)
-      if upload.is_ugoira?
-        preview_file = PixivUgoiraConverter.generate_preview(file)
-        crop_file = PixivUgoiraConverter.generate_crop(file)
-        sample_file = PixivUgoiraConverter.generate_webm(file, upload.context["ugoira"]["frame_data"])
-        [preview_file, crop_file, sample_file]
-      else
-        PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
-      end
+      PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
     end
 
     def process_file(upload, file, original_post_id: nil)

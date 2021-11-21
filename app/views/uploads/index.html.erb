@@ -47,14 +47,6 @@
               </span>
               <br>
 
-              <% if upload.referer_url.present? %>
-                <span class="info">
-                  <strong>Referer</strong>
-                  <%= URI.parse(upload.referer_url).host rescue nil %>
-                </span>
-                <br>
-              <% end %>
-
               <span class="info">
                 <strong>Tags</strong>
                 <%= upload.presenter.inline_tag_list_html %>

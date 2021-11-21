@@ -48,7 +48,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
           @mock_upload = mock("upload")
           @mock_upload.stubs(:direct_url_parsed).returns(@source)
-          @mock_upload.stubs(:referer_url).returns(nil)
           @bad_file = File.open("#{Rails.root}/test/files/test-corrupt.jpg", "rb")
           Downloads::File.any_instance.stubs(:download!).returns(@bad_file)
         end
@@ -81,29 +80,6 @@ class UploadServiceTest < ActiveSupport::TestCase
             file.close
           rescue Net::OpenTimeout
             skip "network problems"
-          end
-        end
-      end
-
-      context "for a pixiv ugoira" do
-        setup do
-          @source = "https://i.pximg.net/img-zip-ugoira/img/2017/04/04/08/57/38/62247364_ugoira1920x1080.zip"
-          @referer = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=62247364"
-          @upload = Upload.new
-          @upload.source = @source
-          @upload.referer_url = @referer
-        end
-
-        should "work on an ugoira url" do
-          begin
-            file = subject.get_file_for_upload(@upload)
-
-            assert_not_nil(@upload.context["ugoira"])
-            assert_operator(File.size(file.path), :>, 0)
-
-            file.close
-          rescue Net::OpenTimeout
-            skip "network failure"
           end
         end
       end
@@ -922,8 +898,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context "for a pixiv" do
       setup do
         @source = "https://i.pximg.net/img-original/img/2017/11/21/05/12/37/65981735_p0.jpg"
-        @ref = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65981735"
-        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source, referer_url: @ref)
+        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source)
       end
 
       should "record the canonical source" do
@@ -934,19 +909,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           skip "network failure"
         end
       end
-    end
-
-    context "for a twitter" do
-      setup do
-        @source = "https://pbs.twimg.com/media/C1kt72yVEAEGpOv.jpg:large"
-        @ref = "https://twitter.com/aranobu/status/817736083567820800"
-        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source, referer_url: @ref)
-      end
-
-      should "record the canonical source" do
-        post = subject.new({}).create_post_from_upload(@upload)
-        assert_equal(@ref, post.source)
-      end 
     end
 
     context "for a pixiv ugoira" do
@@ -960,17 +922,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           assert_equal([], post.errors.full_messages)
           assert_not_nil(post.id)
         end
-      end
-    end
-
-    context "for nijie" do
-      should "record the canonical source" do
-        page_url = "https://nijie.info/view.php?id=728995"
-        image_url = "https://pic03.nijie.info/nijie_picture/728995_20170505014820_0.jpg"
-        upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: image_url, referer_url: page_url)
-
-        post = UploadService.new({}).create_post_from_upload(upload)
-        assert_equal(page_url, post.source)
       end
     end
 

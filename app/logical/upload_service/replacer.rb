@@ -115,12 +115,6 @@ class UploadService
       unless post.is_ugoira?
         return
       end
-
-      PixivUgoiraFrameData.create(
-          post_id: post.id,
-          data: upload.context["ugoira"]["frame_data"],
-          content_type: upload.context["ugoira"]["content_type"]
-      )
     end
   end
 end

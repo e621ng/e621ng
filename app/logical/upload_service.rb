@@ -43,13 +43,6 @@ class UploadService
     @post.reload
     @post.generate_video_samples if @post.is_video?
 
-    if upload.context && upload.context["ugoira"]
-      PixivUgoiraFrameData.create(
-        post_id: @post.id,
-        data: upload.context["ugoira"]["frame_data"],
-        content_type: upload.context["ugoira"]["content_type"]
-      )
-    end
 
     upload.update(status: "completed", post_id: @post.id)
 

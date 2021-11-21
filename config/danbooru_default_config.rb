@@ -40,6 +40,11 @@ module Danbooru
       [hostname]
     end
 
+    # The name of the server the app is hosted on.
+    def server_host
+      Socket.gethostname
+    end
+
     # Contact email address of the admin.
     def contact_email
       "management@#{server_host}"
@@ -430,11 +435,6 @@ fart'
           subdomains: false,
         },
       }
-    end
-
-    # The name of the server the app is hosted on.
-    def server_host
-      Socket.gethostname
     end
 
     # The method to use for storing image files.

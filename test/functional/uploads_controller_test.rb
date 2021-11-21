@@ -95,8 +95,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             rating: @upload.rating,
             has_post: "yes",
             post_tags_match: @upload.tag_string,
-            status: @upload.status,
-            server: @upload.server,
+            status: @upload.status
           }
 
           get uploads_path, params: { search: search_params }

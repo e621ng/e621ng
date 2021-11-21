@@ -105,7 +105,6 @@ class Upload < ApplicationRecord
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
-  before_validation :initialize_attributes, on: :create
   before_validation :assign_rating_from_tags
   validate :uploader_is_not_limited, on: :create
   validate :direct_url_is_whitelisted, on: :create
@@ -113,11 +112,6 @@ class Upload < ApplicationRecord
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validates :md5, confirmation: true, if: -> (rec) { rec.md5_confirmation.present? }
   validates_with FileValidator, on: :file
-  serialize :context, JSON
-
-  def initialize_attributes
-    self.server = Danbooru.config.server_host
-  end
 
   module FileMethods
     def is_image?
@@ -270,10 +264,6 @@ class Upload < ApplicationRecord
 
       if params[:tag_string].present?
         q = q.where("uploads.tag_string LIKE ? ESCAPE E'\\\\'", params[:tag_string].to_escaped_for_sql_like)
-      end
-
-      if params[:server].present?
-        q = q.where(server: params[:server])
       end
 
       q.apply_default_order(params)
