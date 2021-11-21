@@ -11,7 +11,6 @@ class Artist < ApplicationRecord
   validate :validate_user_can_edit?
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, on: :create
-  validates :group_name, length: { maximum: 100 }
   before_save :log_changes
   after_save :create_version
   after_save :categorize_tag
@@ -20,7 +19,6 @@ class Artist < ApplicationRecord
   after_save :clear_url_string_changed
 
 
-  has_many :members, :class_name => "Artist", :foreign_key => "group_name", :primary_key => "name"
   has_many :urls, :dependent => :destroy, :class_name => "ArtistUrl", :autosave => true
   has_many :versions, -> {order("artist_versions.id ASC")}, :class_name => "ArtistVersion"
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
@@ -271,15 +269,9 @@ class Artist < ApplicationRecord
     end
   end
 
-  module GroupMethods
-    def member_names
-      members.limit(25).map(&:name).join(", ")
-    end
-  end
-
   module VersionMethods
     def create_version(force=false)
-      if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_is_banned? || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
+      if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_is_banned? || saved_change_to_other_names? || saved_change_to_notes? || force
         create_new_version
       end
     end
@@ -294,7 +286,6 @@ class Artist < ApplicationRecord
         :is_active => is_active,
         :is_banned => is_banned,
         :other_names => other_names,
-        :group_name => group_name,
         :notes_changed => saved_change_to_notes?
       )
     end
@@ -307,7 +298,6 @@ class Artist < ApplicationRecord
       self.name = version.name
       self.url_string = version.urls.join("\n")
       self.other_names = version.other_names
-      self.group_name = version.group_name
       save
     end
   end
@@ -458,11 +448,11 @@ class Artist < ApplicationRecord
 
     def any_name_matches(query)
       if query =~ %r!\A/(.*)/\z!
-        where_regex(:name, $1).or(any_other_name_matches($1)).or(where_regex(:group_name, $1))
+        where_regex(:name, $1).or(any_other_name_matches($1))
       else
         normalized_name = normalize_name(query)
         normalized_name = "*#{normalized_name}*" unless normalized_name.include?("*")
-        where_like(:name, normalized_name).or(any_other_name_like(normalized_name)).or(where_like(:group_name, normalized_name))
+        where_like(:name, normalized_name).or(any_other_name_like(normalized_name))
       end
     end
 
@@ -490,7 +480,6 @@ class Artist < ApplicationRecord
       q = super
 
       q = q.search_text_attribute(:name, params)
-      q = q.search_text_attribute(:group_name, params)
 
       if params[:any_other_name_like]
         q = q.any_other_name_like(params[:any_other_name_like])
@@ -543,7 +532,6 @@ class Artist < ApplicationRecord
 
   include UrlMethods
   include NameMethods
-  include GroupMethods
   include VersionMethods
   include NoteMethods
   include TagMethods

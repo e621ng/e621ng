@@ -107,7 +107,7 @@ private
   end
 
   def artist_params(context = nil)
-    permitted_params = %i[name other_names other_names_string group_name url_string notes]
+    permitted_params = %i[name other_names other_names_string url_string notes]
     permitted_params += [:is_active, :linked_user_id, :is_locked] if CurrentUser.is_janitor?
     permitted_params << :source if context == :new
 

@@ -10,12 +10,6 @@
     <% if artist.other_names.present? %>
       <li><strong>Other Names</strong> <%= link_to_artists(artist.other_names) %></li>
     <% end %>
-    <% if artist.group_name.present? %>
-      <li><strong>Group</strong> <%= link_to_artist(artist.group_name) %></li>
-    <% end %>
-    <% if artist.group_name.present? && artist.members.present? %>
-      <li><strong>Members</strong> <%= link_to_artists(artist.members.limit(25).map(&:name)) %></li>
-    <% end %>
     <% if artist.domains.any? %>
       <li><strong>Domains</strong></li>
       <ul>
