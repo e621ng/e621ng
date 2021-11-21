@@ -432,34 +432,9 @@ fart'
       }
     end
 
-    # Disable the forced use of HTTPS.
-    # def ssl_options
-    #   false
-    # end
-
     # The name of the server the app is hosted on.
     def server_host
       Socket.gethostname
-    end
-
-    # Names of all Danbooru servers which serve out of the same common database.
-    # Used in conjunction with load balancing to distribute files from one server to
-    # the others. This should match whatever gethostname returns on the other servers.
-    def all_server_hosts
-      [server_host]
-    end
-
-    # Names of other Danbooru servers.
-    def other_server_hosts
-      @other_server_hosts ||= all_server_hosts.reject {|x| x == server_host}
-    end
-
-    def remote_server_login
-      "danbooru"
-    end
-
-    def archive_server_login
-      "danbooru"
     end
 
     # The method to use for storing image files.
@@ -475,24 +450,14 @@ fart'
       # ~/.ssh_config or in the ssh_options param (ref: http://net-ssh.github.io/net-ssh/Net/SSH.html#method-c-start)
       # StorageManager::SFTP.new("i1.example.com", "i2.example.com", base_dir: "/mnt/backup", hierarchical: false, ssh_options: {})
 
-      # Store files in an S3 bucket. The bucket must already exist and be
-      # writable by you. Configure your S3 settings in aws_region and
-      # aws_credentials below, or in the s3_options param (ref:
-      # https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Client.html#initialize-instance_method)
-      # StorageManager::S3.new("my_s3_bucket", base_url: "https://my_s3_bucket.s3.amazonaws.com/", s3_options: {})
-
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|
       #   ssh_options = { user: "danbooru" }
       #
       #   if type.in?([:large, :original]) && id.in?(0..850_000)
       #     StorageManager::SFTP.new("raikou1.donmai.us", base_url: "https://raikou1.donmai.us", base_dir: "/path/to/files", hierarchical: true, ssh_options: ssh_options)
-      #   elsif type.in?([:large, :original]) && id.in?(850_001..2_000_000)
-      #     StorageManager::SFTP.new("raikou2.donmai.us", base_url: "https://raikou2.donmai.us", base_dir: "/path/to/files", hierarchical: true, ssh_options: ssh_options)
-      #   elsif type.in?([:large, :original]) && id.in?(2_000_001..3_000_000)
-      #     StorageManager::SFTP.new(*all_server_hosts, base_url: "https://hijiribe.donmai.us/data", ssh_options: ssh_options)
       #   else
-      #     StorageManager::SFTP.new(*all_server_hosts, ssh_options: ssh_options)
+      #     StorageManager::SFTP.new("raikou2.donmai.us", base_url: "https://raikou2.donmai.us", base_dir: "/path/to/files", hierarchical: true, ssh_options: ssh_options)
       #   end
       # end
     end
@@ -508,12 +473,6 @@ fart'
       # Backup files to /mnt/backup on a remote system. Configure SSH settings
       # in ~/.ssh_config or in the ssh_options param (ref: http://net-ssh.github.io/net-ssh/Net/SSH.html#method-c-start)
       # StorageManager::SFTP.new("www.example.com", base_dir: "/mnt/backup", ssh_options: {})
-
-      # Backup files to an S3 bucket. The bucket must already exist and be
-      # writable by you. Configure your S3 settings in aws_region and
-      # aws_credentials below, or in the s3_options param (ref:
-      # https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Client.html#initialize-instance_method)
-      # StorageManager::S3.new("my_s3_bucket_name", s3_options: {})
     end
 
 #TAG CONFIGURATION

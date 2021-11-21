@@ -19,14 +19,6 @@ manager with no constraints as a default case.
     matcher.add_manager(id: 850_001..2_000_000) do
       StorageManager::SFTP.new("raikou2.donmai.us", base_url: "https://raikou2.donmai.us", hierarchical: true, base_dir: "/var/www/raikou2")
     end
-
-    matcher.add_manager(id: 1..3_000_000, type: [:large, :original]) do
-      StorageManager::SFTP.new(*Danbooru.config.all_server_hosts, base_url: "https://hijiribe.donmai.us/data")
-    end
-
-    matcher.add_manager({}) do
-      StorageManager::SFTP.new(*Danbooru.config.all_server_hosts, base_url: "#{CurrentUser.root_url}/data")
-    end
   end
 
 =end
@@ -109,4 +101,3 @@ class StorageManager::Match < StorageManager
     end
   end
 end
-

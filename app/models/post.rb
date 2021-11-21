@@ -96,16 +96,6 @@ class Post < ApplicationRecord
       Danbooru.config.storage_manager.move_file_undelete(self)
     end
 
-    def distribute_files(file, sample_file, preview_file)
-      storage_manager.store_file(file, self, :original)
-      storage_manager.store_file(sample_file, self, :large) if sample_file.present?
-      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
-    end
-
-    def backup_storage_manager
-      Danbooru.config.backup_storage_manager
-    end
-
     def storage_manager
       Danbooru.config.storage_manager
     end
