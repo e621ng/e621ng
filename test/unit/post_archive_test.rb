@@ -17,7 +17,6 @@ class PostArchiveTest < ActiveSupport::TestCase
 
     context "#undo" do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         @post = FactoryBot.create(:post, :tag_string => "1")
         @post.update(:tag_string => "1 2")
         @post.update(:tag_string => "2 3")
@@ -34,7 +33,6 @@ class PostArchiveTest < ActiveSupport::TestCase
 
     context "that has multiple versions: " do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         @post = FactoryBot.create(:post, :tag_string => "1")
         @post.update(:tag_string => "1 2")
         @post.update(:tag_string => "2 3")
@@ -83,23 +81,8 @@ class PostArchiveTest < ActiveSupport::TestCase
       end
     end
 
-    context "that should be merged" do
-      setup do
-        @parent = FactoryBot.create(:post)
-        @post = FactoryBot.create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
-      end
-
-      should "delete the previous version" do
-        assert_equal(1, @post.versions.count)
-        @post.update(:tag_string => "bbb ccc xxx", :source => "")
-        @post.reload
-        assert_equal(1, @post.versions.count)
-      end
-    end
-
     context "that has been updated" do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         @post = FactoryBot.create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
         @post.update(:tag_string => "bbb ccc xxx", :source => "")
       end
@@ -117,7 +100,7 @@ class PostArchiveTest < ActiveSupport::TestCase
         @post.stubs(:set_tag_counts).raises(NotImplementedError)
 
         assert_equal(2, @post.versions.size)
-        assert_raise(NotImplementedError) { @post.update(rating: "s") }
+        assert_raise(NotImplementedError) { @post.update(tag_string: "zzz") }
         assert_equal(2, @post.versions.size)
       end
 
