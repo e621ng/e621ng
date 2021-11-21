@@ -64,19 +64,6 @@ class Tag < ApplicationRecord
 
   before_save :update_category, if: :category_changed?
 
-  module ApiMethods
-    def to_legacy_json
-      return {
-          "name" => name,
-          "id" => id,
-          "created_at" => created_at.try(:strftime, "%Y-%m-%d %H:%M"),
-          "count" => post_count,
-          "type" => category,
-          "ambiguous" => false
-      }.to_json
-    end
-  end
-
   class CategoryMapping
     TagCategory.reverse_mapping.each do |value, category|
       define_method(category) do
@@ -1196,7 +1183,6 @@ class Tag < ApplicationRecord
     true
   end
 
-  include ApiMethods
   include CountMethods
   include CategoryMethods
   extend StatisticsMethods
