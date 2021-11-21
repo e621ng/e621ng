@@ -421,14 +421,6 @@ class PostQueryBuilder
     when "note_asc"
       relation = relation.order("posts.last_noted_at ASC NULLS FIRST")
 
-    when "artcomm"
-      relation = relation.joins("INNER JOIN artist_commentaries ON artist_commentaries.post_id = posts.id")
-      relation = relation.order("artist_commentaries.updated_at DESC")
-
-    when "artcomm_asc"
-      relation = relation.joins("INNER JOIN artist_commentaries ON artist_commentaries.post_id = posts.id")
-      relation = relation.order("artist_commentaries.updated_at ASC")
-
     when "mpixels", "mpixels_desc"
       relation = relation.where(Arel.sql("posts.image_width is not null and posts.image_height is not null"))
       # Use "w*h/1000000", even though "w*h" would give the same result, so this can use

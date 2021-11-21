@@ -16,11 +16,6 @@ Upload.initialize_all = function() {
     }
     this.initialize_similar();
     this.initialize_submit();
-
-    $("#toggle-artist-commentary").on("click.danbooru", function(e) {
-      Upload.toggle_commentary();
-      e.preventDefault();
-    });
   }
 
   if ($("#iqdb-similar").length) {
@@ -94,16 +89,6 @@ Upload.initialize_image = function() {
   Upload.update_scale();
   $("#image-resize-to-window-link").on("click.danbooru", Upload.update_scale);
 }
-
-Upload.toggle_commentary = function() {
-  if ($(".artist-commentary").is(":visible")) {
-    $("#toggle-artist-commentary").text("show »");
-  } else {
-    $("#toggle-artist-commentary").text("« hide");
-  }
-
-  $(".artist-commentary").slideToggle();
-};
 
 $(function() {
   Upload.initialize_all();

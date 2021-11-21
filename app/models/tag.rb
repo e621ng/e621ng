@@ -14,7 +14,7 @@ class Tag < ApplicationRecord
   ]
 
   METATAGS = %w[
-    -user user -approver approver commenter comm noter noteupdater artcomm
+    -user user -approver approver commenter comm noter noteupdater
     -pool pool ordpool -fav fav -favoritedby favoritedby md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
@@ -24,7 +24,7 @@ class Tag < ApplicationRecord
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
 
-  SUBQUERY_METATAGS = %w[commenter comm noter noteupdater artcomm flagger -flagger appealer -appealer]
+  SUBQUERY_METATAGS = %w[commenter comm noter noteupdater flagger -flagger appealer -appealer]
 
   ORDER_METATAGS = %w[
     id id_desc
@@ -35,7 +35,6 @@ class Tag < ApplicationRecord
     comment comment_asc
     comment_bumped comment_bumped_asc
     note note_asc
-    artcomm artcomm_asc
     mpixels mpixels_asc
     portrait landscape
     filesize filesize_asc

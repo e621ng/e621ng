@@ -287,15 +287,6 @@ Rails.application.routes.draw do
       get :search
     end
   end
-  resources :artist_commentaries, :only => [:index, :show] do
-    collection do
-      put :create_or_update
-      get :search
-    end
-    member do
-      put :revert
-    end
-  end
   resource :related_tag, :only => [:show, :update]
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
   resource :session, only: [:new, :create, :destroy] do
