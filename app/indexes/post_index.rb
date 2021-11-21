@@ -141,7 +141,7 @@ module PostIndex
         SQL
         pending_replacements_sql = <<-SQL
           SELECT DISTINCT p.id, CASE WHEN pr.post_id IS NULL THEN false ELSE true END FROM posts p
-            LEFT OUTER JOIN post_replacements2 pr ON p.id = pr.post_id AND pr.status = 'pending'
+            LEFT OUTER JOIN post_replacements pr ON p.id = pr.post_id AND pr.status = 'pending'
           WHERE p.id IN (#{post_ids})
         SQL
 

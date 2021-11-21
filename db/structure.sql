@@ -176,80 +176,6 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
--- Name: artist_commentaries; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.artist_commentaries (
-    id integer NOT NULL,
-    post_id integer NOT NULL,
-    original_title text DEFAULT ''::text NOT NULL,
-    original_description text DEFAULT ''::text NOT NULL,
-    translated_title text DEFAULT ''::text NOT NULL,
-    translated_description text DEFAULT ''::text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: artist_commentaries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.artist_commentaries_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: artist_commentaries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.artist_commentaries_id_seq OWNED BY public.artist_commentaries.id;
-
-
---
--- Name: artist_commentary_versions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.artist_commentary_versions (
-    id integer NOT NULL,
-    post_id integer NOT NULL,
-    updater_id integer NOT NULL,
-    updater_ip_addr inet NOT NULL,
-    original_title text,
-    original_description text,
-    translated_title text,
-    translated_description text,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: artist_commentary_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.artist_commentary_versions_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: artist_commentary_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.artist_commentary_versions_id_seq OWNED BY public.artist_commentary_versions.id;
-
-
---
 -- Name: artist_urls; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -295,7 +221,6 @@ CREATE TABLE public.artist_versions (
     updater_id integer NOT NULL,
     updater_ip_addr inet NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    group_name character varying DEFAULT ''::character varying NOT NULL,
     is_banned boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -335,7 +260,6 @@ CREATE TABLE public.artists (
     creator_id integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     is_banned boolean DEFAULT false NOT NULL,
-    group_name character varying DEFAULT ''::character varying NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
@@ -773,42 +697,6 @@ CREATE SEQUENCE public.exception_logs_id_seq
 --
 
 ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
-
-
---
--- Name: favorite_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.favorite_groups (
-    id integer NOT NULL,
-    name text NOT NULL,
-    creator_id integer NOT NULL,
-    post_ids text DEFAULT ''::text NOT NULL,
-    post_count integer DEFAULT 0 NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    is_public boolean DEFAULT false NOT NULL
-);
-
-
---
--- Name: favorite_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.favorite_groups_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: favorite_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.favorite_groups_id_seq OWNED BY public.favorite_groups.id;
 
 
 --
@@ -1305,38 +1193,6 @@ ALTER SEQUENCE public.notes_id_seq OWNED BY public.notes.id;
 
 
 --
--- Name: pixiv_ugoira_frame_data; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.pixiv_ugoira_frame_data (
-    id integer NOT NULL,
-    post_id integer,
-    data text NOT NULL,
-    content_type character varying NOT NULL
-);
-
-
---
--- Name: pixiv_ugoira_frame_data_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.pixiv_ugoira_frame_data_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: pixiv_ugoira_frame_data_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.pixiv_ugoira_frame_data_id_seq OWNED BY public.pixiv_ugoira_frame_data.id;
-
-
---
 -- Name: pool_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1416,41 +1272,6 @@ CREATE SEQUENCE public.pools_id_seq
 --
 
 ALTER SEQUENCE public.pools_id_seq OWNED BY public.pools.id;
-
-
---
--- Name: post_appeals; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.post_appeals (
-    id integer NOT NULL,
-    post_id integer NOT NULL,
-    creator_id integer NOT NULL,
-    creator_ip_addr inet,
-    reason text,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: post_appeals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.post_appeals_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: post_appeals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.post_appeals_id_seq OWNED BY public.post_appeals.id;
 
 
 --
@@ -1558,69 +1379,10 @@ ALTER SEQUENCE public.post_flags_id_seq OWNED BY public.post_flags.id;
 
 
 --
--- Name: post_image_hashes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.post_image_hashes (
-    id bigint NOT NULL,
-    post_id bigint NOT NULL,
-    nw double precision NOT NULL,
-    ne double precision NOT NULL,
-    sw double precision NOT NULL,
-    se double precision NOT NULL,
-    phash bytea
-);
-
-
---
--- Name: post_image_hashes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.post_image_hashes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: post_image_hashes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.post_image_hashes_id_seq OWNED BY public.post_image_hashes.id;
-
-
---
 -- Name: post_replacements; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.post_replacements (
-    id integer NOT NULL,
-    post_id integer NOT NULL,
-    creator_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    file_ext character varying,
-    file_size integer,
-    image_width integer,
-    image_height integer,
-    md5 character varying,
-    old_image_height integer,
-    old_image_width integer,
-    old_md5 character varying,
-    old_file_size integer,
-    old_file_ext character varying,
-    replacement_url text,
-    original_url text
-);
-
-
---
--- Name: post_replacements2; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.post_replacements2 (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
@@ -1643,30 +1405,10 @@ CREATE TABLE public.post_replacements2 (
 
 
 --
--- Name: post_replacements2_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.post_replacements2_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: post_replacements2_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.post_replacements2_id_seq OWNED BY public.post_replacements2.id;
-
-
---
 -- Name: post_replacements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.post_replacements_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1785,15 +1527,6 @@ CREATE SEQUENCE public.post_sets_id_seq
 --
 
 ALTER SEQUENCE public.post_sets_id_seq OWNED BY public.post_sets.id;
-
-
---
--- Name: post_updates; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE UNLOGGED TABLE public.post_updates (
-    post_id integer
-);
 
 
 --
@@ -1975,40 +1708,6 @@ CREATE SEQUENCE public.posts_id_seq
 --
 
 ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
-
-
---
--- Name: saved_searches; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.saved_searches (
-    id integer NOT NULL,
-    user_id integer,
-    query text,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    labels text[] DEFAULT '{}'::text[] NOT NULL
-);
-
-
---
--- Name: saved_searches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.saved_searches_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: saved_searches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.saved_searches_id_seq OWNED BY public.saved_searches.id;
 
 
 --
@@ -2402,7 +2101,6 @@ CREATE TABLE public.uploads (
     id integer NOT NULL,
     source text,
     file_path character varying,
-    content_type character varying,
     rating character(1) NOT NULL,
     uploader_id integer NOT NULL,
     uploader_ip_addr inet NOT NULL,
@@ -2413,18 +2111,12 @@ CREATE TABLE public.uploads (
     md5_confirmation character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    server text,
     parent_id integer,
     md5 character varying,
     file_ext character varying,
     file_size integer,
     image_width integer,
     image_height integer,
-    artist_commentary_desc text,
-    artist_commentary_title text,
-    include_artist_commentary boolean,
-    context text,
-    referer_url text,
     description text DEFAULT ''::text NOT NULL
 );
 
@@ -2447,17 +2139,6 @@ CREATE SEQUENCE public.uploads_id_seq
 --
 
 ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
-
-
---
--- Name: user_blacklisted_tags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_blacklisted_tags (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    tags text NOT NULL
-);
 
 
 --
@@ -2755,20 +2436,6 @@ ALTER TABLE ONLY public.api_keys ALTER COLUMN id SET DEFAULT nextval('public.api
 
 
 --
--- Name: artist_commentaries id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.artist_commentaries ALTER COLUMN id SET DEFAULT nextval('public.artist_commentaries_id_seq'::regclass);
-
-
---
--- Name: artist_commentary_versions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.artist_commentary_versions ALTER COLUMN id SET DEFAULT nextval('public.artist_commentary_versions_id_seq'::regclass);
-
-
---
 -- Name: artist_urls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2867,13 +2534,6 @@ ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: favorite_groups id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorite_groups ALTER COLUMN id SET DEFAULT nextval('public.favorite_groups_id_seq'::regclass);
-
-
---
 -- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2965,13 +2625,6 @@ ALTER TABLE ONLY public.notes ALTER COLUMN id SET DEFAULT nextval('public.notes_
 
 
 --
--- Name: pixiv_ugoira_frame_data id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pixiv_ugoira_frame_data ALTER COLUMN id SET DEFAULT nextval('public.pixiv_ugoira_frame_data_id_seq'::regclass);
-
-
---
 -- Name: pool_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2983,13 +2636,6 @@ ALTER TABLE ONLY public.pool_versions ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.pools ALTER COLUMN id SET DEFAULT nextval('public.pools_id_seq'::regclass);
-
-
---
--- Name: post_appeals id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_appeals ALTER COLUMN id SET DEFAULT nextval('public.post_appeals_id_seq'::regclass);
 
 
 --
@@ -3014,24 +2660,10 @@ ALTER TABLE ONLY public.post_flags ALTER COLUMN id SET DEFAULT nextval('public.p
 
 
 --
--- Name: post_image_hashes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_image_hashes ALTER COLUMN id SET DEFAULT nextval('public.post_image_hashes_id_seq'::regclass);
-
-
---
 -- Name: post_replacements id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.post_replacements ALTER COLUMN id SET DEFAULT nextval('public.post_replacements_id_seq'::regclass);
-
-
---
--- Name: post_replacements2 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_replacements2 ALTER COLUMN id SET DEFAULT nextval('public.post_replacements2_id_seq'::regclass);
 
 
 --
@@ -3081,13 +2713,6 @@ ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_
 --
 
 ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('public.posts_change_seq_seq'::regclass);
-
-
---
--- Name: saved_searches id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('public.saved_searches_id_seq'::regclass);
 
 
 --
@@ -3233,22 +2858,6 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
--- Name: artist_commentaries artist_commentaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.artist_commentaries
-    ADD CONSTRAINT artist_commentaries_pkey PRIMARY KEY (id);
-
-
---
--- Name: artist_commentary_versions artist_commentary_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.artist_commentary_versions
-    ADD CONSTRAINT artist_commentary_versions_pkey PRIMARY KEY (id);
-
-
---
 -- Name: artist_urls artist_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3358,14 +2967,6 @@ ALTER TABLE ONLY public.email_blacklists
 
 ALTER TABLE ONLY public.exception_logs
     ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
-
-
---
--- Name: favorite_groups favorite_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorite_groups
-    ADD CONSTRAINT favorite_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3481,14 +3082,6 @@ ALTER TABLE ONLY public.notes
 
 
 --
--- Name: pixiv_ugoira_frame_data pixiv_ugoira_frame_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pixiv_ugoira_frame_data
-    ADD CONSTRAINT pixiv_ugoira_frame_data_pkey PRIMARY KEY (id);
-
-
---
 -- Name: pool_versions pool_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3502,14 +3095,6 @@ ALTER TABLE ONLY public.pool_versions
 
 ALTER TABLE ONLY public.pools
     ADD CONSTRAINT pools_pkey PRIMARY KEY (id);
-
-
---
--- Name: post_appeals post_appeals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_appeals
-    ADD CONSTRAINT post_appeals_pkey PRIMARY KEY (id);
 
 
 --
@@ -3534,22 +3119,6 @@ ALTER TABLE ONLY public.post_disapprovals
 
 ALTER TABLE ONLY public.post_flags
     ADD CONSTRAINT post_flags_pkey PRIMARY KEY (id);
-
-
---
--- Name: post_image_hashes post_image_hashes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_image_hashes
-    ADD CONSTRAINT post_image_hashes_pkey PRIMARY KEY (id);
-
-
---
--- Name: post_replacements2 post_replacements2_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_replacements2
-    ADD CONSTRAINT post_replacements2_pkey PRIMARY KEY (id);
 
 
 --
@@ -3608,14 +3177,6 @@ ALTER TABLE ONLY public.post_votes
 
 ALTER TABLE ONLY public.posts
     ADD CONSTRAINT posts_pkey PRIMARY KEY (id);
-
-
---
--- Name: saved_searches saved_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.saved_searches
-    ADD CONSTRAINT saved_searches_pkey PRIMARY KEY (id);
 
 
 --
@@ -3785,34 +3346,6 @@ CREATE UNIQUE INDEX index_api_keys_on_user_id ON public.api_keys USING btree (us
 
 
 --
--- Name: index_artist_commentaries_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_artist_commentaries_on_post_id ON public.artist_commentaries USING btree (post_id);
-
-
---
--- Name: index_artist_commentary_versions_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_artist_commentary_versions_on_post_id ON public.artist_commentary_versions USING btree (post_id);
-
-
---
--- Name: index_artist_commentary_versions_on_updater_id_and_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_artist_commentary_versions_on_updater_id_and_post_id ON public.artist_commentary_versions USING btree (updater_id, post_id);
-
-
---
--- Name: index_artist_commentary_versions_on_updater_ip_addr; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_artist_commentary_versions_on_updater_ip_addr ON public.artist_commentary_versions USING btree (updater_ip_addr);
-
-
---
 -- Name: index_artist_urls_on_artist_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3873,20 +3406,6 @@ CREATE INDEX index_artist_versions_on_updater_id ON public.artist_versions USING
 --
 
 CREATE INDEX index_artist_versions_on_updater_ip_addr ON public.artist_versions USING btree (updater_ip_addr);
-
-
---
--- Name: index_artists_on_group_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_artists_on_group_name ON public.artists USING btree (group_name);
-
-
---
--- Name: index_artists_on_group_name_trgm; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_artists_on_group_name_trgm ON public.artists USING gin (group_name public.gin_trgm_ops);
 
 
 --
@@ -4062,20 +3581,6 @@ CREATE INDEX index_edit_histories_on_user_id ON public.edit_histories USING btre
 --
 
 CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON public.edit_histories USING btree (versionable_id, versionable_type);
-
-
---
--- Name: index_favorite_groups_on_creator_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorite_groups_on_creator_id ON public.favorite_groups USING btree (creator_id);
-
-
---
--- Name: index_favorite_groups_on_lower_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorite_groups_on_lower_name ON public.favorite_groups USING btree (lower(name));
 
 
 --
@@ -4282,13 +3787,6 @@ CREATE INDEX index_notes_on_post_id ON public.notes USING btree (post_id);
 
 
 --
--- Name: index_pixiv_ugoira_frame_data_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_pixiv_ugoira_frame_data_on_post_id ON public.pixiv_ugoira_frame_data USING btree (post_id);
-
-
---
 -- Name: index_pool_versions_on_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4345,41 +3843,6 @@ CREATE INDEX index_pools_on_updated_at ON public.pools USING btree (updated_at);
 
 
 --
--- Name: index_post_appeals_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_appeals_on_created_at ON public.post_appeals USING btree (created_at);
-
-
---
--- Name: index_post_appeals_on_creator_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_appeals_on_creator_id ON public.post_appeals USING btree (creator_id);
-
-
---
--- Name: index_post_appeals_on_creator_ip_addr; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_appeals_on_creator_ip_addr ON public.post_appeals USING btree (creator_ip_addr);
-
-
---
--- Name: index_post_appeals_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_appeals_on_post_id ON public.post_appeals USING btree (post_id);
-
-
---
--- Name: index_post_appeals_on_reason_tsvector; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_appeals_on_reason_tsvector ON public.post_appeals USING gin (to_tsvector('english'::regconfig, reason));
-
-
---
 -- Name: index_post_approvals_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4433,27 +3896,6 @@ CREATE INDEX index_post_flags_on_post_id ON public.post_flags USING btree (post_
 --
 
 CREATE INDEX index_post_flags_on_reason_tsvector ON public.post_flags USING gin (to_tsvector('english'::regconfig, reason));
-
-
---
--- Name: index_post_image_hashes_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_post_image_hashes_on_post_id ON public.post_image_hashes USING btree (post_id);
-
-
---
--- Name: index_post_replacements2_on_creator_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_replacements2_on_creator_id ON public.post_replacements2 USING btree (creator_id);
-
-
---
--- Name: index_post_replacements2_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_replacements2_on_post_id ON public.post_replacements2 USING btree (post_id);
 
 
 --
@@ -4597,27 +4039,6 @@ CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (upload
 
 
 --
--- Name: index_saved_searches_on_labels; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_saved_searches_on_labels ON public.saved_searches USING gin (labels);
-
-
---
--- Name: index_saved_searches_on_query; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_saved_searches_on_query ON public.saved_searches USING btree (query);
-
-
---
--- Name: index_saved_searches_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_saved_searches_on_user_id ON public.saved_searches USING btree (user_id);
-
-
---
 -- Name: index_staff_audit_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4741,13 +4162,6 @@ CREATE INDEX index_tags_on_name_prefix ON public.tags USING gin (regexp_replace(
 --
 
 CREATE INDEX index_tags_on_name_trgm ON public.tags USING gin (name public.gin_trgm_ops);
-
-
---
--- Name: index_uploads_on_referer_url; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_uploads_on_referer_url ON public.uploads USING btree (referer_url);
 
 
 --
@@ -4912,13 +4326,6 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
--- Name: post_image_hashes_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX post_image_hashes_index ON public.post_image_hashes USING btree (nw, ne, sw, se);
-
-
---
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4987,14 +4394,6 @@ CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wi
 
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT fk_rails_02329e5ef9 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: post_image_hashes fk_rails_2b7afcc2f0; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_image_hashes
-    ADD CONSTRAINT fk_rails_2b7afcc2f0 FOREIGN KEY (post_id) REFERENCES public.posts(id);
 
 
 --
@@ -5263,6 +4662,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210426025625'),
 ('20210430201028'),
 ('20210506235640'),
-('20210718172512');
+('20210718172512'),
+('20211121141838');
 
 
