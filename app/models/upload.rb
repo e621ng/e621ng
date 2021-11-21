@@ -16,7 +16,7 @@ class Upload < ApplicationRecord
 
     def validate_file_integrity(record)
       if record.file_ext.in?(["jpg", "jpeg", "gif", "png"]) && DanbooruImageResizer.is_corrupt?(record.file.path)
-        record.errors[:file] << "File is corrupt"
+        record.errors.add(:file, "is corrupt")
       end
     end
 
