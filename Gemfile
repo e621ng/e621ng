@@ -6,7 +6,6 @@ gem "rails", "~> 6.1"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
-gem "mechanize"
 gem 'active_model_serializers', '~> 0.10.0'
 gem "whenever", :require => false
 gem "sanitize"
@@ -19,13 +18,11 @@ gem 'statistics2'
 gem 'radix62', '~> 1.0.1'
 gem 'streamio-ffmpeg'
 gem 'rubyzip', :require => "zip"
-gem 'twitter'
 gem 'responders'
 gem 'dtext_rb', :git => "https://github.com/zwagoth/dtext_rb.git", branch: "master", :require => "dtext"
 gem 'cityhash'
 gem 'memoist'
 gem 'daemons'
-gem 'oauth2'
 gem 'bootsnap'
 gem 'addressable'
 gem 'httparty'

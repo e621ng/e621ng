@@ -1,3 +1,5 @@
+require "resolv"
+
 class EmailBlacklist < ApplicationRecord
   belongs_to_creator
 

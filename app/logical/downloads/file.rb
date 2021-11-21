@@ -1,3 +1,5 @@
+require "resolv"
+
 module Downloads
   class File
     include ActiveModel::Validations
