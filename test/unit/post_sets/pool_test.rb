@@ -8,9 +8,6 @@ module PostSets
         CurrentUser.user = @user
         CurrentUser.ip_addr = "127.0.0.1"
 
-        mock_pool_archive_service!
-        start_pool_archive_transaction
-
         @post_1 = FactoryBot.create(:post)
         @post_2 = FactoryBot.create(:post)
         @post_3 = FactoryBot.create(:post)
@@ -21,7 +18,6 @@ module PostSets
       end
 
       teardown do
-        rollback_pool_archive_transaction
         CurrentUser.user = nil
         CurrentUser.ip_addr = nil
       end

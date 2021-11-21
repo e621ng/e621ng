@@ -50,7 +50,6 @@ end
 
 class ActiveSupport::TestCase
   include PostArchiveTestHelper
-  include PoolArchiveTestHelper
   include DownloadTestHelper
   include IqdbTestHelper
   include UploadTestHelper
@@ -79,7 +78,6 @@ end
 
 class ActionDispatch::IntegrationTest
   include PostArchiveTestHelper
-  include PoolArchiveTestHelper
   include TestHelpers
 
   def method_authenticated(method_name, url, user, options)

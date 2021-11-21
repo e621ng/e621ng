@@ -21,7 +21,7 @@ class PoolElementsController < ApplicationController
     @pool = Pool.find(params[:pool_id])
     @post = Post.find(params[:post_id])
     @pool.with_lock do
-      @pool.remove(@post.id)
+      @pool.remove!(@post)
       @pool.save
     end
     respond_with(@pool, :location => post_path(@post))

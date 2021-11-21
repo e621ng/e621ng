@@ -3,10 +3,6 @@ require 'test_helper'
 class PoolsControllerTest < ActionDispatch::IntegrationTest
   context "The pools controller" do
     setup do
-      mock_pool_archive_service!
-      PoolArchive.sqs_service.stubs(:merge?).returns(false)
-      start_pool_archive_transaction
-
       travel_to(1.month.ago) do
         @user = create(:user)
         @mod = create(:moderator_user)
@@ -15,10 +11,6 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         @post = create(:post)
         @pool = create(:pool)
       end
-    end
-
-    teardown do
-      rollback_pool_archive_transaction
     end
 
     context "index action" do
@@ -77,8 +69,7 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow updating unpermitted attributes" do
-        put_auth pool_path(@pool), @user, params: { pool: { is_deleted: true, post_count: -42 }}
-        assert_equal(false, @pool.reload.is_deleted?)
+        put_auth pool_path(@pool), @user, params: { pool: { post_count: -42 }}
         assert_equal(0, @pool.post_count)
       end
     end
@@ -86,23 +77,9 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
     context "destroy action" do
       should "destroy a pool" do
         delete_auth pool_path(@pool), @mod
-        @pool.reload
-        assert_equal(true, @pool.is_deleted?)
-      end
-    end
-
-    context "undelete action" do
-      setup do
-        as(@mod) do
-          @pool.is_deleted = true
-          @pool.save
+        assert_raises(ActiveRecord::RecordNotFound) do
+          @pool.reload
         end
-      end
-
-      should "restore a pool" do
-        post_auth undelete_pool_path(@pool), @mod
-        @pool.reload
-        assert_equal(false, @pool.is_deleted?)
       end
     end
 

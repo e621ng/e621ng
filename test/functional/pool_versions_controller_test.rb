@@ -3,13 +3,7 @@ require 'test_helper'
 class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
   context "The pool versions controller" do
     setup do
-      mock_pool_archive_service!
-      start_pool_archive_transaction
       @user = create(:user)
-    end
-
-    teardown do
-      rollback_pool_archive_transaction
     end
 
     context "index action" do
@@ -32,7 +26,7 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "list all versions" do
-        get pool_versions_path
+        get_auth pool_versions_path, @user
         assert_response :success
         assert_select "#pool-version-#{@versions[0].id}"
         assert_select "#pool-version-#{@versions[1].id}"
@@ -40,7 +34,7 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "list all versions that match the search criteria" do
-        get pool_versions_path, params: {:search => {:updater_id => @user_2.id}}
+        get_auth pool_versions_path, @user, params: {:search => {:updater_id => @user_2.id}}
         assert_response :success
         assert_select "#pool-version-#{@versions[0].id}", false
         assert_select "#pool-version-#{@versions[1].id}"

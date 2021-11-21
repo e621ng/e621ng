@@ -1,8 +1,6 @@
 require 'test_helper'
 
 class PostArchiveTest < ActiveSupport::TestCase
-  include PoolArchiveTestHelper
-
   context "A post" do
     setup do
       Timecop.travel(1.month.ago) do
@@ -72,14 +70,13 @@ class PostArchiveTest < ActiveSupport::TestCase
 
     context "that is tagged with a pool:<name> metatag" do
       setup do
-        mock_pool_archive_service!
         @pool = FactoryBot.create(:pool)
         @post = FactoryBot.create(:post, tag_string: "tagme pool:#{@pool.id}")
       end
 
       should "create a version" do
         assert_equal("tagme", @post.tag_string)
-        assert_equal("pool:#{@pool.id} pool:series", @post.pool_string)
+        assert_equal("pool:#{@pool.id}", @post.pool_string)
 
         assert_equal(1, @post.versions.size)
         assert_equal("tagme", @post.versions.last.tags)

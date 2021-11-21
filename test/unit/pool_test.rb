@@ -10,12 +10,9 @@ class PoolTest < ActiveSupport::TestCase
     end
 
     CurrentUser.ip_addr = "127.0.0.1"
-
-    start_pool_archive_transaction
   end
 
   teardown do
-    rollback_pool_archive_transaction
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
