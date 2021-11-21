@@ -1,32 +1,6 @@
 require 'test_helper'
 
 class ArtistsControllerTest < ActionDispatch::IntegrationTest
-  def assert_artist_found(expected_artist, source_url = nil)
-    if source_url
-      get_auth artists_path(format: "json", search: { url_matches: source_url }), @user
-      if response.body =~ /Net::OpenTimeout/
-        skip "Remote connection to #{source_url} failed"
-        return
-      end
-    end
-    assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal(1, json.size, "Testing URL: #{source_url}")
-    assert_equal(expected_artist, json[0]["name"])
-  end
-
-  def assert_artist_not_found(source_url)
-    get_auth artists_path(format: "json", search: { url_matches: source_url }), @user
-    if response.body =~ /Net::OpenTimeout/
-      skip "Remote connection to #{source_url} failed"
-      return
-    end
-
-    assert_response :success
-    json = JSON.parse(response.body)
-    assert_equal(0, json.size, "Testing URL: #{source_url}")
-  end
-
   context "An artists controller" do
     setup do
       @admin = create(:admin_user)
@@ -63,12 +37,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
-    should "get the show page for a negated tag" do
-      @artist.update(name: "-aaa")
-      get artist_path(@artist.id)
-      assert_response :success
-    end
-
     should "get the banned page" do
       get banned_artists_path
       assert_response :success
@@ -79,7 +47,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to(@artist)
       @artist.reload
       assert_equal(true, @artist.is_banned?)
-      assert_equal(true, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "banned_artist"))
+      assert_equal(true, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "avoid_posting"))
     end
 
     should "unban an artist" do
@@ -91,30 +59,12 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to(@artist)
       @artist.reload
       assert_equal(false, @artist.is_banned?)
-      assert_equal(false, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "banned_artist"))
+      assert_equal(false, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "avoid_posting"))
     end
 
     should "get the index page" do
       get artists_path
       assert_response :success
-    end
-
-    context "when searching the index page" do
-      should "find artists by name" do
-        get artists_path(name: "masao", format: "json")
-        assert_artist_found("masao")
-      end
-
-      should "find artists by image URL" do
-        get artists_path(search: { url_matches: "http://i2.pixiv.net/img04/img/syounen_no_uta/46170939_m.jpg" }, format: "json")
-        assert_artist_found("masao")
-      end
-
-      should "find artists by page URL" do
-        url = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=46170939"
-        get artists_path(search: { url_matches: url }, format: "json")
-        assert_artist_found("masao")
-      end
     end
 
     should "create an artist" do
@@ -220,44 +170,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         @artist.reload
         assert_not_equal(@artist.name, @artist2.name)
         assert_redirected_to(artist_path(@artist.id))
-      end
-    end
-
-    context "when finding an artist" do
-      should "find nothing for unknown URLs" do
-        assert_artist_not_found("http://www.example.com")
-      end
-
-      should "find deviantart artists" do
-        assert_artist_found("artgerm", "http://artgerm.deviantart.com/art/Peachy-Princess-Ver-2-457220550")
-      end
-
-      should_eventually "find deviantart artists for image URLs" do
-        assert_artist_found("artgerm", "http://fc06.deviantart.net/fs71/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-      end
-
-      should "find pixiv artists for img##" do
-        assert_artist_found("masao", "http://i2.pixiv.net/img04/img/syounen_no_uta/46170939.jpg")
-      end
-
-      should "find pixiv artists for img-original" do
-        assert_artist_found("masao", "http://i2.pixiv.net/img-original/img/2014/09/25/00/57/24/46170939_p0.jpg")
-      end
-
-      should "find pixiv artists for member_illust.php" do
-        assert_artist_found("masao", "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=46170939")
-      end
-
-      should "fail for nonexisting illust ids" do
-        assert_artist_not_found("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=herpderp")
-      end
-
-      should "fail for malformed urls" do
-        assert_artist_not_found("http://www.pixiv.net/wharrgarbl")
-      end
-
-      should "not fail for Pixiv bad IDs" do
-        assert_artist_not_found("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=0")
       end
     end
   end

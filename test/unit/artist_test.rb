@@ -88,12 +88,13 @@ class ArtistTest < ActiveSupport::TestCase
       end
 
       should "create a new tag implication" do
-        assert_equal(1, TagImplication.where(:antecedent_name => "aaa", :consequent_name => "banned_artist").count)
-        assert_equal("aaa banned_artist", @post.tag_string)
+        assert_equal(1, TagImplication.where(:antecedent_name => "aaa", :consequent_name => "avoid_posting").count)
+        puts TagImplication.where(:antecedent_name => "aaa", :consequent_name => "avoid_posting")
+        assert_equal("aaa avoid_posting", @post.tag_string)
       end
 
-      should "set the approver of the banned_artist implication" do
-        ta = TagImplication.where(:antecedent_name => "aaa", :consequent_name => "banned_artist").first
+      should "set the approver of the avoid_posting implication" do
+        ta = TagImplication.where(:antecedent_name => "aaa", :consequent_name => "avoid_posting").first
         assert_equal(@admin.id, ta.approver.id)
       end
     end
@@ -203,13 +204,14 @@ class ArtistTest < ActiveSupport::TestCase
     end
 
     should "hide deleted artists" do
-      FactoryBot.create(:artist, :name => "warhol", :url_string => "http://warhol.com/a/image.jpg", :is_active => false)
+      as_admin do
+        FactoryBot.create(:artist, name: "warhol", url_string: "http://warhol.com/a/image.jpg", is_active: false)
+      end
       assert_artist_not_found("http://warhol.com/a/image.jpg")
     end
 
     context "when finding deviantart artists" do
       setup do
-        skip "DeviantArt API keys not set" unless Danbooru.config.deviantart_client_id.present?
         FactoryBot.create(:artist, :name => "artgerm", :url_string => "http://artgerm.deviantart.com/")
         FactoryBot.create(:artist, :name => "trixia",  :url_string => "http://trixdraws.deviantart.com/")
       end
@@ -217,74 +219,6 @@ class ArtistTest < ActiveSupport::TestCase
       should "find the correct artist for page URLs" do
         assert_artist_found("artgerm", "http://www.deviantart.com/artgerm/art/Peachy-Princess-Ver-2-457220550")
         assert_artist_found("trixia", "http://www.deviantart.com/trixdraws/art/My-Queen-426745289")
-      end
-
-      should "find the correct artist for image URLs" do
-        assert_artist_found("artgerm", "http://th05.deviantart.net/fs71/200H/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-        assert_artist_found("artgerm", "http://th05.deviantart.net/fs71/PRE/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-        assert_artist_found("artgerm", "http://fc06.deviantart.net/fs71/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-
-        assert_artist_found("trixia", "http://fc01.deviantart.net/fs71/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-        assert_artist_found("trixia", "http://th01.deviantart.net/fs71/200H/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-        assert_artist_found("trixia", "http://th09.deviantart.net/fs71/PRE/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-      end
-    end
-
-    context "when finding pixiv artists" do
-      setup do
-        FactoryBot.create(:artist, :name => "masao",:url_string => "http://www.pixiv.net/member.php?id=32777")
-        FactoryBot.create(:artist, :name => "bkub", :url_string => "http://www.pixiv.net/member.php?id=9948")
-        FactoryBot.create(:artist, :name => "ryuura", :url_string => "http://www.pixiv.net/member.php?id=8678371")
-      end
-
-      should "find the correct artist by looking up the profile url" do
-        assert_artist_found("ryuura", "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=48788677")
-      end
-
-      should "find the correct artist for old image URLs" do
-        assert_artist_found("masao", "http://i2.pixiv.net/img04/img/syounen_no_uta/46170939.jpg")
-        assert_artist_found("bkub",  "http://i1.pixiv.net/img01/img/bkubb/46239857_m.jpg")
-      end
-
-      should "find the correct artist for new image URLs" do
-        assert_artist_found("masao", "http://i2.pixiv.net/c/1200x1200/img-master/img/2014/09/25/00/57/24/46170939_p0_master1200.jpg")
-        assert_artist_found("masao", "http://i2.pixiv.net/img-original/img/2014/09/25/00/57/24/46170939_p0.jpg")
-
-        assert_artist_found("bkub",  "http://i2.pixiv.net/c/1200x1200/img-master/img/2014/09/28/21/59/44/46239857_p0.jpg")
-        assert_artist_found("bkub",  "http://i2.pixiv.net/img-original/img/2014/09/28/21/59/44/46239857_p0.jpg")
-      end
-
-      should "find the correct artist for page URLs" do
-        assert_artist_found("masao", "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=46170939")
-        assert_artist_found("masao", "http://www.pixiv.net/member_illust.php?mode=big&illust_id=46170939")
-        assert_artist_found("masao", "http://www.pixiv.net/member_illust.php?mode=manga&illust_id=46170939")
-        assert_artist_found("masao", "http://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=46170939&page=0")
-        assert_artist_found("masao", "http://www.pixiv.net/i/46170939")
-
-        assert_artist_found("bkub",  "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=46239857")
-        assert_artist_found("bkub",  "http://www.pixiv.net/member_illust.php?mode=big&illust_id=46239857")
-        assert_artist_found("bkub",  "http://www.pixiv.net/i/46239857")
-      end
-
-      should "find nothing for bad IDs" do
-        assert_artist_not_found("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=32049358")
-      end
-    end
-
-    context "when finding nico seiga artists" do
-      setup do
-        FactoryBot.create(:artist, :name => "osamari", :url_string => "http://seiga.nicovideo.jp/user/illust/7017777")
-        FactoryBot.create(:artist, :name => "hakuro109", :url_string => "http://seiga.nicovideo.jp/user/illust/16265470")
-      end
-
-      should "find the artist by the profile" do
-        assert_artist_found("osamari", "http://seiga.nicovideo.jp/seiga/im4937663")
-        assert_artist_found("hakuro109", "http://lohas.nicoseiga.jp/priv/b9ea863e691f3a648dee5582fd6911c30dc8acab/1510092103/6424205")
-      end
-
-      should "return nothing for unknown nico seiga artists" do
-        assert_artist_not_found("http://seiga.nicovideo.jp/seiga/im6605221")
-        assert_artist_not_found("http://lohas.nicoseiga.jp/priv/fd195b3405b19874c825eb4d81c9196086562c6b/1509089019/6605221")
       end
     end
 
@@ -318,41 +252,6 @@ class ArtistTest < ActiveSupport::TestCase
       should "return nothing for unknown mobile.twitter.com sources" do
         assert_artist_not_found("http://mobile.twitter.com/bkub_comic/status/782880825700343808")
         assert_artist_not_found("https://mobile.twitter.com/bkub_comic/status/782880825700343808")
-      end
-    end
-
-    context "when finding pawoo artists" do
-      setup do
-        FactoryBot.create(:artist, :name => "evazion", :url_string => "https://pawoo.net/@evazion")
-        FactoryBot.create(:artist, :name => "yasumo01", :url_string => "https://pawoo.net/web/accounts/28816")
-      end
-
-      should "find the artist" do
-        assert_artist_found("evazion", "https://pawoo.net/@evazion/19451018")
-        assert_artist_found("evazion", "https://pawoo.net/web/statuses/19451018")
-        assert_artist_found("yasumo01", "https://pawoo.net/@yasumo01/222337")
-        assert_artist_found("yasumo01", "https://pawoo.net/web/statuses/222337")
-      end
-
-      should "return nothing for unknown pawoo sources" do
-        assert_artist_not_found("https://pawoo.net/@9ed00e924818/1202176")
-        assert_artist_not_found("https://pawoo.net/web/statuses/1202176")
-      end
-    end
-
-    context "when finding nijie artists" do
-      setup do
-        FactoryBot.create(:artist, :name => "evazion", :url_string => "http://nijie.info/members.php?id=236014")
-        FactoryBot.create(:artist, :name => "728995",  :url_string => "http://nijie.info/members.php?id=728995")
-      end
-
-      should "find the artist" do
-        assert_artist_found("evazion", "http://nijie.info/view.php?id=218944")
-        assert_artist_found("728995",  "http://nijie.info/view.php?id=213043")
-      end
-
-      should "return nothing for unknown nijie artists" do
-        assert_artist_not_found("http://nijie.info/view.php?id=157953")
       end
     end
 
@@ -440,15 +339,6 @@ class ArtistTest < ActiveSupport::TestCase
     should "update the category of the tag when created" do
       tag = FactoryBot.create(:tag, :name => "abc")
       artist = FactoryBot.create(:artist, :name => "abc")
-      tag.reload
-      assert_equal(Tag.categories.artist, tag.category)
-    end
-
-    should "update the category of the tag when renamed" do
-      tag = FactoryBot.create(:tag, :name => "def")
-      artist = FactoryBot.create(:artist, :name => "abc")
-      artist.name = "def"
-      artist.save
       tag.reload
       assert_equal(Tag.categories.artist, tag.category)
     end
