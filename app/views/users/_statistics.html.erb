@@ -107,7 +107,7 @@
       <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
         <tr>
           <th>Appeals</th>
-          <td><%= presenter.appeal_count(self) %></td>
+          <td>0</td>
           <th>Flags</th>
           <td><%= presenter.flag_count(self) %></td>
         </tr>

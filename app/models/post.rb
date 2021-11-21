@@ -50,7 +50,6 @@ class Post < ApplicationRecord
   has_one :upload, :dependent => :destroy
   has_one :pixiv_ugoira_frame_data, :class_name => "PixivUgoiraFrameData", :dependent => :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
-  has_many :appeals, :class_name => "PostAppeal", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
   has_many :comments, -> {includes(:creator, :updater).order("comments.is_sticky DESC, comments.id")}, :dependent => :destroy
@@ -354,18 +353,6 @@ class Post < ApplicationRecord
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
-    end
-
-    def appeal!(reason)
-      if is_status_locked?
-        raise PostAppeal::Error.new("Post is locked and cannot be appealed")
-      end
-
-      appeal = appeals.create(:reason => reason)
-
-      if appeal.errors.any?
-        raise PostAppeal::Error.new(appeal.errors.full_messages.join("; "))
-      end
     end
 
     def approved_by?(user)
@@ -1592,12 +1579,6 @@ class Post < ApplicationRecord
       relation = relation.select("COUNT(post_flags.id) AS flag_count")
       relation = relation.select("COUNT(post_flags.id) FILTER (WHERE post_flags.is_resolved = TRUE)  AS resolved_flag_count")
       relation = relation.select("COUNT(post_flags.id) FILTER (WHERE post_flags.is_resolved = FALSE) AS unresolved_flag_count")
-      relation
-    end
-
-    def with_appeal_stats
-      relation = left_outer_joins(:appeals).group(:id).select("posts.*")
-      relation = relation.select("COUNT(post_appeals.id) AS appeal_count")
       relation
     end
 

@@ -8,15 +8,13 @@ class PostEvent
 
   def self.find_for_post(post_id)
     post = Post.find(post_id)
-    (post.appeals + post.flags + post.approvals).sort_by(&:created_at).reverse.map { |e| new(event: e) }
+    (post.flags + post.approvals).sort_by(&:created_at).reverse.map { |e| new(event: e) }
   end
 
   def type_name
     case event
     when PostFlag
       "flag"
-    when PostAppeal
-      "appeal"
     when PostApproval
       "approval"
     end
@@ -44,7 +42,7 @@ class PostEvent
 
   def is_creator_visible?(user = CurrentUser.user)
     case event
-    when PostAppeal, PostApproval
+    when PostApproval
       true
     when PostFlag
       flag = event
