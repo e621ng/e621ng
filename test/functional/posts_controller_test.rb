@@ -3,8 +3,6 @@ require "test_helper"
 class PostsControllerTest < ActionDispatch::IntegrationTest
   context "The posts controller" do
     setup do
-      PopularSearchService.stubs(:enabled?).returns(false)
-
       @user = travel_to(1.month.ago) {create(:user)}
       as_user do
         @post = create(:post, :tag_string => "aaaa")

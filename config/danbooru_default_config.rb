@@ -891,10 +891,6 @@ fart'
       true
     end
 
-    # reportbooru options - see https://github.com/r888888888/reportbooru
-    def reportbooru_server
-    end
-
     def iqdb_enabled?
       false
     end
