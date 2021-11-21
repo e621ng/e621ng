@@ -96,11 +96,6 @@ class PostsDecorator < ApplicationDecorator
       return ""
     end
 
-    if post.is_ugoira? && !post.has_ugoira_webm?
-      # ugoira preview gen is async so dont render it immediately
-      return ""
-    end
-
     article_attrs = {
         "id" => "post_#{post.id}",
         "class" => preview_class(options).join(" ")

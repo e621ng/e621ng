@@ -43,10 +43,6 @@ class PostReplacement < ApplicationRecord
     def is_video?
       %w(webm).include?(file_ext)
     end
-
-    def is_ugoira?
-      %w(zip).include?(file_ext)
-    end
   end
 
   def no_pending_duplicates

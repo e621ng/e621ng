@@ -48,7 +48,6 @@ class Post < ApplicationRecord
   user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, :dependent => :destroy
-  has_one :pixiv_ugoira_frame_data, :class_name => "PixivUgoiraFrameData", :dependent => :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
@@ -224,12 +223,8 @@ class Post < ApplicationRecord
       is_webm? || is_mp4?
     end
 
-    def is_ugoira?
-      file_ext =~ /zip/i
-    end
-
     def has_preview?
-      is_image? || is_video? || is_ugoira?
+      is_image? || is_video?
     end
 
     def has_dimensions?
@@ -246,10 +241,6 @@ class Post < ApplicationRecord
         width = (height * dimension_ratio).to_i
       end
       [height, width]
-    end
-
-    def has_ugoira_webm?
-      true
     end
 
     def has_sample_size?(scale)
@@ -296,7 +287,6 @@ class Post < ApplicationRecord
 
     def has_large?
       return true if is_video?
-      return true if is_ugoira?
       return false if is_gif?
       return false if is_flash?
       return false if has_tag?("animated_gif|animated_png")
@@ -688,7 +678,7 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags if !Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image ugoira)
+      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image)
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -716,10 +706,6 @@ class Post < ApplicationRecord
 
       if is_webm?
         tags << "webm"
-      end
-
-      if is_ugoira?
-        tags << "ugoira"
       end
 
       unless is_gif?
@@ -1479,17 +1465,6 @@ class Post < ApplicationRecord
       list
     end
 
-    # def associated_attributes
-    #   [:pixiv_ugoira_frame_data]
-    # end
-
-    # def as_json(options = {})
-    #   options ||= {}
-    #   options[:include] ||= []
-    #   options[:include] += associated_attributes
-    #   super(options)
-    # end
-
     def minimal_attributes
       preview_dims = preview_dimensions
       hash = {
@@ -1845,13 +1820,11 @@ class Post < ApplicationRecord
   end
 
   def allow_sample_resize?
-    return false if is_flash?
-    return false if is_ugoira?
-    true
+    !is_flash?
   end
 
-  def force_original_size?(ugoira_original)
-    (is_ugoira? && ugoira_original.present?) || is_flash?
+  def force_original_size?
+    is_flash?
   end
 
   def reload(options = nil)

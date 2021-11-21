@@ -16,7 +16,6 @@ gem 'bcrypt', :require => "bcrypt"
 gem 'draper'
 gem 'radix62', '~> 1.0.1'
 gem 'streamio-ffmpeg'
-gem 'rubyzip', :require => "zip"
 gem 'responders'
 gem 'dtext_rb', :git => "https://github.com/zwagoth/dtext_rb.git", branch: "master", :require => "dtext"
 gem 'cityhash'

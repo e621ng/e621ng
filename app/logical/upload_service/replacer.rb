@@ -89,7 +89,6 @@ class UploadService
       post.save!
 
       rescale_notes(post)
-      update_ugoira_frame_data(post, upload)
 
       replacement.update({status: 'approved', approver_id: CurrentUser.id})
 
@@ -106,14 +105,6 @@ class UploadService
 
       post.notes.each do |note|
         note.rescale!(x_scale, y_scale)
-      end
-    end
-
-    def update_ugoira_frame_data(post, upload)
-      post.pixiv_ugoira_frame_data.destroy if post.pixiv_ugoira_frame_data.present?
-
-      unless post.is_ugoira?
-        return
       end
     end
   end

@@ -15,11 +15,6 @@ class PostPresenter < Presenter
       return ""
     end
 
-    if post.is_ugoira? && !post.has_ugoira_webm?
-      # ugoira preview gen is async so dont render it immediately
-      return ""
-    end
-
     options[:stats] |= !options[:avatar] && !options[:inline]
 
     locals = {}
@@ -276,8 +271,8 @@ class PostPresenter < Presenter
     true
   end
 
-  def default_image_size(user, force_original)
-    return "original" if @post.force_original_size?(force_original)
+  def default_image_size(user)
+    return "original" if @post.force_original_size?
     return "fit" if user.default_image_size == "large" && !@post.allow_sample_resize?
     user.default_image_size
   end

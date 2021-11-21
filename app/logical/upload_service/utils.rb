@@ -15,8 +15,6 @@ class UploadService
         "png"
       when /^\x1a\x45\xdf\xa3/n
         "webm"
-      # when /^PK\x03\x04/
-      #   "zip"
       else
         "bin"
       end
@@ -35,23 +33,10 @@ class UploadService
       Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
     end
 
-    def calculate_ugoira_dimensions(source_path)
-      folder = Zip::File.new(source_path)
-      Tempfile.open("ugoira-dim-") do |tempfile|
-        folder.first.extract(tempfile.path) { true }
-        image_size = ImageSpec.new(tempfile.path)
-        return [image_size.width, image_size.height]
-      end
-    end
-
     def calculate_dimensions(upload, file)
       if upload.is_video?
         video = FFMPEG::Movie.new(file.path)
         yield(video.width, video.height)
-
-      elsif upload.is_ugoira?
-        w, h = calculate_ugoira_dimensions(file.path)
-        yield(w, h)
 
       elsif upload.is_image?
         image_size = ImageSpec.new(file.path)

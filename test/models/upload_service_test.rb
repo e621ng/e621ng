@@ -1,19 +1,6 @@
 require 'test_helper'
 
 class UploadServiceTest < ActiveSupport::TestCase
-  UGOIRA_CONTEXT = {
-    "ugoira" => {
-      "frame_data" => [
-        {"file" => "000000.jpg", "delay" => 200},
-        {"file" => "000001.jpg", "delay" => 200},
-        {"file" => "000002.jpg", "delay" => 200},
-        {"file" => "000003.jpg", "delay" => 200},
-        {"file" => "000004.jpg", "delay" => 250}
-      ],
-      "content_type" => "image/jpeg"
-    }
-  }
-
   setup do
     Timecop.travel(2.weeks.ago) do
       @user = FactoryBot.create(:user)
@@ -63,138 +50,9 @@ class UploadServiceTest < ActiveSupport::TestCase
           end
         end
       end
-
-      context "for a pixiv" do
-        setup do
-          @source = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=62247350"
-          @upload = Upload.new
-          @upload.source = @source
-        end
-
-        should "work on an ugoira url" do
-          begin
-            file = subject.get_file_for_upload(@upload)
-
-            assert_operator(File.size(file.path), :>, 0)
-
-            file.close
-          rescue Net::OpenTimeout
-            skip "network problems"
-          end
-        end
-      end
-    end
-
-    context ".calculate_ugoira_dimensions" do
-      context "for a valid ugoira file" do
-        setup do
-          @path = "test/files/valid_ugoira.zip"
-        end
-
-        should "extract the dimensions" do
-          w, h = subject.calculate_ugoira_dimensions(@path)
-          assert_operator(w, :>, 0)
-          assert_operator(h, :>, 0)
-        end
-      end
-
-      context "for an invalid ugoira file" do
-        setup do
-          @path = "test/files/invalid_ugoira.zip"
-        end
-
-        should "raise an error" do
-          assert_raises(ImageSpec::Error) do
-            subject.calculate_ugoira_dimensions(@path)
-          end
-        end
-      end
-    end
-
-    context ".calculate_dimensions" do
-      context "for an ugoira" do
-        setup do
-          @file = File.open("test/files/valid_ugoira.zip", "rb")
-          @upload = Upload.new(file_ext: "zip")
-        end
-
-        teardown do
-          @file.close
-        end
-
-        should "return the dimensions" do
-          subject.expects(:calculate_ugoira_dimensions).once.returns([60, 60])
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
-        end
-      end
-
-      context "for a video" do
-        setup do
-          @file = File.open("test/files/test-300x300.mp4", "rb")
-          @upload = Upload.new(file_ext: "mp4")
-        end
-
-        teardown do
-          @file.close
-        end
-
-        should "return the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
-        end
-      end
-
-      context "for an image" do 
-        setup do
-          @file = File.open("test/files/test.jpg", "rb")
-          @upload = Upload.new(file_ext: "jpg")
-        end
-
-        teardown do
-          @file.close
-        end
-
-        should "find the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
-        end
-      end
     end
 
     context ".generate_resizes" do
-      context "for an ugoira" do
-        setup do
-          context = UGOIRA_CONTEXT
-          @file = File.open("test/fixtures/ugoira.zip", "rb")
-          @upload = mock()
-          @upload.stubs(:is_video?).returns(false)
-          @upload.stubs(:is_ugoira?).returns(true)
-          @upload.stubs(:context).returns(context)
-        end
-
-        should "generate a preview and a video" do
-          preview, crop, sample = subject.generate_resizes(@file, @upload)
-          assert_operator(File.size(preview.path), :>, 0)
-          assert_operator(File.size(crop.path), :>, 0)
-          assert_operator(File.size(sample.path), :>, 0)
-          assert_equal(60, ImageSpec.new(preview.path).width)
-          assert_equal(60, ImageSpec.new(preview.path).height)
-          assert_equal(150, ImageSpec.new(crop.path).width)
-          assert_equal(150, ImageSpec.new(crop.path).height)
-          preview.close
-          preview.unlink
-          sample.close
-          sample.unlink
-        end
-      end
-
       context "for a video" do
         teardown do
           @file.close
@@ -205,7 +63,6 @@ class UploadServiceTest < ActiveSupport::TestCase
             @file = File.open("test/files/test-300x300.mp4", "rb")
             @upload = mock()
             @upload.stubs(:is_video?).returns(true)
-            @upload.stubs(:is_ugoira?).returns(false)
           end
 
           should "generate a video" do
@@ -228,7 +85,6 @@ class UploadServiceTest < ActiveSupport::TestCase
             @file = File.open("test/files/test-512x512.webm", "rb")
             @upload = mock()
             @upload.stubs(:is_video?).returns(true)
-            @upload.stubs(:is_ugoira?).returns(false)
           end
 
           should "generate a video" do
@@ -255,7 +111,6 @@ class UploadServiceTest < ActiveSupport::TestCase
         setup do
           @upload = mock()
           @upload.stubs(:is_video?).returns(false)
-          @upload.stubs(:is_ugoira?).returns(false)
           @upload.stubs(:is_image?).returns(true)
           @upload.stubs(:image_width).returns(1200)
           @upload.stubs(:image_height).returns(200)
@@ -616,28 +471,6 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
       end
 
-      context "a post that is replaced by a ugoira" do
-        should "save the frame data" do
-          skip "ffmpeg not installed" unless check_ffmpeg
-          begin
-            as_user { @post.replace!(replacement_url: "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=62247364") }
-            @post.reload
-
-            assert_equal(80, @post.image_width)
-            assert_equal(82, @post.image_height)
-            assert_equal(2804, @post.file_size)
-            assert_equal("zip", @post.file_ext)
-            assert_equal("cad1da177ef309bf40a117c17b8eecf5", @post.md5)
-            assert_equal("cad1da177ef309bf40a117c17b8eecf5", Digest::MD5.file(@post.file).hexdigest)
-
-            assert_equal("https://i.pximg.net/img-zip-ugoira/img/2017/04/04/08/57/38/62247364_ugoira1920x1080.zip", @post.source)
-            assert_equal([{"delay"=>125, "file"=>"000000.jpg"}, {"delay"=>125,"file"=>"000001.jpg"}], @post.pixiv_ugoira_frame_data.data)
-          rescue Net::OpenTimeout
-            skip "Remote connection to Pixiv failed"
-          end
-        end
-      end
-
       context "a post that is replaced to another file then replaced back to the original file" do
         should "not delete the original files" do
           begin
@@ -907,20 +740,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           assert_equal(@source, post.source)
         rescue Net::OpenTimeout
           skip "network failure"
-        end
-      end
-    end
-
-    context "for a pixiv ugoira" do
-      setup do
-        @upload = FactoryBot.create(:ugoira_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, context: UGOIRA_CONTEXT)
-      end
-
-      should "create a post" do
-        assert_difference(-> { PixivUgoiraFrameData.count }) do
-          post = subject.new({}).create_post_from_upload(@upload)
-          assert_equal([], post.errors.full_messages)
-          assert_not_nil(post.id)
         end
       end
     end

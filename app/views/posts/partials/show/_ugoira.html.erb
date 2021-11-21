@@ -1,5 +1,0 @@
-<% if params[:original].blank? && post.has_ugoira_webm? %>
-  <%= render "posts/partials/show/ugoira_webm", :post => post %>
-<% else %>
-  <%= render "posts/partials/show/ugoira_original", :post => post %>
-<% end %>

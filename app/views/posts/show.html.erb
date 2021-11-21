@@ -76,7 +76,7 @@
           <%= render "posts/partials/show/embedded", post: @post %>
         <% end -%>
 
-        <% if @post.visible? && @post.has_large? && !@post.is_ugoira? %>
+        <% if @post.visible? && @post.has_large? %>
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
             <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %></span> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>
@@ -106,7 +106,7 @@
             <%= link_to "Download", @post.file_url, class: "button btn-warn" %>
           </div>
         <% end %>
-        <% if !@post.force_original_size?(params[:original]) %>
+        <% if !@post.force_original_size? %>
           <div>
             | <select id="image-resize-selector" class="button btn-neutral">
                 <option value="original">Original</option>
@@ -234,8 +234,8 @@
 
 <% content_for(:html_header) do %>
   <% if @post.hide_from_search_engines? %><meta name="robots" content="noindex" /><% end %>
-  <% if @post.force_original_size?(params[:original]) %><meta name="image-override-size" content="original"/><% end %>
-  <meta name="default-image-size" content="<%= @post.presenter.default_image_size(CurrentUser.user, params[:original]) %>"/>
+  <% if @post.force_original_size? %><meta name="image-override-size" content="original"/><% end %>
+  <meta name="default-image-size" content="<%= @post.presenter.default_image_size(CurrentUser.user) %>"/>
 
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">

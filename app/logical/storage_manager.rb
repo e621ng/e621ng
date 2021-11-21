@@ -168,7 +168,6 @@ class StorageManager
   end
 
   def file_name(md5, file_ext, type, scale_factor: nil)
-    large_file_ext = (file_ext == "zip") ? "webm" : "jpg"
 
     case type
     when :preview
@@ -176,7 +175,7 @@ class StorageManager
     when :crop
       "#{md5}.jpg"
     when :large
-      "#{large_image_prefix}#{md5}.#{large_file_ext}"
+      "#{large_image_prefix}#{md5}.jpg"
     when :original
       "#{md5}.#{file_ext}"
     when :scaled
