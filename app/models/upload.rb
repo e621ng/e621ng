@@ -150,14 +150,6 @@ class Upload < ApplicationRecord
       status == "completed"
     end
 
-    def is_preprocessed?
-      status == "preprocessed"
-    end
-
-    def is_preprocessing?
-      status == "preprocessing"
-    end
-
     def is_duplicate?
       status.match?(/duplicate: \d+/)
     end

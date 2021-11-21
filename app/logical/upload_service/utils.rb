@@ -32,13 +32,6 @@ class UploadService
 
         return
       end
-
-      if upload_id.present? && Upload.where(id: upload_id).exists?
-        CurrentUser.as_system do
-          Upload.find(upload_id).update(status: "preprocessed + deleted")
-        end
-      end
-      
       Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
     end
 

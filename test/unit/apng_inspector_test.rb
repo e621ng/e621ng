@@ -1,8 +1,8 @@
 require "test_helper"
 
-class DTextTest < ActiveSupport::TestCase
+class ApngInspectorTest < ActiveSupport::TestCase
   def inspect(filename)
-    apng = APNGInspector.new("#{Rails.root}/test/files/apng/#{filename}")
+    apng = ApngInspector.new("#{Rails.root}/test/files/apng/#{filename}")
     apng.inspect!
     apng
   end
