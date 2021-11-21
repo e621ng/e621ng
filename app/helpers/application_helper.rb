@@ -20,10 +20,6 @@ module ApplicationHelper
     raw(wordbreaked_string)
   end
 
-  def pro_fontawesome_enabled?
-    request.domain =~ /donmai\.us/
-  end
-
   def nav_link_to(text, url, **options)
     klass = options.delete(:class)
 

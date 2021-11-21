@@ -2153,7 +2153,6 @@ class PostTest < ActiveSupport::TestCase
   #       Post.__elasticsearch__.delete_index!
   #       Post.__elasticsearch__.create_index!
   #       Danbooru.config.stubs(:blank_tag_search_fast_count).returns(nil)
-  #       Danbooru.config.stubs(:estimate_post_counts).returns(false)
   #       FactoryBot.create(:tag_alias, :antecedent_name => "alias", :consequent_name => "aaa")
   #       FactoryBot.create(:post, :tag_string => "aaa", "score" => 42)
   #     end
