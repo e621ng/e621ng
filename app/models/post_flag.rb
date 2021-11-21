@@ -159,15 +159,6 @@ class PostFlag < ApplicationRecord
 
     return if creator.is_janitor?
 
-    # TODO: Should we keep this?
-    # if creator_id != User.system.id && PostFlag.for_creator(creator_id).where("created_at > ?", 30.days.ago).count >= CREATION_THRESHOLD
-    #   report = Reports::PostFlags.new(user_id: post.uploader_id, date_range: 90.days.ago)
-    #
-    #   if report.attackers.include?(creator_id)
-    #     errors[:creator] << "cannot flag posts uploaded by this user"
-    #   end
-    # end
-
     allowed = creator.can_post_flag_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))

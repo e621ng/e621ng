@@ -869,12 +869,6 @@ class User < ApplicationRecord
     end
   end
 
-  module StatisticsMethods
-    def deletion_confidence(days = 30)
-      Reports::UserPromotions.deletion_confidence_interval_for(self, days)
-    end
-  end
-
   concerning :SockPuppetMethods do
     def validate_sock_puppets
       if User.where(last_ip_addr: CurrentUser.ip_addr).where("created_at > ?", 1.day.ago).exists?
@@ -896,7 +890,6 @@ class User < ApplicationRecord
   include CountMethods
   extend SearchMethods
   extend ThrottleMethods
-  include StatisticsMethods
 
   def as_current(&block)
     CurrentUser.as(self, &block)

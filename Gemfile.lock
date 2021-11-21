@@ -339,7 +339,6 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    statistics2 (0.54)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
     thor (1.1.0)
@@ -433,7 +432,6 @@ DEPENDENCIES
   simple_form
   simplecov
   sinatra
-  statistics2
   streamio-ffmpeg
   timecop
   unicorn
