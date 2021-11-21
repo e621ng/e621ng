@@ -388,8 +388,7 @@ fart'
           'gif' => 20.megabytes,
           'png' => 100.megabytes,
           'swf' => 0,
-          'webm' => 100.megabytes,
-          'mp4' => 100.megabytes
+          'webm' => 100.megabytes
       }
     end
 

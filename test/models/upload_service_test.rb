@@ -58,28 +58,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           @file.close
         end
 
-        context "for an mp4" do
-          setup do
-            @file = File.open("test/files/test-300x300.mp4", "rb")
-            @upload = mock()
-            @upload.stubs(:is_video?).returns(true)
-          end
-
-          should "generate a video" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            assert_equal(150, ImageSpec.new(preview.path).width)
-            assert_equal(150, ImageSpec.new(preview.path).height)
-            assert_equal(150, ImageSpec.new(crop.path).width)
-            assert_equal(150, ImageSpec.new(crop.path).height)
-            preview.close
-            preview.unlink
-            crop.close
-            crop.unlink
-          end
-        end
-
         context "for a webm" do
           setup do
             @file = File.open("test/files/test-512x512.webm", "rb")
@@ -170,20 +148,6 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
 
     context ".generate_video_preview_for" do
-      context "for an mp4" do
-        setup do
-          @path = "test/files/test-300x300.mp4"
-          @video = FFMPEG::Movie.new(@path)
-        end
-
-        should "generate a video" do
-          sample = subject.generate_video_preview_for(@video, 100, 100)
-          assert_operator(File.size(sample.path), :>, 0)
-          sample.close
-          sample.unlink
-        end
-      end
-
       context "for a webm" do
         setup do
           @path = "test/files/test-512x512.webm"
@@ -655,6 +619,13 @@ class UploadServiceTest < ActiveSupport::TestCase
         assert_difference(-> { Upload.count }) do
           service.start!
         end
+      end
+
+      should "prevent uploads of invalid filetypes" do
+        service = subject.new(uploader: @user, uploader_ip_addr: CurrentUser.ip_addr, source: "", rating: "s", file: upload_file("test/files/test-300x300.mp4"))
+        assert_nothing_raised { @upload = service.start! }
+        assert_equal(true, @upload.is_errored?)
+        assert_nil(@upload.post)
       end
 
       should "assign the rating from tags" do

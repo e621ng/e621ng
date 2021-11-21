@@ -215,12 +215,8 @@ class Post < ApplicationRecord
       file_ext =~ /webm/i
     end
 
-    def is_mp4?
-      file_ext =~ /mp4/i
-    end
-
     def is_video?
-      is_webm? || is_mp4?
+      is_webm?
     end
 
     def has_preview?
@@ -678,7 +674,7 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags if !Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image)
+      tags -= %w(thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm wide_image long_image)
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000

@@ -12,14 +12,6 @@ FactoryBot.define do
       end
     end
 
-    factory(:mp4_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test-300x300.mp4", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "video.mp4")
-      end
-    end
-
     factory(:jpg_replacement) do
       replacement_file do
         f = Tempfile.new
