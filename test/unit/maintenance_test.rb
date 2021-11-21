@@ -6,16 +6,6 @@ class MaintenanceTest < ActiveSupport::TestCase
       assert_nothing_raised { Maintenance.daily }
     end
 
-    should "prune expired posts" do
-      @pending = FactoryBot.create(:post, is_pending: true, created_at: 4.days.ago)
-      @flagged = FactoryBot.create(:post, is_flagged: true, created_at: 4.days.ago)
-
-      Maintenance.daily
-
-      assert(true, @pending.reload.is_deleted)
-      assert(true, @flagged.reload.is_deleted)
-    end
-
     context "when pruning bans" do
       should "clear the is_banned flag for users who are no longer banned" do
         banner = FactoryBot.create(:admin_user)
