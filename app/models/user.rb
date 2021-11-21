@@ -677,15 +677,6 @@ class User < ApplicationRecord
         :neutral_feedback_count, :negative_feedback_count, :upload_limit
       ]
     end
-
-    def to_legacy_json
-      return {
-        "name" => name,
-        "id" => id,
-        "level" => level,
-        "created_at" => created_at.strftime("%Y-%m-%d %H:%M")
-      }.to_json
-    end
   end
 
   module CountMethods

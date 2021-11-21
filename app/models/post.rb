@@ -1558,35 +1558,6 @@ class Post < ApplicationRecord
       hash
     end
 
-    def legacy_attributes
-      hash = {
-          "has_comments" => last_commented_at.present?,
-          "parent_id" => parent_id,
-          "status" => status,
-          "has_children" => has_children?,
-          "created_at" => created_at.to_formatted_s(:db),
-          "has_notes" => has_notes?,
-          "rating" => rating,
-          "author" => uploader_name,
-          "creator_id" => uploader_id,
-          "width" => image_width,
-          "source" => source,
-          "score" => score,
-          "tags" => tag_string,
-          "height" => image_height,
-          "file_size" => file_size,
-          "id" => id
-      }
-
-      if visible?
-        hash["file_url"] = file_url
-        hash["preview_url"] = preview_file_url
-        hash["md5"] = md5
-      end
-
-      hash
-    end
-
     def status
       if is_pending?
         "pending"
