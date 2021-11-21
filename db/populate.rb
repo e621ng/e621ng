@@ -2,7 +2,6 @@ require 'set'
 require 'timecop'
 
 CurrentUser.ip_addr = "127.0.0.1"
-Delayed::Worker.delay_jobs = false
 $used_names = Set.new([""])
 
 def rand_string(n, unique = false)
