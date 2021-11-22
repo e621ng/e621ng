@@ -9,7 +9,7 @@ class ForumPostVotesControllerTest < ActionDispatch::IntegrationTest
       CurrentUser.ip_addr = "127.0.0.1"
 
       as @user1 do
-        @forum_topic = create(:forum_topic, original_post_attributes: { body: "alias" })
+        @forum_topic = create(:forum_topic)
         @forum_post = @forum_topic.original_post
       end
     end

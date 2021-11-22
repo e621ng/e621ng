@@ -7,7 +7,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       @user = FactoryBot.create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
-      @topic = FactoryBot.create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
+      @topic = FactoryBot.create(:forum_topic, title: "xxx")
     end
 
     teardown do
@@ -113,7 +113,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
     context "#merge" do
       setup do
-        @topic2 = FactoryBot.create(:forum_topic, title: "yyy", original_post_attributes: { body: "bbb" })
+        @topic2 = FactoryBot.create(:forum_topic, title: "yyy")
       end
 
       should "merge all the posts in one topic into the other" do
@@ -125,7 +125,7 @@ class ForumTopicTest < ActiveSupport::TestCase
     context "constructed with nested attributes for its original post" do
       should "create a matching forum post" do
         assert_difference(["ForumTopic.count", "ForumPost.count"], 1) do
-          @topic = FactoryBot.create(:forum_topic, :title => "abc", :original_post_attributes => {:body => "abc"})
+          @topic = FactoryBot.create(:forum_topic, :title => "abc")
        end
       end
     end

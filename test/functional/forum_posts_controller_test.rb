@@ -7,7 +7,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       @other_user = create(:user)
       @mod = create(:moderator_user)
       as_user do
-        @forum_topic = create(:forum_topic, title: "my forum topic", original_post_attributes: { body: "alias xxx -> yyy" })
+        @forum_topic = create(:forum_topic, title: "my forum topic")
         @forum_post = @forum_topic.original_post
       end
     end
@@ -83,7 +83,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       context "with private topics" do
         setup do
           as(@mod) do
-            @mod_topic = create(:mod_up_forum_topic, original_post_attributes: { body: "mod only" })
+            @mod_topic = create(:mod_up_forum_topic)
             @mod_posts = 2.times.map do
               create(:forum_post, :topic_id => @mod_topic.id)
             end
