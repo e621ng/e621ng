@@ -29,7 +29,7 @@ class TagAliasTest < ActiveSupport::TestCase
       subject do
         FactoryBot.create(:tag, :name => "aaa")
         FactoryBot.create(:tag, :name => "bbb")
-        FactoryBot.create(:tag_alias, :antecedent_name => "aaa", :consequent_name => "bbb", :status => "active")
+        FactoryBot.create(:tag_alias)
       end
 
       should allow_value('active').for(:status)
@@ -53,15 +53,12 @@ class TagAliasTest < ActiveSupport::TestCase
       should_not allow_value(-1).for(:creator_id).with_message("must exist", against: :creator)
 
       should "not allow duplicate active aliases" do
-        ta1 = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
-        ta2 = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "retired")
-        ta3 = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "deleted")
-        ta4 = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "deleted")
-        ta5 = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
-        [ta1, ta2, ta3, ta4, ta5].each { |ta| assert(ta.valid?) }
+        ta1 = FactoryBot.create(:tag_alias)
+        assert(ta1.valid?)
 
-        ta5.update(status: "active")
-        assert_includes(ta5.errors[:antecedent_name], "has already been taken")
+        assert_raises(ActiveRecord::RecordInvalid) do
+          FactoryBot.create(:tag_alias, status: "pending")
+        end
       end
     end
 
@@ -162,9 +159,7 @@ class TagAliasTest < ActiveSupport::TestCase
       setup do
         @admin = FactoryBot.create(:admin_user)
         CurrentUser.scoped(@admin) do
-          @topic = FactoryBot.create(:forum_topic, :title => TagAliasRequest.topic_title("aaa", "bbb"))
-          @post = FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => TagAliasRequest.command_string("aaa", "bbb"))
-          @alias = FactoryBot.create(:tag_alias, :antecedent_name => "aaa", :consequent_name => "bbb", :forum_topic => @topic, :forum_post => @post, :status => "pending")
+          @alias = FactoryBot.create(:tag_alias_with_topic, status: "pending")
         end
       end
 
@@ -175,10 +170,10 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should "update the parent post" do
-        previous = @post.body
+        previous = @alias.forum_post.body
         @alias.approve!(approver: @admin)
-        @post.reload
-        assert_not_equal(previous, @post.body)
+        @alias.reload
+        assert_not_equal(previous, @alias.forum_post.body)
       end
 
       should "update the topic when rejected" do
@@ -191,11 +186,11 @@ class TagAliasTest < ActiveSupport::TestCase
         @alias.stubs(:sleep).returns(true)
         @alias.stubs(:update_posts).raises(Exception, "oh no")
         @alias.approve!(approver: @admin)
-        @topic.reload
+        @alias.reload
 
-        assert_equal("[FAILED] Tag alias: aaa -> bbb", @topic.title)
+        assert_equal("[FAILED] Tag alias: aaa -> bbb", @alias.forum_topic.title)
         assert_match(/error: oh no/, @alias.status)
-        assert_match(/The tag alias .* failed during processing/, @topic.posts.last.body)
+        assert_match(/The tag alias .* failed during processing/, @alias.forum_topic.posts.last.body)
       end
     end
   end

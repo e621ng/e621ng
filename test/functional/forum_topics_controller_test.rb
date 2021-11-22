@@ -8,7 +8,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       @mod = create(:moderator_user)
 
       as_user do
-        @forum_topic = create(:forum_topic, :title => "my forum topic", :original_post_attributes => {:body => "xxx"})
+        @forum_topic = create(:forum_topic, :title => "my forum topic")
       end
     end
 
@@ -79,8 +79,8 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         as_user do
-          @topic1 = create(:forum_topic, :is_sticky => true, :original_post_attributes => {:body => "xxx"})
-          @topic2 = create(:forum_topic, :original_post_attributes => {:body => "xxx"})
+          @topic1 = create(:forum_topic, :is_sticky => true)
+          @topic2 = create(:forum_topic)
         end
       end
 

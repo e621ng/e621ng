@@ -6,11 +6,13 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       @admin = FactoryBot.create(:admin_user)
       CurrentUser.user = @admin
       CurrentUser.ip_addr = "127.0.0.1"
+      Sidekiq::Testing.inline!
     end
 
     teardown do
       CurrentUser.user = nil
       CurrentUser.ip_addr = nil
+      Sidekiq::Testing.fake!
     end
 
     context "#estimate_update_count" do
@@ -32,33 +34,6 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
       should "return the correct count" do
         assert_equal(3, subject.estimate_update_count)
-      end
-    end
-
-    context "#update_notice" do
-      setup do
-        @mock_redis = MockRedis.new
-        @forum_topic = FactoryBot.create(:forum_topic)
-        TagChangeNoticeService.stubs(:redis_client).returns(@mock_redis)
-      end
-
-      should "update redis" do
-        @script = "create alias aaa -> 000\n" +
-          "create implication bbb -> 111\n" +
-          "remove alias ccc -> 222\n" +
-          "remove implication ddd -> 333\n" +
-          "mass update eee -> 444\n"
-        FactoryBot.create(:bulk_update_request, script: @script, forum_topic: @forum_topic)
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:aaa"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:000"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:bbb"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:111"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:ccc"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:222"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:ddd"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:333"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:eee"))
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:444"))
       end
     end
 
@@ -156,9 +131,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "with an associated forum topic" do
       setup do
-        @topic = FactoryBot.create(:forum_topic, :title => "[bulk] hoge")
-        @post = FactoryBot.create(:forum_post, :topic_id => @topic.id)
-        @req = FactoryBot.create(:bulk_update_request, :script => "create alias AAA -> BBB", :forum_topic_id => @topic.id, :forum_post_id => @post.id, :title => "[bulk] hoge")
+        @req = FactoryBot.create(:bulk_update_request, script: "alias AAA -> BBB", title: "[bulk] hoge")
       end
 
       should "gracefully handle validation errors during approval" do
@@ -168,7 +141,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
         end
 
         assert_equal("pending", @req.reload.status)
-        assert_match(/\[FAILED\]/, @topic.reload.title)
+        assert_match(/\[FAILED\]/, @req.reload.forum_topic.title)
       end
 
       should "leave the BUR pending if there is an unexpected error during approval" do
@@ -184,7 +157,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       end
 
       should "downcase the text" do
-        assert_equal("create alias aaa -> bbb", @req.script)
+        assert_equal("alias aaa -> bbb", @req.script)
       end
 
       should "update the topic when processed" do
@@ -192,9 +165,8 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
           @req.approve!(@admin)
         end
 
-        @topic.reload
-        @post.reload
-        assert_match(/\[APPROVED\]/, @topic.title)
+        @req.reload
+        assert_match(/\[APPROVED\]/, @req.forum_topic.title)
       end
 
       should "update the topic when rejected" do
@@ -204,20 +176,13 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
           @req.reject!(@admin)
         end
 
-        @topic.reload
-        @post.reload
-        assert_match(/\[REJECTED\]/, @topic.title)
+        @req.reload
+        assert_match(/\[REJECTED\]/, @req.forum_topic.title)
       end
 
       should "reference the rejector in the automated message" do
         @req.reject!(@admin)
         assert_match(Regexp.compile(@admin.name), @req.forum_post.body)
-      end
-
-      should "not send @mention dmails to the approver" do
-        assert_no_difference("Dmail.count") do
-          @req.approve!(@admin)
-        end
       end
     end
 
