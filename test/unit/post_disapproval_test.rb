@@ -19,42 +19,13 @@ class PostDisapprovalTest < ActiveSupport::TestCase
         @post_2 = FactoryBot.create(:post, :is_pending => true)
       end
 
-      context "made by alice" do
-        setup do
-          @disapproval = PostDisapproval.create(:user => @alice, :post => @post_1)
-        end
-
-        context "when the current user is alice" do
-          setup do
-            CurrentUser.user = @alice
-          end
-
-          should "remove the associated post from alice's moderation queue" do
-            assert(!Post.available_for_moderation(false).map(&:id).include?(@post_1.id))
-            assert(Post.available_for_moderation(false).map(&:id).include?(@post_2.id))
-          end
-        end
-
-        context "when the current user is brittony" do
-          setup do
-            @brittony = FactoryBot.create(:moderator_user)
-            CurrentUser.user = @brittony
-          end
-
-          should "not remove the associated post from brittony's moderation queue" do
-            assert(Post.available_for_moderation(false).map(&:id).include?(@post_1.id))
-            assert(Post.available_for_moderation(false).map(&:id).include?(@post_2.id))
-          end
-        end
-      end
-
       context "#search" do
         should "work" do
-          disapproval1 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_1, reason: "breaks_rules")
-          disapproval2 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_2, reason: "poor_quality", message: "bad anatomy")
+          disapproval1 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_1, reason: "borderline_quality")
+          disapproval2 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_2, reason: "borderline_relevancy", message: "looks human")
 
-          assert_equal([disapproval1.id], PostDisapproval.search(reason: "breaks_rules").pluck(:id))
-          assert_equal([disapproval2.id], PostDisapproval.search(message: "bad anatomy").pluck(:id))
+          assert_equal([disapproval1.id], PostDisapproval.search(reason: "borderline_quality").pluck(:id))
+          assert_equal([disapproval2.id], PostDisapproval.search(message: "looks human").pluck(:id))
           assert_equal([disapproval2.id, disapproval1.id], PostDisapproval.search(creator_name: "alice").pluck(:id))
         end
       end

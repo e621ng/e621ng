@@ -147,8 +147,6 @@ class PostQueryBuilder
       relation = relation.where("posts.is_deleted = TRUE")
     elsif q[:status] == "active"
       relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE")
-    elsif q[:status] == "unmoderated"
-      relation = relation.merge(Post.pending_or_flagged.available_for_moderation)
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_neg] == "pending"
