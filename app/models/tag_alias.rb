@@ -300,7 +300,7 @@ class TagAlias < TagRelationship
     if antecedent_tag.category == Tag.categories.artist
       if antecedent_tag.artist.present? && consequent_tag.artist.blank?
         CurrentUser.scoped(creator, creator_ip_addr) do
-          antecedent_tag.artist.update!(name: consequent_name)
+          antecedent_tag.artist.update!(name: consequent_name, notes: antecedent_tag.artist.notes)
         end
       end
     end
