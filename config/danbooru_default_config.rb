@@ -921,9 +921,13 @@ fart'
     end
   end
 
-  class EnvironmentConfiguration
+  class ConfigurationHandler
     def custom_configuration
       @custom_configuration ||= CustomConfiguration.new
+    end
+
+    def default_configuration
+      @default_configuration ||= Configuration.new
     end
 
     def env_to_boolean(method, var)
@@ -938,14 +942,18 @@ fart'
 
       if var.present?
         env_to_boolean(method, var)
-      else
+      # ignore custom config on tests. They do require env vars from compose though
+      # Disabling throttles in the custom config should not lead to failing tests
+      elsif custom_configuration.respond_to?(method) && !Rails.env.test?
         custom_configuration.send(method, *args)
+      else
+        default_configuration.send(method, *args)
       end
     end
   end
 
   def config
-    @configuration ||= EnvironmentConfiguration.new
+    @configuration ||= ConfigurationHandler.new
   end
 
   module_function :config
