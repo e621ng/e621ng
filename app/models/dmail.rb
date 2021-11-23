@@ -1,11 +1,6 @@
 require 'digest/sha1'
 
 class Dmail < ApplicationRecord
-  # if a person sends spam to more than 10 users within a 24 hour window, automatically ban them for 3 days.
-  AUTOBAN_THRESHOLD = 10
-  AUTOBAN_WINDOW = 24.hours
-  AUTOBAN_DURATION = 3
-
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.dmail_max_size }
@@ -23,29 +18,6 @@ class Dmail < ApplicationRecord
   after_commit :send_email, on: :create
 
   attr_accessor :bypass_limits
-
-  concerning :SpamMethods do
-    class_methods do
-      def is_spammer?(user)
-        return false if user.is_janitor?
-
-        spammed_users = sent_by(user).where(is_spam: true).where("created_at > ?", AUTOBAN_WINDOW.ago).distinct.count(:to_id)
-        spammed_users >= AUTOBAN_THRESHOLD
-      end
-
-      def ban_spammer(spammer)
-        spammer.bans.create! do |ban|
-          ban.banner = User.system
-          ban.reason = "Spambot."
-          ban.duration = AUTOBAN_DURATION
-        end
-      end
-    end
-
-    def spam?
-      SpamDetector.new(self).spam?
-    end
-  end
 
   module AddressMethods
     def to_name=(name)
@@ -69,7 +41,6 @@ class Dmail < ApplicationRecord
           # recipient's copy
           copy = Dmail.new(params)
           copy.owner_id = copy.to_id
-          copy.is_spam = copy.spam?
           copy.save unless copy.to_id == copy.from_id
 
           # sender's copy
@@ -78,8 +49,6 @@ class Dmail < ApplicationRecord
           copy.owner_id = copy.from_id
           copy.is_read = true
           copy.save
-
-          Dmail.ban_spammer(copy.from) if Dmail.is_spammer?(copy.from)
         end
 
         copy
@@ -179,8 +148,6 @@ class Dmail < ApplicationRecord
         q = q.where("from_id = ?", params[:from_id].to_i)
       end
 
-      params[:is_spam] = false unless params[:is_spam].present?
-      q = q.attribute_matches(:is_spam, params[:is_spam])
       q = q.attribute_matches(:is_read, params[:is_read])
       q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
@@ -245,7 +212,7 @@ class Dmail < ApplicationRecord
   end
 
   def send_email
-    if !is_spam? && to.receive_email_notifications? && to.email =~ /@/ && owner_id == to.id
+    if to.receive_email_notifications? && to.email =~ /@/ && owner_id == to.id
       UserMailer.dmail_notice(self).deliver_now
     end
   end

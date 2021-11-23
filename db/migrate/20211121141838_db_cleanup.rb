@@ -24,5 +24,6 @@ class DbCleanup < ActiveRecord::Migration[6.1]
     end
     remove_column :artists, :group_name
     remove_column :artist_versions, :group_name
+    remove_column :dmails, :is_spam
   end
 end

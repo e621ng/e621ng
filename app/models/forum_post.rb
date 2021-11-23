@@ -17,7 +17,6 @@ class ForumPost < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
-  validate :validate_post_is_not_spam, on: :create
   validate :topic_is_not_restricted, :on => :create
   validate :category_allows_replies, on: :create
   validate :validate_creator_is_not_limited, on: :create
@@ -136,10 +135,6 @@ class ForumPost < ApplicationRecord
 
   def voted?(user, score)
     votes.where(creator_id: user.id, score: score).exists?
-  end
-
-  def validate_post_is_not_spam
-    errors.add(:base, "Failed to create forum post") if SpamDetector.new(self, user_ip: CurrentUser.ip_addr).spam?
   end
 
   def validate_topic_is_unlocked

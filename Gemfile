@@ -23,7 +23,6 @@ gem 'daemons'
 gem 'bootsnap'
 gem 'addressable'
 gem 'httparty'
-gem 'rakismet'
 gem 'recaptcha', require: "recaptcha/rails"
 gem 'jquery-rails'
 gem 'webpacker', '>= 4.0.x'

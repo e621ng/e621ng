@@ -5,7 +5,6 @@ class Comment < ApplicationRecord
   belongs_to_updater
   validate :validate_post_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
-  validate :validate_comment_is_not_spam, on: :create
   validates :body, presence: { :message => "has no content" }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
@@ -126,10 +125,6 @@ class Comment < ApplicationRecord
       return false
     end
     true
-  end
-
-  def validate_comment_is_not_spam
-    errors.add(:base, "Failed to create comment") if SpamDetector.new(self).spam?
   end
 
   def update_last_commented_at_on_create

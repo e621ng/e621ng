@@ -566,8 +566,7 @@ CREATE TABLE public.dmails (
     is_deleted boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    creator_ip_addr inet NOT NULL,
-    is_spam boolean DEFAULT false
+    creator_ip_addr inet NOT NULL
 );
 
 

@@ -265,7 +265,6 @@ GEM
       thor (~> 1.0)
     raindrops (0.19.2)
     rake (13.0.6)
-    rakismet (1.5.4)
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
@@ -396,7 +395,6 @@ DEPENDENCIES
   pg
   pry-byebug
   rails (~> 6.1)
-  rakismet
   recaptcha
   redis
   request_store

@@ -1,7 +1,6 @@
 class DmailsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
-  before_action :privileged_only, only: [:ham, :spam]
 
   def new
     if params[:respond_to_id]
@@ -51,16 +50,6 @@ class DmailsController < ApplicationController
     CurrentUser.user.update(has_mail: false, unread_dmail_count: 0)
     flash[:notice] = "All messages marked as read"
     redirect_to dmails_path
-  end
-
-  def spam
-    @dmail = Dmail.find(params[:id])
-    @dmail.update_column(:is_spam, true)
-  end
-
-  def ham
-    @dmail = Dmail.find(params[:id])
-    @dmail.update_column(:is_spam, false)
   end
 
 private
