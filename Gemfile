@@ -14,7 +14,6 @@ gem 'net-sftp'
 gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
 gem 'draper'
-gem 'radix62', '~> 1.0.1'
 gem 'streamio-ffmpeg'
 gem 'responders'
 gem 'dtext_rb', :git => "https://github.com/zwagoth/dtext_rb.git", branch: "master", :require => "dtext"
@@ -26,7 +25,6 @@ gem 'addressable'
 gem 'httparty'
 gem 'rakismet'
 gem 'recaptcha', require: "recaptcha/rails"
-gem 'ptools'
 gem 'jquery-rails'
 gem 'webpacker', '>= 4.0.x'
 gem 'retriable'
@@ -75,5 +73,4 @@ group :test do
   gem "timecop"
   gem "webmock"
   gem "minitest-ci"
-  gem "mock_redis"
 end

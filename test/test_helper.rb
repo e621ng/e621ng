@@ -49,7 +49,6 @@ end
 
 
 class ActiveSupport::TestCase
-  include DownloadTestHelper
   include IqdbTestHelper
   include UploadTestHelper
   include TestHelpers

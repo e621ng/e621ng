@@ -160,8 +160,6 @@ GEM
     ffaker (2.19.0)
     ffi (1.15.3)
     ffi (1.15.3-x64-mingw32)
-    ffi-win32-extensions (1.0.4)
-      ffi
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     globalid (0.5.2)
@@ -205,8 +203,6 @@ GEM
     minitest-ci (3.4.0)
       minitest (>= 5.0.6)
     mocha (1.13.0)
-    mock_redis (0.29.0)
-      ruby2_keywords
     msgpack (1.4.2)
     multi_json (1.15.0)
     multi_xml (0.6.0)
@@ -232,9 +228,6 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    ptools (1.4.2)
-    ptools (1.4.2-universal-mingw32)
-      win32-file
     public_suffix (4.0.6)
     racc (1.5.2)
     rack (2.2.3)
@@ -244,7 +237,6 @@ GEM
       rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    radix62 (1.0.1)
     rails (6.1.4.1)
       actioncable (= 6.1.4.1)
       actionmailbox (= 6.1.4.1)
@@ -369,13 +361,6 @@ GEM
     websocket-extensions (0.1.5)
     whenever (1.0.0)
       chronic (>= 0.6.3)
-    win32-file (0.8.2)
-      ffi
-      ffi-win32-extensions
-      win32-file-stat (>= 1.4.0)
-    win32-file-stat (1.5.5)
-      ffi
-      ffi-win32-extensions
     zeitwerk (2.4.2)
 
 PLATFORMS
@@ -406,13 +391,10 @@ DEPENDENCIES
   memoist
   minitest-ci
   mocha
-  mock_redis
   net-sftp
   newrelic_rpm
   pg
   pry-byebug
-  ptools
-  radix62 (~> 1.0.1)
   rails (~> 6.1)
   rakismet
   recaptcha
