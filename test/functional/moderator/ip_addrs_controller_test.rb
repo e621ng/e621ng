@@ -7,7 +7,7 @@ module Moderator
         @user = create(:moderator_user)
         CurrentUser.user = @user
         CurrentUser.ip_addr = "170.1.2.3"
-        create(:comment)
+        create(:comment, post: create(:post))
       end
 
       should "find by ip addr" do

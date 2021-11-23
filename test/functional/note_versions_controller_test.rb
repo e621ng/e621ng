@@ -9,7 +9,7 @@ class NoteVersionsControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         as_user do
-          @note = create(:note)
+          @note = create(:note, post: create(:post))
         end
         @user_2 = create(:user)
 

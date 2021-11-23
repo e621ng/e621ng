@@ -27,7 +27,7 @@ module Moderator
         context "for user feedbacks" do
           setup do
             as(@user) do
-              @feedback = create(:user_feedback)
+              @feedback = create(:user_feedback, creator: @admin)
             end
           end
 
@@ -82,13 +82,11 @@ module Moderator
             @users = (0..5).map {create(:user)}
 
             CurrentUser.as(@users[0]) do
-              @comment = create(:comment)
+              @comment = create(:comment, post: create(:post))
             end
 
             @users.each do |user|
-              CurrentUser.as(user) do
-                @comment.vote!(-1)
-              end
+              VoteManager.comment_vote!(user: user, comment: @comment, score: -1)
             end
           end
 
@@ -102,20 +100,6 @@ module Moderator
           setup do
             as(@user) do
               @artist = create(:artist)
-            end
-          end
-
-          should "render" do
-            get_auth moderator_dashboard_path, @admin
-            assert_response :success
-          end
-        end
-
-        context "for flags" do
-          setup do
-            as(@user) do
-              @post = create(:post)
-              @post.flag!("blah")
             end
           end
 

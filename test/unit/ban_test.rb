@@ -110,6 +110,20 @@ class BanTest < ActiveSupport::TestCase
     end
   end
 
+  context "permaban" do
+    setup do
+      user = FactoryBot.create(:user)
+      admin = FactoryBot.create(:admin_user)
+      CurrentUser.scoped(admin) do
+        @ban = FactoryBot.create(:ban, user: user, banner: admin, duration: -1)
+      end
+    end
+
+    should "never expire" do
+      assert_nil(@ban.expires_at)
+    end
+  end
+
   context "Searching for a ban" do
     should "find a given ban" do
       CurrentUser.user = FactoryBot.create(:admin_user)
@@ -146,7 +160,7 @@ class BanTest < ActiveSupport::TestCase
 
       context "when only expired bans exist" do
         setup do
-          @ban = FactoryBot.create(:ban, :user => @user, :banner => @admin, :duration => -1)
+          @ban = FactoryBot.create(:ban, :user => @user, :banner => @admin, :duration => 0)
         end
 
         should "not return expired bans" do

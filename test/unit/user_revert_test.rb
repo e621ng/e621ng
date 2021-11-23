@@ -11,7 +11,6 @@ class UserRevertTest < ActiveSupport::TestCase
         @post = create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
       end
 
-      @post.stubs(:merge_version?).returns(false)
       CurrentUser.scoped(@user) do
         @post.update(:tag_string => "bbb ccc xxx", :source => "", :rating => "e")
       end

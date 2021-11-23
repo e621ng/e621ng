@@ -75,10 +75,10 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(false, @tag.reload.is_locked)
       end
 
-      context "for a tag with >50 posts" do
+      context "for a tag with more tags than the category change cutoff" do
         setup do
           as_user do
-            @tag.update(post_count: 100)
+            @tag.update(post_count: Danbooru.config.tag_type_change_cutoff + 1)
           end
         end
 
@@ -86,20 +86,28 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
           @member = create(:member_user)
           put_auth tag_path(@tag), @member, params: {tag: { category: Tag.categories.general }}
 
+          assert_response :forbidden
           assert_not_equal(Tag.categories.general, @tag.reload.category)
         end
 
-        should "update the category for a builder" do
+        should "not update the category for a janitor" do
           put_auth tag_path(@tag), @user, params: {tag: { category: Tag.categories.general }}
+
+          assert_response :forbidden
+          assert_not_equal(Tag.categories.general, @tag.reload.category)
+        end
+
+        should "update the category for a moderator" do
+          put_auth tag_path(@tag), create(:moderator_user), params: {tag: { category: Tag.categories.general }}
 
           assert_redirected_to @tag
           assert_equal(Tag.categories.general, @tag.reload.category)
         end
       end
 
-      should "not change category when the tag is too large to be changed by a builder" do
+      should "not change category when the tag is too large to be changed by a janitor" do
         as_user do
-          @tag.update(category: Tag.categories.general, post_count: 1001)
+          @tag.update(category: Tag.categories.general, post_count: Danbooru.config.tag_type_change_cutoff + 1)
         end
         put_auth tag_path(@tag), @user, params: {:tag => {:category => Tag.categories.artist}}
 

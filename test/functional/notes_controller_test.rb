@@ -5,7 +5,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     setup do
       @user = create(:user)
       as_user do
-        @note = create(:note, body: "000")
+        @note = create(:note, body: "000", post: create(:post))
       end
     end
 
@@ -58,7 +58,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow changing the post id to another post" do
-        as(@admin) do
+        as_user do
           @other = create(:post)
         end
         put_auth note_path(@note), @user, params: {:format => "json", :id => @note.id, :note => {:post_id => @other.id}}
@@ -92,7 +92,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
       should "not allow reverting to a previous version of another note" do
         as_user do
-          @note2 = create(:note, :body => "note 2")
+          @note2 = create(:note, :body => "note 2", post: create(:post))
         end
         put_auth revert_note_path(@note), @user, params: { :version_id => @note2.versions.first.id }
         assert_not_equal(@note.reload.body, @note2.body)

@@ -13,19 +13,6 @@ class NoteTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = nil
     end
 
-    context "#merge_version" do
-      setup do
-        @post = FactoryBot.create(:post)
-        @note = FactoryBot.create(:note, :post => @post)
-      end
-
-      should "not increment version" do
-        @note.update(:x => 100)       
-        assert_equal(1, @note.versions.count)
-        assert_equal(1, @note.versions.first.version)
-      end
-    end
-
     context "for a post that already has a note" do
       setup do
         @post = FactoryBot.create(:post)
@@ -64,18 +51,18 @@ class NoteTest < ActiveSupport::TestCase
       should "not validate if the post does not exist" do
         @note = FactoryBot.build(:note, :x => 500, :y => 500, :post_id => -1)
         @note.save
-        assert_equal(["Post must exist"], @note.errors.full_messages)
+        assert_match(/Post must exist/, @note.errors.full_messages.join)
       end
 
       should "not validate if the body is blank" do
         @note = FactoryBot.build(:note, body: "   ")
 
         assert_equal(false, @note.valid?)
-        assert_equal(["Body can't be blank"], @note.errors.full_messages)
+        assert_match(/Body can't be blank/, @note.errors.full_messages.join)
       end
 
       should "create a version" do
-        assert_difference("NoteVersion.count", 1) do
+        assert_difference(-> { NoteVersion.count }, 1) do
           Timecop.travel(1.day.from_now) do
             @note = FactoryBot.create(:note, :post => @post)
           end
@@ -102,7 +89,7 @@ class NoteTest < ActiveSupport::TestCase
         end
 
         should "fail" do
-          assert_difference("Note.count", 0) do
+          assert_difference(-> { Note.count }, 0) do
             @note = FactoryBot.build(:note, :post => @post)
             @note.save
           end
@@ -115,26 +102,27 @@ class NoteTest < ActiveSupport::TestCase
       setup do
         @post = FactoryBot.create(:post, :image_width => 1000, :image_height => 1000)
         @note = FactoryBot.create(:note, :post => @post)
-        @note.stubs(:merge_version?).returns(false)
       end
 
       should "increment the updater's note_update_count" do
         @user.reload
-        assert_difference("@user.note_update_count", 1) do
+        assert_difference(-> { @user.note_update_count }, 1) do
           @note.update(:body => "zzz")
           @user.reload
         end
       end
 
       should "update the post's last_noted_at field" do
-        assert_nil(@post.last_noted_at)
-        @note.update(:x => 500)
-        @post.reload
-        assert_equal(@post.last_noted_at.to_i, @note.updated_at.to_i)
+        assert_equal(@post.last_noted_at, @note.updated_at)
+        Timecop.travel(1.day.from_now) do
+          @note2 = FactoryBot.create(:note, post: @post)
+          assert_not_equal(@post.last_noted_at, @note.updated_at)
+          assert_equal(@post.last_noted_at, @note2.updated_at)
+        end
       end
 
       should "create a version" do
-        assert_difference("NoteVersion.count", 1) do
+        assert_difference(-> { NoteVersion.count }, 1) do
           Timecop.travel(1.day.from_now) do
             @note.update(:body => "fafafa")
           end
@@ -160,7 +148,7 @@ class NoteTest < ActiveSupport::TestCase
 
       context "without making any changes" do
         should "not create a new version" do
-          assert_no_difference("@note.versions.count") do
+          assert_no_difference(-> { @note.versions.count }) do
             @note.save
           end
         end
