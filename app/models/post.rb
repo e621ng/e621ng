@@ -1344,11 +1344,11 @@ class Post < ApplicationRecord
       end
 
       transaction do
+        approvals.create(user: CurrentUser.user)
         self.is_deleted = false
         self.approver_id = CurrentUser.id
-        flags.each {|x| x.resolve!}
+        flags.each(&:resolve!)
         save
-        approvals.create(user: CurrentUser.user)
         unless options[:without_mod_action]
           ModAction.log(:post_undelete, {post_id: id})
         end

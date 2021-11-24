@@ -9,7 +9,7 @@ class PostEventsControllerTest < ActionDispatch::IntegrationTest
 
     as_user do
       @post = create(:post)
-      @post.flag!("aaa")
+      create(:post_flag, post: @post)
       @post.approve!(@mod)
     end
   end

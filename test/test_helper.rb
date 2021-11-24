@@ -54,7 +54,7 @@ class ActiveSupport::TestCase
   include TestHelpers
 
   setup do
-    Socket.stubs(:gethostname).returns("www.example.com")
+    Danbooru.config.stubs(:hostname).returns("www.example.com")
     WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles?).returns(true)
@@ -100,7 +100,7 @@ class ActionDispatch::IntegrationTest
 
   def setup
     super
-    Socket.stubs(:gethostname).returns("www.example.com")
+    Danbooru.config.stubs(:hostname).returns("www.example.com")
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
   end
 

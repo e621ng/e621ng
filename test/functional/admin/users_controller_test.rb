@@ -17,11 +17,20 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
 
     context "#update" do
       context "on a basic user" do
-        should "succeed" do
-          put_auth admin_user_path(@user), @mod, params: {:user => {:level => "30"}}
-          assert_redirected_to(edit_admin_user_path(@user))
+        should "change the leve" do
+          put_auth admin_user_path(@user), @mod, params: { user: { level: "30" } }
+          assert_redirected_to(user_path(@user))
           @user.reload
           assert_equal(30, @user.level)
+        end
+
+        should "change the name" do
+          assert_difference(-> { UserNameChangeRequest.count }, 1) do
+            put_auth admin_user_path(@user), @mod, params: { user: { name: "renamed" } }
+          end
+          assert_redirected_to(user_path(@user))
+          @user.reload
+          assert_equal("renamed", @user.name)
         end
 
         context "promoted to an admin" do

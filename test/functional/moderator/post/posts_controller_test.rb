@@ -40,21 +40,14 @@ module Moderator
         context "undelete action" do
           should "render" do
             as_user do
-              @post.update(is_deleted: true)
+              @post.delete! "test delete"
             end
             assert_difference(-> { PostApproval.count }, 1) do
-              post_auth undelete_moderator_post_post_path(@post), @admin, params: {:format => "js"}
+              post_auth undelete_moderator_post_post_path(@post), @admin, params: { format: :json }
             end
 
             assert_response :success
-            assert(!@post.reload.is_deleted?)
-          end
-        end
-
-        context "confirm_move_favorites action" do
-          should "render" do
-            get_auth confirm_ban_moderator_post_post_path(@post), @admin
-            assert_response :success
+            assert_not(@post.reload.is_deleted?)
           end
         end
 
@@ -70,7 +63,7 @@ module Moderator
             end
             users = FactoryBot.create_list(:user, 2)
             users.each do |u|
-              @child.add_favorite!(u)
+              FavoriteManager.add!(user: u, post: @child)
               @child.reload
             end
 
@@ -87,7 +80,7 @@ module Moderator
 
         context "expunge action" do
           should "render" do
-            post_auth expunge_moderator_post_post_path(@post), @admin, params: { format: "js" }
+            post_auth expunge_moderator_post_post_path(@post), @admin, params: { format: :json }
 
             assert_response :success
             assert_equal(false, ::Post.exists?(@post.id))

@@ -256,22 +256,10 @@ class UploadServiceTest < ActiveSupport::TestCase
   context "#create_post_from_upload" do
     subject { UploadService }
 
-    setup do
-      CurrentUser.user = travel_to(1.month.ago) do
-        FactoryBot.create(:user)
-      end
-      CurrentUser.ip_addr = "127.0.0.1"
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "for a pixiv" do
       setup do
         @source = "https://i.pximg.net/img-original/img/2017/11/21/05/12/37/65981735_p0.jpg"
-        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source)
+        @upload = FactoryBot.create(:jpg_upload, source: @source)
       end
 
       should "record the canonical source" do
@@ -282,7 +270,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "for an image" do
       setup do
-        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100)
+        @upload = FactoryBot.create(:source_upload)
       end
 
       should "create a post" do

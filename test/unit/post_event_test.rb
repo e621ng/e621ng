@@ -10,7 +10,8 @@ class PostEventTest < ActiveSupport::TestCase
     end
 
     @post = FactoryBot.create(:post)
-    @post_flag = PostFlag.create(:post => @post, :reason => "aaa", :is_resolved => false)
+    create(:post_flag, post: @post, is_resolved: false)
+    @post.approve!
   end
 
   def teardown
@@ -22,8 +23,8 @@ class PostEventTest < ActiveSupport::TestCase
   context "PostEvent.find_for_post" do
     should "work" do
       results = PostEvent.find_for_post(@post.id)
-      assert_equal(2, results.size)
-      assert_equal("flag", results[0].type_name)
+      assert_equal("approval", results[0].type_name)
+      assert_equal("flag", results[1].type_name)
     end
   end
 end

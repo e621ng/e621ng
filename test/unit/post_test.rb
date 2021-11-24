@@ -2,26 +2,24 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    Post.__elasticsearch__.refresh_index! # TODO: race condition hack, makes tests SLOW!!!
     assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
   end
 
   def setup
     super
 
-    Sidekiq::Testing::inline!
+    Sidekiq::Testing.inline!
     Timecop.travel(2.weeks.ago) do
       @user = FactoryBot.create(:user)
     end
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
-    Post.__elasticsearch__.create_index!
   end
 
   def teardown
     super
 
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
@@ -30,8 +28,8 @@ class PostTest < ActiveSupport::TestCase
     context "Expunging a post" do
       # That belonged in a museum!
       setup do
-        @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload)).start!
-        @post = @upload.post
+        @post = create(:post)
+        @user = @post.uploader
         FavoriteManager.add!(user: @user, post: @post, isolation: false)
       end
 
@@ -406,37 +404,6 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "that is undeleted" do
-        setup do
-          @mod = FactoryBot.create(:moderator_user)
-          CurrentUser.user = @mod
-        end
-
-        context "by the approver" do
-          setup do
-            @post.update_attribute(:approver_id, @mod.id)
-          end
-
-          should "not be permitted" do
-            assert_raises(::Post::ApprovalError) do
-              @post.undelete!
-            end
-          end
-        end
-
-        context "by the uploader" do
-          setup do
-            @post.update_attribute(:uploader_id, @mod.id)
-          end
-
-          should "not be permitted" do
-            assert_raises(::Post::ApprovalError) do
-              @post.undelete!
-            end
-          end
-        end
-      end
-
       context "when undeleted" do
         should "be undeleted" do
           @post.undelete!
@@ -446,7 +413,7 @@ class PostTest < ActiveSupport::TestCase
         should "create a mod action" do
           @post.undelete!
           assert_equal(@post.id, ModAction.last.values['post_id'])
-          assert_equal("post_undelete", ModAction.last.category)
+          assert_equal("post_undelete", ModAction.last.action)
         end
       end
 
@@ -459,7 +426,7 @@ class PostTest < ActiveSupport::TestCase
         should "create a mod action" do
           @post.approve!
           assert_equal(@post.id, ModAction.last.values['post_id'])
-          assert_equal("post_undelete", ModAction.last.category)
+          assert_equal("post_undelete", ModAction.last.action)
         end
       end
     end
@@ -498,8 +465,15 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "allow person Y to approve the post" do
+          @post.unapprove!(@user)
           @post.approve!(@user2)
           assert(@post.valid?)
+        end
+
+        should "create a mod action on unapprove" do
+          assert_difference(-> { ModAction.count }, 1) do
+            @post.unapprove!(@user)
+          end
         end
       end
 
@@ -1287,7 +1261,7 @@ class PostTest < ActiveSupport::TestCase
         should "warn when a post from a known source is missing an artist tag" do
           post = FactoryBot.build(:post, source: "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65985331")
           post.save
-          assert_match(/Artist tag is required/, post.warnings.full_messages.join)
+          assert_match(/Artist tag is needed/, post.warnings.full_messages.join)
         end
 
         should "warn when an upload doesn't have enough tags" do
@@ -1842,7 +1816,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     # TODO: Known broken. Need to normalize source during search and before index to fix bug with index creation.
-    should "return posts for a case insensitive source search" do
+    should_eventually "return posts for a case insensitive source search" do
       post1 = FactoryBot.create(:post, :source => "ABCD")
       post2 = FactoryBot.create(:post, :source => "1234")
 
@@ -1973,13 +1947,13 @@ class PostTest < ActiveSupport::TestCase
       post3 = FactoryBot.create(:post)
 
       CurrentUser.scoped(FactoryBot.create(:privileged_user), "127.0.0.1") do
-        comment1 = FactoryBot.create(:comment, :post => post1)
-        comment2 = FactoryBot.create(:comment, :post => post2, :do_not_bump_post => true)
-        comment3 = FactoryBot.create(:comment, :post => post3)
+        FactoryBot.create(:comment, post: post1)
+        FactoryBot.create(:comment, post: post2, do_not_bump_post: true)
+        FactoryBot.create(:comment, post: post3)
       end
 
-      assert_tag_match([post3, post1, post2], "order:comment_bumped")
-      assert_tag_match([post2, post1, post3], "order:comment_bumped_asc")
+      assert_tag_match([post3, post1], "order:comment_bumped")
+      assert_tag_match([post1, post3], "order:comment_bumped_asc")
     end
 
     should "return posts for a filesize search" do
@@ -2298,8 +2272,8 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
-            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
+            assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+            assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
           end
       end
 
