@@ -6,8 +6,6 @@ class TagTest < ActiveSupport::TestCase
     @janitor = FactoryBot.create(:janitor_user)
     CurrentUser.user = @janitor
     CurrentUser.ip_addr = "127.0.0.1"
-    Post.__elasticsearch__.index_name = "posts_test"
-    Post.__elasticsearch__.create_index!
   end
 
   teardown do
@@ -271,6 +269,7 @@ class TagTest < ActiveSupport::TestCase
 
   context "A tag with a negative post count" do
     should "be fixed" do
+      Post.__elasticsearch__.create_index! force: true
       tag = FactoryBot.create(:tag, name: "touhou", post_count: -10)
       post = FactoryBot.create(:post, tag_string: "touhou")
 

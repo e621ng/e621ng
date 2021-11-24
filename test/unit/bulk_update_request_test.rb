@@ -17,6 +17,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "#estimate_update_count" do
       setup do
+        Post.__elasticsearch__.create_index! force: true
         FactoryBot.create(:post, tag_string: "aaa")
         FactoryBot.create(:post, tag_string: "bbb")
         FactoryBot.create(:post, tag_string: "ccc")

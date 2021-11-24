@@ -10,6 +10,8 @@ module Indexable
   def self.included(base)
     base.include Elasticsearch::Model
 
+    base.index_name("#{base.model_name.plural}_#{Rails.env}") unless Rails.env.production?
+
     base.after_commit on: [:create] do
       __elasticsearch__.index_document
     end
@@ -24,7 +26,10 @@ module Indexable
   end
 
   def update_index(defer: true, priority: :high)
-    if defer && !Rails.env.test?
+    # TODO: race condition hack, makes tests SLOW!!!
+    return __elasticsearch__.index_document refresh: "true" if Rails.env.test?
+
+    if defer
       if priority == :high
         IndexUpdateJob.perform_async(self.class.to_s, id)
       elsif priority == :rebuild
