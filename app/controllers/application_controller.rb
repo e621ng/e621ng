@@ -102,15 +102,15 @@ class ApplicationController < ActionController::Base
 
   def render_404
     respond_to do |fmt|
-        fmt.html do
-          render "static/404", formats: [:html, :atom], status: 404
-        end
-        fmt.json do
-          render json: {:success => false, reason: "not found"}, :status => 404
-        end
-        fmt.atom do
-          render "static/404", formats: [:atom], status: 404
-        end
+      fmt.all do
+        render "static/404", formats: [:html, :atom], status: 404
+      end
+      fmt.json do
+        render json: { success: false, reason: "not found" }, status: 404
+      end
+      fmt.atom do
+        render "static/404", formats: [:atom], status: 404
+      end
     end
   end
 

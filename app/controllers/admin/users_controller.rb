@@ -35,8 +35,8 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
       @user.mark_unverified! if params[:user][:verified] == 'false'
       params[:user][:is_upgrade] = true
       params[:user][:skip_dmail] = true
-      @user.promote_to!(params[:user][:level], params[:user])
-      if old_username != desired_username
+      @user.promote_to!(params[:user][:level], params[:user]) if params[:user][:level]
+      if desired_username && old_username != desired_username
         change_request = UserNameChangeRequest.create!({
                                                            original_name: @user.name,
                                                            user_id: @user.id,

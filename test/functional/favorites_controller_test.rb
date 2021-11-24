@@ -4,18 +4,20 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
   context "The favorites controller" do
     setup do
       @user = create(:user)
+      as_user do
+        @post = create(:post)
+      end
     end
 
     context "index action" do
       setup do
-        @post = create(:post)
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
       end
 
       context "with a specified tags parameter" do
         should "redirect to the posts controller" do
-          get_auth favorites_path, @user, params: {:tags => "fav:#{@user.name} abc"}
-          assert_redirected_to(posts_path(:tags => "fav:#{@user.name} abc"))
+          get_auth favorites_path, @user, params: { tags: "fav:#{@user.name} abc" }
+          assert_redirected_to(posts_path(tags: "fav:#{@user.name} abc"))
         end
       end
 
@@ -26,26 +28,21 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "create action" do
-      setup do
-        @post = create(:post)
-      end
-
       should "create a favorite for the current user" do
-        assert_difference("Favorite.count", 1) do
-          post_auth favorites_path, @user, params: {:format => "js", :post_id => @post.id}
+        assert_difference(-> { Favorite.count }, 1) do
+          post_auth favorites_path, @user, params: { format: :json, post_id: @post.id }
         end
       end
     end
 
     context "destroy action" do
       setup do
-        @post = create(:post)
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
       end
 
       should "remove the favorite from the current user" do
-        assert_difference("Favorite.count", -1) do
-          delete_auth favorite_path(@post.id), @user, params: {:format => "js"}
+        assert_difference(-> { Favorite.count }, -1) do
+          delete_auth favorite_path(@post.id), @user, params: { format: :json }
         end
       end
     end

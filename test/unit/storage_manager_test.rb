@@ -45,7 +45,7 @@ class StorageManagerTest < ActiveSupport::TestCase
 
   context "StorageManager::Local" do
     setup do
-      @storage_manager = StorageManager::Local.new(base_dir: BASE_DIR, base_url: "/data")
+      @storage_manager = StorageManager::Local.new(base_dir: BASE_DIR, base_url: "/")
     end
 
     teardown do
@@ -113,7 +113,6 @@ class StorageManagerTest < ActiveSupport::TestCase
     context "#file_url method" do
       should "return the correct urls" do
         @post = FactoryBot.create(:post, file_ext: "png")
-        @storage_manager.stubs(:tagged_filenames).returns(false)
 
         assert_equal("/data/#{@post.md5}.png", @storage_manager.file_url(@post, :original))
         assert_equal("/data/sample/sample-#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
@@ -139,9 +138,9 @@ class StorageManagerTest < ActiveSupport::TestCase
 
       @storage_manager = StorageManager::Hybrid.new do |id, md5, file_ext, type|
         if id.odd?
-          StorageManager::Local.new(base_dir: "#{BASE_DIR}/i1", base_url: "/i1")
+          StorageManager::Local.new(base_dir: "#{BASE_DIR}/i1", base_url: "/i1", base_path: "")
         else
-          StorageManager::Local.new(base_dir: "#{BASE_DIR}/i2", base_url: "/i2")
+          StorageManager::Local.new(base_dir: "#{BASE_DIR}/i2", base_url: "/i2", base_path: "")
         end
       end
     end

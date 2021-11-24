@@ -57,15 +57,6 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         get_auth dmails_path, @user, params: {:search => {:owner_id => @dmail.owner_id}}
         assert_response :success
       end
-
-      should "work for banned users" do
-        as(create(:admin_user)) do
-          create(:ban, :user => @user)
-        end
-        get_auth dmails_path, @dmail.owner, params: {:search => {:owner_id => @dmail.owner_id, :folder => "sent"}}
-
-        assert_response :success
-      end
     end
 
     context "show action" do
@@ -86,7 +77,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "create two messages, one for the sender and one for the recipient" do
-        assert_difference("Dmail.count", 2) do
+        assert_difference(-> { Dmail.count }, 2) do
           dmail_attribs = {:to_id => @user_2.id, :title => "abc", :body => "abc"}
           post_auth dmails_path, @user, params: {:dmail => dmail_attribs}
           assert_redirected_to dmail_path(Dmail.last)
@@ -96,15 +87,19 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "allow deletion if the dmail is owned by the current user" do
-        assert_difference("Dmail.count", -1) do
+        assert_difference(-> { Dmail.count }, 0) do
           delete_auth dmail_path(@dmail), @user
+          @dmail.reload
+          assert(@dmail.is_deleted?)
           assert_redirected_to dmails_path
         end
       end
 
       should "not allow deletion if the dmail is not owned by the current user" do
-        assert_difference("Dmail.count", 0) do
+        assert_difference(-> { Dmail.count }, 0) do
           delete_auth dmail_path(@dmail), @unrelated_user
+          @dmail.reload
+          assert_not(@dmail.is_deleted?)
         end
       end
     end

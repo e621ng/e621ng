@@ -167,7 +167,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_admin?
+    return true if from&.is_admin?
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason
     if allowed != true || minute_allowed != true
@@ -189,6 +189,10 @@ class Dmail < ApplicationRecord
   def recipient_accepts_dmails
     unless to
       errors.add(:to_name, "not found")
+      return false
+    end
+    unless from
+      errors.add(:from_name, "not found")
       return false
     end
     return true if from_id == User.system.id
