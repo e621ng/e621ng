@@ -9,9 +9,9 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       CurrentUser.ip_addr = "127.0.0.1"
 
       @post = FactoryBot.create(:post)
-      @comment = FactoryBot.create(:comment, :post => @post)
+      @comment = FactoryBot.create(:comment, post: @post, creator: @user)
       CurrentUser.scoped(@mod) do
-        @mod_comment = FactoryBot.create(:comment, :post => @post)
+        @mod_comment = FactoryBot.create(:comment, post: @post)
       end
     end
 
@@ -22,7 +22,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       should "render for post" do
-        get comments_path(post_id: @post.id, group_by: "post", format: "js")
+        get comments_path(post_id: @post.id, group_by: "post", format: :json)
         assert_response :success
       end
 
@@ -115,10 +115,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "create action"do
+    context "create action" do
       should "create a comment" do
         assert_difference("Comment.count", 1) do
-          post_auth comments_path, @user, params: {comment: FactoryBot.attributes_for(:comment, post_id: @post.id)}
+          post_auth comments_path, @user, params: { comment: { post_id: @post.id, body: "test" } }
         end
         comment = Comment.last
         assert_redirected_to post_path(comment.post)
@@ -126,7 +126,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       should "not allow commenting on nonexistent posts" do
         assert_difference("Comment.count", 0) do
-          post_auth comments_path, @user, params: {comment: FactoryBot.attributes_for(:comment, post_id: -1)}
+          post_auth comments_path, @user, params: { comment: { post_id: -1, body: "test" } }
         end
         assert_redirected_to comments_path
       end

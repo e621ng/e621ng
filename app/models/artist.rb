@@ -382,8 +382,8 @@ class Artist < ApplicationRecord
 
           begin
             Post.tag_match(name).records.each do |post|
-              fixed_tags = post.tag_string.sub(/(?:\A| )avoid_posting(?:\Z| )/, " ").strip
-              post.update(:tag_string => fixed_tags)
+              fixed_locked_tags = post.locked_tags&.sub(/(?:\A| )avoid_posting(?:\Z| )/, " ")&.strip
+              post.update(locked_tags: fixed_locked_tags)
             end
           rescue Post::SearchError
             # swallow

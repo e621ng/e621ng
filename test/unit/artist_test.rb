@@ -3,18 +3,13 @@ require 'test_helper'
 class ArtistTest < ActiveSupport::TestCase
   def assert_artist_found(expected_name, source_url)
     artists = Artist.find_artists(source_url).to_a
-
     assert_equal(1, artists.size)
     assert_equal(expected_name, artists.first.name, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout
-    skip "Remote connection failed for #{source_url}"
   end
 
   def assert_artist_not_found(source_url)
     artists = Artist.find_artists(source_url).to_a
     assert_equal(0, artists.size, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout
-    skip "Remote connection failed for #{source_url}"
   end
 
   context "An artist" do
@@ -70,6 +65,7 @@ class ArtistTest < ActiveSupport::TestCase
         @artist = FactoryBot.create(:artist, :name => "aaa")
         @admin = FactoryBot.create(:admin_user)
         CurrentUser.scoped(@admin) { @artist.ban! }
+        TagImplicationJob.drain
         @post.reload
       end
 
@@ -89,7 +85,6 @@ class ArtistTest < ActiveSupport::TestCase
 
       should "create a new tag implication" do
         assert_equal(1, TagImplication.where(:antecedent_name => "aaa", :consequent_name => "avoid_posting").count)
-        puts TagImplication.where(:antecedent_name => "aaa", :consequent_name => "avoid_posting")
         assert_equal("aaa avoid_posting", @post.tag_string)
       end
 
@@ -216,7 +211,7 @@ class ArtistTest < ActiveSupport::TestCase
         FactoryBot.create(:artist, :name => "trixia",  :url_string => "http://trixdraws.deviantart.com/")
       end
 
-      should "find the correct artist for page URLs" do
+      should_eventually "find the correct artist for page URLs" do
         assert_artist_found("artgerm", "http://www.deviantart.com/artgerm/art/Peachy-Princess-Ver-2-457220550")
         assert_artist_found("trixia", "http://www.deviantart.com/trixdraws/art/My-Queen-426745289")
       end
@@ -236,7 +231,7 @@ class ArtistTest < ActiveSupport::TestCase
         assert_artist_found("haruyama_kazunori", "https://twitter.com/kazuharoom/status/733355069966426113")
       end
 
-      should "find the correct artist for mobile.twitter.com sources" do
+      should_eventually "find the correct artist for mobile.twitter.com sources" do
         assert_artist_found("hammer_(sunset_beach)", "http://mobile.twitter.com/hamaororon/status/684338785744637952")
         assert_artist_found("hammer_(sunset_beach)", "https://mobile.twitter.com/hamaororon/status/684338785744637952")
 
@@ -337,6 +332,7 @@ class ArtistTest < ActiveSupport::TestCase
     end
 
     should "update the category of the tag when created" do
+      CurrentUser.user = create(:janitor_user)
       tag = FactoryBot.create(:tag, :name => "abc")
       artist = FactoryBot.create(:artist, :name => "abc")
       tag.reload

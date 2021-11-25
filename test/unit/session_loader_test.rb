@@ -7,7 +7,9 @@ class SessionLoaderTest < ActiveSupport::TestCase
       @request.stubs(:host).returns("danbooru")
       @request.stubs(:remote_ip).returns("127.0.0.1")
       @request.stubs(:authorization).returns(nil)
-      @request.stubs(:cookie_jar).returns({})
+      cookie_jar = mock
+      cookie_jar.stubs(:encrypted).returns({})
+      @request.stubs(:cookie_jar).returns(cookie_jar)
       @request.stubs(:parameters).returns({})
       @request.stubs(:session).returns({})
     end
@@ -19,15 +21,15 @@ class SessionLoaderTest < ActiveSupport::TestCase
     end
 
     context ".safe_mode?" do
-      should "return true if the host contains the string safebooru" do
-        @request.stubs(:host).returns("safebooru")
+      should "return true if the config has safe mode enabled" do
+        Danbooru.config.stubs(:safe_mode?).returns(true)
         SessionLoader.new(@request).load
 
         assert_equal(true, CurrentUser.safe_mode?)
       end
 
-      should "return false if the host contains the string danbooru" do
-        @request.stubs(:host).returns("danbooru")
+      should "return false if the config has safe mode disabled" do
+        Danbooru.config.stubs(:safe_mode?).returns(false)
         SessionLoader.new(@request).load
 
         assert_equal(false, CurrentUser.safe_mode?)

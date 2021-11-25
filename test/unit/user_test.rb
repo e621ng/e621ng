@@ -74,12 +74,12 @@ class UserTest < ActiveSupport::TestCase
       assert_equal(@user.can_comment_vote_with_reason, :REJ_NEWBIE)
       @user.update_column(:created_at, 1.year.ago)
       Danbooru.config.comment_vote_limit.times do
-        comment = FactoryBot.create(:comment)
+        comment = FactoryBot.create(:comment, creator: @user)
         VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
       end
 
       assert_equal(@user.can_comment_vote_with_reason, :REJ_LIMITED)
-      comment = FactoryBot.create(:comment)
+      comment = FactoryBot.create(:comment, creator: @user)
       assert_raises ActiveRecord::RecordInvalid do
         VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
       end
@@ -96,7 +96,7 @@ class UserTest < ActiveSupport::TestCase
       @user.update_column(:created_at, 1.year.ago)
       assert(@user.can_comment_with_reason)
       Danbooru.config.member_comment_limit.times do
-        FactoryBot.create(:comment)
+        FactoryBot.create(:comment, creator: @user)
       end
       assert_equal(@user.can_comment_with_reason, :REJ_LIMITED)
     end

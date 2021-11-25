@@ -7,7 +7,7 @@ module Moderator
         @user = FactoryBot.create(:user)
         CurrentUser.user = @user
         CurrentUser.ip_addr = "170.1.2.3"
-        FactoryBot.create(:comment)
+        comment = FactoryBot.create(:comment, creator: @user, creator_ip_addr: CurrentUser.ip_addr)
       end
 
       teardown do

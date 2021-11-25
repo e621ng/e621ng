@@ -54,7 +54,7 @@ class ForumPostTest < ActiveSupport::TestCase
       should "know which page it's on" do
         assert_equal(2, @posts[3].forum_topic_page)
         assert_equal(2, @posts[4].forum_topic_page)
-        assert_equal(2, @posts[5].forum_topic_page)
+        assert_equal(3, @posts[5].forum_topic_page)
         assert_equal(3, @posts[6].forum_topic_page)
       end
 
