@@ -21,8 +21,7 @@ module PostSets
 
       context "a set for page 2" do
         setup do
-          @set = PostSets::Post.new("", 2)
-          ::Post.stubs(:records_per_page).returns(1)
+          @set = PostSets::Post.new("", 2, 1)
         end
 
         should "return the second element" do
@@ -49,8 +48,7 @@ module PostSets
 
         context "for before the first element" do
           setup do
-            @set = PostSets::Post.new("a", "b#{@post_5.id}")
-            ::Post.stubs(:records_per_page).returns(1)
+            @set = PostSets::Post.new("a", "b#{@post_5.id}", 1)
           end
 
           should "return the second element" do
@@ -60,8 +58,7 @@ module PostSets
 
         context "for after the second element" do
           setup do
-            @set = PostSets::Post.new("a", "a#{@post_4.id}")
-            @set.stubs(:records_per_page).returns(1)
+            @set = PostSets::Post.new("a", "a#{@post_4.id}", 1)
           end
 
           should "return the first element" do
@@ -92,32 +89,6 @@ module PostSets
         end
       end
 
-      context "a set for the 'a b c' tag query" do
-        setup do
-          @set = PostSets::Post.new("a b c")
-        end
-
-        context "for a non-gold user" do
-          should "fail" do
-            assert_raises(::Post::SearchError) do
-              @set.posts
-            end
-          end
-        end
-
-        context "for a gold user" do
-          setup do
-            CurrentUser.user = FactoryBot.create(:privileged_user)
-          end
-
-          should "pass" do
-            assert_nothing_raised do
-              @set.posts
-            end
-          end
-        end
-      end
-
       context "a set for the 'a' tag query" do
         setup do
           @set = PostSets::Post.new("a")
@@ -128,10 +99,14 @@ module PostSets
         end
 
         should "normalize its tag query" do
-          assert_equal("a", @set.tag_string)
+          assert_equal("a -status:deleted", @set.tag_string)
         end
 
         should "know the count" do
+          # reset and use other things because of elasticsearch not reseting between tests
+          ::Post.__elasticsearch__.create_index! force: true
+          @post = FactoryBot.create(:post, :tag_string => "d")
+          @set = PostSets::Post.new("d")
           assert_equal(1, @set.posts.total_count)
         end
 
@@ -152,7 +127,9 @@ module PostSets
 
         context "that has a matching artist" do
           setup do
-            @artist = FactoryBot.create(:artist, :name => "a")
+            as create(:janitor_user) do
+              @artist = FactoryBot.create(:artist, :name => "a")
+            end
           end
 
           should "find the artist" do

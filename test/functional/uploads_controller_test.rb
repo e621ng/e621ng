@@ -1,18 +1,18 @@
 require 'test_helper'
 
 class UploadsControllerTest < ActionDispatch::IntegrationTest
-
   setup do
-    Sidekiq::Testing::inline!
+    Sidekiq::Testing.inline!
   end
 
   teardown do
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
   end
 
   context "The uploads controller" do
     setup do
       @user = create(:contributor_user)
+      @janitor = create(:janitor_user)
       mock_iqdb_service!
     end
 
@@ -23,18 +23,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context "with a url" do
-        should "preprocess" do
-          assert_difference(-> { Upload.count }) do
-            get_auth new_upload_path, @user, params: {:url => "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
-            assert_response :success
-          end
-        end
-
         should "prefer the file" do
           get_auth new_upload_path, @user, params: {url: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
           file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
           assert_difference(-> { Post.count }) do
-            post_auth uploads_path, @user, params: {upload: {file: file, tag_string: "aaa", rating: "q", source: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}}
+            post_auth uploads_path, @user, params: {upload: {file: file, tag_string: "aaa", rating: "q", source: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}, format: :json}
           end
           post = Post.last
           assert_equal("ecef68c44edb8a0d6a3070b5f8e8ee76", post.md5)
@@ -46,13 +39,9 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
           @source = "https://twitter.com/frappuccino/status/566030116182949888"
         end
 
-        should "render" do
-          get_auth new_upload_path, @user, params: {:url => @source}
-          assert_response :success
-        end
-
         should "set the correct source" do
-          get_auth new_upload_path, @user, params: {:url => @source}
+          file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
+          post_auth uploads_path, @user, params: {upload: {file: file, tag_string: "aaa", rating: "q", source: @source}, format: :json}
           assert_response :success
           upload = Upload.last
           assert_equal(@source, upload.source)
@@ -83,7 +72,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render" do
-        get uploads_path
+        get_auth uploads_path, @janitor
         assert_response :success
       end
 
@@ -98,7 +87,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             status: @upload.status
           }
 
-          get uploads_path, params: { search: search_params }
+          get_auth uploads_path, @janitor, params: { search: search_params }
           assert_response :success
         end
       end
@@ -112,7 +101,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render" do
-        get_auth upload_path(@upload), @user
+        get_auth upload_path(@upload), @janitor
         assert_response :success
       end
     end

@@ -36,10 +36,6 @@ module PostSets
       tag_array.reject {|tag| tag =~ /\Aorder:/i }
     end
 
-    def has_blank_wiki?
-      tag.present? && !wiki_page.present?
-    end
-
     def wiki_page
       return nil unless tag.present? && tag.wiki_page.present?
       return nil unless !tag.wiki_page.is_deleted? && tag.wiki_page.visible?
@@ -49,11 +45,11 @@ module PostSets
     def tag
       return nil if !is_single_tag?
       return nil if is_metatag_only?
-      @tag ||= Tag.find_by(name: Tag.normalize_name(tag_string))
+      @tag ||= Tag.find_by(name: Tag.normalize_name(public_tag_string))
     end
 
     def is_metatag_only?
-      Tag.is_metatag?(Tag.normalize_name(tag_string))
+      Tag.is_metatag?(Tag.normalize_name(public_tag_string))
     end
 
     def artist
@@ -149,7 +145,7 @@ module PostSets
     end
 
     def is_single_tag?
-      tag_array.size == 1
+      public_tag_array.size == 1
     end
 
     def is_simple_tag?

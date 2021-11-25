@@ -42,6 +42,10 @@ class PostReplacement < ApplicationRecord
     def is_video?
       %w(webm).include?(file_ext)
     end
+
+    def is_corrupt?
+      is_image? && DanbooruImageResizer.is_corrupt?(replacement_file.path)
+    end
   end
 
   def no_pending_duplicates
@@ -110,7 +114,7 @@ class PostReplacement < ApplicationRecord
 
     def update_file_attributes
       self.file_ext = UploadService::Utils.file_header_to_file_ext(replacement_file)
-      if file_ext == "bin"
+      if file_ext == "bin" || is_corrupt?
         self.errors.add(:base, "Unknown or invalid file format")
         throw :abort
       end
@@ -178,13 +182,14 @@ class PostReplacement < ApplicationRecord
     end
 
     def promote!
-      transaction do
+      new_post = transaction do
         processor = UploadService.new(new_upload_params)
         new_post = processor.start!
         update_attribute(:status, 'promoted')
         new_post
       end
       post.update_index
+      new_post
     end
 
     def reject!

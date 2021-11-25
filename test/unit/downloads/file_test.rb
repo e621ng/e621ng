@@ -4,12 +4,16 @@ module Downloads
   class FileTest < ActiveSupport::TestCase
     context "A post download" do
       setup do
-        @source = "http://www.google.com/intl/en_ALL/images/logo.gif"
+        CurrentUser.user = create(:user)
+        FactoryBot.create(:upload_whitelist, pattern: "*google.com*")
+        @source = "https://www.google.com/intl/en_ALL/images/logo.gif"
         @download = Downloads::File.new(@source)
       end
 
       context "for a banned IP" do
         setup do
+          FactoryBot.create(:upload_whitelist, pattern: "*evil.com*")
+          FactoryBot.create(:upload_whitelist, pattern: "*httpbin.org*")
           Resolv.expects(:getaddress).returns("127.0.0.1").at_least_once
         end
 
