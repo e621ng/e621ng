@@ -203,7 +203,7 @@ class TagAlias < TagRelationship
       end
     rescue Exception => e
       Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")
-      if tries < 5
+      if tries < 5 && !Rails.env.test?
         tries += 1
         sleep 2 ** tries
         retry

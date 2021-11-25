@@ -160,7 +160,9 @@ class TagAliasTest < ActiveSupport::TestCase
       setup do
         @admin = FactoryBot.create(:admin_user)
         CurrentUser.scoped(@admin) do
-          @alias = FactoryBot.create(:tag_alias_with_topic, status: "pending")
+        request = TagAliasRequest.new(FactoryBot.attributes_for(:tag_alias))
+        request.create
+        @alias = request.tag_alias
         end
       end
 
@@ -184,8 +186,7 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should "update the topic when failed" do
-        @alias.stubs(:sleep).returns(true)
-        @alias.stubs(:update_posts).raises(Exception, "oh no")
+        TagAlias.any_instance.stubs(:update_blacklists).raises(Exception, "oh no")
         @alias.approve!(approver: @admin)
         @alias.reload
 

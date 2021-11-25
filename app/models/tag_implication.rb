@@ -124,7 +124,7 @@ class TagImplication < TagRelationship
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         end
       rescue Exception => e
-        if tries < 5
+        if tries < 5 && !Rails.env.test?
           tries += 1
           sleep 2 ** tries
           retry

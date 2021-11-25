@@ -5,6 +5,7 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
     user = FactoryBot.create(:user)
     CurrentUser.user = user
     CurrentUser.ip_addr = "127.0.0.1"
+    Post.__elasticsearch__.create_index! force: true
   end
 
   teardown do
@@ -18,7 +19,7 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
         FactoryBot.create(:post, :tag_string => "aaa bbb ccc ddd")
         FactoryBot.create(:post, :tag_string => "aaa bbb ccc")
         FactoryBot.create(:post, :tag_string => "aaa bbb")
-        @posts = Post.tag_match("aaa")
+        @posts = Post.tag_match("aaa").records
       end
 
       should "calculate the related tags" do
