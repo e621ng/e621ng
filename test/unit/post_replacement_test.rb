@@ -212,27 +212,27 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "create a new post with replacement contents" do
-      post = @replacement.promote!
-      assert post
-      assert_equal [], post.errors.full_messages
-      assert_equal [], post.post.errors.full_messages
+      upload = @replacement.promote!
+      assert upload
+      assert_equal [], upload.errors.full_messages
+      assert_equal [], upload.post.errors.full_messages
       assert_equal 'promoted', @replacement.status
-      assert_equal post.md5, @replacement.md5
-      assert_equal post.file_ext, @replacement.file_ext
-      assert_equal post.image_width, @replacement.image_width
-      assert_equal post.image_height, @replacement.image_height
-      assert_equal post.tag_string.strip, @replacement.post.tag_string.strip
-      assert_equal post.parent_id, @replacement.post_id
-      assert_equal post.file_size, @replacement.file_size
+      assert_equal upload.md5, @replacement.md5
+      assert_equal upload.file_ext, @replacement.file_ext
+      assert_equal upload.image_width, @replacement.image_width
+      assert_equal upload.image_height, @replacement.image_height
+      assert_equal upload.tag_string.strip, @replacement.post.tag_string.strip
+      assert_equal upload.parent_id, @replacement.post_id
+      assert_equal upload.file_size, @replacement.file_size
     end
 
     should "credit replacer with new post" do
       assert_difference("Post.for_user(@mod_user.id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count", 0) do
         assert_difference("Post.for_user(@user.id).where('is_flagged = false AND is_deleted = false').count", 1) do
-          post = @replacement.promote!
-          assert post
-          assert_equal [], post.errors.full_messages
-          assert_equal [], post.post.errors.full_messages
+          upload = @replacement.promote!
+          assert upload
+          assert_equal [], upload.errors.full_messages
+          assert_equal [], upload.post.errors.full_messages
         end
       end
     end

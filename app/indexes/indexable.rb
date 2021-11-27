@@ -13,7 +13,7 @@ module Indexable
     base.index_name("#{base.model_name.plural}_#{Rails.env}") unless Rails.env.production?
 
     base.after_commit on: [:create] do
-      __elasticsearch__.index_document
+      __elasticsearch__.index_document(Rails.env.test? ? { refresh: "true" } : {})
     end
 
     base.after_commit on: [:update] do
@@ -21,7 +21,7 @@ module Indexable
     end
 
     base.after_commit on: [:destroy] do
-      __elasticsearch__.delete_document
+      __elasticsearch__.delete_document(Rails.env.test? ? { refresh: "true" } : {})
     end
   end
 
