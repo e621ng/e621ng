@@ -1191,7 +1191,7 @@ class Post < ApplicationRecord
     end
 
     def give_favorites_to_parent(options = {})
-      TransferFavoritesJob.perform_later(id, CurrentUser.id, options[:without_mod_action])
+      TransferFavoritesJob.perform_async(id, CurrentUser.id, options[:without_mod_action])
     end
 
     def give_favorites_to_parent!(options = {})
