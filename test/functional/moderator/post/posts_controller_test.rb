@@ -69,6 +69,7 @@ module Moderator
 
             post_auth move_favorites_moderator_post_post_path(@child.id), @admin, params: { commit: "Submit" }
             assert_redirected_to(@child)
+            TransferFavoritesJob.drain
             @parent.reload
             @child.reload
             as(@admin) do

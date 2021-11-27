@@ -7,7 +7,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       @other_user = create(:user)
       @mod = create(:moderator_user)
       as_user do
-        @forum_topic = create(:forum_topic, title: "my forum topic")
+        @forum_topic = create(:forum_topic, title: "my forum topic", body: "xxx")
         @forum_post = @forum_topic.original_post
       end
     end

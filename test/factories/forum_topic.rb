@@ -5,12 +5,16 @@ FactoryBot.define do
     is_locked { false }
     category_id { Danbooru.config.alias_implication_forum_category }
 
-    after(:build) do |topic|
-      topic.original_post = build(:forum_post, topic: topic) if topic.original_post.nil?
+    transient do
+      body { FFaker::Lorem.sentences.join(" ") }
     end
 
-    before(:create) do |topic|
-      topic.original_post = build(:forum_post, topic: topic) if topic.original_post.nil?
+    after(:build) do |topic, evaluator|
+      topic.original_post = build(:forum_post, topic: topic, body: evaluator.body) if topic.original_post.nil?
+    end
+
+    before(:create) do |topic, evaluator|
+      topic.original_post = build(:forum_post, topic: topic, body: evaluator.body) if topic.original_post.nil?
     end
 
     factory(:mod_up_forum_topic) do
