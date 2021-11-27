@@ -24,7 +24,7 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         as(@admin) do
-          create(:ip_ban)
+          create(:ip_ban, ip_addr: "1.2.3.4")
         end
       end
 
@@ -44,7 +44,7 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
     context "destroy action" do
       setup do
         as(@admin) do
-          @ip_ban = create(:ip_ban)
+          @ip_ban = create(:ip_ban, ip_addr: "1.2.3.4")
         end
       end
 
