@@ -41,12 +41,11 @@ services:
     image: e621ng
     environment:
       <<: *default-env
-      RAILS_ENV: test
       # Hide annoying output from libvips on corrupt files
       VIPS_WARNING: "0"
     volumes: *default-volumes
     depends_on: *default-depends-on
-    entrypoint: ["bin/rake", "test"]
+    entrypoint: ["bundle", "exec", "rails", "test"]
     profiles:
       - test
 
