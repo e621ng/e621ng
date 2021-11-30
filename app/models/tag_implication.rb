@@ -67,7 +67,7 @@ class TagImplication < TagRelationship
     extend Memoist
 
     def parents
-      self.class.where("consequent_name = ?", antecedent_name)
+      self.class.duplicate_relevant.where("consequent_name = ?", antecedent_name)
     end
     memoize :parents
   end
