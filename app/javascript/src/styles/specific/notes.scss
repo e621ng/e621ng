@@ -4,6 +4,10 @@ div#note-container {
   position: absolute;
   z-index: 50;
 
+  &[data-resizing=true] {
+    display: none;
+  }
+
   div.note-body {
     position: absolute;
     border: 1px solid $note-border;

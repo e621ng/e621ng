@@ -32,7 +32,7 @@
       vertical-align: bottom;
     }
 
-    a.blacklisted-active {
+    a.entry-disabled {
       text-decoration: line-through;
     }
   }
@@ -64,14 +64,20 @@
   }
 }
 
-.post-preview.blacklisted-active, #c-comments .post.blacklisted-active {
-  display: none !important;
+// Hide blacklist box on post index page only
+#c-posts #a-index .post-preview.blacklisted {
+  display: none;
 }
 
-#image-container.blacklisted-active, .post-thumbnail.blacklisted-active {
-  img {
-    height: 150px;
-    width: 150px;
+#image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
+  img, video {
+    height: 0px;
+    width: 0px;
+    padding: 150px 150px 0px 0px;
+    background: url("images/blacklisted-preview.png");
+  }
+
+  #note-container {
+    display: none;
   }
 }
-

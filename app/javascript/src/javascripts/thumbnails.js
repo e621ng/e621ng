@@ -35,19 +35,17 @@ Thumbnails.initialize = function () {
     });
     const newTag = $('<div>');
     const blacklisted = DAB ? false : blacklist_hit_count > 0;
+    if (blacklist_hit_count > 0) {
+      Blacklist.post_count++;
+    }
     for (const key in postData) {
       newTag.attr("data-" + key.replace(/_/g, '-'), postData[key]);
     }
-    newTag.attr('class', blacklisted ? "post-thumbnail blacklisted blacklisted-active" : "post-thumbnail");
+    newTag.attr('class', blacklisted ? "post-thumbnail blacklisted" : "post-thumbnail");
     if (p.hasClass('thumb-placeholder-link'))
       newTag.addClass('dtext');
     const img = $('<img>');
-    newTag.attr('data-orig-url', postData.preview_url || '/images/deleted-preview.png');
-    if (blacklisted) {
-      img.attr('src', '/images/blacklisted-preview.png');
-    } else {
-      img.attr('src', postData.preview_url || '/images/deleted-preview.png');
-    }
+    img.attr('src', postData.preview_url || '/images/deleted-preview.png');
     img.attr({
       height: postData.preview_url ? postData.preview_height : 150,
       width: postData.preview_url ? postData.preview_width : 150,
@@ -61,6 +59,7 @@ Thumbnails.initialize = function () {
     newTag.append(link);
     p.replaceWith(newTag);
   });
+  Blacklist.sidebarUpdate();
 };
 
 $(document).ready(function () {
