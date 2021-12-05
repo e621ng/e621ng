@@ -11,6 +11,8 @@
     grid-column: 1;
     grid-row: 1;
     background: $lighten-background-5;
+    word-wrap: anywhere;
+    overflow-wrap: anywhere;
 
     .avatar {
       .post-thumbnail:not(.blacklisted) {
