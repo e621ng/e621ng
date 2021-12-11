@@ -68,18 +68,18 @@ module Downloads
     end
 
     def file_url
-      @file_url ||= Addressable::URI.parse(strategy.url)
+      @file_url ||= Addressable::URI.parse(alternate.url)
     end
 
-    def strategy
-      @strategy ||= Sources::Alternates.find(url.to_s)
+    def alternate
+      @alternate ||= Sources::Alternates.find(url.to_s)
     end
 
     def httparty_options
       {
         timeout: 10,
         stream_body: true,
-        headers: strategy.headers,
+        headers: alternate.headers,
         connection_adapter: ValidatingConnectionAdapter,
       }.deep_merge(Danbooru.config.httparty_options)
     end
