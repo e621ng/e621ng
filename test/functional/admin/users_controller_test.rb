@@ -17,7 +17,7 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
 
     context "#update" do
       context "on a basic user" do
-        should "change the leve" do
+        should "change the level" do
           put_auth admin_user_path(@user), @mod, params: { user: { level: "30" } }
           assert_redirected_to(user_path(@user))
           @user.reload
