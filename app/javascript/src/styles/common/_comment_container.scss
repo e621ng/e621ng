@@ -60,7 +60,7 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
-          .post-thumbnail {
+          .post-thumbnail:not(.blacklisted) {
             img {
               height: auto;
               width: auto;
