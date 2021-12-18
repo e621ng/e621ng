@@ -1,4 +1,5 @@
 require 'digest/sha1'
+require 'zlib'
 require 'danbooru/has_bit_flags'
 
 class User < ApplicationRecord
@@ -213,6 +214,10 @@ class User < ApplicationRecord
   end
 
   module PasswordMethods
+    def password_token
+      Zlib::crc32(bcrypt_password_hash)
+    end
+
     def bcrypt_password
       BCrypt::Password.new(bcrypt_password_hash)
     end
