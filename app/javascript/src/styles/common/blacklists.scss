@@ -64,9 +64,11 @@
   }
 }
 
-// Hide blacklist box on post index page only
-#c-posts #a-index .post-preview.blacklisted {
-  display: none;
+// Completely hide the blacklisted posts on these pages only
+#c-posts #a-index, #c-explore-posts {
+  .post-preview.blacklisted {
+    display: none;
+  }
 }
 
 #image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
@@ -75,6 +77,11 @@
     width: 0px;
     padding: 150px 150px 0px 0px;
     background: url("images/blacklisted-preview.png");
+
+    @media screen and (max-width: 800px) {
+      background-size: 100px;
+      padding: 100px 100px 0px 0px;
+    }
   }
 
   #note-container {
