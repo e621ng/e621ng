@@ -35,9 +35,6 @@ Thumbnails.initialize = function () {
     });
     const newTag = $('<div>');
     const blacklisted = DAB ? false : blacklist_hit_count > 0;
-    if (blacklist_hit_count > 0) {
-      Blacklist.post_count++;
-    }
     for (const key in postData) {
       newTag.attr("data-" + key.replace(/_/g, '-'), postData[key]);
     }
@@ -59,7 +56,6 @@ Thumbnails.initialize = function () {
     newTag.append(link);
     p.replaceWith(newTag);
   });
-  Blacklist.sidebarUpdate();
 };
 
 $(document).ready(function () {
