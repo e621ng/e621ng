@@ -1,8 +1,8 @@
 class VoteManager
   def self.vote!(user:, post:, score:)
     @vote = nil
-    score = score_modifier = score.to_i
     retries = 5
+    score = score.to_i
     begin
       raise PostVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise PostVote::Error.new("You do not have permission to vote") unless user.is_voter?
@@ -10,6 +10,7 @@ class VoteManager
       PostVote.transaction(**target_isolation) do
         PostVote.uncached do
           post.with_lock do
+            score_modifier = score
             old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
             if old_vote
               raise PostVote::Error.new("Vote is locked") if old_vote.score == 0
@@ -90,7 +91,7 @@ class VoteManager
   def self.comment_vote!(user:, comment:, score:)
     retries = 5
     @vote = nil
-    score = score_modifier = score.to_i
+    score = score.to_i
     begin
       raise CommentVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise CommentVote::Error.new("You do not have permission to vote") unless user.is_voter?
@@ -98,6 +99,7 @@ class VoteManager
       CommentVote.transaction(**target_isolation) do
         CommentVote.uncached do
           comment.with_lock do
+            score_modifier = score
             old_vote = CommentVote.where(user_id: user.id, comment_id: comment.id).first
             if old_vote
               raise CommentVote::Error.new("Vote is locked") if old_vote.score == 0
