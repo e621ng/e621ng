@@ -15,7 +15,7 @@
     overflow-wrap: anywhere;
 
     .avatar {
-      .post-thumbnail:not(.blacklisted) {
+      .post-thumbnail {
         img {
           height: auto;
           width: auto;
@@ -60,7 +60,7 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
-          .post-thumbnail:not(.blacklisted) {
+          .post-thumbnail {
             img {
               height: auto;
               width: auto;

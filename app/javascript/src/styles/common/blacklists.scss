@@ -67,20 +67,20 @@
 // Completely hide the blacklisted posts on these pages only
 #c-posts #a-index, #c-explore-posts, #c-favorites {
   .post-preview.blacklisted {
-    display: none;
+    display: none !important;
   }
 }
 
 #image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
   img, video {
-    height: 0px;
-    width: 0px;
-    padding: 150px 150px 0px 0px;
-    background: url("images/blacklisted-preview.png");
+    height: 0px !important;
+    width: 0px !important;
+    padding: 150px 150px 0px 0px !important;
+    background: url("images/blacklisted-preview.png") !important;
 
     @media screen and (max-width: 800px) {
-      background-size: 100px;
-      padding: 100px 100px 0px 0px;
+      background-size: 100px !important;
+      padding: 100px 100px 0px 0px !important;
     }
   }
 
