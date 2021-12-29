@@ -33,7 +33,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
+  after_save :create_rating_lock_mod_action, if: :saved_change_to_is_rating_locked?
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
