@@ -110,7 +110,7 @@
       </tr>
 
 
-      <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+      <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
         <tr>
           <th>Appeals</th>
           <td><%= presenter.appeal_count(self) %></td>
