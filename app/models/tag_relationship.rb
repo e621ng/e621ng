@@ -37,8 +37,8 @@ class TagRelationship < ApplicationRecord
   after_save :update_notice
 
   def initialize_creator
-    self.creator_id = CurrentUser.user.id
-    self.creator_ip_addr = CurrentUser.ip_addr
+    self.creator_id ||= CurrentUser.user.id
+    self.creator_ip_addr ||= CurrentUser.ip_addr
   end
 
   def normalize_names
