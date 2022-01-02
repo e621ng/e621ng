@@ -8,12 +8,11 @@
           <th width="2%"></th>
 
           <th>Title</th>
-          <th width="3%">Deleted</th>
-          <th width="5%">View</th>
+          <th>View</th>
           <% if CurrentUser.is_moderator? %>
-            <th width="10%">IP Address</th>
+            <th>IP Address</th>
           <% end %>
-          <th width="26%">Last edited</th>
+          <th>Last edited</th>
           <th>Reason</th>
         </tr>
       </thead>
@@ -32,8 +31,10 @@
 
             <td class="category-<%= wiki_page_version.category_name %>">
               <%= link_to wiki_page_version.title, wiki_page_version_path(wiki_page_version) %>
+              <% if wiki_page_version.is_deleted? %>
+                (deleted)
+              <% end %>
             </td>
-            <td><%= wiki_page_version.is_deleted? ? "Y" : "" %></td>
             <td><%= link_to "view version", wiki_page_version_path(wiki_page_version) %></td>
             <% if CurrentUser.is_moderator? %>
               <td>
