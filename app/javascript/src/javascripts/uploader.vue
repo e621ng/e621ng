@@ -72,12 +72,7 @@
                     <div class="col2">
                         <div>
             <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
-                      placeholder="Ex: artist_name etc." data-autocomplete="tag-edit"></textarea>
-                        </div>
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in checkboxes.artist" @set="setCheck"
-                                            :key="check.name"></image-checkbox>
+                      placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc." data-autocomplete="tag-edit"></textarea>
                         </div>
                     </div>
                 </div>
@@ -293,9 +288,6 @@
     notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
   };
-  const artist_checks = [
-    {name: 'Unknown Artist'},
-    {name: 'Anonymous Artist'}];
 
   const sex_checks = [
     {name: 'Male'},
@@ -488,7 +480,6 @@
         }
         allChecks[check.name.toLowerCase().replace(' ', '_')] = true;
       };
-      artist_checks.forEach(addChecks);
       sex_checks.forEach(addChecks);
       pairing_checks.forEach(addChecks);
       char_count_checks.forEach(addChecks);
@@ -524,7 +515,6 @@
         normalMode: !window.uploaderSettings.compactMode,
 
         checkboxes: {
-          artist: artist_checks,
           sex: sex_checks,
           pairing: pairing_checks,
           count: char_count_checks,
