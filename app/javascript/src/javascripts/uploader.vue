@@ -243,6 +243,15 @@
                     <textarea class="tag-textarea dtext-previewable" id="post_description" v-model="description" rows="10" :data-limit="descrLimit"></textarea>
                 </div>
             </div>
+            <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
+                <div class="col">
+                    <label class="section-label">Upload as Pending</label>
+                    <div>If you aren't sure if this particular post is up to the standards, checking this box will put it into the moderation queue.</div>
+                </div>
+                <div class="col2">
+                    <label><input type="checkbox" v-model="uploadAsPending"/> Upload as Pending</label>
+                </div>
+            </div>
             <div class="flex-grid">
                 <div class="col"></div>
                 <div class="col2">
@@ -540,6 +549,8 @@
         lockedTags: '',
         allowRatingLock: window.uploaderSettings.allowRatingLock,
         ratingLocked: false,
+        allowUploadAsPending: window.uploaderSettings.allowUploadAsPending,
+        uploadAsPending: false,
 
         relatedTags: [],
         loadingRelated: false,
@@ -591,6 +602,8 @@
         fillFieldBool('ratingLocked', 'rating_locked');
       if(this.allowLockedTags)
         fillField('lockedTags', 'locked_tags');
+      if(this.allowUploadAsPending)
+        fillFieldBool("uploadAsPending", "upload_as_pending")
     },
     methods: {
       updateFilePreview,
@@ -648,6 +661,8 @@
           data.append('upload[locked_tags]', this.lockedTags);
         if (this.allowRatingLock)
           data.append('upload[locked_rating]', this.ratingLocked);
+        if (this.allowUploadAsPending)
+          data.append('upload[as_pending]', this.uploadAsPending);
         jQuery.ajax('/uploads.json', {
           contentType: false,
           processData: false,
