@@ -1,7 +1,6 @@
 <template>
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
-            <div class="the_secret_switch" @click="toggleNormalMode"></div>
             <div class="box-section sect_red" v-show="filePreview.overDims">
                 One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
             </div>
@@ -635,35 +634,6 @@
       },
       setCheck(tag, value) {
         Vue.set(this.checkboxes.selected, tag, value);
-      },
-      toggleNormalMode() {
-        this.normalMode = !this.normalMode;
-        const categories = Object.keys(this.tagEntries);
-        if (!this.normalMode) {
-          const tags = Object.entries(this.checkboxes.selected).filter(v => v[1] === true).map(v => v[0]);
-          for (const key of categories) {
-            tags.push(...this.tagEntries[key].toLowerCase().trim().split(' ').filter(v => v.trim()));
-          }
-          this.tagEntries.other = [...new Set(tags)].sort().join(' ');
-          Vue.set(this.checkboxes, 'selected', {});
-        } else {
-          const otherTags = new Set(this.tagEntries.other.toLowerCase().trim().split(' ').filter(v => v.trim()));
-          for(const key in this.checkboxes.all) {
-            if(otherTags.has(key)) {
-              this.setCheck(key, true);
-              otherTags.delete(key);
-            }
-          }
-          for(const key of ['character','sex','bodyType','theme']) {
-            const categoryTags = new Set(this.tagEntries[key].toLowerCase().trim().split(' ').filter(v => v.trim()));
-            for(const categoryTag of categoryTags) {
-              if(otherTags.has(categoryTag)) {
-                otherTags.delete(categoryTag);
-              }
-            }
-          }
-          this.tagEntries.other = [...otherTags].sort().join(' ');
-        }
       },
       submit() {
         this.showErrors = true;
