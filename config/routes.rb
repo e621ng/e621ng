@@ -477,6 +477,7 @@ Rails.application.routes.draw do
   get "/tag/index" => redirect {|params, req| "/tags?page=#{req.params[:page]}&search[name_matches]=#{CGI::escape(req.params[:name].to_s)}&search[order]=#{req.params[:order]}"}
 
   get "/tag_implication" => redirect {|params, req| "/tag_implications?search[name_matches]=#{CGI::escape(req.params[:query].to_s)}"}
+  get "/tag_alias" => redirect {|params, req| "/tag_aliases?search[antecedent_name]=#{CGI.escape(req.params[:query].to_s)}&search[consequent_name]=#{CGI.escape(req.params[:aliased_to].to_s)}"}
 
   get "/user" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/index" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
