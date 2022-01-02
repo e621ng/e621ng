@@ -25,7 +25,7 @@ class CommentVotesController < ApplicationController
   end
 
   def index
-    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(params).paginate(params[:page], limit: 100)
+    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
   end
 
   def lock

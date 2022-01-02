@@ -10,7 +10,8 @@ class PostFlagsController < ApplicationController
   end
 
   def index
-    @post_flags = PostFlag.search(search_params).includes(:creator, post: [:flags, :uploader, :approver])
+    @search_params = search_params
+    @post_flags = PostFlag.search(@search_params).includes(:creator, post: [:flags, :uploader, :approver])
     @post_flags = @post_flags.paginate(params[:page], limit: params[:limit])
     respond_with(@post_flags)
   end
@@ -48,6 +49,13 @@ class PostFlagsController < ApplicationController
   end
 
   private
+
+  def search_params
+    # creator_id and creator_name are special cased in the model search function
+    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match is_resolved category]
+    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    params.fetch(:search, {}).permit(permitted_params)
+  end
 
   def post_flag_params
     params.fetch(:post_flag, {}).permit(%i[post_id reason_name user_reason parent_id])

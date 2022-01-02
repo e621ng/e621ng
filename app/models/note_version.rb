@@ -21,6 +21,10 @@ class NoteVersion < ApplicationRecord
     q = q.attribute_matches(:is_active, params[:is_active])
     q = q.attribute_matches(:body, params[:body_matches])
 
+    if params[:ip_addr].present?
+      q = q.where("updater_ip_addr <<= ?", params[:ip_addr])
+    end
+
     q.apply_default_order(params)
   end
 

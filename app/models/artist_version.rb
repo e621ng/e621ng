@@ -38,6 +38,10 @@ class ArtistVersion < ApplicationRecord
       q = q.attribute_matches(:is_active, params[:is_active])
       q = q.attribute_matches(:is_banned, params[:is_banned])
 
+      if params[:ip_addr].present?
+        q = q.where("updater_ip_addr <<= ?", params[:ip_addr])
+      end
+
       params[:order] ||= params.delete(:sort)
       if params[:order] == "name"
         q = q.order("artist_versions.name").default_order

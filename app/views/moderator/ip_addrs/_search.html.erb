@@ -5,6 +5,6 @@
   <%= f.input :user_id, label: "User IDs", input_html: { value: params.dig(:search, :user_id) } %>
   <%= f.input :user_name, label: "User Names", input_html: { value: params.dig(:search, :user_name) } %>
   <%= f.input :ip_addr, label: "IP Addresses", input_html: { value: params.dig(:search, :ip_addr) } %>
-  <%= f.input :with_history, label: "With History", as: :boolean, input_html: { checked: params.dig(:search, :with_history) } %>
+  <%= f.input :with_history, label: "With History", as: :boolean, input_html: { checked: params.dig(:search, :with_history).to_s.truthy? } %>
   <%= f.submit "Search" %>
 <% end %>

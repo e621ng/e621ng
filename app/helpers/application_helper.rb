@@ -159,10 +159,6 @@ module ApplicationHelper
     link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
-  def link_to_search(search)
-    link_to search, posts_path(tags: search), rel: "nofollow"
-  end
-
   def link_to_wiki(*wiki_titles, **options)
     links = wiki_titles.map do |title|
       link_to title.tr("_", " "), wiki_pages_path(title: title)
