@@ -1,7 +1,6 @@
 <template>
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
-            <div class="the_secret_switch" @click="toggleNormalMode"></div>
             <div class="box-section sect_red" v-show="filePreview.overDims">
                 One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
             </div>
@@ -73,12 +72,7 @@
                     <div class="col2">
                         <div>
             <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
-                      placeholder="Ex: artist_name etc." data-autocomplete="tag-edit"></textarea>
-                        </div>
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in checkboxes.artist" @set="setCheck"
-                                            :key="check.name"></image-checkbox>
+                      placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc." data-autocomplete="tag-edit"></textarea>
                         </div>
                     </div>
                 </div>
@@ -246,7 +240,16 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <textarea class="tag-textarea" id="post_description" v-model="description" rows="5"></textarea>
+                    <textarea class="tag-textarea dtext-previewable" id="post_description" v-model="description" rows="10" :data-limit="descrLimit"></textarea>
+                </div>
+            </div>
+            <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
+                <div class="col">
+                    <label class="section-label">Upload as Pending</label>
+                    <div>If you aren't sure if this particular post is up to the standards, checking this box will put it into the moderation queue.</div>
+                </div>
+                <div class="col2">
+                    <label><input type="checkbox" v-model="uploadAsPending"/> Upload as Pending</label>
                 </div>
             </div>
             <div class="flex-grid">
@@ -294,9 +297,6 @@
     notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
   };
-  const artist_checks = [
-    {name: 'Unknown Artist'},
-    {name: 'Anonymous Artist'}];
 
   const sex_checks = [
     {name: 'Male'},
@@ -489,7 +489,6 @@
         }
         allChecks[check.name.toLowerCase().replace(' ', '_')] = true;
       };
-      artist_checks.forEach(addChecks);
       sex_checks.forEach(addChecks);
       pairing_checks.forEach(addChecks);
       char_count_checks.forEach(addChecks);
@@ -525,7 +524,6 @@
         normalMode: !window.uploaderSettings.compactMode,
 
         checkboxes: {
-          artist: artist_checks,
           sex: sex_checks,
           pairing: pairing_checks,
           count: char_count_checks,
@@ -551,6 +549,8 @@
         lockedTags: '',
         allowRatingLock: window.uploaderSettings.allowRatingLock,
         ratingLocked: false,
+        allowUploadAsPending: window.uploaderSettings.allowUploadAsPending,
+        uploadAsPending: false,
 
         relatedTags: [],
         loadingRelated: false,
@@ -559,7 +559,9 @@
         description: '',
         rating: '',
         error: '',
-        duplicateId: 0
+        duplicateId: 0,
+        
+        descrLimit: window.uploaderSettings.descrLimit
       };
     },
     mounted() {
@@ -600,6 +602,8 @@
         fillFieldBool('ratingLocked', 'rating_locked');
       if(this.allowLockedTags)
         fillField('lockedTags', 'locked_tags');
+      if(this.allowUploadAsPending)
+        fillFieldBool("uploadAsPending", "upload_as_pending")
     },
     methods: {
       updateFilePreview,
@@ -634,35 +638,6 @@
       setCheck(tag, value) {
         Vue.set(this.checkboxes.selected, tag, value);
       },
-      toggleNormalMode() {
-        this.normalMode = !this.normalMode;
-        const categories = Object.keys(this.tagEntries);
-        if (!this.normalMode) {
-          const tags = Object.entries(this.checkboxes.selected).filter(v => v[1] === true).map(v => v[0]);
-          for (const key of categories) {
-            tags.push(...this.tagEntries[key].toLowerCase().trim().split(' ').filter(v => v.trim()));
-          }
-          this.tagEntries.other = [...new Set(tags)].sort().join(' ');
-          Vue.set(this.checkboxes, 'selected', {});
-        } else {
-          const otherTags = new Set(this.tagEntries.other.toLowerCase().trim().split(' ').filter(v => v.trim()));
-          for(const key in this.checkboxes.all) {
-            if(otherTags.has(key)) {
-              this.setCheck(key, true);
-              otherTags.delete(key);
-            }
-          }
-          for(const key of ['character','sex','bodyType','theme']) {
-            const categoryTags = new Set(this.tagEntries[key].toLowerCase().trim().split(' ').filter(v => v.trim()));
-            for(const categoryTag of categoryTags) {
-              if(otherTags.has(categoryTag)) {
-                otherTags.delete(categoryTag);
-              }
-            }
-          }
-          this.tagEntries.other = [...otherTags].sort().join(' ');
-        }
-      },
       submit() {
         this.showErrors = true;
         this.error = '';
@@ -686,6 +661,8 @@
           data.append('upload[locked_tags]', this.lockedTags);
         if (this.allowRatingLock)
           data.append('upload[locked_rating]', this.ratingLocked);
+        if (this.allowUploadAsPending)
+          data.append('upload[as_pending]', this.uploadAsPending);
         jQuery.ajax('/uploads.json', {
           contentType: false,
           processData: false,

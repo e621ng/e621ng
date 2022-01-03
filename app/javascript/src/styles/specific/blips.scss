@@ -3,7 +3,6 @@
 div#c-blips {
   article.blip {
     margin-bottom: $base-padding;
-    word-wrap: break-word;
 
     &[data-is-deleted="true"] {
       background-color: $blip-hidden-background;

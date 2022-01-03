@@ -14,7 +14,7 @@ class ForumPost < ApplicationRecord
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
   validates :body, :creator_id, presence: true
-  validates :body, length: { minimum: 1, maximum: 50_000 }
+  validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
   validate :validate_post_is_not_spam, on: :create

@@ -7,7 +7,7 @@ class Comment < ApplicationRecord
   validate :validate_creator_is_not_limited, :on => :create
   validate :validate_comment_is_not_spam, on: :create
   validates :body, presence: { :message => "has no content" }
-  validates :body, length: { minimum: 1, maximum: 10_000 }
+  validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
   after_update(:if => ->(rec) {(!rec.is_hidden? || !rec.saved_change_to_is_hidden?) && CurrentUser.id != rec.creator_id}) do |rec|
@@ -92,6 +92,10 @@ class Comment < ApplicationRecord
 
       if params[:poster_id].present?
         q = q.poster_id(params[:poster_id].to_i)
+      end
+
+      if params[:ip_addr].present?
+        q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
       q = q.attribute_matches(:is_hidden, params[:is_hidden])

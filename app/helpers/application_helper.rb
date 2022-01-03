@@ -81,7 +81,7 @@ module ApplicationHelper
     render "application/hideable_form_search", path: path, show_on_load: show_on_load, block: block
   end
 
-  def format_text(text, **options)
+  def dtext_ragel(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
     return raw "" if parsed.nil?
@@ -91,8 +91,17 @@ module ApplicationHelper
     raw ""
   end
 
+  def format_text(text, **options)
+    # preserve the currrent inline behaviour
+    if options[:inline]
+      dtext_ragel(text, options)
+    else
+      raw %(<div class="styled-dtext">#{dtext_ragel(text, options)}</div>)
+    end
+  end
+
   def strip_dtext(text)
-    format_text(text, strip: true)
+    dtext_ragel(text, strip: true)
   end
 
   def error_messages_for(instance_name)
@@ -150,10 +159,6 @@ module ApplicationHelper
     link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
-  def link_to_search(search)
-    link_to search, posts_path(tags: search), rel: "nofollow"
-  end
-
   def link_to_wiki(*wiki_titles, **options)
     links = wiki_titles.map do |title|
       link_to title.tr("_", " "), wiki_pages_path(title: title)
@@ -200,18 +205,14 @@ module ApplicationHelper
     options[:input_id] ||= "#{object}_#{name}"
     options[:input_name] ||= "#{object}[#{name}]"
     options[:value] ||= instance_variable_get("@#{object}").try(name)
-    options[:preview_id] ||= "dtext-preview"
     options[:classes] ||= ""
     options[:input_classes] ||= ""
     options[:rows] ||= 10
     options[:cols] ||= 80
     options[:type] ||= "text"
+    options[:limit] ||= 0
 
     render "dtext/form", options
-  end
-
-  def dtext_preview_button(object, name, input_id: "#{object}_#{name}", preview_id: "dtext-preview")
-    tag.input value: "Preview DText", type: "button", class: "dtext-preview-button", "data-input-id": input_id, "data-preview-id": preview_id
   end
 
   def search_field(method, label: method.titleize, hint: nil, value: nil, **attributes)

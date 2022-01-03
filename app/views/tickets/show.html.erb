@@ -64,7 +64,7 @@
           <% end %>
 
           <% if @ticket.can_see_reason?(CurrentUser) %>
-            <td class="styled-dtext"><%= format_text(@ticket.reason) %></td>
+            <td class="dtext-container"><%= format_text(@ticket.reason) %></td>
           <% else %>
             <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
           <% end %>
@@ -83,7 +83,7 @@
           <tr>
             <td><span class='title'>Response</span></td>
             <% if @ticket.can_see_response?(CurrentUser) %>
-              <td class="styled-dtext"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
+              <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
             <% else %>
               <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
             <% end %>
@@ -123,12 +123,11 @@
             <table>
               <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
               <tr>
-                <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %></td>
+                <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", limit: Danbooru.config.dmail_max_size %></td>
               </tr>
             </table>
             <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
             <%= f.button :submit, "Submit" %>
-            <%= dtext_preview_button "ticket", "response", :input_id => "ticket_response_for_#{@ticket.id}", :preview_id => "dtext-preview-for-#{@ticket.id}" %>
           <% end %>
         </div>
       <% end %>

@@ -4,7 +4,7 @@
     <section id="content">
       <div style="margin-bottom: 1em;">
         <h1><%= "Help: #{HelpPage.title(@help.name)}" %></h1>
-        <div class="styled-dtext">
+        <div class="dtext-container">
           <%= format_text(@wiki_page.body, allow_color: true) %>
         </div>
       </div>

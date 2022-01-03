@@ -24,7 +24,7 @@ class Post < ApplicationRecord
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
-  validates :description, length: { maximum: 50_000 }, if: :description_changed?
+  validates :description, length: { maximum: Danbooru.config.post_descr_max_size }, if: :description_changed?
   validate :added_tags_are_valid, if: :should_process_tags?
   validate :removed_tags_are_valid, if: :should_process_tags?
   validate :has_artist_tag, if: :should_process_tags?
@@ -33,7 +33,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_rating_lock_mod_action, if: :is_rating_locked_changed?
+  after_save :create_rating_lock_mod_action, if: :saved_change_to_is_rating_locked?
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags

@@ -22,7 +22,7 @@ class PostVotesController < ApplicationController
   end
 
   def index
-    @post_votes = PostVote.includes(:user).search(params).paginate(params[:page], limit: 100)
+    @post_votes = PostVote.includes(:user).search(search_params).paginate(params[:page], limit: 100)
   end
 
   def lock

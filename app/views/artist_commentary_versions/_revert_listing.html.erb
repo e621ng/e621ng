@@ -21,13 +21,13 @@
           <td><%= link_to commentary_version.post_id, post_path(commentary_version.post_id) %></td>
           <td>
             <h3><%= h(commentary_version.original_title) %></h3>
-            <div class="styled-dtext">
+            <div class="dtext-container">
               <%= format_text(commentary_version.original_description) %>
             </div>
           </td>
           <td>
             <h3><%= h(commentary_version.translated_title) %></h3>
-            <div class="styled-dtext">
+            <div class="dtext-container">
               <%= format_text(commentary_version.translated_description) %>
             </div>
           </td>

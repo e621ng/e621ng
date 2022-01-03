@@ -6,7 +6,7 @@ class Blip < ApplicationRecord
   validates :body, presence: true
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
   has_many :responses, class_name: "Blip", foreign_key: "response_to"
-  validates :body, length: { within: 5..1000 }
+  validates :body, length: { minimum: 5, maximum: Danbooru.config.blip_max_size }
   validate :validate_parent_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
 
@@ -93,6 +93,10 @@ class Blip < ApplicationRecord
 
       if params[:creator_id].present?
         q = q.for_creator(params[:creator_id].to_i)
+      end
+
+      if params[:ip_addr].present?
+        q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
       case params[:order]

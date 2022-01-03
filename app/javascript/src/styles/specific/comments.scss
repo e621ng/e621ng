@@ -6,7 +6,6 @@ div.comments-for-post {
   div.list-of-comments {
     article.comment {
       border-radius: $border-radius-half;
-      word-wrap: break-word;
       margin-bottom: $padding-050;
 
       &:target {
@@ -83,7 +82,6 @@ div#c-comments {
       padding-left: $padding-050;
       padding-bottom: $padding-025;
       margin-bottom: $padding-100;
-      word-wrap: break-word;
 
       .comments {
         margin-left: 2rem;

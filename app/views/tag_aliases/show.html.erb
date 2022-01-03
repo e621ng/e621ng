@@ -28,15 +28,20 @@
       <% end %>
 
       <% if CurrentUser.is_moderator? %>
-        <li><strong>Commands</strong> <span class="tag-alias" data-alias-id="<%= @tag_alias.id %>">
-          <% if @tag_alias.is_pending? %>
-            <%= link_to "Approve", "#", class: "tag-alias-accept" %>
-          <% end %>
-          <% if @tag_alias.deletable_by?(CurrentUser.user) %>
-            | <%= link_to "Reject", "#", class: "tag-alias-reject" %>
-          <% end %>
-            </span>
-          </li>
+        <li>
+          <strong>Commands</strong>
+          <span class="tag-alias" data-alias-id="<%= @tag_alias.id %>">
+            <% if @tag_alias.is_pending? %>
+              <%= link_to "Approve", "#", class: "tag-alias-accept" %>
+            <% end %>
+            <% if @tag_alias.deletable_by?(CurrentUser.user) %>
+              | <%= link_to "Reject", "#", class: "tag-alias-reject" %>
+            <% end %>
+            <% if @tag_alias.editable_by?(CurrentUser.user) %>
+              | <%= link_to "Edit", edit_tag_alias_path(@tag_alias) %>
+            <% end %>
+          </span>
+        </li>
       <% end %>
     </ul>
   </div>

@@ -39,7 +39,9 @@
     uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
     recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>,
     allowLockedTags: <%= CurrentUser.is_admin?.to_json %>,
-    allowRatingLock: <%= CurrentUser.is_privileged?.to_json %>
+    allowRatingLock: <%= CurrentUser.is_privileged?.to_json %>,
+    allowUploadAsPending: <%= CurrentUser.can_upload_free?.to_json %>,
+    descrLimit: <%= Danbooru.config.post_descr_max_size %>,
   };
   Danbooru.Uploader.init();
 <% end -%>

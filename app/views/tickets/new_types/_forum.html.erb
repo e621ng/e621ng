@@ -7,6 +7,9 @@
       <h4>You are reporting the following forum post:</h4>
       <div class='author'><%= link_to_user(@forum.creator) %></div>
       <span class="date" title="Posted on <%= @forum.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@forum.created_at) %> ago</span>
-      <%= format_text(@forum.body) %>
+      <br><br>
+      <div class="dtext-container">
+        <%= format_text(@forum.body) %>
+      </div>
     </div>
 <% end %>

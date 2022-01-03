@@ -10,6 +10,7 @@
           <tr>
             <th>Title</th>
             <th>Last edited</th>
+            <th>History</th>
           </tr>
         </thead>
         <tbody>
@@ -17,6 +18,7 @@
             <tr>
               <td class="category-<%= wiki_page.category_name %>"><%= link_to wiki_page.pretty_title, wiki_page_path(wiki_page, :noredirect => 1) %></td>
               <td><%= wiki_page.updated_at.strftime("%Y-%m-%d %H:%M") %> by <%= h link_to_user wiki_page.updater %></td>
+              <td><%= link_to "History", wiki_page_versions_path(search: { wiki_page_id: wiki_page.id }) %></td>
             </tr>
           <% end %>
         </tbody>

@@ -1,29 +1,20 @@
 <div id="c-comment-votes">
   <div id="a-index">
-    <div class='section'>
-      <table class="search">
-        <%= form_tag({action: "index"}, method: :get) do %>
-          <tr>
-            <td><label for="user_name">User</label></td>
-            <td><%= text_field_tag "user_name", params[:user_name], id: "user_name", size: 25 %> <%= submit_tag "Search" %></td>
-          </tr>
-        <% end %>
-        <%= form_tag({action: "index"}, method: :get) do %>
-          <tr>
-            <td><label for="post_id">Comment ID</label></td>
-            <td><%= text_field_tag "comment_id", params[:post_id], id: "comment_id", size: 25 %> <%= submit_tag "Search" %></td>
-          </tr>
-        <% end %>
-      </table>
-    </div>
+    <%= simple_form_for(:search, method: :get, html: { class: "inline-form" }) do |f| %>
+      <%= f.input :user_name, label: "Username", input_html: { value: params.dig(:search, :user_name), data: { autocomplete: "user" }} %>
+      <%= f.input :comment_id, label: "Comment ID", input_html: { value: params.dig(:search, :comment_id) } %>
+      <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]], selected: params[:search][:timeframe] %>
+      <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]], selected: params[:search][:order] %>
+      <%= f.submit "Search" %>
+    <% end %>
 
     <table class="striped" id='votes'>
       <thead>
       <tr>
         <th style='width:8%;'>ID</th>
         <th style='width:8%;'>Comment</th>
-        <th>Comment User</th>
-        <th style='width:40%;'>User</th>
+        <th style='width:20%;'>Comment User</th>
+        <th style='width:20%;'>User</th>
         <th style='width:10%;'>Vote</th>
         <th style='width:16%;'>Created</th>
         <th style='width:17%;'>Updated</th>
@@ -63,7 +54,7 @@
     <% end -%>
 
     <div id="paginator">
-      <%= sequential_paginator(@comment_votes) %>
+      <%= numbered_paginator(@comment_votes) %>
     </div>
   </div>
 </div>

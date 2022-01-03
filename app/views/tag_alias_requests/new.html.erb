@@ -19,7 +19,7 @@
       </div>
 
       <div class="input">
-        <%= dtext_field "tag_alias_request", "reason", :name => "Reason" %>
+        <%= dtext_field "tag_alias_request", "reason", :name => "Reason", limit: Danbooru.config.forum_post_max_size %>
       </div>
 
       <% if CurrentUser.is_moderator? %>
@@ -33,7 +33,6 @@
 
       <div class="input">
         <%= submit_tag "Submit" %>
-        <%= dtext_preview_button "tag_alias_request", "reason" %>
       </div>
     <% end %>
   </div>

@@ -18,13 +18,13 @@
             <td><%= PostPresenter.preview(commentary.post, :tags => "status:any") %></td>
             <td>
               <h3><%= h(commentary.original_title) %></h3>
-              <div class="styled-dtext">
+              <div class="dtext-container">
                 <%= format_text(commentary.original_description) %>
               </div>
             </td>
             <td>
               <h3><%= h(commentary.translated_title) %></h3>
-              <div class="styled-dtext">
+              <div class="dtext-container">
                 <%= format_text(commentary.translated_description) %>
               </div>
             </td>

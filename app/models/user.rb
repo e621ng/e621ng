@@ -1,4 +1,5 @@
 require 'digest/sha1'
+require 'zlib'
 require 'danbooru/has_bit_flags'
 
 class User < ApplicationRecord
@@ -95,8 +96,8 @@ class User < ApplicationRecord
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates  :custom_style, length: { maximum: 500_000}
-  validates :profile_about, length: { maximum: 50_0000 }
-  validates :profile_artinfo, length: { maximum: 50_000 }
+  validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
+  validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
@@ -213,6 +214,10 @@ class User < ApplicationRecord
   end
 
   module PasswordMethods
+    def password_token
+      Zlib::crc32(bcrypt_password_hash)
+    end
+
     def bcrypt_password
       BCrypt::Password.new(bcrypt_password_hash)
     end
@@ -579,7 +584,8 @@ class User < ApplicationRecord
 
     def upload_limit_pieces
       deleted_count = Post.deleted.for_user(id).count
-      rejected_replacement_count = PostReplacement.rejected.for_user(id).count
+      rejected_replacement_count = post_replacement_rejected_count
+      replaced_penalize_count = own_post_replaced_penalize_count
       unapproved_count = Post.pending_or_flagged.for_user(id).count
       unapproved_replacements_count = PostReplacement.pending.for_user(id).count
       approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
@@ -753,6 +759,18 @@ class User < ApplicationRecord
       feedback.negative.count
     end
 
+    def post_replacement_rejected_count
+      user_status.post_replacement_rejected_count
+    end
+
+    def own_post_replaced_count
+      user_status.own_post_replaced_count
+    end
+
+    def own_post_replaced_penalize_count
+      user_status.own_post_replaced_penalize_count
+    end
+
     def refresh_counts!
       self.class.without_timeout do
         UserStatus.where(user_id: id).update_all(
@@ -856,9 +874,8 @@ class User < ApplicationRecord
                     {:len => bitprefs_length, :bits => bitprefs_exclude})
       end
 
-      # TODO: Fix this as soon as possible.
-      if params[:current_user_first].to_s.truthy? && !CurrentUser.is_anonymous?
-        q = q.order(Arel.sql("users.id = #{CurrentUser.user.id.to_i} desc"))
+      if params[:ip_addr].present?
+        q = q.where("last_ip_addr <<= ?", params[:ip_addr])
       end
 
       case params[:order]

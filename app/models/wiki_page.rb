@@ -8,7 +8,7 @@ class WikiPage < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: { :unless => -> { is_deleted? || other_names.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
-  validates :body, length: { maximum: 250_000 }
+  validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :user_not_limited, on: :save
   validate :validate_rename
   validate :validate_not_locked

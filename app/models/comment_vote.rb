@@ -64,15 +64,28 @@ class CommentVote < ApplicationRecord
 
       if params[:user_name].present?
         user_id = User.name_to_id(params[:user_name])
-        q = q.where('user_id = ?', user_id) if user_id
+        if user_id
+          q = q.where('user_id = ?', user_id) if user_id
+        else
+          q = q.none
+        end
       end
 
       if params[:user_id].present?
         q = q.where('user_id = ?', params[:user_id].to_i)
       end
 
-      q = q.order(id: :desc)
+      allow_complex_parameters = (params.keys & %w[comment_id user_name user_id]).any?
 
+      if params[:timeframe].present? && allow_complex_parameters
+        q = q.where("updated_at >= ?", params[:timeframe].to_i.days.ago)
+      end
+
+      if params[:order] == "ip_addr" && allow_complex_parameters
+        q = q.order(:user_ip_addr)
+      else
+        q = q.apply_default_order(params)
+      end
       q
     end
   end

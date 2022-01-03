@@ -7,7 +7,9 @@
       <h4>You are reporting the following comment:</h4>
       <div class="author"><%= link_to_user @comment.creator %></div>
       <span class="date" title="Posted on <%= @comment.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@comment.created_at) %> ago</span>
-      <br /><br />
-      <%= format_text(@comment.body) %>
+      <br><br>
+      <div class="dtext-container">
+        <%= format_text(@comment.body) %>
+      </div>
     </div>
 <% end %>

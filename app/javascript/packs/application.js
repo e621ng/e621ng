@@ -32,11 +32,12 @@ export { default as Autocomplete } from '../src/javascripts/autocomplete.js.erb'
 export { default as Blacklist } from '../src/javascripts/blacklists.js';
 export { default as Blip } from '../src/javascripts/blips.js';
 export { default as Comment } from '../src/javascripts/comments.js';
-export { default as Dtext } from '../src/javascripts/dtext.js';
+export { default as DText } from '../src/javascripts/dtext.js';
 export { default as Note } from '../src/javascripts/notes.js';
 export { default as Post } from '../src/javascripts/posts.js';
 export { default as PostDeletion } from "../src/javascripts/post_delete.js";
 export { default as PostModeMenu } from '../src/javascripts/post_mode_menu.js';
+export { default as PostReplacement } from '../src/javascripts/post_replacement.js';
 export { default as PostVersions } from '../src/javascripts/post_versions.js';
 export { default as RelatedTag } from '../src/javascripts/related_tag.js';
 export { default as Shortcuts } from '../src/javascripts/shortcuts.js';

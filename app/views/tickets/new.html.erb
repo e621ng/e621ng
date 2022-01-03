@@ -5,7 +5,7 @@
       <% @found_item = true %>
       <% if params[:type].nil? %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           To submit a ticket about a problematic comment, click "Report" on the comment itself.<br/>
           To submit a ticket about a problematic forum post, click "Report" on the post itself.<br/>
           To submit a ticket about a problematic pool, click "Report" on the pool page itself.<br/>
@@ -16,14 +16,14 @@
         </div>
       <% elsif CurrentUser.is_anonymous? %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           You must be logged in to submit a ticket. Please <a href='/user/login'>log in</a> and try again.
         </div>
       <% elsif @ticket.type_valid %>
         <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
       <% else %>
         <% @found_item = false %>
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           Hmm, it seems you tried to report something that doesn't make sense.
         </div>
       <% end %>
@@ -32,7 +32,7 @@
         <%= f.hidden_field :disp_id %>
         <%= f.hidden_field :qtype %>
 
-        <div class='section' style='width:80em;'>
+        <div class='section' style='max-width:80em;'>
           <label for="ticket_reason">
             <% if params[:type] == "namechange" %>
               Desired username
@@ -49,14 +49,14 @@
             <%= f.input :reason, as: :text, maxlength: 20 %><br/>
           <% else %>
             <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
-            <%= dtext_field "ticket", "reason", :value => @ticket.reason, :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
+            <%= dtext_field "ticket", "reason", :value => @ticket.reason, :input_id => "ticket_reason", limit: Danbooru.config.ticket_max_size %>
           <% end %>
 
         </div>
         <% if params[:type] == "namechange" %>
           <%= submit_tag "Submit Request" %>
         <% else %>
-          <%= submit_tag "Submit Complaint" %> <%= dtext_preview_button "ticket", "reason", :input_id => "ticket_reason", :preview_id => "dtext-preview-for-ticket-reason" %>
+          <%= submit_tag "Submit Complaint" %>
         <% end %>
       <% end %>
     <% end %>

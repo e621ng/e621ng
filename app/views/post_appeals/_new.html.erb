@@ -1,5 +1,5 @@
 <div class="appeal-dialog-body">
-  <div class="styled-dtext">
+  <div class="dtext-container">
     <%= format_text(WikiPage.titled(Danbooru.config.appeal_notice_wiki_page).first.try(&:body)) %>
   </div>
 
@@ -7,8 +7,7 @@
   <% @post_appeal = post_appeal %>
   <%= simple_form_for(@post_appeal) do |f| %>
     <%= f.hidden_field :post_id %>
-    <%= dtext_field "post_appeal", "reason", preview_id: "dtext-preview-for-post-appeal", type: "string" %>
+    <%= dtext_field "post_appeal", "reason", type: "string" %>
     <%= f.submit "Submit" %>
-    <%= dtext_preview_button "post_appeal", "reason", preview_id: "dtext-preview-for-post-appeal" %>
   <% end %>
 </div>
