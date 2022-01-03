@@ -10,9 +10,12 @@ end
 PostReplacement.select(:post_id).where(status: ["approved", "original"]).group(:post_id)
                .having("count(post_id) = 2").map(&:post_id).each do |post_id|
   replacements = PostReplacement.where(post_id: post_id).order(:status)
-  
+
   approved = replacements[0]
   original = replacements[1]
+
+  # Don't double increment
+  next if approved.uploader_id_on_approve.blank?
 
   approved.uploader_id_on_approve = original.creator_id
   approved.penalize_uploader_on_approve = true
