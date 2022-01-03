@@ -31,6 +31,10 @@ class PoolArchive < ApplicationRecord
         q = q.where(pool_id: params[:pool_id].split(",").map(&:to_i))
       end
 
+      if params[:ip_addr].present?
+        q = q.where("updater_ip_addr <<= ?", params[:ip_addr])
+      end
+
       q.apply_default_order(params)
     end
   end

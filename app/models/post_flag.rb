@@ -93,6 +93,10 @@ class PostFlag < ApplicationRecord
 
       q = q.attribute_matches(:is_resolved, params[:is_resolved])
 
+      if params[:ip_addr].present?
+        q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
+      end
+
       case params[:category]
       when "normal"
         q = q.where("reason NOT IN (?)", [Reasons::UNAPPROVED, Reasons::BANNED])

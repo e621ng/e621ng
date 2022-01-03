@@ -60,18 +60,22 @@ private
     begin
       message = @remember_validator.verify(cookies.encrypted[:remember], purpose: "rbr")
       return if message.nil?
-      user = User.find_by_id(message.to_i)
+      pieces = message.split(":")
+      return unless pieces.length == 2
+      user = User.find_by_id(pieces[0].to_i)
       return unless user
+      return if pieces[1].to_i != user.password_token
       CurrentUser.user = user
       session[:user_id] = user.id
+      session[:ph] = user.password_token # This has been validated by the remember token
     rescue
       return
     end
   end
 
   def refresh_old_remember_token
-    if cookies.encrypted[:remember]
-      cookies.encrypted[:remember] = {value: @remember_validator.generate(CurrentUser.id, purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
+    if cookies.encrypted[:remember] && !CurrentUser.is_anonymous?
+      cookies.encrypted[:remember] = {value: @remember_validator.generate("#{CurrentUser.id}:#{CurrentUser.password_token}", purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
     end
   end
 
@@ -101,6 +105,7 @@ private
 
   def load_session_user
     user = User.find_by_id(session[:user_id])
+    return if session[:ph] != user.password_token
     CurrentUser.user = user if user
   end
 

@@ -8,7 +8,7 @@ class TagImplication < TagRelationship
   before_save :update_descendant_names
   after_save :update_descendant_names_for_parents
   after_destroy :update_descendant_names_for_parents
-  after_save :create_mod_action
+  after_save :create_mod_action, if: :status_changed?
   validates :antecedent_name, uniqueness: { scope: [:consequent_name], conditions: -> { duplicate_relevant } }
   validate :absence_of_circular_relation
   validate :absence_of_transitive_relation
@@ -67,7 +67,7 @@ class TagImplication < TagRelationship
     extend Memoist
 
     def parents
-      self.class.where("consequent_name = ?", antecedent_name)
+      self.class.duplicate_relevant.where("consequent_name = ?", antecedent_name)
     end
     memoize :parents
   end

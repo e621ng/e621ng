@@ -2,8 +2,9 @@
   <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches", input_html: { value: params.dig(:search, :reason_matches) } %>
   <%= f.input :post_tags_match, label: "Tags", input_html: { value: params.dig(:search, :post_tags_match), data: { autocomplete: "tag-query" } } %>
   <%= f.input :post_id, label: "Post ID", input_html: { value: params.dig(:search, :post_id) } %>
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_janitor? %>
     <%= f.input :creator_name, label: "Creator", input_html: { value: params.dig(:search, :creator_name), data: { autocomplete: "user" } } %>
+    <%= f.input :ip_addr, label: "Ip Address", input_html: { value: params.dig(:search, :ip_addr)} %>
   <% end %>
   <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params.dig(:search, :is_resolved) %>
   <%= f.input :category, label: "Category", collection: ["normal", "unapproved", "deleted", "banned", "duplicate"], include_blank: true, selected: params.dig(:search, :category) %>

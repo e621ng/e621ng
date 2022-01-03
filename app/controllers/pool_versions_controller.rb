@@ -7,7 +7,7 @@ class PoolVersionsController < ApplicationController
       @pool = Pool.find(params[:search][:pool_id])
     end
 
-    @pool_versions = PoolArchive.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @pool_versions = PoolArchive.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@pool_versions)
   end
 
@@ -19,5 +19,13 @@ class PoolVersionsController < ApplicationController
     else
       @other_version = @pool_version.previous
     end
+  end
+
+  private
+
+  def search_params
+    permitted_params = %i[updater_id updater_name pool_id]
+    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    params.fetch(:search, {}).permit(permitted_params)
   end
 end

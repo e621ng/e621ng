@@ -118,6 +118,12 @@ private
     end
   end
 
+  def search_params
+    permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id poster_id is_sticky do_not_bump_post order]
+    permitted_params += %i[is_hidden ip_addr] if CurrentUser.is_moderator?
+    params.fetch(:search, {}).permit(permitted_params)
+  end
+
   def comment_params(context)
     permitted_params = %i[body post_id]
     permitted_params += %i[do_not_bump_post] if context == :create

@@ -10,7 +10,13 @@
         <th>Join Date</th>
         <td><%= presenter.join_date %></td>
         <th>Feedback</th>
-        <td><%= presenter.feedbacks %> <%= link_to("List", user_feedbacks_path(:search => {:user_id => @user.id})) %></td>
+        <td>
+          <%= presenter.feedbacks %>
+          <%= link_to("List", user_feedbacks_path(search: { user_id: @user.id })) %>
+          <% if CurrentUser.is_moderator? && @user.feedback.count.zero? %>
+            | <%= link_to("Create", new_user_feedback_path(user_feedback: { user_id: @user.id })) %>
+          <% end %>
+        </td>
       </tr>
 
       <tr>
@@ -36,7 +42,7 @@
           <% end %>
           (<%= link_to "comments on", comments_path(group_by: :comment, search: {poster_id: user.id}) %>)
           <% if CurrentUser.is_moderator? %>
-            (<%= link_to "votes", action: "index", controller: "post_votes", user_id: user.id %>)
+            (<%= link_to "votes", action: "index", controller: "post_votes", search: { user_name: user.name } %>)
           <% end %>
         </td>
         <th>Upload Limit</th>
@@ -51,12 +57,13 @@
       </tr>
 
       <tr>
-        <th>Deleted Posts</th>
+        <th>Deleted/Replaced Posts</th>
         <td>
           <%= presenter.deleted_upload_count(self) %>
           <% if CurrentUser.is_moderator? %>
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
           <% end %>
+          / <%= presenter.replaced_upload_count(self) %>
         </td>
         <th>Post Changes</th>
         <td>
@@ -90,7 +97,7 @@
         <th>Comments</th>
         <td><%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts
           <% if CurrentUser.is_moderator? %>
-            (<%= link_to "votes", action: "index", controller: "comment_votes", user_id: user.id %>)
+            (<%= link_to "votes", action: "index", controller: "comment_votes", search: { user_name: user.name } %>)
           <% end %></td>
         <th>Artist Changes</th>
         <td><%= presenter.artist_version_count(self) %></td>
@@ -104,7 +111,7 @@
       </tr>
 
 
-      <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+      <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
         <tr>
           <th>Appeals</th>
           <td>0</td>
