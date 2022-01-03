@@ -1,8 +1,8 @@
 class BulkUpdateRequestsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show]
-  before_action :admin_only, :only => [:approve]
-  before_action :load_bulk_update_request, :except => [:new, :create, :index]
+  before_action :member_only, except: [:index, :show]
+  before_action :admin_only, only: [:approve]
+  before_action :load_bulk_update_request, except: [:new, :create, :index]
 
   def new
     @bulk_update_request = BulkUpdateRequest.new
@@ -11,7 +11,7 @@ class BulkUpdateRequestsController < ApplicationController
 
   def create
     @bulk_update_request = BulkUpdateRequest.create(bur_params(:create))
-    respond_with(@bulk_update_request, :location => bulk_update_requests_path)
+    respond_with(@bulk_update_request)
   end
 
   def show
@@ -27,9 +27,9 @@ class BulkUpdateRequestsController < ApplicationController
       @bulk_update_request.should_validate = true
       @bulk_update_request.update(bur_params(:update))
       flash[:notice] = "Bulk update request updated"
-      respond_with(@bulk_update_request, :location => bulk_update_requests_path)
+      respond_with(@bulk_update_request)
     else
-      access_denied()
+      access_denied
     end
   end
 
@@ -47,14 +47,14 @@ class BulkUpdateRequestsController < ApplicationController
     if @bulk_update_request.rejectable?(CurrentUser.user)
       @bulk_update_request.reject!(CurrentUser.user)
       flash[:notice] = "Bulk update request rejected"
-      respond_with(@bulk_update_request, :location => bulk_update_requests_path)
+      respond_with(@bulk_update_request, location: bulk_update_requests_path)
     else
-      access_denied()
+      access_denied
     end
   end
 
   def index
-    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver).paginate(params[:page], :limit => params[:limit])
+    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver).paginate(params[:page], limit: params[:limit])
     respond_with(@bulk_update_requests)
   end
 
