@@ -147,7 +147,7 @@
       <li>&raquo; <%= link_to "Sets I maintain", post_sets_path(maintainer_id: CurrentUser.id) %></li>
       <li>&raquo; <%= link_to "Set maintainer invites", post_set_maintainers_path %></li>
       <li>&nbsp;</li>
-      <li>&raquo; <%= link_to "Search for myself in comments", comments_path(group_by: :comment, search:{ body_matches: CurrentUser.name, results: 'exact'}) %></li>
+      <li>&raquo; <%= link_to "Search for myself in comments", comments_path(group_by: :comment, search:{ body_matches: CurrentUser.name }) %></li>
       <li>&raquo; <%= link_to "Search for myself in blips", blips_path(search: {body_matches: CurrentUser.pretty_name}) %></li>
       <li>&raquo; <%= link_to "Search for myself in forums", forum_posts_path(search: {body_matches: CurrentUser.pretty_name}) %></li>
       <li>&raquo; <%= link_to "Comments on my posts", comments_path(group_by: :comment, search: {poster_id: CurrentUser.id}) %></li>
