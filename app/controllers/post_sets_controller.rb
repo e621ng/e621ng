@@ -50,7 +50,7 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_edit_access(@post_set)
     @post_set.update(set_params)
-    flash[:notice] = @post_set.valid? ? 'Set updated.' : @post_set.errors.full_messages.join('; ')
+    flash[:notice] = @post_set.valid? ? 'Set updated' : @post_set.errors.full_messages.join('; ')
 
     if CurrentUser.is_admin? && !@post_set.is_owner?(CurrentUser.user)
       if @post_set.saved_change_to_is_public?
