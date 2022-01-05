@@ -68,7 +68,7 @@
                 <dt>Status</dt>
                 <dd><%= post_replacement.status %></dd>
                 <dt>Reason</dt>
-                <dd><%= post_replacement.reason %></dd>
+                <dd><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
                 <% if post_replacement.status == 'approved' %>
                   <dt>Original Uploader</dt>
                   <dd>
