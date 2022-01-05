@@ -27,6 +27,8 @@ To mitigate this you can install a WSL distribution and clone the project inside
 By the time you get back the install will surely have completed.<sup>1</sup>
 6. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly.
 
+Note: When gems or js packages were updated you need to execute `docker-compose build` to reflect them in the container.
+
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
 
 #### Development Database

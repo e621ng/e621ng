@@ -1,0 +1,8 @@
+# Ignore everything
+**
+
+# Allow only the files that are actually needed
+!/package.json
+!/yarn.lock
+!/Gemfile
+!/Gemfile.lock
