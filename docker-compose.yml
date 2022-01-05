@@ -26,6 +26,7 @@ services:
       - memcached
       - elastic
       - iqdb
+    tty: true
 
   nginx:
     image: nginx:stable-alpine
