@@ -1969,7 +1969,7 @@ class Post < ApplicationRecord
 
     module ClassMethods
       def iqdb_enabled?
-        Danbooru.config.iqdb_enabled?
+        Danbooru.config.iqdbs_server.present?
       end
 
       def remove_iqdb(post_id)
