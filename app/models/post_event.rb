@@ -6,16 +6,20 @@ class PostEvent < ApplicationRecord
     undeleted: 1,
     approved: 2,
     unapproved: 3,
-    favorites_moved: 4,
-    favorites_recieved: 5,
-    rating_locked: 6,
-    rating_unlocked: 7,
-    flag_created: 8,
-    flag_removed: 9,
-    replacement_accepted: 10,
-    replacement_rejected: 11,
-    replacement_deleted: 12,
-    expunged: 13
+    flag_created: 4,
+    flag_removed: 5,
+    favorites_moved: 6,
+    favorites_received: 7,
+    rating_locked: 8,
+    rating_unlocked: 9,
+    status_locked: 10,
+    status_unlocked: 11,
+    note_locked: 12,
+    note_unlocked: 13,
+    replacement_accepted: 14,
+    replacement_rejected: 15,
+    replacement_deleted: 16,
+    expunged: 17
   }
 
   def self.add(post_id, action, data = {})

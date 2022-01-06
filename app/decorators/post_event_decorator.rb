@@ -6,11 +6,11 @@ class PostEventDecorator < ApplicationDecorator
 
     case object.action
     when "deleted", "flag_created"
-      "Reason: #{vals['reason']}"
+      "#{vals['reason']}"
     when "favorites_moved"
       "Target: post ##{vals['parent_id']}"
-    when "favorites_recieved"
-      "Source: post ##{vals['child_id']}"
+    when "favorites_received"
+      "From: post ##{vals['child_id']}"
     end
   end
 end

@@ -33,7 +33,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_rating_lock_post_event, if: :saved_change_to_is_rating_locked?
+  after_save :create_lock_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -1472,7 +1472,7 @@ class Post < ApplicationRecord
 
       FavoriteManager.give_to_parent!(self)
       PostEvent.add(id, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, :favorites_recieved, { child_id: id })
+      PostEvent.add(parent_id, :favorites_received, { child_id: id })
     end
 
     def parent_exists?
@@ -1984,10 +1984,20 @@ class Post < ApplicationRecord
     end
   end
 
-  module RatingMethods
-    def create_rating_lock_post_event
-      action = is_rating_locked? ? :rating_locked : :rating_unlocked
-      PostEvent.add(id, action)
+  module PostEventMethods
+    def create_lock_post_events
+      if saved_change_to_is_rating_locked?
+        action = is_rating_locked? ? :rating_locked : :rating_unlocked
+        PostEvent.add(id, action)
+      end
+      if saved_change_to_is_status_locked?
+        action = is_status_locked? ? :status_locked : :status_unlocked
+        PostEvent.add(id, action)
+      end
+      if saved_change_to_is_note_locked?
+        action = is_note_locked? ? :note_locked : :note_unlocked
+        PostEvent.add(id, action)
+      end
     end
   end
 
@@ -2098,7 +2108,7 @@ class Post < ApplicationRecord
   extend SearchMethods
   include IqdbMethods
   include ValidationMethods
-  include RatingMethods
+  include PostEventMethods
   include Danbooru::HasBitFlags
   include Indexable
   include PostIndex
