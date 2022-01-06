@@ -67,7 +67,7 @@ class PostEvent < ApplicationRecord
   end
 
   def initialize_creator
-    self.creator_id = CurrentUser.id
+    self.creator_id ||= CurrentUser.id
   end
 
   def hidden_attributes
