@@ -2,7 +2,9 @@ class PostEventsController < ApplicationController
   respond_to :html, :json
 
   def index
-    @events = PostEvent.find_for_post(params[:post_id])
+    @events = PostEventDecorator.decorate_collection(
+      PostEvent.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
+    )
     respond_with(@events)
   end
 end

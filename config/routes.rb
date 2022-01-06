@@ -256,7 +256,6 @@ Rails.application.routes.draw do
   end
   resources :deleted_posts, only: [:index]
   resources :posts, :only => [:index, :show, :update] do
-    resources :events, :only => [:index], :controller => "post_events"
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
     resource :flag, controller: 'post_flags', only: [:destroy]
@@ -280,6 +279,7 @@ Rails.application.routes.draw do
       post :delete
     end
   end
+  resources :post_events, only: :index
   resources :post_appeals
   resources :post_flags, except: [:destroy]
   resources :post_approvals, only: [:index]

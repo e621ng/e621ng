@@ -1,0 +1,9 @@
+<% content_for(:secondary_links) do %>
+  <menu>
+    <%= subnav_link_to "Flags", post_flags_path %>
+    <%= subnav_link_to "Approvals", post_approvals_path %>
+    <%= subnav_link_to "Deletions", deleted_posts_path %>
+    <%= subnav_link_to "Replacements", post_replacements_path %>
+    <%= subnav_link_to "Tag History", post_versions_path %>
+  </menu>
+<% end %>

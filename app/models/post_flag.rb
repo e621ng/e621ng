@@ -20,6 +20,7 @@ class PostFlag < ApplicationRecord
   validate :update_reason, on: :create
   validates :reason, presence: true
   before_save :update_post
+  after_create :create_post_event
   after_commit :index_post
 
   scope :by_users, -> { where.not(creator: User.system) }
@@ -246,5 +247,10 @@ class PostFlag < ApplicationRecord
                      rescue
                        nil
                      end
+  end
+
+  def create_post_event
+    # Deletions also create flags, but they create a deletion event instead
+    PostEvent.add(id, :flag_created, { reason: reason }) unless is_deletion
   end
 end

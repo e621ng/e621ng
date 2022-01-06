@@ -1521,6 +1521,39 @@ ALTER SEQUENCE public.post_disapprovals_id_seq OWNED BY public.post_disapprovals
 
 
 --
+-- Name: post_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_events (
+    id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    post_id bigint NOT NULL,
+    action integer NOT NULL,
+    extra_data jsonb NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: post_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_events_id_seq OWNED BY public.post_events.id;
+
+
+--
 -- Name: post_flags; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3012,6 +3045,13 @@ ALTER TABLE ONLY public.post_disapprovals ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: post_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_events ALTER COLUMN id SET DEFAULT nextval('public.post_events_id_seq'::regclass);
+
+
+--
 -- Name: post_flags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3531,6 +3571,14 @@ ALTER TABLE ONLY public.post_approvals
 
 ALTER TABLE ONLY public.post_disapprovals
     ADD CONSTRAINT post_disapprovals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_events post_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_events
+    ADD CONSTRAINT post_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -4413,6 +4461,20 @@ CREATE INDEX index_post_disapprovals_on_user_id ON public.post_disapprovals USIN
 
 
 --
+-- Name: index_post_events_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_events_on_creator_id ON public.post_events USING btree (creator_id);
+
+
+--
+-- Name: index_post_events_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_events_on_post_id ON public.post_events USING btree (post_id);
+
+
+--
 -- Name: index_post_flags_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5268,6 +5330,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210426025625'),
 ('20210430201028'),
 ('20210506235640'),
+('20210625155528'),
 ('20210718172512'),
-('20210625155528');
+('20220106081415');
+
 
