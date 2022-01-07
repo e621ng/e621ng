@@ -443,24 +443,12 @@ class PostTest < ActiveSupport::TestCase
           @post.undelete!
           assert_equal(false, @post.reload.is_deleted?)
         end
-
-        should "create a mod action" do
-          @post.undelete!
-          assert_equal(@post.id, ModAction.last.values['post_id'])
-          assert_equal("post_undelete", ModAction.last.category)
-        end
       end
 
       context "when approved" do
         should "be undeleted" do
           @post.approve!
           assert_equal(false, @post.reload.is_deleted?)
-        end
-
-        should "create a mod action" do
-          @post.approve!
-          assert_equal(@post.id, ModAction.last.values['post_id'])
-          assert_equal("post_undelete", ModAction.last.category)
         end
       end
 

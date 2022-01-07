@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:post_flag) do
-    reason { "xxx" }
+    reason_name { "dnp_artist" }
     is_resolved { false }
   end
 end
