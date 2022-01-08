@@ -19,13 +19,15 @@ To mitigate this you can install a WSL distribution and clone the project inside
 3. `cd` into the repo.
 4. Run the following commands:
     ```
-    docker-compose run -e DANBOORU_DISABLE_THROTTLES=true e621 /app/bin/setup
+    docker-compose run -e DANBOORU_DISABLE_THROTTLES=true -e SEED_POST_COUNT=100 e621 /app/bin/setup
     docker-compose up
     ```
     After running the commands once only `docker-compose up` is needed to bring up the containers.
 5. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
 6. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly.
+
+Note: When gems or js packages were updated you need to execute `docker-compose build` to reflect them in the container.
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
 

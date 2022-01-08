@@ -46,7 +46,7 @@ unless Rails.env.test?
   CurrentUser.ip_addr = "127.0.0.1"
 
   resources = YAML.load_file Rails.root.join("db", "seeds.yml")
-  url = "https://e621.net/posts.json?limit=100&tags=id:" + resources["post_ids"].join(",")
+  url = "https://e621.net/posts.json?limit=#{ENV.fetch("SEED_POST_COUNT", 100)}&tags=id:#{resources["post_ids"].join(",")}"
   response = HTTParty.get(url, {
     headers: {"User-Agent" => "e621ng/seeding"}
   })
