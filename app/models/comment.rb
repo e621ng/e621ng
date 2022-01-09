@@ -3,22 +3,24 @@ class Comment < ApplicationRecord
   simple_versioning
   belongs_to_creator
   belongs_to_updater
-  validate :validate_post_exists, :on => :create
-  validate :validate_creator_is_not_limited, :on => :create
+  validate :validate_post_exists, on: :create
+  validate :validate_creator_is_not_limited, on: :create
   validate :validate_comment_is_not_spam, on: :create
-  validates :body, presence: { :message => "has no content" }
+  validates :body, presence: { message: "has no content" }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
-  after_update(:if => ->(rec) {(!rec.is_hidden? || !rec.saved_change_to_is_hidden?) && CurrentUser.id != rec.creator_id}) do |rec|
-    ModAction.log(:comment_update, {comment_id: rec.id, user_id: rec.creator_id})
+  after_update(if: ->(rec) { (!rec.is_hidden? || !rec.saved_change_to_is_hidden?) && CurrentUser.id != rec.creator_id }) do |rec|
+    ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
-  after_save :update_last_commented_at_on_destroy, :if => ->(rec) {rec.is_hidden? && rec.saved_change_to_is_hidden?}
   after_destroy :update_last_commented_at_on_destroy
-  after_save(:if => ->(rec) {rec.is_hidden? && rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id}) do |rec|
-    ModAction.log(:comment_hide, {comment_id: rec.id, user_id: rec.creator_id})
+  after_destroy do |rec|
+    ModAction.log(:comment_delete, { comment_id: rec.id, user_id: rec.creator_id })
   end
-
+  after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
+  after_save(if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+    ModAction.log(:comment_hide, { comment_id: rec.id, user_id: rec.creator_id })
+  end
 
   user_status_counter :comment_count
   belongs_to :post, counter_cache: :comment_count

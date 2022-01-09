@@ -134,11 +134,7 @@ class ModActionDecorator < ApplicationDecorator
     when "comment_update"
       "Edited comment ##{vals['comment_id']} by #{user}"
     when "comment_delete"
-      if vals['username']
-        "Deleted comment ##{vals['comment_id']} by #{user}"
-      else
-        "Deleted comment ##{vals['comment_id']}"
-      end
+      "Deleted comment ##{vals['comment_id']} by #{user}"
       # TODO: Not currently implemented
     when "comment_hide"
       "Hid comment ##{vals['comment_id']} by #{user}"
