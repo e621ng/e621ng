@@ -20,6 +20,10 @@
           <label for="remember" id="remember-label">Remember</label>
         </div>
 
+        <% if Danbooru.config.enable_recaptcha? %>
+          <%= recaptcha_tags theme: 'dark', nonce: content_security_policy_nonce %>
+        <% end %>
+
         <div class="input">
           <%= submit_tag "Submit", :data => { :disable_with => "Signing in..." } %>
         </div>

@@ -21,9 +21,7 @@
 
         <%= f.input :time_zone, :include_blank => false %>
 
-        <% if Danbooru.config.enable_recaptcha? %>
-          <%= recaptcha_tags theme: 'dark', nonce: content_security_policy_nonce %>
-        <% end %>
+        <%= recaptcha_tags theme: 'dark', nonce: content_security_policy_nonce %>
         <%= f.submit "Sign up", :data => { :disable_with => "Signing up..." } %>
       <% end %>
     </div>

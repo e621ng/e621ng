@@ -4,6 +4,9 @@ class SessionsController < ApplicationController
   end
 
   def create
+    if !verify_recaptcha()
+      return redirect_to(new_session_path, :notice => "Username/Password was incorrect")
+    end
     session_creator = SessionCreator.new(session, cookies, params[:name], params[:password], request.remote_ip, params[:remember], request.ssl?)
 
     if session_creator.authenticate
