@@ -364,7 +364,7 @@ class Post < ApplicationRecord
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
-      PostEvent.add(id, :flag_removed)
+      PostEvent.add(id, CurrentUser.user, :flag_removed)
     end
 
     def appeal!(reason)
@@ -384,13 +384,13 @@ class Post < ApplicationRecord
     end
 
     def unapprove!
-      PostEvent.add(id, :unapproved)
+      PostEvent.add(id, CurrentUser.user, :unapproved)
       update(approver: nil, is_pending: true)
     end
 
     def approve!(approver = CurrentUser.user, force: false)
       raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
-      PostEvent.add(id, :approved)
+      PostEvent.add(id, CurrentUser.user, :approved)
 
       approv = approvals.create(user: approver)
       flags.each(&:resolve!)
@@ -1471,8 +1471,8 @@ class Post < ApplicationRecord
       return if parent.nil?
 
       FavoriteManager.give_to_parent!(self)
-      PostEvent.add(id, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, :favorites_received, { child_id: id })
+      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
+      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
     end
 
     def parent_exists?
@@ -1537,7 +1537,7 @@ class Post < ApplicationRecord
 
       transaction do
         Post.without_timeout do
-          PostEvent.add(id, :expunged)
+          PostEvent.add(id, CurrentUser.user, :expunged)
 
           update_children_on_destroy
           decrement_tag_post_counts
@@ -1584,7 +1584,7 @@ class Post < ApplicationRecord
               is_flagged: false
           )
           move_files_on_delete
-          PostEvent.add(id, :deleted, { reason: reason })
+          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
 
@@ -1618,7 +1618,7 @@ class Post < ApplicationRecord
         flags.each {|x| x.resolve!}
         save
         approvals.create(user: CurrentUser.user)
-        PostEvent.add(id, :undeleted)
+        PostEvent.add(id, CurrentUser.user, :undeleted)
       end
       move_files_on_undelete
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
@@ -1988,15 +1988,15 @@ class Post < ApplicationRecord
     def create_lock_post_events
       if saved_change_to_is_rating_locked?
         action = is_rating_locked? ? :rating_locked : :rating_unlocked
-        PostEvent.add(id, action)
+        PostEvent.add(id, CurrentUser.user, action)
       end
       if saved_change_to_is_status_locked?
         action = is_status_locked? ? :status_locked : :status_unlocked
-        PostEvent.add(id, action)
+        PostEvent.add(id, CurrentUser.user, action)
       end
       if saved_change_to_is_note_locked?
         action = is_note_locked? ? :note_locked : :note_unlocked
-        PostEvent.add(id, action)
+        PostEvent.add(id, CurrentUser.user, action)
       end
     end
   end

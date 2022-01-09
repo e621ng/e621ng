@@ -97,7 +97,7 @@ class PostReplacement < ApplicationRecord
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
@@ -181,7 +181,7 @@ class PostReplacement < ApplicationRecord
       end
 
       transaction do
-        PostEvent.add(post.id, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
+        PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
         processor = UploadService::Replacer.new(post: post, replacement: self)
         processor.process!(penalize_current_uploader: penalize_current_uploader)
       end
@@ -223,7 +223,7 @@ class PostReplacement < ApplicationRecord
         return
       end
 
-      PostEvent.add(post.id, :replacement_rejected, { replacement_id: id })
+      PostEvent.add(post.id, CurrentUser.user, :replacement_rejected, { replacement_id: id })
       update_attribute(:status, 'rejected')
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index

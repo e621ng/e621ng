@@ -1,6 +1,5 @@
 class PostEvent < ApplicationRecord
   belongs_to :creator, class_name: "User"
-  before_validation :initialize_creator, on: :create
   enum action: {
     deleted: 0,
     undeleted: 1,
@@ -22,8 +21,8 @@ class PostEvent < ApplicationRecord
     expunged: 17
   }
 
-  def self.add(post_id, action, data = {})
-    create!(post_id: post_id, action: action.to_s, extra_data: data)
+  def self.add(post_id, creator, action, data = {})
+    create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
   end
 
   def is_creator_visible?(user)
@@ -64,15 +63,5 @@ class PostEvent < ApplicationRecord
     end
 
     q.apply_default_order(params)
-  end
-
-  def initialize_creator
-    self.creator_id ||= CurrentUser.id
-  end
-
-  def hidden_attributes
-    hidden = super + [:extra_data]
-    hidden += [:creator_id] unless is_creator_visible?(CurrentUser.user)
-    hidden
   end
 end
