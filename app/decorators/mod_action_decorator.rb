@@ -135,7 +135,6 @@ class ModActionDecorator < ApplicationDecorator
       "Edited comment ##{vals['comment_id']} by #{user}"
     when "comment_delete"
       "Deleted comment ##{vals['comment_id']} by #{user}"
-      # TODO: Not currently implemented
     when "comment_hide"
       "Hid comment ##{vals['comment_id']} by #{user}"
     when "comment_unhide"

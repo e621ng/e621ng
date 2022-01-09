@@ -10,7 +10,7 @@ class Comment < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
-  after_update(if: ->(rec) { (!rec.is_hidden? || !rec.saved_change_to_is_hidden?) && CurrentUser.id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy :update_last_commented_at_on_destroy
@@ -18,8 +18,9 @@ class Comment < ApplicationRecord
     ModAction.log(:comment_delete, { comment_id: rec.id, user_id: rec.creator_id })
   end
   after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
-  after_save(if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
-    ModAction.log(:comment_hide, { comment_id: rec.id, user_id: rec.creator_id })
+  after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+    action = rec.is_hidden? ? :comment_hide : :comment_unhide
+    ModAction.log(action, { comment_id: rec.id, user_id: rec.creator_id })
   end
 
   user_status_counter :comment_count
