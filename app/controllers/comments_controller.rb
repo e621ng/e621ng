@@ -125,8 +125,8 @@ private
   end
 
   def comment_params(context)
-    permitted_params = %i[body post_id]
-    permitted_params += %i[do_not_bump_post] if context == :create
+    permitted_params = %i[body]
+    permitted_params += %i[do_not_bump_post post_id] if context == :create
     permitted_params += %i[is_sticky is_hidden] if CurrentUser.is_moderator?
 
     params.fetch(:comment, {}).permit(permitted_params)
