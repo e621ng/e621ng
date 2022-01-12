@@ -4,4 +4,19 @@ div#c-post-replacements {
       background-color: darken( themed("color-danger"), 10%);
     }
   }
+
+  .replacement-processing-row {
+    @include themable {
+      background-color: darken( themed("color-warning"), 10%);
+    }
+  }
+
+  .disabled-link {
+    pointer-events: none;
+    cursor: default;
+    text-decoration: none;
+    @include themable {
+      color: themed("color-text-muted");
+    }
+  }
 }

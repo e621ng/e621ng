@@ -17,7 +17,7 @@
       </thead>
       <tbody>
         <% @post_replacements.each do |post_replacement| %>
-          <tr class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
+          <tr id="replacement-<%= post_replacement.id %>" class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
             <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
             <td><%= replacement_thumbnail(post_replacement) %></td>
             <td>
@@ -66,7 +66,7 @@
             <td>
               <dl>
                 <dt>Status</dt>
-                <dd><%= post_replacement.status %></dd>
+                <dd><div class="replacement-status"><%= post_replacement.status %></dd>
                 <dt>Reason</dt>
                 <dd><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
                 <% if post_replacement.status == 'approved' %>
@@ -74,7 +74,7 @@
                   <dd>
                     <%= link_to_user post_replacement.uploader_on_approve %>
                     <% if CurrentUser.is_janitor? %>
-                      | penalized: <%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %>
+                      | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
                       <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                     <% end %>
                   </dd>
@@ -98,12 +98,14 @@
 
             <td>
               <% if CurrentUser.is_janitor? %>
-                <% if post_replacement.status == "pending"%>
-                  <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
-                  <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
-                  <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id} %><br>
-                  <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id} %><br>
-                <% end %>
+                <div class="pending-links">
+                  <% if post_replacement.status == "pending"%>
+                    <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
+                    <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
+                    <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id} %><br>
+                    <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id} %><br>
+                  <% end %>
+                </div>
                 <% if post_replacement.status == "original" %>
                   <%= link_to "Reset To", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
                 <% end %>

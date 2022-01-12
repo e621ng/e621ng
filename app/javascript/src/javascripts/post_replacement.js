@@ -18,11 +18,13 @@ PostReplacement.initialize_all = function () {
   });
   $(".replacement-toggle-penalize-action").on("click", e => {
     e.preventDefault();
-    PostReplacement.toggle_penalize($(e.target).data("replacement-id"));
+    PostReplacement.toggle_penalize($(e.target));
   });
 };
 
 PostReplacement.approve = function (id, penalize_current_uploader) {
+  const $row = $("#replacement-" + id);
+  make_processing($row);
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/approve.json`,
@@ -31,46 +33,69 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     },
     dataType: 'json'
   }).done(function () {
-    Utility.notice("Post Replacement accepted");
+    set_status($row, "approved");
   }).fail(function (data, status, xhr) {
     Utility.error(data.responseText);
+    set_status($row, "replacement failed");
   });
 };
 
 PostReplacement.reject = function (id) {
+  const $row = $("#replacement-" + id);
+  make_processing($row);
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/reject.json`,
     dataType: 'json'
   }).done(function () {
-    Utility.notice("Post Replacement rejected");
+    set_status($row, "rejected");
   }).fail(function (data, status, xhr) {
     Utility.error(data.responseText);
+    set_status($row, "rejecting failed");
   });
 }
 
 PostReplacement.promote = function (id) {
+  const $row = $("#replacement-" + id);
+  make_processing($row);
   $.ajax({
     type: "POST",
     url: `/post_replacements/${id}/promote.json`,
     dataType: 'json'
   }).done(function (data) {
-    Utility.notice(`Replacement promoted to post #${data.post.id}`)
+    Utility.notice(`Replacement promoted to post #${data.post.id}`);
+    set_status($row, "promoted");
   }).fail(function (data, status, xhr) {
     Utility.error(data.responseText);
+    set_status($row, "promoting failed");
   });
 }
 
-PostReplacement.toggle_penalize = function (id) {
+PostReplacement.toggle_penalize = function ($target) {
+  const id = $target.data("replacement-id");
+  const $currentStatus = $target.parent().find(".penalized-status");
+  $target.addClass("disabled-link");
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/toggle_penalize.json`,
     dataType: 'json'
   }).done(function (data) {
-    Utility.notice("User upload limit updated");
+    $target.removeClass("disabled-link");
+    $currentStatus.text($currentStatus.text() == "yes" ? "no" : "yes");
   }).fail(function (data, status, xhr) {
     Utility.error(data.responseText);
   });
+}
+
+function make_processing($row) {
+  $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
+  $row.find(".replacement-status").text("processing");
+  $row.find(".pending-links a").addClass("disabled-link");
+}
+
+function set_status($row, text) {
+  $row.find(".replacement-status").text(text);
+  $row.removeClass("replacement-processing-row");
 }
 
 $(function () {
