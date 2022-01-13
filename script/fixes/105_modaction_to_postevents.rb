@@ -2,8 +2,24 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'environment'))
 
+class PostEventTemp < PostEvent
+  self.table_name = "post_events_temp"
+end
+
+ActiveRecord::Base.connection.execute('CREATE TABLE post_events_temp (
+	id bigserial NOT NULL,
+	creator_id int8 NOT NULL,
+	post_id int8 NOT NULL,
+	"action" int4 NOT NULL,
+	extra_data jsonb NOT NULL,
+	created_at timestamp NOT NULL,
+	CONSTRAINT post_events_temp_pkey PRIMARY KEY (id)
+);')
+
+ActiveRecord::Base.connection.execute('CREATE INDEX index_post_events_temp_on_created_at ON public.post_events_temp USING btree (created_at);')
+
 def create(post_id, creator_id, created_at, action, extra_data = {})
-  PostEvent.create!(post_id: post_id, creator_id: creator_id, created_at: created_at, action: action, extra_data: extra_data)
+  PostEventTemp.create!(post_id: post_id, creator_id: creator_id, created_at: created_at, action: action, extra_data: extra_data)
 end
 
 PostApproval.in_batches do |batch|
@@ -62,3 +78,7 @@ ModAction.where(action: migrate_actions).in_batches do |batch|
     end
   end
 end
+
+ActiveRecord::Base.connection.execute('INSERT INTO post_events (creator_id, post_id, "action", extra_data, created_at)
+  SELECT creator_id, post_id, "action", extra_data, created_at FROM post_events_temp ORDER BY created_at ASC;')
+# ActiveRecord::Base.connection.execute('DROP TABLE post_events_temp;')
