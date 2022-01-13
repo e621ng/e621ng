@@ -22,14 +22,14 @@ def create(post_id, creator_id, created_at, action, extra_data = {})
   PostEventTemp.create!(post_id: post_id, creator_id: creator_id, created_at: created_at, action: action, extra_data: extra_data)
 end
 
-PostApproval.in_batches do |batch|
+PostApproval.find_in_batches do |batch|
   batch.pluck(:user_id, :post_id, :created_at).each do |approval|
     creator_id, post_id, created_at = approval
     create(post_id, creator_id, created_at, :approved)
   end
 end
 
-PostFlag.in_batches do |batch|
+PostFlag.find_in_batches do |batch|
   batch.pluck(:creator_id, :post_id, :created_at, :is_deletion, :reason).each do |flag|
     creator_id, post_id, created_at, is_deletion, reason = flag
     if is_deletion
@@ -78,7 +78,8 @@ ModAction.where(action: migrate_actions).in_batches do |batch|
     end
   end
 end
-
-ActiveRecord::Base.connection.execute('INSERT INTO post_events (creator_id, post_id, "action", extra_data, created_at)
-  SELECT creator_id, post_id, "action", extra_data, created_at FROM post_events_temp ORDER BY created_at ASC;')
+PostEvent.without_timeout do
+  ActiveRecord::Base.connection.execute('INSERT INTO post_events (creator_id, post_id, "action", extra_data, created_at)
+    SELECT creator_id, post_id, "action", extra_data, created_at FROM post_events_temp ORDER BY created_at ASC;')
+end
 # ActiveRecord::Base.connection.execute('DROP TABLE post_events_temp;')
