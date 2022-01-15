@@ -764,7 +764,7 @@ fart'
       true
     end
 
-    def iqdbs_server
+    def iqdb_server
     end
 
     def elasticsearch_host

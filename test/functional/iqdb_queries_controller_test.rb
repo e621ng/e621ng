@@ -3,7 +3,7 @@ require 'test_helper'
 class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
   context "The iqdb controller" do
     setup do
-      Danbooru.config.stubs(:iqdbs_server).returns("https://karasuma.donmai.us")
+      Danbooru.config.stubs(:iqdb_server).returns("https://karasuma.donmai.us")
       @user = create(:user)
       as_user do
         @posts = FactoryBot.create_list(:post, 2)

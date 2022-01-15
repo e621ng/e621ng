@@ -6,7 +6,7 @@ x-environment: &common-env
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_ELASTICSEARCH_HOST: elastic
   DANBOORU_MEMCACHED_SERVERS: memcached
-  DANBOORU_IQDBS_SERVER: http://iqdb:4567
+  DANBOORU_IQDB_SERVER: http://iqdb:5588
   # These are just development secrets, do not use them in production
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
@@ -94,22 +94,10 @@ services:
       - elastic_data:/usr/share/elasticsearch/data
   
   iqdb:
-    build: ./docker/iqdb
-    environment:
-      - IQDB_HOSTNAME=localhost
-      - IQDB_PORT=62125
-      # Hardcoded in iqdbs Procfile
-      - IQDB_DATABASE_FILE=/home/vagrant/iqdbs/e621.db
-      - SINATRA_PORT=4567
-      - IMAGES_FOLDER=/data
-      - REDIS_URL=redis://redis
-      # Sinatra only binds to localhost in development, but to 0.0.0.0 for anything else
-      - APP_ENV=docker
-    depends_on:
-      - redis
+    build: https://github.com/Earlopain/iqdb.git
+    command: ["iqdb", "http", "0.0.0.0", "5588", "/iqdb/data.db"]
     volumes:
-      - post_data:/data
-      - iqdb_data:/home/vagrant/iqdbs
+      - iqdb_data:/iqdb
 
 volumes:
   post_data:

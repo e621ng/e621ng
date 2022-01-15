@@ -1617,7 +1617,7 @@ class Post < ApplicationRecord
 
     module ClassMethods
       def iqdb_enabled?
-        Danbooru.config.iqdbs_server.present?
+        Danbooru.config.iqdb_server.present?
       end
 
       def remove_iqdb(post_id)
@@ -1629,8 +1629,7 @@ class Post < ApplicationRecord
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        # IqdbUpdateJob.perform_async(id, preview_file_url)
-        IqdbUpdateJob.perform_async(id, "md5:#{md5}.jpg")
+        IqdbUpdateJob.perform_async(id)
       end
     end
 
