@@ -7,10 +7,6 @@ class SessionsController < ApplicationController
     if RateLimiter.check_limit("login:#{request.remote_ip}", 15, 12.hours)
       return redirect_to(new_session_path, :notice => "Username/Password was incorrect")
     end
-    if Danbooru.config.enable_recaptcha? && !verify_recaptcha()
-      RateLimiter.hit("login:#{request.remote_ip}", 6.hours)
-      return redirect_to(new_session_path, :notice => "Username/Password was incorrect")
-    end
     session_creator = SessionCreator.new(session, cookies, params[:name], params[:password], request.remote_ip, params[:remember], request.ssl?)
 
     if session_creator.authenticate
