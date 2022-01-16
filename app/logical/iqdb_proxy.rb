@@ -10,7 +10,9 @@ class IqdbProxy
   end
 
   def self.update_post(post)
-    make_request "/images/#{post.id}", :post, get_channels_data(post.preview_file_path)
+    File.open(post.preview_file_path)  do |f|
+      make_request "/images/#{post.id}", :post, get_channels_data(f)
+    end
   end
 
   def self.remove_post(post_id)
@@ -29,18 +31,15 @@ class IqdbProxy
   end
 
   def self.query_file(image)
-    response = make_request "/query", :post, get_channels_data(image.path)
+    response = make_request "/query", :post, get_channels_data(image)
     return [] if response.code != 200
 
     process_iqdb_result(response.parsed_response)
   end
 
-  private
-
-  def self.get_channels_data(file_path)
-    thumbnail = Tempfile.new
+  def self.get_channels_data(file)
     begin
-      thumbnail = Vips::Image.thumbnail(file_path, IQDB_NUM_PIXELS, height: IQDB_NUM_PIXELS, size: :force)
+      thumbnail = DanbooruImageResizer.thumbnail(file, IQDB_NUM_PIXELS, IQDB_NUM_PIXELS, DanbooruImageResizer::THUMBNAIL_OPTIONS.merge(size: :force))
     rescue Vips::Error
       raise Error, "Unsupported file"
     end
@@ -58,7 +57,7 @@ class IqdbProxy
   end
 
   def self.process_iqdb_result(json, score_cutoff = 80)
-    raise Error.new("Server returned an error. Most likely the url is not found.") unless json.kind_of?(Array)
+    raise Error, "Server returned an error. Most likely the url is not found." unless json.is_a?(Array)
     json.filter! { |entry| entry["score"] >= score_cutoff }
     post_ids = json.pluck("post_id")
     posts = Post.where(id: post_ids).index_by(&:id)
