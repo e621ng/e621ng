@@ -14,7 +14,7 @@ class IqdbQueriesController < ApplicationController
       raise User::PrivilegeError.new("Not allowed to request content from this URL") unless whitelist_result[0]
       @matches = IqdbProxy.query_url(params[:url])
     elsif params[:post_id]
-      @matches = IqdbProxy.query_path(Post.find(params[:post_id]).preview_file_path)
+      @matches = IqdbProxy.query_path(Post.find(params[:post_id]).file_path)
     end
 
     respond_with(@matches) do |fmt|

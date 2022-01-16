@@ -10,7 +10,7 @@ class IqdbProxy
   end
 
   def self.update_post(post)
-    File.open(post.preview_file_path)  do |f|
+    File.open(post.file_path) do |f|
       make_request "/images/#{post.id}", :post, get_channels_data(f)
     end
   end
