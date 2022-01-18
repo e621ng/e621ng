@@ -217,11 +217,8 @@ class BulkUpdateRequest < ApplicationRecord
     tokens = AliasAndImplicationImporter.tokenize(script)
     lines = tokens.map do |token|
       case token[0]
-      when :create_alias, :create_implication, :remove_alias, :remove_implication
-        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3] if token[3]}"
-
-      when :mass_update
-        "mass update {{#{token[1]}}} -> #{token[2]}"
+      when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update
+        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
 
       when :change_category
         "category [[#{token[1]}]] -> #{token[2]}"
