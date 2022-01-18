@@ -58,6 +58,7 @@ class UserDeletion
     end
 
     user.update_column(:name, name)
+    user.update_cache
   end
 
   def validate
