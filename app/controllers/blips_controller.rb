@@ -30,7 +30,7 @@ class BlipsController < ApplicationController
     check_edit_privilege(@blip)
     Blip.transaction do
       @blip.update(blip_params(:update))
-      ModAction.log(:blip_update, {blip_id: @blip.id, user_id: @blip.creator_id})
+      ModAction.log(:blip_update, { blip_id: @blip.id, user_id: @blip.creator_id }) if CurrentUser.user != @blip.creator
     end
     flash[:notice] = 'Blip updated'
     respond_with(@blip)
@@ -42,7 +42,7 @@ class BlipsController < ApplicationController
 
     Blip.transaction do
       @blip.update(is_hidden: true)
-      ModAction.log(:blip_hide, {blip_id: @blip.id, user_id: @blip.creator_id})
+      ModAction.log(:blip_hide, { blip_id: @blip.id, user_id: @blip.creator_id }) if CurrentUser.user != @blip.creator
     end
     respond_with(@blip)
   end
