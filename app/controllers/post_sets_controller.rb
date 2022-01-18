@@ -150,6 +150,8 @@ class PostSetsController < ApplicationController
   end
 
   def search_params
-    params.fetch(:search, {}).permit!
+    permitted_params = %i[name shortname creator_id creator_name order]
+    permitted_params += %i[is_public] if CurrentUser.is_admin?
+    params.fetch(:search, {}).permit(permitted_params)
   end
 end

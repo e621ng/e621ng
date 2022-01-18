@@ -47,10 +47,6 @@ class PostSet < ApplicationRecord
     end
   end
 
-  def self.name_to_id_visible(name)
-
-  end
-
   def self.visible(user = CurrentUser.user)
     return where('is_public = true') if user.nil?
     return all() if user.is_admin?
@@ -323,6 +319,9 @@ class PostSet < ApplicationRecord
       end
       if params[:shortname].present?
         q = q.where_ilike(:shortname, params[:shortname])
+      end
+      if params[:is_public].present?
+        q = q.attribute_matches(:is_public, params[:is_public])
       end
 
       case params[:order]
