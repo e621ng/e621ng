@@ -26,7 +26,7 @@ class UserNameChangeRequestsController < ApplicationController
   end
 
   def index
-    @change_requests = UserNameChangeRequest.order("id desc").paginate(params[:page], limit: params[:limit])
+    @change_requests = UserNameChangeRequest.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@change_requests)
   end
 

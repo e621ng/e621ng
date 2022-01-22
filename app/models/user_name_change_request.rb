@@ -21,6 +21,24 @@ class UserNameChangeRequest < ApplicationRecord
     where(:status => "approved")
   end
 
+  def self.search(params)
+    q = super
+
+    if params[:current_name].present?
+      q = q.where("user_id = ?", User.name_to_id(params[:current_name]))
+    end
+
+    if params[:original_name].present?
+      q = q.where("original_name = ?", params[:original_name])
+    end
+
+    if params[:desired_name].present?
+      q = q.where("desired_name = ?", params[:desired_name])
+    end
+
+    q.apply_default_order(params)
+  end
+
   def rejected?
     status == "rejected"
   end
