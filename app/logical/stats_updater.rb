@@ -19,6 +19,9 @@ class StatsUpdater
     stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")) || 0
     stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")) || 0
 
+    stats[:safe_posts] = Post.tag_match('status:any rating:s').count_only
+    stats[:questionable_posts] = Post.tag_match('status:any rating:q').count_only
+    stats[:explicit_posts] = Post.tag_match('status:any rating:e').count_only
     stats[:jpg_posts] = Post.tag_match('status:any type:jpg').count_only
     stats[:png_posts] = Post.tag_match('status:any type:png').count_only
     stats[:gif_posts] = Post.tag_match('status:any type:gif').count_only
@@ -85,6 +88,7 @@ class StatsUpdater
       stats[:deleted_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:hidden_blips])
       stats[:average_blips_per_day] = (stats[:total_blips] / ((Time.now - stats[:started])/(60*60*24))).round
     else
+      stats[:total_blips] = 0
       stats[:deleted_blips] = 0
       stats[:average_blips_per_day] = 0
     end

@@ -1,5 +1,3 @@
-<%= javascript_include_tag "/vendor/highcharts.js", integrity: "sha256-9ZO13Nj+v8YaXhyFvZZcV0ikZ/pM3YslopQknNxdb0c=", crossorigin: "anonymous" %>
-<%= javascript_include_tag "/vendor/highcharts-export.js", integrity: "sha256-NjBgWc8u4XRI29JcQRbzo+dwShOdAXWrlxIxGJc+0WA=", crossorigin: "anonymous" %>
 <style>
   .stats-column {
     width:400px;
@@ -81,11 +79,16 @@
     jQuery("#stats-pct-publicsets").html(pct(stats.sets.public, stats.sets.public+stats.sets.private));
     jQuery("#stats-pct-privatesets").html(pct(stats.sets.private, stats.sets.public+stats.sets.private));
 
-    jQuery("#stats-pct-jpgposts").html(pct(stats.posts.jpg, stats.posts.active+stats.posts.deleted));
-    jQuery("#stats-pct-pngposts").html(pct(stats.posts.png, stats.posts.active+stats.posts.deleted));
-    jQuery("#stats-pct-gifposts").html(pct(stats.posts.gif, stats.posts.active+stats.posts.deleted));
-    jQuery("#stats-pct-swfposts").html(pct(stats.posts.swf, stats.posts.active+stats.posts.deleted));
-    jQuery("#stats-pct-webmposts").html(pct(stats.posts.webm, stats.posts.active+stats.posts.deleted));
+    const postsCount = stats.posts.active+stats.posts.deleted
+    jQuery("#stats-pct-jpgposts").html(pct(stats.posts.jpg, postsCount));
+    jQuery("#stats-pct-pngposts").html(pct(stats.posts.png, postsCount));
+    jQuery("#stats-pct-gifposts").html(pct(stats.posts.gif, postsCount));
+    jQuery("#stats-pct-swfposts").html(pct(stats.posts.swf, postsCount));
+    jQuery("#stats-pct-webmposts").html(pct(stats.posts.webm, postsCount));
+
+    jQuery("#stats-pct-safeposts").html(pct(stats.posts.safe, postsCount));
+    jQuery("#stats-pct-questionableposts").html(pct(stats.posts.questionable, postsCount));
+    jQuery("#stats-pct-explicitposts").html(pct(stats.posts.explicit, postsCount));
 
     jQuery("#stats-pct-unactivatedusers").html(pct(stats.users.unactivated, stats.users.total));
     jQuery("#stats-pct-blockedusers").html(pct(stats.users.blocked, stats.users.total));
@@ -111,6 +114,7 @@
     jQuery("#stats-pct-speciestags").html(pct(stats.tags.species, stats.tags.total));
     jQuery("#stats-pct-metatags").html(pct(stats.tags.meta, stats.tags.total));
     jQuery("#stats-pct-invalidtags").html(pct(stats.tags.invalid, stats.tags.total));
+    jQuery("#stats-pct-loretags").html(pct(stats.tags.lore, stats.tags.total));
   });
 
   var stats = {
@@ -125,6 +129,11 @@
       gif:         <%= @stats['gif_posts'] %>,
       swf:         <%= @stats['swf_posts'] %>,
       webm:        <%= @stats['webm_posts'] %>,
+
+      // TODO: Remove '|| 0' after stats were generated
+      safe:        <%= @stats['safe_posts'] || 0 %>,
+      questionable: <%= @stats['questionable_posts'] || 0 %>,
+      explicit:    <%= @stats['explicit_posts'] || 0 %>,
     },
 
     sets: {
@@ -166,7 +175,8 @@
       copyright:   <%= @stats['copyright_tags'] %>,
       species:     <%= @stats['species_tags'] %>,
       meta:        <%= @stats['meta_tags'] %>,
-      invalid:     <%= @stats['invalid_tags'] %>
+      invalid:     <%= @stats['invalid_tags'] %>,
+      lore:        <%= @stats['lore_tags'] %>
     }
   };
 <% end -%>
@@ -221,6 +231,18 @@
       <tr>
         <td>Destroyed posts</td>
         <td><%= del(@stats['destroyed_posts']) %></td><td class='stats-pct' id='stats-pct-destroyedposts'></td>
+      </tr>
+      <tr>
+        <td>Safe posts</td>
+        <td><%= del(@stats['safe_posts']) %></td><td class='stats-pct' id='stats-pct-safeposts'></td>
+      </tr>
+      <tr>
+        <td>Questionable posts</td>
+        <td><%= del(@stats['questionable_posts']) %></td><td class='stats-pct' id='stats-pct-questionableposts'></td>
+      </tr>
+      <tr>
+        <td>Explicit posts</td>
+        <td><%= del(@stats['explicit_posts']) %></td><td class='stats-pct' id='stats-pct-explicitposts'></td>
       </tr>
       <tr>
         <td>Total post votes</td>
@@ -437,6 +459,10 @@
       <tr>
         <td>Invalid tag count</td>
         <td><%= del(@stats['invalid_tags']) %></td><td class='stats-pct' id='stats-pct-invalidtags'></td>
+      </tr>
+      <tr>
+        <td>Lore tag count</td>
+        <td><%= del(@stats['lore_tags']) %></td><td class='stats-pct' id='stats-pct-loretags'></td>
       </tr>
     </table>
   </div>
