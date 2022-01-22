@@ -836,7 +836,7 @@ Post.undelete = function(post_id) {
   });
 }
 
-Post.unflag = function(post_id, approval) {
+Post.unflag = function(post_id, approval, reload = true) {
   Post.notice_update("inc");
   let modApproval = approval || 'none';
   SendQueue.add(function() {
@@ -845,12 +845,13 @@ Post.unflag = function(post_id, approval) {
       url: `/posts/${post_id}/flag.json`,
       data: {approval: modApproval}
     }).fail(function(data) {
-//      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       const message = data.responseJSON.message;
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function(data) {
       $(window).trigger("danbooru:notice", "Unflagged post");
-      location.reload();
+      if (reload) {
+        location.reload();
+      }
     }).always(function() {
       Post.notice_update("dec");
     });
