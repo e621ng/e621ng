@@ -1,6 +1,6 @@
 class UserNameChangeRequestsController < ApplicationController
-  before_action :member_only, :only => [:new, :create, :show]
-  before_action :admin_only, :only => [:index, :approve, :reject]
+  before_action :member_only, only: [:new, :create, :show]
+  before_action :admin_only, only: :index
   respond_to :html, :json
 
   def new
@@ -12,10 +12,10 @@ class UserNameChangeRequestsController < ApplicationController
     @change_request = UserNameChangeRequest.create(change_request_params)
 
     if @change_request.errors.any?
-      render :action => "new"
+      render action: "new"
     else
       @change_request.approve!
-      redirect_to user_name_change_request_path(@change_request), :notice => "Your name has been changed"
+      redirect_to user_name_change_request_path(@change_request), notice: "Your name has been changed"
     end
   end
 
@@ -26,20 +26,8 @@ class UserNameChangeRequestsController < ApplicationController
   end
 
   def index
-    @change_requests = UserNameChangeRequest.visible.order("id desc").paginate(params[:page], :limit => params[:limit])
+    @change_requests = UserNameChangeRequest.order("id desc").paginate(params[:page], limit: params[:limit])
     respond_with(@change_requests)
-  end
-
-  def approve
-    @change_request = UserNameChangeRequest.find(params[:id])
-    @change_request.approve!
-    redirect_to user_name_change_request_path(@change_request), :notice => "Name change request approved"
-  end
-
-  def reject
-    @change_request = UserNameChangeRequest.find(params[:id])
-    @change_request.reject!(params[:reason])
-    redirect_to user_name_change_request_path(@change_request), :notice => "Name change request rejected"
   end
 
   private

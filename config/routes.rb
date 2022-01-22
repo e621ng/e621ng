@@ -348,12 +348,7 @@ Rails.application.routes.draw do
       get :search
     end
   end
-  resources :user_name_change_requests do
-    member do
-      post :approve
-      post :reject
-    end
-  end
+  resources :user_name_change_requests
   resource :user_revert, :only => [:new, :create]
   resources :wiki_pages do
     member do

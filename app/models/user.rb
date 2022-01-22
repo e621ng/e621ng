@@ -120,7 +120,7 @@ class User < ApplicationRecord
   has_many :note_versions, :foreign_key => "updater_id"
   has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
   has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
-  has_many :user_name_change_requests, -> {visible.order("user_name_change_requests.id desc")}
+  has_many :user_name_change_requests, -> { order("user_name_change_requests.id desc") }
   has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
   has_many :favorites, -> {order(id: :desc)}
   belongs_to :avatar, class_name: 'Post', optional: true
@@ -786,16 +786,6 @@ class User < ApplicationRecord
   module SearchMethods
     def admins
       where("level = ?", Levels::ADMIN)
-    end
-
-    # UserDeletion#rename renames deleted users to `user_<1234>~`. Tildes
-    # are appended if the username is taken.
-    def deleted
-      where("name ~ 'user_[0-9]+~*'")
-    end
-
-    def undeleted
-      where("name !~ 'user_[0-9]+~*'")
     end
 
     def with_email(email)

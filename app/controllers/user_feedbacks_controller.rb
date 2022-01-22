@@ -9,18 +9,18 @@ class UserFeedbacksController < ApplicationController
   end
 
   def edit
-    @user_feedback = UserFeedback.visible.find(params[:id])
+    @user_feedback = UserFeedback.find(params[:id])
     check_privilege(@user_feedback)
     respond_with(@user_feedback)
   end
 
   def show
-    @user_feedback = UserFeedback.visible.find(params[:id])
+    @user_feedback = UserFeedback.find(params[:id])
     respond_with(@user_feedback)
   end
 
   def index
-    @search = UserFeedback.visible.search(search_params)
+    @search = UserFeedback.search(search_params)
     @user_feedbacks = @search.paginate(params[:page], :limit => params[:limit])
     respond_with(@user_feedbacks)
   end
@@ -31,14 +31,14 @@ class UserFeedbacksController < ApplicationController
   end
 
   def update
-    @user_feedback = UserFeedback.visible.find(params[:id])
+    @user_feedback = UserFeedback.find(params[:id])
     check_privilege(@user_feedback)
     @user_feedback.update(user_feedback_params(:update))
     respond_with(@user_feedback)
   end
 
   def destroy
-    @user_feedback = UserFeedback.visible.find(params[:id])
+    @user_feedback = UserFeedback.find(params[:id])
     check_privilege(@user_feedback)
     @user_feedback.destroy
     redirect_back fallback_location: user_feedbacks_path
