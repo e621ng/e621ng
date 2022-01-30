@@ -581,9 +581,9 @@ class User < ApplicationRecord
     memoize :hourly_upload_limit
 
     def upload_limit
-        pieces = upload_limit_pieces
+      pieces = upload_limit_pieces
 
-        base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
     end
     memoize :upload_limit
 
@@ -595,7 +595,12 @@ class User < ApplicationRecord
       unapproved_replacements_count = PostReplacement.pending.for_user(id).count
       approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
 
-      return {deleted: deleted_count, approved: approved_count, pending: unapproved_count + unapproved_replacements_count}
+      {
+        deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
+        deleted_ignore: own_post_replaced_count - replaced_penalize_count,
+        approved: approved_count,
+        pending: unapproved_count + unapproved_replacements_count
+      }
     end
     memoize :upload_limit_pieces
 

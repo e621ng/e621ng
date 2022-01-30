@@ -50,7 +50,11 @@ class UserPresenter
 
     upload_limit_pieces = user.upload_limit_pieces
 
-    %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr> + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10) - (<abbr title="Deleted Posts">#{upload_limit_pieces[:deleted]}</abbr> / 4) - <abbr title="Pending or Flagged Posts">#{upload_limit_pieces[:pending]}</abbr> = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
+    %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr>
+    + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10)
+    - (<abbr title="Deleted or Replaced Posts, Rejected Replacements\n#{upload_limit_pieces[:deleted_ignore]} of your Post Replacements do not affect your upload limit">#{upload_limit_pieces[:deleted]}</abbr> / 4)
+    - <abbr title="Pending or Flagged Posts">#{upload_limit_pieces[:pending]}</abbr>
+    = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
   def uploads
