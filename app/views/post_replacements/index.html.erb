@@ -35,7 +35,7 @@
                   <% end %>
                 </dd>
                 <dt>Filename</dt>
-                <dd><%= post_replacement.file_name %></dd>
+                <dd><%= truncate post_replacement.file_name, length: 64 %></dd>
                 <% if post_replacement.md5.present? %>
                     <dt>Replacement MD5</dt>
                     <dd><%= post_replacement.md5 %></dd>
