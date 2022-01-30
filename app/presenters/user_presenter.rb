@@ -36,6 +36,10 @@ class UserPresenter
       permissions << "unrestricted uploads"
     end
 
+    if user.replacements_beta?
+      permissions << "replacements beta"
+    end
+
     permissions.join(", ")
   end
 

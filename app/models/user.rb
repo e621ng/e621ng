@@ -56,6 +56,7 @@ class User < ApplicationRecord
     no_feedback
     disable_user_dmails
     enable_compact_uploader
+    replacements_beta
   )
 
   include Danbooru::HasBitFlags
@@ -544,6 +545,10 @@ class User < ApplicationRecord
 
     def can_view_flagger_on_post?(flag)
       is_janitor? || flag.creator_id == id || flag.is_deletion
+    end
+
+    def can_replace?
+      is_janitor? || replacements_beta?
     end
 
     def can_upload?

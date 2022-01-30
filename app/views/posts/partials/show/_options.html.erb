@@ -16,6 +16,9 @@
       <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", :id => "copy-notes" %></li>
     <% end %>
 
+    <% if CurrentUser.can_replace? %>
+      <li><%= link_to "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
+    <% end %>
     <% if post.is_status_locked? %>
       <li><span id="status-locked-notice">Status locked</span></li>
     <% else %>
@@ -24,9 +27,7 @@
           <li><%= link_to "Flag", new_post_flag_path(post_flag: {post_id: post.id}), id: "flag" %></li>
         <% end %>
       <% end %>
-      <% if CurrentUser.is_member? %>
-        <li><%= link_to "Report", new_ticket_path(disp_id: post.id, type: 'post') %></li>
-      <% end %>
+      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, type: 'post') %></li>
 
       <% if CurrentUser.can_approve_posts? %>
         <% if post.is_deleted? %>
@@ -55,7 +56,6 @@
         <% end %>
       <% end %>
       <% if CurrentUser.is_janitor? %>
-        <li><%= link_to "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
         <li><%= tag.a "Regenerate Thumbnails", href: '#', id: 'regenerate-image-samples-link', 'data-pid': post.id %></li>
         <% if post.is_video? %>
           <li><%= tag.a "Regenerate Video Samples", href: '#', id: 'regenerate-video-samples-link', 'data-pid': post.id %></li>

@@ -1,5 +1,5 @@
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_no_feedback
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_no_feedback, :old_replacements_beta
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -15,6 +15,7 @@ class UserPromotion
     @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
     @old_no_feedback = user.no_feedback?
+    @old_replacements_beta = user.replacements_beta?
 
     user.level = new_level
 
@@ -34,6 +35,10 @@ class UserPromotion
       user.no_flagging = options[:no_flagging]
     end
 
+    if options.has_key?(:replacements_beta)
+      user.replacements_beta = options[:replacements_beta]
+    end
+
     create_user_feedback unless options[:is_upgrade]
     create_dmail unless options[:skip_dmail]
     create_mod_actions
@@ -41,7 +46,7 @@ class UserPromotion
     user.save
   end
 
-private
+  private
 
   def create_mod_actions
     added = []
@@ -62,6 +67,7 @@ private
     flag_check(added, removed, "can_upload_free", "unlimited upload slots")
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "no_feedback", "feedback_ban")
+    flag_check(added, removed, "replacements_beta", "replacements beta")
 
     unless added.empty? && removed.empty?
       ModAction.log(:user_flags_change, {user_id: user.id, added: added, removed: removed})
@@ -112,10 +118,16 @@ private
       messages << "You gained the ability to give user feedback."
     end
 
-   if user.no_flagging? && !old_no_flagging
+    if user.no_flagging? && !old_no_flagging
       messages << "You lost the ability to flag posts."
     elsif !user.no_flagging? && old_no_flagging
       messages << "You gained the ability to flag posts."
+    end
+
+    if user.replacements_beta? && !old_replacements_beta
+      messages << "You gained the ability to replace posts."
+    elsif !user.replacements_beta? && old_replacements_beta
+      messages << "You lost the ability to replace posts."
     end
 
     messages.join("\n")

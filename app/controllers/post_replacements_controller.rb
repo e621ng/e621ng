@@ -1,18 +1,22 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
+  before_action :member_only, only: [:create, :new]
+  before_action :janitor_only, only: [:approve, :reject, :promote, :toggle_penalize]
   before_action :moderator_only, only: [:destroy]
-  before_action :janitor_only, only: [:create, :new, :approve, :reject, :promote, :toggle_penalize]
+
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, "*"
   end
 
   def new
+    check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.new
     respond_with(@post_replacement)
   end
 
   def create
+    check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
     if @post_replacement.errors.any?
@@ -64,13 +68,20 @@ class PostReplacementsController < ApplicationController
   end
 
   def index
-    params[:search][:post_id] = params.delete(:post_id) if params.has_key?(:post_id)
+    params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
     @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
 
     respond_with(@post_replacements)
   end
 
-private
+  private
+
+  def check_allow_create
+    return if CurrentUser.can_replace?
+
+    raise User::PrivilegeError, "You are not part of the replacements beta"
+  end
+
   def create_params
     params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source)
   end
