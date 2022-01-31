@@ -208,13 +208,14 @@ class PostReplacement < ApplicationRecord
         return
       end
 
-      transaction do
+      upload = transaction do
         processor = UploadService.new(new_upload_params)
         new_upload = processor.start!
         update_attribute(:status, 'promoted')
         new_upload
       end
       post.update_index
+      upload
     end
 
     def reject!
