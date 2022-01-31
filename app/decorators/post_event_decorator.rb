@@ -1,4 +1,8 @@
 class PostEventDecorator < ApplicationDecorator
+  def self.collection_decorator_class
+    PaginatedDecorator
+  end
+
   delegate_all
 
   def format_description
