@@ -33,7 +33,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_rating_lock_mod_action, if: :saved_change_to_is_rating_locked?
+  after_save :create_lock_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -364,6 +364,7 @@ class Post < ApplicationRecord
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
+      PostEvent.add(id, CurrentUser.user, :flag_removed)
     end
 
     def appeal!(reason)
@@ -382,16 +383,14 @@ class Post < ApplicationRecord
       approver == user || approvals.where(user: user).exists?
     end
 
-    def unapprove!(unapprover = CurrentUser.user)
-      ModAction.log(:post_unapprove, {post_id: id})
+    def unapprove!
+      PostEvent.add(id, CurrentUser.user, :unapproved)
       update(approver: nil, is_pending: true)
     end
 
     def approve!(approver = CurrentUser.user, force: false)
       raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
-      if is_deleted?
-        ModAction.log(:post_undelete, {post_id: id})
-      end
+      PostEvent.add(id, CurrentUser.user, :approved)
 
       approv = approvals.create(user: approver)
       flags.each(&:resolve!)
@@ -1464,18 +1463,16 @@ class Post < ApplicationRecord
       Post.find(parent_id_before_last_save).update_has_children_flag if parent_id_before_last_save.present?
     end
 
-    def give_favorites_to_parent(options = {})
-      TransferFavoritesJob.perform_later(id, CurrentUser.id, options[:without_mod_action])
+    def give_favorites_to_parent
+      TransferFavoritesJob.perform_later(id, CurrentUser.id)
     end
 
-    def give_favorites_to_parent!(options = {})
+    def give_favorites_to_parent!
       return if parent.nil?
 
       FavoriteManager.give_to_parent!(self)
-
-      unless options[:without_mod_action]
-        ModAction.log(:post_move_favorites, {post_id: id, parent_id: parent_id})
-      end
+      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
+      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
     end
 
     def parent_exists?
@@ -1540,7 +1537,7 @@ class Post < ApplicationRecord
 
       transaction do
         Post.without_timeout do
-          ModAction.log(:post_destroy, {post_id: id, md5: md5})
+          PostEvent.add(id, CurrentUser.user, :expunged)
 
           update_children_on_destroy
           decrement_tag_post_counts
@@ -1587,16 +1584,14 @@ class Post < ApplicationRecord
               is_flagged: false
           )
           move_files_on_delete
-          unless options[:without_mod_action]
-            ModAction.log(:post_delete, {post_id: id, reason: reason})
-          end
+          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
 
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
-      give_favorites_to_parent(options) if options[:move_favorites]
+      give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
     end
@@ -1623,9 +1618,7 @@ class Post < ApplicationRecord
         flags.each {|x| x.resolve!}
         save
         approvals.create(user: CurrentUser.user)
-        unless options[:without_mod_action]
-          ModAction.log(:post_undelete, {post_id: id})
-        end
+        PostEvent.add(id, CurrentUser.user, :undeleted)
       end
       move_files_on_undelete
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
@@ -1991,9 +1984,20 @@ class Post < ApplicationRecord
     end
   end
 
-  module RatingMethods
-    def create_rating_lock_mod_action
-      ModAction.log(:post_rating_lock, {locked: is_rating_locked?, post_id: id})
+  module PostEventMethods
+    def create_lock_post_events
+      if saved_change_to_is_rating_locked?
+        action = is_rating_locked? ? :rating_locked : :rating_unlocked
+        PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_is_status_locked?
+        action = is_status_locked? ? :status_locked : :status_unlocked
+        PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_is_note_locked?
+        action = is_note_locked? ? :note_locked : :note_unlocked
+        PostEvent.add(id, CurrentUser.user, action)
+      end
     end
   end
 
@@ -2104,7 +2108,7 @@ class Post < ApplicationRecord
   extend SearchMethods
   include IqdbMethods
   include ValidationMethods
-  include RatingMethods
+  include PostEventMethods
   include Danbooru::HasBitFlags
   include Indexable
   include PostIndex

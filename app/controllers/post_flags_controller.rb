@@ -23,8 +23,8 @@ class PostFlagsController < ApplicationController
         if @post_flag.errors.size > 0
           @post = Post.find(params[:post_flag][:post_id])
           respond_with(@post_flag)
-          else
-            redirect_to post_path(id: @post_flag.post_id)
+        else
+          redirect_to post_path(id: @post_flag.post_id)
         end
       end
     end

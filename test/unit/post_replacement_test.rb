@@ -102,12 +102,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal [], @new_replacement.errors.full_messages
     end
 
-    should "create a mod action" do
-      assert_difference("ModAction.count") do
-        @replacement.reject!
-      end
-    end
-
     should "give user back their upload slot" do
       assert_difference(->{PostReplacement.pending.for_user(@user.id).count}, -1) do
         @replacement.reject!
@@ -136,12 +130,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       @note = FactoryBot.create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
       @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
       assert @replacement
-    end
-
-    should "create a mod action" do
-      assert_difference("ModAction.count") do
-        @replacement.approve! penalize_current_uploader: true
-      end
     end
 
     should "fail if post cannot be backed up" do

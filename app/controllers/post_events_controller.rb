@@ -2,7 +2,13 @@ class PostEventsController < ApplicationController
   respond_to :html, :json
 
   def index
-    @events = PostEvent.find_for_post(params[:post_id])
-    respond_with(@events)
+    @events = PostEventDecorator.decorate_collection(
+      PostEvent.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
+    )
+    respond_with(@events) do |format|
+      format.json do
+        render json: Draper.undecorate(@events)
+      end
+    end
   end
 end

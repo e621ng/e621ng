@@ -1,71 +1,67 @@
-class PostEvent
-  include ActiveModel::Model
-  include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
+class PostEvent < ApplicationRecord
+  belongs_to :creator, class_name: "User"
+  enum action: {
+    deleted: 0,
+    undeleted: 1,
+    approved: 2,
+    unapproved: 3,
+    flag_created: 4,
+    flag_removed: 5,
+    favorites_moved: 6,
+    favorites_received: 7,
+    rating_locked: 8,
+    rating_unlocked: 9,
+    status_locked: 10,
+    status_unlocked: 11,
+    note_locked: 12,
+    note_unlocked: 13,
+    replacement_accepted: 14,
+    replacement_rejected: 15,
+    replacement_deleted: 16,
+    expunged: 17
+  }
 
-  attr_accessor :event
-  delegate :created_at, to: :event
-
-  def self.find_for_post(post_id)
-    post = Post.find(post_id)
-    (post.appeals + post.flags + post.approvals).sort_by(&:created_at).reverse.map { |e| new(event: e) }
+  def self.add(post_id, creator, action, data = {})
+    create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
   end
 
-  def type_name
-    case event
-    when PostFlag
-      "flag"
-    when PostAppeal
-      "appeal"
-    when PostApproval
-      "approval"
-    end
-  end
-
-  def type
-    type_name.first
-  end
-
-  def reason
-    event.try(:reason) || ""
-  end
-
-  def is_resolved
-    event.try(:is_resolved) || false
-  end
-
-  def creator_id
-    event.try(:creator_id) || event.try(:user_id)
-  end
-
-  def creator
-    event.try(:creator) || event.try(:user)
-  end
-
-  def is_creator_visible?(user = CurrentUser.user)
-    case event
-    when PostAppeal, PostApproval
+  def is_creator_visible?(user)
+    case action
+    when "flag_created"
+      user.can_view_flagger?(creator_id)
+    else
       true
-    when PostFlag
-      flag = event
-      user.can_view_flagger_on_post?(flag)
     end
   end
 
-  def attributes
-    {
-      "creator_id": nil,
-      "created_at": nil,
-      "reason": nil,
-      "is_resolved": nil,
-      "type": nil,
-    }
+  def self.for_user(q, user_id)
+    q = q.where("creator_id = ?", user_id)
+    unless CurrentUser.can_view_flagger?(user_id)
+      q = q.where.not(action: actions[:flag_created])
+    end
+    q
   end
 
-  # XXX can't use hidden_attributes because we don't inherit from ApplicationRecord.
-  def serializable_hash(**options)
-    hash = super
-    hash = hash.except(:creator_id) unless is_creator_visible?
-    hash
+  def self.search(params)
+    q = super
+
+    if params[:post_id].present?
+      q = q.where("post_id = ?", params[:post_id].to_i)
+    end
+
+    if params[:creator_name].present?
+      creator_id = User.name_to_id(params[:creator_name].strip)
+      q = for_user(q, creator_id.to_i)
+    end
+
+    if params[:creator_id].present?
+      q = for_user(q, params[:creator_id].to_i)
+    end
+
+    if params[:action].present?
+      q = q.where('action = ?', actions[params[:action]])
+    end
+
+    q.apply_default_order(params)
   end
 end

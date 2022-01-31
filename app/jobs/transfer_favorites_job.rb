@@ -2,7 +2,6 @@ class TransferFavoritesJob < ApplicationJob
   queue_as :low_prio
 
   def perform(*args)
-    without_mod_action = args[2]
     @post = Post.find_by(id: args[0])
     @user = User.find_by(id: args[1])
     unless @post && @user
@@ -11,8 +10,7 @@ class TransferFavoritesJob < ApplicationJob
     end
 
     CurrentUser.as(@user) do
-      @post.give_favorites_to_parent!(without_mod_action: without_mod_action)
+      @post.give_favorites_to_parent!
     end
   end
-
 end
