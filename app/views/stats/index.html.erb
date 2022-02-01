@@ -130,10 +130,9 @@
       swf:         <%= @stats['swf_posts'] %>,
       webm:        <%= @stats['webm_posts'] %>,
 
-      // TODO: Remove '|| 0' after stats were generated
-      safe:        <%= @stats['safe_posts'] || 0 %>,
-      questionable: <%= @stats['questionable_posts'] || 0 %>,
-      explicit:    <%= @stats['explicit_posts'] || 0 %>,
+      safe:        <%= @stats['safe_posts'] %>,
+      questionable: <%= @stats['questionable_posts'] %>,
+      explicit:    <%= @stats['explicit_posts'] %>,
     },
 
     sets: {
