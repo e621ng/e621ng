@@ -880,10 +880,6 @@ fart'
       %w[duplicate image_sample md5_mismatch resized upscaled downscaled]
     end
 
-    def shared_dir_path
-      "/var/www/danbooru2/shared"
-    end
-
     def twitter_api_key
     end
 
