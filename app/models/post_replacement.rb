@@ -104,6 +104,12 @@ class PostReplacement < ApplicationRecord
     def fetch_source_file
       return if replacement_file.present?
 
+      valid, reason = UploadWhitelist.is_whitelisted?(replacement_url_parsed)
+      if !valid
+        self.errors.add(:replacement_url, "is not whitelisted: #{reason}")
+        throw :abort
+      end
+
       download = Downloads::File.new(replacement_url_parsed, "")
       file, strategy = download.download!
 
@@ -133,8 +139,12 @@ class PostReplacement < ApplicationRecord
       if replacement_file.present?
         self.file_name = replacement_file.try(:original_filename) || File.basename(replacement_file.path)
       else
+        if replacement_url_parsed.blank? && replacement_url.present?
+          self.errors.add(:replacement_url, "is invalid")
+          throw :abort
+        end
         if replacement_url_parsed.blank?
-          self.errors.add(:base, "No file or source URL provided")
+          self.errors.add(:base, "No file or replacement URL provided")
           throw :abort
         end
         self.file_name = replacement_url_parsed.basename
