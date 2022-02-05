@@ -26,6 +26,7 @@ class ForumPostsController < ApplicationController
 
   def index
     @query = ForumPost.permitted.active.search(search_params)
+    @query = ForumPost.permitted.search(search_params) if CurrentUser.is_moderator?
     @forum_posts = @query.includes(:topic).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     respond_with(@forum_posts)
   end
