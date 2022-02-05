@@ -53,6 +53,8 @@ class ModAction < ApplicationRecord
       :ticket_unclaim,
       :ticket_update,
       :user_blacklist_changed,
+      :user_text_change,
+      :user_upload_limit_change,
       :user_flags_change,
       :user_level_change,
       :user_name_change,

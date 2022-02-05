@@ -75,8 +75,10 @@ class ModActionDecorator < ApplicationDecorator
       "Edited #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
-    when "changed_user_text"
+    when "changed_user_text", "user_text_change"
       "Changed profile text of #{user}"
+    when "user_upload_limit_change"
+      "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_name_change"
       "Changed name of #{user} from #{vals['old_name']} to #{vals['new_name']}"
 

@@ -31,6 +31,12 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
       old_username = @user.name
       desired_username = params[:user][:name]
       @user.update!(user_params)
+      if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
+        ModAction.log(:user_text_change, { user_id: @user.id })
+      end
+      if @user.saved_change_to_base_upload_limit
+        ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
+      end
       @user.mark_verified! if params[:user][:verified] == 'true'
       @user.mark_unverified! if params[:user][:verified] == 'false'
       params[:user][:is_upgrade] = true
