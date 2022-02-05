@@ -11,6 +11,10 @@
                 </div>
                 <div class="col2">
                     <div v-if="!disableFileUpload">
+                        <div class="box-section sect_red" v-if="fileToLarge">
+                            The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
+                            Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
+                        </div>
                         <label>File:
                             <input type="file" ref="post_file" @change="updateFilePreview" @keyup="updateFilePreview"
                                    accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
@@ -359,7 +363,7 @@
     this.resetFilePreview();
     reader.onload = function (e) {
       let src = e.target.result;
-
+      self.fileToLarge = file.size > self.maxFileSize;
       if (file.type.match('video/webm'))
         self.setPreviewVideo(src);
       else if (file.type.match('application/x-shockwave-flash'))
@@ -410,6 +414,7 @@
   }
 
   function updateFilePreview() {
+    this.fileToLarge = false;
     if (this.$refs['post_file'] && this.$refs['post_file'].files[0])
       updatePreviewFile.call(this);
     else
@@ -561,7 +566,10 @@
         error: '',
         duplicateId: 0,
         
-        descrLimit: window.uploaderSettings.descrLimit
+        descrLimit: window.uploaderSettings.descrLimit,
+
+        maxFileSize: window.uploaderSettings.maxFileSize,
+        fileToLarge: false,
       };
     },
     mounted() {
@@ -826,7 +834,7 @@
       },
       preventUpload: function () {
         return this.sourceWarning || this.badDirectURL || this.notEnoughTags
-          || this.invalidRating;
+          || this.invalidRating || this.fileToLarge;
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;

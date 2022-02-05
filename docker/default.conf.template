@@ -4,7 +4,7 @@ server {
   root /app/public;
   index index.html;
   access_log off;
-  client_max_body_size 35m;
+  client_max_body_size 100m;
   location /stylesheets {
     expires max;
     break;
