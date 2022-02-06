@@ -25,7 +25,7 @@ To mitigate this you can install a WSL distribution and clone the project inside
     After running the commands once only `docker-compose up` is needed to bring up the containers.
 5. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
-6. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly.
+6. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `e621test` respectively.
 
 Note: When gems or js packages were updated you need to execute `docker-compose build` to reflect them in the container.
 
