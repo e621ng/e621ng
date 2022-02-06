@@ -16,11 +16,18 @@
       <tbody>
         <% @events.each do |event| %>
           <tr>
-            <td> <%= link_to "post ##{event.post_id}", post_path(event.post_id) %> </td>
-            <td><%= event.action.capitalize.tr("_"," ") %></td>
+            <td>
+              <%= link_to "post ##{event.post_id}", post_path(event.post_id) %>
+              <%= link_to "»", post_events_path(search: params[:search].merge(post_id: event.post_id)) %>
+            </td>
+            <td>
+              <%= event.action.capitalize.tr("_"," ") %>
+              <%= link_to "»", post_events_path(search: params[:search].merge(action: event.action)) %>
+            </td>
             <td>
               <% if event.is_creator_visible?(CurrentUser.user) %>
                 <%= link_to_user event.creator %>
+                <%= link_to "»", post_events_path(search: params[:search].merge(creator_name: event.creator.name)) %>
               <% else %>
                 <i>hidden</i>
               <% end %>
