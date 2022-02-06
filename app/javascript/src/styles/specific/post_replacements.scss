@@ -11,6 +11,10 @@ div#c-post-replacements {
     }
   }
 
+  .replacement-reason {
+    white-space: pre-wrap;
+  }
+
   .disabled-link {
     pointer-events: none;
     cursor: default;

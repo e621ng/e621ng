@@ -13,6 +13,7 @@ class PostReplacement < ApplicationRecord
   validate :update_file_attributes, on: :create
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
+  validates :reason, length: { maximum: 150 }, on: :create
 
   after_create -> { post.update_index }
   before_destroy :remove_files
