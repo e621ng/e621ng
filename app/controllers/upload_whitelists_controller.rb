@@ -62,7 +62,7 @@ class UploadWhitelistsController < ApplicationController
   end
 
   def search_params
-    params.fetch(:search, {}).permit(%i[allowed order pattern note reason])
+    permit_search_params %i[allowed order pattern note reason]
   end
 
   def whitelist_params

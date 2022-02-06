@@ -234,6 +234,10 @@ class ApplicationController < ActionController::Base
     params.fetch(:search, {}).permit!
   end
 
+  def permit_search_params(permitted_params)
+    params.fetch(:search, {}).permit([:id, :created_at, :updated_at] + permitted_params)
+  end
+
   def enforce_readonly
     return unless Danbooru.config.readonly_mode?
     raise ReadOnlyException.new "The site is in readonly mode" unless allowed_readonly_actions.include? action_name

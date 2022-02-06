@@ -25,7 +25,7 @@ class EmailBlacklistsController < ApplicationController
   private
 
   def search_params
-    params.fetch(:search, {}).permit(%i[order domain reason])
+    permit_search_params %i[order domain reason]
   end
 
   def blacklist_params

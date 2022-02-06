@@ -86,11 +86,11 @@ class TicketsController < ApplicationController
   end
 
   def search_params
-    search_params = params.fetch(:search, {})
-    allowed = %i[type status order]
-    allowed += %i[creator_id] if CurrentUser.is_admin? || (search_params[:creator_id].present? && search_params[:creator_id].to_i == CurrentUser.id)
-    allowed += %i[creator_name accused_name accused_id claimant_id] if CurrentUser.is_admin?
-    search_params.permit(allowed)
+    current_search_params = params.fetch(:search, {})
+    permitted_params = %i[type status order]
+    permitted_params += %i[creator_id] if CurrentUser.is_admin? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
+    permitted_params += %i[creator_name accused_name accused_id claimant_id] if CurrentUser.is_admin?
+    permit_search_params permitted_params
   end
 
   def check_new_permission(ticket)

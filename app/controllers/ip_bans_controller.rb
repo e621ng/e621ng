@@ -29,6 +29,6 @@ class IpBansController < ApplicationController
   end
 
   def search_params
-    params.fetch(:search, {}).permit(%i[ip_addr order])
+    permit_search_params %i[ip_addr order]
   end
 end

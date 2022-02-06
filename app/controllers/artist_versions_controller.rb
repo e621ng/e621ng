@@ -12,6 +12,6 @@ class ArtistVersionsController < ApplicationController
   def search_params
     permitted_params = %i[name updater_name updater_id artist_id is_active is_banned order]
     permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
-    params.fetch(:search, {}).permit(permitted_params)
+    permit_search_params permitted_params
   end
 end
