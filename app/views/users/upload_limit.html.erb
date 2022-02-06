@@ -19,28 +19,16 @@
   <% end %>
 
   <p>
-    <% unless CurrentUser.can_upload_free? %>
-      In addition to this, you are limited to 30 uploads per hour.
+    You are limited to 30 uploads per hour.
+    <% unless CurrentUser.can_upload_free? || CurrentUser.is_privileged? %>
       You also may not upload if you have no remaining tag edits per hour.
-    <% else %>
-      You are limited to 30 uploads per hour.
     <% end %>
   </p>
 
   <ul>
     <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-    <% if !CurrentUser.can_upload_free? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
+    <% unless CurrentUser.can_upload_free? || CurrentUser.is_privileged? %><li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li><% end %>
   </ul>
-
-  <% unless CurrentUser.can_upload_free? %>
-    <p>
-      If either of these limits reaches zero, you may not upload until some time has passed and these limits increase automatically.
-    </p>
-  <% else %>
-    <p>
-      If this limit reaches zero, you may not upload until some time has passed and the limit increases automatically.
-    </p>
-  <% end %>
 </div>
 
 <% content_for(:page_title) do %>
