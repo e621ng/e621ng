@@ -1209,12 +1209,6 @@ class UploadServiceTest < ActiveSupport::TestCase
         @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100)
       end
 
-      should "create a commentary record" do
-        assert_difference(-> { ArtistCommentary.count }) do
-          subject.new({include_artist_commentary: true, artist_commentary_title: "blah", artist_commentary_desc: "blah"}).create_post_from_upload(@upload)
-        end
-      end
-
       should "create a post" do
         post = subject.new({}).create_post_from_upload(@upload)
         assert_equal([], post.errors.full_messages)

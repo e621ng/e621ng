@@ -154,12 +154,12 @@
 
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-          <div id="artist-commentary" class="expandable <%= 'expanded' unless CurrentUser.description_collapsed_initially? %>">
+          <div id="description" class="expandable <%= 'expanded' unless CurrentUser.description_collapsed_initially? %>">
             <div class="expandable-header">
               <span class="section-arrow"></span>
               <span>Description</span>
             </div>
-            <div class="expandable-content dtext-container original-artist-commentary">
+            <div class="expandable-content dtext-container">
               <%= format_text(@post.description, max_thumbs: 0) %>
             </div>
           </div>
