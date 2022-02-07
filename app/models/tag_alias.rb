@@ -307,7 +307,7 @@ class TagAlias < TagRelationship
   end
 
   def reject!(update_topic: true)
-    update(status: "deleted")
+    update_column(:status,  "deleted")
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
   end
 
