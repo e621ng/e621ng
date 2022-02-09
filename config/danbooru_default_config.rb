@@ -985,12 +985,6 @@ fart'
       "https://#{hostname}"
     end
 
-    def recommender_server
-    end
-
-    def recommender_key
-    end
-
     def redis_url
     end
 
