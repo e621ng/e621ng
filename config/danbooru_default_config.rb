@@ -940,11 +940,6 @@ fart'
     def twitter_site
     end
 
-    # enable some (donmai-specific) optimizations for post counts
-    def estimate_post_counts?
-      false
-    end
-
     # disable this for tests
     def enable_sock_puppet_validation?
       true
