@@ -32,11 +32,7 @@ module PostSetPresenters
     end
 
     def popular_tags
-      if PopularSearchService.enabled?
-        PopularSearchService.new(Date.today).tags.slice(0, 25)
-      else
-        Tag.trending
-      end
+      Tag.trending
     end
 
     def pattern_tags

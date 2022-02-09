@@ -68,9 +68,6 @@ Rails.application.routes.draw do
     resources :posts, :only => [] do
       collection do
         get :popular
-        get :searches
-        get :missed_searches
-        get :intro
       end
     end
   end
@@ -489,8 +486,6 @@ Rails.application.routes.draw do
   get "/static/toggle_mobile_mode" => "static#disable_mobile_mode", as: "disable_mobile_mode"
   get "static/theme" => "static#theme", as: "theme"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
-
-  get "/intro" => redirect("/explore/posts/intro")
 
   root :to => "static#home"
 

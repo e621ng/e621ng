@@ -8,7 +8,6 @@ class PostViewCountServiceTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
 
     PostViewCountService.stubs(:enabled?).returns(true)
-    Danbooru.config.stubs(:reportbooru_server).returns("http://localhost:1234")
     @post = FactoryBot.create(:post)
   end
 

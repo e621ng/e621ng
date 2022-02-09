@@ -67,7 +67,6 @@ end
 class ActiveSupport::TestCase
   include PostArchiveTestHelper
   include PoolArchiveTestHelper
-  include ReportbooruHelper
   include DownloadTestHelper
   include IqdbTestHelper
   include UploadTestHelper
@@ -75,8 +74,6 @@ class ActiveSupport::TestCase
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
-    mock_popular_search_service!
-    mock_missed_search_service!
     WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles?).returns(true)
