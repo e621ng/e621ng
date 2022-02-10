@@ -32,6 +32,7 @@ div#notice {
 }
 
 a#close-notice-link {
-  position: absolute;
-  right: 1em;
+  display: flex;
+  float: right;
+  padding: 0 0.75em;
 }
