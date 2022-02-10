@@ -777,14 +777,6 @@ class PostTest < ActiveSupport::TestCase
         end
 
         context "for a pool" do
-          setup do
-            start_pool_archive_transaction
-          end
-
-          teardown do
-            rollback_pool_archive_transaction
-          end
-
           context "on creation" do
             setup do
               @pool = FactoryBot.create(:pool)
