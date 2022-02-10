@@ -17,7 +17,6 @@ class PostVersionTest < ActiveSupport::TestCase
 
     context "that has multiple versions: " do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         @post = FactoryBot.create(:post, :tag_string => "1")
         @post.update(:tag_string => "1 2")
         @post.update(:tag_string => "2 3")
@@ -51,23 +50,8 @@ class PostVersionTest < ActiveSupport::TestCase
       end
     end
 
-    context "that should be merged" do
-      setup do
-        @parent = FactoryBot.create(:post)
-        @post = FactoryBot.create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
-      end
-
-      should "delete the previous version" do
-        assert_equal(1, @post.versions.count)
-        @post.update(:tag_string => "bbb ccc xxx", :source => "")
-        @post.reload
-        assert_equal(1, @post.versions.count)
-      end
-    end
-
     context "that has been updated" do
       setup do
-        PostArchive.sqs_service.stubs(:merge?).returns(false)
         Timecop.travel(1.minute.ago) do
           @post = FactoryBot.create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
         end
