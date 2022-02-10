@@ -927,10 +927,10 @@ Post.approve = function(post_id, should_reload) {
         $post.removeClass("post-status-pending");
         $(window).trigger("danbooru:notice", "Approved post #" + post_id);
       }
-      if (should_reload === true)
-        location.reload();
     }).always(function() {
       Post.notice_update("dec");
+      if (should_reload === true)
+        location.reload();
     });
   });
 }
