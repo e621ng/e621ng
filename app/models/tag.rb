@@ -19,12 +19,12 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
-    -flagger appealer -appealer disapproval -disapproval set -set randseed -voted
+    -flagger disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
 
-  SUBQUERY_METATAGS = %w[commenter comm noter noteupdater flagger -flagger appealer -appealer]
+  SUBQUERY_METATAGS = %w[commenter comm noter noteupdater flagger -flagger]
 
   ORDER_METATAGS = %w[
     id id_desc

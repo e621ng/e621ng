@@ -124,20 +124,6 @@ module Moderator
             assert_response :success
           end
         end
-
-        context "for appeals" do
-          setup do
-            as(@user) do
-              @post = create(:post, :is_deleted => true)
-              @post.appeal!("blah")
-            end
-          end
-
-          should "render" do
-            get_auth moderator_dashboard_path, @admin
-            assert_response :success
-          end
-        end
       end
     end
   end

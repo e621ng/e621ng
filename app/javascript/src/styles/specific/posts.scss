@@ -341,13 +341,6 @@ div#c-posts {
       }
     }
 
-    &.notice-appealed {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
-    }
-
     &.notice-resized {
       @include themable {
         background-color: themed('color-section');
