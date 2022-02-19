@@ -10,10 +10,6 @@ class RelatedTagQuery
     @category = category
   end
 
-  def pretty_name
-    query.tr("_", " ")
-  end
-
   def tags
     if query =~ /\*/
       pattern_matching_tags
@@ -37,27 +33,6 @@ class RelatedTagQuery
     tags.take(max_tags)
   end
 
-  def favorite_tags
-    user&.favorite_tags.to_s.split
-  end
-
-  def wiki_page_tags
-    results = wiki_page.try(:tags) || []
-    results.reject! do |name|
-      name =~ /^(?:list_of_|tag_group|pool_group|howto:|about:|help:|template:)/
-    end
-    results
-  end
-
-  def other_wiki_pages
-    return [] unless Tag.category_for(query) == Tag.categories.copyright
-
-    other_wikis = wiki_page&.tags.to_a.grep(/^list_of_/i)
-    other_wikis = other_wikis.map { |name| WikiPage.titled(name).first }
-    other_wikis = other_wikis.select { |wiki| wiki.tags.present? }
-    other_wikis
-  end
-
   def tags_for_html
     tags_with_categories(tags)
   end
@@ -66,9 +41,7 @@ class RelatedTagQuery
     {
       query: query,
       category: category,
-      tags: tags_with_categories(tags),
-      wiki_page_tags: tags_with_categories(wiki_page_tags),
-      other_wikis: other_wiki_pages.map { |wiki| [wiki.title, tags_with_categories(wiki.tags)] }.to_h
+      tags: tags_with_categories(tags)
     }
   end
 

@@ -660,11 +660,6 @@ fart'
       @categorized_tag_list ||= ["invalid","artist","copyright","character","species","meta","general","lore"]
     end
 
-    #Sets the order of the related tag buttons (javascripts/related_tag.js)
-    def related_tag_button_list
-      @related_tag_button_list ||= ["general","artist","species","character","copyright"]
-    end
-
 #END TAG
 
     # If enabled, users must verify their email addresses.
