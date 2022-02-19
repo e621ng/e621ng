@@ -2,7 +2,7 @@ class ArtistsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show, :show_or_new]
   before_action :janitor_only, :only => [:destroy]
-  before_action :load_artist, :only => [:show, :edit, :update, :destroy, :undelete]
+  before_action :load_artist, :only => [:edit, :update, :destroy]
 
   def new
     @artist = Artist.new(artist_params(:new))
@@ -24,7 +24,15 @@ class ArtistsController < ApplicationController
   end
 
   def show
-    @artist = Artist.find(params[:id])
+    if params[:id] =~ /\A\d+\z/
+      @artist = Artist.find(params[:id])
+    else
+      @artist = Artist.find_by(name: Artist.normalize_name(params[:id]))
+      unless @artist
+        redirect_to(show_or_new_artists_path(name: params[:id]))
+        return
+      end
+    end
     @post_set = PostSets::Artist.new(@artist)
     respond_with(@artist, methods: [:domains], include: [:urls])
   end
