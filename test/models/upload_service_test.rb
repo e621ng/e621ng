@@ -192,30 +192,6 @@ class UploadServiceTest < ActiveSupport::TestCase
       end
     end
 
-    context ".process_file" do
-      setup do
-        @upload = FactoryBot.build(:jpg_upload)
-        @file = @upload.file
-      end
-
-      context "with an original_post_id" do
-        should "run" do
-          subject.expects(:distribute_files).times(3)
-          subject.process_file(@upload, @file, original_post_id: 12345)
-        end
-      end
-
-      should "run" do
-        subject.expects(:distribute_files).times(3)
-        subject.process_file(@upload, @file)
-        assert_equal("jpg", @upload.file_ext)
-        assert_equal(28086, @upload.file_size)
-        assert_equal("ecef68c44edb8a0d6a3070b5f8e8ee76", @upload.md5)
-        assert_equal(335, @upload.image_height)
-        assert_equal(500, @upload.image_width)
-      end
-    end
-
     context ".generate_resizes" do
       context "for an ugoira" do
         setup do
