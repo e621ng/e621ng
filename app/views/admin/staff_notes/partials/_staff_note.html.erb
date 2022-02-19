@@ -9,7 +9,7 @@
     </div>
   </div>
   <div class="content">
-    <% unless @user %>
+    <% if show_receiver_name %>
     <h4>On <%= link_to_user staff_note.user %></h4>
     <% end %>
     <div class="body dtext-container">

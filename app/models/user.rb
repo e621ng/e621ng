@@ -111,8 +111,9 @@ class User < ApplicationRecord
   has_many :post_votes
   has_many :post_archives
   has_many :note_versions
-  has_many :bans, -> {order("bans.id desc")}
-  has_one :recent_ban, -> {order("bans.id desc")}, :class_name => "Ban"
+  has_many :bans, -> { order("bans.id desc") }
+  has_many :staff_notes, -> { order("staff_notes.id desc") }
+  has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
   has_one :user_status
 
   has_one :api_key
@@ -549,6 +550,10 @@ class User < ApplicationRecord
 
     def can_replace?
       is_janitor? || replacements_beta?
+    end
+
+    def can_view_staff_notes?
+      is_moderator?
     end
 
     def can_upload?

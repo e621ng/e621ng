@@ -191,16 +191,4 @@ class UserPresenter
     return false if user.enable_privacy_mode? && !CurrentUser.is_admin?
     true
   end
-
-  def show_staff_notes?
-    CurrentUser.is_moderator?
-  end
-
-  def staff_notes
-    StaffNote.where(user_id: user.id).order(id: :desc).limit(15)
-  end
-
-  def new_staff_note
-    StaffNote.new(user_id: user.id)
-  end
 end
