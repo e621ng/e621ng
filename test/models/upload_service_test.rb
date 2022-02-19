@@ -369,163 +369,6 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
   end
 
-  context "::Preprocessor" do
-    subject { UploadService::Preprocessor }
-
-    context "#start!" do
-      setup do
-        CurrentUser.user = travel_to(1.month.ago) do
-          FactoryBot.create(:user)
-        end
-        CurrentUser.ip_addr = "127.0.0.1"
-      end
-
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
-      context "for twitter" do
-        setup do
-          @source = "https://pbs.twimg.com/media/B4HSEP5CUAA4xyu.png:large"
-          @ref = "https://twitter.com/nounproject/status/540944400767922176"
-        end
-
-        should "download the file" do
-          @service = subject.new(source: @source, referer_url: @ref)
-          @upload = @service.start!
-          assert_equal("preprocessed", @upload.status)
-          assert_equal(9800, @upload.file_size)
-          assert_equal("png", @upload.file_ext)
-          assert_equal("f5fe24f3a3a13885285f6627e04feec9", @upload.md5)
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "png", :original)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "png", :preview)))
-        end
-      end
-
-      context "for pixiv" do
-        setup do
-          @source = "https://i.pximg.net/img-original/img/2014/10/29/09/27/19/46785915_p0.jpg"
-          @ref = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=46785915"
-        end
-
-        should "download the file" do
-          begin
-            @service = subject.new(source: @source, referer_url: @ref)
-            @upload = @service.start!
-          rescue Net::OpenTimeout
-            skip "network failure"
-          end
-          assert_equal("preprocessed", @upload.status)
-          assert_equal(294591, @upload.file_size)
-          assert_equal("jpg", @upload.file_ext)
-          assert_equal("3cb1ef624714c15dbb2d6e7b1d57faef", @upload.md5)
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "jpg", :original)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "jpg", :preview)))
-        end
-      end
-
-      context "for pixiv ugoira" do
-        setup do
-          @source = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=62247364"
-        end
-
-        should "download the file" do
-          @service = subject.new(source: @source)
-          begin
-            @upload = @service.start!
-          rescue Net::OpenTimeout
-            skip "network problems"
-          end
-          assert_equal("preprocessed", @upload.status)
-          assert_equal(2804, @upload.file_size)
-          assert_equal("zip", @upload.file_ext)
-          assert_equal("cad1da177ef309bf40a117c17b8eecf5", @upload.md5)
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "zip", :original)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "zip", :large)))
-        end
-      end
-
-      context "for null" do
-        setup do
-          @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
-        end
-
-        should "download the file" do
-          @service = subject.new(source: @source)
-          begin
-            @upload = @service.start!
-          rescue Net::OpenTimeout
-            skip "network problems"
-          end
-          assert_equal("preprocessed", @upload.status)
-          assert_equal(181309, @upload.file_size)
-          assert_equal("jpg", @upload.file_ext)
-          assert_equal("93f4dd66ef1eb11a89e56d31f9adc8d0", @upload.md5)
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "jpg", :original)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "jpg", :large)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "jpg", :preview)))
-        end
-      end
-
-      context "for a video" do
-        setup do
-          @source = "https://raikou2.donmai.us/b7/cb/b7cb80092be273771510952812380fa2.mp4"
-        end
-
-        should "work for a video" do
-          @service = subject.new(source: @source)
-          @upload = @service.start!
-          assert_equal("preprocessed", @upload.status)
-          assert_not_nil(@upload.md5)
-          assert_equal("mp4", @upload.file_ext)
-          assert_operator(@upload.file_size, :>, 0)
-          assert_not_nil(@upload.source)
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "mp4", :original)))
-          assert(File.exists?(Danbooru.config.storage_manager.file_path(@upload.md5, "mp4", :preview)))
-        end
-      end
-
-      context "on timeout errors" do
-        setup do
-          @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
-          HTTParty.stubs(:get).raises(Net::ReadTimeout)
-        end
-        
-        should "leave the upload in an error state" do
-          @service = subject.new(source: @source)
-          @upload = @service.start!
-          assert_match(/error:/, @upload.status)
-        end
-      end
-
-      context "for an invalid content type" do
-        should "fail" do
-          upload = subject.new(source: "http://www.example.com").start!
-          assert_match(/\Aerror:.*File ext is invalid/, upload.status)
-        end
-      end
-    end
-
-    context "#finish!" do
-      setup do
-        CurrentUser.user = travel_to(1.month.ago) do
-          FactoryBot.create(:user)
-        end
-        CurrentUser.ip_addr = "127.0.0.1"
-        @source = "https://twitter.com/nounproject/status/540944400767922176"
-      end
-
-      should "overwrite the attributes" do
-        @service = subject.new(source: @source, rating: 'e')
-        @upload = @service.start!        
-        @service.finish!
-        @upload.reload
-        assert_equal('e', @upload.rating)
-      end
-    end
-  end
-
   context "::Replacer" do
     context "for a file replacement" do
       setup do
@@ -989,70 +832,24 @@ class UploadServiceTest < ActiveSupport::TestCase
       end
     end
 
-    context "with a preprocessing predecessor" do
-      setup do
-        @predecessor = FactoryBot.create(:source_upload, status: "preprocessing", source: @source, image_height: 0, image_width: 0, file_ext: "jpg")
-      end
+    should "create an upload" do
+      service = subject.new(source: @source)
 
-      # should "schedule a job later" do
-      #   service = subject.new(source: @source)
-      #
-      #   assert_difference(-> { Delayed::Job.count }) do
-      #     predecessor = service.start!
-      #     assert_equal(@predecessor, predecessor)
-      #   end
-      # end
+      assert_difference(-> { Upload.count }) do
+        service.start!
+      end
     end
 
-    context "with a preprocessed predecessor" do
-      setup do
-        @predecessor = FactoryBot.create(:source_upload, status: "preprocessed", source: @source, image_height: 0, image_width: 0, file_size: 1, md5: 'd34e4cf0a437a5d65f8e82b7bcd02606', file_ext: "jpg")
-        @tags = 'hello world'
-      end
+    should "assign the rating from tags" do
+      service = subject.new(source: @source, tag_string: "rating:safe blah")
+      upload = service.start!
 
-      should "update the predecessor" do
-        service = subject.new(source: @source, tag_string: @tags)
+      assert_equal(true, upload.valid?)
+      assert_equal("s", upload.rating)
+      assert_equal("rating:safe blah ", upload.tag_string)
 
-        predecessor = service.start!
-        assert_equal(@predecessor, predecessor)
-        assert_equal(@tags, predecessor.tag_string.strip)
-      end
-
-      context "when the file has already been uploaded" do
-        setup do
-          @post = create(:post, md5: "d34e4cf0a437a5d65f8e82b7bcd02606")
-          @service = subject.new(source: @source)
-        end
-
-        should "point to the dup post in the upload" do
-          @upload = subject.new(source: @source, tag_string: @tags).start!
-          @predecessor.reload
-          assert_equal("error: ActiveRecord::RecordInvalid - Validation failed: Md5 duplicate: #{@post.id}", @predecessor.status)
-        end
-      end
-
-    end
-
-    context "with no predecessor" do
-      should "create an upload" do
-        service = subject.new(source: @source)
-
-        assert_difference(-> { Upload.count }) do
-          service.start!
-        end
-      end
-
-      should "assign the rating from tags" do
-        service = subject.new(source: @source, tag_string: "rating:safe blah")
-        upload = service.start!
-
-        assert_equal(true, upload.valid?)
-        assert_equal("s", upload.rating)
-        assert_equal("rating:safe blah ", upload.tag_string)
-
-        assert_equal("s", upload.post.rating)
-        assert_equal("blah", upload.post.tag_string)
-      end
+      assert_equal("s", upload.post.rating)
+      assert_equal("blah", upload.post.tag_string)
     end
 
     context "with a source containing unicode characters" do
