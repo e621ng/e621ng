@@ -41,6 +41,8 @@ Disallow: /post_flags
 Disallow: /post_sets
 Disallow: /post_versions
 Disallow: /post_votes
+Disallow: /post_events
+Disallow: /post_replacements
 Disallow: /post/
 Disallow: /posts.atom
 Disallow: /posts/random
