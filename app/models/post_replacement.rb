@@ -276,6 +276,14 @@ class PostReplacement < ApplicationRecord
           q = q.where("creator_id = ?", User.name_to_id(params[:creator_name]))
         end
 
+        if params[:approver_id].present?
+          q = q.where("approver_id in (?)", params[:approver_id].split(",").first(100).map(&:to_i))
+        end
+
+        if params[:approver_name].present?
+          q = q.where("approver_id = ?", User.name_to_id(params[:approver_name]))
+        end
+
         if params[:uploader_id_on_approve].present?
           q = q.where("uploader_id_on_approve in (?)", params[:uploader_id_on_approve].split(",").first(100).map(&:to_i))
         end
@@ -287,7 +295,6 @@ class PostReplacement < ApplicationRecord
         if params[:post_id].present?
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
-
 
         q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 ELSE 1 END ASC, id DESC"))
       end
