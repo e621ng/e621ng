@@ -69,31 +69,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
-    should "get the banned page" do
-      get banned_artists_path
-      assert_response :success
-    end
-
-    should "ban an artist" do
-      put_auth ban_artist_path(@artist.id), @admin
-      assert_redirected_to(@artist)
-      @artist.reload
-      assert_equal(true, @artist.is_banned?)
-      assert_equal(true, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "banned_artist"))
-    end
-
-    should "unban an artist" do
-      as_admin do
-        @artist.ban!
-      end
-
-      put_auth unban_artist_path(@artist.id), @admin
-      assert_redirected_to(@artist)
-      @artist.reload
-      assert_equal(false, @artist.is_banned?)
-      assert_equal(false, TagImplication.exists?(antecedent_name: @artist.name, consequent_name: "banned_artist"))
-    end
-
     should "get the index page" do
       get artists_path
       assert_response :success

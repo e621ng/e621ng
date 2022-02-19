@@ -31,8 +31,6 @@ class Artist < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
   scope :deleted, -> { where(is_active: false) }
-  scope :banned, -> { where(is_banned: true) }
-  scope :unbanned, -> { where(is_banned: false) }
 
   def log_changes
     if name_changed? && !new_record?
@@ -279,7 +277,7 @@ class Artist < ApplicationRecord
 
   module VersionMethods
     def create_version(force=false)
-      if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_is_banned? || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
+      if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
         create_new_version
       end
     end
@@ -292,7 +290,6 @@ class Artist < ApplicationRecord
         :updater_ip_addr => CurrentUser.ip_addr,
         :urls => url_array,
         :is_active => is_active,
-        :is_banned => is_banned,
         :other_names => other_names,
         :group_name => group_name,
         :notes_changed => saved_change_to_notes?
@@ -379,44 +376,6 @@ class Artist < ApplicationRecord
     def categorize_tag
       if new_record? || saved_change_to_name?
         Tag.find_or_create_by_name("artist:#{name}")
-      end
-    end
-  end
-
-  module BanMethods
-    def unban!
-      Post.transaction do
-        CurrentUser.without_safe_mode do
-          ti = TagImplication.where(:antecedent_name => name, :consequent_name => "avoid_posting").first
-          ti.destroy if ti
-
-          begin
-            Post.tag_match(name).records.each do |post|
-              fixed_tags = post.tag_string.sub(/(?:\A| )avoid_posting(?:\Z| )/, " ").strip
-              post.update(:tag_string => fixed_tags)
-            end
-          rescue Post::SearchError
-            # swallow
-          end
-
-          update_column(:is_banned, false)
-          ModAction.log(:artist_unban, {artist_id: id})
-        end
-      end
-    end
-
-    def ban!
-      Post.transaction do
-        CurrentUser.without_safe_mode do
-          # potential race condition but unlikely
-          unless TagImplication.where(:antecedent_name => name, :consequent_name => "avoid_posting").exists?
-            tag_implication = TagImplication.create!(:antecedent_name => name, :consequent_name => "avoid_posting")
-            tag_implication.approve!(approver: CurrentUser.user)
-          end
-
-          update_column(:is_banned, true)
-          ModAction.log(:artist_ban, {artist_id: id})
-        end
       end
     end
   end
@@ -509,7 +468,6 @@ class Artist < ApplicationRecord
       end
 
       q = q.attribute_matches(:is_active, params[:is_active])
-      q = q.attribute_matches(:is_banned, params[:is_banned])
 
       if params[:creator_name].present?
         q = q.where("artists.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").mb_chars.downcase)
@@ -547,16 +505,11 @@ class Artist < ApplicationRecord
   include VersionMethods
   include NoteMethods
   include TagMethods
-  include BanMethods
   include LockMethods
   extend SearchMethods
 
   def status
-    if is_banned? && is_active?
-      "Banned"
-    elsif is_banned?
-      "Banned Deleted"
-    elsif is_active?
+    if is_active?
       "Active"
     else
       "Deleted"
@@ -568,7 +521,7 @@ class Artist < ApplicationRecord
   end
 
   def editable_by?(user)
-    user.is_janitor? || (!is_banned? && is_active?)
+    user.is_janitor? || is_active?
   end
 
   def user_not_limited
@@ -581,6 +534,6 @@ class Artist < ApplicationRecord
   end
 
   def visible?
-    !is_banned? || CurrentUser.is_janitor?
+    true
   end
 end

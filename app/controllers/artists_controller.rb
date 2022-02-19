@@ -1,9 +1,8 @@
 class ArtistsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show, :show_or_new, :banned]
+  before_action :member_only, :except => [:index, :show, :show_or_new]
   before_action :janitor_only, :only => [:destroy]
-  before_action :admin_only, :only => [:ban, :unban]
-  before_action :load_artist, :only => [:ban, :unban, :show, :edit, :update, :destroy, :undelete]
+  before_action :load_artist, :only => [:show, :edit, :update, :destroy, :undelete]
 
   def new
     @artist = Artist.new(artist_params(:new))
@@ -12,25 +11,6 @@ class ArtistsController < ApplicationController
 
   def edit
     respond_with(@artist)
-  end
-
-  def banned
-    @artists = Artist.where("is_banned = ?", true).order("name")
-    respond_with(@artists) do |format|
-      format.json do
-        render :json => @artists.to_json(:include => [:urls])
-      end
-    end
-  end
-
-  def ban
-    @artist.ban!
-    redirect_to(artist_path(@artist), :notice => "Artist was banned")
-  end
-
-  def unban
-    @artist.unban!
-    redirect_to(artist_path(@artist), :notice => "Artist was unbanned")
   end
 
   def index

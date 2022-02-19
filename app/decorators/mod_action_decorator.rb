@@ -41,10 +41,6 @@ class ModActionDecorator < ApplicationDecorator
       "Unclaimed ticket ##{vals['ticket_id']}"
 
       ### Artist ###
-    when "artist_ban"
-      "Marked artist ##{vals['artist_id']} as DNP"
-    when "artist_unban"
-      "Marked artist ##{vals['artist_id']} as no longer DNP"
     when "artist_page_rename"
       "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"

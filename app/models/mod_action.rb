@@ -6,8 +6,6 @@ class ModAction < ApplicationRecord
   serialize :values_old
 
   KnownActions = [
-      :artist_ban,
-      :artist_unban,
       :artist_page_rename,
       :artist_page_lock,
       :artist_page_unlock,

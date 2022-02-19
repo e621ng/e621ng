@@ -36,7 +36,6 @@ class ArtistVersion < ApplicationRecord
       end
 
       q = q.attribute_matches(:is_active, params[:is_active])
-      q = q.attribute_matches(:is_banned, params[:is_banned])
 
       if params[:ip_addr].present?
         q = q.where("updater_ip_addr <<= ?", params[:ip_addr])

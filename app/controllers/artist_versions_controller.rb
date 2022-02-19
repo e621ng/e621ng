@@ -10,7 +10,7 @@ class ArtistVersionsController < ApplicationController
   private
 
   def search_params
-    permitted_params = %i[name updater_name updater_id artist_id is_active is_banned order]
+    permitted_params = %i[name updater_name updater_id artist_id is_active order]
     permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
     permit_search_params permitted_params
   end

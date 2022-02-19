@@ -244,6 +244,6 @@ class WikiPage < ApplicationRecord
   end
 
   def visible?
-    artist.blank? || !artist.is_banned? || CurrentUser.is_janitor?
+    true
   end
 end

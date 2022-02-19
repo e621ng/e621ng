@@ -107,12 +107,9 @@ Rails.application.routes.draw do
   resources :artists do
     member do
       put :revert
-      put :ban
-      put :unban
     end
     collection do
       get :show_or_new
-      get :banned
     end
   end
   resources :artist_urls, only: [:index, :update]
