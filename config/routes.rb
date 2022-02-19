@@ -277,7 +277,6 @@ Rails.application.routes.draw do
     end
   end
   resources :post_events, only: :index
-  resources :post_appeals
   resources :post_flags, except: [:destroy]
   resources :post_approvals, only: [:index]
   resources :post_versions, :only => [:index, :search] do

@@ -451,14 +451,6 @@ class PostTest < ActiveSupport::TestCase
           assert_equal(false, @post.reload.is_deleted?)
         end
       end
-
-      should "be appealed" do
-        assert_difference("PostAppeal.count", 1) do
-          @post.appeal!("xxx")
-        end
-        assert(@post.is_deleted?, "Post should still be deleted")
-        assert_equal(1, @post.appeals.count)
-      end
     end
 
     context "An approved post" do
@@ -521,12 +513,6 @@ class PostTest < ActiveSupport::TestCase
       should "not allow new flags" do
         flag = @post.flags.create(reason_name: "test", user_reason: 'should fail')
         assert_equal(["Post is locked and cannot be flagged"], flag.errors.full_messages)
-      end
-
-      should "not allow new appeals" do
-        assert_raises(PostAppeal::Error) do
-          @post.appeal!("wrong")
-        end
       end
 
       should "not allow approval" do

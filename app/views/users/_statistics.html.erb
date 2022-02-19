@@ -114,7 +114,7 @@
       <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
         <tr>
           <th>Appeals</th>
-          <td><%= presenter.appeal_count(self) %></td>
+          <td>0</td> <!-- FIXME: Remove this. Restructure table to make it easier to add/remove single entries. -->
           <th>Flags</th>
           <td><%= presenter.flag_count(self) %></td>
         </tr>
