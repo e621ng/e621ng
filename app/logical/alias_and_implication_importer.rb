@@ -141,6 +141,7 @@ class AliasAndImplicationImporter
         errors << "Unknown token: #{token[0]}"
       end
     end
+    errors << "Cannot create BUR with more than 25 entries" if tokens.size > 25
     [errors, AliasAndImplicationImporter.untokenize(annotated).join("\n")]
   end
 
