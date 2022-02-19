@@ -759,54 +759,6 @@ fart'
       nil
     end
 
-    def pixiv_login
-      nil
-    end
-
-    def pixiv_password
-      nil
-    end
-
-    def nico_seiga_login
-      nil
-    end
-
-    def nico_seiga_password
-      nil
-    end
-
-    def nijie_login
-      nil
-    end
-
-    def nijie_password
-      nil
-    end
-
-    # Register at https://www.deviantart.com/developers/.
-    def deviantart_client_id
-      nil
-    end
-
-    def deviantart_client_secret
-      nil
-    end
-
-    # http://tinysubversions.com/notes/mastodon-bot/
-    def pawoo_client_id
-      nil
-    end
-
-    def pawoo_client_secret
-      nil
-    end
-
-    # 1. Register app at https://www.tumblr.com/oauth/register.
-    # 2. Copy "OAuth Consumer Key" from https://www.tumblr.com/oauth/apps.
-    def tumblr_consumer_key
-      nil
-    end
-
     def enable_dimension_autotagging?
       true
     end
@@ -824,12 +776,6 @@ fart'
     # Posts with these tags will be highlighted red in the modqueue.
     def modqueue_sample_warning_tags
       %w[duplicate image_sample md5_mismatch resized upscaled downscaled]
-    end
-
-    def twitter_api_key
-    end
-
-    def twitter_api_secret
     end
 
     # The default headers to be sent with outgoing http requests. Some external

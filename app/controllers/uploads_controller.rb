@@ -11,7 +11,6 @@ class UploadsController < ApplicationController
     if CurrentUser.can_upload_with_reason == :REJ_UPLOAD_NEWBIE
       return access_denied("You can not upload during your first week.")
     end
-    @source = Sources::Strategies.find(params[:url], params[:ref]) if params[:url].present?
     @upload = Upload.new
     respond_with(@upload)
   end

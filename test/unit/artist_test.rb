@@ -6,7 +6,7 @@ class ArtistTest < ActiveSupport::TestCase
 
     assert_equal(1, artists.size)
     assert_equal(expected_name, artists.first.name, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout, PixivApiClient::Error
+  rescue Net::OpenTimeout
     skip "Remote connection failed for #{source_url}"
   end
 
@@ -207,29 +207,6 @@ class ArtistTest < ActiveSupport::TestCase
       assert_artist_not_found("http://warhol.com/a/image.jpg")
     end
 
-    context "when finding deviantart artists" do
-      setup do
-        skip "DeviantArt API keys not set" unless Danbooru.config.deviantart_client_id.present?
-        FactoryBot.create(:artist, :name => "artgerm", :url_string => "http://artgerm.deviantart.com/")
-        FactoryBot.create(:artist, :name => "trixia",  :url_string => "http://trixdraws.deviantart.com/")
-      end
-
-      should "find the correct artist for page URLs" do
-        assert_artist_found("artgerm", "http://www.deviantart.com/artgerm/art/Peachy-Princess-Ver-2-457220550")
-        assert_artist_found("trixia", "http://www.deviantart.com/trixdraws/art/My-Queen-426745289")
-      end
-
-      should "find the correct artist for image URLs" do
-        assert_artist_found("artgerm", "http://th05.deviantart.net/fs71/200H/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-        assert_artist_found("artgerm", "http://th05.deviantart.net/fs71/PRE/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-        assert_artist_found("artgerm", "http://fc06.deviantart.net/fs71/f/2014/150/d/c/peachy_princess_by_artgerm-d7k7tmu.jpg")
-
-        assert_artist_found("trixia", "http://fc01.deviantart.net/fs71/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-        assert_artist_found("trixia", "http://th01.deviantart.net/fs71/200H/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-        assert_artist_found("trixia", "http://th09.deviantart.net/fs71/PRE/i/2014/050/d/e/my_queen_by_trixdraws-d722mrt.jpg")
-      end
-    end
-
     context "when finding pixiv artists" do
       setup do
         FactoryBot.create(:artist, :name => "masao",:url_string => "http://www.pixiv.net/member.php?id=32777")
@@ -288,59 +265,6 @@ class ArtistTest < ActiveSupport::TestCase
       end
     end
 
-    context "when finding twitter artists" do
-      setup do
-        skip "Twitter key is not set" unless Danbooru.config.twitter_api_key
-        FactoryBot.create(:artist, :name => "hammer_(sunset_beach)", :url_string => "http://twitter.com/hamaororon")
-        FactoryBot.create(:artist, :name => "haruyama_kazunori",  :url_string => "https://twitter.com/kazuharoom")
-      end
-
-      should "find the correct artist for twitter.com sources" do
-        assert_artist_found("hammer_(sunset_beach)", "http://twitter.com/hamaororon/status/684338785744637952")
-        assert_artist_found("hammer_(sunset_beach)", "https://twitter.com/hamaororon/status/684338785744637952")
-
-        assert_artist_found("haruyama_kazunori", "http://twitter.com/kazuharoom/status/733355069966426113")
-        assert_artist_found("haruyama_kazunori", "https://twitter.com/kazuharoom/status/733355069966426113")
-      end
-
-      should "find the correct artist for mobile.twitter.com sources" do
-        assert_artist_found("hammer_(sunset_beach)", "http://mobile.twitter.com/hamaororon/status/684338785744637952")
-        assert_artist_found("hammer_(sunset_beach)", "https://mobile.twitter.com/hamaororon/status/684338785744637952")
-
-        assert_artist_found("haruyama_kazunori", "http://mobile.twitter.com/kazuharoom/status/733355069966426113")
-        assert_artist_found("haruyama_kazunori", "https://mobile.twitter.com/kazuharoom/status/733355069966426113")
-      end
-
-      should "return nothing for unknown twitter.com sources" do
-        assert_artist_not_found("http://twitter.com/bkub_comic/status/782880825700343808")
-        assert_artist_not_found("https://twitter.com/bkub_comic/status/782880825700343808")
-      end
-
-      should "return nothing for unknown mobile.twitter.com sources" do
-        assert_artist_not_found("http://mobile.twitter.com/bkub_comic/status/782880825700343808")
-        assert_artist_not_found("https://mobile.twitter.com/bkub_comic/status/782880825700343808")
-      end
-    end
-
-    context "when finding pawoo artists" do
-      setup do
-        skip "Pawoo keys not set" unless Danbooru.config.pawoo_client_id
-        FactoryBot.create(:artist, :name => "evazion", :url_string => "https://pawoo.net/@evazion")
-        FactoryBot.create(:artist, :name => "yasumo01", :url_string => "https://pawoo.net/web/accounts/28816")
-      end
-
-      should "find the artist" do
-        assert_artist_found("evazion", "https://pawoo.net/@evazion/19451018")
-        assert_artist_found("evazion", "https://pawoo.net/web/statuses/19451018")
-        assert_artist_found("yasumo01", "https://pawoo.net/@yasumo01/222337")
-        assert_artist_found("yasumo01", "https://pawoo.net/web/statuses/222337")
-      end
-
-      should "return nothing for unknown pawoo sources" do
-        assert_artist_not_found("https://pawoo.net/@9ed00e924818/1202176")
-        assert_artist_not_found("https://pawoo.net/web/statuses/1202176")
-      end
-    end
 
     context "when finding nijie artists" do
       setup do

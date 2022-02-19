@@ -57,12 +57,6 @@ module Sources
         []
       end
 
-      def site_name
-        Addressable::URI.heuristic_parse(url).host
-      rescue Addressable::URI::InvalidURIError => e
-        nil
-      end
-
       # Whatever <tt>url</tt> is, this method should return the direct links 
       # to the canonical binary files. It should not be an HTML page. It should 
       # be a list of JPEG, PNG, GIF, WEBM, MP4, ZIP, etc. It is what the 
@@ -85,20 +79,10 @@ module Sources
         preview_urls.first
       end
 
-      # Whatever <tt>url</tt> is, this method should return a link to the HTML
-      # page containing the resource. It should not be a binary file. It will
-      # eventually be assigned as the source for the post, but it does not
-      # represent what the downloader will fetch.
-      def page_url
-        Rails.logger.warn "Valid page url for (#{url}, #{referer_url}) not found"
-
-        return nil
-      end
-
       # This will be the url stored in posts. Typically this is the page
       # url, but on some sites it may be preferable to store the image url.
       def canonical_url
-        page_url || image_url
+        image_url
       end
 
       # A name to suggest as the artist's tag name when creating a new artist.
@@ -130,14 +114,6 @@ module Sources
         [normalize_for_artist_finder]
       end
 
-      def artist_commentary_title
-        nil
-      end
-
-      def artist_commentary_desc
-        nil
-      end
-
       # Subclasses should merge in any required headers needed to access resources
       # on the site.
       def headers
@@ -149,27 +125,6 @@ module Sources
         Downloads::File.new(image_url).size
       end
       memoize :size
-
-      # Subclasses should return true only if the URL is in its final normalized form.
-      #
-      # Sources::Strategies.find("http://img.pixiv.net/img/evazion").normalized_for_artist_finder?
-      # => true
-      # Sources::Strategies.find("http://i2.pixiv.net/img18/img/evazion/14901720_m.png").normalized_for_artist_finder?
-      # => false
-      def normalized_for_artist_finder?
-        false
-      end
-
-      # Subclasses should return true only if the URL is a valid URL that could
-      # be converted into normalized form.
-      #
-      # Sources::Strategies.find("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=18557054").normalizable_for_artist_finder?
-      # => true
-      # Sources::Strategies.find("http://dic.pixiv.net/a/THUNDERproject").normalizable_for_artist_finder?
-      # => false
-      def normalizable_for_artist_finder?
-        normalize_for_artist_finder.present?
-      end
 
       # The url to use for artist finding purposes. This will be stored in the
       # artist entry. Normally this will be the profile url.
@@ -211,103 +166,13 @@ module Sources
         WikiPage.normalize_other_name(tag).downcase
       end
 
-      def translated_tags
-        translated_tags = normalized_tags.flat_map(&method(:translate_tag)).uniq.sort
-        translated_tags.reject { |tag| tag.category == Tag.categories.artist }
-      end
-
-      # Given a tag from the source site, should return an array of corresponding Danbooru tags.
-      def translate_tag(untranslated_tag)
-        return [] if untranslated_tag.blank?
-
-        translated_tag_names = WikiPage.active.other_names_include(untranslated_tag).uniq.pluck(:title)
-        translated_tag_names = TagAlias.to_aliased(translated_tag_names)
-        translated_tags = Tag.where(name: translated_tag_names)
-
-        if translated_tags.empty?
-          normalized_name = TagAlias.to_aliased([Tag.normalize_name(untranslated_tag)])
-          translated_tags = Tag.nonempty.where(name: normalized_name)
-        end
-
-        translated_tags
-      end
-
-      def dtext_artist_commentary_title
-        self.class.to_dtext(artist_commentary_title)
-      end
-
-      def dtext_artist_commentary_desc
-        self.class.to_dtext(artist_commentary_desc)
-      end
-
       # A strategy may return extra data unrelated to the file
       def data
         return {}
       end
 
-      # A search query that should return any posts that were previously
-      # uploaded from the same source. These may be duplicates, or they may be
-      # other posts from the same gallery.
-      def related_posts_search_query
-        "source:#{canonical_url}"
-      end
-
-      def related_posts(limit = 5)
-        CurrentUser.as_system { Post.tag_match(related_posts_search_query).paginate(1, limit: limit) }
-      end
-      memoize :related_posts
-
-      # A hash containing the results of any API calls made by the strategy. For debugging purposes only.
-      def api_response
-        nil
-      end
-
-      def to_h
-        return {
-          :artist => {
-            :name => artist_name,
-            :tag_name => tag_name,
-            :other_names => other_names,
-            :profile_url => profile_url,
-            :profile_urls => profile_urls,
-          },
-          :artists => artists.as_json(include: :sorted_urls),
-          :image_url => image_url,
-          :image_urls => image_urls,
-          :page_url => page_url,
-          :canonical_url => canonical_url,
-          :normalized_for_artist_finder_url => normalize_for_artist_finder,
-          :tags => tags,
-          :normalized_tags => normalized_tags,
-          :translated_tags => translated_tags,
-          :artist_commentary => {
-            :title => artist_commentary_title,
-            :description => artist_commentary_desc,
-            :dtext_title => dtext_artist_commentary_title,
-            :dtext_description => dtext_artist_commentary_desc,
-          },
-          :api_response => api_response.to_h,
-        }
-      end
-
       def to_json
         to_h.to_json
-      end
-
-    protected
-
-      def http_exists?(url, headers)
-        res = HTTParty.head(url, Danbooru.config.httparty_options.deep_merge(headers: headers))
-        res.success?
-      end
-
-      # Convert commentary to dtext by stripping html tags. Sites can override
-      # this to customize how their markup is translated to dtext.
-      def self.to_dtext(text)
-        text = text.to_s
-        text = Rails::Html::FullSanitizer.new.sanitize(text, encode_special_chars: false)
-        text = CGI::unescapeHTML(text)
-        text
       end
     end
   end

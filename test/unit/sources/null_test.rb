@@ -12,13 +12,11 @@ module Sources
       end
 
       should "find the metadata" do
-        assert_equal("oremuhax.x0.com", @site.site_name)
         assert_equal(["http://oremuhax.x0.com/yoro1603.jpg"], @site.image_urls)
         assert_equal("http://oremuhax.x0.com/yoro1603.jpg", @site.image_url)
         assert_equal("http://oremuhax.x0.com/yoro1603.jpg", @site.canonical_url)
         assert_equal("", @site.artist_name)
         assert_equal("", @site.profile_url)
-        assert_nothing_raised { @site.to_h }
       end
 
       should "find the artist" do

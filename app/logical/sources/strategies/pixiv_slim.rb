@@ -50,10 +50,6 @@ module Sources
         ["pixiv.net", "pximg.net"]
       end
 
-      def site_name
-        "Pixiv"
-      end
-
       def canonical_url
         image_url
       end
