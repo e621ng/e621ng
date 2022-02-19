@@ -40,7 +40,7 @@ module Maintenance
             end
 
             should "create a new nonce" do
-              assert_equal(1, UserPasswordResetNonce.where(:email => @user.email).count)
+              assert_equal(1, UserPasswordResetNonce.where(user: @user).count)
             end
 
             should "redirect to the new page" do
@@ -67,9 +67,9 @@ module Maintenance
           context "with valid parameters" do
             setup do
               @user = create(:user)
-              @nonce = create(:user_password_reset_nonce, :email => @user.email)
+              @nonce = create(:user_password_reset_nonce, user: @user)
               ActionMailer::Base.deliveries.clear
-              get edit_maintenance_user_password_reset_path, params: {:email => @nonce.email, :key => @nonce.key}
+              get edit_maintenance_user_password_reset_path, params: {uid: @user.id, key: @nonce.key}
             end
 
             should "succeed" do
@@ -82,10 +82,10 @@ module Maintenance
           context "with valid parameters" do
             setup do
               @user = create(:user)
-              @nonce = create(:user_password_reset_nonce, :email => @user.email)
+              @nonce = create(:user_password_reset_nonce, user: @user)
               ActionMailer::Base.deliveries.clear
               @old_password = @user.bcrypt_password_hash
-              put maintenance_user_password_reset_path, params: {:email => @nonce.email, :key => @nonce.key}
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "test", password_confirm: "test" }
             end
 
             should "succeed" do
