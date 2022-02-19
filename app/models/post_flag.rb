@@ -227,10 +227,6 @@ class PostFlag < ApplicationRecord
     update_column(:is_resolved, true)
   end
 
-  def flag_count_for_creator
-    PostFlag.where(:creator_id => creator_id).recent.count
-  end
-
   def parent_post
     @parent_post ||= begin
                        Post.where('id = ?', parent_id).first
