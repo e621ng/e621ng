@@ -763,9 +763,8 @@ fart'
       true
     end
 
-    # Should return true if the given tag should be suggested for removal in the post replacement dialog box.
-    def remove_tag_after_replacement?(tag)
-      tag =~ /\A(?:replaceme|.*_sample|resized|upscaled|downscaled|md5_mismatch|jpeg_artifacts|corrupted_image|source_request)\z/i
+    def tags_to_remove_after_replacement_accepted
+      ["better_version_at_source"]
     end
 
     # Posts with these tags will be highlighted yellow in the modqueue.

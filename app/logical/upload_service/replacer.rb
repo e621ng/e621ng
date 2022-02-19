@@ -43,15 +43,15 @@ class UploadService
       replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
 
       upload = Upload.create(
-          uploader_id: CurrentUser.id,
-          uploader_ip_addr: CurrentUser.ip_addr,
-          rating: post.rating,
-          tag_string: post.tag_string,
-          source: replacement.source,
-          file: replacement.replacement_file,
-          replaced_post: post,
-          original_post_id: post.id,
-          replacement_id: replacement.id
+        uploader_id: CurrentUser.id,
+        uploader_ip_addr: CurrentUser.ip_addr,
+        rating: post.rating,
+        tag_string: (post.tag_array - Danbooru.config.tags_to_remove_after_replacement_accepted).join(" "),
+        source: replacement.source,
+        file: replacement.replacement_file,
+        replaced_post: post,
+        original_post_id: post.id,
+        replacement_id: replacement.id
       )
 
       begin
@@ -89,7 +89,6 @@ class UploadService
       post.uploader_id = replacement.creator_id
       post.uploader_ip_addr = replacement.creator_ip_addr
       post.save!
-
 
       # rescaling notes reloads the post, be careful when accessing previous values
       rescale_notes(post)
