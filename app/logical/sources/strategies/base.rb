@@ -103,17 +103,6 @@ module Sources
         [artist_name, tag_name].compact.uniq
       end
 
-      # A link to the artist's profile page on the site.
-      def profile_url
-        nil
-      end
-
-      # A list of all profile urls associated with the artist. These urls will
-      # be suggested when creating a new artist.
-      def profile_urls
-        [normalize_for_artist_finder]
-      end
-
       # Subclasses should merge in any required headers needed to access resources
       # on the site.
       def headers
@@ -125,26 +114,6 @@ module Sources
         Downloads::File.new(image_url).size
       end
       memoize :size
-
-      # The url to use for artist finding purposes. This will be stored in the
-      # artist entry. Normally this will be the profile url.
-      def normalize_for_artist_finder
-        profile_url.presence || url
-      end
-
-      def artists
-        Artist.find_artists(normalize_for_artist_finder)
-      end
-
-      # A new artist entry with suggested defaults for when the artist doesn't
-      # exist. Used in Artist.new_with_defaults to prefill the new artist form.
-      def new_artist
-        Artist.new(
-          name: tag_name,
-          other_names: other_names,
-          url_string: profile_urls.join("\n")
-        )
-      end
 
       def file_url
         image_url

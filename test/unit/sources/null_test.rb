@@ -15,15 +15,6 @@ module Sources
         assert_equal(["http://oremuhax.x0.com/yoro1603.jpg"], @site.image_urls)
         assert_equal("http://oremuhax.x0.com/yoro1603.jpg", @site.image_url)
         assert_equal("http://oremuhax.x0.com/yoro1603.jpg", @site.canonical_url)
-        assert_equal("", @site.artist_name)
-        assert_equal("", @site.profile_url)
-      end
-
-      should "find the artist" do
-        a1 = FactoryBot.create(:artist, name: "test1", url_string: "http://oremuhax.x0.com")
-        a2 = FactoryBot.create(:artist, name: "test2", url_string: "http://google.com")
-
-        assert_equal([a1], @site.artists)
       end
     end
   end

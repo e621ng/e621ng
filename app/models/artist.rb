@@ -312,31 +312,6 @@ class Artist < ApplicationRecord
     end
   end
 
-  module FactoryMethods
-    # Make a new artist, fetching the defaults either from the given source, or
-    # from the source of the artist's last upload.
-    def new_with_defaults(params)
-      source = params.delete(:source)
-
-      if source.blank? && params[:name].present?
-        CurrentUser.without_safe_mode do
-          post = Post.tag_match("source:http* #{params[:name]}").first
-          source = post.try(:source)
-        end
-      end
-
-      if source.present?
-        artist = Sources::Strategies.find(source).new_artist
-        artist.attributes = params
-      else
-        artist = Artist.new(params)
-      end
-
-      artist.tap(&:validate) if artist.name.present? # run before_validation callbacks to normalize the names
-      artist
-    end
-  end
-
   module NoteMethods
     extend ActiveSupport::Concern
 
@@ -570,7 +545,6 @@ class Artist < ApplicationRecord
   include NameMethods
   include GroupMethods
   include VersionMethods
-  extend FactoryMethods
   include NoteMethods
   include TagMethods
   include BanMethods

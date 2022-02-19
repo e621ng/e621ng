@@ -6,7 +6,7 @@ class ArtistsController < ApplicationController
   before_action :load_artist, :only => [:ban, :unban, :show, :edit, :update, :destroy, :undelete]
 
   def new
-    @artist = Artist.new_with_defaults(artist_params(:new))
+    @artist = Artist.new(artist_params(:new))
     respond_with(@artist)
   end
 
