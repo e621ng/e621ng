@@ -21,9 +21,8 @@
     <div class="content">
       <div class="body dtext-container">
         <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
-
-        <%= render "application/update_notice", record: comment %>
       </div>
+      <%= render "application/update_notice", record: comment %>
       <% if comment.was_warned? %>
         <div class="user-warning">
           <hr>
