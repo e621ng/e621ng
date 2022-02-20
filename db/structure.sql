@@ -2603,8 +2603,8 @@ furry -rating:s'::text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
-    profile_about text,
-    profile_artinfo text,
+    profile_about text DEFAULT ''::text,
+    profile_artinfo text DEFAULT ''::text,
     avatar_id integer
 );
 
@@ -5206,6 +5206,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210625155528'),
 ('20210718172512'),
 ('20220106081415'),
-('20220203154846');
+('20220203154846'),
+('20220219202441');
 
 
