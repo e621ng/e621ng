@@ -41,6 +41,8 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
 };
 
 PostReplacement.reject = function (id) {
+  if (!confirm("Are you sure you want to reject this replacement?"))
+    return;
   const $row = $("#replacement-" + id);
   make_processing($row);
   $.ajax({
@@ -56,6 +58,8 @@ PostReplacement.reject = function (id) {
 }
 
 PostReplacement.promote = function (id) {
+  if (!confirm("Are you sure you want to promote this replacement?"))
+    return;
   const $row = $("#replacement-" + id);
   make_processing($row);
   $.ajax({

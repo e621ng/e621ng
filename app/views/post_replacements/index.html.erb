@@ -104,6 +104,7 @@
                   <% if post_replacement.status == "pending"%>
                     <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
                     <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
+                    <br>
                     <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id} %><br>
                     <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id} %><br>
                   <% end %>
