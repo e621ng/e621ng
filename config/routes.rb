@@ -141,13 +141,6 @@ Rails.application.routes.draw do
       post :delete
     end
   end
-  resources :delayed_jobs, :only => [:index, :destroy] do
-    member do
-      put :run
-      put :retry
-      put :cancel
-    end
-  end
   resources :dmails, :only => [:new, :create, :index, :show, :destroy] do
     collection do
       post :mark_all_as_read
