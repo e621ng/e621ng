@@ -9,10 +9,6 @@ class UserPresenter
     user.pretty_name
   end
 
-  def join_date
-    user.created_at.strftime("%Y-%m-%d")
-  end
-
   def level
     user.level_string
   end

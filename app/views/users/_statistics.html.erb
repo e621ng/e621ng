@@ -8,7 +8,7 @@
       <tbody>
       <tr>
         <th>Join Date</th>
-        <td><%= presenter.join_date %></td>
+        <td><%= compact_time @user.created_at %></td>
         <th>Feedback</th>
         <td>
           <%= presenter.feedbacks %>
