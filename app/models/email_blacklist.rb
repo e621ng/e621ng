@@ -33,8 +33,6 @@ class EmailBlacklist < ApplicationRecord
       q = q.order("email_blacklists.reason")
     when "domain"
       q = q.order("email_blacklists.domain")
-    when "updated_at"
-      q = q.order("email_blacklists.updated_at desc")
     else
       q = q.apply_default_order(params)
     end

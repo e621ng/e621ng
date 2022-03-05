@@ -9,6 +9,7 @@
           <th>User</th>
           <th>Domain</th>
           <th>Ban Reason</th>
+          <th>Created</th>
           <th></th>
         </tr>
       </thead>
@@ -16,8 +17,12 @@
         <% @blacklists.each do |blacklist| %>
           <tr>
             <td><%= link_to_user(blacklist.creator) %></td>
-            <td><%= blacklist.domain %></td>
+            <td>
+              <%= blacklist.domain %>
+              <%= link_to "»", users_path(search: { email_matches: "*@*#{blacklist.domain}" }) %>
+            </td>
             <td><%= blacklist.reason %></td>
+            <td><%= compact_time blacklist.created_at %></td>
             <td><%= link_to "Delete", email_blacklist_path(blacklist), method: :delete, data: {confirm: "Do your really want to delete #{blacklist.domain}?"} %></td>
           </tr>
         <% end %>

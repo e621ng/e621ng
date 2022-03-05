@@ -8,6 +8,7 @@
           <th>IP Address</th>
           <th>Banner</th>
           <th>Reason</th>
+          <th>Created</th>
           <th></th>
         </tr>
       </thead>
@@ -17,6 +18,7 @@
             <td><%= link_to_ip ip_ban.subnetted_ip %></td>
             <td><%= link_to_user ip_ban.creator %></td>
             <td><%= ip_ban.reason %></td>
+            <td><%= compact_time ip_ban.created_at %></td>
             <td><%= link_to "Unban", ip_ban_path(ip_ban), :method => :delete, :data => {:confirm => "Do your really want to unban #{ip_ban.ip_addr}?"} %></td>
           </tr>
         <% end %>

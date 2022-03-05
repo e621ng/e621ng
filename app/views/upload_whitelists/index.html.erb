@@ -11,6 +11,8 @@
           <th>Hidden</th>
           <th>Allowed</th>
           <th>Ban Reason</th>
+          <th>Created</th>
+          <th>Updated</th>
           <% if CurrentUser.is_admin? %>
             <th></th>
             <th></th>
@@ -25,6 +27,8 @@
             <td><%= whitelist.hidden ? "Yes" : "No" %></td>
             <td><%= whitelist.allowed ? "Yes" : "No" %></td>
             <td><%= whitelist.reason %></td>
+            <td><%= compact_time whitelist.created_at %></td>
+            <td><%= compact_time whitelist.updated_at %></td>
             <% if CurrentUser.is_admin? %>
               <td><%= link_to "Edit", edit_upload_whitelist_path(whitelist) %></td>
               <td><%= link_to "Delete", upload_whitelist_path(whitelist),  method: :delete, data: {confirm: "Do your really want to delete #{whitelist.pattern}?"} %></td>
