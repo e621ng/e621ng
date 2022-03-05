@@ -34,6 +34,7 @@ DText.create_wrapper = function(textarea) {
   
   build_preview(wrapper, textarea);
   build_charcounter(wrapper, textarea);
+  textarea.attr("data-initialized", "true");
 }
 
 /**
@@ -212,7 +213,7 @@ DText.process_formatting = function (content, input) {
 
 /** Add formatters to all appropriate inputs */
 DText.initialize_all_inputs = function() {
-  $("textarea.dtext-previewable").each((index, element) => {
+  $("textarea.dtext-previewable[data-initialized='false'").each((index, element) => {
     DText.create_wrapper($(element));
   });
 }

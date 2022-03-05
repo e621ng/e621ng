@@ -1,3 +1,4 @@
+import DText from "./dtext";
 import Utility from "./utility";
 
 let Comment = {};
@@ -30,6 +31,7 @@ Comment.reinitialize_all = function () {
     $('.comment-vote-up-link').off('click');
     $(".comment-vote-down-link").off('click');
     Comment.initialize_all();
+    DText.initialize_all_inputs();
   }
 }
 

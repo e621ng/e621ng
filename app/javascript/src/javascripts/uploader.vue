@@ -244,7 +244,7 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <textarea class="tag-textarea dtext-previewable" id="post_description" v-model="description" rows="10" :data-limit="descrLimit"></textarea>
+                    <textarea class="tag-textarea dtext-previewable" id="post_description" v-model="description" rows="10" :data-limit="descrLimit" data-initialized="false"></textarea>
                 </div>
             </div>
             <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
