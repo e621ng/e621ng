@@ -3,10 +3,6 @@ module ForumTopicsHelper
     select(object, field, ForumCategory.visible.reverse_mapping, options)
   end
 
-  def available_min_user_levels
-    ForumTopic::MIN_LEVELS.select { |name, level| level <= CurrentUser.level }.to_a
-  end
-
   def tag_request_message(obj)
     if obj.is_a?(TagRelationship)
       if obj.is_approved?

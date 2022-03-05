@@ -12,51 +12,6 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "for a level restricted topic" do
-      setup do
-        as(@mod) do
-          @forum_topic.update(min_level: User::Levels::MODERATOR)
-        end
-      end
-
-      should "not allow users to see the topic" do
-        get_auth forum_topic_path(@forum_topic), @user
-        assert_response :forbidden
-      end
-
-      should "not bump the forum for users without access" do
-        @privileged_user = create(:privileged_user)
-
-        # An open topic should bump...
-        as(@privileged_user) do
-          @open_topic = create(:forum_topic)
-        end
-        @privileged_user.reload
-        as(@privileged_user) do
-          assert(@privileged_user.has_forum_been_updated?)
-        end
-
-        # Marking it as read should clear it...
-        as(@privileged_user) do
-          post_auth mark_all_as_read_forum_topics_path, @privileged_user
-        end
-        @privileged_user.reload
-        assert_redirected_to(forum_topics_path)
-        as(@privileged_user) do
-          assert(!@privileged_user.has_forum_been_updated?)
-        end
-
-        # Then adding an unread private topic should not bump.
-        as(@mod) do
-          create(:forum_post, :topic_id => @forum_topic.id)
-        end
-        @privileged_user.reload
-        as(@privileged_user) do
-          assert_equal(false, @privileged_user.has_forum_been_updated?)
-        end
-      end
-    end
-
     context "show action" do
       should "render" do
         get forum_topic_path(@forum_topic)

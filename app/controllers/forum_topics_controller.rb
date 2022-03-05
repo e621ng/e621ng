@@ -144,7 +144,7 @@ private
 
   def forum_topic_params(context)
     permitted_params = [:title, :category_id, { original_post_attributes: %i[id body] }]
-    permitted_params += %i[is_sticky is_locked min_level] if CurrentUser.is_moderator?
+    permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
 
     params.require(:forum_topic).permit(permitted_params)
   end

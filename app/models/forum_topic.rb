@@ -1,10 +1,4 @@
 class ForumTopic < ApplicationRecord
-  MIN_LEVELS = {
-    None: 0,
-    Moderator: User::Levels::MODERATOR,
-    Admin: User::Levels::ADMIN,
-  }
-
   belongs_to_creator
   belongs_to_updater
   belongs_to :category, class_name: "ForumCategory", foreign_key: :category_id
@@ -16,7 +10,6 @@ class ForumTopic < ApplicationRecord
   validates_associated :original_post
   validates_presence_of :original_post
   validates_associated :category
-  validates :min_level, inclusion: { :in => MIN_LEVELS.values }
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
@@ -57,7 +50,7 @@ class ForumTopic < ApplicationRecord
     end
 
     def permitted
-      where("min_level <= ?", CurrentUser.level).joins(:category).where('forum_categories.can_view <= ?', CurrentUser.level)
+      joins(:category).where('forum_categories.can_view <= ?', CurrentUser.level)
     end
 
     def sticky_first
@@ -71,10 +64,6 @@ class ForumTopic < ApplicationRecord
     def search(params)
       q = super
       q = q.permitted
-
-      if params[:mod_only].present?
-        q = q.where("min_level >= ?", MIN_LEVELS[:Moderator])
-      end
 
       q = q.attribute_matches(:title, params[:title_matches], index_column: :text_index)
 
@@ -149,7 +138,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def visible?(user)
-    user.level >= min_level && user.level >= category.can_view
+    user.level >= category.can_view
   end
 
   def can_reply?(user = CurrentUser.user)
@@ -188,24 +177,8 @@ class ForumTopic < ApplicationRecord
     (response_count / Danbooru.config.posts_per_page.to_f).ceil
   end
 
-  def as_json(options = {})
-    if CurrentUser.user.level < min_level
-      options[:only] = [:id]
-    end
-
-    super(options)
-  end
-
-  def to_xml(options = {})
-    if CurrentUser.user.level < min_level
-      options[:only] = [:id]
-    end
-
-    super(options)
-  end
-
   def hidden_attributes
-    super + [:text_index, :min_level]
+    super + [:text_index]
   end
 
   def merge(topic)

@@ -51,7 +51,7 @@ class ForumPost < ApplicationRecord
     end
 
     def permitted
-      q = joins(:topic).where("forum_topics.min_level <= ?", CurrentUser.level)
+      q = joins(:topic)
       q = q.where("(forum_topics.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id) unless CurrentUser.is_moderator?
       q
     end
@@ -89,22 +89,6 @@ class ForumPost < ApplicationRecord
   end
 
   module ApiMethods
-    def as_json(options = {})
-      if CurrentUser.user.level < topic.min_level
-        options[:only] = [:id]
-      end
-
-      super(options)
-    end
-
-    def to_xml(options = {})
-      if CurrentUser.user.level < topic.min_level
-        options[:only] = [:id]
-      end
-
-      super(options)
-    end
-
     def hidden_attributes
       super + [:text_index]
     end

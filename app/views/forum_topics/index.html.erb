@@ -5,9 +5,6 @@
     <p>
       Categories:
       <%= link_to "All", forum_topics_path %>,
-      <% if CurrentUser.is_moderator? %>
-        <%= link_to "Mod+", forum_topics_path(:search => {:mod_only => true}) %>,
-      <% end %>
       <%= ForumCategory.visible.ordered_categories.all.map {|rec| link_to_unless_current(rec.name, forum_topics_path(:search => {:category_id => rec.id}))}.join(", ").html_safe %>
     </p>
 
