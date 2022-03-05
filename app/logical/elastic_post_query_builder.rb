@@ -1,13 +1,12 @@
 class ElasticPostQueryBuilder
-  attr_accessor :query_string, :read_only
+  attr_accessor :query_string
 
   SEARCHABLE_COUNT_METATAGS = [
       :comment_count,
   ].freeze
 
-  def initialize(query_string, read_only: false)
+  def initialize(query_string)
     @query_string = query_string
-    @read_only = read_only
   end
 
   def add_range_relation(arr, field, relation)
