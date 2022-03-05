@@ -219,7 +219,7 @@ class BulkUpdateRequest < ApplicationRecord
         "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
 
       when :change_category
-        "category [[#{token[1]}]] -> #{token[2]}"
+        "category [[#{token[1]}]] -> #{token[2]} #{token[3]}"
 
       else
         raise "Unknown token: #{token[0]}"

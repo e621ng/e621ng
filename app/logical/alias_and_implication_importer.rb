@@ -41,7 +41,7 @@ class AliasAndImplicationImporter
       elsif line =~ /^(?:remove implication|unimplicating|unimplicate|unimply) (\S+) -> (\S+)( #.*)?$/i
         [:remove_implication, $1, $2, $3]
 
-      elsif line =~ /^(?:mass update|updating|update|change) (.+?) -> (.*)( #.*)?$/i
+      elsif line =~ /^(?:mass update|updating|update|change) (\S+) -> (\S+)( #.*)?$/i
         [:mass_update, $1, $2, $3]
 
       elsif line =~ /^category (\S+) -> (#{Tag.categories.regexp})( #.*)?$/i
@@ -72,13 +72,14 @@ class AliasAndImplicationImporter
         comment = "# missing" if token[3] == false
         "unimplicate #{token[1]} -> #{token[2]} #{comment}".strip
       when :change_category
-        "category #{token[1]} -> #{token[2]}".strip
+        comment = "# missing" if token[3] == false
+        "category #{token[1]} -> #{token[2]} #{comment}".strip
       when :mass_update
-        "update #{token[1]} -> #{token[2]}".strip
+        comment = "# missing" if token[3] == false
+        "update #{token[1]} -> #{token[2]} #{comment}".strip
       else
         raise Error.new("Unknown token to reverse")
       end
-
     end
   end
 
@@ -135,6 +136,8 @@ class AliasAndImplicationImporter
         token
 
       when :mass_update, :change_category
+        existing = Tag.find_by(name: token[1]).present?
+        token[3] = existing
         token
 
       else
@@ -255,7 +258,8 @@ private
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
 
         when :change_category
-          tag = Tag.find_by_name(token[1])
+          tag = Tag.find_by(name: token[1])
+          raise Error, "Tag for #{token[1]} not found" if tag.nil?
           tag.category = Tag.categories.value_for(token[2])
           tag.save
 
