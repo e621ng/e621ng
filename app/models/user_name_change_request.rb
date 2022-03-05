@@ -29,11 +29,11 @@ class UserNameChangeRequest < ApplicationRecord
     end
 
     if params[:original_name].present?
-      q = q.where("original_name = ?", params[:original_name])
+      q = q.where("lower(original_name) = ?", params[:original_name].downcase.tr(" ", "_"))
     end
 
     if params[:desired_name].present?
-      q = q.where("desired_name = ?", params[:desired_name])
+      q = q.where("lower(desired_name) = ?", params[:desired_name].downcase.tr(" ", "_"))
     end
 
     q.apply_default_order(params)
