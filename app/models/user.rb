@@ -529,8 +529,6 @@ class User < ApplicationRecord
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
                          :is_janitor?, 3.days)
-    create_user_throttle(:replace_post, ->{ Danbooru.config.replace_post_limit - PostReplacement.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :can_approve_posts?, 7.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)

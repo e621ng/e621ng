@@ -263,10 +263,6 @@ fart'
       30
     end
 
-    def replace_post_limit
-      10
-    end
-
     def ticket_limit
       30
     end

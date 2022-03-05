@@ -67,11 +67,6 @@ class PostReplacement < ApplicationRecord
 
   def user_is_not_limited
     return true if status == 'original'
-    replaceable = creator.can_replace_post_with_reason
-    if replaceable != true
-      self.errors.add(:creator, User.throttle_reason(replaceable))
-      return false
-    end
     uploadable = creator.can_upload_with_reason
     if uploadable != true
       self.errors.add(:creator, User.upload_reason_string(uploadable))

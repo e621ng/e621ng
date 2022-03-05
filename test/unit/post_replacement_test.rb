@@ -36,12 +36,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
       assert_equal ['Creator have reached your upload limit'], @replacement.errors.full_messages
     end
-
-    should "fail if user has no remaining replacements" do
-      User.any_instance.stubs(:can_replace_post_with_reason).returns(:REJ_LIMITED)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
-      assert_equal ['Creator have reached the hourly limit for this action'], @replacement.errors.full_messages
-    end
   end
 
   context "Upload:" do
