@@ -57,92 +57,6 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module NamechangeType
-      def self.after_extended(m)
-        m.class_eval do
-          attr_accessor :no_name_change
-          validate :validate_on_create, on: :create
-          before_save :before_save
-        end
-        m.oldname = m.user.name if m.oldname.blank?
-        m.no_name_change = false
-      end
-
-      # Required to override default ("Investigated")
-      def pretty_status
-        status.titleize
-      end
-
-      def subject
-        "Requested Name: #{reason}"
-      end
-
-      def before_save
-        super
-        if change_username?
-          return false unless username_valid?
-          change_username
-        end
-        true
-      end
-
-      def username_valid?
-        if ::User.find_by_name(requested_name)
-          errors.add :requested_name, "is already taken."
-          return false
-        end
-        true
-      end
-
-      def change_username?
-        status_was == 'pending' and status == 'approved' and not no_name_change
-      end
-
-      def change_username
-        ::Ticket.transaction do
-          user.name = requested_name
-          user.save
-          user.errors.each {|k, v| errors.add k, v}
-          ::Namechange.create(mod: admin, user_id: user_id,
-                            oldname: oldname, newname: reason)
-        end
-      end
-
-      def requested_name
-        reason
-      end
-
-      def type_title
-        'Change Username'
-      end
-
-      def validate_on_create
-        errors.add :user, "doesn't even exist" unless user
-        errors.add :you, "can only create one namechange request per week" if Ticket.first(
-            order: created_at,
-            conditions: ["qtype = ? AND user_id = ? AND created_at > ?", "namechange", user.id, 1.week.ago])
-        errors.add :requested_name, "is taken" if User.find_by_name(requested_name)
-
-
-        if admin.nil? or status == 'approved'
-          user.name = reason
-          user.valid?
-          user.errors.each do |key, value|
-            errors.add key, value
-          end
-          user.reload
-        end
-      end
-
-      def can_see_username?(user)
-        true
-      end
-
-      def can_create_for?(user)
-        false # use other name change system now, not tickets
-      end
-    end
-
     module ForumType
       def self.after_extended(m)
         m.class_eval do
@@ -516,7 +430,6 @@ class Ticket < ApplicationRecord
       'blip' => TicketTypes::BlipType,
       'user' => TicketTypes::UserType,
       'dmail' => TicketTypes::DmailType,
-      'namechange' => TicketTypes::NamechangeType,
       'wiki' => TicketTypes::WikiType,
       'pool' => TicketTypes::PoolType,
       'set' => TicketTypes::SetType,

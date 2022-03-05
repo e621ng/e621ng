@@ -4,12 +4,7 @@
       <h3><%= @ticket.type_title %> Ticket</h3>
 
       <table>
-        <% if @ticket.qtype == "namechange" %>
-          <tr>
-            <td><span class='title'>Original Name</span></td>
-            <td><%= link_to h(@ticket.oldname), controller: "user", action: "show", id: @ticket.user_id %></td>
-          </tr>
-        <% elsif @ticket.can_see_username?(CurrentUser) %>
+        <% if @ticket.can_see_username?(CurrentUser) %>
           <tr>
             <td><span class='title'>Requested by</span></td>
             <td><%= link_to_user @ticket.creator %></td>
@@ -57,11 +52,7 @@
         <%= render partial: "tickets/types/#{@ticket.qtype}" %>
 
         <tr>
-          <% if (@ticket.qtype == "namechange") %>
-            <td><span class='title'>Desired Name</span></td>
-          <% else %>
-            <td><span class='title'>Reason</span></td>
-          <% end %>
+          <td><span class='title'>Reason</span></td>
 
           <% if @ticket.can_see_reason?(CurrentUser) %>
             <td class="dtext-container"><%= format_text(@ticket.reason) %></td>
@@ -95,40 +86,14 @@
     <% if CurrentUser.is_admin? %>
       <%= simple_form_for(@ticket) do |f| %>
         <div class='section'>
-          <% if (@ticket.qtype == "namechange") %>
-            <table>
-              <tr>
-                <% if @ticket.status == "pending" %>
-                  <td colspan="2"><input type="checkbox" name="no_username_change" id="no_username_change"/> <label for="no_username_change">Don't automatically change username to <span class='yellowtext'><%= @ticket.reason %></span> (use <%= fast_link_to("this form", controller: "user", action: "change_username", id: @ticket.user_id, newname: @ticket.reason) %>)</label></td>
-                <% else %>
-                  <td colspan="2">Ticket has already been approved/denied, so no automatic username change will happen.<br /><%= fast_link_to("Username change form", controller: "user", action: "change_username", id: @ticket.user_id, newname: @ticket.reason) %></td>
-                <% end %>
-              </tr>
-              <tr>
-                <td><span class='title'>Status</span></td>
-                <td>
-                  <select name="ticket[status]">
-                    <option value="approved">Approved</option>
-                    <option value="denied">Denied</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td><span class='title'>Reason</span></td>
-                <td><%= text_field "ticket", "response", size: 50, value: "Username changed" %></td>
-              </tr>
-            </table>
-            <%= submit_tag "Submit" %>
-          <% else %>
-            <table>
-              <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
-              <tr>
-                <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", limit: Danbooru.config.dmail_max_size %></td>
-              </tr>
-            </table>
-            <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
-            <%= f.button :submit, "Submit" %>
-          <% end %>
+          <table>
+            <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
+            <tr>
+              <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', :value => @ticket.response, :input_id => "ticket_response_for_#{@ticket.id}", limit: Danbooru.config.dmail_max_size %></td>
+            </tr>
+          </table>
+          <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
+          <%= f.button :submit, "Submit" %>
         </div>
       <% end %>
     <% end %>
