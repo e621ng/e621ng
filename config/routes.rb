@@ -353,7 +353,6 @@ Rails.application.routes.draw do
       post :warning
     end
   end
-  resources :post_report_reasons
   resources :post_sets do
     collection do
       get :for_select

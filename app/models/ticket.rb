@@ -392,9 +392,6 @@ class Ticket < ApplicationRecord
         if post.nil?
           errors.add :post, "does not exist"
         end
-        if report_reason.blank?
-          errors.add :report_reason, "does not exist"
-        end
       end
 
       def subject

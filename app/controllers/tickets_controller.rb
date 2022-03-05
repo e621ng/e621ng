@@ -78,7 +78,7 @@ class TicketsController < ApplicationController
   private
 
   def ticket_params
-    params.require(:ticket).permit(%i[qtype disp_id reason report_reason])
+    params.require(:ticket).permit(%i[qtype disp_id reason])
   end
 
   def update_ticket_params
