@@ -859,14 +859,6 @@ fart'
       true
     end
 
-    # Akismet API key. Used for Dmail spam detection. http://akismet.com/signup/
-    def rakismet_key
-    end
-
-    def rakismet_url
-      "https://#{hostname}"
-    end
-
     def redis_url
     end
 

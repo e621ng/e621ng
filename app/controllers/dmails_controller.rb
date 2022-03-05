@@ -1,7 +1,6 @@
 class DmailsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
-  before_action :privileged_only, only: [:ham, :spam]
 
   def new
     if params[:respond_to_id]
@@ -53,17 +52,7 @@ class DmailsController < ApplicationController
     redirect_to dmails_path
   end
 
-  def spam
-    @dmail = Dmail.find(params[:id])
-    @dmail.update_column(:is_spam, true)
-  end
-
-  def ham
-    @dmail = Dmail.find(params[:id])
-    @dmail.update_column(:is_spam, false)
-  end
-
-private
+  private
 
   def check_privilege(dmail)
     if !dmail.visible_to?(CurrentUser.user)

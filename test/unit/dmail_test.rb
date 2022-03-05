@@ -15,35 +15,6 @@ class DmailTest < ActiveSupport::TestCase
       CurrentUser.user = nil
     end
 
-    context "spam" do
-      setup do
-        Dmail.any_instance.stubs(:spam?).returns(true)
-        @spammer = create(:user)
-        @recipient = create(:user)
-      end
-
-      should "not validate" do
-        assert_difference("Dmail.count", 2)do
-          Dmail.create_split(:to_id => @recipient.id, :title => "My video", :body => "hey Noneeditsonlyme.  My webcam see here http://bit.ly/2vTv9Ki")
-          assert(@recipient.dmails.last.is_spam?)
-        end
-      end
-
-      should "autoban spammers after sending spam to N distinct users" do
-        Dmail.any_instance.expects(:spam?).returns(true)
-
-        users = FactoryBot.create_list(:user, Dmail::AUTOBAN_THRESHOLD)
-        users.each do |user|
-          Dmail.create_split(from: @user, to: user, title: "spam", body: "wonderful spam")
-        end
-
-        assert_equal(true, Dmail.is_spammer?(@user))
-        assert_equal(true, @user.reload.is_banned)
-        assert_equal(1, @user.bans.count)
-        assert_match(/Spambot./, @user.bans.last.reason)
-      end
-    end
-
     context "filter" do
       setup do
         @recipient = FactoryBot.create(:user)
