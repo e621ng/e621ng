@@ -1,6 +1,6 @@
-<%# name, input_id, input_name, value, type %>
+<%# label, input_id, input_name, value, type %>
 <div class="input text optional <%= classes %>">
-  <label class="text optional" for="<%= input_id %>"><%= name %></label>
+  <label class="text optional" for="<%= input_id %>"><%= label %></label>
 
   <% if type == "text" %>
     <textarea

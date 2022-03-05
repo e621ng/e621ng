@@ -197,7 +197,7 @@ module ApplicationHelper
   end
 
   def dtext_field(object, name, **options)
-    options[:name] ||= name.capitalize
+    options[:label] ||= name.capitalize
     options[:input_id] ||= "#{object}_#{name}"
     options[:input_name] ||= "#{object}[#{name}]"
     options[:value] ||= instance_variable_get("@#{object}").try(name)

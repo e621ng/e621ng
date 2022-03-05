@@ -64,8 +64,7 @@
   </div>
 
   <div class="input">
-    <%= f.label :description, "Description" %>
-    <%= f.text_area :description, spellcheck: true, rows: "10", class: "dtext-previewable", data: { limit: Danbooru.config.post_descr_max_size } %>
+    <%= dtext_field "post", "description", limit: Danbooru.config.post_descr_max_size %>
   </div>
 
   <% if Danbooru.config.iqdbs_server %>

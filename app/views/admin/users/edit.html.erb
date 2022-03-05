@@ -26,13 +26,11 @@
       </div>
 
       <div class="input">
-        <label class="block" for="user_about">About</label>
-        <%= text_area "user", "profile_about", rows: 10, class: "dtext-full dtext-previewable", data: { limit: Danbooru.config.user_about_max_size }  %>
+        <%= dtext_field "user", "profile_about", label: "About", limit: Danbooru.config.user_about_max_size %>
       </div>
 
       <div class="input">
-        <label class="block" for="user_rates">Commission Info</label>
-        <%= text_area "user", "profile_artinfo", rows: 10, class: "dtext-full dtext-previewable", data: { limit: Danbooru.config.user_about_max_size } %>
+        <%= dtext_field "user", "profile_artinfo", label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
       </div>
 
       <div class="input integer optional">

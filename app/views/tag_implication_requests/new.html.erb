@@ -19,7 +19,7 @@
       </div>
 
       <div class="input">
-        <%= dtext_field "tag_implication_request", "reason", :name => "Reason", limit: Danbooru.config.forum_post_max_size %>
+        <%= dtext_field "tag_implication_request", "reason", limit: Danbooru.config.forum_post_max_size %>
       </div>
 
       <% if CurrentUser.is_moderator? %>
