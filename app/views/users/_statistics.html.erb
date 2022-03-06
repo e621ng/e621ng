@@ -29,14 +29,19 @@
           <% end %>
         </span>
 
-        <span>Deleted/Replaced</span>
+        <span>Deleted</span>
         <span>
           <%= presenter.deleted_upload_count(self) %>
           <% if CurrentUser.is_moderator? %>
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
           <% end %>
-          / <%= presenter.replaced_upload_count(self) %>
         </span>
+        
+        <span>Replaced</span>
+        <span><%= presenter.replaced_upload_count(self) %></span>
+
+        <span>Rejected</span>
+        <span><%= presenter.rejected_replacements_count(self) %></span>
 
         <span>Favorites</span>
         <span>
@@ -61,9 +66,6 @@
         <span><%= presenter.approval_count(self) %></span>
 
         <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
-          <span>Appeals</span>
-          <span>0</span>
-
           <% if presenter.previous_names(self).present? %>
             <span>Previous Names</span>
             <span><%= presenter.previous_names(self) %></span>
