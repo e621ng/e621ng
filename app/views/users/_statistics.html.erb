@@ -4,156 +4,145 @@
   </div>
   <div class="profile-stats">
     <h1><%= link_to_user @user %></h1>
-    <table width="100%" class="user-statistics">
-      <tbody>
-      <tr>
-        <th>Join Date</th>
-        <td><%= compact_time @user.created_at %></td>
-        <th>Feedback</th>
-        <td>
-          <%= presenter.feedbacks %>
-          <%= link_to("List", user_feedbacks_path(search: { user_id: @user.id })) %>
-          <% if CurrentUser.is_moderator? && @user.feedback.count.zero? %>
-            | <%= link_to("Create", new_user_feedback_path(user_feedback: { user_id: @user.id })) %>
-          <% end %>
-        </td>
-      </tr>
+    <div class="user-statistics">
+      <div class="column">
+        <span>Join Date</span>
+        <span><%= compact_time @user.created_at %></span>
 
-      <tr>
-        <th>Level</th>
-        <td><%= "(Unactivated)" unless user.is_verified? %> <%= presenter.level %></td>
-        <th>Permissions</th>
-        <td><%= presenter.permissions %></td>
-      </tr>
+        <span>Level</span>
+        <span><%= "(Unactivated)" unless user.is_verified? %> <%= presenter.level %></span>
 
-      <% if user.is_banned? && user.recent_ban %>
-        <tr>
-          <th>Ban reason</th>
-          <td class="dtext-container"><%= format_text presenter.ban_reason %></td>
-        </tr>
-      <% end %>
+        <% if user.is_banned? && user.recent_ban %>
+          <span>Ban reason</span>
+          <span class="dtext-container"><%= format_text presenter.ban_reason %></span>
+        <% end %>
 
-      <tr>
-        <th>Posts</th>
-        <td>
+        <span>Posts</span>
+        <span>
           <%= presenter.active_upload_count(self) %>
           <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300") %>]
+            [<%= link_to "sample", posts_path(tags: "user:#{user.name} order:random limit:300") %>]
           <% end %>
           (<%= link_to "comments on", comments_path(group_by: :comment, search: {poster_id: user.id}) %>)
           <% if CurrentUser.is_moderator? %>
             (<%= link_to "votes", action: "index", controller: "post_votes", search: { user_name: user.name } %>)
           <% end %>
-        </td>
-        <th>Upload Limit</th>
-        <td>
+        </span>
+
+        <span>Deleted/Replaced</span>
+        <span>
+          <%= presenter.deleted_upload_count(self) %>
+          <% if CurrentUser.is_moderator? %>
+            [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
+          <% end %>
+          / <%= presenter.replaced_upload_count(self) %>
+        </span>
+
+        <span>Favorites</span>
+        <span>
+          <%= presenter.favorite_count(self) %>
+          <% if CurrentUser.is_moderator? %>
+            [<%= link_to "sample", posts_path(:tags => "fav:#{user.name} order:random limit:300") %>]
+          <% end %>
+        </span>
+
+        <span>Forum Posts</span>
+        <span><%= presenter.forum_post_count(self) %></span>
+
+        <span>Comments</span>
+        <span>
+          <%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts
+          <% if CurrentUser.is_moderator? %>
+            (<%= link_to "votes", action: "index", controller: "comment_votes", search: { user_name: user.name } %>)
+          <% end %>
+        </span>
+
+        <span>Approvals</span>
+        <span><%= presenter.approval_count(self) %></span>
+
+        <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
+          <span>Appeals</span>
+          <span>0</span>
+
+          <% if presenter.previous_names(self).present? %>
+            <span>Previous Names</span>
+            <span><%= presenter.previous_names(self) %></span>
+          <% end %>
+        <% end %>
+
+        <% if CurrentUser.user.id == user.id || CurrentUser.is_admin? %>
+          <span>Email</span>
+          <span><%= user.email %></span>
+        <% end %>
+
+        <% if CurrentUser.is_moderator? %>
+          <span>Last IP</span>
+          <span><%= link_to_ip(user.last_ip_addr) %></span>
+        <% end %>
+      </div>
+
+      <div class="column">
+        <span>Feedback</span>
+        <span>
+          <%= presenter.feedbacks %>
+          <%= link_to("List", user_feedbacks_path(search: { user_id: @user.id })) %>
+          <% if CurrentUser.is_moderator? && @user.feedback.count.zero? %>
+            | <%= link_to("Create", new_user_feedback_path(user_feedback: { user_id: @user.id })) %>
+          <% end %>
+        </span>
+
+        <span>Permissions</span>
+        <span><%= presenter.permissions %></span>
+
+        <span>Upload Limit</span>
+        <span>
           <%= presenter.upload_limit(self) %>
           <% if CurrentUser.user.id == user.id  %>
             (<%= link_to "help", upload_limit_users_path %>)
           <% else %>
             (<%= link_to "help", wiki_page_path(id: "upload_limit") %>)
           <% end %>
-        </td>
-      </tr>
+        </span>
 
-      <tr>
-        <th>Deleted/Replaced</th>
-        <td>
-          <%= presenter.deleted_upload_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
-          <% end %>
-          / <%= presenter.replaced_upload_count(self) %>
-        </td>
-        <th>Post Changes</th>
-        <td>
+        <span>Post Changes</span>
+        <span>
           <%= presenter.post_version_count(self) %>
           <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
             [<%= link_to "revert all", new_user_revert_path(user_id: user.id) %>]
           <% end %>
-        </td>
-      </tr>
+        </span>
 
-      <tr>
-        <th>Favorites</th>
-        <td>
-          <%= presenter.favorite_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "fav:#{user.name} order:random limit:300") %>]
-          <% end %>
-        </td>
-        <th>Wiki Page Changes</th>
-        <td><%= presenter.wiki_page_version_count(self) %></td>
-      </tr>
+        <span>Wiki Page Changes</span>
+        <span><%= presenter.wiki_page_version_count(self) %></span>
 
-      <tr>
-        <th>Forum Posts</th>
-        <td><%= presenter.forum_post_count(self) %></td>
-        <th>Note Changes</th>
-        <td><%= presenter.note_version_count(self) %> on <%= presenter.noted_posts_count(self) %> posts</td>
-      </tr>
+        <span>Note Changes</span>
+        <span><%= presenter.note_version_count(self) %> on <%= presenter.noted_posts_count(self) %> posts</span>
 
-      <tr>
-        <th>Comments</th>
-        <td><%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts
-          <% if CurrentUser.is_moderator? %>
-            (<%= link_to "votes", action: "index", controller: "comment_votes", search: { user_name: user.name } %>)
-          <% end %></td>
-        <th>Artist Changes</th>
-        <td><%= presenter.artist_version_count(self) %></td>
-      </tr>
+        <span>Artist Changes</span>
+        <span><%= presenter.artist_version_count(self) %></span>
 
-      <tr>
-        <th>Approvals</th>
-        <td><%= presenter.approval_count(self) %></td>
-        <th>Pool Changes</th>
-        <td><%= presenter.pool_version_count(self) %></td>
-      </tr>
+        <span>Pool Changes</span>
+        <span><%= presenter.pool_version_count(self) %></span>
 
+        <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
+          <span>Flags</span>
+          <span><%= presenter.flag_count(self) %></span>
+        <% end %>
 
-      <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
-        <tr>
-          <th>Appeals</th>
-          <td>0</td> <!-- FIXME: Remove this. Restructure table to make it easier to add/remove single entries. -->
-          <th>Flags</th>
-          <td><%= presenter.flag_count(self) %></td>
-        </tr>
-      <% end %>
-
-      <% if CurrentUser.id == user.id %>
-        <tr>
-          <th>API Key</th>
-          <td>
+        <% if CurrentUser.id == user.id %>
+          <span>API Key</span>
+          <span>
             <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
             (<%= link_to "help", help_page_path(id: "api") %>)
-          </td>
-          <th>API Limits</th>
-          <td>
+          </span>
+
+          <span>API Limits</span>
+          <span>
             <%= CurrentUser.user.remaining_api_limit %>
             / <%= CurrentUser.user.api_burst_limit %> <span class="hint">(may not be up to date)</span>
-          </td>
-        </tr>
-      <% end %>
-
-      <% if (CurrentUser.id == user.id || CurrentUser.is_janitor?) %>
-        <tr>
-          <% if presenter.previous_names(self).present? %>
-          <th>Previous Names</th>
-          <td><%= presenter.previous_names(self) %></td>
-          <% end %>
-          <% if CurrentUser.is_admin? %>
-          <th>Email</th>
-          <td><%= user.email %></td>
-          <% end %>
-        </tr>
-      <% end %>
-      <% if CurrentUser.is_moderator? %>
-        <tr>
-          <th>Last IP</th>
-          <td><%= link_to_ip(user.last_ip_addr) %></td>
-        </tr>
-      <% end %>
-      </tbody>
-    </table>
+          </span>
+        <% end %>
+      </div>
+    </div>
   </div>
 </div>
