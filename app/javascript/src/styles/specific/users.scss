@@ -59,6 +59,7 @@ div#c-users {
     .profile-stats {
       width: 100%;
       border-radius: $border-radius-full;
+      padding-left: 0.5em;
       @include themable {
         background: rgba(themed("color-section"), 0.8);
       }
@@ -71,6 +72,7 @@ div#c-users {
     .user-statistics {
       display: grid;
       grid-template-columns: 1fr 1fr;
+
       .column {
         display: grid;
         grid-template-columns: max-content minmax(150px, 1fr);

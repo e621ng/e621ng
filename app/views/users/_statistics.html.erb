@@ -52,11 +52,15 @@
         </span>
 
         <span>Forum Posts</span>
-        <span><%= presenter.forum_post_count(self) %></span>
+        <span>
+          <%= presenter.forum_post_count(self) %>
+          (<%= link_to "mentions", forum_posts_path(search: { body_matches: user.name }) %>)
+        </span>
 
         <span>Comments</span>
         <span>
           <%= presenter.comment_count(self) %> on <%= presenter.commented_posts_count(self) %> posts
+          (<%= link_to "mentions", comments_path(group_by: :comment, search:{ body_matches: user.name }) %>)
           <% if CurrentUser.is_moderator? %>
             (<%= link_to "votes", action: "index", controller: "comment_votes", search: { user_name: user.name } %>)
           <% end %>
