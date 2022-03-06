@@ -47,6 +47,10 @@ class ModActionDecorator < ApplicationDecorator
       "Locked artist page artist ##{vals['artist_page']}"
     when "artist_page_unlock"
       "Unlocked artist page artist ##{vals['artist_page']}"
+    when "artist_user_linked"
+      "Linked #{user} to artist ##{vals['artist_page']}"
+    when "artist_user_unlinked"
+      "Unlinked #{user} from artist ##{vals['artist_page']}"
 
       ### User ###
 

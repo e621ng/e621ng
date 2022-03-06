@@ -9,6 +9,8 @@ class ModAction < ApplicationRecord
       :artist_page_rename,
       :artist_page_lock,
       :artist_page_unlock,
+      :artist_user_linked,
+      :artist_user_unlinked,
       :blip_delete,
       :blip_hide,
       :blip_unhide,
