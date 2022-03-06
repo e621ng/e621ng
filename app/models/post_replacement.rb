@@ -70,7 +70,7 @@ class PostReplacement < ApplicationRecord
     uploadable = creator.can_upload_with_reason
     if uploadable != true
       self.errors.add(:creator, User.upload_reason_string(uploadable))
-      return false
+      throw :abort
     end
 
     # Janitor bypass replacement limits
@@ -78,11 +78,11 @@ class PostReplacement < ApplicationRecord
 
     if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
       self.errors.add(:creator, 'has already suggested too many replacements for this post today')
-      return false
+      throw :abort
     end
     if post.replacements.where(creator_id: creator.id).count >= Danbooru.config.post_replacement_per_post_limit
       self.errors.add(:creator, 'has already suggested too many total replacements for this post')
-      return false
+      throw :abort
     end
     true
   end
