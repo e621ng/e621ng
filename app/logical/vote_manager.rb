@@ -35,10 +35,10 @@ class VoteManager
           end
         end
       end
-    rescue ActiveRecord::SerializationFailure => e
+    rescue ActiveRecord::SerializationFailure
       retries -= 1
       retry if retries > 0
-      raise e
+      raise PostVote::Error.new("Failed to vote, please try again later")
     rescue ActiveRecord::RecordNotUnique
       raise PostVote::Error.new("You have already voted for this post")
     end
@@ -62,10 +62,10 @@ class VoteManager
           end
         end
       end
-    rescue ActiveRecord::SerializationFailure => e
+    rescue ActiveRecord::SerializationFailure
       retries -= 1
       retry if retries > 0
-      raise e
+      raise PostVote::Error.new("Failed to unvote, please try again later")
     end
     post.update_index
   end
@@ -115,12 +115,12 @@ class VoteManager
           end
         end
       end
-    rescue ActiveRecord::SerializationFailure => e
+    rescue ActiveRecord::SerializationFailure
       retries -= 1
       retry if retries > 0
-      raise e
+      raise PostVote::Error.new("Failed to vote, please try again later.")
     rescue ActiveRecord::RecordNotUnique
-      raise CommentVote::Error.new("You have already voted for this post")
+      raise CommentVote::Error.new("You have already voted for this comment")
     end
     @vote
   end
