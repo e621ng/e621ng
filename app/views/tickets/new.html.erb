@@ -34,7 +34,11 @@
 
         <div class='section' style='max-width:80em;'>
           <label for="ticket_reason">
-            Reason for complaint
+            <% if params[:type] == "post" %>
+              Additional details.
+            <% else %>
+              Reason for complaint
+            <% end %>
           </label><br/>
 
           <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
