@@ -42,11 +42,11 @@ module Danbooru
 
     # Contact email address of the admin.
     def contact_email
-      "management@#{server_host}"
+      "management@#{domain}"
     end
 
     def takedown_email
-      "management@#{server_host}"
+      "management@#{domain}"
     end
 
     def takedown_links
@@ -426,11 +426,6 @@ fart'
           subdomains: false,
         },
       }
-    end
-
-    # The name of the server the app is hosted on.
-    def server_host
-      Socket.gethostname
     end
 
     # The method to use for storing image files.

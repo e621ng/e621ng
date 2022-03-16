@@ -5,7 +5,6 @@ module Downloads
 
     RETRIABLE_ERRORS = [Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::EIO, Errno::EHOSTUNREACH, Errno::ECONNREFUSED, Timeout::Error, IOError]
 
-    delegate :data, to: :strategy
     attr_reader :url
 
     validate :validate_url

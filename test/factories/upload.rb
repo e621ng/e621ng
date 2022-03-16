@@ -7,7 +7,6 @@ FactoryBot.define do
     uploader_ip_addr { "127.0.0.1" }
     tag_string { "special" }
     status { "pending" }
-    server { Socket.gethostname }
     source { "xxx" }
 
     factory(:source_upload) do
