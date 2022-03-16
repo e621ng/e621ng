@@ -88,9 +88,6 @@ class UserFeedback < ApplicationRecord
     if !creator.is_moderator?
       errors.add(:creator, "must be moderator")
       return false
-    elsif creator.no_feedback?
-      errors.add(:creator, "cannot submit feedback")
-      return false
     else
       return true
     end

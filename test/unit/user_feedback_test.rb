@@ -32,19 +32,6 @@ class UserFeedbackTest < ActiveSupport::TestCase
       assert_equal(["You cannot submit feedback for yourself"], feedback.errors.full_messages)
     end
 
-    context "with a no_feedback user" do
-      setup do
-        @mod2 = FactoryBot.create(:moderator_user, no_feedback: true)
-        CurrentUser.user = @mod2
-      end
-
-      should "not validate" do
-        feedback = FactoryBot.build(:user_feedback, user: @mod)
-        feedback.save
-        assert_equal(["You cannot submit feedback"], feedback.errors.full_messages.grep(/^You cannot submit feedback$/))
-      end
-    end
-
     should "not validate if the creator has no permissions" do
       privileged = FactoryBot.create(:privileged_user)
 

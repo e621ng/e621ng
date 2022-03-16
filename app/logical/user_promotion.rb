@@ -1,5 +1,5 @@
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_no_feedback, :old_replacements_beta
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -14,7 +14,6 @@ class UserPromotion
     @old_can_approve_posts = user.can_approve_posts?
     @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
-    @old_no_feedback = user.no_feedback?
     @old_replacements_beta = user.replacements_beta?
 
     user.level = new_level
@@ -25,10 +24,6 @@ class UserPromotion
 
     if options.has_key?(:can_upload_free)
       user.can_upload_free = options[:can_upload_free]
-    end
-
-    if options.has_key?(:no_feedback)
-      user.no_feedback = options[:no_feedback]
     end
 
     if options.has_key?(:no_flagging)
@@ -66,7 +61,6 @@ class UserPromotion
     flag_check(added, removed, "can_approve_posts", "approve posts")
     flag_check(added, removed, "can_upload_free", "unlimited upload slots")
     flag_check(added, removed, "no_flagging", "flag ban")
-    flag_check(added, removed, "no_feedback", "feedback_ban")
     flag_check(added, removed, "replacements_beta", "replacements beta")
 
     unless added.empty? && removed.empty?
@@ -110,12 +104,6 @@ class UserPromotion
       messages << "You gained the ability to upload posts without limit."
     elsif !user.can_upload_free? && old_can_upload_free
       messages << "You lost the ability to upload posts without limit."
-    end
-
-    if user.no_feedback? && !old_no_feedback
-      messages << "You lost the ability to give user feedback."
-    elsif !user.no_feedback? && old_no_feedback
-      messages << "You gained the ability to give user feedback."
     end
 
     if user.no_flagging? && !old_no_flagging

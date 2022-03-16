@@ -29,6 +29,11 @@ class User < ApplicationRecord
   # candidates for removal:
   # - disable_cropped_thumbnails (enabled by 22)
   # - has_saved_searches (removed in removal of saved searches)
+  # - no_feedback
+  # - show_avatars
+  # - blacklist_avatars
+  # - disable_mobile_gestures
+  # - disable_post_tooltips
   BOOLEAN_ATTRIBUTES = %w(
     show_avatars
     blacklist_avatars
