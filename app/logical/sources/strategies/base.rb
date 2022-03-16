@@ -6,7 +6,7 @@
 # Design Principles
 #
 # In general you should minimize state. You can safely assume that <tt>url</tt>
-# and <tt>referer_url</tt> will not change over the lifetime of an instance,
+# will not change over the lifetime of an instance,
 # so you can safely memoize methods and their results. A common pattern is
 # conditionally making an external API call and parsing its response. You should
 # make this call on demand and memoize the response.
@@ -14,7 +14,7 @@
 module Sources
   module Strategies
     class Base
-      attr_reader :url, :referer_url, :urls, :parsed_url, :parsed_referer, :parsed_urls
+      attr_reader :url, :urls, :parsed_url, :parsed_urls
 
       extend Memoist
 
@@ -30,18 +30,12 @@ module Sources
       #   where this class is being used to normalize artist urls.
       #   Implementations should be smart enough to detect this and 
       #   behave accordingly.
-      # * <tt>referer_url</tt> - Sometimes the HTML page cannot be
-      #   determined from <tt>url</tt>. You should generally pass in a
-      #   <tt>referrer_url</tt> so the strategy can discover the HTML
-      #   page and other information.
-      def initialize(url, referer_url = nil)
+      def initialize(url)
         @url = url
-        @referer_url = referer_url
-        @urls = [url, referer_url].select(&:present?)
+        @urls = [url].select(&:present?)
 
         @parsed_url = Addressable::URI.heuristic_parse(url) rescue nil
-        @parsed_referer = Addressable::URI.heuristic_parse(referer_url) rescue nil
-        @parsed_urls = [parsed_url, parsed_referer].select(&:present?)
+        @parsed_urls = [parsed_url].select(&:present?)
       end
 
       # Should return true if this strategy should be used. By default, checks

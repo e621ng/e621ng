@@ -145,7 +145,7 @@ class UploadService
       return file if file.present?
       raise RuntimeError, "No file or source URL provided" if upload.direct_url_parsed.blank?
 
-      download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
+      download = Downloads::File.new(upload.direct_url_parsed)
       download.download!
     end
   end

@@ -4,7 +4,7 @@ module Sources
   class NullTest < ActiveSupport::TestCase
     context "A source from an unknown site" do
       setup do
-        @site = Sources::Strategies.find("http://oremuhax.x0.com/yoro1603.jpg", "http://oremuhax.x0.com/yo125.htm")
+        @site = Sources::Strategies.find("http://oremuhax.x0.com/yoro1603.jpg")
       end
 
       should "be handled by the null strategy" do

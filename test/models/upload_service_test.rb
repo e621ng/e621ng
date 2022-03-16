@@ -35,7 +35,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
           @mock_upload = mock("upload")
           @mock_upload.stubs(:direct_url_parsed).returns(@source)
-          @mock_upload.stubs(:referer_url).returns(nil)
           @bad_file = File.open("#{Rails.root}/test/files/test-corrupt.jpg", "rb")
           Downloads::File.any_instance.stubs(:download!).returns(@bad_file)
         end
@@ -762,8 +761,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context "for a pixiv" do
       setup do
         @source = "https://i.pximg.net/img-original/img/2017/11/21/05/12/37/65981735_p0.jpg"
-        @ref = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65981735"
-        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source, referer_url: @ref)
+        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source)
       end
 
       should "record the canonical source" do
@@ -776,24 +774,11 @@ class UploadServiceTest < ActiveSupport::TestCase
       end
     end
 
-    context "for a twitter" do
-      setup do
-        @source = "https://pbs.twimg.com/media/C1kt72yVEAEGpOv.jpg:large"
-        @ref = "https://twitter.com/aranobu/status/817736083567820800"
-        @upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: @source, referer_url: @ref)
-      end
-
-      should "record the canonical source" do
-        post = subject.new({}).create_post_from_upload(@upload)
-        assert_equal(@ref, post.source)
-      end
-    end
-
     context "for nijie" do
       should "record the canonical source" do
         page_url = "https://nijie.info/view.php?id=728995"
         image_url = "https://pic03.nijie.info/nijie_picture/728995_20170505014820_0.jpg"
-        upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: image_url, referer_url: page_url)
+        upload = FactoryBot.create(:jpg_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, source: image_url)
 
         post = UploadService.new({}).create_post_from_upload(upload)
         assert_equal(page_url, post.source)

@@ -102,7 +102,7 @@ class PostReplacement < ApplicationRecord
         throw :abort
       end
 
-      download = Downloads::File.new(replacement_url_parsed, "")
+      download = Downloads::File.new(replacement_url_parsed)
       file = download.download!
 
       self.replacement_file = file

@@ -1,18 +1,14 @@
 module Sources
   module Strategies
     def self.all
-      return [
+      [
         Strategies::PixivSlim
       ]
     end
 
-    def self.find(url, referer=nil, default: Strategies::Null)
-      strategy = all.map { |strategy| strategy.new(url, referer) }.detect(&:match?)
-      strategy || default&.new(url, referer)
-    end
-
-    def self.canonical(url, referer)
-      find(url, referer).canonical_url
+    def self.find(url, default: Strategies::Null)
+      strategy = all.map { |strategy_class| strategy_class.new(url) }.detect(&:match?)
+      strategy || default&.new(url)
     end
   end
 end

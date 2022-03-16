@@ -6,13 +6,12 @@ module Downloads
     RETRIABLE_ERRORS = [Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::EIO, Errno::EHOSTUNREACH, Errno::ECONNREFUSED, Timeout::Error, IOError]
 
     delegate :data, to: :strategy
-    attr_reader :url, :referer
+    attr_reader :url
 
     validate :validate_url
 
-    def initialize(url, referer=nil)
+    def initialize(url)
       @url = Addressable::URI.parse(url) rescue nil
-      @referer = referer
       validate!
     end
 
@@ -72,7 +71,7 @@ module Downloads
     end
 
     def strategy
-      @strategy ||= Sources::Strategies.find(url.to_s, referer)
+      @strategy ||= Sources::Strategies.find(url.to_s)
     end
 
     def httparty_options
