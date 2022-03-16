@@ -21,11 +21,11 @@ class PostDisapprovalTest < ActiveSupport::TestCase
 
       context "#search" do
         should "work" do
-          disapproval1 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_1, reason: "breaks_rules")
-          disapproval2 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_2, reason: "poor_quality", message: "bad anatomy")
+          disapproval1 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_1, reason: "borderline_quality")
+          disapproval2 = FactoryBot.create(:post_disapproval, user: @alice, post: @post_2, reason: "borderline_relevancy", message: "looks human")
 
-          assert_equal([disapproval1.id], PostDisapproval.search(reason: "breaks_rules").pluck(:id))
-          assert_equal([disapproval2.id], PostDisapproval.search(message: "bad anatomy").pluck(:id))
+          assert_equal([disapproval1.id], PostDisapproval.search(reason: "borderline_quality").pluck(:id))
+          assert_equal([disapproval2.id], PostDisapproval.search(message: "looks human").pluck(:id))
           assert_equal([disapproval2.id, disapproval1.id], PostDisapproval.search(creator_name: "alice").pluck(:id))
         end
       end
