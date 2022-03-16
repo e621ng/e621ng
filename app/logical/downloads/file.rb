@@ -28,8 +28,7 @@ module Downloads
 
     def download!(tries: 3, **options)
       Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
-        file = http_get_streaming(uncached_url, headers: strategy.headers, **options)
-        return [file, strategy]
+        http_get_streaming(uncached_url, headers: strategy.headers, **options)
       end
     end
 

@@ -103,7 +103,7 @@ class PostReplacement < ApplicationRecord
       end
 
       download = Downloads::File.new(replacement_url_parsed, "")
-      file, strategy = download.download!
+      file = download.download!
 
       self.replacement_file = file
       self.source = "#{self.source}\n" + replacement_url

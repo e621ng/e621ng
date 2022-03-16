@@ -37,7 +37,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @mock_upload.stubs(:direct_url_parsed).returns(@source)
           @mock_upload.stubs(:referer_url).returns(nil)
           @bad_file = File.open("#{Rails.root}/test/files/test-corrupt.jpg", "rb")
-          Downloads::File.any_instance.stubs(:download!).returns([@bad_file, nil])
+          Downloads::File.any_instance.stubs(:download!).returns(@bad_file)
         end
 
         teardown do
