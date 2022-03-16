@@ -26,7 +26,7 @@ module Downloads
 
     def download!(tries: 3, **options)
       Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
-        http_get_streaming(uncached_url, headers: strategy.headers, **options)
+        http_get_streaming(uncached_url, **options)
       end
     end
 
@@ -38,7 +38,7 @@ module Downloads
       errors.add(:base, "'#{url}' is not whitelisted and can't be direct downloaded: #{reason}") if !valid
     end
 
-    def http_get_streaming(url, file: Tempfile.new(binmode: true), headers: {}, max_size: Danbooru.config.max_file_size)
+    def http_get_streaming(url, file: Tempfile.new(binmode: true), max_size: Danbooru.config.max_file_size)
       size = 0
 
       res = HTTParty.get(url, httparty_options) do |chunk|
