@@ -76,7 +76,7 @@
           <% end %>
         <% end %>
 
-        <% if CurrentUser.user.id == user.id || CurrentUser.is_admin? %>
+        <% if CurrentUser.is_admin? %>
           <span>Email</span>
           <span><%= user.email %></span>
         <% end %>
