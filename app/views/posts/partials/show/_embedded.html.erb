@@ -10,8 +10,6 @@
   <%= render("posts/partials/show/flash", post: post) -%>
 <% elsif post.is_video? -%>
   <%= render("posts/partials/show/video", post: post) -%>
-<% elsif post.is_ugoira? -%>
-  <%= render("posts/partials/show/ugoira", post: post) -%>
 <% elsif !post.is_image? -%>
   <%= render("posts/partials/show/download", post: post) -%>
 <% elsif post.is_image? -%>

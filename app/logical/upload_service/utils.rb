@@ -6,6 +6,7 @@ class UploadService
     IMAGE_TYPES = %i[original large preview crop]
 
     def file_header_to_file_ext(file)
+      # TODO: marcel?
       case File.read(file.path, 16)
       when /^\xff\xd8/n
         "jpg"
@@ -15,8 +16,6 @@ class UploadService
         "png"
       when /^\x1a\x45\xdf\xa3/n
         "webm"
-      # when /^PK\x03\x04/
-      #   "zip"
       else
         "bin"
       end
@@ -36,23 +35,10 @@ class UploadService
       Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
     end
 
-    def calculate_ugoira_dimensions(source_path)
-      folder = Zip::File.new(source_path)
-      Tempfile.open("ugoira-dim-") do |tempfile|
-        folder.first.extract(tempfile.path) { true }
-        image_size = ImageSpec.new(tempfile.path)
-        return [image_size.width, image_size.height]
-      end
-    end
-
     def calculate_dimensions(upload, file)
       if upload.is_video?
         video = FFMPEG::Movie.new(file.path)
         yield(video.width, video.height)
-
-      elsif upload.is_ugoira?
-        w, h = calculate_ugoira_dimensions(file.path)
-        yield(w, h)
 
       elsif upload.is_image?
         image_size = ImageSpec.new(file.path)
@@ -82,14 +68,7 @@ class UploadService
     end
 
     def generate_resizes(file, upload)
-      if upload.is_ugoira?
-        preview_file = PixivUgoiraConverter.generate_preview(file)
-        crop_file = PixivUgoiraConverter.generate_crop(file)
-        sample_file = PixivUgoiraConverter.generate_webm(file, upload.context["ugoira"]["frame_data"])
-        [preview_file, crop_file, sample_file]
-      else
-        PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
-      end
+      PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
     end
 
     def process_file(upload, file, original_post_id: nil)
@@ -168,15 +147,6 @@ class UploadService
 
       download = Downloads::File.new(upload.direct_url_parsed, upload.referer_url)
       file, strategy = download.download!
-
-      if download.data[:ugoira_frame_data].present?
-        upload.context = {
-          "ugoira" => {
-            "frame_data" => download.data[:ugoira_frame_data],
-            "content_type" => "image/jpeg"
-          }
-        }
-      end
 
       return file
     end

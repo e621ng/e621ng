@@ -92,7 +92,6 @@ class UploadService
 
       # rescaling notes reloads the post, be careful when accessing previous values
       rescale_notes(post)
-      update_ugoira_frame_data(post, upload)
 
       replacement.update({
                            status: 'approved',
@@ -120,20 +119,6 @@ class UploadService
       post.notes.each do |note|
         note.rescale!(x_scale, y_scale)
       end
-    end
-
-    def update_ugoira_frame_data(post, upload)
-      post.pixiv_ugoira_frame_data.destroy if post.pixiv_ugoira_frame_data.present?
-
-      unless post.is_ugoira?
-        return
-      end
-
-      PixivUgoiraFrameData.create(
-          post_id: post.id,
-          data: upload.context["ugoira"]["frame_data"],
-          content_type: upload.context["ugoira"]["content_type"]
-      )
     end
   end
 end

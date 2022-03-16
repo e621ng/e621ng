@@ -1068,18 +1068,6 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "with a .zip file extension" do
-        setup do
-          @post.file_ext = "zip"
-          @post.tag_string = ""
-          @post.save
-        end
-
-        should "have the appropriate file type tag added automatically" do
-          assert_match(/ugoira/, @post.tag_string)
-        end
-      end
-
       context "with a .webm file extension" do
         setup do
           FactoryBot.create(:tag_implication, antecedent_name: "webm", consequent_name: "animated")

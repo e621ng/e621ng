@@ -43,7 +43,6 @@ export { default as RelatedTag } from '../src/javascripts/related_tag.js';
 export { default as Shortcuts } from '../src/javascripts/shortcuts.js';
 export { default as Upload } from '../src/javascripts/uploads.js';
 export { default as Utility } from '../src/javascripts/utility.js';
-export { default as Ugoira } from '../src/javascripts/ugoira.js';
 export { default as TagRelationships } from '../src/javascripts/tag_relationships.js';
 export { default as Takedown } from '../src/javascripts/takedowns.js';
 export { default as Thumbnails } from '../src/javascripts/thumbnails.js';

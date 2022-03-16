@@ -729,13 +729,6 @@ Post.initialize_post_sections = function() {
   });
 }
 
-Post.resize_ugoira_controls = function() {
-  var $img = $("#image");
-  var width = Math.max($img.width(), 350);
-  $("#ugoira-control-panel").css("width", width);
-  $("#seek-slider").css("width", width - 81);
-}
-
 Post.notice_update = function(x) {
   if (x === "inc") {
     Post.pending_update_count += 1;

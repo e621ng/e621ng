@@ -242,32 +242,6 @@ div#c-posts {
     display: none;
   }
 
-  #ugoira-controls {
-    div#seek-slider {
-      margin-top: 0.5em;
-      float: right;
-      overflow: visible;
-      background: $post-ugoira-seek-background;
-
-      .ui-progressbar-value {
-        background: $post-ugoira-seek-progress-background;
-      }
-    }
-
-    #save-video-link {
-      margin: 0.5em 0;
-    }
-
-    button {
-      margin-top: 0.3em;
-    }
-
-    #ugoira-load-progress {
-      display: inline;
-      margin-left: 17px;
-    }
-  }
-
   div.parent-children {
     display: flex;
     margin: 0 -$padding-025;
