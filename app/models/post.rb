@@ -1647,12 +1647,6 @@ class Post < ApplicationRecord
       where("uploader_id = ?", user_id)
     end
 
-    def available_for_moderation(hidden = false, user = CurrentUser.user)
-      return none if user.is_anonymous?
-
-      where.not(uploader: user)
-    end
-
     def sql_raw_tag_match(tag)
       where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag.to_escaped_for_tsquery)
     end
