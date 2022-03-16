@@ -368,16 +368,6 @@ class ElasticPostQueryBuilder
       must.push({term: {has_children: true}})
     end
 
-    if q[:pixiv_id]
-      if q[:pixiv_id] == "any"
-        must.push({exists: {field: :pixiv_id}})
-      elsif q[:pixiv_id] == "none"
-        must_not.push({exists: {field: :pixiv_id}})
-      else
-        must.push({term: {pixiv_id: q[:pixiv_id].to_i}})
-      end
-    end
-
     if q[:rating] =~ /\Aq/
       must.push({term: {rating: "q"}})
     elsif q[:rating] =~ /\As/

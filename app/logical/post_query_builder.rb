@@ -283,16 +283,6 @@ class PostQueryBuilder
       relation = relation.where("posts.has_children = TRUE")
     end
 
-    if q[:pixiv_id]
-      if q[:pixiv_id] == "any"
-        relation = relation.where("posts.pixiv_id IS NOT NULL")
-      elsif q[:pixiv_id] == "none"
-        relation = relation.where("posts.pixiv_id IS NULL")
-      else
-        relation = add_range_relation(q[:pixiv_id], "posts.pixiv_id", relation)
-      end
-    end
-
     if q[:rating] =~ /^q/
       relation = relation.where("posts.rating = 'q'")
     elsif q[:rating] =~ /^s/

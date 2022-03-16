@@ -18,7 +18,7 @@ class Tag < ApplicationRecord
     -pool pool ordpool -fav fav -favoritedby favoritedby md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
-    child pixiv_id pixiv search upvote downvote voted filetype -filetype flagger type -type
+    child search upvote downvote voted filetype -filetype flagger type -type
     -flagger disapproval -disapproval set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
@@ -924,13 +924,6 @@ class Tag < ApplicationRecord
           when "-deletedby"
             q[:deleter_neg] = User.name_or_id_to_id(g2)
             q[:status] ||= 'any'
-
-          when "pixiv_id", "pixiv"
-            if g2.downcase == "any" || g2.downcase == "none"
-              q[:pixiv_id] = g2.downcase
-            else
-              q[:pixiv_id] = parse_helper(g2)
-            end
 
           when "upvote", "votedup"
             if CurrentUser.is_moderator?
