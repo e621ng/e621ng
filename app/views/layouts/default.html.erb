@@ -122,6 +122,8 @@
 
     <%= render "news_updates/listing" %>
 
+    <%= render "layouts/april_fools" %>
+
     <% if CurrentUser.user.is_banned? %>
       <%= render "users/ban_notice" %>
     <% end %>
