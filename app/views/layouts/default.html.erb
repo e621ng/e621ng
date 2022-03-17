@@ -115,9 +115,9 @@
 
   <div id="page">
     <% if Danbooru.config.readonly_mode? %>
-    <div id="readonly-notice">
-      <h1>The site is currently in readonly mode. </h1>
-    </div>
+      <div id="readonly-notice" class="site-notice">
+        <h1>The site is currently in readonly mode.</h1>
+      </div>
     <% end %>
 
     <%= render "news_updates/listing" %>
