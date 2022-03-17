@@ -32,8 +32,7 @@ class UploadsController < ApplicationController
   end
 
   def create
-    client = redis_client
-    if client.get("disable_uploads") == "y"
+    if DangerZone.uploads_disabled?
       return access_denied("Uploads are disabled.")
     end
 
@@ -71,10 +70,6 @@ class UploadsController < ApplicationController
   end
 
   private
-
-  def redis_client
-    @@client ||= ::Redis.new(url: Danbooru.config.redis_url)
-  end
 
   def upload_params
     permitted_params = %i[

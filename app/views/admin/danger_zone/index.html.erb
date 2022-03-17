@@ -1,0 +1,17 @@
+<div id="c-danger-zone">
+  <div id="a-index">
+    <h1>Danger Zone</h1>
+    <h2>Uploads</h2>
+    <% if DangerZone.uploads_disabled? %>
+      Uploads are currently <b>disabled</b>.
+      <%= link_to "Re-enable Uploads",  enable_uploads_admin_danger_zone_index_path, method: :put, data: { confirm: "Are you sure?" } %>
+    <% else %>
+      Uploads are currently <b>enabled</b>.
+      <%= link_to "Prevent Uploads",  disable_uploads_admin_danger_zone_index_path, method: :put, data: { confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Danger Zone
+<% end %>

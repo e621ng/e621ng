@@ -22,6 +22,12 @@ Rails.application.routes.draw do
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resources :staff_notes, only: [:index]
+    resources :danger_zone, only: [:index] do
+      collection do
+        put :enable_uploads
+        put :disable_uploads
+      end
+    end
   end
   resources :edit_histories
   namespace :moderator do
