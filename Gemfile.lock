@@ -459,6 +459,7 @@ DEPENDENCIES
   jquery-rails
   listen
   mailgun-ruby
+  marcel
   mechanize
   memoist
   minitest-ci

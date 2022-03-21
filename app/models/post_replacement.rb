@@ -38,10 +38,6 @@ class PostReplacement < ApplicationRecord
       %w(jpg jpeg gif png).include?(file_ext)
     end
 
-    def is_flash?
-      %w(swf).include?(file_ext)
-    end
-
     def is_video?
       %w(webm).include?(file_ext)
     end
@@ -114,8 +110,8 @@ class PostReplacement < ApplicationRecord
 
     def update_file_attributes
       self.file_ext = UploadService::Utils.file_header_to_file_ext(replacement_file)
-      if file_ext == "bin"
-        self.errors.add(:base, "Unknown or invalid file format")
+      if Danbooru.config.max_file_sizes.keys.exclude? file_ext
+        self.errors.add(:base, "Unknown or invalid file format: #{file_ext}")
         throw :abort
       end
       self.file_size = replacement_file.size

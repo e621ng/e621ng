@@ -36,6 +36,7 @@ gem 'jquery-rails'
 gem 'webpacker', '>= 4.0.x'
 gem 'retriable'
 gem 'sidekiq'
+gem 'marcel'
 # bookmarks for later, if they are needed
 # gem 'sidekiq-worker-killer'
 gem 'sidekiq-unique-jobs'
@@ -44,7 +45,6 @@ gem 'request_store'
 
 gem 'elasticsearch-model'
 gem 'elasticsearch-rails'
-
 
 gem 'mailgun-ruby'
 

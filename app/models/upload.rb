@@ -15,14 +15,15 @@ class Upload < ApplicationRecord
     end
 
     def validate_file_integrity(record)
-      if record.file_ext.in?(["jpg", "jpeg", "gif", "png"]) && DanbooruImageResizer.is_corrupt?(record.file.path)
+      if record.is_image? && DanbooruImageResizer.is_corrupt?(record.file.path)
         record.errors[:file] << "File is corrupt"
       end
     end
 
     def validate_file_ext(record)
-      if record.file_ext == "bin"
-        record.errors.add(:file_ext, "is invalid (only JPEG, PNG, GIF, and WebM files are allowed")
+      if Danbooru.config.max_file_sizes.keys.exclude? record.file_ext
+        record.errors.add(:file_ext, "#{record.file_ext} is invalid (only JPEG, PNG, GIF, and WebM files are allowed")
+        throw :abort
       end
     end
 
@@ -116,10 +117,6 @@ class Upload < ApplicationRecord
   module FileMethods
     def is_image?
       %w(jpg jpeg gif png).include?(file_ext)
-    end
-
-    def is_flash?
-      %w(swf).include?(file_ext)
     end
 
     def is_video?

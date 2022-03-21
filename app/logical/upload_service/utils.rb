@@ -6,18 +6,20 @@ class UploadService
     IMAGE_TYPES = %i[original large preview crop]
 
     def file_header_to_file_ext(file)
-      # TODO: marcel?
-      case File.read(file.path, 16)
-      when /^\xff\xd8/n
-        "jpg"
-      when /^GIF87a/, /^GIF89a/
-        "gif"
-      when /^\x89PNG\r\n\x1a\n/n
-        "png"
-      when /^\x1a\x45\xdf\xa3/n
-        "webm"
-      else
-        "bin"
+      File.open file.path do |bin|
+        mime_type = Marcel::MimeType.for(bin)
+        case mime_type
+        when "image/jpeg"
+          "jpg"
+        when "image/gif"
+          "gif"
+        when "image/png"
+          "png"
+        when "video/webm"
+          "webm"
+        else
+          mime_type
+        end
       end
     end
 
@@ -44,11 +46,8 @@ class UploadService
         image_size = ImageSpec.new(file.path)
         yield(image_size.width, image_size.height)
 
-      elsif upload.file_ext == "bin"
-        yield(0, 0)
-
       else
-        raise ArgumentError, "unhandled file type (#{upload.file_ext})" # should not happen
+        yield(0, 0)
       end
     end
 
