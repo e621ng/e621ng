@@ -75,7 +75,7 @@ class CommentVote < ApplicationRecord
         q = q.where('user_id = ?', params[:user_id].to_i)
       end
 
-      allow_complex_parameters = (params.keys & %w[comment_id user_name user_id]).any?
+      allow_complex_parameters = params.keys.include? "comment_id"
 
       if params[:timeframe].present? && allow_complex_parameters
         q = q.where("updated_at >= ?", params[:timeframe].to_i.days.ago)
