@@ -47,9 +47,9 @@ class UserThrottle
   def hit!
     t = Time.now
     ckey = current_key(t)
-    redis_client.multi do
-      redis_client.incr(ckey)
-      redis_client.expire(ckey, cache_duration.minutes)
+    redis_client.multi do |transaction|
+      transaction.incr(ckey)
+      transaction.expire(ckey, cache_duration.minutes)
     end
   end
 

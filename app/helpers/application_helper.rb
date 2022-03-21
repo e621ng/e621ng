@@ -90,9 +90,9 @@ module ApplicationHelper
   def format_text(text, **options)
     # preserve the currrent inline behaviour
     if options[:inline]
-      dtext_ragel(text, options)
+      dtext_ragel(text, **options)
     else
-      raw %(<div class="styled-dtext">#{dtext_ragel(text, options)}</div>)
+      raw %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
     end
   end
 
