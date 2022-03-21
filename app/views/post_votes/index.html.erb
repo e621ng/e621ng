@@ -4,6 +4,7 @@
       <%= f.input :user_name, label: "Username", input_html: { value: params.dig(:search, :user_name), data: { autocomplete: "user" } } %>
       <%= f.input :post_id, label: "Post ID", input_html: { value: params.dig(:search, :post_id) } %>
       <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]], selected: params[:search][:timeframe] %>
+      <%= f.input :duplicates_only, label: "Duplicates Only?", as: :boolean, input_html: { checked: params.dig(:search, :duplicates_only).to_s.truthy? } %>
       <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]], selected: params[:search][:order] %>
       <%= f.submit "Search" %>
     <% end %>

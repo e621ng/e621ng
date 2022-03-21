@@ -56,6 +56,11 @@ class PostVote < ApplicationRecord
         q = q.where("updated_at >= ?", params[:timeframe].to_i.days.ago)
       end
 
+      if params[:duplicates_only] == "1" && allow_complex_parameters
+        subselect = PostVote.search(params.except("duplicates_only")).select(:user_ip_addr).group(:user_ip_addr).having("count(user_ip_addr) > 1").reorder("")
+        q = q.where(user_ip_addr: subselect)
+      end
+
       if params[:order] == "ip_addr" && allow_complex_parameters
         q = q.order(:user_ip_addr)
       else
