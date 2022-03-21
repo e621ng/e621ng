@@ -320,7 +320,7 @@ class TagAlias < TagRelationship
   def create_mod_action
     alias_desc = %Q("tag alias ##{id}":[#{Rails.application.routes.url_helpers.tag_alias_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
 
-    if saved_change_to_id?
+    if previously_new_record?
       ModAction.log(:tag_alias_create, {alias_id: id, alias_desc: alias_desc})
     else
       # format the changes hash more nicely.

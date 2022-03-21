@@ -12,13 +12,12 @@ class Artist < ApplicationRecord
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, on: :create
   validates :group_name, length: { maximum: 100 }
-  before_save :log_changes
+  after_save :log_changes
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
   after_save :propagate_locked, if: :should_propagate_locked
   after_save :clear_url_string_changed
-
 
   has_many :members, :class_name => "Artist", :foreign_key => "group_name", :primary_key => "name"
   has_many :urls, :dependent => :destroy, :class_name => "ArtistUrl", :autosave => true
@@ -33,13 +32,13 @@ class Artist < ApplicationRecord
   scope :deleted, -> { where(is_active: false) }
 
   def log_changes
-    if name_changed? && !new_record?
+    if saved_change_to_name? && !previously_new_record?
       ModAction.log(:artist_page_rename, { new_name: name, old_name: name_was })
     end
-    if is_locked_changed?
+    if saved_change_to_is_locked?
       ModAction.log(is_locked ? :artist_page_lock : :artist_page_unlock, { artist_page: id })
     end
-    if linked_user_id_changed?
+    if saved_change_to_linked_user_id?
       # FIXME: This should also go in artist_versions
       if linked_user_id.present?
         ModAction.log(:artist_user_linked, { artist_page: id, user_id: linked_user_id })

@@ -164,7 +164,7 @@ class TagImplication < TagRelationship
     def create_mod_action
       implication = %Q("tag implication ##{id}":[#{Rails.application.routes.url_helpers.tag_implication_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
 
-      if saved_change_to_id?
+      if previously_new_record?
         ModAction.log(:tag_implication_create, {implication_id: id, implication_desc: implication})
       else
         # format the changes hash more nicely.
