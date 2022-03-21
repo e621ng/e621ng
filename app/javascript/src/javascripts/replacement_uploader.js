@@ -98,7 +98,7 @@ Replacer.update_preview_paste = function () {
 Replacer.isSampleURL = function (url) {
   const patterns = [
     {reason: 'Thumbnail URL', test: /[at]\.facdn\.net/gi},
-    {reason: 'Sample URL', test: /pximg\.net\/img-master/gi},
+    {reason: 'Sample URL', test: /pximg\.net.*\/img-master\//gi},
     {reason: 'Sample URL', test: /d3gz42uwgl1r1y\.cloudfront\.net\/.*\/\d+x\d+\./gi},
     {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/[\w\-_]+\.(jpg|png)(:large)?$/gi},
     {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/[\w\-_]+\?format=(jpg|png)(?!&name=orig)/gi},
