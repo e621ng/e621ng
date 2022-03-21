@@ -8,7 +8,7 @@ class HelpController < ApplicationController
     if params[:id] =~ /\A\d+\Z/
       @help = HelpPage.find(params[:id])
     else
-      @help = HelpPage.find_by_name(params[:id])
+      @help = HelpPage.find_by(name: HelpPage.normalize_name(params[:id]))
     end
     return redirect_to help_pages_path unless @help.present?
     @wiki_page = WikiPage.find_by_title(@help.wiki_page)

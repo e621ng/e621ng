@@ -16,11 +16,15 @@ class HelpPage < ApplicationRecord
   end
 
   def normalize
-    self.name.downcase!
+    self.name = HelpPage.normalize_name(name)
   end
 
   def self.find_by_name(name)
     Cache.get("help_index:#{name}", 12.hours.to_i) {where('name = ?', name).first}
+  end
+
+  def self.normalize_name(name)
+    name.downcase.strip.tr(" ", "_")
   end
 
   def self.title(name)
@@ -34,8 +38,6 @@ class HelpPage < ApplicationRecord
 
     help.title
   end
-
-  public
 
   def self.help_index
     Cache.get('help_index', 12.hours.to_i) {HelpPage.all.order(:name).to_a}
