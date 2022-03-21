@@ -31,6 +31,8 @@ class ModAction < ApplicationRecord
       :forum_topic_unhide,
       :forum_topic_lock,
       :forum_topic_unlock,
+      :forum_topic_stick,
+      :forum_topic_unstick,
       :forum_topic_update,
       :help_create,
       :help_delete,
@@ -52,6 +54,9 @@ class ModAction < ApplicationRecord
       :ticket_claim,
       :ticket_unclaim,
       :ticket_update,
+      :upload_whitelist_create,
+      :upload_whitelist_update,
+      :upload_whitelist_delete,
       :user_blacklist_changed,
       :user_text_change,
       :user_upload_limit_change,
@@ -67,6 +72,7 @@ class ModAction < ApplicationRecord
       :wiki_page_rename,
       :wiki_page_delete,
       :wiki_page_lock,
+      :wiki_page_unlock,
 
       :mass_update,
 
