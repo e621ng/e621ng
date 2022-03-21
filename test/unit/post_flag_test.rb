@@ -46,7 +46,6 @@ class PostFlagTest < ActiveSupport::TestCase
 
       as(@users.first) do
         @flag1 = create(:post_flag, post: @post)
-        puts @flag1.errors.full_messages
       end
 
       as(@mod) do

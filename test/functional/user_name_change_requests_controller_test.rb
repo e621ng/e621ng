@@ -51,20 +51,6 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
       end
-
-      context "approve action" do
-        should "succeed" do
-          post_auth approve_user_name_change_request_path(@change_request), @admin
-          assert_redirected_to(user_name_change_request_path(@change_request))
-        end
-      end
-
-      context "reject action" do
-        should "succeed" do
-          post_auth reject_user_name_change_request_path(@change_request), @admin
-          assert_redirected_to(user_name_change_request_path(@change_request))
-        end
-      end
     end
   end
 end

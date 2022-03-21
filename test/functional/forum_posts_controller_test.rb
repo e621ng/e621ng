@@ -79,33 +79,6 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
           assert_select "#forum-post-#{@forum_post.id}"
         end
       end
-
-      context "with private topics" do
-        setup do
-          as(@mod) do
-            @mod_topic = create(:mod_up_forum_topic, original_post_attributes: { body: "mod only" })
-            @mod_posts = 2.times.map do
-              create(:forum_post, :topic_id => @mod_topic.id)
-            end
-          end
-          @mod_post_ids = ([@forum_post] + @mod_posts).map(&:id).reverse
-        end
-
-        should "list only permitted posts for members" do
-          get forum_posts_path
-
-          assert_response :success
-          assert_select "#forum-post-#{@forum_post.id}"
-          assert_select "#forum-post-#{@mod_posts[0].id}", false
-        end
-
-        should "list only permitted posts for mods" do
-          get_auth forum_posts_path, @mod
-
-          assert_response :success
-          assert_select "#forum-post-#{@mod_posts[0].id}"
-        end
-      end
     end
 
     context "edit action" do
