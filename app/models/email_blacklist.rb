@@ -8,10 +8,17 @@ class EmailBlacklist < ApplicationRecord
   def self.is_banned?(email)
     email_domain = email.split('@').last.strip.downcase
     banned_domains = Cache.get('banned_emails', 1.hour) do
-      all().map {|x| x.domain.strip.downcase}.flatten
+      all.map { |x| x.domain.strip.downcase }.flatten
     end
-    return true if get_mx_records(email_domain).count {|x| banned_domains.count {|y| x.ends_with?(y)} > 0} > 0
-    banned_domains.count {|x| email_domain.end_with?(x)} > 0
+
+    get_mx_records(email_domain).each do |mx_domain|
+      return true if domain_matches?(banned_domains, mx_domain)
+    end
+    domain_matches?(banned_domains, email_domain)
+  end
+
+  def self.domain_matches?(banned_domains, domain)
+    banned_domains.any? { |banned_domain| domain.end_with?(banned_domain) }
   end
 
   def self.search(params)
@@ -43,7 +50,7 @@ class EmailBlacklist < ApplicationRecord
   def self.get_mx_records(domain)
     return [] if Rails.env.test?
     Resolv::DNS.open do |dns|
-      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).map {|x| x.exchange.to_s }.flatten
+      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).map { |mx| mx.exchange.to_s }.flatten
     end
   end
 
