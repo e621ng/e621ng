@@ -13,83 +13,15 @@ class CommentTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = nil
     end
 
-    context "that mentions a user" do
-      setup do
-        @post = FactoryBot.create(:post)
-        Danbooru.config.stubs(:member_comment_limit).returns(100)
-      end
-
-      context "added in an edit" do
-        should "dmail the added user" do
-          @user1 = FactoryBot.create(:user)
-          @user2 = FactoryBot.create(:user)
-          @comment = FactoryBot.create(:comment, :post_id => @post.id, :body => "@#{@user1.name}")
-
-          assert_no_difference("@user1.dmails.count") do
-            assert_difference("@user2.dmails.count") do
-              @comment.body = "@#{@user1.name} @#{@user2.name}"
-              @comment.save
-            end
-          end
-        end
-      end
-
-      context "in a quote block" do
-        setup do
-          @user2 = FactoryBot.create(:user, :created_at => 2.weeks.ago)
-        end
-
-        should "not create a dmail" do
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:comment, :post_id => @post.id, :body => "[quote]@#{@user2.name}[/quote]")
-          end
-
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:comment, :post_id => @post.id, :body => "[quote]@#{@user2.name}[/quote] blah [quote]@#{@user2.name}[/quote]")
-          end
-
-          assert_difference("Dmail.count", 0) do
-            FactoryBot.create(:comment, :post_id => @post.id, :body => "[quote][quote]@#{@user2.name}[/quote][/quote]")
-          end
-
-          assert_difference("Dmail.count", 1) do
-            FactoryBot.create(:comment, :post_id => @post.id, :body => "[quote]@#{@user2.name}[/quote] @#{@user2.name}")
-          end
-        end
-      end
-
-      context "outside a quote block" do
-        setup do
-          @user2 = FactoryBot.create(:user)
-          @comment = FactoryBot.build(:comment, :post_id => @post.id, :body => "Hey @#{@user2.name} check this out!")
-        end
-
-        should "create a dmail" do
-          assert_difference("Dmail.count", 1) do
-            @comment.save
-          end
-
-          dmail = Dmail.last
-          assert_equal(<<-EOS.strip_heredoc, dmail.body)
-            @#{CurrentUser.name} mentioned you in a \"comment\":/posts/#{@comment.post_id}#comment-#{@comment.id} on post ##{@comment.post_id}:
-
-            [quote]
-            Hey @#{@user2.name} check this out!
-            [/quote]
-          EOS
-        end
-      end
-    end
-
     context "created by a limited user" do
       setup do
-        Danbooru.config.stubs(:member_comment_limit).returns(5)
+        Danbooru.config.stubs(:disable_throttles?).returns(false)
       end
 
       should "fail creation" do
-        comment = FactoryBot.build(:comment)
+        comment = FactoryBot.build(:comment, post: create(:post))
         comment.save
-        assert_equal(["You can not post comments within 1 week of sign up"], comment.errors.full_messages)
+        assert_equal(["Creator can not yet perform this action. Account is too new."], comment.errors.full_messages)
       end
     end
 
@@ -101,8 +33,8 @@ class CommentTest < ActiveSupport::TestCase
       context "that is then deleted" do
         setup do
           @post = FactoryBot.create(:post)
-          @comment = FactoryBot.create(:comment, :post_id => @post.id)
-          @comment.update(is_deleted: true)
+          @comment = FactoryBot.create(:comment, post_id: @post.id)
+          @comment.destroy
           @post.reload
         end
 
@@ -112,16 +44,17 @@ class CommentTest < ActiveSupport::TestCase
       end
 
       should "be created" do
-        comment = FactoryBot.build(:comment)
+        post = FactoryBot.create(:post)
+        comment = FactoryBot.build(:comment, post: post)
         comment.save
         assert(comment.errors.empty?, comment.errors.full_messages.join(", "))
       end
 
       should "not validate if the post does not exist" do
-        comment = FactoryBot.build(:comment, :post_id => -1)
+        comment = FactoryBot.build(:comment, post_id: -1)
 
         assert_not(comment.valid?)
-        assert_equal(["must exist"], comment.errors[:post])
+        assert_match(/must exist/, comment.errors[:post].join(", "))
       end
 
       should "not bump the parent post" do
@@ -164,49 +97,49 @@ class CommentTest < ActiveSupport::TestCase
       should "not record the user id of the voter" do
         user = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
-        c1 = FactoryBot.create(:comment, :post => post)
-        CurrentUser.scoped(user, "127.0.0.1") do
-          c1.vote!("up")
-          c1.reload
-          assert_not_equal(user.id, c1.updater_id)
-        end
+        c1 = FactoryBot.create(:comment, post: post)
+        VoteManager.comment_vote!(user: user, comment: c1, score: -1)
+        c1.reload
+        assert_not_equal(user.id, c1.updater_id)
       end
 
       should "not allow duplicate votes" do
         user = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
-        c1 = FactoryBot.create(:comment, :post => post)
+        c1 = FactoryBot.create(:comment, post: post)
 
-        assert_nothing_raised { c1.vote!("down") }
-        exception = assert_raises(ActiveRecord::RecordInvalid) { c1.vote!("down") }
-        assert_equal("Validation failed: You have already voted for this comment", exception.message)
+        assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: c1, score: -1) }
+        assert_equal(:need_unvote, VoteManager.comment_vote!(user: user, comment: c1, score: -1))
         assert_equal(1, CommentVote.count)
         assert_equal(-1, CommentVote.last.score)
 
-        c2 = FactoryBot.create(:comment, :post => post)
-        assert_nothing_raised { c2.vote!("down") }
+        c2 = FactoryBot.create(:comment, post: post)
+        assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: c2, score: -1) }
         assert_equal(2, CommentVote.count)
       end
 
       should "not allow upvotes by the creator" do
         user = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
-        c1 = FactoryBot.create(:comment, :post => post)
+        c1 = FactoryBot.create(:comment, post: post)
 
-        exception = assert_raises(ActiveRecord::RecordInvalid) { c1.vote!("up") }
+        exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: 1) }
         assert_equal("Validation failed: You cannot upvote your own comments", exception.message)
       end
 
       should "allow undoing of votes" do
         user = FactoryBot.create(:user)
+        user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
-        comment = FactoryBot.create(:comment, :post => post)
-        CurrentUser.scoped(user, "127.0.0.1") do
-          comment.vote!("up")
-          comment.unvote!
+        comment = FactoryBot.create(:comment, post: post)
+        CurrentUser.scoped(user2, "127.0.0.1") do
+          VoteManager.comment_vote!(user: user2, comment: comment, score: 1)
+          comment.reload
+          assert_equal(1, comment.score)
+          VoteManager.comment_unvote!(user: user2, comment: comment)
           comment.reload
           assert_equal(0, comment.score)
-          assert_nothing_raised {comment.vote!("down")}
+          assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: comment, score: -1) }
         end
       end
 
