@@ -755,16 +755,6 @@ fart'
       ["better_version_at_source"]
     end
 
-    # Posts with these tags will be highlighted yellow in the modqueue.
-    def modqueue_quality_warning_tags
-      %w[hard_translated self_upload nude_filter third-party_edit screencap]
-    end
-
-    # Posts with these tags will be highlighted red in the modqueue.
-    def modqueue_sample_warning_tags
-      %w[duplicate image_sample md5_mismatch resized upscaled downscaled]
-    end
-
     # The default headers to be sent with outgoing http requests. Some external
     # services will fail if you don't set a valid User-Agent.
     def http_headers

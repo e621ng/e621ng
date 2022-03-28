@@ -24,18 +24,6 @@ div#c-moderator-post-queues {
       float: left;
       width: 800px;
     }
-
-    //<% Danbooru.config.modqueue_quality_warning_tags.each do |tag| %>
-    //  &[data-tags~="<%= tag %>"] {
-    //    background-color: $modqueue-post-quality-warning-background;
-    //  }
-    //<% end %>
-    //
-    //<% Danbooru.config.modqueue_sample_warning_tags.each do |tag| %>
-    //  &[data-tags~="<%= tag %>"] {
-    //    background-color: $modqueue-post-sample-warning-background;
-    //  }
-    //<% end %>
   }
 
   div#moderation-guideline {
