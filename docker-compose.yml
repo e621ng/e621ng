@@ -44,7 +44,7 @@ services:
       - redis
       - memcached
       - elastic
-    entrypoint: ["bundle", "exec", "rails", "test"]
+    entrypoint: ["docker/test_runner.sh"]
     profiles:
       - test
 
