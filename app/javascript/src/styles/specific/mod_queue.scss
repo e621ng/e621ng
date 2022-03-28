@@ -36,18 +36,6 @@ div#c-moderator-post-queues {
     //    background-color: $modqueue-post-sample-warning-background;
     //  }
     //<% end %>
-
-    &[data-tags~=animated], &[data-file-ext=swf], &[data-file-ext=webm], &[data-file-ext=mp4] {
-      aside:before {
-        @include animated-icon;
-      }
-    }
-
-    &[data-has-sound=true] {
-      aside:before {
-        @include sound-icon;
-      }
-    }
   }
 
   div#moderation-guideline {

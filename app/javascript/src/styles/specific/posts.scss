@@ -84,10 +84,6 @@ article.post-preview {
   &[data-file-ext=webm] > a:before {
     @include preview-type-badge('WEBM');
   }
-
-  //&[data-file-ext=swf]:before {
-  //  @include preview-type-badge('FLASH');
-  //}
 }
 
 #excerpt p.links {

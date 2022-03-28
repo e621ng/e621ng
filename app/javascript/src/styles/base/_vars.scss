@@ -28,30 +28,6 @@ $base_font_family: Verdana, sans-serif;
 
 $box-shadow-size: 2px 2px 5px;
 
-
-
-@mixin animated-icon {
-  content: "►";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  color: $preview-icon-color;
-  background-color: $preview-icon-bg;
-  margin: 2px;
-  text-align: center;
-}
-
-@mixin sound-icon {
-  content: "♪";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  color: $preview-icon-color;
-  background-color: $preview-icon-bg;
-  margin: 2px;
-  text-align: center;
-}
-
 @mixin preview-type-badge($text) {
   @include themable {
     background-color: themed("color-section");
