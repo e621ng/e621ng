@@ -90,22 +90,9 @@ $(function () {
     }
   }
 
-  let interval;
-  function detectCheating() {
-    interval = setInterval(() => {
-      if (localStorage.getItem("theme") != "hotdog") {
-        switchTo("cheating");
-        localStorage.setItem("april_fools_2022", "cheating");
-        $(".april-fools-duration-end").text(durationInWords(getDuration()));
-        clearInterval(interval);
-      }
-    }, 1000);
-  }
-
   function initOptIn() {
     switchTo("switch-message");
     updateText();
-    detectCheating();
   }
 
   updateText();
@@ -117,9 +104,6 @@ $(function () {
     switchTo("opt-out");
   } else if (current_state === "opt-in") {
     initOptIn();
-  } else if (current_state === "cheating") {
-    $(".april-fools-duration-end").text(durationInWords(getDuration()));
-    switchTo("cheating");
   } else if (shouldShowInitialStep()) {
     $("#april-fools .initial").fadeIn();
   }
@@ -134,11 +118,13 @@ $(function () {
   });
   $("#april-fools-no").on("click", () => {
     localStorage.setItem("april_fools_2022", "opt-out");
+    if (localStorage.getItem("april_fools_2022_old_theme")) {
+      setTheme(localStorage.getItem("april_fools_2022_old_theme"))
+    }
     switchTo("opt-out");
   });
 
   $("#april-fools-switch").on("click", () => {
-    clearInterval(interval);
     setTheme(localStorage.getItem("april_fools_2022_old_theme"));
     localStorage.setItem("april_fools_2022", "finished");
     switchTo("rollback-theme");
@@ -153,6 +139,9 @@ $(function () {
   });
   $("#april-fools-dont-bother-me-again").on("click", () => {
     localStorage.setItem("april_fools_2022", "finished");
+    if (localStorage.getItem("april_fools_2022_old_theme")) {
+      setTheme(localStorage.getItem("april_fools_2022_old_theme"))
+    }
     switchTo("opt-out-again")
   });
 
