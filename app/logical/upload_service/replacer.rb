@@ -72,12 +72,10 @@ class UploadService
         end
         md5_changed = upload.md5 != post.md5
 
-        if md5_changed
-          post.delete_files
-          post.generated_samples = nil
-        end
-
+        # TODO: Fix this mess
         previous_uploader = post.uploader_id
+        previous_md5 = post.md5
+        previous_file_ext = post.file_ext
 
         post.md5 = upload.md5
         post.file_ext = upload.file_ext
@@ -105,8 +103,13 @@ class UploadService
         if penalize_current_uploader.to_s.truthy?
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
         end
-      end
 
+        # Everything went through correctly, the old files can now be removed
+        if md5_changed
+          Post.delete_files(post.id, previous_md5, previous_file_ext, force: true)
+          post.generated_samples = nil
+        end
+      end
       if post.is_video?
         post.generate_video_samples(later: true)
       end
