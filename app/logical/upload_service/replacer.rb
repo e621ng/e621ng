@@ -40,69 +40,71 @@ class UploadService
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
 
       create_backup_replacement
-      replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
+      PostReplacement.transaction do
+        replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
 
-      upload = Upload.create(
-        uploader_id: CurrentUser.id,
-        uploader_ip_addr: CurrentUser.ip_addr,
-        rating: post.rating,
-        tag_string: (post.tag_array - Danbooru.config.tags_to_remove_after_replacement_accepted).join(" "),
-        source: replacement.source,
-        file: replacement.replacement_file,
-        replaced_post: post,
-        original_post_id: post.id,
-        replacement_id: replacement.id
-      )
+        upload = Upload.create(
+          uploader_id: CurrentUser.id,
+          uploader_ip_addr: CurrentUser.ip_addr,
+          rating: post.rating,
+          tag_string: (post.tag_array - Danbooru.config.tags_to_remove_after_replacement_accepted).join(" "),
+          source: replacement.source,
+          file: replacement.replacement_file,
+          replaced_post: post,
+          original_post_id: post.id,
+          replacement_id: replacement.id
+        )
 
-      begin
-        if upload.invalid? || upload.is_errored?
+        begin
+          if upload.invalid? || upload.is_errored?
+            raise ProcessingError, upload.status
+          end
+
+          upload.update(status: "processing")
+
+          upload.file = Utils.get_file_for_upload(upload, file: upload.file)
+          Utils.process_file(upload, upload.file, original_post_id: post.id)
+
+          upload.save!
+        rescue Exception => e
+          upload.update(status: "error: #{e.class} - #{e.message}", backtrace: e.backtrace.join("\n"))
           raise ProcessingError, upload.status
         end
+        md5_changed = upload.md5 != post.md5
 
-        upload.update(status: "processing")
+        if md5_changed
+          post.delete_files
+          post.generated_samples = nil
+        end
 
-        upload.file = Utils.get_file_for_upload(upload, file: upload.file)
-        Utils.process_file(upload, upload.file, original_post_id: post.id)
+        previous_uploader = post.uploader_id
 
-        upload.save!
-      rescue Exception => x
-        upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
-        raise ProcessingError, upload.status
-      end
-      md5_changed = upload.md5 != post.md5
+        post.md5 = upload.md5
+        post.file_ext = upload.file_ext
+        post.image_width = upload.image_width
+        post.image_height = upload.image_height
+        post.file_size = upload.file_size
+        post.source = "#{replacement.source}\n" + post.source
+        post.tag_string = upload.tag_string
+        # Reset ownership information on post.
+        post.uploader_id = replacement.creator_id
+        post.uploader_ip_addr = replacement.creator_ip_addr
+        post.save!
 
-      if md5_changed
-        post.delete_files
-        post.generated_samples = nil
-      end
+        # rescaling notes reloads the post, be careful when accessing previous values
+        rescale_notes(post)
 
-      previous_uploader = post.uploader_id
+        replacement.update({
+          status: 'approved',
+          approver_id: CurrentUser.id,
+          uploader_id_on_approve: previous_uploader,
+          penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?
+        })
 
-      post.md5 = upload.md5
-      post.file_ext = upload.file_ext
-      post.image_width = upload.image_width
-      post.image_height = upload.image_height
-      post.file_size = upload.file_size
-      post.source = "#{replacement.source}\n" + post.source
-      post.tag_string = upload.tag_string
-      # Reset ownership information on post.
-      post.uploader_id = replacement.creator_id
-      post.uploader_ip_addr = replacement.creator_ip_addr
-      post.save!
-
-      # rescaling notes reloads the post, be careful when accessing previous values
-      rescale_notes(post)
-
-      replacement.update({
-                           status: 'approved',
-                           approver_id: CurrentUser.id,
-                           uploader_id_on_approve: previous_uploader,
-                           penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?
-                         })
-
-      UserStatus.for_user(previous_uploader).update_all("own_post_replaced_count = own_post_replaced_count + 1")
-      if penalize_current_uploader.to_s.truthy?
-        UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
+        UserStatus.for_user(previous_uploader).update_all("own_post_replaced_count = own_post_replaced_count + 1")
+        if penalize_current_uploader.to_s.truthy?
+          UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
+        end
       end
 
       if post.is_video?

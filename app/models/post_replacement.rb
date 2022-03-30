@@ -178,11 +178,9 @@ class PostReplacement < ApplicationRecord
         return
       end
 
-      transaction do
-        PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
-        processor = UploadService::Replacer.new(post: post, replacement: self)
-        processor.process!(penalize_current_uploader: penalize_current_uploader)
-      end
+      processor = UploadService::Replacer.new(post: post, replacement: self)
+      processor.process!(penalize_current_uploader: penalize_current_uploader)
+      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
       post.update_index
     end
 
