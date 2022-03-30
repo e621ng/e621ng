@@ -124,7 +124,7 @@ class Ban < ApplicationRecord
     else
       self.expires_at = dur.days.from_now
     end
-    @duration = dur
+    @duration = dur if dur != 0
   end
 
   def duration
