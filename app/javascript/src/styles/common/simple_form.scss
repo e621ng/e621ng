@@ -1,18 +1,9 @@
-
-
 form.simple_form {
   margin: 0 0 1em 0;
 
-  div.input.boolean {
-    label {
-      display: inline;
-      vertical-align: middle;
-      margin-left: 0.5em;
-
-      input {
-        margin-right: 0.25em;
-      }
-    }
+  div.input.boolean label {
+    display: inline;
+    margin-right: 0.25em;
   }
 
   div.input {
@@ -65,21 +56,16 @@ form.inline-form {
       text-align: right;
     }
 
+    // Reset style from form.simple_form boolean workaround
+    // The specificity is higher, so it wouldn't get set correctly
+    &.boolean label {
+      display: table-cell;
+    }
+
     label, input {
       display: table-cell;
       padding-right: $base-padding;
       white-space: nowrap;
-    }
-  }
-}
-
-form.one-line-form {
-  > input, > div.input {
-    display: inline;
-
-    label {
-      display: inline;
-      margin-right: 1em;
     }
   }
 }
