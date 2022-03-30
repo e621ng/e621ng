@@ -60,7 +60,7 @@ class Comment < ApplicationRecord
     end
 
     def poster_id(user_id)
-      where(post_id: PostQueryBuilder.new("user_id:#{user_id}").build.reorder(id: :desc).limit(300))
+      joins(:post).where("posts.uploader_id = ?", user_id)
     end
 
     def for_creator(user_id)
@@ -92,10 +92,6 @@ class Comment < ApplicationRecord
         q = q.for_creator(params[:creator_id].to_i)
       end
 
-      if params[:poster_id].present?
-        q = q.poster_id(params[:poster_id].to_i)
-      end
-
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
@@ -113,6 +109,12 @@ class Comment < ApplicationRecord
         q = q.order("comments.updated_at DESC")
       else
         q = q.apply_default_order(params)
+      end
+
+      if params[:poster_id].present?
+        q = q.poster_id(params[:poster_id].to_i)
+        # Force a better query plan by ordering by created_at
+        q = q.reorder("comments.created_at desc")
       end
 
       q
