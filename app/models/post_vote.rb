@@ -50,15 +50,25 @@ class PostVote < ApplicationRecord
         q = q.where('user_id = ?', params[:user_id].to_i)
       end
 
-      allow_complex_parameters = params.keys.include? "post_id"
+      allow_complex_parameters = (params.keys & %w[post_id user_name user_id]).any?
 
-      if params[:timeframe].present? && allow_complex_parameters
-        q = q.where("updated_at >= ?", params[:timeframe].to_i.days.ago)
-      end
+      if allow_complex_parameters
+        if params[:timeframe].present?
+          q = q.where("updated_at >= ?", params[:timeframe].to_i.days.ago)
+        end
 
-      if params[:duplicates_only] == "1" && allow_complex_parameters
-        subselect = PostVote.search(params.except("duplicates_only")).select(:user_ip_addr).group(:user_ip_addr).having("count(user_ip_addr) > 1").reorder("")
-        q = q.where(user_ip_addr: subselect)
+        if params[:user_ip_addr].present?
+          q = q.where("user_ip_addr <<= ?", params[:user_ip_addr])
+        end
+
+        if params[:score].present?
+          q = q.where("score = ?", params[:score])
+        end
+
+        if params[:duplicates_only] == "1"
+          subselect = PostVote.search(params.except("duplicates_only")).select(:user_ip_addr).group(:user_ip_addr).having("count(user_ip_addr) > 1").reorder("")
+          q = q.where(user_ip_addr: subselect)
+        end
       end
 
       if params[:order] == "ip_addr" && allow_complex_parameters
