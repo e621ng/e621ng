@@ -4,6 +4,7 @@
   <%= f.input :creator_name, label: "Creator", input_html: { value: params.dig(:search, :creator_name), data: { autocomplete: "user" } } %>
   <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params.dig(:search, :is_active) %>
   <%= f.input :has_tag, label: "Has tag?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params.dig(:search, :has_tag) %>
+  <%= f.input :is_linked, label: "Linked Only", as: :boolean, input_html: { checked: params.dig(:search, :is_linked).to_s.truthy? } %>
   <%= f.input :order, collection: [["Recently created", "created_at"], ["Last updated", "updated_at"], ["Name", "name"], ["Post count", "post_count"]], selected: params.dig(:search, :order) %>
   <%= f.submit "Search" %>
 <% end %>

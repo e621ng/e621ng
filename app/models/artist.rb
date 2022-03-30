@@ -490,6 +490,10 @@ class Artist < ApplicationRecord
         q = q.includes(:tag).where("tags.name IS NULL OR tags.post_count <= 0").references(:tags)
       end
 
+      if params[:is_linked] == "1"
+        q = q.where("linked_user_id IS NOT NULL")
+      end
+
       params[:order] ||= params.delete(:sort)
       case params[:order]
       when "name"
