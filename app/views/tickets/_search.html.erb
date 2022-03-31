@@ -1,4 +1,4 @@
-<%= hideable_form_search path: tickets_path do |f| %>
+<%= form_search path: tickets_path do |f| %>
   <% if CurrentUser.is_admin? %>
     <%= f.input :creator_name, label: "Reporter", input_html: {value: params.dig(:search, :creator_name)} %>
     <%= f.input :creator_id, label: "Reporter ID", input_html: {value: params.dig(:search, :creator_id)} %>

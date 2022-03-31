@@ -1,4 +1,4 @@
-<%= hideable_form_search path: blips_path do |f| %>
+<%= form_search path: blips_path do |f| %>
   <%= f.input :creator_name, label: "Blipper", input_html: {value: params.dig(:search, :creator_name), data: {autocomplete: "user"}} %>
   <%= f.input :body_matches, label: "Body", input_html: {value: params.dig(:search, :body_matches)} %>
   <%= f.input :response_to, label: "Parent Blip #", input_html: {value: params.dig(:search, :response_to)} %>
