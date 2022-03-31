@@ -37,6 +37,11 @@ class ArtistUrl < ApplicationRecord
     q = q.search_text_attribute(:url, params)
     q = q.search_text_attribute(:normalized_url, params)
 
+    if params[:artist_name].present?
+      q = q.joins(:artist).where("artists.name = ?", params[:artist_name])
+    end
+
+    # Legacy param?
     q = q.artist_matches(params[:artist])
     q = q.url_matches(params[:url_matches])
     q = q.normalized_url_matches(params[:normalized_url_matches])
