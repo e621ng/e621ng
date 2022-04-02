@@ -1,5 +1,5 @@
-<%= simple_form_for(:search, url: artist_versions_path, method: :get, defaults: { required: false }) do |f| %>
-  <%= f.input :updater_name, label: "User", input_html: { data: { autocomplete: "user" } } %>
-  <%= f.input :name, input_html: { data: { autocomplete: "artist" } } %>
+<%= form_search(path: artist_versions_path) do |f| %>
+  <%= f.input :updater_name, label: "User", autocomplete: "user" %>
+  <%= f.input :name, autocomplete: "artist" %>
   <%= f.submit "Search" %>
 <% end %>

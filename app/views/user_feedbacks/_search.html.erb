@@ -1,6 +1,6 @@
-<%= simple_form_for(:search, :method => :get, url: user_feedbacks_path, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-  <%= f.input :user_name, label: "User", input_html: { data: { autocomplete: "user" } } %>
-  <%= f.input :creator_name, label: "Creator", input_html: { data: { autocomplete: "user" } } %>
+<%= form_search(path: user_feedbacks_path) do |f| %>
+  <%= f.input :user_name, label: "User", autocomplete: "user" %>
+  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
   <%= f.input :body_matches, label: "Message" %>
   <%= f.input :category, collection: %w[positive negative neutral], include_blank: true %>
   <%= f.submit "Search" %>
