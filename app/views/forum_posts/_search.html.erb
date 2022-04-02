@@ -1,0 +1,7 @@
+<%= simple_form_for(:search, url: forum_posts_path, method: :get, defaults: { required: false }) do |f| %>
+  <%= f.input :topic_title_matches, label: "Title" %>
+  <%= f.input :body_matches, label: "Body" %>
+  <%= f.input :creator_name, label: "Author", input_html: { data: { autocomplete: "user" } } %>
+  <%= f.input :topic_category_id, label: "Category", collection: ForumCategory.visible.reverse_mapping, include_blank: true %>
+  <%= f.submit "Search" %>
+<% end %>
