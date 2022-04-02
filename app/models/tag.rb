@@ -1097,7 +1097,6 @@ class Tag < ApplicationRecord
 
       q = q.attribute_matches(:is_locked, params[:is_locked])
 
-      params[:order] ||= params.delete(:sort)
       case params[:order]
       when "name"
         q = q.order("name")

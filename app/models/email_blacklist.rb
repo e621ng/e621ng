@@ -34,7 +34,6 @@ class EmailBlacklist < ApplicationRecord
       q = q.where("reason ILIKE ?", params[:reason].to_escaped_for_sql_like)
     end
 
-    params[:order] ||= params.delete(:sort)
     case params[:order]
     when "reason"
       q = q.order("email_blacklists.reason")

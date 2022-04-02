@@ -239,7 +239,6 @@ class Takedown < ApplicationRecord
         q = q.where('status = ?', params[:status])
       end
 
-      params[:order] ||= params.delete(:sort)
       case params[:order]
       when 'status'
         q = q.order('status ASC')
