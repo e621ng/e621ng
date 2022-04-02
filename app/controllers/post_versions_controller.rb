@@ -8,9 +8,6 @@ class PostVersionsController < ApplicationController
     respond_with(@post_versions)
   end
 
-  def search
-  end
-
   def undo
     can_edit = CurrentUser.can_post_edit_with_reason
     raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true

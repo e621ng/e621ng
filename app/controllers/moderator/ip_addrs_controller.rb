@@ -8,8 +8,5 @@ module Moderator
       @results = @search.execute
       respond_with(@results)
     end
-
-    def search
-    end
   end
 end

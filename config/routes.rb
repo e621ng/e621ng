@@ -32,12 +32,7 @@ Rails.application.routes.draw do
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, :only => [:show]
-    resources :ip_addrs, :only => [:index] do
-      collection do
-        get :search
-      end
-    end
-    resources :invitations, :only => [:new, :create, :index]
+    resources :ip_addrs, :only => [:index]
     resource :tag, :only => [:edit, :update]
     namespace :post do
       resource :queue, :only => [:show]
@@ -57,12 +52,6 @@ Rails.application.routes.draw do
           post :regenerate_thumbnails
           post :regenerate_videos
         end
-      end
-    end
-    resources :invitations, :only => [:new, :create, :index, :show]
-    resources :ip_addrs, :only => [:index, :search] do
-      collection do
-        get :search
       end
     end
   end
@@ -258,12 +247,9 @@ Rails.application.routes.draw do
   resources :post_events, only: :index
   resources :post_flags, except: [:destroy]
   resources :post_approvals, only: [:index]
-  resources :post_versions, :only => [:index, :search] do
+  resources :post_versions, :only => [:index] do
     member do
       put :undo
-    end
-    collection do
-      get :search
     end
   end
   resource :related_tag, :only => [:show, :update]
