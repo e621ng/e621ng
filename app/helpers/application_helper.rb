@@ -72,13 +72,6 @@ module ApplicationHelper
     raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
   end
 
-  def form_search(path:, always_display: false, &block)
-    # dedicated search routes like /comments/search should always show
-    hideable = request.path.split("/")[2] != "search"
-    show_on_load = !params[:search].empty? || always_display || !hideable
-    render "application/form_search", path: path, hideable: hideable, show_on_load: show_on_load, block: block
-  end
-
   def dtext_ragel(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
