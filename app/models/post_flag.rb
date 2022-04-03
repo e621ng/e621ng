@@ -211,6 +211,11 @@ class PostFlag < ApplicationRecord
       return unless parent_post
       old_parent_id = post.parent_id
       post.update_column(:parent_id, parent_post.id)
+      # Fix handling when parent/child is currently inverted. See #258
+      if parent_post.parent_id == post.id
+        parent_post.update_column(:parent_id, nil)
+        post.update_has_children_flag
+      end
       # Update parent flags on parent post
       parent_post.update_has_children_flag
       # Update parent flags on old parent post, if it exists
