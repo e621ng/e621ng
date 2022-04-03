@@ -4,12 +4,9 @@ module Moderator
     respond_to :html, :json
 
     def index
-      @search = IpAddrSearch.new(params[:search])
-      @results = @search.execute
+      search = IpAddrSearch.new(params[:search])
+      @results = search.execute
       respond_with(@results)
-    end
-
-    def search
     end
   end
 end

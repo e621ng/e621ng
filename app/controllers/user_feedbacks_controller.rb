@@ -19,8 +19,8 @@ class UserFeedbacksController < ApplicationController
   end
 
   def index
-    @search = UserFeedback.search(search_params)
-    @user_feedbacks = @search.paginate(params[:page], :limit => params[:limit])
+    search = UserFeedback.search(search_params)
+    @user_feedbacks = search.paginate(params[:page], limit: params[:limit])
     respond_with(@user_feedbacks)
   end
 

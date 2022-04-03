@@ -97,7 +97,6 @@ class Pool < ApplicationRecord
       q = q.attribute_matches(:is_active, params[:is_active])
       q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
-      params[:order] ||= params.delete(:sort)
       case params[:order]
       when "name"
         q = q.order("pools.name")

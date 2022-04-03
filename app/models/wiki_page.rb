@@ -106,7 +106,6 @@ class WikiPage < ApplicationRecord
       q = q.attribute_matches(:is_locked, params[:is_locked])
       q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
-      params[:order] ||= params.delete(:sort)
       case params[:order]
       when "title"
         q = q.order("title")

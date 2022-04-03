@@ -143,8 +143,7 @@ class TagRelationship < ApplicationRecord
         q = q.joins(:consequent_tag).where("tags.category": params[:category].split)
       end
 
-      params[:order] ||= "status"
-      case params[:order].downcase
+      case params[:order]
       when "created_at"
         q = q.order("created_at desc nulls last, id desc")
       when "updated_at"

@@ -34,7 +34,6 @@ class UploadWhitelist < ApplicationRecord
       q = q.where("note ILIKE ?", params[:note].to_escaped_for_sql_like)
     end
 
-    params[:order] ||= params.delete(:sort)
     case params[:order]
     when "note"
       q = q.order("upload_whitelists.note")

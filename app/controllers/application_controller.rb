@@ -222,7 +222,11 @@ class ApplicationController < ActionController::Base
     deep_reject_blank = lambda do |hash|
       hash.reject { |k, v| v.blank? || (v.is_a?(Hash) && deep_reject_blank.call(v).blank?) }
     end
-    nonblank_search_params = deep_reject_blank.call(params[:search])
+    if params[:search].is_a?(ActionController::Parameters)
+      nonblank_search_params = deep_reject_blank.call(params[:search])
+    else
+      nonblank_search_params = ActionController::Parameters.new
+    end
 
     if nonblank_search_params != params[:search]
       params[:search] = nonblank_search_params
