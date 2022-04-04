@@ -106,7 +106,9 @@ div#c-users {
     }
 
     .active {
-      color: black;
+      @include themable {
+        color: themed("color-link-active");
+      }
     }
   }
 
