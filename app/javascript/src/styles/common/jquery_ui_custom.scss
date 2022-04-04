@@ -90,12 +90,14 @@ div.ui-dialog {
   border: 1px solid $widget-border;
   background-color: $widget-background;
   @include themable {
-    background-color: themed("color-section");
+    background-color: lighten( themed("color-section"), 10%);
+    color: themed("color-text");
   }
-  color: $widget-color;
 }
 
 .ui-widget-header {
-  background-color: $widget-header-background;
-  color: $widget-header-color;
+  @include themable {
+    background-color: themed("color-background");
+    color: themed("color-text");
+  }
 }

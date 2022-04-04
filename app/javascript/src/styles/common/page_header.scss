@@ -63,6 +63,8 @@ header#top {
   }
 
   menu:only-child {
-    border-bottom: 2px solid $menu-background;
+    @include themable {
+      border-bottom: 2px solid themed("color-foreground");
+    }
   }
 }
