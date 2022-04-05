@@ -67,6 +67,7 @@ class TagAliasTest < ActiveSupport::TestCase
 
     context "#estimate_update_count" do
       setup do
+        Post.__elasticsearch__.create_index! force: true
         FactoryBot.create(:post, tag_string: "aaa bbb ccc")
         @alias = FactoryBot.create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
       end

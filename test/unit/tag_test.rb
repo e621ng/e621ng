@@ -2,16 +2,14 @@ require 'test_helper'
 
 class TagTest < ActiveSupport::TestCase
   setup do
-    Sidekiq::Testing::inline!
+    Sidekiq::Testing.inline!
     @janitor = FactoryBot.create(:janitor_user)
     CurrentUser.user = @janitor
     CurrentUser.ip_addr = "127.0.0.1"
-    Post.__elasticsearch__.index_name = "posts_test"
-    Post.__elasticsearch__.create_index!
   end
 
   teardown do
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
@@ -271,6 +269,7 @@ class TagTest < ActiveSupport::TestCase
 
   context "A tag with a negative post count" do
     should "be fixed" do
+      Post.__elasticsearch__.create_index! force: true
       tag = FactoryBot.create(:tag, name: "touhou", post_count: -10)
       post = FactoryBot.create(:post, tag_string: "touhou")
 

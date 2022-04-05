@@ -2,7 +2,6 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    Post.__elasticsearch__.refresh_index! # TODO: race condition hack, makes tests SLOW!!!
     assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
   end
 
@@ -15,7 +14,6 @@ class PostTest < ActiveSupport::TestCase
     end
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
-    Post.__elasticsearch__.index_name = "posts_test"
     Post.__elasticsearch__.create_index!
   end
 
@@ -1518,7 +1516,6 @@ class PostTest < ActiveSupport::TestCase
 
   context "Searching:" do
     setup do
-      Post.__elasticsearch__.index_name = "posts_test"
       Post.__elasticsearch__.create_index!
     end
 
@@ -2103,7 +2100,6 @@ class PostTest < ActiveSupport::TestCase
   # context "Counting:" do
   #   context "Creating a post" do
   #     setup do
-  #       Post.__elasticsearch__.index_name = "posts_test"
   #       Post.__elasticsearch__.delete_index!
   #       Post.__elasticsearch__.create_index!
   #       Danbooru.config.stubs(:blank_tag_search_fast_count).returns(nil)

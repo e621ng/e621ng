@@ -65,6 +65,7 @@ class TagImplicationTest < ActiveSupport::TestCase
 
     context "#estimate_update_count" do
       setup do
+        Post.__elasticsearch__.create_index! force: true
         FactoryBot.create(:post, tag_string: "aaa bbb ccc")
         @implication = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
       end
