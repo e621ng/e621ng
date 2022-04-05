@@ -43,14 +43,14 @@ class UserDeletionTest < ActiveSupport::TestCase
 
   context "a valid user deletion" do
     setup do
-      @user = FactoryBot.create(:user)
+      @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
 
       @post = FactoryBot.create(:post)
-      Favorite.add(post: @post, user: @user)
+      FavoriteManager.add!(user: @user, post: @post)
 
-      @user.update(:email => "ted@danbooru.com")
+      @user.update(email: "ted@danbooru.com")
 
       @deletion = UserDeletion.new(@user, "password")
       @deletion.delete!
@@ -58,7 +58,7 @@ class UserDeletionTest < ActiveSupport::TestCase
     end
 
     should "blank out the email" do
-      assert_nil(@user.email)
+      assert_empty(@user.email)
     end
 
     should "rename the user" do

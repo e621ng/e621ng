@@ -13,7 +13,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       CurrentUser.user = nil
       CurrentUser.ip_addr = nil
     end
-    
+
     context "approving a request" do
       setup do
         @change_request = UserNameChangeRequest.create(
@@ -24,37 +24,31 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
         )
         CurrentUser.user = @admin
       end
-      
+
       should "create a dmail" do
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           @change_request.approve!
         end
       end
-      
+
       should "change the user's name" do
         @change_request.approve!
         @requester.reload
         assert_equal("abc", @requester.name)
       end
-      
+
       should "clear the user name cache" do
         @change_request.approve!
         assert_equal("abc", Cache.get("uin:#{@requester.id}"))
       end
-      
-      should "create feedback" do
-        assert_difference("UserFeedback.count", 1) do
-          @change_request.approve!
-        end
-      end
-      
+
       should "create mod action" do
         assert_difference("ModAction.count", 1) do
           @change_request.approve!
         end
       end
     end
-    
+
     context "creating a new request" do
       should "not validate if the desired name already exists" do
         assert_difference("UserNameChangeRequest.count", 0) do

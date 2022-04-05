@@ -32,31 +32,6 @@ class PostApprovalTest < ActiveSupport::TestCase
           @post.approve!
         end
       end
-
-      context "that is then flagged" do
-        setup do
-          @user2 = FactoryBot.create(:user)
-          @user3 = FactoryBot.create(:user)
-          @approver2 = FactoryBot.create(:user)
-          @approver2.can_approve_posts = true
-          @approver2.save
-        end
-
-        should "prevent the first approver from approving again" do
-          @post.approve!(@approver)
-          CurrentUser.user = @user2
-          @post.flag!("blah")
-          @post.approve!(@approver2)
-          assert_not_equal(@approver.id, @post.approver_id)
-          CurrentUser.user = @user3
-          travel_to(PostFlag::COOLDOWN_PERIOD.from_now + 1.minute) do
-            @post.flag!("blah blah")
-          end
-
-          approval = @post.approve!(@approver)
-          assert_includes(approval.errors.full_messages, "You have previously approved this post and cannot approve it again")
-        end
-      end
     end
 
     context "#search method" do

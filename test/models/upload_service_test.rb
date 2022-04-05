@@ -16,7 +16,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context "#get_file_for_upload" do
       context "for a non-source site" do
         setup do
-          @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"          
+          @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"
           @upload = Upload.new
           @upload.source = @source
         end
@@ -55,8 +55,8 @@ class UploadServiceTest < ActiveSupport::TestCase
     context ".calculate_dimensions" do
       context "for a video" do
         setup do
-          @file = File.open("test/files/test-300x300.mp4", "rb")
-          @upload = Upload.new(file_ext: "mp4")
+          @file = File.open("test/files/test-512x512.webm", "rb")
+          @upload = Upload.new(file_ext: "webm")
         end
 
         teardown do
@@ -71,7 +71,7 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
       end
 
-      context "for an image" do 
+      context "for an image" do
         setup do
           @file = File.open("test/files/test.jpg", "rb")
           @upload = Upload.new(file_ext: "jpg")
@@ -94,28 +94,6 @@ class UploadServiceTest < ActiveSupport::TestCase
       context "for a video" do
         teardown do
           @file.close
-        end
-
-        context "for an mp4" do
-          setup do
-            @file = File.open("test/files/test-300x300.mp4", "rb")
-            @upload = mock()
-            @upload.stubs(:is_video?).returns(true)
-          end
-
-          should "generate a video" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            assert_equal(150, ImageSpec.new(preview.path).width)
-            assert_equal(150, ImageSpec.new(preview.path).height)
-            assert_equal(150, ImageSpec.new(crop.path).width)
-            assert_equal(150, ImageSpec.new(crop.path).height)
-            preview.close
-            preview.unlink
-            crop.close
-            crop.unlink
-          end
         end
 
         context "for a webm" do
@@ -252,7 +230,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @post.stubs(:queue_delete_files)
           @replacement = FactoryBot.create(:post_replacement, post: @post, replacement_url: "", replacement_file: @new_file)
         end
-      end      
+      end
 
       subject { UploadService::Replacer.new(post: @post, replacement: @replacement) }
 
@@ -445,13 +423,6 @@ class UploadServiceTest < ActiveSupport::TestCase
           end
         end
 
-        should "create a comment" do
-          assert_difference(-> { @post.comments.count }) do
-            as_user { subject.process! }
-            @post.reload
-          end
-        end
-
         should "not create a new post" do
           assert_difference(-> { Post.count }, 0) do
             as_user { subject.process! }
@@ -633,10 +604,9 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     setup do
       @source = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
-      CurrentUser.user = travel_to(1.month.ago) do
-        FactoryBot.create(:user)
-      end
+      CurrentUser.user = FactoryBot.create(:user, created_at: 1.month.ago)
       CurrentUser.ip_addr = "127.0.0.1"
+      @build_service = ->(**params) { subject.new({ rating: "s", uploader: CurrentUser.user, uploader_ip_addr: CurrentUser.ip_addr }.merge(params)) }
     end
 
     teardown do
@@ -645,24 +615,21 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
 
     context "automatic tagging" do
-      setup do
-        @build_service = ->(file) { subject.new(file: file)}
-      end
-
       should "tag animated png files" do
-        service = @build_service.call(upload_file("test/files/apng/normal_apng.png"))
+        service = @build_service.call(file: upload_file("test/files/apng/normal_apng.png"))
         upload = service.start!
+        puts upload.errors.full_messages.join('; ')
         assert_match(/animated_png/, upload.tag_string)
       end
 
       should "tag animated gif files" do
-        service = @build_service.call(upload_file("test/files/test-animated-86x52.gif"))
+        service = @build_service.call(file: upload_file("test/files/test-animated-86x52.gif"))
         upload = service.start!
         assert_match(/animated_gif/, upload.tag_string)
       end
 
       should "not tag static gif files" do
-        service = @build_service.call(upload_file("test/files/test-static-32x32.gif"))
+        service = @build_service.call(file: upload_file("test/files/test-static-32x32.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
@@ -674,14 +641,14 @@ class UploadServiceTest < ActiveSupport::TestCase
       end
 
       should "should fail validation" do
-        service = subject.new(file: upload_file("test/files/test-large.jpg"))
+        service = @build_service.call(file: upload_file("test/files/test-large.jpg"))
         upload = service.start!
         assert_match(/image resolution is too large/, upload.status)
       end
     end
 
     should "create an upload" do
-      service = subject.new(source: @source)
+      service = @build_service.call(source: @source)
 
       assert_difference(-> { Upload.count }) do
         service.start!
@@ -689,7 +656,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
 
     should "assign the rating from tags" do
-      service = subject.new(source: @source, tag_string: "rating:safe blah")
+      service = @build_service.call(source: @source, tag_string: "rating:safe blah")
       upload = service.start!
 
       assert_equal(true, upload.valid?)
@@ -704,7 +671,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       should "upload successfully" do
         source1 = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg?one=東方&two=a%20b"
         source2 = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg?one=%E6%9D%B1%E6%96%B9&two=a%20b"
-        service = subject.new(source: source1, rating: "s")
+        service = @build_service.call(source: source1, rating: "s")
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(true, @upload.is_completed?)
@@ -714,7 +681,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       should "normalize unicode characters in the source field" do
         source1 = "poke\u0301mon" # pokémon (nfd form)
         source2 = "pok\u00e9mon"  # pokémon (nfc form)
-        service = subject.new(source: source1, rating: "s", file: upload_file("test/files/test.jpg"))
+        service = @build_service.call(source: source1, rating: "s", file: upload_file("test/files/test.jpg"))
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(source2, @upload.source)
@@ -723,7 +690,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "without a file or a source url" do
       should "fail gracefully" do
-        service = subject.new(source: "blah", rating: "s")
+        service = @build_service.call(source: "blah", rating: "s")
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(true, @upload.is_errored?)
@@ -733,7 +700,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "with both a file and a source url" do
       should "upload the file and set the source field to the given source" do
-        service = subject.new(file: upload_file("test/files/test.jpg"), source: "http://www.example.com", rating: "s")
+        service = @build_service.call(file: upload_file("test/files/test.jpg"), source: "http://www.example.com", rating: "s")
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(true, @upload.is_completed?)
@@ -747,9 +714,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     subject { UploadService }
 
     setup do
-      CurrentUser.user = travel_to(1.month.ago) do
-        FactoryBot.create(:user)
-      end
+      CurrentUser.user = create(:user, created_at: 1.month.ago)
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
@@ -796,6 +761,5 @@ class UploadServiceTest < ActiveSupport::TestCase
         assert_not_nil(post.id)
       end
     end
-
   end
 end

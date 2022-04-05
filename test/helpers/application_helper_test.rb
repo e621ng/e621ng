@@ -7,7 +7,7 @@ class ApplicationHelperTest < ActionView::TestCase
         dtext = "* a\n" * 513
 
         assert_nothing_raised { format_text(dtext) }
-        assert_equal("", format_text(dtext))
+        assert_equal('<div class="styled-dtext"></div>', format_text(dtext))
       end
     end
   end

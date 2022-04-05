@@ -3,7 +3,7 @@ require 'fileutils'
 FactoryBot.define do
   factory(:upload) do
     rating { "s" }
-    uploader :factory => :user, :level => 20
+    uploader { create(:user, created_at: 2.weeks.ago) }
     uploader_ip_addr { "127.0.0.1" }
     tag_string { "special" }
     status { "pending" }
