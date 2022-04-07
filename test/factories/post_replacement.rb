@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory(:post_replacement) do
     creator_ip_addr { "127.0.0.1" }
+    creator { create(:user, created_at: 2.weeks.ago) }
     replacement_url { FFaker::Internet.http_url }
     reason { FFaker::Lorem.words.join(" ") }
 

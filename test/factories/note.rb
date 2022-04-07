@@ -1,11 +1,11 @@
 FactoryBot.define do
   factory(:note) do
-    post
+    post { create(:post) }
     x { 1 }
     y { 1 }
     width { 1 }
     height { 1 }
     is_active { true }
-    body {FFaker::Lorem.sentences.join(" ")}
+    body { FFaker::Lorem.sentences.join(" ") }
   end
 end
