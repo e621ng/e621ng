@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class TagImplicationTest < ActiveSupport::TestCase
-
   setup do
     Sidekiq::Testing.inline!
   end
@@ -51,15 +50,10 @@ class TagImplicationTest < ActiveSupport::TestCase
       should_not allow_value(-1).for(:creator_id).with_message("must exist", against: :creator)
 
       should "not allow duplicate active implications" do
-        ti1 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
-        ti2 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "retired")
-        ti3 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "deleted")
-        ti4 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "deleted")
-        ti5 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
-        [ti1, ti2, ti3, ti4, ti5].each { |ti| assert(ti.valid?) }
-
-        ti5.update(status: "active")
-        assert_includes(ti5.errors[:antecedent_name], "has already been taken")
+        ti1 = FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
+        ti2 = FactoryBot.build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+        ti2.save
+        assert_match(/Antecedent name has already been taken/, ti2.errors.full_messages.join)
       end
     end
 

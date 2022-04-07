@@ -1,18 +1,17 @@
 require 'test_helper'
 
 class UploadsControllerTest < ActionDispatch::IntegrationTest
-
   setup do
-    Sidekiq::Testing::inline!
+    Sidekiq::Testing.inline!
   end
 
   teardown do
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
   end
 
   context "The uploads controller" do
     setup do
-      @user = create(:contributor_user)
+      @user = create(:janitor_user)
       mock_iqdb_service!
     end
 
@@ -23,13 +22,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context "with a url" do
-        should "preprocess" do
-          assert_difference(-> { Upload.count }) do
-            get_auth new_upload_path, @user, params: {:url => "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
-            assert_response :success
-          end
-        end
-
         should "prefer the file" do
           get_auth new_upload_path, @user, params: {url: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
           file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
@@ -98,7 +90,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             status: @upload.status
           }
 
-          get uploads_path, params: { search: search_params }
+          get_auth uploads_path, params: { search: search_params }
           assert_response :success
         end
       end

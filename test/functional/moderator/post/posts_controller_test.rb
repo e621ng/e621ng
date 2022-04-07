@@ -70,7 +70,7 @@ module Moderator
             end
             users = FactoryBot.create_list(:user, 2)
             users.each do |u|
-              @child.add_favorite!(u)
+              FavoriteManager.add!(user: u, post: @child)
               @child.reload
             end
 
@@ -87,9 +87,9 @@ module Moderator
 
         context "expunge action" do
           should "render" do
-            post_auth expunge_moderator_post_post_path(@post), @admin, params: { format: "js" }
+            post_auth expunge_moderator_post_post_path(@post), @admin
 
-            assert_response :success
+            assert_response :found
             assert_equal(false, ::Post.exists?(@post.id))
           end
         end

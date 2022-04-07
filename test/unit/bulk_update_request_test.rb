@@ -157,7 +157,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       end
 
       should "downcase the text" do
-        assert_equal("create alias aaa -> bbb", @req.script)
+        assert_equal("alias aaa -> bbb", @req.script)
       end
 
       should "update the topic when processed" do

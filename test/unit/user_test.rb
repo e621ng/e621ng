@@ -105,7 +105,8 @@ class UserTest < ActiveSupport::TestCase
       assert_equal(@user.can_forum_post_with_reason, :REJ_NEWBIE)
       @user.update_column(:created_at, 1.year.ago)
       topic = FactoryBot.create(:forum_topic)
-      Danbooru.config.member_comment_limit.times do
+      # Creating a topic automatically creates a post
+      (Danbooru.config.member_comment_limit - 1).times do
         FactoryBot.create(:forum_post, :topic_id => topic.id)
       end
       assert_equal(@user.can_forum_post_with_reason, :REJ_LIMITED)

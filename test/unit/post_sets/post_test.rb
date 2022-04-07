@@ -92,32 +92,6 @@ module PostSets
         end
       end
 
-      context "a set for the 'a b c' tag query" do
-        setup do
-          @set = PostSets::Post.new("a b c")
-        end
-
-        context "for a non-gold user" do
-          should "fail" do
-            assert_raises(::Post::SearchError) do
-              @set.posts
-            end
-          end
-        end
-
-        context "for a gold user" do
-          setup do
-            CurrentUser.user = FactoryBot.create(:privileged_user)
-          end
-
-          should "pass" do
-            assert_nothing_raised do
-              @set.posts
-            end
-          end
-        end
-      end
-
       context "a set for the 'a' tag query" do
         setup do
           @set = PostSets::Post.new("a")

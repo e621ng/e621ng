@@ -151,14 +151,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
       should "destroy a wiki_page" do
         delete_auth wiki_page_path(@wiki_page), @mod
-        @wiki_page.reload
-        assert_equal(true, @wiki_page.is_deleted?)
-      end
-
-      should "record the deleter" do
-        delete_auth wiki_page_path(@wiki_page), @mod
-        @wiki_page.reload
-        assert_equal(@mod.id, @wiki_page.updater_id)
+        assert_not(WikiPage.exists?(@wiki_page.id))
       end
     end
 

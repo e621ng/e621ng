@@ -32,7 +32,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       should "still handle disabled secondary validations correctly" do
         put_auth bulk_update_request_path(@bulk_update_request.id), @user, params: {bulk_update_request: {script: "create alias zzz -> 222"}}
         @bulk_update_request.reload
-        assert_equal("create alias zzz -> 222", @bulk_update_request.script)
+        assert_equal("alias zzz -> 222", @bulk_update_request.script)
       end
     end
 

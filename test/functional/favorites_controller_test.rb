@@ -9,7 +9,7 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         @post = create(:post)
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
       end
 
       context "with a specified tags parameter" do
@@ -40,7 +40,7 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
     context "destroy action" do
       setup do
         @post = create(:post)
-        @post.add_favorite!(@user)
+        FavoriteManager.add!(user: @user, post: @post)
       end
 
       should "remove the favorite from the current user" do

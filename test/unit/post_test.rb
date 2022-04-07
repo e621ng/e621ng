@@ -2030,7 +2030,7 @@ class PostTest < ActiveSupport::TestCase
       replacement1 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post1)
       replacement1.reject!
       replacement2 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post2)
-      replacement2.approve!
+      replacement2.approve! penalize_current_uploader: true
       replacement3 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post3)
       replacement3.promote!
       replacement4 = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: post4)
@@ -2285,29 +2285,28 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
-            assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
-          end
+      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
+    end
+  end
+
+  context "Notes:" do
+    context "#copy_notes_to" do
+      setup do
+        @src = FactoryBot.create(:post, image_width: 100, image_height: 100, tag_string: "translated partially_translated")
+        @dst = FactoryBot.create(:post, image_width: 200, image_height: 200, tag_string: "translation_request")
+
+        @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "test")
+        @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "deleted", is_active: false)
+        @src.reload
+
+        @src.copy_notes_to(@dst)
       end
 
-    context "Notes:" do
-      context "#copy_notes_to" do
-        setup do
-            @src = FactoryBot.create(:post, image_width: 100, image_height: 100, tag_string: "translated partially_translated", has_embedded_notes: true)
-            @dst = FactoryBot.create(:post, image_width: 200, image_height: 200, tag_string: "translation_request")
-
-            @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "test")
-            @src.notes.create(x: 10, y: 10, width: 10, height: 10, body: "deleted", is_active: false)
-            @src.reload
-
-            @src.copy_notes_to(@dst)
-          end
-
-        should "copy notes and tags" do
-          assert_equal(1, @dst.notes.active.length)
-          assert_equal(true, @dst.has_embedded_notes)
-         assert_equal("lowres partially_translated translated", @dst.tag_string)
-        end
+      should "copy notes and tags" do
+        assert_equal(1, @dst.notes.active.length)
+        assert_equal("low_res partially_translated thumbnail translated", @dst.tag_string)
+      end
 
       should "rescale notes" do
         note = @dst.notes.active.first
