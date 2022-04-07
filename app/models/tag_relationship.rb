@@ -30,7 +30,6 @@ class TagRelationship < ApplicationRecord
   validates :antecedent_name, tag_name: { disable_ascii_check: true }, on: :create
   validates :consequent_name, tag_name: true, on: :create
   validate :antecedent_and_consequent_are_different
-  after_save :update_notice
 
   def initialize_creator
     self.creator_id = CurrentUser.user.id
@@ -207,13 +206,6 @@ class TagRelationship < ApplicationRecord
 
   def estimate_update_count
     Post.fast_count(antecedent_name, skip_cache: true)
-  end
-
-  def update_notice
-    TagChangeNoticeService.update_cache(
-      [antecedent_name, consequent_name],
-      forum_topic_id
-    )
   end
 
   def update_posts

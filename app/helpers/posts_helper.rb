@@ -97,10 +97,6 @@ module PostsHelper
     return params[:post_set_id].to_i == post_set.id
   end
 
-  def show_tag_change_notice?
-    Tag.scan_query(params[:tags]).size == 1 && TagChangeNoticeService.get_forum_topic_id(params[:tags])
-  end
-
   def post_stats_section(post)
     status_flags = []
     status_flags << 'P' if post.parent_id

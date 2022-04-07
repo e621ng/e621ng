@@ -75,19 +75,6 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
     end
 
-    context "#update_notice" do
-      setup do
-        @mock_redis = MockRedis.new
-        @forum_topic = FactoryBot.create(:forum_topic)
-        TagChangeNoticeService.stubs(:redis_client).returns(@mock_redis)
-      end
-
-      should "update redis" do
-        FactoryBot.create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @forum_topic)
-        assert_equal(@forum_topic.id.to_s, @mock_redis.get("tcn:aaa"))
-      end
-    end
-
     should "ignore pending implications when building descendant names" do
       ti2 = FactoryBot.build(:tag_implication, :antecedent_name => "b", :consequent_name => "c", :status => "pending")
       ti2.save
