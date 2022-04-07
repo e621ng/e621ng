@@ -323,6 +323,7 @@
   const char_count_checks = [
     {name: 'Solo'},
     {name: 'Duo'},
+    {name: 'Trio'},
     {name: 'Group'},
     {name: 'Zero Pictured'}];
 
