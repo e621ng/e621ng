@@ -434,18 +434,12 @@ fart'
       # hierarchical: true - store files in a hierarchical directory structure, based on the MD5 hash
       StorageManager::Local.new(base_url: "#{CurrentUser.root_url}/", base_dir: "#{Rails.root}/public/data", hierarchical: true)
 
-      # Store files on one or more remote host(s). Configure SSH settings in
-      # ~/.ssh_config or in the ssh_options param (ref: http://net-ssh.github.io/net-ssh/Net/SSH.html#method-c-start)
-      # StorageManager::SFTP.new("i1.example.com", "i2.example.com", base_dir: "/mnt/backup", hierarchical: false, ssh_options: {})
-
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|
-      #   ssh_options = { user: "danbooru" }
-      #
       #   if type.in?([:large, :original]) && id.in?(0..850_000)
-      #     StorageManager::SFTP.new("raikou1.donmai.us", base_url: "https://raikou1.donmai.us", base_dir: "/path/to/files", hierarchical: true, ssh_options: ssh_options)
+      #     StorageManager::Local.new(base_dir: "/path/to/files", hierarchical: true)
       #   else
-      #     StorageManager::SFTP.new("raikou2.donmai.us", base_url: "https://raikou2.donmai.us", base_dir: "/path/to/files", hierarchical: true, ssh_options: ssh_options)
+      #     StorageManager::Local.new(base_dir: "/path/to/files", hierarchical: true)
       #   end
       # end
     end
@@ -457,10 +451,6 @@ fart'
 
       # Backup files to /mnt/backup on the local filesystem.
       # StorageManager::Local.new(base_dir: "/mnt/backup", hierarchical: false)
-
-      # Backup files to /mnt/backup on a remote system. Configure SSH settings
-      # in ~/.ssh_config or in the ssh_options param (ref: http://net-ssh.github.io/net-ssh/Net/SSH.html#method-c-start)
-      # StorageManager::SFTP.new("www.example.com", base_dir: "/mnt/backup", ssh_options: {})
     end
 
 #TAG CONFIGURATION
