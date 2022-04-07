@@ -16,7 +16,7 @@ class Upload < ApplicationRecord
 
     def validate_file_integrity(record)
       if record.is_image? && DanbooruImageResizer.is_corrupt?(record.file.path)
-        record.errors[:file] << "File is corrupt"
+        record.errors.add(:file, "is corrupt")
       end
     end
 
@@ -29,7 +29,7 @@ class Upload < ApplicationRecord
 
     def validate_file_size(record)
       if record.file_size <= 16
-        record.errors[:file_size] << "is too small"
+        record.errors.add(:file_size, "is too small")
       end
       max_size = Danbooru.config.max_file_sizes.fetch(record.file_ext, 0)
       if record.file_size > max_size
