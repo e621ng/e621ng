@@ -2,20 +2,7 @@
   <div id="a-search">
     <h1>Search Comments</h1>
 
-    <%= simple_form_for(:search, :method => :get, url: comments_path, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-      <%= hidden_field_tag "group_by", "comment", :id => "group_by_full" %>
-      <%= f.input :creator_name, label: "Commenter", input_html: { data: { autocomplete: "user" } } %>
-      <%= f.input :body_matches, label: "Body" %>
-      <%= f.input :post_tags_match, label: "Tags", input_html: { data: { autocomplete: "tag-query" } } %>
-      <% if CurrentUser.is_moderator? %>
-        <%= f.input :ip_addr, label: "Ip Address" %>
-        <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]] %>
-      <% end %>
-      <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]] %>
-      <%= f.input :do_not_bump_post, label: "Bumping?", collection: [["Yes", false], ["No", true]] %>
-      <%= f.input :order, include_blank: false, collection: [%w(Created id_desc), %w(Updated updated_at_desc), %w(Score score_desc), %w(Post post_id_desc)] %>
-      <%= f.submit "Search" %>
-    <% end %>
+    <%= render "search" %>
   </div>
 </div>
 

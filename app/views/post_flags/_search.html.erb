@@ -1,12 +1,12 @@
-<%= simple_form_for(:search, url: post_flags_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-  <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches", input_html: { value: params.dig(:search, :reason_matches) } %>
-  <%= f.input :post_tags_match, label: "Tags", input_html: { value: params.dig(:search, :post_tags_match), data: { autocomplete: "tag-query" } } %>
-  <%= f.input :post_id, label: "Post ID", input_html: { value: params.dig(:search, :post_id) } %>
+<%= form_search(path: post_flags_path) do |f| %>
+  <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches" %>
+  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
+  <%= f.input :post_id, label: "Post ID" %>
   <% if CurrentUser.is_janitor? %>
-    <%= f.input :creator_name, label: "Creator", input_html: { value: params.dig(:search, :creator_name), data: { autocomplete: "user" } } %>
-    <%= f.input :ip_addr, label: "Ip Address", input_html: { value: params.dig(:search, :ip_addr)} %>
+    <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+    <%= f.input :ip_addr, label: "Ip Address" %>
   <% end %>
-  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true, selected: params.dig(:search, :is_resolved) %>
-  <%= f.input :category, label: "Category", collection: ["normal", "unapproved", "deleted", "banned", "duplicate"], include_blank: true, selected: params.dig(:search, :category) %>
+  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+  <%= f.input :category, label: "Category", collection: ["normal", "unapproved", "deleted", "banned", "duplicate"], include_blank: true %>
   <%= f.submit "Search" %>
 <% end %>

@@ -1,0 +1,7 @@
+<%= form_search(path: forum_posts_path) do |f| %>
+  <%= f.input :topic_title_matches, label: "Title" %>
+  <%= f.input :body_matches, label: "Body" %>
+  <%= f.input :creator_name, label: "Author", autocomplete: "user" %>
+  <%= f.input :topic_category_id, label: "Category", collection: ForumCategory.visible.reverse_mapping, include_blank: true %>
+  <%= f.submit "Search" %>
+<% end %>

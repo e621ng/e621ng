@@ -1,0 +1,7 @@
+<%= form_search(path: user_feedbacks_path) do |f| %>
+  <%= f.input :user_name, label: "User", autocomplete: "user" %>
+  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.input :body_matches, label: "Message" %>
+  <%= f.input :category, collection: %w[positive negative neutral], include_blank: true %>
+  <%= f.submit "Search" %>
+<% end %>

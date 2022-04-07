@@ -1,22 +1,8 @@
 <div id="c-users">
   <div id="a-search">
-    <%= simple_form_for(:search, url: users_path, method: :get, defaults: { required: false }, html: { class: "inline-form" }) do |f| %>
-      <%= f.input :name_matches, label: "Name", hint: "Use * for wildcard", input_html: { value: params.dig(:search, :name_matches), data: { autocomplete: "user" } } %>
-
-      <% if CurrentUser.is_admin? %>
-        <%= f.input :email_matches, label: "Email", hint: "Use * for wildcard", input_html: { value: params.dig(:search, :email_matches) }  %>
-      <% end %>
-
-      <%= f.input :level, collection: User.level_hash.to_a, include_blank: true, selected: params.dig(:search, :level) %>
-      <%= f.input :min_level, collection: User.level_hash.to_a, include_blank: true, selected: params.dig(:search, :min_level) %>
-      <%= f.input :max_level, collection: User.level_hash.to_a, include_blank: true, selected: params.dig(:search, :max_level) %>
-
-      <%= f.input :can_upload_free, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: true, selected: params.dig(:search, :can_upload_free) %>
-      <%= f.input :can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: true, selected: params.dig(:search, :can_approve_posts) %>
-
-      <%= f.input :order, collection: [["Join date", "date"], ["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]], selected: params.dig(:search, :order) %>
-      <%= f.submit "Search" %>
-    <% end %>
+    <h1>Search Users</h1>
+    
+    <%= render "search" %>
   </div>
 </div>
 

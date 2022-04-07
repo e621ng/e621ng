@@ -1,5 +1,0 @@
-<a href="#" id="search-form-show-link" <% if show_on_load %>style="display:none;"<% end %>>Show Search Options</a>
-<a href="#" id="search-form-hide-link" <% unless show_on_load %>style="display:none;"<% end %>>Hide Search Options</a>
-<div class="section" id="searchform" <% unless show_on_load %>style="display:none;"<% end %>>
-  <%= simple_form_for(:search, :method => :get, url: path, defaults: {required: false}, html: {class: "inline-form"}, &block) %>
-</div>

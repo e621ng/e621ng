@@ -1,4 +1,4 @@
-<%= hideable_form_search path: post_versions_path do |f| %>
+<%= form_search path: post_versions_path do |f| %>
   <%= f.input :updater_name, label: "User", input_html: {value: params.dig(:search, :updater_name), data: {autocomplete: "user"}} %>
   <%= f.input :updater_id, label: "User ID", input_html: {value: params.dig(:search, :updater_id)} %>
   <%= f.input :post_id, label: "Post #", input_html: {value: params.dig(:search, :post_id)} %>

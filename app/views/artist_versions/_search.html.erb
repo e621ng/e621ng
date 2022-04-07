@@ -1,0 +1,5 @@
+<%= form_search(path: artist_versions_path) do |f| %>
+  <%= f.input :updater_name, label: "User", autocomplete: "user" %>
+  <%= f.input :name, autocomplete: "artist" %>
+  <%= f.submit "Search" %>
+<% end %>

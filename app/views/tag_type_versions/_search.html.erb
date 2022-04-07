@@ -1,4 +1,4 @@
-<%= hideable_form_search path: tag_type_versions_path do |f| %>
+<%= form_search path: tag_type_versions_path do |f| %>
   <%= f.input :tag, label: "Tag", input_html: { value: params.dig(:search, :tag) } %>
   <%= f.input :user_name, label: "Username", input_html: {value: params.dig(:search, :user_name), data: {autocomplete: "user"}} %>
   <%= f.input :user_id, label: "User ID", input_html: {value: params.dig(:search, :user_id)} %>

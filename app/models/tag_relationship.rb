@@ -135,6 +135,15 @@ class TagRelationship < ApplicationRecord
         q = q.status_matches(params[:status])
       end
 
+      if params[:antecedent_tag_category].present?
+        q = q.joins(:antecedent_tag).where("tags.category": params[:antecedent_tag_category])
+      end
+
+      if params[:consequent_tag_category].present?
+        q = q.joins(:consequent_tag).where("tags.category": params[:consequent_tag])
+      end
+
+      # Legacy params?
       q = q.tag_matches(:antecedent_name, params[:antecedent_tag])
       q = q.tag_matches(:consequent_name, params[:consequent_tag])
 

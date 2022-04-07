@@ -1,14 +1,15 @@
 <div id="c-post-votes">
   <div id="a-index">
-    <%= simple_form_for(:search, method: :get, html: { class: "inline-form" }) do |f| %>
-      <%= f.input :user_name, label: "Username", input_html: { value: params.dig(:search, :user_name), data: { autocomplete: "user" } } %>
-      <%= f.input :post_id, label: "Post ID", input_html: { value: params.dig(:search, :post_id) } %>
+    <%# path is a string here because of duplicate routes %>
+    <%= form_search(path: "post_votes") do |f| %>
+      <%= f.input :user_name, label: "Username", autocomplete: "user" %>
+      <%= f.input :post_id, label: "Post ID" %>
       <br>
-      <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]], selected: params[:search][:timeframe] %>
-      <%= f.input :score, label: "Type", include_blank: true, collection: [["Upvote", "1"], ["Locked", "0"], ["Downvote", "-1"]], selected: params[:search][:score] %>
-      <%= f.input :user_ip_addr, label: "IP Address", input_html: { value: params.dig(:search, :user_ip_addr) } %>
-      <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean, input_html: { checked: params.dig(:search, :duplicates_only).to_s.truthy? } %>
-      <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]], selected: params[:search][:order] %>
+      <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]] %>
+      <%= f.input :score, label: "Type", include_blank: true, collection: [["Upvote", "1"], ["Locked", "0"], ["Downvote", "-1"]] %>
+      <%= f.input :user_ip_addr, label: "IP Address" %>
+      <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean %>
+      <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]] %>
       <%= f.submit "Search" %>
     <% end %>
 

@@ -72,11 +72,6 @@ module ApplicationHelper
     raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
   end
 
-  def hideable_form_search(path:, always_display: false, &block)
-    show_on_load = !params[:search].empty? || always_display
-    render "application/hideable_form_search", path: path, show_on_load: show_on_load, block: block
-  end
-
   def dtext_ragel(text, **options)
     options.merge!(disable_mentions: true)
     parsed = DTextRagel.parse(text, **options)
