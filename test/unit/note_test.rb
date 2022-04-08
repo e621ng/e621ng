@@ -13,19 +13,6 @@ class NoteTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = nil
     end
 
-    context "#merge_version" do
-      setup do
-        @post = FactoryBot.create(:post)
-        @note = FactoryBot.create(:note, :post => @post)
-      end
-
-      should "not increment version" do
-        @note.update(:x => 100)       
-        assert_equal(1, @note.versions.count)
-        assert_equal(1, @note.versions.first.version)
-      end
-    end
-
     context "for a post that already has a note" do
       setup do
         @post = FactoryBot.create(:post)
@@ -115,7 +102,6 @@ class NoteTest < ActiveSupport::TestCase
       setup do
         @post = FactoryBot.create(:post, :image_width => 1000, :image_height => 1000)
         @note = FactoryBot.create(:note, :post => @post)
-        @note.stubs(:merge_version?).returns(false)
       end
 
       should "increment the updater's note_update_count" do

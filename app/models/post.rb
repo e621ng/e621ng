@@ -1368,11 +1368,6 @@ class Post < ApplicationRecord
       saved_change_to_rating? || saved_change_to_source? || saved_change_to_parent_id? || saved_change_to_tag_string? || saved_change_to_locked_tags? || saved_change_to_description?
     end
 
-    def merge_version?
-      prev = versions.last
-      prev && prev.updater_id == CurrentUser.user.id && prev.updated_at > 1.hour.ago
-    end
-
     def create_new_version
       # This function name is misleading, this directly creates the version.
       # Previously there was a queue involved, now there isn't.

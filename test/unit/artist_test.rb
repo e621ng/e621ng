@@ -276,7 +276,6 @@ class ArtistTest < ActiveSupport::TestCase
     context "when saving" do
       setup do
         @artist = FactoryBot.create(:artist, url_string: "http://foo.com")
-        @artist.stubs(:merge_version?).returns(false)
       end
 
       should "create a new version when an url is added" do
