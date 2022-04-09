@@ -53,65 +53,6 @@ CREATE FUNCTION public.sourcepattern(src text) RETURNS text
              $_$;
 
 
---
--- Name: testprs_end(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_end(internal) RETURNS void
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_end';
-
-
---
--- Name: testprs_getlexeme(internal, internal, internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_getlexeme(internal, internal, internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_getlexeme';
-
-
---
--- Name: testprs_lextype(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_lextype(internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_lextype';
-
-
---
--- Name: testprs_start(internal, integer); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_start(internal, integer) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_start';
-
-
---
--- Name: testparser; Type: TEXT SEARCH PARSER; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH PARSER public.testparser (
-    START = public.testprs_start,
-    GETTOKEN = public.testprs_getlexeme,
-    END = public.testprs_end,
-    HEADLINE = prsd_headline,
-    LEXTYPES = public.testprs_lextype );
-
-
---
--- Name: danbooru; Type: TEXT SEARCH CONFIGURATION; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH CONFIGURATION public.danbooru (
-    PARSER = public.testparser );
-
-ALTER TEXT SEARCH CONFIGURATION public.danbooru
-    ADD MAPPING FOR word WITH simple;
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -4896,7 +4837,7 @@ CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON publ
 -- Name: wiki_pages trigger_wiki_pages_on_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'public.danbooru', 'body', 'title');
+CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'pg_catalog.english', 'body', 'title');
 
 
 --
@@ -5193,6 +5134,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210718172512'),
 ('20220106081415'),
 ('20220203154846'),
-('20220219202441');
-
+('20220219202441'),
+('20220409134129');
 
