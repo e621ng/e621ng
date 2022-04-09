@@ -262,7 +262,7 @@ class Tag < ApplicationRecord
 
   module NameMethods
     def normalize_name(name)
-      name.to_s.unicode_normalize(:nfc).mb_chars.downcase.strip.tr(" ", "_").to_s
+      name.to_s.unicode_normalize(:nfc).downcase.strip.tr(" ", "_").to_s
     end
 
     def create_for_list(names)
@@ -570,19 +570,19 @@ class Tag < ApplicationRecord
     def parse_tag(tag, output)
       if tag[0] == "-" && tag.size > 1
         if tag =~ /\*/
-          output[:exclude] += pull_wildcard_tags(tag[1..-1].mb_chars.downcase)
+          output[:exclude] += pull_wildcard_tags(tag[1..-1].downcase)
         else
-          output[:exclude] << tag[1..-1].mb_chars.downcase
+          output[:exclude] << tag[1..-1].downcase
         end
 
       elsif tag[0] == "~" && tag.size > 1
-        output[:include] << tag[1..-1].mb_chars.downcase
+        output[:include] << tag[1..-1].downcase
 
       elsif tag =~ /\*/
-        output[:include] += pull_wildcard_tags(tag.mb_chars.downcase)
+        output[:include] += pull_wildcard_tags(tag.downcase)
 
       else
-        output[:related] << tag.mb_chars.downcase
+        output[:related] << tag.downcase
       end
     end
 

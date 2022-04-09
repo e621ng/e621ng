@@ -37,8 +37,8 @@ class TagRelationship < ApplicationRecord
   end
 
   def normalize_names
-    self.antecedent_name = antecedent_name.mb_chars.downcase.tr(" ", "_")
-    self.consequent_name = consequent_name.mb_chars.downcase.tr(" ", "_")
+    self.antecedent_name = antecedent_name.downcase.tr(" ", "_")
+    self.consequent_name = consequent_name.downcase.tr(" ", "_")
   end
 
   def validate_creator_is_not_limited
@@ -85,7 +85,7 @@ class TagRelationship < ApplicationRecord
 
   module SearchMethods
     def name_matches(name)
-      where("(antecedent_name like ? escape E'\\\\' or consequent_name like ? escape E'\\\\')", name.mb_chars.downcase.to_escaped_for_sql_like, name.mb_chars.downcase.to_escaped_for_sql_like)
+      where("(antecedent_name like ? escape E'\\\\' or consequent_name like ? escape E'\\\\')", name.downcase.to_escaped_for_sql_like, name.downcase.to_escaped_for_sql_like)
     end
 
     def status_matches(status)

@@ -257,7 +257,7 @@ class Artist < ApplicationRecord
 
     module ClassMethods
       def normalize_name(name)
-        name.to_s.mb_chars.downcase.strip.gsub(/ /, '_').to_s
+        name.to_s.downcase.strip.gsub(/ /, '_').to_s
       end
     end
 
@@ -477,7 +477,7 @@ class Artist < ApplicationRecord
       q = q.attribute_matches(:is_active, params[:is_active])
 
       if params[:creator_name].present?
-        q = q.where("artists.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").mb_chars.downcase)
+        q = q.where("artists.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").downcase)
       end
 
       if params[:creator_id].present?

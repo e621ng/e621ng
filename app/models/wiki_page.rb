@@ -42,7 +42,7 @@ class WikiPage < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      where("title = ?", title.mb_chars.downcase.tr(" ", "_"))
+      where("title = ?", title.downcase.tr(" ", "_"))
     end
 
     def active
@@ -76,7 +76,7 @@ class WikiPage < ApplicationRecord
       q = super
 
       if params[:title].present?
-        q = q.where("title LIKE ? ESCAPE E'\\\\'", params[:title].mb_chars.downcase.strip.tr(" ", "_").to_escaped_for_sql_like)
+        q = q.where("title LIKE ? ESCAPE E'\\\\'", params[:title].downcase.strip.tr(" ", "_").to_escaped_for_sql_like)
       end
 
       if params[:creator_id].present?
@@ -90,7 +90,7 @@ class WikiPage < ApplicationRecord
       end
 
       if params[:creator_name].present?
-        q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").mb_chars.downcase)
+        q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").downcase)
       end
 
       if params[:hide_deleted].to_s.truthy?
@@ -173,7 +173,7 @@ class WikiPage < ApplicationRecord
   end
 
   def normalize_title
-    self.title = title.mb_chars.downcase.tr(" ", "_")
+    self.title = title.downcase.tr(" ", "_")
   end
 
   def normalize_other_names
@@ -239,7 +239,7 @@ class WikiPage < ApplicationRecord
       else
         match
       end
-    end.map {|x| x.mb_chars.downcase.tr(" ", "_").to_s}.uniq
+    end.map {|x| x.downcase.tr(" ", "_").to_s}.uniq
   end
 
   def visible?

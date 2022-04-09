@@ -87,7 +87,7 @@ class ModAction < ApplicationRecord
     end
 
     if params[:creator_name].present?
-      q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].mb_chars.downcase)
+      q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].downcase)
     end
 
     if params[:action].present?

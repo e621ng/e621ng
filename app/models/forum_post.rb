@@ -42,7 +42,7 @@ class ForumPost < ApplicationRecord
     end
 
     def creator_name(name)
-      where("forum_posts.creator_id = (select _.id from users _ where lower(_.name) = ?)", name.mb_chars.downcase)
+      where("forum_posts.creator_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
     end
 
     def active

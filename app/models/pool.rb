@@ -81,7 +81,7 @@ class Pool < ApplicationRecord
       q = q.attribute_matches(:description, params[:description_matches])
 
       if params[:creator_name].present?
-        q = q.where("pools.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").mb_chars.downcase)
+        q = q.where("pools.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").downcase)
       end
 
       if params[:creator_id].present?
@@ -154,7 +154,7 @@ class Pool < ApplicationRecord
   end
 
   def self.normalize_name_for_search(name)
-    normalize_name(name).mb_chars.downcase
+    normalize_name(name).downcase
   end
 
   def self.find_by_name(name)

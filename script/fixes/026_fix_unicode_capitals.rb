@@ -9,7 +9,7 @@ CurrentUser.ip_addr = "127.0.0.1"
 
 Tag.find_each do |tag|
   next if tag.name.ascii_only?
-  mb_name = tag.name.mb_chars
+  mb_name = tag.name
   if mb_name.downcase != mb_name
     if Tag.where("name = ?", mb_name.downcase).exists?
       tag.destroy
@@ -21,7 +21,7 @@ end
 
 Artist.find_each do |artist|
   next if artist.name.ascii_only?
-  mb_name = artist.name.mb_chars
+  mb_name = artist.name
   if mb_name.downcase != mb_name
     artist.save # name will be normalized automatically
   end

@@ -28,7 +28,7 @@ class Note < ApplicationRecord
     end
 
     def creator_name(name)
-      where("creator_id = (select _.id from users _ where lower(_.name) = ?)", name.mb_chars.downcase)
+      where("creator_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
     end
 
     def search(params)

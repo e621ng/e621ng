@@ -21,7 +21,7 @@ class Ban < ApplicationRecord
 
   def self.reason_matches(query)
     if query =~ /\*/
-      where("lower(bans.reason) LIKE ?", query.mb_chars.downcase.to_escaped_for_sql_like)
+      where("lower(bans.reason) LIKE ?", query.downcase.to_escaped_for_sql_like)
     else
       where("bans.reason @@ plainto_tsquery(?)", query)
     end
@@ -31,7 +31,7 @@ class Ban < ApplicationRecord
     q = super
 
     if params[:banner_name]
-      q = q.where("banner_id = (select _.id from users _ where lower(_.name) = ?)", params[:banner_name].mb_chars.downcase)
+      q = q.where("banner_id = (select _.id from users _ where lower(_.name) = ?)", params[:banner_name].downcase)
     end
 
     if params[:banner_id]
@@ -39,7 +39,7 @@ class Ban < ApplicationRecord
     end
 
     if params[:user_name]
-      q = q.where("user_id = (select _.id from users _ where lower(_.name) = ?)", params[:user_name].mb_chars.downcase)
+      q = q.where("user_id = (select _.id from users _ where lower(_.name) = ?)", params[:user_name].downcase)
     end
 
     if params[:user_id]
