@@ -1,9 +1,9 @@
 .styled-dtext .spoiler {
-  color: $spoiler-color;
   background: $spoiler-background;
-
-  a {
-    color: $spoiler-color;
+  // Also hides emojis
+  &, a {
+    color: transparent;
+    text-shadow: 0 0 0 $spoiler-color;
   }
 
   .inline-code, pre, blockquote, div.expandable {
