@@ -169,11 +169,11 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def validate_script
-        errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1").validate!
-        if errors.size > 0
-          errors.each { |err| self.errors.add(:base, err) }
-        end
-        self.script = new_script
+      errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1").validate!(CurrentUser.user)
+      if errors.size > 0
+        errors.each { |err| self.errors.add(:base, err) }
+      end
+      self.script = new_script
 
       errors.empty?
     rescue AliasAndImplicationImporter::Error => e

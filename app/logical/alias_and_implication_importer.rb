@@ -16,9 +16,9 @@ class AliasAndImplicationImporter
     execute(tokens, approver)
   end
 
-  def validate!
+  def validate!(user)
     tokens = AliasAndImplicationImporter.tokenize(text)
-    validate_annotate(tokens)
+    validate_annotate(tokens, user)
   end
 
   def rename_aliased_pages?
@@ -109,7 +109,7 @@ class AliasAndImplicationImporter
     return [nil, nil]
   end
 
-  def validate_annotate(tokens)
+  def validate_annotate(tokens, user)
     errors = []
     annotated = tokens.map do |token|
       case token[0]
@@ -144,7 +144,7 @@ class AliasAndImplicationImporter
         errors << "Unknown token: #{token[0]}"
       end
     end
-    errors << "Cannot create BUR with more than 25 entries" if tokens.size > 25
+    errors << "Cannot create BUR with more than 25 entries" if tokens.size > 25 && !user.is_admin?
     [errors, AliasAndImplicationImporter.untokenize(annotated).join("\n")]
   end
 
