@@ -31,7 +31,7 @@
       <% end %>
 
       <li>|</li>
-      <%= subnav_link_to "Sign out", sign_out_session_path %>
+      <%= subnav_link_to "Sign out", session_path, method: :delete %>
     <% end %>
   </menu>
 <% end %>

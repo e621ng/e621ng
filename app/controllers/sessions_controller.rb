@@ -24,13 +24,9 @@ class SessionsController < ApplicationController
     redirect_to(posts_path, :notice => "You are now logged out")
   end
 
-  def sign_out
-    destroy
-  end
-
   private
 
   def allowed_readonly_actions
-    super + %w[destroy sign_out]
+    super + %w[destroy]
   end
 end

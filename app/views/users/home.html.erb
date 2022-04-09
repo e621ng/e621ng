@@ -130,7 +130,7 @@
 
   <div class="section" style="width:450px;">
     <ul class="link-page">
-      <li>&raquo; <%= link_to "Logout", sign_out_session_path %></li>
+      <li>&raquo; <%= link_to "Sign out", session_path, method: :delete %></li>
       <li>&raquo; <%= link_to "Settings", edit_user_path(CurrentUser.user) %></li>
       <li>&raquo; <%= link_to "Change password", edit_user_password_path(CurrentUser.user) %></li>
       <li>&raquo; <%= link_to "Manage API Access", user_api_key_path(CurrentUser.user) %></li>

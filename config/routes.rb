@@ -254,9 +254,7 @@ Rails.application.routes.draw do
   end
   resource :related_tag, :only => [:show, :update]
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
-  resource :session, only: [:new, :create, :destroy] do
-    get :sign_out, on: :collection
-  end
+  resource :session, only: [:new, :create, :destroy]
   resources :stats, only: [:index]
   resources :tags do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
