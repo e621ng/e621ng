@@ -75,7 +75,7 @@ class StorageManager::Local < StorageManager
   private
 
   def move_file(old_path, new_path)
-    if File.exists?(old_path)
+    if File.exist?(old_path)
       FileUtils.mkdir_p(File.dirname(new_path))
       FileUtils.mv(old_path, new_path)
       FileUtils.chmod(DEFAULT_PERMISSIONS, new_path)
