@@ -38,7 +38,7 @@ private
   end
 
   def validate_no_vote_on_own_post
-    raise User::PrivilegeError.new if @forum_post.creator == CurrentUser.user
+    raise User::PrivilegeError, "You cannot vote on your own requests" if @forum_post.creator == CurrentUser.user
   end
 
   def forum_post_vote_params

@@ -37,7 +37,11 @@ ForumPost.vote = function(evt, score) {
     create_post(data);
     $('.forum-post-vote-block').remove();
   }).fail(function(data) {
-    Utility.error("Failed to vote on forum post.");
+    if(data?.responseJSON?.reason) {
+      Utility.error(data.responseJSON.reason);
+    } else {
+      Utility.error("Failed to vote on forum post.");
+    }
   });
 }
 
