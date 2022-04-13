@@ -4,18 +4,13 @@ module Danbooru
       def paginate_base(page, options)
         @paginator_options = options
 
-        validate_page_number(page)
-        if use_sequential_paginator?(page)
+        if use_numbered_paginator?(page)
+          [paginate_numbered(page), :numbered]
+        elsif use_sequential_paginator?(page)
           [paginate_sequential(page), :sequential]
         else
-          [paginate_numbered(page), :numbered]
+          raise Danbooru::Paginator::PaginationError, "Invalid page number."
         end
-      end
-
-      def validate_page_number(page)
-        return if page.is_a? Numeric
-        return if page.blank?
-        raise Danbooru::Paginator::PaginationError, "Invalid page number." unless page =~ /\A[ab]?\d+\z/i
       end
 
       def validate_numbered_page(page)
@@ -26,8 +21,12 @@ module Danbooru
         page
       end
 
+      def use_numbered_paginator?(page)
+        page.blank? || page.to_s =~ /\A\d+\z/
+      end
+
       def use_sequential_paginator?(page)
-        page =~ /[ab]\d+/i
+        page =~ /\A[ab]\d+\z/i
       end
 
       def paginate_sequential(page)
