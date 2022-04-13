@@ -1,6 +1,7 @@
 <div id="c-pools">
   <div id="a-index">
-    <%= render "search", :path => pools_path %>
+    <%= render partial: "search", locals: {path: pools_path} %>
+    <h2>Pools</h2>
     <table class="striped" width="100%">
       <thead>
         <tr>

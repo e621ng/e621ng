@@ -1,63 +1,9 @@
-<table class="search">
-  <tbody>
-    <%= form_tag path, :method => :get, :class => "simple_form" do %>
-      <tr>
-        <th><label for="search_name_matches">Name</label></th>
-        <td>
-          <div class="input">
-            <%= text_field "search", "name_matches", :value => params.dig(:search, :name_matches), :data => { autocomplete: "pool" } %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <th><label for="search_description_matches">Description</label></th>
-        <td>
-          <div class="input">
-            <%= text_field "search", "description_matches", :value => params.dig(:search, :description_matches) %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <th><label for="search_creator_name">Creator</th>
-        <td>
-          <div class="input">
-            <%= text_field "search", "creator_name", :value => params.dig(:search, :creator_name), :data => { autocomplete: "pool" } %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <th><label for="search_is_active">Status</th>
-        <td>
-          <div class="input">
-            <%= select "search", "is_active", ["", ["Active", "true"], ["Inactive", "false"]], :selected => params.dig(:search, :is_active) %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <th><label for="search_category">Category</th>
-        <td>
-          <div class="input">
-            <%= select "search", "category", [["Series", "series"], ["Collection", "collection"]], :selected => params.dig(:search, :category), :include_blank => true %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <th><label for="search_order">Order</th>
-        <td>
-          <div class="input">
-            <%= select "search", "order", [["Last updated", "updated_at"], ["Name", "name"], ["Recently created", "created_at"], ["Post count", "post_count"]], :selected => params.dig(:search, :order), :include_blank => true %>
-          </div>
-        </td>
-      </tr>
-
-      <tr>
-        <td><%= submit_tag "Search" %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<%= form_search(path: request.path) do |f| %>
+  <%= f.input :name_matches, label: "Name", :value => params.dig(:search, :name_matches), autocomplete: "pool" %>
+  <%= f.input :description_matches, label: "Description", :value => params.dig(:search, :description_matches) %>
+  <%= f.input :creator_name, label: "Creator", :value => params.dig(:search, :creator_name), autocomplete: "user" %>
+  <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Inactive", "false"]], :selected => params.dig(:search, :is_active) %>
+  <%= f.input :category, label: "Category", collection: [["Series", "series"], ["Collection", "collection"]], :selected => params.dig(:search, :category), :include_blank => true %>
+  <%= f.input :order, label: "Order", collection: [["Last updated", "updated_at"], ["Name", "name"], ["Recently created", "created_at"], ["Post count", "post_count"]], :selected => params.dig(:search, :order), :include_blank => true %>
+  <%= f.submit "Search" %>
+<% end %>
