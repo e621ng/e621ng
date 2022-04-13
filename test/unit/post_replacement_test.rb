@@ -33,6 +33,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "fail if user has no remaining upload limit" do
       User.any_instance.stubs(:upload_limit).returns(0)
+      Danbooru.config.stubs(:disable_throttles?).returns(false)
       @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
       assert_equal ['Creator have reached your upload limit'], @replacement.errors.full_messages
     end

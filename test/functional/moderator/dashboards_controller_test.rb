@@ -26,7 +26,7 @@ module Moderator
 
         context "for user feedbacks" do
           setup do
-            as(@user) do
+            as(@admin) do
               @feedback = create(:user_feedback)
             end
           end
@@ -63,11 +63,11 @@ module Moderator
           end
         end
 
-        context "for notes"do
+        context "for notes" do
           setup do
             as(@user) do
               @post = create(:post)
-              @note = create(:note, :post_id => @post.id)
+              @note = create(:note, post_id: @post.id)
             end
           end
 
@@ -79,7 +79,7 @@ module Moderator
 
         context "for comments" do
           setup do
-            @users = (0..5).map {create(:user)}
+            @users = (0..5).map { create(:user) }
 
             CurrentUser.as(@users[0]) do
               @comment = create(:comment)
@@ -87,7 +87,7 @@ module Moderator
 
             @users.each do |user|
               CurrentUser.as(user) do
-                @comment.vote!(-1)
+                VoteManager.comment_vote!(user: user, comment: @comment, score: -1)
               end
             end
           end
@@ -115,7 +115,7 @@ module Moderator
           setup do
             as(@user) do
               @post = create(:post)
-              @post.flag!("blah")
+              create(:post_flag, post: @post)
             end
           end
 

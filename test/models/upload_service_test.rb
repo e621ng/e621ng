@@ -189,11 +189,10 @@ class UploadServiceTest < ActiveSupport::TestCase
       context "for an mp4" do
         setup do
           @path = "test/files/test-300x300.mp4"
-          @video = FFMPEG::Movie.new(@path)
         end
 
         should "generate a video" do
-          sample = subject.generate_video_preview_for(@video, 100, 100)
+          sample = PostThumbnailer.generate_video_preview_for(@path, 100)
           assert_operator(File.size(sample.path), :>, 0)
           sample.close
           sample.unlink
@@ -203,11 +202,10 @@ class UploadServiceTest < ActiveSupport::TestCase
       context "for a webm" do
         setup do
           @path = "test/files/test-512x512.webm"
-          @video = FFMPEG::Movie.new(@path)
         end
 
         should "generate a video" do
-          sample = subject.generate_video_preview_for(@video, 100, 100)
+          sample = PostThumbnailer.generate_video_preview_for(@path, 100)
           assert_operator(File.size(sample.path), :>, 0)
           sample.close
           sample.unlink
@@ -273,15 +271,12 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
 
     should "assign the rating from tags" do
-      service = @build_service.call(source: @source, tag_string: "rating:safe blah")
-      upload = service.start!
+      service = @build_service.call(source: @source, rating: "s", tag_string: "blah")
+      post = service.start!
 
-      assert_equal(true, upload.valid?)
-      assert_equal("s", upload.rating)
-      assert_equal("rating:safe blah", upload.tag_string)
-
-      assert_equal("s", upload.post.rating)
-      assert_equal("blah", upload.post.tag_string)
+      assert_equal(true, post.valid?)
+      assert_equal("s", post.rating)
+      assert_equal("blah", post.tag_string)
     end
 
     context "with a source containing unicode characters" do

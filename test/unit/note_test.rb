@@ -51,7 +51,7 @@ class NoteTest < ActiveSupport::TestCase
       should "not validate if the post does not exist" do
         @note = FactoryBot.build(:note, :x => 500, :y => 500, :post_id => -1)
         @note.save
-        assert_equal(["Post must exist"], @note.errors.full_messages)
+        assert_match(/Post must exist/, @note.errors.full_messages.join)
       end
 
       should "not validate if the body is blank" do
@@ -77,10 +77,9 @@ class NoteTest < ActiveSupport::TestCase
       end
 
       should "update the post's last_noted_at field" do
-        assert_nil(@post.last_noted_at)
-        @note = FactoryBot.create(:note, :post => @post)
+        @note.update(x: 500)
         @post.reload
-        assert_not_nil(@post.last_noted_at)
+        assert_equal(@post.last_noted_at, @note.updated_at)
       end
 
       context "for a note-locked post" do

@@ -405,37 +405,6 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "that is undeleted" do
-        setup do
-          @mod = FactoryBot.create(:moderator_user)
-          CurrentUser.user = @mod
-        end
-
-        context "by the approver" do
-          setup do
-            @post.update_attribute(:approver_id, @mod.id)
-          end
-
-          should "not be permitted" do
-            assert_raises(::Post::ApprovalError) do
-              @post.undelete!
-            end
-          end
-        end
-
-        context "by the uploader" do
-          setup do
-            @post.update_attribute(:uploader_id, @mod.id)
-          end
-
-          should "not be permitted" do
-            assert_raises(::Post::ApprovalError) do
-              @post.undelete!
-            end
-          end
-        end
-      end
-
       context "when undeleted" do
         should "be undeleted" do
           @post.undelete!
@@ -480,8 +449,9 @@ class PostTest < ActiveSupport::TestCase
         setup do
           @user = FactoryBot.create(:moderator_user, :name => "xxx")
           @user2 = FactoryBot.create(:moderator_user, :name => "yyy")
-          @post = FactoryBot.create(:post, :approver_id => @user.id)
-          @post.flags.create(reason_name: 'test', user_reason: 'test flag')
+          @post = FactoryBot.create(:post)
+          @post.approve!(@user)
+          @post.unapprove!
         end
 
         should "allow person Y to approve the post" do
@@ -505,7 +475,7 @@ class PostTest < ActiveSupport::TestCase
 
     context "A status locked post" do
       setup do
-        @post = FactoryBot.create(:post, is_status_locked: true)
+        @post = FactoryBot.create(:post, is_status_locked: true, is_pending: true)
       end
 
       should "not allow new flags" do

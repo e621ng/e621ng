@@ -6,11 +6,8 @@ module Moderator
       setup do
         @user = FactoryBot.create(:user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
-        @comment = FactoryBot.create(:comment)
-        PoolArchive.stubs(:enabled?).returns(false)
-        PostArchive.stubs(:enabled?).returns(false)
-        @user.reload
+        CurrentUser.ip_addr = "170.1.2.3"
+        FactoryBot.create(:comment, creator: @user, creator_ip_addr: CurrentUser.ip_addr)
       end
 
       teardown do
@@ -19,18 +16,19 @@ module Moderator
       end
 
       should "find by ip addr" do
-        search = IpAddrSearch.new(:ip_addr => "127.0.0.1")
-        assert_equal({@user => 1, @comment.post.uploader => 1}, search.execute)
+        @result = IpAddrSearch.new(ip_addr: "170.1.2.3").execute
+        assert_equal(@result[:users][@user.id].id, @user.id)
+        assert_equal(@result[:sums][:comment][@user.id], 1)
       end
 
       should "find by user id" do
-        search = IpAddrSearch.new(:user_id => @user.id.to_s)
-        assert_equal({IPAddr.new("127.0.0.1") => 1}, search.execute)
+        @result = IpAddrSearch.new(user_id: @user.id.to_s).execute
+        assert_equal(@result[:sums][:comment][IPAddr.new("170.1.2.3")], 1)
       end
 
       should "find by user name" do
-        search = IpAddrSearch.new(:user_name => @user.name)
-        assert_equal({IPAddr.new("127.0.0.1") => 1}, search.execute)
+        @result = IpAddrSearch.new(user_name: @user.name).execute
+        assert_equal(@result[:sums][:comment][IPAddr.new("170.1.2.3")], 1)
       end
     end
   end

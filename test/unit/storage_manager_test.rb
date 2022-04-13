@@ -45,7 +45,7 @@ class StorageManagerTest < ActiveSupport::TestCase
 
   context "StorageManager::Local" do
     setup do
-      @storage_manager = StorageManager::Local.new(base_dir: BASE_DIR, base_url: "/data")
+      @storage_manager = StorageManager::Local.new(base_dir: BASE_DIR, base_url: "/")
     end
 
     teardown do
@@ -113,7 +113,6 @@ class StorageManagerTest < ActiveSupport::TestCase
     context "#file_url method" do
       should "return the correct urls" do
         @post = FactoryBot.create(:post, file_ext: "png")
-        @storage_manager.stubs(:tagged_filenames).returns(false)
 
         assert_equal("/data/#{@post.md5}.png", @storage_manager.file_url(@post, :original))
         assert_equal("/data/sample/sample-#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
@@ -162,8 +161,8 @@ class StorageManagerTest < ActiveSupport::TestCase
 
     context "#file_url method" do
       should "generate /i1 urls for odd posts and /i2 urls for even posts" do
-        assert_equal("/i1/#{@post1.md5}.png", @storage_manager.file_url(@post1, :original))
-        assert_equal("/i2/#{@post2.md5}.png", @storage_manager.file_url(@post2, :original))
+        assert_equal("/i1/data/#{@post1.md5}.png", @storage_manager.file_url(@post1, :original))
+        assert_equal("/i2/data/#{@post2.md5}.png", @storage_manager.file_url(@post2, :original))
       end
     end
   end
