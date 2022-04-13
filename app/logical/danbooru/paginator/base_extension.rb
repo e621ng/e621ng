@@ -5,6 +5,8 @@ module Danbooru
         @paginator_options = options
 
         if use_numbered_paginator?(page)
+          validate_numbered_page(page)
+          page = [page.to_i, 1].max
           [paginate_numbered(page), :numbered]
         elsif use_sequential_paginator?(page)
           [paginate_sequential(page), :sequential]
@@ -14,11 +16,8 @@ module Danbooru
       end
 
       def validate_numbered_page(page)
-        page = [page.to_i, 1].max
-        if page > Danbooru.config.max_numbered_pages
-          raise Danbooru::Paginator::PaginationError, "You cannot go beyond page #{Danbooru.config.max_numbered_pages}. Please narrow your search terms."
-        end
-        page
+        return if page.to_i <= Danbooru.config.max_numbered_pages
+        raise Danbooru::Paginator::PaginationError, "You cannot go beyond page #{Danbooru.config.max_numbered_pages}. Please narrow your search terms."
       end
 
       def use_numbered_paginator?(page)

@@ -34,8 +34,6 @@ module Danbooru
         end
 
         def paginate_numbered(page)
-          page = validate_numbered_page(page)
-
           extending(NumberedCollectionExtension).limit(records_per_page).offset((page - 1) * records_per_page).tap do |obj|
             if records_per_page > 0
               obj.total_pages = (obj.total_count.to_f / records_per_page).ceil
