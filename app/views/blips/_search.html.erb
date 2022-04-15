@@ -1,10 +1,10 @@
 <%= form_search path: blips_path do |f| %>
-  <%= f.input :creator_name, label: "Blipper", input_html: {value: params.dig(:search, :creator_name), data: {autocomplete: "user"}} %>
-  <%= f.input :body_matches, label: "Body", input_html: {value: params.dig(:search, :body_matches)} %>
-  <%= f.input :response_to, label: "Parent Blip #", input_html: {value: params.dig(:search, :response_to)} %>
+  <%= f.input :creator_name, label: "Blipper", autocomplete: "user" %>
+  <%= f.input :body_matches, label: "Body" %>
+  <%= f.input :response_to, label: "Parent Blip #" %>
   <% if CurrentUser.is_moderator? %>
-    <%= f.input :ip_addr, label: "Ip Address", input_html: {value: params.dig(:search, :ip_addr)} %>
+    <%= f.input :ip_addr, label: "Ip Address" %>
   <% end %>
-  <%= f.input :order, include_blank: false, collection: [%w(Created id_desc), %w(Updated updated_at_desc)], selected: params.dig(:search, :order) %>
+  <%= f.input :order, include_blank: false, collection: [%w(Created id_desc), %w(Updated updated_at_desc)] %>
   <%= f.submit "Search" %>
 <% end %>

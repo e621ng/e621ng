@@ -1,8 +1,8 @@
 <%= form_search path: tickets_path do |f| %>
   <% if CurrentUser.is_admin? %>
-    <%= f.input :creator_name, label: "Reporter", input_html: {value: params.dig(:search, :creator_name)} %>
-    <%= f.input :creator_id, label: "Reporter ID", input_html: {value: params.dig(:search, :creator_id)} %>
-    <%= f.input :accused_name, label: "Accused", input_html: {value: params.dig(:search, :accused_name)} %>
+    <%= f.input :creator_name, label: "Reporter", autocomplete: "user" %>
+    <%= f.input :creator_id, label: "Reporter ID" %>
+    <%= f.input :accused_name, label: "Accused", autocomplete: "user" %>
   <% end %>
   <%= f.input :type, collection: [
       ["Any", ""],
@@ -15,7 +15,7 @@
       ["Pool complaint", "pool"],
       ["Set complaint", "set"],
       ["Post complaint", "post"]
-  ], selected: params.dig(:search, :type) %>
+  ] %>
   <%= f.input :status, collection: [
       ["Any", ""],
       ["Pending + Unclaimed", "pending_unclaimed"],
@@ -24,6 +24,6 @@
       ["Under investigation", "partial"],
       ["Pending", "pending"],
       ["Denied", "denied"]
-  ], selected: params.dig(:search, :status) %>
+  ] %>
   <%= f.submit "Search" %>
 <% end %>

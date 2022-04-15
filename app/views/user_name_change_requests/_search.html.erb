@@ -1,6 +1,6 @@
 <%= form_search path: user_name_change_requests_path do |f| %>
-  <%= f.input :current_name, label: "Current Name", input_html: {value: params.dig(:search, :current_name), data: {autocomplete: "user"}} %>
-  <%= f.input :original_name, label: "Original Name", input_html: {value: params.dig(:search, :original_name)} %>
-  <%= f.input :desired_name, label: "Desired Name", input_html: {value: params.dig(:search, :desired_name)} %>
+  <%= f.input :current_name, label: "Current Name", autocomplete: "user" %>
+  <%= f.input :original_name, label: "Original Name" %>
+  <%= f.input :desired_name, label: "Desired Name" %>
   <%= f.submit "Search" %>
 <% end %>

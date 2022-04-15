@@ -3,27 +3,27 @@
                                                       ["Inactive", "inactive"],
                                                       ["Denied", "denied"],
                                                       ["Partially Approved", "partial"],
-                                                      ["Approved", "approved"]], include_blank: true, selected: params[:search][:status] %>
+                                                      ["Approved", "approved"]], include_blank: true %>
   <% if CurrentUser.is_admin? %>
-    <%= f.input :source, label: 'Source', input_html: {value: params[:search][:source]} %>
-    <%= f.input :reason, label: 'Reason', input_html: {value: params[:search][:reason]} %>
-    <%= f.input :notes, label: 'Admin Response', input_html: {value: params[:search][:notes]} %>
+    <%= f.input :source, label: 'Source' %>
+    <%= f.input :reason, label: 'Reason' %>
+    <%= f.input :notes, label: 'Admin Response' %>
     <%= f.input :reason_hidden, label: 'Reason hidden?', collection: [
       ["Yes", true],
       ["No", false],
-    ], include_blank: true, selected: params[:search][:reason_hidden] %>
-    <%= f.input :instructions, label: "Instructions", input_html: {value: params[:search][:instructions]} %>
-    <%= f.input :post_id, label: "Post ID", input_html: {value: params[:search][:post_id]} %>
-    <%= f.input :email, label: "Email", input_html: {value: params[:search][:email]} %>
-    <%= f.input :ip_addr, label: "IP Address", input_html: {value: params[:search][:ip_addr]} %>
-    <%= f.input :vericode, label: "Vericode", input_html: {value: params[:search][:vericode]} %>
+    ], include_blank: true %>
+    <%= f.input :instructions, label: "Instructions" %>
+    <%= f.input :post_id, label: "Post ID" %>
+    <%= f.input :email, label: "Email" %>
+    <%= f.input :ip_addr, label: "IP Address" %>
+    <%= f.input :vericode, label: "Vericode" %>
 
     <%= f.input :order, label: 'Order', collection: [["Date", "date"],
                                                       ["Source", "source"],
                                                       ["Email", "email"],
                                                       ["IP Address", "ip_addr"],
                                                       ["Status", "status"],
-                                                      ["Post count", "post_count"]], selected: params[:search][:order] %>
+                                                      ["Post count", "post_count"]] %>
   <% end %>
   <%= f.submit "Submit" %>
 <% end %>
