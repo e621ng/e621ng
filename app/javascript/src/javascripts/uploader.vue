@@ -354,21 +354,16 @@
   }
 
   function updatePreviewFile() {
-    const self = this;
-    const reader = new FileReader();
     const file = this.$refs['post_file'].files[0];
     this.filePreview.height = 0;
     this.filePreview.width = 0;
     this.resetFilePreview();
-    reader.onload = function (e) {
-      let src = e.target.result;
-      self.fileToLarge = file.size > self.maxFileSize;
-      if (file.type.match('video/webm'))
-        self.setPreviewVideo(src);
-      else 
-        self.setPreviewImage(src);
-    };
-    reader.readAsDataURL(file);
+    this.fileToLarge = file.size > this.maxFileSize;
+    const objectUrl = URL.createObjectURL(file);
+    if (file.type.match('video/webm'))
+      this.setPreviewVideo(objectUrl);
+    else 
+      this.setPreviewImage(objectUrl);
 
     this.disableURLUpload = true;
   }
@@ -427,6 +422,8 @@
   }
 
   function resetFilePreview() {
+    // This might not be an objectURL, but revoking in those cases doesn't hurt
+    URL.revokeObjectURL(this.filePreview.url);
     this.filePreview.isVideo = false;
     this.filePreview.url = thumbs.none;
     this.filePreview.overDims = false;

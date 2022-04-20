@@ -12,11 +12,8 @@ const thumbs = {
 Replacer.old_domain = "";
 
 Replacer.update_preview_file = function (file) {
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    Replacer.set_preview_url(e.target.result);
-  };
-  reader.readAsDataURL(file);
+  const objectUrl = URL.createObjectURL(file);
+  Replacer.set_preview_url(objectUrl);
 };
 
 Replacer.update_preview_url = function () {

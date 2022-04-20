@@ -5,7 +5,7 @@ class PostReplacementsController < ApplicationController
   before_action :moderator_only, only: [:destroy]
 
   content_security_policy only: [:new] do |p|
-    p.img_src :self, :data, "*"
+    p.img_src :self, :data, :blob, "*"
   end
 
   def new
