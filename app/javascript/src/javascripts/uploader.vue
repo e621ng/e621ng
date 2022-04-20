@@ -11,7 +11,7 @@
                 </div>
                 <div class="col2">
                     <div v-if="!disableFileUpload">
-                        <div class="box-section sect_red" v-if="fileToLarge">
+                        <div class="box-section sect_red" v-if="fileTooLarge">
                             The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
                             Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
                         </div>
@@ -358,7 +358,7 @@
     this.filePreview.height = 0;
     this.filePreview.width = 0;
     this.resetFilePreview();
-    this.fileToLarge = file.size > this.maxFileSize;
+    this.fileTooLarge = file.size > this.maxFileSize;
     const objectUrl = URL.createObjectURL(file);
     if (file.type.match('video/webm'))
       this.setPreviewVideo(objectUrl);
@@ -404,7 +404,7 @@
   }
 
   function updateFilePreview() {
-    this.fileToLarge = false;
+    this.fileTooLarge = false;
     if (this.$refs['post_file'] && this.$refs['post_file'].files[0])
       updatePreviewFile.call(this);
     else
@@ -561,7 +561,7 @@
         descrLimit: window.uploaderSettings.descrLimit,
 
         maxFileSize: window.uploaderSettings.maxFileSize,
-        fileToLarge: false,
+        fileTooLarge: false,
       };
     },
     mounted() {
@@ -826,7 +826,7 @@
       },
       preventUpload: function () {
         return this.sourceWarning || this.badDirectURL || this.notEnoughTags
-          || this.invalidRating || this.fileToLarge;
+          || this.invalidRating || this.fileTooLarge;
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;
