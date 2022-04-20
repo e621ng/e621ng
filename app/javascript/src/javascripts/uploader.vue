@@ -293,11 +293,9 @@
 
   const thumbURLs = [
     "/images/notfound-preview.png",
-    "/images/download-preview.png",
     "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
   ];
   const thumbs = {
-    flash: "/images/download-preview.png",
     notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
   };
@@ -367,8 +365,6 @@
       self.fileToLarge = file.size > self.maxFileSize;
       if (file.type.match('video/webm'))
         self.setPreviewVideo(src);
-      else if (file.type.match('application/x-shockwave-flash'))
-        self.setPreviewImage(thumbs.flash);
       else 
         self.setPreviewImage(src);
     };
@@ -404,9 +400,7 @@
     }
     this.oldDomain = domain;
 
-    if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(swf)$/))
-      this.setPreviewImage(thumbs.flash);
-    else if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
+    if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
       this.setPreviewVideo(this.uploadURL);
     else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/))
       this.setPreviewImage(this.uploadURL);
