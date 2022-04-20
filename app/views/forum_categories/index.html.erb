@@ -4,10 +4,11 @@
       <h4>New Category</h4>
       <%= simple_form_for(@new_cat) do |f| %>
         <%= f.input :name %>
-        <%= f.input :description %>
+        <%= dtext_field "forum_category", "description" %>
         <%= f.input :can_create, collection: @user_levels, include_blank: false %>
         <%= f.input :can_reply, collection: @user_levels, include_blank: false %>
         <%= f.input :can_view, collection: @user_levels, include_blank: false %>
+        <%= f.input :cat_order, label: "Order" %>
         <%= f.button :submit, "Create" %>
       <% end %>
     </div>
@@ -17,14 +18,13 @@
         <h4><%= fp.name %></h4>
         <%= simple_form_for(fp) do |f| %>
           <%= f.input :name %>
-          <%= f.input :description %>
+          <%= dtext_field "forum_category", "description", value: fp.description %>
           <%= f.input :can_create, collection: @user_levels, selected: fp.can_create %>
           <%= f.input :can_reply, collection: @user_levels, selected: fp.can_reply %>
           <%= f.input :can_view, collection: @user_levels, selected: fp.can_view %>
+          <%= f.input :cat_order, label: "Order" %>
           <%= f.button :submit, "Update" %>
         <% end %>
-
-        <%= link_to "Delete", forum_category_path(id: fp.id), method: :delete, 'data-confirm': 'Are you sure you want to delete this category?' %>
       </div>
     <% end %>
 

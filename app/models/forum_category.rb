@@ -1,5 +1,5 @@
 class ForumCategory < ApplicationRecord
-  has_many :forum_topics, -> { order(id: :desc) }
+  has_many :forum_topics, -> { order(id: :desc) }, foreign_key: :category
   validates :name, uniqueness: { case_sensitive: false }
 
   after_destroy :reassign_topics
