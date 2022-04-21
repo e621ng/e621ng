@@ -23,29 +23,35 @@ class UploadWhitelist < ApplicationRecord
     Cache.delete('upload_whitelist')
   end
 
-  def self.search(params)
-    q = super
-
-    if params[:pattern].present?
-      q = q.where("pattern ILIKE ?", params[:pattern].to_escaped_for_sql_like)
+  module SearchMethods
+    def default_order
+      order("upload_whitelists.note")
     end
 
-    if params[:note].present?
-      q = q.where("note ILIKE ?", params[:note].to_escaped_for_sql_like)
-    end
+    def search(params)
+      q = super
 
-    case params[:order]
-    when "note"
-      q = q.order("upload_whitelists.note")
-    when "pattern"
-      q = q.order("upload_whitelists.pattern")
-    when "updated_at"
-      q = q.order("upload_whitelists.updated_at desc")
-    else
-      q = q.apply_default_order(params)
-    end
+      if params[:pattern].present?
+        q = q.where("pattern ILIKE ?", params[:pattern].to_escaped_for_sql_like)
+      end
 
-    q
+      if params[:note].present?
+        q = q.where("note ILIKE ?", params[:note].to_escaped_for_sql_like)
+      end
+
+      case params[:order]
+      when "pattern"
+        q = q.order("upload_whitelists.pattern")
+      when "updated_at"
+        q = q.order("upload_whitelists.updated_at desc")
+      when "created_at"
+        q = q.order("id desc")
+      else
+        q = q.apply_default_order(params)
+      end
+
+      q
+    end
   end
 
   def self.is_whitelisted?(url, options = {})
@@ -64,4 +70,6 @@ class UploadWhitelist < ApplicationRecord
     end
     [false, "#{url.domain} not in whitelist"]
   end
+
+  extend SearchMethods
 end

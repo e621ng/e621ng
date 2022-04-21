@@ -2,6 +2,6 @@
   <%= f.input :pattern, label: "Pattern", hint: "Use * for wildcard" %>
   <%= f.input :note, label: "Note", as: :string %>
   <%= f.input :reason, label: "Ban Reason" %>
-  <%= f.input :order, collection: [["Recently created", "id"], ["Last updated", "updated_at"], ["Pattern", "pattern"], ["Note", "note"]] %>
+  <%= f.input :order, collection: [["Note", "note"], ["Recently created", "created_at"], ["Last updated", "updated_at"], ["Pattern", "pattern"]] %>
   <%= f.submit "Search" %>
 <% end %>
