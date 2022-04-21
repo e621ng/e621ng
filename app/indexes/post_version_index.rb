@@ -2,7 +2,7 @@
 
 module PostVersionIndex
   def self.included(base)
-    base.settings index: { number_of_shards: 8, number_of_replicas: 1, max_result_window: 250_000 } do
+    base.settings index: {number_of_shards: 8, number_of_replicas: 1} do
       mappings dynamic: false do
         indexes :id, type: 'integer'
         indexes :post_id, type: 'integer'
