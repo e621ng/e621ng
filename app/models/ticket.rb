@@ -489,17 +489,21 @@ class Ticket < ApplicationRecord
       end
 
       if params[:creator_name].present?
-        user_id = User::name_to_id(params[:creator_name])
+        user_id = User.name_to_id(params[:creator_name])
         q = q.where('creator_id = ?', user_id) if user_id
       end
 
       if params[:accused_name].present?
-        user_id = User::name_to_id(params[:accused_name])
+        user_id = User.name_to_id(params[:accused_name])
         q = q.where('disp_id = ? and qtype = ?', user_id, 'user') if user_id
       end
 
       if params[:type].present?
         q = q.where('qtype = ?', params[:type])
+      end
+
+      if params[:reason].present?
+        q = q.attribute_matches(:reason, params[:reason])
       end
 
       if params[:status].present?
@@ -512,8 +516,6 @@ class Ticket < ApplicationRecord
           q = q.where('status = ?', params[:status])
         end
       end
-
-
 
       q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
     end

@@ -3,6 +3,7 @@
     <%= f.input :creator_name, label: "Reporter", autocomplete: "user" %>
     <%= f.input :creator_id, label: "Reporter ID" %>
     <%= f.input :accused_name, label: "Accused", autocomplete: "user" %>
+    <%= f.input :reason %>
   <% end %>
   <%= f.input :type, collection: [
       ["Any", ""],
