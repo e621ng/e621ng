@@ -253,7 +253,7 @@ class ModActionDecorator < ApplicationDecorator
         "Edited whitelist entry"
       else
         if vals['old_pattern'] && vals['old_pattern'] != vals['pattern'] && CurrentUser.is_admin?
-          "Edited whitelist entry '#{vals['pattern']}' -> '#{vals['old_pattern']}'"
+          "Edited whitelist entry '#{vals['old_pattern']}' -> '#{vals['pattern']}'"
         else
           "Edited whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
         end
