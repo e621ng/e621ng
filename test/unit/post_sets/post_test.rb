@@ -9,9 +9,9 @@ module PostSets
         CurrentUser.user = @user
         CurrentUser.ip_addr = "127.0.0.1"
 
-        @post_1 = FactoryBot.create(:post, :tag_string => "a")
-        @post_2 = FactoryBot.create(:post, :tag_string => "b")
-        @post_3 = FactoryBot.create(:post, :tag_string => "c")
+        @post_1 = FactoryBot.create(:post, tag_string: "a")
+        @post_2 = FactoryBot.create(:post, tag_string: "b")
+        @post_3 = FactoryBot.create(:post, tag_string: "c")
       end
 
       teardown do
@@ -21,8 +21,7 @@ module PostSets
 
       context "a set for page 2" do
         setup do
-          @set = PostSets::Post.new("", 2)
-          ::Post.stubs(:records_per_page).returns(1)
+          @set = PostSets::Post.new("", 2, 1)
         end
 
         should "return the second element" do
@@ -32,14 +31,13 @@ module PostSets
 
       context "a set for the 'a' tag query" do
         setup do
-          @post_4 = FactoryBot.create(:post, :tag_string => "a")
-          @post_5 = FactoryBot.create(:post, :tag_string => "a")
+          @post_4 = FactoryBot.create(:post, tag_string: "a")
+          @post_5 = FactoryBot.create(:post, tag_string: "a")
         end
 
         context "with no page" do
           setup do
             @set = PostSets::Post.new("a")
-            ::Post.stubs(:records_per_page).returns(1)
           end
 
           should "return the first element" do
@@ -49,8 +47,7 @@ module PostSets
 
         context "for before the first element" do
           setup do
-            @set = PostSets::Post.new("a", "b#{@post_5.id}")
-            ::Post.stubs(:records_per_page).returns(1)
+            @set = PostSets::Post.new("a", "b#{@post_5.id}", 1)
           end
 
           should "return the second element" do
@@ -60,8 +57,7 @@ module PostSets
 
         context "for after the second element" do
           setup do
-            @set = PostSets::Post.new("a", "a#{@post_4.id}")
-            @set.stubs(:records_per_page).returns(1)
+            @set = PostSets::Post.new("a", "a#{@post_4.id}", 1)
           end
 
           should "return the first element" do
@@ -76,7 +72,7 @@ module PostSets
         end
 
         should "know it isn't a single tag" do
-          assert(!@set.is_single_tag?)
+          assert_not(@set.is_single_tag?)
         end
       end
 
@@ -115,7 +111,7 @@ module PostSets
 
         context "that has a matching wiki page" do
           setup do
-            @wiki_page = FactoryBot.create(:wiki_page, :title => "a")
+            @wiki_page = FactoryBot.create(:wiki_page, title: "a")
           end
 
           should "find the wiki page" do
@@ -126,7 +122,7 @@ module PostSets
 
         context "that has a matching artist" do
           setup do
-            @artist = FactoryBot.create(:artist, :name => "a")
+            @artist = FactoryBot.create(:artist, name: "a")
           end
 
           should "find the artist" do

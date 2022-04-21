@@ -24,15 +24,15 @@ module Moderator
 
         context "delete action" do
           should "render" do
-            post_auth delete_moderator_post_post_path(@post), @admin, params: {:reason => "xxx", :format => "js", :commit => "Delete"}
+            post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
             assert(@post.reload.is_deleted?)
           end
 
           should "work even if the deleter has flagged the post previously" do
             as_user do
-              PostFlag.create(:post => @post, :reason => "aaa", :is_resolved => false)
+              PostFlag.create(post: @post, reason: "aaa", is_resolved: false)
             end
-            post_auth delete_moderator_post_post_path(@post), @admin, params: {:reason => "xxx", :format => "js", :commit => "Delete"}
+            post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
             assert(@post.reload.is_deleted?)
           end
         end
@@ -40,21 +40,14 @@ module Moderator
         context "undelete action" do
           should "render" do
             as_user do
-              @post.update(is_deleted: true)
+              @post.delete! "test delete"
             end
-            assert_difference(-> { PostApproval.count }, 1) do
-              post_auth undelete_moderator_post_post_path(@post), @admin, params: {:format => "js"}
+            assert_difference(-> { PostEvent.count }, 1) do
+              post_auth undelete_moderator_post_post_path(@post), @admin, params: { format: :json }
             end
 
             assert_response :success
-            assert(!@post.reload.is_deleted?)
-          end
-        end
-
-        context "confirm_move_favorites action" do
-          should "render" do
-            get_auth confirm_ban_moderator_post_post_path(@post), @admin
-            assert_response :success
+            assert_not(@post.reload.is_deleted?)
           end
         end
 
@@ -87,9 +80,9 @@ module Moderator
 
         context "expunge action" do
           should "render" do
-            post_auth expunge_moderator_post_post_path(@post), @admin
+            post_auth expunge_moderator_post_post_path(@post), @admin, params: { format: :json }
 
-            assert_response :found
+            assert_response :success
             assert_equal(false, ::Post.exists?(@post.id))
           end
         end

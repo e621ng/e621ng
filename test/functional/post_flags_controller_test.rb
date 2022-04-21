@@ -3,14 +3,13 @@ require 'test_helper'
 class PostFlagsControllerTest < ActionDispatch::IntegrationTest
   context "The post flags controller" do
     setup do
-      travel_to(2.weeks.ago) do
-        @user = create(:user)
-      end
+      @user = create(:user, created_at: 2.weeks.ago)
     end
 
     context "new action" do
       should "render" do
-        get_auth new_post_flag_path, @user
+        @post = create(:post, uploader: @user)
+        get_auth new_post_flag_path, @user, params: { post_flag: { post_id: @post.id } }
         assert_response :success
       end
     end
@@ -19,7 +18,7 @@ class PostFlagsControllerTest < ActionDispatch::IntegrationTest
       setup do
         @user.as_current do
           @post = create(:post)
-          @post_flag = create(:post_flag, :post => @post)
+          @post_flag = create(:post_flag, post: @post)
         end
       end
 
@@ -45,9 +44,7 @@ class PostFlagsControllerTest < ActionDispatch::IntegrationTest
 
       should "create a new flag" do
         assert_difference("PostFlag.count", 1) do
-          assert_difference("PostFlag.count") do
-            post_auth post_flags_path, @user, params: {:format => "js", :post_flag => {:post_id => @post.id, :reason => "xxx"}}
-          end
+          post_auth post_flags_path, @user, params: { format: :json, post_flag: { post_id: @post.id, reason_name: "dnp_artist" } }
         end
       end
     end

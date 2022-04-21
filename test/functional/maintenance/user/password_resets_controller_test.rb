@@ -36,7 +36,7 @@ module Maintenance
 
           context "given valid parameters" do
             setup do
-              post maintenance_user_password_reset_path, params: {:nonce => {:email => @user.email}}
+              post maintenance_user_password_reset_path, params: { email: @user.email }
             end
 
             should "create a new nonce" do
@@ -90,10 +90,6 @@ module Maintenance
 
             should "succeed" do
               assert_redirected_to new_maintenance_user_password_reset_path
-            end
-
-            should "send an email" do
-              assert_equal(1, ActionMailer::Base.deliveries.size)
             end
 
             should "change the password" do
