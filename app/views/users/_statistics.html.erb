@@ -66,8 +66,10 @@
           <% end %>
         </span>
 
-        <span>Approvals</span>
-        <span><%= presenter.approval_count(self) %></span>
+        <% if user.can_approve_posts? || Post.where(approver: user).exists? %>
+          <span>Approvals</span>
+          <span><%= presenter.approval_count(self) %></span>
+        <% end %>
 
         <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
           <% if presenter.previous_names(self).present? %>
