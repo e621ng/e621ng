@@ -4,8 +4,13 @@ FROM ruby:2.7.3-alpine
 RUN apk --no-cache add nodejs yarn postgresql-client ffmpeg vips tzdata \
   git build-base postgresql-dev glib-dev
 
-# Nice to have packages
-RUN apk --no-cache add nano sudo bash
+RUN wget -O - https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 | tar -xj && \
+    cd jemalloc-5.2.1 && \
+    ./configure && \
+    make && \
+    make install
+
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
 
 # Install js packages and gems
 COPY package.json yarn.lock ./
