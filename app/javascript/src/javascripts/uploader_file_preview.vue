@@ -11,8 +11,8 @@
               v-if="preview.isVideo"></video>
         </div>
         <div class="preview-fail box-section sect_yellow" v-if="preview.failed">
-          <p>The preview for this file failed to load. This doesn't mean that it can't be uploaded.</p>
-          Certain sites like Pixiv prevent this from working.
+          <p>The preview for this file failed to load. Please, double check that the URL you provided is correct.</p>
+          Note that some sites intentionally prevent images they host from being displayed on other sites. The file can still be uploaded despite that.
         </div>
     </div>
 </template>
