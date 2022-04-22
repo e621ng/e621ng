@@ -124,11 +124,12 @@ class TagRelationship < ApplicationRecord
       end
 
       if params[:antecedent_name].present?
-        q = q.where(antecedent_name: params[:antecedent_name].split)
+        # Split at both space and , to preserve backwards compatibility
+        q = q.where(antecedent_name: params[:antecedent_name].split(/[ ,]/).first(100))
       end
 
       if params[:consequent_name].present?
-        q = q.where(consequent_name: params[:consequent_name].split)
+        q = q.where(consequent_name: params[:consequent_name].split(/[ ,]/).first(100))
       end
 
       if params[:status].present?
@@ -141,6 +142,14 @@ class TagRelationship < ApplicationRecord
 
       if params[:consequent_tag_category].present?
         q = q.joins(:consequent_tag).where("tags.category": params[:consequent_tag])
+      end
+
+      if params[:creator_name].present?
+        q = q.where("creator_id = ?", User.name_to_id(params[:creator_name]))
+      end
+
+      if params[:approver_name].present?
+        q = q.where("approver_id = ?", User.name_to_id(params[:approver_name]))
       end
 
       # Legacy params?
