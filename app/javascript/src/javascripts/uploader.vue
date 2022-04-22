@@ -292,11 +292,9 @@
   import filePreview from './uploader_file_preview.vue';
 
   const thumbURLs = [
-    "/images/notfound-preview.png",
     "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
   ];
   const thumbs = {
-    notfound: "/images/notfound-preview.png",
     none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
   };
 
@@ -344,11 +342,7 @@
   }
 
   function filePreviewError() {
-    if (this.uploadURL === '' && !this.$refs['post_file']) {
-      this.setPreviewImage(thumbs.none);
-    } else {
-      this.setPreviewImage(thumbs.notfound);
-    }
+    this.filePreview.failed = true;
   }
 
   function updatePreviewFile() {
@@ -421,6 +415,7 @@
     this.filePreview.overDims = false;
     this.filePreview.width = 0;
     this.filePreview.height = 0;
+    this.filePreview.failed = false;
     this.fileTooLarge = false;
   }
 
@@ -506,6 +501,7 @@
           overDims: false,
           url: thumbs.none,
           isVideo: false,
+          failed: false,
         },
 
         uploadURL: '',
