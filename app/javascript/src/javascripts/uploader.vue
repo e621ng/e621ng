@@ -16,7 +16,7 @@
                             Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
                         </div>
                         <label>File:
-                            <input type="file" ref="post_file" @change="updateFilePreview" @keyup="updateFilePreview"
+                            <input type="file" ref="post_file" @change="updateFilePreview"
                                    accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
                                    :disabled="disableFileUpload"/>
                         </label>
@@ -28,7 +28,7 @@
                             You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
                         </div>
                         <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
-                            <input type="text" size="50" v-model="uploadURL" @keyup="updateFilePreview" @paste="updateFilePreviewOnPaste($event)"
+                            <input type="text" size="50" v-model="uploadURL"
                                    :disabled="disableURLUpload"/>
                         </label>
                         <div id="whitelist-warning" v-show="whitelist.visible"
@@ -344,8 +344,6 @@
   }
 
   function filePreviewError() {
-    this.filePreview.width = this.filePreview.height = 0;
-    this.filePreview.overDims = false;
     if (this.uploadURL === '' && !this.$refs['post_file']) {
       this.setPreviewImage(thumbs.none);
     } else {
@@ -355,9 +353,6 @@
 
   function updatePreviewFile() {
     const file = this.$refs['post_file'].files[0];
-    this.filePreview.height = 0;
-    this.filePreview.width = 0;
-    this.resetFilePreview();
     this.fileTooLarge = file.size > this.maxFileSize;
     const objectUrl = URL.createObjectURL(file);
     if (file.type.match('video/webm'))
@@ -373,9 +368,6 @@
     if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
       this.disableFileUpload = false;
       this.oldDomain = '';
-      this.filePreview.width = 0;
-      this.filePreview.height = 0;
-      this.resetFilePreview();
       self.clearWhitelistWarning();
       return;
     }
@@ -404,7 +396,7 @@
   }
 
   function updateFilePreview() {
-    this.fileTooLarge = false;
+    this.resetFilePreview();
     if (this.$refs['post_file'] && this.$refs['post_file'].files[0])
       updatePreviewFile.call(this);
     else
@@ -427,6 +419,9 @@
     this.filePreview.isVideo = false;
     this.filePreview.url = thumbs.none;
     this.filePreview.overDims = false;
+    this.filePreview.width = 0;
+    this.filePreview.height = 0;
+    this.fileTooLarge = false;
   }
 
   function directURLCheck(url) {
@@ -605,13 +600,13 @@
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
     },
+    watch: {
+      uploadURL: function() {
+        this.updateFilePreview();
+      }
+    },
     methods: {
       updateFilePreview,
-      updateFilePreviewOnPaste(evt) {
-        this.uploadURL = (event.clipboardData || window.clipboardData).getData('text');
-        this.updateFilePreview();
-        evt.preventDefault();
-      },
       updateFilePreviewDims,
       setPreviewImage,
       setPreviewVideo,
