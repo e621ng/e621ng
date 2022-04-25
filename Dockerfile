@@ -1,4 +1,4 @@
-FROM ruby:2.7.3-alpine
+FROM ruby:3.1.2-alpine
 
 # Dependencies for setup and runtime
 RUN apk --no-cache add nodejs yarn postgresql-client ffmpeg vips tzdata \

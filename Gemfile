@@ -38,6 +38,7 @@ gem 'elasticsearch-rails'
 
 gem 'mailgun-ruby'
 gem 'resolv'
+gem 'net-smtp'
 
 # needed for looser jpeg header compat
 gem 'ruby-imagespec', :require => "image_spec", :git => "https://github.com/r888888888/ruby-imagespec.git", :branch => "exif-fixes"
@@ -55,6 +56,7 @@ group :development, :test do
   gem 'awesome_print'
   gem 'pry-byebug'
   gem 'listen'
+  gem 'puma'
 end
 
 group :test do
