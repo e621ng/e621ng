@@ -51,10 +51,6 @@ group :production do
   gem 'newrelic_rpm'
 end
 
-group :development do
-  gem 'sinatra'
-end
-
 group :development, :test do
   gem 'awesome_print'
   gem 'pry-byebug'
