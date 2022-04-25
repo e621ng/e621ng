@@ -10,6 +10,8 @@ RUN wget -O - https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemal
     make && \
     make install
 
+RUN git config --global --add safe.directory /app
+
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
 
 # Install js packages and gems
