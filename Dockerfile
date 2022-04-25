@@ -17,7 +17,9 @@ COPY package.json yarn.lock ./
 RUN yarn install
 
 COPY Gemfile Gemfile.lock ./
-RUN bundle install
+RUN bundle install -j$(nproc) && \
+  gem install bundler:2.0.1 && \
+  bundler config github.https true
 
 # shoreman
 RUN wget -O /usr/bin/shoreman https://github.com/chrismytton/shoreman/raw/master/shoreman.sh \
