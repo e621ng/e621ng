@@ -93,7 +93,6 @@ GEM
     brpoplpush-redis_script (0.1.2)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       redis (>= 1.0, <= 5.0)
-    buftok (0.2.0)
     builder (3.2.4)
     byebug (11.1.3)
     case_transform (0.2)
@@ -106,7 +105,6 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    daemons (1.4.1)
     dalli (3.1.5)
     diff-lcs (1.5.0)
     docile (1.4.0)
@@ -136,7 +134,6 @@ GEM
     elasticsearch-transport (7.16.1)
       faraday (~> 1)
       multi_json
-    equalizer (0.0.11)
     erubi (1.10.0)
     factory_bot (6.2.0)
       activesupport (>= 5.0.0)
@@ -162,29 +159,15 @@ GEM
     ffaker (2.20.0)
     ffi (1.15.4)
     ffi (1.15.4-x64-mingw32)
-    ffi-compiler (1.0.1)
-      ffi (>= 1.0.0)
-      rake
-    ffi-win32-extensions (1.0.4)
-      ffi
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     globalid (1.0.0)
       activesupport (>= 5.0)
     hashdiff (1.0.1)
     hashie (5.0.0)
-    http (4.4.1)
-      addressable (~> 2.3)
-      http-cookie (~> 1.0)
-      http-form_data (~> 2.2)
-      http-parser (~> 1.2.0)
     http-accept (1.7.0)
     http-cookie (1.0.4)
       domain_name (~> 0.5)
-    http-form_data (2.3.0)
-    http-parser (1.2.3)
-      ffi-compiler (>= 1.0, < 2.0)
-    http_parser.rb (0.6.0)
     httparty (0.20.0)
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
@@ -196,7 +179,6 @@ GEM
       thor (>= 0.14, < 2.0)
     json (2.6.1)
     jsonapi-renderer (0.2.2)
-    jwt (2.3.0)
     kgio (2.11.4)
     listen (3.7.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -209,20 +191,7 @@ GEM
     mailgun-ruby (1.2.5)
       rest-client (>= 2.0.2)
     marcel (1.0.2)
-    mechanize (2.8.3)
-      addressable (~> 2.8)
-      domain_name (~> 0.5, >= 0.5.20190701)
-      http-cookie (~> 1.0, >= 1.0.3)
-      mime-types (~> 3.0)
-      net-http-digest_auth (~> 1.4, >= 1.4.1)
-      net-http-persistent (>= 2.5.2, < 5.0.dev)
-      nokogiri (~> 1.11, >= 1.11.2)
-      rubyntlm (~> 0.6, >= 0.6.3)
-      webrick (~> 1.7)
-      webrobots (~> 0.1.2)
     memoist (0.16.2)
-    memoizable (0.4.2)
-      thread_safe (~> 0.3, >= 0.3.1)
     method_source (1.0.0)
     mime-types (3.4.1)
       mime-types-data (~> 3.2015)
@@ -241,13 +210,6 @@ GEM
     multipart-post (2.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
-    naught (1.1.0)
-    net-http-digest_auth (1.4.1)
-    net-http-persistent (4.0.1)
-      connection_pool (~> 2.2)
-    net-sftp (3.0.0)
-      net-ssh (>= 5.0.0, < 7.0.0)
-    net-ssh (6.1.0)
     netrc (0.11.0)
     newrelic_rpm (8.2.0)
     nio4r (2.5.8)
@@ -256,12 +218,6 @@ GEM
       racc (~> 1.4)
     nokogiri (1.13.3-x64-mingw32)
       racc (~> 1.4)
-    oauth2 (1.4.7)
-      faraday (>= 0.8, < 2.0)
-      jwt (>= 1.0, < 3.0)
-      multi_json (~> 1.3)
-      multi_xml (~> 0.5)
-      rack (>= 1.2, < 3)
     pg (1.2.3)
     pg (1.2.3-x64-mingw32)
     pry (0.13.1)
@@ -270,9 +226,6 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    ptools (1.4.2)
-    ptools (1.4.2-universal-mingw32)
-      win32-file
     public_suffix (4.0.6)
     racc (1.6.0)
     rack (2.2.3)
@@ -282,7 +235,6 @@ GEM
       rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    radix62 (1.0.1)
     rails (6.1.4.6)
       actioncable (= 6.1.4.6)
       actionmailbox (= 6.1.4.6)
@@ -311,7 +263,6 @@ GEM
       thor (~> 1.0)
     raindrops (0.20.0)
     rake (13.0.6)
-    rakismet (1.5.4)
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
@@ -320,6 +271,7 @@ GEM
     redis (4.6.0)
     request_store (1.5.0)
       rack (>= 1.4)
+    resolv (0.2.1)
     responders (3.0.1)
       actionpack (>= 5.0)
       railties (>= 5.0)
@@ -339,8 +291,6 @@ GEM
     ruby-vips (2.1.4)
       ffi (~> 1.12)
     ruby2_keywords (0.0.5)
-    rubyntlm (0.6.3)
-    rubyzip (2.3.2)
     sanitize (6.0.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -360,7 +310,6 @@ GEM
     simple_form (5.1.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
-    simple_oauth (0.3.1)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -379,24 +328,11 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    statistics2 (0.54)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
     thor (1.2.1)
-    thread_safe (0.3.6)
     tilt (2.0.10)
     timecop (0.9.4)
-    twitter (7.0.0)
-      addressable (~> 2.3)
-      buftok (~> 0.2.0)
-      equalizer (~> 0.0.11)
-      http (~> 4.0)
-      http-form_data (~> 2.0)
-      http_parser.rb (~> 0.6.0)
-      memoizable (~> 0.4.0)
-      multipart-post (~> 2.0)
-      naught (~> 1.0)
-      simple_oauth (~> 0.3.0)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     unf (0.1.4)
@@ -418,20 +354,11 @@ GEM
       rack-proxy (>= 0.6.1)
       railties (>= 5.2)
       semantic_range (>= 2.3.0)
-    webrick (1.7.0)
-    webrobots (0.1.2)
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     whenever (1.0.0)
       chronic (>= 0.6.3)
-    win32-file (0.8.2)
-      ffi
-      ffi-win32-extensions
-      win32-file-stat (>= 1.4.0)
-    win32-file-stat (1.5.5)
-      ffi
-      ffi-win32-extensions
     zeitwerk (2.5.4)
 
 PLATFORMS
@@ -445,7 +372,6 @@ DEPENDENCIES
   bcrypt
   bootsnap
   cityhash
-  daemons
   dalli
   diff-lcs
   dotenv-rails
@@ -460,28 +386,22 @@ DEPENDENCIES
   listen
   mailgun-ruby
   marcel
-  mechanize
   memoist
   minitest-ci
   mocha
   mock_redis
-  net-sftp
   newrelic_rpm
-  oauth2
   pg
   pry-byebug
-  ptools
-  radix62 (~> 1.0.1)
   rails (~> 6.1)
-  rakismet
   recaptcha
   redis
   request_store
+  resolv
   responders
   retriable
   ruby-imagespec!
   ruby-vips
-  rubyzip
   sanitize
   shoulda-context
   shoulda-matchers
@@ -490,10 +410,8 @@ DEPENDENCIES
   simple_form
   simplecov
   sinatra
-  statistics2
   streamio-ffmpeg
   timecop
-  twitter
   unicorn
   unicorn-worker-killer
   webmock

@@ -478,7 +478,6 @@ class Ticket < ApplicationRecord
   module SearchMethods
     def search(params)
       q = super.includes(:creator).includes(:claimant)
-      q = q.where('qtype != ?', 'namechange')
 
       if params[:creator_id].present?
         q = q.where('creator_id = ?', params[:creator_id].to_i)
