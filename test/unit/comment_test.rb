@@ -96,26 +96,33 @@ class CommentTest < ActiveSupport::TestCase
 
       should "not record the user id of the voter" do
         user = FactoryBot.create(:user)
+        user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, post: post)
-        VoteManager.comment_vote!(user: user, comment: c1, score: -1)
-        c1.reload
-        assert_not_equal(user.id, c1.updater_id)
+        
+        CurrentUser.scoped(user, "127.0.0.1") do
+          VoteManager.comment_vote!(user: user, comment: c1, score: -1)
+          c1.reload
+          assert_not_equal(user.id, c1.updater_id)
+        end
       end
 
       should "not allow duplicate votes" do
         user = FactoryBot.create(:user)
+        user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, post: post)
-
-        assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: c1, score: -1) }
-        assert_equal(:need_unvote, VoteManager.comment_vote!(user: user, comment: c1, score: -1))
-        assert_equal(1, CommentVote.count)
-        assert_equal(-1, CommentVote.last.score)
-
         c2 = FactoryBot.create(:comment, post: post)
-        assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: c2, score: -1) }
-        assert_equal(2, CommentVote.count)
+        
+        CurrentUser.scoped(user2, "127.0.0.1") do
+          assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: c1, score: -1) }
+          assert_equal(:need_unvote, VoteManager.comment_vote!(user: user2, comment: c1, score: -1))
+          assert_equal(1, CommentVote.count)
+          assert_equal(-1, CommentVote.last.score)
+
+          assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: c2, score: -1) }
+          assert_equal(2, CommentVote.count)
+        end
       end
 
       should "not allow upvotes by the creator" do
@@ -124,7 +131,7 @@ class CommentTest < ActiveSupport::TestCase
         c1 = FactoryBot.create(:comment, post: post)
 
         exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: 1) }
-        assert_equal("Validation failed: You cannot upvote your own comments", exception.message)
+        assert_equal("Validation failed: You cannot vote on your own comments", exception.message)
       end
       
       should "not allow downvotes by the creator" do
@@ -133,22 +140,21 @@ class CommentTest < ActiveSupport::TestCase
         c1 = FactoryBot.create(:comment, post: post)
 
         exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: -1) }
-        assert_equal("Validation failed: You cannot downvote your own comments", exception.message)
+        assert_equal("Validation failed: You cannot vote on your own comments", exception.message)
       end
 
       should "allow undoing of votes" do
         user = FactoryBot.create(:user)
-        user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
         comment = FactoryBot.create(:comment, post: post)
-        CurrentUser.scoped(user2, "127.0.0.1") do
-          VoteManager.comment_vote!(user: user2, comment: comment, score: 1)
+        CurrentUser.scoped(user, "127.0.0.1") do
+          VoteManager.comment_vote!(user: user, comment: comment, score: 1)
           comment.reload
           assert_equal(1, comment.score)
-          VoteManager.comment_unvote!(user: user2, comment: comment)
+          VoteManager.comment_unvote!(user: user, comment: comment)
           comment.reload
           assert_equal(0, comment.score)
-          assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: comment, score: -1) }
+          assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: comment, score: -1) }
         end
       end
 

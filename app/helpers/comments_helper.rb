@@ -4,7 +4,7 @@ module CommentsHelper
     vote_score = voted ? vote.score : 0
     comment_score = comment.score
 
-    if CurrentUser.is_member? && comment.creator != CurrentUser.user
+    if CurrentUser.is_member?
       up_tag = tag.li(tag.a('&#x25B2;'.html_safe, class: 'comment-vote-up-link', 'data-id': comment.id),
                       class: confirm_score_class(vote_score, 1, false),
                       id: "comment-vote-up-#{comment.id}")
