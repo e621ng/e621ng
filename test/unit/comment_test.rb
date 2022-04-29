@@ -103,7 +103,7 @@ class CommentTest < ActiveSupport::TestCase
         CurrentUser.scoped(user2, "127.0.0.1") do
           VoteManager.comment_vote!(user: user2, comment: c1, score: -1)
           c1.reload
-          assert_not_equal(user.id, c1.updater_id)
+          assert_not_equal(user2.id, c1.updater_id)
         end
       end
 
