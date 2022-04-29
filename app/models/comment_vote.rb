@@ -32,6 +32,9 @@ class CommentVote < ApplicationRecord
     if is_positive? && comment.creator == CurrentUser.user
       errors.add :base, "You cannot upvote your own comments"
       false
+    elsif is_negative? && comment.creator == CurrentUser.user
+      errors.add :base, "You cannot downvote your own comments"
+      false
     else
       true
     end

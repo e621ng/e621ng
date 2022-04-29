@@ -126,6 +126,15 @@ class CommentTest < ActiveSupport::TestCase
         exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: 1) }
         assert_equal("Validation failed: You cannot upvote your own comments", exception.message)
       end
+      
+      should "not allow downvotes by the creator" do
+        user = FactoryBot.create(:user)
+        post = FactoryBot.create(:post)
+        c1 = FactoryBot.create(:comment, post: post)
+
+        exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: -1) }
+        assert_equal("Validation failed: You cannot downvote your own comments", exception.message)
+      end
 
       should "allow undoing of votes" do
         user = FactoryBot.create(:user)
