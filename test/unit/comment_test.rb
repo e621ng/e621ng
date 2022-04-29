@@ -100,8 +100,8 @@ class CommentTest < ActiveSupport::TestCase
         post = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, post: post)
         
-        CurrentUser.scoped(user, "127.0.0.1") do
-          VoteManager.comment_vote!(user: user, comment: c1, score: -1)
+        CurrentUser.scoped(user2, "127.0.0.1") do
+          VoteManager.comment_vote!(user: user2, comment: c1, score: -1)
           c1.reload
           assert_not_equal(user.id, c1.updater_id)
         end
@@ -145,16 +145,17 @@ class CommentTest < ActiveSupport::TestCase
 
       should "allow undoing of votes" do
         user = FactoryBot.create(:user)
+        user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
         comment = FactoryBot.create(:comment, post: post)
-        CurrentUser.scoped(user, "127.0.0.1") do
-          VoteManager.comment_vote!(user: user, comment: comment, score: 1)
+        CurrentUser.scoped(user2, "127.0.0.1") do
+          VoteManager.comment_vote!(user: user2, comment: comment, score: 1)
           comment.reload
           assert_equal(1, comment.score)
-          VoteManager.comment_unvote!(user: user, comment: comment)
+          VoteManager.comment_unvote!(user: user2, comment: comment)
           comment.reload
           assert_equal(0, comment.score)
-          assert_nothing_raised { VoteManager.comment_vote!(user: user, comment: comment, score: -1) }
+          assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: comment, score: -1) }
         end
       end
 
