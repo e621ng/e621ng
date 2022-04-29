@@ -14,7 +14,7 @@ class PostsController < ApplicationController
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
         format.json do
-          render json: @post_set.posts, root: 'posts'
+          render json: @post_set.api_posts, root: 'posts'
         end
         format.atom
       end

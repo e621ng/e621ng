@@ -874,6 +874,13 @@ class Post < ApplicationRecord
       set_tag_string((tag_array - Array(tag)).join(" "))
     end
 
+    def inject_tag_categories(tag_cats)
+      @tag_categories = tag_cats
+      @typed_tags = tag_array.group_by do |x|
+        @tag_categories[x] || 'general'
+      end
+    end
+
     def tag_categories
       @tag_categories ||= Tag.categories_for(tag_array)
     end
@@ -1221,9 +1228,13 @@ class Post < ApplicationRecord
       has_visible_children?
     end
 
+    def inject_children(ids)
+      @children_ids = ids.map(&:id).join(' ')
+    end
+
     def children_ids
       if has_children?
-        children.map {|p| p.id}.join(' ')
+        @children_ids ||= children.map {|p| p.id}.join(' ')
       end
     end
   end
