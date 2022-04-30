@@ -285,11 +285,11 @@
 
 <script>
   import Vue from 'vue';
-  import source from './uploader_source.vue';
-  import checkbox from './uploader_checkbox.vue';
-  import relatedTags from './uploader_related.vue';
-  import tagPreview from './uploader_tag_preview.vue';
-  import filePreview from './uploader_file_preview.vue';
+  import source from './source.vue';
+  import checkbox from './checkbox.vue';
+  import relatedTags from './related.vue';
+  import tagPreview from './tag_preview.vue';
+  import filePreview from './file_preview.vue';
 
   const thumbURLs = [
     "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
