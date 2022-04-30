@@ -8,6 +8,10 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
       @comment = create(:comment, post: @post)
+
+      @user = create(:user)
+      CurrentUser.user = @user
+      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     teardown do

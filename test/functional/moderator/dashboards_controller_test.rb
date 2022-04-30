@@ -81,7 +81,7 @@ module Moderator
           setup do
             @users = (0..5).map { create(:user) }
 
-            CurrentUser.as(@users[0]) do
+            CurrentUser.as( create(:user) ) do
               @comment = create(:comment)
             end
 
