@@ -1,9 +1,6 @@
 <template>
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
-            <div class="box-section sect_red" v-show="filePreview.overDims">
-                One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
-            </div>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
@@ -11,11 +8,12 @@
                 </div>
                 <div class="col2">
                   <file-input @uploadValueChanged="uploadValue = $event"
-                    @previewChanged="resetFilePreview(); filePreview = {...filePreview, ...$event}"
-                    @invalidUploadValueChanged="invalidUploadValue = $event"></file-input>
+                    @previewChanged="previewUrl = $event"
+                    @invalidUploadValueChanged="invalidUploadValue = $event"
+                    @isVideo="previewIsVideo = $event"></file-input>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload" :preview="filePreview"></file-preview>
+            <file-preview classes="box-section in-editor below-upload" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -158,7 +156,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor" :preview="filePreview"></file-preview>
+                  <file-preview classes="box-section in-editor" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -252,7 +250,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :preview="filePreview" @load="updateFilePreviewDims" @error="filePreviewError"></file-preview>
+            <file-preview classes="in-sidebar" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
         </div>
     </div>
 </template>
@@ -265,13 +263,6 @@
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
-
-  const thumbURLs = [
-    "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
-  ];
-  const thumbs = {
-    none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
-  };
 
   const sex_checks = [
     {name: 'Male'},
@@ -304,43 +295,6 @@
     {name: 'Humanoid'},
     {name: 'Human'},
     {name: 'Taur'}];
-
-  function updateFilePreviewDims(e) {
-    const target = e.target;
-    if (thumbURLs.filter(function (x) {
-      return target.src.indexOf(x) !== -1;
-    }).length !== 0)
-      return;
-    this.filePreview.height = target.naturalHeight || target.videoHeight;
-    this.filePreview.width = target.naturalWidth || target.videoWidth;
-    this.filePreview.overDims = (this.filePreview.height > 15000 || this.filePreview.width > 15000);
-  }
-
-  function filePreviewError() {
-    this.filePreview.failed = true;
-  }
-
-  function setPreviewImage(url) {
-    this.filePreview.isVideo = false;
-    this.filePreview.url = url;
-  }
-
-  function setPreviewVideo(url) {
-    this.filePreview.isVideo = true;
-    this.filePreview.url = url;
-  }
-
-  function resetFilePreview() {
-    // This might not be an objectURL, but revoking in those cases doesn't hurt
-    URL.revokeObjectURL(this.filePreview.url);
-    this.filePreview.isVideo = false;
-    this.filePreview.url = thumbs.none;
-    this.filePreview.overDims = false;
-    this.filePreview.width = 0;
-    this.filePreview.height = 0;
-    this.filePreview.failed = false;
-    this.fileTooLarge = false;
-  }
 
   function tagSorter(a, b) {
     return a[0] > b[0] ? 1 : -1;
@@ -383,15 +337,8 @@
         allowNavigate: false,
         submitting: false,
 
-        filePreview: {
-          heigth: 0,
-          width: 0,
-          overDims: false,
-          url: thumbs.none,
-          isVideo: false,
-          failed: false,
-        },
-
+        previewUrl: '',
+        previewIsVideo: false,
         uploadValue: '',
         invalidUploadValue: false,
 
@@ -479,11 +426,6 @@
         fillFieldBool("uploadAsPending", "upload_as_pending")
     },
     methods: {
-      updateFilePreviewDims,
-      setPreviewImage,
-      setPreviewVideo,
-      resetFilePreview,
-      filePreviewError,
       removeSource(i) {
         this.sources.splice(i, 1);
       },

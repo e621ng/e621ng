@@ -32,7 +32,6 @@
 </template>
 
 <script>
-const thumbNone = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
 export default {
   data() {
     return {
@@ -65,6 +64,7 @@ export default {
     uploadURL: {
       immediate: true,
       handler() {
+        this.fileTooLarge = false;
         this.uploadValueChanged(this.uploadURL);
         this.updatePreviewURL();
       }
@@ -109,39 +109,39 @@ export default {
       this.$refs["post_file"].value = null;
       this.disableURLUpload = false;
       this.disableFileUpload = false;
-      this.previewChanged(thumbNone, false);
+      this.setEmptyThumb();
       this.uploadValueChanged("");
 
     },
     updatePreviewURL() {
-      const self = this;
       if (this.uploadURL.length === 0 || this.$refs["post_file"]?.files?.[0]) {
         this.disableFileUpload = false;
         this.whitelist.oldDomain = "";
-        self.clearWhitelistWarning();
+        this.clearWhitelistWarning();
         return;
       }
       this.disableFileUpload = true;
       const domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
 
       if (domain && domain !== this.whitelist.oldDomain) {
-        $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, function (data) {
+        $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, data => {
           if (data.domain) {
-            self.whitelistWarning(data.is_allowed, data.domain, data.reason);
-            if (!data.is_allowed)
-              self.previewChanged(thumbNone, false);
+            this.whitelistWarning(data.is_allowed, data.domain, data.reason);
+            if (!data.is_allowed) {
+              this.setEmptyThumb();
+            }
           }
         });
       } else if (!domain) {
-        self.clearWhitelistWarning();
+        this.clearWhitelistWarning();
+        this.setEmptyThumb();
       }
       this.whitelist.oldDomain = domain;
-      if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/)) {
-        this.previewChanged(this.uploadURL, true);
-      } else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/)) {
-        this.previewChanged(this.uploadURL, false);
+      this.emitIsVideo(this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/));
+      if(this.uploadURL.match(/^(https?\:\/\/|www).*?$/)) {
+        this.previewChanged(this.uploadURL);
       } else {
-        this.previewChanged(thumbNone, false);
+        this.previewChanged("");
       }
     },
     updatePreviewFile() {
@@ -150,13 +150,21 @@ export default {
       const objectUrl = URL.createObjectURL(file);
       this.disableURLUpload = true;
       this.uploadValueChanged(file);
-      this.previewChanged(objectUrl, file.type.match("video/webm"));
+      this.previewChanged(objectUrl);
+      this.emitIsVideo(file.type.match("video/webm"));
     },
     uploadValueChanged(value) {
       this.$emit("uploadValueChanged", value);
     },
-    previewChanged(url, isVideo) {
-      this.$emit("previewChanged", { url: url, isVideo: isVideo });
+    setEmptyThumb()  {
+      this.previewChanged("");
+      this.emitIsVideo(false);
+    },
+    previewChanged(url) {
+      this.$emit("previewChanged", url);
+    },
+    emitIsVideo(isVideo) {
+      this.$emit("isVideo", isVideo);
     }
   }
 }

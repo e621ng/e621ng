@@ -1,11 +1,14 @@
 <template>
   <div class="upload_preview_container" :class="classes">
-    <div v-if="!preview.failed">
+    <div class="box-section sect_red" v-show="overDims">
+      One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
+    </div>
+    <div v-if="!failed">
       <div class="upload_preview_dims">{{ previewDimensions }}</div>
-      <preview-video v-if="preview.isVideo" :url="preview.url"
-        @load="$emit('load', $event)" @error="$emit('error')"></preview-video>
-      <preview-image v-else :url="preview.url"
-        @load="$emit('load', $event)" @error="$emit('error')"></preview-image>
+      <preview-video v-if="isVideo" :url="finalPreviewUrl"
+        @load="updateDimensions($event)" @error="previewFailed()"></preview-video>
+      <preview-image v-else :url="finalPreviewUrl"
+        @load="updateDimensions($event)" @error="previewFailed()"></preview-image>
     </div>
     <div v-else class="preview-fail box-section sect_yellow">
       <p>The preview for this file failed to load. Please, double check that the URL you provided is correct.</p>
@@ -17,6 +20,7 @@
 <script>
 import previewImage from "./preview_image.vue";
 import previewVideo from "./preview_video.vue";
+const thumbNone = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
 export default {
 
   components: {
@@ -25,13 +29,47 @@ export default {
   },
   props: {
     classes: String,
-    preview: Object
+    url: String,
+    isVideo: Boolean,
+  },
+  data() {
+    return {
+      heigth: 0,
+      width: 0,
+      overDims: false,
+      failed: false,
+    }
   },
   computed: {
     previewDimensions() {
-      if (this.preview.width && this.preview.height)
-        return this.preview.width + '×' + this.preview.height;
-      return '';
+      if (this.width > 1 && this.height > 1)
+        return this.width + "×" + this.height;
+      return "";
+    },
+    finalPreviewUrl() {
+      return this.url === "" ? thumbNone : this.url;
+    },
+  },
+  watch: {
+    url: function() {
+      this.resetFilePreview();
+    }
+  },
+  methods: {
+   updateDimensions(e) {
+      const target = e.target;
+      this.height = target.naturalHeight || target.videoHeight;
+      this.width = target.naturalWidth || target.videoWidth;
+      this.overDims = (this.height > 15000 || this.width > 15000);
+    },
+    resetFilePreview() {
+      this.overDims = false;
+      this.width = 0;
+      this.height = 0;
+      this.failed = false;
+    },
+    previewFailed() {
+      this.failed = true;
     },
   }
 };
