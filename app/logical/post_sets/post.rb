@@ -140,6 +140,13 @@ module PostSets
       end
     end
 
+    def api_posts
+      _posts = posts
+      fill_children(_posts)
+      fill_tag_types(_posts)
+      _posts
+    end
+
     def unknown_post_count?
       post_count == Danbooru.config.blank_tag_search_fast_count
     end

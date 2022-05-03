@@ -28,6 +28,13 @@ module PostSets
                  end
     end
 
+    def api_posts
+      _posts = posts
+      fill_children(_posts)
+      fill_tag_types(_posts)
+      _posts
+    end
+
     def is_pattern_search?
       false
     end
