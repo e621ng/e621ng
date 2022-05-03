@@ -465,11 +465,6 @@ fart'
           "header" => 'General',
           "humanized" => nil,
           "mod_only" => false,
-          "relatedbutton" => "General",
-          "css" => {
-            "color" => "$link_color",
-            "hover" => "$link_hover_color"
-          }
         },
         "species" => {
           "category" => 5,
@@ -478,11 +473,6 @@ fart'
           "header" => 'Species',
           "humanized" => nil,
           "mod_only" => false,
-          "relatedbutton" => "Species",
-          "css" => {
-            "color" => "#0F0",
-            "hover" => "#070"
-          }
         },
         "character" => {
           "category" => 4,
@@ -496,11 +486,6 @@ fart'
             "formatstr" => "%s"
           },
           "mod_only" => false,
-          "relatedbutton" => "Characters",
-          "css" => {
-            "color" => "#0A0",
-            "hover" => "#6B6"
-          }
         },
         "copyright" => {
           "category" => 3,
@@ -514,11 +499,6 @@ fart'
             "formatstr" => "(%s)"
           },
           "mod_only" => false,
-          "relatedbutton" => "Copyrights",
-          "css" => {
-            "color" => "#A0A",
-            "hover" => "#B6B"
-          }
         },
         "artist" => {
           "category" => 1,
@@ -532,11 +512,6 @@ fart'
             "formatstr" => "created by %s"
           },
           "mod_only" => false,
-          "relatedbutton" => "Artists",
-          "css" => {
-            "color" => "#A00",
-            "hover" => "#B66"
-          }
         },
         "invalid" => {
           "category" => 6,
@@ -545,11 +520,6 @@ fart'
           "header" => 'Invalid',
           "humanized" => nil,
           "mod_only" => true,
-          "relatedbutton" => nil,
-          "css" => {
-            "color" => "#000",
-            "hover" => "#444"
-          }
         },
         "lore" => {
           "category" => 8,
@@ -558,11 +528,6 @@ fart'
           'header' => 'Lore',
           'humanized' => nil,
           'mod_only' => true,
-          'relatedbutton' => nil,
-          'css' => {
-              'color' => '#000',
-              'hover' => '#444'
-          }
         },
         "meta" => {
           "category" => 7,
@@ -571,11 +536,6 @@ fart'
           "header" => 'Meta',
           "humanized" => nil,
           "mod_only" => true,
-          "relatedbutton" => nil,
-          "css" => {
-            "color" => "#F80",
-            "hover" => "#FA6"
-          }
         }
       }
     end
