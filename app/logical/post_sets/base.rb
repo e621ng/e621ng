@@ -56,7 +56,7 @@ module PostSets
       ids = posts.map(&:id)
       children = ::Post.select([:id, :parent_id]).where(parent_id: ids).to_a.group_by {|p| p.parent_id}
       posts.each do |p|
-        p.inject_children(children[p.id])
+        p.inject_children(children[p.id] || [])
       end
     end
 
