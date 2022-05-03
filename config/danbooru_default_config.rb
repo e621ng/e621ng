@@ -477,7 +477,7 @@ fart'
         "character" => {
           "category" => 4,
           "short" => "char",
-          "extra" => ["ch"],
+          "extra" => ["ch", "oc"],
           "header" => 'Characters',
           "humanized" => {
             "slice" => 5,
