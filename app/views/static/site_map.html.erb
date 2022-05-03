@@ -16,7 +16,9 @@
           <li><%= link_to("Mass Edit", edit_moderator_tag_path) %></li>
         <% end %>
         <li><%= link_to("Similar Images Search", iqdb_queries_path) %></li>
-        <li><%= link_to("Disapprovals", moderator_post_disapprovals_path) %></li>
+        <% if CurrentUser.can_approve_posts? %>
+          <li><%= link_to("Disapprovals", moderator_post_disapprovals_path) %></li>
+        <% end %>
         <li><%= link_to("Deleted Index", deleted_posts_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "posts")) %></li>
       </ul>
