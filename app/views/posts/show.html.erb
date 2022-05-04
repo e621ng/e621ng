@@ -71,7 +71,6 @@
           <%= render "posts/partials/show/notices", :post => @post %>
         </div>
 
-        <% @ad_tag_string = @post.ad_tag_string %>
         <%= render "ads/leaderboard" %>
 
         <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post, include_post: true))) do -%>

@@ -24,10 +24,6 @@ module PostSets
       nil
     end
 
-    def ad_tag_string
-      ""
-    end
-
     def unknown_post_count?
       false
     end
