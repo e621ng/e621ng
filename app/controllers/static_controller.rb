@@ -1,4 +1,8 @@
 class StaticController < ApplicationController
+  def privacy
+    @page = WikiPage.find_by_title('e621:privacy_policy')
+  end
+
   def terms_of_service
     @page = WikiPage.find_by_title('e621:terms_of_service')
   end
