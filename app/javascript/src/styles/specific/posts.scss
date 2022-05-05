@@ -491,10 +491,12 @@ textarea[data-autocomplete="tag-edit"] {
 #image {
   &.fit-window {
     max-width: 100%;
+    will-change: transform;
   }
   &.fit-window-vertical {
     max-width: 100%;
     max-height: 95vh;
+    will-change: transform;
   }
 }
 
