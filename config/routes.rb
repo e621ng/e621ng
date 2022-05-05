@@ -32,7 +32,11 @@ Rails.application.routes.draw do
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, :only => [:show]
-    resources :ip_addrs, :only => [:index]
+    resources :ip_addrs, :only => [:index] do
+      collection do
+        get :export
+      end
+    end
     resource :tag, :only => [:edit, :update]
     namespace :post do
       resource :queue, :only => [:show]

@@ -1,4 +1,5 @@
 <p><%= link_to "Search for users with these IP addresses", moderator_ip_addrs_path(search: {ip_addr: @results[:ip_addrs].reject{|ip| ip == "127.0.0.1"}.join(","), with_history: params[:search][:with_history]}) %></p>
+<p><%= link_to "Export address list", export_moderator_ip_addrs_path(format: :json, search: {user_id: params[:search][:user_id]}) %></p>
 
 <table class="striped">
   <thead>
