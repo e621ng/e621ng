@@ -54,19 +54,20 @@ class FileValidator
   end
 
   def validate_video_duration
-    if record.is_video? && record.video.duration > Danbooru.config.max_video_duration
+    if record.is_video? && record.video(file_path).duration > Danbooru.config.max_video_duration
       record.errors.add(:base, "video must not be longer than #{Danbooru.config.max_video_duration} seconds")
     end
   end
 
   def validate_video_container_format
     if record.is_video?
-      unless record.video.valid?
+      video = record.video(file_path)
+      unless video.valid?
         record.errors.add(:base, "video isn't valid")
         return
       end
-      valid_video_codec = %w[vp8 vp9 av1].include?(record.video.video_codec)
-      valid_container = record.video.container == "matroska,webm"
+      valid_video_codec = %w[vp8 vp9 av1].include?(video.video_codec)
+      valid_container = video.container == "matroska,webm"
       unless valid_video_codec && valid_container
         record.errors.add(:base, "video container/codec isn't valid for webm")
       end

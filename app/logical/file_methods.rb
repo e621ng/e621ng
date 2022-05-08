@@ -76,4 +76,13 @@ module FileMethods
       [0, 0]
     end
   end
+
+  def video(file_path)
+    @video ||= FFMPEG::Movie.new(file_path)
+  end
+
+  def video_duration(file_path)
+    return video(file_path).duration if is_video? && video(file_path).duration
+    nil
+  end
 end

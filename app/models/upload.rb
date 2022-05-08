@@ -76,17 +76,6 @@ class Upload < ApplicationRecord
     end
   end
 
-  module VideoMethods
-    def video
-      @video ||= FFMPEG::Movie.new(file.path)
-    end
-
-    def video_duration
-      return video.duration if is_video? && video.duration
-      nil
-    end
-  end
-
   module SearchMethods
     def uploaded_by(user_id)
       where("uploader_id = ?", user_id)
@@ -166,7 +155,6 @@ class Upload < ApplicationRecord
   include FileMethods
   include StatusMethods
   include UploaderMethods
-  include VideoMethods
   extend SearchMethods
   include ApiMethods
   include DirectURLMethods

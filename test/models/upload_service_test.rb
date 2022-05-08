@@ -335,7 +335,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "for an image" do
       setup do
-        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100)
+        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, file: Tempfile.new)
       end
 
       should "create a post" do
