@@ -18,16 +18,6 @@ class Upload < ApplicationRecord
     FileValidator.new(upload, file.path).validate
   end
 
-  module FileMethods
-    def is_image?
-      %w(jpg jpeg gif png).include?(file_ext)
-    end
-
-    def is_video?
-      %w(webm).include?(file_ext)
-    end
-  end
-
   module StatusMethods
     def is_pending?
       status == "pending"

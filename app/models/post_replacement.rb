@@ -33,16 +33,6 @@ class PostReplacement < ApplicationRecord
     end
   end
 
-  module FileMethods
-    def is_image?
-      %w(jpg jpeg gif png).include?(file_ext)
-    end
-
-    def is_video?
-      %w(webm).include?(file_ext)
-    end
-  end
-
   def no_pending_duplicates
     return true if is_backup
     post = Post.where(md5: md5).first
