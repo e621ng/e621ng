@@ -85,4 +85,12 @@ module FileMethods
     return video(file_path).duration if is_video? && video(file_path).duration
     nil
   end
+
+  def is_corrupt?(file_path)
+    image = Vips::Image.new_from_file(file_path, fail: true)
+    image.stats
+    false
+  rescue
+    true
+  end
 end

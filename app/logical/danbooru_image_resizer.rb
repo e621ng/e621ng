@@ -105,12 +105,4 @@ module DanbooruImageResizer
 
     output_file
   end
-
-  def is_corrupt?(filename)
-    image = Vips::Image.new_from_file(filename, fail: true)
-    image.stats
-    false
-  rescue
-    true
-  end
 end

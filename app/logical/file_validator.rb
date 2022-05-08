@@ -16,7 +16,7 @@ class FileValidator
   end
 
   def validate_file_integrity
-    if record.is_image? && DanbooruImageResizer.is_corrupt?(file_path)
+    if record.is_image? && record.is_corrupt?(file_path)
       record.errors.add(:file, "is corrupt")
     end
   end
