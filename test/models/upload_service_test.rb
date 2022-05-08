@@ -64,10 +64,9 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
 
         should "return the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
+          w, h = @upload.calculate_dimensions(@file.path)
+          assert_operator(w, :>, 0)
+          assert_operator(h, :>, 0)
         end
       end
 
@@ -82,10 +81,9 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
 
         should "find the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
+          w, h = @upload.calculate_dimensions(@file.path)
+          assert_operator(w, :>, 0)
+          assert_operator(h, :>, 0)
         end
       end
     end
@@ -337,7 +335,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "for an image" do
       setup do
-        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100)
+        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, file: Tempfile.new)
       end
 
       should "create a post" do

@@ -3,105 +3,7 @@ require "tmpdir"
 class Upload < ApplicationRecord
   class Error < Exception ; end
 
-  class FileValidator < ActiveModel::Validator
-    def validate(record)
-      validate_file_ext(record)
-      validate_md5_uniqueness(record)
-      validate_file_size(record)
-      validate_file_integrity(record)
-      validate_video_container_format(record)
-      validate_video_duration(record)
-      validate_resolution(record)
-    end
-
-    def validate_file_integrity(record)
-      if record.is_image? && DanbooruImageResizer.is_corrupt?(record.file.path)
-        record.errors.add(:file, "is corrupt")
-      end
-    end
-
-    def validate_file_ext(record)
-      if Danbooru.config.max_file_sizes.keys.exclude? record.file_ext
-        record.errors.add(:file_ext, "#{record.file_ext} is invalid (only JPEG, PNG, GIF, and WebM files are allowed")
-        throw :abort
-      end
-    end
-
-    def validate_file_size(record)
-      if record.file_size <= 16
-        record.errors.add(:file_size, "is too small")
-      end
-      max_size = Danbooru.config.max_file_sizes.fetch(record.file_ext, 0)
-      if record.file_size > max_size
-        record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{max_size / (1024*1024)} MiB")
-      end
-      if record.is_apng && record.file_size > Danbooru.config.max_apng_file_size
-        record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{Danbooru.config.max_apng_file_size / (1024*1024)} MiB")
-      end
-    end
-
-    def validate_md5_uniqueness(record)
-      if record.md5.nil?
-        return
-      end
-
-      replacements = PostReplacement.pending.where(md5: record.md5)
-      replacements = replacements.where('id != ?', record.replacement_id) if record.replacement_id
-
-      if !record.replaced_post && replacements.size > 0
-        replacements.each do |rep|
-          record.errors.add(:md5) << "duplicate of pending replacement on post ##{rep.post_id}"
-        end
-        return
-      end
-
-      md5_post = Post.find_by_md5(record.md5)
-
-      if md5_post.nil?
-        return
-      end
-
-      if record.replaced_post && record.replaced_post == md5_post
-        return
-      end
-
-      record.errors.add(:md5, "duplicate: #{md5_post.id}")
-    end
-
-    def validate_resolution(record)
-      resolution = record.image_width.to_i * record.image_height.to_i
-
-      if resolution > Danbooru.config.max_image_resolution
-        record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{record.image_width}x#{record.image_height}); max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels)")
-      elsif record.image_width > Danbooru.config.max_image_width
-        record.errors.add(:image_width, "is too large (width: #{record.image_width}; max width: #{Danbooru.config.max_image_width})")
-      elsif record.image_height > Danbooru.config.max_image_height
-        record.errors.add(:image_height, "is too large (height: #{record.image_height}; max height: #{Danbooru.config.max_image_height})")
-      end
-    end
-
-    def validate_video_duration(record)
-      if record.is_video? && record.video.duration > Danbooru.config.max_video_duration
-        record.errors.add(:base, "video must not be longer than #{Danbooru.config.max_video_duration} seconds")
-      end
-    end
-
-    def validate_video_container_format(record)
-      if record.is_video?
-        unless record.video.valid?
-          record.errors.add(:base, "video isn't valid")
-          return
-        end
-        valid_video_codec = %w{vp8 vp9 av1}.include?(record.video.video_codec)
-        valid_container = record.video.container == "matroska,webm"
-        unless valid_video_codec && valid_container
-          record.errors.add(:base, "video container/codec isn't valid for webm")
-        end
-      end
-    end
-  end
-
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng, :original_post_id, :locked_tags, :locked_rating, :replacement_id
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :original_post_id, :locked_tags, :locked_rating, :replacement_id
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
@@ -109,19 +11,11 @@ class Upload < ApplicationRecord
   before_validation :fixup_source, on: :create
   validate :uploader_is_not_limited, on: :create
   validate :direct_url_is_whitelisted, on: :create
-  # validates :source, format: { with: /\Ahttps?/ }, if: ->(record) {record.file.blank?}, on: :create
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validates :md5, confirmation: true, if: -> (rec) { rec.md5_confirmation.present? }
-  validates_with FileValidator, on: :file
-
-  module FileMethods
-    def is_image?
-      %w(jpg jpeg gif png).include?(file_ext)
-    end
-
-    def is_video?
-      %w(webm).include?(file_ext)
-    end
+  validate :md5_is_unique, on: :file
+  validate on: :file do |upload|
+    FileValidator.new(upload, file.path).validate
   end
 
   module StatusMethods
@@ -179,17 +73,6 @@ class Upload < ApplicationRecord
   module UploaderMethods
     def uploader_name
       User.id_to_name(uploader_id)
-    end
-  end
-
-  module VideoMethods
-    def video
-      @video ||= FFMPEG::Movie.new(file.path)
-    end
-
-    def video_duration
-      return video.duration if is_video? && video.duration
-      nil
     end
   end
 
@@ -272,7 +155,6 @@ class Upload < ApplicationRecord
   include FileMethods
   include StatusMethods
   include UploaderMethods
-  include VideoMethods
   extend SearchMethods
   include ApiMethods
   include DirectURLMethods
@@ -294,6 +176,34 @@ class Upload < ApplicationRecord
       return false
     end
     true
+  end
+
+  def md5_is_unique
+    if md5.nil?
+      return
+    end
+
+    replacements = PostReplacement.pending.where(md5: md5)
+    replacements = replacements.where.not(id: replacement_id) if replacement_id
+
+    if !replaced_post && replacements.any?
+      replacements.each do |rep|
+        errors.add(:md5, "duplicate of pending replacement on post ##{rep.post_id}")
+      end
+      return
+    end
+
+    md5_post = Post.find_by(md5: md5)
+
+    if md5_post.nil?
+      return
+    end
+
+    if replaced_post && replaced_post == md5_post
+      return
+    end
+
+    errors.add(:md5, "duplicate: #{md5_post.id}")
   end
 
   def assign_rating_from_tags
