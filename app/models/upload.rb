@@ -188,7 +188,7 @@ class Upload < ApplicationRecord
 
     if !replaced_post && replacements.any?
       replacements.each do |rep|
-        errors.add(:md5) << "duplicate of pending replacement on post ##{rep.post_id}"
+        errors.add(:md5, "duplicate of pending replacement on post ##{rep.post_id}")
       end
       return
     end
