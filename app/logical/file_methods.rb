@@ -26,4 +26,22 @@ module FileMethods
   def is_video?
     is_webm? || is_mp4?
   end
+
+  def is_animated_png?(file_path)
+    is_png? && ApngInspector.new(file_path).inspect!.animated?
+  end
+
+  def is_animated_gif?(file_path)
+    return false unless is_gif?
+
+    # Check whether the gif has multiple frames by trying to load the second frame.
+    result = Vips::Image.gifload(file_path, page: 1) rescue $ERROR_INFO
+    if result.is_a?(Vips::Image)
+      true
+    elsif result.is_a?(Vips::Error) && result.message =~ /bad page number/
+      false
+    else
+      raise result
+    end
+  end
 end

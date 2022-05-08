@@ -81,8 +81,6 @@ class UploadService
         upload.image_height = height
       end
 
-      upload.is_apng = is_animated_png?(upload, file)
-
       upload.validate!(:file)
       upload.tag_string = "#{upload.tag_string} #{Utils.automatic_tags(upload, file)}"
 
@@ -104,39 +102,12 @@ class UploadService
       UploadDeleteFilesJob.set(wait: 24.hours).perform_later(upload.md5, upload.file_ext, upload.id)
     end
 
-    # these methods are only really used during upload processing even
-    # though logically they belong on upload. post can rely on the
-    # automatic tag that's added.
-    def is_animated_gif?(upload, file)
-      return false if upload.file_ext != "gif"
-
-      # Check whether the gif has multiple frames by trying to load the second frame.
-      result = Vips::Image.gifload(file.path, page: 1) rescue $ERROR_INFO
-      if result.is_a?(Vips::Image)
-        true
-      elsif result.is_a?(Vips::Error) && result.message =~ /bad page number/
-        false
-      else
-        raise result
-      end
-    end
-
-    def is_animated_png?(upload, file)
-      upload.file_ext == "png" && ApngInspector.new(file.path).inspect!.animated?
-    end
-
-    def is_video_with_audio?(upload, file)
-      return false if !upload.is_video? # avoid ffprobe'ing the file if it's not a video (issue #3826)
-      video = FFMPEG::Movie.new(file.path)
-      video.audio_channels.present?
-    end
-
     def automatic_tags(upload, file)
       return "" unless Danbooru.config.enable_dimension_autotagging?
 
       tags = []
-      tags += ["animated_gif", "animated"] if is_animated_gif?(upload, file)
-      tags += ["animated_png", "animated"] if is_animated_png?(upload, file)
+      tags += ["animated_gif", "animated"] if upload.is_animated_gif?(file.path)
+      tags += ["animated_png", "animated"] if upload.is_animated_png?(file.path)
       tags.join(" ")
     end
 

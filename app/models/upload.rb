@@ -3,7 +3,7 @@ require "tmpdir"
 class Upload < ApplicationRecord
   class Error < Exception ; end
 
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :is_apng, :original_post_id, :locked_tags, :locked_rating, :replacement_id
+  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :original_post_id, :locked_tags, :locked_rating, :replacement_id
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
