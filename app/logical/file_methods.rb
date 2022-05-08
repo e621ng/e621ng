@@ -44,4 +44,36 @@ module FileMethods
       raise result
     end
   end
+
+  def file_header_to_file_ext(file_path)
+    File.open file_path do |bin|
+      mime_type = Marcel::MimeType.for(bin)
+      case mime_type
+      when "image/jpeg"
+        "jpg"
+      when "image/gif"
+        "gif"
+      when "image/png"
+        "png"
+      when "video/webm"
+        "webm"
+      else
+        mime_type
+      end
+    end
+  end
+
+  def calculate_dimensions(file_path)
+    if is_video?
+      video = FFMPEG::Movie.new(file_path)
+      [video.width, video.height]
+
+    elsif is_image?
+      image_size = ImageSpec.new(file_path)
+      [image_size.width, image_size.height]
+
+    else
+      [0, 0]
+    end
+  end
 end

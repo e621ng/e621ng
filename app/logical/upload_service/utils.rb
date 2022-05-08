@@ -5,24 +5,6 @@ class UploadService
 
     IMAGE_TYPES = %i[original large preview crop]
 
-    def file_header_to_file_ext(file)
-      File.open file.path do |bin|
-        mime_type = Marcel::MimeType.for(bin)
-        case mime_type
-        when "image/jpeg"
-          "jpg"
-        when "image/gif"
-          "gif"
-        when "image/png"
-          "png"
-        when "video/webm"
-          "webm"
-        else
-          mime_type
-        end
-      end
-    end
-
     def delete_file(md5, file_ext, upload_id = nil)
       if Post.where(md5: md5).exists?
         if upload_id.present? && Upload.where(id: upload_id).exists?
@@ -35,20 +17,6 @@ class UploadService
       end
 
       Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
-    end
-
-    def calculate_dimensions(upload, file)
-      if upload.is_video?
-        video = FFMPEG::Movie.new(file.path)
-        yield(video.width, video.height)
-
-      elsif upload.is_image?
-        image_size = ImageSpec.new(file.path)
-        yield(image_size.width, image_size.height)
-
-      else
-        yield(0, 0)
-      end
     end
 
     def distribute_files(file, record, type, original_post_id: nil)
@@ -72,14 +40,13 @@ class UploadService
 
     def process_file(upload, file, original_post_id: nil)
       upload.file = file
-      upload.file_ext = Utils.file_header_to_file_ext(file)
+      upload.file_ext = upload.file_header_to_file_ext(file.path)
       upload.file_size = file.size
       upload.md5 = Digest::MD5.file(file.path).hexdigest
 
-      Utils.calculate_dimensions(upload, file) do |width, height|
-        upload.image_width = width
-        upload.image_height = height
-      end
+      width, height = upload.calculate_dimensions(file.path)
+      upload.image_width = width
+      upload.image_height = height
 
       upload.validate!(:file)
       upload.tag_string = "#{upload.tag_string} #{Utils.automatic_tags(upload, file)}"

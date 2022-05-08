@@ -99,7 +99,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def update_file_attributes
-      self.file_ext = UploadService::Utils.file_header_to_file_ext(replacement_file)
+      self.file_ext = file_header_to_file_ext(replacement_file.path)
       if Danbooru.config.max_file_sizes.keys.exclude? file_ext
         self.errors.add(:base, "Unknown or invalid file format: #{file_ext}")
         throw :abort
@@ -107,10 +107,9 @@ class PostReplacement < ApplicationRecord
       self.file_size = replacement_file.size
       self.md5 = Digest::MD5.file(replacement_file.path).hexdigest
 
-      UploadService::Utils.calculate_dimensions(self, replacement_file) do |width, height|
-        self.image_width = width
-        self.image_height = height
-      end
+      width, height = calculate_dimensions(replacement_file.path)
+      self.image_width = width
+      self.image_height = height
     end
 
     def set_file_name

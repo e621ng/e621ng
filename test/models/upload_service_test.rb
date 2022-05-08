@@ -64,10 +64,9 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
 
         should "return the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
+          w, h = @upload.calculate_dimensions(@file.path)
+          assert_operator(w, :>, 0)
+          assert_operator(h, :>, 0)
         end
       end
 
@@ -82,10 +81,9 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
 
         should "find the dimensions" do
-          subject.calculate_dimensions(@upload, @file) do |w, h|
-            assert_operator(w, :>, 0)
-            assert_operator(h, :>, 0)
-          end
+          w, h = @upload.calculate_dimensions(@file.path)
+          assert_operator(w, :>, 0)
+          assert_operator(h, :>, 0)
         end
       end
     end
