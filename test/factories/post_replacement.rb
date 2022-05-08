@@ -60,5 +60,13 @@ FactoryBot.define do
         ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.png")
       end
     end
+
+    factory(:apng_replacement) do
+      replacement_file do
+        f = Tempfile.new
+        IO.copy_stream("#{Rails.root}/test/files/apng/normal_apng.png", f.path)
+        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.png")
+      end
+    end
   end
 end

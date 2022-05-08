@@ -66,9 +66,21 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "not allow invalid or blank file replacements" do
       @replacement = @post.replacements.create(FactoryBot.attributes_for(:empty_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
-      assert_equal(["Unknown or invalid file format"], @replacement.errors.full_messages)
+      assert_match(/File ext \S* is invalid/, @replacement.errors.full_messages.join)
       @replacement = @post.replacements.create(FactoryBot.attributes_for(:jpg_invalid_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
-      assert_equal(["Unknown or invalid file format"], @replacement.errors.full_messages)
+      assert_equal(["File is corrupt"], @replacement.errors.full_messages)
+    end
+
+    should "not allow files that are too large" do
+      Danbooru.config.stubs(:max_file_sizes).returns({ "png" => 0 })
+      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      assert_match(/File size is too large/, @replacement.errors.full_messages.join)
+    end
+
+    should "not allow an apng that is too large" do
+      Danbooru.config.stubs(:max_apng_file_size).returns(0)
+      @replacement = @post.replacements.create(FactoryBot.attributes_for(:apng_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      assert_match(/File size is too large/, @replacement.errors.full_messages.join)
     end
 
     should "affect user upload limit" do

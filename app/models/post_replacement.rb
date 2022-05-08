@@ -11,6 +11,9 @@ class PostReplacement < ApplicationRecord
   validate :set_file_name, on: :create
   validate :fetch_source_file, on: :create
   validate :update_file_attributes, on: :create
+  validate on: :create do |replacement|
+    FileValidator.new(replacement, replacement_file.path).validate
+  end
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
   validates :reason, length: { maximum: 150 }, on: :create
@@ -100,13 +103,8 @@ class PostReplacement < ApplicationRecord
 
     def update_file_attributes
       self.file_ext = file_header_to_file_ext(replacement_file.path)
-      if Danbooru.config.max_file_sizes.keys.exclude? file_ext
-        self.errors.add(:base, "Unknown or invalid file format: #{file_ext}")
-        throw :abort
-      end
       self.file_size = replacement_file.size
       self.md5 = Digest::MD5.file(replacement_file.path).hexdigest
-
       width, height = calculate_dimensions(replacement_file.path)
       self.image_width = width
       self.image_height = height
