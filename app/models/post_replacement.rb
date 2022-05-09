@@ -13,6 +13,7 @@ class PostReplacement < ApplicationRecord
   validate :update_file_attributes, on: :create
   validate on: :create do |replacement|
     FileValidator.new(replacement, replacement_file.path).validate
+    throw :abort if errors.any?
   end
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
