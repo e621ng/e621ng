@@ -72,7 +72,7 @@ module Danbooru
         search.definition[:body].update(sort: [{id: :desc}])
 
         if before_id.to_i > 0
-          search.definition[:body][:query][:bool][:must] << ({range: {id: {lt: before_id.to_i}}})
+          query_definition[:bool][:must].push({range: {id: {lt: before_id.to_i}}})
         end
 
         @sequential_paginator_mode = :before
@@ -83,10 +83,14 @@ module Danbooru
       def paginate_sequential_after(after_id)
         search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
         search.definition[:body].update(sort: [{id: :asc}])
-        search.definition[:body][:query][:bool][:must] << ({range: {id: {gt: after_id.to_i}}})
+        query_definition[:bool][:must].push({range: {id: {gt: after_id.to_i}}})
         @sequential_paginator_mode = :after
 
         self
+      end
+
+      def query_definition
+        search.definition.dig(:body, :query, :function_score, :query) || search.definition.dig(:body, :query)
       end
 
       def paginate_numbered(page)
