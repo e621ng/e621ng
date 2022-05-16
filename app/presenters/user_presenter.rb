@@ -15,9 +15,7 @@ class UserPresenter
 
   def ban_reason
     if user.is_banned?
-      "#{user.recent_ban.reason}; expires #{user.recent_ban.expires_at || 'never'} (#{user.bans.count} bans total)"
-    else
-      nil
+      "#{user.recent_ban.reason}\n\n Expires #{user.recent_ban.expires_at || 'never'} (#{user.bans.count} bans total)"
     end
   end
 
