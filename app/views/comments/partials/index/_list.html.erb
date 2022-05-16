@@ -15,7 +15,7 @@
         <p>There are no comments.</p>
       <% end %>
     <% else %>
-      <%= render :partial => "comments/partials/show/comment", :collection => comments %>
+      <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
     <% end %>
   </div>
 

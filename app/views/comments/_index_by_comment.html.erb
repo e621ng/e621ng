@@ -12,7 +12,7 @@
         <% end %>
         </div>
         <div class="comments">
-          <%= render :partial => "comments/partials/show/comment", :collection => [comment] %>
+          <%= render "comments/partials/show/comment", comment: comment, post: nil %>
         </div>
       </div>
       <% end %>
