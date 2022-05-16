@@ -31,7 +31,7 @@
       <% end %>
         <div class="content-menu">
           <menu>
-            <% if !post&.is_comment_locked %>
+            <% if !post&.is_comment_locked && !comment.is_sticky %>
               <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
             <% end %>
             <% if comment.editable_by?(CurrentUser.user) %>
@@ -51,7 +51,7 @@
             <% if CurrentUser.is_admin? %>
               <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
             <% end %>
-            <% if CurrentUser.is_member? %>
+            <% if CurrentUser.is_member? && !comment.is_sticky %>
               <li>|</li>
               <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
             <% end %>

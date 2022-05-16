@@ -143,6 +143,15 @@ class CommentTest < ActiveSupport::TestCase
         assert_equal("Validation failed: You cannot vote on your own comments", exception.message)
       end
 
+      should "not allow votes on sticky comments" do
+        user = FactoryBot.create(:user)
+        post = FactoryBot.create(:post)
+        c1 = FactoryBot.create(:comment, post: post, is_sticky: true)
+
+        exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: -1) }
+        assert_match(/You cannot vote on sticky comments/, exception.message)
+      end
+
       should "allow undoing of votes" do
         user = FactoryBot.create(:user)
         user2 = FactoryBot.create(:user)
