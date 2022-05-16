@@ -255,21 +255,13 @@ class CommentTest < ActiveSupport::TestCase
 
       context "on a comment locked post" do
         setup do
-          @post = create(:post, is_comment_locked: true)
+          @post = create(:post, is_comment_disabled: true)
         end
 
         should "prevent new comments" do
           comment = FactoryBot.build(:comment, post: @post)
           comment.save
-          assert_equal(["Post is comment locked"], comment.errors.full_messages)
-        end
-
-        should "still allow comments from admins" do
-          as create(:admin_user) do
-            @comment = FactoryBot.build(:comment, post: @post)
-            @comment.save
-          end
-          assert @comment.errors.empty?
+          assert_equal(["Post has comments disabled"], comment.errors.full_messages)
         end
       end
     end
