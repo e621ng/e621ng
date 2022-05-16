@@ -74,7 +74,7 @@
         <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
           <% if presenter.previous_names(self).present? %>
             <span>Previous Names</span>
-            <span><%= presenter.previous_names(self) %></span>
+            <span><%= presenter.previous_names(self) %> -> <%= user.name %></span>
           <% end %>
         <% end %>
 
