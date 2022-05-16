@@ -99,6 +99,7 @@ class PostSerializer < ActiveModel::Serializer
         note_locked: nullable_to_truthy(object.is_note_locked),
         status_locked: nullable_to_truthy(object.is_status_locked),
         rating_locked: nullable_to_truthy(object.is_rating_locked),
+        comment_disabled: nullable_to_truthy(object.is_comment_disabled),
         deleted: object.is_deleted
     }
   end

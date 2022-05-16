@@ -104,9 +104,11 @@
       <%= f.label :blank, "Limits" %>
       <fieldset class="limits">
         <%= f.check_box :hide_from_anonymous %>
-        <%= f.label :hide_from_anonymous, "Hide from Anon." %>
+        <%= f.label :hide_from_anonymous, "Hide from Anon" %>
         <%= f.check_box :hide_from_search_engines %>
         <%= f.label :hide_from_search_engines, "Hide from search engines" %>
+        <%= f.check_box :is_comment_disabled %>
+        <%= f.label :is_comment_disabled, "Disable comments"%>
       </fieldset>
     </div>
   <% end %>

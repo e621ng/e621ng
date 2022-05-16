@@ -11,7 +11,7 @@
     <% end %>
     <div class="comments-for-post">
       <div class="list-of-comments">
-        <%= render :partial => "comments/partials/show/comment", :collection => [@comment] %>
+        <%= render "comments/partials/show/comment", comment: @comment, post: nil %>
       </div>
     </div>
   </div>

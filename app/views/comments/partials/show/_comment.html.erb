@@ -31,47 +31,45 @@
       <% end %>
         <div class="content-menu">
           <menu>
-            <% if @post || @posts || comment.post.present? %>
-              <% if @post || @posts %>
-                <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
-              <% end %>
-              <% if comment.editable_by?(CurrentUser.user) %>
-                <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
-              <% end %>
-              <% if !comment.is_hidden? && comment.can_hide?(CurrentUser.user) %>
-                <li><%= tag.a "Hide", href: '#', class: 'comment-hide-link' %></li>
-              <% elsif CurrentUser.is_moderator? %>
-                <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
-              <% end %>
+            <% if post && !comment.is_sticky %>
+              <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
+            <% end %>
+            <% if comment.editable_by?(CurrentUser.user) %>
+              <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
+            <% end %>
+            <% if !comment.is_hidden? && comment.can_hide?(CurrentUser.user) %>
+              <li><%= tag.a "Hide", href: '#', class: 'comment-hide-link' %></li>
+            <% elsif CurrentUser.is_moderator? %>
+              <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
+            <% end %>
 
-              <% if CurrentUser.is_moderator? %>
-                <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
-              <% end %>
+            <% if CurrentUser.is_moderator? %>
+              <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
+            <% end %>
+            <li>|</li>
+            <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
+            <% if CurrentUser.is_admin? %>
+              <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
+            <% end %>
+            <% if CurrentUser.is_member? && !comment.is_sticky %>
               <li>|</li>
-              <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
-              <% if CurrentUser.is_admin? %>
-                <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
-              <% end %>
-              <% if CurrentUser.is_member? %>
-                <li>|</li>
-                <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
-              <% end %>
-              <% if CurrentUser.is_moderator? %>
-                <li>|</li>
-                <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
-                <li>
-                  <strong>IP</strong>
-                  <span><%= link_to_ip comment.creator_ip_addr %></span>
-                </li>
-                <li>|</li>
-                <% if !comment.was_warned? %>
-                  <li>Mark for:</li>
-                  <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'warning' } %></li>
-                  <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'record' } %></li>
-                  <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'ban' } %></li>
-                <% else %>
-                  <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'unmark' } %></li>
-                <% end %>
+              <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, type: 'comment') %></li>
+            <% end %>
+            <% if CurrentUser.is_moderator? %>
+              <li>|</li>
+              <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
+              <li>
+                <strong>IP</strong>
+                <span><%= link_to_ip comment.creator_ip_addr %></span>
+              </li>
+              <li>|</li>
+              <% if !comment.was_warned? %>
+                <li>Mark for:</li>
+                <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'warning' } %></li>
+                <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'record' } %></li>
+                <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'ban' } %></li>
+              <% else %>
+                <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'comment', 'item-id': comment.id, 'record-type': 'unmark' } %></li>
               <% end %>
             <% end %>
           </menu>

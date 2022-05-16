@@ -8,7 +8,7 @@ class CommentVote < ApplicationRecord
   validates :user_id, :comment_id, :score, presence: true
   # validates :user_id, uniqueness: { :scope => :comment_id, :message => "have already voted for this comment" }
   validate :validate_user_can_vote
-  validate :validate_comment_can_be_down_voted
+  validate :validate_comment_can_be_voted
   validates :score, inclusion: { :in => [-1, 0, 1], :message => "must be 1 or -1" }
 
   scope :for_user, ->(uid) {where("user_id = ?", uid)}
@@ -28,12 +28,12 @@ class CommentVote < ApplicationRecord
     true
   end
 
-  def validate_comment_can_be_down_voted
+  def validate_comment_can_be_voted
     if (is_positive? || is_negative?) && comment.creator == CurrentUser.user
       errors.add :base, "You cannot vote on your own comments"
-      false
-    else
-      true
+    end
+    if comment.is_sticky
+      errors.add :base, "You cannot vote on sticky comments"
     end
   end
 

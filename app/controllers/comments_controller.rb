@@ -19,7 +19,7 @@ class CommentsController < ApplicationController
     @post = Post.find(params[:id])
     @comments = @post.comments
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
-    comment_html = render_to_string partial: 'comments/partials/show/comment.html', collection: @comments, formats: [:html]
+    comment_html = render_to_string partial: 'comments/partials/show/comment.html', collection: @comments, locals: { post: @post }, formats: [:html]
     render json: {html: comment_html, posts: deferred_posts}
   end
 

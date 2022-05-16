@@ -1699,7 +1699,8 @@ CREATE TABLE public.posts (
     tag_count_lore integer DEFAULT 0 NOT NULL,
     bg_color character varying,
     generated_samples character varying[],
-    duration numeric
+    duration numeric,
+    is_comment_disabled boolean DEFAULT false NOT NULL
 );
 
 
@@ -4745,5 +4746,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415'),
 ('20220203154846'),
 ('20220219202441'),
-('20220316162257');
-
+('20220316162257'),
+('20220516103329');
