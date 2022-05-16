@@ -33,13 +33,6 @@
         <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split(/\n/) %>
       <% end %>
     <% end %>
-
-    <p>
-      You can <%= link_to "upload another file", new_upload_path %> or <%= link_to "view your current uploads", uploads_path(:search => {:uploader_id => CurrentUser.id}) %>.
-      <% if CurrentUser.user.is_moderator? && @upload.is_pending? %>
-        <%= link_to "Force update", upload_path(@upload, :format => "js"), :remote => true, :method => :put %>.
-      <% end %>
-    </p>
   </div>
 </div>
 
@@ -47,10 +40,4 @@
 
 <% content_for(:page_title) do %>
   Upload
-<% end %>
-
-<% if @upload.is_pending? || @upload.is_processing? %>
-  <% content_for(:html_header) do %>
-    <meta http-equiv="refresh" content="2">
-  <% end %>
 <% end %>

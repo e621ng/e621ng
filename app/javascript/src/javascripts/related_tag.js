@@ -8,7 +8,7 @@ RelatedTag.initialize_all = function() {
   $(document).on("click.danbooru", ".related-tags a.search-tag", RelatedTag.toggle_tag);
   $(document).on("click.danbooru", "#show-related-tags-link", RelatedTag.show);
   $(document).on("click.danbooru", "#hide-related-tags-link", RelatedTag.hide);
-  $(document).on("keyup.danbooru.relatedTags", "#upload_tag_string, #post_tag_string", RelatedTag.update_selected);
+  $(document).on("keyup.danbooru.relatedTags", "#post_tag_string", RelatedTag.update_selected);
 
   $(document).on("danbooru:open-post-edit-dialog", RelatedTag.hide);
   $(document).on("danbooru:close-post-edit-dialog", RelatedTag.show);
@@ -54,7 +54,7 @@ RelatedTag.current_tag = function() {
   // 7. |abc def   -> abc
   // 8. | abc def  -> abc
 
-  var $field = $("#upload_tag_string,#post_tag_string");
+  var $field = $("#post_tag_string");
   var string = $field.val();
   var n = string.length;
   var a = $field.prop('selectionStart');
@@ -93,7 +93,7 @@ RelatedTag.current_tag = function() {
 }
 
 RelatedTag.update_selected = function(e) {
-  var current_tags = $("#upload_tag_string,#post_tag_string").val().toLowerCase().match(/\S+/g) || [];
+  var current_tags = $("#post_tag_string").val().toLowerCase().match(/\S+/g) || [];
   var $all_tags = $(".related-tags a.search-tag");
   $all_tags.removeClass("selected");
 
@@ -105,12 +105,12 @@ RelatedTag.update_selected = function(e) {
 }
 
 RelatedTag.tags_include = function(name) {
-  var current = $("#upload_tag_string,#post_tag_string").val().toLowerCase().match(/\S+/g) || [];
+  var current = $("#post_tag_string").val().toLowerCase().match(/\S+/g) || [];
   return $.inArray(name.toLowerCase(), current) > -1;
 }
 
 RelatedTag.toggle_tag = function(e) {
-  var $field = $("#upload_tag_string,#post_tag_string");
+  var $field = $("#post_tag_string");
   var tag = $(e.target).html().replace(/ /g, "_").replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
 
   if (RelatedTag.tags_include(tag)) {

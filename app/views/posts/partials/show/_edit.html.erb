@@ -67,10 +67,6 @@
     <%= dtext_field "post", "description", limit: Danbooru.config.post_descr_max_size %>
   </div>
 
-  <% if Danbooru.config.iqdbs_server %>
-    <div class="input" id="iqdb-similar" style="display: none;"></div>
-  <% end %>
-
   <% if CurrentUser.is_privileged? %>
     <div class="input">
       <%= f.label :blank, "Lock" %>
