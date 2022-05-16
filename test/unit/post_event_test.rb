@@ -70,6 +70,16 @@ class PostEventTest < ActiveSupport::TestCase
         @post.save
       end
 
+      assert_post_events_created(@admin, :comment_locked) do
+        @post.is_comment_locked = true
+        @post.save
+      end
+
+      assert_post_events_created(@admin, :comment_unlocked) do
+        @post.is_comment_locked = false
+        @post.save
+      end
+
       assert_post_events_created(@admin, :note_locked) do
         @post.is_note_locked = true
         @post.save

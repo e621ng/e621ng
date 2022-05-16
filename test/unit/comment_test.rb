@@ -99,7 +99,7 @@ class CommentTest < ActiveSupport::TestCase
         user2 = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, post: post)
-        
+
         CurrentUser.scoped(user2, "127.0.0.1") do
           VoteManager.comment_vote!(user: user2, comment: c1, score: -1)
           c1.reload
@@ -113,7 +113,7 @@ class CommentTest < ActiveSupport::TestCase
         post = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, post: post)
         c2 = FactoryBot.create(:comment, post: post)
-        
+
         CurrentUser.scoped(user2, "127.0.0.1") do
           assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: c1, score: -1) }
           assert_equal(:need_unvote, VoteManager.comment_vote!(user: user2, comment: c1, score: -1))
@@ -133,7 +133,7 @@ class CommentTest < ActiveSupport::TestCase
         exception = assert_raises(ActiveRecord::RecordInvalid) { VoteManager.comment_vote!(user: user, comment: c1, score: 1) }
         assert_equal("Validation failed: You cannot vote on your own comments", exception.message)
       end
-      
+
       should "not allow downvotes by the creator" do
         user = FactoryBot.create(:user)
         post = FactoryBot.create(:post)
@@ -241,6 +241,26 @@ class CommentTest < ActiveSupport::TestCase
             [/quote]
 
           EOS
+        end
+      end
+
+      context "on a comment locked post" do
+        setup do
+          @post = create(:post, is_comment_locked: true)
+        end
+
+        should "prevent new comments" do
+          comment = FactoryBot.build(:comment, post: @post)
+          comment.save
+          assert_equal(["Post is comment locked"], comment.errors.full_messages)
+        end
+
+        should "still allow comments from admins" do
+          as create(:admin_user) do
+            @comment = FactoryBot.build(:comment, post: @post)
+            @comment.save
+          end
+          assert @comment.errors.empty?
         end
       end
     end

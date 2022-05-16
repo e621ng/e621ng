@@ -15,6 +15,8 @@ class PostEvent < ApplicationRecord
     status_unlocked: 11,
     note_locked: 12,
     note_unlocked: 13,
+    comment_locked: 18,
+    comment_unlocked: 19,
     replacement_accepted: 14,
     replacement_rejected: 15,
     replacement_deleted: 16,

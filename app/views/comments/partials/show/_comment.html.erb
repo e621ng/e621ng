@@ -31,7 +31,7 @@
       <% end %>
         <div class="content-menu">
           <menu>
-            <% if post %>
+            <% if !post&.is_comment_locked %>
               <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
             <% end %>
             <% if comment.editable_by?(CurrentUser.user) %>

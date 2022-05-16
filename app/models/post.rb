@@ -1651,6 +1651,10 @@ class Post < ApplicationRecord
         action = is_note_locked? ? :note_locked : :note_unlocked
         PostEvent.add(id, CurrentUser.user, action)
       end
+      if saved_change_to_is_comment_locked?
+        action = is_comment_locked? ? :comment_locked : :comment_unlocked
+        PostEvent.add(id, CurrentUser.user, action)
+      end
     end
   end
 

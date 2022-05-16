@@ -87,6 +87,8 @@
         <% if CurrentUser.is_admin? %>
           <%= f.check_box :is_status_locked %>
           <%= f.label :is_status_locked, "Status" %>
+          <%= f.check_box :is_comment_locked %>
+          <%= f.label :is_comment_locked, "New Comments"%>
         <% end %>
       </fieldset>
     </div>
@@ -104,7 +106,7 @@
       <%= f.label :blank, "Limits" %>
       <fieldset class="limits">
         <%= f.check_box :hide_from_anonymous %>
-        <%= f.label :hide_from_anonymous, "Hide from Anon." %>
+        <%= f.label :hide_from_anonymous, "Hide from Anon" %>
         <%= f.check_box :hide_from_search_engines %>
         <%= f.label :hide_from_search_engines, "Hide from search engines" %>
       </fieldset>
