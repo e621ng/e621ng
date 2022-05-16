@@ -4,11 +4,6 @@
     <div class="dtext-container">
     <%= format_text(@page.body, allow_color: true) %>
     </div>
-
-    <%= form_tag(accept_terms_of_service_path) do %>
-      <%= hidden_field_tag :url, params[:url] %>
-      <%= submit_tag "I have read and agree to these rules" %>
-    <% end %>
   </div>
 </div>
 

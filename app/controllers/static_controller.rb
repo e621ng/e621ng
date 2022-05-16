@@ -7,12 +7,6 @@ class StaticController < ApplicationController
     @page = WikiPage.find_by_title('e621:terms_of_service')
   end
 
-  def accept_terms_of_service
-    cookies.permanent[:accepted_tos] = "1"
-    url = params[:url] if params[:url] && params[:url].start_with?("/")
-    redirect_to(url || posts_path)
-  end
-
   def not_found
     render "static/404", formats: [:html], status: 404
   end
