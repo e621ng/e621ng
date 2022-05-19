@@ -1,69 +1,3 @@
-<style>
-  .stats-column {
-    width:400px;
-    display:inline-block;
-    vertical-align:top;
-  }
-
-  .stats-chart {
-    display:inline-block;
-    width:300px;
-    height:300px;
-  }
-
-  .stats-chart-container {
-    white-space:nowrap;
-  }
-
-  .stats-pct {
-    text-align:right;
-  }
-
-  #stats-column-1 table {
-    margin-bottom:60px;
-  }
-
-  #stats-column-2 table {
-    margin-bottom:19px;
-  }
-
-  #stats-column-3 table {
-    margin-bottom:5px;
-  }
-
-  .stats-column table:last-child {
-    margin-bottom:10px !important;
-  }
-
-
-  table {
-    margin-bottom:2em;
-    padding:3px;
-    border-spacing:0;
-  }
-  td { padding:1px 4px; vertical-align:top; }
-  th { font-weight:bold; text-align:left; vertical-align:top; padding:0.2em 0.5em; white-space:nowrap; }
-
-  tr.selected { background-color:#288233 !important; /* green */ }
-
-
-  .rounded {
-    background-color:#203f6c;
-    border-radius:8px;
-    box-shadow:2px 2px 5px #07162D;
-  }
-
-  .rounded th { border-bottom:2px solid #6388c3; padding: 2px 10px; }
-  .rounded tr:nth-child(even) { background-color:#204274; }
-  .rounded tr:nth-child(even) td { border-top:1px solid #255193; border-bottom:1px solid #255193; }
-  .rounded tr:last-child td{ border-bottom:0; }
-  .rounded td { padding:2px 10px; }
-
-  .rounded-even	{ background-color:#204274; }
-  .rounded-even td	{ border-top:1px solid #255193; border-bottom:1px solid #255193; }
-  .rounded-odd	{ background-color:transparent; }
-  .rounded-odd td	{ border-top:none; border-bottom:none; }
-</style>
 <%= javascript_tag nonce: true do -%>
   function pct(current,total) {
     return Math.round((current/total)*100) + "%"
@@ -185,7 +119,7 @@
   <p>Refreshed once a day.</p>
   <div class='stats-column' id='stats-column-1'>
     <h2>Site</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Started</td>
         <td style='width:105px;'><%= @stats['started'] %></td>
@@ -213,7 +147,7 @@
     </table>
 
     <h2>Posts</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Total posts</td>
         <td style='width:50px;'><%= del(@stats['total_posts']) %></td>
@@ -283,7 +217,7 @@
 
   <div class='stats-column' id='stats-column-2'>
     <h2>Image files</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Total existing posts</td>
         <td style='width:50px;'><%= del(@stats['active_posts']+@stats['deleted_posts']) %></td>
@@ -320,7 +254,7 @@
       </tr>
     </table>
     <h2>Users</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>User count</td>
         <td style='width:50px;'><%= del(@stats['total_users']) %></td>
@@ -367,7 +301,7 @@
 
   <div class='stats-column' id='stats-column-3'>
     <h2>Comments</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Comment count</td>
         <td style='width:50px;'><%= del(@stats['total_comments']) %></td>
@@ -388,7 +322,7 @@
     </table>
 
     <h2>Forum Posts</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Thread count</td>
         <td style='width:100px;'><%= del(@stats['total_forum_threads']) %></td>
@@ -404,7 +338,7 @@
     </table>
 
     <h2>Blips</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Blip count</td>
         <td style='width:50px;'><%= del(@stats['total_blips']) %></td>
@@ -425,7 +359,7 @@
     </table>
 
     <h2>Tags</h2>
-    <table class='rounded'>
+    <table class='stats-rounded'>
       <tr>
         <td style='width:250px;'>Tag count</td>
         <td style='width:50px;'><%= del(@stats['total_tags']) %></td>
