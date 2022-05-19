@@ -109,6 +109,7 @@ export default {
       this.$refs["post_file"].value = null;
       this.disableURLUpload = false;
       this.disableFileUpload = false;
+      this.fileTooLarge = false;
       this.setEmptyThumb();
       this.uploadValueChanged("");
 
