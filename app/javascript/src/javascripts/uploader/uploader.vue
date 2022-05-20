@@ -1,47 +1,18 @@
 <template>
     <div class="flex-grid-outer">
         <div class="col box-section" style="flex: 2 0 0;">
-            <div class="box-section sect_red" v-show="filePreview.overDims">
-                One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
-            </div>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
                     <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
                 </div>
                 <div class="col2">
-                    <div v-if="!disableFileUpload">
-                        <div class="box-section sect_red" v-if="fileTooLarge">
-                            The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
-                            Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
-                        </div>
-                        <label>File:
-                            <input type="file" ref="post_file" @change="updateFilePreview"
-                                   accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
-                                   :disabled="disableFileUpload"/>
-                        </label>
-                        <button @click="clearFile" v-show="disableURLUpload">Clear</button>
-                    </div>
-                    <div v-if="!disableURLUpload">
-                        <div class="box-section sect_red" v-if="badDirectURL">
-                            The direct URL entered has the following problem: {{ directURLProblem }}<br>
-                            You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
-                        </div>
-                        <label>{{!disableFileUpload ? '(or) ' : '' }}URL:
-                            <input type="text" size="50" v-model="uploadURL"
-                                   :disabled="disableURLUpload"/>
-                        </label>
-                        <div id="whitelist-warning" v-show="whitelist.visible"
-                             :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
-                            <span v-if="whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are permitted.</span>
-                            <span v-if="!whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are not permitted.
-                                <span v-if="whitelist.reason">Reason given: {{whitelist.reason}}</span>
-                                (<a href='/upload_whitelists'>View whitelisted domains</a>)</span>
-                        </div>
-                    </div>
+                  <file-input @uploadValueChanged="uploadValue = $event"
+                    @previewChanged="previewData = $event"
+                    @invalidUploadValueChanged="invalidUploadValue = $event"></file-input>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload" :preview="filePreview"></file-preview>
+            <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -184,7 +155,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor" :preview="filePreview"></file-preview>
+                  <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -278,25 +249,19 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :preview="filePreview" @load="updateFilePreviewDims" @error="filePreviewError"></file-preview>
+            <file-preview classes="in-sidebar" :data="previewData"></file-preview>
         </div>
     </div>
 </template>
 
 <script>
   import Vue from 'vue';
-  import source from './uploader_source.vue';
-  import checkbox from './uploader_checkbox.vue';
-  import relatedTags from './uploader_related.vue';
-  import tagPreview from './uploader_tag_preview.vue';
-  import filePreview from './uploader_file_preview.vue';
-
-  const thumbURLs = [
-    "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
-  ];
-  const thumbs = {
-    none: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
-  };
+  import source from './source.vue';
+  import checkbox from './checkbox.vue';
+  import relatedTags from './related.vue';
+  import tagPreview from './tag_preview.vue';
+  import filePreview from './file_preview.vue';
+  import fileInput from './file_input.vue';
 
   const sex_checks = [
     {name: 'Male'},
@@ -330,133 +295,15 @@
     {name: 'Human'},
     {name: 'Taur'}];
 
-  function updateFilePreviewDims(e) {
-    const target = e.target;
-    if (thumbURLs.filter(function (x) {
-      return target.src.indexOf(x) !== -1;
-    }).length !== 0)
-      return;
-    this.filePreview.height = target.naturalHeight || target.videoHeight;
-    this.filePreview.width = target.naturalWidth || target.videoWidth;
-    this.filePreview.overDims = (this.filePreview.height > 15000 || this.filePreview.width > 15000);
-  }
-
-  function filePreviewError() {
-    this.filePreview.failed = true;
-  }
-
-  function updatePreviewFile() {
-    const file = this.$refs['post_file'].files[0];
-    this.fileTooLarge = file.size > this.maxFileSize;
-    const objectUrl = URL.createObjectURL(file);
-    if (file.type.match('video/webm'))
-      this.setPreviewVideo(objectUrl);
-    else 
-      this.setPreviewImage(objectUrl);
-
-    this.disableURLUpload = true;
-  }
-
-  function updatePreviewURL() {
-    const self = this;
-    if (this.uploadURL.length === 0 || (this.$refs['post_file'] && this.$refs['post_file'].files.length > 0)) {
-      this.disableFileUpload = false;
-      this.oldDomain = '';
-      self.clearWhitelistWarning();
-      return;
-    }
-    this.disableFileUpload = true;
-    const domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
-
-    if (domain && domain !== this.oldDomain) {
-      $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, function (data) {
-        if (data.domain) {
-          self.whitelistWarning(data.is_allowed, data.domain, data.reason);
-          if (!data.is_allowed)
-            self.setPreviewImage(thumbs.none);
-        }
-      });
-    } else if (!domain) {
-      self.clearWhitelistWarning();
-    }
-    this.oldDomain = domain;
-
-    if (this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/))
-      this.setPreviewVideo(this.uploadURL);
-    else if (this.uploadURL.match(/^(https?\:\/\/|www).*?$/))
-      this.setPreviewImage(this.uploadURL);
-    else
-      this.setPreviewImage(thumbs.none);
-  }
-
-  function updateFilePreview() {
-    this.resetFilePreview();
-    if (this.$refs['post_file'] && this.$refs['post_file'].files[0])
-      updatePreviewFile.call(this);
-    else
-      updatePreviewURL.call(this);
-  }
-
-  function setPreviewImage(url) {
-    this.filePreview.isVideo = false;
-    this.filePreview.url = url;
-  }
-
-  function setPreviewVideo(url) {
-    this.filePreview.isVideo = true;
-    this.filePreview.url = url;
-  }
-
-  function resetFilePreview() {
-    // This might not be an objectURL, but revoking in those cases doesn't hurt
-    URL.revokeObjectURL(this.filePreview.url);
-    this.filePreview.isVideo = false;
-    this.filePreview.url = thumbs.none;
-    this.filePreview.overDims = false;
-    this.filePreview.width = 0;
-    this.filePreview.height = 0;
-    this.filePreview.failed = false;
-    this.fileTooLarge = false;
-  }
-
-  function directURLCheck(url) {
-    var patterns = [
-      {reason: 'Thumbnail URL', test: /[at]\.facdn\.net/gi},
-      {reason: 'Sample URL', test: /pximg\.net.*\/img-master\//gi},
-      {reason: 'Sample URL', test: /d3gz42uwgl1r1y\.cloudfront\.net\/.*\/\d+x\d+\./gi},
-      {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/[\w\-_]+\.(jpg|png)(:large)?$/gi},
-      {reason: 'Sample URL', test: /pbs\.twimg\.com\/media\/[\w\-_]+\?format=(jpg|png)(?!&name=orig)/gi},
-      {reason: 'Sample URL', test: /derpicdn\.net\/.*\/large\./gi},
-      {reason: 'Sample URL', test: /metapix\.net\/files\/(preview|screen)\//gi},
-      {reason: 'Sample URL', test: /sofurryfiles\.com\/std\/preview/gi}];
-    for (var i = 0; i < patterns.length; ++i) {
-      var pattern = patterns[i];
-      if (pattern.test.test(url))
-        return pattern.reason;
-    }
-    return '';
-  }
-
-  function clearFileUpload() {
-    if (!(this.$refs['post_file'] && this.$refs['post_file'].files[0]))
-      return;
-    this.$refs['post_file'].value = null;
-    this.disableURLUpload = this.disableFileUpload = false;
-    this.resetFilePreview();
-    this.updateFilePreview();
-  }
-
   function tagSorter(a, b) {
     return a[0] > b[0] ? 1 : -1;
   }
 
   function unloadWarning() {
-    if (this.allowNavigate)
+    if (this.allowNavigate || this.uploadValue === "") {
       return;
-    const post_file = this.$refs['post_file'];
-    if ((post_file && post_file.files && post_file.files.length) || this.uploadURL) {
-      return true;
     }
+    return true;
   }
 
   export default {
@@ -465,7 +312,8 @@
       'image-checkbox': checkbox,
       'related-tags': relatedTags,
       'tag-preview': tagPreview,
-      'file-preview': filePreview
+      'file-preview': filePreview,
+      'file-input': fileInput,
     },
     data() {
       const allChecks = {};
@@ -485,27 +333,15 @@
       return {
         safe: window.uploaderSettings.safeSite,
         showErrors: false,
-        whitelist: {
-          visible: false,
-          allowed: false,
-          domain: ''
-        },
         allowNavigate: false,
         submitting: false,
-        disableFileUpload: false,
-        disableURLUpload: false,
 
-        filePreview: {
-          heigth: 0,
-          width: 0,
-          overDims: false,
-          url: thumbs.none,
+        previewData: {
+          url: '',
           isVideo: false,
-          failed: false,
         },
-
-        uploadURL: '',
-        oldDomain: '',
+        uploadValue: '',
+        invalidUploadValue: false,
 
         noSource: false,
         sources: [''],
@@ -550,9 +386,6 @@
         duplicateId: 0,
         
         descrLimit: window.uploaderSettings.descrLimit,
-
-        maxFileSize: window.uploaderSettings.maxFileSize,
-        fileTooLarge: false,
       };
     },
     mounted() {
@@ -580,9 +413,6 @@
           self.pushTag(trimTag, true);
         }
       };
-      fillField('uploadURL', 'upload_url');
-      if(params.has('upload_url'))
-        this.updateFilePreview();
       fillField('parentID', 'parent');
       fillField('description', 'description');
       fillTags();
@@ -596,29 +426,7 @@
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
     },
-    watch: {
-      uploadURL: function() {
-        this.updateFilePreview();
-      }
-    },
     methods: {
-      updateFilePreview,
-      updateFilePreviewDims,
-      setPreviewImage,
-      setPreviewVideo,
-      resetFilePreview,
-      filePreviewError,
-      clearFile: clearFileUpload,
-      whitelistWarning(allowed, domain, reason) {
-        this.whitelist.allowed = allowed;
-        this.whitelist.domain = domain;
-        this.whitelist.reason = reason;
-        this.whitelist.visible = true;
-      },
-      clearWhitelistWarning() {
-        this.whitelist.visible = false;
-        this.whitelist.domain = '';
-      },
       removeSource(i) {
         this.sources.splice(i, 1);
       },
@@ -637,11 +445,10 @@
         const self = this;
         this.submitting = true;
         const data = new FormData();
-        const post_file = this.$refs['post_file'];
-        if (post_file && post_file.files && post_file.files.length) {
-          data.append('upload[file]', this.$refs['post_file'].files[0]);
+        if (typeof this.uploadValue === "string") {
+          data.append('upload[direct_url]', this.uploadValue);
         } else {
-          data.append('upload[direct_url]', this.uploadURL);
+          data.append('upload[file]', this.uploadValue);
         }
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
@@ -792,12 +599,6 @@
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
       },
-      directURLProblem: function () {
-        return directURLCheck(this.uploadURL);
-      },
-      badDirectURL: function () {
-        return !!this.directURLProblem;
-      },
       sourceWarning: function () {
         const validSourceCount = this.sources.filter(function (i) {
           return i.length > 0;
@@ -816,8 +617,8 @@
         return !this.rating;
       },
       preventUpload: function () {
-        return this.sourceWarning || this.badDirectURL || this.notEnoughTags
-          || this.invalidRating || this.fileTooLarge;
+        return this.sourceWarning || this.notEnoughTags
+          || this.invalidRating || this.invalidUploadValue;
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;

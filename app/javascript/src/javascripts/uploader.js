@@ -1,4 +1,4 @@
-import Uploader from './uploader.vue';
+import Uploader from './uploader/uploader.vue';
 import Vue from 'vue';
 
 export default {

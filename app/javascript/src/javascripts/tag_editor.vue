@@ -28,8 +28,8 @@
 
 <script>
   import Vue from 'vue';
-  import relatedTags from './uploader_related.vue';
-  import tagPreview from './uploader_tag_preview.vue';
+  import relatedTags from './uploader/related.vue';
+  import tagPreview from './uploader/tag_preview.vue';
   import Post from './posts';
   import Autocomplete from "./autocomplete.js.erb";
   import Utility from "./utility.js";
