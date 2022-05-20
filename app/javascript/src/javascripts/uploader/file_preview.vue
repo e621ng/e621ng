@@ -5,10 +5,12 @@
     </div>
     <div v-if="!failed">
       <div class="upload_preview_dims">{{ previewDimensions }}</div>
-      <preview-video v-if="isVideo" :url="finalPreviewUrl"
-        @load="updateDimensions($event)" @error="previewFailed()"></preview-video>
-      <preview-image v-else :url="finalPreviewUrl"
-        @load="updateDimensions($event)" @error="previewFailed()"></preview-image>
+      <video v-if="data.isVideo" class="upload_preview_img" controls :src="finalPreviewUrl"
+        v-on:loadeddata="updateDimensions($event)" v-on:error="previewFailed()">
+      </video>
+      <img v-else class="upload_preview_img" :src="finalPreviewUrl"
+        referrerpolicy="no-referrer"
+        v-on:load="updateDimensions($event)" v-on:error="previewFailed()"/>
     </div>
     <div v-else class="preview-fail box-section sect_yellow">
       <p>The preview for this file failed to load. Please, double check that the URL you provided is correct.</p>
@@ -18,19 +20,15 @@
 </template>
 
 <script>
-import previewImage from "./preview_image.vue";
-import previewVideo from "./preview_video.vue";
 const thumbNone = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
 export default {
-
-  components: {
-    "preview-image": previewImage,
-    "preview-video": previewVideo,
-  },
   props: {
     classes: String,
-    url: String,
-    isVideo: Boolean,
+    data: {
+      validator: function(obj) {
+        return typeof obj.isVideo === "boolean" && typeof obj.url === "string";
+      }
+    },
   },
   data() {
     return {
@@ -47,11 +45,11 @@ export default {
       return "";
     },
     finalPreviewUrl() {
-      return this.url === "" ? thumbNone : this.url;
+      return this.data.url === "" ? thumbNone : this.data.url;
     },
   },
   watch: {
-    url: function() {
+    data: function() {
       this.resetFilePreview();
     }
   },

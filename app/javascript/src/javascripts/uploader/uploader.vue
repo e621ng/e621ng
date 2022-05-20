@@ -8,12 +8,11 @@
                 </div>
                 <div class="col2">
                   <file-input @uploadValueChanged="uploadValue = $event"
-                    @previewChanged="previewUrl = $event"
-                    @invalidUploadValueChanged="invalidUploadValue = $event"
-                    @isVideo="previewIsVideo = $event"></file-input>
+                    @previewChanged="previewData = $event"
+                    @invalidUploadValueChanged="invalidUploadValue = $event"></file-input>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
+            <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -156,7 +155,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
+                  <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
                     <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -250,7 +249,7 @@
             </div>
         </div>
         <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :url="previewUrl" :isVideo="previewIsVideo"></file-preview>
+            <file-preview classes="in-sidebar" :data="previewData"></file-preview>
         </div>
     </div>
 </template>
@@ -337,8 +336,10 @@
         allowNavigate: false,
         submitting: false,
 
-        previewUrl: '',
-        previewIsVideo: false,
+        previewData: {
+          url: '',
+          isVideo: false,
+        },
         uploadValue: '',
         invalidUploadValue: false,
 

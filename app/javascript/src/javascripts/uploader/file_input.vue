@@ -138,11 +138,11 @@ export default {
         this.setEmptyThumb();
       }
       this.whitelist.oldDomain = domain;
-      this.emitIsVideo(this.uploadURL.match(/^(https?\:\/\/|www).*?\.(webm)$/));
-      if(this.uploadURL.match(/^(https?\:\/\/|www).*?$/)) {
-        this.previewChanged(this.uploadURL);
+      if(/^(https?\:\/\/|www).*?$/.test(this.uploadURL)) {
+        const isVideo = /^(https?\:\/\/|www).*?\.(webm)$/.test(this.uploadURL);
+        this.previewChanged(this.uploadURL, isVideo);
       } else {
-        this.previewChanged("");
+        this.setEmptyThumb();
       }
     },
     updatePreviewFile() {
@@ -151,22 +151,17 @@ export default {
       const objectUrl = URL.createObjectURL(file);
       this.disableURLUpload = true;
       this.uploadValueChanged(file);
-      this.previewChanged(objectUrl);
-      this.emitIsVideo(file.type.match("video/webm"));
+      this.previewChanged(objectUrl, file.type === "video/webm");
     },
     uploadValueChanged(value) {
       this.$emit("uploadValueChanged", value);
     },
     setEmptyThumb()  {
-      this.previewChanged("");
-      this.emitIsVideo(false);
+      this.previewChanged("", false);
     },
-    previewChanged(url) {
-      this.$emit("previewChanged", url);
+    previewChanged(url, isVideo) {
+      this.$emit("previewChanged", { url: url, isVideo: isVideo });
     },
-    emitIsVideo(isVideo) {
-      this.$emit("isVideo", isVideo);
-    }
   }
 }
 </script>
