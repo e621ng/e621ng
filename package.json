@@ -3,6 +3,8 @@
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^6.0.0-rc.5",
+    "@vue/compat": "^3.1.0",
+    "@vue/compiler-sfc": "^3.1.0",
     "babel-plugin-macros": "^3.1.0",
     "core-js": "3.8",
     "css-loader": "^6.3.0",
@@ -16,9 +18,8 @@
     "sass-loader": "^12.1.0",
     "script-loader": "^0.7.2",
     "style-loader": "^3.3.0",
-    "vue": "^2.6.10",
-    "vue-loader": "^15.7.0",
-    "vue-template-compiler": "^2.6.10",
+    "vue": "^3.1.0",
+    "vue-loader": "^16.0.0",
     "webpack": "^5.51.1",
     "webpack-cli": "^4.8.0",
     "zingtouch": "^1.0.6"
