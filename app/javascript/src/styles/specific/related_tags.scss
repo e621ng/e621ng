@@ -42,7 +42,9 @@ div.related-tags {
   }
 
   .tag-active {
-    background: rgb(0, 111, 250);
+    @include themable {
+      background: themed("color-active-tag");
+    }
     color: white;
   }
 
