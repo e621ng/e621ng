@@ -1182,11 +1182,6 @@
   resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.1.tgz#d8f1c0d0dc23afad6dc16a9e993a0865774b4065"
   integrity sha512-xoDlM2S4ortawSWORYqsdU+2rxdh4LRW9ytc3zmT37RIKQh6IHyKwwtKhKis9ah8ol07DCkZxPt8BBvPjC6v4g==
 
-"@vue/compat@^3.1.0":
-  version "3.2.35"
-  resolved "https://registry.yarnpkg.com/@vue/compat/-/compat-3.2.35.tgz#aa9c0f44db61d4423ae0ac10b9a89d6acae64add"
-  integrity sha512-3072PRSF10H/YMoawSKIC7uT9o9kzBPiNv2FNiHs8WZfWqHxr96myT2FSOH06OlhxvVmZ6SPnDD4VUDysDF6Qg==
-
 "@vue/compiler-core@3.2.35":
   version "3.2.35"
   resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.2.35.tgz#f2fc01bd25d859a77b0d9ef5df28f657c1979070"

@@ -11,9 +11,6 @@ module.exports = {
         options: {
           compilerOptions: {
             whitespace: "preserve",
-            compatConfig: {
-              MODE: 3
-            }
           }
         },
       },
@@ -28,8 +25,5 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.vue'],
-    alias: {
-      vue: '@vue/compat'
-    },
   }
 }
