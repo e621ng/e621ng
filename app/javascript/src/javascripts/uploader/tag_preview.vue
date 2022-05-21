@@ -3,7 +3,7 @@
         <div v-show="loading">Fetching tags...</div>
         <div class="related-tags flex-wrap">
             <div class="related-items" v-for="sTags, i in splitTags" :key="i">
-                <tag-preview v-for="tag, $idx in sTags" :key="$idx" :tag="tag"></tag-preview>
+                <tag-preview-tag v-for="tag, $idx in sTags" :key="$idx" :tag="tag"></tag-preview-tag>
             </div>
         </div>
         <div>
@@ -13,41 +13,12 @@
 </template>
 
 <script>
-  import Vue from 'vue';
-
-  const tagPreviewTag = Vue.extend({
-    functional: true,
-    props: ['tag'],
-    render: function (h, ctx) {
-      function create_tag_link(name, tagType) {
-        return h('a', {
-            staticClass: 'tag-type-' + tagType,
-            attrs: { href: "/wiki_pages/show_or_new?title=" + name, target: "_blank" }
-          }, name);
-      }
-      var tag = ctx.props.tag;
-      switch (tag.type) {
-        default:
-        case 'tag':
-          return h('span', {staticClass: 'tag-preview'}, [create_tag_link(tag.a, tag.tagTypeA)]);
-        case 'alias':
-          return h('span', {staticClass: 'tag-preview tag-preview-alias'}, [
-            h('del', undefined, [
-              create_tag_link(tag.a, tag.tagTypeA)
-            ]), ' → ', create_tag_link(tag.b, tag.tagTypeB)
-          ]);
-        case 'implication':
-          return h('span', {staticClass: 'tag-preview tag-preview-implication'}, [
-            create_tag_link(tag.a, tag.tagTypeA), ' ⇐ ', create_tag_link(tag.b, tag.tagTypeB)
-          ]);
-      }
-    }
-  });
+  import tagPreviewTag from './tag_preview_tag.vue';
 
   export default {
     props: ['tags', 'loading'],
     components: {
-      'tag-preview': tagPreviewTag
+      'tag-preview-tag': tagPreviewTag
     },
     methods: {
       close: function () {
