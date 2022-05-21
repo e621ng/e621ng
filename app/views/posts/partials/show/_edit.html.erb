@@ -24,13 +24,11 @@
       </span>
     </div>
 
-    <div id="tag-string-editor">
-      <%= f.text_area :tag_string, :size => "60x5", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => post.presenter.split_tag_list_text + " " %>
-    </div>
+    <div id="tag-string-editor"></div>
 
     <div>
       <%= f.label :locked_tags, "Locked Tags" %>
-      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :"data-shortcut" => "e", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
+      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
     </div>
   </div>
 

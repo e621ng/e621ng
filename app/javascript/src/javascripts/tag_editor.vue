@@ -2,7 +2,7 @@
     <div>
         <div v-show="!preview.show">
             <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
-                      ref="otherTags" name="post[tag_string]" spellcheck="false" @keyup="updateTagCount"></textarea>
+                      ref="otherTags" name="post[tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
         </div>
         <div v-show="preview.show">
             <tag-preview :tags="preview.tags" :loading="preview.loading" @close="previewFinalTags"></tag-preview>
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-  import Vue from 'vue';
+  import { nextTick } from 'vue';
   import relatedTags from './uploader/related.vue';
   import tagPreview from './uploader/tag_preview.vue';
   import Post from './posts';
@@ -57,6 +57,13 @@
       };
     },
     mounted() {
+      setTimeout(() => {
+        // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
+        const el = this.$refs.otherTags;
+        el.style.height = el.scrollHeight + "px";
+        el.focus();
+        el.scrollIntoView();
+      }, 20);
       if(Utility.meta("enable-auto-complete") !== "true")
         return;
       Autocomplete.initialize_tag_autocomplete();
@@ -105,7 +112,7 @@
           }
           this.tags = groups.join('\n') + ' ';
         }
-        Vue.nextTick(function() {
+        nextTick(function() {
           Post.update_tag_count({target: $("#post_tag_string")});
         })
       },
@@ -152,9 +159,7 @@
           return sortedRelated;
         };
         const getSelectedTags = function () {
-          const field = self.$refs['otherTags'];
-          console.log(field.hasOwnProperty('selectionStart'));
-          console.log(field.selectionStart);
+          const field = self.$refs.otherTags;
           if (typeof field['selectionStart'] === 'undefined')
             return null;
           const length = field.selectionEnd - field.selectionStart;
