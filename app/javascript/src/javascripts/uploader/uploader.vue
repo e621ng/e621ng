@@ -255,7 +255,6 @@
 </template>
 
 <script>
-  import Vue from 'vue';
   import source from './source.vue';
   import checkbox from './checkbox.vue';
   import relatedTags from './related.vue';
@@ -435,7 +434,7 @@
           this.sources.push('');
       },
       setCheck(tag, value) {
-        Vue.set(this.checkboxes.selected, tag, value);
+        this.checkboxes.selected[tag] = value;
       },
       submit() {
         this.showErrors = true;

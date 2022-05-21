@@ -8,10 +8,10 @@
 
 <script>
   export default {
-    props: ['value', 'index', 'last'],
+    props: ['modelValue', 'index', 'last'],
     data() {
       return {
-        backendValue: this.value
+        backendValue: this.modelValue
       };
     },
     computed: {
@@ -21,7 +21,7 @@
         },
         set: function (v) {
           this.backendValue = v;
-          this.$emit('input', v);
+          this.$emit('update:modelValue', v);
         }
       }
     },
@@ -34,7 +34,7 @@
       }
     },
     watch: {
-      value(v) {
+      modelValue(v) {
         this.backendValue = v;
       }
     }
