@@ -3,31 +3,26 @@
     <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page).first.try(&:body)) %>
   </div>
 
-  <%= simple_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), method: :post) do |f| %>
+  <%= simple_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), html: { multipart: true }, method: :post) do |f| %>
     <div>
       <% if post.visible? %>
         <%= PostPresenter.preview(post, tags: "status:any", no_blacklist: true) %>
       <% end %>
       <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_s(:human_size, precision: 5)})" %></div>
     </div>
-
-    <%= f.input :replacement_file, label: "File", as: :file %>
-    <%= f.input :replacement_url, label: "Replacement URL", hint: "The source URL to download the replacement from.", as: :string, input_html: {size: 40} %>
-    <div class="box-section sect_red" id="bad_upload_url" style="display: none;">
-      The direct URL entered has the following problem: <span id="bad_upload_url_reason"></span><br>
-      You should review <a href="/wiki/show/howto:sites_and_sources">the sourcing guide</a>.
-    </div>
-    <div id="whitelist-warning" style="display: none;"
-         :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
-      <span>Uploads from <b id="whitelist-warning-domain"></b> are <span id="whitelist-warning-not">not </span>permitted.</span>
-    </div>
+    <br>
+    <div id="replacement-uploader"></div>
+    <br>
     <%= f.input :source, label: "Additional Source", hint: "(Optional) The submission page the replacement file came from.", input_html: {size: 40} %>
     <%= f.input :reason, label: "Reason", hint: "Tell us why this file should replace the original.", as: :string, input_html: {size: 40} %>
     <%= f.submit "Submit" %>
   <% end %>
-
-  <div id="replacement-upload-preview">
-    <div id="replacement_preview_dims"></div>
-    <img id="replacement_preview_img" src="" style="max-width: 100%;"/>
-  </div>
+  <div id="replacement-preview"></div>
 </div>
+
+<%= javascript_tag nonce: true do -%>
+  var uploaderSettings = {
+    maxFileSize: <%= Danbooru.config.max_file_size %>,
+  };
+  Danbooru.Replacer.init();
+<% end -%>
