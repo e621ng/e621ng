@@ -13,7 +13,7 @@ class TagImplicationRequestsController < ApplicationController
     elsif @tag_implication_request.forum_topic
       redirect_to forum_topic_path(@tag_implication_request.forum_topic)
     else
-      redirect_to tag_implication_path(@tag_implication_request.tag_implication)
+      redirect_to tag_implication_path(@tag_implication_request.tag_relationship)
     end
   end
 
