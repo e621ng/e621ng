@@ -1,14 +1,14 @@
 module DangerZone
-  def self.uploads_disabled?
-    redis_client.get("disable_uploads") == "y"
+  def self.uploads_disabled?(user)
+    user.level < min_upload_level
   end
 
-  def self.disable_uploads
-    redis_client.set("disable_uploads", "y")
+  def self.min_upload_level
+    (redis_client.get("min_upload_level") || User::Levels::MEMBER).to_i
   end
 
-  def self.enable_uploads
-    redis_client.set("disable_uploads", "n")
+  def self.min_upload_level=(min_upload_level)
+    redis_client.set("min_upload_level", min_upload_level)
   end
 
   def self.redis_client

@@ -24,8 +24,7 @@ Rails.application.routes.draw do
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
-        put :enable_uploads
-        put :disable_uploads
+        put :uploading_limits
       end
     end
   end
