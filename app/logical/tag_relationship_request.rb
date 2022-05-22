@@ -5,6 +5,7 @@ class TagRelationshipRequest
 
   validate :validate_tag_relationship
   validate :validate_forum_topic
+  validates :reason, length: { minimum: 5 }, unless: :skip_forum
 
   def initialize(attributes)
     @antecedent_name = attributes[:antecedent_name].strip.tr(" ", "_")

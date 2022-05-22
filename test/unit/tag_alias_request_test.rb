@@ -46,5 +46,18 @@ class TagAliasRequestTest < ActiveSupport::TestCase
       tar.create
       assert_equal(tar.forum_topic.posts.first.id, tar.tag_relationship.forum_post.id)
     end
+
+    should "fail validation if the reason is too short" do
+      tar = TagAliasRequest.new(antecedent_name: "aaa", consequent_name: "bbb", reason: "")
+      tar.create
+      assert_match(/Reason is too short/, tar.errors.full_messages.join)
+    end
+
+    should "not create a forum post if skip_forum is true" do
+      assert_no_difference("ForumPost.count") do
+        tar = TagAliasRequest.new(antecedent_name: "aaa", consequent_name: "bbb", skip_forum: true)
+        tar.create
+      end
+    end
   end
 end

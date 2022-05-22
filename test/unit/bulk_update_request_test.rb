@@ -71,7 +71,13 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     should "create a forum topic" do
       assert_difference("ForumTopic.count", 1) do
-        BulkUpdateRequest.create(:title => "abc", :reason => "zzz", :script => "create alias aaa -> bbb")
+        create(:bulk_update_request)
+      end
+    end
+
+    should "not create a forum when skip_forum is true" do
+      assert_no_difference("ForumTopic.count") do
+        create(:bulk_update_request, skip_forum: true)
       end
     end
 
