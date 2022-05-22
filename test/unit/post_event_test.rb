@@ -95,6 +95,20 @@ class PostEventTest < ActiveSupport::TestCase
       end
     end
 
+    context "unflag on approve" do
+      setup do
+        as @janitor do
+          create(:post_flag, post: @post)
+        end
+      end
+
+      should "create both post events" do
+        assert_post_events_created(@janitor, [:flag_removed, :approved]) do
+          @post.approve!(@janitor)
+        end
+      end
+    end
+
     context "replacements" do
       setup do
         @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
