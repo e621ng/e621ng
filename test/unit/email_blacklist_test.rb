@@ -25,4 +25,23 @@ class EmailBlacklistTest < ActiveSupport::TestCase
     assert(EmailBlacklist.is_banned?('spam@e621.net'))
     assert_equal(false, EmailBlacklist.is_banned?('what@me.xynzs'))
   end
+
+  should "keep accounts verified if there are too many matches" do
+    (EmailBlacklist::UNVERIFY_COUNT_TRESHOLD + 1).times do |i|
+      @domain_blocked_user = create(:user, email: "#{i}@domain.com")
+    end
+    EmailBlacklist.create(creator: @user, domain: "domain.com", reason: "test")
+    @domain_blocked_user.reload
+    assert @domain_blocked_user.is_verified?
+  end
+
+  should "unverify accounts if there are few matches" do
+    @domain_blocked_user = create(:user, email: "0@domain.com")
+    @other_user = create(:user, email: "0@somethingelse.xynzs")
+    EmailBlacklist.create(creator: @user, domain: "domain.com", reason: "test")
+    @domain_blocked_user.reload
+    @other_user.reload
+    assert_not @domain_blocked_user.is_verified?
+    assert @other_user.is_verified?
+  end
 end

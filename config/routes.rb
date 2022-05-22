@@ -176,7 +176,7 @@ Rails.application.routes.draw do
       get :is_allowed
     end
   end
-  resources :email_blacklists
+  resources :email_blacklists, only: [:new, :create, :destroy, :index]
   resource :iqdb_queries, :only => [:show] do
     collection do
       post :show
