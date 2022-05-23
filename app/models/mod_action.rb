@@ -46,7 +46,7 @@ class ModAction < ApplicationRecord
       :report_reason_update,
       :set_update,
       :set_delete,
-      :set_mark_private,
+      :set_change_visibility,
       :tag_alias_create,
       :tag_alias_update,
       :tag_implication_create,

@@ -100,8 +100,8 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Set ###
 
-    when "set_mark_private"
-      "Made set ##{vals['set_id']} by #{user} private"
+    when "set_change_visibility"
+      "Made set ##{vals['set_id']} by #{user} #{vals['is_public'] ? 'public' : 'private'}"
     when "set_update"
       "Edited set ##{vals['set_id']} by #{user}"
     when "set_delete"

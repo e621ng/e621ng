@@ -66,7 +66,7 @@ class PostSet < ApplicationRecord
   end
 
   def saved_change_to_watched_attributes?
-    saved_change_to_name? || saved_change_to_shortname? || saved_change_to_description?
+    saved_change_to_name? || saved_change_to_shortname? || saved_change_to_description? || saved_change_to_transfer_on_delete?
   end
 
   module ValidationMethods

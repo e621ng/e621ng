@@ -53,11 +53,11 @@ class PostSetsController < ApplicationController
 
     unless @post_set.is_owner?(CurrentUser.user)
       if @post_set.saved_change_to_is_public?
-        ModAction.log(:set_mark_private, {set_id: @post_set.id, user_id: @post_set.creator_id})
+        ModAction.log(:set_change_visibility, { set_id: @post_set.id, user_id: @post_set.creator_id, is_public: @post_set.is_public })
       end
 
-      if @post_set.saved_change_to_watched_attribute?
-        Modaction.log(:set_update, {set_id: @post_set.id, user_id: @post_set.creator_id})
+      if @post_set.saved_change_to_watched_attributes?
+        ModAction.log(:set_update, { set_id: @post_set.id, user_id: @post_set.creator_id })
       end
     end
 
