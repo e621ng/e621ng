@@ -61,7 +61,8 @@ class EmailBlacklist < ApplicationRecord
   end
 
   def unverify_accounts
-    matching_users = User.search(email_matches: "*@*#{domain}")
+    # Only unverify exact domain matches
+    matching_users = User.search(email_matches: "*@#{domain}")
     return if matching_users.count > UNVERIFY_COUNT_TRESHOLD
 
     matching_users.each(&:mark_unverified!)

@@ -37,11 +37,14 @@ class EmailBlacklistTest < ActiveSupport::TestCase
 
   should "unverify accounts if there are few matches" do
     @domain_blocked_user = create(:user, email: "0@domain.com")
-    @other_user = create(:user, email: "0@somethingelse.xynzs")
+    @other_user1 = create(:user, email: "0@prefix.domain.com")
+    @other_user2 = create(:user, email: "0@somethingelse.xynzs")
     EmailBlacklist.create(creator: @user, domain: "domain.com", reason: "test")
     @domain_blocked_user.reload
-    @other_user.reload
+    @other_user1.reload
+    @other_user2.reload
     assert_not @domain_blocked_user.is_verified?
-    assert @other_user.is_verified?
+    assert @other_user1.is_verified?
+    assert @other_user2.is_verified?
   end
 end
