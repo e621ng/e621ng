@@ -5,7 +5,7 @@
     <p>Maintainers are users who are assigned to a set and have the ability to add or remove posts from it. They cannot
       edit any other details of the set.</p>
 
-    <% if @post_set.is_owner?(CurrentUser) && @post_set.is_public %>
+    <% if @post_set.can_edit_settings?(CurrentUser) && @post_set.is_public %>
       <h3 style="margin-top:15px;">Add new Maintainer</h3>
       <div class='section' style="width:380px;">
         <%= form_tag(post_set_maintainers_path) do %>
@@ -33,10 +33,10 @@
           <td><%= m.status.capitalize %></td>
           <td><%= compact_time m.updated_at %></td>
           <td>
-            <% if @post_set.is_owner?(CurrentUser) && m.status == "approved" %>
+            <% if @post_set.can_edit_settings?(CurrentUser) && m.status == "approved" %>
               <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, data: {confirm: "Are you sure you want to remove this maintainer?"} %>
             <% end %>
-            <% if @post_set.is_owner?(CurrentUser) && m.status == "pending" %>
+            <% if @post_set.can_edit_settings?(CurrentUser) && m.status == "pending" %>
               <%= link_to "Remove", post_set_maintainer_path(m), method: :delete, data: {confirm: "Are you sure you want to remove this pending invite?"} %>
             <% end %>
           </td>

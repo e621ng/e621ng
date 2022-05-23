@@ -146,11 +146,15 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || creator_id == user.id || user.is_admin?
+      is_public || is_owner?(user) || user.is_admin?
     end
 
-    def can_edit?(user)
-      is_owner?(user) || is_maintainer?(user)
+    def can_edit_settings?(user)
+      is_owner?(user) || user.is_admin?
+    end
+
+    def can_edit_posts?(user)
+      can_edit_settings?(user) || (is_maintainer?(user) && is_public)
     end
 
     def is_maintainer?(user)
@@ -168,7 +172,7 @@ class PostSet < ApplicationRecord
 
     def is_owner?(user)
       return false if user.is_blocked?
-      creator_id == user.id || user.is_admin?
+      creator_id == user.id
     end
   end
 

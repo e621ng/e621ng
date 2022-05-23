@@ -764,19 +764,19 @@ class Post < ApplicationRecord
 
         when /^set:(\d+)$/i
           set = PostSet.find_by_id($1.to_i)
-          set.add!(self) if set && set.can_edit?(CurrentUser.user)
+          set.add!(self) if set&.can_edit_posts?(CurrentUser.user)
 
         when /^-set:(\d+)$/i
           set = PostSet.find_by_id($1.to_i)
-          set.remove!(self) if set && set.can_edit?(CurrentUser.user)
+          set.remove!(self) if set&.can_edit_posts?(CurrentUser.user)
 
         when /^set:(.+)$/i
           set = PostSet.find_by_shortname($1)
-          set.add!(self) if set && set.can_edit?(CurrentUser.user)
+          set.add!(self) if set&.can_edit_posts?(CurrentUser.user)
 
         when /^-set:(.+)$/i
           set = PostSet.find_by_shortname($1)
-          set.remove!(self) if set && set.can_edit?(CurrentUser.user)
+          set.remove!(self) if set&.can_edit_posts?(CurrentUser.user)
 
         when /^child:none$/i
           children.each do |post|

@@ -3,7 +3,6 @@ class PostSetMaintainersController < ApplicationController
   respond_to :js, except: [:index]
   before_action :member_only
 
-
   def index
     @invites = PostSetMaintainer.where(user_id: CurrentUser.id).order(updated_at: :desc).includes(:post_set)
   end
@@ -94,9 +93,8 @@ class PostSetMaintainersController < ApplicationController
   end
 
   def check_edit_access(set)
-    unless set.is_owner?(CurrentUser) || CurrentUser.is_admin?
+    unless set.can_edit_settings?(CurrentUser)
       raise User::PrivilegeError
     end
   end
-
 end

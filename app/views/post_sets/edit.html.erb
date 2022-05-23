@@ -2,7 +2,7 @@
   <div id="c-edit">
     <h2>Editing <span class="set-name"><%= @post_set.name %></span></h2>
 
-    <% if @can_edit %>
+    <% if @post_set.can_edit_settings?(CurrentUser) %>
       <div class='section'>
         <%= simple_form_for(@post_set) do |f| %>
           <%= f.input :name, as: :string %>
@@ -21,13 +21,11 @@
           <%= f.button :submit, "Update" %>
         <% end %>
       </div>
-    <% end %>
 
-    <% if @post_set.is_owner?(CurrentUser) %>
       <%= link_to "&raquo; Click here to edit maintainers.".html_safe, maintainers_post_set_path(@post_set) %><br/>
     <% end %>
 
-    <% if @post_set.is_owner?(CurrentUser) || @post_set.is_maintainer?(CurrentUser) %>
+    <% if @post_set.can_edit_posts?(CurrentUser) %>
       <%= link_to "&raquo; Click here to add/remove posts.".html_safe, post_list_post_set_path(@post_set) %><br/>
     <% end %>
   </div>
