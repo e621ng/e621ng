@@ -1,11 +1,4 @@
 GIT
-  remote: https://github.com/r888888888/ruby-imagespec.git
-  revision: 2dab9811f4abb4fbaeea66feb42e388ba545b2d8
-  branch: exif-fixes
-  specs:
-    ruby-imagespec (0.3.1)
-
-GIT
   remote: https://github.com/zwagoth/dtext_rb.git
   revision: efc37c7795c53425935245cde57cef2121b4f402
   branch: master
@@ -400,7 +393,6 @@ DEPENDENCIES
   resolv
   responders
   retriable
-  ruby-imagespec!
   ruby-vips
   sanitize
   shoulda-context

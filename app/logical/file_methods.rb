@@ -69,8 +69,8 @@ module FileMethods
       [video.width, video.height]
 
     elsif is_image?
-      image_size = ImageSpec.new(file_path)
-      [image_size.width, image_size.height]
+      image = Vips::Image.new_from_file(file_path)
+      [image.width, image.height]
 
     else
       [0, 0]

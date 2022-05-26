@@ -105,10 +105,12 @@ class UploadServiceTest < ActiveSupport::TestCase
             preview, crop, sample = subject.generate_resizes(@file, @upload)
             assert_operator(File.size(preview.path), :>, 0)
             assert_operator(File.size(crop.path), :>, 0)
-            assert_equal(150, ImageSpec.new(preview.path).width)
-            assert_equal(150, ImageSpec.new(preview.path).height)
-            assert_equal(150, ImageSpec.new(crop.path).width)
-            assert_equal(150, ImageSpec.new(crop.path).height)
+            preview_image = Vips::Image.new_from_file(preview.path)
+            crop_image = Vips::Image.new_from_file(crop.path)
+            assert_equal(150, preview_image.width)
+            assert_equal(150, preview_image.height)
+            assert_equal(150, crop_image.width)
+            assert_equal(150, crop_image.height)
             preview.close
             preview.unlink
             crop.close
