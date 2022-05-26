@@ -12,7 +12,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
   context "The uploads controller" do
     setup do
       @user = create(:janitor_user)
-      mock_iqdb_service!
     end
 
     context "new action" do

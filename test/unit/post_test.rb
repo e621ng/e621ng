@@ -76,8 +76,7 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "remove the post from iqdb" do
-        mock_iqdb_service!
-
+        @post.expects(:remove_iqdb_async).once
         @post.expunge!
       end
 

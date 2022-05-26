@@ -5,7 +5,6 @@ class UploadTest < ActiveSupport::TestCase
 
   context "In all cases" do
     setup do
-      mock_iqdb_service!
       user = FactoryBot.create(:contributor_user)
       CurrentUser.user = user
       CurrentUser.ip_addr = "127.0.0.1"
