@@ -209,6 +209,14 @@ GEM
     multi_json (1.15.0)
     multi_xml (0.6.0)
     multipart-post (2.1.1)
+    net-imap (0.2.3)
+      digest
+      net-protocol
+      strscan
+    net-pop (0.1.1)
+      digest
+      net-protocol
+      timeout
     net-protocol (0.1.3)
       timeout
     net-smtp (0.3.1)
@@ -330,6 +338,7 @@ GEM
       sprockets (>= 3.0.0)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
+    strscan (3.0.3)
     thor (1.2.1)
     timecop (0.9.4)
     timeout (0.2.0)
@@ -390,6 +399,8 @@ DEPENDENCIES
   minitest-ci
   mocha
   mock_redis
+  net-imap
+  net-pop
   net-smtp
   newrelic_rpm
   pg
