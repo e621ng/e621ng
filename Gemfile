@@ -53,7 +53,6 @@ group :development do
 end
 
 group :development, :test do
-  gem 'awesome_print'
   gem 'pry-byebug'
   gem 'listen'
 end
@@ -64,9 +63,7 @@ group :test do
   gem "factory_bot"
   gem "mocha", :require => "mocha/minitest"
   gem "ffaker"
-  gem "simplecov", :require => false
   gem "timecop"
   gem "webmock"
-  gem "minitest-ci"
   gem "mock_redis"
 end
