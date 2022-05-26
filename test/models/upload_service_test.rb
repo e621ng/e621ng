@@ -90,15 +90,14 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context ".generate_resizes" do
       context "for a video" do
-        teardown do
-          @file.close
-        end
-
         context "for a webm" do
           setup do
             @file = File.open("test/files/test-512x512.webm", "rb")
-            @upload = mock()
-            @upload.stubs(:is_video?).returns(true)
+            @upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: @file, uploader: @user, uploader_ip_addr: '127.0.0.1')).start!
+          end
+
+          teardown do
+            @file.close
           end
 
           should "generate a video" do

@@ -185,10 +185,10 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should "update the topic when failed" do
-        @alias.stubs(:sleep).returns(true)
-        @alias.stubs(:update_posts).raises(Exception, "oh no")
+        TagAlias.any_instance.stubs(:update_blacklists).raises(Exception, "oh no")
         @alias.approve!(approver: @admin)
         @topic.reload
+        @alias.reload
 
         assert_equal("[FAILED] Tag alias: aaa -> bbb", @topic.title)
         assert_match(/error: oh no/, @alias.status)

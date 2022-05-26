@@ -94,7 +94,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render" do
-        get uploads_path
+        get_auth uploads_path, @user
         assert_response :success
       end
 
@@ -109,7 +109,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             status: @upload.status
           }
 
-          get_auth uploads_path, params: { search: search_params }
+          get_auth uploads_path, @user, params: { search: search_params }
           assert_response :success
         end
       end
