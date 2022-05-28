@@ -1,8 +1,11 @@
 class EmailBlacklist < ApplicationRecord
+  UNVERIFY_COUNT_TRESHOLD = 50
+
   belongs_to_creator
 
   validates :domain, uniqueness: { case_sensitive: false, message: 'already exists' }
-  after_save :invalidate_cache
+  after_create :invalidate_cache
+  after_create :unverify_accounts
   after_destroy :invalidate_cache
 
   def self.is_banned?(email)
@@ -55,5 +58,13 @@ class EmailBlacklist < ApplicationRecord
 
   def invalidate_cache
     Cache.delete('banned_emails')
+  end
+
+  def unverify_accounts
+    # Only unverify exact domain matches
+    matching_users = User.search(email_matches: "*@#{domain}")
+    return if matching_users.count > UNVERIFY_COUNT_TRESHOLD
+
+    matching_users.each(&:mark_unverified!)
   end
 end

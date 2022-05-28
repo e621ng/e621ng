@@ -12,7 +12,6 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
   context "The uploads controller" do
     setup do
       @user = create(:janitor_user)
-      mock_iqdb_service!
     end
 
     context "new action" do
@@ -65,6 +64,26 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
           end
         end
       end
+
+      context "when uploads are disabled" do
+        setup do
+          DangerZone.min_upload_level = User::Levels::PRIVILEGED
+        end
+
+        teardown do
+          DangerZone.min_upload_level = User::Levels::MEMBER
+        end
+
+        should "prevent uploads" do
+          get_auth new_upload_path, create(:user)
+          assert_response :forbidden
+        end
+
+        should "allow uploads for users of the same or higher level" do
+          get_auth new_upload_path, create(:privileged_user, created_at: 2.weeks.ago)
+          assert_response :success
+        end
+      end
     end
 
     context "index action" do
@@ -75,7 +94,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render" do
-        get uploads_path
+        get_auth uploads_path, @user
         assert_response :success
       end
 
@@ -90,7 +109,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             status: @upload.status
           }
 
-          get_auth uploads_path, params: { search: search_params }
+          get_auth uploads_path, @user, params: { search: search_params }
           assert_response :success
         end
       end

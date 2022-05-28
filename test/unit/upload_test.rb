@@ -5,7 +5,6 @@ class UploadTest < ActiveSupport::TestCase
 
   context "In all cases" do
     setup do
-      mock_iqdb_service!
       user = FactoryBot.create(:contributor_user)
       CurrentUser.user = user
       CurrentUser.ip_addr = "127.0.0.1"
@@ -21,6 +20,7 @@ class UploadTest < ActiveSupport::TestCase
         setup do
           CurrentUser.user = FactoryBot.create(:user, :created_at => 1.year.ago)
           User.any_instance.stubs(:upload_limit).returns(0)
+          Danbooru.config.stubs(:disable_throttles?).returns(false)
         end
 
         should "fail creation" do

@@ -1,11 +1,4 @@
 GIT
-  remote: https://github.com/r888888888/ruby-imagespec.git
-  revision: 2dab9811f4abb4fbaeea66feb42e388ba545b2d8
-  branch: exif-fixes
-  specs:
-    ruby-imagespec (0.3.1)
-
-GIT
   remote: https://github.com/zwagoth/dtext_rb.git
   revision: efc37c7795c53425935245cde57cef2121b4f402
   branch: master
@@ -86,7 +79,6 @@ GEM
       zeitwerk (~> 2.3)
     addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
-    awesome_print (1.9.2)
     bcrypt (3.1.16)
     bootsnap (1.9.3)
       msgpack (~> 1.0)
@@ -108,7 +100,6 @@ GEM
     dalli (3.1.5)
     diff-lcs (1.5.0)
     digest (3.1.0)
-    docile (1.4.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.7.6)
@@ -200,8 +191,6 @@ GEM
     mini_mime (1.1.2)
     mini_portile2 (2.8.0)
     minitest (5.15.0)
-    minitest-ci (3.4.0)
-      minitest (>= 5.0.6)
     mocha (1.13.0)
     mock_redis (0.29.0)
       ruby2_keywords
@@ -243,7 +232,7 @@ GEM
     puma (5.6.4)
       nio4r (~> 2.0)
     racc (1.6.0)
-    rack (2.2.3)
+    rack (2.2.3.1)
     rack-proxy (0.7.0)
       rack
     rack-test (1.1.0)
@@ -323,12 +312,6 @@ GEM
     simple_form (5.1.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
-    simplecov (0.21.2)
-      docile (~> 1.1)
-      simplecov-html (~> 0.11)
-      simplecov_json_formatter (~> 0.1)
-    simplecov-html (0.12.3)
-    simplecov_json_formatter (0.1.3)
     sprockets (4.0.3)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
@@ -377,7 +360,6 @@ PLATFORMS
 DEPENDENCIES
   active_model_serializers (~> 0.10.0)
   addressable
-  awesome_print
   bcrypt
   bootsnap
   cityhash
@@ -396,7 +378,6 @@ DEPENDENCIES
   mailgun-ruby
   marcel
   memoist
-  minitest-ci
   mocha
   mock_redis
   net-imap
@@ -413,7 +394,6 @@ DEPENDENCIES
   resolv
   responders
   retriable
-  ruby-imagespec!
   ruby-vips
   sanitize
   shoulda-context
@@ -421,7 +401,6 @@ DEPENDENCIES
   sidekiq
   sidekiq-unique-jobs
   simple_form
-  simplecov
   streamio-ffmpeg
   timecop
   unicorn

@@ -1,13 +1,5 @@
 ENV["RAILS_ENV"] = "test"
 
-if ENV["SIMPLECOV"]
-  require 'simplecov'
-  SimpleCov.start 'rails' do
-    add_group "Libraries", ["app/logical", "lib"]
-    add_group "Presenters", "app/presenters"
-  end
-end
-
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'cache'
@@ -47,9 +39,7 @@ module TestHelpers
   end
 end
 
-
 class ActiveSupport::TestCase
-  include IqdbTestHelper
   include UploadTestHelper
   include TestHelpers
 
@@ -64,7 +54,6 @@ class ActiveSupport::TestCase
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
     Danbooru.config.stubs(:enable_email_verification?).returns(false)
-
   end
 
   teardown do

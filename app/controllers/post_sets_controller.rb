@@ -41,24 +41,23 @@ class PostSetsController < ApplicationController
 
   def edit
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
-    @can_edit = @post_set.is_owner?(CurrentUser) || CurrentUser.is_admin?
+    check_post_edit_access(@post_set)
     respond_with(@post_set)
   end
 
   def update
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
+    check_settings_edit_access(@post_set)
     @post_set.update(set_params)
     flash[:notice] = @post_set.valid? ? 'Set updated' : @post_set.errors.full_messages.join('; ')
 
-    if CurrentUser.is_admin? && !@post_set.is_owner?(CurrentUser.user)
+    unless @post_set.is_owner?(CurrentUser.user)
       if @post_set.saved_change_to_is_public?
-        ModAction.log(:set_mark_private, {set_id: @post_set.id, user_id: @post_set.creator_id})
+        ModAction.log(:set_change_visibility, { set_id: @post_set.id, user_id: @post_set.creator_id, is_public: @post_set.is_public })
       end
 
-      if @post_set.saved_change_to_watched_attribute?
-        Modaction.log(:set_update, {set_id: @post_set.id, user_id: @post_set.creator_id})
+      if @post_set.saved_change_to_watched_attributes?
+        ModAction.log(:set_update, { set_id: @post_set.id, user_id: @post_set.creator_id })
       end
     end
 
@@ -71,13 +70,13 @@ class PostSetsController < ApplicationController
 
   def post_list
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
+    check_post_edit_access(@post_set)
     respond_with(@post_set)
   end
 
   def update_posts
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
+    check_post_edit_access(@post_set)
     @post_set.update(update_posts_params)
     flash[:notice] = @post_set.valid? ? 'Set posts updated.' : @post_set.errors.full_messages.join('; ')
 
@@ -86,9 +85,7 @@ class PostSetsController < ApplicationController
 
   def destroy
     @post_set = PostSet.find(params[:id])
-    unless @post_set.is_owner?(CurrentUser.user) || CurrentUser.is_admin?
-      raise User::PrivilegeError
-    end
+    check_settings_edit_access(@post_set)
     if CurrentUser.is_admin?
       ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
     end
@@ -110,7 +107,7 @@ class PostSetsController < ApplicationController
 
   def add_posts
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
+    check_post_edit_access(@post_set)
     @post_set.add(params[:post_ids].map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -118,7 +115,7 @@ class PostSetsController < ApplicationController
 
   def remove_posts
     @post_set = PostSet.find(params[:id])
-    check_edit_access(@post_set)
+    check_post_edit_access(@post_set)
     @post_set.remove(params[:post_ids].map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -126,17 +123,20 @@ class PostSetsController < ApplicationController
 
   private
 
-  def check_edit_access(set)
-    unless set.is_owner?(CurrentUser.user) || set.is_maintainer?(CurrentUser.user)
+  def check_settings_edit_access(set)
+    unless set.can_edit_settings?(CurrentUser.user)
       raise User::PrivilegeError
     end
-    if !set.is_public && !set.is_owner?(CurrentUser.user)
+  end
+
+  def check_post_edit_access(set)
+    unless set.can_edit_posts?(CurrentUser.user)
       raise User::PrivilegeError
     end
   end
 
   def check_view_access(set)
-    unless set.is_public || set.is_owner?(CurrentUser.user) || CurrentUser.is_admin?
+    unless set.can_view?(CurrentUser.user)
       raise User::PrivilegeError
     end
   end

@@ -82,6 +82,7 @@ class UploadService
         post.image_width = upload.image_width
         post.image_height = upload.image_height
         post.file_size = upload.file_size
+        post.duration = upload.video_duration(upload.file.path)
         post.source = "#{replacement.source}\n" + post.source
         post.tag_string = upload.tag_string
         # Reset ownership information on post.

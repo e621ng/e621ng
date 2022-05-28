@@ -37,7 +37,7 @@
       <div class="set-empty section">
         <p>This set has no posts in it.</p>
 
-        <% if @post_set.is_owner?(CurrentUser.user) || @post_set.is_maintainer?(CurrentUser.user) %>
+        <% if @post_set.can_edit_posts?(CurrentUser.user) %>
           To start adding posts to this set:
           <ul>
             <li>On a post's page, click <strong>Add to Set</strong> under <strong>Options</strong> in the sidebar,
@@ -49,7 +49,7 @@
           </ul>
         <% end %>
       </div>
-    <% elsif @post_set.is_owner?(CurrentUser.user) || @post_set.is_maintainer?(CurrentUser.user) %>
+    <% elsif @post_set.can_edit_posts?(CurrentUser.user) %>
       <div class="section">
         To add posts to this set:
         <ul>

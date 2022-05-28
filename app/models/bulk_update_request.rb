@@ -14,7 +14,8 @@ class BulkUpdateRequest < ApplicationRecord
   validate :forum_topic_id_not_invalid
   validate :validate_script, on: :create
   validate :check_validate_script, on: :update
-  before_validation :initialize_attributes, :on => :create
+  validates :reason, length: { minimum: 5 }, on: :create, unless: :skip_forum
+  before_validation :initialize_attributes, on: :create
   before_validation :normalize_text
   after_create :create_forum_topic
 

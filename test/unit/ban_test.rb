@@ -146,7 +146,7 @@ class BanTest < ActiveSupport::TestCase
 
       context "when only expired bans exist" do
         setup do
-          @ban = FactoryBot.create(:ban, :user => @user, :banner => @admin, :duration => -1)
+          @ban = FactoryBot.create(:ban, :user => @user, :banner => @admin, :duration => 1)
         end
 
         should "not return expired bans" do

@@ -13,6 +13,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
     context "show action" do
       context "with a url parameter" do
         setup do
+          FactoryBot.create(:upload_whitelist, pattern: "*google.com")
           @url = "https://google.com"
           @params = { url: @url }
           @mocked_response = [{
@@ -41,7 +42,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "redirect to iqdbs" do
-          IqdbProxy.expects(:query).with(@posts[0].preview_file_url).returns(@mocked_response)
+          IqdbProxy.expects(:query_path).with(@posts[0].preview_file_path).returns(@mocked_response)
           get_auth iqdb_queries_path, @user, params: @params
           assert_select("#post_#{@posts[0].id}")
         end
@@ -49,14 +50,14 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
 
       context "with matches" do
         setup do
-          json = @posts.map {|x| {"post_id" => x.id, "score" => 1}}.to_json          
+          json = @posts.map { |x| { "post_id" => x.id, "score" => 1 } }.to_json
           @params = { matches: json }
         end
 
         should "render with matches" do
           get_auth iqdb_queries_path, @user, params: @params
           assert_response :success
-        end        
+        end
       end
     end
   end

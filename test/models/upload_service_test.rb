@@ -90,25 +90,26 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context ".generate_resizes" do
       context "for a video" do
-        teardown do
-          @file.close
-        end
-
         context "for a webm" do
           setup do
             @file = File.open("test/files/test-512x512.webm", "rb")
-            @upload = mock()
-            @upload.stubs(:is_video?).returns(true)
+            @upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: @file, uploader: @user, uploader_ip_addr: '127.0.0.1')).start!
+          end
+
+          teardown do
+            @file.close
           end
 
           should "generate a video" do
             preview, crop, sample = subject.generate_resizes(@file, @upload)
             assert_operator(File.size(preview.path), :>, 0)
             assert_operator(File.size(crop.path), :>, 0)
-            assert_equal(150, ImageSpec.new(preview.path).width)
-            assert_equal(150, ImageSpec.new(preview.path).height)
-            assert_equal(150, ImageSpec.new(crop.path).width)
-            assert_equal(150, ImageSpec.new(crop.path).height)
+            preview_image = Vips::Image.new_from_file(preview.path)
+            crop_image = Vips::Image.new_from_file(crop.path)
+            assert_equal(150, preview_image.width)
+            assert_equal(150, preview_image.height)
+            assert_equal(150, crop_image.width)
+            assert_equal(150, crop_image.height)
             preview.close
             preview.unlink
             crop.close

@@ -1,6 +1,7 @@
 class UploadsController < ApplicationController
   before_action :member_only
   before_action :janitor_only, only: [:index, :show]
+  before_action :ensure_uploads_enabled, only: [:new, :create]
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
@@ -32,10 +33,6 @@ class UploadsController < ApplicationController
   end
 
   def create
-    if DangerZone.uploads_disabled?
-      return access_denied("Uploads are disabled.")
-    end
-
     Post.transaction do
       @service = UploadService.new(upload_params)
       @upload = @service.start!
@@ -80,5 +77,11 @@ class UploadsController < ApplicationController
     permitted_params << :locked_rating if CurrentUser.is_privileged?
 
     params.require(:upload).permit(permitted_params).merge(uploader_id: CurrentUser.id, uploader_ip_addr: CurrentUser.ip_addr)
+  end
+
+  def ensure_uploads_enabled
+    if DangerZone.uploads_disabled?(CurrentUser.user)
+      access_denied "Uploads are disabled"
+    end
   end
 end

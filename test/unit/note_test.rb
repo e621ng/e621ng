@@ -77,7 +77,8 @@ class NoteTest < ActiveSupport::TestCase
       end
 
       should "update the post's last_noted_at field" do
-        @note.update(x: 500)
+        assert_nil(@post.last_noted_at)
+        @note = create(:note, post: @post)
         @post.reload
         assert_equal(@post.last_noted_at, @note.updated_at)
       end
@@ -112,10 +113,12 @@ class NoteTest < ActiveSupport::TestCase
       end
 
       should "update the post's last_noted_at field" do
-        assert_nil(@post.last_noted_at)
-        @note.update(:x => 500)
-        @post.reload
-        assert_equal(@post.last_noted_at.to_i, @note.updated_at.to_i)
+        assert_equal(@post.last_noted_at, @note.updated_at)
+        Timecop.travel(1.day.from_now) do
+          @note.update(x: 500)
+          @post.reload
+          assert_equal(@post.last_noted_at, @note.updated_at)
+        end
       end
 
       should "create a version" do

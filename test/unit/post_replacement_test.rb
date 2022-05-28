@@ -146,7 +146,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       end
     end
 
-
     should "update post with new image" do
       old_md5 = @post.md5
       @replacement.approve! penalize_current_uploader: true
@@ -248,6 +247,18 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal [], @replacement.errors.full_messages
       @replacement.approve! penalize_current_uploader: false
       assert_equal ["Status must be pending or original to approve"], @replacement.errors.full_messages
+    end
+
+    context "update the duration" do
+      setup do
+        @replacement = FactoryBot.create(:webm_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      end
+
+      should "when the replacement is a video" do
+        @replacement.approve! penalize_current_uploader: false
+        @post.reload
+        assert @post.duration
+      end
     end
   end
 

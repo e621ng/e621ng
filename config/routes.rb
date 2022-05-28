@@ -24,8 +24,7 @@ Rails.application.routes.draw do
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
-        put :enable_uploads
-        put :disable_uploads
+        put :uploading_limits
       end
     end
   end
@@ -176,7 +175,7 @@ Rails.application.routes.draw do
       get :is_allowed
     end
   end
-  resources :email_blacklists
+  resources :email_blacklists, only: [:new, :create, :destroy, :index]
   resource :iqdb_queries, :only => [:show] do
     collection do
       post :show

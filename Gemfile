@@ -42,9 +42,6 @@ gem 'net-smtp'
 gem 'net-pop'
 gem 'net-imap'
 
-# needed for looser jpeg header compat
-gem 'ruby-imagespec', :require => "image_spec", :git => "https://github.com/r888888888/ruby-imagespec.git", :branch => "exif-fixes"
-
 group :production, :staging do
   gem 'unicorn', :platforms => :ruby
 end
@@ -55,7 +52,6 @@ group :production do
 end
 
 group :development, :test do
-  gem 'awesome_print'
   gem 'pry-byebug'
   gem 'listen'
   gem 'puma'
@@ -67,9 +63,7 @@ group :test do
   gem "factory_bot"
   gem "mocha", :require => "mocha/minitest"
   gem "ffaker"
-  gem "simplecov", :require => false
   gem "timecop"
   gem "webmock"
-  gem "minitest-ci"
   gem "mock_redis"
 end

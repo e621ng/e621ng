@@ -76,8 +76,7 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "remove the post from iqdb" do
-        mock_iqdb_service!
-
+        @post.expects(:remove_iqdb_async).once
         @post.expunge!
       end
 
@@ -2255,8 +2254,8 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.large_file_url)
-      assert_equal("https://#{Socket.gethostname}/data/deadbeef.gif", @post.file_url)
+      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end
 

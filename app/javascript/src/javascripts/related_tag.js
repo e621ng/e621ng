@@ -19,25 +19,16 @@ RelatedTag.initialize_all = function() {
 }
 
 import TagEditor from './tag_editor.vue';
-import Vue from 'vue';
+import { createApp } from 'vue';
 
 RelatedTag.tag_editor_setup = false;
 RelatedTag.init_post_show_editor = function() {
   if (RelatedTag.tag_editor_setup)
     return;
   RelatedTag.tag_editor_setup = true;
-  const app = new Vue({
-    render: (h) => h(TagEditor)
-  });
 
-  app.$mount('#tag-string-editor');
-  setTimeout(function() {
-    // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
-    const el = app.$children[0].$refs['otherTags'];
-    el.style.height = el.scrollHeight + "px";
-    el.focus();
-    el.scrollIntoView();
-  }, 20);
+  const app = createApp(TagEditor);
+  app.mount('#tag-string-editor');
 }
 
 RelatedTag.on_click_related_tags_button = function (event) {

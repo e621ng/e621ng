@@ -17,7 +17,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
     context "#create" do
       should "succeed" do
         assert_difference("BulkUpdateRequest.count", 1) do
-          post_auth bulk_update_requests_path, @user, params: {bulk_update_request: {script: "create alias aaa -> bbb", title: "xxx"}}
+          post_auth bulk_update_requests_path, @user, params: { bulk_update_request: { script: "create alias aaa -> bbb", title: "xxx", reason: "xxxxx" } }
         end
       end
     end

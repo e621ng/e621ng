@@ -13,7 +13,7 @@ class TagAliasRequestsController < ApplicationController
     elsif @tag_alias_request.forum_topic
       redirect_to forum_topic_path(@tag_alias_request.forum_topic)
     else
-      redirect_to tag_alias_path(@tag_alias_request.tag_alias)
+      redirect_to tag_alias_path(@tag_alias_request.tag_relationship)
     end
   end
 
