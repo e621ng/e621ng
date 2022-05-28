@@ -10,7 +10,7 @@
     <% if @post_set && @post_set.id %>
       <li>|</li>
       <%= subnav_link_to "Posts", posts_path(tags: "set:#{@post_set.shortname}") %>
-      <%= subnav_link_to "Maintainers", action: "maintainers", id: params[:id] %>
+      <%= subnav_link_to "Maintainers", maintainers_post_set_path(@post_set) %>
 
       <% if @post_set.is_owner?(CurrentUser.user) || CurrentUser.is_admin? %>
         <%= subnav_link_to "Edit", edit_post_set_path(@post_set) %>

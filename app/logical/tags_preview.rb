@@ -36,7 +36,7 @@ class TagsPreview
     end
   end
 
-  def serializable_hash(**options)
+  def serializable_hash(*)
     @tags
   end
 end
