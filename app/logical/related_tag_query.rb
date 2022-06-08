@@ -37,7 +37,7 @@ class RelatedTagQuery
     tags_with_categories(tags)
   end
 
-  def serializable_hash(options)
+  def serializable_hash(*)
     {
       query: query,
       category: category,

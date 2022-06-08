@@ -38,6 +38,9 @@ gem 'elasticsearch-rails'
 
 gem 'mailgun-ruby'
 gem 'resolv'
+gem 'net-smtp'
+gem 'net-pop'
+gem 'net-imap'
 
 group :production, :staging do
   gem 'unicorn', :platforms => :ruby
@@ -48,13 +51,10 @@ group :production do
   gem 'newrelic_rpm'
 end
 
-group :development do
-  gem 'sinatra'
-end
-
 group :development, :test do
   gem 'pry-byebug'
   gem 'listen'
+  gem 'puma'
 end
 
 group :test do
