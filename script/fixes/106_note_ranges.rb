@@ -13,3 +13,11 @@ end
 Note.joins(:post).includes(:post).where("y + height > posts.image_height").find_each do |note|
   note.update_column(:height, note.post.image_height - note.y)
 end
+
+Note.joins(:post).includes(:post).where("x > posts.image_width").find_each do |note|
+  note.update_column(:x, note.post.image_width)
+end
+
+Note.joins(:post).includes(:post).where("y > posts.image_height").find_each do |note|
+  note.update_column(:y, note.post.image_height)
+end
