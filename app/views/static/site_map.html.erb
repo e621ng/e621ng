@@ -116,11 +116,11 @@
         <% if CurrentUser.is_admin? %>
           <li><%= link_to("Admin Dashboard", admin_dashboard_path) %></li>
           <li><%= link_to("Email Blacklist", email_blacklists_path) %></li>
-          <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
           <li><%= link_to("Post Report Reasons", post_report_reasons_path) %></li>
           <li><%= link_to("Alias & Implication Import", new_admin_alias_and_implication_import_path) %></li>
           <li><%= link_to("Danger Zone", admin_danger_zone_index_path) %></li>
         <% end %>
+          <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
         <% end %>
