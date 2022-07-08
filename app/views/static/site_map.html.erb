@@ -120,10 +120,10 @@
           <li><%= link_to("Alias & Implication Import", new_admin_alias_and_implication_import_path) %></li>
           <li><%= link_to("Danger Zone", admin_danger_zone_index_path) %></li>
         <% end %>
-          <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
         <% end %>
+        <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
         <li><%= link_to("Mod Actions", mod_actions_path) %></li>
         <li><%= link_to("Bulk Update Requests", bulk_update_requests_path) %></li>
         <li><%= link_to("Takedowns", takedowns_path) %></li>
