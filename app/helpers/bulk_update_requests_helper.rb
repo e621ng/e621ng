@@ -78,13 +78,13 @@ module BulkUpdateRequestsHelper
     output = Cache.get(Cache.hash((CurrentUser.is_moderator? ? "mod" : "") + script), 3600) do
       script_tokenized = AliasAndImplicationImporter.tokenize(script)
       script_tags = collect_script_tags(script_tokenized)
-      escaped_script = script_tokenized.map do |cmd, arg1, arg2|
+      script_tokenized.map do |cmd, arg1, arg2|
         if approved?(cmd, arg1, arg2)
-          btag = '<s class="approved">'
-          etag = '</s>'
+          btag = "[color=green][s]"
+          etag = "[/s][/color]"
         elsif failed?(cmd, arg1, arg2)
-          btag = '<s class="failed">'
-          etag = "</s>"
+          btag = '[color=red][s]'
+          etag = "[/s][/color]"
         else
           btag = nil
           etag = nil
@@ -95,25 +95,23 @@ module BulkUpdateRequestsHelper
           arg1_count = script_tags[arg1].try(:post_count).to_i
           arg2_count = script_tags[arg2].try(:post_count).to_i
 
-          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+          "#{btag}#{command_to_string(cmd)} [[#{arg1}]] (#{arg1_count}) -> [[#{arg2}]] (#{arg2_count})#{etag}"
 
         when :mass_update
-          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + "#{etag}"
+          "#{btag}#{command_to_string(cmd)} [[#{arg1}]] -> [[#{arg2}]]#{etag}"
 
         when :change_category
           arg1_count = script_tags[arg1].try(:post_count).to_i
 
-          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; (#{arg2})#{etag}"
+          "#{btag}#{command_to_string(cmd)} [[#{arg1}]] (#{arg1_count}) -> #{arg2}#{etag}"
 
         end
       end.join("\n")
 
-      escaped_script.gsub(/\n/m, "<br>")
     rescue AliasAndImplicationImporter::Error
       "!!!!!!Invalid Script!!!!!!"
     end
 
-    output.html_safe
-
+    format_text output, allow_color: true
   end
 end
