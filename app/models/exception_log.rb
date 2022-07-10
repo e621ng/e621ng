@@ -10,10 +10,14 @@ class ExceptionLog < ApplicationRecord
         message: exc.message,
         trace: exc.backtrace.join("\n"),
         code: SecureRandom.uuid,
-        version: "#{Danbooru.config.version} (#{Rails.application.config.x.git_hash})",
+        version: Rails.application.config.x.git_hash,
         extra_params: params
     )
     log.save!
     log
+  end
+
+  def user
+    User.find_by(id: extra_params["user_id"])
   end
 end

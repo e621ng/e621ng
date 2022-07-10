@@ -3,7 +3,7 @@
   <tr>
     <th style="width: 200px">Created At</th>
     <th>Code</th>
-    <th style="width: 100px">Version</th>
+    <th style="width: 100px">Commit</th>
     <th>Class Name</th>
     <th>Message</th>
     <th>Stacktrace</th>
@@ -14,7 +14,7 @@
     <tr style="cursor: click;">
       <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
       <td><%= exception_log.code %></td>
-      <td><%= exception_log.version %></td>
+      <td><%= link_to exception_log.version, Danbooru.config.commit_url(exception_log.version) %></td>
       <td><%= exception_log.class_name %></td>
       <td><%= exception_log.message %></td>
       <td>
