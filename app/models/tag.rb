@@ -90,11 +90,15 @@ class Tag < ApplicationRecord
       end
 
       def increment_post_counts(tag_names)
+        return if tag_names.empty?
+
         Tag.where(name: tag_names).order(:name).lock("FOR UPDATE").pluck(1)
         Tag.where(name: tag_names).update_all("post_count = post_count + 1")
       end
 
       def decrement_post_counts(tag_names)
+        return if tag_names.empty?
+
         Tag.where(name: tag_names).order(:name).lock("FOR UPDATE").pluck(1)
         Tag.where(name: tag_names).update_all("post_count = post_count - 1")
       end

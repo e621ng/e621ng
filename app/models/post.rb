@@ -453,19 +453,20 @@ class Post < ApplicationRecord
     end
 
     def decrement_tag_post_counts
-      Tag.where(:name => tag_array).update_all("post_count = post_count - 1") if tag_array.any?
+      Tag.decrement_post_counts(tag_array)
+    end
+
+    def increment_tag_post_counts
+      Tag.increment_post_counts(tag_array)
     end
 
     def update_tag_post_counts
-      decrement_tags = tag_array_was - tag_array
+      return if is_deleted?
 
+      decrement_tags = tag_array_was - tag_array
       increment_tags = tag_array - tag_array_was
-      if increment_tags.any?
-        Tag.increment_post_counts(increment_tags)
-      end
-      if decrement_tags.any?
-        Tag.decrement_post_counts(decrement_tags)
-      end
+      Tag.increment_post_counts(increment_tags)
+      Tag.decrement_post_counts(decrement_tags)
     end
 
     def set_tag_count(category, tagcount)
@@ -1291,10 +1292,11 @@ class Post < ApplicationRecord
           end
 
           update(
-              is_deleted: true,
-              is_pending: false,
-              is_flagged: false
+            is_deleted: true,
+            is_pending: false,
+            is_flagged: false
           )
+          decrement_tag_post_counts
           move_files_on_delete
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
@@ -1327,7 +1329,8 @@ class Post < ApplicationRecord
       transaction do
         self.is_deleted = false
         self.approver_id = CurrentUser.id
-        flags.each {|x| x.resolve!}
+        flags.each { |x| x.resolve! }
+        increment_tag_post_counts
         save
         approvals.create(user: CurrentUser.user)
         PostEvent.add(id, CurrentUser.user, :undeleted)
