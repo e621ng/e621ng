@@ -39,6 +39,23 @@ module BulkUpdateRequestsHelper
     end
   end
 
+  def script_with_links(script)
+    tokens = AliasAndImplicationImporter.tokenize(script)
+    lines = tokens.map do |token|
+      case token[0]
+      when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update
+        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
+
+      when :change_category
+        "category [[#{token[1]}]] -> #{token[2]} #{token[3]}"
+
+      else
+        raise "Unknown token: #{token[0]}"
+      end
+    end
+    lines.join("\n")
+  end
+
   def collect_script_tags(tokenized)
     names = ::Set.new()
     tokenized.each do |cmd, arg1, arg2|

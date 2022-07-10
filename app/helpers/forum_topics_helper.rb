@@ -22,9 +22,9 @@ module ForumTopicsHelper
 
     if obj.is_a?(BulkUpdateRequest)
       if obj.script.size < 700
-        embedded_script = obj.script_with_links
+        embedded_script = script_with_links(obj.script)
       else
-        embedded_script = "[section]#{obj.script_with_links}[/section]"
+        embedded_script = "[section]#{script_with_links(obj.script)}[/section]"
       end
 
       if obj.is_approved?
