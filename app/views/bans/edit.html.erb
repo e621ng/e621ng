@@ -2,14 +2,7 @@
   <div id="a-edit">
     <h1>Edit Ban</h1>
 
-    <%= simple_form_for(@ban) do |f| %>
-      <%= error_messages_for("ban") %>
-
-      <%= f.input :duration, :hint => "in days" %>
-      <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
-      <%= f.input :reason %>
-      <%= f.button :submit, :value => "Ban" %>
-    <% end %>
+    <%= render "form", ban: @ban%>
   </div>
 </div>
 
