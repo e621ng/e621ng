@@ -146,7 +146,7 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def bulk_update_request_link
-      %{"bulk update request ##{id}":/bulk_update_requests?search%5Bid%5D=#{id}}
+      %("bulk update request ##{id}":/bulk_update_requests/#{id})
     end
   end
 
@@ -209,23 +209,6 @@ class BulkUpdateRequest < ApplicationRecord
 
   def reason_with_link
     "[bur:#{id}]\n\nReason: #{reason}"
-  end
-
-  def script_with_links
-    tokens = AliasAndImplicationImporter.tokenize(script)
-    lines = tokens.map do |token|
-      case token[0]
-      when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update
-        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
-
-      when :change_category
-        "category [[#{token[1]}]] -> #{token[2]} #{token[3]}"
-
-      else
-        raise "Unknown token: #{token[0]}"
-      end
-    end
-    lines.join("\n")
   end
 
   def initialize_attributes

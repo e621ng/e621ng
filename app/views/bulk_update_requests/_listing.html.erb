@@ -21,7 +21,7 @@
             <%= link_to(request.forum_topic_id, forum_topic_path(request.forum_topic_id)) %>
           <% end %>
         </td>
-        <td><%= script_with_line_breaks(request.script) %></td>
+        <td><%= format_text script_with_line_breaks(request, with_decorations: true), allow_color: true %></td>
         <td id="request-status-for-<%= request.id %>"><%= request.status %></td>
         <td>
           <%= link_to "Show", bulk_update_request_path(request) %> |
