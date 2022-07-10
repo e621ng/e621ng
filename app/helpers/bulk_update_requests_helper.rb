@@ -39,15 +39,19 @@ module BulkUpdateRequestsHelper
     end
   end
 
+  def command_to_string(command)
+    command.to_s.tr("_", " ")
+  end
+
   def script_with_links(script)
     tokens = AliasAndImplicationImporter.tokenize(script)
     lines = tokens.map do |token|
       case token[0]
       when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update
-        "#{token[0].to_s.tr("_", " ")} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
+        "#{command_to_string(token[0])} [[#{token[1]}]] -> [[#{token[2]}]] #{token[3]}"
 
       when :change_category
-        "category [[#{token[1]}]] -> #{token[2]} #{token[3]}"
+        "#{command_to_string(token[0])} [[#{token[1]}]] -> #{token[2]} #{token[3]}"
 
       else
         raise "Unknown token: #{token[0]}"
@@ -75,52 +79,31 @@ module BulkUpdateRequestsHelper
       script_tokenized = AliasAndImplicationImporter.tokenize(script)
       script_tags = collect_script_tags(script_tokenized)
       escaped_script = script_tokenized.map do |cmd, arg1, arg2|
-        case cmd
-        when :create_alias, :create_implication, :remove_alias, :remove_implication, :mass_update, :change_category
-          if approved?(cmd, arg1, arg2)
-            btag = '<s class="approved">'
-            etag = '</s>'
-          elsif failed?(cmd, arg1, arg2)
-            btag = '<s class="failed">'
-            etag = "</s>"
-          else
-            btag = nil
-            etag = nil
-          end
+        if approved?(cmd, arg1, arg2)
+          btag = '<s class="approved">'
+          etag = '</s>'
+        elsif failed?(cmd, arg1, arg2)
+          btag = '<s class="failed">'
+          etag = "</s>"
+        else
+          btag = nil
+          etag = nil
         end
 
         case cmd
-        when :create_alias
+        when :create_alias, :create_implication, :remove_alias, :remove_implication
           arg1_count = script_tags[arg1].try(:post_count).to_i
           arg2_count = script_tags[arg2].try(:post_count).to_i
 
-          "#{btag}create alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-        when :create_implication
-          arg1_count = script_tags[arg1].try(:post_count).to_i
-          arg2_count = script_tags[arg2].try(:post_count).to_i
-
-          "#{btag}create implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-        when :remove_alias
-          arg1_count = script_tags[arg1].try(:post_count).to_i
-          arg2_count = script_tags[arg2].try(:post_count).to_i
-
-          "#{btag}remove alias " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
-
-        when :remove_implication
-          arg1_count = script_tags[arg1].try(:post_count).to_i
-          arg2_count = script_tags[arg2].try(:post_count).to_i
-
-          "#{btag}remove implication " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
+          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + " (#{arg2_count})#{etag}"
 
         when :mass_update
-          "#{btag}mass update " + link_to(arg1, posts_path(:tags => arg1)) + " -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + "#{etag}"
+          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " -&gt; " + link_to(arg2, posts_path(:tags => arg2)) + "#{etag}"
 
         when :change_category
           arg1_count = script_tags[arg1].try(:post_count).to_i
 
-          "#{btag}category " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; (#{arg2})#{etag}"
+          "#{btag}#{command_to_string(cmd)} " + link_to(arg1, posts_path(:tags => arg1)) + " (#{arg1_count}) -&gt; (#{arg2})#{etag}"
 
         end
       end.join("\n")
