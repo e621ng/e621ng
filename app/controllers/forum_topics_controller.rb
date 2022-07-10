@@ -8,8 +8,8 @@ class ForumTopicsController < ApplicationController
   skip_before_action :api_check
 
   def new
-    @forum_topic = ForumTopic.new
-    @forum_topic.original_post = ForumPost.new
+    @forum_topic = ForumTopic.new(forum_topic_params)
+    @forum_topic.original_post = ForumPost.new(forum_topic_params[:original_post_attributes])
     respond_with(@forum_topic)
   end
 
@@ -46,13 +46,13 @@ class ForumTopicsController < ApplicationController
   end
 
   def create
-    @forum_topic = ForumTopic.create(forum_topic_params(:create))
+    @forum_topic = ForumTopic.create(forum_topic_params)
     respond_with(@forum_topic)
   end
 
   def update
     check_privilege(@forum_topic)
-    @forum_topic.assign_attributes(forum_topic_params(:update))
+    @forum_topic.assign_attributes(forum_topic_params)
     @forum_topic.save touch: false
     respond_with(@forum_topic)
   end
@@ -142,10 +142,10 @@ private
     raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
   end
 
-  def forum_topic_params(context)
+  def forum_topic_params
     permitted_params = [:title, :category_id, { original_post_attributes: %i[id body] }]
     permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
 
-    params.require(:forum_topic).permit(permitted_params)
+    params.fetch(:forum_topic, {}).permit(permitted_params)
   end
 end
