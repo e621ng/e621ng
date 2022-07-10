@@ -1338,6 +1338,10 @@ class Post < ApplicationRecord
       move_files_on_undelete
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
+
+    def deletion_flag
+      flags.order(id: :desc).first
+    end
   end
 
   module VersionMethods
