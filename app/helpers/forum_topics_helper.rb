@@ -28,11 +28,11 @@ module ForumTopicsHelper
       end
 
       if obj.is_approved?
-        return "The bulk update request ##{obj.id} is active.\n\n#{embedded_script}"
+        return "The #{obj.bulk_update_request_link} is active.\n\n#{embedded_script}"
       elsif obj.is_pending?
-        return "The \"bulk update request ##{obj.id}\":/bulk_update_requests/#{obj.id} is pending approval.\n\n#{embedded_script}"
+        return "The #{obj.bulk_update_request_link} is pending approval.\n\n#{embedded_script}"
       elsif obj.is_rejected?
-        return "The bulk update request ##{obj.id} has been rejected.\n\n#{embedded_script}"
+        return "The #{obj.bulk_update_request_link} has been rejected.\n\n#{embedded_script}"
       end
     end
   end

@@ -146,7 +146,7 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def bulk_update_request_link
-      %{"bulk update request ##{id}":/bulk_update_requests?search%5Bid%5D=#{id}}
+      %("bulk update request ##{id}":/bulk_update_requests/#{id})
     end
   end
 
