@@ -556,7 +556,7 @@ class User < ApplicationRecord
     end
 
     def can_view_staff_notes?
-      is_moderator?
+      is_janitor?
     end
 
     def can_upload?
