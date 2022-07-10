@@ -24,7 +24,7 @@
             <% if @ticket.claimant.nil? %>
               <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
             <% else %>
-              <td id="claimed_by"><%= @ticket.claimant.name %>
+              <td id="claimed_by"><%= link_to_user @ticket.claimant %>
                 <% if @ticket.claimant.id == CurrentUser.id %> | <%= link_to 'Unclaim', unclaim_ticket_path(@ticket), method: :post %><% end %></td>
             <% end %>
           </tr>
