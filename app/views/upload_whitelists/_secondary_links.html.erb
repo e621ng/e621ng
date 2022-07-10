@@ -4,5 +4,7 @@
     <% if CurrentUser.is_admin? %>
       <%= subnav_link_to "New", new_upload_whitelist_path %>
     <% end %>
+    <%= subnav_link_to "Requests", forum_topic_path(id: 22269) %>
+    <%= subnav_link_to "Help", help_page_path(id: "upload_whitelist") %>
   </menu>
 <% end %>
