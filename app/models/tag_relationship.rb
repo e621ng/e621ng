@@ -137,11 +137,11 @@ class TagRelationship < ApplicationRecord
       end
 
       if params[:antecedent_tag_category].present?
-        q = q.joins(:antecedent_tag).where("tags.category": params[:antecedent_tag_category])
+        q = q.joins(:antecedent_tag).where("antecedent_tag.category": params[:antecedent_tag_category])
       end
 
       if params[:consequent_tag_category].present?
-        q = q.joins(:consequent_tag).where("tags.category": params[:consequent_tag_category])
+        q = q.joins(:consequent_tag).where("consequent_tag.category": params[:consequent_tag_category])
       end
 
       if params[:creator_name].present?
