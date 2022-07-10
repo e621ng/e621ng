@@ -23,7 +23,7 @@
               <div class="dtext-container">
                 <%= format_text(feedback.body) %>
               </div>
-              <%= render "application/update_notice", record: feedback, interval: 0.minutes %>
+              <%= render "application/update_notice", record: feedback %>
             </td>
             <td>
               <% if feedback.editable_by?(CurrentUser.user) %>
