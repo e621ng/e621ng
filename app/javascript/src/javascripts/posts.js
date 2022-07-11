@@ -17,7 +17,6 @@ Post.initialize_all = function() {
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
-    this.initialize_excerpt();
     this.initialize_gestures();
   }
 
@@ -667,33 +666,6 @@ Post.initialize_change_resize_mode_link = function() {
     Post.resize_to('fit');
   }); // For top panel
   Utility.keydown('v', 'resize', Post.resize_cycle_mode);
-}
-
-Post.initialize_excerpt = function() {
-  $("#excerpt").hide();
-
-  $("#show-posts-link").on("click.danbooru", function(e) {
-    $("#show-posts-link").parent("li").addClass("active");
-    $("#show-excerpt-link").parent("li").removeClass("active");
-    $("#posts").show();
-    $("#excerpt").hide();
-    e.preventDefault();
-  });
-
-  $("#show-excerpt-link").on("click.danbooru", function(e) {
-    if ($(this).parent("li").hasClass("active")) {
-      return;
-    }
-    $("#show-posts-link").parent("li").removeClass("active");
-    $("#show-excerpt-link").parent("li").addClass("active");
-    $("#posts").hide();
-    $("#excerpt").show();
-    e.preventDefault();
-  });
-
-  if (!$(".post-preview").length && /Nobody here but us chickens/.test($("#posts").html())) {
-    $("#show-excerpt-link").click();
-  }
 }
 
 Post.initialize_post_sections = function() {

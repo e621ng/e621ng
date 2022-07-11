@@ -70,10 +70,6 @@ module PostSets
       @post_set_name ||= Tag.has_metatag?(tag_array, :set)
     end
 
-    def has_post_set?
-      is_single_tag? && post_set_name && post_set
-    end
-
     def post_set
       ::PostSet.find_by_shortname(post_set_name)
     end
@@ -88,10 +84,6 @@ module PostSets
 
     def login_blocked_posts
       @login_blocked ||= posts.select { |p| p.loginblocked? }
-    end
-
-    def deleted_posts
-      @deleted_posts ||= posts.select { |p| p.deleteblocked? }
     end
 
     def safe_posts
