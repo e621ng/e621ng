@@ -15,7 +15,6 @@ class Pool < ApplicationRecord
   validates :category, inclusion: { :in => %w(series collection) }
   validate :updater_can_change_category
   validate :updater_can_remove_posts
-  validate :updater_can_edit_deleted
   validate :validate_number_of_posts
   before_validation :normalize_post_ids
   before_validation :normalize_name
@@ -33,14 +32,6 @@ class Pool < ApplicationRecord
   module SearchMethods
     def for_user(id)
       where("pools.creator_id = ?", id)
-    end
-
-    def deleted
-      where("pools.is_deleted = true")
-    end
-
-    def undeleted
-      where("pools.is_deleted = false")
     end
 
     def series
@@ -95,7 +86,6 @@ class Pool < ApplicationRecord
       end
 
       q = q.attribute_matches(:is_active, params[:is_active])
-      q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
       case params[:order]
       when "name"
@@ -218,18 +208,8 @@ class Pool < ApplicationRecord
     user.is_janitor?
   end
 
-  def updater_can_edit_deleted
-    if is_deleted? && !deletable_by?(CurrentUser.user)
-      errors.add(:base, "You cannot update pools that are deleted")
-    end
-  end
-
   def create_mod_action_for_delete
     ModAction.log(:pool_delete, {pool_id: id, pool_name: name, user_id: creator_id})
-  end
-
-  def create_mod_action_for_undelete
-    ModAction.log(:pool_undelete, {pool_id: id, pool_name: name, user_id: creator_id})
   end
 
   def validate_number_of_posts
@@ -248,14 +228,13 @@ class Pool < ApplicationRecord
     return if post.nil?
     return if post.id.nil?
     return if contains?(post.id)
-    return if is_deleted?
 
     with_lock do
       reload
       self.skip_sync = true
       update(post_ids: post_ids + [post.id])
       self.skip_sync = false
-      post.add_pool!(self, true)
+      post.add_pool!(self)
       post.save
     end
   end
@@ -263,7 +242,6 @@ class Pool < ApplicationRecord
   def add(id)
     return if id.nil?
     return if contains?(id)
-    return if is_deleted?
 
     self.post_ids << id
   end
@@ -303,7 +281,7 @@ class Pool < ApplicationRecord
     removed = post_ids_before - post_ids
 
     Post.where(id: added).find_each do |post|
-      post.add_pool!(self, true)
+      post.add_pool!(self)
       post.save
     end
 
