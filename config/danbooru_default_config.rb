@@ -279,10 +279,6 @@ fart'
     def tag_type_change_cutoff
       100
     end
-    # Determines who can see ads.
-    def can_see_ads?(user)
-      !user.is_privileged?
-    end
 
     # Users cannot search for more than X regular tags at a time.
     def base_tag_query_limit
@@ -809,10 +805,6 @@ fart'
           ["https://static1.e621.net/data/mascot_bg/evalionfix.jpg", "#012e57", "<a href='http://www.furaffinity.net/user/evalion'>evalion</a>"],
           ["https://static1.e621.net/data/mascot_bg/peacock.png", "#012e57", "<a href='http://www.furaffinity.net/user/ratte'>Ratte</a>"]
       ]
-    end
-
-    def metrika_enabled?
-      false
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so

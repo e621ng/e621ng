@@ -58,8 +58,8 @@ class Post < ApplicationRecord
   has_many :favorites
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
-  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :has_constraints, :disable_versioning,
-                :view_count, :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
+  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
+                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostArchive", :dependent => :destroy
 
@@ -76,10 +76,6 @@ class Post < ApplicationRecord
 
         Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
       end
-    end
-
-    def queue_delete_files(grace_period)
-      DeletePostFilesJob.set(wait: grace_period).perform_later(id, md5, file_ext)
     end
 
     def delete_files
@@ -286,22 +282,6 @@ class Post < ApplicationRecord
       end
     end
 
-    def image_width_for(user)
-      if user.default_image_size == "large"
-        large_image_width
-      else
-        image_width
-      end
-    end
-
-    def image_height_for(user)
-      if user.default_image_size == "large"
-        large_image_height
-      else
-        image_height
-      end
-    end
-
     def resize_percentage
       100 * large_image_width.to_f / image_width.to_f
     end
@@ -337,10 +317,6 @@ class Post < ApplicationRecord
       PostEvent.add(id, CurrentUser.user, :approved)
       update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
       approv
-    end
-
-    def disapproval_by(user)
-      PostDisapproval.where(user_id: user.id, post_id: id).first
     end
   end
 
@@ -879,10 +855,6 @@ class Post < ApplicationRecord
 
 
   module FavoriteMethods
-    def clean_fav_string?
-      true
-    end
-
     def clean_fav_string!
       array = fav_string.split.uniq
       self.fav_string = array.join(" ")
@@ -1006,10 +978,6 @@ class Post < ApplicationRecord
       pool_string =~ /(?:\A| )pool:#{pool.id}(?:\Z| )/
     end
 
-    def belongs_to_pool_with_id?(pool_id)
-      pool_string =~ /(?:\A| )pool:#{pool_id}(?:\Z| )/
-    end
-
     def add_pool!(pool, force = false)
       return if belongs_to_pool?(pool)
       return if pool.is_deleted? && !force
@@ -1036,10 +1004,6 @@ class Post < ApplicationRecord
   end
 
   module VoteMethods
-    def can_be_voted_by?(user)
-      !PostVote.exists?(:user_id => user.id, :post_id => id)
-    end
-
     def own_vote(user = CurrentUser.user)
       return nil unless user
       votes.where('user_id = ?', user.id).first

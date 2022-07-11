@@ -16,10 +16,6 @@ module Danbooru
         string
       end
 
-      def to_escaped_for_tsquery_split
-        scan(/\S+/).map {|x| x.to_escaped_for_tsquery}.join(" & ")
-      end
-
       def to_escaped_for_tsquery
         "'#{gsub(/\0/, '').gsub(/'/, '\0\0').gsub(/\\/, '\0\0\0\0')}'"
       end

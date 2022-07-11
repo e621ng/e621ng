@@ -117,10 +117,6 @@ class ForumPost < ApplicationRecord
       BulkUpdateRequest.where(forum_post_id: id).exists?
   end
 
-  def voted?(user, score)
-    votes.where(creator_id: user.id, score: score).exists?
-  end
-
   def validate_topic_is_unlocked
     return if CurrentUser.is_moderator?
     return if topic.nil?

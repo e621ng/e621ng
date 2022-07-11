@@ -174,16 +174,6 @@ class UserPresenter
     Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
   end
 
-  def custom_css
-    user.custom_style.to_s.split(/\r\n|\r|\n/).map do |line|
-      if line =~ /\A@import/
-        line
-      else
-        line.gsub(/([^[:space:]])[[:space:]]*(?:!important)?[[:space:]]*(;|})/, "\\1 !important\\2")
-      end
-    end.join("\n")
-  end
-
   def can_view_favorites?
     return true if CurrentUser.id == user.id
     return false if user.enable_privacy_mode? && !CurrentUser.is_admin?

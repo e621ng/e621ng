@@ -31,10 +31,6 @@ class ApplicationRecord < ActiveRecord::Base
         where("#{qualified_column_for(attr)} ~ ?", "(?e)" + value)
       end
 
-      def where_not_regex(attr, value)
-        where.not("#{qualified_column_for(attr)} ~ ?", "(?e)" + value)
-      end
-
       def attribute_exact_matches(attribute, value, **options)
         return all unless value.present?
 
@@ -198,13 +194,6 @@ class ApplicationRecord < ActiveRecord::Base
     class_methods do
       def columns(*params)
         super.reject {|x| x.sql_type == "tsvector"}
-      end
-
-      def test_connection
-        limit(1).select(:id)
-        return true
-      rescue PG::Error
-        return false
       end
     end
   end

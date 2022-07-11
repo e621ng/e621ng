@@ -1343,7 +1343,6 @@ class PostTest < ActiveSupport::TestCase
       should "periodically clean the fav_string" do
         @post.update_column(:fav_string, "fav:1 fav:1 fav:1")
         @post.update_column(:fav_count, 3)
-        @post.stubs(:clean_fav_string?).returns(true)
         @post.append_user_to_fav_string(2)
         assert_equal("fav:1 fav:2", @post.fav_string)
         assert_equal(2, @post.fav_count)

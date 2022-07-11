@@ -9,8 +9,6 @@ class TagRelationship < ApplicationRecord
   belongs_to :forum_topic, optional: true
   belongs_to :antecedent_tag, class_name: "Tag", foreign_key: "antecedent_name", primary_key: "name", default: -> { Tag.find_or_create_by_name(antecedent_name) }
   belongs_to :consequent_tag, class_name: "Tag", foreign_key: "consequent_name", primary_key: "name", default: -> { Tag.find_or_create_by_name(consequent_name) }
-  has_one :antecedent_wiki, through: :antecedent_tag, source: :wiki_page
-  has_one :consequent_wiki, through: :consequent_tag, source: :wiki_page
 
   scope :active, ->{approved}
   scope :approved, ->{where(status: %w[active processing queued])}
@@ -197,10 +195,6 @@ class TagRelationship < ApplicationRecord
 
     def retirement_message
       "The #{relationship} [[#{antecedent_name}]] -> [[#{consequent_name}]] #{forum_link} has been retired."
-    end
-
-    def date_timestamp
-      Time.now.strftime("%Y-%m-%d")
     end
 
     def forum_link

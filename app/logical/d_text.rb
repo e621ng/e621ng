@@ -2,8 +2,6 @@ require 'cgi'
 require 'uri'
 
 class DText
-  MENTION_REGEXP = /(?<=^| )@\S+/
-
   def self.quote(message, creator_name)
     stripped_body = DText.strip_blocks(message, "quote")
     "[quote]\n#{creator_name} said:\n\n#{stripped_body}\n[/quote]\n\n"

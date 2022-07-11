@@ -14,15 +14,9 @@
 module Sources
   module Strategies
     class Base
-      attr_reader :url, :urls, :parsed_url, :parsed_urls
+      attr_reader :url, :urls, :parsed_url
 
       extend Memoist
-
-      # Should return true if all prerequisites for using the strategy are met.
-      # Return false if the strategy requires api keys that have not been configured.
-      def self.enabled?
-        true
-      end
 
       # * <tt>url</tt> - Should point to a resource suitable for 
       #   downloading. This may sometimes point to the binary file. 
@@ -35,7 +29,6 @@ module Sources
         @urls = [url].select(&:present?)
 
         @parsed_url = Addressable::URI.heuristic_parse(url) rescue nil
-        @parsed_urls = [parsed_url].select(&:present?)
       end
 
       # Should return true if this strategy should be used. By default, checks
@@ -119,19 +112,6 @@ module Sources
 
       def tags
         (@tags || []).uniq
-      end
-
-      def normalized_tags
-        tags.map { |tag, url| normalize_tag(tag) }.sort.uniq
-      end
-
-      def normalize_tag(tag)
-        WikiPage.normalize_other_name(tag).downcase
-      end
-
-      # A strategy may return extra data unrelated to the file
-      def data
-        return {}
       end
 
       def to_json

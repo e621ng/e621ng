@@ -67,8 +67,6 @@ class PoolTest < ActiveSupport::TestCase
 
   context "Reverting a pool" do
     setup do
-      PoolArchive.stubs(:enabled?).returns(true)
-
       @pool = FactoryBot.create(:pool)
       @p1 = FactoryBot.create(:post)
       @p2 = FactoryBot.create(:post)

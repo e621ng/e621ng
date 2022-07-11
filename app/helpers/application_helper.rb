@@ -206,16 +206,6 @@ module ApplicationHelper
     render "dtext/form", options
   end
 
-  def search_field(method, label: method.titleize, hint: nil, value: nil, **attributes)
-    content_tag(:div, class: "input") do
-      label_html = label_tag("search_#{method}", label)
-      input_html = text_field_tag(method, value, id: "search_#{method}", name: "search[#{method}]", **attributes)
-      hint_html = hint.present? ? content_tag(:p, hint, class: "hint") : ""
-
-      label_html + input_html + hint_html
-    end
-  end
-
   def body_attributes(user = CurrentUser.user)
     attributes = [:id, :name, :level, :level_string, :can_approve_posts?, :can_upload_free?, :per_page]
     attributes += User::Roles.map { |role| :"is_#{role}?" }

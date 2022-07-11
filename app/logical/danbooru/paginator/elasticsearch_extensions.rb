@@ -53,7 +53,7 @@ module Danbooru
     module ElasticsearchExtensions
       include BaseExtension
 
-      attr_reader :total_entries, :current_page, :sequential_paginator_mode
+      attr_reader :current_page, :sequential_paginator_mode
 
       def paginate(page, options = {})
         paginated, mode = paginate_base(page, options)

@@ -92,10 +92,6 @@ class StorageManager
     raise NotImplementedError, "move_file_undelete not implemented"
   end
 
-  def move_file_replacement(post, replacement, direction)
-    raise NotImplementedError, "move_file_replacement not implemented"
-  end
-
   def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
     ip = CurrentUser.ip_addr

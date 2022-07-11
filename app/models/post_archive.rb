@@ -8,14 +8,7 @@ class PostArchive < ApplicationRecord
   before_validation :fill_version, on: :create
   before_validation :fill_changes, on: :create
 
-  #establish_connection (ENV["ARCHIVE_DATABASE_URL"] || "archive_#{Rails.env}".to_sym) if enabled?
   self.table_name = "post_versions"
-
-  def self.check_for_retry(msg)
-    if msg =~ /can't get socket descriptor/ && msg =~ /post_versions/
-      connection.reconnect!
-    end
-  end
 
   module SearchMethods
     def for_user(user_id)
@@ -322,10 +315,6 @@ class PostArchive < ApplicationRecord
 
   def unchanged_tags
     changes[:unchanged_tags].join(" ")
-  end
-
-  def truncated_source
-    source.gsub(/^http:\/\//, "").sub(/\/.+/, "")
   end
 
   def undo

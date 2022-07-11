@@ -19,41 +19,6 @@ class RelatedTagCalculator
     counts
   end
 
-  def self.calculate_similar_from_sample(tag)
-    # this uses cosine similarity to produce more useful
-    # related tags, but is more db intensive
-    counts = Hash.new {|h, k| h[k] = 0}
-
-    CurrentUser.without_safe_mode do
-      Post.with_timeout(5_000, [], {:tags => tag}) do
-        Post.tag_match("#{tag} order:random").limit(400).pluck(:tag_string).each do |tag_string|
-          tag_string.split.each do |tag|
-            counts[tag] += 1
-          end
-        end
-      end
-    end
-
-    tag_record = Tag.find_by_name(tag)
-    candidates = convert_hash_to_array(counts, 100)
-    similar_counts = Hash.new {|h, k| h[k] = 0}
-    CurrentUser.without_safe_mode do
-      Post.with_timeout(5_000, nil, {:tags => tag}) do
-        candidates.each do |ctag, _|
-          acount = Post.tag_match("#{tag} #{ctag}").count
-          ctag_record = Tag.find_by_name(ctag)
-          div = Math.sqrt(tag_record.post_count * ctag_record.post_count)
-          if div != 0
-            c = acount / div
-            similar_counts[ctag] = c
-          end
-        end
-      end
-    end
-
-    convert_hash_to_array(similar_counts)
-  end
-
   def self.calculate_from_sample(tags, sample_size, category_constraint = nil, max_results = MAX_RESULTS)
     Post.with_timeout(5_000, [], {:tags => tags}) do
       sample = Post.sample(tags, sample_size)

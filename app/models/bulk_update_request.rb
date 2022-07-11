@@ -123,10 +123,6 @@ class BulkUpdateRequest < ApplicationRecord
       self.errors.add(:base, x.to_s)
     end
 
-    def date_timestamp
-      Time.now.strftime("%Y-%m-%d")
-    end
-
     def create_forum_topic
       return if skip_forum
       if forum_topic_id

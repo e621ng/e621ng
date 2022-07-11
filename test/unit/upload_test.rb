@@ -1,8 +1,6 @@
 require 'test_helper'
 
 class UploadTest < ActiveSupport::TestCase
-  SOURCE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/NAMA_Machine_d%27Anticyth%C3%A8re_1.jpg/538px-NAMA_Machine_d%27Anticyth%C3%A8re_1.jpg?download"
-
   context "In all cases" do
     setup do
       user = FactoryBot.create(:contributor_user)

@@ -129,10 +129,6 @@ class PostSetMaintainer < ApplicationRecord
     end
   end
 
-  def maintained(user)
-    where(user_id: user.id, status: 'approved').joins(:post_set).where('post_set.is_public = true')
-  end
-
   def self.active
     where(status: 'approved')
   end

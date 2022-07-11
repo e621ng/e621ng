@@ -315,10 +315,6 @@ class User < ApplicationRecord
       UserPromotion.new(self, CurrentUser.user, new_level, options).promote!
     end
 
-    def role
-      level_string.downcase.to_sym
-    end
-
     def level_string_was
       level_string(level_was)
     end
@@ -579,10 +575,6 @@ class User < ApplicationRecord
       end
     end
 
-    def upload_limited_reason
-      User.upload_reason_string(can_upload_with_reason)
-    end
-
     def hourly_upload_limit
       Danbooru.config.hourly_upload_limit - Post.for_user(id).where("created_at >= ?", 1.hour.ago).count
     end
@@ -801,14 +793,6 @@ class User < ApplicationRecord
       end
     end
 
-    def find_for_password_reset(name, email)
-      if email.blank?
-        where("FALSE")
-      else
-        where(["name = ? AND email = ?", name, email])
-      end
-    end
-
     def search(params)
       q = super
       q = q.joins(:user_status)
@@ -914,10 +898,6 @@ class User < ApplicationRecord
 
   def as_current(&block)
     CurrentUser.as(self, &block)
-  end
-
-  def can_update?(object, foreign_key = :user_id)
-    is_moderator? || is_admin? || object.__send__(foreign_key) == id
   end
 
   def dmail_count

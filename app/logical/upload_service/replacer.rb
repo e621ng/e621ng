@@ -9,18 +9,6 @@ class UploadService
       @replacement = replacement
     end
 
-    def find_replacement_url(repl, upload)
-      if repl.replacement_file.present?
-        return "file://#{repl.file_name}"
-      end
-
-      if !upload.source.present?
-        raise ProcessingError "No source found in upload for replacement"
-      end
-
-      return upload.source
-    end
-
     def create_backup_replacement
       begin
         repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',

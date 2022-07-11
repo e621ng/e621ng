@@ -169,10 +169,6 @@ class ForumTopic < ApplicationRecord
     self.is_hidden = false if is_hidden.nil?
   end
 
-  def page_for(post_id)
-    (posts.where("id < ?", post_id).count / Danbooru.config.posts_per_page.to_f).ceil
-  end
-
   def last_page
     (response_count / Danbooru.config.posts_per_page.to_f).ceil
   end

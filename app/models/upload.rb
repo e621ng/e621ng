@@ -77,10 +77,6 @@ class Upload < ApplicationRecord
   end
 
   module SearchMethods
-    def uploaded_by(user_id)
-      where("uploader_id = ?", user_id)
-    end
-
     def pending
       where(:status => "pending")
     end

@@ -4,7 +4,7 @@ class PostReplacement < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
   belongs_to :uploader_on_approve, class_name: "User", foreign_key: :uploader_id_on_approve, optional: true
-  attr_accessor :replacement_file, :replacement_url, :final_source, :tags, :is_backup
+  attr_accessor :replacement_file, :replacement_url, :tags, :is_backup
 
   validate :user_is_not_limited, on: :create
   validate :post_is_valid, on: :create

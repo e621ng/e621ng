@@ -150,10 +150,6 @@ class PostFlag < ApplicationRecord
     post.update_index
   end
 
-  def bypass_unique
-    is_deletion || creator.is_janitor?
-  end
-
   def validate_creator_is_not_limited
     return if is_deletion
 

@@ -1,5 +1,5 @@
 class PostPresenter < Presenter
-  attr_reader :pool, :next_post_in_pool
+  attr_reader :pool
   delegate :tag_list_html, :split_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
 
   def self.preview(post, options = {})
