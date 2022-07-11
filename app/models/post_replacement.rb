@@ -308,9 +308,8 @@ class PostReplacement < ApplicationRecord
     end
   end
 
-  def file_visible_to?(user)
-    return true if user.is_janitor?
-    false
+  def original_file_visible_to?(user)
+    user.is_janitor?
   end
 
   include ApiMethods
@@ -319,5 +318,4 @@ class PostReplacement < ApplicationRecord
   include ProcessingMethods
   include PromotionMethods
   include PostMethods
-
 end
