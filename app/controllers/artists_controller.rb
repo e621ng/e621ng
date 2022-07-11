@@ -66,11 +66,11 @@ class ArtistsController < ApplicationController
   end
 
   def show_or_new
-    @artist = Artist.find_by_name(params[:name])
+    @artist = Artist.find_by(name: params[:name])
     if @artist
       redirect_to artist_path(@artist)
     else
-      @artist = Artist.new(name: params[:name])
+      @artist = Artist.new(name: params[:name] || "")
       @post_set = PostSets::Artist.new(@artist)
       respond_with(@artist)
     end
