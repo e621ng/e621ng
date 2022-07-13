@@ -3,9 +3,9 @@
 
   <%= custom_form_for(@wiki_page) do |f| %>
     <% if @wiki_page.new_record? %>
-      <%= f.input :title, error: false, input_html: { data: { autocomplete: "tag" } } %>
+      <%= f.input :title, error: false, autocomplete: "tag" %>
     <% elsif CurrentUser.is_janitor? %>
-      <%= f.input :title, error: false, input_html: { data: { autocomplete: "tag" } }, hint: "Change to rename this wiki page. Move the tag and update any wikis linking to this page first." %>
+      <%= f.input :title, error: false, autocomplete: "tag", hint: "Change to rename this wiki page. Move the tag and update any wikis linking to this page first." %>
     <% else %>
       <h1 id="wiki-page-title"><%= @wiki_page.pretty_title %></h1>
     <% end %>
