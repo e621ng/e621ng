@@ -1,4 +1,4 @@
-<%= simple_form_for(@whitelist) do |f| %>
+<%= custom_form_for(@whitelist) do |f| %>
   <%= error_messages_for "whitelist" %>
 
   <%= f.input :pattern, label: "Pattern", as: :string %>

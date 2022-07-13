@@ -6,7 +6,7 @@
 
     <%= error_messages_for "change_request" %>
 
-    <%= simple_form_for(@change_request) do |f| %>
+    <%= custom_form_for(@change_request) do |f| %>
       <%= f.input :desired_name %>
       <%= f.input :change_reason %>
       <%= f.submit "Submit" %>

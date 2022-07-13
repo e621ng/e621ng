@@ -1,4 +1,4 @@
-<%= simple_form_for(user_feedback) do |f| %>
+<%= custom_form_for(user_feedback) do |f| %>
   <% if user_feedback.new_record? %>
     <%= f.input :user_name, label: "User", input_html: { value: user_feedback.user.try(:name), data: { autocomplete: "user" } } %>
   <% end %>

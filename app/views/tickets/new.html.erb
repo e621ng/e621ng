@@ -1,7 +1,7 @@
 <div id="c-tickets">
   <div id="a-new">
 
-    <%= simple_form_for(@ticket) do |f| %>
+    <%= custom_form_for(@ticket) do |f| %>
       <% @found_item = true %>
       <% if params[:type].nil? %>
         <% @found_item = false %>

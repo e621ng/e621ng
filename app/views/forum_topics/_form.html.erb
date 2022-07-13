@@ -1,7 +1,7 @@
 <%= error_messages_for("forum_topic") %>
 
 <div id="form-content">
-  <%= simple_form_for(forum_topic) do |f| %>
+  <%= custom_form_for(forum_topic) do |f| %>
     <%= f.input :title, input_html: {size: 100} %>
 
     <div class="input">

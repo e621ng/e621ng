@@ -2,7 +2,7 @@
   <div id="a-posts">
     <h2>Post list for set <span class="set-name"><%= @post_set.name %></span></h2>
 
-    <%= simple_form_for(@post_set, url: update_posts_post_set_path(@post_set), method: :post) do |f| %>
+    <%= custom_form_for(@post_set, url: update_posts_post_set_path(@post_set), method: :post) do |f| %>
       <%= f.input :post_ids_string, as: :text, label: 'Post IDs' %>
       <%= f.button :submit, "Update" %>
     <% end %>

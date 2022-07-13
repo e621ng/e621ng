@@ -2,7 +2,7 @@
   <div id="a-edit">
     <h2>Edit Pool: <%= @pool.pretty_name %></h2>
 
-    <%= simple_form_for(@pool) do |f| %>
+    <%= custom_form_for(@pool) do |f| %>
       <%= error_messages_for "pool" %>
 
       <%= f.input :name, :as => :string, :input_html => { :value => @pool.pretty_name } %>

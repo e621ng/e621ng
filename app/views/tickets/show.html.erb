@@ -84,7 +84,7 @@
     </div>
 
     <% if CurrentUser.is_admin? %>
-      <%= simple_form_for(@ticket) do |f| %>
+      <%= custom_form_for(@ticket) do |f| %>
         <div class='section'>
           <table>
             <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>

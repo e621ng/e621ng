@@ -4,7 +4,7 @@
 
     <%= error_messages_for :tag_alias %>
 
-    <%= simple_form_for(@tag_alias) do |f| %>
+    <%= custom_form_for(@tag_alias) do |f| %>
       <%= f.input :antecedent_name, :as => :string, :label => "From", disabled: @tag_alias.is_active? %>
       <%= f.input :consequent_name, :label => "To", disabled: @tag_alias.is_active? %>
       <%= f.input :forum_topic_id, :label => "Forum" %>

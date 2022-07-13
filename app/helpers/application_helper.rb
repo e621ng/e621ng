@@ -91,6 +91,11 @@ module ApplicationHelper
     end
   end
 
+  def custom_form_for(object, *args, &)
+    options = args.extract_options!
+    simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
+  end
+
   def strip_dtext(text)
     dtext_ragel(text, strip: true)
   end

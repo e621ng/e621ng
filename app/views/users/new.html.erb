@@ -13,7 +13,7 @@
     </div>
 
     <div id="p3">
-      <%= simple_form_for(@user, html: {id: "signup-form"}) do |f| %>
+      <%= custom_form_for(@user, html: {id: "signup-form"}) do |f| %>
         <%= f.input :name, :as => :string %>
         <%= f.input :email, :required => true, :as => :email %>
         <%= f.input :password %>

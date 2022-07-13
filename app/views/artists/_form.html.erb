@@ -1,4 +1,4 @@
-<%= simple_form_for(@artist) do |f| %>
+<%= custom_form_for(@artist) do |f| %>
   <% if @artist.new_record? %>
     <%= f.input :name, input_html: { data: { autocomplete: "tag" } } %>
   <% elsif CurrentUser.user.is_janitor? %>

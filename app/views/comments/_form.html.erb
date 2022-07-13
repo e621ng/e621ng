@@ -1,6 +1,6 @@
 <%= error_messages_for :comment %>
 
-<%= simple_form_for(comment, :html => {:style => ("display: none;" if local_assigns[:hidden]), :class => "edit_comment"}) do |f| %>
+<%= custom_form_for(comment, :html => {:style => ("display: none;" if local_assigns[:hidden]), :class => "edit_comment"}) do |f| %>
   <% if comment.new_record? %>
     <%= f.hidden_field :post_id %>
   <% end %>
