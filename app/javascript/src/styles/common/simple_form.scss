@@ -43,6 +43,26 @@ form.simple_form {
       }
     }
   }
+
+  div.collection-radio-buttons {
+    input {
+      display: none;
+    }
+
+    input + label { 
+      @extend .button;
+      // Overwrite the themed color from the imported class, which has higher specificity
+      color: black !important;
+      background-color: white;
+      margin: 0 0.25rem 0.25rem 0;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    input:checked + label { 
+      @include themable { background-color: themed("color-button-active"); }
+     }
+  }
 }
 
 form.inline-form {

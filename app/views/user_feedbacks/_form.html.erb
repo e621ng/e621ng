@@ -2,7 +2,7 @@
   <% if user_feedback.new_record? %>
     <%= f.input :user_name, label: "User", autocomplete: "user", input_html: { value: user_feedback.user.try(:name) } %>
   <% end %>
-  <%= f.input :category, collection: ["positive", "neutral", "negative"], include_blank: false %>
+  <%= f.button_select :category, ["positive", "neutral", "negative"].map { |e| [e, e.titleize] } %>
   <%= dtext_field "user_feedback", "body" %>
   <%= f.button :submit, "Submit" %>
 <% end %>
