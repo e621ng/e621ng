@@ -28,7 +28,7 @@ class PoolsController < ApplicationController
 
   def gallery
     params[:limit] ||= CurrentUser.user.per_page
-    search = search_params.presence || ActionController::Parameters.new(category: "series")
+    search = search_params.presence || ActionController::Parameters.new(category: "any")
 
     @pools = Pool.search(search).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     @post_set = PostSets::PoolGallery.new(@pools)
