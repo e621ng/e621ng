@@ -1,0 +1,8 @@
+<%= simple_form_for(user_feedback) do |f| %>
+  <% if user_feedback.new_record? %>
+    <%= f.input :user_name, label: "User", input_html: { value: user_feedback.user.try(:name), data: { autocomplete: "user" } } %>
+  <% end %>
+  <%= f.input :category, collection: ["positive", "neutral", "negative"], include_blank: false %>
+  <%= dtext_field "user_feedback", "body" %>
+  <%= f.button :submit, "Submit" %>
+<% end %>

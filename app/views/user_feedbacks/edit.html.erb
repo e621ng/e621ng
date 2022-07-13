@@ -2,16 +2,8 @@
   <div id="a-edit">
     <h1>Edit User Feedback</h1>
 
-    <div id="preview">
-    </div>
-
     <%= error_messages_for "user_feedback" %>
-
-    <%= simple_form_for(@user_feedback) do |f| %>
-      <%= f.input :category, :collection => ["positive", "neutral", "negative"], :include_blank => false %>
-      <%= dtext_field "user_feedback", "body" %>
-      <%= f.button :submit, "Submit" %>
-    <% end %>
+    <%= render "form", user_feedback: @user_feedback %>
   </div>
 </div>
 
