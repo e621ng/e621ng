@@ -4,7 +4,7 @@
   <% if comment.new_record? %>
     <%= f.hidden_field :post_id %>
   <% end %>
-  <%= dtext_field "comment", "body", label: "", value: comment.body, input_id: "comment_body_for_#{comment.id}", limit: Danbooru.config.comment_max_size %>
+  <%= f.input :body, as: :dtext, label: false, limit: Danbooru.config.comment_max_size %>
   <%= f.button :submit, "Submit" %>
   <% if comment.new_record? %>
     <%= f.input :do_not_bump_post, :label => "No bump" %>

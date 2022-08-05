@@ -3,6 +3,6 @@
     <%= f.input :user_name, label: "User", autocomplete: "user", input_html: { value: user_feedback.user.try(:name) } %>
   <% end %>
   <%= f.button_select :category, ["positive", "neutral", "negative"].map { |e| [e, e.titleize] } %>
-  <%= dtext_field "user_feedback", "body" %>
+  <%= f.input :body, as: :dtext %>
   <%= f.button :submit, "Submit" %>
 <% end %>

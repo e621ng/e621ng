@@ -11,16 +11,8 @@ div#c-artists {
   }
 
   div#a-edit, div#a-new {
-    textarea {
-      height: 10em;
-
-      &#artist_other_names_string {
-        height: 3em;
-      }
-    }
-
-    .hint {
-      display: block;
+    #artist_other_names_string {
+      width: 100%;
     }
   }
 

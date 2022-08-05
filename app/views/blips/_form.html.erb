@@ -4,7 +4,7 @@
     <% if blip.new_record? %>
       <%= f.hidden_field :response_to %>
     <% end %>
-    <%= dtext_field "blip", "body", :value => blip.body, :input_id => "blip_body_for_#{blip.id}", :limit => Danbooru.config.blip_max_size %>
+    <%= f.input :body, as: :dtext, limit: Danbooru.config.blip_max_size %>
     <%= f.button :submit, "Submit" %>
   <% end %>
 </div>

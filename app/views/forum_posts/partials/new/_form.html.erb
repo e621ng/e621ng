@@ -6,7 +6,7 @@
   <% else %>
     <%= f.input :topic_id, :label => "Topic ID" %>
   <% end %>
-  <%= dtext_field "forum_post", "body", limit: Danbooru.config.forum_post_max_size %>
+  <%= f.input :body, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
 
   <%= f.button :submit, "Submit" %>
 <% end %>

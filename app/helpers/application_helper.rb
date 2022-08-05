@@ -196,21 +196,6 @@ module ApplicationHelper
     html.html_safe
   end
 
-  def dtext_field(object, name, **options)
-    options[:label] ||= name.capitalize
-    options[:input_id] ||= "#{object}_#{name}"
-    options[:input_name] ||= "#{object}[#{name}]"
-    options[:value] ||= instance_variable_get("@#{object}").try(name)
-    options[:classes] ||= ""
-    options[:input_classes] ||= ""
-    options[:rows] ||= 10
-    options[:cols] ||= 80
-    options[:type] ||= "text"
-    options[:limit] ||= 0
-
-    render "dtext/form", options
-  end
-
   def body_attributes(user = CurrentUser.user)
     attributes = [:id, :name, :level, :level_string, :can_approve_posts?, :can_upload_free?, :per_page]
     attributes += User::Roles.map { |role| :"is_#{role}?" }

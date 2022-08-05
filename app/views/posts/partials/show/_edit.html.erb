@@ -42,7 +42,7 @@
   <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
 
   <div class="input">
-    <%= dtext_field "post", "description", limit: Danbooru.config.post_descr_max_size %>
+    <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size %>
   </div>
 
   <% if CurrentUser.is_privileged? %>

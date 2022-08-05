@@ -16,14 +16,8 @@
         <%= select_tag("user[enable_privacy_mode]", options_for_select([["Yes", true], ["No", false]], @user.enable_privacy_mode?)) %>
       </div>
 
-      <div class="input">
-        <%= dtext_field "user", "profile_about", label: "About", limit: Danbooru.config.user_about_max_size %>
-      </div>
-
-      <div class="input">
-        <%= dtext_field "user", "profile_artinfo", label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
-      </div>
-
+      <%= f.input :profile_about, as: :dtext, label: "About", limit: Danbooru.config.user_about_max_size %>
+      <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
       <%= f.input :base_upload_limit %>
 
       <div class="input integer optional">

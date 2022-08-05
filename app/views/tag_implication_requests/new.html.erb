@@ -10,9 +10,7 @@
     <%= custom_form_for(:tag_implication_request, url: tag_implication_request_path) do |f| %>
       <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
       <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
-      <div class="input">
-        <%= dtext_field "tag_implication_request", "reason", limit: Danbooru.config.forum_post_max_size %>
-      </div>
+      <%= f.input :reason, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
       <% if CurrentUser.is_moderator? %>
         <%= f.input :skip_forum, as: :boolean, label: "Skip forum topic creation" %>
       <% end %>
