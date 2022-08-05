@@ -4,7 +4,7 @@
   </div>
 <% end %>
 
-<%= form_for(post, :html => {:class => "simple_form", :id => "form"}) do |f| %>
+<%= custom_form_for(post, :html => { id: "form" }) do |f| %>
   <%= hidden_field_tag :tags_query, params[:q] %>
   <%= hidden_field_tag :pool_id, params[:pool_id] %>
   <%= hidden_field_tag :post_set_id, params[:post_set_id] %>
@@ -26,40 +26,20 @@
 
     <div id="tag-string-editor"></div>
 
-    <div>
-      <%= f.label :locked_tags, "Locked Tags" %>
-      <%= f.text_area :locked_tags, :size => "60x2", :spellcheck => false, :"data-autocomplete" => "tag-edit", :value => (post.locked_tags || ""), disabled: !CurrentUser.is_admin? %>
-    </div>
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: (post.locked_tags || ""), spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
 
-  <div class="input">
-    <% if post.is_rating_locked? %>
+  <% if post.is_rating_locked? %>
+    <div class="input">
       This post is rating locked.
-    <% else %>
-      <%= f.label :blank, "Rating" %>
+    </div>
+  <% else %>
+    <%= f.button_select :rating, ["Explicit", "Questionable", "Safe"].map { |e| [e[0].downcase, e] } %>
+  <% end %>
 
-      <fieldset class="ratings">
-        <%= f.radio_button :rating, :e %>
-        <%= f.label :rating_e, "Explicit" %>
 
-        <%= f.radio_button :rating, :q %>
-        <%= f.label :rating_q, "Questionable" %>
-
-        <%= f.radio_button :rating, :s %>
-        <%= f.label :rating_s, "Safe" %>
-      </fieldset>
-    <% end %>
-  </div>
-
-  <div class="input">
-    <%= f.label :parent_id, "Parent" %>
-    <%= f.text_field :parent_id, :size => 5 %>
-  </div>
-
-  <div class="input">
-    <%= f.label :source, "Sources" %>
-    <%= f.text_area :source, size: '60x5', spellcheck: false %>
-  </div>
+  <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 5 } %>
+  <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
 
   <div class="input">
     <%= dtext_field "post", "description", limit: Danbooru.config.post_descr_max_size %>
@@ -71,48 +51,33 @@
 
       <fieldset class="locks">
         <% if CurrentUser.is_janitor? %>
-          <%= f.check_box :is_note_locked %>
-          <%= f.label :is_note_locked, "Notes" %>
+          <%= f.input :is_note_locked, label: "Notes" %>
         <% end %>
-
-        <%= f.check_box :is_rating_locked %>
-        <%= f.label :is_rating_locked, "Rating" %>
-
+        <%= f.input :is_rating_locked, label: "Rating" %>
         <% if CurrentUser.is_admin? %>
-          <%= f.check_box :is_status_locked %>
-          <%= f.label :is_status_locked, "Status" %>
+          <%= f.input :is_status_locked, label: "Status" %>
         <% end %>
       </fieldset>
     </div>
   <% end %>
 
   <% if CurrentUser.is_janitor? %>
-    <div class="input">
-      <%= f.label :bg_color, "Background Color" %>
-      <%= f.text_field :bg_color, :size => 6 %>
-    </div>
+    <%= f.input :bg_color, label: "Background Color", input_html: { size: 6 } %>
   <% end %>
 
   <% if CurrentUser.is_admin? %>
     <div class="input">
       <%= f.label :blank, "Limits" %>
       <fieldset class="limits">
-        <%= f.check_box :hide_from_anonymous %>
-        <%= f.label :hide_from_anonymous, "Hide from Anon" %>
-        <%= f.check_box :hide_from_search_engines %>
-        <%= f.label :hide_from_search_engines, "Hide from search engines" %>
-        <%= f.check_box :is_comment_disabled %>
-        <%= f.label :is_comment_disabled, "Disable comments"%>
+        <%= f.input :hide_from_anonymous, as: :boolean, label: "Hide from Anon" %>
+        <%= f.input :hide_from_search_engines, as: :boolean, label: "Hide from search engines" %>
+        <%= f.input :is_comment_disabled, label: "Disable comments" %>
       </fieldset>
     </div>
   <% end %>
 
-  <div class="input">
-    <%= f.label :edit_reason, "Edit Reason" %>
-    <%= f.text_field :edit_reason, maxlength: 250, size: 40 %>
-  </div>
-
+  <%= f.input :edit_reason, label: "Edit Reason", input_html: { maxlength: 250, size: 40 } %>
   <div class="edit-submit input">
-    <%= submit_tag "Submit", :class => "ui-button ui-widget ui-corner-all" %>
+    <%= f.button :submit, "Submit" %>
   </div>
 <% end %>

@@ -7,33 +7,16 @@
     <p>You can request a new tag alias be created. This will create a corresponding forum topic for community
       review.</p>
 
-    <%= form_tag(tag_alias_request_path, :class => "simple_form") do %>
-      <div class="input">
-        <label>From</label>
-        <%= text_field "tag_alias_request", "antecedent_name", :data => {:autocomplete => "tag"} %>
-      </div>
-
-      <div class="input">
-        <label>To</label>
-        <%= text_field "tag_alias_request", "consequent_name", :data => {:autocomplete => "tag"} %>
-      </div>
-
+    <%= custom_form_for(:tag_alias_request, url: tag_alias_request_path) do |f| %>
+      <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
+      <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
       <div class="input">
         <%= dtext_field "tag_alias_request", "reason", limit: Danbooru.config.forum_post_max_size %>
       </div>
-
       <% if CurrentUser.is_moderator? %>
-        <div class="input">
-          <label class="checkbox optional" for="tag_alias_request_skip_forum">
-            <%= check_box "tag_alias_request", "skip_forum" %>
-            Skip forum topic creation
-          </label>
-        </div>
+        <%= f.input :skip_forum, as: :boolean, label: "Skip forum topic creation" %>
       <% end %>
-
-      <div class="input">
-        <%= submit_tag "Submit" %>
-      </div>
+      <%= f.button :submit, "Submit" %>
     <% end %>
   </div>
 </div>
