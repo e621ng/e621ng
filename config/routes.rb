@@ -58,13 +58,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  namespace :explore do
-    resources :posts, :only => [] do
-      collection do
-        get :popular
-      end
-    end
-  end
+  resources :popular, only: [:index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: [:new, :create]
@@ -404,9 +398,11 @@ Rails.application.routes.draw do
   get "/post/moderate" => redirect("/moderator/post/queue")
   get "/post/atom" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
   get "/post/atom.feed" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
-  get "/post/popular_by_day" => redirect("/explore/posts/popular")
-  get "/post/popular_by_week" => redirect("/explore/posts/popular")
-  get "/post/popular_by_month" => redirect("/explore/posts/popular")
+  get "/post/popular_by_day" => redirect("/popular")
+  get "/post/popular_by_week" => redirect("/popular")
+  get "/post/popular_by_month" => redirect("/popular")
+  # This redirect preserves all query parameters and the request format
+  get "/post/explore/popular(*all)" => redirect(path: "/popular%{all}"), defaults: { all: "" }
   get "/post/show/:id/:tag_title" => redirect("/posts/%{id}")
   get "/post/show/:id" => redirect("/posts/%{id}")
   get "/post/show" => redirect {|params, req| "/posts?md5=#{req.params[:md5]}"}
