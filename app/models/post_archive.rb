@@ -26,6 +26,7 @@ class PostArchive < ApplicationRecord
 
     def build_query(params)
       must = []
+      must_not = []
       def should(*args)
         {bool: {should: args}}
       end
@@ -64,8 +65,10 @@ class PostArchive < ApplicationRecord
       end
 
       if params[:rating_changed].present?
-        must << {term: {rating: to_rating(params[:rating_changed])}}
-        must << {term: {rating_changed: true}}
+        if params[:rating_changed] != "any"
+          must << { term: { rating: to_rating(params[:rating_changed]) } }
+        end
+        must << { term: { rating_changed: true } }
       end
 
       if params[:parent_id].present?
@@ -92,16 +95,32 @@ class PostArchive < ApplicationRecord
         must << {match: {description: params[:description]}}
       end
 
+      must = boolean_match(:description_changed, params[:description_changed], must)
+      must = boolean_match(:source_changed, params[:source_changed], must)
+
+      if params[:exclude_uploads]&.truthy?
+        must_not << { term: { version: 1 } }
+      end
+
       if must.empty?
-        must.push({match_all: {}})
+        must.push({ match_all: {} })
       end
 
       {
-          query: {bool: {must: must}},
-          sort: {id: :desc},
-          _source: false,
-          timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
+        query: { bool: { must: must, must_not: must_not } },
+        sort: { id: :desc },
+        _source: false,
+        timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
       }
+    end
+
+    def boolean_match(attribute, value, must)
+      if value&.truthy?
+        must << { term: { attribute => true } }
+      elsif value&.falsy?
+        must << { term: { attribute => false } }
+      end
+      must
     end
   end
 
