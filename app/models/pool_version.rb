@@ -1,10 +1,8 @@
-class PoolArchive < ApplicationRecord
+class PoolVersion < ApplicationRecord
   user_status_counter :pool_edit_count, foreign_key: :updater_id
   belongs_to :updater, :class_name => "User"
   before_validation :fill_version, on: :create
   before_validation :fill_changes, on: :create
-
-  self.table_name = "pool_versions"
 
   module SearchMethods
     def default_order
@@ -59,7 +57,7 @@ class PoolArchive < ApplicationRecord
   end
 
   def fill_version
-    self.version = PoolArchive.calculate_version(self.pool_id)
+    self.version = PoolVersion.calculate_version(self.pool_id)
   end
 
   def fill_changes
@@ -96,7 +94,7 @@ class PoolArchive < ApplicationRecord
   end
 
   def previous
-    PoolArchive.where("pool_id = ? and version < ?", pool_id, version).order("version desc").first
+    PoolVersion.where("pool_id = ? and version < ?", pool_id, version).order("version desc").first
   end
 
   def pool

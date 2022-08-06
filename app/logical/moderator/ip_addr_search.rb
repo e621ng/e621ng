@@ -41,8 +41,8 @@ module Moderator
       if with_history
         add_by_ip_addr(sums, :artist_version, ip_addrs, ::ArtistVersion, :updater_ip_addr, :updater_id)
         add_by_ip_addr(sums, :note_version, ip_addrs, ::NoteVersion, :updater_ip_addr, :updater_id)
-        add_by_ip_addr(sums, :pool_version, ip_addrs, ::PoolArchive, :updater_ip_addr, :updater_id)
-        add_by_ip_addr(sums, :post_version, ip_addrs, ::PostArchive, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :pool_version, ip_addrs, ::PoolVersion, :updater_ip_addr, :updater_id)
+        add_by_ip_addr(sums, :post_version, ip_addrs, ::PostVersion, :updater_ip_addr, :updater_id)
         add_by_ip_addr(sums, :wiki_page_version, ip_addrs, ::WikiPageVersion, :updater_ip_addr, :updater_id)
       end
 
@@ -72,8 +72,8 @@ module Moderator
       if with_history
         add_by_user_id(sums, :artist_version, user_ids, ::ArtistVersion, :updater_ip_addr, :updater_id)
         add_by_user_id(sums, :note_version, user_ids, ::NoteVersion, :updater_ip_addr, :updater_id)
-        add_by_user_id(sums, :pool_version, user_ids, ::PoolArchive, :updater_ip_addr, :updater_id)
-        add_by_user_id(sums, :post_version, user_ids, ::PostArchive, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :pool_version, user_ids, ::PoolVersion, :updater_ip_addr, :updater_id)
+        add_by_user_id(sums, :post_version, user_ids, ::PostVersion, :updater_ip_addr, :updater_id)
         add_by_user_id(sums, :wiki_page_version, user_ids, ::WikiPageVersion, :updater_ip_addr, :updater_id)
       end
 

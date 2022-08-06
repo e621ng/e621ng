@@ -1,4 +1,4 @@
-class PostArchive < ApplicationRecord
+class PostVersion < ApplicationRecord
   extend Memoist
 
   belongs_to :post
@@ -7,8 +7,6 @@ class PostArchive < ApplicationRecord
 
   before_validation :fill_version, on: :create
   before_validation :fill_changes, on: :create
-
-  self.table_name = "post_versions"
 
   module SearchMethods
     def for_user(user_id)
@@ -148,7 +146,7 @@ class PostArchive < ApplicationRecord
   end
 
   def fill_version
-    self.version = PostArchive.calculate_version (self.post_id)
+    self.version = PostVersion.calculate_version (self.post_id)
   end
 
   def fill_changes(prev = nil)
@@ -200,7 +198,7 @@ class PostArchive < ApplicationRecord
     if association(:post).loaded? && post && post.association(:versions).loaded?
       post.versions.sort_by(&:version).reverse.find {|v| v.version < version}
     else
-      PostArchive.where("post_id = ? and version < ?", post_id, version).order("version desc").first
+      PostVersion.where("post_id = ? and version < ?", post_id, version).order("version desc").first
     end
   end
 

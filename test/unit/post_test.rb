@@ -1066,14 +1066,14 @@ class PostTest < ActiveSupport::TestCase
 
       context "that has been updated" do
         should "create a new version if it's the first version" do
-          assert_difference("PostArchive.count", 1) do
+          assert_difference("PostVersion.count", 1) do
             post = FactoryBot.create(:post)
           end
         end
 
         should "create a new version if the post is updated" do
           post = FactoryBot.create(:post)
-          assert_difference("PostArchive.count", 1) do
+          assert_difference("PostVersion.count", 1) do
             post.update(:tag_string => "zzz")
           end
         end

@@ -30,7 +30,9 @@ module PostVersionIndex
         indexes :locked_tags, type: 'keyword'
       end
     end
-
+    # FIXME: Rename the index to reflect the model name
+    base.index_name("post_archives")
+    base.index_name("post_archives_#{Rails.env}") unless Rails.env.production?
     base.__elasticsearch__.extend ClassMethods
   end
 

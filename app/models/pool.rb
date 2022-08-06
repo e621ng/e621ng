@@ -168,7 +168,7 @@ class Pool < ApplicationRecord
   end
 
   def versions
-    PoolArchive.where("pool_id = ?", id).order("id asc")
+    PoolVersion.where("pool_id = ?", id).order("id asc")
   end
 
   def is_series?
@@ -361,7 +361,7 @@ class Pool < ApplicationRecord
   end
 
   def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
-    PoolArchive.queue(self, updater, updater_ip_addr)
+    PoolVersion.queue(self, updater, updater_ip_addr)
   end
 
   def last_page
