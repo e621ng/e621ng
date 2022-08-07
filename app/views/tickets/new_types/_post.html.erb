@@ -1,10 +1,10 @@
-<% unless @ticket.post %>
+<% @post = @ticket.content %>
+<% unless @post %>
     <% @found_item = false %>
     <div class='section' style='width:80em;'>That post does not exist.</div>
 <% else %>
     <div class='section' style='width:80em;'>
-      <% @post = @ticket.post %>
-      You are reporting <%= PostPresenter.preview(@ticket.post, tags: 'status:any', no_blacklist: true) %>
+      You are reporting <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
     </div>
 
     <div class='section' style='width:80em;'>

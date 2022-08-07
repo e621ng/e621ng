@@ -70,30 +70,22 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if forum.nil?
+        if content.nil?
           errors.add :forum, "post does not exist"
         end
       end
 
-      def forum=(new_forum)
-        @forum = new_forum
-        self.disp_id = new_forum.id unless new_forum.nil?
-      end
-
-      def forum
-        @forum ||= begin
-          ::ForumPost.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::ForumPost
       end
 
       def can_create_for?(user)
-        forum.visible?(user)
+        content.visible?(user)
       end
 
       def can_see_details?(user)
-        if forum
-          forum.visible?(user)
+        if content
+          content.visible?(user)
         else
           true
         end
@@ -113,25 +105,17 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if comment.nil?
+        if content.nil?
           errors.add :comment, "does not exist"
         end
       end
 
-      def comment=(new_comment)
-        @comment = new_comment
-        self.disp_id = new_comment.id unless new_comment.nil?
-      end
-
-      def comment
-        @comment ||= begin
-          ::Comment.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::Comment
       end
 
       def can_create_for?(user)
-        comment.visible_to?(user)
+        content.visible_to?(user)
       end
     end
 
@@ -148,28 +132,20 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        unless dmail and dmail.owner_id == creator_id
+        if content&.owner_id != creator_id
           errors.add :dmail, "does not exist"
         end
-        unless dmail and dmail.to_id == creator_id
+        if content&.to_id != creator_id
           errors.add :dmail, "must be a dmail you received"
         end
       end
 
-      def dmail=(new_dmail)
-        @dmail = new_dmail
-        self.disp_id = new_dmail.id unless new_dmail.nil?
-      end
-
-      def dmail
-        @dmail ||= begin
-          ::Dmail.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::Dmail
       end
 
       def can_create_for?(user)
-        dmail.visible_to?(user) && dmail.to_id == user.id
+        content.visible_to?(user) && content.to_id == user.id
       end
 
       def can_see_details?(user)
@@ -198,21 +174,13 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if wiki.nil?
+        if content.nil?
           errors.add :wiki, "page does not exist"
         end
       end
 
-      def wiki=(new_wiki)
-        @wiki = new_wiki
-        self.disp_id = new_wiki.id unless new_wiki.nil?
-      end
-
-      def wiki
-        @wiki ||= begin
-          ::WikiPage.find disp_id unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::WikiPage
       end
 
       def can_create_for?(user)
@@ -233,21 +201,13 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if pool.nil?
+        if content.nil?
           errors.add :pool, "does not exist"
         end
       end
 
-      def pool=(new_pool)
-        @pool = new_pool
-        self.disp_id = new_pool.id unless new_pool.nil?
-      end
-
-      def pool
-        @pool ||= begin
-          ::Pool.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::Pool
       end
 
       def can_create_for?(user)
@@ -268,25 +228,17 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if set.nil?
+        if content.nil?
           errors.add :set, "does not exist"
         end
       end
 
-      def set=(new_set)
-        @set = new_set
-        self.disp_id = new_set.id unless new_set.nil?
-      end
-
-      def set
-        @set ||= begin
-          ::PostSet.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::PostSet
       end
 
       def can_create_for?(user)
-        set.can_view?(user)
+        content.can_view?(user)
       end
     end
 
@@ -303,7 +255,7 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if post.nil?
+        if content.nil?
           errors.add :post, "does not exist"
         end
         if report_reason.blank?
@@ -315,16 +267,8 @@ class Ticket < ApplicationRecord
         reason.split("\n")[0] || "Unknown Report Type"
       end
 
-      def post=(new_post)
-        @post = new_post
-        self.disp_id = new_post.id unless new_post.nil?
-      end
-
-      def post
-        @post ||= begin
-          ::Post.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::Post
       end
 
       def can_create_for?(user)
@@ -345,25 +289,17 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if blip.nil?
+        if content.nil?
           errors.add :blip, "does not exist"
         end
       end
 
-      def blip=(new_blip)
-        @blip = new_blip
-        self.disp_id = new_blip.id unless new_blip.nil?
-      end
-
-      def blip
-        @blip ||= begin
-          ::Blip.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::Blip
       end
 
       def can_create_for?(user)
-        blip.visible_to?(user)
+        content.visible_to?(user)
       end
     end
 
@@ -380,21 +316,13 @@ class Ticket < ApplicationRecord
       end
 
       def validate_on_create
-        if accused.nil?
+        if content.nil?
           errors.add :user, "does not exist"
         end
       end
 
-      def accused=(new_accused)
-        @accused = new_accused
-        self.disp_id = new_accused.id unless new_accused.nil?
-      end
-
-      def accused
-        @accused ||= begin
-          ::User.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+      def model
+        ::User
       end
 
       def can_create_for?(user)
@@ -440,7 +368,6 @@ class Ticket < ApplicationRecord
   }
 
   attr_reader :can_see, :type_valid
-
 
   module ValidationMethods
     def validate_type
@@ -526,6 +453,15 @@ class Ticket < ApplicationRecord
       self.extend(klass)
       klass.after_extended(self)
     end
+  end
+
+  def content=(new_content)
+    @content = new_content
+    self.disp_id = content&.id
+  end
+
+  def content
+    @content ||= model.find_by(id: disp_id)
   end
 
   def can_see_reason?(user)

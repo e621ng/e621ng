@@ -1,8 +1,8 @@
-<% unless @ticket.accused %>
+<% unless @ticket.content %>
   <% @found_item = false %>
   <div class='section' style='width:80em;'>That user does not exist.</div>
 <% else %>
   <div class='section' style='width:80em;'>
-    You are reporting/commending <%= link_to_user(@ticket.accused) %>.
+    You are reporting/commending <%= link_to_user(@ticket.content) %>.
   </div>
 <% end %>
