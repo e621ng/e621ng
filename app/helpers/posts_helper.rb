@@ -166,4 +166,12 @@ module PostsHelper
     return base + 'score-neutral' if score != want || score == 0
     base + score_class(score)
   end
+
+  def rating_collection
+    [
+      ["Safe", "s"],
+      ["Questionable", "q"],
+      ["Explicit", "e"]
+    ]
+  end
 end

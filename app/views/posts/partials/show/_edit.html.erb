@@ -34,7 +34,7 @@
       This post is rating locked.
     </div>
   <% else %>
-    <%= f.input :rating, as: :button_select, collection: ["Explicit", "Questionable", "Safe"].map { |e| [e, e[0].downcase] } %>
+    <%= f.input :rating, as: :button_select, collection: rating_collection %>
   <% end %>
 
 
