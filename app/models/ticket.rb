@@ -11,7 +11,6 @@ class Ticket < ApplicationRecord
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_content_exists, on: :create
-  validate :validate_can_see_target, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
@@ -74,21 +73,6 @@ class Ticket < ApplicationRecord
     end
 
     module Dmail
-      def self.extended(m)
-        m.class_eval do
-          validate :validate_report_allowed
-
-          def validate_report_allowed
-            if content&.owner_id != creator_id
-              errors.add :dmail, "does not exist"
-            end
-            if content&.to_id != creator_id
-              errors.add :dmail, "must be a dmail you received"
-            end
-          end
-        end
-      end
-
       def can_create_for?(user)
         content.visible_to?(user) && content.to_id == user.id
       end
@@ -186,26 +170,10 @@ class Ticket < ApplicationRecord
 
   VALID_STATUSES = %w(pending partial denied approved)
 
-  attr_reader :can_see, :type_valid
-
   module ValidationMethods
     def validate_type
       valid_types = TicketTypes.constants.map { |v| v.to_s.downcase }
-      if valid_types.include?(qtype)
-        @type_valid = true
-      else
-        errors.add(:qtype, "is not valid")
-        @type_valid = false
-      end
-    end
-
-    def validate_can_see_target(user = CurrentUser.user)
-      unless can_create_for?(user)
-        errors.add(:base, "You can not report this content because you can not see it.")
-        @can_see = false
-      else
-        @can_see = true
-      end
+      errors.add(:qtype, "is not valid") if valid_types.exclude?(qtype)
     end
 
     def validate_creator_is_not_limited
