@@ -10,7 +10,7 @@ class Ticket < ApplicationRecord
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
-  validate :validate_on_create, on: :create
+  validate :validate_content_exists, on: :create
   validate :validate_can_see_target, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
@@ -49,12 +49,6 @@ class Ticket < ApplicationRecord
 
   module TicketTypes
     module ForumType
-      def validate_on_create
-        if content.nil?
-          errors.add :forum, "post does not exist"
-        end
-      end
-
       def model
         ::ForumPost
       end
@@ -73,12 +67,6 @@ class Ticket < ApplicationRecord
     end
 
     module CommentType
-      def validate_on_create
-        if content.nil?
-          errors.add :comment, "does not exist"
-        end
-      end
-
       def model
         ::Comment
       end
@@ -89,12 +77,18 @@ class Ticket < ApplicationRecord
     end
 
     module DmailType
-      def validate_on_create
-        if content&.owner_id != creator_id
-          errors.add :dmail, "does not exist"
-        end
-        if content&.to_id != creator_id
-          errors.add :dmail, "must be a dmail you received"
+      def self.extended(m)
+        m.class_eval do
+          validate :validate_report_allowed
+
+          def validate_report_allowed
+            if content&.owner_id != creator_id
+              errors.add :dmail, "does not exist"
+            end
+            if content&.to_id != creator_id
+              errors.add :dmail, "must be a dmail you received"
+            end
+          end
         end
       end
 
@@ -120,12 +114,6 @@ class Ticket < ApplicationRecord
     end
 
     module WikiType
-      def validate_on_create
-        if content.nil?
-          errors.add :wiki, "page does not exist"
-        end
-      end
-
       def model
         ::WikiPage
       end
@@ -136,12 +124,6 @@ class Ticket < ApplicationRecord
     end
 
     module PoolType
-      def validate_on_create
-        if content.nil?
-          errors.add :pool, "does not exist"
-        end
-      end
-
       def model
         ::Pool
       end
@@ -152,12 +134,6 @@ class Ticket < ApplicationRecord
     end
 
     module SetType
-      def validate_on_create
-        if content.nil?
-          errors.add :set, "does not exist"
-        end
-      end
-
       def model
         ::PostSet
       end
@@ -168,12 +144,9 @@ class Ticket < ApplicationRecord
     end
 
     module PostType
-      def validate_on_create
-        if content.nil?
-          errors.add :post, "does not exist"
-        end
-        if report_reason.blank?
-          errors.add :report_reason, "does not exist"
+      def self.extended(m)
+        m.class_eval do
+          validates :report_reason, presence: true
         end
       end
 
@@ -191,12 +164,6 @@ class Ticket < ApplicationRecord
     end
 
     module BlipType
-      def validate_on_create
-        if content.nil?
-          errors.add :blip, "does not exist"
-        end
-      end
-
       def model
         ::Blip
       end
@@ -207,12 +174,6 @@ class Ticket < ApplicationRecord
     end
 
     module UserType
-      def validate_on_create
-        if content.nil?
-          errors.add :user, "does not exist"
-        end
-      end
-
       def model
         ::User
       end
@@ -287,6 +248,10 @@ class Ticket < ApplicationRecord
         return false
       end
       true
+    end
+
+    def validate_content_exists
+      errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
     def initialize_fields
