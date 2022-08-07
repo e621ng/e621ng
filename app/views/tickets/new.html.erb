@@ -1,7 +1,7 @@
 <div id="c-tickets">
   <div id="a-new">
 
-    <%= simple_form_for(@ticket) do |f| %>
+    <%= custom_form_for(@ticket) do |f| %>
       <% @found_item = true %>
       <% if params[:type].nil? %>
         <% @found_item = false %>
@@ -42,7 +42,7 @@
           </label><br/>
 
           <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
-          <%= dtext_field "ticket", "reason", limit: Danbooru.config.ticket_max_size %>
+          <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
 
         </div>
         <%= submit_tag "Submit Complaint" %>

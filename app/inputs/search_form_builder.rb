@@ -1,8 +1,6 @@
 class SearchFormBuilder < SimpleForm::FormBuilder
-  def input(attribute_name, options = {}, &block)
-    options[:input_html] ||= {}
-    options[:input_html][:data] = {}
-    options[:input_html][:data][:autocomplete] = options[:autocomplete] if options[:autocomplete]
+  def input(attribute_name, options = {}, &)
+    options = insert_autocomplete(options)
     options = insert_value(attribute_name, options)
     super
   end
@@ -22,4 +20,6 @@ class SearchFormBuilder < SimpleForm::FormBuilder
     end
     options
   end
+
+  include FormBuilderCommon
 end

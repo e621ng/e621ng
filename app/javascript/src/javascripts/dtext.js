@@ -213,7 +213,7 @@ DText.process_formatting = function (content, input) {
 
 /** Add formatters to all appropriate inputs */
 DText.initialize_all_inputs = function() {
-  $("textarea.dtext-previewable[data-initialized='false']").each((index, element) => {
+  $("textarea.dtext[data-initialized='false']").each((index, element) => {
     DText.create_wrapper($(element));
   });
 }

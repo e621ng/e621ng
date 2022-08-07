@@ -13,7 +13,7 @@
       <ul id="sortable-posts">
 
       </ul>
-      <%= simple_form_for(@pool, method: :post, url: import_posts_pool_path(@pool), :html => {:id => "importing-form"}) do |f| %>
+      <%= custom_form_for(@pool, method: :post, url: import_posts_pool_path(@pool), :html => {:id => "importing-form"}) do |f| %>
         <%= submit_tag "Import" %>
       <% end %>
     </div>

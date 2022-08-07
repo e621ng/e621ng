@@ -2,7 +2,7 @@
   <div id="a-edit">
     <h1>Settings</h1>
 
-    <%= simple_form_for @user do |f| %>
+    <%= custom_form_for @user do |f| %>
       <h2 id="edit-options">
         <%= link_to "Basic", "#basic-settings", :class => "active" %>
         | <%= link_to "Advanced", "#advanced-settings" %>
@@ -34,9 +34,9 @@
 
         <%= f.input :avatar_id, type: :number, label: 'Avatar Post ID', input_html: {min: 0} %>
 
-        <%= dtext_field "user", "profile_about", label: "About Me", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size %>
 
-        <%= dtext_field "user", "profile_artinfo", label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
 
         <%= f.input :time_zone, :include_blank => false %>
 
@@ -50,7 +50,7 @@
 
         <%= f.input :enable_safe_mode, :label => "Safe mode", :hint => "Show only safe images. Hide questionable and explicit images.", :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
 
-        <%= f.input :blacklisted_tags, :hint => "Put any tag combinations you never want to see here. Each combination should go on a separate line. <a href='/help/blacklist'>View help.</a>".html_safe, :input_html => {:size => "40x5", :data => {:autocomplete => "tag-query"}} %>
+        <%= f.input :blacklisted_tags, :hint => "Put any tag combinations you never want to see here. Each combination should go on a separate line. <a href='/help/blacklist'>View help.</a>".html_safe, autocomplete: "tag-query", input_html: { size: "40x5" } %>
 
         <%= f.input :blacklist_users, hint: "Hide comments, blips and forum posts from users that have been blacklisted, in addition to posts.", as: :select, include_blank: false, collection: [["Yes", "true"], ["No", "false"]] %>
       </fieldset>
@@ -102,7 +102,7 @@
           <span class="hint">A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.</span>
         </div>
 
-        <%= f.input :favorite_tags, :label => "Frequent tags", :hint => "A list of tags that you use often. They will appear when using the list of Related Tags.", :input_html => { :rows => 5, :data => { :autocomplete => "tag-query" } } %>
+        <%= f.input :favorite_tags, :label => "Frequent tags", :hint => "A list of tags that you use often. They will appear when using the list of Related Tags.", autocomplete: "tag-query", input_html: { rows: 5 } %>
 
         <%= f.input :disable_responsive_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false, :hint => "Disable alternative layout for mobile and tablet." %>
 

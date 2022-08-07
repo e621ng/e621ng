@@ -1,10 +1,10 @@
 <div class='section' id='reply'>
   <%= error_messages_for :blip %>
-  <%= simple_form_for(blip, :html => {:style => ("display: none;" if local_assigns[:hidden]), :class => "edit_blip"}) do |f| %>
+  <%= custom_form_for(blip, :html => {:style => ("display: none;" if local_assigns[:hidden]), :class => "edit_blip"}) do |f| %>
     <% if blip.new_record? %>
       <%= f.hidden_field :response_to %>
     <% end %>
-    <%= dtext_field "blip", "body", :value => blip.body, :input_id => "blip_body_for_#{blip.id}", :limit => Danbooru.config.blip_max_size %>
+    <%= f.input :body, as: :dtext, limit: Danbooru.config.blip_max_size %>
     <%= f.button :submit, "Submit" %>
   <% end %>
 </div>

@@ -1,0 +1,10 @@
+<%= custom_form_for(@whitelist) do |f| %>
+  <%= error_messages_for "whitelist" %>
+
+  <%= f.input :pattern, label: "Pattern", as: :string %>
+  <%= f.input :note, label: "Note", as: :string %>
+  <%= f.input :allowed, label: "Upload Allowed", as: :boolean %>
+  <%= f.input :reason, label: "Ban Reason", as: :string %>
+  <%= f.input :hidden, label: "Hidden From Users", as: :boolean %>
+  <%= f.button :submit, "Save" %>
+<% end %>

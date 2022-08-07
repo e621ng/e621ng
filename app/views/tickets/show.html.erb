@@ -84,12 +84,12 @@
     </div>
 
     <% if CurrentUser.is_admin? %>
-      <%= simple_form_for(@ticket) do |f| %>
+      <%= custom_form_for(@ticket) do |f| %>
         <div class='section'>
           <table>
             <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
             <tr>
-              <td><%= dtext_field "ticket", "response", input_classes: 'ticket-response', input_id: "ticket_response_for_#{@ticket.id}", limit: Danbooru.config.dmail_max_size %></td>
+              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
             </tr>
           </table>
           <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
