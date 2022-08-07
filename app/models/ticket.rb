@@ -10,6 +10,7 @@ class Ticket < ApplicationRecord
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
+  validate :validate_on_create, on: :create
   validate :validate_can_see_target, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
@@ -47,23 +48,7 @@ class Ticket < ApplicationRecord
 =end
 
   module TicketTypes
-    module DefaultType
-      def type_title
-        "Ticket"
-      end
-
-      def self.after_extended(m)
-        m
-      end
-    end
-
     module ForumType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
 
       def type_title
         'Forum Post Complaint'
@@ -93,13 +78,6 @@ class Ticket < ApplicationRecord
     end
 
     module CommentType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Comment Complaint'
       end
@@ -120,13 +98,6 @@ class Ticket < ApplicationRecord
     end
 
     module DmailType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Dmail Complaint'
       end
@@ -162,13 +133,6 @@ class Ticket < ApplicationRecord
     end
 
     module WikiType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Wiki Page Complaint'
       end
@@ -189,13 +153,6 @@ class Ticket < ApplicationRecord
     end
 
     module PoolType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Pool Complaint'
       end
@@ -216,13 +173,6 @@ class Ticket < ApplicationRecord
     end
 
     module SetType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Set Complaint'
       end
@@ -243,13 +193,6 @@ class Ticket < ApplicationRecord
     end
 
     module PostType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Post Complaint'
       end
@@ -277,13 +220,6 @@ class Ticket < ApplicationRecord
     end
 
     module BlipType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'Blip Complaint'
       end
@@ -304,13 +240,6 @@ class Ticket < ApplicationRecord
     end
 
     module UserType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
       def type_title
         'User Complaint'
       end
@@ -449,9 +378,8 @@ class Ticket < ApplicationRecord
 
   module ClassifyMethods
     def classify
-      klass = TYPE_MAP.fetch(qtype, TicketTypes::DefaultType)
-      self.extend(klass)
-      klass.after_extended(self)
+      klass = TYPE_MAP[qtype]
+      extend(klass) if klass
     end
   end
 
