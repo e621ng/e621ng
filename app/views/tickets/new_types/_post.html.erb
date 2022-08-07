@@ -1,23 +1,18 @@
 <% @post = @ticket.content %>
-<% unless @post %>
-    <% @found_item = false %>
-    <div class='section' style='width:80em;'>That post does not exist.</div>
-<% else %>
-    <div class='section' style='width:80em;'>
-      You are reporting <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
-    </div>
+<div class='section' style='width:80em;'>
+  You are reporting <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
+</div>
 
-    <div class='section' style='width:80em;'>
-      <p class="nomargin">Reason:
-        <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>
-        <span id="post_reason_description">You must select a reason.</span>
-      </p>
-      <%= javascript_tag nonce: true do -%>
-        var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json.html_safe %>;
-        $('#ticket_report_reason').on('change', function(e) {
-            var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
-            $('#post_reason_description').text(description);
-        });
-      <% end -%>
-    </div>
-<% end %>
+<div class='section' style='width:80em;'>
+  <p class="nomargin">Reason:
+    <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>
+    <span id="post_reason_description">You must select a reason.</span>
+  </p>
+  <%= javascript_tag nonce: true do -%>
+    var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json.html_safe %>;
+    $('#ticket_report_reason').on('change', function(e) {
+        var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
+        $('#post_reason_description').text(description);
+    });
+  <% end -%>
+</div>
