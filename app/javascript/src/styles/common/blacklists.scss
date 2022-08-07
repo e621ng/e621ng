@@ -65,7 +65,7 @@
 }
 
 // Completely hide the blacklisted posts on these pages only
-#c-posts #a-index, #c-explore-posts, #c-favorites {
+#c-posts #a-index, #c-popular, #c-favorites {
   .post-preview.blacklisted {
     display: none !important;
   }

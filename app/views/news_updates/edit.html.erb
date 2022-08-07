@@ -2,10 +2,7 @@
   <div id="a-edit">
     <h1>Edit Update</h1>
 
-    <%= simple_form_for(@news_update) do |f| %>
-      <%= f.input :message, :hint => "Use DText for formatting", :input_html => {:size => "30x5"} %>
-      <%= f.button :submit, "Submit" %>
-    <% end %>
+    <%= render "form" %>
   </div>
 </div>
 

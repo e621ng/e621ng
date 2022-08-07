@@ -1,6 +1,6 @@
 <%= form_search path: admin_staff_notes_path, always_display: true do |f| %>
-  <%= f.input :creator_name, label: "Creator Name", input_html: {data: {autocomplete: "user"}} %>
-  <%= f.input :user_name, label: "User Name", input_html: {data: {autocomplete: "user"}} %>
+  <%= f.input :creator_name, label: "Creator Name", autocomplete: "user" %>
+  <%= f.input :user_name, label: "User Name", autocomplete: "user" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.submit "Search" %>
 <% end %>

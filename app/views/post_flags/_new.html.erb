@@ -15,9 +15,7 @@
 
   <%= error_messages_for :post_flag %>
 
-  <%# XXX dtext_field expects there to be a `post_flag` instance variable. %>
-  <% @post_flag = post_flag %>
-  <%= simple_form_for(@post_flag) do |f| %>
+  <%= custom_form_for(post_flag) do |f| %>
     <%= f.hidden_field :post_id %>
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
@@ -26,7 +24,7 @@
       <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>
       
       <% if flag_reason[:parent] %>
-        <%= f.input :parent_id, as: :integer, label: "Inferior of Post #" %>
+        <%= f.input :parent_id, as: :string, label: "Inferior of Post #" %>
       <% end %>
       
     <% end %>
@@ -38,7 +36,7 @@
     <label for="post_flag_reason_name_user">I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).</label>
     <div class="dtext-container"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
     <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
-      <%= dtext_field "post_flag", "user_reason", name: "Reason", type: "string" %>
+      <%= f.input :user_reason, label: "Reason" %>
     <% end %>
     
     <div>

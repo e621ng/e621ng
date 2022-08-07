@@ -8,7 +8,7 @@
         <% if CurrentUser.is_janitor? %>
           <li><%= link_to("Upload Listing", uploads_path) %></li>
         <% end %>
-        <li><%= link_to("Popular", popular_explore_posts_path) %></li>
+        <li><%= link_to("Popular", popular_index_path) %></li>
         <% if CurrentUser.can_approve_posts? %>
           <li><%= link_to("Moderate", moderator_post_queue_path) %></li>
         <% end %>

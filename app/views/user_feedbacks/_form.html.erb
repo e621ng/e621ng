@@ -1,0 +1,8 @@
+<%= custom_form_for(user_feedback) do |f| %>
+  <% if user_feedback.new_record? %>
+    <%= f.input :user_name, label: "User", autocomplete: "user", input_html: { value: user_feedback.user.try(:name) } %>
+  <% end %>
+  <%= f.input :category, as: :button_select, collection: ["positive", "neutral", "negative"].map { |e| [e.titleize, e] } %>
+  <%= f.input :body, as: :dtext %>
+  <%= f.button :submit, "Submit" %>
+<% end %>

@@ -46,6 +46,8 @@
               <p class="dtext-container"><%= format_text(post_version.description) %></p>
             </div>
           </div>
+        <% elsif post_version.description_changed && post_version.version != 1%>
+          Cleared
         <% end %>
       </div>
       <div class="pv-tags-locked pv-content">

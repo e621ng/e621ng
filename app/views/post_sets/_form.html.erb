@@ -1,0 +1,18 @@
+<%= custom_form_for(@post_set) do |f| %>
+  <%= error_messages_for :post_set %>
+  <%= f.input :name, as: :string %>
+
+  <%= f.input :shortname, label: 'Short Name', as: :string,
+              hint: "The short name is used for the set's metatag name. Can only contain letters, numbers, and underscores
+          and must contain at least one letter or underscore. <a href=\"/post?tags=set%3Aexample\">set:example</a>".html_safe %>
+  <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size %>
+
+  <%= f.input :is_public, label: "Public", hint: "Private sets are only visible to you. Public sets are visible to anyone, but only you and users you
+            assign as maintainers can edit the set. Only accounts three days or older can make public sets." %>
+
+  <%= f.input :transfer_on_delete, label: "Transfer on Deletion", hint: 'If "Transfer on Delete" is enabled, when a post is deleted from the site, its parent (if any) will be
+            added to this set in its place. Disable if you want posts to simply be removed from this set with no
+            replacement.' %>
+
+  <%= f.button :submit, "Submit" %>
+<% end %>

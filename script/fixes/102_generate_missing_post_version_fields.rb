@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config',
 
 Post.find_each do |post|
   puts "#{post.id}"
-  prev = PostArchive.new
+  prev = PostVersion.new
   post.versions.each do |v|
     v.fill_changes(prev)
     v.update_columns(

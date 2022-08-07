@@ -72,7 +72,7 @@ module PostSetPresenters
       html << '<span class="period">'
       html << template.link_to(
         "&laquo;prev".html_safe,
-        template.popular_explore_posts_path(
+        template.popular_index_path(
           :date => prev_date_for_scale(scale),
           :scale => scale.downcase
         ),
@@ -82,7 +82,7 @@ module PostSetPresenters
       )
       html << template.link_to(
         scale,
-        template.popular_explore_posts_path(
+        template.popular_index_path(
           :date => date,
           :scale => scale.downcase
         ),
@@ -90,7 +90,7 @@ module PostSetPresenters
       )
       html << template.link_to(
         "next&raquo;".html_safe,
-        template.popular_explore_posts_path(
+        template.popular_index_path(
           :date => next_date_for_scale(scale),
           :scale => scale.downcase
         ),

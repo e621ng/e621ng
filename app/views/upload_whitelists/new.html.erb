@@ -2,16 +2,7 @@
   <div id="a-new">
     <h1>New Upload Whitelist</h1>
 
-    <%= error_messages_for "whitelist" %>
-
-    <%= simple_form_for(@whitelist) do |f| %>
-      <%= f.input :pattern, label: "Pattern", as: :string %>
-      <%= f.input :note, label: "Note", as: :string %>
-      <%= f.input :allowed, label: "Upload Allowed", as: :boolean %>
-      <%= f.input :reason, label: "Ban Reason", as: :string %>
-      <%= f.input :hidden, label: "Hidden From Users", as: :boolean %>
-      <%= f.button :submit, "Submit" %>
-    <% end %>
+    <%= render "form" %>
   </div>
 </div>
 

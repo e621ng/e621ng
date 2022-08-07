@@ -3,7 +3,7 @@
     <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page).first.try(&:body)) %>
   </div>
 
-  <%= simple_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), html: { multipart: true }, method: :post) do |f| %>
+  <%= custom_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), html: { multipart: true }, method: :post) do |f| %>
     <div>
       <% if post.visible? %>
         <%= PostPresenter.preview(post, tags: "status:any", no_blacklist: true) %>

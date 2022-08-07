@@ -2,9 +2,9 @@
   <div id="a-index">
     <div class="box-section">
       <h4>New Category</h4>
-      <%= simple_form_for(@new_cat) do |f| %>
+      <%= custom_form_for(@new_cat) do |f| %>
         <%= f.input :name %>
-        <%= dtext_field "forum_category", "description" %>
+        <%= f.input :description, as: :dtext %>
         <%= f.input :can_create, collection: @user_levels, include_blank: false %>
         <%= f.input :can_reply, collection: @user_levels, include_blank: false %>
         <%= f.input :can_view, collection: @user_levels, include_blank: false %>
@@ -16,9 +16,9 @@
     <% @forum_cats.each do |fp| %>
       <div class="box-section">
         <h4><%= fp.name %></h4>
-        <%= simple_form_for(fp) do |f| %>
+        <%= custom_form_for(fp) do |f| %>
           <%= f.input :name %>
-          <%= dtext_field "forum_category", "description", value: fp.description %>
+          <%= f.input :description, as: :dtext %>
           <%= f.input :can_create, collection: @user_levels, selected: fp.can_create %>
           <%= f.input :can_reply, collection: @user_levels, selected: fp.can_reply %>
           <%= f.input :can_view, collection: @user_levels, selected: fp.can_view %>

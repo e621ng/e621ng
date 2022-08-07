@@ -4,9 +4,9 @@
 
     <p style="font-weight: bold;">Before creating a pool, read the <%= link_to "pool guidelines", wiki_page_path(:id => "e621:pools") %>.</p>
 
-    <%= simple_form_for(@pool) do |f| %>
+    <%= custom_form_for(@pool) do |f| %>
       <%= f.input :name, :as => :string, :required => true %>
-      <%= dtext_field "pool", "description", limit: Danbooru.config.pool_descr_max_size %>
+      <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size %>
       <%= f.input :post_ids_string, as: :text, label: "Posts" %>
       <%= f.input :category, :collection => ["series", "collection"], :include_blank => true, :selected => "", :required => true %>
       <%= f.input :is_active %>

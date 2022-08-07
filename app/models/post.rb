@@ -61,7 +61,7 @@ class Post < ApplicationRecord
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
                 :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
-  has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostArchive", :dependent => :destroy
+  has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
   IMAGE_TYPES = %i[original large preview crop]
 
@@ -1322,7 +1322,7 @@ class Post < ApplicationRecord
     def create_new_version
       # This function name is misleading, this directly creates the version.
       # Previously there was a queue involved, now there isn't.
-      PostArchive.queue(self)
+      PostVersion.queue(self)
     end
 
     def revert_to(target)

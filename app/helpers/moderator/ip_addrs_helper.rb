@@ -21,7 +21,7 @@ module Moderator
     private
 
     def ip_addr_search_path(type, ip_addr)
-      # post archive and posts don't support ip searches
+      # post versions and posts don't support ip searches
       case type
       when :comment
         comments_path(group_by: "comment", search: { ip_addr: ip_addr })

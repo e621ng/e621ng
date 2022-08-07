@@ -91,6 +91,11 @@ module ApplicationHelper
     end
   end
 
+  def custom_form_for(object, *args, &)
+    options = args.extract_options!
+    simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
+  end
+
   def strip_dtext(text)
     dtext_ragel(text, strip: true)
   end
@@ -189,21 +194,6 @@ module ApplicationHelper
     end
 
     html.html_safe
-  end
-
-  def dtext_field(object, name, **options)
-    options[:label] ||= name.capitalize
-    options[:input_id] ||= "#{object}_#{name}"
-    options[:input_name] ||= "#{object}[#{name}]"
-    options[:value] ||= instance_variable_get("@#{object}").try(name)
-    options[:classes] ||= ""
-    options[:input_classes] ||= ""
-    options[:rows] ||= 10
-    options[:cols] ||= 80
-    options[:type] ||= "text"
-    options[:limit] ||= 0
-
-    render "dtext/form", options
   end
 
   def body_attributes(user = CurrentUser.user)

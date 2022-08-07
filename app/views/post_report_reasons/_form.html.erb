@@ -1,0 +1,5 @@
+<%= custom_form_for(@reason) do |f| %>
+  <%= f.input :reason, as: :string %>
+  <%= f.input :description, as: :string %>
+  <%= f.button :submit, "Submit" %>
+<% end %>

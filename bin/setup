@@ -33,8 +33,8 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Preparing search indices =="
   system! 'bin/rails r Post.__elasticsearch__.create_index!'
   system! 'bin/rails r Post.import'
-  system! 'bin/rails r PostArchive.__elasticsearch__.create_index!'
-  system! 'bin/rails r PostArchive.import'
+  system! 'bin/rails r PostVersion.__elasticsearch__.create_index!'
+  system! 'bin/rails r PostVersion.import'
 
   puts "\n== Removing old logs and tempfiles =="
   system! 'bin/rails log:clear tmp:clear'

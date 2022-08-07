@@ -3,7 +3,7 @@
     <h1>Danger Zone</h1>
     <h2>Uploads</h2>
     Uploads are currently permitted for <b><%= User.level_string(DangerZone.min_upload_level) %></b> and up.
-    <%= simple_form_for(:uploading_limits, url: uploading_limits_admin_danger_zone_index_path, method: :put) do |f| %>
+    <%= custom_form_for(:uploading_limits, url: uploading_limits_admin_danger_zone_index_path, method: :put) do |f| %>
       <%= f.input :min_level, collection: User.level_hash.select {|k,v| v >= User::Levels::MEMBER }.to_a, selected: DangerZone.min_upload_level %>
       <%= f.button :submit, value: "Submit" %>
     <% end %>
