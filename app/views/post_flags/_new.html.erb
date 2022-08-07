@@ -24,7 +24,7 @@
       <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>
       
       <% if flag_reason[:parent] %>
-        <%= f.input :parent_id, as: :integer, label: "Inferior of Post #" %>
+        <%= f.input :parent_id, as: :string, label: "Inferior of Post #" %>
       <% end %>
       
     <% end %>

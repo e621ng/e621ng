@@ -32,7 +32,7 @@
           </p>
         </div>
 
-        <%= f.input :avatar_id, type: :number, label: 'Avatar Post ID', input_html: {min: 0} %>
+        <%= f.input :avatar_id, as: :string, label: "Avatar Post ID" %>
 
         <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size %>
 

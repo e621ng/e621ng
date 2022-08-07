@@ -191,7 +191,7 @@
                     <label class="section-label">Parent Post ID</label>
                 </div>
                 <div class="col2">
-                    <input type="number" v-model.number="parentID" placeholder="Ex. 12345"/>
+                    <input v-model.number="parentID" placeholder="Ex. 12345"/>
                 </div>
             </div>
             <div v-if="allowLockedTags" class="flex-grid border-bottom">
