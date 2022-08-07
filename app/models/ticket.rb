@@ -48,7 +48,8 @@ class Ticket < ApplicationRecord
 =end
 
   module TicketTypes
-    module ForumType
+    module Forum
+      # FIXME: Remove this by renaming the qtype value to the correct one
       def model
         ::ForumPost
       end
@@ -66,17 +67,13 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module CommentType
-      def model
-        ::Comment
-      end
-
+    module Comment
       def can_create_for?(user)
         content.visible_to?(user)
       end
     end
 
-    module DmailType
+    module Dmail
       def self.extended(m)
         m.class_eval do
           validate :validate_report_allowed
@@ -90,10 +87,6 @@ class Ticket < ApplicationRecord
             end
           end
         end
-      end
-
-      def model
-        ::Dmail
       end
 
       def can_create_for?(user)
@@ -113,7 +106,7 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module WikiType
+    module Wiki
       def model
         ::WikiPage
       end
@@ -123,17 +116,13 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module PoolType
-      def model
-        ::Pool
-      end
-
+    module Pool
       def can_create_for?(user)
         true
       end
     end
 
-    module SetType
+    module Set
       def model
         ::PostSet
       end
@@ -143,7 +132,7 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module PostType
+    module Post
       def self.extended(m)
         m.class_eval do
           validates :report_reason, presence: true
@@ -154,30 +143,18 @@ class Ticket < ApplicationRecord
         reason.split("\n")[0] || "Unknown Report Type"
       end
 
-      def model
-        ::Post
-      end
-
       def can_create_for?(user)
         true
       end
     end
 
-    module BlipType
-      def model
-        ::Blip
-      end
-
+    module Blip
       def can_create_for?(user)
         content.visible_to?(user)
       end
     end
 
-    module UserType
-      def model
-        ::User
-      end
-
+    module User
       def can_create_for?(user)
         true
       end
@@ -208,27 +185,17 @@ class Ticket < ApplicationRecord
   end
 
   VALID_STATUSES = %w(pending partial denied approved)
-  TYPE_MAP = {
-      'forum' => TicketTypes::ForumType,
-      'comment' => TicketTypes::CommentType,
-      'blip' => TicketTypes::BlipType,
-      'user' => TicketTypes::UserType,
-      'dmail' => TicketTypes::DmailType,
-      'wiki' => TicketTypes::WikiType,
-      'pool' => TicketTypes::PoolType,
-      'set' => TicketTypes::SetType,
-      'post' => TicketTypes::PostType
-  }
 
   attr_reader :can_see, :type_valid
 
   module ValidationMethods
     def validate_type
-      unless TYPE_MAP.key?(qtype)
+      valid_types = TicketTypes.constants.map { |v| v.to_s.downcase }
+      if valid_types.include?(qtype)
+        @type_valid = true
+      else
         errors.add(:qtype, "is not valid")
         @type_valid = false
-      else
-        @type_valid = true
       end
     end
 
@@ -306,8 +273,7 @@ class Ticket < ApplicationRecord
 
   module ClassifyMethods
     def classify
-      klass = TYPE_MAP[qtype]
-      extend(klass) if klass
+      extend(TicketTypes.const_get(qtype.classify)) if TicketTypes.const_defined?(qtype.classify)
     end
   end
 
@@ -338,6 +304,10 @@ class Ticket < ApplicationRecord
 
   def can_create_for?(user)
     false
+  end
+
+  def model
+    qtype.classify.constantize
   end
 
   def type_title
