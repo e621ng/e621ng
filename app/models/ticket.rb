@@ -49,11 +49,6 @@ class Ticket < ApplicationRecord
 
   module TicketTypes
     module ForumType
-
-      def type_title
-        'Forum Post Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :forum, "post does not exist"
@@ -78,10 +73,6 @@ class Ticket < ApplicationRecord
     end
 
     module CommentType
-      def type_title
-        'Comment Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :comment, "does not exist"
@@ -98,10 +89,6 @@ class Ticket < ApplicationRecord
     end
 
     module DmailType
-      def type_title
-        'Dmail Complaint'
-      end
-
       def validate_on_create
         if content&.owner_id != creator_id
           errors.add :dmail, "does not exist"
@@ -133,10 +120,6 @@ class Ticket < ApplicationRecord
     end
 
     module WikiType
-      def type_title
-        'Wiki Page Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :wiki, "page does not exist"
@@ -153,10 +136,6 @@ class Ticket < ApplicationRecord
     end
 
     module PoolType
-      def type_title
-        'Pool Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :pool, "does not exist"
@@ -173,10 +152,6 @@ class Ticket < ApplicationRecord
     end
 
     module SetType
-      def type_title
-        'Set Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :set, "does not exist"
@@ -193,10 +168,6 @@ class Ticket < ApplicationRecord
     end
 
     module PostType
-      def type_title
-        'Post Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :post, "does not exist"
@@ -220,10 +191,6 @@ class Ticket < ApplicationRecord
     end
 
     module BlipType
-      def type_title
-        'Blip Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :blip, "does not exist"
@@ -240,10 +207,6 @@ class Ticket < ApplicationRecord
     end
 
     module UserType
-      def type_title
-        'User Complaint'
-      end
-
       def validate_on_create
         if content.nil?
           errors.add :user, "does not exist"
@@ -413,7 +376,7 @@ class Ticket < ApplicationRecord
   end
 
   def type_title
-    'Ticket'
+    "#{model.name.titlecase} Complaint"
   end
 
   def subject
