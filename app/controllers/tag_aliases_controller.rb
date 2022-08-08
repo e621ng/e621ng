@@ -1,5 +1,5 @@
 class TagAliasesController < ApplicationController
-  before_action :moderator_only, except: [:index, :show]
+  before_action :moderator_only, except: [:index, :show, :destroy]
   respond_to :html, :json, :js
 
   def show
