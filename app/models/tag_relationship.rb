@@ -72,13 +72,16 @@ class TagRelationship < ApplicationRecord
     status =~ /\Aerror:/
   end
 
+  def approvable_by?(user)
+    is_pending? && user.is_moderator?
+  end
+
   def deletable_by?(user)
-    return true if user.is_moderator?
-    return false
+    user.is_moderator?
   end
 
   def editable_by?(user)
-    deletable_by?(user)
+    is_pending? && deletable_by?(user)
   end
 
   module SearchMethods

@@ -1,62 +1,54 @@
 import Utility from './utility.js';
 
 class TagRelationships {
-  static typePlural(type) {
-    if (type === "alias") {
-      return "aliases";
-    }
-    return `${type}s`;
-  }
-  static approve(e, type) {
+  static approve(e) {
     e.preventDefault();
     const $e = $(e.target);
-    const parent = $e.parents(`.tag-${type}`)
-    const id = parent.data(`${type}-id`);
+    const parent = $e.parents(".tag-relationship");
+    const route = parent.data("relationship-route");
+    const human = parent.data("relationship-human");
+    const id = parent.data("relationship-id");
     $.ajax({
-      url: `/tag_${this.typePlural(type)}/${id}/approve.json`,
+      url: `/${route}/${id}/approve.json`,
       type: 'POST',
       dataType: 'json'
     }).done(function (data) {
-      Utility.notice(`Accepted ${type}.`);
+      Utility.notice(`Accepted ${human}.`);
       parent.slideUp('fast');
     }).fail(function (data) {
-      Utility.error(`Failed to accept ${type}.`);
+      Utility.error(`Failed to accept ${human}.`);
     });
   }
 
-  static reject(e, type) {
+  static reject(e) {
     e.preventDefault();
     const $e = $(e.target);
-    const parent = $e.parents(`.tag-${type}`)
-    const id = parent.data(`${type}-id`);
-    if(!confirm(`Are you sure you want to reject this ${type}?`))
+    const parent = $e.parents(".tag-relationship");
+    const route = parent.data("relationship-route");
+    const human = parent.data("relationship-human");
+    const id = parent.data("relationship-id");
+    if(!confirm(`Are you sure you want to reject this ${human}?`))
       return;
     $.ajax({
-      url: `/tag_${this.typePlural(type)}/${id}.json`,
+      url: `/${route}/${id}.json`,
       type: 'DELETE',
       dataType: 'json'
     }).done(function (data) {
-      Utility.notice(`Rejected ${type}.`);
+      Utility.notice(`Rejected ${human}.`);
       parent.slideUp('fast');
     }).fail(function (data) {
-      Utility.error(`Failed to reject ${type}.`);
+      Utility.error(`Failed to reject ${human}.`);
     });
   }
 }
 
 $(document).ready(function() {
-  $(".tag-alias-accept").on('click', e => {
-    TagRelationships.approve(e, 'alias');
+  $(".tag-relationship-accept").on('click', e => {
+    TagRelationships.approve(e);
   });
-  $(".tag-alias-reject").on('click', e => {
-    TagRelationships.reject(e, 'alias');
+  $(".tag-relationship-reject").on('click', e => {
+    TagRelationships.reject(e);
   });
-  $(".tag-implication-accept").on('click', e => {
-    TagRelationships.approve(e,'implication');
-  });
-  $(".tag-implication-reject").on('click', e => {
-    TagRelationships.reject(e,'implication');
-  })
 });
 
 export default TagRelationships

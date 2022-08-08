@@ -12,7 +12,7 @@
   </thead>
   <tbody>
     <% tag_implications.each do |tag_implication| %>
-      <tr class="tag-implication" id="tag-implication-<%= tag_implication.id %>" data-implication-id="<%= tag_implication.id %>">
+      <tr id="tag-implication-<%= tag_implication.id %>">
         <td class="category-<%= tag_implication.antecedent_tag.try(:category) %>"><%= link_to tag_implication.antecedent_name, show_or_new_wiki_pages_path(:title => tag_implication.antecedent_name) %> <span class="count"><%= tag_implication.antecedent_tag.post_count rescue 0 %></span></td>
         <td class="category-<%= tag_implication.consequent_tag.try(:category) %>"><%= link_to tag_implication.consequent_name, show_or_new_wiki_pages_path(:title => tag_implication.consequent_name) %> <span class="count"><%= tag_implication.consequent_tag.post_count rescue 0 %></span></td>
         <td>
@@ -24,21 +24,7 @@
         <td><%= link_to_user(tag_implication.approver) if tag_implication.approver %></td>
         <td id="tag-implication-status-for-<%= tag_implication.id %>"><%= tag_implication.status %></td>
         <td>
-          <%= link_to "Show", tag_implication_path(tag_implication) %>
-
-          <% if CurrentUser.is_moderator? %>
-            <% if tag_implication.is_pending? && tag_implication.editable_by?(CurrentUser.user) %>
-              | <%= link_to "Edit", edit_tag_implication_path(tag_implication) %>
-            <% end %>
-
-            <% if tag_implication.deletable_by?(CurrentUser.user) %>
-              | <%= link_to "Reject", "#", class: "tag-implication-reject" %>
-            <% end %>
-
-            <% if tag_implication.is_pending? %>
-              | <%= link_to "Approve", "#", class: "tag-implication-accept" %>
-            <% end %>
-          <% end %>
+          <%= render "tag_relationships/command_buttons", tag_relation: tag_implication, with_show_link: true %>
         </td>
       </tr>
     <% end %>

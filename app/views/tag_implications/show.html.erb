@@ -15,22 +15,10 @@
       <% end %>
       <li><strong>Status</strong>: <%= @tag_implication.status %></li>
 
-      <% if CurrentUser.is_moderator? %>
-        <li>
-          <strong>Commands</strong>
-          <span class="tag-implication" data-implication-id="<%= @tag_implication.id %>">
-            <% if @tag_implication.is_pending? %>
-              <%= link_to "Approve", "#", class: "tag-implication-accept" %>
-            <% end %>
-            <% if @tag_implication.deletable_by?(CurrentUser.user) %>
-              | <%= link_to "Reject", "#", class: "tag-implication-reject" %>
-            <% end %>
-            <% if @tag_implication.is_pending? && @tag_implication.editable_by?(CurrentUser.user) %>
-              | <%= link_to "Edit", edit_tag_implication_path(@tag_implication) %>
-            <% end %>
-          </span>
-        </li>
-      <% end %>
+      <li>
+        <strong>Commands</strong>
+        <%= render "tag_relationships/command_buttons", tag_relation: @tag_implication, with_show_link: false %>
+      </li>
     </ul>
   </div>
 </div>
