@@ -93,27 +93,15 @@ class PostTest < ActiveSupport::TestCase
 
       context "that belongs to a pool" do
         setup do
-          # must be a janitor to update deleted pools. must be >1 week old to remove posts from pools.
-          CurrentUser.user = FactoryBot.create(:janitor_user, created_at: 1.month.ago)
-
           @pool = FactoryBot.create(:pool)
           @pool.add!(@post)
 
-          @deleted_pool = FactoryBot.create(:pool)
-          @deleted_pool.add!(@post)
-          @deleted_pool.update_columns(is_deleted: true)
-
           @post.expunge!
           @pool.reload
-          @deleted_pool.reload
         end
 
         should "remove the post from all pools" do
           assert_equal([], @pool.post_ids)
-        end
-
-        should "remove the post from deleted pools" do
-          assert_equal([], @deleted_pool.post_ids)
         end
 
         should "destroy the record" do

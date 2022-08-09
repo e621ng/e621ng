@@ -47,7 +47,6 @@ class PoolVersion < ApplicationRecord
                     description: pool.description,
                     name: pool.name,
                     is_active: pool.is_active?,
-                    is_deleted: pool.is_deleted?,
                     category: pool.category
                 })
   end

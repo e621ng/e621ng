@@ -5,7 +5,7 @@ class PoolElementsController < ApplicationController
   def create
     @pool = Pool.find_by_name(params[:pool_name]) || Pool.find_by_id(params[:pool_id])
 
-    if @pool.present? && !@pool.is_deleted?
+    if @pool.present?
       @post = Post.find(params[:post_id])
       @pool.with_lock do
         @pool.add(@post.id)

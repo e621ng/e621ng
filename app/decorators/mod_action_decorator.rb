@@ -19,8 +19,6 @@ class ModActionDecorator < ApplicationDecorator
       ### Pools ###
     when "pool_delete"
       "Deleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
-    when "pool_undelete"
-      "Undeleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
 
       ### Takedowns ###
     when "takedown_process"

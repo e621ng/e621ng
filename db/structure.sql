@@ -1209,7 +1209,6 @@ CREATE TABLE public.pool_versions (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     is_active boolean DEFAULT true NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
     category character varying,
     version integer DEFAULT 1 NOT NULL
 );
@@ -1245,7 +1244,6 @@ CREATE TABLE public.pools (
     description text,
     is_active boolean DEFAULT true NOT NULL,
     post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     category character varying DEFAULT 'series'::character varying NOT NULL
@@ -4747,4 +4745,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220203154846'),
 ('20220219202441'),
 ('20220316162257'),
-('20220516103329');
+('20220516103329'),
+('20220710133556');
+
+

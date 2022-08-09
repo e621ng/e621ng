@@ -3,8 +3,8 @@
     <%= render "posts/partials/show/search_seq", :post => post %>
   <% end %>
 
-  <% if post.pools.undeleted.any? %>
-    <%= render "posts/partials/show/pool_list", post: post, pools: post.pools.undeleted.selected_first(params[:pool_id]).limit(5) %>
+  <% if post.has_active_pools? %>
+    <%= render "posts/partials/show/pool_list", post: post, pools: post.pools.selected_first(params[:pool_id]).limit(5) %>
   <% end %>
 
   <% if CurrentUser.is_member? && post.post_sets.owned.any? %>

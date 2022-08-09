@@ -971,16 +971,15 @@ class Post < ApplicationRecord
     end
 
     def has_active_pools?
-      pools.undeleted.length > 0
+      pools.any?
     end
 
     def belongs_to_pool?(pool)
       pool_string =~ /(?:\A| )pool:#{pool.id}(?:\Z| )/
     end
 
-    def add_pool!(pool, force = false)
+    def add_pool!(pool)
       return if belongs_to_pool?(pool)
-      return if pool.is_deleted? && !force
 
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
@@ -1519,12 +1518,12 @@ class Post < ApplicationRecord
     end
 
     def with_pool_stats
-      pool_posts = Pool.joins("CROSS JOIN unnest(post_ids) AS post_id").select(:id, :is_deleted, :category, "post_id")
+      pool_posts = Pool.joins("CROSS JOIN unnest(post_ids) AS post_id").select(:id, :category, "post_id")
       relation = joins("LEFT OUTER JOIN (#{pool_posts.to_sql}) pools ON pools.post_id = posts.id").group(:id).select("posts.*")
 
       relation = relation.select("COUNT(pools.id) AS pool_count")
-      relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.is_deleted = TRUE) AS deleted_pool_count")
-      relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.is_deleted = FALSE) AS active_pool_count")
+      relation = relation.select("0 AS deleted_pool_count")
+      relation = relation.select("COUNT(pools.id) AS active_pool_count")
       relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.category = 'series') AS series_pool_count")
       relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.category = 'collection') AS collection_pool_count")
       relation

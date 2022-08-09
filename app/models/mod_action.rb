@@ -40,7 +40,6 @@ class ModAction < ApplicationRecord
       :ip_ban_create,
       :ip_ban_delete,
       :pool_delete,
-      :pool_undelete,
       :report_reason_create,
       :report_reason_delete,
       :report_reason_update,
