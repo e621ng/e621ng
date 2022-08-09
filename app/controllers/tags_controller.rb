@@ -39,7 +39,7 @@ class TagsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @tag = Tag.find(params[:id])
     else
-      @tag = Tag.find_by_name(params[:id])
+      @tag = Tag.find_by!(name: params[:id])
     end
     respond_with(@tag)
   end
