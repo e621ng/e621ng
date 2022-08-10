@@ -34,7 +34,7 @@
       This post is rating locked.
     </div>
   <% else %>
-    <%= f.input :rating, as: :button_select, collection: rating_collection %>
+    <%= f.input :rating, as: :button_select, collection: rating_collection.reverse %>
   <% end %>
 
 

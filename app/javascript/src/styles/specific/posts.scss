@@ -401,6 +401,20 @@ div#c-posts {
       textarea {
         width: 100%;
       }
+
+      @include themable {
+        #post_rating_e:checked + label {
+          background-color: themed("color-rating-explicit");
+        }
+
+        #post_rating_q:checked + label {
+          background-color: themed("color-rating-questionable");
+        }
+  
+        #post_rating_s:checked + label {
+          background-color: themed("color-rating-safe");
+        }
+      }
     }
 
     .search-seq-nav + .pool-nav, .search-seq-nav + .set-nav, .pool-nav + .set-nav {
