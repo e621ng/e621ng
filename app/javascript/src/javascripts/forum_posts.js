@@ -77,7 +77,7 @@ ${stripped_body}
 [/quote]
 
 `;
-    var $textarea = $('#forum_post_body');
+    var $textarea = $('#forum_post_body_for_');
     var msg = stripped_body;
     if ($textarea.val().length > 0) {
       msg = $textarea.val() + "\n\n" + msg;
