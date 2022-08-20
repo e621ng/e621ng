@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
-
   setup do
     Sidekiq::Testing.inline!
   end
@@ -24,6 +23,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       should "accept new non duplicate replacement" do
         file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/alpha.png", "image/png")
         params = {
+          format: :json,
           post_id: @post.id,
           post_replacement: {
             replacement_file: file,
@@ -36,7 +36,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           @post.reload
         end
 
-        assert_redirected_to post_path(@post)
+        assert_equal @response.parsed_body["location"], post_path(@post)
       end
     end
 

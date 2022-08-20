@@ -20,12 +20,16 @@ class PostReplacementsController < ApplicationController
     check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
-    if @post_replacement.errors.any?
-      flash[:notice] = @post_replacement.errors.full_messages.join('; ')
-    else
+    if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end
-    respond_with(@post_replacement, location: @post)
+    respond_to do |format|
+      format.json do
+        return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 if @post_replacement.errors.any?
+
+        render json: { success: true, location: post_path(@post) }
+      end
+    end
   end
 
   def approve

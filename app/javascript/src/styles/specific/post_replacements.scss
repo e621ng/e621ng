@@ -27,4 +27,15 @@ div#c-post-replacements {
   .upload_preview_img {
     max-width: 100%;
   }
+
+  .upload_preview_container {
+    margin-top: 0.5rem;
+  }
+
+  .error_message, .source_warning {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    width: fit-content;
+  }
 }
