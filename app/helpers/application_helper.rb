@@ -257,7 +257,7 @@ protected
     when "notes", "note_versions"
       /^\/notes/
 
-    when "posts", "uploads", "post_versions", "explore/posts", "moderator/post/dashboards", "favorites", "post_favorites"
+    when "posts", "uploads", "post_versions", "popular", "moderator/post/dashboards", "favorites", "post_favorites"
       /^\/posts/
 
     when "artists", "artist_versions"

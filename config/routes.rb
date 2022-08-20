@@ -402,7 +402,7 @@ Rails.application.routes.draw do
   get "/post/popular_by_week" => redirect("/popular")
   get "/post/popular_by_month" => redirect("/popular")
   # This redirect preserves all query parameters and the request format
-  get "/post/explore/popular(*all)" => redirect(path: "/popular%{all}"), defaults: { all: "" }
+  get "/explore/posts/popular(*all)" => redirect(path: "/popular%{all}"), defaults: { all: "" }
   get "/post/show/:id/:tag_title" => redirect("/posts/%{id}")
   get "/post/show/:id" => redirect("/posts/%{id}")
   get "/post/show" => redirect {|params, req| "/posts?md5=#{req.params[:md5]}"}
