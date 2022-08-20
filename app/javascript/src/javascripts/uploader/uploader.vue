@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <sources :showErrors="showErrors" v-model:sources="sources" @sourceWarning="sourceWarning = $event"></sources>
+                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @sourceWarning="sourceWarning = $event"></sources>
                 </div>
             </div>
             <template v-if="normalMode">

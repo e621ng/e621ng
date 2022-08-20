@@ -3,7 +3,7 @@
     A source must be provided or you must select that there is no available source.
   </div>
   <div v-if="!noSource">
-    <file-source :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
+    <file-source :maxSources="maxSources" :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
                     v-for="s, i in sources"
                     @delete="removeSource(i)" @add="addSource" :key="i"></file-source>
   </div>
@@ -20,7 +20,7 @@
     components: {
       "file-source": fileSource,
     },
-    props: ["showErrors", "sources"],
+    props: ["showErrors", "sources", "maxSources"],
     data() {
       return {
         noSource: false,
@@ -31,7 +31,7 @@
         this.sources.splice(i, 1);
       },
       addSource() {
-        if (this.sources.length < 10) {
+        if (this.sources.length < this.maxSources) {
           this.sources.push("");
         }
       },
