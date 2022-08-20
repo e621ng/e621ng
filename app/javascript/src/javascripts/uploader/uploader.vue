@@ -22,19 +22,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-show="showErrors && sourceWarning">
-                        A source must be provided or you must select that there is no available source.
-                    </div>
-                    <div v-if="!noSource">
-                        <image-source :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
-                                      v-for="s, i in sources"
-                                      @delete="removeSource(i)" @add="addSource" :key="i"></image-source>
-                    </div>
-                    <div>
-                        <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/>
-                            No available source / I am the source.
-                        </label>
-                    </div>
+                    <sources :showErrors="showErrors" v-model:sources="sources" @sourceWarning="sourceWarning = $event"></sources>
                 </div>
             </div>
             <template v-if="normalMode">
@@ -255,7 +243,7 @@
 </template>
 
 <script>
-  import source from './source.vue';
+  import sources from './sources.vue';
   import checkbox from './checkbox.vue';
   import relatedTags from './related.vue';
   import tagPreview from './tag_preview.vue';
@@ -307,7 +295,7 @@
 
   export default {
     components: {
-      'image-source': source,
+      'sources': sources,
       'image-checkbox': checkbox,
       'related-tags': relatedTags,
       'tag-preview': tagPreview,
@@ -342,7 +330,7 @@
         uploadValue: '',
         invalidUploadValue: false,
 
-        noSource: false,
+        sourceWarning: false,
         sources: [''],
         normalMode: !window.uploaderSettings.compactMode,
 
@@ -426,13 +414,6 @@
         fillFieldBool("uploadAsPending", "upload_as_pending")
     },
     methods: {
-      removeSource(i) {
-        this.sources.splice(i, 1);
-      },
-      addSource() {
-        if (this.sources.length < 10)
-          this.sources.push('');
-      },
       setCheck(tag, value) {
         this.checkboxes.selected[tag] = value;
       },
@@ -597,12 +578,6 @@
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
-      },
-      sourceWarning: function () {
-        const validSourceCount = this.sources.filter(function (i) {
-          return i.length > 0;
-        }).length;
-        return !this.noSource && (validSourceCount === 0);
       },
       tagCount: function () {
         return this.tags.split(' ').filter(function (x) {
