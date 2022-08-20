@@ -44,12 +44,6 @@ class ElasticPostQueryBuilder
     relation
   end
 
-  def escape_string_for_tsquery(array)
-    array.map do |token|
-      token.to_escaped_for_tsquery
-    end
-  end
-
   def add_tag_string_search_relation(tags, relation)
     should = tags[:include].map {|x| {term: {tags: x}}}
     must = tags[:related].map {|x| {term: {tags: x}}}
@@ -62,28 +56,6 @@ class ElasticPostQueryBuilder
     }}
     search[:bool][:minimum_should_match] = 1 if should.size > 0
     relation.push(search)
-  end
-
-  def table_for_metatag(metatag)
-    if metatag.in?(Tag::COUNT_METATAGS)
-      metatag[/(?<table>[a-z]+)_count\z/i, :table]
-    else
-      nil
-    end
-  end
-
-  def tables_for_query(q)
-    metatags = q.keys
-    metatags << q[:order].remove(/_(asc|desc)\z/i) if q[:order].present?
-
-    tables = metatags.map {|metatag| table_for_metatag(metatag.to_s)}
-    tables.compact.uniq
-  end
-
-  def add_joins(q, relation)
-    tables = tables_for_query(q)
-    relation = relation.with_stats(tables)
-    relation
   end
 
   def hide_deleted_posts?(q)
