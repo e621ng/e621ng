@@ -7,7 +7,10 @@
         <% if @ticket.can_see_username?(CurrentUser) %>
           <tr>
             <td><span class='title'>Requested by</span></td>
-            <td><%= link_to_user @ticket.creator %></td>
+            <td>
+              <%= link_to_user @ticket.creator %>
+              (<%= link_to "Pending Tickets", tickets_path(search: { creator_id: @ticket.creator.id, status: "pending" }) %>)
+            </td>
           </tr>
         <% end %>
         <tr>
