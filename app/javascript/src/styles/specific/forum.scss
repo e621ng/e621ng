@@ -1,5 +1,3 @@
-
-
 div.list-of-forum-posts {
   article {
     margin: 1em 0em;
@@ -72,12 +70,18 @@ div#c-forum-topics {
     font-weight: bold;
   }
 
-  tr.forum-topic-row td:last-child {
-    white-space: nowrap;
-  }
+  tr.forum-topic-row {
+    &[data-is-deleted="true"] {
+      background-color: $forum-topic-hidden-background;
+    }
 
-  tr.forum-topic-row[data-is-deleted="true"] {
-    background-color: $forum-topic-hidden-background;
+    td:last-child {
+      white-space: nowrap;
+    }
+
+    .forum-post-link {
+      word-break: break-word;
+    }
   }
 }
 
