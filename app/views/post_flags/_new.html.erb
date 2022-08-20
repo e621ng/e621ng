@@ -19,6 +19,10 @@
     <%= f.hidden_field :post_id %>
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
+      <% if flag_reason[:name] == "uploading_guidelines" && !@post.is_pending %>
+        <% next %>
+      <% end %>
+
       <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
       <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label>
       <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>

@@ -188,10 +188,12 @@ class PostFlag < ApplicationRecord
         errors.add(:parent_id, "must exist")
         return false
       end
-      errors.add(:parent_id,  "cannot be set to the post being flagged") if parent_post.id == post.id
+      errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
     when 'user'
       errors.add(:user_reason, "cannot be blank") unless user_reason.present? && user_reason.strip.length > 0
       errors.add(:user_reason, "cannot be used after 48 hours or on posts you didn't upload") if post.created_at < 48.hours.ago || post.uploader_id != creator_id
+    when 'uploading_guidelines'
+      errors.add(:reason, "can only be used on pending posts") unless post.is_pending
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end
