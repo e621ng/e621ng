@@ -14,7 +14,7 @@
   <div class="input">
     <label>
       <div>Reason</div>
-      <input name="source" size="40" v-model="reason">
+      <input name="source" size="50" placeholder="Higher quality, artwork updated, official uncensored version, ..." v-model="reason">
     </label>
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
