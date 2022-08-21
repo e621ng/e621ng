@@ -1069,7 +1069,8 @@ class Tag < ApplicationRecord
       end
 
       if params[:category].present?
-        q = q.where("category = ?", params[:category])
+        category_ids = params[:category].split(",").first(100).grep(/^\d+$/)
+        q = q.where(category: category_ids)
       end
 
       if params[:hide_empty].blank? || params[:hide_empty].to_s.truthy?
