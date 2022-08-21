@@ -333,11 +333,11 @@ class PostSet < ApplicationRecord
         q = q.order(:name, id: :desc)
       when 'shortname'
         q = q.order(:shortname, id: :desc)
-      when 'postcount'
+      when 'postcount', 'post_count'
         q = q.order(post_count: :desc, id: :desc)
       when 'created_at'
         q = q.order(:id)
-      when 'update'
+      when 'update', 'updated_at'
         q = q.order(updated_at: :desc)
       else
         q = q.order(id: :desc)
