@@ -44,7 +44,7 @@ module Sources
       end
 
       def original_url
-        @url[0..2048] # Truncate to prevent abuse
+        @url
       end
     end
   end
