@@ -516,7 +516,8 @@ class Post < ApplicationRecord
         sources = alt_processor.remove_duplicates(sources)
       end
 
-      self.source = sources.first(10).join("\n")
+      # Truncate sources to prevent abuse
+      self.source = sources.map{ |s| s[0..2048] }.first(10).join("\n")
     end
 
     def copy_sources_to_parent
