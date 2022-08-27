@@ -4,18 +4,24 @@ module Sources
       attr_reader :url, :gallery_url, :submission_url, :direct_url, :additional_urls, :parsed_url
 
       def initialize(url)
-        if force_https?
-          url.gsub!(/\Ahttp:/, "https:")
-        end
         @url = url
 
         @parsed_url = Addressable::URI.heuristic_parse(url) rescue nil
 
-        parse if @parsed_url.present?
+        if @parsed_url.present?
+          if force_https?
+            @parsed_url.scheme = "https"
+            @url = @parsed_url.to_s
+          end
+
+          parse
+        end
       end
 
       def force_https?
-        false
+        return false unless @parsed_url.present?
+        secure_domains = %w[weasyl.com e-hentai.org hentai-foundry.com paheal.net imgur.com]
+        secure_domains.include?(@parsed_url.domain)
       end
 
       def match?
