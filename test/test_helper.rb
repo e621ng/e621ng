@@ -41,6 +41,7 @@ end
 
 class ActiveSupport::TestCase
   include UploadTestHelper
+  extend SourceTestHelper
   include TestHelpers
 
   setup do
