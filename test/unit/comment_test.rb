@@ -21,7 +21,7 @@ class CommentTest < ActiveSupport::TestCase
       should "fail creation" do
         comment = FactoryBot.build(:comment, post: create(:post))
         comment.save
-        assert_equal(["Creator can not yet perform this action. Account is too new."], comment.errors.full_messages)
+        assert_equal(["Creator can not yet perform this action. Account is too new"], comment.errors.full_messages)
       end
     end
 

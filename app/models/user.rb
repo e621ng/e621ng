@@ -444,7 +444,7 @@ class User < ApplicationRecord
   module ThrottleMethods
     def throttle_reason(reason)
       reasons = {
-          REJ_NEWBIE: 'can not yet perform this action. Account is too new.',
+          REJ_NEWBIE: 'can not yet perform this action. Account is too new',
           REJ_LIMITED: 'have reached the hourly limit for this action'
       }
       reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
