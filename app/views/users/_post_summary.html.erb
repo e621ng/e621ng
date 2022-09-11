@@ -3,7 +3,7 @@
     <h2>
       <%= link_to "Favorites", favorites_path(:user_id => user.id) %>
     </h2>
-    <% if user.enable_privacy_mode? %>
+    <% if user.enable_privacy_mode? || user.is_blocked? %>
       <h4>
         (hidden)
       </h4>

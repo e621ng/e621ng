@@ -763,7 +763,7 @@ class Tag < ApplicationRecord
             next unless favuser
 
             if favuser.hide_favorites?
-              raise User::PrivilegeError.new
+              raise Favorite::HiddenError
             end
 
             q[:fav_ids_neg] << favuser.id
@@ -775,7 +775,7 @@ class Tag < ApplicationRecord
             next unless favuser
 
             if favuser.hide_favorites?
-              raise User::PrivilegeError.new
+              raise Favorite::HiddenError
             end
 
             q[:fav_ids] << favuser.id

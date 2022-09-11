@@ -173,10 +173,4 @@ class UserPresenter
     tags = tags.take(50)
     Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
   end
-
-  def can_view_favorites?
-    return true if CurrentUser.id == user.id
-    return false if user.enable_privacy_mode? && !CurrentUser.is_admin?
-    true
-  end
 end

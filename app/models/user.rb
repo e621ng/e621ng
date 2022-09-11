@@ -909,7 +909,9 @@ class User < ApplicationRecord
   end
 
   def hide_favorites?
-    !CurrentUser.is_admin? && enable_privacy_mode? && CurrentUser.user.id != id
+    return false if CurrentUser.is_admin?
+    return true if is_blocked?
+    enable_privacy_mode? && CurrentUser.user.id != id
   end
 
   def compact_uploader?
