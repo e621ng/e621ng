@@ -37,7 +37,7 @@
           <td><%= mod_link_to_user vote.comment.creator, :negative %></td>
           <td><%= mod_link_to_user vote.user, :negative %></td>
           <td><%= vote.user.email %>
-          <td title="Signed up at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.user.created_at) %> ago
+          <td title="Signed up at <%= vote.user.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.user.created_at) %> ago
           <td>
             <% if vote.score == 1 %><span class='greentext'>Up</span>
             <% elsif vote.score == 0 %><span class='yellowtext'>Locked</span>
