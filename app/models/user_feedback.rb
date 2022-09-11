@@ -16,7 +16,9 @@ class UserFeedback < ApplicationRecord
   end
   after_destroy do |rec|
     ModAction.log(:user_feedback_delete, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
-    StaffNote.create(body: "\"#{CurrentUser.name}\":/users/#{CurrentUser.id} deleted #{rec.category} feedback, created #{created_at.to_date}: #{rec.body}", user_id: rec.user_id, creator: User.system)
+    deletion_user = "\"#{CurrentUser.name}\":/users/#{CurrentUser.id}"
+    creator_user = "\"#{creator.name}\":/users/#{creator.id}"
+    StaffNote.create(body:  "#{deletion_user} deleted #{rec.category} feedback, created #{created_at.to_date} by #{creator_user}: #{rec.body}", user_id: rec.user_id, creator: User.system)
   end
 
   module SearchMethods
