@@ -96,17 +96,6 @@ class ForumPost < ApplicationRecord
   extend SearchMethods
   include ApiMethods
 
-  def self.new_reply(params)
-    if params[:topic_id]
-      new(:topic_id => params[:topic_id])
-    elsif params[:post_id]
-      forum_post = ForumPost.find(params[:post_id])
-      forum_post.build_response
-    else
-      new
-    end
-  end
-
   def tag_change_request
     bulk_update_request || tag_alias || tag_implication
   end
@@ -222,10 +211,6 @@ class ForumPost < ApplicationRecord
     User.id_to_name(updater_id)
   end
 
-  def quoted_response
-    DText.quote(body, creator_name)
-  end
-
   def forum_topic_page
     ((ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count) / Danbooru.config.posts_per_page.to_f).ceil
   end
@@ -244,11 +229,5 @@ class ForumPost < ApplicationRecord
     end
 
     true
-  end
-
-  def build_response
-    dup.tap do |x|
-      x.body = x.quoted_response
-    end
   end
 end

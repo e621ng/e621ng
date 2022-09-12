@@ -7,15 +7,7 @@ class ForumPostsController < ApplicationController
   skip_before_action :api_check
 
   def new
-    if params[:topic_id]
-      @forum_topic = ForumTopic.find(params[:topic_id])
-      raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user) && @forum_topic.can_reply?(CurrentUser.user)
-    end
-    if params[:post_id]
-      quoted_post = ForumPost.find(params[:post_id])
-      raise User::PrivilegeError.new unless quoted_post.topic.visible?(CurrentUser.user) && quoted_post.topic.can_reply?(CurrentUser.user)
-    end
-    @forum_post = ForumPost.new_reply(params)
+    @forum_post = ForumPost.new(forum_post_params(:create))
     respond_with(@forum_post)
   end
 
@@ -43,8 +35,15 @@ class ForumPostsController < ApplicationController
   end
 
   def create
-    @forum_post = ForumPost.create(forum_post_params(:create))
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
+    @forum_post = ForumPost.new(forum_post_params(:create))
+    if @forum_post.valid?
+      @forum_topic = @forum_post.topic
+      check_min_level
+      @forum_post.save
+      respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
+    else
+      respond_with(@forum_post)
+    end
   end
 
   def update
@@ -102,6 +101,6 @@ private
     permitted_params = [:body]
     permitted_params += [:topic_id] if context == :create
 
-    params.require(:forum_post).permit(permitted_params)
+    params.fetch(:forum_post, {}).permit(permitted_params)
   end
 end

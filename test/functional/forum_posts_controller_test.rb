@@ -100,7 +100,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "new action" do
       should "render" do
-        get_auth new_forum_post_path, @user, params: {:topic_id => @forum_topic.id}
+        get_auth new_forum_post_path, @user, params: { forum_post: { topic_id: @forum_topic.id }}
         assert_response :success
       end
     end
