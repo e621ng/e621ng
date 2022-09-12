@@ -2,6 +2,9 @@
   <div id="a-index">
     <%= render "tag_relationships/search", url: tag_implications_path %>
     <%= render "tag_relationships/listing", tag_relations: @tag_implications %>
+    <% if CurrentUser.is_moderator? %>
+      <%= render "tag_relationships/add_form", type: :tag_implication_request, path: tag_implication_request_path %>
+    <% end %>
 
     <%= numbered_paginator(@tag_implications) %>
   </div>

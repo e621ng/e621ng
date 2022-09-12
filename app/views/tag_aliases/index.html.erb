@@ -3,7 +3,7 @@
     <%= render "tag_relationships/search", url: tag_aliases_path %>
     <%= render "tag_relationships/listing", tag_relations: @tag_aliases %>
     <% if CurrentUser.is_moderator? %>
-      <%= render "add_form" %>
+      <%= render "tag_relationships/add_form", type: :tag_alias_request, path: tag_alias_request_path %>
     <% end %>
 
     <%= numbered_paginator(@tag_aliases) if @tag_aliases.respond_to?(:current_page) %>
