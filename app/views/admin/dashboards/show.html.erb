@@ -4,12 +4,12 @@
 
     <div class="section">
       <h2>Aliases</h2>
-      <%= render "tag_aliases/listing", :tag_aliases => @dashboard.tag_aliases %>
+      <%= render "tag_relationships/listing", tag_relations: @dashboard.tag_aliases %>
     </div>
 
     <div class="section">
       <h2>Implications</h2>
-      <%= render "tag_implications/listing", :tag_implications => @dashboard.tag_implications %>
+      <%= render "tag_relationships/listing", tag_relations: @dashboard.tag_implications %>
     </div>
 
     <div class="section">
