@@ -195,7 +195,9 @@ class PostReplacement < ApplicationRecord
       upload = transaction do
         processor = UploadService.new(new_upload_params)
         new_upload = processor.start!
-        update_attribute(:status, 'promoted')
+        if new_upload.valid? && new_upload.post&.valid?
+          update_attribute(:status, "promoted")
+        end
         new_upload
       end
       post.update_index
