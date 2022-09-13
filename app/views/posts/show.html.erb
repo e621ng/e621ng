@@ -68,7 +68,9 @@
             Adobe Flash has reached end of life, and no longer works in browsers. Please see <a href="/forum_topics/22535" rel="nofollow">this thread</a> on the forum for details on how you can continue to play this file.
             <br>Keyboard shortcuts are disabled on this page because it contains flash.
           </div>
-          <%= render "posts/partials/show/notices", :post => @post %>
+          <% if CurrentUser.is_janitor? %>
+            <%= render "posts/partials/show/notices", post: @post %>
+          <% end %>
         </div>
 
         <%= render "ads/leaderboard" %>
@@ -127,7 +129,26 @@
         <% end %>
       </section>
 
-      <%= render "posts/partials/show/notices_bottom", :post => @post %>
+      <div class="bottom-notices">
+        <div class="parent-children">
+          <% if @post.parent_id && @post.parent_exists? %>
+            <div class="notice notice-child">
+              <%= has_parent_message(@post, @parent_post_set) %>
+              <div id="has-parent-relationship-preview" style="display: none;"><%= @parent_post_set.presenter.post_previews_html(self) %></div>
+            </div>
+          <% end %>
+
+          <% if @post.has_visible_children? %>
+            <div class="notice notice-parent">
+              <%= has_children_message(@post, @children_post_set) %>
+              <div id="has-children-relationship-preview" style="display: none;"><%= @children_post_set.presenter.post_previews_html(self) %></div>
+            </div>
+          <% end %>
+        </div>
+        <% if !CurrentUser.is_janitor? %>
+          <%= render "posts/partials/show/notices", post: @post %>
+        <% end %>
+      </div>
 
       <section id="mark-as-translated-section" style="display: none;">
         <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>
