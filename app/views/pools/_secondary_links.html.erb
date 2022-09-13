@@ -11,10 +11,10 @@
       <%= subnav_link_to "Posts", posts_path(:tags => "pool:#{@pool.id}") %>
       <% if CurrentUser.is_member? %>
         <%= subnav_link_to "Edit", edit_pool_path(@pool), "data-shortcut": "e" %>
-        <%= subnav_link_to "Import", import_pool_path(@pool), "data-shortcut": "i" %>
+        <%= subnav_link_to "Import", import_pool_path(@pool) %>
       <% end %>
       <% if @pool.deletable_by?(CurrentUser.user) %>
-        <%= subnav_link_to "Delete", pool_path(@pool), :method => :delete, :"data-shortcut" => "shift+d", :"data-confirm" => "Are you sure you want to delete this pool?" %>
+        <%= subnav_link_to "Delete", pool_path(@pool), :method => :delete, :"data-confirm" => "Are you sure you want to delete this pool?" %>
       <% end %>
       <%= subnav_link_to "History", pool_versions_path(:search => {:pool_id => @pool.id}) %>
       <% if @pool.post_count <= 1_000 && CurrentUser.is_member? %>

@@ -7,7 +7,7 @@
       <strong><%= tag.a "Approve And Next", id: "approve-post-next", href: "#", class: "approve-post-and-navigate-link button btn-neutral", "data-pid": post.id, 'data-location': show_seq_post_path(post, q: params[:q], seq: "next"), "data-shortcut": "shift+w" %></strong>
       |
     <% end %>
-    <strong><%= tag.a "Approve", href: '#', class: 'approve-post-link button btn-neutral', 'data-pid': post.id %></strong>
+    <strong><%= tag.a "Approve", id: "approve-post" ,href: '#', class: 'approve-post-link button btn-neutral', 'data-pid': post.id, 'data-shortcut': "shift+o" %></strong>
   </div>
   <% end %>
   <div>
