@@ -41,7 +41,6 @@
 
         <% if post.is_approvable? && !post.is_deleted? %>
           <li><%= tag.a "Approve", href: '#', class: 'approve-post-link', :"data-shortcut" => "shift+o", 'data-pid': post.id %></li>
-          <li><%= tag.a "Hide from queue", href: '#', class: 'disapprove-post-link', 'data-pid': post.id, 'data-reason': 'other' %></li>
         <% end %>
 
         <% if !post.is_pending? && !post.is_deleted? %>

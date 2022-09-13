@@ -128,27 +128,26 @@ article.post-preview {
   }
 
 
-  /* Pending and flagged posts have blue borders (except in the modqueue). */
-  &.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-pending img,
+  &.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-pending-color;
   }
 
-  &.post-status-has-children.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-children.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-children.post-status-pending img,
+  &.post-status-has-children.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-children-color;
   }
 
-  &.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-parent.post-status-pending img,
+  &.post-status-has-parent.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-parent-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }
 
-  &.post-status-has-children.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-children.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-children.post-status-has-parent.post-status-pending img,
+  &.post-status-has-children.post-status-has-parent.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }

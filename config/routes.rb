@@ -38,7 +38,6 @@ Rails.application.routes.draw do
     end
     resource :tag, :only => [:edit, :update]
     namespace :post do
-      resource :queue, :only => [:show]
       resource :approval, :only => [:create, :destroy]
       resources :disapprovals, :only => [:create, :index]
       resources :posts, :only => [:delete, :undelete, :expunge, :confirm_delete] do
@@ -395,7 +394,6 @@ Rails.application.routes.draw do
   get "/post/index" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post/upload" => redirect("/uploads/new")
-  get "/post/moderate" => redirect("/moderator/post/queue")
   get "/post/atom" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
   get "/post/atom.feed" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
   get "/post/popular_by_day" => redirect("/popular")

@@ -1,7 +1,5 @@
 class PostDisapproval < ApplicationRecord
-  DELETION_THRESHOLD = 1.month
-
-  belongs_to :post, required: true
+  belongs_to :post
   belongs_to :user
   after_initialize :initialize_attributes, if: :new_record?
   validates :post_id, uniqueness: { :scope => [:user_id], :message => "have already hidden this post" }

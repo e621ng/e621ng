@@ -75,13 +75,13 @@
   <%= yield :html_header %>
   <%= raw Danbooru.config.custom_html_header_content %>
   <style id="blacklisted-hider">
-    .post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail {
+    .post-preview, #image-container, #c-comments .post, .post-thumbnail {
       visibility: hidden !important;
     }
   </style>
   <noscript>
     <style>
-      .post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail {
+      .post-preview, #image-container, #c-comments .post, .post-thumbnail {
         visibility: visible !important;
       }
     </style>

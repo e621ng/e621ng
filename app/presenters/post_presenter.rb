@@ -87,7 +87,7 @@ class PostPresenter < Presenter
     ApplicationController.render(partial: "posts/partials/index/preview", locals: locals)
   end
 
-  def self.preview_class(post, highlight_score: nil, pool: nil, size: nil, similarity: nil, **options)
+  def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
     klass = ["post-preview", "captioned"]
     # Always captioned with new post stats section.
     # klass << "captioned" if pool || size || similarity
@@ -96,8 +96,6 @@ class PostPresenter < Presenter
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-pos-score" if highlight_score && post.score >= 3
-    klass << "post-neg-score" if highlight_score && post.score <= -3
     klass << "post-rating-safe" if post.rating == 's'
     klass << "post-rating-questionable" if post.rating == 'q'
     klass << "post-rating-explicit" if post.rating == 'e'

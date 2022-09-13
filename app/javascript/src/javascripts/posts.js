@@ -872,12 +872,6 @@ Post.approve = function(post_id, should_reload) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function(data) {
-      if ($("#c-moderator-post-queues").length) {
-        $(`#c-moderator-post-queues #post-${post_id}`).hide();
-        $(window).trigger("danbooru:modqueue_increment_processed");
-        $(window).trigger("danbooru:notice", "Post was approved");
-        return;
-      }
       var $post = $("#post_" + post_id);
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
@@ -904,10 +898,6 @@ Post.disapprove = function(post_id, reason, should_reload) {
     }).done(function(data) {
       if ($("#c-posts #a-show").length) {
         location.reload();
-      } else if ($("#c-moderator-post-queues").length) {
-        $(`#c-moderator-post-queues #post-${post_id}`).hide();
-        $(window).trigger("danbooru:modqueue_increment_processed");
-        $(window).trigger("danbooru:notice", "Post was hidden");
       }
     }).always(function() {
       Post.notice_update("dec");

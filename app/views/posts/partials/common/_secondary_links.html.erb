@@ -10,9 +10,6 @@
       <%= subnav_link_to "Favorites", favorites_path %>
     <% end %>
     <%= subnav_link_to "Changes", post_versions_path %>
-    <% if CurrentUser.can_approve_posts? %>
-      <%= subnav_link_to "Moderate", moderator_post_queue_path %>
-    <% end %>
     <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
     <%= subnav_link_to "Help", help_page_path(id: "posts") %>
   </menu>
