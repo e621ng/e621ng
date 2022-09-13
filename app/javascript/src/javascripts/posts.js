@@ -348,6 +348,11 @@ Post.initialize_links = function() {
     e.preventDefault();
     Post.approve($(e.target).data('pid'), legacyApproveCallback);
   });
+  $(".approve-post-and-navigate-link").on('click', e => {
+    e.preventDefault();
+    const $target = $(e.target);
+    Post.approve($target.data('pid'), () => { location.href = $target.data('location') });
+  });
   $("#destroy-post-link").on('click', e => {
     e.preventDefault();
     if(!confirm("This will permanently delete this post (meaning the file will be deleted). Are you sure you want to delete this post?"))

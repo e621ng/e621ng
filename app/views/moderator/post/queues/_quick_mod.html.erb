@@ -1,6 +1,12 @@
 <div class="quick-mod">
   <% if post.is_approvable? %>
   <div>
+    <% if post.presenter.has_sequential_navigation?(params) %>
+      <strong><%= tag.a "Approve And Prev", id: "approve-post-prev", href: "#", class: "approve-post-and-navigate-link button btn-neutral", "data-pid": post.id, 'data-location': show_seq_post_path(post, q: params[:q], seq: "prev"), "data-shortcut": "shift+q" %></strong>
+      |
+      <strong><%= tag.a "Approve And Next", id: "approve-post-next", href: "#", class: "approve-post-and-navigate-link button btn-neutral", "data-pid": post.id, 'data-location': show_seq_post_path(post, q: params[:q], seq: "next"), "data-shortcut": "shift+w" %></strong>
+      |
+    <% end %>
     <strong><%= tag.a "Approve", href: '#', class: 'approve-post-link button btn-neutral', 'data-pid': post.id %></strong>
   </div>
   <% end %>
