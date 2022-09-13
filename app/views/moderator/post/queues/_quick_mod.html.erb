@@ -10,12 +10,6 @@
     <strong><%= tag.a "Approve", href: '#', class: 'approve-post-link button btn-neutral', 'data-pid': post.id %></strong>
   </div>
   <% end %>
-  <% @our_disapproval = post.disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
-  <% if @our_disapproval.present? %>
-  <div>
-    You are currently disapproving of this post for the following reason: <strong><%= @our_disapproval.reason %></strong>
-  </div>
-  <% end %>
   <div>
     <%= link_to "Human Only", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> |
     <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)", post_id: post.id} %> |

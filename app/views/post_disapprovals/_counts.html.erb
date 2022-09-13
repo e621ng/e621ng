@@ -1,6 +1,6 @@
 <% if CurrentUser.can_approve_posts? && disapprovals.length > 0 %>
   <p>
-    It has been reviewed by <%= pluralize disapprovals.length, "approver" %>.
+    It has been reviewed by <%= link_to pluralize(disapprovals.length, "approver"), moderator_post_disapprovals_path(search: { post_id: post.id }) %>.
 
     <% if disapprovals.map(&:reason).grep("borderline_quality").count > 0 %>
       <%= disapprovals.map(&:reason).grep("borderline_quality").count %> believe it doesn't meet the quality standards.
@@ -12,6 +12,13 @@
 
     <% if disapprovals.map(&:message).any?(&:present?) %>
       Messages: <%= disapprovals.map(&:message).select(&:present?).map { |msg| format_text(msg, inline: true) }.to_sentence.html_safe %>.
+    <% end %>
+
+    <% @our_disapproval = disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
+    <% if @our_disapproval.present? %>
+      <div>
+        You are currently disapproving of this post for the following reason: <strong><%= @our_disapproval.reason %></strong>
+      </div>
     <% end %>
   </p>
 <% end %>
