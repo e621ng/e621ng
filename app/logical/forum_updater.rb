@@ -22,7 +22,7 @@ class ForumUpdater
   end
 
   def create_response(body)
-    forum_topic.posts.create(body: body)
+    forum_topic.posts.create(body: body, bypass_limits: true)
   end
 
   def update_title(title_tag)

@@ -32,6 +32,8 @@ class ForumPost < ApplicationRecord
     ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
   end
 
+  attr_accessor :bypass_limits
+
   module SearchMethods
     def topic_title_matches(title)
       joins(:topic).merge(ForumTopic.search(title_matches: title))
@@ -117,6 +119,8 @@ class ForumPost < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
+    return true if bypass_limits
+
     allowed = creator.can_forum_post_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
