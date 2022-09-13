@@ -880,19 +880,20 @@ Post.approve = function(post_id, callback) {
       "/moderator/post/approval.json",
       {"post_id": post_id}
     ).fail(function(data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+      const message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+      Danbooru.error("Error: " + message);
     }).done(function(data) {
       var $post = $("#post_" + post_id);
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
         $post.removeClass("post-status-pending");
-        $(window).trigger("danbooru:notice", "Approved post #" + post_id);
+        Danbooru.notice("Approved post #" + post_id);
+      }
+      if(callback) {
+        callback();
       }
     }).always(function() {
       Post.notice_update("dec");
-      if (callback)
-        callback();
     });
   });
 }

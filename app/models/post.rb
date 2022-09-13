@@ -1,8 +1,6 @@
 require 'danbooru/has_bit_flags'
 
 class Post < ApplicationRecord
-  class ApprovalError < Exception ; end
-  class DisapprovalError < Exception ; end
   class RevertError < Exception ; end
   class SearchError < Exception ; end
   class DeletionError < Exception ; end
@@ -308,7 +306,7 @@ class Post < ApplicationRecord
     end
 
     def approve!(approver = CurrentUser.user, force: false)
-      raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
+      return if self.approver != nil && !force
 
       approv = approvals.create(user: approver)
       if flags.unresolved.any?
@@ -1285,7 +1283,7 @@ class Post < ApplicationRecord
 
       if !CurrentUser.is_admin?
         if uploader_id == CurrentUser.id
-          raise ApprovalError.new("You cannot undelete a post you uploaded")
+          raise User::PrivilegeError, "You cannot undelete a post you uploaded"
         end
       end
 

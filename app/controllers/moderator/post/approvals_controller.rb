@@ -13,8 +13,6 @@ module Moderator
             render json: {}, status: 201
           end
         end
-      rescue ::Post::ApprovalError => e
-        render_expected_error(422, e.message)
       end
 
       def destroy
