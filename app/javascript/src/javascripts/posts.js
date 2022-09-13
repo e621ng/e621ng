@@ -335,6 +335,8 @@ Post.initialize_shortcuts = function() {
   }
 }
 
+const legacyApproveCallback = () => { location.reload(); };
+
 Post.initialize_links = function() {
   $(".undelete-post-link").on('click', e => {
     e.preventDefault();
@@ -344,7 +346,7 @@ Post.initialize_links = function() {
   });
   $(".approve-post-link").on('click', e => {
     e.preventDefault();
-    Post.approve($(e.target).data('pid'), true);
+    Post.approve($(e.target).data('pid'), legacyApproveCallback);
   });
   $("#destroy-post-link").on('click', e => {
     e.preventDefault();
@@ -862,7 +864,11 @@ Post.regenerate_video_samples = function(post_id) {
   });
 };
 
-Post.approve = function(post_id, should_reload) {
+Post.approve = function(post_id, callback) {
+  if(callback === true) {
+    // TODO: Remove this after some grace period
+    callback = legacyApproveCallback;
+  }
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.post(
@@ -880,8 +886,8 @@ Post.approve = function(post_id, should_reload) {
       }
     }).always(function() {
       Post.notice_update("dec");
-      if (should_reload === true)
-        location.reload();
+      if (callback)
+        callback();
     });
   });
 }
