@@ -14,7 +14,7 @@
   <div class="input">
     <label>
       <div>Reason</div>
-      <input name="source" size="50" placeholder="Higher quality, artwork updated, official uncensored version, ..." v-model="reason">
+      <autocompletable-input listId="reason-datalist" :addToList="submittedReason" size="50" placeholder="Higher quality, artwork updated, official uncensored version, ..." v-model="reason"></autocompletable-input>
     </label>
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
@@ -31,12 +31,14 @@
 </template>
 
 <script>
+import autocompletableInput from "./autocompletable_input.vue";
 import filePreview from "./uploader/file_preview.vue";
 import fileInput from "./uploader/file_input.vue";
 import sources from "./uploader/sources.vue";
 
 export default {
   components: {
+    "autocompletable-input": autocompletableInput,
     "file-preview": filePreview,
     "file-input": fileInput,
     "sources": sources,
@@ -54,6 +56,7 @@ export default {
       showErrors: false,
       sourceWarning: false,
       submitting: false,
+      submittedReason: undefined,
     };
   },
   computed: {
@@ -85,6 +88,7 @@ export default {
         processData: false,
         contentType: false,
         success(data) {
+          self.submittedReason = self.reason;
           location.assign(data.location);
         },
         error(data) {
