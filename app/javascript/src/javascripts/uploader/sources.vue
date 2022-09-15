@@ -26,6 +26,7 @@
         noSource: false,
       };
     },
+    emits: ["sourceWarning"],
     methods: {
       removeSource(i) {
         this.sources.splice(i, 1);
