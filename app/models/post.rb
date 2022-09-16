@@ -38,7 +38,6 @@ class Post < ApplicationRecord
   after_commit :delete_files, :on => :destroy
   after_commit :remove_iqdb_async, :on => :destroy
   after_commit :update_iqdb_async, :on => :create
-  after_commit :notify_pubsub
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
@@ -1339,10 +1338,6 @@ class Post < ApplicationRecord
       revert_to(target)
       save!
     end
-
-    def notify_pubsub
-      # NOTE: Left as a potentially useful hook into post updating.
-    end
   end
 
   module NoteMethods
@@ -1805,17 +1800,5 @@ class Post < ApplicationRecord
     end
 
     save
-  end
-
-  def update_column(name, value)
-    ret = super(name, value)
-    notify_pubsub
-    ret
-  end
-
-  def update_columns(attributes)
-    ret = super(attributes)
-    notify_pubsub
-    ret
   end
 end
