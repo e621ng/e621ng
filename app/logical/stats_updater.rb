@@ -100,7 +100,6 @@ class StatsUpdater
       stats["#{cat}_tags".to_sym] = Tag.where(category: TagCategory.mapping[cat]).count
     end
 
-    client = ::Redis.new(url: Danbooru.config.redis_url)
-    client.set('e6stats', stats.to_json)
+    RedisClient.client.set('e6stats', stats.to_json)
   end
 end

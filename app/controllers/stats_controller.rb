@@ -2,8 +2,7 @@ class StatsController < ApplicationController
   respond_to :html
 
   def index
-    client = ::Redis.new(url: Danbooru.config.redis_url)
+    client = RedisClient.client
     @stats = JSON.parse(client.get('e6stats') || '{}')
-    client.close
   end
 end
