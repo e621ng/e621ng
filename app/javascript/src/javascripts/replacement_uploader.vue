@@ -80,6 +80,8 @@ export default {
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
 
+      this.submittedReason = this.reason;
+
       const postId = new URLSearchParams(window.location.search).get("post_id");
       const self = this;
       $.ajax("/post_replacements.json?post_id=" + postId, {
@@ -88,7 +90,6 @@ export default {
         processData: false,
         contentType: false,
         success(data) {
-          self.submittedReason = self.reason;
           location.assign(data.location);
         },
         error(data) {
