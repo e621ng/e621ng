@@ -28,7 +28,7 @@ class TagSetPresenter < Presenter
     html.html_safe
   end
 
-  def post_show_sidebar_tag_list_html(current_query: "")
+  def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
     html = ""
 
     TagCategory.split_header_list.each do |category|
@@ -38,7 +38,7 @@ class TagSetPresenter < Presenter
         html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory.header_mapping[category]}</h2>}
         html << %{<ul class="#{category}-tag-list">}
         typetags.each do |tag|
-          html << build_list_item(tag, current_query: current_query)
+          html << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name))
         end
         html << "</ul>"
       end
@@ -125,7 +125,7 @@ class TagSetPresenter < Presenter
     ordered
   end
 
-  def build_list_item(tag, current_query: "")
+  def build_list_item(tag, current_query: "", highlight: false)
     name = tag.name
     count = tag.post_count
     category = tag.category
@@ -144,6 +144,7 @@ class TagSetPresenter < Presenter
     end
 
     html << tag_link(tag, name.tr("_", " "))
+    html << %(<i class="highlight fas fa-check"></i>) if highlight
 
     if count >= 10_000
       post_count = "#{count / 1_000}k"

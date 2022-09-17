@@ -1801,4 +1801,9 @@ class Post < ApplicationRecord
 
     save
   end
+
+  def uploader_linked_artists
+    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
+    linked_artists.select { |artist| artist.linked_user_id == uploader_id }
+  end
 end
