@@ -7,7 +7,7 @@
 
       <section id="tag-list">
         <!-- TODO: Lock off these extra items? -->
-        <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
+        <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: CurrentUser.can_approve_posts? ? @post.uploader_linked_artists.map(&:name) : []) %>
       </section>
 
       <section id="post-information">
