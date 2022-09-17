@@ -8,19 +8,15 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
       get posts_path, params: { format: :blah }
       assert_response 406
-    end
 
-    context "on a RecordNotFound error" do
-      should "return 404 Not Found even with a bad file extension" do
-        get post_path("bad.json")
-        assert_response 404
+      get post_path("bad.json")
+      assert_response 404
 
-        get post_path("bad.jpg")
-        assert_response 404
+      get post_path("bad.jpg")
+      assert_response 406
 
-        get post_path("bad.blah")
-        assert_response 404
-      end
+      get post_path("bad.blah")
+      assert_response 406
     end
 
     context "on a PaginationError" do
