@@ -18,15 +18,15 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     context "#update" do
       context "on a basic user" do
         should "succeed" do
-          put_auth admin_user_path(@user), @mod, params: {:user => {:level => "30"}}
-          assert_redirected_to(edit_admin_user_path(@user))
+          put_auth admin_user_path(@user), @mod, params: { user: { level: "30" } }
+          assert_redirected_to(user_path(@user))
           @user.reload
           assert_equal(30, @user.level)
         end
 
         context "promoted to an admin" do
           should "fail" do
-            put_auth admin_user_path(@user), @mod, params: {:user => {:level => "50"}}
+            put_auth admin_user_path(@user), @mod, params: { user: { level: "50" } }
             assert_response(403)
             @user.reload
             assert_equal(20, @user.level)

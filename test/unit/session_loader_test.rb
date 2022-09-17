@@ -37,7 +37,7 @@ class SessionLoaderTest < ActiveSupport::TestCase
 
       should "return true if the user has enabled the safe mode account setting" do
         @user = create(:user, enable_safe_mode: true)
-        @request.stubs(:session).returns(user_id: @user.id)
+        @request.stubs(:session).returns(user_id: @user.id, ph: @user.password_token)
         SessionLoader.new(@request).load
 
         assert_equal(true, CurrentUser.safe_mode?)

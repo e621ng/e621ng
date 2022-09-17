@@ -11,7 +11,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
     context "edit action" do
       should "render" do
-        get_auth tag_path(@tag), @user, params: {:id => @tag.id}
+        get_auth tag_path(@tag), @user, params: { id: @tag.id }
         assert_response :success
       end
     end
@@ -24,7 +24,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
       context "with search parameters" do
         should "render" do
-          get tags_path, params: {:search => {:name_matches => "touhou"}}
+          get tags_path, params: { search: { name_matches: "touhou" } }
           assert_response :success
         end
       end
@@ -57,7 +57,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "update the tag" do
-        put_auth tag_path(@tag), @user, params: {:tag => {:category => Tag.categories.general}}
+        put_auth tag_path(@tag), @user, params: { tag: { category: Tag.categories.general } }
         assert_redirected_to tag_path(@tag)
         assert_equal(Tag.categories.general, @tag.reload.category)
       end
@@ -70,7 +70,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not lock the tag for a user" do
-        put_auth tag_path(@tag), @user, params: {tag: { is_locked: true }}
+        put_auth tag_path(@tag), @user, params: { tag: { is_locked: true } }
 
         assert_equal(false, @tag.reload.is_locked)
       end
@@ -82,15 +82,15 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
           end
         end
 
-        should "not update the category for a member" do
-          @member = create(:member_user)
-          put_auth tag_path(@tag), @member, params: {tag: { category: Tag.categories.general }}
+        should "not update the category for a janitor" do
+          put_auth tag_path(@tag), @user, params: { tag: { category: Tag.categories.general } }
 
           assert_not_equal(Tag.categories.general, @tag.reload.category)
         end
 
-        should "update the category for a builder" do
-          put_auth tag_path(@tag), @user, params: {tag: { category: Tag.categories.general }}
+        should "update the category for an admin" do
+          @admin = create(:admin_user)
+          put_auth tag_path(@tag), @admin, params: { tag: { category: Tag.categories.general } }
 
           assert_redirected_to @tag
           assert_equal(Tag.categories.general, @tag.reload.category)
@@ -101,7 +101,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         as_user do
           @tag.update(category: Tag.categories.general, post_count: 1001)
         end
-        put_auth tag_path(@tag), @user, params: {:tag => {:category => Tag.categories.artist}}
+        put_auth tag_path(@tag), @user, params: { tag: { category: Tag.categories.artist } }
 
         assert_response :forbidden
         assert_equal(Tag.categories.general, @tag.reload.category)
