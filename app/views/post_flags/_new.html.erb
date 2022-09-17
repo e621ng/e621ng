@@ -25,8 +25,8 @@
 
       <label>
         <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
-        <%= format_text(flag_reason[:reason], inline: true) %>
-        <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>
+        <span class="flag-reason-title"><%= format_text(flag_reason[:reason], inline: true) %></span>
+        <div class="dtext-container flag-reason-text"><%= format_text(flag_reason[:text]) %></div>
       </label>
       
       <% if flag_reason[:parent] %>
