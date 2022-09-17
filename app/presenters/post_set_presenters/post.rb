@@ -1,7 +1,8 @@
 module PostSetPresenters
   class Post < Base
     attr_accessor :post_set
-    delegate :posts, :to => :post_set
+    delegate :posts, to: :post_set
+    delegate :post_index_sidebar_tag_list_html, to: :tag_set_presenter
 
     def initialize(post_set)
       @post_set = post_set
@@ -55,10 +56,6 @@ module PostSetPresenters
 
     def calculate_related_tags_from_post_set
       RelatedTagCalculator.calculate_from_posts_to_array(post_set.posts).map(&:first)
-    end
-
-    def tag_list_html(**options)
-      tag_set_presenter.tag_list_html(name_only: false, **options)
     end
   end
 end
