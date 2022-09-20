@@ -302,43 +302,43 @@ fart'
     def max_numbered_pages
       750
     end
-    
+
     def blip_max_size
       1_000
     end
-    
+
     def comment_max_size
       10_000
     end
-    
+
     def dmail_max_size
       50_000
     end
-    
+
     def forum_post_max_size
       50_000
     end
-    
+
     def note_max_size
       1_000
     end
-    
+
     def pool_descr_max_size
       10_000
     end
-    
+
     def post_descr_max_size
       50_000
     end
-    
+
     def ticket_max_size
       5_000
     end
-    
+
     def user_about_max_size
       50_000
     end
-    
+
     def wiki_page_max_size
       250_000
     end
@@ -824,6 +824,10 @@ fart'
 
     def readonly_mode?
       false
+    end
+
+    def enable_visitor_metrics?
+      true
     end
   end
 
