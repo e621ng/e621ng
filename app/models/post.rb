@@ -313,15 +313,15 @@ class Post < ApplicationRecord
       !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
     end
 
-    def approve!(approver = CurrentUser.user)
+    def approve!(approver = CurrentUser.user, resolve_flags: false)
       return if self.approver != nil
 
       approv = approvals.create(user: approver)
-      if flags.unresolved.any?
+      if resolve_flags && flags.unresolved.any?
         unflag!
       end
       PostEvent.add(id, CurrentUser.user, :approved)
-      update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
+      update(approver: approver, is_pending: false)
       approv
     end
   end

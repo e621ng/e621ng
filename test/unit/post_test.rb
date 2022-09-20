@@ -398,13 +398,6 @@ class PostTest < ActiveSupport::TestCase
           assert_equal(false, @post.reload.is_deleted?)
         end
       end
-
-      context "when approved" do
-        should "be undeleted" do
-          @post.approve!
-          assert_equal(false, @post.reload.is_deleted?)
-        end
-      end
     end
 
     context "An approved post" do
@@ -448,14 +441,25 @@ class PostTest < ActiveSupport::TestCase
       end
 
       context "that has been reapproved" do
-        should "no longer be flagged or pending" do
-          post = FactoryBot.create(:post)
-          PostFlag.create(post_id: post.id, reason_name: 'test', user_reason: 'testing')
-          post.approve!
-          assert(post.errors.empty?, post.errors.full_messages.join(", "))
-          post.reload
-          assert_equal(false, post.is_flagged?)
-          assert_equal(false, post.is_pending?)
+        setup do
+          @post = FactoryBot.create(:post)
+          PostFlag.create(post_id: @post.id, reason_name: "test", user_reason: "testing")
+        end
+
+        should "no longer be pending with resolve_flags: false" do
+          @post.approve!(resolve_flags: false)
+          assert(@post.errors.empty?, @post.errors.full_messages.join(", "))
+          @post.reload
+          assert_equal(true, @post.is_flagged?)
+          assert_equal(false, @post.is_pending?)
+        end
+
+        should "no longer be flagged or pending with resolve_flags: true" do
+          @post.approve!(resolve_flags: true)
+          assert(@post.errors.empty?, @post.errors.full_messages.join(", "))
+          @post.reload
+          assert_equal(false, @post.is_flagged?)
+          assert_equal(false, @post.is_pending?)
         end
       end
     end

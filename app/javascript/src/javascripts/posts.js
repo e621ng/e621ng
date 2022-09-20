@@ -346,12 +346,12 @@ Post.initialize_links = function() {
   });
   $(".approve-post-link").on('click', e => {
     e.preventDefault();
-    Post.approve($(e.target).data('pid'), legacyApproveCallback);
+    Post.approve($(e.target).data('pid'), legacyApproveCallback, true);
   });
   $(".approve-post-and-navigate-link").on('click', e => {
     e.preventDefault();
     const $target = $(e.target);
-    Post.approve($target.data('pid'), () => { location.href = $target.data('location') });
+    Post.approve($target.data('pid'), () => { location.href = $target.data('location') }, true);
   });
   $("#destroy-post-link").on('click', e => {
     e.preventDefault();
@@ -869,7 +869,7 @@ Post.regenerate_video_samples = function(post_id) {
   });
 };
 
-Post.approve = function(post_id, callback) {
+Post.approve = function(post_id, callback, resolveFlags = false) {
   if(callback === true) {
     // TODO: Remove this after some grace period
     callback = legacyApproveCallback;
@@ -878,7 +878,7 @@ Post.approve = function(post_id, callback) {
   SendQueue.add(function() {
     $.post(
       "/moderator/post/approval.json",
-      {"post_id": post_id}
+      {"post_id": post_id, "resolve_flags": resolveFlags}
     ).fail(function(data) {
       const message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
       Danbooru.error("Error: " + message);

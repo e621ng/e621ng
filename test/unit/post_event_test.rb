@@ -104,7 +104,7 @@ class PostEventTest < ActiveSupport::TestCase
 
       should "create both post events" do
         assert_post_events_created(@janitor, [:flag_removed, :approved]) do
-          @post.approve!(@janitor)
+          @post.approve!(@janitor, resolve_flags: true)
         end
       end
     end
