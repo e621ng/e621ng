@@ -36,16 +36,25 @@
     background-attachment:fixed;
     background-position:50% 0;
     margin: 10px auto;
-    padding:2px 0;
-    width:480px;
+    padding: 2px 0;
+    width: 480px;
     max-width: 98vw;
     border-radius: 5px;
     box-shadow: 0 0 5px #000;
     text-shadow: 0 0 2px black, 0 0 6px black;
   }
 
-  #searchbox { padding-bottom:5px; }
-  #searchbox3 { font-size: 80%; }
+  #searchbox {
+    padding-bottom:5px;
+  }
+
+  .news-excerpt {
+    padding: 5px 1em 0 1em;
+  }
+
+  #searchbox3, #news-excerpt-box .previous-news-link {
+    font-size: 80%;
+  }
 
   @media only screen and (max-height: 600px) {
     div#a-home {
@@ -94,6 +103,13 @@
         <%= image_tag("counter/#{x}.png") %>
       <% end %>
     </div>
+
+    <% if NewsUpdate.recent.present? %>
+      <div id="news-excerpt-box" class="mascotbox">
+        <div class="news-excerpt dtext-container"><%= format_text(NewsUpdate.recent[0].message.lines.first, inline: true) %></div>
+        <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
+      </div>
+    <% end %>
 
     <div id='searchbox3' class='mascotbox'>
       <p>

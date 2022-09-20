@@ -82,7 +82,7 @@ class ApplicationController < ActionController::Base
     when ActionController::RoutingError
       render_error_page(405, exception)
     when ActionController::UnknownFormat, ActionView::MissingTemplate
-      render_error_page(406, exception, message: "#{request.format.to_s} is not a supported format for this page", format: :html)
+      render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
     when Post::SearchError
@@ -102,16 +102,20 @@ class ApplicationController < ActionController::Base
 
   def render_404
     respond_to do |fmt|
-        fmt.html do
-          render "static/404", formats: [:html, :atom], status: 404
-        end
-        fmt.json do
-          render json: {:success => false, reason: "not found"}, :status => 404
-        end
-        fmt.atom do
-          render "static/404", formats: [:atom], status: 404
-        end
+      fmt.html do
+        render "static/404", formats: [:html, :atom], status: 404
+      end
+      fmt.json do
+        render json: { success: false, reason: "not found" }, status: 404
+      end
+      fmt.any do
+        render_unsupported_format
+      end
     end
+  end
+
+  def render_unsupported_format
+    render_expected_error(406, "#{request.format} is not a supported format for this page", format: :html)
   end
 
   def render_expected_error(status, message, format: request.format.symbol)

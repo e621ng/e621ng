@@ -8,19 +8,15 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
       get posts_path, params: { format: :blah }
       assert_response 406
-    end
 
-    context "on a RecordNotFound error" do
-      should "return 404 Not Found even with a bad file extension" do
-        get post_path("bad.json")
-        assert_response 404
+      get post_path("bad.json")
+      assert_response 404
 
-        get post_path("bad.jpg")
-        assert_response 404
+      get post_path("bad.jpg")
+      assert_response 406
 
-        get post_path("bad.blah")
-        assert_response 404
-      end
+      get post_path("bad.blah")
+      assert_response 406
     end
 
     context "on a PaginationError" do
@@ -116,7 +112,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
           # try to submit a form with cookies but without the csrf token
           put user_path(@user), headers: { HTTP_COOKIE: headers["Set-Cookie"] }, params: { user: { enable_safe_mode: "true" } }
           assert_response 403
-          assert_equal("ActionController::InvalidAuthenticityToken", css_select("p").first.content)
+          assert_equal("An unexpected error occurred.", css_select("p").first.content)
           assert_equal(false, @user.reload.enable_safe_mode)
         end
       end

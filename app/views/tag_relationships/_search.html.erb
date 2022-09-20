@@ -1,6 +1,6 @@
 <%# url %>
 
-<%= form_search(path: url) do |f| %>
+<%= form_search(path: url, always_display: true) do |f| %>
   <%= f.input :name_matches, label: "Name", autocomplete: "tag", hint: "Use * for wildcard" %>
   <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
   <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>

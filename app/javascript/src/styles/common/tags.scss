@@ -41,14 +41,12 @@
   background-color: $tag-banned-background;
 }
 
-.inline-tag-list {
-  ul {
-    display: inline;
+ul.inline-tag-list {
+  display: inline;
 
-    li {
-      display: inline;
-      margin-right: 0.5em;
-    }
+  li {
+    display: inline;
+    margin-right: 0.5em;
   }
 }
 

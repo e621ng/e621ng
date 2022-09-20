@@ -28,8 +28,6 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
 
     def update
       @user = User.find(params[:id])
-      old_username = @user.name
-      desired_username = params[:user][:name]
       @user.update!(user_params)
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
@@ -42,7 +40,10 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
       params[:user][:is_upgrade] = true
       params[:user][:skip_dmail] = true
       @user.promote_to!(params[:user][:level], params[:user])
-      if old_username != desired_username
+
+      old_username = @user.name
+      desired_username = params[:user][:name]
+      if old_username != desired_username && desired_username.present?
         change_request = UserNameChangeRequest.create!({
                                                            original_name: @user.name,
                                                            user_id: @user.id,
@@ -51,7 +52,7 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
                                                            skip_limited_validation: true})
         change_request.approve!
       end
-      redirect_to user_path(@user), :notice => "User updated"
+      redirect_to user_path(@user), notice: "User updated"
     end
 
     def edit_blacklist

@@ -51,16 +51,6 @@ class ArtistUrlTest < ActiveSupport::TestCase
       assert_equal("http://artistname.example.com/", url.normalized_url)
     end
 
-    context "normalize twitter profile urls" do
-      setup do
-        @url = FactoryBot.create(:artist_url, :url => "https://twitter.com/BLAH")
-      end
-
-      should "downcase the url" do
-        assert_equal("http://twitter.com/blah/", @url.normalized_url)
-      end
-    end
-
     should "normalize nico seiga artist urls" do
       url = FactoryBot.create(:artist_url, :url => "http://seiga.nicovideo.jp/user/illust/7017777")
       assert_equal("http://seiga.nicovideo.jp/user/illust/7017777/", url.normalized_url)

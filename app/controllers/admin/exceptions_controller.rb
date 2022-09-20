@@ -7,7 +7,11 @@ module Admin
     end
 
     def show
-      @exception_log = ExceptionLog.find(params[:id])
+      if params[:id] =~ /\A\d+\z/
+        @exception_log = ExceptionLog.find(params[:id])
+      else
+        @exception_log = ExceptionLog.find_by!(code: params[:id])
+      end
     end
   end
 end

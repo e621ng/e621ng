@@ -189,7 +189,6 @@ class DmailTest < ActiveSupport::TestCase
       should_not allow_value(" ").for(:title)
       should_not allow_value(" ").for(:body)
       should_not allow_value(nil).for(:to)
-      should_not allow_value(nil).for(:from)
       should_not allow_value(nil).for(:owner)
     end
   end

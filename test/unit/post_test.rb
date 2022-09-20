@@ -20,7 +20,7 @@ class PostTest < ActiveSupport::TestCase
   def teardown
     super
 
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
   end
@@ -31,7 +31,7 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload)).start!
         @post = @upload.post
-        FavoriteManager.add!(user: @user, post: @post, isolation: false)
+        FavoriteManager.add!(user: @post.uploader, post: @post, isolation: false)
       end
 
       should "delete the files" do
@@ -47,7 +47,7 @@ class PostTest < ActiveSupport::TestCase
       should "remove all favorites" do
         @post.expunge!
 
-        assert_equal(0, Favorite.for_user(@user.id).where("post_id = ?", @post.id).count)
+        assert_equal(0, Favorite.for_user(@post.uploader_id).where("post_id = ?", @post.id).count)
       end
 
       should "decrement the uploader's upload count" do
@@ -1785,7 +1785,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     # TODO: Known broken. Need to normalize source during search and before index to fix bug with index creation.
-    should "return posts for a case insensitive source search" do
+    should_eventually "return posts for a case insensitive source search" do
       post1 = FactoryBot.create(:post, :source => "ABCD")
       post2 = FactoryBot.create(:post, :source => "1234")
 

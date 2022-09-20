@@ -30,10 +30,10 @@ class ForumPostTest < ActiveSupport::TestCase
         Danbooru.config.stubs(:posts_per_page).returns(3)
         @posts = []
         9.times do
-          @posts << FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => rand(100_000))
+          @posts << FactoryBot.create(:forum_post, topic_id: @topic.id, body: rand(100_000))
         end
         Timecop.travel(2.seconds.from_now) do
-          @posts << FactoryBot.create(:forum_post, :topic_id => @topic.id, :body => rand(100_000))
+          @posts << FactoryBot.create(:forum_post, topic_id: @topic.id, body: rand(100_000))
         end
       end
 
@@ -54,7 +54,7 @@ class ForumPostTest < ActiveSupport::TestCase
       should "know which page it's on" do
         assert_equal(2, @posts[3].forum_topic_page)
         assert_equal(2, @posts[4].forum_topic_page)
-        assert_equal(2, @posts[5].forum_topic_page)
+        assert_equal(3, @posts[5].forum_topic_page)
         assert_equal(3, @posts[6].forum_topic_page)
       end
 
