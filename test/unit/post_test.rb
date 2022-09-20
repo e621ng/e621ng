@@ -475,8 +475,9 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "not allow approval" do
-        approval = @post.approve!
-        assert_includes(approval.errors.full_messages, "Post is locked and cannot be approved")
+        assert_no_difference(-> { PostApproval.count }) do
+          @post.approve!
+        end
       end
     end
   end

@@ -316,13 +316,17 @@ class Post < ApplicationRecord
     def approve!(approver = CurrentUser.user, resolve_flags: false)
       return if self.approver != nil
 
-      approv = approvals.create(user: approver)
       if resolve_flags && flags.unresolved.any?
         unflag!
       end
-      PostEvent.add(id, CurrentUser.user, :approved)
-      update(approver: approver, is_pending: false)
-      approv
+
+      if uploader == approver
+        update(is_pending: false)
+      else
+        PostEvent.add(id, CurrentUser.user, :approved)
+        approvals.create(user: approver)
+        update(approver: approver, is_pending: false)
+      end
     end
   end
 

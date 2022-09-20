@@ -27,19 +27,25 @@ class PostApprovalTest < ActiveSupport::TestCase
     end
 
     context "That is approved" do
-      should "create a postapproval record" do
+      should "not create a postapproval record when approved by the uploader" do
+        assert_no_difference("PostApproval.count") do
+          @post.approve!(@post.uploader)
+        end
+      end
+
+      should "create a postapproval record when approved by someone else" do
         assert_difference("PostApproval.count") do
-          @post.approve!
+          @post.approve!(create(:janitor_user))
         end
       end
     end
 
     context "#search method" do
       should "work" do
-        @approval = @post.approve!(@approver)
+        @post.approve!(@approver)
         @approvals = PostApproval.search(user_name: @approver.name, post_tags_match: "touhou", post_id: @post.id)
 
-        assert_equal([@approval.id], @approvals.map(&:id))
+        assert_equal([@post.id], @approvals.map(&:post_id))
       end
     end
   end
