@@ -3,7 +3,7 @@ class PostFlag < ApplicationRecord
   end
 
   module Reasons
-    UNAPPROVED = "Unapproved in 30 days"
+    UNAPPROVED = "Unapproved in #{PostPruner::DELETION_WINDOW} days"
     BANNED = "Artist requested removal"
   end
 

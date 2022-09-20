@@ -8,8 +8,9 @@
       <div>
         <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: 'button btn-neutral' %> |
         <%= tag.a "Unflag", href: '#', 'data-pid': post.id, 'data-type': 'none', class: 'unflag-post-link button btn-neutral' %> |
-        <%= tag.a "Unflag+unapprove", href: '#', 'data-pid': post.id, 'data-type': 'unapprove', class: 'unflag-post-link button btn-neutral' %> |
-        <%= tag.a "Unflag+approve", href: '#', 'data-pid': post.id, 'data-type': 'approve', class: 'unflag-post-link button btn-neutral' %> |
+        <% if post.is_approvable? %>
+          <%= tag.a "Unflag+approve", href: '#', 'data-pid': post.id, 'data-type': 'approve', class: 'unflag-post-link button btn-neutral' %> |
+        <% end %>
         <%= tag.a "Delete with given reason", href: '#', 'data-post-id': post.id, class: 'delete-with-reason-link button btn-neutral', 'data-reason': '', 'data-prompt': 'given reason' %>
       </div>
     <% end %>

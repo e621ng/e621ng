@@ -33,10 +33,8 @@ class PostFlagsController < ApplicationController
   def destroy
     @post = Post.find(params[:post_id])
     @post.unflag!
-    if params[:approval] == 'unapprove'
-      @post.unapprove!
-    elsif params[:approval] == 'approve'
-      @post.approve!(force: true)
+    if params[:approval] == "approve" && @post.is_approvable?
+      @post.approve!
     end
     respond_with(nil)
   end

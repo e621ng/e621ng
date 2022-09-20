@@ -7,18 +7,26 @@ module Moderator
 
       def create
         post = ::Post.find(params[:post_id])
-        @approval = post.approve!
-        respond_with do |fmt|
-          fmt.json do
-            render json: {}, status: 201
+        if post.is_approvable?
+          @approval = post.approve!
+          respond_with do |fmt|
+            fmt.json do
+              render json: {}, status: 201
+            end
           end
+        else
+          flash[:notice] = "You can't approve this post"
         end
       end
 
       def destroy
         post = ::Post.find(params[:post_id])
-        post.unapprove!
-        respond_with(nil)
+        if post.is_unapprovable?(CurrentUser.user)
+          post.unapprove!
+          respond_with(nil)
+        else
+          flash[:notice] = "You can't unapprove this post"
+        end
       end
     end
   end

@@ -285,8 +285,8 @@ class Post < ApplicationRecord
   end
 
   module ApprovalMethods
-    def is_approvable?(user = CurrentUser.user)
-      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?)
+    def is_approvable?
+      !is_status_locked? && is_pending? && approver.nil?
     end
 
     def unflag!
@@ -304,8 +304,17 @@ class Post < ApplicationRecord
       update(approver: nil, is_pending: true)
     end
 
-    def approve!(approver = CurrentUser.user, force: false)
-      return if self.approver != nil && !force
+    def is_unapprovable?(user)
+      # Allow unapproval only by the approver
+      return false if approver.present? && approver != user
+      # Prevent unapproving self approvals by someone else
+      return false if approver.nil? && uploader != user
+      # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
+      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+    end
+
+    def approve!(approver = CurrentUser.user)
+      return if self.approver != nil
 
       approv = approvals.create(user: approver)
       if flags.unresolved.any?
