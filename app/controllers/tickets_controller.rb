@@ -17,6 +17,7 @@ class TicketsController < ApplicationController
   def create
     @ticket = Ticket.create(ticket_params)
     if @ticket.valid?
+      @ticket.push_pubsub('create')
       flash[:notice] = 'Ticket created'
       redirect_to(ticket_path(@ticket))
     else
@@ -41,6 +42,7 @@ class TicketsController < ApplicationController
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
       @ticket.update(update_ticket_params)
+      @ticket.push_pubsub('update')
     end
 
     respond_with(@ticket)
