@@ -8,6 +8,7 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
+  validates :status, inclusion: { in: %w[pending partial denied approved] }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
   validate :validate_content_exists, on: :create
@@ -150,8 +151,6 @@ class Ticket < ApplicationRecord
       super + hidden
     end
   end
-
-  VALID_STATUSES = %w(pending partial denied approved)
 
   module ValidationMethods
     def validate_type
