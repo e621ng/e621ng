@@ -21,7 +21,9 @@
         </div>
       <% else %>
         <% if @ticket.content %>
-          <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
+          <div class='section' style='width:80em;'>
+            <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
+          </div>
         <% else %>
           <% @found_item = false %>
           <div class='section' style='width:80em;'>That <%= @ticket.model.name.underscore.tr("_", " ") %> does not exist.</div>

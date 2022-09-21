@@ -1,10 +1,8 @@
 <% @wiki = @ticket.content %>
-<div class='section' style='width:80em;'>
-  <h4>You are reporting the following wiki page:</h4>
-  <div class='page'><%= link_to_wiki @wiki.title %></div>
-  <span class="date" title="Posted on <%= @wiki.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@wiki.created_at) %> ago</span>
-  <br><br>
-  <div class="dtext-container">
-    <%= format_text(@wiki.body) %>
-  </div>
+<h4>You are reporting the following wiki page:</h4>
+<div class='page'><%= link_to_wiki @wiki.title %></div>
+<span class="date" title="Posted on <%= @wiki.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@wiki.created_at) %> ago</span>
+<br><br>
+<div class="dtext-container">
+  <%= format_text(@wiki.body) %>
 </div>
