@@ -80,14 +80,6 @@ class Ticket < ApplicationRecord
       def can_see_details?(user)
         user.is_admin? || (user.id == creator_id)
       end
-
-      def can_see_reason?(user)
-        can_see_details?(user)
-      end
-
-      def can_see_response?(user)
-        can_see_details?(user)
-      end
     end
 
     module Wiki
@@ -146,14 +138,6 @@ class Ticket < ApplicationRecord
       def can_see_details?(user)
         user.is_admin? || user.id == creator_id
       end
-
-      def can_see_reason?(user)
-        can_see_details?(user)
-      end
-
-      def can_see_response?(user)
-        can_see_details?(user)
-      end
     end
   end
 
@@ -161,9 +145,8 @@ class Ticket < ApplicationRecord
     def hidden_attributes
       hidden = []
       hidden += %i[claimant_id] unless CurrentUser.is_admin?
-      hidden += %i[creator_id] unless can_see_username?(CurrentUser)
-      hidden += %i[disp_id] unless can_see_details?(CurrentUser)
-      hidden += %i[reason] unless can_see_reason?(CurrentUser)
+      hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
+      hidden += %i[disp_id reason] unless can_see_details?(CurrentUser)
       super + hidden
     end
   end
@@ -254,20 +237,12 @@ class Ticket < ApplicationRecord
     @content ||= model.find_by(id: disp_id)
   end
 
-  def can_see_reason?(user)
-    true
-  end
-
   def can_see_details?(user)
     true
   end
 
-  def can_see_username?(user)
+  def can_see_reporter?(user)
     user.is_admin? || (user.id == creator_id)
-  end
-
-  def can_see_response?(user)
-    true
   end
 
   def can_create_for?(user)
