@@ -290,16 +290,18 @@ class Ticket < ApplicationRecord
     end
 
     def send_update_dmail
-      msg = "\"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by" +
-          " #{handler.pretty_name}.\nTicket Status: #{status}\n\n" +
-          (qtype == "reason" ? "Reason" : "Response") +
-          ": #{response}"
+      msg = <<~MSG.chomp
+        \"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.
+        Ticket Status: #{status}
+
+        Response: #{response}
+      MSG
       Dmail.create_split(
-          :from_id => CurrentUser.id,
-          :to_id => creator.id,
-          :title => "Your ticket has been updated to '#{status}'",
-          :body => msg,
-          bypass_limits: true
+        from_id: CurrentUser.id,
+        to_id: creator.id,
+        title: "Your ticket has been updated to '#{status}'",
+        body: msg,
+        bypass_limits: true
       )
     end
 
