@@ -2,12 +2,8 @@
 <tr>
   <td><span class='title'>Reported Message</span></td>
   <td>
-    <% if @ticket.can_see_details?(CurrentUser) %>
-      <%= link_to "Message", dmail_path(@dmail) %>
-      sent from <%= link_to_user @dmail.from %> to
-      <%= link_to_user @dmail.to %>
-    <% else %>
-      <span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span>
-    <% end %>
+    <%= link_to "Message", dmail_path(@dmail) %>
+    sent from <%= link_to_user @dmail.from %> to
+    <%= link_to_user @dmail.to %>
   </td>
 </tr>
