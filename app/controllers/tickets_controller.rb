@@ -3,7 +3,6 @@ class TicketsController < ApplicationController
   before_action :member_only, except: [:index]
   before_action :admin_only, only: [:update, :edit, :destroy, :claim, :unclaim]
 
-
   def index
     @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@tickets)
@@ -15,8 +14,10 @@ class TicketsController < ApplicationController
   end
 
   def create
-    @ticket = Ticket.create(ticket_params)
+    @ticket = Ticket.new(ticket_params)
+    check_new_permission(@ticket)
     if @ticket.valid?
+      @ticket.save
       flash[:notice] = 'Ticket created'
       redirect_to(ticket_path(@ticket))
     else
@@ -104,5 +105,4 @@ class TicketsController < ApplicationController
       raise User::PrivilegeError
     end
   end
-
 end
