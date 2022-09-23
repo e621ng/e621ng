@@ -444,6 +444,7 @@ class PostTest < ActiveSupport::TestCase
         setup do
           @post = FactoryBot.create(:post)
           PostFlag.create(post_id: @post.id, reason_name: "test", user_reason: "testing")
+          @post.reload
         end
 
         should "no longer be pending with resolve_flags: false" do
