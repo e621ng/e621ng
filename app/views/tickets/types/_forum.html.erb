@@ -1,8 +1,8 @@
-<% if @ticket.forum %>
+<% if @ticket.content %>
   <tr>
     <td><span class='title'>Reported Forum Post</span></td>
     <td>
-      <%= link_to("Post by #{@ticket.forum.creator.name} in '#{@ticket.forum.topic.title}'", forum_post_path(@ticket.forum)) %>
+      <%= link_to("Post by #{@ticket.content.creator.name} in '#{@ticket.content.topic.title}'", forum_post_path(@ticket.content)) %>
     </td>
   </tr>
 <% else %>

@@ -139,7 +139,6 @@ private
 
   def check_min_level
     raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
   end
 
   def forum_topic_params

@@ -19,13 +19,15 @@
         <div class='section' style='max-width:80em;'>
           You must be logged in to submit a ticket. Please <a href='/user/login'>log in</a> and try again.
         </div>
-      <% elsif @ticket.type_valid %>
-        <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
       <% else %>
-        <% @found_item = false %>
-        <div class='section' style='max-width:80em;'>
-          Hmm, it seems you tried to report something that doesn't make sense.
-        </div>
+        <% if @ticket.content %>
+          <div class='section' style='width:80em;'>
+            <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
+          </div>
+        <% else %>
+          <% @found_item = false %>
+          <div class='section' style='width:80em;'>That <%= @ticket.model.name.underscore.tr("_", " ") %> does not exist.</div>
+        <% end %>
       <% end %>
 
       <% if @found_item %>

@@ -8,9 +8,10 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
+  validates :status, inclusion: { in: %w[pending partial denied approved] }
   after_update :log_update, if: :should_send_notification
   after_update :send_update_dmail, if: :should_send_notification
-  validate :validate_can_see_target, on: :create
+  validate :validate_content_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
@@ -47,172 +48,44 @@ class Ticket < ApplicationRecord
 =end
 
   module TicketTypes
-    module DefaultType
-      def type_title
-        "Ticket"
-      end
-
-      def self.after_extended(m)
-        m
-      end
-    end
-
-    module ForumType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Forum Post Complaint'
-      end
-
-      def validate_on_create
-        if forum.nil?
-          errors.add :forum, "post does not exist"
-        end
-      end
-
-      def forum=(new_forum)
-        @forum = new_forum
-        self.disp_id = new_forum.id unless new_forum.nil?
-      end
-
-      def forum
-        @forum ||= begin
-          ::ForumPost.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+    module Forum
+      # FIXME: Remove this by renaming the qtype value to the correct one
+      def model
+        ::ForumPost
       end
 
       def can_create_for?(user)
-        forum.visible?(user)
+        content.visible?(user)
       end
 
       def can_see_details?(user)
-        if forum
-          forum.visible?(user)
+        if content
+          content.visible?(user)
         else
           true
         end
       end
     end
 
-    module CommentType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Comment Complaint'
-      end
-
-      def validate_on_create
-        if comment.nil?
-          errors.add :comment, "does not exist"
-        end
-      end
-
-      def comment=(new_comment)
-        @comment = new_comment
-        self.disp_id = new_comment.id unless new_comment.nil?
-      end
-
-      def comment
-        @comment ||= begin
-          ::Comment.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
+    module Comment
       def can_create_for?(user)
-        comment.visible_to?(user)
+        content.visible_to?(user)
       end
     end
 
-    module DmailType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Dmail Complaint'
-      end
-
-      def validate_on_create
-        unless dmail and dmail.owner_id == creator_id
-          errors.add :dmail, "does not exist"
-        end
-        unless dmail and dmail.to_id == creator_id
-          errors.add :dmail, "must be a dmail you received"
-        end
-      end
-
-      def dmail=(new_dmail)
-        @dmail = new_dmail
-        self.disp_id = new_dmail.id unless new_dmail.nil?
-      end
-
-      def dmail
-        @dmail ||= begin
-          ::Dmail.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
+    module Dmail
       def can_create_for?(user)
-        dmail.visible_to?(user) && dmail.to_id == user.id
+        content.visible_to?(user) && content.to_id == user.id
       end
 
       def can_see_details?(user)
         user.is_admin? || (user.id == creator_id)
       end
-
-      def can_see_reason?(user)
-        can_see_details?(user)
-      end
-
-      def can_see_response?(user)
-        can_see_details?(user)
-      end
     end
 
-    module WikiType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Wiki Page Complaint'
-      end
-
-      def validate_on_create
-        if wiki.nil?
-          errors.add :wiki, "page does not exist"
-        end
-      end
-
-      def wiki=(new_wiki)
-        @wiki = new_wiki
-        self.disp_id = new_wiki.id unless new_wiki.nil?
-      end
-
-      def wiki
-        @wiki ||= begin
-          ::WikiPage.find disp_id unless disp_id.nil?
-        rescue
-        end
+    module Wiki
+      def model
+        ::WikiPage
       end
 
       def can_create_for?(user)
@@ -220,94 +93,26 @@ class Ticket < ApplicationRecord
       end
     end
 
-    module PoolType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Pool Complaint'
-      end
-
-      def validate_on_create
-        if pool.nil?
-          errors.add :pool, "does not exist"
-        end
-      end
-
-      def pool=(new_pool)
-        @pool = new_pool
-        self.disp_id = new_pool.id unless new_pool.nil?
-      end
-
-      def pool
-        @pool ||= begin
-          ::Pool.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
+    module Pool
       def can_create_for?(user)
         true
       end
     end
 
-    module SetType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Set Complaint'
-      end
-
-      def validate_on_create
-        if set.nil?
-          errors.add :set, "does not exist"
-        end
-      end
-
-      def set=(new_set)
-        @set = new_set
-        self.disp_id = new_set.id unless new_set.nil?
-      end
-
-      def set
-        @set ||= begin
-          ::PostSet.find(disp_id) unless disp_id.nil?
-        rescue
-        end
+    module Set
+      def model
+        ::PostSet
       end
 
       def can_create_for?(user)
-        set.can_view?(user)
+        content.can_view?(user)
       end
     end
 
-    module PostType
-      def self.after_extended(m)
+    module Post
+      def self.extended(m)
         m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Post Complaint'
-      end
-
-      def validate_on_create
-        if post.nil?
-          errors.add :post, "does not exist"
-        end
-        if report_reason.blank?
-          errors.add :report_reason, "does not exist"
+          validates :report_reason, presence: true
         end
       end
 
@@ -315,102 +120,24 @@ class Ticket < ApplicationRecord
         reason.split("\n")[0] || "Unknown Report Type"
       end
 
-      def post=(new_post)
-        @post = new_post
-        self.disp_id = new_post.id unless new_post.nil?
-      end
-
-      def post
-        @post ||= begin
-          ::Post.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
       def can_create_for?(user)
         true
       end
     end
 
-    module BlipType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'Blip Complaint'
-      end
-
-      def validate_on_create
-        if blip.nil?
-          errors.add :blip, "does not exist"
-        end
-      end
-
-      def blip=(new_blip)
-        @blip = new_blip
-        self.disp_id = new_blip.id unless new_blip.nil?
-      end
-
-      def blip
-        @blip ||= begin
-          ::Blip.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
+    module Blip
       def can_create_for?(user)
-        blip.visible_to?(user)
+        content.visible_to?(user)
       end
     end
 
-    module UserType
-      def self.after_extended(m)
-        m.class_eval do
-          validate :validate_on_create, on: :create
-        end
-        m
-      end
-
-      def type_title
-        'User Complaint'
-      end
-
-      def validate_on_create
-        if accused.nil?
-          errors.add :user, "does not exist"
-        end
-      end
-
-      def accused=(new_accused)
-        @accused = new_accused
-        self.disp_id = new_accused.id unless new_accused.nil?
-      end
-
-      def accused
-        @accused ||= begin
-          ::User.find(disp_id) unless disp_id.nil?
-        rescue
-        end
-      end
-
+    module User
       def can_create_for?(user)
         true
       end
 
       def can_see_details?(user)
         user.is_admin? || user.id == creator_id
-      end
-
-      def can_see_reason?(user)
-        can_see_details?(user)
-      end
-
-      def can_see_response?(user)
-        can_see_details?(user)
       end
     end
   end
@@ -419,46 +146,16 @@ class Ticket < ApplicationRecord
     def hidden_attributes
       hidden = []
       hidden += %i[claimant_id] unless CurrentUser.is_admin?
-      hidden += %i[creator_id] unless can_see_username?(CurrentUser)
-      hidden += %i[disp_id] unless can_see_details?(CurrentUser)
-      hidden += %i[reason] unless can_see_reason?(CurrentUser)
+      hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
+      hidden += %i[disp_id reason] unless can_see_details?(CurrentUser)
       super + hidden
     end
   end
 
-  VALID_STATUSES = %w(pending partial denied approved)
-  TYPE_MAP = {
-      'forum' => TicketTypes::ForumType,
-      'comment' => TicketTypes::CommentType,
-      'blip' => TicketTypes::BlipType,
-      'user' => TicketTypes::UserType,
-      'dmail' => TicketTypes::DmailType,
-      'wiki' => TicketTypes::WikiType,
-      'pool' => TicketTypes::PoolType,
-      'set' => TicketTypes::SetType,
-      'post' => TicketTypes::PostType
-  }
-
-  attr_reader :can_see, :type_valid
-
-
   module ValidationMethods
     def validate_type
-      unless TYPE_MAP.key?(qtype)
-        errors.add(:qtype, "is not valid")
-        @type_valid = false
-      else
-        @type_valid = true
-      end
-    end
-
-    def validate_can_see_target(user = CurrentUser.user)
-      unless can_create_for?(user)
-        errors.add(:base, "You can not report this content because you can not see it.")
-        @can_see = false
-      else
-        @can_see = true
-      end
+      valid_types = TicketTypes.constants.map { |v| v.to_s.downcase }
+      errors.add(:qtype, "is not valid") if valid_types.exclude?(qtype)
     end
 
     def validate_creator_is_not_limited
@@ -468,6 +165,10 @@ class Ticket < ApplicationRecord
         return false
       end
       true
+    end
+
+    def validate_content_exists
+      errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
     def initialize_fields
@@ -522,34 +223,37 @@ class Ticket < ApplicationRecord
 
   module ClassifyMethods
     def classify
-      klass = TYPE_MAP.fetch(qtype, TicketTypes::DefaultType)
-      self.extend(klass)
-      klass.after_extended(self)
+      extend(TicketTypes.const_get(qtype.classify)) if TicketTypes.const_defined?(qtype.classify)
     end
   end
 
-  def can_see_reason?(user)
-    true
+  def content=(new_content)
+    @content = new_content
+    self.disp_id = content&.id
+  end
+
+  def content
+    @content ||= model.find_by(id: disp_id)
   end
 
   def can_see_details?(user)
     true
   end
 
-  def can_see_username?(user)
+  def can_see_reporter?(user)
     user.is_admin? || (user.id == creator_id)
-  end
-
-  def can_see_response?(user)
-    true
   end
 
   def can_create_for?(user)
     false
   end
 
+  def model
+    qtype.classify.constantize
+  end
+
   def type_title
-    'Ticket'
+    "#{model.name.titlecase} Complaint"
   end
 
   def subject
@@ -588,16 +292,18 @@ class Ticket < ApplicationRecord
     end
 
     def send_update_dmail
-      msg = "\"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by" +
-          " #{handler.pretty_name}.\nTicket Status: #{status}\n\n" +
-          (qtype == "reason" ? "Reason" : "Response") +
-          ": #{response}"
+      msg = <<~MSG.chomp
+        \"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.
+        Ticket Status: #{status}
+
+        Response: #{response}
+      MSG
       Dmail.create_split(
-          :from_id => CurrentUser.id,
-          :to_id => creator.id,
-          :title => "Your ticket has been updated to '#{status}'",
-          :body => msg,
-          bypass_limits: true
+        from_id: CurrentUser.id,
+        to_id: creator.id,
+        title: "Your ticket has been updated to '#{status}'",
+        body: msg,
+        bypass_limits: true
       )
     end
 

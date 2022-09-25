@@ -4,7 +4,7 @@
       <h3><%= @ticket.type_title %> Ticket</h3>
 
       <table>
-        <% if @ticket.can_see_username?(CurrentUser) %>
+        <% if @ticket.can_see_reporter?(CurrentUser) %>
           <tr>
             <td><span class='title'>Requested by</span></td>
             <td>
@@ -56,12 +56,7 @@
 
         <tr>
           <td><span class='title'>Reason</span></td>
-
-          <% if @ticket.can_see_reason?(CurrentUser) %>
-            <td class="dtext-container"><%= format_text(@ticket.reason) %></td>
-          <% else %>
-            <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
-          <% end %>
+          <td class="dtext-container"><%= format_text(@ticket.reason) %></td>
         </tr>
 
         <% if(!@ticket.response.blank?) %>
@@ -76,11 +71,7 @@
 
           <tr>
             <td><span class='title'>Response</span></td>
-            <% if @ticket.can_see_response?(CurrentUser) %>
-              <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
-            <% else %>
-              <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
-            <% end %>
+            <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
           </tr>
         <% end %>
       </table>
