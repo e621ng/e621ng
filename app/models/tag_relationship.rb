@@ -158,7 +158,7 @@ class TagRelationship < ApplicationRecord
       q = q.tag_matches(:consequent_name, params[:consequent_tag])
 
       if params[:category].present?
-        q = q.joins(:consequent_tag).where("tags.category": params[:category].split)
+        q = q.joins(:consequent_tag).where("consequent_tag.category": params[:category].split)
       end
 
       case params[:order]
@@ -169,7 +169,7 @@ class TagRelationship < ApplicationRecord
       when "name"
         q = q.order("antecedent_name asc, consequent_name asc")
       when "tag_count"
-        q = q.joins(:consequent_tag).order("tags.post_count desc, antecedent_name asc, consequent_name asc")
+        q = q.joins(:consequent_tag).order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
       else
         q = q.apply_default_order(params)
       end

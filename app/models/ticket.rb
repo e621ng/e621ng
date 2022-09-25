@@ -272,6 +272,7 @@ class Ticket < ApplicationRecord
     def claim!(user = CurrentUser)
       transaction do
         ModAction.log(:ticket_claim, {ticket_id: id})
+        push_pubsub('claim')
         update_attribute(:claimant_id, user.id)
       end
     end
@@ -279,6 +280,7 @@ class Ticket < ApplicationRecord
     def unclaim!(user = CurrentUser)
       transaction do
         ModAction.log(:ticket_unclaim, {ticket_id: id})
+        push_pubsub('unclaim')
         update_attribute(:claimant_id, nil)
       end
     end
@@ -310,10 +312,39 @@ class Ticket < ApplicationRecord
     end
   end
 
+  module PubSubMethods
+    def pubsub_hash(action, meta)
+      {
+        action: action,
+        meta: meta,
+        ticket: {
+          id: id,
+          created_at: created_at,
+          updated_at: updated_at,
+          user_id: creator_id,
+          user: creator_id ? User.id_to_name(creator_id) : nil,
+          disp_id: disp_id,
+          status: status,
+          category: qtype,
+          reason: reason,
+          report_reason: report_reason,
+          response: response,
+          claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
+          claimant_id: claimant_id
+        }
+      }
+    end
+
+    def push_pubsub(action, meta={})
+      RedisClient.client.publish('ticket_updates', pubsub_hash(action, meta).to_json)
+    end
+  end
+
   include ClassifyMethods
   include ValidationMethods
   include APIMethods
   include ClaimMethods
   include NotificationMethods
+  include PubSubMethods
   extend SearchMethods
 end

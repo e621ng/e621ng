@@ -23,6 +23,9 @@ class PostReplacement < ApplicationRecord
   before_destroy :remove_files
   after_destroy -> { post.update_index }
 
+  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"]
+  HIGHLIGHTED_TAGS = ["better_version_at_source", "avoid_posting", "conditional_dnp"]
+
   def replacement_url_parsed
     return nil unless replacement_url =~ %r!\Ahttps?://!i
     Addressable::URI.heuristic_parse(replacement_url) rescue nil

@@ -444,6 +444,7 @@ class PostTest < ActiveSupport::TestCase
         setup do
           @post = FactoryBot.create(:post)
           PostFlag.create(post_id: @post.id, reason_name: "test", user_reason: "testing")
+          @post.reload
         end
 
         should "no longer be pending with resolve_flags: false" do
@@ -549,59 +550,52 @@ class PostTest < ActiveSupport::TestCase
         context "without aliases or implications" do
           setup do
             @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
-            @tags = @post.tag_array
           end
 
-          should "add missing tags" do
-            assert(@tags.include?("abc"))
-            assert(@tags.include?("bcd"))
-            assert(@tags.include?("test_tag"))
-          end
-
-          should "remove included tags" do
-            assert(!@tags.include?("def"))
-            assert(!@tags.include?("what"))
+          should "contain correct tags" do
+            assert_equal("abc bcd test_tag", @post.tag_string)
           end
         end
 
-        context 'with aliases' do
+        context "with aliases" do
           setup do
-
-            FactoryBot.create(:tag_alias, :antecedent_name => "abc", :consequent_name => "xyz")
-            FactoryBot.create(:tag_alias, :antecedent_name => "def", :consequent_name => "what")
-            @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
-            @tags = @post.tag_array
+            FactoryBot.create(:tag_alias, antecedent_name: "abc", consequent_name: "xyz")
+            FactoryBot.create(:tag_alias, antecedent_name: "def", consequent_name: "what")
+            @post = FactoryBot.create(:post, locked_tags: "abc bcd -def", tag_string: "test_tag def what")
           end
 
-          should "add missing tags" do
-            assert(@tags.include?("xyz"))
-            assert(!@tags.include?("abc"))
-            assert(@tags.include?("bcd"))
-            assert(@tags.include?("test_tag"))
-          end
-
-          should "remove included tags" do
-            assert(!@tags.include?("def"))
-            assert(!@tags.include?("what"))
+          should "contain correct tags" do
+            assert_equal("bcd test_tag xyz", @post.tag_string)
           end
         end
 
-        context 'with implications' do
-          setup do
-            FactoryBot.create(:tag_implication, :antecedent_name => "abc", :consequent_name => "what")
-            @post = FactoryBot.create(:post, locked_tags: "abc -what bcd -def", tag_string: "test_tag def")
-            @tags = @post.tag_array
+        context "with implications" do
+          should "contain correct tags" do
+            FactoryBot.create(:tag_implication, antecedent_name: "specific_tag", consequent_name: "base_tag")
+            FactoryBot.create(:tag_implication, antecedent_name: "female/female", consequent_name: "female")
+            FactoryBot.create(:tag_implication, antecedent_name: "male/male", consequent_name: "male")
+            FactoryBot.create(:tag_implication, antecedent_name: "trio", consequent_name: "group")
+            locked_tags = "-base_tag -female/female male/male test_tag"
+            tag_string = "specific_tag female/female group def"
+            @post = FactoryBot.create(:post, locked_tags: locked_tags, tag_string: tag_string)
+            assert_equal("def group male male/male test_tag", @post.tag_string)
           end
 
-          should "add missing tags" do
-            assert(@tags.include?("abc"))
-            assert(@tags.include?("bcd"))
-            assert(@tags.include?("test_tag"))
-          end
+          should "update the cache when implications change" do
+            @post = FactoryBot.create(:post, locked_tags: "-group", tag_string: "trio specific_tag")
+            assert_equal("specific_tag trio", @post.tag_string)
 
-          should "remove included tags" do
-            assert(!@tags.include?("def"))
-            assert(!@tags.include?("what"))
+            ti = FactoryBot.create(:tag_implication, antecedent_name: "trio", consequent_name: "group", status: "pending")
+            ti.approve!
+            FactoryBot.create(:tag_implication, antecedent_name: "specific_tag", consequent_name: "base_tag", status: "pending")
+            @post.tag_string += " "
+            @post.save
+            assert_equal("specific_tag", @post.tag_string)
+
+            ti.reject!
+            @post.tag_string += " trio"
+            @post.save
+            assert_equal("specific_tag trio", @post.tag_string)
           end
         end
       end

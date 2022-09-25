@@ -12,41 +12,35 @@
 
     <%= subnav_link_to "Help", help_page_path(id: "wiki") %>
 
-    <% if @wiki_page && @wiki_page.new_record? && @wiki_page.try(:tag).present? %>
+    <% if @wiki_page %>
       <li>|</li>
 
-      <% if CurrentUser.is_member? %>
-        <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
-      <% end %>
+      <% if @wiki_page.tag.present? %>
+        <%= subnav_link_to "Posts (#{@wiki_page.tag.post_count})", posts_path(tags: @wiki_page.title) %>
 
-      <%= subnav_link_to "Posts (#{@wiki_page.tag.post_count})", posts_path(:tags => @wiki_page.title) %>
-
-    <% elsif @wiki_page && !@wiki_page.new_record? %>
-      <li>|</li>
-
-      <%= subnav_link_to "Posts (#{@wiki_page.tag.try(:post_count) || 0})", posts_path(:tags => @wiki_page.title) %>
-
-      <% if CurrentUser.is_member? && @wiki_page.try(:tag).present? %>
-        <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
-        <% if CurrentUser.is_janitor? %>
-          <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
+        <% if CurrentUser.is_member? %>
+          <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
+          <% if CurrentUser.is_janitor? %>
+            <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
+          <% end %>
         <% end %>
       <% end %>
 
-      <%= subnav_link_to "History", wiki_page_versions_path(:search => {:wiki_page_id => @wiki_page.id}) %>
+      <% if @wiki_page.persisted? %>
+        <%= subnav_link_to "History", wiki_page_versions_path(:search => {:wiki_page_id => @wiki_page.id}) %>
 
-      <% if CurrentUser.is_member? && params[:action] != 'edit' %>
-        <%= subnav_link_to "Edit", edit_wiki_page_path(@wiki_page), "data-shortcut": "e" %>
+        <% if CurrentUser.is_member? && params[:action] != 'edit' %>
+          <%= subnav_link_to "Edit", edit_wiki_page_path(@wiki_page), "data-shortcut": "e" %>
+        <% end %>
+
+        <% if CurrentUser.is_moderator? && !@wiki_page.is_deleted? %>
+          <%= subnav_link_to "Delete", wiki_page_path(@wiki_page), :method => :delete, :"data-confirm" => "Are you sure you want to delete this wiki page?" %>
+        <% end %>
+
+        <% if CurrentUser.is_member? %>
+          <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, type: 'wiki') %>
+        <% end %>
       <% end %>
-
-      <% if CurrentUser.is_moderator? && !@wiki_page.is_deleted? %>
-        <%= subnav_link_to "Delete", wiki_page_path(@wiki_page), :method => :delete, :"data-confirm" => "Are you sure you want to delete this wiki page?" %>
-      <% end %>
-
-      <% if CurrentUser.is_member? %>
-        <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, type: 'wiki') %>
-      <% end %>
-
     <% elsif @wiki_page_version %>
       <li>|</li>
 

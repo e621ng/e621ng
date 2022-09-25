@@ -694,10 +694,6 @@ fart'
       true
     end
 
-    def tags_to_remove_after_replacement_accepted
-      ["better_version_at_source"]
-    end
-
     # The default headers to be sent with outgoing http requests. Some external
     # services will fail if you don't set a valid User-Agent.
     def http_headers

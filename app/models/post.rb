@@ -549,7 +549,8 @@ class Post < ApplicationRecord
         locked = Tag.scan_tags(locked_tags.downcase)
         to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
         to_remove = to_remove.map {|x| x[1..-1]}
-        @locked_to_remove = TagAlias.to_aliased(to_remove)
+        to_remove = TagAlias.to_aliased(to_remove)
+        @locked_to_remove = to_remove + to_remove.map { |tag_name| TagImplication.cached_descendants(tag_name) }.flatten
         @locked_to_add = TagAlias.to_aliased(to_add)
       end
 

@@ -35,7 +35,7 @@ class UploadService
           uploader_id: CurrentUser.id,
           uploader_ip_addr: CurrentUser.ip_addr,
           rating: post.rating,
-          tag_string: (post.tag_array - Danbooru.config.tags_to_remove_after_replacement_accepted).join(" "),
+          tag_string: (post.tag_array - PostReplacement::TAGS_TO_REMOVE_AFTER_ACCEPT).join(" "),
           source: replacement.source,
           file: replacement.replacement_file,
           replaced_post: post,
