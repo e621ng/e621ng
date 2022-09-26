@@ -82,6 +82,9 @@
         <div class='section'>
           <table>
             <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
+            <% if @ticket.warnable? %>
+              <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+            <% end %>
             <tr>
               <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
             </tr>

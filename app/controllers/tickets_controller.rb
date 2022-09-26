@@ -40,9 +40,13 @@ class TicketsController < ApplicationController
         redirect_to ticket_path(@ticket, force_claim: 'true')
         return
       end
+      ticket_params = update_ticket_params
+      if @ticket.warnable? && ticket_params[:record_type].present?
+        @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
+      end
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
-      @ticket.update(update_ticket_params)
+      @ticket.update(ticket_params)
       @ticket.push_pubsub('update')
     end
 
@@ -85,7 +89,7 @@ class TicketsController < ApplicationController
   end
 
   def update_ticket_params
-    params.require(:ticket).permit(%i[response status])
+    params.require(:ticket).permit(%i[response status record_type])
   end
 
   def search_params

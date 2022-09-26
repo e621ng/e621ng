@@ -16,6 +16,8 @@ class Ticket < ApplicationRecord
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
 
+  attr_accessor :record_type
+
 =begin
     Permission truth table.
     Type            | Field         | Access
@@ -266,6 +268,10 @@ class Ticket < ApplicationRecord
 
   def open_duplicates
     Ticket.where('qtype = ? and disp_id = ? and status = ?', qtype, disp_id, 'pending')
+  end
+
+  def warnable?
+    content.respond_to?(:user_warned!) && !content.was_warned? && status == "pending"
   end
 
   module ClaimMethods
