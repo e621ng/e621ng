@@ -2,12 +2,11 @@ class UserFeedback < ApplicationRecord
   self.table_name = "user_feedback"
   belongs_to :user
   belongs_to_creator
-  attr_accessor :disable_dmail_notification
   validates :user, :creator, :body, :category, presence: true
   validates :category, inclusion: { :in => %w(positive negative neutral) }
   validate :creator_is_moderator, on: :create
   validate :user_is_not_creator
-  after_create :create_dmail, unless: :disable_dmail_notification
+  after_create :create_dmail
   after_create do |rec|
     ModAction.log(:user_feedback_create, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
   end

@@ -20,24 +20,20 @@ class UserTest < ActiveSupport::TestCase
         CurrentUser.user = FactoryBot.create(:moderator_user)
       end
 
-      should "create a neutral feedback" do
-        assert_difference("UserFeedback.count") do
-          @user.promote_to!(User::Levels::PRIVILEGED)
-        end
+      should "change the users level and flags" do
+        @user.promote_to!(User::Levels::PRIVILEGED, can_approve_posts: true)
+        @user.reload
 
-        assert_equal("You have been promoted to a Privileged level account from Member.", @user.feedback.last.body)
-      end
+        assert_equal(User::Levels::PRIVILEGED, @user.level)
+        assert(@user.can_approve_posts?)
+        assert_not(@user.can_upload_free?)
 
-      should "send an automated dmail to the user" do
-        bot = FactoryBot.create(:user)
-        User.stubs(:system).returns(bot)
+        @user.promote_to!(User::Levels::PRIVILEGED, can_approve_posts: false, can_upload_free: true)
+        @user.reload
 
-        assert_difference("Dmail.count", 1) do
-          @user.promote_to!(User::Levels::PRIVILEGED)
-        end
-
-        assert(@user.dmails.exists?(from: bot, to: @user, title: "You have been promoted"))
-        refute(@user.dmails.exists?(from: bot, to: @user, title: "Your user record has been updated"))
+        assert_equal(User::Levels::PRIVILEGED, @user.level)
+        assert_not(@user.can_approve_posts?)
+        assert(@user.can_upload_free?)
       end
     end
 
