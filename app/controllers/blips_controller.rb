@@ -89,7 +89,7 @@ class BlipsController < ApplicationController
     if params[:record_type] == 'unmark'
       @blip.remove_user_warning!
     else
-      @blip.user_warned!(params[:record_type])
+      @blip.user_warned!(params[:record_type], CurrentUser.user)
     end
     respond_with(@blip)
   end

@@ -84,7 +84,7 @@ class CommentsController < ApplicationController
     if params[:record_type] == 'unmark'
       @comment.remove_user_warning!
     else
-      @comment.user_warned!(params[:record_type])
+      @comment.user_warned!(params[:record_type], CurrentUser.user)
     end
     respond_with(@comment)
   end

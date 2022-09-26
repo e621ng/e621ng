@@ -71,14 +71,8 @@
               <span><%= link_to_ip forum_post.creator_ip_addr %></span>
             </li>
             <li>|</li>
-            <% if !forum_post.was_warned? %>
-              <li>Mark for:</li>
-              <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'warning' } %></li>
-              <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'record' } %></li>
-              <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'ban' } %></li>
-            <% else %>
-              <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'unmark' } %></li>
-            <% end %>
+            <%= render "user_warnable/buttons", model: forum_post %>
+            
             <li>|</li>
           <% end %>
           <% if params[:controller] == "forum_posts" %>

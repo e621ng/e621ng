@@ -74,7 +74,7 @@ class ForumPostsController < ApplicationController
     if params[:record_type] == 'unmark'
       @forum_post.remove_user_warning!
     else
-      @forum_post.user_warned!(params[:record_type])
+      @forum_post.user_warned!(params[:record_type], CurrentUser.user)
     end
     respond_with(@forum_post)
   end

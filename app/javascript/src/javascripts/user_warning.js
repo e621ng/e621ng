@@ -4,13 +4,13 @@ $(() => {
   $('.item-mark-user-warned').on('click', function(evt) {
     evt.preventDefault();
     const target = $(evt.target);
-    const type = target.data('item-type');
+    const type = target.data('item-route');
     const id = target.data('item-id');
     const record_type = target.data('record-type');
 
     $.ajax({
       type: "POST",
-      url: `/${type}s/${id}/warning.json`,
+      url: `/${type}/${id}/warning.json`,
       data: {
         'record_type': record_type
       },
