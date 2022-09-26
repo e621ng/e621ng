@@ -11,7 +11,7 @@ module Admin
       @new_user = User.find_by_name_or_id(@reowner_params[:new_owner])
       query = @reowner_params[:search]
       unless @old_user && @new_user
-        flash[:error] = "Old or new user failed to look up. Use !id for name to use an id."
+        flash[:notice] = "Old or new user failed to look up. Use !id for name to use an id."
         redirect_back fallback_location: new_admin_reowner_path
         return
       end
@@ -35,4 +35,3 @@ module Admin
     end
   end
 end
-
