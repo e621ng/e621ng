@@ -420,6 +420,8 @@ Rails.application.routes.draw do
   get "/tag_implication" => redirect {|params, req| "/tag_implications?search[name_matches]=#{CGI::escape(req.params[:query].to_s)}"}
   get "/tag_alias" => redirect {|params, req| "/tag_aliases?search[antecedent_name]=#{CGI.escape(req.params[:query].to_s)}&search[consequent_name]=#{CGI.escape(req.params[:aliased_to].to_s)}"}
 
+  get "/takedown/show/:id" => redirect("/takedowns/%{id}")
+
   get "/user" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/index" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/show/:id" => redirect("/users/%{id}")
