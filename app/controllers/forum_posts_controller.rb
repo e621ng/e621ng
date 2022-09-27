@@ -76,7 +76,8 @@ class ForumPostsController < ApplicationController
     else
       @forum_post.user_warned!(params[:record_type], CurrentUser.user)
     end
-    respond_with(@forum_post)
+    html = render_to_string partial: "forum_posts/forum_post", locals: { forum_post: @forum_post, original_forum_post_id: @forum_post.topic.original_post.id }, formats: [:html]
+    render json: { html: html, posts: deferred_posts }
   end
 
 private

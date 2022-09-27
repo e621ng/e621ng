@@ -43,7 +43,7 @@ ${stripped_body}
   });
 };
 
-$(function() {
+Blip.initialize_all = function() {
   if($("#c-blips").length) {
     $(".blip-atme-link").on('click', e => {
       Blip.atme($(e.target).data('bid'));
@@ -54,6 +54,18 @@ $(function() {
       e.preventDefault();
     });
   }
+}
+
+Blip.reinitialize_all = function() {
+  if($("#c-blips").length) {
+    $(".blip-atme-link").off('click');
+    $(".blip-reply-link").off('click');
+    Blip.initialize_all();
+  }
+}
+
+$(function() {
+  Blip.initialize_all();
 });
 
 export default Blip;

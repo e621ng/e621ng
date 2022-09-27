@@ -86,7 +86,9 @@ class CommentsController < ApplicationController
     else
       @comment.user_warned!(params[:record_type], CurrentUser.user)
     end
-    respond_with(@comment)
+    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
+    html = render_to_string partial: "comments/partials/show/comment", locals: { comment: @comment, post: nil }, formats: [:html]
+    render json: { html: html, posts: deferred_posts }
   end
 
 private

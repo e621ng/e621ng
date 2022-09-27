@@ -91,7 +91,8 @@ class BlipsController < ApplicationController
     else
       @blip.user_warned!(params[:record_type], CurrentUser.user)
     end
-    respond_with(@blip)
+    html = render_to_string partial: "blips/partials/show/blip", locals: { blip: @blip }, formats: [:html]
+    render json: { html: html, posts: deferred_posts }
   end
 
   private
