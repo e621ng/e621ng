@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/zwagoth/dtext_rb.git
-  revision: efc37c7795c53425935245cde57cef2121b4f402
+  revision: fa4f1da857847ab3a34396beca2b0795e1109e14
   branch: master
   specs:
-    dtext_rb (1.10.19)
+    dtext_rb (1.10.20)
       nokogiri (~> 1.8)
 
 GEM
@@ -211,7 +211,7 @@ GEM
     netrc (0.11.0)
     newrelic_rpm (8.2.0)
     nio4r (2.5.8)
-    nokogiri (1.13.7)
+    nokogiri (1.13.8)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     pg (1.2.3)
