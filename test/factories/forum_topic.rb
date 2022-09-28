@@ -5,6 +5,8 @@ FactoryBot.define do
     is_locked { false }
     category_id { Danbooru.config.alias_implication_forum_category }
 
+    creator_ip_addr { "127.0.0.1" }
+
     transient do
       body { FFaker::Lorem.sentences.join(" ") }
     end
