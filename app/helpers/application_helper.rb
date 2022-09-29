@@ -163,20 +163,15 @@ module ApplicationHelper
     to_sentence(links, **options)
   end
 
-  def link_to_user(user, options = {})
+  def link_to_user(user)
     return "anonymous" if user.blank?
 
     user_class = user.level_class
-    user_class = user_class + " user-post-approver" if user.can_approve_posts?
-    user_class = user_class + " user-post-uploader" if user.can_upload_free?
-    user_class = user_class + " user-banned" if user.is_banned?
-    user_class = user_class + " with-style" if CurrentUser.user.style_usernames?
-    if options[:raw_name]
-      name = user.name
-    else
-      name = user.pretty_name
-    end
-    link_to(name, user_path(user), :class => user_class, rel: "nofollow")
+    user_class += " user-post-approver" if user.can_approve_posts?
+    user_class += " user-post-uploader" if user.can_upload_free?
+    user_class += " user-banned" if user.is_banned?
+    user_class += " with-style" if CurrentUser.user.style_usernames?
+    link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
   end
 
   def mod_link_to_user(user, positive_or_negative)

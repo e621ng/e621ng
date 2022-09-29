@@ -27,9 +27,6 @@
         <%= link_to "(search help)", help_page_path(id: "cheatsheet"), class: 'search-help' %>
         <div class="search-form">
           <%= form_tag(posts_path, :method => "get") do %>
-            <% if params[:raw] %>
-              <%= hidden_field_tag :raw, params[:raw] %>
-            <% end %>
             <% if params[:random] %>
               <%= hidden_field_tag :random, params[:random] %>
             <% end %>

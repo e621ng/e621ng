@@ -1,7 +1,7 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :raw, :random, :post_count, :format
+    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :format
 
     def initialize(tags, page = 1, per_page = nil, options = {})
       tags ||= ''
@@ -11,7 +11,6 @@ module PostSets
       @tag_array = Tag.scan_query(tags)
       @page = page
       @per_page = per_page
-      @raw = options[:raw].present?
       @random = options[:random].present?
       @format = options[:format] || "html"
     end
@@ -58,10 +57,6 @@ module PostSets
       @pool_name ||= Tag.has_metatag?(tag_array, :ordpool, :pool)
     end
 
-    def has_pool?
-      is_single_tag? && pool_name && pool
-    end
-
     def pool
       ::Pool.find_by_name(pool_name)
     end
@@ -104,11 +99,7 @@ module PostSets
 
     def posts
       @posts ||= begin
-        if raw
-          temp = ::Post.raw_tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
-        else
-          temp = ::Post.tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
-        end
+        temp = ::Post.tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
 
         @post_count = temp.total_count
         temp

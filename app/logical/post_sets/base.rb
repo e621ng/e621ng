@@ -1,9 +1,5 @@
 module PostSets
   class Base
-    def raw
-      false
-    end
-
     def wiki_page
       nil
     end
