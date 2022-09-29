@@ -43,11 +43,17 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
           create implication bar -> baz
         )
 
-        @bur = FactoryBot.create(:bulk_update_request, :script => @script)
+        Sidekiq::Testing.inline!
+
+        @bur = FactoryBot.create(:bulk_update_request, script: @script)
         @bur.approve!(@admin)
 
-        @ta = TagAlias.where(:antecedent_name => "foo", :consequent_name => "bar").first
-        @ti = TagImplication.where(:antecedent_name => "bar", :consequent_name => "baz").first
+        @ta = TagAlias.where(antecedent_name: "foo", consequent_name: "bar").first
+        @ti = TagImplication.where(antecedent_name: "bar", consequent_name: "baz").first
+      end
+
+      teardown do
+        Sidekiq::Testing.fake!
       end
 
       should "reference the approver in the automated message" do

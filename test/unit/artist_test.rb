@@ -267,6 +267,7 @@ class ArtistTest < ActiveSupport::TestCase
     end
 
     should "update the category of the tag when created" do
+      CurrentUser.user = create(:janitor_user)
       tag = FactoryBot.create(:tag, :name => "abc")
       artist = FactoryBot.create(:artist, :name => "abc")
       tag.reload

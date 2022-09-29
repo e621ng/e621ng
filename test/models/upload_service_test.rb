@@ -212,7 +212,6 @@ class UploadServiceTest < ActiveSupport::TestCase
       should "tag animated png files" do
         service = @build_service.call(file: upload_file("test/files/apng/normal_apng.png"))
         upload = service.start!
-        puts upload.errors.full_messages.join('; ')
         assert_match(/animated_png/, upload.tag_string)
       end
 
