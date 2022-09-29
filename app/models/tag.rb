@@ -1,7 +1,6 @@
 class Tag < ApplicationRecord
   COUNT_METATAGS = %w[
     comment_count
-    note_count
     flag_count
     child_count
     pool_count

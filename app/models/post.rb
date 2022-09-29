@@ -1488,14 +1488,6 @@ class Post < ApplicationRecord
       relation
     end
 
-    def with_note_stats
-      relation = left_outer_joins(:notes).group(:id).select("posts.*")
-      relation = relation.select("COUNT(notes.id) AS note_count")
-      relation = relation.select("COUNT(notes.id) FILTER (WHERE notes.is_active = TRUE)  AS active_note_count")
-      relation = relation.select("COUNT(notes.id) FILTER (WHERE notes.is_active = FALSE) AS deleted_note_count")
-      relation
-    end
-
     def with_flag_stats
       relation = left_outer_joins(:flags).group(:id).select("posts.*")
       relation = relation.select("COUNT(post_flags.id) AS flag_count")
