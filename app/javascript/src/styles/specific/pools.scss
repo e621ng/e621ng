@@ -1,4 +1,4 @@
-a.pool-category-series, .pool-category-series a:not(.last-page) {
+a.pool-category-series, .pool-category-series a:not(.page-number) {
   color: $pool-series-link-color;
 
   &:hover {
@@ -6,7 +6,7 @@ a.pool-category-series, .pool-category-series a:not(.last-page) {
   }
 }
 
-a.pool-category-collection, .pool-category-collection a:not(.last-page) {
+a.pool-category-collection, .pool-category-collection a:not(.page-number) {
   color: $pool-collection-link-color;
 
   &:hover {
