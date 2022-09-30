@@ -15,6 +15,7 @@
 
   <span class="pool-name">
     <%= link_to("Pool: #{pool.pretty_name}", pool_path(pool), title: "page #{pool.page_number(post.id)}/#{pool.post_count}") -%>
+    <%= link_to("page #{pool.page_number(post.id)}/#{pool.post_count}", pool_path(pool, page: pool.page_index(post.id)), class: "last-page") -%>
   </span>
 
   <% pool.next_post_id(post.id).tap do |next_post_id| -%>

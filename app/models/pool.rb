@@ -346,6 +346,10 @@ class Pool < ApplicationRecord
     (post_count / CurrentUser.user.per_page.to_f).ceil
   end
 
+  def page_index(post_id)
+    (page_number(post_id) / CurrentUser.user.per_page.to_f).ceil
+  end
+
   def method_attributes
     super + [:creator_name, :post_count]
   end
