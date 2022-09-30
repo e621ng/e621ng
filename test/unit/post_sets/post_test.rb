@@ -108,28 +108,6 @@ module PostSets
         should "find the posts" do
           assert_equal(@post_1.id, @set.posts.first.id)
         end
-
-        context "that has a matching wiki page" do
-          setup do
-            @wiki_page = FactoryBot.create(:wiki_page, title: "a")
-          end
-
-          should "find the wiki page" do
-            assert_not_nil(@set.wiki_page)
-            assert_equal(@wiki_page.id, @set.wiki_page.id)
-          end
-        end
-
-        context "that has a matching artist" do
-          setup do
-            @artist = FactoryBot.create(:artist, name: "a")
-          end
-
-          should "find the artist" do
-            assert_not_nil(@set.artist)
-            assert_equal(@artist.id, @set.artist.id)
-          end
-        end
       end
 
       context "#per_page method" do

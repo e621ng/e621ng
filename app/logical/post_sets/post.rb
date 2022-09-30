@@ -31,12 +31,6 @@ module PostSets
       tag_array.reject {|tag| tag =~ /\Aorder:/i }
     end
 
-    def wiki_page
-      return nil unless tag.present? && tag.wiki_page.present?
-      return nil unless !tag.wiki_page.is_deleted? && tag.wiki_page.visible?
-      tag.wiki_page
-    end
-
     def tag
       return nil if !is_single_tag?
       return nil if is_metatag_only?
@@ -47,27 +41,6 @@ module PostSets
       Tag.is_metatag?(Tag.normalize_name(tag_string))
     end
 
-    def artist
-      return nil unless tag.present? && tag.category == Tag.categories.artist
-      return nil unless tag.artist.present? && tag.artist.is_active? && tag.artist.visible?
-      tag.artist
-    end
-
-    def pool_name
-      @pool_name ||= Tag.has_metatag?(tag_array, :ordpool, :pool)
-    end
-
-    def pool
-      ::Pool.find_by_name(pool_name)
-    end
-
-    def post_set_name
-      @post_set_name ||= Tag.has_metatag?(tag_array, :set)
-    end
-
-    def post_set
-      ::PostSet.find_by_shortname(post_set_name)
-    end
 
     def has_explicit?
       !CurrentUser.safe_mode?

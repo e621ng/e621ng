@@ -1,13 +1,5 @@
 module PostSets
   class Base
-    def wiki_page
-      nil
-    end
-
-    def artist
-      nil
-    end
-
     def is_single_tag?
       false
     end
