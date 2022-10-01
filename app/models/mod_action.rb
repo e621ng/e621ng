@@ -74,6 +74,7 @@ class ModAction < ApplicationRecord
       :wiki_page_unlock,
 
       :mass_update,
+      :nuke_tag,
 
       :takedown_process
   ]

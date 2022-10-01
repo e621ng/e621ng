@@ -21,10 +21,6 @@ class TagBatchJob < ApplicationJob
     end
   end
 
-  def estimate_update_count
-    ::Post.tag_match(@antecedent).count
-  end
-
   def migrate_posts(normalized_antecedent, normalized_consequent)
     ::PostQueryBuilder.new(normalized_antecedent.join(" ")).build.reorder('').find_each do |post|
       post.with_lock do

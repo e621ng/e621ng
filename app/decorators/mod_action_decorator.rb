@@ -223,6 +223,8 @@ class ModActionDecorator < ApplicationDecorator
 
     when "mass_update"
       "Mass updated [[#{vals['antecedent']}]] -> [[#{vals['consequent']}]]"
+    when "nuke_tag"
+      "Nuked tag [[#{vals['tag_name']}]]"
 
       ### Flag Reason ###
 

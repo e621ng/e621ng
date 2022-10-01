@@ -16,6 +16,9 @@
       <li>imply aaa -> bbb</li>
       <li>update aaa -> bbb</li>
       <li>category tag_name -> category_name</li>
+      <% if CurrentUser.is_admin? %>
+        <li>nuke tag_name</li>
+      <% end %>
     </ul>
   </div>
 

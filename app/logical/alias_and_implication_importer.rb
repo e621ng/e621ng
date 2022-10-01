@@ -44,6 +44,9 @@ class AliasAndImplicationImporter
       elsif line =~ /^(?:mass update|updating|update|change) (\S+) -> (\S+)( #.*)?$/i
         [:mass_update, $1, $2, $3]
 
+      elsif line =~ /^(?:nuke tag|nuke) (\S+)( #.*)?$/i
+        [:nuke_tag, $1, nil, $2]
+
       elsif line =~ /^category (\S+) -> (#{Tag.categories.regexp})( #.*)?$/i
         [:change_category, $1, $2, $3]
 
@@ -77,6 +80,9 @@ class AliasAndImplicationImporter
       when :mass_update
         comment = "# missing" if token[3] == false
         "update #{token[1]} -> #{token[2]} #{comment}".strip
+      when :nuke_tag
+        comment = "# missing" if token[3] == false
+        "nuke tag #{token[1]} #{comment}".strip
       else
         raise Error.new("Unknown token to reverse")
       end
@@ -140,6 +146,11 @@ class AliasAndImplicationImporter
         token[3] = existing
         token
 
+      when :nuke_tag
+        errors << "Only adminds can nuke tags" unless user.is_admin?
+        existing = Tag.find_by(name: token[1]).present?
+        token[3] = existing
+        token
       else
         errors << "Unknown token: #{token[0]}"
       end
@@ -158,11 +169,8 @@ class AliasAndImplicationImporter
       when :create_implication
         sum + TagImplication.new(antecedent_name: token[1], consequent_name: token[2]).estimate_update_count
 
-      when :mass_update
-        sum + ::Post.tag_match(token[1]).count
-
-      when :change_category
-        sum + (Tag.find_by_name(token[1]).try(:post_count) || 0)
+      when :change_category, :mass_update, :nuke_tag
+        sum + (Tag.find_by(name: token[1]).try(:post_count) || 0)
 
       else
         sum + 0
@@ -185,7 +193,6 @@ class AliasAndImplicationImporter
         raise Error, "Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})"
       end
     end
-
 
     tag_alias.rename_artist if rename_aliased_pages?
     raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
@@ -232,6 +239,9 @@ class AliasAndImplicationImporter
 
         when :mass_update
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
+
+        when :nuke_tag
+          TagNukeJob.perform_later(token[1], CurrentUser.id, CurrentUser.ip_addr)
 
         when :change_category
           tag = Tag.find_by(name: token[1])

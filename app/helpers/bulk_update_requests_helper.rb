@@ -46,7 +46,7 @@ module BulkUpdateRequestsHelper
       when :create_alias, :create_implication, :remove_alias, :remove_implication
         names.add(arg1)
         names.add(arg2)
-      when :change_category
+      when :change_category, :nuke_tag
         names.add(arg1)
       end
     end
@@ -54,19 +54,20 @@ module BulkUpdateRequestsHelper
   end
 
   def script_tag_links(cmd, arg1, arg2, script_tags)
+    arg1_count = script_tags[arg1].try(:post_count).to_i
+    arg2_count = script_tags[arg2].try(:post_count).to_i
+
     case cmd
     when :create_alias, :create_implication, :remove_alias, :remove_implication
-      arg1_count = script_tags[arg1].try(:post_count).to_i
-      arg2_count = script_tags[arg2].try(:post_count).to_i
-
       "[[#{arg1}]] (#{arg1_count}) -> [[#{arg2}]] (#{arg2_count})"
 
     when :mass_update
       "[[#{arg1}]] -> [[#{arg2}]]"
 
-    when :change_category
-      arg1_count = script_tags[arg1].try(:post_count).to_i
+    when :nuke_tag
+      "[[#{arg1}]] (#{arg1_count})"
 
+    when :change_category
       "[[#{arg1}]] (#{arg1_count}) -> #{arg2}"
     end
   end
