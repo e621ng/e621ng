@@ -219,6 +219,11 @@ class ModActionDecorator < ApplicationDecorator
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end
 
+      ### BURs ###
+
+    when "mass_update"
+      "Mass updated [[#{vals['antecedent']}]] -> [[#{vals['consequent']}]]"
+
       ### Flag Reason ###
 
     when "created_flag_reason"
