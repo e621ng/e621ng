@@ -278,16 +278,16 @@ class Ticket < ApplicationRecord
     def claim!(user = CurrentUser)
       transaction do
         ModAction.log(:ticket_claim, {ticket_id: id})
-        push_pubsub('claim')
         update_attribute(:claimant_id, user.id)
+        push_pubsub('claim')
       end
     end
 
     def unclaim!(user = CurrentUser)
       transaction do
         ModAction.log(:ticket_unclaim, {ticket_id: id})
-        push_pubsub('unclaim')
         update_attribute(:claimant_id, nil)
+        push_pubsub('unclaim')
       end
     end
   end
