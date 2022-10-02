@@ -147,7 +147,7 @@ class AliasAndImplicationImporter
         token
 
       when :nuke_tag
-        errors << "Only adminds can nuke tags" unless user.is_admin?
+        errors << "Only admins can nuke tags" unless user.is_admin?
         existing = Tag.find_by(name: token[1]).present?
         token[3] = existing
         token
