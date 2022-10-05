@@ -103,14 +103,20 @@ class TagRelationship < ApplicationRecord
       where("creator_id = ?", id)
     end
 
-    def tag_matches(field, params)
-      return all if params.blank?
-      where(field => Tag.search(params).reorder(nil).select(:name))
-    end
-
     def pending_first
       # unknown statuses return null and are sorted first
       order(Arel.sql("array_position(array['queued', 'processing', 'pending', 'active', 'deleted', 'retired'], status::text) NULLS FIRST, #{table_name}.id desc"))
+    end
+
+    # FIXME: Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag)
+    # This makes it impossible to use when ordering, at least from what I can tell.
+    # There must be a different solution for this.
+    def join_antecedent
+      joins("LEFT OUTER JOIN tags antecedent_tag on antecedent_tag.name = antecedent_name")
+    end
+
+    def join_consequent
+      joins("LEFT OUTER JOIN tags consequent_tag on consequent_tag.name = consequent_name")
     end
 
     def default_order
@@ -138,11 +144,11 @@ class TagRelationship < ApplicationRecord
       end
 
       if params[:antecedent_tag_category].present?
-        q = q.joins(:antecedent_tag).where("antecedent_tag.category": params[:antecedent_tag_category])
+        q = q.join_antecedent.where("antecedent_tag.category": params[:antecedent_tag_category].split(",").first(100))
       end
 
       if params[:consequent_tag_category].present?
-        q = q.joins(:consequent_tag).where("consequent_tag.category": params[:consequent_tag_category])
+        q = q.join_consequent.where("consequent_tag.category": params[:consequent_tag_category].split(",").first(100))
       end
 
       if params[:creator_name].present?
@@ -153,14 +159,6 @@ class TagRelationship < ApplicationRecord
         q = q.where("approver_id = ?", User.name_to_id(params[:approver_name]))
       end
 
-      # Legacy params?
-      q = q.tag_matches(:antecedent_name, params[:antecedent_tag])
-      q = q.tag_matches(:consequent_name, params[:consequent_tag])
-
-      if params[:category].present?
-        q = q.joins(:consequent_tag).where("consequent_tag.category": params[:category].split)
-      end
-
       case params[:order]
       when "created_at"
         q = q.order("#{table_name}.created_at desc nulls last, #{table_name}.id desc")
@@ -169,7 +167,7 @@ class TagRelationship < ApplicationRecord
       when "name"
         q = q.order("antecedent_name asc, consequent_name asc")
       when "tag_count"
-        q = q.joins(:consequent_tag).order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
+        q = q.join_consequent.order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
       else
         q = q.apply_default_order(params)
       end
