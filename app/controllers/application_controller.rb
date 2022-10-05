@@ -139,26 +139,8 @@ class ApplicationController < ActionController::Base
       @message = "An unexpected error occurred."
     end
 
-
     DanbooruLogger.log(@exception, expected: @expected)
-    log_params = {
-        host: Socket.gethostname,
-        params: request.filtered_parameters,
-        user_id: CurrentUser.id,
-        referrer: request.referrer,
-        user_agent: request.user_agent
-    }
-    # Required to unwrap exceptions that occur inside template rendering.
-    new_exception = exception
-    if exception.respond_to?(:cause) && exception.is_a?(ActionView::Template::Error)
-      new_exception = exception.cause
-    end
-    if new_exception&.is_a?(ActiveRecord::QueryCanceled)
-      log_params[:sql] = {}
-      log_params[:sql][:query] = new_exception&.sql || "[NOT FOUND?]"
-      log_params[:sql][:binds] = new_exception&.binds
-    end
-    log = ExceptionLog.add(exception, CurrentUser.ip_addr, log_params) if !@expected
+    log = ExceptionLog.add(exception, CurrentUser.id, request) if !@expected
     @log_code = log&.code
     render "static/error", layout: layout, status: status, formats: format
   end
