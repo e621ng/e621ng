@@ -38,10 +38,6 @@ class UserVote < ApplicationRecord
   end
 
   module SearchMethods
-    def allow_complex_parameters?(params)
-      (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
-    end
-
     def search(params)
       q = super
 
@@ -62,7 +58,18 @@ class UserVote < ApplicationRecord
         q = q.where("user_id = ?", params[:user_id].to_i)
       end
 
-      if allow_complex_parameters?(params)
+      allow_complex_params = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
+
+      if allow_complex_params
+        if params[:"#{model_type}_creator_name"].present?
+          creator_id = User.name_to_id(params[:"#{model_type}_creator_name"])
+          if creator_id
+            q = q.joins(model_type).where(model_type => { "#{model_creator_column}_id": creator_id })
+          else
+            q = q.none
+          end
+        end
+
         if params[:timeframe].present?
           q = q.where("#{table_name}.updated_at >= ?", params[:timeframe].to_i.days.ago)
         end
@@ -81,7 +88,7 @@ class UserVote < ApplicationRecord
         end
       end
 
-      if params[:order] == "ip_addr" && allow_complex_parameters?(params)
+      if params[:order] == "ip_addr" && allow_complex_params
         q = q.order(:user_ip_addr)
       else
         q = q.apply_default_order(params)

@@ -7,6 +7,10 @@ class CommentVote < UserVote
     CommentVote.where(comment_id: comment_ids, user_id: user_id).index_by(&:comment_id)
   end
 
+  def self.model_creator_column
+    :creator
+  end
+
   def validate_user_can_vote
     allowed = user.can_comment_vote_with_reason
     if allowed != true
@@ -23,18 +27,5 @@ class CommentVote < UserVote
     if comment.is_sticky
       errors.add :base, "You cannot vote on sticky comments"
     end
-  end
-
-  def self.search(params)
-    q = super
-    if params[:comment_creator_name].present? && allow_complex_parameters?(params)
-      comment_creator_id = User.name_to_id(params[:comment_creator_name])
-      if comment_creator_id
-        q = q.joins(:comment).where("comments.creator_id = ?", comment_creator_id)
-      else
-        q = q.none
-      end
-    end
-    q
   end
 end
