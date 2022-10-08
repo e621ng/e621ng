@@ -36,8 +36,8 @@
           <td><%= vote.user.email %>
           <td title="Signed up at <%= vote.user.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.user.created_at) %> ago
           <td>
-            <% if vote.score == 1 %><span class='greentext'>Up</span>
-            <% elsif vote.score == 0 %><span class='yellowtext'>Locked</span>
+            <% if vote.is_positive? %><span class='greentext'>Up</span>
+            <% elsif vote.is_locked? %><span class='yellowtext'>Locked</span>
             <% else %><span class='redtext'>Down</span>
             <% end %></td>
           <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago

@@ -23,7 +23,7 @@ class PostVoteTest < ActiveSupport::TestCase
     end
 
     should "not accept any other scores" do
-      error = assert_raises(PostVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 'xxx') }
+      error = assert_raises(UserVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 'xxx') }
       assert_equal("Invalid vote", error.message)
     end
 
