@@ -9,11 +9,7 @@ module Danbooru
 
     # The name of this Danbooru.
     def app_name
-      if CurrentUser.safe_mode?
-        "e926"
-      else
-        "e621"
-      end
+      "e621"
     end
 
     def description
@@ -281,16 +277,8 @@ fart'
     end
 
     # Users cannot search for more than X regular tags at a time.
-    def base_tag_query_limit
-      20
-    end
-
     def tag_query_limit
-      if CurrentUser.user.present?
-        CurrentUser.user.tag_query_limit
-      else
-        base_tag_query_limit
-      end
+      40
     end
 
     # Return true if the given tag shouldn't count against the user's tag search limit.
@@ -420,7 +408,7 @@ fart'
       # base_url - where to serve files from (default: http://#{hostname}/data)
       # hierarchical: false - store files in a single directory
       # hierarchical: true - store files in a hierarchical directory structure, based on the MD5 hash
-      StorageManager::Local.new(base_url: "#{CurrentUser.root_url}/", base_dir: "#{Rails.root}/public/data", hierarchical: true)
+      StorageManager::Local.new(base_dir: "#{Rails.root}/public/data", hierarchical: true)
 
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|

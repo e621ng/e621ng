@@ -1679,7 +1679,6 @@ class Post < ApplicationRecord
         self.warnings.add(:base, "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
       end
 
-      ActiveRecord::Associations::Preloader.new.preload(new_artist_tags, :artist)
       new_artist_tags.each do |tag|
         if tag.artist.blank?
           self.warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]")
