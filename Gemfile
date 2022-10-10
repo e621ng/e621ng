@@ -2,7 +2,7 @@ source 'https://rubygems.org/'
 
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 
-gem "rails", "~> 6.1"
+gem "rails", "~> 7.0"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
@@ -37,9 +37,6 @@ gem 'elasticsearch-rails'
 
 gem 'mailgun-ruby'
 gem 'resolv'
-gem 'net-smtp'
-gem 'net-pop'
-gem 'net-imap'
 
 group :production, :staging do
   gem 'unicorn', :platforms => :ruby
