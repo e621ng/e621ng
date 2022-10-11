@@ -25,7 +25,6 @@
         <th>Signed Up</th>
         <th>Vote</th>
         <th>Created</th>
-        <th>Updated</th>
         <th>IP</th>
       </tr>
       </thead>
@@ -44,8 +43,6 @@
             <% else %><span class='redtext'>Down</span>
             <% end %></td>
           <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago
-          </td>
-          <td title="Updated at <%= vote.updated_at.strftime("%c") %>"><%= time_ago_in_words(vote.updated_at) %> ago
           </td>
           <td><%= link_to_ip vote.user_ip_addr %></td>
         </tr>
