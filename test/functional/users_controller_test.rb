@@ -12,14 +12,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
-      should "list all users for /users?name=<name>" do
-        get users_path, params: { name: @user.name }
-        assert_redirected_to(@user)
-      end
-
-      should "raise error for /users?name=<nonexistent>" do
-        get users_path, params: { name: "nobody" }
-        assert_response :error
+      should "redirect for /users?name=<name>" do
+        get users_path, params: { name: "some_username" }
+        assert_redirected_to(user_path(id: "some_username"))
       end
 
       should "list all users (with search)" do
