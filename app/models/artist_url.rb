@@ -65,12 +65,9 @@ class ArtistUrl < ApplicationRecord
   def self.url_attribute_matches(attr, url)
     if url.blank?
       all
-    elsif url =~ %r!\A/(.*)/\z!
-      where_regex(attr, $1)
-    elsif url.include?("*")
-      where_ilike(attr, url)
     else
-      where(attr => normalize(url))
+      url = "*#{url}*" if url.exclude?("*")
+      where_ilike(attr, url)
     end
   end
 

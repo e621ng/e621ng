@@ -182,7 +182,7 @@ class Artist < ApplicationRecord
         while artists.empty? && url.length > 10
           u = url.sub(/\/+$/, "") + "/"
           u = u.to_escaped_for_sql_like.gsub(/\*/, '%') + '%'
-          artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url LIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
+          artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url ILIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
           url = File.dirname(url) + "/"
 
           break if url =~ SITE_BLACKLIST_REGEXP
@@ -423,24 +423,16 @@ class Artist < ApplicationRecord
     end
 
     def any_name_matches(query)
-      if query =~ %r!\A/(.*)/\z!
-        where_regex(:name, $1).or(any_other_name_matches($1)).or(where_regex(:group_name, $1))
-      else
-        normalized_name = normalize_name(query)
-        normalized_name = "*#{normalized_name}*" unless normalized_name.include?("*")
-        where_like(:name, normalized_name).or(any_other_name_like(normalized_name)).or(where_like(:group_name, normalized_name))
-      end
+      normalized_name = normalize_name(query)
+      normalized_name = "*#{normalized_name}*" unless normalized_name.include?("*")
+      where_like(:name, normalized_name).or(any_other_name_like(normalized_name)).or(where_like(:group_name, normalized_name))
     end
 
     def url_matches(query)
-      if query =~ %r!\A/(.*)/\z!
-        where(id: ArtistUrl.where_regex(:url, $1).select(:artist_id))
-      elsif query.include?("*")
-        where(id: ArtistUrl.where_like(:url, query).select(:artist_id))
-      elsif query =~ %r!\Ahttps?://!i
+      if query =~ %r!\Ahttps?://!i
         find_artists(query)
       else
-        where(id: ArtistUrl.where_like(:url, "*#{query}*").select(:artist_id))
+        where(id: ArtistUrl.search(url_matches: query).select(:artist_id))
       end
     end
 

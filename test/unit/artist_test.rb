@@ -197,33 +197,33 @@ class ArtistTest < ActiveSupport::TestCase
     end
 
     should "search on its name should return results" do
-      artist = FactoryBot.create(:artist, :name => "artist")
+      FactoryBot.create(:artist, name: "artist")
 
-      assert_not_nil(Artist.search(:name => "artist").first)
-      assert_not_nil(Artist.search(:name_like => "artist").first)
-      assert_not_nil(Artist.search(:any_name_matches => "artist").first)
-      assert_not_nil(Artist.search(:any_name_matches => "/art/").first)
+      assert_not_nil(Artist.search(name: "artist").first)
+      assert_not_nil(Artist.search(name_like: "artist").first)
+      assert_not_nil(Artist.search(any_name_matches: "artist").first)
+      assert_not_nil(Artist.search(any_name_matches: "*art*").first)
     end
 
     should "search on other names should return matches" do
-      artist = FactoryBot.create(:artist, :name => "artist", :other_names_string => "aaa ccc_ddd")
+      FactoryBot.create(:artist, name: "artist", other_names_string: "aaa ccc_ddd")
 
       assert_nil(Artist.search(any_other_name_like: "*artist*").first)
       assert_not_nil(Artist.search(any_other_name_like: "*aaa*").first)
       assert_not_nil(Artist.search(any_other_name_like: "*ccc_ddd*").first)
       assert_not_nil(Artist.search(name: "artist").first)
-      assert_not_nil(Artist.search(:any_name_matches => "aaa").first)
-      assert_not_nil(Artist.search(:any_name_matches => "/a/").first)
+      assert_not_nil(Artist.search(any_name_matches: "aaa").first)
+      assert_not_nil(Artist.search(any_name_matches: "*a*").first)
     end
 
     should "search on group name and return matches" do
-      cat_or_fish = FactoryBot.create(:artist, :name => "cat_or_fish")
-      yuu = FactoryBot.create(:artist, :name => "yuu", :group_name => "cat_or_fish")
+      cat_or_fish = FactoryBot.create(:artist, name: "cat_or_fish")
+      FactoryBot.create(:artist, name: "yuu", group_name: "cat_or_fish")
 
       assert_equal("yuu", cat_or_fish.member_names)
-      assert_not_nil(Artist.search(:group_name => "cat_or_fish").first)
-      assert_not_nil(Artist.search(:any_name_matches => "cat_or_fish").first)
-      assert_not_nil(Artist.search(:any_name_matches => "/cat/").first)
+      assert_not_nil(Artist.search(group_name: "cat_or_fish").first)
+      assert_not_nil(Artist.search(any_name_matches: "cat_or_fish").first)
+      assert_not_nil(Artist.search(any_name_matches: "*cat*").first)
     end
 
     should "search on url and return matches" do
@@ -231,7 +231,7 @@ class ArtistTest < ActiveSupport::TestCase
 
       assert_equal([bkub.id], Artist.search(url_matches: "bkub").map(&:id))
       assert_equal([bkub.id], Artist.search(url_matches: "*bkub*").map(&:id))
-      assert_equal([bkub.id], Artist.search(url_matches: "/rifyu|bkub/").map(&:id))
+      assert_equal([], Artist.search(url_matches: "*rifyu*").map(&:id))
       assert_equal([bkub.id], Artist.search(url_matches: "http://bkub.com/test.jpg").map(&:id))
     end
 
