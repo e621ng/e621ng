@@ -16,7 +16,7 @@
         <%= @post_set.presenter.post_previews_html(self) %>
       </div>
 
-      <%= numbered_paginator(@post_set) %>
+      <%= numbered_paginator(@post_set.posts) %>
     </div>
   </div>
 </div>

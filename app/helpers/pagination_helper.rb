@@ -3,7 +3,7 @@ module PaginationHelper
     html = '<div class="paginator"><menu>'
 
     if records.respond_to?(:any?) && records.any?
-      if params[:page] =~ /[ab]/ && !records.is_first_page?
+      if !records.is_first_page?
         html << '<li>' + link_to("< Previous", nav_params_for("a#{records[0].id}"), rel: "prev", id: "paginator-prev", "data-shortcut": "a left") + '</li>'
       end
 
@@ -17,7 +17,7 @@ module PaginationHelper
   end
 
   def use_sequential_paginator?(records)
-    params[:page] =~ /\A[ab]\d+\z/ || records.current_page >= Danbooru.config.max_numbered_pages
+    params[:page] =~ /\A[ab]\d+\z/ || records.current_page >= records.max_numbered_pages
   end
 
   def numbered_paginator(records, switch_to_sequential = true)
@@ -36,35 +36,35 @@ module PaginationHelper
 
     if records.total_pages <= (window * 2) + 5
       1.upto(records.total_pages) do |page|
-        html << numbered_paginator_item(page, records.current_page)
+        html << numbered_paginator_item(page, records)
       end
 
     elsif records.current_page <= window + 2
       1.upto(records.current_page + window) do |page|
-        html << numbered_paginator_item(page, records.current_page)
+        html << numbered_paginator_item(page, records)
       end
-      html << numbered_paginator_item("...", records.current_page)
-      html << numbered_paginator_final_item(records.total_pages, records.current_page)
+      html << numbered_paginator_item("...", records)
+      html << numbered_paginator_final_item(records)
     elsif records.current_page >= records.total_pages - (window + 1)
-      html << numbered_paginator_item(1, records.current_page)
-      html << numbered_paginator_item("...", records.current_page)
+      html << numbered_paginator_item(1, records)
+      html << numbered_paginator_item("...", records)
       (records.current_page - window).upto(records.total_pages) do |page|
-        html << numbered_paginator_item(page, records.current_page)
+        html << numbered_paginator_item(page, records)
       end
     else
-      html << numbered_paginator_item(1, records.current_page)
-      html << numbered_paginator_item("...", records.current_page)
+      html << numbered_paginator_item(1, records)
+      html << numbered_paginator_item("...", records)
       if records.size > 0
         right_window = records.current_page + window
       else
         right_window = records.current_page
       end
       (records.current_page - window).upto(right_window) do |page|
-        html << numbered_paginator_item(page, records.current_page)
+        html << numbered_paginator_item(page, records)
       end
       if records.size > 0
-        html << numbered_paginator_item("...", records.current_page)
-        html << numbered_paginator_final_item(records.total_pages, records.current_page)
+        html << numbered_paginator_item("...", records)
+        html << numbered_paginator_final_item(records)
       end
     end
 
@@ -78,23 +78,23 @@ module PaginationHelper
     html.html_safe
   end
 
-  def numbered_paginator_final_item(total_pages, current_page)
-    if total_pages <= Danbooru.config.max_numbered_pages
-      numbered_paginator_item(total_pages, current_page)
+  def numbered_paginator_final_item(records)
+    if records.total_pages <= records.max_numbered_pages
+      numbered_paginator_item(records.total_pages, records)
     else
-      numbered_paginator_item(Danbooru.config.max_numbered_pages, current_page)
+      numbered_paginator_item(records.max_numbered_pages, records)
     end
   end
 
-  def numbered_paginator_item(page, current_page)
-    return "" if page.to_i > Danbooru.config.max_numbered_pages
+  def numbered_paginator_item(page, records)
+    return "" if page.to_i > records.max_numbered_pages
 
     html = []
     if page == "..."
       html << "<li class='more'>"
       html << content_tag(:i, nil, class: "fas fa-ellipsis-h")
       html << "</li>"
-    elsif page == current_page
+    elsif page == records.current_page
       html << "<li class='current-page'>"
       html << '<span>' + page.to_s + '</span>'
       html << "</li>"
