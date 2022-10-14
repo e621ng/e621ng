@@ -105,13 +105,7 @@ module Danbooru
         self
       end
 
-      def total_count
-        return optimized_count if optimized_count
-
-        response_hits_total
-      end
-
-      def response_hits_total
+      def real_count
         if response['hits']['total'].respond_to?(:keys)
           response['hits']['total']['value']
         else
@@ -122,13 +116,13 @@ module Danbooru
       def exists?
         search.definition[:body]&.delete(:sort)
         search.definition.update(from: 0, size: 1, terminate_after: 1, sort: '_doc', _source: false, track_total_hits: false)
-        response_hits_total > 0
+        real_count > 0
       end
 
       def count_only
         search.definition[:body]&.delete(:sort)
         search.definition.update(from: 0, size: 0, sort: '_doc', _source: false, track_total_hits: true)
-        response_hits_total
+        real_count
       end
     end
   end

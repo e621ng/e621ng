@@ -43,6 +43,12 @@ module Danbooru
         [limit.to_i, 320].min
       end
 
+      def total_count
+        return optimized_count if optimized_count
+
+        real_count
+      end
+
       # When paginating large tables, we want to avoid doing an expensive count query
       # when the result won't even be used. So when calling paginate you can pass in
       # an optional :search_count key which points to the search params. If these params
