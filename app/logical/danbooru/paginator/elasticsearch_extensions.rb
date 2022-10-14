@@ -55,7 +55,7 @@ module Danbooru
 
       attr_reader :current_page, :sequential_paginator_mode
 
-      def paginate(page, options = {})
+      def paginate(page, options)
         paginated, mode = paginate_base(page, options)
 
         new_opts = {mode: mode, seq_mode: sequential_paginator_mode,
@@ -106,7 +106,7 @@ module Danbooru
       end
 
       def total_count
-        return option_for(:count) if option_for(:count)
+        return optimized_count if optimized_count
 
         response_hits_total
       end

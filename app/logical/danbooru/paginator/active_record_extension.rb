@@ -46,7 +46,7 @@ module Danbooru
 
         # taken from kaminari (https://github.com/amatsuda/kaminari)
         def total_count
-          return option_for(:count) if option_for(:count)
+          return optimized_count if optimized_count
 
           c = except(:offset, :limit, :order)
           c = c.reorder(nil)
