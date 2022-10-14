@@ -94,7 +94,7 @@ module Danbooru
       end
 
       def paginate_numbered(page)
-        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: Danbooru.config.max_numbered_pages * records_per_page + 1)
+        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: (max_numbered_pages * records_per_page) + 1)
         @current_page = page
 
         self
