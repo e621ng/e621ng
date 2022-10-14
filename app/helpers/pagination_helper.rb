@@ -3,7 +3,7 @@ module PaginationHelper
     html = '<div class="paginator"><menu>'
 
     if records.respond_to?(:any?) && records.any?
-      if params[:page] =~ /[ab]/ && !records.is_first_page?
+      if !records.is_first_page?
         html << '<li>' + link_to("< Previous", nav_params_for("a#{records[0].id}"), rel: "prev", id: "paginator-prev", "data-shortcut": "a left") + '</li>'
       end
 
