@@ -8,6 +8,7 @@ module Danbooru
         @_current_page = options[:current_page]
         @_records_per_page = options[:per_page]
         @_total_count = options[:total]
+        @_max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
         real_array = orig_array || []
         @_orig_size = real_array.size
         if options[:mode] == :sequential
@@ -41,6 +42,10 @@ module Danbooru
         end
       end
 
+      def max_numbered_pages
+        @_max_numbered_pages
+      end
+
       def total_pages
         if records_per_page > 0
           (total_count.to_f / records_per_page).ceil
@@ -58,7 +63,7 @@ module Danbooru
       def paginate(page, options)
         paginated, mode = paginate_base(page, options)
 
-        new_opts = {mode: mode, seq_mode: sequential_paginator_mode,
+        new_opts = {mode: mode, seq_mode: sequential_paginator_mode, max_numbered_pages: max_numbered_pages,
                     per_page: records_per_page, total: total_count, current_page: current_page}
         if options[:results] == :results
           PaginatedArray.new(paginated.results, new_opts)
