@@ -32,6 +32,10 @@
   }
 
   .mascotbox {
+    z-index: 1;
+    overflow: hidden;
+    position: relative;
+
     background-repeat:no-repeat;
     background-attachment:fixed;
     background-position:50% 0;
@@ -42,6 +46,23 @@
     border-radius: 5px;
     box-shadow: 0 0 5px #000;
     text-shadow: 0 0 2px black, 0 0 6px black;
+  }
+
+  .mascotbox:before {
+    z-index: -1;
+    content: "";
+    position: absolute;
+    width: 200vw;
+    height: 200vh;
+    top: -100px;
+    left: -100px;
+
+    background-image: inherit;
+    background-color: inherit;
+    background-repeat: inherit;
+    background-attachment: inherit;
+    background-position: inherit;
+    filter: blur(8px);
   }
 
   #searchbox {
