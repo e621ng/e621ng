@@ -292,6 +292,14 @@ class ModActionDecorator < ApplicationDecorator
     when "wiki_page_rename"
       "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
 
+      ### Mascots ###
+    when "mascot_create"
+      "Created mascot ##{vals['id']}"
+    when "mascot_update"
+      "Updated mascot ##{vals['id']}"
+    when "mascot_delete"
+      "Deleted mascot ##{vals['id']}"
+
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
 

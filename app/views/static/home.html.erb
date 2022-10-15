@@ -87,7 +87,7 @@
 <div id="c-static">
   <div id="a-home">
     <%= javascript_tag nonce: true do -%>
-      var mascots = <%= Danbooru.config.mascots.to_json.html_safe %>;
+      var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
     <% end -%>
 
     <div id="searchbox" class='mascotbox'>

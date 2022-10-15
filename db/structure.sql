@@ -1035,6 +1035,44 @@ ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
 
 
 --
+-- Name: mascots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mascots (
+    id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    display_name character varying NOT NULL,
+    md5 character varying NOT NULL,
+    file_ext character varying NOT NULL,
+    background_color character varying NOT NULL,
+    artist_url character varying NOT NULL,
+    artist_name character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: mascots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mascots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mascots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mascots_id_seq OWNED BY public.mascots.id;
+
+
+--
 -- Name: mod_actions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2624,6 +2662,13 @@ ALTER TABLE ONLY public.janitor_trials ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: mascots id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mascots ALTER COLUMN id SET DEFAULT nextval('public.mascots_id_seq'::regclass);
+
+
+--
 -- Name: news_updates id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3074,6 +3119,14 @@ ALTER TABLE ONLY public.ip_bans
 
 ALTER TABLE ONLY public.janitor_trials
     ADD CONSTRAINT janitor_trials_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mascots mascots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mascots
+    ADD CONSTRAINT mascots_pkey PRIMARY KEY (id);
 
 
 --
@@ -3766,6 +3819,20 @@ CREATE INDEX index_janitor_trials_on_user_id ON public.janitor_trials USING btre
 
 
 --
+-- Name: index_mascots_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mascots_on_creator_id ON public.mascots USING btree (creator_id);
+
+
+--
+-- Name: index_mascots_on_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mascots_on_md5 ON public.mascots USING btree (md5);
+
+
+--
 -- Name: index_mod_actions_on_action; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4453,6 +4520,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: mascots fk_rails_9901e810fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mascots
+    ADD CONSTRAINT fk_rails_9901e810fa FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: favorites fk_rails_a7668ef613; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4734,6 +4809,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220316162257'),
 ('20220516103329'),
 ('20220710133556'),
-('20220810131625');
+('20220810131625'),
+('20221014085948');
 
 
