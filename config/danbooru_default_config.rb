@@ -364,8 +364,8 @@ fart'
     def max_file_sizes
       {
         'jpg' => 100.megabytes,
-        'gif' => 20.megabytes,
         'png' => 100.megabytes,
+        'gif' => 20.megabytes,
         'webm' => 100.megabytes
       }
     end
