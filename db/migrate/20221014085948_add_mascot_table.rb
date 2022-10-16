@@ -8,6 +8,7 @@ class AddMascotTable < ActiveRecord::Migration[6.1]
       t.string :background_color, null: false
       t.string :artist_url, null: false
       t.string :artist_name, null: false
+      t.boolean :safe_mode_only, default: false, null: false
       t.boolean :active, default: true, null: false
       t.timestamps
     end

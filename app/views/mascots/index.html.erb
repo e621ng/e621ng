@@ -10,6 +10,7 @@
           <th>Artist Name</th>
           <th>Artist URL</th>
           <th>Active</th>
+          <th>E9 Only</th>
           <th>Created</th>
           <% if CurrentUser.user.is_admin? %>
             <th></th>
@@ -24,6 +25,7 @@
             <td><%= mascot.artist_name %></td>
             <td><%= mascot.artist_url %></td>
             <td><%= mascot.active %></td>
+            <td><%= mascot.safe_mode_only %></td>
             <td><%= compact_time mascot.created_at %></td>
             <% if CurrentUser.user.is_admin? %>
               <td>

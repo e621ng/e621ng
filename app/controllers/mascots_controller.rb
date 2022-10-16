@@ -38,6 +38,6 @@ class MascotsController < ApplicationController
   private
 
   def mascot_params
-    params.fetch(:mascot, {}).permit(%i[mascot_file display_name background_color artist_url artist_name active])
+    params.fetch(:mascot, {}).permit(%i[mascot_file display_name background_color artist_url artist_name safe_mode_only active])
   end
 end

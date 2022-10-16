@@ -1047,6 +1047,7 @@ CREATE TABLE public.mascots (
     background_color character varying NOT NULL,
     artist_url character varying NOT NULL,
     artist_name character varying NOT NULL,
+    safe_mode_only boolean DEFAULT false NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL

@@ -33,7 +33,9 @@ class Mascot < ApplicationRecord
 
   def self.active_for_browser
     Cache.get("active_mascots", 1.day) do
-      mascots = Mascot.where(active: true).map do |mascot|
+      query = Mascot.where(active: true)
+      query = query.where(safe_mode_only: false) if !Danbooru.config.safe_mode?
+      mascots = query.map do |mascot|
         mascot.slice(:id, :background_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)
       end
       mascots.index_by { |mascot| mascot["id"] }
