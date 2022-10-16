@@ -96,11 +96,9 @@ private
   end
 
   def authenticate_api_key(name, api_key)
-    CurrentUser.user = User.authenticate_api_key(name, api_key)
-
-    if CurrentUser.user.nil?
-      raise AuthenticationFailure.new
-    end
+    user = User.authenticate_api_key(name, api_key)
+    raise AuthenticationFailure if user.nil?
+    CurrentUser.user = user
   end
 
   def load_session_user
