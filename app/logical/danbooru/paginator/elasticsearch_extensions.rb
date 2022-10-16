@@ -8,6 +8,7 @@ module Danbooru
         @_current_page = options[:current_page]
         @_records_per_page = options[:per_page]
         @_total_count = options[:total]
+        @_max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
         real_array = orig_array || []
         @_orig_size = real_array.size
         if options[:mode] == :sequential
@@ -41,6 +42,10 @@ module Danbooru
         end
       end
 
+      def max_numbered_pages
+        @_max_numbered_pages
+      end
+
       def total_pages
         if records_per_page > 0
           (total_count.to_f / records_per_page).ceil
@@ -55,10 +60,10 @@ module Danbooru
 
       attr_reader :current_page, :sequential_paginator_mode
 
-      def paginate(page, options = {})
+      def paginate(page, options)
         paginated, mode = paginate_base(page, options)
 
-        new_opts = {mode: mode, seq_mode: sequential_paginator_mode,
+        new_opts = {mode: mode, seq_mode: sequential_paginator_mode, max_numbered_pages: max_numbered_pages,
                     per_page: records_per_page, total: total_count, current_page: current_page}
         if options[:results] == :results
           PaginatedArray.new(paginated.results, new_opts)
@@ -94,7 +99,7 @@ module Danbooru
       end
 
       def paginate_numbered(page)
-        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: Danbooru.config.max_numbered_pages * records_per_page + 1)
+        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: (max_numbered_pages * records_per_page) + 1)
         @current_page = page
 
         self
@@ -105,13 +110,7 @@ module Danbooru
         self
       end
 
-      def total_count
-        return option_for(:count) if option_for(:count)
-
-        response_hits_total
-      end
-
-      def response_hits_total
+      def real_count
         if response['hits']['total'].respond_to?(:keys)
           response['hits']['total']['value']
         else
@@ -122,13 +121,13 @@ module Danbooru
       def exists?
         search.definition[:body]&.delete(:sort)
         search.definition.update(from: 0, size: 1, terminate_after: 1, sort: '_doc', _source: false, track_total_hits: false)
-        response_hits_total > 0
+        real_count > 0
       end
 
       def count_only
         search.definition[:body]&.delete(:sort)
         search.definition.update(from: 0, size: 0, sort: '_doc', _source: false, track_total_hits: true)
-        response_hits_total
+        real_count
       end
     end
   end

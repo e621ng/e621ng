@@ -66,10 +66,6 @@ module PostSets
       random || (Tag.has_metatag?(tag_array, :order) == "random" && !Tag.has_metatag?(tag_array, :randseed))
     end
 
-    def use_sequential_paginator?
-      unknown_post_count? && !CurrentUser.is_privileged?
-    end
-
     def posts
       @posts ||= begin
         temp = ::Post.tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
@@ -84,10 +80,6 @@ module PostSets
       fill_children(_posts)
       fill_tag_types(_posts)
       _posts
-    end
-
-    def unknown_post_count?
-      post_count == Danbooru.config.blank_tag_search_fast_count
     end
 
     def hide_from_crawler?
