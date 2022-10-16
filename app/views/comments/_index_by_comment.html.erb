@@ -3,13 +3,7 @@
       <% if comment.post.present? && (CurrentUser.is_moderator? || !comment.is_hidden?) %>
       <div class="comment-post">
         <div class="post-container">
-        <%= content_tag(:div, { id: "post_#{comment.post.id}", class: ["post", *PostPresenter.preview_class(comment.post)].join(" ") }.merge(PostPresenter.data_attributes(comment.post))) do %>
-          <div class="preview">
-            <% if comment.post.visible? %>
-              <%= link_to(image_tag(comment.post.preview_file_url), post_path(comment.post)) %>
-            <% end %>
-          </div>
-        <% end %>
+          <%= PostPresenter.preview(comment.post, inline: true, show_deleted: true) %>
         </div>
         <div class="comments list-of-comments">
           <%= render "comments/partials/show/comment", comment: comment, post: nil %>
