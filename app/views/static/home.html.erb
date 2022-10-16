@@ -81,7 +81,7 @@
           <%= link_to "Posts", posts_path, title: "A paginated list of every post" %>
           <%= link_to "Comments", comments_path, title: "A paginated list of every comment" %>
           <%= link_to "Tags", tags_path, title: "A paginated list of every tag" %>
-          <%= link_to "Wiki", wiki_pages_path, title: "Wiki" %>
+          <%= link_to "Wiki", wiki_pages_path(title: 'help:home'), title: "Wiki" %>
           <%= link_to "Forum", forum_topics_path, title: "Forum" %>
           <%= link_to "&raquo;".html_safe, site_map_path, title: "A site map" %>
         </div>
