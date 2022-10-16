@@ -91,6 +91,30 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
           end
         end
       end
+
+      context "with email validation" do
+        setup do
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "reject invalid emails" do
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx" } }
+            assert_match(/Email can't be blank/, flash[:notice])
+            post users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx", email: "invalid" } }
+            assert_match(/Email is invalid/, flash[:notice])
+          end
+        end
+
+        should "reject duplicate emails" do
+          create(:user, email: "valid@e621.net")
+
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "test2", password: "xxxxxx", password_confirmation: "xxxxxx", email: "VaLid@E621.net" } }
+            assert_match(/Email has already been taken/, flash[:notice])
+          end
+        end
+      end
     end
 
     context "edit action" do
@@ -124,6 +148,18 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
           put_auth user_path(@user), @cuser, params: {:user => {:level => 40}}
           @user.reload
           assert_equal(20, @user.level)
+        end
+      end
+
+      context "for an user with blank email" do
+        setup do
+          @user = create(:user, email: "")
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "force them to update their email" do
+          put_auth user_path(@user), @user, params: { user: { comment_threshold: "-100" } }
+          assert_match(/Email can't be blank/, flash[:notice])
         end
       end
     end

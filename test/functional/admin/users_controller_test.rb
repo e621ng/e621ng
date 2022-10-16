@@ -42,6 +42,26 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
           assert_equal(50, @admin.level)
         end
       end
+
+      context "on an user with a blank email" do
+        setup do
+          @user = create(:user, email: "")
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "succeed" do
+          put_auth admin_user_path(@user), @mod, params: { user: { level: "20", email: "" } }
+          assert_redirected_to(user_path(@user))
+          @user.reload
+          assert_equal(20, @user.level)
+        end
+
+        should "prevent invalid emails" do
+          put_auth admin_user_path(@user), @mod, params: { user: { level: "10", email: "invalid" } }
+          @user.reload
+          assert_equal("", @user.email)
+        end
+      end
     end
   end
 end

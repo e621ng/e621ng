@@ -67,24 +67,15 @@ class User < ApplicationRecord
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
 
-  attr_accessor :password, :old_password
+  attr_accessor :password, :old_password, :validate_email_format, :skip_email_blank_check
 
   after_initialize :initialize_attributes, if: :new_record?
 
-  before_validation :normalize_email
-  if Danbooru.config.enable_email_verification?
-    validates :email, presence: { on: :create }
-    validates :email, presence: { on: :update, if: ->(rec) { rec.email_changed? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.email_changed? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :create }
-    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create }
-    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? } }
-  else
-    validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { rec.email.present?} }
-  end
+  validates :email, presence: { if: :enable_email_verification?, unless: :skip_email_blank_check }
+  validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
+  validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { rec.email.present? && !Danbooru.config.enable_email_verification? } }
+  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification?, unless: ->(rec) { rec.email.blank? && !rec.email_changed? && rec.skip_email_blank_check } }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
-
 
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { :in => %w(large fit fitv original) }
@@ -402,8 +393,8 @@ class User < ApplicationRecord
       update_attribute(:email_verification_key, nil)
     end
 
-    def normalize_email
-      self.email = nil if email.blank?
+    def enable_email_verification?
+      Danbooru.config.enable_email_verification? && validate_email_format
     end
 
     def validate_email_address_allowed
