@@ -23,6 +23,8 @@ class ModActionDecorator < ApplicationDecorator
       ### Takedowns ###
     when "takedown_process"
       "Completed takedown ##{vals['takedown_id']}"
+    when "takedown_delete"
+      "Deleted takedown ##{vals['takedown_id']}"
 
       ### IP Ban ###
     when "ip_ban_create"

@@ -10,6 +10,7 @@ class TakedownsController < ApplicationController
   def destroy
     @takedown = Takedown.find(params[:id])
     @takedown.destroy
+    ModAction.log(:takedown_delete, { takedown_id: @takedown.id })
     respond_with(@takedown)
   end
 

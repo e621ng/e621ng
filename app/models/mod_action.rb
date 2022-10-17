@@ -76,7 +76,8 @@ class ModAction < ApplicationRecord
       :mass_update,
       :nuke_tag,
 
-      :takedown_process
+      :takedown_delete,
+      :takedown_process,
   ]
 
   def self.search(params)
