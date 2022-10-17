@@ -88,8 +88,7 @@ class Takedown < ApplicationRecord
     def add_posts_by_ids!(ids)
       added_ids = []
       with_lock do
-        ids = ids.gsub(/(https?:\/\/)?(e621|e926)\.net\/posts\/(\d+)/i, '\3')
-        self.post_ids = (post_array + ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        self.post_ids = (post_array + matching_post_ids(ids)).uniq.join(' ')
         added_ids = self.post_array - self.post_array_was
         save!
       end
@@ -107,9 +106,13 @@ class Takedown < ApplicationRecord
 
     def remove_posts_by_ids!(ids)
       with_lock do
-        self.post_ids = (post_array - ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        self.post_ids = (post_array - matching_post_ids(ids)).uniq.join(' ')
         save!
       end
+    end
+
+    def matching_post_ids(input)
+      input.scan(%r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i).flatten.map(&:to_i).uniq
     end
   end
 
@@ -119,12 +122,12 @@ class Takedown < ApplicationRecord
     end
 
     def normalize_post_ids
-      self.post_ids = post_ids.scan(/\d+/).uniq.join(' ')
+      self.post_ids = matching_post_ids(post_ids).join(' ')
     end
 
     def normalize_deleted_post_ids
-      posts = post_ids.scan(/\d+/).uniq
-      del_posts = del_post_ids.scan(/\d+/).uniq
+      posts = matching_post_ids(post_ids)
+      del_posts = matching_post_ids(del_post_ids)
       del_posts = del_posts & posts # ensure that all deleted posts are also posts
       self.del_post_ids = del_posts.join(' ')
     end
@@ -135,7 +138,7 @@ class Takedown < ApplicationRecord
     end
 
     def del_post_array
-      del_post_ids.scan(/\d+/).map(&:to_i)
+      matching_post_ids(del_post_ids)
     end
 
     def actual_deleted_posts
@@ -143,11 +146,11 @@ class Takedown < ApplicationRecord
     end
 
     def post_array
-      post_ids.scan(/\d+/).map(&:to_i)
+      matching_post_ids(post_ids)
     end
 
     def post_array_was
-      post_ids_was.scan(/\d+/).map(&:to_i)
+      matching_post_ids(post_ids_was)
     end
 
     def actual_posts
