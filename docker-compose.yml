@@ -13,7 +13,10 @@ x-environment: &common-env
 
 services:
   e621:
-    build: ./
+    build:
+      context: ./
+      args:
+        COMPOSE_PROFILES: ${COMPOSE_PROFILES-}
     image: e621
     volumes:
       - .:/app
@@ -30,24 +33,6 @@ services:
       - elastic
       - iqdb
     tty: true
-
-  tests:
-    image: e621
-    environment:
-      <<: *common-env
-      # Hide annoying output from libvips on corrupt files
-      VIPS_WARNING: "0"
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    depends_on:
-      - postgres
-      - redis
-      - memcached
-      - elastic
-    entrypoint: ["docker/test_runner.sh"]
-    profiles:
-      - test
 
   nginx:
     image: nginx:stable-alpine
@@ -110,6 +95,45 @@ services:
     volumes:
       - post_data:/data
       - iqdb_data:/home/vagrant/iqdbs
+
+  # Useful for development
+
+  tests:
+    image: e621
+    environment:
+      <<: *common-env
+      # Hide annoying output from libvips on corrupt files
+      VIPS_WARNING: "0"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      - postgres
+      - redis
+      - memcached
+      - elastic
+    entrypoint: ["docker/test_runner.sh"]
+    profiles:
+      - tests
+
+  rubocop:
+    image: e621
+    volumes:
+      - .:/app
+    entrypoint: bundle exec rubocop
+    profiles: 
+      - rubocop
+
+  solargraph:
+    image: e621
+    entrypoint: solargraph socket -h 0.0.0.0
+    working_dir: $PWD
+    volumes:
+      - .:$PWD
+    ports:
+      - 7658:7658
+    profiles:
+      - solargraph
 
 volumes:
   post_data:

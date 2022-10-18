@@ -15,21 +15,29 @@ To mitigate this you can install a WSL distribution and clone the project inside
 
 #### Installation
 1. Download and install the prerequisites.
-2. Clone the repo with `git clone https://github.com/zwagoth/e621ng.git`.
-3. `cd` into the repo.
-4. Run the following commands:
+1. Clone the repo with `git clone https://github.com/zwagoth/e621ng.git`.
+1. `cd` into the repo.
+1. Copy the sample environment file with `cp .env.sample .env`.
+1. Uncomment the `COMPOSE_PROFILES` variable if you wish to use solargraph. Doesn't work on Windows without WSL.
+1. Run the following commands:
     ```
     docker-compose run -e DANBOORU_DISABLE_THROTTLES=true -e SEED_POST_COUNT=100 e621 /app/bin/setup
     docker-compose up
     ```
     After running the commands once only `docker-compose up` is needed to bring up the containers.
-5. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
+1. This would be a good time to rewatch your favorite TV series installment, cook & have breakfast/lunch/dinner, walk the dog, clean your room, etc.<br>
 By the time you get back the install will surely have completed.<sup>1</sup>
-6. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `e621test` respectively.
+1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `e621test` respectively.
 
 Note: When gems or js packages were updated you need to execute `docker-compose build` to reflect them in the container.
 
 <sub><sup>1</sup> If the install did not finish by the time an activity is complete please select another activity to avoid crippling boredom.</sub>
+
+#### Useful docker services
+
+`docker-compose run --rm tests` to execute the test suite.
+
+`docker-compose run --rm rubocop` to run the linter. Run it against changed files only, there are too many existing violations at the moment.
 
 #### Development Database
 
@@ -66,9 +74,3 @@ debug your Nginx configuration file.
 ### IQDB Service
 
 IQDB integration is delegated to the [IQDBS service](https://github.com/zwagoth/iqdbs).
-
-### Cropped Thumbnails
-
-There's optional support for cropped thumbnails. This relies on installing
-`libvips-8.6` or higher and setting `Danbooru.config.enable_image_cropping?`
-to true.

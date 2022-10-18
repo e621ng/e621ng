@@ -4,8 +4,8 @@ require:
 AllCops:
   NewCops: enable
   Exclude:
-    - "bin/*"
-    - "node_modules/**/*"
+    - bin/*
+    - node_modules/**/*
 
 Bundler/OrderedGems:
   Enabled: false
@@ -13,23 +13,30 @@ Bundler/OrderedGems:
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 
-Layout/EmptyLineBetweenDefs:
-  Enabled: false
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
 
 Layout/LineLength:
   Enabled: false
 
-Lint/InheritException:
-  Enabled: false
-
-Lint/RescueException:
-  Enabled: false
+Lint/SymbolConversion:
+  EnforcedStyle: consistent
 
 Metrics/AbcSize:
   Enabled: false
 
 Metrics/BlockLength:
-  Enabled: false
+  AllowedMethods:
+    - class_methods
+    - concerning
+    - context
+    - create_table
+    - should
+  Exclude:
+    - config/routes.rb
 
 Metrics/ClassLength:
   Enabled: false
@@ -49,13 +56,26 @@ Metrics/PerceivedComplexity:
 Naming/PredicateName:
   Enabled: false
 
+Rails/BulkChangeTable:
+  Enabled: false
+
 Rails/HasManyOrHasOneDependent:
   Enabled: false
 
 Rails/HttpStatus:
   EnforcedStyle: numeric
 
+Rails/I18nLocaleTexts:
+  Enabled: false
+
 Rails/InverseOf:
+  Enabled: false
+
+Rails/Output:
+  Exclude:
+    - db/*.rb
+
+Rails/ReversibleMigration:
   Enabled: false
 
 Rails/SkipsModelValidations:
@@ -85,14 +105,17 @@ Style/FloatDivision:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
+Style/GuardClause:
+  Enabled: false
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never
+
 Style/IfUnlessModifier:
   Enabled: false
 
-Style/MutableConstant:
-  Enabled: false
-
 Style/NumericPredicate:
-  Enabled: false
+  EnforcedStyle: comparison
 
 Style/PerlBackrefs:
   Enabled: false
@@ -100,17 +123,14 @@ Style/PerlBackrefs:
 Style/QuotedSymbols:
   Enabled: false
 
-Style/RescueStandardError:
-  Enabled: false
-
 Style/StringLiterals:
-  Enabled: false
+  EnforcedStyle: double_quotes
 
-Style/StringLiteralsInInterpolation:
-  Enabled: false
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
 
-Style/SymbolArray:
-  Enabled: false
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 
-Style/WordArray:
-  Enabled: false
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma

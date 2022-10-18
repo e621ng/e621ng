@@ -26,5 +26,15 @@ RUN gem install bundler:2.3.12 && \
 RUN wget -O /usr/bin/shoreman https://github.com/chrismytton/shoreman/raw/master/shoreman.sh \
   && chmod +x /usr/bin/shoreman
 
+
+# Only setup solargraph stuff when the profile is selected
+ARG COMPOSE_PROFILES
+RUN if [[ $COMPOSE_PROFILES == *"solargraph"* ]]; then \
+  solargraph download-core && bundle exec yard gems && solargraph bundle; \
+fi
+
+# Stop bin/rails console from offering autocomplete
+RUN echo "IRB.conf[:USE_AUTOCOMPLETE] = false" > ~/.irbrc
+
 WORKDIR /app
 CMD [ "shoreman" ]
