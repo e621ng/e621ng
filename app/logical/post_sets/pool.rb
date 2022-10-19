@@ -2,10 +2,6 @@ require_relative "../danbooru/paginator/elasticsearch_extensions"
 
 module PostSets
   class Pool < PostSets::Base
-    module ActiveRecordExtension
-      attr_accessor :total_pages, :current_page
-    end
-
     attr_reader :pool, :page
 
     def initialize(pool, page = 1)
@@ -43,14 +39,6 @@ module PostSets
 
     def presenter
       @presenter ||= PostSetPresenters::Pool.new(self)
-    end
-
-    def total_pages
-      (pool.post_count.to_f / limit).ceil
-    end
-
-    def size
-      posts.size
     end
 
     def current_page
