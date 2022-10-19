@@ -36,7 +36,7 @@
       </div>
     <% end %>
 
-    <%= render "news_updates/listing" %>
+    <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
     <% if CurrentUser.user.is_banned? %>
       <%= render "users/ban_notice" %>

@@ -104,9 +104,9 @@
       <% end %>
     </div>
 
-    <% if NewsUpdate.recent.present? %>
+    <% if news_update = NewsUpdate.recent %>
       <div id="news-excerpt-box" class="mascotbox">
-        <div class="news-excerpt dtext-container"><%= format_text(NewsUpdate.recent[0].message.lines.first, inline: true) %></div>
+        <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
         <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
       </div>
     <% end %>
