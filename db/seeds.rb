@@ -73,8 +73,25 @@ def import_posts
   end
 end
 
+def import_mascots
+  api_request("/mascots.json").each do |mascot|
+    puts mascot["url_path"]
+    Mascot.create!(
+      creator: CurrentUser.user,
+      mascot_file: Downloads::File.new(mascot["url_path"]).download!,
+      display_name: mascot["display_name"],
+      background_color: mascot["background_color"],
+      artist_url: mascot["artist_url"],
+      artist_name: mascot["artist_name"],
+      safe_mode_only: mascot["safe_mode_only"],
+      active: mascot["active"],
+    )
+  end
+end
+
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"
   import_posts
+  import_mascots
 end

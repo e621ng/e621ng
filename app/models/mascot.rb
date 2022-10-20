@@ -81,5 +81,9 @@ class Mascot < ApplicationRecord
     q.order("lower(artist_name)")
   end
 
+  def method_attributes
+    super + [:url_path]
+  end
+
   include FileMethods
 end
