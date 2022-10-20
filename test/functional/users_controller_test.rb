@@ -92,6 +92,19 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
+      context "with a duplicate username" do
+        setup do
+          create(:user, name: "test123")
+        end
+
+        should "prevent creation" do
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "TEst123", password: "xxxxx1", password_confirmation: "xxxxx1" } }
+            assert_match(/Name already exists/, flash[:notice])
+          end
+        end
+      end
+
       context "with email validation" do
         setup do
           Danbooru.config.stubs(:enable_email_verification?).returns(true)

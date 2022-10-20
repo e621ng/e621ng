@@ -2,7 +2,7 @@ class UserNameValidator < ActiveModel::EachValidator
   def validate_each(rec, attr, value)
     name = value
 
-    rec.errors.add(attr, "already exists") if User.find_by(name: name).present?
+    rec.errors.add(attr, "already exists") if User.find_by_name(name).present?
     rec.errors.add(attr, "must be 2 to 20 characters long") if !name.length.between?(2, 20)
     rec.errors.add(attr, "must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores") unless name =~ /\A[a-zA-Z0-9\-_~']+\z/
     rec.errors.add(attr, "must not begin with a special character") if name =~ /\A[_\-~']/
