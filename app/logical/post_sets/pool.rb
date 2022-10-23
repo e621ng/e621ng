@@ -1,9 +1,7 @@
+require_relative "../danbooru/paginator/elasticsearch_extensions"
+
 module PostSets
   class Pool < PostSets::Base
-    module ActiveRecordExtension
-      attr_accessor :total_pages, :current_page
-    end
-
     attr_reader :pool, :page
 
     def initialize(pool, page = 1)
@@ -25,11 +23,9 @@ module PostSets
 
     def posts
       @posts ||= begin
-        x = pool.posts(:offset => offset, :limit => limit)
-        x.extend(ActiveRecordExtension)
-        x.total_pages = total_pages
-        x.current_page = current_page
-        x
+        posts = pool.posts(offset: offset, limit: limit)
+        options = { mode: :numbered, per_page: limit, total: pool.post_count, current_page: current_page }
+        Danbooru::Paginator::PaginatedArray.new(posts, options)
       end
     end
 
@@ -43,14 +39,6 @@ module PostSets
 
     def presenter
       @presenter ||= PostSetPresenters::Pool.new(self)
-    end
-
-    def total_pages
-      (pool.post_count.to_f / limit).ceil
-    end
-
-    def size
-      posts.size
     end
 
     def current_page

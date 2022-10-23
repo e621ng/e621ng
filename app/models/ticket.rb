@@ -62,7 +62,7 @@ class Ticket < ApplicationRecord
 
       def can_see_details?(user)
         if content
-          content.visible?(user)
+          content.visible?(user) || (user.id == creator_id)
         else
           true
         end

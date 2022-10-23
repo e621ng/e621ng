@@ -1,0 +1,11 @@
+<%= custom_form_for(mascot) do |f| %>
+  <%= error_messages_for "mascot" %>
+  <%= f.input :mascot_file, as: :file, input_html: { accept: "image/png,image/jpeg,.png,.jpg,.jpeg" } %>
+  <%= f.input :display_name %>
+  <%= f.input :background_color %>
+  <%= f.input :artist_url %>
+  <%= f.input :artist_name %>
+  <%= f.input :safe_mode_only, label: "E9 Only" %>
+  <%= f.input :active %>
+  <%= f.submit %>
+<% end %>

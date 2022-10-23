@@ -32,6 +32,10 @@
   }
 
   .mascotbox {
+    z-index: 1;
+    overflow: hidden;
+    position: relative;
+
     background-repeat:no-repeat;
     background-attachment:fixed;
     background-position:50% 0;
@@ -42,6 +46,23 @@
     border-radius: 5px;
     box-shadow: 0 0 5px #000;
     text-shadow: 0 0 2px black, 0 0 6px black;
+  }
+
+  .mascotbox:before {
+    z-index: -1;
+    content: "";
+    position: absolute;
+    width: 200vw;
+    height: 200vh;
+    top: -100px;
+    left: -100px;
+
+    background-image: inherit;
+    background-color: inherit;
+    background-repeat: inherit;
+    background-attachment: inherit;
+    background-position: inherit;
+    filter: blur(8px);
   }
 
   #searchbox {
@@ -66,7 +87,7 @@
 <div id="c-static">
   <div id="a-home">
     <%= javascript_tag nonce: true do -%>
-      var mascots = <%= Danbooru.config.mascots.to_json.html_safe %>;
+      var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
     <% end -%>
 
     <div id="searchbox" class='mascotbox'>
@@ -81,7 +102,7 @@
           <%= link_to "Posts", posts_path, title: "A paginated list of every post" %>
           <%= link_to "Comments", comments_path, title: "A paginated list of every comment" %>
           <%= link_to "Tags", tags_path, title: "A paginated list of every tag" %>
-          <%= link_to "Wiki", wiki_pages_path, title: "Wiki" %>
+          <%= link_to "Wiki", wiki_pages_path(title: 'help:home'), title: "Wiki" %>
           <%= link_to "Forum", forum_topics_path, title: "Forum" %>
           <%= link_to "&raquo;".html_safe, site_map_path, title: "A site map" %>
         </div>
@@ -104,9 +125,9 @@
       <% end %>
     </div>
 
-    <% if NewsUpdate.recent.present? %>
+    <% if news_update = NewsUpdate.recent %>
       <div id="news-excerpt-box" class="mascotbox">
-        <div class="news-excerpt dtext-container"><%= format_text(NewsUpdate.recent[0].message.lines.first, inline: true) %></div>
+        <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
         <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
       </div>
     <% end %>

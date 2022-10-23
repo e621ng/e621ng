@@ -2,11 +2,11 @@ require 'test_helper'
 
 class UserDeletionTest < ActiveSupport::TestCase
   setup do
-    Sidekiq::Testing::inline!
+    Sidekiq::Testing.inline!
   end
 
   teardown do
-    Sidekiq::Testing::fake!
+    Sidekiq::Testing.fake!
   end
 
   context "an invalid user deletion" do
@@ -43,7 +43,7 @@ class UserDeletionTest < ActiveSupport::TestCase
 
   context "a valid user deletion" do
     setup do
-      @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
+      @user = FactoryBot.create(:privileged_user, created_at: 2.weeks.ago)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
 
@@ -67,6 +67,10 @@ class UserDeletionTest < ActiveSupport::TestCase
 
     should "reset the password" do
       assert_nil(User.authenticate(@user.name, "password"))
+    end
+
+    should "reset the level" do
+      assert_equal(User::Levels::MEMBER, @user.level)
     end
 
     should "remove any favorites" do

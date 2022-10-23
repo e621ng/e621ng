@@ -13,13 +13,7 @@
     <% if CurrentUser.is_moderator? || post.comments.undeleted.exists? %>
       <div class="comment-post">
         <div class="post-container">
-          <%= content_tag(:div, { id: "post_#{post.id}", class: ["post", *PostPresenter.preview_class(post)].join(" ") }.merge(PostPresenter.data_attributes(post))) do %>
-            <div class="preview">
-              <% if post.visible? %>
-                <%= link_to(image_tag(post.preview_file_url), post_path(post)) %>
-              <% end %>
-            </div>
-          <% end %>
+          <%= PostPresenter.preview(post, inline: true, show_deleted: true) %>
           <div class="post-information">
             <%= render "comments/partials/index/header", :post => post %>
           </div>

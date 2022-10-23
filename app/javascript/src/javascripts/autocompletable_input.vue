@@ -22,7 +22,7 @@ export default {
   watch: {
     addToList(value) {
       const maxEntries = 50;
-      const entries = new Set([value, ...this.currentEntries()]);
+      const entries = new Set([value.trim(), ...this.currentEntries()]);
       LS.putObject(`autocomplete-${this.listId}`, [...entries].slice(0, maxEntries));
     }
   },

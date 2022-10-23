@@ -32,12 +32,6 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def self.rescue_with(*klasses, status: 500)
-    rescue_from *klasses do |exception|
-      render_error_page(status, exception)
-    end
-  end
-
   def api_check
     if !CurrentUser.is_anonymous? && !request.get? && !request.head?
       throttled = CurrentUser.user.token_bucket.throttled?
@@ -54,6 +48,9 @@ class ApplicationController < ActionController::Base
 
   def rescue_exception(exception)
     @exception = exception
+
+    # If InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to do it here manually.
+    CurrentUser.user ||= User.anonymous
 
     if Rails.env.test? && ENV["DEBUG"]
       puts "---"
@@ -120,9 +117,8 @@ class ApplicationController < ActionController::Base
 
   def render_expected_error(status, message, format: request.format.symbol)
     format = :html unless format.in?(%i[html json atom])
-    layout = CurrentUser.user.present? ? "default" : "blank"
     @message = message
-    render "static/error", layout: layout, status: status, formats: format
+    render "static/error", status: status, formats: format
   end
 
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
@@ -132,17 +128,14 @@ class ApplicationController < ActionController::Base
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 
-    # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
-    layout = CurrentUser.user.present? ? "default" : "blank"
-
-    if !CurrentUser.user&.try(:is_janitor?) && message == exception.message
+    if !CurrentUser.user.is_janitor? && message == exception.message
       @message = "An unexpected error occurred."
     end
 
     DanbooruLogger.log(@exception, expected: @expected)
     log = ExceptionLog.add(exception, CurrentUser.id, request) if !@expected
     @log_code = log&.code
-    render "static/error", layout: layout, status: status, formats: format
+    render "static/error", status: status, formats: format
   end
 
   def access_denied(exception = nil)

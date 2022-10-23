@@ -23,6 +23,8 @@ class ModActionDecorator < ApplicationDecorator
       ### Takedowns ###
     when "takedown_process"
       "Completed takedown ##{vals['takedown_id']}"
+    when "takedown_delete"
+      "Deleted takedown ##{vals['takedown_id']}"
 
       ### IP Ban ###
     when "ip_ban_create"
@@ -291,6 +293,14 @@ class ModActionDecorator < ApplicationDecorator
       "Unlocked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_rename"
       "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
+
+      ### Mascots ###
+    when "mascot_create"
+      "Created mascot ##{vals['id']}"
+    when "mascot_update"
+      "Updated mascot ##{vals['id']}"
+    when "mascot_delete"
+      "Deleted mascot ##{vals['id']}"
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"

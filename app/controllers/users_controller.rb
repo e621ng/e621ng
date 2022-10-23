@@ -19,12 +19,7 @@ class UsersController < ApplicationController
 
   def index
     if params[:name].present?
-      @user = User.find_by_name(params[:name])
-      if @user.nil?
-        raise "No user found with name: #{params[:name]}"
-      else
-        redirect_to user_path(@user)
-      end
+      redirect_to user_path(id: params[:name])
     else
       @users = User.search(search_params).includes(:user_status).paginate(params[:page], limit: params[:limit], search_count: params[:search])
       respond_with(@users) do |format|
@@ -63,6 +58,7 @@ class UsersController < ApplicationController
     raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
     User.transaction do
       @user = User.new(user_params(:create).merge({last_ip_addr: request.remote_ip}))
+      @user.validate_email_format = true
       @user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
       if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
         @user.save
@@ -92,6 +88,7 @@ class UsersController < ApplicationController
 
   def update
     @user = User.find(CurrentUser.id)
+    @user.validate_email_format = true
     check_privilege(@user)
     @user.update(user_params(:update))
     if @user.errors.any?

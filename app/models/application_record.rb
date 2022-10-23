@@ -25,12 +25,6 @@ class ApplicationRecord < ActiveRecord::Base
         where.not("lower(#{qualified_column_for(attr)}) LIKE ? ESCAPE E'\\\\'", value.downcase.to_escaped_for_sql_like)
       end
 
-      # https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP
-      # "(?e)" means force use of ERE syntax; see sections 9.7.3.1 and 9.7.3.4.
-      def where_regex(attr, value)
-        where("#{qualified_column_for(attr)} ~ ?", "(?e)" + value)
-      end
-
       def attribute_exact_matches(attribute, value, **options)
         return all unless value.present?
 
@@ -312,7 +306,7 @@ class ApplicationRecord < ActiveRecord::Base
 
         define_method "#{name}=" do |value|
           if value.respond_to?(:to_str)
-            super value.to_str.scan(parse).map(&cast)
+            super value.to_str.scan(parse).flatten.map(&cast)
           elsif value.respond_to?(:to_a)
             super value.to_a
           else

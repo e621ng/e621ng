@@ -39,6 +39,9 @@ class ModAction < ApplicationRecord
       :help_update,
       :ip_ban_create,
       :ip_ban_delete,
+      :mascot_create,
+      :mascot_update,
+      :mascot_delete,
       :pool_delete,
       :report_reason_create,
       :report_reason_delete,
@@ -76,7 +79,8 @@ class ModAction < ApplicationRecord
       :mass_update,
       :nuke_tag,
 
-      :takedown_process
+      :takedown_delete,
+      :takedown_process,
   ]
 
   def self.search(params)

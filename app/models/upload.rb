@@ -179,6 +179,12 @@ class Upload < ApplicationRecord
       return
     end
 
+    if (destroyed_post = DestroyedPost.find_by(md5: md5))
+      errors.add(:base, "An unexpected errror occured")
+      DummyTicket.new(uploader, destroyed_post.post_id).notify
+      return
+    end
+
     replacements = PostReplacement.pending.where(md5: md5)
     replacements = replacements.where.not(id: replacement_id) if replacement_id
 

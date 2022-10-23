@@ -13,7 +13,12 @@ module Moderator
       elsif params[:user_name].present?
         search_by_user_name(params[:user_name].split(/,/).map(&:strip), with_history)
       elsif params[:ip_addr].present?
-        search_by_ip_addr(params[:ip_addr].split(/,/).map(&:strip), with_history)
+        ip_addrs = params[:ip_addr].split(/,/).map(&:strip)
+        if params[:add_ip_mask].to_s.truthy? && ip_addrs.count == 1 && ip_addrs[0].exclude?("/")
+          mask = IPAddr.new(ip_addrs[0]).ipv4? ? 24 : 64
+          ip_addrs[0] = "#{ip_addrs[0]}/#{mask}"
+        end
+        search_by_ip_addr(ip_addrs, with_history)
       else
         []
       end

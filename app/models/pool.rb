@@ -2,7 +2,7 @@ class Pool < ApplicationRecord
   class RevertError < Exception;
   end
 
-  array_attribute :post_ids, parse: /\d+/, cast: :to_i
+  array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
   belongs_to_creator
 
   validates :name, uniqueness: { case_sensitive: false, if: :name_changed? }

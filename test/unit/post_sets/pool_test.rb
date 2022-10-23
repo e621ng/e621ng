@@ -34,11 +34,11 @@ module PostSets
         end
 
         should "know the total number of pages" do
-          assert_equal(3, @set.total_pages)
+          assert_equal(3, @set.posts.total_pages)
         end
 
         should "know the current page" do
-          assert_equal(2, @set.current_page)
+          assert_equal(2, @set.posts.current_page)
         end
       end
 

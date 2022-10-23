@@ -20,6 +20,7 @@ class UserEmailChange
     if User.authenticate(user.name, password).nil?
       user.errors.add(:base, "Password was incorrect")
     else
+      user.validate_email_format = true
       user.email = new_email
       user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
       user.save

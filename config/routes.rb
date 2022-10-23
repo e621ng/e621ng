@@ -341,6 +341,7 @@ Rails.application.routes.draw do
       get :resend_confirmation
     end
   end
+  resources :mascots, only: [:index, :new, :create, :edit, :update, :destroy]
 
   options "*all", to: "application#enable_cors"
 

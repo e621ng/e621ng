@@ -1,4 +1,4 @@
-.env.*
+.env
 .bundle
 .yardoc
 config/database.yml

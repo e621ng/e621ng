@@ -6,13 +6,13 @@ class FileValidator
     @file_path = file_path
   end
 
-  def validate
-    validate_file_ext
-    validate_file_size
+  def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height)
+    validate_file_ext(max_file_sizes)
+    validate_file_size(max_file_sizes)
     validate_file_integrity
     validate_video_container_format
     validate_video_duration
-    validate_resolution
+    validate_resolution(max_width, max_height)
   end
 
   def validate_file_integrity
@@ -21,35 +21,35 @@ class FileValidator
     end
   end
 
-  def validate_file_ext
-    if Danbooru.config.max_file_sizes.keys.exclude? record.file_ext
-      record.errors.add(:file_ext, "#{record.file_ext} is invalid (only JPEG, PNG, GIF, and WebM files are allowed")
+  def validate_file_ext(max_file_sizes)
+    if max_file_sizes.keys.exclude? record.file_ext
+      record.errors.add(:file_ext, "#{record.file_ext} is invalid (only #{max_file_sizes.keys.to_sentence} files are allowed")
       throw :abort
     end
   end
 
-  def validate_file_size
+  def validate_file_size(max_file_sizes)
     if record.file_size <= 16
       record.errors.add(:file_size, "is too small")
     end
-    max_size = Danbooru.config.max_file_sizes.fetch(record.file_ext, 0)
+    max_size = max_file_sizes.fetch(record.file_ext, 0)
     if record.file_size > max_size
-      record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{max_size / (1024 * 1024)} MiB")
+      record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{ApplicationController.helpers.number_to_human_size(max_size)}")
     end
     if record.is_animated_png?(file_path) && record.file_size > Danbooru.config.max_apng_file_size
-      record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{Danbooru.config.max_apng_file_size / (1024*1024)} MiB")
+      record.errors.add(:file_size, "is too large. Maximum allowed for this file type is #{ApplicationController.helpers.number_to_human_size(Danbooru.config.max_apng_file_size)}")
     end
   end
 
-  def validate_resolution
+  def validate_resolution(max_width, max_height)
     resolution = record.image_width.to_i * record.image_height.to_i
 
     if resolution > Danbooru.config.max_image_resolution
       record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{record.image_width}x#{record.image_height}); max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels)")
-    elsif record.image_width > Danbooru.config.max_image_width
-      record.errors.add(:image_width, "is too large (width: #{record.image_width}; max width: #{Danbooru.config.max_image_width})")
-    elsif record.image_height > Danbooru.config.max_image_height
-      record.errors.add(:image_height, "is too large (height: #{record.image_height}; max height: #{Danbooru.config.max_image_height})")
+    elsif record.image_width > max_width
+      record.errors.add(:image_width, "is too large (width: #{record.image_width}; max width: #{max_width})")
+    elsif record.image_height > max_height
+      record.errors.add(:image_height, "is too large (height: #{record.image_height}; max height: #{max_height})")
     end
   end
 

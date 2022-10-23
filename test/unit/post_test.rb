@@ -1988,15 +1988,6 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Voting:" do
-    # TODO: What the heck is this about?
-    # should "not allow members to vote" do
-    #   @user = FactoryBot.create(:user)
-    #   @post = FactoryBot.create(:post)
-    #   as_user do
-    #     assert_raises(PostVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 1) }
-    #   end
-    # end
-
     should "not allow duplicate votes" do
       user = FactoryBot.create(:privileged_user)
       post = FactoryBot.create(:post)

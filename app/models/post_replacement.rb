@@ -42,6 +42,13 @@ class PostReplacement < ApplicationRecord
 
   def no_pending_duplicates
     return true if is_backup
+
+    if (destroyed_post = DestroyedPost.find_by(md5: md5))
+      errors.add(:base, "An unexpected errror occured")
+      DummyTicket.new(creator, destroyed_post.post_id).notify
+      return
+    end
+
     post = Post.where(md5: md5).first
     if post
       self.errors.add(:md5, "duplicate of existing post ##{post.id}")
