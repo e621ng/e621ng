@@ -11,7 +11,7 @@ class Artist < ApplicationRecord
   validate :validate_user_can_edit?
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, on: :create
-  validates :group_name, length: { maximum: 100 }
+  validates :name, :group_name, length: { maximum: 100 }
   after_save :log_changes
   after_save :create_version
   after_save :categorize_tag
@@ -53,7 +53,6 @@ class Artist < ApplicationRecord
 
     MAX_URLS_PER_ARTIST = 25
     module ClassMethods
-
       # Subdomains are automatically included. e.g., "twitter.com" matches "www.twitter.com",
       # "mobile.twitter.com" and any other subdomain of "twitter.com".
       SITE_BLACKLIST = [
@@ -272,7 +271,7 @@ class Artist < ApplicationRecord
     def normalize_other_names
       self.other_names = other_names.map { |x| Artist.normalize_name(x) }.uniq
       self.other_names -= [name]
-      self.other_names = other_names[0..25]
+      self.other_names = other_names[0..25].map { |other_name| other_name[0..99] }
     end
   end
 
