@@ -11,6 +11,16 @@ x-environment: &common-env
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
 
+x-depends-on: &common-depends-on
+  elastic:
+    condition: service_healthy
+  memcached:
+    condition: service_started
+  postgres:
+    condition: service_started
+  redis:
+    condition: service_started
+
 services:
   e621:
     build:
@@ -27,11 +37,9 @@ services:
       <<: *common-env
       RAILS_ENV: development
     depends_on:
-      - postgres
-      - redis
-      - memcached
-      - elastic
-      - iqdb
+      <<: *common-depends-on
+      iqdb:
+        condition: service_started
     tty: true
 
   nginx:
@@ -77,6 +85,10 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
+    healthcheck:
+      interval: 10s
+      timeout: 2s
+      test: nc -z elastic 9200
   
   iqdb:
     build: ./docker/iqdb
@@ -108,11 +120,8 @@ services:
       - .:/app
       - node_modules:/app/node_modules
     depends_on:
-      - postgres
-      - redis
-      - memcached
-      - elastic
-    entrypoint: ["docker/test_runner.sh"]
+      <<: *common-depends-on
+    entrypoint: bundle exec rails test
     profiles:
       - tests
 
