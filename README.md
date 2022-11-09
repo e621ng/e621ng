@@ -21,7 +21,7 @@ To mitigate this you can install a WSL distribution and clone the project inside
 1. Uncomment the `COMPOSE_PROFILES` variable if you wish to use solargraph. Doesn't work on Windows without WSL.
 1. Run the following commands:
     ```
-    docker-compose run -e DANBOORU_DISABLE_THROTTLES=true -e SEED_POST_COUNT=100 e621 /app/bin/setup
+    docker-compose run -e SEED_POST_COUNT=100 e621 /app/bin/setup
     docker-compose up
     ```
     After running the commands once only `docker-compose up` is needed to bring up the containers.
