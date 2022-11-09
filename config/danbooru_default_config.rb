@@ -247,7 +247,7 @@ fart'
     end
 
     def post_flag_limit
-      10
+      20
     end
 
     # Flat limit that applies to all users, regardless of level
@@ -670,7 +670,7 @@ fart'
     end
 
     def can_user_see_post?(user, post)
-      return false if post.is_deleted? && !user.is_moderator?
+      return false if post.is_deleted? && !user.is_janitor?
       if is_user_restricted?(user) && is_post_restricted?(post)
         false
       else
