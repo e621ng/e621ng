@@ -7,7 +7,7 @@
     <% if post.visible? %>
       <%= PostPresenter.preview(post, tags: "status:any", no_blacklist: true) %>
     <% end %>
-    <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_s(:human_size, precision: 5)})" %></div>
+    <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
   </div>
   <br>
   <div id="replacement-uploader" class="simple_form"></div>
