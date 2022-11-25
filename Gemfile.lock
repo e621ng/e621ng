@@ -436,7 +436,7 @@ DEPENDENCIES
   sanitize
   shoulda-context
   shoulda-matchers
-  sidekiq
+  sidekiq (~> 6.0)
   sidekiq-unique-jobs
   simple_form
   solargraph
