@@ -5,9 +5,13 @@ module Downloads
     context "A post download" do
       setup do
         CurrentUser.user = create(:user)
+        CloudflareService.stubs(:ips).returns([])
         UploadWhitelist.stubs(:is_whitelisted?).returns(true)
         @source = "http://www.google.com/intl/en_ALL/images/logo.gif"
         @download = Downloads::File.new(@source)
+        f = Tempfile.new
+        IO.copy_stream("#{Rails.root}/test/files/test.jpg", f.path)
+        stub_request(:get, @source).to_return(status: 200, body: f.read, headers: {})
       end
 
       context "for a banned IP" do

@@ -18,6 +18,10 @@ Shoulda::Matchers.configure do |config|
   end
 end
 
+WebMock.disable_net_connect!(allow: [
+  Danbooru.config.elasticsearch_host,
+])
+
 module TestHelpers
   def create(factory_bot_model, params = {})
     record = FactoryBot.build(factory_bot_model, params)
@@ -45,7 +49,6 @@ class ActiveSupport::TestCase
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
-    WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles?).returns(true)
 
