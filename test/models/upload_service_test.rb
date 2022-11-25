@@ -17,7 +17,7 @@ class UploadServiceTest < ActiveSupport::TestCase
           @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"
           @upload = Upload.new
           @upload.direct_url = @source
-          Downloads::File.any_instance.stubs(:download!).returns(upload_file("test/files/test.jpg"))
+          Downloads::File.any_instance.stubs(:download!).returns(fixture_file_upload("test.jpg"))
         end
 
         should "work on a jpeg" do
@@ -33,7 +33,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context ".calculate_dimensions" do
       context "for a video" do
         setup do
-          @file = File.open("test/files/test-512x512.webm", "rb")
+          @file = file_fixture("test-512x512.webm").open
           @upload = Upload.new(file_ext: "webm")
         end
 
@@ -50,7 +50,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       context "for an image" do
         setup do
-          @file = File.open("test/files/test.jpg", "rb")
+          @file = file_fixture("test.jpg").open
           @upload = Upload.new(file_ext: "jpg")
         end
 
@@ -70,7 +70,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       context "for a video" do
         context "for a webm" do
           setup do
-            @file = File.open("test/files/test-512x512.webm", "rb")
+            @file = file_fixture("test-512x512.webm").open
             @upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: @file, uploader: @user, uploader_ip_addr: '127.0.0.1')).start!
           end
 
@@ -111,7 +111,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a jpeg" do
           setup do
-            @file = File.open("test/files/test.jpg", "rb")
+            @file = file_fixture("test.jpg").open
           end
 
           should "generate a preview" do
@@ -128,7 +128,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a png" do
           setup do
-            @file = File.open("test/files/test.png", "rb")
+            @file = file_fixture("test.png").open
           end
 
           should "generate a preview" do
@@ -145,7 +145,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a gif" do
           setup do
-            @file = File.open("test/files/test.png", "rb")
+            @file = file_fixture("test.gif").open
           end
 
           should "generate a preview" do
@@ -165,7 +165,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context ".generate_video_preview_for" do
       context "for an mp4" do
         setup do
-          @path = "test/files/test-300x300.mp4"
+          @path = file_fixture("test-300x300.mp4").to_s
         end
 
         should "generate a video" do
@@ -178,7 +178,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       context "for a webm" do
         setup do
-          @path = "test/files/test-512x512.webm"
+          @path = file_fixture("test-512x512.webm").to_s
         end
 
         should "generate a video" do
@@ -208,19 +208,19 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "automatic tagging" do
       should "tag animated png files" do
-        service = @build_service.call(file: upload_file("test/files/apng/normal_apng.png"))
+        service = @build_service.call(file: fixture_file_upload("apng/normal_apng.png"))
         upload = service.start!
         assert_match(/animated_png/, upload.tag_string)
       end
 
       should "tag animated gif files" do
-        service = @build_service.call(file: upload_file("test/files/test-animated-86x52.gif"))
+        service = @build_service.call(file: fixture_file_upload("test-animated-86x52.gif"))
         upload = service.start!
         assert_match(/animated_gif/, upload.tag_string)
       end
 
       should "not tag static gif files" do
-        service = @build_service.call(file: upload_file("test/files/test-static-32x32.gif"))
+        service = @build_service.call(file: fixture_file_upload("test-static-32x32.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
@@ -232,7 +232,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       end
 
       should "should fail validation" do
-        service = @build_service.call(file: upload_file("test/files/test-large.jpg"))
+        service = @build_service.call(file: fixture_file_upload("test-large.jpg"))
         upload = service.start!
         assert_match(/image resolution is too large/, upload.status)
       end
@@ -259,7 +259,7 @@ class UploadServiceTest < ActiveSupport::TestCase
       should "normalize unicode characters in the source field" do
         source1 = "poke\u0301mon" # pokémon (nfd form)
         source2 = "pok\u00e9mon"  # pokémon (nfc form)
-        service = @build_service.call(source: source1, rating: "s", file: upload_file("test/files/test.jpg"))
+        service = @build_service.call(source: source1, rating: "s", file: fixture_file_upload("test.jpg"))
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(source2, @upload.post.source)
@@ -278,7 +278,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "with both a file and a source url" do
       should "upload the file and set the source field to the given source" do
-        service = @build_service.call(file: upload_file("test/files/test.jpg"), source: "http://www.example.com", rating: "s")
+        service = @build_service.call(file: fixture_file_upload("test.jpg"), source: "http://www.example.com", rating: "s")
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(true, @upload.is_completed?)

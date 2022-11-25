@@ -23,7 +23,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       context "with a url" do
         should "prefer the file" do
           get_auth new_upload_path, @user, params: {url: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}
-          file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
+          file = fixture_file_upload("test.jpg")
           assert_difference(-> { Post.count }) do
             post_auth uploads_path, @user, params: {upload: {file: file, tag_string: "aaa", rating: "q", source: "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"}}
           end
@@ -131,7 +131,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a new upload" do
         assert_difference("Upload.count", 1) do
-          file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/test.jpg", "image/jpeg")
+          file = fixture_file_upload("test.jpg")
           post_auth uploads_path, @user, params: {:upload => {:file => file, :tag_string => "aaa", :rating => "q", :source => "aaa"}}
         end
       end

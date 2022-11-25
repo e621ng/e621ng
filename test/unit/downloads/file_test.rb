@@ -9,9 +9,7 @@ module Downloads
         UploadWhitelist.stubs(:is_whitelisted?).returns(true)
         @source = "http://www.google.com/intl/en_ALL/images/logo.gif"
         @download = Downloads::File.new(@source)
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test.jpg", f.path)
-        stub_request(:get, @source).to_return(status: 200, body: f.read, headers: {})
+        stub_request(:get, @source).to_return(status: 200, body: file_fixture("test.jpg").read, headers: {})
       end
 
       context "for a banned IP" do

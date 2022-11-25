@@ -21,7 +21,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "accept new non duplicate replacement" do
-        file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/alpha.png", "image/png")
+        file = fixture_file_upload("alpha.png")
         params = {
           format: :json,
           post_id: @post.id,

@@ -111,7 +111,7 @@ class PostEventTest < ActiveSupport::TestCase
 
     context "replacements" do
       setup do
-        upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: upload_file("test/files/test.gif"), uploader: @user, uploader_ip_addr: "127.0.0.1", tag_string: "tst")).start!
+        upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, uploader_ip_addr: "127.0.0.1", tag_string: "tst")).start!
         @post = upload.post
         @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
       end

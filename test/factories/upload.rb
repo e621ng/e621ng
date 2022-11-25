@@ -14,19 +14,11 @@ FactoryBot.define do
     end
 
     factory(:jpg_upload) do
-      file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test.jpg", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
-      end
+      file { fixture_file_upload("test.jpg") }
     end
 
     factory(:large_jpg_upload) do
-      file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test-large.jpg", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
-      end
+      file { fixture_file_upload("test-large.jpg") }
     end
   end
 end

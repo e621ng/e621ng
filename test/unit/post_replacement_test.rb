@@ -44,7 +44,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal @post.replacements.size, 1
       assert_equal @replacement.status, 'pending'
       assert @replacement.storage_id
-      assert_equal Digest::MD5.file("#{Rails.root}/test/files/test.png").hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
+      assert_equal Digest::MD5.file(file_fixture("test.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
     end
 
     should "not allow duplicate replacement submission" do

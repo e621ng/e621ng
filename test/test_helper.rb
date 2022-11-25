@@ -9,7 +9,6 @@ require 'sidekiq/testing'
 Sidekiq::Testing::fake!
 
 Dir[File.expand_path(File.dirname(__FILE__) + "/factories/*.rb")].each {|file| require file}
-Dir[File.expand_path(File.dirname(__FILE__) + "/test_helpers/*.rb")].each {|file| require file}
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
@@ -21,6 +20,12 @@ end
 WebMock.disable_net_connect!(allow: [
   Danbooru.config.elasticsearch_host,
 ])
+
+FactoryBot::SyntaxRunner.class_eval do
+  include ActiveSupport::Testing::FileFixtures
+  include ActionDispatch::TestProcess::FixtureFile
+  self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+end
 
 module TestHelpers
   def create(factory_bot_model, params = {})
@@ -44,7 +49,7 @@ module TestHelpers
 end
 
 class ActiveSupport::TestCase
-  include UploadTestHelper
+  include ActionDispatch::TestProcess::FixtureFile
   include TestHelpers
 
   setup do

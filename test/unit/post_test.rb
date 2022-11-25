@@ -1964,7 +1964,7 @@ class PostTest < ActiveSupport::TestCase
       Sidekiq::Testing.fake!
 
       post1 = FactoryBot.create(:post)
-      upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: upload_file("test/files/test.gif"), uploader: @user, uploader_ip_addr: "127.0.0.1", tag_string: "tst")).start!
+      upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, uploader_ip_addr: "127.0.0.1", tag_string: "tst")).start!
       post2 = upload.post
       post3 = FactoryBot.create(:post)
       post4 = FactoryBot.create(:post)
