@@ -3,13 +3,13 @@ require 'test_helper'
 class PostApprovalTest < ActiveSupport::TestCase
   context "a pending post" do
     setup do
-      @user = FactoryBot.create(:user)
+      @user = create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
 
-      @post = FactoryBot.create(:post, uploader_id: @user.id, tag_string: "touhou", is_pending: true)
+      @post = create(:post, uploader_id: @user.id, tag_string: "touhou", is_pending: true)
 
-      @approver = FactoryBot.create(:user)
+      @approver = create(:user)
       @approver.can_approve_posts = true
       @approver.save
       CurrentUser.user = @approver

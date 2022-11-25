@@ -61,7 +61,7 @@ module Moderator
               @parent = create(:post)
               @child = create(:post, parent: @parent)
             end
-            users = FactoryBot.create_list(:user, 2)
+            users = create_list(:user, 2)
             users.each do |u|
               FavoriteManager.add!(user: u, post: @child)
               @child.reload

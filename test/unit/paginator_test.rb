@@ -2,7 +2,7 @@ require 'test_helper'
 
 class PaginatorTest < ActiveSupport::TestCase
   setup do
-    @posts = FactoryBot.create_list(:post, 5)
+    @posts = create_list(:post, 5)
   end
 
   context "sequential pagination (before)" do

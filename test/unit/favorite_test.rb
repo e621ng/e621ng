@@ -2,10 +2,10 @@ require 'test_helper'
 
 class FavoriteTest < ActiveSupport::TestCase
   setup do
-    @user1 = FactoryBot.create(:user)
-    @user2 = FactoryBot.create(:user)
-    @p1 = FactoryBot.create(:post)
-    @p2 = FactoryBot.create(:post)
+    @user1 = create(:user)
+    @user2 = create(:user)
+    @p1 = create(:post)
+    @p2 = create(:post)
 
     CurrentUser.user = @user1
     CurrentUser.ip_addr = "127.0.0.1"

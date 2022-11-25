@@ -4,8 +4,8 @@ class DmailFilterTest < ActiveSupport::TestCase
   def setup
     super
 
-    @receiver = FactoryBot.create(:user)
-    @sender = FactoryBot.create(:user)
+    @receiver = create(:user)
+    @sender = create(:user)
   end
 
   def create_dmail(body, title)

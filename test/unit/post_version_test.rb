@@ -3,7 +3,7 @@ require 'test_helper'
 class PostVersionTest < ActiveSupport::TestCase
   context "A post" do
     setup do
-      @user = FactoryBot.create(:user, created_at: 1.month.ago)
+      @user = create(:user, created_at: 1.month.ago)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
     end
@@ -15,7 +15,7 @@ class PostVersionTest < ActiveSupport::TestCase
 
     context "that has multiple versions: " do
       setup do
-        @post = FactoryBot.create(:post, tag_string: "1")
+        @post = create(:post, tag_string: "1")
         @post.update(tag_string: "1 2")
         @post.update(tag_string: "2 3")
       end
@@ -40,8 +40,8 @@ class PostVersionTest < ActiveSupport::TestCase
 
     context "that is tagged with a pool:<name> metatag" do
       setup do
-        @pool = FactoryBot.create(:pool)
-        @post = FactoryBot.create(:post, tag_string: "tagme pool:#{@pool.id}")
+        @pool = create(:pool)
+        @post = create(:post, tag_string: "tagme pool:#{@pool.id}")
       end
 
       should "create a version" do
@@ -55,8 +55,8 @@ class PostVersionTest < ActiveSupport::TestCase
 
     context "that has been created" do
       setup do
-        @parent = FactoryBot.create(:post)
-        @post = FactoryBot.create(:post, tag_string: "aaa bbb ccc", rating: "e", parent: @parent, source: "xyz")
+        @parent = create(:post)
+        @post = create(:post, tag_string: "aaa bbb ccc", rating: "e", parent: @parent, source: "xyz")
       end
 
       should "also create a version" do
@@ -71,7 +71,7 @@ class PostVersionTest < ActiveSupport::TestCase
 
     context "that has been updated" do
       setup do
-        @post = FactoryBot.create(:post, tag_string: "aaa bbb ccc", rating: "q", source: "xyz")
+        @post = create(:post, tag_string: "aaa bbb ccc", rating: "q", source: "xyz")
         @post.update(tag_string: "bbb ccc xxx", source: "")
       end
 
@@ -108,7 +108,7 @@ class PostVersionTest < ActiveSupport::TestCase
 
       should "should create a version if the parent changes" do
         assert_difference("@post.versions.size", 1) do
-          @parent = FactoryBot.create(:post)
+          @parent = create(:post)
           @post.update(parent_id: @parent.id)
           assert_equal(@parent.id, @post.versions.last.parent_id)
         end

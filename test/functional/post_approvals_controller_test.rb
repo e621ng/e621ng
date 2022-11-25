@@ -3,7 +3,7 @@ require 'test_helper'
 class PostApprovalsControllerTest < ActionDispatch::IntegrationTest
   context "The post approvals controller" do
     setup do
-      @approval = FactoryBot.create(:post_approval)
+      @approval = create(:post_approval)
     end
 
     context "index action" do

@@ -3,12 +3,12 @@ require 'test_helper'
 class TagSetPresenterTest < ActiveSupport::TestCase
   context "TagSetPresenter" do
     setup do
-      CurrentUser.user = FactoryBot.create(:mod_user)
-      FactoryBot.create(:tag, name: "bkub", category: Tag.categories.artist)
-      FactoryBot.create(:tag, name: "chen", category: Tag.categories.character)
-      FactoryBot.create(:tag, name: "cirno", category: Tag.categories.character)
-      FactoryBot.create(:tag, name: "solo", category: Tag.categories.general)
-      FactoryBot.create(:tag, name: "touhou", category: Tag.categories.copyright)
+      CurrentUser.user = create(:mod_user)
+      create(:tag, name: "bkub", category: Tag.categories.artist)
+      create(:tag, name: "chen", category: Tag.categories.character)
+      create(:tag, name: "cirno", category: Tag.categories.character)
+      create(:tag, name: "solo", category: Tag.categories.general)
+      create(:tag, name: "touhou", category: Tag.categories.copyright)
       TagCategory.stubs(:categorized_list).returns(%w[copyright character artist meta general])
     end
 

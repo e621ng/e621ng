@@ -3,7 +3,7 @@ require 'test_helper'
 class BulkUpdateRequestTest < ActiveSupport::TestCase
   context "a bulk update request" do
     setup do
-      @admin = FactoryBot.create(:admin_user)
+      @admin = create(:admin_user)
       CurrentUser.user = @admin
       CurrentUser.ip_addr = "127.0.0.1"
     end
@@ -16,11 +16,11 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
     context "#estimate_update_count" do
       setup do
         Post.__elasticsearch__.create_index! force: true
-        FactoryBot.create(:post, tag_string: "aaa")
-        FactoryBot.create(:post, tag_string: "bbb")
-        FactoryBot.create(:post, tag_string: "ccc")
-        FactoryBot.create(:post, tag_string: "ddd")
-        FactoryBot.create(:post, tag_string: "eee")
+        create(:post, tag_string: "aaa")
+        create(:post, tag_string: "bbb")
+        create(:post, tag_string: "ccc")
+        create(:post, tag_string: "ddd")
+        create(:post, tag_string: "eee")
 
         @script = "create alias aaa -> 000\n" +
           "create implication bbb -> 111\n" +
@@ -45,7 +45,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
         Sidekiq::Testing.inline!
 
-        @bur = FactoryBot.create(:bulk_update_request, script: @script)
+        @bur = create(:bulk_update_request, script: @script)
         @bur.approve!(@admin)
 
         @ta = TagAlias.where(antecedent_name: "foo", consequent_name: "bar").first
@@ -89,8 +89,8 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "that has an invalid alias" do
       setup do
-        @alias1 = FactoryBot.create(:tag_alias)
-        @req = FactoryBot.build(:bulk_update_request, :script => "create alias bbb -> aaa")
+        @alias1 = create(:tag_alias)
+        @req = build(:bulk_update_request, script: "create alias bbb -> aaa")
       end
 
       should "not validate" do
@@ -103,9 +103,9 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "for an implication that is redundant with an existing implication" do
       should "not validate" do
-        FactoryBot.create(:tag_implication, :antecedent_name => "a", :consequent_name => "b")
-        FactoryBot.create(:tag_implication, :antecedent_name => "b", :consequent_name => "c")
-        bur = FactoryBot.build(:bulk_update_request, :script => "imply a -> c")
+        create(:tag_implication, antecedent_name: "a", consequent_name: "b")
+        create(:tag_implication, antecedent_name: "b", consequent_name: "c")
+        bur = build(:bulk_update_request, script: "imply a -> c")
         bur.save
 
         assert_equal(["Error: a already implies c through another implication (create implication a -> c)"], bur.errors.full_messages)
@@ -114,8 +114,8 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "for an implication that is redundant with another implication in the same BUR" do
       setup do
-        FactoryBot.create(:tag_implication, :antecedent_name => "b", :consequent_name => "c")
-        @bur = FactoryBot.build(:bulk_update_request, :script => "imply a -> b\nimply a -> c")
+        create(:tag_implication, antecedent_name: "b", consequent_name: "c")
+        @bur = build(:bulk_update_request, script: "imply a -> b\nimply a -> c")
         @bur.save
       end
 
@@ -133,7 +133,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
     context "for a `category <tag> -> type` change" do
       should "work" do
         tag = Tag.find_or_create_by_name("tagme")
-        bur = FactoryBot.create(:bulk_update_request, :script => "category tagme -> meta")
+        bur = create(:bulk_update_request, script: "category tagme -> meta")
         bur.approve!(@admin)
 
         assert_equal(Tag.categories.meta, tag.reload.category)
@@ -142,9 +142,9 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "with an associated forum topic" do
       setup do
-        @topic = FactoryBot.create(:forum_topic, :title => "[bulk] hoge")
-        @post = FactoryBot.create(:forum_post, :topic_id => @topic.id)
-        @req = FactoryBot.create(:bulk_update_request, :script => "create alias AAA -> BBB", :forum_topic_id => @topic.id, :forum_post_id => @post.id, :title => "[bulk] hoge")
+        @topic = create(:forum_topic, title: "[bulk] hoge")
+        @post = create(:forum_post, topic_id: @topic.id)
+        @req = create(:bulk_update_request, script: "create alias AAA -> BBB", forum_topic_id: @topic.id, forum_post_id: @post.id, title: "[bulk] hoge")
       end
 
       should "gracefully handle validation errors during approval" do
@@ -209,8 +209,8 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
     context "when searching" do
       setup do
-        @bur1 = FactoryBot.create(:bulk_update_request, title: "foo", script: "create alias aaa -> bbb", user_id: @admin.id)
-        @bur2 = FactoryBot.create(:bulk_update_request, title: "bar", script: "create implication bbb -> ccc", user_id: @admin.id)
+        @bur1 = create(:bulk_update_request, title: "foo", script: "create alias aaa -> bbb", user_id: @admin.id)
+        @bur2 = create(:bulk_update_request, title: "bar", script: "create implication bbb -> ccc", user_id: @admin.id)
         @bur1.approve!(@admin)
       end
 

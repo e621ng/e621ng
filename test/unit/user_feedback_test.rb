@@ -21,22 +21,22 @@ class UserFeedbackTest < ActiveSupport::TestCase
         good job!
       EOS
       assert_difference("Dmail.count", 1) do
-        FactoryBot.create(:user_feedback, user: @user, body: "good job!")
+        create(:user_feedback, user: @user, body: "good job!")
         assert_equal(dmail, @user.dmails.last.body)
       end
     end
 
     should "not validate if the creator is the user" do
-      feedback = FactoryBot.build(:user_feedback, user: @mod)
+      feedback = build(:user_feedback, user: @mod)
       feedback.save
       assert_equal(["You cannot submit feedback for yourself"], feedback.errors.full_messages)
     end
 
     should "not validate if the creator has no permissions" do
-      privileged = FactoryBot.create(:privileged_user)
+      privileged = create(:privileged_user)
 
       CurrentUser.user = privileged
-      feedback = FactoryBot.build(:user_feedback, user: @user)
+      feedback = build(:user_feedback, user: @user)
       feedback.save
       assert_equal(["You must be moderator"], feedback.errors.full_messages)
     end

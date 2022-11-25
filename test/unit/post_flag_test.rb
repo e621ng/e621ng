@@ -55,7 +55,7 @@ class PostFlagTest < ActiveSupport::TestCase
       @mod = create(:moderator_user)
 
       travel_to(2.weeks.ago) do
-        @users = FactoryBot.create_list(:user, 2)
+        @users = create_list(:user, 2)
       end
 
       as(@users.first) do

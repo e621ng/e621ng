@@ -3,7 +3,7 @@ require 'test_helper'
 class AliasAndImplicationImporterTest < ActiveSupport::TestCase
   context "The alias and implication importer" do
     setup do
-      CurrentUser.user = FactoryBot.create(:admin_user)
+      CurrentUser.user = create(:admin_user)
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
@@ -29,11 +29,11 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
     context "#estimate_update_count" do
       setup do
         Post.__elasticsearch__.create_index! force: true
-        FactoryBot.create(:post, tag_string: "aaa")
-        FactoryBot.create(:post, tag_string: "bbb")
-        FactoryBot.create(:post, tag_string: "ccc")
-        FactoryBot.create(:post, tag_string: "ddd")
-        FactoryBot.create(:post, tag_string: "eee")
+        create(:post, tag_string: "aaa")
+        create(:post, tag_string: "bbb")
+        create(:post, tag_string: "ccc")
+        create(:post, tag_string: "ddd")
+        create(:post, tag_string: "eee")
 
         @script = "create alias aaa -> 000\n" +
           "create implication bbb -> 111\n" +
@@ -89,9 +89,9 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
     end
 
     should "rename an aliased tag's artist entry and wiki page" do
-      tag1 = FactoryBot.create(:tag, :name => "aaa", :category => 1)
-      tag2 = FactoryBot.create(:tag, :name => "bbb")
-      artist = FactoryBot.create(:artist, :name => "aaa", :notes => "testing")
+      tag1 = create(:tag, name: "aaa", category: 1)
+      tag2 = create(:tag, name: "bbb")
+      artist = create(:artist, name: "aaa", notes: "testing")
       @importer = AliasAndImplicationImporter.new(nil, "create alias aaa -> bbb", "", "1")
       @importer.process!
       artist.reload
@@ -101,8 +101,8 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
 
     context "remove alias and remove implication commands" do
       setup do
-        @ta = FactoryBot.create(:tag_alias, antecedent_name: "a", consequent_name: "b", status: "active")
-        @ti = FactoryBot.create(:tag_implication, antecedent_name: "c", consequent_name: "d", status: "active")
+        @ta = create(:tag_alias, antecedent_name: "a", consequent_name: "b", status: "active")
+        @ti = create(:tag_implication, antecedent_name: "c", consequent_name: "d", status: "active")
         @script = %{
           remove alias a -> b
           remove implication c -> d

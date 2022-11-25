@@ -43,7 +43,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "create an artist" do
-      attributes = FactoryBot.attributes_for(:artist)
+      attributes = attributes_for(:artist)
       assert_difference("Artist.count", 1) do
         attributes.delete(:is_active)
         post_auth artists_path, @user, params: {artist: attributes}

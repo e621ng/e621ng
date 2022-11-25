@@ -3,11 +3,11 @@ require 'test_helper'
 class UploadWhitelistTest < ActiveSupport::TestCase
   context "A upload whitelist" do
     setup do
-      user = FactoryBot.create(:contributor_user)
+      user = create(:contributor_user)
       CurrentUser.user = user
       CurrentUser.ip_addr = "127.0.0.1"
 
-      @whitelist = FactoryBot.create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
+      @whitelist = create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
     end
 
     teardown do

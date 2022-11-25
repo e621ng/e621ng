@@ -31,6 +31,7 @@ end
 
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
+  include FactoryBot::Syntax::Methods
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
@@ -48,13 +49,6 @@ class ActiveSupport::TestCase
     # The below line is only mildly insane and may have resulted in the destruction of my data several times.
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
-  end
-
-  def create(factory_bot_model, params = {})
-    record = FactoryBot.build(factory_bot_model, params)
-    record.save
-    raise ActiveRecord::RecordInvalid, record if record.errors.any?
-    record
   end
 
   def as(user, &)

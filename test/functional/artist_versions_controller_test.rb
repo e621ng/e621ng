@@ -3,7 +3,7 @@ require 'test_helper'
 class ArtistVersionsControllerTest < ActionDispatch::IntegrationTest
   context "An artist versions controller" do
     setup do
-      @user = FactoryBot.create(:privileged_user)
+      @user = create(:privileged_user)
       as_user do
         @artist = create(:artist)
       end

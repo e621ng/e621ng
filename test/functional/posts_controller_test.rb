@@ -47,7 +47,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     context "show_seq action" do
       should "render" do
-        posts = FactoryBot.create_list(:post, 3)
+        posts = create_list(:post, 3)
 
         get show_seq_post_path(posts[1].id), params: { seq: "prev" }
         assert_response :success

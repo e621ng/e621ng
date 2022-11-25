@@ -6,14 +6,14 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
       Danbooru.config.stubs(:iqdbs_server).returns("https://karasuma.donmai.us")
       @user = create(:user)
       as_user do
-        @posts = FactoryBot.create_list(:post, 2)
+        @posts = create_list(:post, 2)
       end
     end
 
     context "show action" do
       context "with a url parameter" do
         setup do
-          FactoryBot.create(:upload_whitelist, pattern: "*google.com")
+          create(:upload_whitelist, pattern: "*google.com")
           @url = "https://google.com"
           @params = { url: @url }
           @mocked_response = [{

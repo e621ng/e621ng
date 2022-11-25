@@ -4,14 +4,14 @@ module PostSets
   class PoolTest < ActiveSupport::TestCase
     context "In all cases" do
       setup do
-        @user = FactoryBot.create(:user)
+        @user = create(:user)
         CurrentUser.user = @user
         CurrentUser.ip_addr = "127.0.0.1"
 
-        @post_1 = FactoryBot.create(:post)
-        @post_2 = FactoryBot.create(:post)
-        @post_3 = FactoryBot.create(:post)
-        @pool = FactoryBot.create(:pool)
+        @post_1 = create(:post)
+        @post_2 = create(:post)
+        @post_3 = create(:post)
+        @pool = create(:pool)
         @pool.add!(@post_2)
         @pool.add!(@post_1)
         @pool.add!(@post_3)

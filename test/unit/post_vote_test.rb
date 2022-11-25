@@ -4,11 +4,11 @@ class PostVoteTest < ActiveSupport::TestCase
   def setup
     super
 
-    @user = FactoryBot.create(:user, created_at: 1.month.ago)
+    @user = create(:user, created_at: 1.month.ago)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
 
-    @post = FactoryBot.create(:post)
+    @post = create(:post)
   end
 
   context "Voting for a post" do

@@ -4,10 +4,10 @@ class PostPrunerTest < ActiveSupport::TestCase
   def setup
     super
 
-    @user = FactoryBot.create(:admin_user)
+    @user = create(:admin_user)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
-    @old_post = FactoryBot.create(:post, created_at: 31.days.ago, is_pending: true)
+    @old_post = create(:post, created_at: 31.days.ago, is_pending: true)
 
     PostPruner.new.prune!
   end

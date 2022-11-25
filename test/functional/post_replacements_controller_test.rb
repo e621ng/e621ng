@@ -13,7 +13,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)
       @user.as_current do
-        @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload).merge({uploader: @user})).start!
+        @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
         @replacement = create(:png_replacement, creator: @user, post: @post)
       end

@@ -11,7 +11,7 @@ class ArtistUrlsControllerTest < ActionDispatch::IntegrationTest
       should "render for a complex search" do
         @user = create(:user)
         as_user do
-          @artist = FactoryBot.create(:artist, name: "bkub", url_string: "-http://bkub.com")
+          @artist = create(:artist, name: "bkub", url_string: "-http://bkub.com")
         end
 
         get artist_urls_path(search: {
