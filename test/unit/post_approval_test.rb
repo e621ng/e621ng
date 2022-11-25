@@ -13,8 +13,6 @@ class PostApprovalTest < ActiveSupport::TestCase
       @approver.can_approve_posts = true
       @approver.save
       CurrentUser.user = @approver
-
-      CurrentUser.stubs(:can_approve_posts?).returns(true)
     end
 
     teardown do
