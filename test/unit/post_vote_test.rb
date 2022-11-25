@@ -4,7 +4,7 @@ class PostVoteTest < ActiveSupport::TestCase
   def setup
     super
 
-    Timecop.travel(1.month.ago) { @user = FactoryBot.create(:user) }
+    @user = FactoryBot.create(:user, created_at: 1.month.ago)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
 

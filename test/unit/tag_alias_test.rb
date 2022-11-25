@@ -13,10 +13,8 @@ class TagAliasTest < ActiveSupport::TestCase
     setup do
       @admin = FactoryBot.create(:admin_user)
 
-      Timecop.travel(1.month.ago) do
-        user = FactoryBot.create(:user)
-        CurrentUser.user = user
-      end
+      user = FactoryBot.create(:user, created_at: 1.month.ago)
+      CurrentUser.user = user
       CurrentUser.ip_addr = "127.0.0.1"
     end
 

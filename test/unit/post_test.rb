@@ -9,9 +9,7 @@ class PostTest < ActiveSupport::TestCase
     super
 
     Sidekiq::Testing.inline!
-    Timecop.travel(2.weeks.ago) do
-      @user = FactoryBot.create(:user)
-    end
+    @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
     Post.__elasticsearch__.create_index!
@@ -1815,10 +1813,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "return posts for a upvote:<user>, downvote:<user> metatag" do
-      old_user = nil
-      Timecop.travel(5.days.ago) do
-        old_user = FactoryBot.create(:mod_user)
-      end
+      old_user = FactoryBot.create(:mod_user, created_at: 5.days.ago)
       CurrentUser.scoped(old_user) do
         upvoted   = FactoryBot.create(:post, tag_string: "abc")
         downvoted = FactoryBot.create(:post, tag_string: "abc")
@@ -2002,10 +1997,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "allow undoing of votes" do
-      user = nil
-      Timecop.travel(7.days.ago) do
-        user = FactoryBot.create(:privileged_user)
-      end
+      user = FactoryBot.create(:privileged_user, created_at: 7.days.ago)
       post = FactoryBot.create(:post)
 
       # We deliberately don't call post.reload until the end to verify that
@@ -2154,9 +2146,7 @@ class PostTest < ActiveSupport::TestCase
     context "a post that is rating locked" do
       setup do
         @post = FactoryBot.create(:post, :rating => "s")
-        Timecop.travel(2.hours.from_now) do
-          @post.update(rating: "q", is_rating_locked: true)
-        end
+        @post.update(rating: "q", is_rating_locked: true)
       end
 
       should "not revert the rating" do

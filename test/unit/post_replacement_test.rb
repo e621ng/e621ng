@@ -2,10 +2,8 @@ require 'test_helper'
 
 class PostReplacementTest < ActiveSupport::TestCase
   setup do
-    Timecop.travel(2.weeks.ago) do
-      @user = FactoryBot.create(:user)
-      @mod_user = FactoryBot.create(:moderator_user)
-    end
+    @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
+    @mod_user = FactoryBot.create(:moderator_user, created_at: 2.weeks.ago)
     @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload).merge(uploader: @mod_user, uploader_ip_addr: '127.0.0.1')).start!
     @post = @upload.post
     @post.update_columns({is_pending: false, approver_id: @mod_user.id})

@@ -83,18 +83,12 @@ class WikiPageTest < ActiveSupport::TestCase
         end
 
         assert_difference("WikiPageVersion.count") do
-          @wiki_page.title = "yyy"
-          Timecop.travel(1.day.from_now) do
-            @wiki_page.save
-          end
+          @wiki_page.update(title: "yyy")
         end
       end
 
       should "revert to a prior version" do
-        @wiki_page.title = "yyy"
-        Timecop.travel(1.day.from_now) do
-          @wiki_page.save
-        end
+        @wiki_page.update(title: "yyy")
         version = WikiPageVersion.first
         @wiki_page.revert_to!(version)
         @wiki_page.reload

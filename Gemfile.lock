@@ -360,7 +360,6 @@ GEM
       multi_json (~> 1.8)
     thor (1.2.1)
     tilt (2.0.11)
-    timecop (0.9.5)
     timeout (0.3.0)
     tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
@@ -441,7 +440,6 @@ DEPENDENCIES
   simple_form
   solargraph
   streamio-ffmpeg
-  timecop
   unicorn
   unicorn-worker-killer
   webmock

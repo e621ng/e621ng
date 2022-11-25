@@ -150,7 +150,7 @@ class BanTest < ActiveSupport::TestCase
         end
 
         should "not return expired bans" do
-          Timecop.travel(2.days.from_now) do
+          travel_to(2.days.from_now) do
             assert(!Ban.is_banned?(@user))
           end
         end

@@ -3,9 +3,7 @@ require 'test_helper'
 class PostVersionTest < ActiveSupport::TestCase
   context "A post" do
     setup do
-      Timecop.travel(1.month.ago) do
-        @user = FactoryBot.create(:user)
-      end
+      @user = FactoryBot.create(:user, created_at: 1.month.ago)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"
     end

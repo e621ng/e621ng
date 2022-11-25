@@ -72,7 +72,7 @@ class CommentTest < ActiveSupport::TestCase
         Danbooru.config.stubs(:comment_threshold).returns(1)
         p = FactoryBot.create(:post)
         c1 = FactoryBot.create(:comment, :post => p)
-        Timecop.travel(2.seconds.from_now) do
+        travel_to(2.seconds.from_now) do
           c2 = FactoryBot.create(:comment, :post => p)
         end
         p.reload
@@ -87,11 +87,9 @@ class CommentTest < ActiveSupport::TestCase
         post.reload
         assert_equal(c1.created_at.to_s, post.last_commented_at.to_s)
 
-        Timecop.travel(2.seconds.from_now) do
-          c2 = FactoryBot.create(:comment, :post => post)
-          post.reload
-          assert_equal(c2.created_at.to_s, post.last_commented_at.to_s)
-        end
+        c2 = FactoryBot.create(:comment, :post => post)
+        post.reload
+        assert_equal(c2.created_at.to_s, post.last_commented_at.to_s)
       end
 
       should "not record the user id of the voter" do

@@ -65,7 +65,6 @@ group :test do
   gem "factory_bot"
   gem "mocha", :require => "mocha/minitest"
   gem "ffaker"
-  gem "timecop"
   gem "webmock"
   gem "mock_redis"
 end

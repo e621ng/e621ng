@@ -2,9 +2,7 @@ require 'test_helper'
 
 class UploadServiceTest < ActiveSupport::TestCase
   setup do
-    Timecop.travel(2.weeks.ago) do
-      @user = FactoryBot.create(:user)
-    end
+    @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"
     UploadWhitelist.create!(pattern: '*', reason: 'test')

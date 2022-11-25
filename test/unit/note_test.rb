@@ -63,9 +63,7 @@ class NoteTest < ActiveSupport::TestCase
 
       should "create a version" do
         assert_difference("NoteVersion.count", 1) do
-          Timecop.travel(1.day.from_now) do
-            @note = FactoryBot.create(:note, :post => @post)
-          end
+          @note = FactoryBot.create(:note, post: @post)
         end
 
         assert_equal(1, @note.versions.count)
@@ -114,18 +112,14 @@ class NoteTest < ActiveSupport::TestCase
 
       should "update the post's last_noted_at field" do
         assert_equal(@post.last_noted_at, @note.updated_at)
-        Timecop.travel(1.day.from_now) do
-          @note.update(x: 500)
-          @post.reload
-          assert_equal(@post.last_noted_at, @note.updated_at)
-        end
+        @note.update(x: 500)
+        @post.reload
+        assert_equal(@post.last_noted_at, @note.updated_at)
       end
 
       should "create a version" do
         assert_difference("NoteVersion.count", 1) do
-          Timecop.travel(1.day.from_now) do
-            @note.update(:body => "fafafa")
-          end
+          @note.update(body: "fafafa")
         end
         assert_equal(2, @note.versions.count)
         assert_equal(2, @note.versions.last.version)
@@ -169,9 +163,7 @@ class NoteTest < ActiveSupport::TestCase
           assert_equal(2, NoteVersion.count)
           assert_equal([1, 2], @note.versions.map(&:version))
           assert_equal([@user.id, @vandal.id], @note.versions.map(&:updater_id))
-          Timecop.travel(1.day.from_now) do
-            Note.undo_changes_by_user(@vandal.id)
-          end
+          Note.undo_changes_by_user(@vandal.id)
           @note.reload
           assert_equal([1, 3], @note.versions.map(&:version))
           assert_equal([@user.id, @user.id], @note.versions.map(&:updater_id))
