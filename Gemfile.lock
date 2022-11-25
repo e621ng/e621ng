@@ -205,8 +205,6 @@ GEM
     mini_portile2 (2.8.0)
     minitest (5.16.3)
     mocha (1.15.0)
-    mock_redis (0.34.0)
-      ruby2_keywords
     msgpack (1.6.0)
     multi_json (1.15.0)
     multi_xml (0.6.0)
@@ -415,7 +413,6 @@ DEPENDENCIES
   marcel
   memoist
   mocha
-  mock_redis
   newrelic_rpm
   pg
   pry-byebug
