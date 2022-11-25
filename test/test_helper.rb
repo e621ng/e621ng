@@ -1,14 +1,16 @@
-ENV["RAILS_ENV"] = "test"
+ENV["RAILS_ENV"] ||= "test"
+ENV["MT_NO_EXPECTATIONS"] = "true"
+require_relative "../config/environment"
+require "rails/test_help"
 
-require File.expand_path('../../config/environment', __FILE__)
-require 'rails/test_help'
-require 'cache'
-require 'webmock/minitest'
+require "factory_bot_rails"
+require "mocha/minitest"
+require "shoulda-context"
+require "shoulda-matchers"
+require "webmock/minitest"
 
-require 'sidekiq/testing'
-Sidekiq::Testing::fake!
-
-Dir[File.expand_path(File.dirname(__FILE__) + "/factories/*.rb")].each {|file| require file}
+require "sidekiq/testing"
+Sidekiq::Testing.fake!
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|

@@ -60,9 +60,9 @@ group :docker do
 end
 
 group :test do
-  gem "shoulda-context"
-  gem "shoulda-matchers"
-  gem "factory_bot"
-  gem "mocha", :require => "mocha/minitest"
-  gem "webmock"
+  gem "shoulda-context", require: false
+  gem "shoulda-matchers", require: false
+  gem "factory_bot_rails", require: false
+  gem "mocha", require: false
+  gem "webmock", require: false
 end
