@@ -64,7 +64,6 @@ group :test do
   gem "shoulda-matchers"
   gem "factory_bot"
   gem "mocha", :require => "mocha/minitest"
-  gem "ffaker"
   gem "webmock"
   gem "mock_redis"
 end

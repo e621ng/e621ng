@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:comment) do
     post { create(:post) }
-    body { FFaker::Lorem.sentences.join(" ") }
+    sequence(:body) { |n| "comment_body_#{n}" }
   end
 end

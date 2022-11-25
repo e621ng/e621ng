@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory(:forum_post) do
-    body {FFaker::Lorem.sentences.join(" ")}
+    sequence(:body) { |n| "forum_post_body_#{n}" }
   end
 end

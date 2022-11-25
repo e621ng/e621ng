@@ -6,7 +6,7 @@ FactoryBot.define do
     password { "password" }
     password_confirmation { "password" }
     password_hash {"password"}
-    email {FFaker::Internet.email}
+    sequence(:email) { |n| "user_email_#{n}@example.com" }
     default_image_size { "large" }
     base_upload_limit { 10 }
     level { 20 }
@@ -59,4 +59,3 @@ FactoryBot.define do
     end
   end
 end
-

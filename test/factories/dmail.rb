@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory(:dmail) do
-    to :factory => :user
-    title {FFaker::Lorem.words.join(" ")}
-    body {FFaker::Lorem.sentences.join(" ")}
+    to factory: :user
+    sequence(:title) { |n| "dmail_title_#{n}" }
+    sequence(:body) { |n| "dmail_body_#{n}" }
   end
 end

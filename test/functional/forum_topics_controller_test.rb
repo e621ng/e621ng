@@ -34,8 +34,8 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         as_user do
-          @topic1 = create(:forum_topic, :is_sticky => true, :original_post_attributes => {:body => "xxx"})
-          @topic2 = create(:forum_topic, :original_post_attributes => {:body => "xxx"})
+          @topic1 = create(:forum_topic, title: "a", is_sticky: true, original_post_attributes: { body: "xxx"})
+          @topic2 = create(:forum_topic, title: "b", original_post_attributes: { body: "xxx"})
         end
       end
 

@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:post_disapproval) do
     reason { %w[borderline_quality borderline_relevancy other].sample }
-    message { FFaker::Lorem.sentence }
+    sequence(:message) { |n| "post_disapproval_message_#{n}" }
   end
 end

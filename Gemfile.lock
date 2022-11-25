@@ -161,7 +161,6 @@ GEM
     faraday-patron (1.0.0)
     faraday-rack (1.0.0)
     faraday-retry (1.0.3)
-    ffaker (2.21.0)
     ffi (1.15.5)
     ffi (1.15.5-x64-mingw32)
     get_process_mem (0.2.7)
@@ -410,7 +409,6 @@ DEPENDENCIES
   elasticsearch-model
   elasticsearch-rails
   factory_bot
-  ffaker
   httparty
   listen
   mailgun-ruby

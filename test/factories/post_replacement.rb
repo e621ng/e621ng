@@ -2,8 +2,8 @@ FactoryBot.define do
   factory(:post_replacement) do
     creator_ip_addr { "127.0.0.1" }
     creator { create(:user, created_at: 2.weeks.ago) }
-    replacement_url { FFaker::Internet.http_url }
-    reason { FFaker::Lorem.words.join(" ") }
+    sequence(:replacement_url) { |n| "https://example.com/#{n}.jpg" }
+    sequence(:reason) { |n| "post_replacement_reason#{n}" }
 
     factory(:webm_replacement) do
       replacement_file do

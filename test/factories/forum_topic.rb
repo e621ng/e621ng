@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:forum_topic) do
-    title { FFaker::Lorem.words.join(" ") }
+    sequence(:title) { |n| "forum_topic_title_#{n}" }
     is_sticky { false }
     is_locked { false }
     category_id { Danbooru.config.alias_implication_forum_category }
@@ -8,7 +8,7 @@ FactoryBot.define do
     creator_ip_addr { "127.0.0.1" }
 
     transient do
-      body { FFaker::Lorem.sentences.join(" ") }
+      sequence(:body) { |n| "forum_topic_body_#{n}" }
     end
 
     after(:build) do |topic, evaluator|
