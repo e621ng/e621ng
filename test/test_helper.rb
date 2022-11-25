@@ -29,30 +29,8 @@ FactoryBot::SyntaxRunner.class_eval do
   self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
 
-module TestHelpers
-  def create(factory_bot_model, params = {})
-    record = FactoryBot.build(factory_bot_model, params)
-    record.save
-    raise ActiveRecord::RecordInvalid.new(record) if record.errors.any?
-    record
-  end
-
-  def as(user, &block)
-    CurrentUser.as(user, &block)
-  end
-
-  def as_user(&block)
-    CurrentUser.as(@user, &block)
-  end
-
-  def as_admin(&block)
-    CurrentUser.as_admin(&block)
-  end
-end
-
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
-  include TestHelpers
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
@@ -71,11 +49,28 @@ class ActiveSupport::TestCase
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
   end
+
+  def create(factory_bot_model, params = {})
+    record = FactoryBot.build(factory_bot_model, params)
+    record.save
+    raise ActiveRecord::RecordInvalid, record if record.errors.any?
+    record
+  end
+
+  def as(user, &)
+    CurrentUser.as(user, &)
+  end
+
+  def as_user(&)
+    CurrentUser.as(@user, &)
+  end
+
+  def as_admin(&)
+    CurrentUser.as_admin(&)
+  end
 end
 
 class ActionDispatch::IntegrationTest
-  include TestHelpers
-
   def method_authenticated(method_name, url, user, options)
     post session_path, params: { name: user.name, password: user.password }
     self.send(method_name, url, **options)
@@ -95,17 +90,6 @@ class ActionDispatch::IntegrationTest
 
   def delete_auth(url, user, options = {})
     method_authenticated(:delete, url, user, options)
-  end
-
-  def setup
-    super
-    Socket.stubs(:gethostname).returns("www.example.com")
-    Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
-  end
-
-  def teardown
-    super
-    Cache.clear
   end
 end
 
