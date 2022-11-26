@@ -13,7 +13,7 @@
           <div class="content">
             <div class="body">
               <% if edit.version > 1 %>
-                <%= edit.diff(@edits[idx-1]) %>
+                <%= lcs_diff(@edits[idx-1].body, edit.body) %>
               <% else %>
                 <%= edit.body %>
               <% end %>

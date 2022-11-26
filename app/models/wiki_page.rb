@@ -228,10 +228,6 @@ class WikiPage < ApplicationRecord
     @post_set ||= PostSets::Post.new(title, 1, 4)
   end
 
-  def presenter
-    @presenter ||= WikiPagePresenter.new(self)
-  end
-
   def tags
     body.scan(/\[\[(.+?)\]\]/).flatten.map do |match|
       if match =~ /^(.+?)\|(.+)/
