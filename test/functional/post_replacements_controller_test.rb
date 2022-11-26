@@ -12,7 +12,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
   context "The post replacements controller" do
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)
-      @user.as_current do
+      as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
         @replacement = create(:png_replacement, creator: @user, post: @post)

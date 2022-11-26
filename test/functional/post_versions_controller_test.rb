@@ -7,8 +7,8 @@ class PostVersionsControllerTest < ActionDispatch::IntegrationTest
 
   context "The post versions controller" do
     context "index action" do
-      setup do        
-        @user.as_current do
+      setup do
+        as(@user) do
           @post = create(:post)
           travel_to(2.hours.from_now) do
             @post.update(:tag_string => "1 2", :source => "xxx")

@@ -16,7 +16,7 @@ class PostFlagsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        @user.as_current do
+        as(@user) do
           @post = create(:post)
           @post_flag = create(:post_flag, post: @post)
         end
@@ -37,7 +37,7 @@ class PostFlagsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       setup do
-        @user.as_current do
+        as(@user) do
           @post = create(:post)
         end
       end

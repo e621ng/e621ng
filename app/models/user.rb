@@ -887,10 +887,6 @@ class User < ApplicationRecord
   extend SearchMethods
   extend ThrottleMethods
 
-  def as_current(&block)
-    CurrentUser.as(self, &block)
-  end
-
   def dmail_count
     if has_mail?
       "(#{unread_dmail_count})"

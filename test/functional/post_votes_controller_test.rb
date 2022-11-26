@@ -4,7 +4,7 @@ class PostVotesControllerTest < ActionDispatch::IntegrationTest
   context "The post vote controller" do
     setup do
       @user = create(:privileged_user)
-      @user.as_current do
+      as(@user) do
         @post = create(:post)
       end
     end
@@ -32,7 +32,7 @@ class PostVotesControllerTest < ActionDispatch::IntegrationTest
 
       context "for a post that has already been voted on" do
         setup do
-          @user.as_current do
+          as(@user) do
             post_auth post_votes_path(post_id: @post.id), @user, params: { score: 1, format: "json" }
           end
         end
