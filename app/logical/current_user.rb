@@ -44,14 +44,6 @@ class CurrentUser
     RequestStore[:current_ip_addr]
   end
 
-  def self.root_url
-    RequestStore[:current_root_url] || "https://#{Danbooru.config.hostname}"
-  end
-
-  def self.root_url=(root_url)
-    RequestStore[:current_root_url] = root_url
-  end
-
   def self.id
     if user.nil?
       nil

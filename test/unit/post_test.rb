@@ -2205,10 +2205,10 @@ class PostTest < ActiveSupport::TestCase
     should "generate the correct urls for animated gifs" do
       @post = build(:post, md5: "deadbeef", file_ext: "gif", tag_string: "animated_gif")
 
-      assert_equal("https://#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
-      assert_equal("https://#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end
 
