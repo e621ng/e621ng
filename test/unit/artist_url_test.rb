@@ -83,7 +83,7 @@ class ArtistUrlTest < ActiveSupport::TestCase
 
       should "work" do
         @bkub = create(:artist, name: "bkub", is_active: true, url_string: "https://bkub.com")
-        as_admin do
+        as(create(:admin_user)) do
           @masao = create(:artist, name: "masao", is_active: false, url_string: "-https://masao.com")
         end
         @bkub_url = @bkub.urls.first

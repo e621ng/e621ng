@@ -169,7 +169,7 @@ class ArtistTest < ActiveSupport::TestCase
     end
 
     should "hide deleted artists" do
-      as_admin do
+      as(create(:admin_user)) do
         create(:artist, name: "warhol", url_string: "http://warhol.com/a/image.jpg", is_active: false)
       end
       assert_artist_not_found("http://warhol.com/a/image.jpg")
