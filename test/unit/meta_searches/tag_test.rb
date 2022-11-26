@@ -5,7 +5,6 @@ module MetaSearches
     context "The tag metasearch" do
       setup do
         CurrentUser.user = create(:user)
-        CurrentUser.ip_addr = "127.0.0.1"
         create(:post, tag_string: "xxx")
         create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
         create(:tag_implication, antecedent_name: "ccc", consequent_name: "ddd")

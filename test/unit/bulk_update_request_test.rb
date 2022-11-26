@@ -5,7 +5,6 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
     setup do
       @admin = create(:admin_user)
       CurrentUser.user = @admin
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "#estimate_update_count" do

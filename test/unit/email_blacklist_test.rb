@@ -4,7 +4,6 @@ class EmailBlacklistTest < ActiveSupport::TestCase
   setup do
     @user = create(:user)
     CurrentUser.user = create(:mod_user)
-    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   should "detect email by suffix" do

@@ -4,7 +4,6 @@ class UploadServiceTest < ActiveSupport::TestCase
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
     UploadWhitelist.create!(pattern: '*', reason: 'test')
   end
 
@@ -63,7 +62,7 @@ class UploadServiceTest < ActiveSupport::TestCase
         context "for a webm" do
           setup do
             @file = file_fixture("test-512x512.webm").open
-            @upload = UploadService.new(attributes_for(:upload).merge(file: @file, uploader: @user, uploader_ip_addr: "127.0.0.1")).start!
+            @upload = UploadService.new(attributes_for(:upload).merge(file: @file, uploader: @user)).start!
           end
 
           teardown do
@@ -189,7 +188,6 @@ class UploadServiceTest < ActiveSupport::TestCase
     setup do
       @source = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
       CurrentUser.user = create(:user, created_at: 1.month.ago)
-      CurrentUser.ip_addr = "127.0.0.1"
       @build_service = ->(**params) { subject.new({ rating: "s", uploader: CurrentUser.user, uploader_ip_addr: CurrentUser.ip_addr }.merge(params)) }
     end
 
@@ -280,7 +278,6 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     setup do
       CurrentUser.user = create(:user, created_at: 1.month.ago)
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "for an image" do

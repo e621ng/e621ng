@@ -8,7 +8,6 @@ class ArtistUrlTest < ActiveSupport::TestCase
   context "An artist url" do
     setup do
       CurrentUser.user = create(:user)
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     should "allow urls to be marked as inactive" do

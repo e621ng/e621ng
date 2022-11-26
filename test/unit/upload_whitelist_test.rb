@@ -5,7 +5,6 @@ class UploadWhitelistTest < ActiveSupport::TestCase
     setup do
       user = create(:contributor_user)
       CurrentUser.user = user
-      CurrentUser.ip_addr = "127.0.0.1"
 
       @whitelist = create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
     end

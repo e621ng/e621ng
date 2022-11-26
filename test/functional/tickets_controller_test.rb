@@ -61,7 +61,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     context "for a comment ticket" do
       setup do
         as @bad_actor do
-          @content = create(:comment, creator: @bad_actor, creator_ip_addr: "127.0.0.1")
+          @content = create(:comment, creator: @bad_actor)
         end
       end
 
@@ -82,7 +82,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     context "for a dmail ticket" do
       setup do
         as @bad_actor do
-          @content = create(:dmail, from: @bad_actor, to: @bystander, owner: @bystander, creator_ip_addr: "127.0.0.1")
+          @content = create(:dmail, from: @bad_actor, to: @bystander, owner: @bystander)
         end
       end
 

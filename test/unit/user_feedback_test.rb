@@ -6,7 +6,6 @@ class UserFeedbackTest < ActiveSupport::TestCase
       @user = create(:user)
       @mod = create(:moderator_user)
       CurrentUser.user = @mod
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     should "create a dmail" do

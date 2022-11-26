@@ -43,6 +43,7 @@ class ActiveSupport::TestCase
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
     Danbooru.config.stubs(:enable_email_verification?).returns(false)
+    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   teardown do

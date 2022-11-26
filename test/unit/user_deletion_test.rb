@@ -14,7 +14,6 @@ class UserDeletionTest < ActiveSupport::TestCase
       setup do
         @user = create(:user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
         @deletion = UserDeletion.new(@user, "wrongpassword")
       end
 
@@ -29,7 +28,6 @@ class UserDeletionTest < ActiveSupport::TestCase
       setup do
         @user = create(:admin_user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
         @deletion = UserDeletion.new(@user, "password")
       end
 
@@ -45,7 +43,6 @@ class UserDeletionTest < ActiveSupport::TestCase
     setup do
       @user = create(:privileged_user, created_at: 2.weeks.ago)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
 
       @post = create(:post)
       FavoriteManager.add!(user: @user, post: @post)

@@ -9,7 +9,6 @@ class PostTest < ActiveSupport::TestCase
     Sidekiq::Testing.inline!
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
     Post.__elasticsearch__.create_index!
   end
 
@@ -1950,7 +1949,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([], "pending_replacements:false")
       post = create(:post)
-      replacement = create(:png_replacement, creator: @user, creator_ip_addr: "127.0.0.1", post: post)
+      replacement = create(:png_replacement, creator: @user, post: post)
       assert_tag_match([post], "pending_replacements:true")
     end
 
@@ -1958,17 +1957,17 @@ class PostTest < ActiveSupport::TestCase
       Sidekiq::Testing.fake!
 
       post1 = create(:post)
-      upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, uploader_ip_addr: "127.0.0.1", tag_string: "tst")).start!
+      upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
       post2 = upload.post
       post3 = create(:post)
       post4 = create(:post)
-      replacement1 = create(:png_replacement, creator: @user, creator_ip_addr: "127.0.0.1", post: post1)
+      replacement1 = create(:png_replacement, creator: @user, post: post1)
       replacement1.reject!
-      replacement2 = create(:png_replacement, creator: @user, creator_ip_addr: "127.0.0.1", post: post2)
+      replacement2 = create(:png_replacement, creator: @user, post: post2)
       replacement2.approve!(penalize_current_uploader: true)
-      replacement3 = create(:jpg_replacement, creator: @user, creator_ip_addr: "127.0.0.1", post: post3)
+      replacement3 = create(:jpg_replacement, creator: @user, post: post3)
       promoted_post = replacement3.promote!.post
-      replacement4 = create(:webm_replacement, creator: @user, creator_ip_addr: "127.0.0.1", post: post4)
+      replacement4 = create(:webm_replacement, creator: @user, post: post4)
       replacement4.destroy!
 
       assert_tag_match([], "pending_replacements:true")

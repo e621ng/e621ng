@@ -13,7 +13,6 @@ class TagImplicationTest < ActiveSupport::TestCase
     setup do
       user = create(:admin_user)
       CurrentUser.user = user
-      CurrentUser.ip_addr = "127.0.0.1"
       @user = create(:user)
     end
 

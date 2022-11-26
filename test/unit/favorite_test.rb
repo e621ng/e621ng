@@ -8,7 +8,6 @@ class FavoriteTest < ActiveSupport::TestCase
     @p2 = create(:post)
 
     CurrentUser.user = @user1
-    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   context "A favorite" do

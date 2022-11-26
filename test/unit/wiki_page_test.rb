@@ -1,10 +1,6 @@
 require 'test_helper'
 
 class WikiPageTest < ActiveSupport::TestCase
-  setup do
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
   context "A wiki page" do
     context "that is locked" do
       should "not be editable by a member" do

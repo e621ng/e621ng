@@ -6,12 +6,10 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @post = create(:post, uploader: @user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
       @comment = create(:comment, post: @post)
 
       @user = create(:user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "#create.json" do

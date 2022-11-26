@@ -6,7 +6,6 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       @admin = create(:admin_user)
       @requester = create(:user)
       CurrentUser.user = @requester
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "approving a request" do

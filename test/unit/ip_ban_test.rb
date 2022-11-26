@@ -3,7 +3,6 @@ require 'test_helper'
 class IpBanTest < ActiveSupport::TestCase
   setup do
     CurrentUser.user = create(:mod_user)
-    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   should "be able to ban a user" do

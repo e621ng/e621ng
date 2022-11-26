@@ -7,7 +7,6 @@ class UserTest < ActiveSupport::TestCase
       Danbooru.config.stubs(:disable_throttles?).returns(false)
       @user = create(:user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "promoting a user" do

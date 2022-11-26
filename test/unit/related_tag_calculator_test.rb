@@ -4,7 +4,6 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
   setup do
     user = create(:user)
     CurrentUser.user = user
-    CurrentUser.ip_addr = "127.0.0.1"
     Post.__elasticsearch__.create_index! force: true
   end
 

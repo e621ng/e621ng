@@ -4,7 +4,6 @@ class PostPrunerTest < ActiveSupport::TestCase
   setup do
     @user = create(:admin_user)
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
     @old_post = create(:post, created_at: 31.days.ago, is_pending: true)
 
     PostPruner.new.prune!

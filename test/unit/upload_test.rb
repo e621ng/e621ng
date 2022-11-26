@@ -5,7 +5,6 @@ class UploadTest < ActiveSupport::TestCase
     setup do
       user = create(:contributor_user)
       CurrentUser.user = user
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "An upload" do

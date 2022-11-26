@@ -5,7 +5,6 @@ class TagTest < ActiveSupport::TestCase
     Sidekiq::Testing.inline!
     @janitor = create(:janitor_user)
     CurrentUser.user = @janitor
-    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   teardown do

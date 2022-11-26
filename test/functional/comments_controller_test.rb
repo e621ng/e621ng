@@ -6,7 +6,6 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       @mod = create(:moderator_user)
       @user = create(:member_user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
 
       @post = create(:post)
       @comment = create(:comment, post: @post)
@@ -113,7 +112,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     context "create action"do
       should "create a comment" do
         assert_difference("Comment.count", 1) do
-          post_auth comments_path, @user, params: { comment: attributes_for(:comment, post_id: @post.id) }
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
         end
         comment = Comment.last
         assert_redirected_to post_path(comment.post)
@@ -121,7 +120,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       should "not allow commenting on nonexistent posts" do
         assert_difference("Comment.count", 0) do
-          post_auth comments_path, @user, params: { comment: attributes_for(:comment, post_id: -1) }
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: -1 } }
         end
         assert_redirected_to comments_path
       end

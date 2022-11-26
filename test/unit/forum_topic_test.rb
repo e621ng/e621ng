@@ -5,7 +5,6 @@ class ForumTopicTest < ActiveSupport::TestCase
     setup do
       @user = create(:user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
       @topic = create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
     end
 

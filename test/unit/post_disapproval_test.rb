@@ -5,7 +5,6 @@ class PostDisapprovalTest < ActiveSupport::TestCase
     setup do
       @alice = create(:moderator_user, name: "alice")
       CurrentUser.user = @alice
-      CurrentUser.ip_addr = "127.0.0.1"
     end
 
     context "A post disapproval" do

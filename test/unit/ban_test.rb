@@ -6,7 +6,6 @@ class BanTest < ActiveSupport::TestCase
       setup do
         @banner = create(:admin_user)
         CurrentUser.user = @banner
-        CurrentUser.ip_addr = "127.0.0.1"
       end
 
       should "set the is_banned flag on the user" do
@@ -47,7 +46,6 @@ class BanTest < ActiveSupport::TestCase
       setup do
         @banner = create(:moderator_user)
         CurrentUser.user = @banner
-        CurrentUser.ip_addr = "127.0.0.1"
       end
 
       should "not be valid against an admin or moderator" do
@@ -101,7 +99,6 @@ class BanTest < ActiveSupport::TestCase
   context "Searching for a ban" do
     should "find a given ban" do
       CurrentUser.user = create(:admin_user)
-      CurrentUser.ip_addr = "127.0.0.1"
 
       user = create(:user)
       ban = create(:ban, user: user)
@@ -123,7 +120,6 @@ class BanTest < ActiveSupport::TestCase
       setup do
         @admin = create(:admin_user)
         CurrentUser.user = @admin
-        CurrentUser.ip_addr = "127.0.0.1"
         @user = create(:user)
       end
 

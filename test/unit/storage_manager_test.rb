@@ -3,10 +3,6 @@ require 'test_helper'
 class StorageManagerTest < ActiveSupport::TestCase
   BASE_DIR = "#{Rails.root}/tmp/test-storage"
 
-  setup do
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
   context "StorageManager::Match" do
     setup do
       @storage_manager = StorageManager::Match.new do |matcher|
