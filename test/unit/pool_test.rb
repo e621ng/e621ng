@@ -63,23 +63,23 @@ class PoolTest < ActiveSupport::TestCase
       @p1 = create(:post)
       @p2 = create(:post)
       @p3 = create(:post)
-      CurrentUser.scoped(@user, "1.2.3.4") do
+      as(@user, "1.2.3.4") do
         @pool.add!(@p1)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.5") do
+      as(@user, "1.2.3.5") do
         @pool.add!(@p2)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.6") do
+      as(@user, "1.2.3.6") do
         @pool.add!(@p3)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.7") do
+      as(@user, "1.2.3.7") do
         @pool.remove!(@p1)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.8") do
+      as(@user, "1.2.3.8") do
         version = @pool.versions[1]
         @pool.revert_to!(version)
         @pool.reload
@@ -236,7 +236,7 @@ class PoolTest < ActiveSupport::TestCase
       assert_equal(1, @pool.versions.size)
       user2 = create(:user, created_at: 1.month.ago)
 
-      CurrentUser.scoped(user2, "127.0.0.2") do
+      as(user2, "127.0.0.2") do
         @pool.post_ids = [@p1.id]
         @pool.save
       end
@@ -246,7 +246,7 @@ class PoolTest < ActiveSupport::TestCase
       assert_equal(user2.id, @pool.versions.last.updater_id)
       assert_equal("127.0.0.2", @pool.versions.last.updater_ip_addr.to_s)
 
-      CurrentUser.scoped(user2, "127.0.0.3") do
+      as(user2, "127.0.0.3") do
         @pool.post_ids = [@p1.id, @p2.id]
         @pool.save
       end

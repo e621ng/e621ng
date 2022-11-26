@@ -22,7 +22,7 @@ class CurrentUserTest < ActiveSupport::TestCase
       user1 = create(:user)
       user2 = create(:user)
       CurrentUser.user = user1
-      CurrentUser.scoped(user2, nil) do
+      as(user2, nil) do
         assert_equal(user2.id, CurrentUser.user.id)
       end
       assert_equal(user1.id, CurrentUser.user.id)
@@ -33,7 +33,7 @@ class CurrentUserTest < ActiveSupport::TestCase
       user2 = create(:user)
       CurrentUser.user = user1
       assert_raises(RuntimeError) do
-        CurrentUser.scoped(user2, nil) do
+        as(user2, nil) do
           assert_equal(user2.id, CurrentUser.user.id)
           raise "ERROR"
         end

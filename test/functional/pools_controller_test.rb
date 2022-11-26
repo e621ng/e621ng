@@ -89,7 +89,7 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
           @post_2 = create(:post)
           @pool = create(:pool, post_ids: [@post.id])
         end
-        CurrentUser.scoped(@user, "1.2.3.4") do
+        as(@user, "1.2.3.4") do
           @pool.update(post_ids: [@post.id, @post_2.id])
         end
       end

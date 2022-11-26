@@ -348,7 +348,7 @@ class PostTest < ActiveSupport::TestCase
         p1 = create(:post)
         c1 = create(:post, parent_id: p1.id)
         c1.delete!("test")
-        CurrentUser.scoped(new_user, "127.0.0.1") do
+        as(new_user) do
           c1.undelete!
         end
         p1.reload
@@ -900,7 +900,7 @@ class PostTest < ActiveSupport::TestCase
 
             context "by a janitor" do
               should "lock/unlock the notes" do
-                CurrentUser.scoped(@janitor) do
+                as(@janitor) do
                   @post.update(:tag_string => "locked:notes")
                   assert_equal(true, @post.is_note_locked)
 
@@ -921,7 +921,7 @@ class PostTest < ActiveSupport::TestCase
 
             context "by a janitor" do
               should "lock/unlock the rating" do
-                CurrentUser.scoped(@janitor) do
+                as(@janitor) do
                   @post.update(:tag_string => "locked:rating")
                   assert_equal(true, @post.is_rating_locked)
 
@@ -942,7 +942,7 @@ class PostTest < ActiveSupport::TestCase
 
             context "by an admin" do
               should "lock/unlock the status" do
-                CurrentUser.scoped(create(:admin_user)) do
+                as(create(:admin_user)) do
                   @post.update(:tag_string => "locked:status")
                   assert_equal(true, @post.is_status_locked)
 
@@ -1569,7 +1569,7 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for the fav:<name> metatag" do
       users = create_list(:user, 2)
       posts = users.map do |u|
-        CurrentUser.scoped(u) do
+        as(u) do
           post = create(:post, tag_string: "abc")
           FavoriteManager.add!(user: u, post: post, isolation: false)
           post
@@ -1808,7 +1808,7 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for a upvote:<user>, downvote:<user> metatag" do
       old_user = create(:mod_user, created_at: 5.days.ago)
-      CurrentUser.scoped(old_user) do
+      as(old_user) do
         upvoted   = create(:post, tag_string: "abc")
         downvoted = create(:post, tag_string: "abc")
         VoteManager.vote!(user: CurrentUser.user, post: upvoted, score: 1)
@@ -1886,7 +1886,7 @@ class PostTest < ActiveSupport::TestCase
       post2 = create(:post)
       post3 = create(:post)
 
-      CurrentUser.scoped(create(:privileged_user), "127.0.0.1") do
+      as(create(:privileged_user)) do
         create(:comment, post: post1)
         create(:comment, post: post2, do_not_bump_post: true)
         create(:comment, post: post3)
@@ -1980,7 +1980,7 @@ class PostTest < ActiveSupport::TestCase
     should "not allow duplicate votes" do
       user = create(:privileged_user)
       post = create(:post)
-      CurrentUser.scoped(user, "127.0.0.1") do
+      as(user) do
         assert_nothing_raised { VoteManager.vote!(user: user, post: post, score: 1) }
         # Need unvote is returned upon duplicates that are accounted for.
         assert_equal(:need_unvote, VoteManager.vote!(user: user, post: post, score: 1) )
@@ -1996,7 +1996,7 @@ class PostTest < ActiveSupport::TestCase
 
       # We deliberately don't call post.reload until the end to verify that
       # post.unvote! returns the correct score even when not forcibly reloaded.
-      CurrentUser.scoped(user, "127.0.0.1") do
+      as(user) do
         VoteManager.vote!(post: post, user: user, score: 1)
         assert_equal(1, post.score)
 

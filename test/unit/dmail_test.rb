@@ -34,7 +34,7 @@ class DmailTest < ActiveSupport::TestCase
       end
 
       should "be ignored when sender is a moderator" do
-        CurrentUser.scoped(create(:moderator_user), "127.0.0.1") do
+        as(create(:moderator_user)) do
           @dmail = create(:dmail, owner: @recipient, body: "banned word here", to: @recipient)
         end
 
@@ -149,7 +149,7 @@ class DmailTest < ActiveSupport::TestCase
       assert(recipient.has_mail?)
       assert_equal(1, recipient.unread_dmail_count)
 
-      CurrentUser.scoped(recipient) do
+      as(recipient) do
         dmail.mark_as_read!
       end
 

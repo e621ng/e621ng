@@ -10,7 +10,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       @post = create(:post)
       @comment = create(:comment, post: @post)
-      CurrentUser.scoped(@mod) do
+      as(@mod) do
         @mod_comment = create(:comment, post: @post)
       end
     end

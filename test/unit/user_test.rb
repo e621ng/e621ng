@@ -34,7 +34,7 @@ class UserTest < ActiveSupport::TestCase
 
     should "not validate if the originating ip address is banned" do
       assert_raises ActiveRecord::RecordInvalid do
-        CurrentUser.scoped(User.anonymous, "1.2.3.4") do
+        as(User.anonymous, "1.2.3.4") do
           create(:ip_ban, ip_addr: '1.2.3.4')
           create(:user, last_ip_addr: '1.2.3.4')
         end
@@ -69,14 +69,14 @@ class UserTest < ActiveSupport::TestCase
       user2.update_column(:created_at, 1.year.ago)
 
       Danbooru.config.comment_vote_limit.times do
-        CurrentUser.as(user2) do
+        as(user2) do
           comment = create(:comment)
         end
         VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
       end
 
       assert_equal(@user.can_comment_vote_with_reason, :REJ_LIMITED)
-      CurrentUser.as(user2) do
+      as(user2) do
         comment = create(:comment)
       end
       assert_raises ActiveRecord::RecordInvalid do
@@ -270,7 +270,7 @@ class UserTest < ActiveSupport::TestCase
       end
 
       should "not validate" do
-        CurrentUser.scoped(nil, "127.0.0.2") do
+        as(nil, "127.0.0.2") do
           @user = build(:user)
           @user.save
           assert_equal(["Last ip addr was used recently for another account and cannot be reused for another day"], @user.errors.full_messages)
@@ -284,7 +284,7 @@ class UserTest < ActiveSupport::TestCase
       end
 
       should "not validate" do
-        CurrentUser.scoped(nil, "127.0.0.2") do
+        as(nil, "127.0.0.2") do
           @user = build(:user)
           @user.email = "what@mine.xyz"
           @user.save

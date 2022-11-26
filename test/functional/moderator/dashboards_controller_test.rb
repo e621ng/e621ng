@@ -79,12 +79,12 @@ module Moderator
           setup do
             @users = (0..5).map { create(:user) }
 
-            CurrentUser.as( create(:user) ) do
+            as(create(:user)) do
               @comment = create(:comment)
             end
 
             @users.each do |user|
-              CurrentUser.as(user) do
+              as(user) do
                 VoteManager.comment_vote!(user: user, comment: @comment, score: -1)
               end
             end

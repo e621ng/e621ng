@@ -160,7 +160,7 @@ class TagAliasTest < ActiveSupport::TestCase
     context "with an associated forum topic" do
       setup do
         @admin = create(:admin_user)
-        CurrentUser.scoped(@admin) do
+        as(@admin) do
           @topic = create(:forum_topic, title: TagAliasRequest.topic_title("aaa", "bbb"))
           @post = create(:forum_post, topic_id: @topic.id, body: TagAliasRequest.command_string("aaa", "bbb"))
           @alias = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @topic, forum_post: @post, status: "pending")

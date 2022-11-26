@@ -7,7 +7,7 @@ class DmailFilterTest < ActiveSupport::TestCase
   end
 
   def create_dmail(body, title)
-    CurrentUser.scoped(@sender, "127.0.0.1") do
+    as(@sender) do
       Dmail.create_split(:to_id => @receiver.id, :body => body, :title => title)
     end
   end

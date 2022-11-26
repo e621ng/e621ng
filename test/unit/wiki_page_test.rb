@@ -92,7 +92,7 @@ class WikiPageTest < ActiveSupport::TestCase
 
       should "differentiate between updater and creator" do
         another_user = create(:user)
-        CurrentUser.scoped(another_user, "127.0.0.1") do
+        as(another_user) do
           @wiki_page.title = "yyy"
           @wiki_page.save
         end

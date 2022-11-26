@@ -148,7 +148,7 @@ class NoteTest < ActiveSupport::TestCase
       setup do
         @vandal = create(:user)
         @note = create(:note, x: 5, y: 5)
-        CurrentUser.scoped(@vandal, "127.0.0.1") do
+        as(@vandal) do
           @note.update(:x => 10, :y => 10)
         end
       end

@@ -52,8 +52,8 @@ class ActiveSupport::TestCase
     RequestStore.clear!
   end
 
-  def as(user, &)
-    CurrentUser.as(user, &)
+  def as(user, ip_addr = "127.0.0.1", &)
+    CurrentUser.scoped(user, ip_addr, &)
   end
 end
 

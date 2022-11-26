@@ -59,7 +59,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
 
       should "not convert the desired name to lower case" do
         uncr = create(:user_name_change_request, user: @requester, original_name: "provence.", desired_name: "Provence")
-        CurrentUser.scoped(@admin) { uncr.approve! }
+        as(@admin) { uncr.approve! }
 
         assert_equal("Provence", @requester.name)
       end

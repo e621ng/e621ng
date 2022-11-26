@@ -93,7 +93,7 @@ class CommentTest < ActiveSupport::TestCase
         post = create(:post)
         c1 = create(:comment, post: post)
 
-        CurrentUser.scoped(user2, "127.0.0.1") do
+        as(user2) do
           VoteManager.comment_vote!(user: user2, comment: c1, score: -1)
           c1.reload
           assert_not_equal(user2.id, c1.updater_id)
@@ -107,7 +107,7 @@ class CommentTest < ActiveSupport::TestCase
         c1 = create(:comment, post: post)
         c2 = create(:comment, post: post)
 
-        CurrentUser.scoped(user2, "127.0.0.1") do
+        as(user2) do
           assert_nothing_raised { VoteManager.comment_vote!(user: user2, comment: c1, score: -1) }
           assert_equal(:need_unvote, VoteManager.comment_vote!(user: user2, comment: c1, score: -1))
           assert_equal(1, CommentVote.count)
@@ -150,7 +150,7 @@ class CommentTest < ActiveSupport::TestCase
         user2 = create(:user)
         post = create(:post)
         comment = create(:comment, post: post)
-        CurrentUser.scoped(user2, "127.0.0.1") do
+        as(user2) do
           VoteManager.comment_vote!(user: user2, comment: comment, score: 1)
           comment.reload
           assert_equal(1, comment.score)

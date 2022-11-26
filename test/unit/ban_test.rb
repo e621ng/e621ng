@@ -80,7 +80,7 @@ class BanTest < ActiveSupport::TestCase
     should "initialize the expiration date" do
       user = create(:user)
       admin = create(:admin_user)
-      CurrentUser.scoped(admin) do
+      as(admin) do
         ban = create(:ban, user: user, banner: admin)
         assert_not_nil(ban.expires_at)
       end
@@ -90,7 +90,7 @@ class BanTest < ActiveSupport::TestCase
       user = create(:user)
       admin = create(:admin_user)
       assert(user.feedback.empty?)
-      CurrentUser.scoped(admin) do
+      as(admin) do
         create(:ban, user: user, banner: admin)
       end
       assert(!user.feedback.empty?)

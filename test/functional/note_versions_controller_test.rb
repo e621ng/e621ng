@@ -13,11 +13,11 @@ class NoteVersionsControllerTest < ActionDispatch::IntegrationTest
         end
         @user_2 = create(:user)
 
-        CurrentUser.scoped(@user_2, "1.2.3.4") do
+        as(@user_2, "1.2.3.4") do
           @note.update(:body => "1 2")
         end
 
-        CurrentUser.scoped(@user, "1.2.3.4") do
+        as(@user, "1.2.3.4") do
           @note.update(:body => "1 2 3")
         end
       end
