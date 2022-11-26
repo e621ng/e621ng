@@ -5,7 +5,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @admin = create(:admin_user)
       @user = create(:user)
-      as_user do
+      as(@user) do
         @artist = create(:artist, notes: "message")
         @masao = create(:artist, name: "masao", url_string: "http://www.pixiv.net/member.php?id=32777")
         @artgerm = create(:artist, name: "artgerm", url_string: "http://artgerm.deviantart.com/")
@@ -101,7 +101,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "merge the new notes with the existing wiki page's contents if a wiki page for the new name already exists" do
-          as_user do
+          as(@user) do
             @existing_wiki_page = create(:wiki_page, title: "bbb", body: "xxx")
           end
           put_auth artist_path(@artist.id), @user, params: {artist: {name: "bbb", notes: "yyy"}}
@@ -129,7 +129,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
     context "reverting an artist" do
       should "work" do
-        as_user do
+        as(@user) do
           @artist.update(name: "xyz")
           @artist.update(name: "abc")
         end
@@ -138,7 +138,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another artist" do
-        as_user do
+        as(@user) do
           @artist2 = create(:artist)
         end
         put_auth artist_path(@artist.id), @user, params: {version_id: @artist2.versions.first.id}

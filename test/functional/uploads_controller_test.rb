@@ -52,8 +52,8 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       context "for a post that has already been uploaded" do
         setup do
-          as_user do
-            @post = create(:post, :source => "http://google.com/aaa")
+          as(@user) do
+            @post = create(:post, source: "http://google.com/aaa")
           end
         end
 
@@ -88,7 +88,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
+        as(@user) do
           @upload = create(:source_upload, tag_string: "foo bar")
         end
       end
@@ -117,7 +117,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
     context "show action" do
       setup do
-        as_user do
+        as(@user) do
           @upload = create(:jpg_upload)
         end
       end

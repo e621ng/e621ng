@@ -4,8 +4,8 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
   context "The posts controller" do
     setup do
       @user = travel_to(1.month.ago) {create(:user)}
-      as_user do
-        @post = create(:post, :tag_string => "aaaa")
+      as(@user) do
+        @post = create(:post, tag_string: "aaaa")
       end
     end
 
@@ -81,7 +81,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     context "revert action" do
       setup do
-        as_user do
+        as(@user) do
           @post.update(tag_string: "zzz")
         end
       end
@@ -96,8 +96,8 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another post" do
-        as_user do
-          @post2 = create(:post, :uploader_id => @user.id, :tag_string => "herp")
+        as(@user) do
+          @post2 = create(:post, uploader_id: @user.id, tag_string: "herp")
         end
 
         put_auth revert_post_path(@post), @user, params: { :version_id => @post2.versions.first.id }

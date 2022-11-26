@@ -8,7 +8,7 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
+        as(@user) do
           @pool = create(:pool)
         end
         @user_2 = create(:user)

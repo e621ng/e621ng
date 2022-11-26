@@ -54,10 +54,6 @@ class ActiveSupport::TestCase
   def as(user, &)
     CurrentUser.as(user, &)
   end
-
-  def as_user(&)
-    CurrentUser.as(@user, &)
-  end
 end
 
 class ActionDispatch::IntegrationTest

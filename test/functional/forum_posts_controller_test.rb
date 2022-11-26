@@ -6,7 +6,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @other_user = create(:user)
       @mod = create(:moderator_user)
-      as_user do
+      as(@user) do
         @forum_topic = create(:forum_topic, title: "my forum topic", original_post_attributes: { body: "alias xxx -> yyy" })
         @forum_post = @forum_topic.original_post
       end
@@ -14,7 +14,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "with votes" do
       setup do
-        as_user do
+        as(@user) do
           @tag_alias = create(:tag_alias, forum_post: @forum_post, status: "pending")
           @vote = create(:forum_post_vote, forum_post: @forum_post, score: 1)
           @forum_post.reload

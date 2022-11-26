@@ -31,7 +31,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     context "show action" do
       setup do
         # flesh out profile to get more test coverage of user presenter.
-        as_user do
+        as(@user) do
           create(:post, uploader: @user, tag_string: "fav:#{@user.name}")
         end
       end

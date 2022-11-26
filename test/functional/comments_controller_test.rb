@@ -99,7 +99,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow changing do_not_bump_post or post_id" do
-        as_user do
+        as(@user) do
           @another_post = create(:post)
         end
         put_auth comment_path(@comment.id), @comment.creator, params: {do_not_bump_post: true, post_id: @another_post.id}

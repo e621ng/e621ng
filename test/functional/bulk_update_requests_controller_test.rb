@@ -24,7 +24,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
     context "#update" do
       setup do
-        as_user do
+        as(@user) do
           @bulk_update_request = create(:bulk_update_request)
         end
       end
@@ -38,7 +38,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
     context "#index" do
       setup do
-        as_user do
+        as(@user) do
           @bulk_update_request = create(:bulk_update_request)
         end
       end
@@ -51,7 +51,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
     context "#destroy" do
       setup do
-        as_user do
+        as(@user) do
           @bulk_update_request = create(:bulk_update_request)
         end
       end
@@ -87,7 +87,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
     context "#approve" do
       setup do
-        as_user do
+        as(@user) do
           @bulk_update_request = create(:bulk_update_request)
         end
       end

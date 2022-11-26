@@ -7,8 +7,8 @@ module Moderator
         setup do
           @user = create(:user)
           @admin = create(:admin_user)
-          as_user do
-            @post = create(:post, :is_pending => true)
+          as(@user) do
+            @post = create(:post, is_pending: true)
           end
 
           CurrentUser.user = @admin

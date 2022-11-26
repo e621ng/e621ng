@@ -1,10 +1,10 @@
-require 'test_helper'
+require "test_helper"
 
 class ArtistVersionsControllerTest < ActionDispatch::IntegrationTest
   context "An artist versions controller" do
     setup do
       @user = create(:privileged_user)
-      as_user do
+      as(@user) do
         @artist = create(:artist)
       end
     end
@@ -15,7 +15,7 @@ class ArtistVersionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "get the index page when searching for something" do
-      get_auth artist_versions_path(search: {name: @artist.name}), @user
+      get_auth artist_versions_path(search: { name: @artist.name }), @user
       assert_response :success
     end
   end

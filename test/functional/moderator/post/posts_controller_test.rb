@@ -10,7 +10,7 @@ module Moderator
             @user = create(:privileged_user)
           end
 
-          as_user do
+          as(@user) do
             @post = create(:post)
           end
         end
@@ -29,7 +29,7 @@ module Moderator
           end
 
           should "work even if the deleter has flagged the post previously" do
-            as_user do
+            as(@user) do
               PostFlag.create(post: @post, reason: "aaa", is_resolved: false)
             end
             post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
@@ -39,7 +39,7 @@ module Moderator
 
         context "undelete action" do
           should "render" do
-            as_user do
+            as(@user) do
               @post.delete! "test delete"
             end
             assert_difference(-> { PostEvent.count }, 1) do
@@ -57,7 +57,7 @@ module Moderator
           end
 
           should "render" do
-            as_user do
+            as(@user) do
               @parent = create(:post)
               @child = create(:post, parent: @parent)
             end

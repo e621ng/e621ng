@@ -5,7 +5,7 @@ module Moderator
     context "The tags controller" do
       setup do
         @user = create(:moderator_user)
-        as_user do
+        as(@user) do
           @post = create(:post)
         end
       end

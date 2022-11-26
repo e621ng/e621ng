@@ -8,7 +8,7 @@ module Moderator
           @user = create(:moderator_user)
         end
 
-        as_user do
+        as(@user) do
           create(:comment)
         end
       end

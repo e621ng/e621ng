@@ -4,7 +4,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
   context "The tags controller" do
     setup do
       @user = create(:janitor_user)
-      as_user do
+      as(@user) do
         @tag = create(:tag, name: "touhou", category: Tag.categories.copyright, post_count: 1)
       end
     end
@@ -77,7 +77,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
       context "for a tag with >50 posts" do
         setup do
-          as_user do
+          as(@user) do
             @tag.update(post_count: 100)
           end
         end
@@ -98,7 +98,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not change category when the tag is too large to be changed by a builder" do
-        as_user do
+        as(@user) do
           @tag.update(category: Tag.categories.general, post_count: 1001)
         end
         put_auth tag_path(@tag), @user, params: { tag: { category: Tag.categories.artist } }

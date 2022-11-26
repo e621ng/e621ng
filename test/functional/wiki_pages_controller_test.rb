@@ -9,7 +9,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
+        as(@user) do
           @wiki_page_abc = create(:wiki_page, :title => "abc")
           @wiki_page_def = create(:wiki_page, :title => "def")
         end
@@ -33,7 +33,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "show action" do
       setup do
-        as_user do
+        as(@user) do
           @wiki_page = create(:wiki_page)
         end
       end
@@ -59,7 +59,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render for a negated tag" do
-        as_user do
+        as(@user) do
           @wiki_page.update(title: "-aaa")
         end
         get wiki_page_path(:id => @wiki_page.id)
@@ -69,7 +69,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "show_or_new action" do
       setup do
-        as_user do
+        as(@user) do
           @wiki_page = create(:wiki_page)
         end
       end
@@ -94,7 +94,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "edit action" do
       should "render" do
-        as_user do
+        as(@user) do
           @wiki_page = create(:wiki_page)
         end
 
@@ -113,7 +113,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "update action" do
       setup do
-        as_user do
+        as(@user) do
           @tag = create(:tag, name: "foo", post_count: 42)
           @wiki_page = create(:wiki_page, title: "foo")
         end
@@ -143,7 +143,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       setup do
-        as_user do
+        as(@user) do
           @wiki_page = create(:wiki_page)
         end
         @mod = create(:mod_user)
@@ -157,8 +157,8 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "revert action" do
       setup do
-        as_user do
-          @wiki_page = create(:wiki_page, :body => "1")
+        as(@user) do
+          @wiki_page = create(:wiki_page, body: "1")
         end
         travel_to(1.day.from_now) do
           @wiki_page.update(:body => "1 2")
@@ -177,7 +177,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another wiki page" do
-        as_user do
+        as(@user) do
           @wiki_page_2 = create(:wiki_page)
         end
 

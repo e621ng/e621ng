@@ -5,9 +5,9 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @user = travel_to(1.month.ago) {create(:user)}
       @mod = create(:moderator_user)
-      as_user do
+      as(@user) do
         @post = create(:post)
-        @pool = create(:pool, :name => "abc")
+        @pool = create(:pool, name: "abc")
       end
     end
 
@@ -19,7 +19,7 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "add a post to a pool once and only once" do
-        as_user { @pool.add!(@post) }
+        as(@user) { @pool.add!(@post) }
         post_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}
         @pool.reload
         assert_equal([@post.id], @pool.post_ids)
@@ -28,7 +28,7 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       setup do
-        as_user { @pool.add!(@post) }
+        as(@user) { @pool.add!(@post) }
       end
 
       should "remove a post from a pool" do
@@ -39,7 +39,7 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
 
       should "do nothing if the post is not a member of the pool" do
         @pool.reload
-        as_user do
+        as(@user) do
           @pool.remove!(@post)
         end
         delete_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}

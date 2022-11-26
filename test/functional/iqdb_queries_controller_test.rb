@@ -5,7 +5,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
     setup do
       Danbooru.config.stubs(:iqdbs_server).returns("https://karasuma.donmai.us")
       @user = create(:user)
-      as_user do
+      as(@user) do
         @posts = create_list(:post, 2)
       end
     end
