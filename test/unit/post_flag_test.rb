@@ -54,9 +54,7 @@ class PostFlagTest < ActiveSupport::TestCase
     should "not be able to flag a post in the cooldown period" do
       @mod = create(:moderator_user)
 
-      travel_to(2.weeks.ago) do
-        @users = create_list(:user, 2)
-      end
+      @users = create_list(:user, 2, created_at: 2.weeks.ago)
 
       as(@users.first) do
         @flag1 = create(:post_flag, post: @post)
@@ -68,7 +66,6 @@ class PostFlagTest < ActiveSupport::TestCase
 
       travel_to(PostFlag::COOLDOWN_PERIOD.from_now - 1.minute) do
         as(@users.second) do
-
           error = assert_raises(ActiveRecord::RecordInvalid) do
             @flag2 = create(:post_flag, post: @post)
           end
@@ -94,9 +91,7 @@ class PostFlagTest < ActiveSupport::TestCase
 
     context "a user with no_flag=true" do
       setup do
-        travel_to(2.weeks.ago) do
-          @bob = create(:user, no_flagging: true)
-        end
+        @bob = create(:user, no_flagging: true, created_at: 2.weeks.ago)
       end
 
       should "not be able to flag" do

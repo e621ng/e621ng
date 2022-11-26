@@ -78,7 +78,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         old_timestamp = @wiki_page.updated_at
         old_updater_id = @wiki_page.updater_id
 
-        travel_to(1.minutes.from_now) do
+        travel_to(1.minute.from_now) do
           as(@another_user) do
             @artist.update(notes: "testing")
           end

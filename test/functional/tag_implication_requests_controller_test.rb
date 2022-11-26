@@ -3,9 +3,7 @@ require 'test_helper'
 class TagImplicationRequestsControllerTest < ActionDispatch::IntegrationTest
   context "The tag implication request controller" do
     setup do
-      travel_to(1.month.ago) do
-        @user = create(:user)
-      end
+      @user = create(:user, created_at: 1.month.ago)
     end
 
     context "new action" do

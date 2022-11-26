@@ -3,7 +3,6 @@ require 'test_helper'
 class ForumTopicTest < ActiveSupport::TestCase
   context "A forum topic" do
     setup do
-      travel_to Time.now
       @user = create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "127.0.0.1"

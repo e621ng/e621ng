@@ -3,7 +3,7 @@ require 'test_helper'
 class PoolElementsControllerTest < ActionDispatch::IntegrationTest
   context "The pools posts controller" do
     setup do
-      @user = travel_to(1.month.ago) {create(:user)}
+      @user = create(:user, created_at: 1.month.ago)
       @mod = create(:moderator_user)
       as(@user) do
         @post = create(:post)

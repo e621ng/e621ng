@@ -4,9 +4,7 @@ module Moderator
   class IpAddrsControllerTest < ActionDispatch::IntegrationTest
     context "The ip addrs controller" do
       setup do
-        travel_to(1.month.ago) do
-          @user = create(:moderator_user)
-        end
+        @user = create(:moderator_user, created_at: 1.month.ago)
 
         as(@user) do
           create(:comment)

@@ -4,9 +4,7 @@ module Moderator
   class DashboardsControllerTest < ActionDispatch::IntegrationTest
     context "The moderator dashboards controller" do
       setup do
-        travel_to(1.month.ago) do
-          @user = create(:privileged_user)
-        end
+        @user = create(:privileged_user, created_at: 1.month.ago)
         @admin = create(:admin_user)
       end
 

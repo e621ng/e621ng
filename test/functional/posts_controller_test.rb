@@ -3,7 +3,7 @@ require "test_helper"
 class PostsControllerTest < ActionDispatch::IntegrationTest
   context "The posts controller" do
     setup do
-      @user = travel_to(1.month.ago) {create(:user)}
+      @user = create(:user, created_at: 1.month.ago)
       as(@user) do
         @post = create(:post, tag_string: "aaaa")
       end
