@@ -14,16 +14,6 @@ class CurrentUser
     end
   end
 
-  def self.as(user_or_id, &block)
-    if user_or_id.is_a?(String) || user_or_id.is_a?(Integer)
-      user = ::User.find(user_or_id)
-    else
-      user = user_or_id
-    end
-
-    scoped(user, &block)
-  end
-
   def self.as_system(&)
     scoped(::User.system, &)
   end

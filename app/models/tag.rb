@@ -224,7 +224,7 @@ class Tag < ApplicationRecord
 
     def trending
       Cache.get("popular-tags-v3", 1.hour) do
-        CurrentUser.scoped(User.system, "127.0.0.1") do
+        CurrentUser.as_system do
           n = 24
           counts = {}
 
@@ -988,9 +988,7 @@ class Tag < ApplicationRecord
     def update_related
       return unless should_update_related?
 
-      CurrentUser.scoped(User.first, "127.0.0.1") do
-        self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
-      end
+      self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
       self.related_tags_updated_at = Time.now
       fix_post_count if post_count > 20 && rand(post_count) <= 1
       save

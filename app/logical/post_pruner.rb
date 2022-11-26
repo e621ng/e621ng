@@ -10,7 +10,7 @@ class PostPruner
   protected
 
   def prune_pending!
-    CurrentUser.scoped(User.system, "127.0.0.1") do
+    CurrentUser.as_system do
       Post.where("is_deleted = ? and is_pending = ? and created_at < ?", false, true, DELETION_WINDOW.days.ago).each do |post|
         post.delete!("Unapproved in #{DELETION_WINDOW} days")
       rescue PostFlag::Error
