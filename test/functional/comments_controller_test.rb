@@ -15,11 +15,6 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "index action" do
       should "render for post" do
         get comments_path(post_id: @post.id, group_by: "post")

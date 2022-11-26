@@ -8,11 +8,6 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "#estimate_update_count" do
       setup do
         Post.__elasticsearch__.create_index! force: true

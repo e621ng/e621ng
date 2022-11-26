@@ -9,12 +9,6 @@ class BanTest < ActiveSupport::TestCase
         CurrentUser.ip_addr = "127.0.0.1"
       end
 
-      teardown do
-        @banner = nil
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
       should "set the is_banned flag on the user" do
         user = create(:user)
         ban = build(:ban, user: user, banner: @banner)
@@ -54,12 +48,6 @@ class BanTest < ActiveSupport::TestCase
         @banner = create(:moderator_user)
         CurrentUser.user = @banner
         CurrentUser.ip_addr = "127.0.0.1"
-      end
-
-      teardown do
-        @banner = nil
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
       end
 
       should "not be valid against an admin or moderator" do
@@ -137,11 +125,6 @@ class BanTest < ActiveSupport::TestCase
         CurrentUser.user = @admin
         CurrentUser.ip_addr = "127.0.0.1"
         @user = create(:user)
-      end
-
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
       end
 
       context "when only expired bans exist" do

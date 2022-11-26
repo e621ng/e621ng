@@ -11,10 +11,6 @@ class DmailTest < ActiveSupport::TestCase
       ActionMailer::Base.deliveries = []
     end
 
-    teardown do
-      CurrentUser.user = nil
-    end
-
     context "filter" do
       setup do
         @recipient = create(:user)

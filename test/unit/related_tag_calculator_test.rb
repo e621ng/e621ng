@@ -8,11 +8,6 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
     Post.__elasticsearch__.create_index! force: true
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   context "A related tag calculator" do
     context "for a post set" do
       setup do

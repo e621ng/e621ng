@@ -5,11 +5,6 @@ class WikiPageTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   context "A wiki page" do
     context "that is locked" do
       should "not be editable by a member" do

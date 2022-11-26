@@ -9,11 +9,6 @@ class UserFeedbackTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     should "create a dmail" do
       dmail = <<~EOS.chomp
         @#{@mod.name} created a "positive record":/user_feedbacks?search[user_id]=#{@user.id} for your account:

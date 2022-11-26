@@ -10,11 +10,6 @@ module Moderator
         create(:comment, creator: @user, creator_ip_addr: CurrentUser.ip_addr)
       end
 
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
       should "find by ip addr" do
         @result = IpAddrSearch.new(ip_addr: "170.1.2.3").execute
         assert_equal(@result[:users][@user.id].id, @user.id)

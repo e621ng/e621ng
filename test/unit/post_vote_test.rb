@@ -1,9 +1,7 @@
 require 'test_helper'
 
 class PostVoteTest < ActiveSupport::TestCase
-  def setup
-    super
-
+  setup do
     @user = create(:user, created_at: 1.month.ago)
     CurrentUser.user = @user
     CurrentUser.ip_addr = "127.0.0.1"

@@ -33,16 +33,12 @@ class UploadServiceTest < ActiveSupport::TestCase
     context ".calculate_dimensions" do
       context "for a video" do
         setup do
-          @file = file_fixture("test-512x512.webm").open
+          @path = file_fixture("test-512x512.webm").to_s
           @upload = Upload.new(file_ext: "webm")
         end
 
-        teardown do
-          @file.close
-        end
-
         should "return the dimensions" do
-          w, h = @upload.calculate_dimensions(@file.path)
+          w, h = @upload.calculate_dimensions(@path)
           assert_operator(w, :>, 0)
           assert_operator(h, :>, 0)
         end
@@ -50,16 +46,12 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       context "for an image" do
         setup do
-          @file = file_fixture("test.jpg").open
+          @path = file_fixture("test.jpg").to_s
           @upload = Upload.new(file_ext: "jpg")
         end
 
-        teardown do
-          @file.close
-        end
-
         should "find the dimensions" do
-          w, h = @upload.calculate_dimensions(@file.path)
+          w, h = @upload.calculate_dimensions(@path)
           assert_operator(w, :>, 0)
           assert_operator(h, :>, 0)
         end
@@ -201,11 +193,6 @@ class UploadServiceTest < ActiveSupport::TestCase
       @build_service = ->(**params) { subject.new({ rating: "s", uploader: CurrentUser.user, uploader_ip_addr: CurrentUser.ip_addr }.merge(params)) }
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "automatic tagging" do
       should "tag animated png files" do
         service = @build_service.call(file: fixture_file_upload("apng/normal_apng.png"))
@@ -294,11 +281,6 @@ class UploadServiceTest < ActiveSupport::TestCase
     setup do
       CurrentUser.user = create(:user, created_at: 1.month.ago)
       CurrentUser.ip_addr = "127.0.0.1"
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "for an image" do

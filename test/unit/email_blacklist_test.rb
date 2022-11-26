@@ -7,11 +7,6 @@ class EmailBlacklistTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   should "detect email by suffix" do
     block = EmailBlacklist.create(creator: @user, domain: '.xyz', reason: 'test')
 

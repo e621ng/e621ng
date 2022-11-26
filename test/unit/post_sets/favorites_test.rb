@@ -16,11 +16,6 @@ module PostSets
         FavoriteManager.add!(user: @user, post: @post_3)
       end
 
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
       context "a favorite set for before the most recent post" do
         setup do
           id = ::Favorite.where(user_id: @user.id, post_id: @post_3.id).first.id

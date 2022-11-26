@@ -9,11 +9,6 @@ class PoolTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   context "A name" do
     setup do
       @pool = create(:pool, name: "xxx")
@@ -217,10 +212,6 @@ class PoolTest < ActiveSupport::TestCase
         Danbooru.config.stubs(:pool_category_change_limit).returns(1)
         @pool.add!(@p1)
         @pool.add!(@p2)
-      end
-
-      teardown do
-        Danbooru.config.unstub(:pool_category_change_limit)
       end
 
       should "not allow Members to change the category of large pools" do

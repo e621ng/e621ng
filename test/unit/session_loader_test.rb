@@ -14,12 +14,6 @@ class SessionLoaderTest < ActiveSupport::TestCase
       @request.stubs(:session).returns({})
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-      CurrentUser.safe_mode = nil
-    end
-
     context ".safe_mode?" do
       should "return true if the config has safe mode enabled" do
         Danbooru.config.stubs(:safe_mode?).returns(true)

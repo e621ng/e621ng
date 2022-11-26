@@ -8,11 +8,6 @@ class NoteTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "for a post that already has a note" do
       setup do
         @post = create(:post)

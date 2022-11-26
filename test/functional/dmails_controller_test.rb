@@ -10,11 +10,6 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "new action" do
       should "get the page" do
         get_auth new_dmail_path, @user

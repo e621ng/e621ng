@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class PostEventTest < ActiveSupport::TestCase
-  def setup
+  setup do
     travel_to(1.month.ago) do
       @user = create(:user)
       @janitor = create(:janitor_user)

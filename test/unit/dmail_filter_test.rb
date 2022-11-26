@@ -1,9 +1,7 @@
 require 'test_helper'
 
 class DmailFilterTest < ActiveSupport::TestCase
-  def setup
-    super
-
+  setup do
     @receiver = create(:user)
     @sender = create(:user)
   end

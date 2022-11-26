@@ -7,11 +7,6 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "category command" do
       setup do
         @tag = Tag.find_or_create_by_name("hello")

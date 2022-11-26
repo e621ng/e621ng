@@ -24,11 +24,6 @@ class ArtistTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     should "parse inactive urls" do
       @artist = Artist.create(name: "blah", url_string: "-http://monet.com")
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))

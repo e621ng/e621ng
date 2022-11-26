@@ -9,11 +9,6 @@ class ForumPostTest < ActiveSupport::TestCase
       @topic = create(:forum_topic)
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "#votable?" do
       setup do
         @post = build(:forum_post, topic_id: @topic.id, body: "[[aaa]] -> [[bbb]]")

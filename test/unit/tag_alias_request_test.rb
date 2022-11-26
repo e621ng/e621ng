@@ -8,11 +8,6 @@ class TagAliasRequestTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     should "handle invalid attributes" do
       tar = TagAliasRequest.new(:antecedent_name => "", :consequent_name => "", :reason => "reason")
       tar.create

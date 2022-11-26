@@ -5,9 +5,7 @@ class PostTest < ActiveSupport::TestCase
     assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
   end
 
-  def setup
-    super
-
+  setup do
     Sidekiq::Testing.inline!
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
@@ -15,12 +13,8 @@ class PostTest < ActiveSupport::TestCase
     Post.__elasticsearch__.create_index!
   end
 
-  def teardown
-    super
-
+  teardown do
     Sidekiq::Testing.fake!
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
   end
 
   context "Deletion:" do

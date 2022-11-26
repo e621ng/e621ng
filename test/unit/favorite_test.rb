@@ -11,11 +11,6 @@ class FavoriteTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   context "A favorite" do
     should "delete from all tables" do
       FavoriteManager.add!(user: @user1, post: @p1)

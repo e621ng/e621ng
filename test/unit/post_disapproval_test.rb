@@ -8,11 +8,6 @@ class PostDisapprovalTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "A post disapproval" do
       setup do
         @post_1 = create(:post, is_pending: true)

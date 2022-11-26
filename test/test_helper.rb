@@ -49,6 +49,7 @@ class ActiveSupport::TestCase
     # The below line is only mildly insane and may have resulted in the destruction of my data several times.
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
+    RequestStore.clear!
   end
 
   def as(user, &)

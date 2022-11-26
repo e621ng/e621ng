@@ -9,11 +9,6 @@ class ForumTopicTest < ActiveSupport::TestCase
       @topic = create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "#read_by?" do
       context "with a populated @user.last_forum_read_at" do
         setup do

@@ -14,11 +14,6 @@ module PostSets
         @post_3 = create(:post, tag_string: "c")
       end
 
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
       context "a set for page 2" do
         setup do
           @set = PostSets::Post.new("", 2, 1)

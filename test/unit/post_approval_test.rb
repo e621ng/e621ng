@@ -15,11 +15,6 @@ class PostApprovalTest < ActiveSupport::TestCase
       CurrentUser.user = @approver
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     should "allow approval" do
       assert_equal(false, @post.approved_by?(@approver))
     end

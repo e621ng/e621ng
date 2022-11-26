@@ -9,11 +9,6 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "approving a request" do
       setup do
         @change_request = UserNameChangeRequest.create(

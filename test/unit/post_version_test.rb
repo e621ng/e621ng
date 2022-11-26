@@ -8,11 +8,6 @@ class PostVersionTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "that has multiple versions: " do
       setup do
         @post = create(:post, tag_string: "1")

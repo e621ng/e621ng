@@ -10,10 +10,6 @@ class UploadWhitelistTest < ActiveSupport::TestCase
       @whitelist = create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
     should "match" do
       assert_equal([true, nil], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://static1.e621.net/data/123.png")))
       assert_equal([false, "123.com not in whitelist"], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://123.com/what.png")))

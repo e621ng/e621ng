@@ -17,11 +17,6 @@ class TagImplicationTest < ActiveSupport::TestCase
       @user = create(:user)
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     context "on validation" do
       subject do
         create(:tag, name: "aaa")

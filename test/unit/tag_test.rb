@@ -10,8 +10,6 @@ class TagTest < ActiveSupport::TestCase
 
   teardown do
     Sidekiq::Testing.fake!
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
   end
 
   context ".trending" do

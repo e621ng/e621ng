@@ -11,11 +11,6 @@ class PostReplacementTest < ActiveSupport::TestCase
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
-  end
-
   context "User Limits:" do
     should "fail on too many per post in one day" do
       Danbooru.config.stubs(:post_replacement_per_day_limit).returns(-1)

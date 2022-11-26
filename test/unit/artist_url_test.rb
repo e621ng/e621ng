@@ -11,11 +11,6 @@ class ArtistUrlTest < ActiveSupport::TestCase
       CurrentUser.ip_addr = "127.0.0.1"
     end
 
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
-    end
-
     should "allow urls to be marked as inactive" do
       url = create(:artist_url, url: "http://monet.com", is_active: false)
       assert_equal("http://monet.com", url.url)

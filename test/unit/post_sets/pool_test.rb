@@ -17,11 +17,6 @@ module PostSets
         @pool.add!(@post_3)
       end
 
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
-      end
-
       context "a post pool set for page 2" do
         setup do
           @set = PostSets::Pool.new(@pool, 2)
