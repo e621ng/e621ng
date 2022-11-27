@@ -6,14 +6,12 @@
 
       <div class="bottom-section">
         <div class="posts-section">
-          <% if !@user.hide_favorites? %>
-            <div class="blacklist">
-              <%= render "posts/partials/common/inline_blacklist" %>
-            </div>
-            <div class="posts">
-              <%= render "post_summary", :presenter => @presenter, :user => @user %>
-            </div>
-          <% end %>
+          <div class="blacklist">
+            <%= render "posts/partials/common/inline_blacklist" %>
+          </div>
+          <div class="posts">
+            <%= render "post_summary", presenter: @presenter, user: @user %>
+          </div>
         </div>
         <%= render "about", presenter: @presenter, user: @user %>
       </div>

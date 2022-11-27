@@ -1,4 +1,4 @@
-<% if presenter.has_favorites? %>
+<% if presenter.has_favorites? && !@user.hide_favorites? %>
   <div class="box user-favorites">
     <h2>
       <%= link_to "Favorites", favorites_path(:user_id => user.id) %>
