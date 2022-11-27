@@ -144,7 +144,7 @@ class TagSetPresenter < Presenter
     end
 
     html << tag_link(tag, name.tr("_", " "))
-    html << %(<i class="highlight fas fa-check"></i>) if highlight
+    html << %(<i title="Uploaded by the artist" class="highlight far fa-check-circle"></i>) if highlight
 
     if count >= 10_000
       post_count = "#{count / 1_000}k"
