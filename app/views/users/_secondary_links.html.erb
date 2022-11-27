@@ -16,7 +16,7 @@
         <%= subnav_link_to "Messages #{CurrentUser.user.dmail_count}", dmails_current_folder_path %>
       <% else %>
         <%= subnav_link_to "Send message", new_dmail_path(:dmail => {:to_id => @user.id}) %>
-        <%= subnav_link_to "Report/Commend", new_ticket_path(disp_id: @user.id, type: 'user') %>
+        <%= subnav_link_to "Report/Commend", new_ticket_path(disp_id: @user.id, qtype: 'user') %>
       <% end %>
 
       <% if CurrentUser.user.is_moderator? %>

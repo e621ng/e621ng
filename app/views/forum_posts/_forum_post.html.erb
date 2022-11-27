@@ -61,7 +61,7 @@
             <% end %>
           <% end %>
           <% if CurrentUser.is_member? %>
-            <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, type: 'forum') %></li>
+            <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, qtype: 'forum') %></li>
           <% end %>
           <% if CurrentUser.is_moderator? %>
             <li>|</li>

@@ -23,7 +23,7 @@
       <% if @post_set.can_edit_settings?(CurrentUser.user) %>
         <%= subnav_link_to "Delete", post_set_path(@post_set), method: 'delete', data: {confirm: 'Are you sure you want to delete this set?'} %>
       <% end %>
-      <%= subnav_link_to "Report", new_ticket_path(type: 'set', disp_id: @post_set.id) %>
+      <%= subnav_link_to "Report", new_ticket_path(qtype: 'set', disp_id: @post_set.id) %>
     <% end %>
   </menu>
 <% end %>

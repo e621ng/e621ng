@@ -27,7 +27,7 @@
           <li><%= link_to "Flag", new_post_flag_path(post_flag: {post_id: post.id}), id: "flag" %></li>
         <% end %>
       <% end %>
-      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, type: 'post') %></li>
+      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, qtype: 'post') %></li>
 
       <% if CurrentUser.can_approve_posts? %>
         <% if post.is_deleted? %>

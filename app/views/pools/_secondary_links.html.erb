@@ -21,7 +21,7 @@
         <%= subnav_link_to "Order", edit_pool_order_path(@pool) %>
       <% end %>
       <% if CurrentUser.is_member? %>
-        <%= subnav_link_to "Report", new_ticket_path(disp_id: @pool.id, type: 'pool') %>
+        <%= subnav_link_to "Report", new_ticket_path(disp_id: @pool.id, qtype: 'pool') %>
       <% end %>
     <% end %>
   </menu>

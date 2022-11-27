@@ -3,7 +3,7 @@
 
     <%= custom_form_for(@ticket) do |f| %>
       <% @found_item = true %>
-      <% if params[:type].nil? %>
+      <% if @ticket.qtype.nil? %>
         <% @found_item = false %>
         <div class='section' style='max-width:80em;'>
           To submit a ticket about a problematic comment, click "Report" on the comment itself.<br/>
@@ -13,11 +13,6 @@
           To submit a ticket about a problematic user, click "Report" on the user's profile page.<br/>
           To submit a ticket about a problematic private message, click "Report PM" above the PM itself.<br/>
           To submit a username request, click "Request Username Change" on <a href='/user/home'>the user home page</a>.<br/>
-        </div>
-      <% elsif CurrentUser.is_anonymous? %>
-        <% @found_item = false %>
-        <div class='section' style='max-width:80em;'>
-          You must be logged in to submit a ticket. Please <a href='/user/login'>log in</a> and try again.
         </div>
       <% else %>
         <% if @ticket.content %>
@@ -36,7 +31,7 @@
 
         <div class='section' style='max-width:80em;'>
           <label for="ticket_reason">
-            <% if params[:type] == "post" %>
+            <% if @ticket.qtype == "post" %>
               Additional details.
             <% else %>
               Reason for complaint

@@ -200,8 +200,8 @@ class Ticket < ApplicationRecord
         q = q.where('disp_id = ? and qtype = ?', user_id, 'user') if user_id
       end
 
-      if params[:type].present?
-        q = q.where('qtype = ?', params[:type])
+      if params[:qtype].present?
+        q = q.where('qtype = ?', params[:qtype])
       end
 
       if params[:reason].present?
