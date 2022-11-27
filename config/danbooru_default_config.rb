@@ -91,7 +91,10 @@ module Danbooru
 
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
-      user.comment_threshold = -10 unless user.will_save_change_to_comment_threshold?
+      user.comment_threshold = -10
+      user.enable_keyboard_navigation = true
+      user.enable_auto_complete = true
+      user.style_usernames = true
       user.blacklisted_tags = 'gore
 scat
 watersports
@@ -99,7 +102,6 @@ young -rating:s
 loli
 shota
 fart'
-      true
     end
 
     # This allows using statically linked copies of ffmpeg in non default locations. Not universally supported across

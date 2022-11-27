@@ -907,8 +907,6 @@ class User < ApplicationRecord
 
   def initialize_attributes
     self.last_ip_addr ||= CurrentUser.ip_addr
-    self.enable_keyboard_navigation = true
-    self.enable_auto_complete = true
 
     return if Rails.env.test?
     Danbooru.config.customize_new_user(self)
