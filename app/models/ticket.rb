@@ -225,7 +225,7 @@ class Ticket < ApplicationRecord
 
   module ClassifyMethods
     def classify
-      extend(TicketTypes.const_get(qtype.classify)) if TicketTypes.const_defined?(qtype.classify)
+      extend(TicketTypes.const_get(qtype.camelize)) if TicketTypes.const_defined?(qtype.camelize)
     end
   end
 
