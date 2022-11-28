@@ -1,6 +1,6 @@
 class IpBansController < ApplicationController
   respond_to :html, :json
-  before_action :moderator_only
+  before_action :admin_only
 
   def new
     @ip_ban = IpBan.new

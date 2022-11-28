@@ -12,7 +12,7 @@ class NoteVersionsController < ApplicationController
 
   def search_params
     permitted_params = %i[updater_id post_id note_id is_active body_matches]
-    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 end

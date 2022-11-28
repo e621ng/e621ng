@@ -2,7 +2,7 @@
   <% if post.is_comment_disabled %>
     Comment section has been disabled.
   <% end %>
-  <% if !post.is_comment_disabled || CurrentUser.is_admin? %>
+  <% if !post.is_comment_disabled || CurrentUser.is_moderator? %>
     <div class="row notices">
       <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > 6) %>
         <span class="info" id="threshold-comments-notice-for-<%= post.id %>">

@@ -896,7 +896,7 @@ class User < ApplicationRecord
   end
 
   def hide_favorites?
-    return false if CurrentUser.is_admin?
+    return false if CurrentUser.is_moderator?
     return true if is_blocked?
     enable_privacy_mode? && CurrentUser.user.id != id
   end

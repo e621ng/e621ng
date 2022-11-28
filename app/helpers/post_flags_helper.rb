@@ -10,7 +10,7 @@ module PostFlagsHelper
 
       if CurrentUser.can_view_flagger_on_post?(flag)
         html << " - #{link_to_user(flag.creator)}"
-        if CurrentUser.is_moderator?
+        if CurrentUser.is_admin?
            html << " (#{link_to_ip(flag.creator_ip_addr)})"
         end
       end

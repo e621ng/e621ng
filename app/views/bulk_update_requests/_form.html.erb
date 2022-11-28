@@ -26,7 +26,7 @@
     <%= f.input :reason, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
   <% end %>
 
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_admin? %>
     <div class="input">
       <label class="checkbox optional" for="bulk_update_request_skip_forum">
         <%= check_box "bulk_update_request", "skip_forum" %>

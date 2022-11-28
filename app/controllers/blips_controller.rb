@@ -2,7 +2,8 @@ class BlipsController < ApplicationController
   class BlipTooOld < Exception ; end
   respond_to :html, :json
   before_action :member_only, only: [:create, :new, :update, :edit, :hide]
-  before_action :moderator_only, only: [:unhide, :destroy, :warning]
+  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :admin_only, only: [:destroy]
 
   rescue_from BlipTooOld, with: :blip_too_old
 
@@ -99,7 +100,7 @@ class BlipsController < ApplicationController
 
   def search_params
     permitted_params = %i[body_matches response_to creator_name creator_id order]
-    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 

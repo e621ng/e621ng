@@ -164,7 +164,7 @@ class ForumPost < ApplicationRecord
   end
 
   def can_delete?(user)
-    user.is_moderator?
+    user.is_admin?
   end
 
   def update_topic_updated_at_on_create

@@ -70,6 +70,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       context "when stickying a comment" do
         should "succeed if updater is a moderator" do
+          @comment = create(:comment, creator: @mod)
           put_auth comment_path(@comment.id), @mod, params: {comment: {is_sticky: true}}
           assert_equal(true, @comment.reload.is_sticky)
           assert_redirected_to @comment.post
@@ -154,7 +155,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the comment" do
-        delete_auth comment_path(@comment.id), @mod
+        delete_auth comment_path(@comment.id), create(:admin_user)
         assert_equal(0, Comment.where(id: @comment.id).count)
       end
     end

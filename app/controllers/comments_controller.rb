@@ -1,7 +1,8 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :search, :show]
-  before_action :moderator_only, only: [:unhide, :destroy, :warning]
+  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :admin_only, only: [:destroy]
   skip_before_action :api_check
 
   def index
@@ -126,7 +127,8 @@ private
 
   def search_params
     permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id poster_id is_sticky do_not_bump_post order]
-    permitted_params += %i[is_hidden ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 

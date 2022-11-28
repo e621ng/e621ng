@@ -115,8 +115,9 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the posts" do
-        delete_auth forum_post_path(@forum_post), @mod
-        get_auth forum_post_path(@forum_post), @mod
+        @admin = create(:admin_user)
+        delete_auth forum_post_path(@forum_post), @admin
+        get_auth forum_post_path(@forum_post), @admin
         assert_response :not_found
       end
     end

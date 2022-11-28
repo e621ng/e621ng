@@ -1,6 +1,7 @@
 class PostVotesController < ApplicationController
   before_action :voter_only
-  before_action :admin_only, only: [:index, :lock, :delete]
+  before_action :moderator_only, only: [:index, :lock]
+  before_action :admin_only, only: [:delete]
   skip_before_action :api_check
 
   def create

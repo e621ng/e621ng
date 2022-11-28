@@ -21,11 +21,15 @@
         <th><%= type.model_type.capitalize %></th>
         <th><%= type.model_type.capitalize %> Creator</th>
         <th>Voter</th>
-        <th>Email</th>
+        <% if CurrentUser.is_admin? %>
+          <th>Email</th>
+        <% end %>
         <th>Signed Up</th>
         <th>Vote</th>
         <th>Created</th>
-        <th>IP</th>
+        <% if CurrentUser.is_admin? %>
+          <th>IP</th>
+        <% end %>
       </tr>
       </thead>
       <tbody>
@@ -35,7 +39,9 @@
           <td><%= link_to vote.send("#{type.model_type}_id"), vote.send(type.model_type) %></td>
           <td><%= mod_link_to_user vote.send(type.model_type).send(type.model_creator_column), :negative %></td>
           <td><%= mod_link_to_user vote.user, :negative %></td>
-          <td><%= vote.user.email %>
+          <% if CurrentUser.is_admin? %>
+            <td><%= vote.user.email %>
+          <% end %>
           <td title="Signed up at <%= vote.user.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.user.created_at) %> ago
           <td>
             <% if vote.is_positive? %><span class='greentext'>Up</span>
@@ -44,7 +50,9 @@
             <% end %></td>
           <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago
           </td>
-          <td><%= link_to_ip vote.user_ip_addr %></td>
+          <% if CurrentUser.is_admin? %>
+            <td><%= link_to_ip vote.user_ip_addr %></td>
+          <% end %>
         </tr>
       <% end %>
       </tbody>

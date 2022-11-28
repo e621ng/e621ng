@@ -26,7 +26,7 @@
 
     <div id="tag-string-editor"></div>
 
-    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: (post.locked_tags || ""), spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: (post.locked_tags || ""), spellcheck: false, size: "60x2", disabled: !CurrentUser.is_moderator? } %>
   </div>
 
   <% if post.is_rating_locked? %>
@@ -54,7 +54,7 @@
           <%= f.input :is_note_locked, label: "Notes" %>
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
-        <% if CurrentUser.is_admin? %>
+        <% if CurrentUser.is_moderator? %>
           <%= f.input :is_status_locked, label: "Status" %>
         <% end %>
       </fieldset>

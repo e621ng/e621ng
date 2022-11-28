@@ -1,5 +1,5 @@
 <%= form_search path: tickets_path do |f| %>
-  <% if CurrentUser.is_admin? %>
+  <% if CurrentUser.is_moderator? %>
     <%= f.input :creator_name, label: "Reporter", autocomplete: "user" %>
     <%= f.input :creator_id, label: "Reporter ID" %>
     <%= f.input :accused_name, label: "Accused", autocomplete: "user" %>

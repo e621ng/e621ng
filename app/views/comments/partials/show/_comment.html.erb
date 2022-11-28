@@ -43,12 +43,12 @@
               <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
             <% end %>
 
-            <% if CurrentUser.is_moderator? %>
+            <% if CurrentUser.is_admin? %>
               <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
             <% end %>
             <li>|</li>
             <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
-            <% if CurrentUser.is_admin? %>
+            <% if CurrentUser.is_moderator? %>
               <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
             <% end %>
             <% if CurrentUser.is_member? && !comment.is_sticky %>
@@ -58,12 +58,14 @@
             <% if CurrentUser.is_moderator? %>
               <li>|</li>
               <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
+              <%= render "user_warnable/buttons", model: comment %>
+            <% end %>
+            <% if CurrentUser.is_admin? %>
+              <li>|</li>
               <li>
                 <strong>IP</strong>
                 <span><%= link_to_ip comment.creator_ip_addr %></span>
               </li>
-              <li>|</li>
-              <%= render "user_warnable/buttons", model: comment %>
             <% end %>
           </menu>
           <% if comment.editable_by?(CurrentUser.user) %>

@@ -1,7 +1,8 @@
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:new_merge, :create_merge, :unhide, :destroy]
+  before_action :moderator_only, :only => [:unhide]
+  before_action :admin_only, only: [:destroy, :new_merge, :create_merge]
   before_action :normalize_search, :only => :index
   before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :new_merge, :create_merge, :subscribe, :unsubscribe]
   before_action :check_min_level, :only => [:show, :edit, :update, :new_merge, :create_merge, :destroy, :hide, :unhide, :subscribe, :unsubscribe]

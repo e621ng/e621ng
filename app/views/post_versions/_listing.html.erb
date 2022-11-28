@@ -27,7 +27,7 @@
         <% if post_version.updater %>
           <%= link_to_user(post_version.updater) %>
         <% end %>
-        <% if CurrentUser.is_moderator? %>
+        <% if CurrentUser.is_admin? %>
           (<%= link_to_ip(post_version.updater_ip_addr) %>)
         <% end %>
         <%= time_ago_in_words_tagged(post_version.updated_at, compact: true) %>

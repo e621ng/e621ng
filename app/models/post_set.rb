@@ -48,7 +48,7 @@ class PostSet < ApplicationRecord
 
   def self.visible(user = CurrentUser.user)
     return where('is_public = true') if user.nil?
-    return all() if user.is_admin?
+    return all if user.is_moderator?
     where('is_public = true OR creator_id = ?', user.id)
   end
 
@@ -145,7 +145,7 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || is_owner?(user) || user.is_admin?
+      is_public || is_owner?(user) || user.is_moderator?
     end
 
     def can_edit_settings?(user)

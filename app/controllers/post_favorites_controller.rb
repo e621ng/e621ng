@@ -5,7 +5,7 @@ class PostFavoritesController < ApplicationController
   def index
     @post = Post.find(params[:post_id])
     query = User.includes(:user_status).joins(:favorites)
-    unless CurrentUser.is_admin?
+    unless CurrentUser.is_moderator?
       query = query.where("bit_prefs & :value != :value", {value: 2**User::BOOLEAN_ATTRIBUTES.find_index("enable_privacy_mode")}).or(query.where(favorites: {user_id: CurrentUser.id}))
     end
     query = query.where(favorites: {post_id: @post.id})

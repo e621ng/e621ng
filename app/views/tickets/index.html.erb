@@ -7,7 +7,7 @@
       <thead>
         <tr>
           <th style="width:5%">ID</th>
-          <% if CurrentUser.is_admin? %>
+          <% if CurrentUser.is_moderator? %>
             <th style="width:10%">Reporter</th>
             <th style="width:10%">Claimed By</th>
           <% end %>
@@ -23,7 +23,7 @@
         <% @tickets.each do |ticket| %>
           <tr data-link="<%= ticket_path(ticket) %>">
             <td><%= link_to ticket.id, ticket_path(ticket) %></td>
-            <% if CurrentUser.is_admin? %>
+            <% if CurrentUser.is_moderator? %>
               <td><%= link_to_user ticket.creator %></td>
             <td>
             <% if ticket.claimant.nil? %>

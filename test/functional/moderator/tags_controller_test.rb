@@ -4,7 +4,7 @@ module Moderator
   class TagsControllerTest < ActionDispatch::IntegrationTest
     context "The tags controller" do
       setup do
-        @user = create(:moderator_user)
+        @user = create(:admin_user)
         as(@user) do
           @post = create(:post)
         end

@@ -151,7 +151,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def can_delete?(user)
-    user.is_moderator?
+    user.is_admin?
   end
 
   def create_mod_action_for_delete

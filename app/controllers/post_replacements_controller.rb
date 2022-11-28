@@ -2,7 +2,7 @@ class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: [:create, :new]
   before_action :janitor_only, only: [:approve, :reject, :promote, :toggle_penalize]
-  before_action :moderator_only, only: [:destroy]
+  before_action :admin_only, only: [:destroy]
 
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"

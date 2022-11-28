@@ -1,7 +1,7 @@
 require_relative '../../logical/danbooru/paginator/elasticsearch_extensions'
 module Admin
   class UsersController < ApplicationController
-    before_action :moderator_only
+    before_action :admin_only
     respond_to :html, :json
 
     def alt_list
