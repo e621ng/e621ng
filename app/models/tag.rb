@@ -129,7 +129,7 @@ class Tag < ApplicationRecord
         if options[:disable_caching]
           select_category_for(tag_name)
         else
-          Cache.get("tc:#{Cache.hash(tag_name)}") do
+          Cache.fetch("tc:#{Cache.hash(tag_name)}") do
             select_category_for(tag_name)
           end
         end
@@ -148,7 +148,7 @@ class Tag < ApplicationRecord
           if not_found.count > 0
             # Is multi_write worth it here? Normal usage of this will be short put lists and then never touched.
             Tag.where(name: not_found).select([:id, :name, :category]).find_each do |tag|
-              Cache.put("tc:#{Cache.hash(tag.name)}", tag.category)
+              Cache.write("tc:#{Cache.hash(tag.name)}", tag.category)
               found[tag.name] = tag.category
             end
           end
@@ -185,7 +185,7 @@ class Tag < ApplicationRecord
     end
 
     def update_category_cache
-      Cache.put("tc:#{Cache.hash(name)}", category, 3.hours)
+      Cache.write("tc:#{Cache.hash(name)}", category, 3.hours)
     end
 
     def user_can_change_category?
@@ -223,7 +223,7 @@ class Tag < ApplicationRecord
     end
 
     def trending
-      Cache.get("popular-tags-v3", 1.hour) do
+      Cache.fetch("popular-tags-v3", 1.hour) do
         CurrentUser.as_system do
           n = 24
           counts = {}
@@ -998,9 +998,9 @@ class Tag < ApplicationRecord
     def update_related_if_outdated
       key = Cache.hash(name)
 
-      if Cache.get("urt:#{key}").nil? && should_update_related?
+      if Cache.fetch("urt:#{key}").nil? && should_update_related?
         TagUpdateRelatedJob.perform_later(id)
-        Cache.put("urt:#{key}", true, 600) # mutex to prevent redundant updates
+        Cache.write("urt:#{key}", true, 600) # mutex to prevent redundant updates
       end
     end
 

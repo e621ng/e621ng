@@ -148,7 +148,7 @@ class User < ApplicationRecord
 
     module ClassMethods
       def name_to_id(name)
-        Cache.get("uni:#{Cache.hash(name)}", 4.hours) do
+        Cache.fetch("uni:#{Cache.hash(name)}", 4.hours) do
           val = select_value_sql("SELECT id FROM users WHERE lower(name) = ?", name.downcase.tr(" ", "_").to_s)
           if val.present?
             val.to_i
@@ -177,7 +177,7 @@ class User < ApplicationRecord
         if RequestStore[:id_name_cache].key?(user_id)
           return RequestStore[:id_name_cache][user_id]
         end
-        name = Cache.get("uin:#{user_id}", 4.hours) do
+        name = Cache.fetch("uin:#{user_id}", 4.hours) do
           select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
         end
         RequestStore[:id_name_cache][user_id] = name
@@ -206,8 +206,8 @@ class User < ApplicationRecord
     end
 
     def update_cache
-      Cache.put("uin:#{id}", name, 4.hours)
-      Cache.put("uni:#{Cache.hash(name)}", id, 4.hours)
+      Cache.write("uin:#{id}", name, 4.hours)
+      Cache.write("uni:#{Cache.hash(name)}", id, 4.hours)
     end
   end
 

@@ -20,7 +20,7 @@ class HelpPage < ApplicationRecord
   end
 
   def self.find_by_name(name)
-    Cache.get("help_index:#{name}", 12.hours.to_i) {where('name = ?', name).first}
+    Cache.fetch("help_index:#{name}", 12.hours.to_i) { where("name = ?", name).first }
   end
 
   def self.normalize_name(name)
@@ -40,6 +40,6 @@ class HelpPage < ApplicationRecord
   end
 
   def self.help_index
-    Cache.get('help_index', 12.hours.to_i) {HelpPage.all.order(:name).to_a}
+    Cache.fetch("help_index", 12.hours.to_i) { HelpPage.all.order(:name).to_a }
   end
 end

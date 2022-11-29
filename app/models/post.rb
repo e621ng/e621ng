@@ -1076,7 +1076,7 @@ class Post < ApplicationRecord
         count = Tag.find_by(name: tags).try(:post_count)
       else
         # this will only have a value for multi-tag searches or single metatag searches
-        count = Cache.get(count_cache_key(tags))
+        count = Cache.fetch(count_cache_key(tags))
       end
 
       count.try(:to_i)
@@ -1085,7 +1085,7 @@ class Post < ApplicationRecord
     def set_count_in_cache(tags, count, expiry = nil)
       expiry ||= count.seconds.clamp(3.minutes, 20.hours).to_i
 
-      Cache.put(count_cache_key(tags), count, expiry)
+      Cache.write(count_cache_key(tags), count, expiry)
     end
 
     def count_cache_key(tags)

@@ -515,7 +515,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "1234 update the category cache of the tag" do
-          assert_equal(Tag.categories.copyright, Cache.get("tc:#{Cache.hash('abc')}"))
+          assert_equal(Tag.categories.copyright, Cache.fetch("tc:#{Cache.hash('abc')}"))
         end
 
         should "update the tag counts of the posts" do
@@ -2076,7 +2076,7 @@ class PostTest < ActiveSupport::TestCase
   #
   #       context "with a primed cache" do
   #         setup do
-  #           Cache.put(Post.count_cache_key(''), "100")
+  #           Cache.write(Post.count_cache_key(''), "100")
   #         end
   #
   #         should "fetch the value from the cache" do
@@ -2123,7 +2123,7 @@ class PostTest < ActiveSupport::TestCase
   #
   #         context "with a primed cache" do
   #           setup do
-  #             Cache.put(Post.count_cache_key('rating:s'), "100")
+  #             Cache.write(Post.count_cache_key('rating:s'), "100")
   #           end
   #
   #           should "fetch the value from the cache" do
