@@ -71,10 +71,9 @@ class User < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
 
-  validates :email, presence: { if: :enable_email_verification?, unless: :skip_email_blank_check }
+  validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
-  validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { rec.email.present? && !Danbooru.config.enable_email_verification? } }
-  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification?, unless: ->(rec) { rec.email.blank? && !rec.email_changed? && rec.skip_email_blank_check } }
+  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   validates :name, user_name: true, on: :create
@@ -394,6 +393,8 @@ class User < ApplicationRecord
     end
 
     def enable_email_verification?
+      # Allow admins to edit users with blank emails
+      return false if email.blank? && !email_changed? && skip_email_blank_check
       Danbooru.config.enable_email_verification? && validate_email_format
     end
 
