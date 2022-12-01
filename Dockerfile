@@ -1,18 +1,13 @@
-FROM ruby:3.1.2-alpine
+FROM ruby:3.1.3-alpine3.17
 
 # Dependencies for setup and runtime
-RUN apk --no-cache add nodejs yarn postgresql-client ffmpeg vips tzdata \
-  git build-base postgresql-dev glib-dev bash
-
-RUN wget -O - https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 | tar -xj && \
-    cd jemalloc-5.2.1 && \
-    ./configure && \
-    make && \
-    make install
+RUN apk --no-cache add nodejs yarn ffmpeg vips \
+  postgresql12-client postgresql12-dev \
+  bash build-base git glib-dev jemalloc tzdata
 
 RUN git config --global --add safe.directory /app
 
-ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
+ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
 # Install js packages and gems
 COPY package.json yarn.lock ./
