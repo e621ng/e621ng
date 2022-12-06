@@ -10,10 +10,6 @@ RUN git config --global --add safe.directory /app
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
 # Install js packages and gems
-# Put node_modules outside the app volume. Having node_modules be a named volume
-# means that on subsequent package changes the named volume will overlay the newly
-# installed packages. Not needed for gems since they already install somewhere else.
-ENV NODE_PATH=/node_modules
 COPY package.json yarn.lock ./
 RUN yarn install
 
