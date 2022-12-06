@@ -3,7 +3,6 @@
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^6.0.0-rc.5",
-    "@vue/compiler-sfc": "^3.1.0",
     "babel-plugin-macros": "^3.1.0",
     "core-js": "3.8",
     "css-loader": "^6.3.0",
