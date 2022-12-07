@@ -5,7 +5,9 @@ RUN apk --no-cache add nodejs yarn ffmpeg vips \
   postgresql12-client postgresql12-dev \
   bash build-base git glib-dev jemalloc tzdata
 
-RUN git config --global --add safe.directory /app
+WORKDIR /app
+
+RUN git config --global --add safe.directory $(pwd)
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
@@ -31,5 +33,4 @@ fi
 # Stop bin/rails console from offering autocomplete
 RUN echo "IRB.conf[:USE_AUTOCOMPLETE] = false" > ~/.irbrc
 
-WORKDIR /app
 CMD [ "shoreman" ]
