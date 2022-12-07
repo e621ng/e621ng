@@ -1,10 +1,6 @@
 class ElasticPostQueryBuilder
   attr_accessor :query_string
 
-  SEARCHABLE_COUNT_METATAGS = [
-      :comment_count,
-  ].freeze
-
   def initialize(query_string)
     @query_string = query_string
   end
@@ -132,7 +128,7 @@ class ElasticPostQueryBuilder
 
     add_range_relation(q[:post_tag_count], :tag_count, must)
 
-    SEARCHABLE_COUNT_METATAGS.each do |column|
+    Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
       add_range_relation(q[column], column, must)
     end
 
@@ -535,7 +531,7 @@ class ElasticPostQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{SEARCHABLE_COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{Tag::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])

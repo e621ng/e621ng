@@ -1,9 +1,6 @@
 class Tag < ApplicationRecord
   COUNT_METATAGS = %w[
     comment_count
-    flag_count
-    child_count
-    pool_count
   ]
 
   BOOLEAN_METATAGS = %w[
@@ -13,7 +10,7 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater
-    -pool pool ordpool -fav fav -favoritedby favoritedby md5 -rating rating note -note
+    -pool pool -fav fav -favoritedby favoritedby md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child search upvote downvote voted filetype -filetype flagger type -type
@@ -723,11 +720,6 @@ class Tag < ApplicationRecord
             else
               q[:pools] << Pool.name_to_id(g2)
             end
-
-          when "ordpool"
-            pool_id = Pool.name_to_id(g2)
-            q[:tags][:related] << "pool:#{pool_id}"
-            q[:ordpool] = pool_id
 
           when "set"
             q[:sets] ||= []
