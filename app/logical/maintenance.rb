@@ -14,10 +14,6 @@ module Maintenance
     ignoring_exceptions { StatsUpdater.run! }
   end
 
-  def weekly
-    return if Danbooru.config.readonly_mode?
-  end
-
   def ignoring_exceptions(&block)
     ActiveRecord::Base.connection.execute("set statement_timeout = 0")
     yield
