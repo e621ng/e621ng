@@ -37,7 +37,7 @@ gem 'elasticsearch-rails'
 gem 'mailgun-ruby'
 gem 'resolv'
 
-group :production, :staging do
+group :production do
   gem 'unicorn', :platforms => :ruby
 end
 
