@@ -69,13 +69,13 @@ services:
       - "34517:5432"
   
   redis:
-    image: redis:alpine
+    image: redis:4.0.9-alpine
     command: redis-server --save 10 1 --loglevel warning
     volumes:
-      - redis_data:/data
+      - redis_data_v2:/data
 
   memcached:
-    image: memcached:alpine
+    image: memcached:1.5.6-alpine
 
   elastic:
     image: elasticsearch:7.14.2
@@ -150,7 +150,7 @@ volumes:
   iqdb_data:
   elastic_data:
   db_data:
-  redis_data:
+  redis_data_v2:
   node_modules:
   public_packs:
   public_packs_test:

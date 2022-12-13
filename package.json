@@ -1,5 +1,6 @@
 {
   "name": "app",
+  "packageManager": "yarn@1.22.19",
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^6.0.0-rc.5",
