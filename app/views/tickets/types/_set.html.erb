@@ -1,6 +1,6 @@
 <% if @ticket.content %>
     <tr>
       <td><span class='title'>Reported Set</span></td>
-      <td><%= fast_link_to(@ticket.content.name, controller: "set", action: "show", id: @ticket.content.id) %></td>
+      <td><%= link_to(@ticket.content.name, post_set_path(@ticket.content)) %></td>
     </tr>
 <% end %>

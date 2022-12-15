@@ -45,6 +45,6 @@
 
 <% if post.replacements.pending.any? %>
   <div class="notice notice-flagged">
-    <p>This post has <%= fast_link_to "pending replacements.", post_replacements_path(search: {post_id: @post.id}) %></p>
+    <p>This post has <%= link_to "pending replacements.", post_replacements_path(search: {post_id: @post.id}) %></p>
   </div>
 <% end %>

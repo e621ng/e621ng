@@ -1,5 +1,5 @@
 <% @set = @ticket.content %>
 <h4>You are reporting the following set:</h4>
-<div class='page'><%= fast_link_to(@set.name, controller: "set", action: "show", id: @set.id) %></div>
+<div class='page'><%= link_to(@set.name, post_set_path(@set)) %></div>
 <div class='author'><%= link_to_user(@set.creator) %></div>
 <span class="date" title="Created on <%= @set.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@set.created_at) %> ago</span>

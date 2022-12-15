@@ -32,7 +32,7 @@ module PostsHelper
 
     # Only allow http:// and https:// links. Disallow javascript: links.
     if source =~ %r!\Ahttps?://!i
-      source_link = fast_link_to(text, source, target: "_blank", rel: 'nofollow noreferrer noopener')
+      source_link = link_to(text, source, target: "_blank", rel: "nofollow noreferrer noopener")
     else
       source_link = source
     end

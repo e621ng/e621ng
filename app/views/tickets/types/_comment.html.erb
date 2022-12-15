@@ -2,8 +2,8 @@
   <tr>
     <td><span class='title'>Reported Comment</span></td>
     <td>
-      <%= fast_link_to("Comment by #{@ticket.content.creator_name}", comment_path(@ticket.content)) %> on
-      <%= fast_link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
+      <%= link_to("Comment by #{@ticket.content.creator_name}", comment_path(@ticket.content)) %> on
+      <%= link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
     </td>
   </tr>
 <% else %>
