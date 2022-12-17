@@ -797,7 +797,7 @@ fart'
     end
 
     def enable_visitor_metrics?
-      true
+      false
     end
   end
 
