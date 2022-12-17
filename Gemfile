@@ -7,7 +7,6 @@ gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
 gem 'active_model_serializers', '~> 0.10.0'
-gem "sanitize"
 gem 'ruby-vips'
 gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
