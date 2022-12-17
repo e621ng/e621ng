@@ -1,5 +1,5 @@
 class PostVersionsController < ApplicationController
-  before_action :member_only
+  before_action :member_only, except: [:index]
   respond_to :html, :json
   respond_to :js, only: [:undo]
 

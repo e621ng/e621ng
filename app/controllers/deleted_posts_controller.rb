@@ -1,6 +1,5 @@
 require_relative '../logical/danbooru/paginator/elasticsearch_extensions'
 class DeletedPostsController < ApplicationController
-  before_action :member_only
   respond_to :html
 
   def index
