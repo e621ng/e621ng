@@ -1,39 +1,37 @@
 <div id="c-admin">
   <div id="a-alt-list">
     <table class="table">
-  <tbody>
-  <% @alts.each do |alt| %>
-  <tr class="alt-header" data-alt="<%= alt[0]['u1id'] %>">
-    <td><%= link_to alt[0]['u1id'], user_path(id: alt[0]['u1id']) %></td>
-    <td><%= link_to alt[0]['u1name'], user_path(id: alt[0]['u1id']), class: "with-style #{"user-banned" if (alt[0]['u1flags'] & 256) || alt[0]['u1level'] == 10} #{"user-"+User.level_string(alt[0]['u1level']).downcase}" %>
-      <%= "(Unactivated)" if alt[0]['u1activation'].present? %></td>
-    <td><%= alt[0]['u1email'] %></td>
-    <td><%= link_to_ip alt[0]['last_ip_addr'] %></td>
-    <td><%= alt.size %> alts</td>
-  </tr>
-  <tr id="alt-details-<%= alt[0]['u1id'] %>" style="display:none;">
-    <td colspan="5">
-      <table>
-        <tbody>
-      <% alt.each do |v| %>
-        <tr>
-          <td><%= link_to v['u2id'], user_path(id: v['u2id']) %></td>
-          <td><%= link_to v['u2name'], user_path(id: v['u2id']), class: "with-style #{"user-banned" if (v['u2flags'] & 256) || v['u2level'] == 10} #{"user-"+User.level_string(v['u2level']).downcase}" %>
-            <%= "(Unactivated)" if v['u2activation'].present? %></td>
-          <td>Created: <%= time_ago_in_words_tagged v['created_at'] %></td>
-          <td>Last Login: <%= time_ago_in_words_tagged v['last_logged_in_at'] %></td>
-          <td>Email: <%= v['u2email'] %></td>
-        </tr>
-      <% end %>
-        </tbody>
-      </table>
-    </td>
-  </tr>
-  <% end %>
-  </tbody>
-</table>
+      <tbody>
+        <% @alts.each do |u1, alt_ids| %>
+          <tr class="alt-header" data-alt="<%= u1 %>">
+            <td><%= link_to u1, user_path(id: u1) %></td>
+            <td><%= link_to_user @users[u1], include_activation: true %></td>
+            <td><%= @users[u1].email %></td>
+            <td><%= link_to_ip @users[u1].last_ip_addr %></td>
+            <td><%= alt_ids.count %> alts</td>
+          </tr>
+          <tr id="alt-details-<%= u1 %>" style="display:none;">
+            <td colspan="5">
+              <table>
+                <tbody>
+                  <% alt_ids.each do |u2| %>
+                    <tr>
+                      <td><%= link_to u2, user_path(id: u2) %></td>
+                      <td><%= link_to_user @users[u2], include_activation: true %></td>
+                      <td>Created: <%= time_ago_in_words_tagged @users[u2].created_at %></td>
+                      <td>Last Login: <%= time_ago_in_words_tagged @users[u2].last_logged_in_at %></td>
+                      <td>Email: <%= @users[u2].email %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
 
-  <%= numbered_paginator(@alts) %>
+    <%= numbered_paginator(@alts) %>
   </div>
 </div>
 

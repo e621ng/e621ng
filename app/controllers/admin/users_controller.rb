@@ -8,16 +8,16 @@ module Admin
       offset -= 1
       offset = offset.clamp(0, 9999)
       offset *= 250
-      @alts = ::User.connection.select_all("
-SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.last_ip_addr, u1.email as u1email, u2.email as u2email, u2.last_logged_in_at,
-u2.created_at, u2.level as u2level, u2.bit_prefs as u2flags, u2.email_verification_key as u2activation, u1.level as u1level, u1.bit_prefs as u1flags, u1.email_verification_key as u1activation
-FROM (SELECT * FROM users ORDER BY id DESC LIMIT 250 OFFSET #{offset}) u1
-INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
-ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
-      @alts = @alts.to_a.group_by {|i| i['u1id']}
-      @alts = ::Danbooru::Paginator::PaginatedArray.new(@alts.values,
-    {mode: :numbered, per_page: 250, total: 9999999999, current_page: params[:page].to_i}
-      )
+      @alts = User.connection.select_all <<~SQL.squish
+        SELECT u1.id as u1id, u2.id as u2id
+        FROM (SELECT * FROM users ORDER BY id DESC LIMIT 250 OFFSET #{offset}) u1
+        INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
+        ORDER BY u1.id DESC, u2.last_logged_in_at DESC;
+      SQL
+      @alts = @alts.group_by { |i| i["u1id"] }.transform_values { |v| v.pluck("u2id") }
+      user_ids = @alts.flatten(2).uniq
+      @users = User.where(id: user_ids).index_by(&:id)
+      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { mode: :numbered, per_page: 250, total: 9_999_999_999, current_page: params[:page].to_i })
       respond_with(@alts)
     end
 

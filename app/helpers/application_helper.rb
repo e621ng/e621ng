@@ -121,7 +121,7 @@ module ApplicationHelper
     to_sentence(links, **options)
   end
 
-  def link_to_user(user)
+  def link_to_user(user, include_activation: false)
     return "anonymous" if user.blank?
 
     user_class = user.level_class
@@ -129,7 +129,9 @@ module ApplicationHelper
     user_class += " user-post-uploader" if user.can_upload_free?
     user_class += " user-banned" if user.is_banned?
     user_class += " with-style" if CurrentUser.user.style_usernames?
-    link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
+    html = link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
+    html << " (Unactivated)" if include_activation && !user.is_verified?
+    html
   end
 
   def mod_link_to_user(user, positive_or_negative)
