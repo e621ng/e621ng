@@ -164,7 +164,6 @@ GEM
     faraday-rack (1.0.0)
     faraday-retry (1.0.3)
     ffi (1.15.5)
-    ffi (1.15.5-x64-mingw32)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     globalid (1.0.0)
@@ -291,12 +290,6 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rest-client (2.1.0-x64-mingw32)
-      ffi (~> 1.9)
-      http-accept (>= 1.7.0, < 2.0)
-      http-cookie (>= 1.0.2, < 2.0)
-      mime-types (>= 1.16, < 4.0)
-      netrc (~> 0.8)
     retriable (3.1.2)
     reverse_markdown (2.1.1)
       nokogiri
@@ -388,7 +381,6 @@ GEM
 
 PLATFORMS
   ruby
-  x64-mingw32
 
 DEPENDENCIES
   active_model_serializers (~> 0.10.0)
