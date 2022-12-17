@@ -1,5 +1,3 @@
-require 'active_support/concern'
-
 module Danbooru
   module Paginator
     module ActiveRecordExtension

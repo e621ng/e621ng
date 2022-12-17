@@ -1,4 +1,3 @@
-require_relative '../logical/danbooru/paginator/elasticsearch_extensions'
 class DeletedPostsController < ApplicationController
   respond_to :html
 

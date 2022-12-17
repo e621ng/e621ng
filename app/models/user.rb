@@ -1,7 +1,3 @@
-require 'digest/sha1'
-require 'zlib'
-require 'danbooru/has_bit_flags'
-
 class User < ApplicationRecord
   class Error < Exception ; end
   class PrivilegeError < Exception

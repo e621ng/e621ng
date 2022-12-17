@@ -1,4 +1,3 @@
-require 'active_support/core_ext/module'
 module Danbooru
   module Paginator
     class PaginatedArray < Array

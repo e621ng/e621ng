@@ -1,5 +1,3 @@
-require 'securerandom'
-
 class ExceptionLog < ApplicationRecord
   serialize :extra_params, JSON
 

@@ -1,5 +1,3 @@
-require_relative "../danbooru/paginator/elasticsearch_extensions"
-
 module PostSets
   class Pool < PostSets::Base
     attr_reader :pool, :page

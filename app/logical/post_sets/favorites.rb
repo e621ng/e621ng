@@ -1,4 +1,3 @@
-require_relative '../danbooru/paginator/elasticsearch_extensions'
 module PostSets
   class Favorites < PostSets::Base
     attr_reader :page, :limit

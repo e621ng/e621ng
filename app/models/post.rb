@@ -1,5 +1,3 @@
-require 'danbooru/has_bit_flags'
-
 class Post < ApplicationRecord
   class RevertError < Exception ; end
   class SearchError < Exception ; end

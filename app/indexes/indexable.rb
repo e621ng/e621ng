@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'elasticsearch/model'
-
 # Base Elasticsearch indexing definitions
 #
 # Make sure to include your custom index file

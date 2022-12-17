@@ -1,5 +1,3 @@
-require 'digest/sha1'
-
 class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }

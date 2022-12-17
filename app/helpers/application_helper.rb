@@ -1,5 +1,3 @@
-require 'dtext'
-
 module ApplicationHelper
   def disable_mobile_mode?
     if CurrentUser.user.present? && CurrentUser.is_member?

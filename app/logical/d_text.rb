@@ -1,6 +1,3 @@
-require 'cgi'
-require 'uri'
-
 class DText
   def self.quote(message, creator_name)
     stripped_body = DText.strip_blocks(message, "quote")
