@@ -213,7 +213,7 @@ class Artist < ApplicationRecord
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|
         is_active, url = ArtistUrl.parse_prefix(url)
         self.urls.find_or_initialize_by(url: url, is_active: is_active)
-      end.uniq(&:url)[0..MAX_URLS_PER_ARTIST]
+      end.uniq(&:url)[0..MAX_URLS_PER_ARTIST - 1]
 
       self.url_string_changed = (url_string_was != url_string)
     end
@@ -271,7 +271,7 @@ class Artist < ApplicationRecord
     def normalize_other_names
       self.other_names = other_names.map { |x| Artist.normalize_name(x) }.uniq
       self.other_names -= [name]
-      self.other_names = other_names[0..25].map { |other_name| other_name[0..99] }
+      self.other_names = other_names[0..24].map { |other_name| other_name[0..99] }
     end
   end
 
