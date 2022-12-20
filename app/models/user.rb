@@ -370,8 +370,8 @@ class User < ApplicationRecord
       self.disable_user_dmails = false if self.is_janitor?
     end
 
-    def level_class
-      "user-#{level_string.downcase}"
+    def level_css_class
+      "user-#{level_string.parameterize}"
     end
 
     def create_user_status

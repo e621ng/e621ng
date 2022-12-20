@@ -158,7 +158,7 @@ module ApplicationHelper
   def link_to_user(user)
     return "anonymous" if user.blank?
 
-    user_class = user.level_class
+    user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-post-uploader" if user.can_upload_free?
     user_class += " user-banned" if user.is_banned?

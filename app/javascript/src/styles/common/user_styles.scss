@@ -48,20 +48,18 @@ a.user-blocked.with-style:hover {
   }
 }
 
-a.user-former.staff.with-style {
+a.user-former-staff.with-style {
   @include themable {
     color: themed("color-user-former-staff");
   }
 }
 
-// TODO BUG Instead of having class .former-staff
-a.user-former.staff.with-style:hover {
+a.user-former-staff.with-style:hover {
   @include themable {
     color: themed("color-user-former-staff-alt");
   }
 }
 
-// This group has two classes: .former and .staff
 a.user-janitor.with-style {
   @include themable {
     color: themed("color-user-janitor");
