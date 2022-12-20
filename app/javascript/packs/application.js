@@ -8,8 +8,7 @@ function importAll(r) {
 import Rails from "@rails/ujs";
 Rails.start();
 
-// should start looking for nodejs replacements
-importAll(require.context('../vendor', true, /\.js$/));
+require("jquery-hotkeys");
 
 require("jquery-ui/ui/widgets/autocomplete");
 require("jquery-ui/ui/widgets/button");
