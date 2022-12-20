@@ -5,7 +5,8 @@ function importAll(r) {
   r.keys().forEach(r);
 }
 
-require('jquery-ujs');
+import Rails from "@rails/ujs";
+Rails.start();
 
 // should start looking for nodejs replacements
 importAll(require.context('../vendor', true, /\.js$/));

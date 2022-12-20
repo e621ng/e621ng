@@ -5,6 +5,7 @@ import Favorite from './favorites'
 import PostSet from './post_sets'
 import TagScript from './tag_script'
 import { SendQueue } from './send_queue'
+import Rails from '@rails/ujs'
 
 let PostModeMenu = {};
 
@@ -79,7 +80,7 @@ PostModeMenu.initialize_edit_form = function() {
         }
       },
       complete: function() {
-        $.rails.enableFormElements($("#quick-edit-form"));
+        Rails.enableElement(document.getElementById("quick-edit-form"));
       },
       success: function(data) {
         Post.update_data(data);
