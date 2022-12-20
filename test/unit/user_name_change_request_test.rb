@@ -33,7 +33,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
 
       should "clear the user name cache" do
         @change_request.approve!
-        assert_equal("abc", Cache.get("uin:#{@requester.id}"))
+        assert_equal("abc", Cache.fetch("uin:#{@requester.id}"))
       end
 
       should "create mod action" do

@@ -1,6 +1,6 @@
 module CloudflareService
   def self.ips(expiry: 24.hours)
-    text, code = Cache.get("cloudflare_ips", expiry) do
+    text, code = Cache.fetch("cloudflare_ips", expiry) do
       resp = HTTParty.get("https://api.cloudflare.com/client/v4/ips", Danbooru.config.httparty_options)
       [resp.body, resp.code]
     end

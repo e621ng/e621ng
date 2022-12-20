@@ -32,7 +32,7 @@ class Mascot < ApplicationRecord
   end
 
   def self.active_for_browser
-    Cache.get("active_mascots", 1.day) do
+    Cache.fetch("active_mascots", 1.day) do
       query = Mascot.where(active: true)
       query = query.where(safe_mode_only: false) if !Danbooru.config.safe_mode?
       mascots = query.map do |mascot|

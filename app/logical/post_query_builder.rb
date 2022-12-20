@@ -67,28 +67,6 @@ class PostQueryBuilder
     relation
   end
 
-  def table_for_metatag(metatag)
-    if metatag.in?(Tag::COUNT_METATAGS)
-      metatag[/(?<table>[a-z]+)_count\z/i, :table]
-    else
-      nil
-    end
-  end
-
-  def tables_for_query(q)
-    metatags = q.keys
-    metatags << q[:order].remove(/_(asc|desc)\z/i) if q[:order].present?
-
-    tables = metatags.map { |metatag| table_for_metatag(metatag.to_s) }
-    tables.compact.uniq
-  end
-
-  def add_joins(q, relation)
-    tables = tables_for_query(q)
-    relation = relation.with_stats(tables)
-    relation
-  end
-
   def hide_deleted_posts?(q)
     return false if CurrentUser.admin_mode?
     return false if q[:status].in?(%w[deleted active any all])
@@ -111,7 +89,6 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = 's'")
     end
 
-    relation = add_joins(q, relation)
     relation = add_range_relation(q[:post_id], "posts.id", relation)
     relation = add_range_relation(q[:mpixels], "posts.image_width * posts.image_height / 1000000.0", relation)
     relation = add_range_relation(q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)", relation)
@@ -316,13 +293,6 @@ class PostQueryBuilder
     end
 
     relation = add_tag_string_search_relation(q[:tags], relation)
-
-    if q[:ordpool].present?
-      pool_id = q[:ordpool].to_i
-
-      pool_posts = Pool.joins("CROSS JOIN unnest(pools.post_ids) WITH ORDINALITY AS row(post_id, pool_index)").where(id: pool_id).select(:post_id, :pool_index)
-      relation = relation.joins("JOIN (#{pool_posts.to_sql}) pool_posts ON pool_posts.post_id = posts.id").order("pool_posts.pool_index ASC")
-    end
 
     if q[:upvote].present?
       user_id = q[:upvote]

@@ -84,7 +84,10 @@
 
         <% if CurrentUser.is_admin? %>
           <span>Email</span>
-          <span><%= user.email %></span>
+          <span>
+            <%= user.email %>
+            <%= email_domain_search(user.email) %>
+          </span>
           <span>Last IP</span>
           <span><%= link_to_ip(user.last_ip_addr) %></span>
         <% end %>

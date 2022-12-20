@@ -1,5 +1,5 @@
 <template>
-  <input :list="listId" v-bind="$attrs" v-model="modelValue">
+  <input :list="listId" v-bind="$attrs" v-model="value">
   <datalist :id="listId">
     <option v-for="(entry, index) in entries" :value="entry" :key="index"></option>
   </datalist>
@@ -9,6 +9,16 @@
 import LS from "./local_storage";
 export default {
   props: ["listId", "addToList", "modelValue"],
+  computed: {
+    value: {
+      get() {
+        return this.modelValue;
+      },
+      set(value) {
+        this.$emit("update:modelValue", value);
+      }
+    }
+  },
   data() {
     return {
       entries: this.currentEntries(),

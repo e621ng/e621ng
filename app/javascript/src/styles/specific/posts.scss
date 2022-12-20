@@ -213,7 +213,7 @@ div#c-posts {
 
   div.parent-children {
     display: flex;
-    margin: 0 -$padding-025;
+    margin: 0 (-$padding-025);
     margin-bottom: $padding-025;
     div.notice {
       margin: 0 $padding-025;
