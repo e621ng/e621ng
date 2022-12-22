@@ -199,23 +199,14 @@ div.dtext-formatter {
     white-space: nowrap;
     padding-top: 0.5rem;
     a {
-      display: inline-block;
       box-sizing: border-box;
       padding: 0.5rem 0.625rem;
       border-radius: 6px 6px 0 0;
       margin-right: 0.25rem;
       cursor: pointer;
-      @include nonselectable;
-      
-      -moz-osx-font-smoothing: grayscale;
-      -webkit-font-smoothing: antialiased;
-      display: inline-block;
-      font-style: normal;
-      font-variant: normal;
-      text-rendering: auto;
       line-height: 1;
-      font-family: "Font Awesome 5 Free";
-      font-weight: 900;
+      @include nonselectable;
+      @include font-awesome-icon;
       
       &:hover { background: #ffffff15; }
     }

@@ -3,6 +3,7 @@
   "packageManager": "yarn@1.22.19",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.4",
     "@rails/ujs": "^7.0.4",
     "@rails/webpacker": "^6.0.0-rc.5",
     "babel-plugin-macros": "^3.1.0",

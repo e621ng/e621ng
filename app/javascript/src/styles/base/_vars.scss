@@ -46,19 +46,6 @@ $box-shadow-size: 2px 2px 5px;
   content: $text;
 }
 
-// https://fontawesome.com/how-to-use/on-the-web/advanced/css-pseudo-elements
-@mixin font-awesome-icon {
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  display: inline-block;
-  font-style: normal;
-  font-variant: normal;
-  text-rendering: auto;
-  
-  font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro";
-  font-weight: 900;
-}
-
 // Prevent the user from selecting the text
 // This is useful for links styled as buttons
 @mixin nonselectable {
@@ -74,8 +61,4 @@ $box-shadow-size: 2px 2px 5px;
 // This occasionally causes issues. See https://github.com/sass/sass/issues/1395
 @function unicode($str) {
   @return unquote("\"")+unquote(str-insert($str, "\\", 1))+unquote("\"");
-}
-
-@mixin section-box-shadow($size: $box-shadow-size, $color: $box-shadow-color) {
-  box-shadow: $size $color;
 }
