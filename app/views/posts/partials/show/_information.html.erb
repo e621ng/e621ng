@@ -17,7 +17,7 @@
     <li>
       Uploader: <%= link_to_user(post.uploader) %> <%= user_record_meta(post.uploader) %>
       <% if post.uploader_linked_artists.any? %>
-        <i class="uploader-is-artist fas fa-check" title="The uploader is linked to one of the artist tags"></i>
+        <i class="uploader-is-artist far fa-check-circle" title="The uploader is linked to one of the artist tags"></i>
       <% end %>
     </li>
   <% end %>
