@@ -34,7 +34,6 @@
 <% end %>
 <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
 
-<%= javascript_include_tag "/vendor/jquery-3.5.0.min.js", nonce: true, integrity: "sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=", crossorigin: "anonymous" %>
 <%= stylesheet_link_tag "/vendor/fontawesome/css/all.min.css", nonce: true, integrity: "sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf", crossorigin: "anonymous" %>
 <%= stylesheet_pack_tag "application", nonce: true %>
 <%= javascript_pack_tag "application", nonce: true, defer: false %>

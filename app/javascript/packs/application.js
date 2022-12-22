@@ -5,6 +5,8 @@ function importAll(r) {
   r.keys().forEach(r);
 }
 
+export { default as $ } from "jquery";
+
 import Rails from "@rails/ujs";
 Rails.start();
 

@@ -9,6 +9,7 @@
     "core-js": "3.8",
     "css-loader": "^6.3.0",
     "css-minimizer-webpack-plugin": "^3.0.2",
+    "jquery": "^3.6.3",
     "jquery-hotkeys": "^0.2.2",
     "jquery-ui": "^1.12.1",
     "mini-css-extract-plugin": "^2.3.0",
