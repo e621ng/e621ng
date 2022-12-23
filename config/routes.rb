@@ -150,8 +150,6 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
-      get :new_merge
-      post :create_merge
       post :subscribe
       post :unsubscribe
     end
