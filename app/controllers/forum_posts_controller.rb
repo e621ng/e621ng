@@ -13,7 +13,7 @@ class ForumPostsController < ApplicationController
   end
 
   def edit
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     respond_with(@forum_post)
   end
 
@@ -48,25 +48,25 @@ class ForumPostsController < ApplicationController
   end
 
   def update
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     @forum_post.update(forum_post_params(:update))
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
+    respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
   end
 
   def destroy
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     @forum_post.destroy
     respond_with(@forum_post)
   end
 
   def hide
-    check_privilege(@forum_post)
+    check_hidable(@forum_post)
     @forum_post.hide!
     respond_with(@forum_post)
   end
 
   def unhide
-    check_privilege(@forum_post)
+    check_hidable(@forum_post)
     @forum_post.unhide!
     respond_with(@forum_post)
   end
@@ -81,22 +81,25 @@ class ForumPostsController < ApplicationController
     render json: { html: html, posts: deferred_posts }
   end
 
-private
+  private
+
   def load_post
     @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
     @forum_topic = @forum_post.topic
   end
 
   def check_min_level
-    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
-    raise User::PrivilegeError.new if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
   end
 
-  def check_privilege(forum_post)
-    if !forum_post.editable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+  def check_editable(forum_post)
+    raise User::PrivilegeError unless forum_post.editable_by?(CurrentUser.user)
+  end
+
+  def check_hidable(forum_post)
+    raise User::PrivilegeError unless forum_post.can_hide?(CurrentUser.user)
   end
 
   def forum_post_params(context)

@@ -8,9 +8,11 @@
       <%= f.input :"#{type.model_type}_creator_name", label: "#{type.model_type.capitalize} Creator Username", autocomplete: "user" %>
       <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]] %>
       <%= f.input :score, label: "Type", include_blank: true, collection: [["Upvote", "1"], ["Locked", "0"], ["Downvote", "-1"]] %>
-      <%= f.input :user_ip_addr, label: "IP Address" %>
-      <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean %>
-      <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]] %>
+      <% if CurrentUser.is_admin? %>
+        <%= f.input :user_ip_addr, label: "IP Address" %>
+        <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean %>
+        <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]] %>
+      <% end %>
       <%= f.submit "Search" %>
     <% end %>
 
@@ -61,7 +63,9 @@
     <%= tag.button "Select All", id: "select-all-votes" %><br/>
     <%= tag.button "Lock Votes",  id: "lock-votes" %> Set the votes to 0, preventing the user
     from voting on the <%= type.model_type %> again<br/>
-    <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
+    <% if CurrentUser.is_admin? %>
+      <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
+    <% end %>
 
     <%= javascript_tag nonce: true do -%>
       new Danbooru.VoteManager('<%= type.model_type %>');

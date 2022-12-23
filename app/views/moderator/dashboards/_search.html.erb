@@ -1,6 +1,8 @@
-<div id="ip-addr-search">
-  <%= render "search_ip_addr" %>
-</div>
+<% if CurrentUser.is_admin? %>
+  <div id="ip-addr-search">
+    <%= render "search_ip_addr" %>
+  </div>
+<% end %>
 
 <div id="activity-search">
   <%= render "search_activity" %>

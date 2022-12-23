@@ -87,12 +87,12 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
-      should "render if the editor is a moderator" do
-        get_auth edit_forum_post_path(@forum_post), @mod
+      should "render if the editor is an admin" do
+        get_auth edit_forum_post_path(@forum_post), create(:admin_user)
         assert_response :success
       end
 
-      should "fail if the editor is not the creator of the topic and is not a moderator" do
+      should "fail if the editor is not the creator of the topic and is not an admin" do
         get_auth edit_forum_post_path(@forum_post), @other_user
         assert_response(403)
       end
