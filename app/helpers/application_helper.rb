@@ -166,23 +166,6 @@ module ApplicationHelper
     link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
   end
 
-  def mod_link_to_user(user, positive_or_negative)
-    html = ""
-    html << link_to_user(user)
-
-    if positive_or_negative == :positive
-      html << " [" + link_to("+", new_user_feedback_path(:user_feedback => {:category => "positive", :user_id => user.id})) + "]"
-
-      unless user.is_moderator?
-        html << " [" + link_to("promote", edit_admin_user_path(user)) + "]"
-      end
-    else
-      html << " [" + link_to("&ndash;".html_safe, new_user_feedback_path(:user_feedback => {:category => "negative", :user_id => user.id})) + "]"
-    end
-
-    html.html_safe
-  end
-
   def body_attributes(user = CurrentUser.user)
     attributes = [:id, :name, :level, :level_string, :can_approve_posts?, :can_upload_free?, :per_page]
     attributes += User::Roles.map { |role| :"is_#{role}?" }

@@ -17,7 +17,7 @@
             <span class="inactive">(hidden)</span>
           <% end %>
         </td>
-        <td><%= mod_link_to_user(activity.comment.creator, :negative) %></td>
+        <td><%= link_to_user(activity.comment.creator) %></td>
         <td><%= activity.count %></td>
         <td><%= activity.comment.score %></td>
       </tr>

@@ -39,8 +39,8 @@
         <tr id="r<%= vote.id %>">
           <td><%= vote.id %></td>
           <td><%= link_to vote.send("#{type.model_type}_id"), vote.send(type.model_type) %></td>
-          <td><%= mod_link_to_user vote.send(type.model_type).send(type.model_creator_column), :negative %></td>
-          <td><%= mod_link_to_user vote.user, :negative %></td>
+          <td><%= link_to_user vote.send(type.model_type).send(type.model_creator_column) %></td>
+          <td><%= link_to_user vote.user %></td>
           <% if CurrentUser.is_admin? %>
             <td><%= vote.user.email %>
           <% end %>
