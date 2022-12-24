@@ -16,7 +16,7 @@
     <%= yield %>
 
     <div class="recent-posts">
-      <h1>Recent Posts (<%= link_to "view all", posts_path(:tags => @artist.name) %>)</h1>
+      <h1>Recent Posts (<%= link_to "view all", posts_path(tags: @artist.name) %>)</h1>
 
       <%= render "posts/partials/common/inline_blacklist" %>
 
