@@ -191,10 +191,6 @@ Rails.application.routes.draw do
   resources :pools do
     member do
       put :revert
-      post :undelete
-      get :import
-      get :import_preview
-      post :import_posts
     end
     collection do
       get :gallery
