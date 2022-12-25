@@ -88,9 +88,7 @@ class PostPresenter < Presenter
   end
 
   def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["post-preview", "captioned"]
-    # Always captioned with new post stats section.
-    # klass << "captioned" if pool || size || similarity
+    klass = ["post-preview"]
     klass << "post-status-pending" if post.is_pending?
     klass << "post-status-flagged" if post.is_flagged?
     klass << "post-status-deleted" if post.is_deleted?

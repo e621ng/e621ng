@@ -5,21 +5,17 @@
 
 article.post-preview {
   box-sizing: border-box;
-  height: 154px;
+  height: auto;
   width: 154px;
   margin: 0 10px 10px 0;
   overflow: hidden;
   text-align: center;
   display: inline-block;
   position: relative;
+  vertical-align: text-top;
 
   a {
     display: inline-block;
-  }
-
-  &.captioned {
-    height: auto;
-    vertical-align: text-top;
   }
 
   .desc {
