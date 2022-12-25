@@ -1,5 +1,5 @@
 <% @post = @ticket.content %>
-You are reporting <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
+You are reporting <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
 
 <p class="nomargin">Reason:
   <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>

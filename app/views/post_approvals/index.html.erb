@@ -20,7 +20,7 @@
         <% @post_approvals.each do |post_approval| %>
           <tr>
             <td>
-              <%= PostPresenter.preview(post_approval.post, :tags => "status:any") %>
+              <%= PostPresenter.preview(post_approval.post, show_deleted: true) %>
             </td>
 
             <td>

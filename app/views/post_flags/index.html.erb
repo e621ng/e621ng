@@ -19,7 +19,7 @@
       <tbody>
         <% @post_flags.each do |post_flag| %>
           <tr class="resolved-<%= post_flag.is_resolved? %>">
-            <td><%= PostPresenter.preview(post_flag.post, :tags => "status:any") %></td>
+            <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
             <td class="dtext-container">
               <%= format_text post_flag.reason %>
             </td>
