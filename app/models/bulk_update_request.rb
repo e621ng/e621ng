@@ -192,7 +192,7 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def editable?(user)
-    user_id == user.id || user.is_admin?
+    is_pending? && (user_id == user.id || user.is_admin?)
   end
 
   def approvable?(user)
