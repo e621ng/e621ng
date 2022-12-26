@@ -1,11 +1,10 @@
 class BulkUpdateRequestImporter
   class Error < RuntimeError; end
-  attr_accessor :text, :forum_id, :rename_aliased_pages, :creator_id, :creator_ip_addr
+  attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr
 
-  def initialize(text, forum_id, rename_aliased_pages = "0", creator = nil, ip_addr = nil)
+  def initialize(text, forum_id, creator = nil, ip_addr = nil)
     @forum_id = forum_id
     @text = text
-    @rename_aliased_pages = rename_aliased_pages
     @creator_id = creator
     @creator_ip_addr = ip_addr
   end
@@ -18,10 +17,6 @@ class BulkUpdateRequestImporter
   def validate!(user)
     tokens = BulkUpdateRequestImporter.tokenize(text)
     validate_annotate(tokens, user)
-  end
-
-  def rename_aliased_pages?
-    @rename_aliased_pages == "1"
   end
 
   def self.tokenize(text)
@@ -193,7 +188,7 @@ class BulkUpdateRequestImporter
       end
     end
 
-    tag_alias.rename_artist if rename_aliased_pages?
+    tag_alias.rename_artist
     raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
     tag_alias.approve!(approver: approver, update_topic: false, deny_transitives: true)
   end

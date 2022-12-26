@@ -86,7 +86,7 @@ class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb")
       artist = create(:artist, name: "aaa", notes: "testing")
-      @importer = BulkUpdateRequestImporter.new("create alias aaa -> bbb", "", "1")
+      @importer = BulkUpdateRequestImporter.new("create alias aaa -> bbb", "")
       @importer.process!
       artist.reload
       assert_equal("bbb", artist.name)
