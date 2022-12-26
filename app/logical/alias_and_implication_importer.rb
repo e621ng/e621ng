@@ -1,9 +1,8 @@
 class AliasAndImplicationImporter
   class Error < RuntimeError; end
-  attr_accessor :bur, :text, :forum_id, :rename_aliased_pages, :creator_id, :creator_ip_addr
+  attr_accessor :text, :forum_id, :rename_aliased_pages, :creator_id, :creator_ip_addr
 
-  def initialize(bur, text, forum_id, rename_aliased_pages = "0", creator = nil, ip_addr = nil)
-    @bur = bur
+  def initialize(text, forum_id, rename_aliased_pages = "0", creator = nil, ip_addr = nil)
     @forum_id = forum_id
     @text = text
     @rename_aliased_pages = rename_aliased_pages

@@ -109,7 +109,7 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          AliasAndImplicationImporter.new(self, script, forum_topic_id, "1", user_id, user_ip_addr).process!
+          AliasAndImplicationImporter.new(script, forum_topic_id, "1", user_id, user_ip_addr).process!
           update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
@@ -166,7 +166,7 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def validate_script
-      errors, new_script = AliasAndImplicationImporter.new(self, script, forum_topic_id, "1").validate!(CurrentUser.user)
+      errors, new_script = AliasAndImplicationImporter.new(script, forum_topic_id, "1").validate!(CurrentUser.user)
       if errors.size > 0
         errors.each { |err| self.errors.add(:base, err) }
       end
@@ -234,6 +234,6 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def estimate_update_count
-    AliasAndImplicationImporter.new(self, script, nil).estimate_update_count
+    AliasAndImplicationImporter.new(script, nil).estimate_update_count
   end
 end
