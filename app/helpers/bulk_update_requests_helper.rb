@@ -75,7 +75,7 @@ module BulkUpdateRequestsHelper
   def script_with_line_breaks(bur, with_decorations:)
     hash = Cache.hash "#{CurrentUser.is_moderator? ? "mod" : ""}#{with_decorations ? "color" : ""}#{bur.status}#{bur.script}"
     Cache.fetch(hash, 3600) do
-      script_tokenized = AliasAndImplicationImporter.tokenize(bur.script)
+      script_tokenized = BulkUpdateRequestImporter.tokenize(bur.script)
       script_tags = collect_script_tags(script_tokenized)
       script_tokenized.map do |cmd, arg1, arg2, arg3|
         if with_decorations && approved?(cmd, arg1, arg2)
@@ -89,7 +89,7 @@ module BulkUpdateRequestsHelper
         "#{btag}#{cmd.to_s.tr("_", " ")} #{links}#{arg3 if bur.is_pending?}#{etag}"
       end.join("\n")
 
-    rescue AliasAndImplicationImporter::Error
+    rescue BulkUpdateRequestImporter::Error
       "!!!!!!Invalid Script!!!!!!"
     end
   end

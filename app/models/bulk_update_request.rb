@@ -109,13 +109,13 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          AliasAndImplicationImporter.new(script, forum_topic_id, "1", user_id, user_ip_addr).process!
+          BulkUpdateRequestImporter.new(script, forum_topic_id, "1", user_id, user_ip_addr).process!
           update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
       end
 
-    rescue AliasAndImplicationImporter::Error => x
+    rescue BulkUpdateRequestImporter::Error => x
       self.approver = approver
       CurrentUser.scoped(approver) do
         forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has failed: #{x.to_s}", "FAILED")
@@ -148,7 +148,7 @@ class BulkUpdateRequest < ApplicationRecord
 
   module ValidationMethods
     def script_formatted_correctly
-      AliasAndImplicationImporter.tokenize(script)
+      BulkUpdateRequestImporter.tokenize(script)
       return true
     rescue StandardError => e
       errors.add(:base, e.message)
@@ -166,14 +166,14 @@ class BulkUpdateRequest < ApplicationRecord
     end
 
     def validate_script
-      errors, new_script = AliasAndImplicationImporter.new(script, forum_topic_id, "1").validate!(CurrentUser.user)
+      errors, new_script = BulkUpdateRequestImporter.new(script, forum_topic_id, "1").validate!(CurrentUser.user)
       if errors.size > 0
         errors.each { |err| self.errors.add(:base, err) }
       end
       self.script = new_script
 
       errors.empty?
-    rescue AliasAndImplicationImporter::Error => e
+    rescue BulkUpdateRequestImporter::Error => e
       self.errors.add(:script, e)
     end
   end
@@ -234,6 +234,6 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def estimate_update_count
-    AliasAndImplicationImporter.new(script, nil).estimate_update_count
+    BulkUpdateRequestImporter.new(script, nil).estimate_update_count
   end
 end

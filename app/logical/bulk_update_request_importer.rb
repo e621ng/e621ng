@@ -1,4 +1,4 @@
-class AliasAndImplicationImporter
+class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :rename_aliased_pages, :creator_id, :creator_ip_addr
 
@@ -11,12 +11,12 @@ class AliasAndImplicationImporter
   end
 
   def process!(approver = CurrentUser.user)
-    tokens = AliasAndImplicationImporter.tokenize(text)
+    tokens = BulkUpdateRequestImporter.tokenize(text)
     execute(tokens, approver)
   end
 
   def validate!(user)
-    tokens = AliasAndImplicationImporter.tokenize(text)
+    tokens = BulkUpdateRequestImporter.tokenize(text)
     validate_annotate(tokens, user)
   end
 
@@ -155,7 +155,7 @@ class AliasAndImplicationImporter
       end
     end
     errors << "Cannot create BUR with more than 25 entries" if tokens.size > 25 && !user.is_admin?
-    [errors, AliasAndImplicationImporter.untokenize(annotated).join("\n")]
+    [errors, BulkUpdateRequestImporter.untokenize(annotated).join("\n")]
   end
 
   def estimate_update_count

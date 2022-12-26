@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class AliasAndImplicationImporterTest < ActiveSupport::TestCase
+class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
   context "The alias and implication importer" do
     setup do
       CurrentUser.user = create(:admin_user)
@@ -10,7 +10,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
       setup do
         @tag = Tag.find_or_create_by_name("hello")
         @list = "category hello -> artist\n"
-        @importer = AliasAndImplicationImporter.new(@list, nil)
+        @importer = BulkUpdateRequestImporter.new(@list, nil)
       end
 
       should "work" do
@@ -36,7 +36,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
           "mass update eee -> 444\n"
       end
 
-      subject { AliasAndImplicationImporter.new(@script, nil) }
+      subject { BulkUpdateRequestImporter.new(@script, nil) }
 
       should "return the correct count" do
         assert_equal(3, subject.estimate_update_count)
@@ -46,7 +46,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
     context "given a valid list" do
       setup do
         @list = "create alias abc -> def\ncreate implication aaa -> bbb\n"
-        @importer = AliasAndImplicationImporter.new(@list, nil)
+        @importer = BulkUpdateRequestImporter.new(@list, nil)
       end
 
       should "process it" do
@@ -59,7 +59,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
     context "given a list with an invalid command" do
       setup do
         @list = "zzzz abc -> def\n"
-        @importer = AliasAndImplicationImporter.new(@list, nil)
+        @importer = BulkUpdateRequestImporter.new(@list, nil)
       end
 
       should "throw an exception" do
@@ -72,7 +72,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
     context "given a list with a logic error" do
       setup do
         @list = "remove alias zzz -> yyy\n"
-        @importer = AliasAndImplicationImporter.new(@list, nil)
+        @importer = BulkUpdateRequestImporter.new(@list, nil)
       end
 
       should "throw an exception" do
@@ -86,7 +86,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb")
       artist = create(:artist, name: "aaa", notes: "testing")
-      @importer = AliasAndImplicationImporter.new("create alias aaa -> bbb", "", "1")
+      @importer = BulkUpdateRequestImporter.new("create alias aaa -> bbb", "", "1")
       @importer.process!
       artist.reload
       assert_equal("bbb", artist.name)
@@ -101,7 +101,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
           remove alias a -> b
           remove implication c -> d
         }
-        @importer = AliasAndImplicationImporter.new(@script, nil)
+        @importer = BulkUpdateRequestImporter.new(@script, nil)
       end
 
       # FIXME: Aliases/Implications are hard-deleted currently
@@ -122,7 +122,7 @@ class AliasAndImplicationImporterTest < ActiveSupport::TestCase
         @ta.update(status: "pending")
         @ti.update(status: "pending")
 
-        error = assert_raises(AliasAndImplicationImporter::Error) do
+        error = assert_raises(BulkUpdateRequestImporter::Error) do
           @importer.process!
         end
         assert_match(/Alias for a not found/, error.message)
