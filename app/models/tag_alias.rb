@@ -11,7 +11,7 @@ class TagAlias < TagRelationship
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
         create_undo_information
-        TagAliasJob.perform_async(id, update_topic)
+        TagAliasJob.perform_later(id, update_topic)
       end
     end
 

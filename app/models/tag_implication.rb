@@ -159,14 +159,13 @@ class TagImplication < TagRelationship
           tag_rel_undos.create!(undo_data: post_info)
         end
       end
-
     end
 
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
       create_undo_information
       invalidate_cached_descendants
-      TagImplicationJob.perform_async(id, update_topic)
+      TagImplicationJob.perform_later(id, update_topic)
     end
 
     def reject!(update_topic: true)
