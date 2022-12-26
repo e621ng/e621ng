@@ -17,7 +17,6 @@ Rails.application.routes.draw do
         get :alt_list
       end
     end
-    resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
