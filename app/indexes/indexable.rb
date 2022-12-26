@@ -23,20 +23,14 @@ module Indexable
     end
   end
 
-  def update_index(defer: true, priority: :high)
+  def update_index(queue: :high_prio)
     # TODO: race condition hack, makes tests SLOW!!!
     return __elasticsearch__.index_document refresh: "true" if Rails.env.test?
 
-    if defer
-      if priority == :high
-        IndexUpdateJob.perform_later(self.class.to_s, id)
-      elsif priority == :rebuild
-        IndexRebuildJob.perform_later(self.class.to_s, id)
-      else
-        raise ArgumentError, 'No such priority known'
-      end
-    else
-      __elasticsearch__.index_document
-    end
+    IndexUpdateJob.set(queue: queue).perform_later(self.class.to_s, id)
+  end
+
+  def update_index!
+    __elasticsearch__.index_document
   end
 end
