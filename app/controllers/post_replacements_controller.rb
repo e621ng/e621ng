@@ -3,6 +3,7 @@ class PostReplacementsController < ApplicationController
   before_action :member_only, only: [:create, :new]
   before_action :janitor_only, only: [:approve, :reject, :promote, :toggle_penalize]
   before_action :moderator_only, only: [:destroy]
+  before_action :ensure_uploads_enabled, only: [:new, :create]
 
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
@@ -89,5 +90,11 @@ class PostReplacementsController < ApplicationController
 
   def create_params
     params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source)
+  end
+
+  def ensure_uploads_enabled
+    if DangerZone.uploads_disabled?(CurrentUser.user)
+      access_denied "Uploads are disabled"
+    end
   end
 end
