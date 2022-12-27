@@ -35,7 +35,6 @@ Rails.application.routes.draw do
         get :export
       end
     end
-    resource :tag, :only => [:edit, :update]
     namespace :post do
       resource :approval, :only => [:create, :destroy]
       resources :disapprovals, :only => [:create, :index]
