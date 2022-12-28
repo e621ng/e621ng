@@ -1,9 +1,7 @@
-class IqdbRemoveJob
-  include Sidekiq::Worker
-
-  sidekiq_options queue: 'iqdb'
+class IqdbRemoveJob < ApplicationJob
+  queue_as :iqdb
 
   def perform(post_id)
-    # STUB: The implementation of this is performed by the iqdb component.
+    # STUB: The implementation of this is performed by the iqdbs component.
   end
 end

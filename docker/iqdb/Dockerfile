@@ -1,11 +1,11 @@
-FROM ruby:2.7.3-alpine
+FROM ruby:3.1.3-alpine3.17
 
 ADD https://api.github.com/repos/zwagoth/iqdbs/git/refs/heads/master /tmp/iqdbs_version.json
 COPY iqdb.patch /tmp/iqdb.patch
 ENV IQDB_VERSION=20161008
 ENV IQDB_CHECKSUM=daa4812b35f84bc7e2f07661fd9abf73a06738c76beb92252666a86ebaea3c64
 
-RUN apk --no-cache add build-base git libjpeg-turbo-dev gd-dev bash \
+RUN apk --no-cache add build-base git libjpeg-turbo-dev gd-dev bash tzdata \
   # iqdb
   && cd /tmp \
   && wget -q  https://iqdb.org/code/iqdb-$IQDB_VERSION.tar.bz2 \

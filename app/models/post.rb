@@ -1530,15 +1530,14 @@ class Post < ApplicationRecord
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          IqdbRemoveJob.perform_async(post_id)
+          IqdbRemoveJob.perform_later(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        # IqdbUpdateJob.perform_async(id, preview_file_url)
-        IqdbUpdateJob.perform_async(id, "md5:#{md5}.jpg")
+        IqdbUpdateJob.perform_later(id, "md5:#{md5}.jpg")
       end
     end
 
