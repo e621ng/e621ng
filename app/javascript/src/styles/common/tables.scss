@@ -1,7 +1,9 @@
 
 table.table {
   width: 100%;
-  p {
+
+  // DText formatting fix
+  *:last-child {
     margin: 0;
   }
 
