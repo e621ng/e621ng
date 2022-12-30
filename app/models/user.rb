@@ -87,9 +87,10 @@ class User < ApplicationRecord
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
-  validates  :custom_style, length: { maximum: 500_000}
+  validates :custom_style, length: { maximum: 500_000 }
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
   validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
+  validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
