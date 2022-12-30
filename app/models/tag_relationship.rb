@@ -25,8 +25,8 @@ class TagRelationship < ApplicationRecord
   validates :approver, presence: { message: "must exist" }, if: -> { approver_id.present? }
   validates :forum_topic, presence: { message: "must exist" }, if: -> { forum_topic_id.present? }
   validate :validate_creator_is_not_limited, on: :create
-  validates :antecedent_name, tag_name: { disable_ascii_check: true }, on: :create
-  validates :consequent_name, tag_name: true, on: :create
+  validates :antecedent_name, tag_name: { disable_ascii_check: true }, if: :antecedent_name_changed?
+  validates :consequent_name, tag_name: true, if: :consequent_name_changed?
   validate :antecedent_and_consequent_are_different
 
   def initialize_creator
