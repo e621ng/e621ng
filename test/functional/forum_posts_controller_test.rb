@@ -87,12 +87,12 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
-      should "render if the editor is a moderator" do
-        get_auth edit_forum_post_path(@forum_post), @mod
+      should "render if the editor is an admin" do
+        get_auth edit_forum_post_path(@forum_post), create(:admin_user)
         assert_response :success
       end
 
-      should "fail if the editor is not the creator of the topic and is not a moderator" do
+      should "fail if the editor is not the creator of the topic and is not an admin" do
         get_auth edit_forum_post_path(@forum_post), @other_user
         assert_response(403)
       end
@@ -115,8 +115,9 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the posts" do
-        delete_auth forum_post_path(@forum_post), @mod
-        get_auth forum_post_path(@forum_post), @mod
+        @admin = create(:admin_user)
+        delete_auth forum_post_path(@forum_post), @admin
+        get_auth forum_post_path(@forum_post), @admin
         assert_response :not_found
       end
     end

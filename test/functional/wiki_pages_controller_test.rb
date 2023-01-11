@@ -146,11 +146,10 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         as(@user) do
           @wiki_page = create(:wiki_page)
         end
-        @mod = create(:mod_user)
       end
 
       should "destroy a wiki_page" do
-        delete_auth wiki_page_path(@wiki_page), @mod
+        delete_auth wiki_page_path(@wiki_page), create(:admin_user)
         assert_not(WikiPage.exists?(@wiki_page.id))
       end
     end

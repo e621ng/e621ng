@@ -151,7 +151,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def can_delete?(user)
-    user.is_moderator?
+    user.is_admin?
   end
 
   def create_mod_action_for_delete
@@ -176,12 +176,6 @@ class ForumTopic < ApplicationRecord
 
   def hidden_attributes
     super + [:text_index]
-  end
-
-  def merge(topic)
-    ForumPost.where(:id => self.posts.map(&:id)).update_all(:topic_id => topic.id)
-    topic.update(:response_count => topic.response_count + self.posts.length, :updater_id => CurrentUser.id)
-    self.update_columns(:response_count => 0, :is_hidden => true, :updater_id => CurrentUser.id)
   end
 
   def hide!

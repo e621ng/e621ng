@@ -1,7 +1,8 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :search, :show]
-  before_action :moderator_only, only: [:unhide, :destroy, :warning]
+  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :admin_only, only: [:destroy]
   skip_before_action :api_check
 
   def index
@@ -35,7 +36,7 @@ class CommentsController < ApplicationController
 
   def update
     @comment = Comment.find(params[:id])
-    check_privilege(@comment)
+    check_editable(@comment)
     @comment.update(comment_params(:update))
     respond_with(@comment, :location => post_path(@comment.post_id))
   end
@@ -52,7 +53,7 @@ class CommentsController < ApplicationController
 
   def edit
     @comment = Comment.find(params[:id])
-    check_privilege(@comment)
+    check_editable(@comment)
     respond_with(@comment)
   end
 
@@ -71,14 +72,14 @@ class CommentsController < ApplicationController
 
   def hide
     @comment = Comment.find(params[:id])
-    check_privilege(@comment)
+    check_hidable(@comment)
     @comment.hide!
     respond_with(@comment)
   end
 
   def unhide
     @comment = Comment.find(params[:id])
-    check_privilege(@comment)
+    check_hidable(@comment)
     @comment.unhide!
     respond_with(@comment)
   end
@@ -112,21 +113,22 @@ private
     respond_with(@comments)
   end
 
-  def check_privilege(comment)
-    if !comment.editable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+  def check_editable(comment)
+    raise User::PrivilegeError unless comment.editable_by?(CurrentUser.user)
   end
 
   def check_visible(comment)
-    if !comment.visible_to?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise User::PrivilegeError unless comment.visible_to?(CurrentUser.user)
+  end
+
+  def check_hidable(comment)
+    raise User::PrivilegeError unless comment.can_hide?(CurrentUser.user)
   end
 
   def search_params
     permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id poster_id is_sticky do_not_bump_post order]
-    permitted_params += %i[is_hidden ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 

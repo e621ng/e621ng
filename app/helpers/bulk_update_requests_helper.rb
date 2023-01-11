@@ -1,6 +1,6 @@
 module BulkUpdateRequestsHelper
   def approved?(command, antecedent, consequent)
-    return false unless CurrentUser.is_moderator?
+    return false unless CurrentUser.is_admin?
 
     case command
     when :create_alias
@@ -25,7 +25,7 @@ module BulkUpdateRequestsHelper
   end
 
   def failed?(command, antecedent, consequent)
-    return false unless CurrentUser.is_moderator?
+    return false unless CurrentUser.is_admin?
 
     case command
     when :create_alias
@@ -73,7 +73,7 @@ module BulkUpdateRequestsHelper
   end
 
   def script_with_line_breaks(bur, with_decorations:)
-    hash = Cache.hash "#{CurrentUser.is_moderator? ? "mod" : ""}#{with_decorations ? "color" : ""}#{bur.status}#{bur.script}"
+    hash = Cache.hash "#{CurrentUser.is_admin? ? "mod" : ""}#{with_decorations ? "color" : ""}#{bur.status}#{bur.script}"
     Cache.fetch(hash, 3600) do
       script_tokenized = BulkUpdateRequestImporter.tokenize(bur.script)
       script_tags = collect_script_tags(script_tokenized)

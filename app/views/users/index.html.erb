@@ -10,7 +10,7 @@
           <th>Name</th>
           <th>Posts</th>
           <th>Deleted</th>
-          <% if CurrentUser.is_moderator? %>
+          <% if CurrentUser.is_admin? %>
             <th>Email</th>
             <th>Last IP</th>
           <% end %>
@@ -33,7 +33,7 @@
             </td>
             <td><%= link_to user.post_upload_count, posts_path(:tags => "user:#{user.name}") %></td>
             <td><%= user.post_deleted_count %></td>
-            <% if CurrentUser.is_moderator? %>
+            <% if CurrentUser.is_admin? %>
               <td>
                 <%= user.email %>
                 <%= email_domain_search(user.email) %>

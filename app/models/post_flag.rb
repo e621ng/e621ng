@@ -172,7 +172,7 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
-    errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_admin? || force_flag)
+    errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_moderator? || force_flag)
     errors.add(:post, "is deleted") if post.is_deleted?
   end
 

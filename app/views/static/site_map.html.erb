@@ -113,8 +113,6 @@
           <li><%= link_to("Email Blacklist", email_blacklists_path) %></li>
           <li><%= link_to("Post Report Reasons", post_report_reasons_path) %></li>
           <li><%= link_to("Danger Zone", admin_danger_zone_index_path) %></li>
-        <% end %>
-        <% if CurrentUser.is_moderator? %>
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
         <% end %>
         <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>

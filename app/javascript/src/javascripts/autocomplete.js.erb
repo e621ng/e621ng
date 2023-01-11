@@ -279,7 +279,7 @@ Autocomplete.render_item = function(list, item) {
   if (item.type === "tag") {
     $link.addClass("tag-type-" + item.category);
   } else if (item.type === "user") {
-    var level_class = "user-" + item.level.toLowerCase();
+    var level_class = "user-" + item.level.replaceAll(" ", "-").toLowerCase();
     $link.addClass(level_class);
     if (Utility.meta("style-usernames") === "true") {
       $link.addClass("with-style");

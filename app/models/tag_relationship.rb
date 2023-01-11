@@ -73,15 +73,15 @@ class TagRelationship < ApplicationRecord
   end
 
   def approvable_by?(user)
-    is_pending? && user.is_moderator?
+    is_pending? && user.is_admin?
   end
 
   def deletable_by?(user)
-    user.is_moderator? || (is_pending? && creator.id == user.id)
+    user.is_admin? || (is_pending? && creator.id == user.id)
   end
 
   def editable_by?(user)
-    is_pending? && user.is_moderator?
+    is_pending? && user.is_admin?
   end
 
   module SearchMethods

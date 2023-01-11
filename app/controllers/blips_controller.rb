@@ -2,7 +2,8 @@ class BlipsController < ApplicationController
   class BlipTooOld < Exception ; end
   respond_to :html, :json
   before_action :member_only, only: [:create, :new, :update, :edit, :hide]
-  before_action :moderator_only, only: [:unhide, :destroy, :warning]
+  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :admin_only, only: [:destroy]
 
   rescue_from BlipTooOld, with: :blip_too_old
 
@@ -13,7 +14,7 @@ class BlipsController < ApplicationController
 
   def show
     @blip = Blip.find(params[:id])
-    check_privilege(@blip)
+    check_visible(@blip)
     @parent = @blip.response_to
     @children = Blip.visible.where('response_to = ?', @blip.id).paginate(params[:page])
     respond_with(@blip)
@@ -99,7 +100,7 @@ class BlipsController < ApplicationController
 
   def search_params
     permitted_params = %i[body_matches response_to creator_name creator_id order]
-    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 
@@ -113,7 +114,7 @@ class BlipsController < ApplicationController
     redirect_back(fallback_location: blips_path, flash: {notice: 'You cannot edit blips more than 5 minutes old'})
   end
 
-  def check_privilege(blip)
+  def check_visible(blip)
     raise User::PrivilegeError unless blip.visible_to?(CurrentUser.user)
   end
 
@@ -122,8 +123,7 @@ class BlipsController < ApplicationController
   end
 
   def check_edit_privilege(blip)
-    return if CurrentUser.is_moderator?
-    raise User::PrivilegeError if blip.creator_id != CurrentUser.id
-    raise BlipTooOld if blip.created_at < 5.minutes.ago
+    raise BlipTooOld if blip.created_at < 5.minutes.ago && !CurrentUser.is_admin?
+    raise User::PrivilegeError unless blip.can_edit?(CurrentUser.user)
   end
 end

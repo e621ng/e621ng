@@ -112,7 +112,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "destroy the topic and any associated posts" do
-        delete_auth forum_topic_path(@forum_topic), @mod
+        delete_auth forum_topic_path(@forum_topic), create(:admin_user)
         assert_response :no_content
       end
     end

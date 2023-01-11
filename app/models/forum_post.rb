@@ -151,8 +151,9 @@ class ForumPost < ApplicationRecord
   end
 
   def editable_by?(user)
-    return false if was_warned? && !user.is_moderator?
-    (creator_id == user.id || user.is_moderator?) && visible?(user)
+    return true if user.is_admin?
+    return false if was_warned?
+    creator_id == user.id && visible?(user)
   end
 
   def visible?(user)
@@ -160,11 +161,13 @@ class ForumPost < ApplicationRecord
   end
 
   def can_hide?(user)
-    user.is_moderator? || user.id == creator_id
+    return true if user.is_moderator?
+    return false if was_warned?
+    user.id == creator_id
   end
 
   def can_delete?(user)
-    user.is_moderator?
+    user.is_admin?
   end
 
   def update_topic_updated_at_on_create

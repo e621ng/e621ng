@@ -1,10 +1,11 @@
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:new_merge, :create_merge, :unhide, :destroy]
+  before_action :moderator_only, :only => [:unhide]
+  before_action :admin_only, only: [:destroy]
   before_action :normalize_search, :only => :index
-  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :new_merge, :create_merge, :subscribe, :unsubscribe]
-  before_action :check_min_level, :only => [:show, :edit, :update, :new_merge, :create_merge, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
+  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
+  before_action :check_min_level, :only => [:show, :edit, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
   skip_before_action :api_check
 
   def new
@@ -83,15 +84,6 @@ class ForumTopicsController < ApplicationController
     CurrentUser.user.update_attribute(:last_forum_read_at, Time.now)
     ForumTopicVisit.prune!(CurrentUser.user)
     redirect_to forum_topics_path, :notice => "All topics marked as read"
-  end
-
-  def new_merge
-  end
-
-  def create_merge
-    @merged_topic = ForumTopic.find(params[:merged_id])
-    @forum_topic.merge(@merged_topic)
-    redirect_to forum_topic_path(@merged_topic)
   end
 
   def subscribe

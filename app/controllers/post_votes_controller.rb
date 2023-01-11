@@ -1,6 +1,7 @@
 class PostVotesController < ApplicationController
   before_action :voter_only
-  before_action :admin_only, only: [:index, :lock, :delete]
+  before_action :moderator_only, only: [:index, :lock]
+  before_action :admin_only, only: [:delete]
   skip_before_action :api_check
 
   def create
@@ -39,5 +40,13 @@ class PostVotesController < ApplicationController
     ids.each do |id|
       VoteManager.admin_unvote!(id)
     end
+  end
+
+  private
+
+  def search_params
+    permitted_params = %i[post_id user_name user_id post_creator_name timeframe score]
+    permitted_params += %i[user_ip_addr duplicates_only order] if CurrentUser.is_admin?
+    permit_search_params permitted_params
   end
 end

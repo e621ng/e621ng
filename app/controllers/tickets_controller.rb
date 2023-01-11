@@ -1,7 +1,7 @@
 class TicketsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index]
-  before_action :admin_only, only: [:update, :edit, :destroy, :claim, :unclaim]
+  before_action :moderator_only, only: [:update, :edit, :destroy, :claim, :unclaim]
 
   def index
     @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])
@@ -95,8 +95,8 @@ class TicketsController < ApplicationController
   def search_params
     current_search_params = params.fetch(:search, {})
     permitted_params = %i[qtype status order]
-    permitted_params += %i[creator_id] if CurrentUser.is_admin? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
-    permitted_params += %i[creator_name accused_name accused_id claimant_id reason] if CurrentUser.is_admin?
+    permitted_params += %i[creator_id] if CurrentUser.is_moderator? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
+    permitted_params += %i[creator_name accused_name accused_id claimant_id reason] if CurrentUser.is_moderator?
     permit_search_params permitted_params
   end
 

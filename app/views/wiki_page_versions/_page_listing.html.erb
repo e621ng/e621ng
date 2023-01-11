@@ -9,7 +9,7 @@
 
           <th>Title</th>
           <th>View</th>
-          <% if CurrentUser.is_moderator? %>
+          <% if CurrentUser.is_admin? %>
             <th>IP Address</th>
           <% end %>
           <th>Last edited</th>
@@ -36,7 +36,7 @@
               <% end %>
             </td>
             <td><%= link_to "view version", wiki_page_version_path(wiki_page_version) %></td>
-            <% if CurrentUser.is_moderator? %>
+            <% if CurrentUser.is_admin? %>
               <td>
                 <%= link_to_ip wiki_page_version.updater_ip_addr %>
               </td>

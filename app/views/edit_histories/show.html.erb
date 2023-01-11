@@ -8,7 +8,9 @@
           <div class="author">
             <h6><%= link_to_user edit.user %></h6>
             <span class="date" title="<%= time_ago_in_words(edit.created_at) + " ago" %>"><%= edit.created_at.strftime("%b %d, %Y %I:%M %p") %></span>
-            <div><%= link_to_ip edit.ip_addr %></div>
+            <% if CurrentUser.is_admin? %>
+              <div><%= link_to_ip edit.ip_addr %></div>
+            <% end %>
           </div>
           <div class="content">
             <div class="body">

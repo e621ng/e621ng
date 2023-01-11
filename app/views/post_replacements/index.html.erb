@@ -118,7 +118,7 @@
                   <%= link_to "Reset To", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
                 <% end %>
               <% end %>
-              <% if CurrentUser.is_moderator? %>
+              <% if CurrentUser.is_admin? %>
                 <%= link_to "Destroy", post_replacement_path(post_replacement), method: :DELETE, 'data-confirm': 'Are you sure you want to destroy this replacement?' %>
               <% end %>
             </td>

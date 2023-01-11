@@ -165,7 +165,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_admin?
+    return true if from.is_moderator?
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason
     if allowed != true || minute_allowed != true
@@ -245,7 +245,8 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user)
-    return true if user.is_admin? && from_id == ::User.system.id
-    owner_id == user.id || (user.is_admin? && (to.is_admin? || from.is_admin? || Ticket.exists?(qtype: 'dmail', disp_id: id)))
+    return true if user.is_moderator? && (from_id == User.system.id || Ticket.exists?(qtype: "dmail", disp_id: id))
+    return true if user.is_admin? && (to.is_admin? || from.is_admin?)
+    owner_id == user.id
   end
 end

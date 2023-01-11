@@ -367,8 +367,8 @@ class User < ApplicationRecord
       self.disable_user_dmails = false if self.is_janitor?
     end
 
-    def level_class
-      "user-#{level_string.downcase}"
+    def level_css_class
+      "user-#{level_string.parameterize}"
     end
 
     def create_user_status
@@ -894,7 +894,7 @@ class User < ApplicationRecord
   end
 
   def hide_favorites?
-    return false if CurrentUser.is_admin?
+    return false if CurrentUser.is_moderator?
     return true if is_blocked?
     enable_privacy_mode? && CurrentUser.user.id != id
   end

@@ -81,7 +81,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_see_details?(user)
-        user.is_admin? || (user.id == creator_id)
+        user.is_moderator? || (user.id == creator_id)
       end
     end
 
@@ -139,7 +139,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_see_details?(user)
-        user.is_admin? || user.id == creator_id
+        user.is_moderator? || user.id == creator_id
       end
     end
   end
@@ -147,7 +147,7 @@ class Ticket < ApplicationRecord
   module APIMethods
     def hidden_attributes
       hidden = []
-      hidden += %i[claimant_id] unless CurrentUser.is_admin?
+      hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
       hidden += %i[disp_id reason] unless can_see_details?(CurrentUser)
       super + hidden
@@ -243,7 +243,7 @@ class Ticket < ApplicationRecord
   end
 
   def can_see_reporter?(user)
-    user.is_admin? || (user.id == creator_id)
+    user.is_moderator? || (user.id == creator_id)
   end
 
   def can_create_for?(user)

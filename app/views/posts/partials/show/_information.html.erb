@@ -7,7 +7,7 @@
   </li>
   <li>Rating: <%= pretty_html_rating(post) %></li>
   <li>Score: <%= post_vote_block(post, post.own_vote) %>
-    <% if CurrentUser.is_admin? %><span><%= link_to "(votes)", controller: :post_votes, search: { post_id: post.id} %></span><% end %>
+    <% if CurrentUser.is_moderator? %><span><%= link_to "(votes)", controller: :post_votes, search: { post_id: post.id} %></span><% end %>
   </li>
   <li>
     Posted: <%= link_to time_ago_in_words_tagged(post.created_at), posts_path(:tags => "date:#{post.created_at.to_date}"), :rel => "nofollow" %>

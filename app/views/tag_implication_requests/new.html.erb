@@ -11,7 +11,7 @@
       <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
       <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
       <%= f.input :reason, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
-      <% if CurrentUser.is_moderator? %>
+      <% if CurrentUser.is_admin? %>
         <%= f.input :skip_forum, as: :boolean, label: "Skip forum topic creation" %>
       <% end %>
       <%= f.button :submit, "Submit" %>

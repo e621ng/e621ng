@@ -124,7 +124,7 @@ module ApplicationHelper
   def link_to_user(user, include_activation: false)
     return "anonymous" if user.blank?
 
-    user_class = user.level_class
+    user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-post-uploader" if user.can_upload_free?
     user_class += " user-banned" if user.is_banned?
@@ -132,23 +132,6 @@ module ApplicationHelper
     html = link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
     html
-  end
-
-  def mod_link_to_user(user, positive_or_negative)
-    html = ""
-    html << link_to_user(user)
-
-    if positive_or_negative == :positive
-      html << " [" + link_to("+", new_user_feedback_path(:user_feedback => {:category => "positive", :user_id => user.id})) + "]"
-
-      unless user.is_moderator?
-        html << " [" + link_to("promote", edit_admin_user_path(user)) + "]"
-      end
-    else
-      html << " [" + link_to("&ndash;".html_safe, new_user_feedback_path(:user_feedback => {:category => "negative", :user_id => user.id})) + "]"
-    end
-
-    html.html_safe
   end
 
   def body_attributes(user = CurrentUser.user)

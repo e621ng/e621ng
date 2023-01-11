@@ -2,7 +2,7 @@
   <%= f.input :name, label: "Name" %>
   <%= f.input :shortname, label: "Short Name" %>
   <%= f.input :creator_name, label: "Username", autocomplete: "users" %>
-  <% if CurrentUser.is_admin? %>
+  <% if CurrentUser.is_moderator? %>
     <%= f.input :is_public, label: "Public?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% end %>
   <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'post_count'], %w[Created created_at], %w[Updated updated_at]], include_blank: false %>
