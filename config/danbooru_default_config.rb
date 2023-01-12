@@ -596,7 +596,7 @@ module Danbooru
         "Previously deleted (post #%PARENT_ID%)",
         "Excessive same base image set",
         "Colored base",
-        "Advertisment",
+        "Advertisement",
         "Underage artist",
         "",
         "Does not meet minimum quality standards (Artistic)",
