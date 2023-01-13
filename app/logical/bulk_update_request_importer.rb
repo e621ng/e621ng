@@ -223,13 +223,11 @@ class BulkUpdateRequestImporter
           tag_alias = TagAlias.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Alias for #{token[1]} not found" if tag_alias.nil?
           tag_alias.reject!(update_topic: false)
-          tag_alias.destroy
 
         when :remove_implication
           tag_implication = TagImplication.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Implication for #{token[1]} not found" if tag_implication.nil?
           tag_implication.reject!(update_topic: false)
-          tag_implication.destroy
 
         when :mass_update
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
