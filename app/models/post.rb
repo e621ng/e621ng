@@ -219,9 +219,9 @@ class Post < ApplicationRecord
 
     def generate_video_samples(later: false)
       if later
-        PostVideoConversionJobCopy.set(wait: 1.minute).perform_later(id)
+        PostVideoConversionJob.perform_in(1.minute, self.id)
       else
-        PostVideoConversionJobCopy.perform_later(id)
+        PostVideoConversionJob.perform_async(self.id)
       end
     end
 

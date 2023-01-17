@@ -166,7 +166,7 @@ class TagImplication < TagRelationship
       update(status: "queued", approver_id: approver.id)
       create_undo_information
       invalidate_cached_descendants
-      TagImplicationJobCopy.perform_later(id, update_topic)
+      TagImplicationJob.perform_async(id, update_topic)
     end
 
     def reject!(update_topic: true)
