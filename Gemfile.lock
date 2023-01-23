@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/zwagoth/dtext_rb.git
+  remote: https://github.com/e621ng/dtext_rb.git
   revision: 978640b904ed359c0903b3b24affaea38eff97f0
   branch: master
   specs:

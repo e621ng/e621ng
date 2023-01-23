@@ -52,7 +52,7 @@ module Danbooru
     end
 
     def source_code_url
-      "https://github.com/zwagoth/e621ng"
+      "https://github.com/e621ng/e621ng"
     end
 
     def commit_url(hash)

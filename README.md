@@ -18,7 +18,7 @@ To mitigate this you can install a WSL distribution and clone the project inside
 ### Installation
 
 1. Download and install the [prerequisites](#prerequisites).
-1. Clone the repo with `git clone https://github.com/zwagoth/e621ng.git`.
+1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
 1. Uncomment the `COMPOSE_PROFILES` variable if you wish to use solargraph. Doesn't work on Windows without WSL.
