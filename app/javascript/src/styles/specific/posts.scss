@@ -589,7 +589,6 @@ body[data-user-can-approve-posts="true"] .notice {
     }
     &.post_flag_parent_id { display: flex }
     span.error { margin-left: 1rem; }
-    input#post_flag_user_reason { width: 100%; }
   }
   
   hr { margin: 0.75rem 1.25rem; }

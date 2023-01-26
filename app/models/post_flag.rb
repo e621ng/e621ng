@@ -26,7 +26,7 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name, :user_reason, :force_flag
+  attr_accessor :parent_id, :reason_name, :force_flag
 
   module SearchMethods
     def duplicate
@@ -187,9 +187,6 @@ class PostFlag < ApplicationRecord
         return false
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when 'user'
-      errors.add(:user_reason, "cannot be blank") unless user_reason.present? && user_reason.strip.length > 0
-      errors.add(:user_reason, "cannot be used after 48 hours or on posts you didn't upload") if post.created_at < 48.hours.ago || post.uploader_id != creator_id
     when 'uploading_guidelines'
       errors.add(:reason, "can only be used on pending posts") unless post.is_pending
     else
@@ -215,8 +212,6 @@ class PostFlag < ApplicationRecord
       # Update parent flags on old parent post, if it exists
       Post.find(old_parent_id).update_has_children_flag if (old_parent_id && parent_post.id != old_parent_id)
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
-    when "user"
-      self.reason = "Uploader requested removal within 48 hours (Reason: #{user_reason})"
     else
       self.reason = MAPPED_REASONS[reason_name]
     end

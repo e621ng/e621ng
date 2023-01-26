@@ -35,18 +35,6 @@
       
     <% end %>
     
-    <hr />
-    <h3>Only use if no other option fits:</h3>
-        
-    <label>
-      <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: !(@post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago) %>
-      I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).
-      <div class="dtext-container"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
-    </label>
-    <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
-      <%= f.input :user_reason, label: "Reason" %>
-    <% end %>
-    
     <div>
       <%= f.submit "Submit" %>
     </div>

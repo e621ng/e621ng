@@ -586,10 +586,6 @@ module Danbooru
       ]
     end
 
-    def flag_reason_48hours
-      "If you are the artist, and want this image to be taken down [b]permanently[/b], file a \"takedown\":/static/takedown instead.\nTo replace the image with a \"fixed\" version, upload that image first, and then use the \"Duplicate or inferior version\" reason above.\nFor accidentally released paysite or private content, use the \"Paysite, commercial, or private content\" reason above."
-    end
-
     def deletion_reasons
       [
         "Inferior version/duplicate of post #%PARENT_ID%",
