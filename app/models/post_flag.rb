@@ -178,8 +178,6 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
-    when 'test'
-      errors.add(:reason, "is not one of the available choices") unless Rails.env.test?
     when 'deletion'
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
@@ -201,8 +199,6 @@ class PostFlag < ApplicationRecord
 
   def update_reason
     case reason_name
-    when 'test'
-      self.reason = user_reason if Rails.env.test?
     when 'deletion'
       # NOP
     when 'inferior'

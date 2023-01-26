@@ -136,13 +136,12 @@ class PostTest < ActiveSupport::TestCase
 
       context "that is still in cooldown after being flagged" do
         should "succeed" do
-          post = create(:post)
-          flag = PostFlag.create(post_id: post.id, reason_name: 'test', user_reason: 'test flag')
+          flag = create(:post_flag)
           assert_equal([], flag.errors.full_messages)
-          post.delete!("test deletion")
+          flag.post.delete!("test deletion")
 
-          assert_equal(true, post.is_deleted)
-          assert_equal(2, post.flags.size)
+          assert_equal(true, flag.post.is_deleted)
+          assert_equal(2, flag.post.flags.size)
         end
       end
 
@@ -395,8 +394,8 @@ class PostTest < ActiveSupport::TestCase
     context "An approved post" do
       should "be flagged" do
         post = create(:post)
-        assert_difference("PostFlag.count", 1) do
-          post.flags.create(reason_name: 'test', user_reason: 'test')
+        assert_difference(-> { PostFlag.count }, 1) do
+          create(:post_flag, post: post)
         end
         assert(post.is_flagged?, "Post should be flagged.")
         assert_equal(1, post.flags.count)
@@ -404,8 +403,8 @@ class PostTest < ActiveSupport::TestCase
 
       should "not be flagged if no reason is given" do
         post = create(:post)
-        assert_difference("PostFlag.count", 0) do
-          post.flags.create(reason_name: '', user_reason: '')
+        assert_no_difference(-> { PostFlag.count }) do
+          post.flags.create(reason_name: "")
         end
       end
     end
@@ -435,7 +434,7 @@ class PostTest < ActiveSupport::TestCase
       context "that has been reapproved" do
         setup do
           @post = create(:post)
-          PostFlag.create(post_id: @post.id, reason_name: "test", user_reason: "testing")
+          create(:post_flag, post: @post)
           @post.reload
         end
 
@@ -463,7 +462,8 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "not allow new flags" do
-        flag = @post.flags.create(reason_name: "test", user_reason: 'should fail')
+        flag = build(:post_flag, post: @post)
+        flag.validate
         assert_equal(["Post is locked and cannot be flagged"], flag.errors.full_messages)
       end
 
