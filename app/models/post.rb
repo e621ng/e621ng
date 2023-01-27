@@ -1246,12 +1246,15 @@ class Post < ApplicationRecord
       end
 
       if reason.blank?
-        last_flag = flags.unresolved.order(id: :desc).first
-        if last_flag.blank?
-          self.errors.add(:base, "Cannot flag with blank reason when no active flag exists.")
-          return false
+        if pending_flag.blank?
+          errors.add(:base, "Cannot delete with given reason when no active flag exists.")
+          return
         end
-        reason = last_flag.reason
+        if pending_flag.reason =~ /uploading_guidelines/
+          errors.add(:base, "Cannot delete with given reason when the flag is for uploading guidelines.")
+          return
+        end
+        reason = pending_flag.reason
       end
 
       force_flag = options.fetch(:force, false)
@@ -1313,6 +1316,10 @@ class Post < ApplicationRecord
 
     def deletion_flag
       flags.order(id: :desc).first
+    end
+
+    def pending_flag
+      flags.unresolved.order(id: :desc).first
     end
   end
 
