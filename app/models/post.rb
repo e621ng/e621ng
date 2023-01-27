@@ -1750,4 +1750,10 @@ class Post < ApplicationRecord
     linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
     linked_artists.select { |artist| artist.linked_user_id == uploader_id }
   end
+
+  def flaggable_for_guidelines?
+    return true if is_pending?
+    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    return false
+  end
 end

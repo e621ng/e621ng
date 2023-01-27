@@ -19,7 +19,7 @@
     <%= f.hidden_field :post_id %>
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
-      <% if flag_reason[:name] == "uploading_guidelines" && !@post.is_pending %>
+      <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
         <% next %>
       <% end %>
 

@@ -43,7 +43,7 @@ class PostFlagTest < ActiveSupport::TestCase
           @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines")
         end
       end
-      assert_match(/can only be used on pending posts/, error.message)
+      assert_match(/not pending/, error.message)
 
       @post = create(:post, is_pending: true)
       as(@bob) do
