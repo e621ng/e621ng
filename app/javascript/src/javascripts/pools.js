@@ -1,6 +1,3 @@
-import Utility from "./utility";
-import Sortable from "sortablejs";
-
 let Pool = {};
 
 Pool.dialog_setup = false;
@@ -11,7 +8,7 @@ Pool.initialize_all = function() {
   }
 
   if ($("#c-pool-orders").length) {
-    this.initialize_sortable_edit();
+    this.initialize_simple_edit();
   }
 };
 
@@ -31,31 +28,23 @@ Pool.initialize_add_to_pool_link = function() {
   });
 }
 
-Pool.initialize_sortable_edit = function() {
-  const sortable = Sortable.create($("#pool-sortable")[0]);
-  $("#pool-sortable-submit").on("click", e => {
-    e.preventDefault();
-    const path = e.target.getAttribute("data-target");
+Pool.initialize_simple_edit = function() {
+  $("#sortable").sortable({
+    placeholder: "ui-state-placeholder"
+  });
+  $("#sortable").disableSelection();
+
+  $("#ordering-form").submit(function(e) {
     $.ajax({
       type: "put",
-      url: path,
-      data: {
-        pool: {
-          post_ids: sortable.toArray(),
-        }
-      },
-      dataType: "json",
-      success: () => {
-        location.href = path;
-      },
-      error: () => {
-        Utility.error("Failed to save pool order.");
-      }
+      url: e.target.action,
+      data: $("#sortable").sortable("serialize") + "&" + $(e.target).serialize()
     });
+    e.preventDefault();
   });
 }
 
-$(() => {
+$(document).ready(function() {
   Pool.initialize_all();
 });
 

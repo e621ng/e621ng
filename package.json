@@ -18,7 +18,6 @@
     "sass": "^1.42.1",
     "sass-loader": "^12.1.0",
     "script-loader": "^0.7.2",
-    "sortablejs": "^1.15.0",
     "style-loader": "^3.3.0",
     "vue": "^3.1.0",
     "vue-loader": "https://github.com/earlopain/vue-loader#const-fix",
