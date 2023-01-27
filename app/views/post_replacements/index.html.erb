@@ -69,7 +69,7 @@
                 <dd><div class="replacement-status">
                   <%= post_replacement.status %>
                   <% if post_replacement.status == "pending" && (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).any? %>
-                    <%= tag.i class: "fas fa-exclamation-circle", title: (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).join(", ") %>
+                    <%= tag.i class: "fa-solid fa-circle-exclamation", title: (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).join(", ") %>
                   <% end %>
                 </div></dd>
                 <dt>Reason</dt>

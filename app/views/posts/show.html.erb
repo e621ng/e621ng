@@ -101,8 +101,8 @@
             <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
           </div>
           <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
-            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
+            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", 'data-pid': @post.id %>
+            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", 'data-pid': @post.id %>
           <% end %>
         <% end %>
         <% if @post.visible? %>

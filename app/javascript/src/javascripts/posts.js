@@ -936,7 +936,7 @@ Post.update_tag_count = function(event) {
   } else if (count < 25) {
     klass = "meh";
   }
-  $("#tags-container .options #face").removeClass().addClass(`far fa-${klass}`);
+  $("#tags-container .options #face").removeClass().addClass(`fa-regular fa-face-${klass}`);
 }
 
 Post.vote_up = function (e) {

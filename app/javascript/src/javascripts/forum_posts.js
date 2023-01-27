@@ -46,12 +46,15 @@ ForumPost.reinitialize_all = function() {
 ForumPost.vote = function(evt, score) {
   evt.preventDefault();
   const create_post = function(new_vote) {
-    const score_map = {'1': 'fa-thumbs-up', '0': 'fa-meh', '-1': 'fa-thumbs-down' };
-    const score_map_2 = {'1': 'up', '0': 'meh', '-1': 'down'};
-    const link1 = $('<a>').attr('href', '#').attr('data-forum-id', new_vote.forum_post_id).addClass('forum-vote-remove').append($('<i>').addClass('far').addClass(score_map[new_vote.score.toString()]));
-    const link2 = $('<a>').attr('href', `/users/${new_vote.creator_id}`).text(new_vote.creator_name);
-    const container = $('<li>').addClass(`vote-score-${score_map_2[new_vote.score]}`).addClass('own-forum-vote');
-    container.append(link1).append(' ').append(link2);
+    const score_map = {
+      "1": { fa_class:  "fa-thumbs-up", e6_class: "up" },
+      "0": { fa_class:  "fa-face-meh", e6_class: "meh" },
+      "-1": { fa_class:  "fa-thumbs-down", e6_class: "down" },
+    }
+    const icon = $('<a>').attr('href', '#').attr('data-forum-id', new_vote.forum_post_id).addClass('forum-vote-remove').append($('<i>').addClass('fa-regular').addClass(score_map[new_vote.score.toString()].fa_class));
+    const username = $('<a>').attr('href', `/users/${new_vote.creator_id}`).text(new_vote.creator_name);
+    const container = $('<li>').addClass(`vote-score-${score_map[new_vote.score].e6_class}`).addClass('own-forum-vote');
+    container.append(icon).append(' ').append(username);
     $(`#forum-post-votes-for-${new_vote.forum_post_id}`).prepend(container);
   };
   const id = $(evt.target.parentNode).data('forum-id');
