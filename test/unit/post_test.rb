@@ -23,7 +23,7 @@ class PostTest < ActiveSupport::TestCase
         Sidekiq::Testing.fake!
         @upload = UploadService.new(attributes_for(:jpg_upload)).start!
         @post = @upload.post
-        FavoriteManager.add!(user: @post.uploader, post: @post, isolation: false)
+        FavoriteManager.add!(user: @post.uploader, post: @post)
       end
 
       should "delete the files" do
@@ -1570,7 +1570,7 @@ class PostTest < ActiveSupport::TestCase
       posts = users.map do |u|
         as(u) do
           post = create(:post, tag_string: "abc")
-          FavoriteManager.add!(user: u, post: post, isolation: false)
+          FavoriteManager.add!(user: u, post: post)
           post
         end
       end
