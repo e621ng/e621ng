@@ -10,8 +10,13 @@ class FileValidator
     validate_file_ext(max_file_sizes)
     validate_file_size(max_file_sizes)
     validate_file_integrity
-    validate_video_container_format
-    validate_video_duration
+    if record.is_video?
+      video = record.video(file_path)
+      validate_container_format(video)
+      validate_duration(video)
+      validate_colorspace(video)
+      validate_sar(video)
+    end
     validate_resolution(max_width, max_height)
   end
 
@@ -53,24 +58,29 @@ class FileValidator
     end
   end
 
-  def validate_video_duration
-    if record.is_video? && record.video(file_path).duration > Danbooru.config.max_video_duration
+  def validate_duration(video)
+    if video.duration > Danbooru.config.max_video_duration
       record.errors.add(:base, "video must not be longer than #{Danbooru.config.max_video_duration} seconds")
     end
   end
 
-  def validate_video_container_format
-    if record.is_video?
-      video = record.video(file_path)
-      unless video.valid?
-        record.errors.add(:base, "video isn't valid")
-        return
-      end
-      valid_video_codec = %w[vp8 vp9 av1].include?(video.video_codec)
-      valid_container = video.container == "matroska,webm"
-      unless valid_video_codec && valid_container
-        record.errors.add(:base, "video container/codec isn't valid for webm")
-      end
+  def validate_container_format(video)
+    unless video.valid?
+      record.errors.add(:base, "video isn't valid")
+      return
     end
+    valid_video_codec = %w[vp8 vp9 av1].include?(video.video_codec)
+    valid_container = video.container == "matroska,webm"
+    unless valid_video_codec && valid_container
+      record.errors.add(:base, "video container/codec isn't valid for webm")
+    end
+  end
+
+  def validate_colorspace(video)
+    record.errors.add(:base, "video colorspace must be yuv420p, was #{video.colorspace}") unless video.colorspace == "yuv420p"
+  end
+
+  def validate_sar(video)
+    record.errors.add(:base, "video is anamorphic (#{video.sar})") unless video.sar == "1:1"
   end
 end
