@@ -1,6 +1,7 @@
 class Mascot < ApplicationRecord
   belongs_to_creator
 
+  array_attribute :available_on
   attr_accessor :mascot_file
 
   validates :display_name, :background_color, :artist_url, :artist_name, presence: true
@@ -33,8 +34,7 @@ class Mascot < ApplicationRecord
 
   def self.active_for_browser
     Cache.fetch("active_mascots", 1.day) do
-      query = Mascot.where(active: true)
-      query = query.where(safe_mode_only: false) if !Danbooru.config.safe_mode?
+      query = Mascot.where(active: true).where("? = ANY(available_on)", Danbooru.config.app_name)
       mascots = query.map do |mascot|
         mascot.slice(:id, :background_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)
       end
