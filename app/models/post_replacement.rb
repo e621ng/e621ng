@@ -207,6 +207,7 @@ class PostReplacement < ApplicationRecord
         new_upload = processor.start!
         if new_upload.valid? && new_upload.post&.valid?
           update_attribute(:status, "promoted")
+          PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { source_post_id: post.id })
         end
         new_upload
       end

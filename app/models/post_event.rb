@@ -19,8 +19,9 @@ class PostEvent < ApplicationRecord
     comment_enabled: 19,
     replacement_accepted: 14,
     replacement_rejected: 15,
+    replacement_promoted: 20,
     replacement_deleted: 16,
-    expunged: 17
+    expunged: 17,
   }
 
   def self.add(post_id, creator, action, data = {})
