@@ -29,7 +29,7 @@
             <td><%= radio_button_tag "thispage", wiki_page_version.id, (i == 1) %></td>
             <td><%= radio_button_tag "otherpage", wiki_page_version.id, (i == 0) %></td>
 
-            <td class="category-<%= wiki_page_version.category_name %>">
+            <td class="category-<%= wiki_page_version.category_id %>">
               <%= link_to wiki_page_version.title, wiki_page_version_path(wiki_page_version) %>
               <% if wiki_page_version.is_deleted? %>
                 (deleted)

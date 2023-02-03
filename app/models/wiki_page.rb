@@ -125,7 +125,7 @@ class WikiPage < ApplicationRecord
     end
 
     def method_attributes
-      super + [:creator_name, :category_name]
+      super + [:creator_name, :category_id, :category_name]
     end
   end
 
@@ -188,17 +188,18 @@ class WikiPage < ApplicationRecord
     @skip_secondary_validations = value.to_s.truthy?
   end
 
-  def category_name
+  def category_id
     Tag.category_for(title)
   end
+  alias category_name category_id
 
   def pretty_title
     title&.tr("_", " ") || ''
   end
 
   def pretty_title_with_category
-    return pretty_title if category_name == 0
-    "#{Tag.category_for_value(category_name)}: #{pretty_title}"
+    return pretty_title if category_id == 0
+    "#{Tag.category_for_value(category_id)}: #{pretty_title}"
   end
 
   def wiki_page_changed?

@@ -376,7 +376,7 @@ class Artist < ApplicationRecord
   end
 
   module TagMethods
-    def category_name
+    def category_id
       Tag.category_for(name)
     end
 

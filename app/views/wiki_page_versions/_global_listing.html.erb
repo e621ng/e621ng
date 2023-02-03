@@ -14,7 +14,7 @@
     <tbody>
       <% @wiki_page_versions.each do |wiki_page_version| %>
         <tr>
-          <td class="category-<%= wiki_page_version.category_name %>">
+          <td class="category-<%= wiki_page_version.category_id %>">
             <%= link_to wiki_page_version.title, wiki_page_version_path(wiki_page_version) %>
             <% if wiki_page_version.is_deleted? %>
               (deleted)
