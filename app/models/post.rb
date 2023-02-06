@@ -1590,11 +1590,8 @@ class Post < ApplicationRecord
     end
 
     def updater_can_change_rating
-      if rating_changed? && is_rating_locked?
-        # Don't forbid changes if the rating lock was just now set in the same update.
-        if !is_rating_locked_changed?
-          errors.add(:rating, "is locked and cannot be changed. Unlock the post first.")
-        end
+      if !CurrentUser.user.is_privileged? && rating_changed? && is_rating_locked?
+        errors.add(:rating, "is locked and cannot be changed.")
       end
     end
 
