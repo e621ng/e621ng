@@ -986,41 +986,6 @@ ALTER SEQUENCE public.ip_bans_id_seq OWNED BY public.ip_bans.id;
 
 
 --
--- Name: janitor_trials; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.janitor_trials (
-    id integer NOT NULL,
-    creator_id integer NOT NULL,
-    user_id integer NOT NULL,
-    original_level integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    status character varying DEFAULT 'active'::character varying NOT NULL
-);
-
-
---
--- Name: janitor_trials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.janitor_trials_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: janitor_trials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
-
-
---
 -- Name: mascots; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2643,13 +2608,6 @@ ALTER TABLE ONLY public.ip_bans ALTER COLUMN id SET DEFAULT nextval('public.ip_b
 
 
 --
--- Name: janitor_trials id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.janitor_trials ALTER COLUMN id SET DEFAULT nextval('public.janitor_trials_id_seq'::regclass);
-
-
---
 -- Name: mascots id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3099,14 +3057,6 @@ ALTER TABLE ONLY public.help_pages
 
 ALTER TABLE ONLY public.ip_bans
     ADD CONSTRAINT ip_bans_pkey PRIMARY KEY (id);
-
-
---
--- Name: janitor_trials janitor_trials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.janitor_trials
-    ADD CONSTRAINT janitor_trials_pkey PRIMARY KEY (id);
 
 
 --
@@ -3800,13 +3750,6 @@ CREATE UNIQUE INDEX index_ip_bans_on_ip_addr ON public.ip_bans USING btree (ip_a
 
 
 --
--- Name: index_janitor_trials_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_janitor_trials_on_user_id ON public.janitor_trials USING btree (user_id);
-
-
---
 -- Name: index_mascots_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4356,7 +4299,7 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+CREATE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
@@ -4371,13 +4314,6 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 --
 
 CREATE UNIQUE INDEX index_users_on_name ON public.users USING btree (lower((name)::text));
-
-
---
--- Name: index_users_on_name_trgm; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_name_trgm ON public.users USING gin (lower((name)::text) public.gin_trgm_ops);
 
 
 --
@@ -4799,6 +4735,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220710133556'),
 ('20220810131625'),
 ('20221014085948'),
-('20230203162010');
+('20230203162010'),
+('20230204141325'),
+('20230210092829');
 
 
