@@ -728,9 +728,6 @@ module Danbooru
       end
     end
 
-    def twitter_site
-    end
-
     # disable this for tests
     def enable_sock_puppet_validation?
       true
