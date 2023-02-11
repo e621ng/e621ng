@@ -93,10 +93,6 @@ class Post < ApplicationRecord
       storage_manager.open_file(self, type)
     end
 
-    def tagged_file_url
-      storage_manager.file_url(self, :original)
-    end
-
     def tagged_large_file_url
       storage_manager.file_url(self, :large)
     end
