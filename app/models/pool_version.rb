@@ -101,8 +101,7 @@ class PoolVersion < ApplicationRecord
   end
 
   def updater
-    return nil if updater_id.nil?
-    User.find(updater_id)
+    User.find_by(id: updater_id)
   end
 
   def updater_name
