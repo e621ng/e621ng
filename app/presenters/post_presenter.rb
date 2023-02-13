@@ -73,6 +73,7 @@ class PostPresenter < Presenter
 
     if options[:size]
       locals[:size] = post.file_size
+      locals[:file_ext] = post.file_ext
     else
       locals[:size] = nil
     end
