@@ -3,7 +3,7 @@ module PostFlagsHelper
     html = []
     html << '<ul>'
 
-    post.flags.each do |flag|
+    post.flags.order(id: :desc).each do |flag|
       html << '<li>'
       html << (flag.is_deletion ? "[DELETION] " : "[FLAG] ")
       html << format_text(flag.reason, inline: true)
