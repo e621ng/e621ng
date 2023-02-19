@@ -318,7 +318,7 @@ class PostSet < ApplicationRecord
 
       q = q.attribute_exact_matches(:creator_id, params[:creator_id])
       if params[:name].present?
-        q = q.where_ilike(:name, params[:name])
+        q = q.attribute_matches(:name, params[:name], convert_to_wildcard: true)
       end
       if params[:shortname].present?
         q = q.where_ilike(:shortname, params[:shortname])

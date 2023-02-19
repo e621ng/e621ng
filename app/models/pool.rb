@@ -52,12 +52,6 @@ class Pool < ApplicationRecord
       reorder(Arel.sql("(case pools.id when #{current_pool_id} then 0 else 1 end), pools.name"))
     end
 
-    def name_matches(name)
-      name = normalize_name_for_search(name)
-      name = "*#{name}*" unless name =~ /\*/
-      where("lower(pools.name) like ? escape E'\\\\'", name.to_escaped_for_sql_like)
-    end
-
     def default_order
       order(updated_at: :desc)
     end
@@ -66,7 +60,7 @@ class Pool < ApplicationRecord
       q = super
 
       if params[:name_matches].present?
-        q = q.name_matches(params[:name_matches])
+        q = q.attribute_matches(:name, normalize_name(params[:name_matches]), convert_to_wildcard: true)
       end
 
       q = q.attribute_matches(:description, params[:description_matches])
@@ -143,15 +137,11 @@ class Pool < ApplicationRecord
     name.gsub(/[_[:space:]]+/, "_").gsub(/\A_|_\z/, "")
   end
 
-  def self.normalize_name_for_search(name)
-    normalize_name(name).downcase
-  end
-
   def self.find_by_name(name)
     if name =~ /\A\d+\z/
       where("pools.id = ?", name.to_i).first
     elsif name
-      where("lower(pools.name) = ?", normalize_name_for_search(name)).first
+      where("lower(pools.name) = ?", normalize_name(name).downcase).first
     else
       nil
     end

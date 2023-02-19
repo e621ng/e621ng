@@ -69,9 +69,10 @@ class ApplicationRecord < ActiveRecord::Base
         PostQueryBuilder.new(nil).add_range_relation(parsed_range, qualified_column, self)
       end
 
-      def text_attribute_matches(attribute, value)
+      def text_attribute_matches(attribute, value, convert_to_wildcard: false)
         column = column_for_attribute(attribute)
         qualified_column = "#{table_name}.#{column.name}"
+        value = "*#{value}*" if convert_to_wildcard && value.exclude?("*")
 
         if value =~ /\*/
           where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
