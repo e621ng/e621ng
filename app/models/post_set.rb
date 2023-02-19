@@ -308,12 +308,6 @@ class PostSet < ApplicationRecord
       joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'approved', user_id)
     end
 
-    def name_matches(name)
-      name = normalize_name_for_search(name)
-      name = "*#{name}*" unless name =~ /\*/
-      where("lower(post_sets.name) like ? escape E'\\\\'", name.to_escaped_for_sql_like)
-    end
-
     def search(params)
       q = super
 
@@ -324,7 +318,7 @@ class PostSet < ApplicationRecord
 
       q = q.attribute_exact_matches(:creator_id, params[:creator_id])
       if params[:name].present?
-        q = q.name_matches(params[:name])
+        q = q.attribute_matches(:name, params[:name], convert_to_wildcard: true)
       end
       if params[:shortname].present?
         q = q.where_ilike(:shortname, params[:shortname])
@@ -353,15 +347,6 @@ class PostSet < ApplicationRecord
   end
 
   extend SearchMethods
-
-  def self.normalize_name(name)
-    name.gsub(/[_[:space:]]+/, "_").gsub(/\A_|_\z/, "")
-  end
-
-  def self.normalize_name_for_search(name)
-    normalize_name(name).downcase
-  end
-
   include ValidationMethods
   include AccessMethods
   include PostMethods
