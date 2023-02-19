@@ -144,8 +144,9 @@ class User < ApplicationRecord
 
     module ClassMethods
       def name_to_id(name)
-        Cache.fetch("uni:#{Cache.hash(name)}", 4.hours) do
-          val = select_value_sql("SELECT id FROM users WHERE lower(name) = ?", name.downcase.tr(" ", "_").to_s)
+        normalized_name = normalize_name(name)
+        Cache.fetch("uni:#{Cache.hash(normalized_name)}", 4.hours) do
+          val = select_value_sql("SELECT id FROM users WHERE lower(name) = ?", normalized_name)
           if val.present?
             val.to_i
           else
@@ -181,7 +182,7 @@ class User < ApplicationRecord
       end
 
       def find_by_name(name)
-        where("lower(name) = ?", name.downcase.tr(" ", "_")).first
+        where("lower(name) = ?", normalize_name(name)).first
       end
 
       def find_by_name_or_id(name)

@@ -83,7 +83,7 @@ class WikiPage < ApplicationRecord
         q = q.where("creator_id = ?", params[:creator_id])
       end
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index, ts_config: "danbooru")
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:other_names_match].present?
         q = q.other_names_match(params[:other_names_match])

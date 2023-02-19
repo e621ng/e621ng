@@ -332,11 +332,11 @@ module Danbooru
     end
 
     def discord_site
-      ""
+      "http://localhost:8000"
     end
 
     def discord_secret
-      ""
+      "abc123"
     end
 
     # Maximum size of an upload. If you change this, you must also change
@@ -479,7 +479,7 @@ module Danbooru
           "header" => 'Artists',
           "humanized" => {
             "slice" => 0,
-            "exclusion" => %w(avoid_posting conditional_dnp),
+            "exclusion" => %w(avoid_posting conditional_dnp epilepsy_warning sound_warning),
             "regexmap" => //,
             "formatstr" => "created by %s"
           },
@@ -726,9 +726,6 @@ module Danbooru
       else
         false
       end
-    end
-
-    def twitter_site
     end
 
     # disable this for tests

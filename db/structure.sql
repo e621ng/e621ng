@@ -986,41 +986,6 @@ ALTER SEQUENCE public.ip_bans_id_seq OWNED BY public.ip_bans.id;
 
 
 --
--- Name: janitor_trials; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.janitor_trials (
-    id integer NOT NULL,
-    creator_id integer NOT NULL,
-    user_id integer NOT NULL,
-    original_level integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    status character varying DEFAULT 'active'::character varying NOT NULL
-);
-
-
---
--- Name: janitor_trials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.janitor_trials_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: janitor_trials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
-
-
---
 -- Name: mascots; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2643,13 +2608,6 @@ ALTER TABLE ONLY public.ip_bans ALTER COLUMN id SET DEFAULT nextval('public.ip_b
 
 
 --
--- Name: janitor_trials id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.janitor_trials ALTER COLUMN id SET DEFAULT nextval('public.janitor_trials_id_seq'::regclass);
-
-
---
 -- Name: mascots id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3102,14 +3060,6 @@ ALTER TABLE ONLY public.ip_bans
 
 
 --
--- Name: janitor_trials janitor_trials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.janitor_trials
-    ADD CONSTRAINT janitor_trials_pkey PRIMARY KEY (id);
-
-
---
 -- Name: mascots mascots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3548,6 +3498,13 @@ CREATE INDEX index_blips_on_body_index ON public.blips USING gin (body_index);
 
 
 --
+-- Name: index_blips_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_blips_on_to_tsvector_english_body ON public.blips USING gin (to_tsvector('english'::regconfig, (body)::text));
+
+
+--
 -- Name: index_bulk_update_requests_on_forum_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3618,6 +3575,13 @@ CREATE INDEX index_comments_on_post_id ON public.comments USING btree (post_id);
 
 
 --
+-- Name: index_comments_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_dmail_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3657,6 +3621,13 @@ CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_i
 --
 
 CREATE INDEX index_dmails_on_owner_id ON public.dmails USING btree (owner_id);
+
+
+--
+-- Name: index_dmails_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_on_to_tsvector_english_body ON public.dmails USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -3723,6 +3694,13 @@ CREATE INDEX index_forum_posts_on_text_index ON public.forum_posts USING gin (te
 
 
 --
+-- Name: index_forum_posts_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_to_tsvector_english_body ON public.forum_posts USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_forum_posts_on_topic_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3786,6 +3764,13 @@ CREATE INDEX index_forum_topics_on_text_index ON public.forum_topics USING gin (
 
 
 --
+-- Name: index_forum_topics_on_to_tsvector_english_title; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_to_tsvector_english_title ON public.forum_topics USING gin (to_tsvector('english'::regconfig, (title)::text));
+
+
+--
 -- Name: index_forum_topics_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3797,13 +3782,6 @@ CREATE INDEX index_forum_topics_on_updated_at ON public.forum_topics USING btree
 --
 
 CREATE UNIQUE INDEX index_ip_bans_on_ip_addr ON public.ip_bans USING btree (ip_addr);
-
-
---
--- Name: index_janitor_trials_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_janitor_trials_on_user_id ON public.janitor_trials USING btree (user_id);
 
 
 --
@@ -3888,6 +3866,13 @@ CREATE INDEX index_notes_on_creator_id_and_post_id ON public.notes USING btree (
 --
 
 CREATE INDEX index_notes_on_post_id ON public.notes USING btree (post_id);
+
+
+--
+-- Name: index_notes_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notes_on_to_tsvector_english_body ON public.notes USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -4129,6 +4114,14 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_string_to_array_tag_string ON public.posts USING gin (string_to_array(tag_string, ' '::text));
+ALTER INDEX public.index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET STATISTICS 3000;
+
+
+--
 -- Name: index_posts_on_tags_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4356,7 +4349,7 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+CREATE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
@@ -4371,13 +4364,6 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 --
 
 CREATE UNIQUE INDEX index_users_on_name ON public.users USING btree (lower((name)::text));
-
-
---
--- Name: index_users_on_name_trgm; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_name_trgm ON public.users USING gin (lower((name)::text) public.gin_trgm_ops);
 
 
 --
@@ -4427,6 +4413,13 @@ CREATE UNIQUE INDEX index_wiki_pages_on_title ON public.wiki_pages USING btree (
 --
 
 CREATE INDEX index_wiki_pages_on_title_pattern ON public.wiki_pages USING btree (title text_pattern_ops);
+
+
+--
+-- Name: index_wiki_pages_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_to_tsvector_english_body ON public.wiki_pages USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -4489,14 +4482,14 @@ CREATE TRIGGER trigger_notes_on_update BEFORE INSERT OR UPDATE ON public.notes F
 -- Name: posts trigger_posts_on_tag_index_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tag_index', 'pg_catalog.english', 'tag_string', 'fav_string', 'pool_string');
+CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tag_index', 'public.danbooru', 'tag_string', 'fav_string', 'pool_string');
 
 
 --
 -- Name: wiki_pages trigger_wiki_pages_on_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'pg_catalog.english', 'body', 'title');
+CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'public.danbooru', 'body', 'title');
 
 
 --
@@ -4799,6 +4792,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220710133556'),
 ('20220810131625'),
 ('20221014085948'),
-('20230203162010');
+('20230203162010'),
+('20230204141325'),
+('20230210092829'),
+('20230219115601');
 
 
