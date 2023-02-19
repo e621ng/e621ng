@@ -34,7 +34,7 @@ class Note < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
       q = q.attribute_matches(:is_active, params[:is_active])
 
       if params[:post_id].present?

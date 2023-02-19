@@ -65,7 +65,7 @@ class ForumTopic < ApplicationRecord
       q = super
       q = q.permitted
 
-      q = q.attribute_matches(:title, params[:title_matches], index_column: :text_index)
+      q = q.attribute_matches(:title, params[:title_matches])
 
       if params[:category_id].present?
         q = q.for_category_id(params[:category_id])

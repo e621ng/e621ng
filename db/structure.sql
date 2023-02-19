@@ -3498,6 +3498,13 @@ CREATE INDEX index_blips_on_body_index ON public.blips USING gin (body_index);
 
 
 --
+-- Name: index_blips_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_blips_on_to_tsvector_english_body ON public.blips USING gin (to_tsvector('english'::regconfig, (body)::text));
+
+
+--
 -- Name: index_bulk_update_requests_on_forum_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3568,6 +3575,13 @@ CREATE INDEX index_comments_on_post_id ON public.comments USING btree (post_id);
 
 
 --
+-- Name: index_comments_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_dmail_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3607,6 +3621,13 @@ CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_i
 --
 
 CREATE INDEX index_dmails_on_owner_id ON public.dmails USING btree (owner_id);
+
+
+--
+-- Name: index_dmails_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_on_to_tsvector_english_body ON public.dmails USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -3673,6 +3694,13 @@ CREATE INDEX index_forum_posts_on_text_index ON public.forum_posts USING gin (te
 
 
 --
+-- Name: index_forum_posts_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_to_tsvector_english_body ON public.forum_posts USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_forum_posts_on_topic_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3733,6 +3761,13 @@ CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topi
 --
 
 CREATE INDEX index_forum_topics_on_text_index ON public.forum_topics USING gin (text_index);
+
+
+--
+-- Name: index_forum_topics_on_to_tsvector_english_title; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_to_tsvector_english_title ON public.forum_topics USING gin (to_tsvector('english'::regconfig, (title)::text));
 
 
 --
@@ -3831,6 +3866,13 @@ CREATE INDEX index_notes_on_creator_id_and_post_id ON public.notes USING btree (
 --
 
 CREATE INDEX index_notes_on_post_id ON public.notes USING btree (post_id);
+
+
+--
+-- Name: index_notes_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notes_on_to_tsvector_english_body ON public.notes USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -4069,6 +4111,14 @@ CREATE UNIQUE INDEX index_posts_on_md5 ON public.posts USING btree (md5);
 --
 
 CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
+
+
+--
+-- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_string_to_array_tag_string ON public.posts USING gin (string_to_array(tag_string, ' '::text));
+ALTER INDEX public.index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET STATISTICS 3000;
 
 
 --
@@ -4363,6 +4413,13 @@ CREATE UNIQUE INDEX index_wiki_pages_on_title ON public.wiki_pages USING btree (
 --
 
 CREATE INDEX index_wiki_pages_on_title_pattern ON public.wiki_pages USING btree (title text_pattern_ops);
+
+
+--
+-- Name: index_wiki_pages_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_to_tsvector_english_body ON public.wiki_pages USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -4737,6 +4794,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221014085948'),
 ('20230203162010'),
 ('20230204141325'),
-('20230210092829');
+('20230210092829'),
+('20230219115601');
 
 

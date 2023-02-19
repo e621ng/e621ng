@@ -84,7 +84,7 @@ class Blip < ApplicationRecord
 
       q = q.includes(:creator).includes(:responses).includes(:parent)
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:response_to].present?
         q = q.where('response_to = ?', params[:response_to].to_i)

@@ -75,7 +75,7 @@ class Comment < ApplicationRecord
     def search(params)
       q = super.includes(:creator).includes(:updater).includes(:post)
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:post_id].present?
         q = q.where("post_id in (?)", params[:post_id].split(",").map(&:to_i))

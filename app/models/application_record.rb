@@ -69,16 +69,14 @@ class ApplicationRecord < ActiveRecord::Base
         PostQueryBuilder.new(nil).add_range_relation(parsed_range, qualified_column, self)
       end
 
-      def text_attribute_matches(attribute, value, index_column: nil, ts_config: "english")
+      def text_attribute_matches(attribute, value)
         column = column_for_attribute(attribute)
         qualified_column = "#{table_name}.#{column.name}"
 
         if value =~ /\*/
           where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
-        elsif index_column.present?
-          where("#{table_name}.#{index_column} @@ plainto_tsquery(:ts_config, :value)", ts_config: ts_config, value: value)
         else
-          where("to_tsvector(:ts_config, #{qualified_column}) @@ plainto_tsquery(:ts_config, :value)", ts_config: ts_config, value: value)
+          where("to_tsvector(:ts_config, #{qualified_column}) @@ websearch_to_tsquery(:ts_config, :value)", ts_config: "english", value: value)
         end
       end
 

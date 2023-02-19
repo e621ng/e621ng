@@ -128,7 +128,7 @@ class Dmail < ApplicationRecord
       q = super
 
       q = q.attribute_matches(:title, params[:title_matches])
-      q = q.attribute_matches(:body, params[:message_matches], index_column: :message_index)
+      q = q.attribute_matches(:body, params[:message_matches])
 
       if params[:to_name].present?
         q = q.to_name_matches(params[:to_name])

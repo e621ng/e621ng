@@ -73,7 +73,7 @@ class ForumPost < ApplicationRecord
         q = q.topic_title_matches(params[:topic_title_matches])
       end
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :text_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:creator_name].present?
         q = q.creator_name(params[:creator_name].tr(" ", "_"))
