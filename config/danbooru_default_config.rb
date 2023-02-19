@@ -479,7 +479,7 @@ module Danbooru
           "header" => 'Artists',
           "humanized" => {
             "slice" => 0,
-            "exclusion" => %w(avoid_posting conditional_dnp),
+            "exclusion" => %w(avoid_posting conditional_dnp epilepsy_warning sound_warning),
             "regexmap" => //,
             "formatstr" => "created by %s"
           },
