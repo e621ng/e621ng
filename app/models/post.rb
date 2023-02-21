@@ -1510,7 +1510,7 @@ class Post < ApplicationRecord
     end
 
     def sql_raw_tag_match(tag)
-      where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag.to_escaped_for_tsquery)
+      where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tag)
     end
 
     def tag_match(query)
