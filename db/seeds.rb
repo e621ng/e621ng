@@ -83,7 +83,7 @@ def import_mascots
       background_color: mascot["background_color"],
       artist_url: mascot["artist_url"],
       artist_name: mascot["artist_name"],
-      safe_mode_only: mascot["safe_mode_only"],
+      available_on_string: Danbooru.config.app_name,
       active: mascot["active"],
     )
   end
