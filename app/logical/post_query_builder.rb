@@ -5,40 +5,6 @@ class PostQueryBuilder
     @query_string = query_string
   end
 
-  def add_range_relation(arr, field, relation)
-    return relation if arr.nil?
-
-    case arr[0]
-    when :eq
-      if arr[1].is_a?(Time)
-        relation.where("#{field} between ? and ?", arr[1].beginning_of_day, arr[1].end_of_day)
-      else
-        relation.where(["#{field} = ?", arr[1]])
-      end
-
-    when :gt
-      relation.where(["#{field} > ?", arr[1]])
-
-    when :gte
-      relation.where(["#{field} >= ?", arr[1]])
-
-    when :lt
-      relation.where(["#{field} < ?", arr[1]])
-
-    when :lte
-      relation.where(["#{field} <= ?", arr[1]])
-
-    when :in
-      relation.where(["#{field} in (?)", arr[1]])
-
-    when :between
-      relation.where(["#{field} BETWEEN ? AND ?", arr[1], arr[2]])
-
-    else
-      relation
-    end
-  end
-
   def add_tag_string_search_relation(tags, relation)
     if tags[:include].any?
       relation = relation.where("string_to_array(posts.tag_string, ' ') && ARRAY[?]", tags[:include])
@@ -61,24 +27,24 @@ class PostQueryBuilder
       raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
     end
 
-    relation = add_range_relation(q[:post_id], "posts.id", relation)
-    relation = add_range_relation(q[:mpixels], "posts.image_width * posts.image_height / 1000000.0", relation)
-    relation = add_range_relation(q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)", relation)
-    relation = add_range_relation(q[:width], "posts.image_width", relation)
-    relation = add_range_relation(q[:height], "posts.image_height", relation)
-    relation = add_range_relation(q[:score], "posts.score", relation)
-    relation = add_range_relation(q[:fav_count], "posts.fav_count", relation)
-    relation = add_range_relation(q[:filesize], "posts.file_size", relation)
-    relation = add_range_relation(q[:change_seq], 'posts.change_seq', relation)
-    relation = add_range_relation(q[:date], "posts.created_at", relation)
-    relation = add_range_relation(q[:age], "posts.created_at", relation)
+    relation = relation.add_range_relation(q[:post_id], "posts.id")
+    relation = relation.add_range_relation(q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
+    relation = relation.add_range_relation(q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)")
+    relation = relation.add_range_relation(q[:width], "posts.image_width")
+    relation = relation.add_range_relation(q[:height], "posts.image_height")
+    relation = relation.add_range_relation(q[:score], "posts.score")
+    relation = relation.add_range_relation(q[:fav_count], "posts.fav_count")
+    relation = relation.add_range_relation(q[:filesize], "posts.file_size")
+    relation = relation.add_range_relation(q[:change_seq], "posts.change_seq")
+    relation = relation.add_range_relation(q[:date], "posts.created_at")
+    relation = relation.add_range_relation(q[:age], "posts.created_at")
     TagCategory.categories.each do |category|
-      relation = add_range_relation(q["#{category}_tag_count".to_sym], "posts.tag_count_#{category}", relation)
+      relation = relation.add_range_relation(q["#{category}_tag_count".to_sym], "posts.tag_count_#{category}")
     end
-    relation = add_range_relation(q[:post_tag_count], "posts.tag_count", relation)
+    relation = relation.add_range_relation(q[:post_tag_count], "posts.tag_count")
 
     Tag::COUNT_METATAGS.each do |column|
-      relation = add_range_relation(q[column.to_sym], "posts.#{column}", relation)
+      relation = relation.add_range_relation(q[column.to_sym], "posts.#{column}")
     end
 
     if q[:md5]
