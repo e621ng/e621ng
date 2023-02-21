@@ -1516,6 +1516,10 @@ class Post < ApplicationRecord
     def tag_match(query)
       ElasticPostQueryBuilder.new(query).build
     end
+
+    def tag_match_sql(query)
+      PostQueryBuilder.new(query).build
+    end
   end
 
   module IqdbMethods
