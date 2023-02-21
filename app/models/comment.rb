@@ -57,7 +57,7 @@ class Comment < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(id: :desc).limit(300))
+      where(post_id: PostQueryBuilder.new(query).build.order(id: :desc).limit(300))
     end
 
     def poster_id(user_id)

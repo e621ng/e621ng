@@ -82,7 +82,7 @@ class Upload < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+      where(post_id: PostQueryBuilder.new(query).build)
     end
 
     def search(params)

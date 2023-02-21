@@ -20,7 +20,7 @@ class PostApproval < ApplicationRecord
   concerning :SearchMethods do
     class_methods do
       def post_tags_match(query)
-        where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+        where(post_id: PostQueryBuilder.new(query).build)
       end
 
       def search(params)
