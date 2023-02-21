@@ -24,7 +24,7 @@ class TagNukeJob < ApplicationJob
   end
 
   def migrate_posts(tag_name)
-    PostQueryBuilder.new(tag_name).build.reorder('').find_each do |post|
+    Post.sql_raw_tag_match(tag_name).find_each do |post|
       post.with_lock do
         post.do_not_version_changes = true
         post.tag_string_diff = "-#{tag_name}"
