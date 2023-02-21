@@ -200,10 +200,6 @@ class Comment < ApplicationRecord
     (creator_id == user.id) && user.show_hidden_comments?
   end
 
-  def hidden_attributes
-    super + [:body_index]
-  end
-
   def method_attributes
     super + [:creator_name, :updater_name]
   end

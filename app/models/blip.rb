@@ -34,10 +34,6 @@ class Blip < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:body_index]
-    end
-
     def method_attributes
       super + [:creator_name]
     end

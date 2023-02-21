@@ -174,10 +174,6 @@ class ForumTopic < ApplicationRecord
     (response_count / Danbooru.config.posts_per_page.to_f).ceil
   end
 
-  def hidden_attributes
-    super + [:text_index]
-  end
-
   def hide!
     update(is_hidden: true)
   end

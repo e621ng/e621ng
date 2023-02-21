@@ -307,7 +307,6 @@ CREATE TABLE public.blips (
     body character varying NOT NULL,
     response_to integer,
     is_hidden boolean DEFAULT false,
-    body_index tsvector NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     warning_type integer,
@@ -418,7 +417,6 @@ CREATE TABLE public.comments (
     creator_id integer NOT NULL,
     body text NOT NULL,
     creator_ip_addr inet NOT NULL,
-    body_index tsvector NOT NULL,
     score integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -534,7 +532,6 @@ CREATE TABLE public.dmails (
     to_id integer NOT NULL,
     title text NOT NULL,
     body text NOT NULL,
-    message_index tsvector NOT NULL,
     is_read boolean DEFAULT false NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone,
@@ -779,7 +776,6 @@ CREATE TABLE public.forum_posts (
     creator_id integer NOT NULL,
     updater_id integer NOT NULL,
     body text NOT NULL,
-    text_index tsvector NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -889,7 +885,6 @@ CREATE TABLE public.forum_topics (
     is_sticky boolean DEFAULT false NOT NULL,
     is_locked boolean DEFAULT false NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    text_index tsvector NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     category_id integer DEFAULT 0 NOT NULL,
@@ -1140,7 +1135,6 @@ CREATE TABLE public.notes (
     height integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     body text NOT NULL,
-    body_index tsvector NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     version integer DEFAULT 0 NOT NULL
@@ -2408,7 +2402,6 @@ CREATE TABLE public.wiki_pages (
     creator_id integer NOT NULL,
     title character varying NOT NULL,
     body text NOT NULL,
-    body_index tsvector NOT NULL,
     is_locked boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -3490,13 +3483,6 @@ CREATE INDEX index_bans_on_user_id ON public.bans USING btree (user_id);
 
 
 --
--- Name: index_blips_on_body_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_blips_on_body_index ON public.blips USING gin (body_index);
-
-
---
 -- Name: index_blips_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3536,13 +3522,6 @@ CREATE INDEX index_comment_votes_on_created_at ON public.comment_votes USING btr
 --
 
 CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree (user_id);
-
-
---
--- Name: index_comments_on_body_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_comments_on_body_index ON public.comments USING gin (body_index);
 
 
 --
@@ -3606,13 +3585,6 @@ CREATE INDEX index_dmails_on_is_deleted ON public.dmails USING btree (is_deleted
 --
 
 CREATE INDEX index_dmails_on_is_read ON public.dmails USING btree (is_read);
-
-
---
--- Name: index_dmails_on_message_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_index);
 
 
 --
@@ -3686,13 +3658,6 @@ CREATE INDEX index_forum_posts_on_creator_id ON public.forum_posts USING btree (
 
 
 --
--- Name: index_forum_posts_on_text_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_forum_posts_on_text_index ON public.forum_posts USING gin (text_index);
-
-
---
 -- Name: index_forum_posts_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3753,13 +3718,6 @@ CREATE INDEX index_forum_topics_on_creator_id ON public.forum_topics USING btree
 --
 
 CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topics USING btree (is_sticky, updated_at);
-
-
---
--- Name: index_forum_topics_on_text_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_forum_topics_on_text_index ON public.forum_topics USING gin (text_index);
 
 
 --
@@ -3844,13 +3802,6 @@ CREATE INDEX index_note_versions_on_updater_id_and_post_id ON public.note_versio
 --
 
 CREATE INDEX index_note_versions_on_updater_ip_addr ON public.note_versions USING btree (updater_ip_addr);
-
-
---
--- Name: index_notes_on_body_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_notes_on_body_index ON public.notes USING gin (body_index);
 
 
 --
@@ -4387,13 +4338,6 @@ CREATE INDEX index_wiki_page_versions_on_wiki_page_id ON public.wiki_page_versio
 
 
 --
--- Name: index_wiki_pages_on_body_index_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wiki_pages_on_body_index_index ON public.wiki_pages USING gin (body_index);
-
-
---
 -- Name: index_wiki_pages_on_other_names; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4436,59 +4380,10 @@ CREATE TRIGGER posts_update_change_seq BEFORE UPDATE ON public.posts FOR EACH RO
 
 
 --
--- Name: blips trigger_blips_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_blips_on_update BEFORE INSERT OR UPDATE ON public.blips FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: comments trigger_comments_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_comments_on_update BEFORE INSERT OR UPDATE ON public.comments FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: dmails trigger_dmails_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_dmails_on_update BEFORE INSERT OR UPDATE ON public.dmails FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('message_index', 'pg_catalog.english', 'title', 'body');
-
-
---
--- Name: forum_posts trigger_forum_posts_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_forum_posts_on_update BEFORE INSERT OR UPDATE ON public.forum_posts FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('text_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: forum_topics trigger_forum_topics_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_forum_topics_on_update BEFORE INSERT OR UPDATE ON public.forum_topics FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('text_index', 'pg_catalog.english', 'title');
-
-
---
--- Name: notes trigger_notes_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_notes_on_update BEFORE INSERT OR UPDATE ON public.notes FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
 -- Name: posts trigger_posts_on_tag_index_update; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tag_index', 'public.danbooru', 'tag_string', 'fav_string', 'pool_string');
-
-
---
--- Name: wiki_pages trigger_wiki_pages_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('body_index', 'public.danbooru', 'body', 'title');
 
 
 --
@@ -4795,6 +4690,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230204141325'),
 ('20230210092829'),
 ('20230219115601'),
-('20230221145226');
+('20230221145226'),
+('20230221153458');
 
 

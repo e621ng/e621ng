@@ -89,14 +89,7 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  module ApiMethods
-    def hidden_attributes
-      super + [:text_index]
-    end
-  end
-
   extend SearchMethods
-  include ApiMethods
 
   def tag_change_request
     bulk_update_request || tag_alias || tag_implication

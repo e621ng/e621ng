@@ -78,10 +78,6 @@ class Dmail < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:message_index]
-    end
-
     def method_attributes
       super + [:key]
     end
