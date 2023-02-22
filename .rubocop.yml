@@ -1,3 +1,10 @@
+<% if ENV["CI"] %>
+inherit_from: .rubocop_todo.yml
+inherit_mode:
+  merge:
+    - Exclude
+<% end %>
+
 require:
   - rubocop-rails
 
@@ -34,6 +41,8 @@ Metrics/BlockLength:
     - concerning
     - context
     - create_table
+    - factory
+    - FactoryBot.define
     - should
   Exclude:
     - config/routes.rb
@@ -73,7 +82,8 @@ Rails/InverseOf:
 
 Rails/Output:
   Exclude:
-    - db/*.rb
+    - db/seeds.rb
+    - db/fixes/*.rb
 
 Rails/ReversibleMigration:
   Enabled: false
