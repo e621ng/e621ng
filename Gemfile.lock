@@ -89,6 +89,13 @@ GEM
     backport (1.2.0)
     bcrypt (3.1.18)
     benchmark (0.2.0)
+    better_html (2.0.1)
+      actionview (>= 6.0)
+      activesupport (>= 6.0)
+      ast (~> 2.0)
+      erubi (~> 1.4)
+      parser (>= 2.4)
+      smart_properties
     bootsnap (1.13.0)
       msgpack (~> 1.2)
     brpoplpush-redis_script (0.1.2)
@@ -306,6 +313,9 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.26.0)
       parser (>= 3.2.1.0)
+    rubocop-erb (0.2.3)
+      better_html
+      rubocop (~> 1.45)
     rubocop-rails (2.17.4)
       activesupport (>= 4.2.0)
       rack (>= 1.1)
@@ -330,6 +340,7 @@ GEM
     simple_form (5.1.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
+    smart_properties (1.17.0)
     solargraph (0.47.2)
       backport (~> 1.2)
       benchmark
@@ -414,6 +425,7 @@ DEPENDENCIES
   responders
   retriable
   rubocop
+  rubocop-erb
   rubocop-rails
   ruby-vips
   shoulda-context
