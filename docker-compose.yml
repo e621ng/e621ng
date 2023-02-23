@@ -130,7 +130,8 @@ services:
     image: e621
     volumes:
       - .:/app
-    entrypoint: bundle exec rubocop
+      - rubocop_cache:/rubocop_cache
+    entrypoint: bundle exec rubocop --cache-root /rubocop_cache
     profiles: 
       - rubocop
 
@@ -154,3 +155,4 @@ volumes:
   node_modules:
   public_packs:
   public_packs_test:
+  rubocop_cache:

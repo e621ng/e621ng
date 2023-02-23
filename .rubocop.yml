@@ -1,4 +1,14 @@
+<% if ENV["CI"] %>
+inherit_from: .rubocop_todo.yml
+<% end %>
+
+inherit_mode:
+  merge:
+    - Exclude
+    - Include
+
 require:
+  - rubocop-erb
   - rubocop-rails
 
 AllCops:
@@ -6,6 +16,7 @@ AllCops:
   Exclude:
     - bin/*
     - node_modules/**/*
+    - lib/templates/erb/scaffold/_form.html.erb # TODO: rubocop-erb chokes on this
 
 Bundler/OrderedGems:
   Enabled: false
@@ -34,6 +45,8 @@ Metrics/BlockLength:
     - concerning
     - context
     - create_table
+    - factory
+    - FactoryBot.define
     - should
   Exclude:
     - config/routes.rb
@@ -73,7 +86,8 @@ Rails/InverseOf:
 
 Rails/Output:
   Exclude:
-    - db/*.rb
+    - db/seeds.rb
+    - db/fixes/*.rb
 
 Rails/ReversibleMigration:
   Enabled: false
