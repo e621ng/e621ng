@@ -353,18 +353,14 @@ class Artist < ApplicationRecord
       if persisted? && saved_change_to_name? && attribute_before_last_save("name").present? && WikiPage.titled(attribute_before_last_save("name")).exists?
         # we're renaming the artist, so rename the corresponding wiki page
         old_page = WikiPage.titled(name_before_last_save).first
-
-        if wiki_page.present?
-          # a wiki page with the new name already exists, so update the content
-          wiki_page.update(body: "#{wiki_page.body}\n\n#{@notes}")
-        else
+        if wiki_page.nil?
           # a wiki page doesn't already exist for the new name, so rename the old one
-          old_page.update(title: name, body: @notes)
+          old_page.update(title: name, body: @notes || old_page.body)
         end
       elsif wiki_page.nil?
         # if there are any notes, we need to create a new wiki page
         if @notes.present?
-          wp = create_wiki_page(body: @notes, title: name)
+          create_wiki_page(body: @notes, title: name)
         end
       elsif (!@notes.nil? && (wiki_page.body != @notes)) || wiki_page.title != name
         # if anything changed, we need to update the wiki page
