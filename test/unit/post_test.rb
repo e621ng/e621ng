@@ -6,21 +6,15 @@ class PostTest < ActiveSupport::TestCase
   end
 
   setup do
-    Sidekiq::Testing.inline!
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
     Post.__elasticsearch__.create_index!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
   end
 
   context "Deletion:" do
     context "Expunging a post" do
       # That belonged in a museum!
       setup do
-        Sidekiq::Testing.fake!
         @upload = UploadService.new(attributes_for(:jpg_upload)).start!
         @post = @upload.post
         FavoriteManager.add!(user: @post.uploader, post: @post)
@@ -279,7 +273,7 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           user = create(:privileged_user)
           FavoriteManager.add!(user: user, post: c1)
-          c1.delete!("test", :move_favorites => true)
+          with_inline_jobs { c1.delete!("test", move_favorites: true) }
           p1.reload
           assert(!Favorite.exists?(:post_id => c1.id, :user_id => user.id), "Child should not still have favorites")
           assert(Favorite.exists?(:post_id => p1.id, :user_id => user.id), "Parent should have favorites")
@@ -503,10 +497,10 @@ class PostTest < ActiveSupport::TestCase
       context "with an artist tag that is then changed to copyright" do
         setup do
           CurrentUser.user = create(:janitor_user)
-          @post = Post.find(@post.id)
-          @post.update(:tag_string => "art:abc")
-          @post = Post.find(@post.id)
-          @post.update(:tag_string => "copy:abc")
+          with_inline_jobs do
+            @post.update(tag_string: "art:abc")
+            @post.update(tag_string: "copy:abc")
+          end
           @post.reload
         end
 
@@ -1377,7 +1371,7 @@ class PostTest < ActiveSupport::TestCase
         FavoriteManager.add!(user: @supervoter1, post: @child)
         FavoriteManager.add!(user: @supervoter1, post: @parent)
 
-        @child.give_favorites_to_parent
+        with_inline_jobs { @child.give_favorites_to_parent }
         @child.reload
         @parent.reload
       end
@@ -1954,8 +1948,6 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "return no posts when the replacement is not pending anymore" do
-      Sidekiq::Testing.fake!
-
       post1 = create(:post)
       upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
       post2 = upload.post

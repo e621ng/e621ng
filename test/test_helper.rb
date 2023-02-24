@@ -56,6 +56,10 @@ class ActiveSupport::TestCase
   def as(user, ip_addr = "127.0.0.1", &)
     CurrentUser.scoped(user, ip_addr, &)
   end
+
+  def with_inline_jobs(&)
+    Sidekiq::Testing.inline!(&)
+  end
 end
 
 class ActionDispatch::IntegrationTest

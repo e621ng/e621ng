@@ -2,13 +2,8 @@ require 'test_helper'
 
 class TagTest < ActiveSupport::TestCase
   setup do
-    Sidekiq::Testing.inline!
     @janitor = create(:janitor_user)
     CurrentUser.user = @janitor
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
   end
 
   context ".trending" do
@@ -213,7 +208,7 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(0, post.tag_count_character)
 
       tag = Tag.find_by_normalized_name('test')
-      tag.update_attribute(:category, 4)
+      with_inline_jobs { tag.update_attribute(:category, 4) }
       assert_equal tag.errors.full_messages, []
       post.reload
       assert_equal(0, post.tag_count_general)

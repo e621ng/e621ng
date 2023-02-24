@@ -1,14 +1,6 @@
 require 'test_helper'
 
 class TagImplicationTest < ActiveSupport::TestCase
-  setup do
-    Sidekiq::Testing.inline!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
-  end
-
   context "A tag implication" do
     setup do
       user = create(:admin_user)
@@ -220,8 +212,10 @@ class TagImplicationTest < ActiveSupport::TestCase
       p1 = create(:post, tag_string: "aaa bbb ccc")
       ti1 = create(:tag_implication, antecedent_name: "aaa", consequent_name: "xxx")
       ti2 = create(:tag_implication, antecedent_name: "aaa", consequent_name: "yyy")
-      ti1.approve!
-      ti2.approve!
+      with_inline_jobs do
+        ti1.approve!
+        ti2.approve!
+      end
 
       assert_equal("aaa bbb ccc xxx yyy", p1.reload.tag_string)
     end
@@ -236,7 +230,7 @@ class TagImplicationTest < ActiveSupport::TestCase
 
       should "update the topic when processed" do
         assert_difference("ForumPost.count") do
-          @implication.approve!
+          with_inline_jobs { @implication.approve! }
         end
         @post.reload
         @topic.reload

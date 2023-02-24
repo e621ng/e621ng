@@ -1,14 +1,6 @@
 require 'test_helper'
 
 class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
-  setup do
-    Sidekiq::Testing.inline!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
-  end
-
   context "The post replacements controller" do
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)

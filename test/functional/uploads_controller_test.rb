@@ -1,14 +1,6 @@
 require 'test_helper'
 
 class UploadsControllerTest < ActionDispatch::IntegrationTest
-  setup do
-    Sidekiq::Testing.inline!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
-  end
-
   context "The uploads controller" do
     setup do
       @user = create(:janitor_user)
