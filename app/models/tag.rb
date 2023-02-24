@@ -214,45 +214,6 @@ class Tag < ApplicationRecord
     end
   end
 
-  module StatisticsMethods
-    def trending_count_limit
-      10
-    end
-
-    def trending
-      Cache.fetch("popular-tags-v3", 1.hour) do
-        CurrentUser.as_system do
-          n = 24
-          counts = {}
-
-          while counts.empty? && n < 1000
-            tag_strings = Post.select_values_sql("select tag_string from posts where created_at >= ?", n.hours.ago)
-            tag_strings.each do |tag_string|
-              tag_string.split.each do |tag|
-                counts[tag] ||= 0
-                counts[tag] += 1
-              end
-            end
-            n *= 2
-          end
-
-          counts = counts.to_a.select {|x| x[1] > trending_count_limit}
-          counts = counts.map do |tag_name, recent_count|
-            tag = Tag.find_or_create_by_name(tag_name)
-            if tag.category == Tag.categories.artist
-              # we're not interested in artists in the trending list
-              [tag_name, 0]
-            else
-              [tag_name, recent_count.to_f / tag.post_count.to_f]
-            end
-          end
-
-          counts.sort_by {|x| -x[1]}.slice(0, 25).map(&:first)
-        end
-      end
-    end
-  end
-
   module NameMethods
     def normalize_name(name)
       name.to_s.unicode_normalize(:nfc).downcase.strip.tr(" ", "_").to_s
@@ -1149,7 +1110,6 @@ class Tag < ApplicationRecord
 
   include CountMethods
   include CategoryMethods
-  extend StatisticsMethods
   extend NameMethods
   extend ParseMethods
   include RelationMethods

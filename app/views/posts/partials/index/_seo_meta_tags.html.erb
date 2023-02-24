@@ -1,18 +1,9 @@
-<% if @post_set.is_single_tag? %>
-  <% "#{@post_set.humanized_tag_string.titleize} - #{Danbooru.config.app_name}".tap do |title| %>
-    <%= tag.meta name: "og:title", content: title %>
-    <%= tag.meta name: "twitter:title", content: title %>
-  <% end %>
-<% else %>
-  <% "#{@post_set.humanized_tag_string} - #{Danbooru.config.app_name}".tap do |title| %>
-    <%= tag.meta name: "og:title", content: title %>
-    <%= tag.meta name: "twitter:title", content: title %>
-  <% end %>
+<% "#{@post_set.humanized_tag_string} - #{Danbooru.config.app_name}".tap do |title| %>
+  <%= tag.meta name: "og:title", content: title %>
+  <%= tag.meta name: "twitter:title", content: title %>
 <% end %>
 
-<% if @post_set.hide_from_crawler? %>
-  <meta name="robots" content="nofollow,noindex">
-<% end %>
+<meta name="robots" content="nofollow,noindex">
 
 <% if @post_set.has_explicit? %>
   <meta name="rating" content="adult">

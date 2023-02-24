@@ -6,24 +6,6 @@ class TagTest < ActiveSupport::TestCase
     CurrentUser.user = @janitor
   end
 
-  context ".trending" do
-    setup do
-      Tag.stubs(:trending_count_limit).returns(0)
-
-      travel_to(1.week.ago) do
-        create(:post, tag_string: "aaa")
-        create(:post, tag_string: "bbb")
-      end
-
-      create(:post, tag_string: "bbb")
-      create(:post, tag_string: "ccc")
-    end
-
-    should "order the results by the total post count" do
-      assert_equal(["ccc", "bbb"], Tag.trending)
-    end
-  end
-
   context "A tag category fetcher" do
     should "fetch for a single tag" do
       create(:artist_tag, name: "test")
