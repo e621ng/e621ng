@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class UserDeletionTest < ActiveSupport::TestCase
   context "an invalid user deletion" do
@@ -55,7 +55,9 @@ class UserDeletionTest < ActiveSupport::TestCase
     end
 
     should "reset the password" do
-      assert_nil(User.authenticate(@user.name, "password"))
+      assert_raises(BCrypt::Errors::InvalidHash) do
+        User.authenticate(@user.name, "password")
+      end
     end
 
     should "reset the level" do

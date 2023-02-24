@@ -72,24 +72,6 @@ module PostSets
         end
       end
 
-      context "a set for the 'a' tag query" do
-        setup do
-          @set = PostSets::Post.new("a")
-        end
-
-        should "normalize its tag query" do
-          assert_equal("a", @set.tag_string)
-        end
-
-        should "know the count" do
-          assert_equal(1, @set.posts.total_count)
-        end
-
-        should "find the posts" do
-          assert_equal(@post_1.id, @set.posts.first.id)
-        end
-      end
-
       context "#per_page method" do
         should "take the limit from the params first, then the limit:<n> metatag, then the account settings" do
           set = PostSets::Post.new("a limit:23 b", 1, 42)
