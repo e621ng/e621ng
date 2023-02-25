@@ -36,3 +36,20 @@ jobs:
 
       - name: Run Rubocop
         run: $DOCKER_RUN rubocop --format github
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/prepare-docker-image
+
+      - name: Create DB
+        run: $DOCKER_RUN --entrypoint bin/rails tests db:create
+
+      - name: Load DB Schema
+        run: $DOCKER_RUN --entrypoint bin/rails tests db:schema:load
+
+      - name: Run Tests
+        run: $DOCKER_RUN tests
