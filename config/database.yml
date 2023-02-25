@@ -1,0 +1,25 @@
+default: &default
+  adapter: postgresql
+  timeout: 5000
+
+development:
+  <<: *default
+  database: danbooru2
+  username: danbooru
+  host: postgres
+  pool: 5
+
+test:
+  <<: *default
+  database: danbooru2_test
+  username: danbooru
+  host: postgres
+  pool: 5
+
+production:
+  <<: *default
+  database: e621
+  username: e621
+  password: <%= ENV["DB_PASSWORD"]  %>
+  host: <%= ENV["DB_HOST"] %>
+  pool: <%= Sidekiq.server? ? ENV["DB_WORKER_POOL_SIZE"] : ENV["DB_POOL_SIZE"] %>

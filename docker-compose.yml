@@ -1,7 +1,6 @@
 version: "3"
 
 x-environment: &common-env
-  DATABASE_URL: postgresql://danbooru:@postgres
   DANBOORU_HOSTNAME: http://localhost:3000
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_ELASTICSEARCH_HOST: elastic
