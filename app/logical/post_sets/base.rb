@@ -1,9 +1,5 @@
 module PostSets
   class Base
-    def is_single_tag?
-      false
-    end
-
     def tag_string
       nil
     end

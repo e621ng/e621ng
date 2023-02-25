@@ -1,14 +1,6 @@
 require 'test_helper'
 
 class TagAliasTest < ActiveSupport::TestCase
-  setup do
-    Sidekiq::Testing.inline!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
-  end
-
   context "A tag alias" do
     setup do
       @admin = create(:admin_user)
@@ -87,7 +79,7 @@ class TagAliasTest < ActiveSupport::TestCase
       post2 = create(:post, tag_string: "ccc ddd")
 
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "ccc")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal("bbb ccc", post1.reload.tag_string)
       assert_equal("ccc ddd", post2.reload.tag_string)
@@ -106,8 +98,10 @@ class TagAliasTest < ActiveSupport::TestCase
     should "move existing aliases" do
       ta1 = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
       ta2 = create(:tag_alias, antecedent_name: "bbb", consequent_name: "ccc", status: "pending")
-      ta1.approve!(approver: @admin)
-      ta2.approve!(approver: @admin)
+      with_inline_jobs do
+        ta1.approve!(approver: @admin)
+        ta2.approve!(approver: @admin)
+      end
 
       assert_equal("ccc", ta1.reload.consequent_name)
     end
@@ -115,7 +109,7 @@ class TagAliasTest < ActiveSupport::TestCase
     should "move existing implications" do
       ti = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
       ta = create(:tag_alias, antecedent_name: "bbb", consequent_name: "ccc")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       ti.reload
       assert_equal("ccc", ti.consequent_name)
@@ -142,7 +136,7 @@ class TagAliasTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb", category: 0)
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal(1, tag2.reload.category)
     end
@@ -168,13 +162,13 @@ class TagAliasTest < ActiveSupport::TestCase
 
       should "update the topic when processed" do
         assert_difference("ForumPost.count") do
-          @alias.approve!(approver: @admin)
+          with_inline_jobs { @alias.approve!(approver: @admin) }
         end
       end
 
       should "update the parent post" do
         previous = @post.body
-        @alias.approve!(approver: @admin)
+        with_inline_jobs { @alias.approve!(approver: @admin) }
         @post.reload
         assert_not_equal(previous, @post.body)
       end
@@ -187,7 +181,7 @@ class TagAliasTest < ActiveSupport::TestCase
 
       should "update the topic when failed" do
         TagAlias.any_instance.stubs(:update_blacklists).raises(Exception, "oh no")
-        @alias.approve!(approver: @admin)
+        with_inline_jobs { @alias.approve!(approver: @admin) }
         @topic.reload
         @alias.reload
 

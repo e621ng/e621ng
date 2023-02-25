@@ -34,18 +34,6 @@ module PostSets
       _posts
     end
 
-    def is_pattern_search?
-      false
-    end
-
-    def is_empty_tag?
-      false
-    end
-
-    def unordered_tag_array
-      []
-    end
-
     def tag_array
       []
     end

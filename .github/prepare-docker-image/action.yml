@@ -12,8 +12,8 @@ runs:
       with:
         cache-from: type=gha
         load: true
-        tags: e621:test
+        tags: e621
 
     - name: Set docker run command
-      run: echo "DOCKER_RUN=docker run --rm --network host -e POSTGRES_HOST=localhost -e RAILS_ENV=test -e CI=true -v $PWD:/app e621:test" >> "$GITHUB_ENV"
+      run: echo "DOCKER_RUN=docker-compose run -e CI=true" >> "$GITHUB_ENV"
       shell: bash

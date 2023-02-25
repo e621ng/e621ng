@@ -4,7 +4,7 @@ module PostSets
     attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :format
 
     def initialize(tags, page = 1, per_page = nil, options = {})
-      tags ||= ''
+      tags ||= ""
       @public_tag_array = Tag.scan_query(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
@@ -26,21 +26,6 @@ module PostSets
     def humanized_tag_string
       public_tag_array.slice(0, 25).join(" ").tr("_", " ")
     end
-
-    def unordered_tag_array
-      tag_array.reject {|tag| tag =~ /\Aorder:/i }
-    end
-
-    def tag
-      return nil if !is_single_tag?
-      return nil if is_metatag_only?
-      @tag ||= Tag.find_by(name: Tag.normalize_name(tag_string))
-    end
-
-    def is_metatag_only?
-      Tag.is_metatag?(Tag.normalize_name(tag_string))
-    end
-
 
     def has_explicit?
       !CurrentUser.safe_mode?
@@ -80,26 +65,6 @@ module PostSets
       fill_children(_posts)
       fill_tag_types(_posts)
       _posts
-    end
-
-    def hide_from_crawler?
-      !is_empty_tag?
-    end
-
-    def is_single_tag?
-      tag_array.size == 1
-    end
-
-    def is_simple_tag?
-      Tag.is_simple_tag?(tag_string)
-    end
-
-    def is_empty_tag?
-      tag_array.size == 0
-    end
-
-    def is_pattern_search?
-      is_single_tag? && tag_string =~ /\*/ && !tag_array.any? {|x| x =~ /^-?source:.+/}
     end
 
     def current_page

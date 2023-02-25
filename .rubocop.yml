@@ -48,6 +48,7 @@ Metrics/BlockLength:
     - factory
     - FactoryBot.define
     - should
+    - should_eventually
   Exclude:
     - config/routes.rb
 

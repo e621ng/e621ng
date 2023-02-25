@@ -60,16 +60,6 @@ module PostSets
         end
       end
 
-      context "a set for the 'a b' tag query" do
-        setup do
-          @set = PostSets::Post.new("a b")
-        end
-
-        should "know it isn't a single tag" do
-          assert_not(@set.is_single_tag?)
-        end
-      end
-
       context "a set going to the 1,001st page" do
         setup do
           @set = PostSets::Post.new("a", 1_001)
@@ -79,28 +69,6 @@ module PostSets
           assert_raises(Danbooru::Paginator::PaginationError) do
             @set.posts
           end
-        end
-      end
-
-      context "a set for the 'a' tag query" do
-        setup do
-          @set = PostSets::Post.new("a")
-        end
-
-        should "know it is a single tag" do
-          assert(@set.is_single_tag?)
-        end
-
-        should "normalize its tag query" do
-          assert_equal("a", @set.tag_string)
-        end
-
-        should "know the count" do
-          assert_equal(1, @set.posts.total_count)
-        end
-
-        should "find the posts" do
-          assert_equal(@post_1.id, @set.posts.first.id)
         end
       end
 

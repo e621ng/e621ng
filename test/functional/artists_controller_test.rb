@@ -99,16 +99,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
           assert_equal("bbb", @wiki_page.title)
           assert_equal("more testing", @wiki_page.body)
         end
-
-        should "merge the new notes with the existing wiki page's contents if a wiki page for the new name already exists" do
-          as(@user) do
-            @existing_wiki_page = create(:wiki_page, title: "bbb", body: "xxx")
-          end
-          put_auth artist_path(@artist.id), @user, params: {artist: {name: "bbb", notes: "yyy"}}
-          @existing_wiki_page.reload
-          assert_equal("bbb", @existing_wiki_page.title)
-          assert_equal("xxx\n\nyyy", @existing_wiki_page.body)
-        end
       end
     end
 

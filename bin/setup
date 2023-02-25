@@ -14,9 +14,6 @@ FileUtils.chdir APP_ROOT do
   # Add necessary setup steps to this file.
 
   puts "\n== Copying sample files =="
-  unless File.exist?('config/database.yml')
-    FileUtils.cp 'docker/database.yml', 'config/database.yml'
-  end
   unless File.exist?('config/danbooru_local_config.rb')
     FileUtils.cp 'docker/danbooru_local_config.rb', 'config/danbooru_local_config.rb'
   end
