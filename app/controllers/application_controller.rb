@@ -52,13 +52,6 @@ class ApplicationController < ActionController::Base
     # If InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to do it here manually.
     CurrentUser.user ||= User.anonymous
 
-    if Rails.env.test? && ENV["DEBUG"]
-      puts "---"
-      STDERR.puts("#{exception.class} exception thrown: #{exception.message}")
-      exception.backtrace.each {|x| STDERR.puts(x)}
-      puts "---"
-    end
-
     case exception
     when ProcessingError
       render_expected_error(400, exception)
