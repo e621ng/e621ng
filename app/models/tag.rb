@@ -104,7 +104,7 @@ class Tag < ApplicationRecord
     end
 
     def real_post_count
-      @real_post_count ||= Post.raw_tag_match(name).count_only
+      @real_post_count ||= Post.tag_match(name).count_only
     end
 
     def fix_post_count

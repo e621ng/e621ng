@@ -66,7 +66,34 @@ class ApplicationRecord < ActiveRecord::Base
         qualified_column = "#{table_name}.#{column.name}"
         parsed_range = Tag.parse_helper(range, column.type)
 
-        PostQueryBuilder.new(nil).add_range_relation(parsed_range, qualified_column, self)
+        add_range_relation(parsed_range, qualified_column)
+      end
+
+      def add_range_relation(arr, field)
+        return all if arr.nil?
+
+        case arr[0]
+        when :eq
+          if arr[1].is_a?(Time)
+            where("#{field} between ? and ?", arr[1].beginning_of_day, arr[1].end_of_day)
+          else
+            where(["#{field} = ?", arr[1]])
+          end
+        when :gt
+          where(["#{field} > ?", arr[1]])
+        when :gte
+          where(["#{field} >= ?", arr[1]])
+        when :lt
+          where(["#{field} < ?", arr[1]])
+        when :lte
+          where(["#{field} <= ?", arr[1]])
+        when :in
+          where(["#{field} in (?)", arr[1]])
+        when :between
+          where(["#{field} BETWEEN ? AND ?", arr[1], arr[2]])
+        else
+          all
+        end
       end
 
       def text_attribute_matches(attribute, value, convert_to_wildcard: false)
