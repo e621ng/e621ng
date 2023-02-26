@@ -7,7 +7,7 @@ class ExceptionLog < ApplicationRecord
       params: request.filtered_parameters,
       user_id: user_id,
       referrer: request.referrer,
-      user_agent: request.user_agent
+      user_agent: request.user_agent,
     }
 
     # Required to unwrap exceptions that occur inside template rendering.
@@ -35,5 +35,19 @@ class ExceptionLog < ApplicationRecord
 
   def user
     User.find_by(id: extra_params["user_id"])
+  end
+
+  def self.search(params)
+    q = super
+
+    if params[:version].present?
+      q = q.where(version: params[:version])
+    end
+
+    if params[:without_timeouts]&.truthy?
+      q = q.where("class_name != 'ActiveRecord::QueryCanceled'")
+    end
+
+    q.apply_default_order(params)
   end
 end

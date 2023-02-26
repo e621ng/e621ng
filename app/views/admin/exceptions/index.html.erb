@@ -1,27 +1,33 @@
+<%= form_search(path: admin_exceptions_path) do |f| %>
+  <%= f.input :version, label: "Commit" %>
+  <%= f.input :without_timeouts, as: :boolean %>
+  <%= f.submit "Search" %>
+<% end %>
+
 <table class="striped">
   <thead>
-  <tr>
-    <th style="width: 200px">Created At</th>
-    <th>Code</th>
-    <th style="width: 100px">Commit</th>
-    <th>Controller/Action</th>
-    <th>Class Name</th>
-    <th>Message</th>
-    <th>Stacktrace</th>
-  </tr>
+    <tr>
+      <th style="width: 200px">Created At</th>
+      <th>Code</th>
+      <th style="width: 100px">Commit</th>
+      <th>Controller/Action</th>
+      <th>Class Name</th>
+      <th>Message</th>
+      <th>Stacktrace</th>
+    </tr>
   </thead>
   <tbody>
-  <%- @exception_logs.each do |exception_log| %>
-    <tr>
-      <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
-      <td><%= exception_log.code %></td>
-      <td><%= link_to exception_log.version, Danbooru.config.commit_url(exception_log.version) %></td>
-      <td><%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %></td>
-      <td><%= exception_log.class_name %></td>
-      <td><%= truncate(exception_log.message, length: 500) %></td>
-      <td><%= link_to "View", admin_exception_path(exception_log) %></td>
-    </tr>
-  <% end %>
+    <% @exception_logs.each do |exception_log| %>
+      <tr>
+        <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
+        <td><%= exception_log.code %></td>
+        <td><%= link_to exception_log.version, Danbooru.config.commit_url(exception_log.version) %></td>
+        <td><%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %></td>
+        <td><%= exception_log.class_name %></td>
+        <td><%= truncate(exception_log.message, length: 500) %></td>
+        <td><%= link_to "View", admin_exception_path(exception_log) %></td>
+      </tr>
+    <% end %>
   </tbody>
 </table>
 

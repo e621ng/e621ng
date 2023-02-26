@@ -3,7 +3,7 @@ module Admin
     before_action :admin_only
 
     def index
-      @exception_logs = ExceptionLog.order(id: :desc).paginate(params[:page], limit: 100)
+      @exception_logs = ExceptionLog.search(search_params).paginate(params[:page], limit: 100)
     end
 
     def show
