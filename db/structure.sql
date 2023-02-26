@@ -40,65 +40,6 @@ END;
 $$;
 
 
---
--- Name: testprs_end(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_end(internal) RETURNS void
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_end';
-
-
---
--- Name: testprs_getlexeme(internal, internal, internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_getlexeme(internal, internal, internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_getlexeme';
-
-
---
--- Name: testprs_lextype(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_lextype(internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_lextype';
-
-
---
--- Name: testprs_start(internal, integer); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_start(internal, integer) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_start';
-
-
---
--- Name: testparser; Type: TEXT SEARCH PARSER; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH PARSER public.testparser (
-    START = public.testprs_start,
-    GETTOKEN = public.testprs_getlexeme,
-    END = public.testprs_end,
-    HEADLINE = prsd_headline,
-    LEXTYPES = public.testprs_lextype );
-
-
---
--- Name: danbooru; Type: TEXT SEARCH CONFIGURATION; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH CONFIGURATION public.danbooru (
-    PARSER = public.testparser );
-
-ALTER TEXT SEARCH CONFIGURATION public.danbooru
-    ADD MAPPING FOR word WITH simple;
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -1643,7 +1584,6 @@ CREATE TABLE public.posts (
     last_comment_bumped_at timestamp without time zone,
     fav_count integer DEFAULT 0 NOT NULL,
     tag_string text DEFAULT ''::text NOT NULL,
-    tag_index tsvector,
     tag_count integer DEFAULT 0 NOT NULL,
     tag_count_general integer DEFAULT 0 NOT NULL,
     tag_count_artist integer DEFAULT 0 NOT NULL,
@@ -4072,13 +4012,6 @@ ALTER INDEX public.index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET 
 
 
 --
--- Name: index_posts_on_tags_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_tags_index ON public.posts USING gin (tag_index);
-
-
---
 -- Name: index_posts_on_uploader_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4377,13 +4310,6 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 --
 
 CREATE TRIGGER posts_update_change_seq BEFORE UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION public.posts_trigger_change_seq();
-
-
---
--- Name: posts trigger_posts_on_tag_index_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tag_index', 'public.danbooru', 'tag_string', 'fav_string', 'pool_string');
 
 
 --
@@ -4691,6 +4617,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230210092829'),
 ('20230219115601'),
 ('20230221145226'),
-('20230221153458');
+('20230221153458'),
+('20230226152600');
 
 

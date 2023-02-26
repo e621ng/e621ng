@@ -1402,7 +1402,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:tag_index, :pool_string, :fav_string]
+      list = super + [:pool_string, :fav_string]
       if !visible?
         list += [:md5, :file_ext]
       end
