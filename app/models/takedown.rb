@@ -54,14 +54,22 @@ class Takedown < ApplicationRecord
     end
 
     def can_create_takedown
-      return true if creator && creator.is_moderator?
-      if Takedown.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr.to_s, 5.minutes.ago).count > 0
-        errors.add(:base, "You have created a takedown too recently")
-        return false
+      return if creator&.is_admin?
+
+      if IpBan.is_banned?(creator_ip_addr.to_s)
+        errors.add(:base, "Something went wrong. Please email us at #{Danbooru.config.takedown_email} instead")
+        return
       end
-      if creator_id && Takedown.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
-        errors.add(:base, "You have created a takedown too recently")
-        return false
+
+      takedowns_ip = Takedown.where(creator_ip_addr: creator_ip_addr, created_at: 1.day.ago..)
+      if takedowns_ip.count > 5
+        errors.add(:base, "You have created too many takedowns. Please email us at #{Danbooru.config.takedown_email} or try again later")
+        return
+      end
+
+      takedowns_user = Takedown.where(creator_id: creator_id, created_at: 1.day.ago..)
+      if creator_id && takedowns_user.count > 5
+        errors.add(:base, "You have created too many takedowns. Please email us at #{Danbooru.config.takedown_email} or try again later")
       end
     end
 
