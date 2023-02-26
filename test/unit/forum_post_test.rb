@@ -24,10 +24,10 @@ class ForumPostTest < ActiveSupport::TestCase
         Danbooru.config.stubs(:posts_per_page).returns(3)
         @posts = []
         9.times do
-          @posts << create(:forum_post, topic_id: @topic.id, body: rand(100_000))
+          @posts << create(:forum_post, topic_id: @topic.id)
         end
         travel_to(2.seconds.from_now) do
-          @posts << create(:forum_post, topic_id: @topic.id, body: rand(100_000))
+          @posts << create(:forum_post, topic_id: @topic.id)
         end
       end
 
