@@ -1287,18 +1287,22 @@ class Post < ApplicationRecord
 
     def undelete!(options = {})
       if is_status_locked? && !options.fetch(:force, false)
-        self.errors.add(:is_status_locked, "; cannot undelete post")
-        return false
+        errors.add(:is_status_locked, "; cannot undelete post")
+        return
       end
 
-      if !CurrentUser.is_admin?
-        if uploader_id == CurrentUser.id
-          raise User::PrivilegeError, "You cannot undelete a post you uploaded"
-        end
+      if !CurrentUser.is_admin? && uploader_id == CurrentUser.id
+        raise User::PrivilegeError, "You cannot undelete a post you uploaded"
+      end
+
+      if !is_deleted
+        errors.add(:base, "Post is not deleted")
+        return
       end
 
       transaction do
         self.is_deleted = false
+        self.is_pending = false
         self.approver_id = CurrentUser.id
         flags.each { |x| x.resolve! }
         increment_tag_post_counts
