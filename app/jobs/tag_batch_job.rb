@@ -34,26 +34,12 @@ class TagBatchJob < ApplicationJob
     end
   end
 
-  # this can't handle negated tags or other special cases
   def migrate_blacklists(normalized_antecedent, normalized_consequent)
-    User.where("blacklisted_tags like ?", "%#{normalized_antecedent.to_escaped_for_sql_like}%").find_each do |user|
-      changed = false
-
-      repl = user.blacklisted_tags.split(/\r\n|\r|\n/).map do |line|
-        list = Tag.scan_tags(line)
-        if list.include?(normalized_antecedent)
-          changed = true
-          (list - [normalized_antecedent] + [normalized_consequent]).join(" ")
-        else
-          line
-        end
+    User.without_timeout do
+      User.where_ilike(:blacklisted_tags, "*#{normalized_antecedent}*").find_each(batch_size: 50) do |user|
+        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { normalized_antecedent => normalized_consequent })
+        user.update_column(:blacklisted_tags, fixed_blacklist)
       end
-
-      if changed
-        user.update(blacklisted_tags: repl.join("\n"))
-      end
-    rescue Exception => e
-      NewRelic::Agent.notice_error(e)
     end
   end
 end
