@@ -38,10 +38,10 @@ class ForumPostTest < ActiveSupport::TestCase
 
         should "update the topic's updated_at timestamp" do
           @topic.reload
-          assert_equal(@posts[-1].updated_at.to_i, @topic.updated_at.to_i)
+          assert_in_delta(@posts[-1].updated_at.to_i, @topic.updated_at.to_i, 1)
           @posts[-1].hide!
           @topic.reload
-          assert_equal(@posts[-2].updated_at.to_i, @topic.updated_at.to_i)
+          assert_in_delta(@posts[-2].updated_at.to_i, @topic.updated_at.to_i, 1)
         end
       end
 

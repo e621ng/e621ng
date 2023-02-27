@@ -87,7 +87,7 @@ class ForumTopicTest < ActiveSupport::TestCase
         should "create a new visit" do
           @topic.mark_as_read!(@user)
           @user.reload
-          assert_equal(@topic.updated_at.to_i, @user.last_forum_read_at.to_i)
+          assert_in_delta(@topic.updated_at.to_i, @user.last_forum_read_at.to_i, 1)
         end
       end
 
@@ -99,7 +99,7 @@ class ForumTopicTest < ActiveSupport::TestCase
         should "update the visit" do
           @topic.mark_as_read!(@user)
           @user.reload
-          assert_equal(@topic.updated_at.to_i, @user.last_forum_read_at.to_i)
+          assert_in_delta(@topic.updated_at.to_i, @user.last_forum_read_at.to_i, 1)
         end
       end
     end

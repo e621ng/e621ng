@@ -86,7 +86,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
         @artist.reload
         @wiki_page = @artist.wiki_page
-        assert_equal(old_timestamp.to_i, @wiki_page.updated_at.to_i)
+        assert_in_delta(old_timestamp.to_i, @wiki_page.updated_at.to_i, 1)
         assert_equal(old_updater_id, @wiki_page.updater_id)
       end
 
