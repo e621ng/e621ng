@@ -1517,6 +1517,12 @@ class Post < ApplicationRecord
       where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tag)
     end
 
+    # Does a search without resolving aliases
+    def raw_tag_match(tag)
+      tags = { related: tag.split, include: [], exclude: [] }
+      ElasticPostQueryBuilder.new({ tag_count: tags[:related].size, tags: tags }).build
+    end
+
     def tag_match(query)
       ElasticPostQueryBuilder.new(query).build
     end
