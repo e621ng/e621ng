@@ -46,7 +46,7 @@ Try this:
 
 `docker compose run --rm rubocop` to run the linter. You will see a truckload of violations but CI will ignore these.
 
-The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `danbooru2` with the user `danbooru`. Leave the password blank, anything will work.
+The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
 ## Production Setup
 

@@ -1,6 +1,6 @@
 FROM ruby:3.1.3-alpine3.17 as ruby-builder
 
-RUN apk --no-cache add build-base git glib-dev postgresql12-dev
+RUN apk --no-cache add build-base git glib-dev postgresql15-dev
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i bundler:2.3.12 foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
@@ -22,7 +22,7 @@ RUN corepack enable && corepack prepare --activate && yarn install
 FROM ruby:3.1.3-alpine3.17
 
 RUN apk --no-cache add ffmpeg vips \
-  postgresql12-client \
+  postgresql15-client \
   git jemalloc tzdata
 
 WORKDIR /app

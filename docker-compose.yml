@@ -58,9 +58,10 @@ services:
       - "3000:3000"
     
   postgres:
-    image: postgres:12-alpine
+    image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=danbooru
+      - POSTGRES_USER=e621
+      - POSTGRES_DB=e621_development
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data
