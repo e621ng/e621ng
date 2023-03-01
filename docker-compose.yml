@@ -58,7 +58,7 @@ services:
       - "3000:3000"
     
   postgres:
-    build:  ./docker/postgres
+    image: postgres:12-alpine
     environment:
       - POSTGRES_USER=danbooru
       - POSTGRES_HOST_AUTH_METHOD=trust
