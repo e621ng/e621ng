@@ -2,6 +2,13 @@
   <div id="a-index">
     <h1>IP Bans</h1>
 
+    <%= form_search(path: ip_bans_path) do |f| %>
+      <%= f.input :ip_addr, label: "IP Address" %>
+      <%= f.input :banner_name, label: "Banner" %>
+      <%= f.input :reason %>
+      <%= f.submit "Search" %>
+    <% end %>
+
     <table class="striped">
       <thead>
         <tr>
@@ -19,7 +26,7 @@
             <td><%= link_to_user ip_ban.creator %></td>
             <td><%= ip_ban.reason %></td>
             <td><%= compact_time ip_ban.created_at %></td>
-            <td><%= link_to "Unban", ip_ban_path(ip_ban), :method => :delete, :data => {:confirm => "Do your really want to unban #{ip_ban.ip_addr}?"} %></td>
+            <td><%= link_to "Unban", ip_ban_path(ip_ban), method: :delete, data: { confirm: "Do your really want to unban #{ip_ban.ip_addr}?" } %></td>
           </tr>
         <% end %>
       </tbody>

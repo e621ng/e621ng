@@ -18,8 +18,14 @@ class IpBan < ApplicationRecord
     q = super
 
     if params[:ip_addr].present?
-      q = q.where("ip_addr = ?", params[:ip_addr])
+      q = q.where("ip_addr >>= ?", params[:ip_addr])
     end
+
+    if params[:banner_name].present?
+      q = q.where(creator_id: User.name_to_id(params[:banner_name]))
+    end
+
+    q = q.attribute_matches(:reason, params[:reason])
 
     q.apply_default_order(params)
   end
@@ -42,7 +48,7 @@ class IpBan < ApplicationRecord
 
   def subnetted_ip
     str = ip_addr.to_s
-    str += "/" + ip_addr.prefix.to_s if has_subnet?
+    str += "/#{ip_addr.prefix}" if has_subnet?
     str
   end
 end

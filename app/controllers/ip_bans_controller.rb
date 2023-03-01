@@ -8,11 +8,11 @@ class IpBansController < ApplicationController
 
   def create
     @ip_ban = IpBan.create(ip_ban_params)
-    respond_with(@ip_ban, :location => ip_bans_path)
+    respond_with(@ip_ban, location: ip_bans_path)
   end
 
   def index
-    @ip_bans = IpBan.includes(:creator).search(search_params).paginate(params[:page], :limit => params[:limit])
+    @ip_bans = IpBan.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@ip_bans)
   end
 
@@ -29,6 +29,6 @@ class IpBansController < ApplicationController
   end
 
   def search_params
-    permit_search_params %i[ip_addr order]
+    permit_search_params %i[ip_addr banner_name reason]
   end
 end
