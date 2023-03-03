@@ -1,15 +1,13 @@
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Listing", posts_path %>
-    <%= subnav_link_to "Upload", new_upload_path %>
-    <%= subnav_link_to "Changes", post_versions_path %>
-    <%= subnav_link_to "Help", help_page_path(id: "posts") %>
-    <% if params[:action] == "index" %>
-      | <%= subnav_link_to "Undo selected", "" %>
-      <%= subnav_link_to "Select All", "" %>
-      <% if CurrentUser.is_admin? %>
-      | <%= subnav_link_to "Apply Tag Script To Selected", "" %>
-      <% end %>
+  <%= subnav_link_to "Listing", posts_path %>
+  <%= subnav_link_to "Upload", new_upload_path %>
+  <%= subnav_link_to "Changes", post_versions_path %>
+  <%= subnav_link_to "Help", help_page_path(id: "posts") %>
+  <% if params[:action] == "index" %>
+    | <%= subnav_link_to "Undo selected", "" %>
+    <%= subnav_link_to "Select All", "" %>
+    <% if CurrentUser.is_admin? %>
+    | <%= subnav_link_to "Apply Tag Script To Selected", "" %>
     <% end %>
-  </menu>
+  <% end %>
 <% end %>

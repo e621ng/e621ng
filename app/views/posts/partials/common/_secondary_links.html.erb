@@ -1,16 +1,14 @@
 <%= render "posts/partials/common/blacklist_editor" %>
 
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Listing", posts_path %>
-    <%= subnav_link_to "Upload", new_upload_path %>
-    <%= subnav_link_to "Hot", posts_path(tags: "order:rank", d: "1") %>
-    <%= subnav_link_to("Popular", popular_index_path) %>
-    <% unless CurrentUser.is_anonymous? %>
-      <%= subnav_link_to "Favorites", favorites_path %>
-    <% end %>
-    <%= subnav_link_to "Changes", post_versions_path %>
-    <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
-    <%= subnav_link_to "Help", help_page_path(id: "posts") %>
-  </menu>
+  <%= subnav_link_to "Listing", posts_path %>
+  <%= subnav_link_to "Upload", new_upload_path %>
+  <%= subnav_link_to "Hot", posts_path(tags: "order:rank", d: "1") %>
+  <%= subnav_link_to("Popular", popular_index_path) %>
+  <% unless CurrentUser.is_anonymous? %>
+    <%= subnav_link_to "Favorites", favorites_path %>
+  <% end %>
+  <%= subnav_link_to "Changes", post_versions_path %>
+  <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
+  <%= subnav_link_to "Help", help_page_path(id: "posts") %>
 <% end %>

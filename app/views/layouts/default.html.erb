@@ -23,8 +23,14 @@
     </div>
 
     <nav id="nav">
-      <%= render "layouts/main_links" %>
-      <%= yield :secondary_links %>
+      <menu class="main">
+        <%= render "layouts/main_links" %>
+      </menu>
+      <% if content_for(:secondary_links) %>
+        <menu>
+          <%= yield :secondary_links %>
+        </menu>
+      <% end %>
     </nav>
 
   </header>
