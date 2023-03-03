@@ -281,8 +281,33 @@
     }
 
     header#top {
+      input {
+        font-size: 18pt;
+      }
+
       menu.main {
         padding: 5px 10px;
+
+        .mobile-logo {
+          display: inline-block;
+          width: 1.5em;
+          box-sizing: border-box;
+
+          a {
+            display: inline-block;
+            padding: 6px 10px;
+
+            background-image: url("header-logo.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+
+            // Gives the link height
+            &::after {
+              content: "Placeholder";
+              visibility: hidden;
+            }
+          }
+        }
       }
 
       menu.secondary.empty {
