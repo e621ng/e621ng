@@ -26,11 +26,13 @@
       <menu class="main">
         <%= render "layouts/main_links" %>
       </menu>
-      <% if content_for(:secondary_links) %>
-        <menu>
+      <menu class="secondary <%= "empty" unless content_for(:secondary_links) %>">
+        <% if content_for(:secondary_links) %>
           <%= yield :secondary_links %>
-        </menu>
-      <% end %>
+        <% else %>
+          <%= subnav_link_to "Height Placeholder", "" %>
+        <% end %>
+      </menu>
     </nav>
 
   </header>

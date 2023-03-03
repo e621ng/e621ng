@@ -12,6 +12,10 @@ header#top {
     background-image: themed("image-background");
   }
 
+  #subnav-height-placeholder {
+    visibility: hidden;
+  }
+
   menu {
     margin-top: -2px;
     @include themable {
@@ -63,12 +67,6 @@ header#top {
 
     li.forum-updated a {
       font-style: italic;
-    }
-  }
-
-  menu:only-child {
-    @include themable {
-      border-bottom: 2px solid themed("color-foreground");
     }
   }
 }

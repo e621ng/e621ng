@@ -280,8 +280,14 @@
       display: none;
     }
 
-    header#top menu.main {
-      padding: 5px 10px;
+    header#top {
+      menu.main {
+        padding: 5px 10px;
+      }
+
+      menu.secondary.empty {
+        display: none;
+      }
     }
 
     h1 {
