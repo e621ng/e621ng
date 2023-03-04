@@ -40,6 +40,12 @@ Try this:
 1. `docker compose build --no-cache` to rebuild the image from scratch.
 1. Follow the [instructions](#installation) starting from step 6.
 
+#### <a id="windows-executable-bit"></a>Why are there a bunch of changes I can't revert?
+
+You're most likely using Windows. Give this a shot, it tells Git to stop tracking file mode changes:
+
+`git config core.fileMode false`
+
 #### <a id="development-tools"></a>Things to aid you during development
 
 `docker compose run --rm tests` to execute the test suite.
