@@ -19,7 +19,10 @@ FileUtils.chdir APP_ROOT do
   end
 
   puts "\n== Preparing database =="
-  system! 'DANBOORU_DISABLE_THROTTLES=true bin/rails db:prepare'
+  # Create the test database, since only development exists at this point
+  system! 'RAILS_ENV=test bin/rails db:create'
+  system! 'RAILS_ENV=development bin/rails db:schema:load'
+  system! 'RAILS_ENV=development DANBOORU_DISABLE_THROTTLES=true bin/rails db:seed'
 
   puts "\n== Preparing search indices =="
   system! 'bin/rails r Post.__elasticsearch__.create_index!'
