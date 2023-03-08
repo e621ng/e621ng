@@ -127,6 +127,27 @@
       position: relative;
     }
 
+    #page-footer {
+      display: revert;
+      text-align: center;
+
+      .left {
+        padding-right: revert;
+      }
+    
+      .right {
+        padding-left: revert;
+      }
+
+      .right::before {
+        content: "–";
+      }
+
+      .logo-container {
+        display: none;
+      }
+    }
+
     #maintoggle {
       display: block;
       font-weight: bold;
@@ -297,7 +318,7 @@
             display: inline-block;
             padding: 6px 10px;
 
-            background-image: url("header-logo.png");
+            background-image: url("main-logo.png");
             background-repeat: no-repeat;
             background-size: contain;
 

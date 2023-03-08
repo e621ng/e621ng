@@ -1,12 +1,19 @@
 <footer id="page-footer">
-  Running <%= Danbooru.config.app_name %>
-  - <%= link_to "Themes / Gestures", theme_path %>
-  &ndash; <%= link_to "Rules", terms_of_service_path %>
-  - <%= link_to "Takedowns", takedown_static_path %>
-  - <%= link_to "Privacy", privacy_policy_path %>
-  &ndash; <%= link_to "Contact", contact_path %>
-  <% if CurrentUser.user.enable_keyboard_navigation %>
-    &ndash; <%= link_to "Keyboard Shortcuts", keyboard_shortcuts_path %>
-  <% end %>
-    &ndash; <%= link_to disable_mobile_mode? ? "Enable mobile mode support": "Disable mobile mode support", disable_mobile_mode_path, :rel => "nofollow" %>
+  <span class="left">
+    Running <%= Danbooru.config.app_name %>
+    – <%= link_to "Rules", terms_of_service_path %>
+    – <%= link_to "Takedowns", takedown_static_path %>
+    – <%= link_to "Privacy", privacy_policy_path %>
+    – <%= link_to "Contact", contact_path %>
+  </span>
+  <span class="logo-container">
+    <a href="/"><img class="footer-logo" src="/main-logo.png"></a>
+  </span>
+  <span class="right">
+    <%= link_to "Themes / Gestures", theme_path %>
+    <% if CurrentUser.user.enable_keyboard_navigation %>
+      – <%= link_to "Keyboard Shortcuts", keyboard_shortcuts_path %>
+    <% end %>
+    – <%= link_to disable_mobile_mode? ? "Enable mobile mode support": "Disable mobile mode support", disable_mobile_mode_path, :rel => "nofollow" %>
+  </span>
 </footer>
