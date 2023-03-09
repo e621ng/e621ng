@@ -9,7 +9,7 @@ class Note < ApplicationRecord
   validate :user_not_limited
   validate :post_must_exist
   validate :note_within_image
-  validates :body, length: { minimum: 1, maximum: Danbooru.config.note_max_size }
+  validates :body, length: { minimum: 1, maximum: Danbooru.config.note_max_size }, if: :body_changed?
   after_save :update_post
   after_save :create_version
   validate :post_must_not_be_note_locked
