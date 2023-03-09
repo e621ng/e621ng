@@ -1,10 +1,8 @@
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Listing", upload_whitelists_path %>
-    <% if CurrentUser.is_admin? %>
-      <%= subnav_link_to "New", new_upload_whitelist_path %>
-    <% end %>
-    <%= subnav_link_to "Requests", forum_topic_path(id: 22269) %>
-    <%= subnav_link_to "Help", help_page_path(id: "upload_whitelist") %>
-  </menu>
+  <%= subnav_link_to "Listing", upload_whitelists_path %>
+  <% if CurrentUser.is_admin? %>
+    <%= subnav_link_to "New", new_upload_whitelist_path %>
+  <% end %>
+  <%= subnav_link_to "Requests", forum_topic_path(id: 22_269) %>
+  <%= subnav_link_to "Help", help_page_path(id: "upload_whitelist") %>
 <% end %>

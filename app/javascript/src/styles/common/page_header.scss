@@ -3,6 +3,34 @@
   display: none;
 }
 
+#nav {
+  display: grid; 
+  grid-template-columns: 3.75em 1fr; 
+  grid-template-areas: "logo main" "logo secondary"; 
+
+  .logo {
+    grid-area: logo;
+
+    margin-top: 6px;
+    background-image: url("main-logo.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+  }
+
+  .mobile-logo {
+    display: none;
+  }
+
+  .main {
+    grid-area: main;
+  }
+
+  .secondary {
+    grid-area: secondary;
+  }
+}
+
 header#top {
   font-size: 1.05em;
   margin: 0 $base-padding 0.8rem;
@@ -12,19 +40,27 @@ header#top {
     background-image: themed("image-background");
   }
 
+  #subnav-height-placeholder {
+    visibility: hidden;
+  }
+
   menu {
     margin-top: -2px;
     @include themable {
       background-color: themed("color-foreground");
     }
     border-radius: $border-radius-full;
-    padding: 6px 1rem;
+    padding: 6px;
 
     form {
       display: inline-block;
 
       input {
         width: 9.5em;
+        vertical-align: baseline;
+        font-size: revert;
+        padding-top: 0;
+        padding-bottom: 0;
       }
     }
 
@@ -59,12 +95,6 @@ header#top {
 
     li.forum-updated a {
       font-style: italic;
-    }
-  }
-
-  menu:only-child {
-    @include themable {
-      border-bottom: 2px solid themed("color-foreground");
     }
   }
 }

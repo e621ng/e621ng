@@ -127,6 +127,27 @@
       position: relative;
     }
 
+    #page-footer {
+      display: revert;
+      text-align: center;
+
+      .left {
+        padding-right: revert;
+      }
+    
+      .right {
+        padding-left: revert;
+      }
+
+      .right::before {
+        content: "–";
+      }
+
+      .logo-container {
+        display: none;
+      }
+    }
+
     #maintoggle {
       display: block;
       font-weight: bold;
@@ -280,8 +301,39 @@
       display: none;
     }
 
-    header#top menu.main {
-      padding: 5px 10px;
+    header#top {
+      input {
+        font-size: 18pt;
+      }
+
+      menu.main {
+        padding: 5px 10px;
+
+        .mobile-logo {
+          display: inline-block;
+          width: 1.5em;
+          box-sizing: border-box;
+
+          a {
+            display: inline-block;
+            padding: 6px 10px;
+
+            background-image: url("main-logo.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+
+            // Gives the link height
+            &::after {
+              content: "Placeholder";
+              visibility: hidden;
+            }
+          }
+        }
+      }
+
+      menu.secondary.empty {
+        display: none;
+      }
     }
 
     h1 {

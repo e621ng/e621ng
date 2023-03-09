@@ -35,10 +35,8 @@
 </div>
 
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Forum Topics", forum_posts_path %>
-    <%= subnav_link_to "Help", help_page_path(id: 'forum') %>
-  </menu>
+  <%= subnav_link_to "Forum Topics", forum_posts_path %>
+  <%= subnav_link_to "Help", help_page_path(id: "forum") %>
 <% end %>
 
 <% content_for(:page_title) do %>

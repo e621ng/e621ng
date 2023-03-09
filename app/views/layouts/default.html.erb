@@ -23,10 +23,18 @@
     </div>
 
     <nav id="nav">
-      <%= render "layouts/main_links" %>
-      <%= yield :secondary_links %>
+      <a href="/" class="logo"></a>
+      <menu class="main">
+        <%= render "layouts/main_links" %>
+      </menu>
+      <menu class="secondary <%= "empty" unless content_for(:secondary_links) %>">
+        <% if content_for(:secondary_links) %>
+          <%= yield :secondary_links %>
+        <% else %>
+          <%= subnav_link_to "Height Placeholder", "" %>
+        <% end %>
+      </menu>
     </nav>
-
   </header>
 
   <div id="page">

@@ -1,8 +1,6 @@
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Flags", post_flags_path(search: { post_id: params.dig(:search, :post_id) }) %>
-    <%= subnav_link_to "Approvals", post_approvals_path(search: { post_id: params.dig(:search, :post_id) }) %>
-    <%= subnav_link_to "Replacements", post_replacements_path(search: { post_id: params.dig(:search, :post_id) }) %>
-    <%= subnav_link_to "Tag History", post_versions_path(search: { post_id: params.dig(:search, :post_id) }) %>
-  </menu>
+  <%= subnav_link_to "Flags", post_flags_path(search: { post_id: params.dig(:search, :post_id) }) %>
+  <%= subnav_link_to "Approvals", post_approvals_path(search: { post_id: params.dig(:search, :post_id) }) %>
+  <%= subnav_link_to "Replacements", post_replacements_path(search: { post_id: params.dig(:search, :post_id) }) %>
+  <%= subnav_link_to "Tag History", post_versions_path(search: { post_id: params.dig(:search, :post_id) }) %>
 <% end %>
