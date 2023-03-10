@@ -21,7 +21,7 @@
       <tr>
         <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
         <td><%= exception_log.code %></td>
-        <td><%= link_to exception_log.version, Danbooru.config.commit_url(exception_log.version) %></td>
+        <td><%= link_to exception_log.version, GitHelper.commit_url(exception_log.version) %></td>
         <td><%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %></td>
         <td><%= exception_log.class_name %></td>
         <td><%= truncate(exception_log.message, length: 500) %></td>

@@ -28,7 +28,7 @@ class ExceptionLog < ApplicationRecord
       message: unwrapped_exception.message,
       trace: unwrapped_exception.backtrace.join("\n"),
       code: SecureRandom.uuid,
-      version: Rails.application.config.x.git_hash,
+      version: GitHelper.short_hash,
       extra_params: extra_params,
     )
   end

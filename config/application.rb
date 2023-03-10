@@ -43,14 +43,6 @@ module Danbooru
       }
     end
 
-    if File.exist?("#{config.root}/REVISION")
-      config.x.git_hash = File.read("#{config.root}/REVISION").strip
-    elsif system("type git > /dev/null && git rev-parse --show-toplevel > /dev/null")
-      config.x.git_hash = %x(git rev-parse --short HEAD).strip
-    else
-      config.x.git_hash = nil
-    end
-
     config.after_initialize do
       Rails.application.routes.default_url_options = {
         host: Danbooru.config.hostname,

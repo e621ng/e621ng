@@ -55,10 +55,6 @@ module Danbooru
       "https://github.com/e621ng/e621ng"
     end
 
-    def commit_url(hash)
-      "#{source_code_url}/commit/#{hash}"
-    end
-
     # Stripped of any special characters.
     def safe_app_name
       app_name.gsub(/[^a-zA-Z0-9_-]/, "_")
