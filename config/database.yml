@@ -21,5 +21,6 @@ production:
   database: e621
   password: <%= ENV.fetch("DB_PASSWORD") %>
   host: <%= ENV.fetch("DB_HOST") %>
+  port: <%= ENV.fetch("DB_PORT") %>
   pool: <%= Sidekiq.server? ? ENV.fetch("DB_WORKER_POOL_SIZE") : ENV.fetch("DB_POOL_SIZE") %>
 <% end %>
