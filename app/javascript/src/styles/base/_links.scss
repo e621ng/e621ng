@@ -21,14 +21,14 @@ a:active {
   text-decoration: none;
 }
 
-a.last-page {
+a.page-number {
   @include themable {
-    color: themed('color-link-last-page');
+    color: themed('color-link-page-number');
   }
 }
-a.last-page:hover {
+a.page-number:hover {
   @include themable {
-    color: themed('color-link-last-page-hover');
+    color: themed('color-link-page-number-hover');
   }
 }
 

@@ -26,7 +26,7 @@ $darken-background-50: rgba(0,0,0,0.5);
 // Links
 $link-color: #b4c7d9;
 $link-hover-color: #2e76b4;
-$link-last-page-color: #3e9e49;
+$link-page-number-color: #3e9e49;
 $highlight-color: lighten($link-color, 45%);
 
 // Sections
@@ -189,7 +189,7 @@ $keyboard-key-background: #333;
 $keyboard-key-color: white;
 $keyboard-key-border: #333;
 $inline-inactive-color: #aaa;
-$inline-last-page-color: #666;
+$inline-page-number-color: #666;
 
 // JQUI
 $widget-link-color: $link-color;
