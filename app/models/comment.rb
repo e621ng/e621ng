@@ -109,7 +109,12 @@ class Comment < ApplicationRecord
       when "updated_at", "updated_at_desc"
         q = q.order("comments.updated_at DESC")
       else
-        q = q.apply_default_order(params)
+        # Force a better query plan
+        if params[:body_matches].present?
+          q = q.reorder(created_at: :desc)
+        else
+          q = q.apply_default_order(params)
+        end
       end
 
       if params[:poster_id].present?
