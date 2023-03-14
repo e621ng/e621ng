@@ -104,7 +104,7 @@ class ApplicationRecord < ActiveRecord::Base
         if value =~ /\*/
           where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
         else
-          where("to_tsvector(:ts_config, #{qualified_column}) @@ websearch_to_tsquery(:ts_config, :value)", ts_config: "english", value: value)
+          where("to_tsvector(:ts_config, #{qualified_column}) @@ plainto_tsquery(:ts_config, :value)", ts_config: "english", value: value)
         end
       end
 
