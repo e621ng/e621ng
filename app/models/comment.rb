@@ -103,15 +103,15 @@ class Comment < ApplicationRecord
 
       case params[:order]
       when "post_id", "post_id_desc"
-        q = q.order("comments.post_id DESC, comments.id DESC")
+        q = q.order("comments.post_id DESC, comments.created_at DESC")
       when "score", "score_desc"
-        q = q.order("comments.score DESC, comments.id DESC")
+        q = q.order("comments.score DESC, comments.created_at DESC")
       when "updated_at", "updated_at_desc"
         q = q.order("comments.updated_at DESC")
       else
         # Force a better query plan
-        if params[:body_matches].present?
-          q = q.reorder(created_at: :desc)
+        if %i[body_matches creator_name creator_id].any? { |key| params[key].present? }
+          q = q.order(created_at: :desc)
         else
           q = q.apply_default_order(params)
         end
