@@ -4194,6 +4194,13 @@ CREATE INDEX index_user_feedback_on_creator_ip_addr ON public.user_feedback USIN
 
 
 --
+-- Name: index_user_feedback_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_feedback_on_to_tsvector_english_body ON public.user_feedback USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_user_feedback_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4619,6 +4626,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230221145226'),
 ('20230221153458'),
 ('20230226152600'),
-('20230312103728');
+('20230312103728'),
+('20230314170352');
 
 
