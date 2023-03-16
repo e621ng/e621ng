@@ -152,11 +152,6 @@
       display: block;
       font-weight: bold;
       font-size: 2em;
-
-      &.toggler-active {
-        background-color: lighten($link-color, 25%);
-        color: #000;
-      }
     }
 
     /* Make the quick search box in the navbar full width. */

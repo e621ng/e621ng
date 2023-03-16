@@ -36,11 +36,6 @@
   }
 }
 
-.category-banned a, a.tag-type-banned, .ui-state-active a.tag-type-banned {
-  color: $tag-banned-color;
-  background-color: $tag-banned-background;
-}
-
 ul.inline-tag-list {
   display: inline;
 
