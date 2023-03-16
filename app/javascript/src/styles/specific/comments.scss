@@ -13,7 +13,9 @@ div.comments-for-post {
       }
 
       &[data-is-sticky="true"] {
-        background: $comment-sticky-background;
+        @include themable {
+          background: lighten(themed("color-section"), 10%);
+        }
       }
 
       &[data-is-deleted="true"] {
