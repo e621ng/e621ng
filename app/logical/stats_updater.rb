@@ -1,40 +1,41 @@
 class StatsUpdater
   def self.run!
-    stats = Hash.new
+    stats = {}
     stats[:started] = Post.find(Post.minimum("id")).created_at
+
+    daily_average = ->(total) do
+      (total / ((Time.now - stats[:started]) / (60 * 60 * 24))).round
+    end
 
     ### Posts ###
 
-    stats[:total_posts] = Post.maximum("id")
-    stats[:active_posts] = Post.tag_match('status:active').count_only
-    stats[:deleted_posts] = Post.tag_match('status:deleted').count_only
-    stats[:destroyed_posts] = stats[:total_posts] - (stats[:active_posts] + stats[:deleted_posts])
+    stats[:total_posts] = Post.maximum("id") || 0
+    stats[:active_posts] = Post.tag_match("status:active").count_only
+    stats[:deleted_posts] = Post.tag_match("status:deleted").count_only
+    stats[:existing_posts] = stats[:active_posts] + stats[:deleted_posts]
+    stats[:destroyed_posts] = stats[:total_posts] - stats[:existing_posts]
     stats[:total_votes] = PostVote.count
     stats[:total_notes] = Note.count
     stats[:total_favorites] = Favorite.count
     stats[:total_pools] = Pool.count
     stats[:public_sets] = PostSet.where(is_public: true).count
     stats[:private_sets] = PostSet.where(is_public: false).count
+    stats[:total_sets] = stats[:public_sets] + stats[:private_sets]
 
     stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")) || 0
     stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")) || 0
 
-    stats[:safe_posts] = Post.tag_match('status:any rating:s').count_only
-    stats[:questionable_posts] = Post.tag_match('status:any rating:q').count_only
-    stats[:explicit_posts] = Post.tag_match('status:any rating:e').count_only
-    stats[:jpg_posts] = Post.tag_match('status:any type:jpg').count_only
-    stats[:png_posts] = Post.tag_match('status:any type:png').count_only
-    stats[:gif_posts] = Post.tag_match('status:any type:gif').count_only
-    stats[:swf_posts] = Post.tag_match('status:any type:swf').count_only
-    stats[:webm_posts] = Post.tag_match('status:any type:webm').count_only
+    stats[:safe_posts] = Post.tag_match("status:any rating:s").count_only
+    stats[:questionable_posts] = Post.tag_match("status:any rating:q").count_only
+    stats[:explicit_posts] = Post.tag_match("status:any rating:e").count_only
+    stats[:jpg_posts] = Post.tag_match("status:any type:jpg").count_only
+    stats[:png_posts] = Post.tag_match("status:any type:png").count_only
+    stats[:gif_posts] = Post.tag_match("status:any type:gif").count_only
+    stats[:swf_posts] = Post.tag_match("status:any type:swf").count_only
+    stats[:webm_posts] = Post.tag_match("status:any type:webm").count_only
     stats[:average_file_size] = Post.average("file_size")
     stats[:total_file_size] = Post.sum("file_size")
-
-    if stats[:total_posts]
-      stats[:average_posts_per_day] = (stats[:total_posts] / ((Time.now - stats[:started])/(60*60*24))).round
-    else
-      stats[:average_posts_per_day] = 0
-    end
+    stats[:average_posts_per_day] = daily_average.call(stats[:total_posts])
 
     ### Users ###
 
@@ -42,56 +43,32 @@ class StatsUpdater
     Danbooru.config.levels.each do |name, level|
       stats["#{name.downcase}_users".to_sym] = User.where(level: level).count
     end
-    stats[:unactivated_users] = User.where('email_verification_key IS NOT NULL').count
-    stats[:total_dmails] = Dmail.maximum("id")/2
-
-    if stats[:total_users]
-      stats[:average_registrations_per_day] = (stats[:total_users] / ((Time.now - stats[:started])/(60*60*24))).round
-    else
-      stats[:average_registrations_per_day] = 0
-    end
+    stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
+    stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
+    stats[:average_registrations_per_day] = daily_average.call(stats[:total_users])
 
     ### Comments ###
 
-    stats[:total_comments] = Comment.maximum("id")
+    stats[:total_comments] = Comment.maximum("id") || 0
     stats[:active_comments] = Comment.where(is_hidden: false).count
     stats[:hidden_comments] = Comment.where(is_hidden: true).count
-
-    if stats[:total_comments]
-      stats[:deleted_comments] = stats[:total_comments] - (stats[:active_comments] + stats[:hidden_comments])
-      stats[:average_comments_per_day] = (stats[:total_comments] / ((Time.now - stats[:started])/(60*60*24))).round
-    else
-      stats[:deleted_comments] = 0
-      stats[:average_comments_per_day] = 0
-    end
+    stats[:deleted_comments] = stats[:total_comments] - (stats[:active_comments] + stats[:hidden_comments])
+    stats[:average_comments_per_day] = daily_average.call(stats[:total_comments])
 
     ### Forum posts ###
 
     stats[:total_forum_threads] = ForumTopic.count
-    stats[:total_forum_posts] = ForumPost.maximum("id")
-
-    if stats[:total_forum_posts]
-      stats[:average_posts_per_thread] = (stats[:total_forum_posts] / stats[:total_forum_threads]).round
-      stats[:average_forum_posts_per_day] = (stats[:total_forum_posts] / ((Time.now - stats[:started])/(60*60*24))).round
-    else
-      stats[:average_posts_per_thread] = 0
-      stats[:average_forum_posts_per_day] = 0
-    end
+    stats[:total_forum_posts] = ForumPost.maximum("id") || 0
+    stats[:average_posts_per_thread] = (stats[:total_forum_posts] / stats[:total_forum_threads]).round
+    stats[:average_forum_posts_per_day] = daily_average.call(stats[:total_forum_posts])
 
     ### Blips ###
 
-    stats[:total_blips] = Blip.maximum("id")
+    stats[:total_blips] = Blip.maximum("id") || 0
     stats[:active_blips] = Blip.where(is_hidden: false).count
     stats[:hidden_blips] = Blip.where(is_hidden: true).count
-
-    if stats[:total_blips]
-      stats[:deleted_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:hidden_blips])
-      stats[:average_blips_per_day] = (stats[:total_blips] / ((Time.now - stats[:started])/(60*60*24))).round
-    else
-      stats[:total_blips] = 0
-      stats[:deleted_blips] = 0
-      stats[:average_blips_per_day] = 0
-    end
+    stats[:deleted_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:hidden_blips])
+    stats[:average_blips_per_day] = daily_average.call(stats[:total_blips])
 
     ### Tags ###
 
@@ -100,6 +77,6 @@ class StatsUpdater
       stats["#{cat}_tags".to_sym] = Tag.where(category: TagCategory.mapping[cat]).count
     end
 
-    RedisClient.client.set('e6stats', stats.to_json)
+    RedisClient.client.set("e6stats", stats.to_json)
   end
 end
