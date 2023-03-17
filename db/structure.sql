@@ -863,8 +863,8 @@ CREATE TABLE public.help_pages (
     updated_at timestamp without time zone NOT NULL,
     name character varying NOT NULL,
     wiki_page character varying NOT NULL,
-    related character varying,
-    title character varying
+    related character varying DEFAULT ''::character varying NOT NULL,
+    title character varying DEFAULT ''::character varying NOT NULL
 );
 
 
@@ -4627,6 +4627,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230221153458'),
 ('20230226152600'),
 ('20230312103728'),
-('20230314170352');
+('20230314170352'),
+('20230316084945');
 
 
