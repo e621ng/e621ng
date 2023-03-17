@@ -190,7 +190,7 @@ class ApplicationController < ActionController::Base
     return unless request.get? || request.head?
     params[:search] ||= ActionController::Parameters.new
 
-    deep_reject_blank = lambda do |hash|
+    deep_reject_blank = ->(hash) do
       hash.reject { |k, v| v.blank? || (v.is_a?(Hash) && deep_reject_blank.call(v).blank?) }
     end
     if params[:search].is_a?(ActionController::Parameters)

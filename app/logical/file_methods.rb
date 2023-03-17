@@ -49,7 +49,7 @@ module FileMethods
     return false if !is_image?
 
     image = Vips::Image.new_from_file(file_path)
-    fetch = lambda do |key|
+    fetch = ->(key) do
       value = image.get(key)
       value.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
     rescue Vips::Error
