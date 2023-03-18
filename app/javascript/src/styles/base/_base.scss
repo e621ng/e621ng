@@ -1,5 +1,7 @@
 body {
+  color: $hexagon-color-text;
   color: themed("color-text");
+  background-color: $hexagon-color-background;
   background-color: themed("color-background");
   background-image: themed("image-background");
   font-family: $base_font_family;

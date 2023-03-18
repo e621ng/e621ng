@@ -1,6 +1,7 @@
 a,
 a:link,
 a:visited {
+  color: $hexagon-color-link;
   color: themed('color-link');
   text-decoration: none;
 }

@@ -21,6 +21,7 @@ div#page {
   margin: 0 1rem;
   padding: $padding-050;
 
+  background-color: $hexagon-color-foreground;
   background-color: themed("color-foreground");
   background-image: themed("image-foreground");
   background-position: themed("image-foreground-position");
