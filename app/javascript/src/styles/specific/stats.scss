@@ -6,9 +6,7 @@
 
   table {
     margin-bottom: 1em;
-    @include themable {
-      box-shadow: 2px 2px 5px darken( themed("color-section"), 15%);
-    }
+    box-shadow: 2px 2px 5px themed("color-background");
 
     .stats-pct {
       text-align: right;

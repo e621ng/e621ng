@@ -127,38 +127,30 @@
     padding: $padding-025;
     margin: 0 0 0.5rem;
     border-radius: $border-radius-half;
-    @include themable {
-      border: 1px solid themed("color-section");
-      border-left: 0.25rem solid themed("color-danger");
-      background: rgba( lighten( themed("color-section"), 10%), 0.7);
-    }
+    border: 1px solid themed("color-section");
+    border-left: 0.25rem solid themed("color-danger");
+    background: themed("color-section-lighten-5");
   }
 
   pre {
-    @include themable {
-      border-left-color: themed("color-detail-code");
-    }
+    border-left-color: themed("color-detail-code");
   }
 
   blockquote {
-    @include themable {
-      border-left-color: themed("color-detail-quote");
-    }
+    border-left-color: themed("color-detail-quote");
   }
 
   div.expandable {
-    @include themable {
-      border-left-color: themed("color-detail-expandable");
-    }
+    border-left-color: themed("color-detail-expandable");
   }
 
   @each $tag-category, $tag-category-name in $tag-categories-short {
     .dtext-color-#{$tag-category} {
-      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+      color: themed("color-tag-#{$tag-category-name}");
     }
 
     .dtext-color-#{$tag-category-name} {
-      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+      color: themed("color-tag-#{$tag-category-name}");
     }
   }
 }

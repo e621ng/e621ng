@@ -19,9 +19,7 @@ article.post-preview {
   }
 
   .desc {
-    @include themable {
-      background-color: lighten( themed("color-section"), 5%);
-    }
+    background-color: themed("color-section-lighten-5");
     font-size: 80%;
     margin-bottom: 0;
   }
@@ -175,9 +173,7 @@ div#c-posts {
   }
   .source-link:hover {
     a {
-      @include themable {
-        background: themed("color-background");
-      }
+      background: themed("color-background");
     }
     overflow:visible;
     height:auto;
@@ -238,62 +234,21 @@ div#c-posts {
       font-weight: bold;
     }
 
-    &.notice-parent {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
+    &.notice-parent, &.notice-child, &.notice-pending, &.notice-resized {
+      background-color: themed("color-section");
+      border: 1px solid themed("color-foreground");
     }
 
-    &.notice-child {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
-    }
-
-    &.notice-pending {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
-    }
-
-    &.notice-no-shortcuts {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-flagged {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-deleted {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-resized {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
+    &.notice-no-shortcuts, &.notice-flagged, &.notice-deleted {
+      background-color: themed("color-danger-darken-10");
+      border: 1px solid themed("color-foreground");
     }
   }
 
   div.nav-notice {
     padding: 0.5em;
     margin-bottom: $padding-050;
-    @include themable {
-      background-color: themed('color-section');
-    }
+    background-color: themed('color-section');
     position: relative;
 
     p {
@@ -364,9 +319,7 @@ div#c-posts {
         position: sticky;
         bottom: 0;
 
-        @include themable {
-          background: themed("color-section");
-        }
+        background: themed("color-section");
         width: min-content;
         padding: 1rem 1rem 1rem 0.5rem;
         margin: 0;
@@ -375,18 +328,16 @@ div#c-posts {
         width: 100%;
       }
 
-      @include themable {
-        #post_rating_e:checked + label {
-          background-color: themed("color-rating-explicit");
-        }
+      #post_rating_e:checked + label {
+        background-color: themed("color-rating-explicit");
+      }
 
-        #post_rating_q:checked + label {
-          background-color: themed("color-rating-questionable");
-        }
-  
-        #post_rating_s:checked + label {
-          background-color: themed("color-rating-safe");
-        }
+      #post_rating_q:checked + label {
+        background-color: themed("color-rating-questionable");
+      }
+
+      #post_rating_s:checked + label {
+        background-color: themed("color-rating-safe");
       }
     }
 
@@ -395,9 +346,7 @@ div#c-posts {
     }
 
     .pool-nav, .search-seq-nav, .set-nav {
-      @include themable {
-        background: themed("color-section");
-      }
+      background: themed("color-section");
       li {
         display: flex;
         height: 1.25rem;

@@ -1,9 +1,5 @@
-// === Extra Theming - Nothing ===
-
-$extra_none: (
-
-    "image-foreground": none,
-    "image-foreground-position": unset,
-    "image-foreground-repeat": unset,
-
-);
+body[data-th-extra="none"] {
+  --image-foreground: none;
+  --image-foreground-position: unset;
+  --image-foreground-repeat: unset;
+}

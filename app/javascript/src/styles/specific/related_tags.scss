@@ -3,9 +3,7 @@
 div.related-tags {
   width: 100%;
   margin-bottom: 1em;
-  @include themable {
-    background: rgba(lighten( themed("color-section"), 10%), 0.7);
-  }
+  background: themed("color-section-lighten-5");
   overflow: hidden;
   border-radius: $border-radius-half;
   display: flex;
@@ -41,9 +39,7 @@ div.related-tags {
   }
 
   .tag-active {
-    @include themable {
-      background: themed("color-active-tag");
-    }
+    background: themed("color-active-tag");
     color: white;
   }
 

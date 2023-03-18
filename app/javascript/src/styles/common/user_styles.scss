@@ -11,18 +11,14 @@ $levels: (
 
 @each $level in $levels {
   a.user-#{$level}.with-style {
-    @include themable {
-      color: themed("color-user-#{$level}");
+    color: themed("color-user-#{$level}");
 
-      &:hover {
-        color: themed("color-user-#{$level}-alt");
-      }
+    &:hover {
+      color: themed("color-user-#{$level}-alt");
     }
   }
 }
 
 a.user-blocked.with-style {
-  @include themable {
-    text-decoration: line-through;
-  }
+  text-decoration: line-through;
 }

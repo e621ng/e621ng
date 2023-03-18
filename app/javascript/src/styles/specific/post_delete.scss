@@ -38,29 +38,27 @@ div#c-confirm-delete {
       // Highlight enabled elements
       &.enabled::before { content: "-"; }
 
-      @include themable {
-        color: themed("color-link");
+      color: themed("color-link");
 
-        &:hover {
-          color: themed("color-link-hover");
-          input[type="text"] {
-            color: themed("color-link-hover");
-            border-color: themed("color-link-hover");
-          }
-        }
-
+      &:hover {
+        color: themed("color-link-hover");
         input[type="text"] {
-          border-bottom: 1px solid themed("color-link");
-          color: themed("color-link");
-          &:focus { color: themed("color-link") !important; }
+          color: themed("color-link-hover");
+          border-color: themed("color-link-hover");
         }
+      }
 
-        &.enabled {
+      input[type="text"] {
+        border-bottom: 1px solid themed("color-link");
+        color: themed("color-link");
+        &:focus { color: themed("color-link") !important; }
+      }
+
+      &.enabled {
+        color: themed("color-link-active");
+        input[type="text"] {
           color: themed("color-link-active");
-          input[type="text"] {
-            color: themed("color-link-active");
-            border-color: themed("color-link-active");
-          }
+          border-color: themed("color-link-active");
         }
       }
     }

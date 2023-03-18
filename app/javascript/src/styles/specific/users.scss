@@ -60,9 +60,7 @@ div#c-users {
       width: 100%;
       border-radius: $border-radius-full;
       padding-left: 0.5em;
-      @include themable {
-        background: rgba(themed("color-section"), 0.8);
-      }
+      background: themed("color-section");
 
       abbr {
         cursor: help;
@@ -106,9 +104,7 @@ div#c-users {
     }
 
     .active {
-      @include themable {
-        color: themed("color-link-active");
-      }
+      color: themed("color-link-active");
     }
   }
 

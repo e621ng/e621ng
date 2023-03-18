@@ -60,8 +60,8 @@
     }
 
     input:checked + label { 
-      @include themable { background-color: themed("color-button-active"); }
-     }
+      background-color: themed("color-button-active");
+    }
   }
 }
 

@@ -4,58 +4,53 @@ $bloodlust-color-link:       #ffee95;
 $bloodlust-color-link-hover: #f68b00;
 $bloodlust-color-text-muted: #999999;
 
-$theme_bloodlust: (
+body[data-th-main="bloodlust"] {
   // Layout Colors
-  "color-background":             $bloodlust-color-background,                // Main background (dark blue, large hexagons)
-  "color-foreground":             #222222,                // Foreground (lighter blue, small hexagons)
-  "color-section":                $bloodlust-color-section,                // Foreground sections - boxes, sections, etc
+  --color-background:             #{$bloodlust-color-background};            // Main background (dark blue, large hexagons)
+  --color-foreground:             #222222;                                  // Foreground (lighter blue, small hexagons)
+  --color-section:                #{$bloodlust-color-section};               // Foreground sections - boxes, sections, etc
+  --color-section-lighten-5:      #{lighten($bloodlust-color-section, 5%)};
+  --color-section-lighten-10:     #{lighten($bloodlust-color-section, 10%)};
+  --color-section-darken-5:       #{darken($bloodlust-color-section, 5%)};
 
-  "color-section-pending":        $bloodlust-color-section,
-  "color-section-pending-border": $bloodlust-color-background,
+  --color-section-pending:        #{$bloodlust-color-section};
+  --color-section-pending-border: #{$bloodlust-color-background};
 
   // Main Colors
-  "color-text":                   #ffffff,
-  "color-text-muted":             $bloodlust-color-text-muted,
-  "color-text-white":             #ffffff,
+  --color-text:                   #ffffff;
+  --color-text-muted:             #{$bloodlust-color-text-muted};
+  --color-text-table-header:      #{darken(#ffffff, 10%)};
 
-  "color-link":                   $bloodlust-color-link,
-  "color-link-hover":             $bloodlust-color-link-hover,
-  "color-link-active":            #ffffff,
-  "color-button-active":          #e8c446,
+  --color-link:                   #{$bloodlust-color-link};
+  --color-link-hover:             #{$bloodlust-color-link-hover};
+  --color-link-active:            #ffffff;
+  --color-button-active:          #e8c446;
 
-  "color-link-last-page":         $bloodlust-color-text-muted,
-  "color-link-last-hover":        $bloodlust-color-link-hover,
+  --color-link-last-page:         #{$bloodlust-color-text-muted};
+  --color-link-last-hover:        #{$bloodlust-color-link-hover};
 
-  "color-success":                darkgreen,
-  "color-danger":                 maroon,
-  "color-warning":                sienna,
-
-  "color-score-positive":         #3e9e49,
-  "color-score-negative":         #e45f5f,
-
-  "color-active-tag":             #222222,
+  --color-active-tag:             #222222;
 
   // Detail Colors
-  "color-detail-quote":           #67717b,
-  "color-detail-code":            #ffe380,
-  "color-detail-expandable":      #427982,
+  --color-detail-quote:           #67717b;
+  --color-detail-expandable:      #427982;
 
   // User Groups
-  "color-user-member":            #ffee95,
-  "color-user-member-alt":        #f68b00,
-  "color-user-privileged":        #ffee95,
-  "color-user-privileged-alt":    #f68b00,
-  "color-user-contributor":       #ffee95,
-  "color-user-contributor-alt":   #f68b00,
+  --color-user-member:            #ffee95;
+  --color-user-member-alt:        #f68b00;
+  --color-user-privileged:        #ffee95;
+  --color-user-privileged-alt:    #f68b00;
+  --color-user-contributor:       #ffee95;
+  --color-user-contributor-alt:   #f68b00;
 
-  "color-user-blocked":           #ffee95,
-  "color-user-blocked-alt":       #f68b00,
+  --color-user-blocked:           #ffee95;
+  --color-user-blocked-alt:       #f68b00;
 
   // Tag Categories
-  "color-tag-general":            #ffee95,
-  "color-tag-general-alt":        #f68b00,
+  --color-tag-general:            #ffee95;
+  --color-tag-general-alt:        #f68b00;
 
   // Spoilers
-  "color-spoiler-link":           $bloodlust-color-link,
-  "color-spoiler-link-hover":     $bloodlust-color-link-hover,
-);
+  --color-spoiler-link:           #{$bloodlust-color-link};
+  --color-spoiler-link-hover:     #{$bloodlust-color-link-hover};
+}

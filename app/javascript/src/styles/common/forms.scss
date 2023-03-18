@@ -58,9 +58,5 @@ input:disabled {
 .simple_form {
   padding: $padding-050;
   border-radius: $border-radius-half;
-  @include themable(){
-    background-color: themed("color-section");
-  }
+  background-color: themed("color-section");
 }
-
-
