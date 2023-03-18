@@ -62,14 +62,7 @@
     white-space: pre-wrap;
   }
 
-  code {
-    font-family: monospace;
-    white-space: pre-wrap;
-    background-color: $dtext-code-background;
-    padding: $padding-025;
-  }
-
-  .inline-code {
+  code, .inline-code {
     font-family: monospace;
     white-space: pre-wrap;
     background-color: $dtext-code-background;
@@ -77,9 +70,6 @@
   }
 
   div.expandable {
-    background: $dtext-expandable-background;
-    border-radius: $border-radius-half;
-
     >div.expandable-header {
       cursor: pointer;
       padding: 0.4em;

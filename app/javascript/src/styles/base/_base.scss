@@ -14,14 +14,6 @@ abbr[title=required] {
   display: none;
 }
 
-blockquote {
-  background: $blockquote-background;
-  border: 1px solid $blockquote-border;
-  border-radius: $border-radius-half;
-  margin: 0 0 1rem 0;
-  padding: 1rem 1rem 0.2rem;
-}
-
 code {
   font-family: monospace;
   font-size: 1.2em;

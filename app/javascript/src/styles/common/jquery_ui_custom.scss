@@ -1,19 +1,9 @@
-
-
 .ui-widget {
   font-family: $base_font_family;
 
   input, select, textarea, button {
     font-family: $base_font_family;
   }
-}
-
-.ui-widget-content a {
-  color: $widget-link-color;
-}
-
-.ui-widget-content a:hover {
-  color: $widget-link-hover-color;
 }
 
 div.ui-dialog {
@@ -38,7 +28,7 @@ div.ui-dialog {
 .ui-state-highlight {
   background-color: themed('color-section');
   color: themed('color-text');
-  border: 1px solid $widget-highlight-border;
+  border: 1px solid var(--color-background);
 
   a, a:link, a:active, a:visited {
     color: themed('color-link');
@@ -69,11 +59,11 @@ div.ui-dialog {
     font-size: 90%;
     padding: 0.25em 0.5em;
   }
-}
 
-.ui-button:hover {
-  box-shadow: 1px 1px $widget-button-shadow;
-  background: $widget-button-hover-background;
+  &:hover {
+    box-shadow: 1px 1px $widget-button-shadow;
+    background: $widget-button-hover-background;
+  }
 }
 
 .ui-front {
@@ -81,9 +71,17 @@ div.ui-dialog {
 }
 
 .ui-widget-content {
-  border: 1px solid $widget-border;
+  border: 1px solid themed("color-text-muted");
   background-color: themed("color-section-lighten-10");
   color: themed("color-text");
+
+  a {
+    color: themed("color-link");
+
+    &:hover {
+      color: themed("color-link-hover");
+    }
+  }
 }
 
 .ui-widget-header {

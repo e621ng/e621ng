@@ -1,18 +1,5 @@
-
-
 div#search {
   margin-bottom: 1em;
-}
-
-div#search-box button {
-  -webkit-appearance: button;
-  border: 1px solid $search-box-border;
-  background-color: $search-box-background;
-  color: $search-box-color;
-  &:hover, &:focus {
-    border: 1px solid $search-box-hover-border;
-    background-color: $search-box-hover-background;
-  }
 }
 
 div#page {
@@ -41,7 +28,7 @@ div#page {
     padding: $padding-050;
     text-align: center;
     position: relative;
-    border: 1px solid $darken-background-50;
+    border: 1px solid themed("color-background");
 
     h1 {
       font-size: $h2-size;

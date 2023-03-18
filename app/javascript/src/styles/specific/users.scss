@@ -43,14 +43,6 @@ div#c-users {
       }
     }
 
-    div.box {
-      h2, h3 {
-        color: $user-profile-box-header-color;
-      }
-
-      margin-bottom: 2em;
-    }
-
     .vertical-section {
       display: flex;
       flex-direction: column;

@@ -32,10 +32,6 @@ input[type=radio] {
   box-shadow: none;
 }
 
-input[type=date] {
-  background-color: $form-date-background;
-}
-
 input:focus {
   background: $form-focus-background;
   color: $form-focus-color;
