@@ -2,14 +2,6 @@
   display: none;
 }
 
-#desktop-version-link {
-  display: none;
-}
-
-#searchbox-redirect-link {
-  display: none;
-}
-
 @media screen and (max-width: 900px) {
   #ad-leaderboard {
     height: 50px;
@@ -75,14 +67,6 @@
         height: 90vh;
         width: 80vw;
       }
-    }
-
-    #desktop-version-link {
-      display: inline;
-    }
-
-    #searchbox-redirect-link {
-      display: inline;
     }
 
     div#page aside#sidebar {
@@ -231,7 +215,6 @@
       justify-content: space-evenly;
     }
 
-    //
     article.post-preview {
       float: none;
       margin: 0 0 10px 0;
@@ -377,10 +360,6 @@
 
 @media screen and (max-width: 440px) {
   body.resp {
-    input#expand-search {
-      display: none;
-    }
-
     body {
       width: 100%;
     }
@@ -388,9 +367,5 @@
     #post-sections {
       font-size: 1em;
     }
-
-    //div article.post-preview {
-    //  overflow: visible;
-    //}
   }
 }

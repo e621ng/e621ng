@@ -12,7 +12,7 @@
   color: $negative-record-background;
 }
 
-div#c-user-feedbacks, div#c-moderator-dashboards div#col2 {
+div#c-user-feedbacks, div#c-moderator-dashboards .activity-container {
   .feedback-category-positive {
     background: $positive-record-background;
   }
@@ -27,10 +27,5 @@ div#c-user-feedbacks, div#c-moderator-dashboards div#col2 {
 
   blockquote {
     padding: 0.5em;
-  }
-
-  #negative-policy {
-    max-width: 50em;
-    margin-bottom: 1em;
   }
 }

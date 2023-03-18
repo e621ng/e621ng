@@ -323,10 +323,6 @@ module Danbooru
       250_000
     end
 
-    def beta_notice?
-      false
-    end
-
     def discord_site
       "http://localhost:8000"
     end

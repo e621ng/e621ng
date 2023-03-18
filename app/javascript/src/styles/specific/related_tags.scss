@@ -3,7 +3,6 @@
 div.related-tags {
   width: 100%;
   margin-bottom: 1em;
-  background: $related-tags-background;
   @include themable {
     background: rgba(lighten( themed("color-section"), 10%), 0.7);
   }

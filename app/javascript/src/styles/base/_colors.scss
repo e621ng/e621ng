@@ -79,8 +79,6 @@ $autocomplete-arrow-color: black;
 
 // Paginator
 $paginator-more-color: grey;
-$paginator-arrow-hover-color: $link-hover-color;
-$paginator-arrow-hover-background: white;
 $paginator-hover-color: white;
 $paginator-hover-background: $link-hover-color;
 
@@ -145,23 +143,13 @@ $widget-button-border: silver;
 $widget-button-hover-background: $button-hover-background;
 $widget-button-shadow: grey;
 $widget-border: border_color($section-background);
-$widget-background: $section-background;
-
-// Artists
-$artist-new-artist-color: #A00;
-
-// DMails
-$dmail-preview-border: #CCC;
 
 // Forum
 $forum-post-highlight-background: rgba(255,255,255,0.25);
 $forum-vote-up-color: green;
 $forum-vote-down-color: red;
 $forum-vote-meh-color: goldenrod;
-$forum-topic-info-color: #AAA;
-$forum-topic-new-color: red;
 $forum-topic-locked-color: gray;
-$forum-topic-leveled-color: #f66;
 $forum-topic-except-color: gray;
 $forum-topic-hidden-background: rgba(130,40,40,0.75);
 $forum-post-hidden-background: rgba(130,40,40,0.75);
@@ -224,9 +212,6 @@ $post-rating-questionable-color: hsl(50, 100%, 70%);
 $post-rating-safe-color: $green-color;
 $post-preview-highlight-background: rgba(0,0,0,0.1);
 $post-tag-low-count-color: red;
-
-// Related Tags
-$related-tags-background: lighten($section-background, 10%);
 
 // Tags
 $tags-count-link-color: gray;

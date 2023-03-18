@@ -49,18 +49,6 @@ $(function() {
     e.preventDefault();
   });
 
-  $("#desktop-version-link a").on("click.danbooru", function(e) {
-    e.preventDefault();
-    $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
-      method: "PUT",
-      data: {
-        "user[disable_responsive_mode]": "true"
-      }
-    }).then(function() {
-      location.reload();
-    });
-  });
-
   $(".revert-item-link").on('click', e => {
     e.preventDefault();
     const target = $(e.target);

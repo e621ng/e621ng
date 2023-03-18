@@ -51,23 +51,8 @@ div.list-of-forum-posts {
 }
 
 div#c-forum-topics {
-  span.info {
-    color: $forum-topic-info-color;
-  }
-
-  span.new {
-    font-size: 80%;
-    color: $forum-topic-new-color;
-    margin-right: 0.5em;
-  }
-
   span.locked-topic {
     color: $forum-topic-locked-color;
-  }
-
-  span.level-topic {
-    color: $forum-topic-leveled-color;
-    font-weight: bold;
   }
 
   tr.forum-topic-row {

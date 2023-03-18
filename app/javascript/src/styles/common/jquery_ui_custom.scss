@@ -88,7 +88,6 @@ div.ui-dialog {
 
 .ui-widget-content {
   border: 1px solid $widget-border;
-  background-color: $widget-background;
   @include themable {
     background-color: lighten( themed("color-section"), 10%);
     color: themed("color-text");

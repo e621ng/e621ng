@@ -5,16 +5,6 @@
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
   <%= render "layouts/theme_include" %>
-  <% if Danbooru.config.beta_notice? %>
-  <div id="news-updates">
-    <ul>
-      <li>
-        <h1>Please make sure to check out the <a href="/wiki_pages/e621:beta_rules">beta rules</a> before proceeding
-          to use this site.</h1>
-      </li>
-    </ul>
-  </div>
-  <% end %>
 
   <header id="top">
     <div id="maintoggle">
