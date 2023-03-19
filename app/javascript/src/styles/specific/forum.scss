@@ -51,6 +51,12 @@ div.list-of-forum-posts {
 }
 
 div#c-forum-topics {
+  span.new {
+    font-size: 80%;
+    color: $forum-topic-new-color;
+    margin-right: 0.5em;
+  }
+
   span.locked-topic {
     color: $forum-topic-locked-color;
   }
