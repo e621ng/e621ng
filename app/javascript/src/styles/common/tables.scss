@@ -27,7 +27,7 @@ table.striped {
         }
       }
       background-color: themed("color-section");
-      border-bottom: 1px solid themed("color-foreground");
+      border-bottom: 1px solid themed("color-table-border");
       &:hover {
         background-color: themed("color-section-lighten-10");
       }

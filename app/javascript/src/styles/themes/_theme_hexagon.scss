@@ -18,6 +18,7 @@ body {
   --color-section-lighten-5:      #{lighten($hexagon-color-section, 5%)};
   --color-section-lighten-10:     #{lighten($hexagon-color-section, 10%)};
   --color-section-darken-5:       #{darken($hexagon-color-section, 5%)};
+  --color-table-border:           #{lighten($hexagon-color-section, 10%)};
 
   --color-section-pending:        #{$hexagon-color-section};
   --color-section-pending-border: #{$hexagon-color-section-border};

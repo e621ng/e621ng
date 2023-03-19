@@ -6,6 +6,7 @@ body[data-th-main="hotdog"] {
   --color-section-lighten-5:      #{lighten(#c53c38, 5%)};
   --color-section-lighten-10:     #{lighten(#c53c38, 10%)};
   --color-section-darken-5:       #{darken(#c53c38, 5%)};
+  --color-table-border:           #ff0000;
 
   // Main Colors
   --color-text:                   #000000;

@@ -1,11 +1,12 @@
 body[data-th-main="serpent"] {
   // Layout Colors
-  --color-background:           #44a544;                // Main background (dark blue, large hexagons)
+  --color-background:             #44a544;                // Main background (dark blue, large hexagons)
   --color-foreground:             #dacf6b;                // Foreground (lighter blue, small hexagons)
   --color-section:                #fff48b;                // Foreground sections - boxes, sections, etc
   --color-section-lighten-5:      #{lighten(#fff48b, 5%)};
   --color-section-lighten-10:     #{lighten(#fff48b, 10%)};
   --color-section-darken-5:       #{darken(#fff48b, 5%)};
+  --color-table-border:           #dacf6b;
 
   // Main Colors
   --color-text:                   #000000;
