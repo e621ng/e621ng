@@ -1,5 +1,46 @@
+// Legacy helpers to style UI elements using the current theme
+.bg-background {
+  background-color: themed("color-background");
+}
+
+.bg-foreground {
+  background-color: themed("color-foreground");
+}
+
+.bg-section {
+  background-color: themed("color-section");
+}
+
+.bg-highlight {
+  background-color: themed("color-section-lighten-10");
+}
+
+.border-background {
+  border: 1px solid themed("color-background");
+}
+
+.border-foreground {
+  border: 1px solid themed("color-foreground");
+}
+
+.border-section {
+  border: 1px solid themed("color-section");
+}
+
+.border-highlight {
+  border: 1px solid themed("color-section-lighten-10");
+}
+
+.color-text {
+  color: themed("color-text");
+}
+
 .color-muted {
   color: themed("color-text-muted");
+}
+
+.color-white {
+  color: themed("color-text-white");
 }
 
 .vpad-05 {
