@@ -1,14 +1,10 @@
 div#c-post-replacements {
   .replacement-pending-row {
-    @include themable {
-      background-color: darken( themed("color-danger"), 10%);
-    }
+    background-color: themed("color-danger-darken-10");
   }
 
   .replacement-processing-row {
-    @include themable {
-      background-color: darken( themed("color-warning"), 10%);
-    }
+    background-color: themed("color-warning-darken-5");
   }
 
   .replacement-reason {
@@ -19,9 +15,7 @@ div#c-post-replacements {
     pointer-events: none;
     cursor: default;
     text-decoration: none;
-    @include themable {
-      color: themed("color-text-muted");
-    }
+    color: themed("color-text-muted");
   }
 
   .upload_preview_img {

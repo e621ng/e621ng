@@ -34,11 +34,9 @@
 header#top {
   font-size: 1.05em;
   margin: 0 $base-padding 0.8rem;
-  @include themable() {
-    color: themed("color-text");
-    background-color: themed("color-background");
-    background-image: themed("image-background");
-  }
+  color: themed("color-text");
+  background-color: themed("color-background");
+  background-image: themed("image-background");
 
   #subnav-height-placeholder {
     visibility: hidden;
@@ -46,9 +44,7 @@ header#top {
 
   menu {
     margin-top: -2px;
-    @include themable {
-      background-color: themed("color-foreground");
-    }
+    background-color: themed("color-foreground");
     border-radius: $border-radius-full;
     padding: 6px;
 
@@ -77,14 +73,10 @@ header#top {
 
   menu.main {
     margin-top: 0;
-    @include themable {
-      background-color: themed("color-background");
-    }
+    background-color: themed("color-background");
 
     li.current a {
-      @include themable {
-        background-color: themed("color-foreground");
-      }
+      background-color: themed("color-foreground");
       font-weight: bold;
     }
 

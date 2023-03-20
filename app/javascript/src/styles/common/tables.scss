@@ -26,19 +26,13 @@ table.striped {
           }
         }
       }
-      @include themable {
-        background-color: themed("color-section");
-        border-bottom: 1px solid themed("color-foreground");
-      }
+      background-color: themed("color-section");
+      border-bottom: 1px solid themed("color-table-border");
       &:hover {
-        @include themable {
-          background-color: lighten( themed("color-section"), 10%);
-        }
+        background-color: themed("color-section-lighten-10");
       }
       &.selected {
-        @include themable {
-          background-color: lighten( themed("color-section"), 10%);
-        }
+        background-color: themed("color-section-lighten-10");
       }
     }
   }
@@ -49,18 +43,14 @@ table.striped {
 
   thead {
     tr {
-      @include themable {
-        background-color: darken( themed("color-section"), 5%);
-        border-bottom: 1px solid themed("color-foreground");
-      }
+      background-color: themed("color-section-darken-5");
+      border-bottom: 1px solid themed("color-foreground");
     }
 
     th {
       font-weight: bold;
       text-align: left;
-      @include themable {
-        color: darken( themed("color-text"), 10%);
-      }
+      color: themed("color-text-table-header");
     }
   }
 }

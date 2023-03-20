@@ -29,11 +29,9 @@ $base_font_family: Verdana, sans-serif;
 $box-shadow-size: 2px 2px 5px;
 
 @mixin preview-type-badge($text) {
-  @include themable {
-    background-color: themed("color-section");
-    border: 1px solid themed("color-text-white");
-    color: themed("color-text");
-  }
+  background-color: themed("color-section");
+  border: 1px solid themed("color-text-white");
+  color: themed("color-text");
   z-index: 5;
   position: absolute;
   left: 0;

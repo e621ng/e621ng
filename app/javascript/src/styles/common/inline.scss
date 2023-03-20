@@ -6,20 +6,14 @@ span.error {
   color: red;
 }
 
-span.link {
-  color: $inline-link-color;
-  cursor: pointer;
-}
-
 span.count {
-  color: $inline-count-color;
+  color: themed("color-text-muted");
   margin-left: 0.5em;
 }
 
 kbd.key {
   background: $keyboard-key-background;
-  border: 1px solid $keyboard-key-border;
-  padding: 1px 6px;
+  padding: 2px 7px;
   color: $keyboard-key-color;
 /*  width: 1em;*/
   text-align: center;
@@ -28,9 +22,5 @@ kbd.key {
 }
 
 span.inactive {
-  color: $inline-inactive-color;
-}
-
-td a.last-page {
-  color: $inline-last-page-color;
+  color: themed("color-text-muted");
 }

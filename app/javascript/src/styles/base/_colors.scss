@@ -1,6 +1,5 @@
 // Font
-$text-color: #fff;
-$inverted-text-color: invert($text-color);
+$inverted-text-color: invert(#fff);
 $translation-note-color: gray;
 $green-text-color: #3e9e49;
 $yellow-text-color: #e4e150;
@@ -15,52 +14,29 @@ $section-grey-background: #5d656e;
 $section-link-hover-color: white;
 
 // Main background colors
-$main-background: #031131;
 $lighten-background-5: rgba(255,255,255,0.05);
-$darken-background-20: rgba(0,0,0,0.2);
-$darken-background-50: rgba(0,0,0,0.5);
-
-// Links
-$link-color: #b4c7d9;
-$link-hover-color: #2e76b4;
-
-// Sections
-$section-background: #284a81;
 
 // Mixin/state colors
-$state-notice-color: saturate($section-background, 20%);
 $state-success-color: #3e9e49;
 $state-error-color: #e45f5f;
 
-
-$blockquote-background: #284A81;
-$blockquote-border: #174891;
 
 $hint-color: #AAA;
 $info-color: #AAA;
 
 // DText
-$dtext-expandable-background: $section-background;
 $dtext-code-background: rgba(255,255,255,0.2);
 
 // Blips
 $blip-hidden-background: $section-red-background;
 
 // Forms
-$form-date-background: white; // TODO: Remove?
 $form-focus-color: black;
 $form-focus-background: #FFC;
 $form-disabled-background: #DDD;
 $button-background: white;
 $button-hover-background: darken($button-background, 10%);
 $form-submit-button-background: #eee;
-
-// Search Box
-$search-box-background: $link-color;
-$search-box-border: $link-color;
-$search-box-color: #fff;
-$search-box-hover-border: $link-hover-color;
-$search-box-hover-background: $link-hover-color;
 
 // Page Header
 $page-header-sign-in-link-color: #e00;
@@ -73,14 +49,13 @@ $preview-pending-color: #00F;
 $preview-flagged-color: #F00;
 
 // Autocomplete
-$autocomplete-active-background: darken($section-grey-background, 25%);
 $autocomplete-border: #C5C5C5;
 $autocomplete-arrow-color: black;
 
 // Paginator
 $paginator-more-color: grey;
 $paginator-hover-color: white;
-$paginator-hover-background: $link-hover-color;
+$paginator-hover-background: #2e76b4;
 
 // Spoilers
 $spoiler-color: black;
@@ -89,11 +64,6 @@ $spoiler-hover-color: white;
 
 // Tag types
 $tag-selected-color: white;
-
-// News
-$news-background: $state-notice-color;
-$news-border: border_color($state-notice-color);
-
 
 // Diffs (wiki/post versions)
 $diff-added-color: green;
@@ -122,19 +92,11 @@ $comment-highlight-background: rgba(255,255,255,0.25);
 $comment-hidden-background: $section-red-background;
 $comment-vote-background: rgba(255, 255, 255, 0.2);
 
-// Inline?
-$inline-link-color: $link-color;
-$inline-count-color: #ccc;
+// Keyboard shortcuts
 $keyboard-key-background: #333;
 $keyboard-key-color: white;
-$keyboard-key-border: #333;
-$inline-inactive-color: #aaa;
-$inline-last-page-color: #666;
 
 // JQUI
-$widget-link-color: $link-color;
-$widget-link-hover-color: $link-hover-color;
-$widget-highlight-border: border_color($state-notice-color);
 $widget-error-border: border_color($state-error-color);
 $widget-error-background: $state-error-color;
 $widget-button-color: $inverted-text-color;
@@ -142,7 +104,6 @@ $widget-button-background: $button-background;
 $widget-button-border: silver;
 $widget-button-hover-background: $button-hover-background;
 $widget-button-shadow: grey;
-$widget-border: border_color($section-background);
 
 // Forum
 $forum-post-highlight-background: rgba(255,255,255,0.25);
@@ -150,7 +111,6 @@ $forum-vote-up-color: green;
 $forum-vote-down-color: red;
 $forum-vote-meh-color: goldenrod;
 $forum-topic-new-color: red;
-$forum-topic-locked-color: gray;
 $forum-topic-except-color: gray;
 $forum-topic-hidden-background: rgba(130,40,40,0.75);
 $forum-post-hidden-background: rgba(130,40,40,0.75);
@@ -171,12 +131,6 @@ $note-box-inner-unsaved-border: red;
 $note-box-highlighted-outline: $note-highlight-color;
 $note-preview-background: white;
 
-// Pools
-$pool-series-link-color: $link-color;
-$pool-series-link-hover-color: $link-hover-color;
-$pool-collection-link-color: $link-color;
-$pool-collection-link-hover-color: $link-hover-color;
-
 // Post Events
 $post-events-unresolved-background: $negative-record-background;
 
@@ -190,9 +144,6 @@ $post-mode-add-fav: #104e17;
 $post-mode-remove-fav: darken(#104e17, 10%);
 $post-mode-vote-up: $section-green-background;
 $post-mode-vote-down: $section-red-background;
-$post-mode-rate-q: #4e4810;
-$post-mode-rate-e: none; // TODO
-$post-mode-rate-s: none; // TODO
 $post-mode-add-pool: #104b57;
 $post-mode-lock-rating: #AA3;
 $post-mode-lock-note: #3AA;
@@ -202,7 +153,6 @@ $post-mode-delete: #4e1010;
 
 // Edit History / Post Versions
 $post-version-grid-border: black;
-$post-version-label-background: $section-background;
 $post-version-content-background: inherit;
 $post-version-diff-added-color: $state-success-color;
 $post-version-diff-removed-color: $state-error-color;
@@ -215,13 +165,11 @@ $post-preview-highlight-background: rgba(0,0,0,0.1);
 $post-tag-low-count-color: red;
 
 // Tags
-$tags-count-link-color: gray;
 $tags-vote-down-color: red;
 $tags-vote-meh-color: darkkhaki;
 $tags-vote-up-color: green;
 
 // Users
-$user-profile-box-header-color: #333;
 $user-home-greeting-color: gold;
 
 $tag-categories: (

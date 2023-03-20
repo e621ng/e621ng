@@ -6,7 +6,7 @@
   .ui-state-active {
     border: none;
     margin: 0 -1px;
-    background-color: $autocomplete-active-background;
+    background-color: themed("color-section-darken-5");
     border-left: 1px solid $autocomplete-border;
     border-right: 1px solid $autocomplete-border;
   }

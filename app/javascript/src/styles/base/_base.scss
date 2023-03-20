@@ -1,9 +1,9 @@
 body {
-  @include themable($apply_to_self: true) {
-    color: themed("color-text");
-    background-color: themed("color-background");
-    background-image: themed("image-background");
-  }
+  color: $hexagon-color-text;
+  color: themed("color-text");
+  background-color: $hexagon-color-background;
+  background-color: themed("color-background");
+  background-image: themed("image-background");
   font-family: $base_font_family;
   font-size: $font-size;
   line-height: 1.25em;
@@ -12,14 +12,6 @@ body {
 
 abbr[title=required] {
   display: none;
-}
-
-blockquote {
-  background: $blockquote-background;
-  border: 1px solid $blockquote-border;
-  border-radius: $border-radius-half;
-  margin: 0 0 1rem 0;
-  padding: 1rem 1rem 0.2rem;
 }
 
 code {
