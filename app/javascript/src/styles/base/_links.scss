@@ -24,9 +24,6 @@ a:active {
 a.last-page {
   color: themed('color-link-last-page');
 }
-a.last-page:hover {
-  color: themed('color-link-last-page-hover');
-}
 
 a.active {
   font-weight: bold;

@@ -58,7 +58,7 @@ div#c-forum-topics {
   }
 
   span.locked-topic {
-    color: $forum-topic-locked-color;
+    color: themed("color-link-last-page");
   }
 
   tr.forum-topic-row {

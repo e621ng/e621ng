@@ -34,8 +34,7 @@ body {
   --color-link-active:            #e8c446;
   --color-button-active:          #e8c446;
 
-  --color-link-last-page:         #{$hexagon-color-text-muted};
-  --color-link-last-hover:        #{$hexagon-color-link-hover};
+  --color-link-last-page:         #666;
 
   --color-success:                darkgreen;
   --color-success-darken-5:       #{darken(darkgreen, 5%)};
