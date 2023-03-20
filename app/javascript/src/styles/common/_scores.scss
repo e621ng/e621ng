@@ -7,12 +7,24 @@
 
 .score-positive, span.score-positive {
   color: themed("color-score-positive");
+
+  a {
+    color: themed("color-score-positive");
+  }
 }
 .score-negative, span.score-negative {
   color: themed("color-score-negative");
+
+  a {
+    color: themed("color-score-negative");
+  }
 }
 .score-neutral, span.score-neutral {
   color: themed("color-text-muted");
+
+  a {
+    color: themed("color-text-muted");
+  }
 }
 
 .post-rating-text-safe {
