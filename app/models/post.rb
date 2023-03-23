@@ -808,7 +808,7 @@ class Post < ApplicationRecord
           self.is_rating_locked = ($1 != "-") if CurrentUser.is_janitor?
 
         when /^(-?)locked:status$/i
-          self.is_status_locked = ($1 != "-") if CurrentUser.is_moderator?
+          self.is_status_locked = ($1 != "-") if CurrentUser.is_admin?
 
         end
       end

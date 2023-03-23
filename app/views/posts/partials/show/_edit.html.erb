@@ -54,7 +54,7 @@
           <%= f.input :is_note_locked, label: "Notes" %>
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
-        <% if CurrentUser.is_moderator? %>
+        <% if CurrentUser.is_admin? %>
           <%= f.input :is_status_locked, label: "Status" %>
         <% end %>
       </fieldset>
