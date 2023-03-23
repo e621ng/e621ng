@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class ArtistTest < ActiveSupport::TestCase
   def assert_artist_found(expected_name, source_url)
@@ -6,15 +6,11 @@ class ArtistTest < ActiveSupport::TestCase
 
     assert_equal(1, artists.size)
     assert_equal(expected_name, artists.first.name, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout
-    skip "Remote connection failed for #{source_url}"
   end
 
   def assert_artist_not_found(source_url)
     artists = Artist.find_artists(source_url).to_a
     assert_equal(0, artists.size, "Testing URL: #{source_url}")
-  rescue Net::OpenTimeout
-    skip "Remote connection failed for #{source_url}"
   end
 
   context "An artist" do
@@ -26,21 +22,21 @@ class ArtistTest < ActiveSupport::TestCase
     should "parse inactive urls" do
       @artist = Artist.create(name: "blah", url_string: "-http://monet.com")
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))
-      refute(@artist.urls[0].is_active?)
+      assert_not(@artist.urls[0].is_active?)
     end
 
     should "not allow duplicate active+inactive urls" do
       @artist = Artist.create(name: "blah", url_string: "-http://monet.com\nhttp://monet.com")
       assert_equal(1, @artist.urls.count)
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))
-      refute(@artist.urls[0].is_active?)      
+      assert_not(@artist.urls[0].is_active?)
     end
 
     should "allow deactivating a url" do
       @artist = Artist.create(name: "blah", url_string: "http://monet.com")
       @artist.update(url_string: "-http://monet.com")
       assert_equal(1, @artist.urls.count)
-      refute(@artist.urls[0].is_active?)
+      assert_not(@artist.urls[0].is_active?)
     end
 
     should "allow activating a url" do
@@ -273,21 +269,21 @@ class ArtistTest < ActiveSupport::TestCase
 
       should "create a new version when an url is added" do
         assert_difference("ArtistVersion.count") do
-          @artist.update(:url_string => "http://foo.com http://bar.com")
+          @artist.update(url_string: "http://foo.com http://bar.com")
           assert_equal(%w[http://bar.com http://foo.com], @artist.versions.last.urls)
         end
       end
 
       should "create a new version when an url is removed" do
         assert_difference("ArtistVersion.count") do
-          @artist.update(:url_string => "")
+          @artist.update(url_string: "")
           assert_equal(%w[], @artist.versions.last.urls)
         end
       end
 
       should "create a new version when an url is marked inactive" do
         assert_difference("ArtistVersion.count") do
-          @artist.update(:url_string => "-http://foo.com")
+          @artist.update(url_string: "-http://foo.com")
           assert_equal(%w[-http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -301,7 +297,7 @@ class ArtistTest < ActiveSupport::TestCase
 
       should "not save invalid urls" do
         assert_no_difference("ArtistVersion.count") do
-          @artist.update(:url_string => "http://foo.com www.example.com")
+          @artist.update(url_string: "http://foo.com www.example.com")
           assert_equal(%w[http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -316,6 +312,31 @@ class ArtistTest < ActiveSupport::TestCase
 
       should "preserve the url string" do
         assert_equal(1, @artist.urls.count)
+      end
+    end
+
+    context "that is updated" do
+      setup do
+        @artist = create(:artist, name: "test")
+      end
+
+      should "log the correct data when renamed" do
+        @artist.update(name: "new_name")
+        assert_equal({ "new_name" => "new_name", "old_name" => "test" }, ModAction.last.values)
+      end
+
+      should "log the correct data when linked/unlinked" do
+        user = create(:user)
+
+        @artist.update(linked_user: user)
+        mod_action = ModAction.last
+        assert_equal("artist_user_linked", mod_action.action)
+        assert_equal({ "artist_page" => @artist.id, "user_id" => user.id }, mod_action.values)
+
+        @artist.update(linked_user: nil)
+        mod_action = ModAction.last
+        assert_equal("artist_user_unlinked", mod_action.action)
+        assert_equal({ "artist_page" => @artist.id, "user_id" => user.id }, mod_action.values)
       end
     end
   end

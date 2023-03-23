@@ -285,8 +285,6 @@ class ModActionDecorator < ApplicationDecorator
       ### Wiki ###
     when "wiki_page_delete"
       "Deleted wiki page [[#{vals['wiki_page']}]]"
-    when "wiki_page_undelete"
-      "Undeleted wiki page [[#{vals['wiki_page']}"
     when "wiki_page_lock"
       "Locked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_unlock"

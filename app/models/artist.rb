@@ -33,7 +33,7 @@ class Artist < ApplicationRecord
 
   def log_changes
     if saved_change_to_name? && !previously_new_record?
-      ModAction.log(:artist_page_rename, { new_name: name, old_name: name_was })
+      ModAction.log(:artist_page_rename, { new_name: name, old_name: name_before_last_save })
     end
     if saved_change_to_is_locked?
       ModAction.log(is_locked ? :artist_page_lock : :artist_page_unlock, { artist_page: id })
@@ -43,7 +43,7 @@ class Artist < ApplicationRecord
       if linked_user_id.present?
         ModAction.log(:artist_user_linked, { artist_page: id, user_id: linked_user_id })
       else
-        ModAction.log(:artist_user_unlinked, { artist_page: id, user_id: linked_user_id_was })
+        ModAction.log(:artist_user_unlinked, { artist_page: id, user_id: linked_user_id_before_last_save })
       end
     end
   end
