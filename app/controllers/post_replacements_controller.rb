@@ -1,7 +1,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: [:create, :new]
-  before_action :janitor_only, only: [:approve, :reject, :promote, :toggle_penalize]
+  before_action :approver_only, only: [:approve, :reject, :promote, :toggle_penalize]
   before_action :moderator_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: [:new, :create]
 
