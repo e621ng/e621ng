@@ -59,7 +59,7 @@ class TagsController < ApplicationController
 
   def tag_params
     permitted_params = [:category]
-    permitted_params << :is_locked if CurrentUser.is_moderator?
+    permitted_params << :is_locked if CurrentUser.is_admin?
 
     params.require(:tag).permit(permitted_params)
   end

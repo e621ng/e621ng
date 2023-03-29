@@ -428,7 +428,6 @@ module Danbooru
           "extra" => [],
           "header" => 'General',
           "humanized" => nil,
-          "mod_only" => false,
         },
         "species" => {
           "category" => 5,
@@ -436,7 +435,6 @@ module Danbooru
           "extra" => [],
           "header" => 'Species',
           "humanized" => nil,
-          "mod_only" => false,
         },
         "character" => {
           "category" => 4,
@@ -449,7 +447,6 @@ module Danbooru
             "regexmap" => /^(.+?)(?:_\(.+\))?$/,
             "formatstr" => "%s"
           },
-          "mod_only" => false,
         },
         "copyright" => {
           "category" => 3,
@@ -462,7 +459,6 @@ module Danbooru
             "regexmap" => //,
             "formatstr" => "(%s)"
           },
-          "mod_only" => false,
         },
         "artist" => {
           "category" => 1,
@@ -475,7 +471,6 @@ module Danbooru
             "regexmap" => //,
             "formatstr" => "created by %s"
           },
-          "mod_only" => false,
         },
         "invalid" => {
           "category" => 6,
@@ -483,7 +478,7 @@ module Danbooru
           "extra" => [],
           "header" => 'Invalid',
           "humanized" => nil,
-          "mod_only" => true,
+          "admin_only" => true,
         },
         "lore" => {
           "category" => 8,
@@ -491,7 +486,7 @@ module Danbooru
           'extra' => [],
           'header' => 'Lore',
           'humanized' => nil,
-          'mod_only' => true,
+          "admin_only" => true,
         },
         "meta" => {
           "category" => 7,
@@ -499,7 +494,7 @@ module Danbooru
           "extra" => [],
           "header" => 'Meta',
           "humanized" => nil,
-          "mod_only" => true,
+          "admin_only" => true,
         }
       }
     end

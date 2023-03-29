@@ -187,8 +187,8 @@ class Tag < ApplicationRecord
 
     def user_can_change_category?
       cat = TagCategory.reverse_mapping[category]
-      if !CurrentUser.is_moderator? && TagCategory.mod_only_mapping[cat]
-        errors.add(:category,  "can only used by moderators")
+      if !CurrentUser.is_admin? && TagCategory.admin_only_mapping[cat]
+        errors.add(:category,  "can only used by admins")
         return false
       end
       if cat == "lore"
@@ -1092,16 +1092,16 @@ class Tag < ApplicationRecord
   end
 
   def category_editable_by?(user)
-    return true if user.is_moderator?
+    return true if user.is_admin?
     return false if is_locked?
-    return false if TagCategory.mod_only_mapping[TagCategory.reverse_mapping[category]]
+    return false if TagCategory.admin_only_mapping[TagCategory.reverse_mapping[category]]
     return true if post_count < Danbooru.config.tag_type_change_cutoff
     false
   end
 
   def user_can_create_tag?
-    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_moderator?
-      errors.add(:base, "Can not create lore tags unless moderator")
+    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_admin?
+      errors.add(:base, "Can not create lore tags unless admin")
       errors.add(:name, "is invalid")
       return false
     end

@@ -34,8 +34,8 @@ class TagCategory
       @@header_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["header"]]}]
     end
 
-    def mod_only_mapping
-      @@mod_only_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["mod_only"] || false]}]
+    def admin_only_mapping
+      @@admin_only_mapping ||= Hash[Danbooru.config.full_tag_config_info.map { |k,v| [k, v["admin_only"] || false] }]
     end
   end
 
