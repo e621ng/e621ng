@@ -81,7 +81,7 @@
                     <% if CurrentUser.is_janitor? || post_replacement.uploader_on_approve == CurrentUser.user %>
                       | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
                     <% end %>
-                    <% if CurrentUser.is_janitor? %>
+                    <% if CurrentUser.can_approve_posts? %>
                       <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                     <% end %>
                   </dd>
@@ -104,7 +104,7 @@
             </td>
 
             <td>
-              <% if CurrentUser.is_janitor? %>
+              <% if CurrentUser.can_approve_posts? %>
                 <div class="pending-links">
                   <% if post_replacement.status == "pending"%>
                     <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
