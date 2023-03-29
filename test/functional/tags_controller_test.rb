@@ -62,8 +62,8 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(Tag.categories.general, @tag.reload.category)
       end
 
-      should "lock the tag for a moderator" do
-        put_auth tag_path(@tag), @mod, params: { tag: { is_locked: true } }
+      should "lock the tag for an admin" do
+        put_auth tag_path(@tag), create(:admin_user), params: { tag: { is_locked: true } }
 
         assert_redirected_to @tag
         assert_equal(true, @tag.reload.is_locked)
