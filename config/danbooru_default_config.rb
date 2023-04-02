@@ -585,7 +585,7 @@ module Danbooru
         "Does not meet minimum quality standards (Artistic)",
         "Does not meet minimum quality standards (Resolution)",
         "Does not meet minimum quality standards (Compression)",
-        "Does not meet minimum quality standards (Low quality/effort edit)",
+        "Does not meet minimum quality standards (Trivial or low quality edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
         "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
