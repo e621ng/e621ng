@@ -18,27 +18,15 @@ module PostsHelper
   end
 
   def post_source_tag(source)
-
-    if source =~ %r!\Ahttp://img\d+\.pixiv\.net/img/([^\/]+)/!i
-      text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
-      source_search = "source:pixiv/#{$1}/"
-    elsif source =~ %r!\Ahttp://i\d\.pixiv\.net/img\d+/img/([^\/]+)/!i
-      text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
-      source_search = "source:pixiv/#{$1}/"
-    elsif source =~ %r{\Ahttps?://}i
-      text = source.sub(/\Ahttps?:\/\/(?:www\.)?/i, "")
-      source_search = "source:#{source.sub(/[^\/]*$/, "")}"
-    end
-
     # Only allow http:// and https:// links. Disallow javascript: links.
-    if source =~ %r!\Ahttps?://!i
-      source_link = link_to(text, source, target: "_blank", rel: "nofollow noreferrer noopener")
+    if source =~ %r{\Ahttps?://}i
+      source_link = link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
     else
       source_link = source
     end
 
-    if CurrentUser.is_janitor? && !source_search.blank?
-      source_link + "&nbsp;".html_safe + link_to("&raquo;".html_safe, posts_path(:tags => source_search), :rel => "nofollow")
+    if CurrentUser.is_janitor? && (source_search = "source:#{source.sub(%r{[^/]*$}, '')}").present?
+      source_link + "&nbsp;".html_safe + link_to("&raquo;".html_safe, posts_path(tags: source_search), rel: "nofollow")
     else
       source_link
     end
