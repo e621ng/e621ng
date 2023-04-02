@@ -30,7 +30,6 @@ class CommentsController < ApplicationController
 
   def new
     @comment = Comment.new(comment_params(:create))
-    @comment.body = Comment.find(params[:id]).quoted_response if params[:id]
     respond_with(@comment)
   end
 

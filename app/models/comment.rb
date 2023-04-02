@@ -216,8 +216,4 @@ class Comment < ApplicationRecord
   def unhide!
     update(is_hidden: false)
   end
-
-  def quoted_response
-    DText.quote(body, creator_name)
-  end
 end

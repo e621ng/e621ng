@@ -218,33 +218,6 @@ class CommentTest < ActiveSupport::TestCase
         end
       end
 
-      context "that is quoted" do
-        should "strip [quote] tags correctly" do
-          comment = create(:comment, body: <<-EOS.strip_heredoc)
-            paragraph one
-
-            [quote]
-            somebody said:
-
-            blah blah blah
-            [/QUOTE]
-
-            paragraph two
-          EOS
-
-          assert_equal(<<-EOS.strip_heredoc, comment.quoted_response)
-            [quote]
-            #{comment.creator_name} said:
-
-            paragraph one
-
-            paragraph two
-            [/quote]
-
-          EOS
-        end
-      end
-
       context "on a comment locked post" do
         setup do
           @post = create(:post, is_comment_disabled: true)
