@@ -71,6 +71,7 @@ class UploadService
       tags = []
       tags += ["animated_gif", "animated"] if upload.is_animated_gif?(file.path)
       tags += ["animated_png", "animated"] if upload.is_animated_png?(file.path)
+      tags += ["animated"] if upload.is_webm?
       tags += ["ai_generated"] if upload.is_ai_generated?(file.path)
       tags.join(" ")
     end
