@@ -13,7 +13,7 @@ RUN if [[ $COMPOSE_PROFILES == *"solargraph"* ]]; then \
   solargraph download-core && bundle exec yard gems && solargraph bundle; \
 fi
 
-FROM node:16-alpine3.17 as node-builder
+FROM node:18-alpine3.17 as node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json yarn.lock ./
