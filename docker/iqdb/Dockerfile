@@ -15,7 +15,7 @@ RUN apk --no-cache add $BUILD_DEPS \
   && make EXTRADEFS="-include stdint.h" -j$(nproc) \
   && apk del $BUILD_DEPS
 
-FROM ruby:3.1.3-alpine3.17
+FROM ruby:3.1.4-alpine3.17
 
 RUN apk --no-cache add git libjpeg-turbo gd tzdata
 
