@@ -21,14 +21,14 @@ module PostsHelper
     # Only allow http:// and https:// links. Disallow javascript: links.
     if source =~ %r{\Ahttps?://}i
       source_link = link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
-    else
-      source_link = source
-    end
 
-    if CurrentUser.is_janitor? && (source_search = "source:#{source.sub(%r{[^/]*$}, '')}").present?
-      source_link + "&nbsp;".html_safe + link_to("&raquo;".html_safe, posts_path(tags: source_search), rel: "nofollow")
-    else
+      if CurrentUser.is_janitor?
+        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
+      end
+
       source_link
+    else
+      source
     end
   end
 
