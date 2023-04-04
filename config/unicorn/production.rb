@@ -1,5 +1,12 @@
+require "dotenv"
+
 # Set your full path to application.
 app_path = "/home/e621/e621ng"
+
+# Should be "production" by default, otherwise use other env
+rails_env = ENV.fetch("RAILS_ENV", "production")
+
+Dotenv.load("#{app_path}/.env.#{rails_env}")
 
 # Set unicorn options
 worker_processes ENV.fetch("UNICORN_WORKER_COUNT").to_i
@@ -12,9 +19,6 @@ user "e621", "e621"
 
 # Fill path to your app
 working_directory app_path
-
-# Should be 'production' by default, otherwise use other env
-rails_env = ENV['RAILS_ENV'] || 'production'
 
 # Log everything to one file
 stderr_path "/dev/null"
