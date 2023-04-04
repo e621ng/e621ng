@@ -2,14 +2,13 @@
 app_path = "/home/e621/e621ng"
 
 # Set unicorn options
-worker_processes 15
+worker_processes ENV.fetch("UNICORN_WORKER_COUNT").to_i
 
 timeout 180
-#listen "127.0.0.1:9000", :tcp_nopush => true
-listen "#{app_path}/tmp/.unicorn.sock", :backlog => 512
+listen ENV.fetch("UNICORN_LISTEN_ADDRESS"), tcp_nopush: true, backlog: 2048
 
 # Spawn unicorn master worker for user apps (group: apps)
-user 'e621', 'e621'
+user "e621", "e621"
 
 # Fill path to your app
 working_directory app_path
