@@ -35,7 +35,7 @@ class TicketsController < ApplicationController
   def update
     @ticket = Ticket.find(params[:id])
     @ticket.transaction do
-      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && params[:force_claim] != 'true'
+      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
         flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force."
         redirect_to ticket_path(@ticket, force_claim: 'true')
         return

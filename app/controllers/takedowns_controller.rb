@@ -48,7 +48,7 @@ class TakedownsController < ApplicationController
     @takedown.save
     if @takedown.valid?
       flash[:notice] = 'Takedown request updated'
-      if params[:process_takedown] == "true"
+      if params[:process_takedown].to_s.truthy?
         @takedown.process!(CurrentUser.user, params[:delete_reason])
       end
     end
