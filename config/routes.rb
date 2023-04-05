@@ -97,7 +97,7 @@ Rails.application.routes.draw do
       get :show_or_new
     end
   end
-  resources :artist_urls, only: [:index, :update]
+  resources :artist_urls, only: [:index]
   resources :artist_versions, :only => [:index] do
     collection do
       get :search
