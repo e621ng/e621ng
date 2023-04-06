@@ -37,13 +37,6 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "autocomplete action" do
-      should "render" do
-        get autocomplete_tags_path, params: { search: { name_matches: "t" }, format: :json }
-        assert_response :success
-      end
-    end
-
     context "show action" do
       should "render" do
         get tag_path(@tag)

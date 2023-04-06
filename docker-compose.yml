@@ -38,9 +38,22 @@ services:
       RAILS_ENV: development
     depends_on:
       <<: *common-depends-on
+      autocompleted:
+        condition: service_started
       iqdb:
         condition: service_started
     tty: true
+
+  autocompleted:
+    image: ghcr.io/e621ng/autocompleted:d0937172604cc9ece2a6a0963524518b592b03d8
+    command: /app/autocompleted
+    environment:
+      SERVER_ADDR: autocompleted:8118
+      PG__USER: e621
+      PG__HOST: postgres
+      PG__PORT: 5432
+      PG__DBNAME: e621_development
+      PG__POOL__MAX_SIZE: 1
 
   nginx:
     image: nginx:stable-alpine
@@ -53,6 +66,7 @@ services:
       NGINX_HOST: localhost
       NGINX_PORT: 3000
     depends_on:
+      - autocompleted
       - e621
     ports:
       - "3000:3000"

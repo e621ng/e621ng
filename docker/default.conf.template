@@ -21,6 +21,11 @@ server {
     break;
   }
 
+  location /tags/autocomplete.json {
+    proxy_pass http://autocompleted:8118/;
+    proxy_redirect off;
+  }
+
   location @app_server {
     proxy_pass http://app_server;
     proxy_redirect off;
