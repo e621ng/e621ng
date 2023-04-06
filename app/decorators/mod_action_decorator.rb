@@ -28,9 +28,18 @@ class ModActionDecorator < ApplicationDecorator
 
       ### IP Ban ###
     when "ip_ban_create"
-      "Created ip ban"
+      msg = "Created ip ban"
+      if CurrentUser.is_admin?
+        msg += " #{vals['ip_addr']}\nBan reason: #{vals['reason']}"
+      end
+      msg
+
     when "ip_ban_delete"
-      "Removed ip ban"
+      msg = "Removed ip ban"
+      if CurrentUser.is_admin?
+        msg += " #{vals['ip_addr']}\nBan reason: #{vals['reason']}"
+      end
+      msg
 
       ### Ticket ###
     when "ticket_update"
