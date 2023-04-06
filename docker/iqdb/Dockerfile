@@ -19,6 +19,9 @@ FROM ruby:3.1.4-alpine3.17
 
 RUN apk --no-cache add git libjpeg-turbo gd tzdata
 
+WORKDIR /iqdbs
+RUN bundle config without production
+
 ADD https://api.github.com/repos/e621ng/iqdbs/git/refs/heads/master /tmp/iqdbs_version.json
 RUN git clone https://github.com/e621ng/iqdbs /iqdbs \
   && bundler install --gemfile /iqdbs/Gemfile \
@@ -28,4 +31,4 @@ COPY --from=builder /tmp/iqdb/iqdb /usr/bin/
 
 WORKDIR /iqdbs
 
-CMD ["foreman", "start"]
+CMD ["foreman", "start", "-f", "Procfile.dev"]
