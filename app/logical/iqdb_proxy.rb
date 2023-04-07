@@ -37,5 +37,7 @@ class IqdbProxy
     return {} if json.code != 200
 
     json.parsed_response
+  rescue Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL
+    raise Error, "This service is temporarily unavailable. Please try again later."
   end
 end
