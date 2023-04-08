@@ -123,15 +123,15 @@
   }
 
   pre {
-    border-left-color: themed("color-detail-code");
+    border-left-color: themed("color-dtext-code");
   }
 
   blockquote {
-    border-left-color: themed("color-detail-quote");
+    border-left-color: themed("color-dtext-quote");
   }
 
   div.expandable {
-    border-left-color: themed("color-detail-expandable");
+    border-left-color: themed("color-dtext-section");
   }
 
   @each $tag-category, $tag-category-name in $tag-categories-short {
