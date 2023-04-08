@@ -5,40 +5,33 @@
 }
 
 .styled-dtext {
-  line-height: 1.4em;
-
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
+    padding: 0.8em 0 0.25em 0;
     line-height: 1em;
   }
 
   h1 {
     font-size: $dtext_h1_size;
-    padding: $h1_padding;
   }
 
   h2 {
     font-size: $dtext_h2_size;
-    padding: $h2_padding;
   }
 
   h3 {
     font-size: $dtext_h3_size;
-    padding: $h3_padding;
   }
 
   h4 {
     font-size: $dtext_h4_size;
-    padding: $h4_padding;
   }
 
   h5 {
     font-size: $dtext_h5_size;
-    padding: $h4_padding;
   }
 
   h6 {
     font-size: $dtext_h6_size;
-    padding: $h4_padding;
   }
 
   ul {
