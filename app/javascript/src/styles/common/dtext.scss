@@ -5,8 +5,19 @@
 }
 
 .styled-dtext {
+  *:last-child {
+    margin-bottom: 0;
+  }
+
+  > *:last-child {
+    margin-bottom: 0.5em;
+  }
+
+  div.expandable, pre, blockquote, ul, h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.75em;
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    padding: 0.8em 0 0.25em 0;
     line-height: 1em;
   }
 
@@ -36,7 +47,6 @@
 
   ul {
     margin-left: 1em;
-    margin-bottom: 1em;
 
     ul {
       margin-bottom: 0;
@@ -49,13 +59,11 @@
 
   pre {
     font-family: monospace;
-    font-size: 1.2em;
-    margin: 0.5em 0;
-    padding: 0.5em 1em;
     white-space: pre-wrap;
+    font-size: 1.2em;
   }
 
-  code, .inline-code {
+  .inline-code {
     font-family: monospace;
     white-space: pre-wrap;
     background-color: $dtext-code-background;
@@ -80,10 +88,6 @@
     div.expandable-content {
       display: none;
       padding: 0.4em;
-
-      > :last-child {
-        margin-bottom: 0;
-      }
     }
   }
 
@@ -107,8 +111,7 @@
   }
 
   div.expandable, pre, blockquote {
-    padding: $padding-025;
-    margin: 0 0 0.5rem;
+    padding: $padding-050;
     border-radius: $border-radius-half;
     border: 1px solid themed("color-section");
     border-left: 0.25rem solid themed("color-danger");
