@@ -39,8 +39,4 @@
   Wiki - <%= @wiki_page.pretty_title %>
 <% end %>
 
-<% content_for(:html_header) do %>
-  <meta name="description" content="<%= strip_dtext(@wiki_page.body) %>">
-<% end %>
-
 <%= render "secondary_links" %>

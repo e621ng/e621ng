@@ -62,10 +62,6 @@ module ApplicationHelper
     simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
   end
 
-  def strip_dtext(text)
-    dtext_ragel(text, strip: true)
-  end
-
   def error_messages_for(instance_name)
     instance = instance_variable_get("@#{instance_name}")
 
