@@ -85,21 +85,6 @@ div#note-container {
       border: 1px solid $note-box-inner-unsaved-border;
     }
 
-    &.embedded {
-      div.bg {
-        height: 100%;
-        text-align: center;
-        display: table-cell;
-        vertical-align: middle;
-      }
-
-      div.note-box-inner-border {
-        text-align: center;
-        display: table-cell;
-        vertical-align: middle;
-      }
-    }
-
     &.note-box-highlighted {
       outline: 2px solid $note-box-highlighted-outline;
     }

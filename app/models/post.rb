@@ -1693,7 +1693,7 @@ class Post < ApplicationRecord
   include PostIndex
 
   BOOLEAN_ATTRIBUTES = %w(
-    has_embedded_notes
+    _has_embedded_notes
     has_cropped
     hide_from_anonymous
     hide_from_search_engines
