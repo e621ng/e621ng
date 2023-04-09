@@ -13,12 +13,17 @@
     margin-bottom: 0.5em;
   }
 
-  div.spoiler, details, pre, blockquote, ul, h1, h2, h3, h4, h5, h6 {
+  div.spoiler, details, pre, blockquote, ul {
     margin-bottom: 0.75em;
   }
 
   h1, h2, h3, h4, h5, h6 {
     line-height: 1em;
+    margin-bottom: 0.25em;
+
+    &:not(:first-child) {
+      margin-top: 1.25em;
+    }
   }
 
   h1 {
