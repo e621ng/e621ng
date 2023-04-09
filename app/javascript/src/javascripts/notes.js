@@ -287,9 +287,6 @@ let Note = {
     },
 
     display_text: function($note_body, text) {
-      text = text.replace(/<tn>/g, '<p class="tn">');
-      text = text.replace(/<\/tn>/g, '</p>');
-      text = text.replace(/\n/g, '<br>');
       $note_body.html(text);
     },
 

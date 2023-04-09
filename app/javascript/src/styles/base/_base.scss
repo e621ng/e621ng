@@ -90,18 +90,13 @@ table tfoot {
 }
 
 .hint {
-  color: $hint-color;
+  color: themed("color-text-muted");
   font-style: italic;
   max-width: 70%;
 }
 
-.tn {
-  font-size: 0.8em;
-  color: $translation-note-color;
-}
-
-p.info {
-  color: $info-color;
+.info {
+  color: themed("color-text-muted");
   font-style: italic;
   font-size: 80%;
 }
