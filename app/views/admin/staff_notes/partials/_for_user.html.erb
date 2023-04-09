@@ -1,16 +1,13 @@
 <% if CurrentUser.can_view_staff_notes? %>
   <div class="styled-dtext">
-    <div class="expandable">
-      <div class="expandable-header">
-        <span class="section-arrow"></span>
-        <span>Staff Notes (<%= user.staff_notes.count %>)</span>
-      </div>
-      <div class="expandable-content">
+    <details>
+      <summary>Staff Notes (<%= user.staff_notes.count %>)</summary>
+      <div>
         <h4><%= link_to "Staff Notes", user_staff_notes_path(user_id: user.id) %></h4>
         <%= render "admin/staff_notes/partials/list_of_notes", staff_notes: user.staff_notes.limit(15), show_receiver_name: false %>
         <h4>New Staff Note</h4>
         <%= render "admin/staff_notes/partials/new", user: user, staff_note: StaffNote.new(user_id: user.id) %>
       </div>
-    </div>
+    </details>
   </div>
 <% end %>

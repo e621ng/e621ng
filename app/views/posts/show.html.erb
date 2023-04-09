@@ -174,15 +174,12 @@
 
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-          <div id="description" class="expandable <%= 'expanded' unless CurrentUser.description_collapsed_initially? %>">
-            <div class="expandable-header">
-              <span class="section-arrow"></span>
-              <span>Description</span>
-            </div>
-            <div class="expandable-content dtext-container">
+          <details id="description" <%= 'open' unless CurrentUser.description_collapsed_initially? %>>
+            <summary>Description</summary>
+            <div>
               <%= format_text(@post.description, max_thumbs: 0) %>
             </div>
-          </div>
+          </details>
         </div>
       <% end %>
 

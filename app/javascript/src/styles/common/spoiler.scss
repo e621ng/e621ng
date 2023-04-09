@@ -6,7 +6,7 @@
     text-shadow: 0 0 0 $spoiler-color;
   }
 
-  .inline-code, pre, blockquote, div.expandable {
+  .inline-code, pre, blockquote, details {
     background-color: $spoiler-background;
   }
 

@@ -1,10 +1,9 @@
 GIT
   remote: https://github.com/e621ng/dtext_rb.git
-  revision: 978640b904ed359c0903b3b24affaea38eff97f0
+  revision: 5ef8fd7a5205c832f4c18197911717e7d491494e
   branch: master
   specs:
-    dtext_rb (1.10.21)
-      nokogiri (~> 1.8)
+    dtext_rb (1.11.0)
 
 GEM
   remote: https://rubygems.org/

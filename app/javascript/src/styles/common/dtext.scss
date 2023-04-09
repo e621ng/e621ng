@@ -13,7 +13,7 @@
     margin-bottom: 0.5em;
   }
 
-  div.expandable, pre, blockquote, ul, h1, h2, h3, h4, h5, h6 {
+  div.spoiler, details, pre, blockquote, ul, h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0.75em;
   }
 
@@ -70,33 +70,18 @@
     padding: $padding-025;
   }
 
-  div.expandable {
-    >div.expandable-header {
+  details {
+    summary {
+      font-weight: bold;
       cursor: pointer;
-      padding: 0.4em;
 
-      >.section-arrow::after {
-        content: '►';
-      }
-
-      span {
-        margin-right: 0.5em;
-        font-weight: bold;
+      &::marker {
+        font-size: large;
       }
     }
 
-    div.expandable-content {
-      display: none;
-      padding: 0.4em;
-    }
-  }
-
-  div.expandable.expanded {
-    >div.expandable-content {
-      display: block;
-    }
-    >div.expandable-header>.section-arrow::after {
-        content: '▼';
+    > div {
+      margin-top: 0.75em;
     }
   }
 
@@ -110,7 +95,7 @@
     vertical-align: 1px;
   }
 
-  div.expandable, pre, blockquote {
+  details, pre, blockquote {
     padding: $padding-050;
     border-radius: $border-radius-half;
     border: 1px solid themed("color-section");
@@ -126,7 +111,7 @@
     border-left-color: themed("color-dtext-quote");
   }
 
-  div.expandable {
+  details {
     border-left-color: themed("color-dtext-section");
   }
 
