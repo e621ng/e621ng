@@ -562,10 +562,10 @@ class Post < ApplicationRecord
       normalized_tags = remove_dnp_tags(normalized_tags)
       normalized_tags = TagAlias.to_aliased(normalized_tags)
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
-      normalized_tags = %w(tagme) if normalized_tags.empty?
+      normalized_tags = %w[tagme] if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = TagImplication.with_descendants(normalized_tags)
-      enforce_dnp_tags(normalized_tags)
+      add_dnp_tags_to_locked(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq
       normalized_tags = Tag.find_or_create_by_name_list(normalized_tags)
@@ -573,13 +573,21 @@ class Post < ApplicationRecord
       set_tag_string(normalized_tags.map(&:name).uniq.sort.join(" "))
     end
 
-
-
+    # Prevent adding these without an implication
     def remove_dnp_tags(tags)
-      tags - ['avoid_posting', 'conditional_dnp']
+      locked = locked_tags || ""
+      # Don't remove dnp tags here if they would be later added through locked tags
+      # to prevent the warning message from appearing when they didn't actually get removed
+      if locked.exclude?("avoid_posting")
+        tags -= ["avoid_posting"]
+      end
+      if locked.exclude?("conditional_dnp")
+        tags -= ["conditional_dnp"]
+      end
+      tags
     end
 
-    def enforce_dnp_tags(tags)
+    def add_dnp_tags_to_locked(tags)
       locked = Tag.scan_tags((locked_tags || '').downcase)
       if tags.include? 'avoid_posting'
         locked << 'avoid_posting'
