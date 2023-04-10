@@ -1606,33 +1606,35 @@ class Post < ApplicationRecord
     def added_tags_are_valid
       # Load this only once since it isn't cached
       added = added_tags
-      added_invalid_tags = added.select {|t| t.category == Tag.categories.invalid}
-      new_tags = added.select {|t| t.post_count <= 0}
-      new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
-      new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
-      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta)}
+      added_invalid_tags = added.select { |t| t.category == Tag.categories.invalid }
+      new_tags = added.select { |t| t.post_count <= 0 }
+      new_general_tags = new_tags.select { |t| t.category == Tag.categories.general }
+      new_artist_tags = new_tags.select { |t| t.category == Tag.categories.artist }
+      # See https://github.com/e621ng/e621ng/issues/494
+      # If the tag is fresh it's save to assume it was created with a prefix
+      repopulated_tags = new_tags.select { |t| t.category != Tag.categories.general && t.category != Tag.categories.meta && t.created_at < 10.seconds.ago }
 
       if added_invalid_tags.present?
         n = added_invalid_tags.size
-        tag_wiki_links = added_invalid_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
+        tag_wiki_links = added_invalid_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Added #{n} invalid #{'tag'.pluralize(n)}. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
       end
 
       if new_general_tags.present?
         n = new_general_tags.size
-        tag_wiki_links = new_general_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = new_general_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Created #{n} new #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
       if repopulated_tags.present?
         n = repopulated_tags.size
-        tag_wiki_links = repopulated_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = repopulated_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Repopulated #{n} old #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
       new_artist_tags.each do |tag|
         if tag.artist.blank?
-          self.warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]")
+          warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI.escape(tag.name)}]")
         end
       end
     end
