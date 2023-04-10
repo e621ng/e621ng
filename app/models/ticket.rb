@@ -83,6 +83,10 @@ class Ticket < ApplicationRecord
       def can_see_details?(user)
         user.is_moderator? || (user.id == creator_id)
       end
+
+      def bot_target_name
+        content&.from&.name
+      end
     end
 
     module Wiki
@@ -93,11 +97,19 @@ class Ticket < ApplicationRecord
       def can_create_for?(user)
         true
       end
+
+      def bot_target_name
+        content&.title
+      end
     end
 
     module Pool
       def can_create_for?(user)
         true
+      end
+
+      def bot_target_name
+        content&.name
       end
     end
 
@@ -125,6 +137,10 @@ class Ticket < ApplicationRecord
       def can_create_for?(user)
         true
       end
+
+      def bot_target_name
+        content&.uploader&.name
+      end
     end
 
     module Blip
@@ -140,6 +156,10 @@ class Ticket < ApplicationRecord
 
       def can_see_details?(user)
         user.is_moderator? || user.id == creator_id
+      end
+
+      def bot_target_name
+        content&.name
       end
     end
   end
@@ -238,6 +258,10 @@ class Ticket < ApplicationRecord
     @content ||= model.find_by(id: disp_id)
   end
 
+  def bot_target_name
+    content&.creator&.name
+  end
+
   def can_see_details?(user)
     true
   end
@@ -320,30 +344,24 @@ class Ticket < ApplicationRecord
   end
 
   module PubSubMethods
-    def pubsub_hash(action, meta)
+    def pubsub_hash(action)
       {
         action: action,
-        meta: meta,
         ticket: {
           id: id,
-          created_at: created_at,
-          updated_at: updated_at,
           user_id: creator_id,
           user: creator_id ? User.id_to_name(creator_id) : nil,
-          disp_id: disp_id,
+          claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
+          target: bot_target_name,
           status: status,
           category: qtype,
           reason: reason,
-          report_reason: report_reason,
-          response: response,
-          claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
-          claimant_id: claimant_id,
         }
       }
     end
 
-    def push_pubsub(action, meta={})
-      RedisClient.client.publish('ticket_updates', pubsub_hash(action, meta).to_json)
+    def push_pubsub(action)
+      RedisClient.client.publish("ticket_updates", pubsub_hash(action).to_json)
     end
   end
 
