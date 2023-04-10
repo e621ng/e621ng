@@ -38,7 +38,9 @@
             <% if !ticket.can_see_details?(CurrentUser.user) %>
               <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
             <% else %>
-              <td class="ticket-subject full-width-link" title="<%= h(truncate(strip_dtext(ticket.reason), length: 200)) %>"><%= link_to h(truncate(strip_dtext(ticket.subject), length: 200)), action: "show", id: ticket.id %></td>
+              <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
+                <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
+              <% end %>
             <% end %>
 
             <td class="<%= ticket.status %>-ticket"><%= pretty_ticket_status(ticket) %></td>

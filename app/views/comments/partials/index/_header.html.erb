@@ -1,14 +1,14 @@
 <div class="header">
   <div class="row">
-    <span class="info">
+    <span class="post-info">
       <strong>Date</strong>
       <%= compact_time(post.created_at) %>
     </span>
-    <span class="info">
+    <span class="post-info">
       <strong>Rating</strong>
       <%= post.rating %>
     </span>
-    <span class="info">
+    <span class="post-info">
       <strong>Score</strong>
       <span>
         <%= post_vote_block(post, post.own_vote) %>

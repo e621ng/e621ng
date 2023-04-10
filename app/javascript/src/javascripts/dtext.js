@@ -218,20 +218,8 @@ DText.initialize_all_inputs = function() {
   });
 }
 
-/** Initialize the dynamic elements in DText */
-DText.initialize_dynamic_elements = function() {
-  
-  // Collapsibles
-  $(document).on("click.danbooru", ".expandable-header", function(e) {
-    const header = $(this);
-    header.next().fadeToggle("fast");
-    header.parent().toggleClass("expanded");
-  });
-};
-
 $(function () {
   DText.initialize_all_inputs();
-  DText.initialize_dynamic_elements();
 });
 
 export default DText;

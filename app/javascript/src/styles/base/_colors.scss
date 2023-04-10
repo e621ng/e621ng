@@ -1,6 +1,5 @@
 // Font
 $inverted-text-color: invert(#fff);
-$translation-note-color: gray;
 $green-text-color: #3e9e49;
 $yellow-text-color: #e4e150;
 $red-text-color: #e45f5f;
@@ -19,10 +18,6 @@ $lighten-background-5: rgba(255,255,255,0.05);
 // Mixin/state colors
 $state-success-color: #3e9e49;
 $state-error-color: #e45f5f;
-
-
-$hint-color: #AAA;
-$info-color: #AAA;
 
 // DText
 $dtext-code-background: rgba(255,255,255,0.2);
@@ -130,9 +125,6 @@ $note-box-inner-background: #FFE;
 $note-box-inner-unsaved-border: red;
 $note-box-highlighted-outline: $note-highlight-color;
 $note-preview-background: white;
-
-// Post Events
-$post-events-unresolved-background: $negative-record-background;
 
 // Post Flags
 $post-flags-unresolved-background: $negative-record-background;

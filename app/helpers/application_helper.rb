@@ -39,12 +39,11 @@ module ApplicationHelper
   end
 
   def dtext_ragel(text, **options)
-    options.merge!(disable_mentions: true)
-    parsed = DTextRagel.parse(text, **options)
+    parsed = DText.parse(text, **options)
     return raw "" if parsed.nil?
     deferred_post_ids.merge(parsed[1]) if parsed[1].present?
     raw parsed[0]
-  rescue DTextRagel::Error => e
+  rescue DText::Error => e
     raw ""
   end
 
@@ -60,10 +59,6 @@ module ApplicationHelper
   def custom_form_for(object, *args, &)
     options = args.extract_options!
     simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
-  end
-
-  def strip_dtext(text)
-    dtext_ragel(text, strip: true)
   end
 
   def error_messages_for(instance_name)

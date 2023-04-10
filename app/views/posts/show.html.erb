@@ -174,15 +174,12 @@
 
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-          <div id="description" class="expandable <%= 'expanded' unless CurrentUser.description_collapsed_initially? %>">
-            <div class="expandable-header">
-              <span class="section-arrow"></span>
-              <span>Description</span>
-            </div>
-            <div class="expandable-content dtext-container">
+          <details id="description" <%= 'open' unless CurrentUser.description_collapsed_initially? %>>
+            <summary>Description</summary>
+            <div>
               <%= format_text(@post.description, max_thumbs: 0) %>
             </div>
-          </div>
+          </details>
         </div>
       <% end %>
 
@@ -262,7 +259,6 @@
 
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">
-  <meta name="post-has-embedded-notes" content="false">
   <%= tag.meta property: "og:site", content: Danbooru.config.app_name %>
   <%= tag.meta property: "og:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
   <%= tag.meta property: "og:url", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>

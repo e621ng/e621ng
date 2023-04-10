@@ -5,45 +5,53 @@
 }
 
 .styled-dtext {
-  line-height: 1.4em;
+  *:last-child {
+    margin-bottom: 0;
+  }
 
-  h1, h2, h3 {
+  > *:last-child {
+    margin-bottom: 0.5em;
+  }
+
+  div.spoiler, details, pre, blockquote, ul {
+    margin-bottom: 0.75em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
     line-height: 1em;
+    margin-bottom: 0.25em;
+
+    &:not(:first-child) {
+      margin-top: 1.25em;
+    }
   }
 
   h1 {
     font-size: $dtext_h1_size;
-    padding: $h1_padding;
   }
 
   h2 {
     font-size: $dtext_h2_size;
-    padding: $h2_padding;
   }
 
   h3 {
     font-size: $dtext_h3_size;
-    padding: $h3_padding;
   }
 
   h4 {
     font-size: $dtext_h4_size;
-    padding: $h4_padding;
   }
 
   h5 {
     font-size: $dtext_h5_size;
-    padding: $h4_padding;
   }
 
   h6 {
     font-size: $dtext_h6_size;
-    padding: $h4_padding;
   }
 
   ul {
     margin-left: 1em;
-    margin-bottom: 1em;
 
     ul {
       margin-bottom: 0;
@@ -56,50 +64,29 @@
 
   pre {
     font-family: monospace;
-    font-size: 1.2em;
-    margin: 0.5em 0;
-    padding: 0.5em 1em;
     white-space: pre-wrap;
+    font-size: 1.2em;
   }
 
-  code, .inline-code {
+  .inline-code {
     font-family: monospace;
     white-space: pre-wrap;
     background-color: $dtext-code-background;
     padding: $padding-025;
   }
 
-  div.expandable {
-    >div.expandable-header {
+  details {
+    summary {
+      font-weight: bold;
       cursor: pointer;
-      padding: 0.4em;
 
-      >.section-arrow::after {
-        content: '►';
-      }
-
-      span {
-        margin-right: 0.5em;
-        font-weight: bold;
+      &::marker {
+        font-size: large;
       }
     }
 
-    div.expandable-content {
-      display: none;
-      padding: 0.4em;
-
-      > :last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  div.expandable.expanded {
-    >div.expandable-content {
-      display: block;
-    }
-    >div.expandable-header>.section-arrow::after {
-        content: '▼';
+    > div {
+      margin-top: 0.75em;
     }
   }
 
@@ -113,9 +100,8 @@
     vertical-align: 1px;
   }
 
-  div.expandable, pre, blockquote {
-    padding: $padding-025;
-    margin: 0 0 0.5rem;
+  details, pre, blockquote {
+    padding: $padding-050;
     border-radius: $border-radius-half;
     border: 1px solid themed("color-section");
     border-left: 0.25rem solid themed("color-danger");
@@ -123,15 +109,15 @@
   }
 
   pre {
-    border-left-color: themed("color-detail-code");
+    border-left-color: themed("color-dtext-code");
   }
 
   blockquote {
-    border-left-color: themed("color-detail-quote");
+    border-left-color: themed("color-dtext-quote");
   }
 
-  div.expandable {
-    border-left-color: themed("color-detail-expandable");
+  details {
+    border-left-color: themed("color-dtext-section");
   }
 
   @each $tag-category, $tag-category-name in $tag-categories-short {
