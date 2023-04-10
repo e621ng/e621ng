@@ -44,10 +44,13 @@ class TicketsController < ApplicationController
       if @ticket.warnable? && ticket_params[:record_type].present?
         @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
       end
+
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
       @ticket.update(ticket_params)
-      @ticket.push_pubsub('update')
+      @ticket.push_pubsub("update")
+      not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
+      flash[:notice] = "Not sending update, no changes" if not_changed
     end
 
     respond_with(@ticket)
@@ -89,7 +92,7 @@ class TicketsController < ApplicationController
   end
 
   def update_ticket_params
-    params.require(:ticket).permit(%i[response status record_type])
+    params.require(:ticket).permit(%i[response status record_type send_update_dmail])
   end
 
   def search_params
