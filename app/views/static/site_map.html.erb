@@ -90,9 +90,6 @@
     <section>
       <ul>
         <li><h1>Users</h1></li>
-        <% if CurrentUser.is_moderator? %>
-          <li><%= link_to("Dashboard", moderator_dashboard_path) %></li>
-        <% end %>
         <li><%= link_to("Listing", users_path) %></li>
         <li><%= link_to("Bans", bans_path) %></li>
         <% if CurrentUser.is_anonymous? %>
@@ -108,6 +105,9 @@
       </ul>
       <ul>
         <li><h1>Admin</h1></li>
+        <% if CurrentUser.is_moderator? %>
+          <li><%= link_to("Mod Dashboard", moderator_dashboard_path) %></li>
+        <% end %>
         <% if CurrentUser.is_admin? %>
           <li><%= link_to("Admin Dashboard", admin_dashboard_path) %></li>
           <li><%= link_to("Email Blacklist", email_blacklists_path) %></li>
