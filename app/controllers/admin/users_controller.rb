@@ -36,8 +36,8 @@ module Admin
       if @user.saved_change_to_base_upload_limit
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
       end
-      @user.mark_verified! if params[:user][:verified] == 'true'
-      @user.mark_unverified! if params[:user][:verified] == 'false'
+      @user.mark_verified! if params[:user][:verified].to_s.truthy?
+      @user.mark_unverified! if params[:user][:verified].to_s.falsy?
       @user.promote_to!(params[:user][:level], params[:user])
 
       old_username = @user.name

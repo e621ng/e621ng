@@ -478,7 +478,7 @@ class Artist < ApplicationRecord
         q = q.includes(:tag).where("tags.name IS NULL OR tags.post_count <= 0").references(:tags)
       end
 
-      if params[:is_linked] == "1"
+      if params[:is_linked].to_s.truthy?
         q = q.where("linked_user_id IS NOT NULL")
       end
 

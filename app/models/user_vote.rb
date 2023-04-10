@@ -82,7 +82,7 @@ class UserVote < ApplicationRecord
           q = q.where("#{table_name}.score = ?", params[:score])
         end
 
-        if params[:duplicates_only] == "1"
+        if params[:duplicates_only].to_s.truthy?
           subselect = search(params.except("duplicates_only")).select(:user_ip_addr).group(:user_ip_addr).having("count(user_ip_addr) > 1").reorder("")
           q = q.where(user_ip_addr: subselect)
         end

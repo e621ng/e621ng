@@ -8,7 +8,7 @@ module Moderator
       def create
         post = ::Post.find(params[:post_id])
         if post.is_approvable?
-          post.approve!(resolve_flags: params[:resolve_flags].nil? ? false : params[:resolve_flags] == "true")
+          post.approve!(resolve_flags: params[:resolve_flags].nil? ? false : params[:resolve_flags].to_s.truthy?)
           respond_with do |fmt|
             fmt.json do
               render json: {}, status: 201

@@ -7,7 +7,7 @@ class PostVotesController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
     @post_vote = VoteManager.vote!(post: @post, user: CurrentUser.user, score: params[:score])
-    if @post_vote == :need_unvote && params[:no_unvote] != 'true'
+    if @post_vote == :need_unvote && !params[:no_unvote].to_s.truthy?
       VoteManager.unvote!(post: @post, user: CurrentUser.user)
     end
     render json: {score: @post.score, up: @post.up_score, down: @post.down_score, our_score: @post_vote != :need_unvote ? @post_vote.score : 0}
