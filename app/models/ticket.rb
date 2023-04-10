@@ -8,7 +8,7 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  validates :status, inclusion: { in: %w[pending partial approved] }
+  enum status: %i[pending partial approved].index_with(&:to_s)
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
@@ -174,7 +174,7 @@ class Ticket < ApplicationRecord
     end
 
     def initialize_fields
-      self.status = 'pending'
+      self.status = "pending"
     end
   end
 
@@ -271,7 +271,7 @@ class Ticket < ApplicationRecord
   end
 
   def warnable?
-    content.respond_to?(:user_warned!) && !content.was_warned? && status == "pending"
+    content.respond_to?(:user_warned!) && !content.was_warned? && pending?
   end
 
   module ClaimMethods
@@ -337,7 +337,7 @@ class Ticket < ApplicationRecord
           report_reason: report_reason,
           response: response,
           claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
-          claimant_id: claimant_id
+          claimant_id: claimant_id,
         }
       }
     end

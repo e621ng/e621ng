@@ -79,6 +79,10 @@ class TicketsController < ApplicationController
       flash[:notice] = "Ticket not claimed by you"
       redirect_to ticket_path(@ticket)
       return
+    elsif @ticket.approved?
+      flash[:notice] = "Cannot unclaim approved ticket"
+      redirect_to ticket_path(@ticket)
+      return
     end
     @ticket.unclaim!
     flash[:notice] = "Claim removed"
