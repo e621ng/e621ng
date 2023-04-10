@@ -10,7 +10,7 @@ class UserFeedbackTest < ActiveSupport::TestCase
 
     should "create a dmail" do
       dmail = <<~EOS.chomp
-        @#{@mod.name} created a "positive record":/user_feedbacks?search[user_id]=#{@user.id} for your account:
+        #{@mod.name} created a "positive record":/user_feedbacks?search[user_id]=#{@user.id} for your account:
 
         good job!
       EOS

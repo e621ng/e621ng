@@ -32,7 +32,11 @@ class UserFeedbacksController < ApplicationController
   def update
     @user_feedback = UserFeedback.find(params[:id])
     check_privilege(@user_feedback)
-    @user_feedback.update(user_feedback_params(:update))
+    params_update = user_feedback_params(:update)
+
+    @user_feedback.update(params_update)
+    not_changed = params_update[:send_update_dmail].to_s.truthy? && !@user_feedback.saved_change_to_body?
+    flash[:notice] = "Not sending update, body not changed" if not_changed
     respond_with(@user_feedback)
   end
 
@@ -52,6 +56,7 @@ class UserFeedbacksController < ApplicationController
   def user_feedback_params(context)
     permitted_params = %i[body category]
     permitted_params += %i[user_id user_name] if context == :create
+    permitted_params += [:send_update_dmail] if context == :update
 
     params.fetch(:user_feedback, {}).permit(permitted_params)
   end
