@@ -562,10 +562,10 @@ class Post < ApplicationRecord
       normalized_tags = remove_dnp_tags(normalized_tags)
       normalized_tags = TagAlias.to_aliased(normalized_tags)
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
-      normalized_tags = %w(tagme) if normalized_tags.empty?
+      normalized_tags = %w[tagme] if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = TagImplication.with_descendants(normalized_tags)
-      enforce_dnp_tags(normalized_tags)
+      add_dnp_tags_to_locked(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq
       normalized_tags = Tag.find_or_create_by_name_list(normalized_tags)
@@ -573,13 +573,21 @@ class Post < ApplicationRecord
       set_tag_string(normalized_tags.map(&:name).uniq.sort.join(" "))
     end
 
-
-
+    # Prevent adding these without an implication
     def remove_dnp_tags(tags)
-      tags - ['avoid_posting', 'conditional_dnp']
+      locked = locked_tags || ""
+      # Don't remove dnp tags here if they would be later added through locked tags
+      # to prevent the warning message from appearing when they didn't actually get removed
+      if locked.exclude?("avoid_posting")
+        tags -= ["avoid_posting"]
+      end
+      if locked.exclude?("conditional_dnp")
+        tags -= ["conditional_dnp"]
+      end
+      tags
     end
 
-    def enforce_dnp_tags(tags)
+    def add_dnp_tags_to_locked(tags)
       locked = Tag.scan_tags((locked_tags || '').downcase)
       if tags.include? 'avoid_posting'
         locked << 'avoid_posting'
@@ -1606,33 +1614,35 @@ class Post < ApplicationRecord
     def added_tags_are_valid
       # Load this only once since it isn't cached
       added = added_tags
-      added_invalid_tags = added.select {|t| t.category == Tag.categories.invalid}
-      new_tags = added.select {|t| t.post_count <= 0}
-      new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
-      new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
-      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta)}
+      added_invalid_tags = added.select { |t| t.category == Tag.categories.invalid }
+      new_tags = added.select { |t| t.post_count <= 0 }
+      new_general_tags = new_tags.select { |t| t.category == Tag.categories.general }
+      new_artist_tags = new_tags.select { |t| t.category == Tag.categories.artist }
+      # See https://github.com/e621ng/e621ng/issues/494
+      # If the tag is fresh it's save to assume it was created with a prefix
+      repopulated_tags = new_tags.select { |t| t.category != Tag.categories.general && t.category != Tag.categories.meta && t.created_at < 10.seconds.ago }
 
       if added_invalid_tags.present?
         n = added_invalid_tags.size
-        tag_wiki_links = added_invalid_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
+        tag_wiki_links = added_invalid_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Added #{n} invalid #{'tag'.pluralize(n)}. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
       end
 
       if new_general_tags.present?
         n = new_general_tags.size
-        tag_wiki_links = new_general_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = new_general_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Created #{n} new #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
       if repopulated_tags.present?
         n = repopulated_tags.size
-        tag_wiki_links = repopulated_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = repopulated_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Repopulated #{n} old #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
       new_artist_tags.each do |tag|
         if tag.artist.blank?
-          self.warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]")
+          warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI.escape(tag.name)}]")
         end
       end
     end
@@ -1649,12 +1659,9 @@ class Post < ApplicationRecord
 
     def has_artist_tag
       return if !new_record?
-      return if source !~ %r!\Ahttps?://!
-      return if has_tag?("artist_request") || has_tag?("official_art")
-      return if tags.any? {|t| t.category == Tag.categories.artist}
-      return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
+      return if tags.any? { |t| t.category == Tag.categories.artist }
 
-      self.warnings.add(:base, "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help")
+      self.warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#catchange if you need help changing the category of an tag. Ask on the forum if you need naming help')
     end
 
     def has_enough_tags

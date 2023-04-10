@@ -10,10 +10,20 @@ class HelpController < ApplicationController
     else
       @help = HelpPage.find_by(name: HelpPage.normalize_name(params[:id]))
     end
-    return redirect_to help_pages_path unless @help.present?
-    @wiki_page = WikiPage.find_by_title(@help.wiki_page)
-    @related = @help.related.split(', ')
-    respond_with(@help)
+    respond_with(@help) do |format|
+      format.html do
+        if @help.blank?
+          redirect_to help_pages_path
+        else
+          @wiki_page = WikiPage.find_by(title: @help.wiki_page)
+          @related = @help.related.split(", ")
+        end
+      end
+      format.json do
+        raise ActiveRecord::RecordNotFound if @help.blank?
+        render json: @help
+      end
+    end
   end
 
   def index

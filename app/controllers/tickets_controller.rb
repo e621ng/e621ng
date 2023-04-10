@@ -36,7 +36,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.find(params[:id])
     @ticket.transaction do
       if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
-        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force."
+        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
         redirect_to ticket_path(@ticket, force_claim: 'true')
         return
       end
@@ -44,10 +44,13 @@ class TicketsController < ApplicationController
       if @ticket.warnable? && ticket_params[:record_type].present?
         @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
       end
+
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
       @ticket.update(ticket_params)
-      @ticket.push_pubsub('update')
+      @ticket.push_pubsub("update")
+      not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
+      flash[:notice] = "Not sending update, no changes" if not_changed
     end
 
     respond_with(@ticket)
@@ -61,7 +64,7 @@ class TicketsController < ApplicationController
       redirect_to ticket_path(@ticket)
       return
     end
-    flash[:notice] = 'Ticket already claimed.'
+    flash[:notice] = "Ticket already claimed"
     redirect_to ticket_path(@ticket)
   end
 
@@ -69,16 +72,20 @@ class TicketsController < ApplicationController
     @ticket = Ticket.find(params[:id])
 
     if @ticket.claimant.nil?
-      flash[:notice] = 'Ticket not claimed.'
+      flash[:notice] = "Ticket not claimed"
       redirect_to ticket_path(@ticket)
       return
     elsif @ticket.claimant.id != CurrentUser.id
-      flash[:notice] = 'Ticket not claimed by you.'
+      flash[:notice] = "Ticket not claimed by you"
+      redirect_to ticket_path(@ticket)
+      return
+    elsif @ticket.approved?
+      flash[:notice] = "Cannot unclaim approved ticket"
       redirect_to ticket_path(@ticket)
       return
     end
     @ticket.unclaim!
-    flash[:notice] = 'Claim removed.'
+    flash[:notice] = "Claim removed"
     redirect_to ticket_path(@ticket)
   end
 
@@ -89,7 +96,7 @@ class TicketsController < ApplicationController
   end
 
   def update_ticket_params
-    params.require(:ticket).permit(%i[response status record_type])
+    params.require(:ticket).permit(%i[response status record_type send_update_dmail])
   end
 
   def search_params

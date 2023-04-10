@@ -584,6 +584,50 @@ class PostTest < ActiveSupport::TestCase
             assert_equal("specific_tag trio", @post.tag_string)
           end
         end
+
+        context "with dnp tags" do
+          should "prevent manually adding them" do
+            @post = create(:post, locked_tags: "", tag_string: "a b c")
+            @post.tag_string += " conditional_dnp"
+            @post.save
+
+            assert_equal("a b c", @post.tag_string)
+            assert_nil(@post.locked_tags)
+          end
+
+          should "add dnp tags through an implication" do
+            create(:tag_implication, antecedent_name: "artist", consequent_name: "avoid_posting")
+            @post = create(:post, locked_tags: "", tag_string: "a b c")
+
+            @post.tag_string += " artist"
+            @post.save
+
+            assert_equal("a artist avoid_posting b c", @post.tag_string)
+            assert_equal("avoid_posting", @post.locked_tags)
+          end
+
+          should "prevent removing them" do
+            create(:tag_implication, antecedent_name: "artist", consequent_name: "avoid_posting")
+            @post = create(:post, tag_string: "a artist avoid_posting b c")
+
+            @post.tag_string = "a b c"
+            @post.warnings.clear
+            @post.save
+            assert_match(/Forcefully added 1 locked tag: avoid_posting/, @post.warnings.full_messages.join(" "))
+
+            assert_equal("a avoid_posting b c", @post.tag_string)
+          end
+
+          should "not warn about dnp tags when dnp tags didn't change" do
+            create(:tag_implication, antecedent_name: "artist", consequent_name: "avoid_posting")
+            @post = create(:post, tag_string: "a artist avoid_posting b c")
+
+            @post.tag_string += "d e f"
+            @post.warnings.clear
+            @post.save
+            assert_no_match(/Forcefully added 1 locked tag: avoid_posting/, @post.warnings.full_messages.join(" "))
+          end
+        end
       end
 
       # TODO: Invalid tags are now reported as warnings, and don't trigger these.

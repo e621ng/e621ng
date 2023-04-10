@@ -25,6 +25,30 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       @bad_actor = create(:user, created_at: 2.weeks.ago)
     end
 
+    context "update action" do
+      setup do
+        as(@bad_actor) do
+          @ticket = create(:ticket, creator: @reporter, content: create(:comment), qtype: "comment")
+        end
+      end
+
+      should "send a new dmail if the status is changed" do
+        assert_difference(-> { Dmail.count }, 2) do
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved" } }
+        end
+      end
+
+      should "send a new dmail if the response is changed" do
+        assert_no_difference(-> { Dmail.count }) do
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { response: "abc" } }
+        end
+
+        assert_difference(-> { Dmail.count }, 2) do
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { response: "def", send_update_dmail: true } }
+        end
+      end
+    end
+
     context "for a forum ticket" do
       setup do
         as @bad_actor do

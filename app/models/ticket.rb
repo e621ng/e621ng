@@ -8,15 +8,15 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  validates :status, inclusion: { in: %w[pending partial denied approved] }
-  after_update :log_update, if: :should_send_notification
-  after_update :send_update_dmail, if: :should_send_notification
+  enum status: %i[pending partial approved].index_with(&:to_s)
+  after_update :log_update
+  after_update :create_dmail
   validate :validate_content_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
 
-  attr_accessor :record_type
+  attr_accessor :record_type, :send_update_dmail
 
 =begin
     Permission truth table.
@@ -83,6 +83,10 @@ class Ticket < ApplicationRecord
       def can_see_details?(user)
         user.is_moderator? || (user.id == creator_id)
       end
+
+      def bot_target_name
+        content&.from&.name
+      end
     end
 
     module Wiki
@@ -93,11 +97,19 @@ class Ticket < ApplicationRecord
       def can_create_for?(user)
         true
       end
+
+      def bot_target_name
+        content&.title
+      end
     end
 
     module Pool
       def can_create_for?(user)
         true
+      end
+
+      def bot_target_name
+        content&.name
       end
     end
 
@@ -125,6 +137,10 @@ class Ticket < ApplicationRecord
       def can_create_for?(user)
         true
       end
+
+      def bot_target_name
+        content&.uploader&.name
+      end
     end
 
     module Blip
@@ -140,6 +156,10 @@ class Ticket < ApplicationRecord
 
       def can_see_details?(user)
         user.is_moderator? || user.id == creator_id
+      end
+
+      def bot_target_name
+        content&.name
       end
     end
   end
@@ -174,7 +194,7 @@ class Ticket < ApplicationRecord
     end
 
     def initialize_fields
-      self.status = 'pending'
+      self.status = "pending"
     end
   end
 
@@ -238,6 +258,10 @@ class Ticket < ApplicationRecord
     @content ||= model.find_by(id: disp_id)
   end
 
+  def bot_target_name
+    content&.creator&.name
+  end
+
   def can_see_details?(user)
     true
   end
@@ -271,7 +295,7 @@ class Ticket < ApplicationRecord
   end
 
   def warnable?
-    content.respond_to?(:user_warned!) && !content.was_warned? && status == "pending"
+    content.respond_to?(:user_warned!) && !content.was_warned? && pending?
   end
 
   module ClaimMethods
@@ -293,13 +317,12 @@ class Ticket < ApplicationRecord
   end
 
   module NotificationMethods
-    def should_send_notification
-      saved_change_to_status?
-    end
+    def create_dmail
+      should_send = saved_change_to_status? || (send_update_dmail.to_s.truthy? && saved_change_to_response?)
+      return unless should_send
 
-    def send_update_dmail
       msg = <<~MSG.chomp
-        \"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.
+        "Your ticket":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.
         Ticket Status: #{status}
 
         Response: #{response}
@@ -307,42 +330,38 @@ class Ticket < ApplicationRecord
       Dmail.create_split(
         from_id: CurrentUser.id,
         to_id: creator.id,
-        title: "Your ticket has been updated to '#{status}'",
+        title: "Your ticket has been updated#{" to #{status}" if saved_change_to_status?}",
         body: msg,
-        bypass_limits: true
+        bypass_limits: true,
       )
     end
 
     def log_update
-      ModAction.log(:ticket_update, {ticket_id: id})
+      return unless saved_change_to_response? || saved_change_to_status?
+
+      ModAction.log(:ticket_update, { ticket_id: id })
     end
   end
 
   module PubSubMethods
-    def pubsub_hash(action, meta)
+    def pubsub_hash(action)
       {
         action: action,
-        meta: meta,
         ticket: {
           id: id,
-          created_at: created_at,
-          updated_at: updated_at,
           user_id: creator_id,
           user: creator_id ? User.id_to_name(creator_id) : nil,
-          disp_id: disp_id,
+          claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
+          target: bot_target_name,
           status: status,
           category: qtype,
           reason: reason,
-          report_reason: report_reason,
-          response: response,
-          claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
-          claimant_id: claimant_id
         }
       }
     end
 
-    def push_pubsub(action, meta={})
-      RedisClient.client.publish('ticket_updates', pubsub_hash(action, meta).to_json)
+    def push_pubsub(action)
+      RedisClient.client.publish("ticket_updates", pubsub_hash(action).to_json)
     end
   end
 

@@ -1,6 +1,6 @@
 <div id="c-user-feedbacks">
   <div id="a-edit">
-    <h1>Edit User Feedback</h1>
+    <h1>Edit User Feedback - <%= link_to_user @user_feedback.user %> </h1>
 
     <%= error_messages_for "user_feedback" %>
     <%= render "form", user_feedback: @user_feedback %>

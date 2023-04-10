@@ -2,11 +2,11 @@ class UserFeedback < ApplicationRecord
   self.table_name = "user_feedback"
   belongs_to :user
   belongs_to_creator
-  validates :user, :creator, :body, :category, presence: true
-  validates :category, inclusion: { :in => %w(positive negative neutral) }
+  validates :body, :category, presence: true
+  validates :category, inclusion: { in: %w[positive negative neutral] }
   validate :creator_is_moderator, on: :create
   validate :user_is_not_creator
-  after_create :create_dmail
+  after_save :create_dmail
   after_create do |rec|
     ModAction.log(:user_feedback_create, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
   end
@@ -17,8 +17,10 @@ class UserFeedback < ApplicationRecord
     ModAction.log(:user_feedback_delete, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
     deletion_user = "\"#{CurrentUser.name}\":/users/#{CurrentUser.id}"
     creator_user = "\"#{creator.name}\":/users/#{creator.id}"
-    StaffNote.create(body:  "#{deletion_user} deleted #{rec.category} feedback, created #{created_at.to_date} by #{creator_user}: #{rec.body}", user_id: rec.user_id, creator: User.system)
+    StaffNote.create(body: "#{deletion_user} deleted #{rec.category} feedback, created #{created_at.to_date} by #{creator_user}: #{rec.body}", user_id: rec.user_id, creator: User.system)
   end
+
+  attr_accessor :send_update_dmail
 
   module SearchMethods
     def positive
@@ -55,7 +57,7 @@ class UserFeedback < ApplicationRecord
       end
 
       if params[:creator_id].present?
-         q = q.where("creator_id = ?", params[:creator_id].to_i)
+        q = q.where("creator_id = ?", params[:creator_id].to_i)
       end
 
       if params[:creator_name].present?
@@ -81,29 +83,23 @@ class UserFeedback < ApplicationRecord
   end
 
   def create_dmail
-    body = %{@#{creator_name} created a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body}}
-    Dmail.create_automated(:to_id => user_id, :title => "Your user record has been updated", :body => body)
+    should_send = saved_change_to_id? || (send_update_dmail.to_s.truthy? && saved_change_to_body?)
+    return unless should_send
+
+    action = saved_change_to_id? ? "created" : "updated"
+    body = %(#{creator_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
+    Dmail.create_automated(to_id: user_id, title: "Your user record has been updated", body: body)
   end
 
   def creator_is_moderator
-    if !creator.is_moderator?
-      errors.add(:creator, "must be moderator")
-      return false
-    else
-      return true
-    end
+    errors.add(:creator, "must be moderator") unless creator.is_moderator?
   end
 
   def user_is_not_creator
-    if user_id == creator_id
-      errors.add(:creator, "cannot submit feedback for yourself")
-      return false
-    else
-      return true
-    end
+    errors.add(:creator, "cannot submit feedback for yourself") if user_id == creator_id
   end
 
   def editable_by?(editor)
-    (editor.is_moderator? && editor != user)
+    editor.is_moderator? && editor != user
   end
 end

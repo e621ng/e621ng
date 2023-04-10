@@ -4,10 +4,10 @@ class IpBan < ApplicationRecord
   validates :ip_addr, uniqueness: true
   validate :validate_ip_addr
   after_create do |rec|
-    ModAction.log(:ip_ban_create, { ip_addr: rec.ip_addr })
+    ModAction.log(:ip_ban_create, { ip_addr: rec.subnetted_ip, reason: rec.reason })
   end
   after_destroy do |rec|
-    ModAction.log(:ip_ban_delete, { ip_addr: rec.ip_addr })
+    ModAction.log(:ip_ban_delete, { ip_addr: rec.subnetted_ip, reason: rec.reason })
   end
 
   def self.is_banned?(ip_addr)

@@ -27,8 +27,12 @@
             <% if @ticket.claimant.nil? %>
               <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
             <% else %>
-              <td id="claimed_by"><%= link_to_user @ticket.claimant %>
-                <% if @ticket.claimant.id == CurrentUser.id %> | <%= link_to 'Unclaim', unclaim_ticket_path(@ticket), method: :post %><% end %></td>
+              <td id="claimed_by">
+                <%= link_to_user @ticket.claimant %>
+                <% if @ticket.claimant.id == CurrentUser.id %>
+                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
+                <% end %>
+              </td>
             <% end %>
           </tr>
         <% end %>
@@ -81,21 +85,24 @@
     </div>
 
     <% if CurrentUser.is_moderator? %>
-      <%= custom_form_for(@ticket) do |f| %>
-        <div class='section'>
+      <div class="section">
+        <%= custom_form_for(@ticket) do |f| %>
+          <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
+          <% if @ticket.warnable? %>
+            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+          <% end %>
+          <% unless @ticket.pending? %>
+            <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
+          <% end %>
           <table>
-            <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
-            <% if @ticket.warnable? %>
-              <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
-            <% end %>
             <tr>
               <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
             </tr>
           </table>
-          <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
+          <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
           <%= f.button :submit, "Submit" %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>
