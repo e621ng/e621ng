@@ -13,6 +13,7 @@ class WikiPage < ApplicationRecord
   validate :validate_rename
   validate :validate_not_locked
 
+  before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   before_save :log_changes
 
@@ -23,6 +24,13 @@ class WikiPage < ApplicationRecord
   has_one :tag, :foreign_key => "name", :primary_key => "title"
   has_one :artist, -> {where(:is_active => true)}, :foreign_key => "name", :primary_key => "title"
   has_many :versions, -> {order("wiki_page_versions.id ASC")}, :class_name => "WikiPageVersion", :dependent => :destroy
+
+  def validate_not_used_as_help_page
+    if HelpPage.find_by(wiki_page: title).present?
+      errors.add(:wiki_page, "is used by a help page")
+      throw :abort
+    end
+  end
 
   def log_destroy
     ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})

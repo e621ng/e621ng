@@ -76,6 +76,11 @@ class WikiPagesController < ApplicationController
   def destroy
     @wiki_page = WikiPage.find(params[:id])
     @wiki_page.destroy
+    if @wiki_page.errors.none?
+      flash[:notice] = "Page destroyed"
+    else
+      flash[:notice] = @wiki_page.errors.full_messages.join("; ")
+    end
     respond_with(@wiki_page)
   end
 
