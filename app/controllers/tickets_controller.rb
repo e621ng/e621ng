@@ -36,7 +36,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.find(params[:id])
     @ticket.transaction do
       if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && params[:force_claim] != 'true'
-        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force."
+        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
         redirect_to ticket_path(@ticket, force_claim: 'true')
         return
       end
@@ -64,7 +64,7 @@ class TicketsController < ApplicationController
       redirect_to ticket_path(@ticket)
       return
     end
-    flash[:notice] = 'Ticket already claimed.'
+    flash[:notice] = "Ticket already claimed"
     redirect_to ticket_path(@ticket)
   end
 
@@ -72,16 +72,16 @@ class TicketsController < ApplicationController
     @ticket = Ticket.find(params[:id])
 
     if @ticket.claimant.nil?
-      flash[:notice] = 'Ticket not claimed.'
+      flash[:notice] = "Ticket not claimed"
       redirect_to ticket_path(@ticket)
       return
     elsif @ticket.claimant.id != CurrentUser.id
-      flash[:notice] = 'Ticket not claimed by you.'
+      flash[:notice] = "Ticket not claimed by you"
       redirect_to ticket_path(@ticket)
       return
     end
     @ticket.unclaim!
-    flash[:notice] = 'Claim removed.'
+    flash[:notice] = "Claim removed"
     redirect_to ticket_path(@ticket)
   end
 
