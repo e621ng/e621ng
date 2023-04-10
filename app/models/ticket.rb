@@ -8,7 +8,7 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  validates :status, inclusion: { in: %w[pending partial denied approved] }
+  validates :status, inclusion: { in: %w[pending partial approved] }
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
