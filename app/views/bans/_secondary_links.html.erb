@@ -1,4 +1,6 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "Listing", bans_path %>
-  <%= subnav_link_to "Ban", new_ban_path %>
+  <% if CurrentUser.is_moderator? %>
+    <%= subnav_link_to "Ban", new_ban_path %>
+  <% end %>
 <% end %>
