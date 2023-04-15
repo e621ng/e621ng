@@ -40,14 +40,14 @@ class UserThrottle
     ckey = current_key(t)
     pkey = previous_key(t)
     tdiff = t.to_i - ctime(t)*@duration.to_i
-    hits = RedisClient.client.mget(ckey, pkey)
+    hits = Cache.redis.mget(ckey, pkey)
     @cached_rate = (hits[1].to_f * ((@duration.to_i-tdiff)/@duration.to_f) + hits[0].to_f).to_i
   end
 
   def hit!
     t = Time.now
     ckey = current_key(t)
-    RedisClient.client.multi do |transaction|
+    Cache.redis.multi do |transaction|
       transaction.incr(ckey)
       transaction.expire(ckey, cache_duration.minutes)
     end

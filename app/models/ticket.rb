@@ -361,7 +361,7 @@ class Ticket < ApplicationRecord
     end
 
     def push_pubsub(action)
-      RedisClient.client.publish("ticket_updates", pubsub_hash(action).to_json)
+      Cache.redis.publish("ticket_updates", pubsub_hash(action).to_json)
     end
   end
 

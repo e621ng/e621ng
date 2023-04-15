@@ -77,6 +77,6 @@ class StatsUpdater
       stats["#{cat}_tags".to_sym] = Tag.where(category: TagCategory.mapping[cat]).count
     end
 
-    RedisClient.client.set("e6stats", stats.to_json)
+    Cache.redis.set("e6stats", stats.to_json)
   end
 end
