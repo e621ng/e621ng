@@ -3,6 +3,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'environment'))
 
 Post.find_each do |post|
-  puts post.id.to_s
+  puts post.id
   post.__elasticsearch__.update_document_attributes has_pending_replacements: post.replacements.pending.any?
 end
