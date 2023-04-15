@@ -37,16 +37,12 @@ gem 'mailgun-ruby'
 gem 'resolv'
 
 group :production do
-  gem 'unicorn', :platforms => :ruby
-end
-
-group :production do
+  gem 'unicorn'
   gem 'unicorn-worker-killer'
   gem 'newrelic_rpm'
 end
 
 group :development, :test do
-  gem 'pry-byebug'
   gem 'listen'
   gem 'puma'
 end
