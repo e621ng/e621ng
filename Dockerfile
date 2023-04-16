@@ -1,4 +1,4 @@
-FROM ruby:3.1.4-alpine3.17 as ruby-builder
+FROM ruby:3.2.2-alpine3.17 as ruby-builder
 
 RUN apk --no-cache add build-base git glib-dev postgresql15-dev
 
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN corepack enable && corepack prepare --activate && yarn install
 
-FROM ruby:3.1.4-alpine3.17
+FROM ruby:3.2.2-alpine3.17
 
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \

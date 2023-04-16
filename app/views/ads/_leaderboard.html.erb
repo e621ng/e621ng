@@ -27,7 +27,7 @@
           document.body.appendChild(s);
         })();
       <% end -%>
-      <% ad_rand = Random::DEFAULT.rand(50000000) %>
+      <% ad_rand = Random.rand(50000000) %>
       <% ad_zone = Danbooru.config.ads_zone_desktop %>
       <noscript class="adzone">
         <a href='https://ads.dragonfru.it/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>' target='_blank' rel="nofollow noopener">
