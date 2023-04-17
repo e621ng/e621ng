@@ -40,18 +40,22 @@ class IqdbQueriesController < ApplicationController
 
   def new_version
     if params[:file]
-      @matches = IqdbProxyNew.query_file(params[:file].tempfile)
+      @matches = iqdb_proxy(:query_file, params[:file].tempfile)
     elsif params[:url].present?
       parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
       raise User::PrivilegeError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise User::PrivilegeError, "Not allowed to request content from this URL" unless whitelist_result[0]
-      @matches = IqdbProxyNew.query_url(params[:url])
+      @matches = iqdb_proxy(:query_url, params[:url])
     elsif params[:post_id]
-      @matches = IqdbProxyNew.query_post(Post.find(params[:post_id]))
+      @matches = iqdb_proxy(:query_post, Post.find(params[:post_id]))
     elsif params[:hash]
-      @matches = IqdbProxyNew.query_hash(params[:hash])
+      @matches = iqdb_proxy(:query_hash, params[:hash])
     end
+  end
+
+  def iqdb_proxy(method, value)
+    IqdbProxyNew.send(method, value, params[:score_cutoff])
   end
 
   def throttle

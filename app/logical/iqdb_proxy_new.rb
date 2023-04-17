@@ -30,40 +30,40 @@ module IqdbProxyNew
     raise Error, "iqdb request failed" if response.code != 200
   end
 
-  def query_url(image_url)
+  def query_url(image_url, score_cutoff)
     file, _strategy = Downloads::File.new(image_url).download!
-    query_file(file)
+    query_file(file, score_cutoff)
   end
 
-  def query_post(post)
+  def query_post(post, score_cutoff)
     return [] unless post.has_preview?
 
     File.open(post.preview_file_path) do |f|
-      query_file(f)
+      query_file(f, score_cutoff)
     end
   end
 
-  def query_file(file)
+  def query_file(file, score_cutoff)
     thumb = generate_thumbnail(file.path)
     return [] unless thumb
 
     response = make_request("/query", :post, get_channels_data(thumb))
     return [] if response.code != 200
 
-    process_iqdb_result(response.parsed_response)
+    process_iqdb_result(response.parsed_response, score_cutoff)
   end
 
-  def query_hash(hash)
+  def query_hash(hash, score_cutoff)
     response = make_request "/query", :post, { hash: hash }
     return [] if response.code != 200
 
-    process_iqdb_result(response.parsed_response)
+    process_iqdb_result(response.parsed_response, score_cutoff)
   end
 
-  def process_iqdb_result(json, score_cutoff = 80)
+  def process_iqdb_result(json, score_cutoff)
     raise Error, "Server returned an error. Most likely the url is not found." unless json.is_a?(Array)
 
-    json.filter! { |entry| (entry["score"] || 0) >= score_cutoff }
+    json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff || 80).to_i }
     json.map do |x|
       x["post"] = Post.find(x["post_id"])
       x
