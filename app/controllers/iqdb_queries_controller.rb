@@ -3,39 +3,63 @@ class IqdbQueriesController < ApplicationController
   before_action :detect_xhr, :throttle
 
   def show
-    if params[:file]
-      @matches = IqdbProxy.query_file(params[:file].tempfile)
-    elsif params[:url].present?
-      parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
-      raise User::PrivilegeError.new("Invalid URL") unless parsed_url
-      whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
-      raise User::PrivilegeError.new("Not allowed to request content from this URL") unless whitelist_result[0]
-      @matches = IqdbProxy.query(params[:url])
-    elsif params[:post_id]
-      @matches = IqdbProxy.query_path(Post.find(params[:post_id]).preview_file_path)
+    if params[:v2].present?
+      new_version
+    else
+      old_version
     end
 
     respond_with(@matches) do |fmt|
       fmt.html do |html|
-        html.xhr { render layout: false}
+        html.xhr { render layout: false }
       end
 
       fmt.json do
-        render json: @matches, root: 'posts'
+        render json: @matches, root: "posts"
       end
     end
-  rescue IqdbProxy::Error => e
+  rescue IqdbProxy::Error, IqdbProxyNew::Error => e
     render_expected_error(500, e.message)
   end
 
-private
+  private
+
+  def old_version
+    if params[:file]
+      @matches = IqdbProxy.query_file(params[:file].tempfile)
+    elsif params[:url].present?
+      parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
+      raise User::PrivilegeError "Invalid URL" unless parsed_url
+      whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
+      raise User::PrivilegeError "Not allowed to request content from this URL" unless whitelist_result[0]
+      @matches = IqdbProxy.query(params[:url])
+    elsif params[:post_id]
+      @matches = IqdbProxy.query_path(Post.find(params[:post_id]).preview_file_path)
+    end
+  end
+
+  def new_version
+    if params[:file]
+      @matches = IqdbProxyNew.query_file(params[:file].tempfile)
+    elsif params[:url].present?
+      parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
+      raise User::PrivilegeError, "Invalid URL" unless parsed_url
+      whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
+      raise User::PrivilegeError, "Not allowed to request content from this URL" unless whitelist_result[0]
+      @matches = IqdbProxyNew.query_url(params[:url])
+    elsif params[:post_id]
+      @matches = IqdbProxyNew.query_post(Post.find(params[:post_id]))
+    elsif params[:hash]
+      @matches = IqdbProxyNew.query_hash(params[:hash])
+    end
+  end
 
   def throttle
     if params[:file] || params[:url] || params[:post_id]
-      unless RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
-        RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
+      if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds) && !Danbooru.config.disable_throttles?
+        raise APIThrottled
       else
-        raise APIThrottled.new
+        RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
       end
     end
   end

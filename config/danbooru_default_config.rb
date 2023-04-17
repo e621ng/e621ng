@@ -723,6 +723,9 @@ module Danbooru
     def iqdbs_server
     end
 
+    def iqdb_server
+    end
+
     def elasticsearch_host
       '127.0.0.1'
     end
