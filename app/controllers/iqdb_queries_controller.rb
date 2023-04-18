@@ -29,9 +29,9 @@ class IqdbQueriesController < ApplicationController
       @matches = IqdbProxy.query_file(params[:file].tempfile)
     elsif params[:url].present?
       parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
-      raise User::PrivilegeError "Invalid URL" unless parsed_url
+      raise User::PrivilegeError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
-      raise User::PrivilegeError "Not allowed to request content from this URL" unless whitelist_result[0]
+      raise User::PrivilegeError, "Not allowed to request content from this URL" unless whitelist_result[0]
       @matches = IqdbProxy.query(params[:url])
     elsif params[:post_id]
       @matches = IqdbProxy.query_path(Post.find(params[:post_id]).preview_file_path)
