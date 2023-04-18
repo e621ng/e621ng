@@ -1,26 +1,30 @@
 module FileMethods
   def is_image?
-    file_ext =~ /jpg|jpeg|gif|png/i
+    is_png? || is_jpg? || is_gif?
   end
 
   def is_png?
-    file_ext =~ /png/i
+    file_ext == "png"
+  end
+
+  def is_jpg?
+    file_ext == "jpg"
   end
 
   def is_gif?
-    file_ext =~ /gif/i
+    file_ext == "gif"
   end
 
   def is_flash?
-    file_ext =~ /swf/i
+    file_ext == "swf"
   end
 
   def is_webm?
-    file_ext =~ /webm/i
+    file_ext == "webm"
   end
 
   def is_mp4?
-    file_ext =~ /mp4/i
+    file_ext == "mp4"
   end
 
   def is_video?
