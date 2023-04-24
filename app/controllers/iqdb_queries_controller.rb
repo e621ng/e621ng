@@ -37,7 +37,7 @@ class IqdbQueriesController < ApplicationController
   end
 
   def throttle
-    if params[:file] || params[:url] || params[:post_id]
+    if params[:file] || params[:url] || params[:post_id] || params[:hash]
       if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds) && !Danbooru.config.disable_throttles?
         raise APIThrottled
       else
