@@ -63,7 +63,7 @@ module IqdbProxy
   def process_iqdb_result(json, score_cutoff)
     raise Error, "Server returned an error. Most likely the url is not found." unless json.is_a?(Array)
 
-    json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff || 80).to_i }
+    json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff || 60).to_i }
     json.map do |x|
       x["post"] = Post.find(x["post_id"])
       x
