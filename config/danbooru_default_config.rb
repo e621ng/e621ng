@@ -720,9 +720,6 @@ module Danbooru
       true
     end
 
-    def iqdbs_server
-    end
-
     def iqdb_server
     end
 

@@ -5,6 +5,6 @@ class IqdbUpdateJobNew < ApplicationJob
     post = Post.find_by id: post_id
     return unless post
 
-    IqdbProxyNew.update_post(post)
+    IqdbProxy.update_post(post)
   end
 end
