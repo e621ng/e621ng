@@ -6,26 +6,18 @@ config/danbooru_local_config.rb
 config/deploy/*.rb
 config/application.yml
 config/newrelic.yml
-db/*.sqlite3
 doc/*
 log/*.log
 tmp/*
 public/data
 public/assets
 vendor/cache/*.gem
-.sass-cache
 .DS_Store
 coverage
 *~
 *.swp
 tmp/*.jpg
 tmp/*.png
-danbooru.db
-iqdb.db
-danbooru.sublime-project
-danbooru.sublime-workspace
-script/scratch.*
-test/fixtures/vcr_cassettes
 .gitconfig
 test/reports
 
