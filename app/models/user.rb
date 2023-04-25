@@ -58,6 +58,7 @@ class User < ApplicationRecord
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
+    is_bd_staff
   )
 
   include Danbooru::HasBitFlags
@@ -346,6 +347,10 @@ class User < ApplicationRecord
       is_member?
     end
 
+    def is_bd_staff?
+      is_bd_staff
+    end
+
     def is_approver?
       can_approve_posts?
     end
@@ -543,6 +548,10 @@ class User < ApplicationRecord
 
     def can_view_staff_notes?
       is_janitor?
+    end
+
+    def can_handle_takedowns?
+      is_bd_staff?
     end
 
     def can_upload?

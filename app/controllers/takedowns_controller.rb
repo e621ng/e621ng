@@ -1,6 +1,6 @@
 class TakedownsController < ApplicationController
   respond_to :html, :json
-  before_action :admin_only, only: [:update, :edit, :destroy, :add_by_ids, :add_by_tags, :count_matching_posts, :remove_by_ids]
+  before_action :takedown_edit_permissions_check, only: [:update, :edit, :destroy, :add_by_ids, :add_by_tags, :count_matching_posts, :remove_by_ids]
 
   def index
     @takedowns = Takedown.search(search_params).paginate(params[:page], limit: params[:limit])
@@ -98,9 +98,13 @@ class TakedownsController < ApplicationController
 
   def takedown_params
     permitted_params = %i[email source instructions reason post_ids reason_hidden]
-    if CurrentUser.is_admin?
+    if CurrentUser.can_handle_takedowns?
       permitted_params << %i[notes del_post_ids status]
     end
     params.require(:takedown).permit(*permitted_params, post_ids: [])
+  end
+
+  def takedown_edit_permissions_check
+    access_denied unless CurrentUser.can_handle_takedowns?
   end
 end
