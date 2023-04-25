@@ -41,7 +41,7 @@ module Admin
       unless @user.is_admin?
         @user.mark_verified! if params[:user][:verified].to_s.truthy?
         @user.mark_unverified! if params[:user][:verified].to_s.falsy?
-      end 
+      end
       @user.promote_to!(params[:user][:level], params[:user])
 
       old_username = @user.name
