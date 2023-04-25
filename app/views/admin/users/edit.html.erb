@@ -5,11 +5,13 @@
     <%= custom_form_for(@user, url: admin_user_path(@user), method: :put) do |f| %>
       <%= f.input :id, as: :hidden %>
       <%= f.input :name, input_html: { size: 50 } %>
-      <%= f.input :email, input_html: { size: 50 } %>
-      <div class="input">
-        <label class="block" for="user_verified">Email Verified</label>
-        <%= select_tag("user[verified]", options_for_select([["Yes", true], ["No", false]], @user.is_verified?)) %>
-      </div>
+      <% unless @user.is_admin? %>
+        <%= f.input :email, input_html: { size: 50 } %>
+        <div class="input">
+          <label class="block" for="user_verified">Email Verified</label>
+          <%= select_tag("user[verified]", options_for_select([["Yes", true], ["No", false]], @user.is_verified?)) %>
+        </div>
+      <% end %>
 
       <div class="input">
         <label class="block" for="user_enable_privacy_mode">Hide Favorites</label>

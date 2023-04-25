@@ -30,15 +30,18 @@ module Admin
       @user = User.find(params[:id])
       @user.validate_email_format = true
       @user.skip_email_blank_check = true
-      @user.update!(user_params)
+      @user.update!(user_params(@user))
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
       end
       if @user.saved_change_to_base_upload_limit
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
       end
-      @user.mark_verified! if params[:user][:verified].to_s.truthy?
-      @user.mark_unverified! if params[:user][:verified].to_s.falsy?
+
+      unless @user.is_admin?
+        @user.mark_verified! if params[:user][:verified].to_s.truthy?
+        @user.mark_unverified! if params[:user][:verified].to_s.falsy?
+      end 
       @user.promote_to!(params[:user][:level], params[:user])
 
       old_username = @user.name
@@ -82,8 +85,10 @@ module Admin
 
     private
 
-    def user_params
-      params.require(:user).slice(:profile_about, :profile_artinfo, :email, :base_upload_limit, :enable_privacy_mode).permit([:profile_about, :profile_artinfo, :email, :base_upload_limit, :enable_privacy_mode])
+    def user_params(user)
+      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
+      permitted_params << :email unless user.is_admin?
+      params.require(:user).slice(*permitted_params).permit(permitted_params)
     end
 
     def password_reset_permissions_check
