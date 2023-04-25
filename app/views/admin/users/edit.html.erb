@@ -20,10 +20,12 @@
       <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
       <%= f.input :base_upload_limit %>
 
-      <div class="input integer optional">
-        <label for="user_level" class="optional">Level</label>
-        <%= user_level_select(:user, :level) %>
-      </div>
+      <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>
+        <div class="input integer optional">
+          <label for="user_level" class="optional">Level</label>
+          <%= user_level_select(:user, :level) %>
+        </div>
+      <% end %>
 
       <div class="input">
         <label for="user_can_upload_free" class="optional">Unrestricted Uploads</label>

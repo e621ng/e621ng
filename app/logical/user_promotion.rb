@@ -71,7 +71,8 @@ class UserPromotion
   end
 
   def validate
-    # admins can do anything
+    raise User::PrivilegeError if user.is_bd_staff? && !promoter.is_bd_staff?
+
     return if promoter.is_admin?
 
     # can't promote/demote moderators
