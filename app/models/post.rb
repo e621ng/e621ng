@@ -1550,7 +1550,6 @@ class Post < ApplicationRecord
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          IqdbRemoveJob.perform_async(post_id)
           IqdbRemoveJobNew.perform_later(post_id)
         end
       end
@@ -1558,7 +1557,6 @@ class Post < ApplicationRecord
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        IqdbUpdateJob.perform_async(id, "md5:#{md5}.jpg")
         IqdbUpdateJobNew.perform_later(id)
       end
     end
