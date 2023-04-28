@@ -38,7 +38,7 @@ module Admin
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
       end
 
-      unless @user.is_admin?
+      if @user.is_bd_staff?
         @user.mark_verified! if params[:user][:verified].to_s.truthy?
         @user.mark_unverified! if params[:user][:verified].to_s.falsy?
       end
@@ -87,7 +87,7 @@ module Admin
 
     def user_params(user)
       permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
-      permitted_params << :email unless user.is_admin?
+      permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
     end
 
