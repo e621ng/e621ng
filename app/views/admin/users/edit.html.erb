@@ -5,7 +5,7 @@
     <%= custom_form_for(@user, url: admin_user_path(@user), method: :put) do |f| %>
       <%= f.input :id, as: :hidden %>
       <%= f.input :name, input_html: { size: 50 } %>
-      <% if @user.is_bd_staff? %>
+      <% if CurrentUser.is_bd_staff? %>
         <%= f.input :email, input_html: { size: 50 } %>
         <div class="input">
           <label class="block" for="user_verified">Email Verified</label>

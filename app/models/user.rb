@@ -64,7 +64,7 @@ class User < ApplicationRecord
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
 
-  attr_accessor :password, :old_password, :validate_email_format, :skip_email_blank_check
+  attr_accessor :password, :old_password, :validate_email_format, :is_admin_edit
 
   after_initialize :initialize_attributes, if: :new_record?
 
@@ -396,8 +396,8 @@ class User < ApplicationRecord
     end
 
     def enable_email_verification?
-      # Allow admins to edit users with blank emails
-      return false if email.blank? && !email_changed? && skip_email_blank_check
+      # Allow admins to edit users with blank/duplicate emails
+      return false if is_admin_edit && !email_changed?
       Danbooru.config.enable_email_verification? && validate_email_format
     end
 

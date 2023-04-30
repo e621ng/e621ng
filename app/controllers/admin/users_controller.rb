@@ -29,8 +29,8 @@ module Admin
     def update
       @user = User.find(params[:id])
       @user.validate_email_format = true
-      @user.skip_email_blank_check = true
-      @user.update!(user_params(@user))
+      @user.is_admin_edit = true
+      @user.update!(user_params(CurrentUser.user))
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
       end

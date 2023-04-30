@@ -4,7 +4,7 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
   context "Admin::UsersController" do
     setup do
       @user = create(:user)
-      @admin = create(:admin_user)
+      @admin = create(:admin_user, is_bd_staff: true)
     end
 
     context "#edit" do
@@ -36,16 +36,36 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "succeed" do
-          put_auth admin_user_path(@user), @admin, params: { user: { level: "20", email: "" } }
+          put_auth admin_user_path(@user), @admin, params: { user: { level: "30", email: "" } }
           assert_redirected_to(user_path(@user))
           @user.reload
-          assert_equal(20, @user.level)
+          assert_equal(30, @user.level)
         end
 
         should "prevent invalid emails" do
           put_auth admin_user_path(@user), @admin, params: { user: { level: "10", email: "invalid" } }
           @user.reload
           assert_equal("", @user.email)
+        end
+      end
+
+      context "on a user with duplicate email" do
+        setup do
+          @user1 = create(:user, email: "test@e621.net")
+          @user2 = create(:user, email: "test@e621.net")
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "allow editing if the email is not changed" do
+          put_auth admin_user_path(@user1), @admin, params: { user: { level: "30" } }
+          @user1.reload
+          assert_equal(30, @user1.level)
+        end
+
+        should "allow changing the email" do
+          put_auth admin_user_path(@user1), @admin, params: { user: { level: "20", email: "abc@e621.net" } }
+          @user1.reload
+          assert_equal("abc@e621.net", @user1.email)
         end
       end
     end
