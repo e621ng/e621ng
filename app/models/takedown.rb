@@ -200,7 +200,7 @@ class Takedown < ApplicationRecord
     end
 
     def process!(approver, del_reason)
-      TakedownJob.perform_async(id, approver.id, del_reason)
+      TakedownJobCopy.perform_later(id, approver.id, del_reason)
     end
   end
 
