@@ -29,7 +29,7 @@ module Indexable
 
     if defer
       if priority == :high
-        IndexUpdateJobCopy.perform_later(self.class.to_s, id)
+        IndexUpdateJob.perform_later(self.class.to_s, id)
       elsif priority == :rebuild
         IndexRebuildJob.perform_later(self.class.to_s, id)
       else

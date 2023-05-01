@@ -215,9 +215,9 @@ class Post < ApplicationRecord
 
     def generate_video_samples(later: false)
       if later
-        PostVideoConversionJobCopy.set(wait: 1.minute).perform_later(id)
+        PostVideoConversionJob.set(wait: 1.minute).perform_later(id)
       else
-        PostVideoConversionJobCopy.perform_later(id)
+        PostVideoConversionJob.perform_later(id)
       end
     end
 
@@ -1550,14 +1550,14 @@ class Post < ApplicationRecord
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          IqdbRemoveJobNew.perform_later(post_id)
+          IqdbRemoveJob.perform_later(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        IqdbUpdateJobNew.perform_later(id)
+        IqdbUpdateJob.perform_later(id)
       end
     end
 
