@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-class TakedownJob
-  include Sidekiq::Worker
-  sidekiq_options queue: 'high_prio', lock: :until_executing, lock_args_method: :lock_args
+class TakedownJobCopy < ApplicationJob
+  queue_as :high_prio
+  sidekiq_options lock: :until_executing, lock_args_method: :lock_args
 
   def self.lock_args(args)
     [args[0]]
@@ -13,7 +13,7 @@ class TakedownJob
     @approver = User.find(approver)
     @takedown.approver_id = @approver.id
     CurrentUser.scoped(@approver) do
-      ModAction.log(:takedown_process, {takedown_id: @takedown.id})
+      ModAction.log(:takedown_process, { takedown_id: @takedown.id })
     end
 
     CurrentUser.as_system do
@@ -30,5 +30,4 @@ class TakedownJob
       end
     end
   end
-
 end

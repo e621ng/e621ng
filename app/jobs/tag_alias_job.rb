@@ -1,6 +1,6 @@
-class TagAliasJob
-  include Sidekiq::Worker
-  sidekiq_options queue: 'tags', lock: :until_executed, lock_args_method: :lock_args
+class TagAliasJob < ApplicationJob
+  queue_as :tags
+  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
 
   def self.lock_args(args)
     [args[0]]

@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
-class IndexUpdateJob
-  include Sidekiq::Worker
-  sidekiq_options queue: 'high_prio', lock: :until_executing
+class IndexUpdateJob < ApplicationJob
+  queue_as :high_prio
+  sidekiq_options lock: :until_executing
 
   def perform(klass, id)
-    begin
-      obj = klass.constantize.find(id)
-      obj.update_index(defer: false) if obj
-    rescue ActiveRecord::RecordNotFound
-      return
-    end
+    obj = klass.constantize.find(id)
+    obj.update_index(defer: false)
+  rescue ActiveRecord::RecordNotFound
+    # Do nothing
   end
 end
