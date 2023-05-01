@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class TakedownJob < ApplicationJob
+class TakedownJobCopy < ApplicationJob
   queue_as :high_prio
   sidekiq_options lock: :until_executing, lock_args_method: :lock_args
 
