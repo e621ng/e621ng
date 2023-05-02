@@ -6,7 +6,7 @@ class IndexUpdateJob < ApplicationJob
 
   def perform(klass, id)
     obj = klass.constantize.find(id)
-    obj.update_index(defer: false)
+    obj.update_index!
   rescue ActiveRecord::RecordNotFound
     # Do nothing
   end
