@@ -1,5 +1,5 @@
 class IqdbUpdateJob < ApplicationJob
-  queue_as :iqdb_new
+  queue_as :iqdb
 
   def perform(post_id)
     post = Post.find_by id: post_id
