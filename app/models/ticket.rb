@@ -195,6 +195,18 @@ class Ticket < ApplicationRecord
 
     def initialize_fields
       self.status = "pending"
+      case qtype
+      when "blip"
+        self.accused_id = Blip.find(disp_id).creator_id
+      when "forum"
+        self.accused_id = ForumPost.find(disp_id).creator_id
+      when "comment"
+        self.accused_id = Comment.find(disp_id).creator_id
+      when "dmail"
+        self.accused_id = Dmail.find(disp_id).from_id
+      when "user"
+        self.accused_id = disp_id
+      end
     end
   end
 
@@ -217,7 +229,11 @@ class Ticket < ApplicationRecord
 
       if params[:accused_name].present?
         user_id = User.name_to_id(params[:accused_name])
-        q = q.where('disp_id = ? and qtype = ?', user_id, 'user') if user_id
+        q = q.where('accused_id = ?', user_id) if user_id
+      end
+
+      if params[:accused_id].present?
+        q = q.where('accused_id = ?', params[:accused_id].to_i)
       end
 
       if params[:qtype].present?
