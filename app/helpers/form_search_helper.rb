@@ -11,7 +11,10 @@ module FormSearchHelper
       defaults: { required: false },
       html: { class: "inline-form" },
     }) do |f|
-      capture { yield(f) } + f.submit("Search")
+      id_input = f.input(:id, label: "ID", hide_unless_value: true)
+      created_at_input = f.input(:created_at, hide_unless_value: true)
+      updated_at_input = f.input(:updated_at, hide_unless_value: true)
+      id_input + created_at_input + updated_at_input + capture { yield(f) } + f.submit("Search")
     end
     render "application/form_search", hideable: hideable, show_on_load: show_on_load, form: form
   end
@@ -22,6 +25,7 @@ module FormSearchHelper
   def filled_form_fields(&)
     form_field_collector = FormFieldCollector.new
     capture { yield(form_field_collector) }
-    form_field_collector.fields & params[:search].keys.map(&:to_sym)
+    available_fields = %i[id created_at updated_at] + form_field_collector.fields
+    available_fields & params[:search].keys.map(&:to_sym)
   end
 end
