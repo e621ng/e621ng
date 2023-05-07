@@ -2,5 +2,4 @@
   <%= f.input :domain, label: "Domain", hint: "Use * for wildcard" %>
   <%= f.input :reason, label: "Ban Reason" %>
   <%= f.input :order, collection: [["Recently created", "id"], ["Last updated", "updated_at"], ["Domain", "domain"], ["Reason", "reason"]] %>
-  <%= f.submit "Search" %>
 <% end %>

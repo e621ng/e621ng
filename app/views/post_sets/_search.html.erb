@@ -6,5 +6,4 @@
     <%= f.input :is_public, label: "Public?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% end %>
   <%= f.input :order, collection: [%w[Name name], ['Short Name', 'shortname'], ['Post Count', 'post_count'], %w[Created created_at], %w[Updated updated_at]], include_blank: false %>
-  <%= f.submit "Search" %>
 <% end %>

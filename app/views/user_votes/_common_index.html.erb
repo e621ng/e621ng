@@ -13,7 +13,6 @@
         <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean %>
         <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]] %>
       <% end %>
-      <%= f.submit "Search" %>
     <% end %>
 
     <table class="striped" id='votes'>

@@ -8,5 +8,4 @@
   <%= f.input :uploader_name_on_approve, label: "Original Uploader", autocomplete: "user" %>
   <%= f.input :uploader_id_on_approve, label: "Original Uploader ID", hide_unless_value: true %>
   <%= f.input :status, collection: ["pending", "rejected", "approved", "promoted"], include_blank: true %>
-  <%= f.submit "Search" %>
 <% end %>

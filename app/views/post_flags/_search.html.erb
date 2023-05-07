@@ -9,5 +9,4 @@
   <% end %>
   <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :category, label: "Category", collection: ["normal", "unapproved", "deleted", "banned", "duplicate"], include_blank: true %>
-  <%= f.submit "Search" %>
 <% end %>

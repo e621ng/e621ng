@@ -10,5 +10,4 @@
   <%= f.input :consequent_tag_category, label: "To Category", collection: TagCategory.canonical_mapping.to_a, include_blank: true %>
   <%= f.input :status, label: "Status", collection: %w[Approved Active Pending Deleted Retired Processing Queued], include_blank: true %>
   <%= f.input :order, label: "Order", collection: [%w[Status status], %w[Recently\ created created_at], %w[Recently\ updated updated_at], %w[Name name], %w[Tag\ count tag_count]] %>
-  <%= f.submit "Search" %>
 <% end %>

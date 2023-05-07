@@ -10,7 +10,9 @@ module FormSearchHelper
       search_params: params[:search],
       defaults: { required: false },
       html: { class: "inline-form" },
-    }, &)
+    }) do |f|
+      capture { yield(f) } + f.submit("Search")
+    end
     render "application/form_search", hideable: hideable, show_on_load: show_on_load, form: form
   end
 
