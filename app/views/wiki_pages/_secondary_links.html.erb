@@ -18,7 +18,7 @@
       <%= subnav_link_to "Posts (#{@wiki_page.tag.post_count})", posts_path(tags: @wiki_page.title) %>
 
       <% if CurrentUser.is_member? %>
-        <%= subnav_link_to "Edit Tag", edit_tag_path(@wiki_page.tag) %>
+        <%= subnav_link_to "Edit Tag Type", edit_tag_path(@wiki_page.tag) %>
         <% if CurrentUser.is_janitor? %>
           <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
         <% end %>
