@@ -15,6 +15,7 @@ class Ticket < ApplicationRecord
   validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
+  has_one :post_report_reason, foreign_key: "id", primary_key: "report_reason"
 
   attr_accessor :record_type, :send_update_dmail
 
