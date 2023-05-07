@@ -5,7 +5,11 @@ class ModActionsController < ApplicationController
     @mod_actions = ModActionDecorator.decorate_collection(
       ModAction.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit]),
     )
-    respond_with(@mod_actions)
+    respond_with(@mod_actions) do |format|
+      format.json do
+        render json: @mod_actions.to_json
+      end
+    end
   end
 
   def show
