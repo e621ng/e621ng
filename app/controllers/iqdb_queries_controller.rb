@@ -1,11 +1,14 @@
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
+  # Show uses POST because it needs a file parameter. This would be GET otherwise.
+  skip_forgery_protection only: :show
 
   def show
     # Allow legacy ?post_id=123 parameters
     search_params = params[:search].presence || params
     throttle(search_params)
 
+    @matches = []
     if search_params[:file].present?
       @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff])
     elsif search_params[:url].present?
