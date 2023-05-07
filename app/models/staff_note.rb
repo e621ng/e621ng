@@ -2,8 +2,6 @@ class StaffNote < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :user
 
-  after_create :add_audit_entry
-
   module SearchMethods
     def for_creator(user_id)
       user_id.present? ? where("creator_id = ?", user_id) : none
@@ -53,10 +51,6 @@ class StaffNote < ApplicationRecord
   end
 
   extend SearchMethods
-
-  def add_audit_entry
-    StaffAuditLog.log(:staff_note_add, creator, { user_id: user_id })
-  end
 
   def resolve!
     self.resolved = true
