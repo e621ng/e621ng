@@ -66,7 +66,7 @@ class ApplicationController < ActionController::Base
       cookies.delete :remember
       render_expected_error(401, exception.message)
     when ActionController::InvalidAuthenticityToken
-      render_error_page(403, exception)
+      render_expected_error(403, "ActionController::InvalidAuthenticityToken. Did you properly authorize your request?")
     when ActiveRecord::RecordNotFound
       render_404
     when ActionController::RoutingError
