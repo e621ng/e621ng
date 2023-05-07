@@ -15,23 +15,28 @@ module Admin
         redirect_back fallback_location: new_admin_reowner_path
         return
       end
-      ModAction.log(:post_owner_reassign)
+
+      moved_post_ids = []
       Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).records.each do |p|
+        moved_post_ids << p.id
         p.do_not_version_changes = true
-        p.update({uploader_id: @new_user.id})
+        p.update({ uploader_id: @new_user.id })
         p.versions.where(updater_id: @old_user.id).each do |pv|
           pv.update_column(:updater_id, @new_user.id)
           pv.reload
           pv.__elasticsearch__.index_document
         end
       end
+
+      StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: @old_user.id, new_user_id: @new_user.id, query: query, post_ids: moved_post_ids })
       flash[:notice] = "Post ownership reassigned"
       redirect_back fallback_location: new_admin_reowner_path
     end
 
     private
+
     def new_params
-      params.require(:reowner).permit([:old_owner, :search, :new_owner])
+      params.require(:reowner).permit(%i[old_owner search new_owner])
     end
   end
 end
