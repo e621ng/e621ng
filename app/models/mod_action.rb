@@ -3,8 +3,6 @@ class ModAction < ApplicationRecord
   before_validation :initialize_creator, :on => :create
   validates :creator_id, presence: true
 
-  serialize :values_old
-
   KnownActions = [
       :artist_page_rename,
       :artist_page_lock,
