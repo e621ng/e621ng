@@ -1,11 +1,16 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "List", help_pages_path %>
-  <% if CurrentUser.is_admin? %>
-    <%= subnav_link_to "New", new_help_page_path %>
+  <% if CurrentUser.is_janitor? %>
+    <% if CurrentUser.is_admin? %>
+      <%= subnav_link_to "New", new_help_page_path %>
+    <% end %>
+
     <% if @help&.id %>
-      <%= subnav_link_to "Edit", edit_help_page_path(@help) %>
-      <%= subnav_link_to "Delete", help_page_path(@help), method: :delete, data: { confirm: "Are you sure you want to delete this entry?" } %>
-      <%= subnav_link_to "Edit Wiki Page", edit_wiki_page_path(id: @help.wiki_page, help: @help.name) %>
+      <% if CurrentUser.is_admin? %>
+        <%= subnav_link_to "Edit", edit_help_page_path(@help) %>
+        <%= subnav_link_to "Delete", help_page_path(@help), method: :delete, data: { confirm: "Are you sure you want to delete this entry?" } %>
+      <% end %>
+      <%= subnav_link_to "Edit Wiki Page", edit_wiki_page_path(@wiki_page) %>
     <% end %>
   <% end %>
   <% if @help && @related %>
