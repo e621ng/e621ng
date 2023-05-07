@@ -1,10 +1,9 @@
 module FormSearchHelper
-  def form_search(path:, always_display: false, &)
+  def form_search(path:, always_display: false, hideable: request.path.split("/")[2] != "search", method: :get, &)
     # dedicated search routes like /comments/search should always show
-    hideable = request.path.split("/")[2] != "search"
     show_on_load = filled_form_fields(&).any? || always_display || !hideable
     form = simple_form_for(:search, {
-      method: :get,
+      method: method,
       url: path,
       builder: SearchFormBuilder,
       search_params: params[:search],

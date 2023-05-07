@@ -168,8 +168,6 @@ Rails.application.routes.draw do
   resource :iqdb_queries, :only => [:show] do
     collection do
       post :show
-      get :preview
-      get :check, to: redirect {|path_params, req| "/iqdb_queries?#{req.query_string}"}
     end
   end
   resources :mod_actions

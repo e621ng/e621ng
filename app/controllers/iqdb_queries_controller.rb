@@ -1,20 +1,23 @@
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
-  before_action :throttle
 
   def show
-    if params[:file]
-      @matches = iqdb_proxy(:query_file, params[:file].tempfile)
-    elsif params[:url].present?
-      parsed_url = Addressable::URI.heuristic_parse(params[:url]) rescue nil
+    # Allow legacy ?post_id=123 parameters
+    search_params = params[:search].presence || params
+    throttle(search_params)
+
+    if search_params[:file].present?
+      @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff])
+    elsif search_params[:url].present?
+      parsed_url = Addressable::URI.heuristic_parse(search_params[:url]) rescue nil
       raise User::PrivilegeError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise User::PrivilegeError, "Not allowed to request content from this URL" unless whitelist_result[0]
-      @matches = iqdb_proxy(:query_url, params[:url])
-    elsif params[:post_id]
-      @matches = iqdb_proxy(:query_post, Post.find(params[:post_id]))
-    elsif params[:hash]
-      @matches = iqdb_proxy(:query_hash, params[:hash])
+      @matches = IqdbProxy.query_url(search_params[:url], search_params[:score_cutoff])
+    elsif search_params[:post_id].present?
+      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff])
+    elsif search_params[:hash].present?
+      @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff])
     end
 
     respond_with(@matches) do |fmt|
@@ -28,13 +31,11 @@ class IqdbQueriesController < ApplicationController
 
   private
 
-  def iqdb_proxy(method, value)
-    IqdbProxy.send(method, value, params[:score_cutoff])
-  end
+  def throttle(search_params)
+    return if Danbooru.config.disable_throttles?
 
-  def throttle
-    if params[:file] || params[:url] || params[:post_id] || params[:hash]
-      if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds) && !Danbooru.config.disable_throttles?
+    if %i[file url post_id hash].any? { |key| search_params[key].present? }
+      if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
         raise APIThrottled
       else
         RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
