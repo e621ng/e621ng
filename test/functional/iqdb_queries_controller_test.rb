@@ -25,7 +25,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
 
         should "render a response" do
           IqdbProxy.expects(:query_url).with(@url, nil).returns(@mocked_response)
-          get_auth iqdb_queries_path(variant: "xhr"), @user, params: @params
+          get_auth iqdb_queries_path, @user, params: @params
           assert_select("#post_#{@posts[0].id}")
         end
       end

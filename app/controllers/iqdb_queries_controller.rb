@@ -1,6 +1,6 @@
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
-  before_action :detect_xhr, :throttle
+  before_action :throttle
 
   def show
     if params[:file]
@@ -18,10 +18,6 @@ class IqdbQueriesController < ApplicationController
     end
 
     respond_with(@matches) do |fmt|
-      fmt.html do |html|
-        html.xhr { render layout: false }
-      end
-
       fmt.json do
         render json: @matches, root: "posts"
       end
@@ -43,12 +39,6 @@ class IqdbQueriesController < ApplicationController
       else
         RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
       end
-    end
-  end
-
-  def detect_xhr
-    if request.xhr?
-      request.variant = :xhr
     end
   end
 end
