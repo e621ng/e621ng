@@ -20,9 +20,7 @@
     <% end %>
 
     <% unless @children.nil? %>
-      <div id="paginator">
-        <%= numbered_paginator(@children) %>
-      </div>
+      <%= numbered_paginator(@children) %>
     <% end %>
   </div>
 </div>

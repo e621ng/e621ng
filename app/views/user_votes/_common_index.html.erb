@@ -70,9 +70,7 @@
       new Danbooru.VoteManager('<%= type.model_type %>');
     <% end -%>
 
-    <div id="paginator">
-      <%= numbered_paginator(votes) %>
-    </div>
+    <%= numbered_paginator(votes) %>
   </div>
 </div>
 

@@ -24,9 +24,7 @@
   </tbody>
 </table>
 
-<div id="paginator">
-  <%= numbered_paginator(@posts) %>
-</div>
+<%= numbered_paginator(@posts) %>
 
 <% content_for(:page_title) do %>
   Deleted Posts
