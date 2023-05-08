@@ -103,8 +103,9 @@ private
 
   def load_session_user
     user = User.find_by_id(session[:user_id])
+    raise AuthenticationFailure if user.nil?
     return if session[:ph] != user.password_token
-    CurrentUser.user = user if user
+    CurrentUser.user = user
   end
 
   def update_last_logged_in_at
