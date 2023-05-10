@@ -99,7 +99,6 @@ class PostSerializer < ActiveModel::Serializer
         note_locked: nullable_to_truthy(object.is_note_locked),
         status_locked: nullable_to_truthy(object.is_status_locked),
         rating_locked: nullable_to_truthy(object.is_rating_locked),
-        comment_disabled: CurrentUser.is_moderator? ? nullable_to_truthy(object.is_comment_disabled) : false,
         deleted: object.is_deleted
     }
   end
@@ -138,8 +137,7 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   def comment_count
-    return 0 unless CurrentUser.is_moderator? || !nullable_to_truthy(object.is_comment_disabled)
-    object.comment_count
+    object.visible_comment_count(CurrentUser)
   end
 
   attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,

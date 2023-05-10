@@ -169,7 +169,7 @@ class PostPresenter < Presenter
         created_at: post.created_at,
         updated_at: post.updated_at,
         fav_count: post.fav_count,
-        comment_count: post.comment_count,
+        comment_count: post.visible_comment_count(CurrentUser),
         change_seq: post.change_seq,
         uploader_id: post.uploader_id,
         description: post.description,
