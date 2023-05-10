@@ -1977,7 +1977,8 @@ CREATE TABLE public.tickets (
     handler_id integer DEFAULT 0 NOT NULL,
     claimant_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    accused_id integer
 );
 
 
@@ -4328,6 +4329,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT fk_rails_45cd696dba FOREIGN KEY (accused_id) REFERENCES public.users(id);
+
+
+--
 -- Name: mascots fk_rails_9901e810fa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4628,6 +4637,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230226152600'),
 ('20230312103728'),
 ('20230314170352'),
-('20230316084945');
+('20230316084945'),
+('20230506161827');
 
 
