@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
+    resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
