@@ -16,24 +16,23 @@ module Admin
 
       dnp_tags = %w[avoid_posting conditional_dnp]
       post_ids = []
-      Post.tag_match(query).limit(1000).records.each do |p|
-        contains_avoid_posting = p.has_tag?("avoid_posting")
-        contains_conditional_dnp = p.has_tag?("conditional_dnp")
-        if !contains_avoid_posting && !contains_conditional_dnp
-          next
-        end
+      CurrentUser.without_safe_mode do
+        Post.tag_match("#{query} ~avoid_posting ~conditional_dnp").limit(1000).records.each do |p|
+          contains_avoid_posting = p.has_tag?("avoid_posting")
+          contains_conditional_dnp = p.has_tag?("conditional_dnp")
 
-        p.do_not_version_changes = true
+          p.do_not_version_changes = true
 
-        locked_tags = Tag.scan_tags((p.locked_tags || "").downcase)
-        locked_tags -= dnp_tags
-        p.locked_tags = locked_tags.join(" ")
-        p.remove_tag(dnp_tags)
+          locked_tags = Tag.scan_tags((p.locked_tags || "").downcase)
+          locked_tags -= dnp_tags
+          p.locked_tags = locked_tags.join(" ")
+          p.remove_tag(dnp_tags)
 
-        p.save
+          p.save
 
-        if contains_avoid_posting != p.has_tag?("avoid_posting") || contains_conditional_dnp != p.has_tag?("conditional_dnp")
-          post_ids << p.id
+          if contains_avoid_posting != p.has_tag?("avoid_posting") || contains_conditional_dnp != p.has_tag?("conditional_dnp")
+            post_ids << p.id
+          end
         end
       end
 
