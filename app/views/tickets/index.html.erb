@@ -9,6 +9,7 @@
           <th style="width:5%">ID</th>
           <% if CurrentUser.is_moderator? %>
             <th style="width:10%">Reporter</th>
+            <th style="width:10%">Accused</th>
             <th style="width:10%">Claimed By</th>
           <% end %>
           <th style="width:15%">Type</th>
@@ -25,13 +26,18 @@
             <td><%= link_to ticket.id, ticket_path(ticket) %></td>
             <% if CurrentUser.is_moderator? %>
               <td><%= link_to_user ticket.creator %></td>
-            <td>
-            <% if ticket.claimant.nil? %>
-              <span class="redtext">Unclaimed</span>
-            <% else %>
-              <%= link_to_user ticket.claimant %>
-            <% end %>
-            </td>
+              <td>
+                <% if ticket.accused %>
+                  <%= link_to_user ticket.accused %>
+                <% end %>
+              </td>
+              <td>
+              <% if ticket.claimant.nil? %>
+                <span class="redtext">Unclaimed</span>
+              <% else %>
+                <%= link_to_user ticket.claimant %>
+              <% end %>
+              </td>
             <% end %>
             <td><%= link_to ticket.type_title, ticket_path(ticket) %></td>
 

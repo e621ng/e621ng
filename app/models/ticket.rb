@@ -2,6 +2,7 @@ class Ticket < ApplicationRecord
   belongs_to_creator
   belongs_to :claimant, class_name: "User", optional: true
   belongs_to :handler, class_name: "User", optional: true
+  belongs_to :accused, class_name: "User", optional: true
   before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
