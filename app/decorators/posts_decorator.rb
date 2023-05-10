@@ -72,7 +72,7 @@ class PostsDecorator < ApplicationDecorator
     post_score_icon = "#{"&uarr;" if post.score > 0}#{"&darr;" if post.score < 0}#{"&varr;" if post.score == 0}"
     score = t.tag.span("#{post_score_icon}#{post.score}".html_safe, class: "post-score-score " + score_class(post.score))
     favs =  t.tag.span("&hearts;#{post.fav_count}".html_safe, class: 'post-score-faves')
-    comments = t.tag.span "C#{post.comment_count}", class: 'post-score-comments'
+    comments = t.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
     rating =  t.tag.span(post.rating.upcase, class: "post-score-rating")
     status = t.tag.span(status_flags.join(''), class: 'post-score-extras')
     t.tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
