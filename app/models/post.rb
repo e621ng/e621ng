@@ -1776,6 +1776,6 @@ class Post < ApplicationRecord
   end
 
   def visible_comment_count(user)
-    (user.is_moderator? || !is_comment_disabled) ? comment_count : 0
+    user.is_moderator? || !is_comment_disabled ? comment_count : 0
   end
 end
