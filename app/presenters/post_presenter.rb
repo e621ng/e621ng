@@ -129,11 +129,6 @@ class PostPresenter < Presenter
     attributes
   end
 
-  def self.nullable_to_truthy(v)
-    return false if v.nil?
-    v
-  end
-
   def self.post_attribute_attribute(post)
     alternate_samples = {}
     Danbooru.config.video_rescales.each do |k,v|
@@ -176,9 +171,9 @@ class PostPresenter < Presenter
         flags: {
             pending: post.is_pending,
             flagged: post.is_flagged,
-            note_locked: nullable_to_truthy(post.is_note_locked),
-            status_locked: nullable_to_truthy(post.is_status_locked),
-            rating_locked: nullable_to_truthy(post.is_rating_locked),
+            note_locked: post.is_note_locked,
+            status_locked: post.is_status_locked,
+            rating_locked: post.is_rating_locked,
             deleted: post.is_deleted,
             has_notes: post.has_notes?
         },

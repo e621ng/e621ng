@@ -1,9 +1,4 @@
 class PostSerializer < ActiveModel::Serializer
-  def nullable_to_truthy(v)
-    return false if v.nil?
-    v
-  end
-
   def tags
     tags = {}
     TagCategory.categories.each do |category|
@@ -96,9 +91,9 @@ class PostSerializer < ActiveModel::Serializer
     {
         pending: object.is_pending,
         flagged: object.is_flagged,
-        note_locked: nullable_to_truthy(object.is_note_locked),
-        status_locked: nullable_to_truthy(object.is_status_locked),
-        rating_locked: nullable_to_truthy(object.is_rating_locked),
+        note_locked: object.is_note_locked,
+        status_locked: object.is_status_locked,
+        rating_locked: object.is_rating_locked,
         deleted: object.is_deleted
     }
   end
