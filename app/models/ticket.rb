@@ -2,6 +2,7 @@ class Ticket < ApplicationRecord
   belongs_to_creator
   belongs_to :claimant, class_name: "User", optional: true
   belongs_to :handler, class_name: "User", optional: true
+  belongs_to :post_report_reason, foreign_key: "report_reason", optional: true
   before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
@@ -15,7 +16,6 @@ class Ticket < ApplicationRecord
   validate :validate_creator_is_not_limited, on: :create
 
   scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
-  has_one :post_report_reason, foreign_key: "id", primary_key: "report_reason"
 
   attr_accessor :record_type, :send_update_dmail
 
