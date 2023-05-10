@@ -4329,11 +4329,11 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
--- Name: tickets fk_rails_538a036fb9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tickets
-    ADD CONSTRAINT fk_rails_538a036fb9 FOREIGN KEY (accused_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_45cd696dba FOREIGN KEY (accused_id) REFERENCES public.users(id);
 
 
 --

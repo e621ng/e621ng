@@ -15,7 +15,7 @@ Ticket.where(qtype: "comment").find_each do |ticket|
 end
 
 Ticket.where(qtype: "dmail").find_each do |ticket|
-  ticket.update_column(:accused_id, DMail.find_by(id: ticket.disp_id)&.creator_id)
+  ticket.update_column(:accused_id, Dmail.find_by(id: ticket.disp_id)&.from_id)
 end
 
 Ticket.where(qtype: "user").find_each do |ticket|
