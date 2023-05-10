@@ -64,7 +64,7 @@
         <tr>
           <td><span class='title'>Reason</span></td>
           <td class="dtext-container">
-            <% if @ticket.qtype == "post" && !@ticket.post_report_reason.nil? %>
+            <% if @ticket.qtype == "post" && @ticket.post_report_reason.present? %>
                 <%= @ticket.post_report_reason.description %>
              <% end %>
             <%= format_text(@ticket.reason) %>
