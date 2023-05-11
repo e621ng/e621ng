@@ -325,21 +325,10 @@ class User < ApplicationRecord
       # TODO: HACK: Remove this and make the below logic better to work with the new setup.
       next if [0, 10].include?(value)
       normalized_name = name.downcase.tr(' ', '_')
-      define_method("is_exactly_#{normalized_name}?") do
-        self.level == value && self.id.present?
-      end
 
       # Changed from e6 to match new Danbooru semantics.
       define_method("is_#{normalized_name}?") do
         is_verified? && self.level >= value && self.id.present?
-      end
-
-      define_method("is_#{normalized_name}_or_higher?") do
-        is_verified? && self.level >= value && self.id.present?
-      end
-
-      define_method("is_#{normalized_name}_or_lower?") do
-        !is_verified? || (self.level <= value && self.id.present?)
       end
     end
 
@@ -604,7 +593,7 @@ class User < ApplicationRecord
     memoize :upload_limit_pieces
 
     def post_upload_throttle
-      return hourly_upload_limit if is_privileged_or_higher?
+      return hourly_upload_limit if is_privileged?
       [hourly_upload_limit, post_edit_limit].min
     end
     memoize :post_upload_throttle
