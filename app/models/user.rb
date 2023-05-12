@@ -765,7 +765,7 @@ class User < ApplicationRecord
           post_flag_count: PostFlag.for_creator(id).count,
           favorite_count: Favorite.for_user(id).count,
           wiki_edit_count: WikiPageVersion.for_user(id).count,
-          note_count: NoteVersion.where(updater_id: id).count,
+          note_count: NoteVersion.for_user(id).count,
           forum_post_count: ForumPost.for_user(id).count,
           comment_count: Comment.for_creator(id).count,
           pool_edit_count: PoolVersion.for_user(id).count,
