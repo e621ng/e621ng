@@ -770,7 +770,7 @@ class User < ApplicationRecord
           comment_count: Comment.for_creator(id).count,
           pool_edit_count: PoolVersion.for_user(id).count,
           blip_count: Blip.for_creator(id).count,
-          set_count: PostSet.for_user(id).count,
+          set_count: PostSet.for_creator(id).count,
           artist_edit_count: ArtistVersion.for_user(id).count,
           own_post_replaced_count: PostReplacement.for_user(id).count,
           own_post_replaced_penalize_count: PostReplacement.penalized.for_user(id).count,
