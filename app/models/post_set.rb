@@ -308,6 +308,10 @@ class PostSet < ApplicationRecord
       joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'approved', user_id)
     end
 
+    def for_user(user_id)
+      where("post_sets.creator_id = ?", user_id)
+    end
+
     def search(params)
       q = super
 

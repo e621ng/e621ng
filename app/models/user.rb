@@ -762,7 +762,19 @@ class User < ApplicationRecord
           post_count: Post.for_user(id).count,
           post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostVersion.for_user(id).count,
-          note_count: NoteVersion.where(updater_id: id).count
+          post_flag_count: PostFlag.for_creator(id).count,
+          favorite_count: Favorite.for_user(id).count,
+          wiki_edit_count: WikiPageVersion.for_user(id).count,
+          note_count: NoteVersion.where(updater_id: id).count,
+          forum_post_count: ForumPost.for_user(id).count,
+          comment_count: Comment.for_creator(id).count,
+          pool_edit_count: PoolVersion.for_user(id).count,
+          blip_count: Blip.for_creator(id).count,
+          set_count: PostSet.for_user(id).count,
+          artist_edit_count: ArtistVersion.for_user(id).count,
+          own_post_replaced_count: PostReplacement.for_user(id).count,
+          own_post_replaced_penalize_count: PostReplacement.penalized.for_user(id).count,
+          post_replacement_rejected_count: PostReplacement.rejected.for_user(id).count,
         )
       end
     end
