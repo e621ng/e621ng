@@ -23,8 +23,6 @@ class PostVideoConversionJob < ApplicationJob
       known_samples += samples.keys.map(&:to_s)
       post.update_column(:generated_samples, known_samples.uniq)
     end
-  rescue ActiveRecord::RecordNotFound
-    # Do nothing
   end
 
   def move_videos(post, samples)
