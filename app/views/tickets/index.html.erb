@@ -50,8 +50,8 @@
             <% end %>
 
             <td class="<%= ticket.status %>-ticket"><%= pretty_ticket_status(ticket) %></td>
-            <td style="cursor:help;" title="<%= ticket.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(ticket.updated_at) %> ago</td>
-            <td style="cursor:help;" title="<%= ticket.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(ticket.created_at) %> ago</td>
+            <td style="cursor:help;" title="<%= ticket.updated_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(ticket.updated_at) %> ago</td>
+            <td style="cursor:help;" title="<%= ticket.created_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(ticket.created_at) %> ago</td>
           </tr>
         <% end %>
       </tbody>

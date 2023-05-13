@@ -732,6 +732,10 @@ class User < ApplicationRecord
       user_status.post_flag_count
     end
 
+    def ticket_count
+      user_status.ticket_count
+    end
+
     def positive_feedback_count
       feedback.positive.count
     end
@@ -762,7 +766,8 @@ class User < ApplicationRecord
           post_count: Post.for_user(id).count,
           post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostVersion.for_user(id).count,
-          note_count: NoteVersion.where(updater_id: id).count
+          note_count: NoteVersion.for_user(id).count,
+          ticket_count: Ticket.for_user(id).count,
         )
       end
     end

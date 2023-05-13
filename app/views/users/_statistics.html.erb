@@ -37,7 +37,7 @@
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
           <% end %>
         </span>
-        
+
         <span>Replaced</span>
         <span>
           <%= presenter.replaced_upload_count(self) %>
@@ -140,6 +140,17 @@
           <span>Flags</span>
           <span><%= presenter.flag_count(self) %></span>
         <% end %>
+
+        <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+            <span>Tickets</span>
+            <span>
+              <%= presenter.ticket_count(self) %>
+              <% if CurrentUser.is_moderator? %>
+                [<%= link_to "pending", tickets_path(creator_id: user.id,  search: { status: "pending" }) %>]
+                [<%= link_to "accused", tickets_path(accused_id: user.id,  search: { status: "pending" }) %>]
+              <% end %>
+            </span>
+          <% end %>
 
         <% if CurrentUser.id == user.id %>
           <span>API Key</span>

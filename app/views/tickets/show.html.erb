@@ -13,13 +13,22 @@
             </td>
           </tr>
         <% end %>
+        <% if @ticket.accused_id.present? && CurrentUser.is_moderator? %>
+          <tr>
+            <td><span class='title'>Accused</span></td>
+            <td>
+              <%= link_to_user @ticket.accused %>
+              (<%= link_to "#{Ticket.active.for_accused(@ticket.accused.id).count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, search: { status: "pending" } }) %>)
+            </td>
+          </tr>
+        <% end %>
         <tr>
           <td><span class="title">Created</span></td>
-          <td style="cursor:help;" title="<%= @ticket.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.created_at) %> ago</td>
+          <td style="cursor:help;" title="<%= @ticket.created_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(@ticket.created_at) %> ago</td>
         </tr>
         <tr>
           <td><span class="title">Updated</span></td>
-          <td style="cursor:help;" title="<%= @ticket.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.updated_at) %> ago</td>
+          <td style="cursor:help;" title="<%= @ticket.updated_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(@ticket.updated_at) %> ago</td>
         </tr>
         <% if CurrentUser.is_moderator? %>
           <tr>
@@ -71,10 +80,10 @@
           </td>
         </tr>
 
-        <% if(!@ticket.response.blank?) %>
+        <% unless @ticket.response.blank? %>
           <tr>
             <td><span class='title'>Handled by</span></td>
-            <% if (!@ticket.handler.nil?)%>
+            <% if !@ticket.handler.nil? %>
               <td><%= link_to_user @ticket.handler %></td>
             <% else %>
               <td>Unknown</td>
