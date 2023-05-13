@@ -69,7 +69,7 @@ class ModActionDecorator < ApplicationDecorator
       if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
         "Banned #{user} permanently"
       elsif vals['duration']
-        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
+        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? 'day' : 'days'}"
       else
         "Banned #{user}"
       end
@@ -251,7 +251,14 @@ class ModActionDecorator < ApplicationDecorator
     when "report_reason_create"
       "Created post report reason #{vals['reason']}"
     when "report_reason_update"
-      "Edited post report reason #{vals['reason_was']} to #{vals['reason']}"
+      text = "Edited post report reason #{vals['reason']}"
+      if vals["reason"] != vals["reason_was"]
+        text += "\nchanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["description"] != vals["description_was"]
+        text += "\nchanged description from \"#{vals['description_was']}\" to \"#{vals['description']}\""
+      end
+      text
     when "report_reason_delete"
       "Deleted post report reason #{vals['reason']} by #{user}"
 
