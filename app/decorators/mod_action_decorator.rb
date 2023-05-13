@@ -96,7 +96,18 @@ class ModActionDecorator < ApplicationDecorator
     when "user_feedback_create"
       "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_update"
-      "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      if vals["reason_was"].present? || vals["type_was"].present?
+        text = "Edited record ##{vals['record_id']} for #{user}"
+        if vals["type"] != vals["type_was"]
+          text += "\nchanged type from #{vals['type_was']} to #{vals['type']}"
+        end
+        if vals["reason"] != vals["reason_was"]
+          text += "\nchanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+        end
+        text
+      else
+        "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
