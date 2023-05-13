@@ -29,7 +29,14 @@ class ArtistsController < ApplicationController
     else
       @artist = Artist.find_by(name: Artist.normalize_name(params[:id]))
       unless @artist
-        redirect_to(show_or_new_artists_path(name: params[:id]))
+        respond_to do |format|
+          format.html do
+            redirect_to(show_or_new_artists_path(name: params[:id]))
+          end
+          format.json do
+            raise ActiveRecord::RecordNotFound
+          end
+        end
         return
       end
     end
@@ -50,11 +57,18 @@ class ArtistsController < ApplicationController
   end
 
   def destroy
-    if !@artist.deletable_by?(CurrentUser.user)
+    unless @artist.deletable_by?(CurrentUser.user)
       raise User::PrivilegeError
     end
     @artist.update_attribute(:is_active, false)
-    redirect_to(artist_path(@artist), :notice => "Artist deleted")
+    respond_to do |format|
+      format.html do
+        redirect_to(artist_path(@artist), notice: "Artist deleted")
+      end
+      format.json do
+        head 204
+      end
+    end
   end
 
   def revert
