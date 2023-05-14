@@ -61,12 +61,9 @@ class ArtistsController < ApplicationController
       raise User::PrivilegeError
     end
     @artist.update_attribute(:is_active, false)
-    respond_to do |format|
+    respond_with(@artist) do |format|
       format.html do
         redirect_to(artist_path(@artist), notice: "Artist deleted")
-      end
-      format.json do
-        head 204
       end
     end
   end
