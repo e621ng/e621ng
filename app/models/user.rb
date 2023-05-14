@@ -766,8 +766,7 @@ class User < ApplicationRecord
           post_count: Post.for_user(id).count,
           post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostVersion.for_user(id).count,
-          note_count: NoteVersion.for_user(id).count,
-          ticket_count: Ticket.for_user(id).count,
+          note_count: NoteVersion.where(updater_id: id).count
         )
       end
     end
