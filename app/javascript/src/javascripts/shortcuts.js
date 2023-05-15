@@ -11,34 +11,26 @@ Shortcuts.initialize = function() {
 
 // Bind keyboard shortcuts to links that have a `data-shortcut="..."` attribute. If multiple links have the
 // same shortcut, then only the first link will be triggered by the shortcut.
-//
-// Add `data-shortcut-when="$selector"`, where `selector` is any valid jQuery selector, to make the shortcut
-// active only when the link matches the selector. For example, `data-shortcut-when=":visible"` makes the
-// shortcut apply only when the link is visible.
 Shortcuts.initialize_data_shortcuts = function() {
   $(document).off("keydown.danbooru.shortcut");
 
   $("[data-shortcut]").each((_i, element) => {
-    const id = $(element).attr("id");
-    const keys = $(element).attr("data-shortcut");
+    const $e = $(element)
+    const id = $e.attr("id");
+    const keys = $e.attr("data-shortcut");
     const namespace = `shortcut.${id}`;
 
     const title = `Shortcut is ${keys.split(/\s+/).join(" or ")}`;
-    $(element).attr("title", title);
+    $e.attr("title", title);
 
     Shortcuts.keydown(keys, namespace, event => {
-      const e = $(`[data-shortcut="${keys}"]`).get(0);
-      const condition = $(e).attr("data-shortcut-when") || "*";
-
-      if ($(e).is(condition)) {
-        if ($(e).is("input, textarea")) {
-          $(e).focus().selectEnd();
-        } else {
-          e.click();
-        }
-
-        event.preventDefault();
+      if ($e.is("input, textarea")) {
+        $e.trigger("focus").selectEnd();
+      } else {
+        $e.trigger("click");
       }
+
+      event.preventDefault();
     });
   });
 };
