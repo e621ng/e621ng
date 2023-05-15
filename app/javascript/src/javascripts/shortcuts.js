@@ -20,8 +20,11 @@ Shortcuts.initialize_data_shortcuts = function() {
     const keys = $e.attr("data-shortcut");
     const namespace = `shortcut.${id}`;
 
-    const title = `Shortcut is ${keys.split(/\s+/).join(" or ")}`;
-    $e.attr("title", title);
+    if (Utility.meta("enable-js-navigation") === "true") {
+      $e.attr("title", `Shortcut is ${keys.split(/\s+/).join(" or ")}`);
+    } else {
+      $e.attr("title", "Shortcuts are disabled. Enable them in your user settings.");
+    }
 
     Shortcuts.keydown(keys, namespace, event => {
       if ($e.is("input, textarea")) {
