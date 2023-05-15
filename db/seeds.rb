@@ -4,11 +4,9 @@ require "digest/md5"
 require "net/http"
 require "tempfile"
 
-unless Rails.env.test?
-  puts "== Creating elasticsearch indices ==\n"
-
-  Post.__elasticsearch__.create_index!
-end
+puts "== Creating elasticsearch indices ==\n"
+Post.__elasticsearch__.create_index!
+PostVersion.__elasticsearch__.create_index!
 
 puts "== Seeding database with sample content ==\n"
 
