@@ -1,10 +1,11 @@
 import Utility from './utility'
 
 let Shortcuts = {};
+Shortcuts.disabled = false;
 
 Shortcuts.initialize = function() {
-  Utility.keydown("s", "scroll_down", Shortcuts.nav_scroll_down);
-  Utility.keydown("w", "scroll_up", Shortcuts.nav_scroll_up);
+  Shortcuts.keydown("s", "scroll_down", Shortcuts.nav_scroll_down);
+  Shortcuts.keydown("w", "scroll_up", Shortcuts.nav_scroll_up);
   Shortcuts.initialize_data_shortcuts();
 }
 
@@ -25,7 +26,7 @@ Shortcuts.initialize_data_shortcuts = function() {
     const title = `Shortcut is ${keys.split(/\s+/).join(" or ")}`;
     $(element).attr("title", title);
 
-    Utility.keydown(keys, namespace, event => {
+    Shortcuts.keydown(keys, namespace, event => {
       const e = $(`[data-shortcut="${keys}"]`).get(0);
       const condition = $(e).attr("data-shortcut-when") || "*";
 
@@ -40,6 +41,18 @@ Shortcuts.initialize_data_shortcuts = function() {
       }
     });
   });
+};
+
+Shortcuts.keydown = function(keys, namespace, handler) {
+  if (Utility.meta("enable-js-navigation") === "true") {
+    $(document).off("keydown.danbooru." + namespace);
+    $(document).on("keydown.danbooru." + namespace, null, keys, e => {
+      if (Shortcuts.disabled) {
+        return;
+      }
+      handler(e);
+    });
+  }
 };
 
 Shortcuts.nav_scroll_down = function() {

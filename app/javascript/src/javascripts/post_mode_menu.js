@@ -6,6 +6,7 @@ import PostSet from './post_sets'
 import TagScript from './tag_script'
 import { SendQueue } from './send_queue'
 import Rails from '@rails/ujs'
+import Shortcuts from './shortcuts'
 
 let PostModeMenu = {};
 
@@ -21,7 +22,7 @@ PostModeMenu.initialize = function() {
 }
 
 PostModeMenu.initialize_shortcuts = function() {
-  Utility.keydown("1 2 3 4 5 6 7 8 9 0", "change_tag_script", PostModeMenu.change_tag_script);
+  Shortcuts.keydown("1 2 3 4 5 6 7 8 9 0", "change_tag_script", PostModeMenu.change_tag_script);
 }
 
 PostModeMenu.show_notice = function(i) {
@@ -94,7 +95,7 @@ PostModeMenu.initialize_edit_form = function() {
 }
 
 PostModeMenu.close_edit_form = function() {
-  Utility.disableShortcuts = false;
+  Shortcuts.disabled = false;
   $("#quick-edit-div").slideUp("fast");
   if (Utility.meta("enable-auto-complete") === "true") {
     $("#post_tag_string").data("uiAutocomplete").close();
@@ -169,7 +170,7 @@ PostModeMenu.change = function() {
 }
 
 PostModeMenu.open_edit = function(post_id) {
-  Utility.disableShortcuts = true;
+  Shortcuts.disabled = true;
   var $post = $("#post_" + post_id);
   $("#quick-edit-div").slideDown("fast");
   $("#quick-edit-form").attr("action", "/posts/" + post_id + ".json");

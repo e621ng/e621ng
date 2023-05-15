@@ -3,6 +3,7 @@ import ZingTouch from 'zingtouch'
 import LS from './local_storage'
 import Note from './notes'
 import { SendQueue } from './send_queue'
+import Shortcuts from './shortcuts'
 
 let Post = {};
 
@@ -37,9 +38,9 @@ Post.initialize_all = function() {
     this.initialize_edit_dialog();
   }
 
-  $(document).on("danbooru:open-post-edit-tab", () => Utility.disableShortcuts = true);
+  $(document).on("danbooru:open-post-edit-tab", () => Shortcuts.disabled = true);
   $(document).on("danbooru:open-post-edit-tab", () => $('#post_tag_string').focus());
-  $(document).on("danbooru:close-post-edit-tab", () => Utility.disableShortcuts = false);
+  $(document).on("danbooru:close-post-edit-tab", () => Shortcuts.disabled = false);
 
   var $fields_multiple = $('[data-autocomplete="tag-edit"]');
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -327,11 +328,11 @@ Post.nav_next = function(e) {
 Post.initialize_shortcuts = function() {
   if ($("#a-show").length) {
     if ($("#flash-content").length) {
-      Utility.disableShortcuts = true;
+      Shortcuts.disabled = true;
       $("#flash-shortcut-notice").show();
     }
-    Utility.keydown("a", "prev_page", Post.nav_prev);
-    Utility.keydown("d", "next_page", Post.nav_next);
+    Shortcuts.keydown("a", "prev_page", Post.nav_prev);
+    Shortcuts.keydown("d", "next_page", Post.nav_next);
   }
 }
 
@@ -672,7 +673,7 @@ Post.initialize_change_resize_mode_link = function() {
     e.preventDefault();
     Post.resize_to('fit');
   }); // For top panel
-  Utility.keydown('v', 'resize', Post.resize_cycle_mode);
+  Shortcuts.keydown('v', 'resize', Post.resize_cycle_mode);
 }
 
 Post.initialize_post_sections = function() {
