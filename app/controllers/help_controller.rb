@@ -15,7 +15,6 @@ class HelpController < ApplicationController
         if @help.blank?
           redirect_to help_pages_path
         else
-          @wiki_page = WikiPage.find_by(title: @help.wiki_page)
           @related = @help.related.split(", ")
         end
       end

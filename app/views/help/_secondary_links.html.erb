@@ -10,7 +10,7 @@
         <%= subnav_link_to "Edit", edit_help_page_path(@help) %>
         <%= subnav_link_to "Delete", help_page_path(@help), method: :delete, data: { confirm: "Are you sure you want to delete this entry?" } %>
       <% end %>
-      <%= subnav_link_to "Edit Wiki Page", edit_wiki_page_path(@wiki_page) %>
+      <%= subnav_link_to "Edit Wiki Page", edit_wiki_page_path(id: @help.wiki_page) %>
     <% end %>
   <% end %>
   <% if @help && @related %>
