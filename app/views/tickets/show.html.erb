@@ -83,7 +83,7 @@
         <% unless @ticket.response.blank? %>
           <tr>
             <td><span class='title'>Handled by</span></td>
-            <% if !@ticket.handler.nil? %>
+            <% if @ticket.handler.present? %>
               <td><%= link_to_user @ticket.handler %></td>
             <% else %>
               <td>Unknown</td>
