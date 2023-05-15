@@ -24,11 +24,11 @@
         <% end %>
         <tr>
           <td><span class="title">Created</span></td>
-          <td style="cursor:help;" title="<%= @ticket.created_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(@ticket.created_at) %> ago</td>
+          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.created_at) %></td>
         </tr>
         <tr>
           <td><span class="title">Updated</span></td>
-          <td style="cursor:help;" title="<%= @ticket.updated_at.strftime("%Y-%m-%dT%H:%M%:z") %>"><%= time_ago_in_words(@ticket.updated_at) %> ago</td>
+          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.updated_at) %></td>
         </tr>
         <% if CurrentUser.is_moderator? %>
           <tr>
