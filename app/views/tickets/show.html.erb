@@ -80,7 +80,7 @@
           </td>
         </tr>
 
-        if @ticket.response.present?
+        <% if @ticket.response.present? %>
           <tr>
             <td><span class='title'>Handled by</span></td>
             <% if @ticket.handler.present? %>
