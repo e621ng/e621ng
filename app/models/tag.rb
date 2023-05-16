@@ -14,7 +14,7 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child search upvote downvote voted filetype -filetype flagger type -type
-    -flagger disapproval -disapproval set -set randseed -voted
+    -flagger set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
@@ -38,7 +38,6 @@ class Tag < ApplicationRecord
     duration duration_desc duration_asc
     rank
     random
-    custom
   ] +
       COUNT_METATAGS +
       TagCategory.short_name_list.flat_map {|str| ["#{str}tags", "#{str}tags_asc"]}
