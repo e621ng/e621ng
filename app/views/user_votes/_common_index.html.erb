@@ -41,16 +41,16 @@
           <td><%= link_to_user vote.send(type.model_type).send(type.model_creator_column) %></td>
           <td><%= link_to_user vote.user %></td>
           <% if CurrentUser.is_admin? %>
-            <td><%= vote.user.email %>
+            <td><%= vote.user.email %></td>
           <% end %>
-          <td title="Signed up at <%= vote.user.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.user.created_at) %> ago
+          <td><%= time_ago_in_words_tagged(vote.user.created_at) %></td>
           <td>
             <% if vote.is_positive? %><span class='greentext'>Up</span>
             <% elsif vote.is_locked? %><span class='yellowtext'>Locked</span>
             <% else %><span class='redtext'>Down</span>
-            <% end %></td>
-          <td title="Created at <%= vote.created_at.strftime("%c") %>"><%= time_ago_in_words(vote.created_at) %> ago
+            <% end %>
           </td>
+          <td><%= time_ago_in_words_tagged(vote.created_at) %></td>
           <% if CurrentUser.is_admin? %>
             <td><%= link_to_ip vote.user_ip_addr %></td>
           <% end %>

@@ -76,13 +76,13 @@
 
         <tr>
           <td><label>Created</label></td>
-          <td style="cursor:help;" title="<%= @takedown.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.created_at) %> ago</td>
+          <td><%= time_ago_in_words_tagged(@takedown.created_at) %></td>
         </tr>
 
         <% if @takedown.created_at != @takedown.updated_at %>
           <tr>
             <td><label>Handled</label></td>
-            <td style="cursor:help;" title="<%= @takedown.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.updated_at) %> ago</td>
+            <td><%= time_ago_in_words_tagged(@takedown.updated_at) %></td>
           </tr>
         <% end %>
 

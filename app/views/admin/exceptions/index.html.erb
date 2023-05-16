@@ -18,7 +18,7 @@
   <tbody>
     <% @exception_logs.each do |exception_log| %>
       <tr>
-        <td><%= exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %></td>
+        <td><%= compact_time exception_log.created_at %></td>
         <td><%= exception_log.code %></td>
         <td><%= link_to exception_log.version, GitHelper.commit_url(exception_log.version) %></td>
         <td><%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %></td>

@@ -1,7 +1,7 @@
 <% @blip = @ticket.content %>
 <h4>You are reporting the following blip:</h4>
 <div class="author"><%= link_to_user(@blip.creator) %></div>
-<span class="date" title="Posted on <%= @blip.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@blip.created_at) %> ago</span>
+<span class="date"><%= time_ago_in_words_tagged(@blip.created_at) %></span>
 <br><br>
 <div class="dtext-container">
   <%= format_text(@blip.body) %>

@@ -2,6 +2,4 @@
 <h4>You are reporting the following pool:</h4>
 <div class='page'><%= link_to(@pool.name, pool_path(@pool)) %></div>
 <div class='author'><%= link_to_user(@pool.creator) %></div>
-<span class="date" title="Created on <%= @pool.created_at.strftime("%b %d, %Y %I:%M %p") %>">
-  <%= time_ago_in_words(@pool.created_at) %> ago
-</span>
+<span class="date"><%= time_ago_in_words_tagged(@pool.created_at) %></span>

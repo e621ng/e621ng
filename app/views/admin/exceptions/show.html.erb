@@ -5,7 +5,7 @@
     <br>
     <div>
       Error Code: <%= @exception_log.code %><br/>
-      Created At: <%= @exception_log.created_at.strftime("%b %d, %Y %l:%M %p") %><br/>
+      Created At: <%= compact_time @exception_log.created_at %><br/>
       Commit: <%= @exception_log.version %><br/>
       IP Address: <%= link_to_ip @exception_log.ip_addr %><br/>
       User: <%= link_to_user @exception_log.user %>

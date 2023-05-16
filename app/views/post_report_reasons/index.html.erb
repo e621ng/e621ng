@@ -17,7 +17,7 @@
         <tr id="blacklisted-domain-<%= report_reason.id %>">
           <td><%= link_to "Delete", post_report_reason_path(report_reason), method: :delete, data: {confirm: "Do you really want to delete this reason?"} %></td>
           <td><%= link_to_user report_reason.creator %></td>
-          <td><%= report_reason.updated_at.strftime("%b %d, %Y %I:%M %p") %></td>
+          <td><%= compact_time report_reason.updated_at %></td>
           <td><%= link_to(report_reason.reason, edit_post_report_reason_path(report_reason)) %></td>
         </tr>
       <% end %>

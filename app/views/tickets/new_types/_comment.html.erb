@@ -1,7 +1,7 @@
 <% @comment = @ticket.content %>
 <h4>You are reporting the following comment:</h4>
 <div class="author"><%= link_to_user @comment.creator %></div>
-<span class="date" title="Posted on <%= @comment.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@comment.created_at) %> ago</span>
+<span class="date"><%= time_ago_in_words_tagged(@comment.created_at) %></span>
 <br><br>
 <div class="dtext-container">
   <%= format_text(@comment.body) %>

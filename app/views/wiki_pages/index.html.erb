@@ -18,7 +18,7 @@
           <% @wiki_pages.each do |wiki_page| %>
             <tr>
               <td class="category-<%= wiki_page.category_id %>"><%= link_to wiki_page.pretty_title, wiki_page_path(wiki_page) %></td>
-              <td><%= wiki_page.updated_at.strftime("%Y-%m-%d %H:%M") %> by <%= h link_to_user wiki_page.updater %></td>
+              <td><%= compact_time wiki_page.updated_at %> by <%= link_to_user wiki_page.updater %></td>
               <td><%= link_to "History", wiki_page_versions_path(search: { wiki_page_id: wiki_page.id }) %></td>
             </tr>
           <% end %>

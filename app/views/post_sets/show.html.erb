@@ -14,14 +14,12 @@
         <div class='set-status set-status-maintainer' title='You are a maintainer of this set and can add and remove posts'>Maint.</div>
       <% end %>
     </div>
-    <div class="set-shortname">Short
-      Name: <%= link_to @post_set.shortname, posts_path(tags: "set:#{@post_set.shortname}") %></div>
-    Created:
-    <span class="date" title="<%= @post_set.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.created_at) + " ago" %></span>
-    |
-    Updated:
-    <span class="date" title="<%= @post_set.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@post_set.updated_at) + " ago" %></span><br/><br/>
-
+    <div class="set-shortname">
+      Short Name: <%= link_to @post_set.shortname, posts_path(tags: "set:#{@post_set.shortname}") %>
+    </div>
+    Created: <%= time_ago_in_words_tagged(@post_set.created_at) %> |
+    Updated: <%= time_ago_in_words_tagged(@post_set.updated_at) %>
+    <br/><br/>
     <% if @post_set.description.blank? %>
       <div class='set-description'>No description.</div>
     <% else %>

@@ -1,7 +1,7 @@
 <% @forum = @ticket.content %>
 <h4>You are reporting the following forum post:</h4>
 <div class='author'><%= link_to_user(@forum.creator) %></div>
-<span class="date" title="Posted on <%= @forum.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@forum.created_at) %> ago</span>
+<span class="date"><%= time_ago_in_words_tagged(@forum.created_at) %></span>
 <br><br>
 <div class="dtext-container">
   <%= format_text(@forum.body) %>

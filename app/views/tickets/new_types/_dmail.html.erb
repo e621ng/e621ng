@@ -1,8 +1,7 @@
 <% @dmail = @ticket.content %>
 <h4>You are reporting the following private message:</h4>
 <div class='author'><%= link_to_user @dmail.from %></div>
-<span class="date" title="Sent on <%= @dmail.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@dmail.created_at) %>
-  ago</span>
+<span class="date"><%= time_ago_in_words_tagged(@dmail.created_at) %></span>
 <br><br>
 <div class="dtext-container">
   <%= format_text(@dmail.body) %>
