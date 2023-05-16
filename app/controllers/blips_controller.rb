@@ -116,7 +116,7 @@ class BlipsController < ApplicationController
         redirect_back(fallback_location: blips_path, flash: { notice: "You cannot edit blips more than 5 minutes old" })
       end
       format.json do
-       render_expected_error(422, "You cannot edit blips more than 5 minutes old")
+        render_expected_error(422, "You cannot edit blips more than 5 minutes old")
       end
     end
   end
