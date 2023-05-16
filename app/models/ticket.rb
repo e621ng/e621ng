@@ -1,5 +1,6 @@
 class Ticket < ApplicationRecord
   belongs_to_creator
+  user_status_counter :ticket_count
   belongs_to :claimant, class_name: "User", optional: true
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true
@@ -213,6 +214,14 @@ class Ticket < ApplicationRecord
   end
 
   module SearchMethods
+    def for_accused(user_id)
+      where(accused_id: user_id)
+    end
+
+    def active
+      where(status: %w[pending partial])
+    end
+
     def search(params)
       q = super.includes(:creator).includes(:claimant)
 

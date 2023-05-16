@@ -2214,7 +2214,8 @@ CREATE TABLE public.user_statuses (
     artist_edit_count integer DEFAULT 0 NOT NULL,
     own_post_replaced_count integer DEFAULT 0,
     own_post_replaced_penalize_count integer DEFAULT 0,
-    post_replacement_rejected_count integer DEFAULT 0
+    post_replacement_rejected_count integer DEFAULT 0,
+    ticket_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -4638,6 +4639,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230312103728'),
 ('20230314170352'),
 ('20230316084945'),
-('20230506161827');
+('20230506161827'),
+('20230513074838');
 
 

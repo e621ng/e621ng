@@ -732,6 +732,10 @@ class User < ApplicationRecord
       user_status.post_flag_count
     end
 
+    def ticket_count
+      user_status.ticket_count
+    end
+
     def positive_feedback_count
       feedback.positive.count
     end
