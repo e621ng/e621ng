@@ -13,12 +13,14 @@
             </td>
           </tr>
         <% end %>
-        <% if @ticket.accused_id.present? && CurrentUser.is_moderator? %>
+        <% if @ticket.accused.present? && CurrentUser.is_moderator? %>
           <tr>
-            <td><span class='title'>Accused</span></td>
+            <td><span class="title">Accused</span></td>
             <td>
               <%= link_to_user @ticket.accused %>
-              (<%= link_to "#{Ticket.active.for_accused(@ticket.accused.id).count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, search: { status: "pending" } }) %>)
+              <% if (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
+                (<%= link_to "#{pending_accused_count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, status: "pending" }) %>)
+              <% end %>
             </td>
           </tr>
         <% end %>
