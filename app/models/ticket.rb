@@ -214,10 +214,6 @@ class Ticket < ApplicationRecord
   end
 
   module SearchMethods
-    def for_user(user_id)
-      where(creator_id: user_id)
-    end
-
     def for_accused(user_id)
       where(accused_id: user_id)
     end
