@@ -762,7 +762,11 @@ class User < ApplicationRecord
           post_count: Post.for_user(id).count,
           post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostVersion.for_user(id).count,
-          note_count: NoteVersion.where(updater_id: id).count
+          favorite_count: Favorite.for_user(id).count,
+          note_count: NoteVersion.for_user(id).count,
+          own_post_replaced_count: PostReplacement.for_uploader_on_approve(id).count,
+          own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
+          post_replacement_rejected_count: PostReplacement.rejected.for_user(id).count,
         )
       end
     end
