@@ -14,6 +14,8 @@ module Moderator
               render json: {}, status: 201
             end
           end
+        elsif post.approver.present?
+          flash[:notice] = "Post is already approved"
         else
           flash[:notice] = "You can't approve this post"
         end
