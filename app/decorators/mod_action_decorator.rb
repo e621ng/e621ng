@@ -99,10 +99,10 @@ class ModActionDecorator < ApplicationDecorator
       if vals["reason_was"].present? || vals["type_was"].present?
         text = "Edited record ##{vals['record_id']} for #{user}"
         if vals["type"] != vals["type_was"]
-          text += "\nchanged type from #{vals['type_was']} to #{vals['type']}"
+          text += "\nChanged type from #{vals['type_was']} to #{vals['type']}"
         end
         if vals["reason"] != vals["reason_was"]
-          text += "\nchanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+          text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
         end
         text
       else
@@ -264,10 +264,10 @@ class ModActionDecorator < ApplicationDecorator
     when "report_reason_update"
       text = "Edited post report reason #{vals['reason']}"
       if vals["reason"] != vals["reason_was"]
-        text += "\nchanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
       end
       if vals["description"] != vals["description_was"]
-        text += "\nchanged description from \"#{vals['description_was']}\" to \"#{vals['description']}\""
+        text += "\nChanged description from \"#{vals['description_was']}\" to \"#{vals['description']}\""
       end
       text
     when "report_reason_delete"
