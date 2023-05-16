@@ -69,7 +69,7 @@ class ModActionDecorator < ApplicationDecorator
       if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
         "Banned #{user} permanently"
       elsif vals['duration']
-        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
+        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? 'day' : 'days'}"
       else
         "Banned #{user}"
       end
@@ -96,7 +96,18 @@ class ModActionDecorator < ApplicationDecorator
     when "user_feedback_create"
       "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_update"
-      "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      if vals["reason_was"].present? || vals["type_was"].present?
+        text = "Edited record ##{vals['record_id']} for #{user}"
+        if vals["type"] != vals["type_was"]
+          text += "\nChanged type from #{vals['type_was']} to #{vals['type']}"
+        end
+        if vals["reason"] != vals["reason_was"]
+          text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
+        end
+        text
+      else
+        "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
@@ -251,7 +262,14 @@ class ModActionDecorator < ApplicationDecorator
     when "report_reason_create"
       "Created post report reason #{vals['reason']}"
     when "report_reason_update"
-      "Edited post report reason #{vals['reason_was']} to #{vals['reason']}"
+      text = "Edited post report reason #{vals['reason']}"
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["description"] != vals["description_was"]
+        text += "\nChanged description from \"#{vals['description_was']}\" to \"#{vals['description']}\""
+      end
+      text
     when "report_reason_delete"
       "Deleted post report reason #{vals['reason']} by #{user}"
 
