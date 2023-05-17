@@ -130,14 +130,14 @@ class ForumPost < ApplicationRecord
   end
 
   def topic_is_not_restricted
-    if topic && !topic.visible?(creator)
+    if topic&.category && !topic.visible?(creator)
       errors.add(:topic, "is restricted")
       return false
     end
   end
 
   def category_allows_replies
-    if topic && !topic.can_reply?(creator)
+    if topic&.category && !topic.can_reply?(creator)
       errors.add(:topic, "does not allow replies")
       return false
     end
