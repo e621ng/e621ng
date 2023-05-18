@@ -39,10 +39,6 @@ module Danbooru
       "management@#{domain}"
     end
 
-    def takedown_links
-      []
-    end
-
     # System actions, such as sending automated dmails, will be performed with
     # this account. This account must have Moderator privileges.
     #
