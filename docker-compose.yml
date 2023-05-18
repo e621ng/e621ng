@@ -33,6 +33,8 @@ services:
       - public_packs:/app/public/packs
       - post_data:/app/public/data
       - ./docker/cron_tasks/daily:/etc/periodic/daily
+    tmpfs:
+      - /app/tmp/pids
     environment:
       <<: *common-env
       RAILS_ENV: development
