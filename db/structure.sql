@@ -4301,10 +4301,38 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 
 
 --
+-- Name: index_users_on_lower_profile_about_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_about_trgm ON public.users USING gin (lower(profile_about) public.gin_trgm_ops);
+
+
+--
+-- Name: index_users_on_lower_profile_artinfo_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_artinfo_trgm ON public.users USING gin (lower(profile_artinfo) public.gin_trgm_ops);
+
+
+--
 -- Name: index_users_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_name ON public.users USING btree (lower((name)::text));
+
+
+--
+-- Name: index_users_on_to_tsvector_english_profile_about; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_to_tsvector_english_profile_about ON public.users USING gin (to_tsvector('english'::regconfig, profile_about));
+
+
+--
+-- Name: index_users_on_to_tsvector_english_profile_artinfo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_to_tsvector_english_profile_artinfo ON public.users USING gin (to_tsvector('english'::regconfig, profile_artinfo));
 
 
 --
@@ -4704,6 +4732,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230316084945'),
 ('20230506161827'),
 ('20230513074838'),
-('20230517155547');
+('20230517155547'),
+('20230518182034');
 
 

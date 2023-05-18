@@ -798,11 +798,10 @@ class User < ApplicationRecord
 
       q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
-      # TODO: Doesn't support relation filtering using this method.
-      # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
-      # q = q.attribute_matches(:post_update_count, params[:post_update_count])
-      # q = q.attribute_matches(:note_update_count, params[:note_update_count])
-      # q = q.attribute_matches(:favorite_count, params[:favorite_count])
+
+      if params[:about_me].present?
+        q = q.attribute_matches(:profile_about, params[:about_me]).or(attribute_matches(:profile_artinfo, params[:about_me]))
+      end
 
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
