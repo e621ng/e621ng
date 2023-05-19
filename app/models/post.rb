@@ -1030,7 +1030,7 @@ class Post < ApplicationRecord
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       tags = Tag.normalize_query(tags)
 
-      cache_key = "pfc:#{Cache.hash(tags)}"
+      cache_key = "pfc:#{tags}"
       count = Cache.fetch(cache_key)
       if count.nil?
         count = Post.tag_match(tags).count_only
