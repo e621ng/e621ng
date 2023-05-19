@@ -1035,7 +1035,7 @@ class Post < ApplicationRecord
       if count.nil?
         count = Post.tag_match(tags).count_only
         expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
-        Cache.write(cache_key, count, expiry)
+        Cache.write(cache_key, count, expires_in: expiry)
       end
       count
     rescue SearchError

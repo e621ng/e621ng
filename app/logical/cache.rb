@@ -8,11 +8,11 @@ class Cache
     sanitized_key_to_value_hash.transform_keys(&sanitized_key_to_key_hash)
   end
 
-  def self.fetch(key, expires_in = nil, &)
+  def self.fetch(key, expires_in: nil, &)
     Rails.cache.fetch(key, expires_in: expires_in, &)
   end
 
-  def self.write(key, value, expires_in = nil)
+  def self.write(key, value, expires_in: nil)
     Rails.cache.write(key, value, expires_in: expires_in)
   end
 

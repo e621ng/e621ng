@@ -181,7 +181,7 @@ class Tag < ApplicationRecord
     end
 
     def update_category_cache
-      Cache.write("tc:#{name}", category, 3.hours)
+      Cache.write("tc:#{name}", category, expires_in: 3.hours)
     end
 
     def user_can_change_category?
@@ -950,7 +950,7 @@ class Tag < ApplicationRecord
     def update_related_if_outdated
       if Cache.fetch("urt:#{name}").nil? && should_update_related?
         TagUpdateRelatedJob.perform_later(id)
-        Cache.write("urt:#{name}", true, 600) # mutex to prevent redundant updates
+        Cache.write("urt:#{name}", true, expires_in: 10.minutes) # mutex to prevent redundant updates
       end
     end
 

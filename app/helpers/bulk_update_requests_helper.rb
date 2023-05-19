@@ -74,7 +74,7 @@ module BulkUpdateRequestsHelper
 
   def script_with_line_breaks(bur, with_decorations:)
     cache_key = "#{CurrentUser.is_admin? ? 'mod' : ''}#{with_decorations ? 'color' : ''}#{bur.updated_at}"
-    Cache.fetch(cache_key, 1.hour) do
+    Cache.fetch(cache_key, expires_in: 1.hour) do
       script_tokenized = BulkUpdateRequestImporter.tokenize(bur.script)
       script_tags = collect_script_tags(script_tokenized)
       script_tokenized.map do |cmd, arg1, arg2, arg3|

@@ -232,7 +232,7 @@ class Artist < ApplicationRecord
     # Returns a count of sourced domains for the artist.
     # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
-      Cache.fetch("artist-domains-#{id}", 1.day) do
+      Cache.fetch("artist-domains-#{id}", expires_in: 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
         counted = Hash.new(0)
         sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|

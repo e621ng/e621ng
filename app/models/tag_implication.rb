@@ -33,7 +33,7 @@ class TagImplication < TagRelationship
       end
 
       def cached_descendants(tag_name)
-        Cache.fetch("descendants-#{tag_name}", 1.day) do
+        Cache.fetch("descendants-#{tag_name}", expires_in: 1.day) do
           TagImplication.active.where("descendant_names && array[?]", tag_name).pluck(:antecedent_name)
         end
       end
