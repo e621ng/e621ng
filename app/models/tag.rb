@@ -121,8 +121,8 @@ class Tag < ApplicationRecord
         select_value_sql("SELECT category FROM tags WHERE name = ?", tag_name).to_i
       end
 
-      def category_for(tag_name, options = {})
-        if options[:disable_caching]
+      def category_for(tag_name, disable_cache: false)
+        if disable_cache
           select_category_for(tag_name)
         else
           Cache.fetch("tc:#{Cache.hash(tag_name)}") do
@@ -131,8 +131,8 @@ class Tag < ApplicationRecord
         end
       end
 
-      def categories_for(tag_names, options = {})
-        if options[:disable_caching]
+      def categories_for(tag_names, disable_cache: false)
+        if disable_cache
           tag_cats = {}
           Tag.where(name: Array(tag_names)).select([:id, :name, :category]).find_each do |tag|
             tag_cats[tag.name] = tag.category
@@ -168,7 +168,7 @@ class Tag < ApplicationRecord
     def update_category_post_counts!
       Post.with_timeout(30_000, nil, {:tags => name}) do
         Post.sql_raw_tag_match(name).find_each do |post|
-          post.set_tag_counts(false)
+          post.set_tag_counts(disable_cache: false)
           args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update("tag_count" => post.tag_count)
           Post.where(:id => post.id).update_all(args)
           post.update_index

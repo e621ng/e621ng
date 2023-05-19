@@ -458,10 +458,10 @@ class Post < ApplicationRecord
       set_tag_count(category, self.send("tag_count_#{category}") + 1)
     end
 
-    def set_tag_counts(disable_cache = true)
+    def set_tag_counts(disable_cache: true)
       self.tag_count = 0
       TagCategory.categories.each {|x| set_tag_count(x, 0)}
-      categories = Tag.categories_for(tag_array, :disable_caching => disable_cache)
+      categories = Tag.categories_for(tag_array, disable_cache: disable_cache)
       categories.each_value do |category|
         self.tag_count += 1
         inc_tag_count(TagCategory.reverse_mapping[category])
@@ -1024,75 +1024,22 @@ class Post < ApplicationRecord
   end
 
   module CountMethods
-    def fast_count(tags = "", timeout: 1_000, raise_on_timeout: false, skip_cache: false)
+    def fast_count(tags = "")
       tags = tags.to_s
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       tags = Tag.normalize_query(tags)
 
-      count = nil
-
-      unless skip_cache
-        count = get_count_from_cache(tags)
-      end
-
+      cache_key = "pfc:#{Cache.hash(tags)}"
+      count = Cache.fetch(cache_key)
       if count.nil?
-        count = fast_count_search(tags, timeout: timeout, raise_on_timeout: raise_on_timeout)
+        count = Post.tag_match(tags).count_only
+        expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
+        Cache.write(cache_key, count, expiry)
       end
-
       count
     rescue SearchError
       0
-    end
-
-    def fast_count_search(tags, timeout:, raise_on_timeout:)
-      count = Post.with_timeout(timeout, nil, tags: tags) do
-        Post.tag_match(tags).count_only
-      end
-
-      if count.nil?
-        # give up
-        if raise_on_timeout
-          raise TimeoutError.new("timed out")
-        end
-
-        count = Danbooru.config.blank_tag_search_fast_count
-      else
-        set_count_in_cache(tags, count)
-      end
-
-      count ? count.to_i : nil
-    rescue PG::ConnectionBad
-      return nil
-    end
-
-    def fix_post_counts(post)
-      post.set_tag_counts(false)
-      if post.changes_saved?
-        args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
-        post.update_columns(args)
-      end
-    end
-
-    def get_count_from_cache(tags)
-      if Tag.is_simple_tag?(tags)
-        count = Tag.find_by(name: tags).try(:post_count)
-      else
-        # this will only have a value for multi-tag searches or single metatag searches
-        count = Cache.fetch(count_cache_key(tags))
-      end
-
-      count.try(:to_i)
-    end
-
-    def set_count_in_cache(tags, count, expiry = nil)
-      expiry ||= count.seconds.clamp(3.minutes, 20.hours).to_i
-
-      Cache.write(count_cache_key(tags), count, expiry)
-    end
-
-    def count_cache_key(tags)
-      "pfc:#{Cache.hash(tags)}"
     end
   end
 
