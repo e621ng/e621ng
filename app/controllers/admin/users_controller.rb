@@ -80,6 +80,8 @@ module Admin
         return redirect_to request_password_reset_admin_user_path(@user), notice: "Password wrong"
       end
 
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
+
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
     end
 

@@ -85,6 +85,8 @@ class ApplicationController < ActionController::Base
       render_expected_error(400, exception.message)
     when ReadOnlyException
       render_expected_error(400, exception.message)
+    when BCrypt::Errors::InvalidHash
+      render_expected_error(400, "Account is either deleted or you must reset your password.")
     else
       render_error_page(500, exception)
     end
