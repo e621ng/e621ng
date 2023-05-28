@@ -75,9 +75,7 @@ module Danbooru
         search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
         search.definition[:body].update(sort: [{id: :desc}])
 
-        if before_id.to_i > 0
-          query_definition[:bool][:must].push({range: {id: {lt: before_id.to_i}}})
-        end
+        query_definition[:bool][:must].push({ range: { id: { lt: before_id.to_i } } })
 
         @sequential_paginator_mode = :before
 

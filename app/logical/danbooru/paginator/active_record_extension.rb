@@ -14,9 +14,7 @@ module Danbooru
         def paginate_sequential_before(before_id = nil)
           c = limit(records_per_page + 1)
 
-          if before_id.to_i > 0
-            c = c.where("#{table_name}.id < ?", before_id.to_i)
-          end
+          c = c.where("#{table_name}.id < ?", before_id.to_i)
 
           c = c.reorder("#{table_name}.id desc")
           c = c.extending(SequentialCollectionExtension)
