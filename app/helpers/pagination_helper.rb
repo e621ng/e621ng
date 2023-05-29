@@ -16,7 +16,7 @@ module PaginationHelper
   end
 
   def numbered_paginator(records)
-    if use_sequential_paginator?(records)
+    if records.pagination_mode != :numbered
       return sequential_paginator(records)
     end
 
@@ -79,10 +79,6 @@ module PaginationHelper
       html << tag.li(class: "numbered-page") { link_to(page, nav_params_for(page)) }
     end
     html
-  end
-
-  def use_sequential_paginator?(records)
-    params[:page] =~ /\A[ab]\d+\z/ || records.current_page >= records.max_numbered_pages
   end
 
   def nav_params_for(page)

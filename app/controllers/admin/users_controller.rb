@@ -18,7 +18,7 @@ module Admin
       @alts = @alts.group_by { |i| i["u1id"] }.transform_values { |v| v.pluck("u2id") }
       user_ids = @alts.flatten(2).uniq
       @users = User.where(id: user_ids).index_by(&:id)
-      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { mode: :numbered, per_page: 250, total: 9_999_999_999, current_page: params[:page].to_i })
+      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { pagination_mode: :numbered, records_per_page: 250, total_count: 9_999_999_999, current_page: params[:page].to_i })
       respond_with(@alts)
     end
 

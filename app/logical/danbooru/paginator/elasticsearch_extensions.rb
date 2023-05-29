@@ -1,48 +1,51 @@
 module Danbooru
   module Paginator
     class PaginatedArray < Array
-      attr_internal_accessor :records_per_page, :total_count, :sequential_paginator_mode, :current_page, :orig_size
+      attr_reader :pagination_mode, :max_numbered_pages, :orig_size, :current_page, :records_per_page, :total_count
 
       def initialize(orig_array, options = {})
-        @_current_page = options[:current_page]
-        @_records_per_page = options[:per_page]
-        @_total_count = options[:total]
-        @_max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
+        @current_page = options[:current_page]
+        @records_per_page = options[:records_per_page]
+        @total_count = options[:total_count]
+        @max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
+        @pagination_mode = options[:pagination_mode]
         real_array = orig_array || []
-        @_orig_size = real_array.size
-        if options[:mode] == :sequential
-          @_sequential_paginator_mode = options[:seq_mode]
+        @orig_size = real_array.size
 
+        case @pagination_mode
+        when :sequential_before, :sequential_after
           real_array = orig_array.first(records_per_page)
 
-          if @_sequential_paginator_mode == :before
+          if @pagination_mode == :sequential_before
             super(real_array)
           else
             super(real_array.reverse)
           end
-        else
+        when :numbered
           super(real_array)
         end
       end
 
       def is_first_page?
-        if sequential_paginator_mode
-          sequential_paginator_mode == :before ? false : orig_size <= records_per_page
-        else
+        case @pagination_mode
+        when :numbered
           current_page == 1
+        when :sequential_before
+          false
+        when :sequential_after
+          orig_size <= records_per_page
         end
       end
 
       def is_last_page?
-        if sequential_paginator_mode
-          sequential_paginator_mode == :after ? false : orig_size <= records_per_page
-        else
+        case @pagination_mode
+        when :numbered
           current_page >= total_pages
+        when :sequential_before
+          orig_size <= records_per_page
+        when :sequential_after
+          false
         end
-      end
-
-      def max_numbered_pages
-        @_max_numbered_pages
       end
 
       def total_pages
@@ -57,49 +60,38 @@ module Danbooru
     module ElasticsearchExtensions
       include BaseExtension
 
-      attr_reader :current_page, :sequential_paginator_mode
-
       def paginate(page, options)
-        paginated, mode = paginate_base(page, options)
+        super(page, options)
 
-        new_opts = {mode: mode, seq_mode: sequential_paginator_mode, max_numbered_pages: max_numbered_pages,
-                    per_page: records_per_page, total: total_count, current_page: current_page}
-        if options[:results] == :results
-          PaginatedArray.new(paginated.results, new_opts)
-        else
-          PaginatedArray.new(paginated.records(includes: options[:includes]).to_a, new_opts)
-        end
+        new_opts = {
+          pagination_mode: pagination_mode,
+          max_numbered_pages: max_numbered_pages,
+          records_per_page: records_per_page,
+          total_count: total_count,
+          current_page: current_page,
+        }
+
+        PaginatedArray.new(records(includes: options[:includes]).to_a, new_opts)
       end
 
-      def paginate_sequential_before(before_id = nil)
-        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
-        search.definition[:body].update(sort: [{id: :desc}])
-
-        query_definition[:bool][:must].push({ range: { id: { lt: before_id.to_i } } })
-
-        @sequential_paginator_mode = :before
-
-        self
+      def paginate_numbered
+        search.definition.update(size: records_per_page, from: (current_page - 1) * records_per_page, track_total_hits: (max_numbered_pages * records_per_page) + 1)
       end
 
-      def paginate_sequential_after(after_id)
-        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page+1)
-        search.definition[:body].update(sort: [{id: :asc}])
-        query_definition[:bool][:must].push({range: {id: {gt: after_id.to_i}}})
-        @sequential_paginator_mode = :after
+      def paginate_sequential_before
+        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page + 1)
+        search.definition[:body].update(sort: [{ id: :desc }])
+        query_definition[:bool][:must].push({ range: { id: { lt: current_page } } })
+      end
 
-        self
+      def paginate_sequential_after
+        search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page + 1)
+        search.definition[:body].update(sort: [{ id: :asc }])
+        query_definition[:bool][:must].push({ range: { id: { gt: current_page } } })
       end
 
       def query_definition
         search.definition.dig(:body, :query, :function_score, :query) || search.definition.dig(:body, :query)
-      end
-
-      def paginate_numbered(page)
-        search.definition.update(size: records_per_page, from: (page - 1) * records_per_page, track_total_hits: (max_numbered_pages * records_per_page) + 1)
-        @current_page = page
-
-        self
       end
 
       def limit(count)
@@ -108,22 +100,22 @@ module Danbooru
       end
 
       def real_count
-        if response['hits']['total'].respond_to?(:keys)
-          response['hits']['total']['value']
+        if response["hits"]["total"].respond_to?(:keys)
+          response["hits"]["total"]["value"]
         else
-          response['hits']['total']
+          response["hits"]["total"]
         end
       end
 
       def exists?
         search.definition[:body]&.delete(:sort)
-        search.definition.update(from: 0, size: 1, terminate_after: 1, sort: '_doc', _source: false, track_total_hits: false)
+        search.definition.update(from: 0, size: 1, terminate_after: 1, sort: "_doc", _source: false, track_total_hits: false)
         real_count > 0
       end
 
       def count_only
         search.definition[:body]&.delete(:sort)
-        search.definition.update(from: 0, size: 0, sort: '_doc', _source: false, track_total_hits: true)
+        search.definition.update(from: 0, size: 0, sort: "_doc", _source: false, track_total_hits: true)
         real_count
       end
     end
