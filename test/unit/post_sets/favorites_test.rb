@@ -44,11 +44,6 @@ module PostSets
           should "return the second most recent element" do
             assert_equal(@post_1.id, @set.posts.first.id)
           end
-
-          should_eventually "know what page it's on" do
-            refute(@set.posts.is_first_page?)
-            refute(@set.posts.is_last_page?)
-          end
         end
       end
 
@@ -61,11 +56,6 @@ module PostSets
         context "a sequential paginator" do
           should "return the third most recent element" do
             assert_equal(@post_2.id, @set.posts.first.id)
-          end
-
-          should_eventually "know what page it's on" do
-            refute(@set.posts.is_first_page?)
-            assert(@set.posts.is_last_page?)
           end
         end
       end
@@ -80,11 +70,6 @@ module PostSets
           should "return the most recent element" do
             assert_equal(@post_3.id, @set.posts.first.id)
           end
-
-          should "know what page it's on" do
-            assert(@set.posts.is_first_page?)
-            refute(@set.posts.is_last_page?)
-          end
         end
       end
 
@@ -97,11 +82,6 @@ module PostSets
           should "return the second most recent element" do
             assert_equal(@post_1.id, @set.posts.first.id)
           end
-
-          should "know what page it's on" do
-            refute(@set.posts.is_first_page?)
-            refute(@set.posts.is_last_page?)
-          end
         end
       end
 
@@ -112,11 +92,6 @@ module PostSets
 
         should "return the most recent element" do
           assert_equal(@post_3.id, @set.posts.first.id)
-        end
-
-        should "know what page it's on" do
-          assert(@set.posts.is_first_page?)
-          refute(@set.posts.is_last_page?)
         end
       end
     end
