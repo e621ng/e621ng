@@ -24,14 +24,6 @@ class PostFlag < ApplicationRecord
   attr_accessor :parent_id, :reason_name, :force_flag
 
   module SearchMethods
-    def duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('dup | duplicate | sample | smaller')")
-    end
-
-    def not_duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('!dup & !duplicate & !sample & !smaller')")
-    end
-
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
     end
@@ -42,14 +34,6 @@ class PostFlag < ApplicationRecord
 
     def unresolved
       where("is_resolved = ?", false)
-    end
-
-    def recent
-      where("created_at >= ?", 1.day.ago)
-    end
-
-    def old
-      where("created_at <= ?", 3.days.ago)
     end
 
     def for_creator(user_id)
@@ -86,10 +70,17 @@ class PostFlag < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
-      q = q.attribute_matches(:is_resolved, params[:is_resolved])
-
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
+      end
+
+      case params[:type]
+      when "pending"
+        q = q.where(is_resolved: false, is_deletion: false)
+      when "rejected"
+        q = q.where(is_resolved: true, is_deletion: false)
+      when "deletion"
+        q = q.where(is_deletion: true)
       end
 
       q.apply_default_order(params)
@@ -104,10 +95,20 @@ class PostFlag < ApplicationRecord
       end
       super + list
     end
+
+    def method_attributes
+      super + [:type]
+    end
   end
 
   extend SearchMethods
   include ApiMethods
+
+  def type
+    return :deletion if is_deletion
+    return :rejected if is_resolved
+    :pending
+  end
 
   def update_post
     post.update_column(:is_flagged, true) unless post.is_flagged?

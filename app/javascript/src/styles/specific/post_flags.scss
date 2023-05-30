@@ -1,8 +1,4 @@
 div#c-post-flags {
-  tr.resolved-false {
-    background: $post-flags-unresolved-background !important;
-  }
-
   .flag-reason-title, .flag-reason-text {
     white-space: pre-wrap;
   }
