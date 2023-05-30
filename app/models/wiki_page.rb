@@ -126,7 +126,7 @@ class WikiPage < ApplicationRecord
 
   module ApiMethods
     def method_attributes
-      super + [:creator_name, :category_id, :category_name]
+      super + [:creator_name, :category_id]
     end
   end
 
@@ -192,7 +192,6 @@ class WikiPage < ApplicationRecord
   def category_id
     Tag.category_for(title)
   end
-  alias category_name category_id
 
   def pretty_title
     title&.tr("_", " ") || ''
