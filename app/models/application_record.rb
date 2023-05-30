@@ -1,10 +1,12 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  include Danbooru::Paginator::ActiveRecordExtension
-
   concerning :SearchMethods do
     class_methods do
+      def paginate(page, options = {})
+        extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
+      end
+
       def qualified_column_for(attr)
         "#{table_name}.#{column_for_attribute(attr).name}"
       end
