@@ -2,11 +2,6 @@ class PostFlag < ApplicationRecord
   class Error < Exception;
   end
 
-  module Reasons
-    UNAPPROVED = "Unapproved in #{PostPruner::DELETION_WINDOW} days"
-    BANNED = "Artist requested removal"
-  end
-
   COOLDOWN_PERIOD = 1.days
   MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
 
@@ -97,19 +92,6 @@ class PostFlag < ApplicationRecord
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
-      case params[:category]
-      when "normal"
-        q = q.where("reason NOT IN (?)", [Reasons::UNAPPROVED, Reasons::BANNED])
-      when "unapproved"
-        q = q.where(reason: Reasons::UNAPPROVED)
-      when "banned"
-        q = q.where(reason: Reasons::BANNED)
-      when "deleted"
-        q = q.where("reason = ?", Reasons::UNAPPROVED)
-      when "duplicate"
-        q = q.duplicate
-      end
-
       q.apply_default_order(params)
     end
   end
@@ -122,25 +104,10 @@ class PostFlag < ApplicationRecord
       end
       super + list
     end
-
-    def method_attributes
-      super + [:category]
-    end
   end
 
   extend SearchMethods
   include ApiMethods
-
-  def category
-    case reason
-    when Reasons::UNAPPROVED
-      :unapproved
-    when Reasons::BANNED
-      :banned
-    else
-      :normal
-    end
-  end
 
   def update_post
     post.update_column(:is_flagged, true) unless post.is_flagged?
