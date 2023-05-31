@@ -23,7 +23,7 @@
       <tbody>
       <% @edit_history.each do |edit| %>
         <tr id="edit-<%= edit.id %>" class="edit-<%= edit.edit_type.tr("_", "-") %>">
-          <td><%= link_to "Show", action: "show", id: edit.versionable_id, type: edit.versionable_type %></td>
+          <td><%= link_to "Show", action: "show", id: edit.versionable_id, type: edit.versionable_type, anchor: "edit-#{edit.id}" %></td>
           <td><%= edit.versionable_type %></td>
           <td><%= edit.pretty_edit_type %></td>
           <td><%= compact_time edit.updated_at %></td>

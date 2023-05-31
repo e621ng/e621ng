@@ -1,10 +1,21 @@
 <div id="c-edit-history">
   <div id="a-show">
-    <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
+    <% if @edit_history.length < 1 %>
+      <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
+    <% else %>
+      <% case @edit_history.original.versionable_type %>
+      <% when "Blip" %>
+        <h1>Edits for <%= link_to "Blip ##{@edit_history.original.versionable_id}", blip_path, id: @edit_history.original.versionable_id %></h1>
+      <% when "Comment" %>
+        <h1>Edits for <%= link_to "Comment ##{@edit_history.original.versionable_id}", comment_path, id: @edit_history.original.versionable_id %></h1>
+      <% when "ForumPost" %>
+        <h1>Edits for <%= link_to "ForumPost ##{@edit_history.original.versionable_id}", forum_post_path, id: @edit_history.original.versionable_id %></h1>
+      <% end %>
+    <% end %>
 
     <div class="response-list" id="edit-history">
       <% @edit_history.each do |edit| %>
-        <div class="edit-item box-section edit-<%= edit.edit_type.tr("_", "-") %>">
+        <div class="edit-item box-section edit-<%= edit.edit_type.tr("_", "-") %>" id="edit-<%= edit.id %>">
           <div class="author">
             <h6><%= link_to_user edit.user %></h6>
             <%= compact_time edit.created_at %>
@@ -33,7 +44,7 @@
   </div>
 </div>
 
-<%= render "secondary_links" %>
+<%= render "secondary_links", record: @edit_history&.original %>
 
 <% content_for(:page_title) do %>
   Edit History

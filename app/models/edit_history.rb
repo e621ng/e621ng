@@ -67,6 +67,10 @@ class EditHistory < ApplicationRecord
       where(edit_type: "edit")
     end
 
+    def original
+      where(edit_type: "original", version: 1).first
+    end
+
     def search(params)
       q = super
 
