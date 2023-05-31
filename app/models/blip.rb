@@ -11,6 +11,10 @@ class Blip < ApplicationRecord
   validates :body, length: { minimum: 5, maximum: Danbooru.config.blip_max_size }
   validate :validate_parent_exists, :on => :create
   validate :validate_creator_is_not_limited, :on => :create
+  after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+    action = rec.is_hidden? ? :blip_hide : :blip_unhide
+    ModAction.log(action, { blip_id: rec.id, user_id: rec.creator_id })
+  end
 
   def response?
     parent.present?
@@ -104,6 +108,14 @@ class Blip < ApplicationRecord
   include PermissionsMethods
   extend SearchMethods
   include ApiMethods
+
+  def hide!
+    update(is_hidden: true)
+  end
+
+  def unhide!
+    update(is_hidden: false)
+  end
 
   def hidden_at
     return nil unless is_hidden?
