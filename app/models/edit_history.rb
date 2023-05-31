@@ -54,6 +54,12 @@ class EditHistory < ApplicationRecord
     %w[original edit].include?(edit_type)
   end
 
+  def page(limit = 20)
+    limit = limit.to_i
+    return 1 if limit <= 0
+    (version / limit).ceil + 1
+  end
+
   module SearchMethods
     def hidden
       where(edit_type: "hide")
