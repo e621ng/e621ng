@@ -53,4 +53,52 @@ class EditHistory < ApplicationRecord
   def is_contentful?
     %w[original edit].include?(edit_type)
   end
+
+  module SearchMethods
+    def hidden
+      where(edit_type: "hide")
+    end
+
+    def marked
+      where(edit_type: %w[mark_warning mark_record mark_ban])
+    end
+
+    def edited
+      where(edit_type: "edit")
+    end
+
+    def search(params)
+      q = super
+
+      if params[:versionable_type].present?
+        q = q.where(versionable_type: params[:versionable_type])
+      end
+
+      if params[:versionable_id].present?
+        q = q.where(versionable_id: params[:versionable_id])
+      end
+
+      if params[:edit_type].present?
+        q = q.where(edit_type: params[:edit_type])
+      else
+        q = q.where.not(edit_type: "original")
+      end
+
+      if params[:user_id].present?
+        q = q.where(user_id: params[:user_id])
+      end
+
+      if params[:user_name].present?
+        q = q.where("user_id = (select _.id from users _ where lower(_.name) = ?)", params[:user_name].downcase)
+      end
+
+      if params[:ip_addr].present?
+        q = q.where("ip_addr <<= ?", params[:ip_addr])
+      end
+
+      q.apply_default_order(params)
+    end
+  end
+
+  extend SearchMethods
 end

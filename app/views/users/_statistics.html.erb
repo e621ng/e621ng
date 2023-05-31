@@ -59,6 +59,9 @@
         <span>
           <%= presenter.forum_post_count(self) %>
           (<%= link_to "mentions", forum_posts_path(search: { body_matches: user.name }) %>)
+          <% if CurrentUser.is_moderator? %>
+            (<%= link_to "edits", edit_histories_path(search: { versionable_type: EditHistory::TYPE_MAP[:forum], user_id: user.id }) %>)
+          <% end %>
         </span>
 
         <span>Comments</span>
@@ -67,6 +70,7 @@
           (<%= link_to "mentions", comments_path(group_by: :comment, search:{ body_matches: user.name }) %>)
           <% if CurrentUser.is_moderator? %>
             (<%= link_to "votes", action: "index", controller: "comment_votes", search: { user_name: user.name } %>)
+            (<%= link_to "edits", edit_histories_path(search: { versionable_type: EditHistory::TYPE_MAP[:comment], user_id: user.id }) %>)
           <% end %>
         </span>
 

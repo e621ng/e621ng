@@ -2,6 +2,8 @@
   <div id="a-index">
     <h1>Recent Edits</h1>
 
+    <%= render "search" %>
+
     <table class="striped">
       <thead>
       <tr>
@@ -39,6 +41,8 @@
     <%= numbered_paginator(@edit_history) %>
   </div>
 </div>
+
+<%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
   Edit Histories
