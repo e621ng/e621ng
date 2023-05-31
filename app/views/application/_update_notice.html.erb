@@ -2,6 +2,6 @@
 
 <% if record.respond_to?(:updater) && record.updater != record.creator  %>
   <p class="info">Updated by <%= link_to_user record.updater %> <%= time_ago_in_words_tagged(record.updated_at) %></p>
-<% elsif record.updated_at - record.created_at > 5.minutes %>
+<% elsif CurrentUser.is_moderator? || record.updated_at - record.created_at > 5.minutes %>
   <p class="info">Updated <%= time_ago_in_words_tagged(record.updated_at) %></p>
 <% end %>
