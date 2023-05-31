@@ -10,6 +10,7 @@ class ForumPost < ApplicationRecord
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
+  belongs_to :warning_user, class_name: "User", optional: true
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy

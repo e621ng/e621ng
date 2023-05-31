@@ -12,11 +12,11 @@ module UserWarnable
   end
 
   def user_warned!(type, user)
-    update({ warning_type: type, warning_user_id: user })
+    update(warning_type: type, warning_user_id: user.id)
   end
 
   def remove_user_warning!
-    update_columns({ warning_type: nil, warning_user_id: nil })
+    update(warning_type: nil, warning_user_id: nil)
   end
 
   def was_warned?

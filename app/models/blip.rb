@@ -6,6 +6,7 @@ class Blip < ApplicationRecord
   user_status_counter :blip_count
   validates :body, presence: true
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
+  belongs_to :warning_user, class_name: "User", optional: true
   has_many :responses, class_name: "Blip", foreign_key: "response_to"
   validates :body, length: { minimum: 5, maximum: Danbooru.config.blip_max_size }
   validate :validate_parent_exists, :on => :create

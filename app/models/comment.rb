@@ -8,6 +8,7 @@ class Comment < ApplicationRecord
   validate :post_not_comment_disabled, on: :create
   validates :body, presence: { message: "has no content" }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
+  belongs_to :warning_user, class_name: "User", optional: true
 
   after_create :update_last_commented_at_on_create
   after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
