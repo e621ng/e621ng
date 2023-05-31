@@ -6,7 +6,7 @@
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
         <%= blip.creator.level_string %>
         <% if blip.is_hidden? %>
-          (hidden)
+          <span<% if blip.hidden_at.present? %> title="<%= time_ago_in_words(blip.hidden_at) %> ago"<% end %>>(hidden)</span>
         <% end %>
       </div>
       <div class="avatar">
@@ -23,11 +23,14 @@
       <div class="body dtext-container">
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
-      <%= render "application/update_notice", record: blip %>
-      <% if blip.was_warned? %>
+      <% if blip.edited_at.present? %>
+        <%= render "application/update_notice", record: blip, timestamp: blip.edited_at %>
+      <% end %>
+      <% if blip.was_warned? && blip.warned_at.present? %>
         <div class="user-warning">
           <hr>
-          <em><%= blip.warning_type_string %></em>
+          <em><%= blip.warning_type_string %><% if blip.warning_user.present? %> by <%= link_to_user(blip.warning_user) %><% end %>.</em>
+          <span class="info"><%= time_ago_in_words_tagged(blip.warned_at) %></span>
         </div>
       <% end %>
       <div class="content-menu">

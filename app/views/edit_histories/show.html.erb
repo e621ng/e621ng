@@ -3,8 +3,8 @@
     <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
 
     <div class="response-list" id="edit-history">
-      <% @edits.each_with_index do |edit, idx| %>
-        <div class="edit-item box-section">
+      <% @edit_history.each do |edit| %>
+        <div class="edit-item box-section edit-<%= edit.edit_type.tr("_", "-") %>">
           <div class="author">
             <h6><%= link_to_user edit.user %></h6>
             <%= compact_time edit.created_at %>
@@ -14,10 +14,16 @@
           </div>
           <div class="content">
             <div class="body">
-              <% if edit.version > 1 %>
-                <%= lcs_diff(@edits[idx-1].body, edit.body) %>
+              <% if edit.is_contentful? %>
+                <% if (previous = edit.previous_version(@content_edits)) %>
+                  <%= lcs_diff(previous.body, edit.body) %>
+                <% else %>
+                  <%= edit.body %>
+                <% end %>
               <% else %>
-                <%= edit.body %>
+                <b>
+                  <%= edit.text_content %>
+                </b>
               <% end %>
             </div>
           </div>

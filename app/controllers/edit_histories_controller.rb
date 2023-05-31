@@ -8,7 +8,8 @@ class EditHistoriesController < ApplicationController
   end
 
   def show
-    @edits = EditHistory.includes(:user).where('versionable_id = ? AND versionable_type = ?', params[:id], params[:type]).order(:id)
-    respond_with(@edits)
+    @edit_history = EditHistory.includes(:user).where(versionable_id: params[:id], versionable_type: params[:type]).paginate(params[:page], limit: params[:limit])
+    @content_edits = @edit_history.select(&:is_contentful?)
+    respond_with(@edit_history)
   end
 end

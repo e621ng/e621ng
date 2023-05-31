@@ -8,7 +8,7 @@
         <h4 class="author-name"><%= link_to_user forum_post.creator %></h4>
         <%= forum_post.creator.level_string %>
         <% if forum_post.is_hidden? %>
-          (hidden)
+          <span<% if forum_post.hidden_at.present? %> title="<%= time_ago_in_words(forum_post.hidden_at) %> ago"<% end %>>(hidden)</span>
         <% end %>
       </div>
       <div class="avatar">
@@ -22,11 +22,14 @@
       <div class="dtext-container">
         <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
-      <%= render "application/update_notice", record: forum_post %>
-      <% if forum_post.was_warned? %>
+      <% if forum_post.edited_at.present? %>
+        <%= render "application/update_notice", record: forum_post, timestamp: forum_post.edited_at %>
+      <% end %>
+      <% if forum_post.was_warned? && forum_post.warned_at.present? %>
         <div class="user-warning">
           <hr>
-          <em><%= forum_post.warning_type_string %></em>
+          <em><%= forum_post.warning_type_string %><% if forum_post.warning_user.present? %> by <%= link_to_user(forum_post.warning_user) %><% end %>.</em>
+          <span class="info"><%= time_ago_in_words_tagged(forum_post.warned_at) %></span>
         </div>
       <% end %>
       <div class="content-menu">

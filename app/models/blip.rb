@@ -104,4 +104,18 @@ class Blip < ApplicationRecord
   include PermissionsMethods
   extend SearchMethods
   include ApiMethods
+
+  def hidden_at
+    return nil unless is_hidden?
+    versions.select { |v| v.edit_type == "hide" }.last&.created_at
+  end
+
+  def warned_at
+    return nil unless was_warned?
+    versions.select { |v| v.edit_type.starts_with?("mark_") }.last&.created_at
+  end
+
+  def edited_at
+    versions.select { |v| v.edit_type == "edit" }.last&.created_at
+  end
 end

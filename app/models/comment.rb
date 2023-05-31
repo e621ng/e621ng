@@ -11,7 +11,7 @@ class Comment < ApplicationRecord
   belongs_to :warning_user, class_name: "User", optional: true
 
   after_create :update_last_commented_at_on_create
-  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && !rec.saved_change_to_is_sticky? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy :update_last_commented_at_on_destroy
@@ -22,6 +22,10 @@ class Comment < ApplicationRecord
   after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     action = rec.is_hidden? ? :comment_hide : :comment_unhide
     ModAction.log(action, { comment_id: rec.id, user_id: rec.creator_id })
+  end
+  after_save(if: ->(rec) { rec.saved_change_to_is_sticky? }) do |rec|
+    type = rec.is_sticky? ? "stick" : "unstick"
+    save_version(type)
   end
 
   user_status_counter :comment_count
@@ -206,5 +210,19 @@ class Comment < ApplicationRecord
 
   def unhide!
     update(is_hidden: false)
+  end
+
+  def hidden_at
+    return nil unless is_hidden?
+    versions.select { |v| v.edit_type == "hide" }.last&.created_at
+  end
+
+  def warned_at
+    return nil unless was_warned?
+    versions.select { |v| v.edit_type.starts_with?("mark_") }.last&.created_at
+  end
+
+  def edited_at
+    versions.select { |v| v.edit_type == "edit" }.last&.created_at
   end
 end

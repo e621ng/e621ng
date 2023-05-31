@@ -226,8 +226,12 @@ class ApplicationRecord < ActiveRecord::Base
         self.versioning_user_column = options[:user_column] || "creator_id"
 
         class_eval do
-          has_many :versions, class_name: 'EditHistory', as: :versionable
+          has_many :versions, class_name: "EditHistory", as: :versionable
           after_update :save_version, if: :should_version_change
+          after_save(if: ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
+            type = rec.is_hidden? ? "hide" : "unhide"
+            save_version(type)
+          end
 
           define_method :should_version_change do
             if self.versioning_subject_column
@@ -236,29 +240,32 @@ class ApplicationRecord < ActiveRecord::Base
             send "saved_change_to_#{self.versioning_body_column}?"
           end
 
-          define_method :save_version do
+          define_method :save_version do |edit_type = "edit"|
             EditHistory.transaction do
               our_next_version = next_version
               if our_next_version == 0
                 our_next_version += 1
+                body = send "#{versioning_body_column}_before_last_save"
+                body = send versioning_body_column if body.nil?
                 new = EditHistory.new
                 new.versionable = self
                 new.version = 1
-                new.ip_addr = self.send self.versioning_ip_column
-                new.body = self.send "#{self.versioning_body_column}_before_last_save"
-                new.user_id = self.send self.versioning_user_column
-                new.subject = self.send "#{self.versioning_subject_column}_before_last_save" if self.versioning_subject_column
-                new.created_at = self.created_at
-                new.save
+                new.ip_addr = send versioning_ip_column
+                new.body = body
+                new.user_id = send versioning_user_column
+                new.subject = send "#{versioning_subject_column}_before_last_save" if versioning_subject_column
+                new.created_at = created_at
+                new.save!
               end
 
               version = EditHistory.new
               version.version = our_next_version + 1
               version.versionable = self
               version.ip_addr = CurrentUser.ip_addr
-              version.body = self.send self.versioning_body_column
+              version.body = send versioning_body_column
               version.user_id = CurrentUser.id
-              version.save
+              version.edit_type = edit_type
+              version.save!
             end
           end
 

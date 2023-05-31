@@ -13,10 +13,12 @@ module UserWarnable
 
   def user_warned!(type, user)
     update(warning_type: type, warning_user_id: user.id)
+    save_version("mark_#{type}")
   end
 
   def remove_user_warning!
     update(warning_type: nil, warning_user_id: nil)
+    save_version("unmark")
   end
 
   def was_warned?
@@ -26,11 +28,11 @@ module UserWarnable
   def warning_type_string
     case warning_type
     when "warning"
-      "User received a warning for the contents of this message."
+      "User received a warning for the contents of this message"
     when "record"
-      "User received a record for the contents of this message."
+      "User received a record for the contents of this message"
     when "ban"
-      "User was banned for the contents of this message."
+      "User was banned for the contents of this message"
     else
       "[This is a bug with the website. Woo!]"
     end
