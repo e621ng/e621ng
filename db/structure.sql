@@ -251,7 +251,8 @@ CREATE TABLE public.blips (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     warning_type integer,
-    warning_user_id integer
+    warning_user_id integer,
+    updater_id integer
 );
 
 
@@ -4421,6 +4422,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: blips fk_rails_23e7479aac; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blips
+    ADD CONSTRAINT fk_rails_23e7479aac FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
 -- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4733,6 +4742,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230506161827'),
 ('20230513074838'),
 ('20230517155547'),
-('20230518182034');
+('20230518182034'),
+('20230531080817');
 
 

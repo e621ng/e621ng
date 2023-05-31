@@ -2,6 +2,7 @@ class Blip < ApplicationRecord
   include UserWarnable
   simple_versioning
   belongs_to_creator
+  belongs_to_updater optional: true
   user_status_counter :blip_count
   validates :body, presence: true
   belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
