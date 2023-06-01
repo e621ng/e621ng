@@ -791,7 +791,6 @@ class User < ApplicationRecord
       params = params.dup
       params[:name_matches] = params.delete(:name) if params[:name].present?
 
-      q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
 
       if params[:about_me].present?

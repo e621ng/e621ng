@@ -443,8 +443,8 @@ class Artist < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.search_text_attribute(:name, params)
-      q = q.search_text_attribute(:group_name, params)
+      q = q.attribute_matches(:name, params[:name])
+      q = q.attribute_matches(:group_name, params[:group_name])
 
       if params[:any_other_name_like]
         q = q.any_other_name_like(params[:any_other_name_like])

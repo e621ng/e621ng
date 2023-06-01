@@ -25,8 +25,7 @@ class PostDisapproval < ApplicationRecord
 
         q = q.attribute_matches(:post_id, params[:post_id])
         q = q.attribute_matches(:user_id, params[:user_id])
-        q = q.attribute_matches(:message, params[:message_matches])
-        q = q.search_text_attribute(:message, params)
+        q = q.attribute_matches(:message, params[:message])
 
         q = q.post_tags_match(params[:post_tags_match]) if params[:post_tags_match].present?
         q = q.where(user_id: User.search(name_matches: params[:creator_name])) if params[:creator_name].present?
