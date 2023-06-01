@@ -1,6 +1,6 @@
 <% @wiki = @ticket.content %>
 <h4>You are reporting the following wiki page:</h4>
-<div class='page'><%= link_to_wiki @wiki.title %></div>
+<div class="page"><%= link_to(@wiki.pretty_title, @wiki) %></div>
 <span class="date"><%= time_ago_in_words_tagged(@wiki.created_at) %></span>
 <br><br>
 <div class="dtext-container">

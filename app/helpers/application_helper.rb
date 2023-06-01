@@ -108,14 +108,6 @@ module ApplicationHelper
     link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
-  def link_to_wiki(*wiki_titles, **options)
-    links = wiki_titles.map do |title|
-      link_to title.tr("_", " "), wiki_pages_path(title: title)
-    end
-
-    to_sentence(links, **options)
-  end
-
   def link_to_user(user, include_activation: false)
     return "anonymous" if user.blank?
 
