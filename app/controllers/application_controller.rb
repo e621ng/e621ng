@@ -7,7 +7,6 @@ class ApplicationController < ActionController::Base
   before_action :set_current_user
   before_action :normalize_search
   before_action :api_check
-  before_action :set_variant
   before_action :enable_cors
   before_action :enforce_readonly
   after_action :reset_current_user
@@ -164,10 +163,6 @@ class ApplicationController < ActionController::Base
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
-  end
-
-  def set_variant
-    request.variant = params[:variant].try(:to_sym)
   end
 
   User::Roles.each do |role|
