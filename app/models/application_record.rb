@@ -110,7 +110,7 @@ class ApplicationRecord < ActiveRecord::Base
         order(id: :desc)
       end
 
-      def search(params = {})
+      def search(params)
         params ||= {}
 
         q = all

@@ -203,7 +203,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       end
 
       should "work" do
-        assert_equal([@bur2.id, @bur1.id], BulkUpdateRequest.search.map(&:id))
+        assert_equal([@bur2.id, @bur1.id], BulkUpdateRequest.search({}).map(&:id))
         assert_equal([@bur1.id], BulkUpdateRequest.search(user_name: @admin.name, approver_name: @admin.name, status: "approved").map(&:id))
       end
     end

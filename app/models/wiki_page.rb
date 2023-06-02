@@ -77,7 +77,7 @@ class WikiPage < ApplicationRecord
       order(updated_at: :desc)
     end
 
-    def search(params = {})
+    def search(params)
       q = super
 
       if params[:title].present?

@@ -29,7 +29,7 @@ class ArtistUrl < ApplicationRecord
     end
   end
 
-  def self.search(params = {})
+  def self.search(params)
     q = super
 
     q = q.attribute_matches(:artist_id, params[:artist_id])

@@ -788,9 +788,6 @@ class User < ApplicationRecord
       q = super
       q = q.joins(:user_status)
 
-      params = params.dup
-      params[:name_matches] = params.delete(:name) if params[:name].present?
-
       q = q.attribute_matches(:level, params[:level])
 
       if params[:about_me].present?
