@@ -23,10 +23,6 @@ class Comment < ApplicationRecord
     action = rec.is_hidden? ? :comment_hide : :comment_unhide
     ModAction.log(action, { comment_id: rec.id, user_id: rec.creator_id })
   end
-  after_save(if: ->(rec) { rec.saved_change_to_is_sticky? }) do |rec|
-    type = rec.is_sticky? ? "stick" : "unstick"
-    save_version(type)
-  end
 
   user_status_counter :comment_count
   belongs_to :post, counter_cache: :comment_count
