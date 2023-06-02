@@ -219,25 +219,28 @@ class ApplicationRecord < ActiveRecord::Base
   concerning :SimpleVersioningMethods do
     class_methods do
       def simple_versioning(options = {})
-        cattr_accessor :versioning_body_column, :versioning_ip_column, :versioning_user_column, :versioning_subject_column
+        cattr_accessor :versioning_body_column, :versioning_ip_column, :versioning_user_column, :versioning_subject_column, :versioning_is_hidden_column
         self.versioning_body_column = options[:body_column] || "body"
         self.versioning_subject_column = options[:subject_column]
         self.versioning_ip_column = options[:ip_column] || "creator_ip_addr"
         self.versioning_user_column = options[:user_column] || "creator_id"
+        self.versioning_is_hidden_column = options[:is_hidden_column] || "is_hidden"
 
         class_eval do
           has_many :versions, class_name: "EditHistory", as: :versionable
-          after_update :save_version, if: :should_version_change
-          after_save(if: ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
-            type = rec.is_hidden? ? "hide" : "unhide"
+          after_update :save_version, if: :should_create_edited_history
+          after_save(if: :should_create_hidden_history) do |rec|
+            type = rec.send("#{versioning_is_hidden_column}?") ? "hide" : "unhide"
             save_version(type)
           end
 
-          define_method :should_version_change do
-            if self.versioning_subject_column
-              return true if send "saved_change_to_#{self.versioning_subject_column}?"
-            end
-            send "saved_change_to_#{self.versioning_body_column}?"
+          define_method :should_create_edited_history do
+            return true if versioning_subject_column && send("saved_change_to_#{versioning_subject_column}?")
+            send "saved_change_to_#{versioning_body_column}?"
+          end
+
+          define_method :should_create_hidden_history do
+            respond_to?("saved_change_to_#{versioning_is_hidden_column}?") && send("saved_change_to_#{versioning_is_hidden_column}?")
           end
 
           define_method :save_version do |edit_type = "edit"|
