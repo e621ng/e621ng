@@ -3,12 +3,6 @@ class EditHistory < ApplicationRecord
   belongs_to :versionable, polymorphic: true
   belongs_to :user
 
-  TYPE_MAP = {
-    comment: "Comment",
-    forum: "ForumPost",
-    blip: "Blip",
-  }.freeze
-
   EDIT_MAP = {
     hide: "Hidden",
     unhide: "Unhidden",
@@ -47,6 +41,10 @@ class EditHistory < ApplicationRecord
   end
 
   def text_content
+    if is_contentful?
+      return subject if subject.present?
+      body
+    end
     EDIT_MAP[edit_type.to_sym] || pretty_edit_type
   end
 

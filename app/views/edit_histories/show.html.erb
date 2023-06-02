@@ -10,6 +10,8 @@
         <h1>Edits for <%= link_to "Comment ##{@original.versionable_id}", comment_path, id: @original.versionable_id %></h1>
       <% when "ForumPost" %>
         <h1>Edits for <%= link_to "ForumPost ##{@original.versionable_id}", forum_post_path, id: @original.versionable_id %></h1>
+      <% else %>
+        <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
       <% end %>
     <% end %>
 
@@ -18,19 +20,15 @@
         <div class="edit-item box-section edit-<%= edit.edit_type.tr("_", "-") %>" id="edit-<%= edit.id %>">
           <div class="author">
             <h6><%= link_to_user edit.user %></h6>
-            <%= compact_time edit.created_at %>
+            <%= link_to compact_time(edit.created_at), url_for(anchor: "edit-#{edit.id}") %>
             <% if CurrentUser.is_admin? %>
               <div><%= link_to_ip edit.ip_addr %></div>
             <% end %>
           </div>
           <div class="content">
             <div class="body">
-              <% if edit.is_contentful? %>
-                <% if (previous = edit.previous_version(@content_edits)) %>
-                  <%= lcs_diff(previous.body, edit.body) %>
-                <% else %>
-                  <%= edit.body %>
-                <% end %>
+              <% if edit.is_contentful? && (previous = edit.previous_version(@content_edits)) %>
+                <%= lcs_diff(previous.text_content, edit.text_content) %>
               <% else %>
                 <b>
                   <%= edit.text_content %>

@@ -32,7 +32,7 @@
           <% end %>
           <td><%= link_to_user edit.user %></td>
           <td><%= edit.body[0..30] %></td>
-          <td><%= (edit.subject&[0..30]) || "" %></td>
+          <td><%= (edit.subject || "")[0..30] %></td>
         </tr>
       <% end %>
       </tbody>
