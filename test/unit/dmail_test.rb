@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class DmailTest < ActiveSupport::TestCase
   context "A dmail" do
@@ -14,7 +14,7 @@ class DmailTest < ActiveSupport::TestCase
     context "filter" do
       setup do
         @recipient = create(:user)
-        @recipient.create_dmail_filter(:words => "banned")
+        @recipient.create_dmail_filter(words: "banned")
         @dmail = build(:dmail, title: "xxx", owner: @recipient, body: "banned word here", to: @recipient, from: @user)
       end
 
@@ -45,11 +45,11 @@ class DmailTest < ActiveSupport::TestCase
 
       context "that is empty" do
         setup do
-          @recipient.dmail_filter.update(:words => "   ")
+          @recipient.dmail_filter.update(words: "   ")
         end
 
         should "not filter everything" do
-          assert(!@recipient.dmail_filter.filtered?(@dmail))
+          assert_not(@recipient.dmail_filter.filtered?(@dmail))
         end
       end
     end
@@ -107,8 +107,8 @@ class DmailTest < ActiveSupport::TestCase
 
     should "create a copy for each user" do
       @new_user = create(:user)
-      assert_difference("Dmail.count", 2) do
-        Dmail.create_split(:to_id => @new_user.id, :title => "foo", :body => "foo")
+      assert_difference(-> { Dmail.count }, 2) do
+        Dmail.create_split(to_id: @new_user.id, title: "foo", body: "foo")
       end
     end
 
@@ -119,21 +119,30 @@ class DmailTest < ActiveSupport::TestCase
 
     should "send an email if the user wants it" do
       user = create(:user, receive_email_notifications: true)
-      assert_difference("ActionMailer::Base.deliveries.size", 1) do
+      assert_difference(-> { ActionMailer::Base.deliveries.size }, 1) do
         create(:dmail, to: user, owner: user)
       end
     end
 
+    should "not send an email if no_email_notification is set" do
+      user = create(:user, receive_email_notifications: true)
+      assert_no_difference(-> { ActionMailer::Base.deliveries.size }) do
+        create(:dmail, to: user, owner: user, no_email_notification: true)
+        Dmail.create_automated(to: user, title: "test", body: "abc", no_email_notification: true)
+      end
+      assert_equal(2, Dmail.count)
+    end
+
     should "create only one message for a split response" do
       user = create(:user, receive_email_notifications: true)
-      assert_difference("ActionMailer::Base.deliveries.size", 1) do
-        Dmail.create_split(:to_id => user.id, :title => "foo", :body => "foo")
+      assert_difference(-> { ActionMailer::Base.deliveries.size }, 1) do
+        Dmail.create_split(to_id: user.id, title: "foo", body: "foo")
       end
     end
 
     should "be marked as read after the user reads it" do
       dmail = create(:dmail, owner: @user)
-      assert(!dmail.is_read?)
+      assert_not(dmail.is_read?)
       dmail.mark_as_read!
       assert(dmail.is_read?)
     end
@@ -151,7 +160,7 @@ class DmailTest < ActiveSupport::TestCase
       end
 
       recipient.reload
-      refute(recipient.has_mail?)
+      assert_not(recipient.has_mail?)
       assert_equal(0, recipient.unread_dmail_count)
     end
 
@@ -164,8 +173,8 @@ class DmailTest < ActiveSupport::TestCase
       should "only create a copy for the recipient" do
         Dmail.create_automated(to: @user, title: "test", body: "test")
 
-        assert @user.dmails.exists?(from: @bot, title: "test", body: "test")
-        assert !@bot.dmails.exists?(from: @bot, title: "test", body: "test")
+        assert @user.dmails.where(from: @bot, title: "test", body: "test").exists?
+        assert_not @bot.dmails.where(from: @bot, title: "test", body: "test").exists?
       end
 
       should "fail gracefully if recipient doesn't exist" do

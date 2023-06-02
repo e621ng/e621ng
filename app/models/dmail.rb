@@ -13,9 +13,9 @@ class Dmail < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   before_create :auto_read_if_filtered
   after_create :update_recipient
-  after_commit :send_email, on: :create
+  after_commit :send_email, on: :create, unless: :no_email_notification
 
-  attr_accessor :bypass_limits
+  attr_accessor :bypass_limits, :no_email_notification
 
   module AddressMethods
     def to_name=(name)
