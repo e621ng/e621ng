@@ -239,21 +239,17 @@ class ApplicationRecord < ActiveRecord::Base
             save_version(type)
           end
 
-          def safe_saved_change_to?(attr)
-            respond_to?("saved_change_to_#{attr}?") && send("saved_change_to_#{attr}?")
-          end
-
           define_method :should_create_edited_history do
-            return true if versioning_subject_column && safe_saved_change_to?(versioning_subject_column)
-            safe_saved_change_to?(versioning_body_column)
+            return true if versioning_subject_column && saved_change_to_attribute?(versioning_subject_column)
+            saved_change_to_attribute?(versioning_body_column)
           end
 
           define_method :should_create_hidden_history do
-            safe_saved_change_to?(versioning_is_hidden_column)
+            saved_change_to_attribute?(versioning_is_hidden_column)
           end
 
           define_method :should_create_stickied_history do
-            safe_saved_change_to?(versioning_is_sticky_column)
+            saved_change_to_attribute?(versioning_is_sticky_column)
           end
 
           define_method :save_original_version do
