@@ -16,7 +16,7 @@ module PaginationHelper
   end
 
   def numbered_paginator(records)
-    if records.pagination_mode != :numbered
+    if records.pagination_mode != :numbered || records.current_page >= records.max_numbered_pages
       return sequential_paginator(records)
     end
 
