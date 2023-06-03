@@ -1,5 +1,5 @@
 class EmailBlacklist < ApplicationRecord
-  UNVERIFY_COUNT_TRESHOLD = 50
+  UNVERIFY_COUNT_TRESHOLD = 250
 
   belongs_to_creator
 
