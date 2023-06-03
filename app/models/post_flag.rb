@@ -75,10 +75,8 @@ class PostFlag < ApplicationRecord
       end
 
       case params[:type]
-      when "pending"
-        q = q.where(is_resolved: false, is_deletion: false)
-      when "rejected"
-        q = q.where(is_resolved: true, is_deletion: false)
+      when "flag"
+        q = q.where(is_deletion: false)
       when "deletion"
         q = q.where(is_deletion: true)
       end
@@ -106,8 +104,7 @@ class PostFlag < ApplicationRecord
 
   def type
     return :deletion if is_deletion
-    return :rejected if is_resolved
-    :pending
+    :flag
   end
 
   def update_post

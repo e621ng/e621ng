@@ -3,8 +3,7 @@
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
   <%= f.input :post_id, label: "Post ID" %>
   <%= f.input :type, collection: [
-    ["Pending", "pending"],
-    ["Rejected", "rejected"],
+    ["Flag", "flag"],
     ["Deletion", "deletion"],
   ], include_blank: true %>
   <% if CurrentUser.is_janitor? %>
