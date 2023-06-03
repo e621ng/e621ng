@@ -257,12 +257,8 @@ class ApplicationRecord < ActiveRecord::Base
           end
 
           define_method :save_original_version do
-            if is_a?(ForumTopic)
-              body = original_post.body
-            else
-              body = send "#{versioning_body_column}_before_last_save"
-              body = send versioning_body_column if body.nil?
-            end
+            body = send "#{versioning_body_column}_before_last_save"
+            body = send versioning_body_column if body.nil?
 
             subject = nil
             if versioning_subject_column
