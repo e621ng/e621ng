@@ -30,9 +30,7 @@
               <% if edit.is_contentful? && (previous = edit.previous_version(@content_edits)) %>
                 <%= lcs_diff(previous.text_content, edit.text_content) %>
               <% else %>
-                <b>
-                  <%= edit.text_content %>
-                </b>
+                <%= edit.text_content %>
               <% end %>
             </div>
           </div>

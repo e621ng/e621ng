@@ -43,9 +43,9 @@ class EditHistory < ApplicationRecord
   def text_content
     if is_contentful?
       return subject if subject.present?
-      body
+      return body
     end
-    EDIT_MAP[edit_type.to_sym] || pretty_edit_type
+    "<b>#{EDIT_MAP[edit_type.to_sym] || pretty_edit_type}</b>".html_safe
   end
 
   def is_contentful?
