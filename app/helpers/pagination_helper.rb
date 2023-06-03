@@ -63,7 +63,7 @@ module PaginationHelper
       ("..." unless left == 2),
       (left..right).to_a,
       ("..." unless right == last_page - 1),
-      (last_page unless last_page == 1),
+      (last_page unless last_page <= 1),
     ].flatten.compact
   end
 
