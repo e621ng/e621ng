@@ -147,7 +147,7 @@ class User < ApplicationRecord
       def name_to_id(name)
         normalized_name = normalize_name(name)
         Cache.fetch("uni:#{normalized_name}", expires_in: 4.hours) do
-          select_value_sql("SELECT id FROM users WHERE lower(name) = ?", normalized_name)&.to_i
+          User.where("lower(name) = ?", normalized_name).pick(:id)
         end
       end
 
@@ -171,7 +171,7 @@ class User < ApplicationRecord
           return RequestStore[:id_name_cache][user_id]
         end
         name = Cache.fetch("uin:#{user_id}", expires_in: 4.hours) do
-          select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
+          User.where(id: user_id).pick(:name) || Danbooru.config.default_guest_name
         end
         RequestStore[:id_name_cache][user_id] = name
         name

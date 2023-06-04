@@ -117,17 +117,9 @@ class Tag < ApplicationRecord
         @category_mapping ||= CategoryMapping.new
       end
 
-      def select_category_for(tag_name)
-        select_value_sql("SELECT category FROM tags WHERE name = ?", tag_name).to_i
-      end
-
-      def category_for(tag_name, disable_cache: false)
-        if disable_cache
-          select_category_for(tag_name)
-        else
-          Cache.fetch("tc:#{tag_name}") do
-            select_category_for(tag_name)
-          end
+      def category_for(tag_name)
+        Cache.fetch("tc:#{tag_name}") do
+          Tag.where(name: tag_name).pick(:category)
         end
       end
 
