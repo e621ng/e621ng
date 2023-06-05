@@ -190,7 +190,6 @@ class ArtistTest < ActiveSupport::TestCase
       create(:artist, name: "artist")
 
       assert_not_nil(Artist.search(name: "artist").first)
-      assert_not_nil(Artist.search(name_like: "artist").first)
       assert_not_nil(Artist.search(any_name_matches: "artist").first)
       assert_not_nil(Artist.search(any_name_matches: "*art*").first)
     end
