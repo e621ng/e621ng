@@ -1,4 +1,4 @@
-FROM ruby:3.2.2-alpine3.17 as ruby-builder
+FROM ruby:3.2.2-alpine3.18 as ruby-builder
 
 RUN apk --no-cache add build-base git glib-dev postgresql15-dev
 
@@ -13,13 +13,13 @@ RUN if [[ $COMPOSE_PROFILES == *"solargraph"* ]]; then \
   bundle exec yard gems; \
 fi
 
-FROM node:18-alpine3.17 as node-builder
+FROM node:18-alpine3.18 as node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN corepack enable && corepack prepare --activate && yarn install
 
-FROM ruby:3.2.2-alpine3.17
+FROM ruby:3.2.2-alpine3.18
 
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \
