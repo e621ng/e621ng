@@ -29,6 +29,10 @@ FactoryBot::SyntaxRunner.class_eval do
   self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
 
+# Make tests not take ages. Remove the const first to avoid a const redefinition warning.
+BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
+BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
+
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
   include FactoryBot::Syntax::Methods

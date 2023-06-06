@@ -21,6 +21,14 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(@user.id, session[:user_id])
         assert_not_nil(@user.last_ip_addr)
       end
+
+      should "fail when provided an invalid password" do
+        user = create(:user, password: "xxxxxx", password_confirmation: "xxxxxx")
+        post session_path, params: { name: user.name, password: "yyy" }
+
+        assert_nil(session[:user_id])
+        assert_equal("Username/Password was incorrect", flash[:notice])
+      end
     end
 
     context "destroy action" do

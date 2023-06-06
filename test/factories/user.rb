@@ -5,7 +5,6 @@ FactoryBot.define do
     end
     password { "password" }
     password_confirmation { "password" }
-    password_hash {"password"}
     sequence(:email) { |n| "user_email_#{n}@example.com" }
     default_image_size { "large" }
     base_upload_limit { 10 }
