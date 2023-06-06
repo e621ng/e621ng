@@ -897,8 +897,6 @@ class User < ApplicationRecord
   end
 
   def initialize_attributes
-    self.last_ip_addr ||= CurrentUser.ip_addr
-
     return if Rails.env.test?
     Danbooru.config.customize_new_user(self)
   end

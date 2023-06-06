@@ -76,7 +76,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_difference(-> { User.count }, 1) do
           post users_path, params: { user: { name: "xxx", password: "xxxxx1", password_confirmation: "xxxxx1" } }
         end
-        assert_equal("xxx", User.find(session[:user_id]).name)
+        created_user = User.find(session[:user_id])
+        assert_equal("xxx", created_user.name)
+        assert_not_nil(created_user.last_ip_addr)
       end
 
       context "with sockpuppet validation enabled" do
