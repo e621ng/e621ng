@@ -65,7 +65,7 @@ module Danbooru
       # count.
       def total_count
         return 1_000_000 if @paginator_options.key?(:search_count) && @paginator_options[:search_count].blank?
-        return @paginator_options[:exact_count] if @paginator_options[:exact_count]
+        return @paginator_options[:total_count] if @paginator_options[:total_count]
 
         real_count
       end
