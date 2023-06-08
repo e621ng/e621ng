@@ -17,6 +17,7 @@ class SessionCreator
 
       session[:user_id] = user.id
       session[:ph] = user.password_token
+      user.update_column(:last_ip_addr, ip_addr) unless user.is_blocked?
 
       if remember
         verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")

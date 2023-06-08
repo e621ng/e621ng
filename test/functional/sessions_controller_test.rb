@@ -16,13 +16,9 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
         post session_path, params: { name: user.name, password: "password" }
         user.reload
 
-        assert_nil(user.last_ip_addr)
         assert_redirected_to(posts_path)
-        assert_equal(user.id, session[:user_id])
-
-        get_auth posts_path, user
-        user.reload
         assert_not_nil(user.last_ip_addr)
+        assert_equal(user.id, session[:user_id])
       end
 
       should "not update last_ip_addr for banned accounts" do
