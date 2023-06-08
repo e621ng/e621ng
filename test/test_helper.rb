@@ -11,6 +11,10 @@ require "webmock/minitest"
 
 require "sidekiq/testing"
 Sidekiq::Testing.fake!
+# https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
+Sidekiq.configure_client do |cfg|
+  cfg.logger.level = Logger::WARN
+end
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
