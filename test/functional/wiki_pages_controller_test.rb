@@ -158,12 +158,12 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       setup do
         as(@user) do
           @wiki_page = create(:wiki_page, body: "1")
-        end
-        travel_to(1.day.from_now) do
-          @wiki_page.update(:body => "1 2")
-        end
-        travel_to(2.days.from_now) do
-          @wiki_page.update(:body => "1 2 3")
+          travel_to(1.day.from_now) do
+            @wiki_page.update(body: "1 2")
+          end
+          travel_to(2.days.from_now) do
+            @wiki_page.update(body: "1 2 3")
+          end
         end
       end
 
