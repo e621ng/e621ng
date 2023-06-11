@@ -6,6 +6,7 @@
     ["Flag", "flag"],
     ["Deletion", "deletion"],
   ], include_blank: true %>
+  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% if CurrentUser.is_janitor? %>
     <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
     <%= f.input :creator_id, label: "Creator ID", hide_unless_value: true %>

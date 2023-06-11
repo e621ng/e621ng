@@ -9,7 +9,8 @@
           <th width="1%">Post</th>
           <th>Reason</th>
           <th width="1%">Flags</th>
-          <th width="10%">Type</th>
+          <th width="5%">Type</th>
+          <th width="1%">Resolved?</th>
           <th width="15%">Uploaded</th>
           <th width="15%">Flagged</th>
           <th width="15%">Approver</th>
@@ -17,7 +18,7 @@
       </thead>
       <tbody>
         <% @post_flags.each do |post_flag| %>
-          <tr class="flag-type-<%= post_flag.type.to_s.dasherize %>">
+          <tr class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>">
             <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
             <td class="dtext-container">
               <%= format_text post_flag.reason %>
@@ -27,6 +28,11 @@
             </td>
             <td>
               <%= post_flag.type.to_s.humanize %>
+              <%= link_to "»", post_flags_path(search: @search_params.merge(type: post_flag.type))%>
+            </td>
+            <td>
+              <%= post_flag.is_resolved.to_s %>
+              <%= link_to "»", post_flags_path(search: @search_params.merge(is_resolved: post_flag.is_resolved?)) %>
             </td>
             <td>
               <%= compact_time post_flag.post.created_at %>

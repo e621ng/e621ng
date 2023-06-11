@@ -50,7 +50,7 @@ class PostFlagsController < ApplicationController
 
   def search_params
     # creator_id and creator_name are special cased in the model search function
-    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match type]
+    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match type is_resolved]
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end

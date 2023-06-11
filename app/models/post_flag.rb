@@ -44,6 +44,7 @@ class PostFlag < ApplicationRecord
       q = super
 
       q = q.attribute_matches(:reason, params[:reason_matches])
+      q = q.attribute_matches(:is_resolved, params[:is_resolved])
 
       if params[:creator_id].present?
         if CurrentUser.can_view_flagger?(params[:creator_id].to_i)

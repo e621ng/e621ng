@@ -1,4 +1,8 @@
 div#c-post-flags {
+  tr.flag-resolved-true {
+    background: $negative-record-background !important;
+  }
+
   .flag-reason-title, .flag-reason-text {
     white-space: pre-wrap;
   }
