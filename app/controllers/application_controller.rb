@@ -165,11 +165,21 @@ class ApplicationController < ActionController::Base
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
   end
 
+  def user_access_check(method)
+    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+      access_denied
+    end
+  end
+
   User::Roles.each do |role|
     define_method("#{role}_only") do
-      if !CurrentUser.user.send("is_#{role}?") || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
-        access_denied
-      end
+      user_access_check("is_#{role}?")
+    end
+  end
+
+  %i[is_bd_staff can_view_staff_notes can_handle_takedowns].each do |role|
+    define_method("#{role}_only") do
+      user_access_check("#{role}?")
     end
   end
 

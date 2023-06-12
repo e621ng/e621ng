@@ -1,6 +1,6 @@
 module Admin
   class ReownerController < ApplicationController
-    before_action :bd_staff_only
+    before_action :is_bd_staff_only
 
     def new
     end
@@ -37,10 +37,6 @@ module Admin
 
     def new_params
       params.require(:reowner).permit(%i[old_owner search new_owner])
-    end
-
-    def bd_staff_only
-      access_denied unless CurrentUser.is_bd_staff?
     end
   end
 end

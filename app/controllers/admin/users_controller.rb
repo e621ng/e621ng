@@ -1,7 +1,7 @@
 module Admin
   class UsersController < ApplicationController
     before_action :admin_only
-    before_action :password_reset_permissions_check, only: %i[request_password_reset password_reset]
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset]
     respond_to :html, :json
 
     def alt_list
@@ -91,10 +91,6 @@ module Admin
       permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
       permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
-    end
-
-    def password_reset_permissions_check
-      access_denied unless CurrentUser.is_bd_staff?
     end
   end
 end
