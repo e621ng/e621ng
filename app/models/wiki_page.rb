@@ -1,8 +1,8 @@
 class WikiPage < ApplicationRecord
   class RevertError < Exception ; end
 
-  before_save :normalize_title
-  before_save :normalize_other_names
+  before_validation :normalize_title
+  before_validation :normalize_other_names
   after_save :create_version
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
