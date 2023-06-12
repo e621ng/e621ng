@@ -136,11 +136,11 @@ module PostsHelper
                      class: 'post-vote-down-link', 'data-id': post.id)
     if buttons
       score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      CurrentUser.is_voter? ? up_tag + score_tag + down_tag : ''
+      CurrentUser.is_member? ? up_tag + score_tag + down_tag : ""
     else
       vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
       score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      score_tag + (CurrentUser.is_voter? ? vote_block : '')
+      score_tag + (CurrentUser.is_member? ? vote_block : "")
     end
   end
 

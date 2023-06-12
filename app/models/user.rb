@@ -16,10 +16,7 @@ class User < ApplicationRecord
 
   # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
   Roles = Levels.constants.map(&:downcase) + [
-    :banned,
     :approver,
-    :voter,
-    :verified,
   ]
 
   # candidates for removal:
@@ -321,10 +318,6 @@ class User < ApplicationRecord
       define_method("is_#{normalized_name}?") do
         is_verified? && self.level >= value && self.id.present?
       end
-    end
-
-    def is_voter?
-      is_member?
     end
 
     def is_bd_staff?
