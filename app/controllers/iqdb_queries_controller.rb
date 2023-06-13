@@ -2,6 +2,7 @@ class IqdbQueriesController < ApplicationController
   respond_to :html, :json
   # Show uses POST because it needs a file parameter. This would be GET otherwise.
   skip_forgery_protection only: :show
+  before_action :validate_enabled
 
   def show
     # Allow legacy ?post_id=123 parameters
@@ -44,5 +45,9 @@ class IqdbQueriesController < ApplicationController
         RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
       end
     end
+  end
+
+  def validate_enabled
+    raise FeatureUnavailable if Danbooru.config.iqdb_server.blank?
   end
 end

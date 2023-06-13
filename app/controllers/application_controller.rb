@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
   class ReadOnlyException < Exception; end
+  class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
@@ -76,8 +77,8 @@ class ApplicationController < ActionController::Base
       render_expected_error(410, exception.message)
     when Post::SearchError
       render_expected_error(422, exception.message)
-    when NotImplementedError
-      render_error_page(501, exception, message: "This feature isn't available: #{exception.message}")
+    when FeatureUnavailable
+      render_expected_error(400, "This feature isn't available")
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
