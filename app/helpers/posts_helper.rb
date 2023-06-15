@@ -27,6 +27,8 @@ module PostsHelper
       end
 
       source_link
+    elsif source.start_with?("-")
+      tag.s(source[1..])
     else
       source
     end
