@@ -208,6 +208,11 @@ class Artist < ApplicationRecord
     end
 
     def url_string=(string)
+      # FIXME: This is a hack. Setting an association directly immediatly updates without regard for the parents validity.
+      # As a consequence, removing urls always works. This does not create a new ArtistVersion.
+      # This fix isn't great but it's the best I came up with without rather large changes.
+      return unless valid?
+
       url_string_was = url_string
 
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|

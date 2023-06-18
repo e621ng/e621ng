@@ -337,6 +337,43 @@ class ArtistTest < ActiveSupport::TestCase
         assert_equal("artist_user_unlinked", mod_action.action)
         assert_equal({ "artist_page" => @artist.id, "user_id" => user.id }, mod_action.values)
       end
+
+      should "fail if the user is limited" do
+        @artist.url_string = "https://e621.net"
+        as(create(:user)) { @artist.save }
+
+        @artist.reload
+        assert_equal("https://e621.net", @artist.url_string)
+
+        Danbooru.config.stubs(:disable_throttles?).returns(false)
+        Danbooru.config.stubs(:artist_edit_limit).returns(0)
+
+        @artist.url_string = ""
+        assert_no_difference(-> { ArtistVersion.count }) do
+          as(create(:user)) { @artist.save }
+        end
+
+        @artist.reload
+        assert_equal("https://e621.net", @artist.url_string)
+      end
+
+      should "not change urls when locked" do
+        @artist.url_string = "https://e621.net"
+        as(create(:user)) { @artist.save }
+
+        @artist.reload
+        assert_equal("https://e621.net", @artist.url_string)
+
+        @artist.update_column(:is_locked, true)
+
+        @artist.url_string = "https://e926.net"
+        assert_no_difference(-> { ArtistVersion.count }) do
+          as(create(:user)) { @artist.save }
+        end
+
+        @artist.reload
+        assert_equal("https://e621.net", @artist.url_string)
+      end
     end
   end
 end
