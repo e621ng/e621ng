@@ -12,6 +12,7 @@ module Maintenance
     ignoring_exceptions { Ban.prune! }
     ignoring_exceptions { UserPasswordResetNonce.prune! }
     ignoring_exceptions { StatsUpdater.run! }
+    ignoring_exceptions { JanitorReportGenerator.run! }
   end
 
   def ignoring_exceptions(&block)

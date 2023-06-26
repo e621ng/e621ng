@@ -768,6 +768,10 @@ module Danbooru
     def enable_visitor_metrics?
       false
     end
+
+    def janitor_reports_discord_webhook_url
+      nil
+    end
   end
 
   class EnvironmentConfiguration
