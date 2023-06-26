@@ -768,6 +768,10 @@ module Danbooru
     def enable_visitor_metrics?
       false
     end
+
+    def janitor_reports_webhook
+      nil
+    end
   end
 
   class EnvironmentConfiguration
