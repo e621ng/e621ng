@@ -136,7 +136,7 @@ class UsersController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[name_matches about_me level min_level max_level can_upload_free can_approve_posts order]
+    permitted_params = %i[name_matches about_me avatar_id level min_level max_level can_upload_free can_approve_posts order]
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
