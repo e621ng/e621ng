@@ -22,7 +22,7 @@ class UserRevert
 
   def revert_post_changes
     PostVersion.where(updater_id: user_id).find_each do |x|
-      x.undo!
+      x.undo! if x.can_undo?(CurrentUser)
     end
   end
 
