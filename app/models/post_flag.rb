@@ -2,11 +2,6 @@ class PostFlag < ApplicationRecord
   class Error < Exception;
   end
 
-  module Reasons
-    UNAPPROVED = "Unapproved in #{PostPruner::DELETION_WINDOW} days"
-    BANNED = "Artist requested removal"
-  end
-
   COOLDOWN_PERIOD = 1.days
   MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
 
@@ -29,14 +24,6 @@ class PostFlag < ApplicationRecord
   attr_accessor :parent_id, :reason_name, :force_flag
 
   module SearchMethods
-    def duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('dup | duplicate | sample | smaller')")
-    end
-
-    def not_duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('!dup & !duplicate & !sample & !smaller')")
-    end
-
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
     end
@@ -49,14 +36,6 @@ class PostFlag < ApplicationRecord
       where("is_resolved = ?", false)
     end
 
-    def recent
-      where("created_at >= ?", 1.day.ago)
-    end
-
-    def old
-      where("created_at <= ?", 3.days.ago)
-    end
-
     def for_creator(user_id)
       where("creator_id = ?", user_id)
     end
@@ -65,6 +44,7 @@ class PostFlag < ApplicationRecord
       q = super
 
       q = q.attribute_matches(:reason, params[:reason_matches])
+      q = q.attribute_matches(:is_resolved, params[:is_resolved])
 
       if params[:creator_id].present?
         if CurrentUser.can_view_flagger?(params[:creator_id].to_i)
@@ -91,23 +71,15 @@ class PostFlag < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
-      q = q.attribute_matches(:is_resolved, params[:is_resolved])
-
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
-      case params[:category]
-      when "normal"
-        q = q.where("reason NOT IN (?)", [Reasons::UNAPPROVED, Reasons::BANNED])
-      when "unapproved"
-        q = q.where(reason: Reasons::UNAPPROVED)
-      when "banned"
-        q = q.where(reason: Reasons::BANNED)
-      when "deleted"
-        q = q.where("reason = ?", Reasons::UNAPPROVED)
-      when "duplicate"
-        q = q.duplicate
+      case params[:type]
+      when "flag"
+        q = q.where(is_deletion: false)
+      when "deletion"
+        q = q.where(is_deletion: true)
       end
 
       q.apply_default_order(params)
@@ -124,22 +96,16 @@ class PostFlag < ApplicationRecord
     end
 
     def method_attributes
-      super + [:category]
+      super + [:type]
     end
   end
 
   extend SearchMethods
   include ApiMethods
 
-  def category
-    case reason
-    when Reasons::UNAPPROVED
-      :unapproved
-    when Reasons::BANNED
-      :banned
-    else
-      :normal
-    end
+  def type
+    return :deletion if is_deletion
+    :flag
   end
 
   def update_post

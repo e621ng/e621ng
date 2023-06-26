@@ -103,7 +103,6 @@ GEM
     builder (3.2.4)
     case_transform (0.2)
       activesupport
-    cityhash (0.9.0)
     concurrent-ruby (1.2.2)
     connection_pool (2.4.0)
     crack (0.4.5)
@@ -399,7 +398,6 @@ DEPENDENCIES
   addressable
   bcrypt
   bootsnap
-  cityhash
   dalli
   diff-lcs
   dotenv-rails
@@ -441,4 +439,4 @@ DEPENDENCIES
   webpacker (>= 4.0.x)
 
 BUNDLED WITH
-   2.3.12
+   2.4.10

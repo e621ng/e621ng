@@ -42,7 +42,7 @@ class UserVote < ApplicationRecord
       q = super
 
       if params["#{model_type}_id"].present?
-        q = q.where("#{model_type}_id = ?", params["#{model_type}_id"])
+        q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(100))
       end
 
       if params[:user_name].present?
@@ -55,7 +55,7 @@ class UserVote < ApplicationRecord
       end
 
       if params[:user_id].present?
-        q = q.where("user_id = ?", params[:user_id].to_i)
+        q = q.where(user_id: params[:user_id].split(",").first(100))
       end
 
       allow_complex_params = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?

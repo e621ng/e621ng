@@ -55,7 +55,7 @@ class UploadWhitelist < ApplicationRecord
   end
 
   def self.is_whitelisted?(url)
-    entries = Cache.fetch("upload_whitelist", 6.hours) do
+    entries = Cache.fetch("upload_whitelist", expires_in: 6.hours) do
       all
     end
 

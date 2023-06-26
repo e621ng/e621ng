@@ -298,9 +298,9 @@ class UserTest < ActiveSupport::TestCase
         user2 = create(:user, name: "foobar")
         user3 = create(:user, name: "bar123baz")
 
-        assert_equal([user2.id, user1.id], User.search(name: "foo*").map(&:id))
-        assert_equal([user2.id], User.search(name: "foo\*bar").map(&:id))
-        assert_equal([user3.id], User.search(name: "bar\*baz").map(&:id))
+        assert_equal([user2.id, user1.id], User.search(name_matches: "foo*").map(&:id))
+        assert_equal([user2.id], User.search(name_matches: "foo\*bar").map(&:id))
+        assert_equal([user3.id], User.search(name_matches: "bar\*baz").map(&:id))
       end
     end
   end

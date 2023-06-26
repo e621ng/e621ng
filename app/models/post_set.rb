@@ -42,7 +42,7 @@ class PostSet < ApplicationRecord
     if name =~ /\A\d+\z/
       name.to_i
     else
-      select_value_sql("SELECT id FROM post_sets WHERE lower(shortname) = ?", name.downcase.tr(" ", "_")).to_i
+      PostSet.where("lower(shortname) = ?", name.downcase.tr(" ", "_")).pick(:id)
     end
   end
 

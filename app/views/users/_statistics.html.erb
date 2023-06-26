@@ -147,7 +147,7 @@
               <%= presenter.ticket_count(self) %>
               <% if CurrentUser.is_moderator? %>
                 [<%= link_to "pending", tickets_path(search: { creator_id: user.id, status: "pending" }) %>]
-                [<%= link_to "accused", tickets_path(search: { accused_id: user.id, status: "pending" }) %>]
+                [<%= link_to "accused", tickets_path(search: { accused_id: user.id }) %>]
               <% end %>
             </span>
           <% end %>

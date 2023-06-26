@@ -314,7 +314,7 @@ class TagAlias < TagRelationship
 
   def self.update_cached_post_counts_for_all
     TagAlias.without_timeout do
-      execute_sql("UPDATE tag_aliases SET post_count = tags.post_count FROM tags WHERE tags.name = tag_aliases.consequent_name")
+      connection.execute("UPDATE tag_aliases SET post_count = tags.post_count FROM tags WHERE tags.name = tag_aliases.consequent_name")
     end
   end
 

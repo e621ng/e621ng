@@ -3,7 +3,7 @@ class TagTypeVersion < ApplicationRecord
   belongs_to_creator
 
   module SearchMethods
-    def search(params = {})
+    def search(params)
       q = super.includes(:creator, :tag)
 
       if params[:tag].present?

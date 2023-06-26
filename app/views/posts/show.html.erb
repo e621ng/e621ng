@@ -37,7 +37,7 @@
           <h1>Related</h1>
           <ul>
             <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
-            <% if @post.has_preview? %>
+            <% if Danbooru.config.iqdb_server.present? && @post.has_preview? %>
               <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
             <% end %>
             <% if @post.is_image? %>

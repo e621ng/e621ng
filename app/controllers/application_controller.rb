@@ -1,13 +1,13 @@
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
   class ReadOnlyException < Exception; end
+  class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
   before_action :set_current_user
   before_action :normalize_search
   before_action :api_check
-  before_action :set_variant
   before_action :enable_cors
   before_action :enforce_readonly
   after_action :reset_current_user
@@ -77,14 +77,16 @@ class ApplicationController < ActionController::Base
       render_expected_error(410, exception.message)
     when Post::SearchError
       render_expected_error(422, exception.message)
-    when NotImplementedError
-      render_error_page(501, exception, message: "This feature isn't available: #{exception.message}")
+    when FeatureUnavailable
+      render_expected_error(400, "This feature isn't available")
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
       render_expected_error(400, exception.message)
     when ReadOnlyException
       render_expected_error(400, exception.message)
+    when BCrypt::Errors::InvalidHash
+      render_expected_error(400, "You must reset your password.")
     else
       render_error_page(500, exception)
     end
@@ -164,15 +166,21 @@ class ApplicationController < ActionController::Base
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
   end
 
-  def set_variant
-    request.variant = params[:variant].try(:to_sym)
+  def user_access_check(method)
+    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+      access_denied
+    end
   end
 
   User::Roles.each do |role|
     define_method("#{role}_only") do
-      if !CurrentUser.user.send("is_#{role}?") || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
-        access_denied
-      end
+      user_access_check("is_#{role}?")
+    end
+  end
+
+  %i[is_bd_staff can_view_staff_notes can_handle_takedowns].each do |role|
+    define_method("#{role}_only") do
+      user_access_check("#{role}?")
     end
   end
 

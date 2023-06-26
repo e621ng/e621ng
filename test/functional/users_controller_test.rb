@@ -72,12 +72,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "create action" do
-      # FIXME: Broken because of special password handling in tests
-      # should "create a user" do
-      #   assert_difference("User.count", 1) do
-      #     post users_path, params: {:user => {:name => "xxx", :password => "xxxxx1", :password_confirmation => "xxxxx1"}}
-      #   end
-      # end
+      should "create a user" do
+        assert_difference(-> { User.count }, 1) do
+          post users_path, params: { user: { name: "xxx", password: "xxxxx1", password_confirmation: "xxxxx1" } }
+        end
+        created_user = User.find(session[:user_id])
+        assert_equal("xxx", created_user.name)
+        assert_not_nil(created_user.last_ip_addr)
+      end
 
       context "with sockpuppet validation enabled" do
         setup do

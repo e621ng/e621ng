@@ -1,7 +1,7 @@
 <ul>
   <li>ID: <%= post.id %></li>
   <li class="source-links">Source:
-    <% post.source_array.each do |source| %>
+    <% post.source_array.partition { |s| !s.start_with?("-") }.flatten.each do |source| %>
       <div class="source-link"><%= post_source_tag(source) %></div>
     <% end %>
   </li>

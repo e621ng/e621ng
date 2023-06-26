@@ -129,7 +129,7 @@ class Pool < ApplicationRecord
     if name =~ /\A\d+\z/
       name.to_i
     else
-      select_value_sql("SELECT id FROM pools WHERE lower(name) = ?", name.downcase.tr(" ", "_")).to_i
+      Pool.where("lower(name) = ?", name.downcase.tr(" ", "_")).pick(:id)
     end
   end
 

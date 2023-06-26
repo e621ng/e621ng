@@ -1,6 +1,6 @@
 class TakedownsController < ApplicationController
   respond_to :html, :json
-  before_action :takedown_edit_permissions_check, only: [:update, :edit, :destroy, :add_by_ids, :add_by_tags, :count_matching_posts, :remove_by_ids]
+  before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids]
 
   def index
     @takedowns = Takedown.search(search_params).paginate(params[:page], limit: params[:limit])
@@ -102,9 +102,5 @@ class TakedownsController < ApplicationController
       permitted_params << %i[notes del_post_ids status]
     end
     params.require(:takedown).permit(*permitted_params, post_ids: [])
-  end
-
-  def takedown_edit_permissions_check
-    access_denied unless CurrentUser.can_handle_takedowns?
   end
 end

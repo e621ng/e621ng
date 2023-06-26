@@ -16,10 +16,7 @@ class User < ApplicationRecord
 
   # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
   Roles = Levels.constants.map(&:downcase) + [
-    :banned,
     :approver,
-    :voter,
-    :verified,
   ]
 
   # candidates for removal:
@@ -146,13 +143,8 @@ class User < ApplicationRecord
     module ClassMethods
       def name_to_id(name)
         normalized_name = normalize_name(name)
-        Cache.fetch("uni:#{Cache.hash(normalized_name)}", 4.hours) do
-          val = select_value_sql("SELECT id FROM users WHERE lower(name) = ?", normalized_name)
-          if val.present?
-            val.to_i
-          else
-            nil
-          end
+        Cache.fetch("uni:#{normalized_name}", expires_in: 4.hours) do
+          User.where("lower(name) = ?", normalized_name).pick(:id)
         end
       end
 
@@ -175,8 +167,8 @@ class User < ApplicationRecord
         if RequestStore[:id_name_cache].key?(user_id)
           return RequestStore[:id_name_cache][user_id]
         end
-        name = Cache.fetch("uin:#{user_id}", 4.hours) do
-          select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
+        name = Cache.fetch("uin:#{user_id}", expires_in: 4.hours) do
+          User.where(id: user_id).pick(:name) || Danbooru.config.default_guest_name
         end
         RequestStore[:id_name_cache][user_id] = name
         name
@@ -204,8 +196,8 @@ class User < ApplicationRecord
     end
 
     def update_cache
-      Cache.write("uin:#{id}", name, 4.hours)
-      Cache.write("uni:#{Cache.hash(name)}", id, 4.hours)
+      Cache.write("uin:#{id}", name, expires_in: 4.hours)
+      Cache.write("uni:#{name}", id, expires_in: 4.hours)
     end
   end
 
@@ -219,7 +211,6 @@ class User < ApplicationRecord
     end
 
     def encrypt_password_on_create
-      return if Rails.env.test?
       self.password_hash = ""
       self.bcrypt_password_hash = User.bcrypt(password)
     end
@@ -248,9 +239,6 @@ class User < ApplicationRecord
     module ClassMethods
       def authenticate(name, pass)
         user = find_by_name(name)
-        if Rails.env.test? && user && user.password_hash.present? && user.password_hash == pass
-          return user
-        end
         if user && user.password_hash.present? && Pbkdf2.validate_password(pass, user.password_hash)
           user.upgrade_password(pass)
           user
@@ -330,10 +318,6 @@ class User < ApplicationRecord
       define_method("is_#{normalized_name}?") do
         is_verified? && self.level >= value && self.id.present?
       end
-    end
-
-    def is_voter?
-      is_member?
     end
 
     def is_bd_staff?
@@ -793,16 +777,11 @@ class User < ApplicationRecord
       q = super
       q = q.joins(:user_status)
 
-      params = params.dup
-      params[:name_matches] = params.delete(:name) if params[:name].present?
-
-      q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
-      # TODO: Doesn't support relation filtering using this method.
-      # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
-      # q = q.attribute_matches(:post_update_count, params[:post_update_count])
-      # q = q.attribute_matches(:note_update_count, params[:note_update_count])
-      # q = q.attribute_matches(:favorite_count, params[:favorite_count])
+
+      if params[:about_me].present?
+        q = q.attribute_matches(:profile_about, params[:about_me]).or(attribute_matches(:profile_artinfo, params[:about_me]))
+      end
 
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
@@ -911,8 +890,6 @@ class User < ApplicationRecord
   end
 
   def initialize_attributes
-    self.last_ip_addr ||= CurrentUser.ip_addr
-
     return if Rails.env.test?
     Danbooru.config.customize_new_user(self)
   end

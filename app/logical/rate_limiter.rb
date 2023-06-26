@@ -4,7 +4,7 @@ class RateLimiter
 
     attempts = Cache.fetch(key) || 0
     if attempts >= max_attempts
-      Cache.write("#{key}:lockout", true, lockout_time)
+      Cache.write("#{key}:lockout", true, expires_in: lockout_time)
       reset_limit(key)
       return true
     end
@@ -13,7 +13,7 @@ class RateLimiter
 
   def self.hit(key, time_period = 1.minute)
     value = Cache.fetch(key) || 0
-    Cache.write(key, value.to_i + 1, time_period)
+    Cache.write(key, value.to_i + 1, expires_in: time_period)
     value.to_i + 1
   end
 

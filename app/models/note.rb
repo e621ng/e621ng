@@ -110,12 +110,9 @@ class Note < ApplicationRecord
   end
 
   def update_post
-    if self.saved_changes?
-      if Note.where(:is_active => true, :post_id => post_id).exists?
-        execute_sql("UPDATE posts SET last_noted_at = ? WHERE id = ?", updated_at, post_id)
-      else
-        execute_sql("UPDATE posts SET last_noted_at = NULL WHERE id = ?", post_id)
-      end
+    if saved_changes?
+      post_noted_at = Note.where(is_active: true, post_id: post_id).exists? ? updated_at : nil
+      Post.where(id: post_id).update_all(last_noted_at: post_noted_at)
       post.reload.update_index
     end
   end

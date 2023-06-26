@@ -431,7 +431,7 @@ Autocomplete.artist_source = function(term, resp) {
   return $.ajax({
     url: "/artists.json",
     data: {
-      "search[name_like]": term.trim().replace(/\s+/g, "_") + "*",
+      "search[name]": term.trim().replace(/\s+/g, "_") + "*",
       "search[is_active]": true,
       "search[order]": "post_count",
       "limit": 10,

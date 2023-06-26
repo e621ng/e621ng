@@ -39,10 +39,6 @@ module Danbooru
       "management@#{domain}"
     end
 
-    def takedown_links
-      []
-    end
-
     # System actions, such as sending automated dmails, will be performed with
     # this account. This account must have Moderator privileges.
     #
@@ -651,13 +647,6 @@ module Danbooru
 
     def select_posts_visible_to_user(user, posts)
       posts.select {|x| can_user_see_post?(user, x)}
-    end
-
-    # Counting every post is typically expensive because it involves a sequential scan on
-    # potentially millions of rows. If this method returns a value, then blank searches
-    # will return that number for the fast_count call instead.
-    def blank_tag_search_fast_count
-      nil
     end
 
     def enable_dimension_autotagging?

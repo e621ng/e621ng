@@ -218,7 +218,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def estimate_update_count
-    Post.fast_count(antecedent_name, skip_cache: true)
+    Post.fast_count(antecedent_name)
   end
 
   def update_posts

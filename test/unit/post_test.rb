@@ -98,10 +98,6 @@ class PostTest < ActiveSupport::TestCase
     end
 
     context "Deleting a post" do
-      setup do
-        Danbooru.config.stubs(:blank_tag_search_fast_count).returns(nil)
-      end
-
       context "that is status locked" do
         setup do
           @post = create(:post, is_status_locked: true)
@@ -509,7 +505,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "1234 update the category cache of the tag" do
-          assert_equal(Tag.categories.copyright, Cache.fetch("tc:#{Cache.hash('abc')}"))
+          assert_equal(Tag.categories.copyright, Cache.fetch("tc:abc"))
         end
 
         should "update the tag counts of the posts" do
@@ -2062,7 +2058,6 @@ class PostTest < ActiveSupport::TestCase
   #     setup do
   #       Post.__elasticsearch__.delete_index!
   #       Post.__elasticsearch__.create_index!
-  #       Danbooru.config.stubs(:blank_tag_search_fast_count).returns(nil)
   #       create(:tag_alias, antecedent_name: "alias", consequent_name: "aaa")
   #       create(:post, tag_string: "aaa", score: 42)
   #     end

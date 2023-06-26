@@ -10,7 +10,7 @@ class Artist < ApplicationRecord
   before_validation :normalize_other_names
   validate :validate_user_can_edit?
   validate :user_not_limited
-  validates :name, tag_name: true, uniqueness: true, on: :create
+  validates :name, tag_name: true, uniqueness: true, if: :name_changed?
   validates :name, :group_name, length: { maximum: 100 }
   after_save :log_changes
   after_save :create_version
@@ -208,6 +208,11 @@ class Artist < ApplicationRecord
     end
 
     def url_string=(string)
+      # FIXME: This is a hack. Setting an association directly immediatly updates without regard for the parents validity.
+      # As a consequence, removing urls always works. This does not create a new ArtistVersion.
+      # This fix isn't great but it's the best I came up with without rather large changes.
+      return unless valid?
+
       url_string_was = url_string
 
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|
@@ -232,7 +237,7 @@ class Artist < ApplicationRecord
     # Returns a count of sourced domains for the artist.
     # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
-      Cache.fetch("artist-domains-#{id}", 1.day) do
+      Cache.fetch("artist-domains-#{id}", expires_in: 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
         counted = Hash.new(0)
         sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|
@@ -443,8 +448,8 @@ class Artist < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.search_text_attribute(:name, params)
-      q = q.search_text_attribute(:group_name, params)
+      q = q.attribute_matches(:name, params[:name])
+      q = q.attribute_matches(:group_name, params[:group_name])
 
       if params[:any_other_name_like]
         q = q.any_other_name_like(params[:any_other_name_like])

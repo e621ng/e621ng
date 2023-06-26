@@ -6,12 +6,7 @@
         <p>Your verification code is <span class='takedown-vericode'><%= @takedown.vericode %></span></p>
         <p>Your takedown request has been successfully created. Using the gallery account that you specified below as the "source", <span style="font-weight:bold;">please send your verification code via PM/note to</span>:</p>
 
-        <ul>
-          <% Danbooru.config.takedown_links.each do |link| %>
-            <li><%= link_to link[0], link[1] %></li>
-          <% end %>
-          <li>Or via email from your personal website (e.g. from me@mywebsite.com to <%= Danbooru.config.takedown_email %>)</li>
-        </ul>
+        <%= format_text(WikiPage.find_by(title: "e621:takedown_verification")&.body) %>
 
         <p>Once you send the verification code, we can process your takedown. This step is necessary in order to confirm that you are who you claim to be.</p>
         <p>Bookmark this page to be able to access your verification code later, as it will not appear when viewing the takedown otherwise.</p>

@@ -1,5 +1,5 @@
 class EmailBlacklist < ApplicationRecord
-  UNVERIFY_COUNT_TRESHOLD = 50
+  UNVERIFY_COUNT_TRESHOLD = 250
 
   belongs_to_creator
 
@@ -10,7 +10,7 @@ class EmailBlacklist < ApplicationRecord
 
   def self.is_banned?(email)
     email_domain = email.split('@').last.strip.downcase
-    banned_domains = Cache.fetch("banned_emails", 1.hour) do
+    banned_domains = Cache.fetch("banned_emails", expires_in: 1.hour) do
       all.map { |x| x.domain.strip.downcase }.flatten
     end
 

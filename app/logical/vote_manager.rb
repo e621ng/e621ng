@@ -7,7 +7,7 @@ class VoteManager
     score = score.to_i
     begin
       raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
-      raise UserVote::Error.new("You do not have permission to vote") unless user.is_voter?
+      raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
       PostVote.transaction(**ISOLATION) do
         PostVote.uncached do
           score_modifier = score
@@ -89,7 +89,7 @@ class VoteManager
     score = score.to_i
     begin
       raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
-      raise UserVote::Error.new("You do not have permission to vote") unless user.is_voter?
+      raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
       CommentVote.transaction(**ISOLATION) do
         CommentVote.uncached do
           score_modifier = score

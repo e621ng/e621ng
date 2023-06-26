@@ -37,7 +37,7 @@ class BulkUpdateRequest < ApplicationRecord
       pending_first.order(id: :desc)
     end
 
-    def search(params = {})
+    def search(params)
       q = super
 
       if params[:user_name].present?

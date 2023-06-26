@@ -15,7 +15,7 @@ class TagCorrection
   end
 
   def category_cache
-    Cache.fetch("tc:#{Cache.hash(tag.name)}")
+    Cache.fetch("tc:#{tag.name}")
   end
 
   def fix!

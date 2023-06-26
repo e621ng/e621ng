@@ -1,15 +1,15 @@
 class WikiPage < ApplicationRecord
   class RevertError < Exception ; end
 
-  before_save :normalize_title
-  before_save :normalize_other_names
+  before_validation :normalize_title
+  before_validation :normalize_other_names
   after_save :create_version
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :body, presence: { :unless => -> { is_deleted? || other_names.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
-  validate :user_not_limited, on: :save
+  validate :user_not_limited
   validate :validate_rename
   validate :validate_not_locked
 
@@ -77,7 +77,7 @@ class WikiPage < ApplicationRecord
       order(updated_at: :desc)
     end
 
-    def search(params = {})
+    def search(params)
       q = super
 
       if params[:title].present?
@@ -126,7 +126,7 @@ class WikiPage < ApplicationRecord
 
   module ApiMethods
     def method_attributes
-      super + [:creator_name, :category_id, :category_name]
+      super + [:creator_name, :category_id]
     end
   end
 
@@ -192,7 +192,6 @@ class WikiPage < ApplicationRecord
   def category_id
     Tag.category_for(title)
   end
-  alias category_name category_id
 
   def pretty_title
     title&.tr("_", " ") || ''

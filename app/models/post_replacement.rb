@@ -247,7 +247,7 @@ class PostReplacement < ApplicationRecord
 
   concerning :Search do
     class_methods do
-      def search(params = {})
+      def search(params)
         q = super
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])

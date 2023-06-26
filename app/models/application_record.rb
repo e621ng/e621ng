@@ -1,10 +1,12 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  include Danbooru::Paginator::ActiveRecordExtension
-
   concerning :SearchMethods do
     class_methods do
+      def paginate(page, options = {})
+        extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
+      end
+
       def qualified_column_for(attr)
         "#{table_name}.#{column_for_attribute(attr).name}"
       end
@@ -13,16 +15,8 @@ class ApplicationRecord < ActiveRecord::Base
         where("#{qualified_column_for(attr)} LIKE ? ESCAPE E'\\\\'", value.to_escaped_for_sql_like)
       end
 
-      def where_not_like(attr, value)
-        where.not("#{qualified_column_for(attr)} LIKE ? ESCAPE E'\\\\'", value.to_escaped_for_sql_like)
-      end
-
       def where_ilike(attr, value)
         where("lower(#{qualified_column_for(attr)}) LIKE ? ESCAPE E'\\\\'", value.downcase.to_escaped_for_sql_like)
-      end
-
-      def where_not_ilike(attr, value)
-        where.not("lower(#{qualified_column_for(attr)}) LIKE ? ESCAPE E'\\\\'", value.downcase.to_escaped_for_sql_like)
       end
 
       def attribute_exact_matches(attribute, value, **options)
@@ -108,26 +102,6 @@ class ApplicationRecord < ActiveRecord::Base
         end
       end
 
-      def search_text_attribute(attr, params, **options)
-        if params[attr].present?
-          where(attr => params[attr])
-        elsif params[:"#{attr}_eq"].present?
-          where(attr => params[:"#{attr}_eq"])
-        elsif params[:"#{attr}_not_eq"].present?
-          where.not(attr => params[:"#{attr}_not_eq"])
-        elsif params[:"#{attr}_like"].present?
-          where_like(attr, params[:"#{attr}_like"])
-        elsif params[:"#{attr}_ilike"].present?
-          where_ilike(attr, params[:"#{attr}_ilike"])
-        elsif params[:"#{attr}_not_like"].present?
-          where_not_like(attr, params[:"#{attr}_not_like"])
-        elsif params[:"#{attr}_not_ilike"].present?
-          where_not_ilike(attr, params[:"#{attr}_not_ilike"])
-        else
-          all
-        end
-      end
-
       def apply_default_order(params)
         return default_order
       end
@@ -136,7 +110,7 @@ class ApplicationRecord < ActiveRecord::Base
         order(id: :desc)
       end
 
-      def search(params = {})
+      def search(params)
         params ||= {}
 
         q = all
@@ -196,16 +170,6 @@ class ApplicationRecord < ActiveRecord::Base
         return default_value
       ensure
         connection.execute("SET STATEMENT_TIMEOUT = #{CurrentUser.user.try(:statement_timeout) || 3_000}") unless Rails.env == "test"
-      end
-    end
-
-    %w(execute select_value select_values select_all).each do |method_name|
-      define_method("#{method_name}_sql") do |sql, *params|
-        self.class.connection.__send__(method_name, self.class.send(:sanitize_sql_array, [sql, *params]))
-      end
-
-      self.class.__send__(:define_method, "#{method_name}_sql") do |sql, *params|
-        connection.__send__(method_name, send(:sanitize_sql_array, [sql, *params]))
       end
     end
   end

@@ -3425,6 +3425,13 @@ CREATE INDEX index_bans_on_user_id ON public.bans USING btree (user_id);
 
 
 --
+-- Name: index_blips_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_blips_on_lower_body_trgm ON public.blips USING gin (lower((body)::text) public.gin_trgm_ops);
+
+
+--
 -- Name: index_blips_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3488,6 +3495,13 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 
 
 --
+-- Name: index_comments_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_lower_body_trgm ON public.comments USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
 -- Name: index_comments_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3527,6 +3541,13 @@ CREATE INDEX index_dmails_on_is_deleted ON public.dmails USING btree (is_deleted
 --
 
 CREATE INDEX index_dmails_on_is_read ON public.dmails USING btree (is_read);
+
+
+--
+-- Name: index_dmails_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_on_lower_body_trgm ON public.dmails USING gin (lower(body) public.gin_trgm_ops);
 
 
 --
@@ -3600,6 +3621,13 @@ CREATE INDEX index_forum_posts_on_creator_id ON public.forum_posts USING btree (
 
 
 --
+-- Name: index_forum_posts_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_lower_body_trgm ON public.forum_posts USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
 -- Name: index_forum_posts_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3660,6 +3688,13 @@ CREATE INDEX index_forum_topics_on_creator_id ON public.forum_topics USING btree
 --
 
 CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topics USING btree (is_sticky, updated_at);
+
+
+--
+-- Name: index_forum_topics_on_lower_title_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_lower_title_trgm ON public.forum_topics USING gin (lower((title)::text) public.gin_trgm_ops);
 
 
 --
@@ -3751,6 +3786,13 @@ CREATE INDEX index_note_versions_on_updater_ip_addr ON public.note_versions USIN
 --
 
 CREATE INDEX index_notes_on_creator_id_and_post_id ON public.notes USING btree (creator_id, post_id);
+
+
+--
+-- Name: index_notes_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notes_on_lower_body_trgm ON public.notes USING gin (lower(body) public.gin_trgm_ops);
 
 
 --
@@ -4196,6 +4238,13 @@ CREATE INDEX index_user_feedback_on_creator_ip_addr ON public.user_feedback USIN
 
 
 --
+-- Name: index_user_feedback_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_feedback_on_lower_body_trgm ON public.user_feedback USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
 -- Name: index_user_feedback_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4252,10 +4301,38 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 
 
 --
+-- Name: index_users_on_lower_profile_about_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_about_trgm ON public.users USING gin (lower(profile_about) public.gin_trgm_ops);
+
+
+--
+-- Name: index_users_on_lower_profile_artinfo_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_artinfo_trgm ON public.users USING gin (lower(profile_artinfo) public.gin_trgm_ops);
+
+
+--
 -- Name: index_users_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_name ON public.users USING btree (lower((name)::text));
+
+
+--
+-- Name: index_users_on_to_tsvector_english_profile_about; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_to_tsvector_english_profile_about ON public.users USING gin (to_tsvector('english'::regconfig, profile_about));
+
+
+--
+-- Name: index_users_on_to_tsvector_english_profile_artinfo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_to_tsvector_english_profile_artinfo ON public.users USING gin (to_tsvector('english'::regconfig, profile_artinfo));
 
 
 --
@@ -4277,6 +4354,20 @@ CREATE INDEX index_wiki_page_versions_on_updater_ip_addr ON public.wiki_page_ver
 --
 
 CREATE INDEX index_wiki_page_versions_on_wiki_page_id ON public.wiki_page_versions USING btree (wiki_page_id);
+
+
+--
+-- Name: index_wiki_pages_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_lower_body_trgm ON public.wiki_pages USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
+-- Name: index_wiki_pages_on_lower_title_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_lower_title_trgm ON public.wiki_pages USING gin (lower((title)::text) public.gin_trgm_ops);
 
 
 --
@@ -4640,6 +4731,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230314170352'),
 ('20230316084945'),
 ('20230506161827'),
-('20230513074838');
+('20230513074838'),
+('20230517155547'),
+('20230518182034');
 
 

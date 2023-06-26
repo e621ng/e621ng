@@ -27,10 +27,11 @@ Shortcuts.initialize_data_shortcuts = function() {
     }
 
     Shortcuts.keydown(keys, namespace, event => {
+      const e = $(`[data-shortcut="${keys}"]`).get(0);
       if ($e.is("input, textarea")) {
         $e.trigger("focus").selectEnd();
       } else {
-        $e.trigger("click");
+        e.click();
       }
 
       event.preventDefault();

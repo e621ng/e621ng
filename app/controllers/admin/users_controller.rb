@@ -1,7 +1,7 @@
 module Admin
   class UsersController < ApplicationController
     before_action :admin_only
-    before_action :password_reset_permissions_check, only: %i[request_password_reset password_reset]
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset]
     respond_to :html, :json
 
     def alt_list
@@ -18,7 +18,7 @@ module Admin
       @alts = @alts.group_by { |i| i["u1id"] }.transform_values { |v| v.pluck("u2id") }
       user_ids = @alts.flatten(2).uniq
       @users = User.where(id: user_ids).index_by(&:id)
-      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { mode: :numbered, per_page: 250, total: 9_999_999_999, current_page: params[:page].to_i })
+      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { pagination_mode: :numbered, records_per_page: 250, total_count: 9_999_999_999, current_page: params[:page].to_i })
       respond_with(@alts)
     end
 
@@ -80,6 +80,8 @@ module Admin
         return redirect_to request_password_reset_admin_user_path(@user), notice: "Password wrong"
       end
 
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
+
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
     end
 
@@ -89,10 +91,6 @@ module Admin
       permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
       permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
-    end
-
-    def password_reset_permissions_check
-      access_denied unless CurrentUser.is_bd_staff?
     end
   end
 end

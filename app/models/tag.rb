@@ -117,22 +117,14 @@ class Tag < ApplicationRecord
         @category_mapping ||= CategoryMapping.new
       end
 
-      def select_category_for(tag_name)
-        select_value_sql("SELECT category FROM tags WHERE name = ?", tag_name).to_i
-      end
-
-      def category_for(tag_name, options = {})
-        if options[:disable_caching]
-          select_category_for(tag_name)
-        else
-          Cache.fetch("tc:#{Cache.hash(tag_name)}") do
-            select_category_for(tag_name)
-          end
+      def category_for(tag_name)
+        Cache.fetch("tc:#{tag_name}") do
+          Tag.where(name: tag_name).pick(:category)
         end
       end
 
-      def categories_for(tag_names, options = {})
-        if options[:disable_caching]
+      def categories_for(tag_names, disable_cache: false)
+        if disable_cache
           tag_cats = {}
           Tag.where(name: Array(tag_names)).select([:id, :name, :category]).find_each do |tag|
             tag_cats[tag.name] = tag.category
@@ -144,7 +136,7 @@ class Tag < ApplicationRecord
           if not_found.count > 0
             # Is multi_write worth it here? Normal usage of this will be short put lists and then never touched.
             Tag.where(name: not_found).select([:id, :name, :category]).find_each do |tag|
-              Cache.write("tc:#{Cache.hash(tag.name)}", tag.category)
+              Cache.write("tc:#{tag.name}", tag.category)
               found[tag.name] = tag.category
             end
           end
@@ -168,7 +160,7 @@ class Tag < ApplicationRecord
     def update_category_post_counts!
       Post.with_timeout(30_000, nil, {:tags => name}) do
         Post.sql_raw_tag_match(name).find_each do |post|
-          post.set_tag_counts(false)
+          post.set_tag_counts(disable_cache: false)
           args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update("tag_count" => post.tag_count)
           Post.where(:id => post.id).update_all(args)
           post.update_index
@@ -181,7 +173,7 @@ class Tag < ApplicationRecord
     end
 
     def update_category_cache
-      Cache.write("tc:#{Cache.hash(name)}", category, 3.hours)
+      Cache.write("tc:#{name}", category, expires_in: 3.hours)
     end
 
     def user_can_change_category?
@@ -948,11 +940,9 @@ class Tag < ApplicationRecord
     end
 
     def update_related_if_outdated
-      key = Cache.hash(name)
-
-      if Cache.fetch("urt:#{key}").nil? && should_update_related?
+      if Cache.fetch("urt:#{name}").nil? && should_update_related?
         TagUpdateRelatedJob.perform_later(id)
-        Cache.write("urt:#{key}", true, 600) # mutex to prevent redundant updates
+        Cache.write("urt:#{name}", true, expires_in: 10.minutes) # mutex to prevent redundant updates
       end
     end
 

@@ -100,7 +100,7 @@ private
   end
 
   def ensure_can_edit(user)
-    return user.is_janitor?
+    return if user.is_janitor?
     raise User::PrivilegeError if @artist.is_locked?
     raise User::PrivilegeError if !@artist.is_active?
   end

@@ -11,6 +11,10 @@ require "webmock/minitest"
 
 require "sidekiq/testing"
 Sidekiq::Testing.fake!
+# https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
+Sidekiq.configure_client do |cfg|
+  cfg.logger.level = Logger::WARN
+end
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
@@ -28,6 +32,10 @@ FactoryBot::SyntaxRunner.class_eval do
   include ActionDispatch::TestProcess::FixtureFile
   self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
+
+# Make tests not take ages. Remove the const first to avoid a const redefinition warning.
+BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
+BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
 
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile

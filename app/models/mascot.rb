@@ -33,7 +33,7 @@ class Mascot < ApplicationRecord
   end
 
   def self.active_for_browser
-    Cache.fetch("active_mascots", 1.day) do
+    Cache.fetch("active_mascots", expires_in: 1.day) do
       query = Mascot.where(active: true).where("? = ANY(available_on)", Danbooru.config.app_name)
       mascots = query.map do |mascot|
         mascot.slice(:id, :background_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)

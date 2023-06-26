@@ -1,34 +1,52 @@
-require 'test_helper'
+require "test_helper"
 
 class PaginatorTest < ActiveSupport::TestCase
-  setup do
-    @posts = create_list(:post, 5)
+  def assert_paginated(expected_records:, is_first_page:, is_last_page:, &)
+    records = yield
+    assert_equal(expected_records.map(&:id), records.map(&:id))
+    assert_equal(is_first_page, records.is_first_page?, "is_first_page")
+    assert_equal(is_last_page, records.is_last_page?, "is_last_page")
   end
 
-  context "sequential pagination (before)" do
-    should "return the correct set of records" do
-      expected_posts = Post.limit(3).order(id: :desc)
-      posts = Post.paginate("b9999999", limit: 3)
+  { active_record: Blip, elasticsearch: Post }.each do |name, model| # rubocop:disable Metrics/BlockLength
+    context name do
+      context "sequential pagination (before)" do
+        should "return the correct set of records" do
+          @records = create_list(model.name.underscore, 4)
+          assert_paginated(expected_records: [], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[0].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[0]], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[1].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[1], @records[0]], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[2].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[2], @records[1]], is_first_page: false, is_last_page: false) { model.paginate("b#{@records[3].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[3], @records[2]], is_first_page: false, is_last_page: false) { model.paginate("b999999999", limit: 2) }
+        end
+      end
 
-      assert_equal(expected_posts.map(&:id), posts.map(&:id))
-    end
-  end
+      context "sequential pagination (after)" do
+        should "return the correct set of records" do
+          @records = create_list(model.name.underscore, 4)
+          assert_paginated(expected_records: [@records[1], @records[0]], is_first_page: false, is_last_page: false) { model.paginate("a0", limit: 2) }
+          assert_paginated(expected_records: [@records[2], @records[1]], is_first_page: false, is_last_page: false) { model.paginate("a#{@records[0].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[3], @records[2]], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[1].id}", limit: 2) }
+          assert_paginated(expected_records: [@records[3]], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[2].id}", limit: 2) }
+          assert_paginated(expected_records: [], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[3].id}", limit: 2) }
+        end
+      end
 
-  context "sequential pagination (after)" do
-    should "return the correct set of records" do
-      expected_posts = Post.limit(3).order(id: :asc).reverse
-      posts = Post.paginate("a0", limit: 3)
+      context "numbered pagination" do
+        should "return the correct set of records" do
+          @records = create_list(model.name.underscore, 4)
+          assert_paginated(expected_records: [@records[0]], is_first_page: true, is_last_page: false) { model.paginate("1", limit: 1) }
+          assert_paginated(expected_records: [@records[1]], is_first_page: false, is_last_page: false) { model.paginate("2", limit: 1) }
+          assert_paginated(expected_records: [@records[2]], is_first_page: false, is_last_page: false) { model.paginate("3", limit: 1) }
+          assert_paginated(expected_records: [@records[3]], is_first_page: false, is_last_page: true) { model.paginate("4", limit: 1) }
+          assert_paginated(expected_records: [], is_first_page: false, is_last_page: true) { model.paginate("5", limit: 1) }
+        end
 
-      assert_equal(expected_posts.map(&:id), posts.map(&:id))
-    end
-  end
-
-  context "numbered pagination" do
-    should "return the correct set of records" do
-      expected_posts = Post.limit(3).order(id: :desc)
-      posts = Post.order(id: :desc).paginate("1", limit: 3)
-
-      assert_equal(expected_posts.map(&:id), posts.map(&:id))
+        should "return the correct set of records when only one result exists" do
+          @records = create_list(model.name.underscore, 2)
+          assert_paginated(expected_records: [@records[0], @records[1]], is_first_page: true, is_last_page: true) { model.paginate("1", limit: 2) }
+        end
+      end
     end
   end
 end

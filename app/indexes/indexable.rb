@@ -8,7 +8,7 @@ module Indexable
   def self.included(base)
     base.include Elasticsearch::Model
 
-    base.index_name("#{base.model_name.plural}_#{Rails.env}") unless Rails.env.production?
+    base.index_name("#{base.model_name.plural}_#{Rails.env}")
 
     base.after_commit on: [:create] do
       __elasticsearch__.index_document(Rails.env.test? ? { refresh: "true" } : {})
