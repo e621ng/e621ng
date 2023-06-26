@@ -769,7 +769,7 @@ module Danbooru
       false
     end
 
-    def janitor_reports_webhook
+    def janitor_reports_discord_webhook_url
       nil
     end
   end

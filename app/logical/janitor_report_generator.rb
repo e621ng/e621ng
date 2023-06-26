@@ -2,7 +2,7 @@ class JanitorReportGenerator
   extend ActiveSupport::NumberHelper
 
   def self.run!
-    return if Danbooru.config.janitor_reports_webhook.nil?
+    return if Danbooru.config.janitor_reports_discord_webhook_url.blank?
 
     current_stats = stats
     previous_queue_size = Cache.redis.get("janitor_reports:previous_queue_size") || current_stats[:queue_size]
@@ -21,14 +21,16 @@ class JanitorReportGenerator
       Deletions: #{number_to_delimited(current_stats[:deletions][:total])} (#{number_to_delimited(current_stats[:deletions][:automod] - current_stats[:deletions][:takedowns])} automated, #{number_to_delimited(current_stats[:deletions][:takedowns])} takedown, #{number_to_delimited(current_stats[:deletions][:total] - current_stats[:deletions][:automod])} manual)
     REPORT
 
-    HTTParty.post(Danbooru.config.janitor_reports_webhook,
-                  body: {
-                    content: content,
-                    flags: 4096,
-                  }.to_json,
-                  headers: {
-                    "Content-Type" => "application/json",
-                  })
+    HTTParty.post(
+      Danbooru.config.janitor_reports_discord_webhook_url,
+      body: {
+        content: content,
+        flags: 4096,
+      }.to_json,
+      headers: {
+        "Content-Type" => "application/json",
+      },
+    )
   end
 
   def self.stats
