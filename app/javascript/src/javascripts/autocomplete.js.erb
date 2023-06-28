@@ -394,7 +394,7 @@ Autocomplete.user_source = function(term, resp, prefix) {
         return {
           id: user.id,
           type: "user",
-          label: user.name.replace(/_/, " "),
+          label: user.name.replace(/_/g, " "),
           value: prefix + user.name,
           level: user.level_string
         };
