@@ -17,14 +17,6 @@ class Takedown < ApplicationRecord
   after_validation :normalize_deleted_post_ids
   before_save :update_post_count
 
-  PRETTY_STATUS = {
-      'partial': 'Partially Approved'
-  }
-
-  def pretty_status
-    PRETTY_STATUS.fetch(status, status.capitalize)
-  end
-
   def initialize_fields
     self.status = "pending"
     self.vericode = Takedown.create_vericode
