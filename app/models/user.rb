@@ -784,7 +784,7 @@ class User < ApplicationRecord
       end
 
       if params[:avatar_id].present?
-        q = q.where(avatar_id: params[:avatar_id].to_i)
+        q = q.where(avatar_id: params[:avatar_id])
       end
 
       if params[:email_matches].present?
