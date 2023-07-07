@@ -44,7 +44,7 @@ class ArtistVersion < ApplicationRecord
       if params[:order] == "name"
         q = q.order("artist_versions.name").default_order
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

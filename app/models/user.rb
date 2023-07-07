@@ -842,7 +842,7 @@ class User < ApplicationRecord
       when "post_update_count"
         q = q.order("user_statuses.post_update_count desc")
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

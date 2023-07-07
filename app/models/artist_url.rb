@@ -51,7 +51,7 @@ class ArtistUrl < ApplicationRecord
       dir = $2 || :desc
       q = q.order($1 => dir).order(id: :desc)
     else
-      q = q.apply_default_order(params)
+      q = q.apply_basic_order(params)
     end
 
     q

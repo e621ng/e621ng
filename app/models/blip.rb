@@ -102,7 +102,7 @@ class Blip < ApplicationRecord
       when "updated_at", "updated_at_desc"
         q = q.order("blips.updated_at DESC")
       else
-        q = q.order('id DESC')
+        q = q.apply_basic_order(params)
       end
 
       q

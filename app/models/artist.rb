@@ -495,7 +495,7 @@ class Artist < ApplicationRecord
       when "post_count"
         q = q.includes(:tag).order("tags.post_count desc nulls last").order("artists.name").references(:tags)
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

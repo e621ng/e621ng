@@ -32,7 +32,7 @@ class PoolVersion < ApplicationRecord
         q = q.where("updater_ip_addr <<= ?", params[:ip_addr])
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

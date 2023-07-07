@@ -38,10 +38,10 @@ class PostDisapproval < ApplicationRecord
         when "post_id", "post_id_desc"
           q = q.order(post_id: :desc, id: :desc)
         else
-          q = q.apply_default_order(params)
+          q = q.apply_basic_order(params)
         end
 
-        q.apply_default_order(params)
+        q
       end
     end
   end

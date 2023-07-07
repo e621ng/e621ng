@@ -138,7 +138,7 @@ class Upload < ApplicationRecord
         q = q.where("uploads.tag_string LIKE ? ESCAPE E'\\\\'", params[:tag_string].to_escaped_for_sql_like)
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

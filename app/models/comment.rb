@@ -113,7 +113,7 @@ class Comment < ApplicationRecord
         if %i[body_matches creator_name creator_id].any? { |key| params[key].present? }
           q = q.order(created_at: :desc)
         else
-          q = q.apply_default_order(params)
+          q = q.apply_basic_order(params)
         end
       end
 

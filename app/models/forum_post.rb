@@ -85,7 +85,7 @@ class ForumPost < ApplicationRecord
 
       q = q.attribute_matches(:is_hidden, params[:is_hidden])
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

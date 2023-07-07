@@ -102,8 +102,15 @@ class ApplicationRecord < ActiveRecord::Base
         end
       end
 
-      def apply_default_order(params)
-        return default_order
+      def apply_basic_order(params)
+        case params[:order]
+        when "id_asc"
+          order(id: :asc)
+        when "id_desc"
+          order(id: :desc)
+        else
+          default_order
+        end
       end
 
       def default_order
