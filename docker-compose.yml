@@ -147,6 +147,8 @@ services:
     working_dir: $PWD
     volumes:
       - .:$PWD
+    environment:
+      IGNORE_RUBOCOP_TODO: "1"
     ports:
       - 7658:7658
     profiles:

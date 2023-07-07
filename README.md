@@ -50,7 +50,7 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 `docker compose run --rm tests` to execute the test suite.
 
-`docker compose run --rm rubocop` to run the linter. You will see a truckload of violations but CI will ignore these.
+`docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 

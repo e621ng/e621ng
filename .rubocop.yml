@@ -1,4 +1,4 @@
-<% if ENV["CI"] %>
+<% unless ENV["IGNORE_RUBOCOP_TODO"] %>
 inherit_from: .rubocop_todo.yml
 <% end %>
 
