@@ -1,21 +1,12 @@
 <div id="c-iqdb-queries">
-  <div id="a-check">
+  <div id="a-show">
     <h1>Similar Images Search</h1>
-    <section>
-      <%= form_tag(iqdb_queries_path, method: :post, class: "simple_form", multipart: true ) do %>
-        <div class="input string optional">
-          <%= label_tag "url", "URL", class: "string optional" %>
-          <%= text_field_tag "url", params[:url] %>
-        </div>
-
-        <div class="input string optional fallback">
-          <%= label_tag "file", "File", class: "string optional" %>
-          <%= file_field_tag :file, :size => 50 %>
-        </div>
-
-        <%= submit_tag "Search" %>
-      <% end %>
-    </section>
+    <%= form_search(path: iqdb_queries_path, hideable: false, method: :post) do |f| %>
+      <%= f.input :post_id, label: "Post ID" %>
+      <%= f.input :url, label: "URL" %>
+      <%= f.input :file, as: :file %>
+      <%= f.input :score_cutoff, label: "Similarity", default: 60 %>
+    <% end %>
 
     <%= render "posts/partials/common/inline_blacklist" %>
     <%= render "iqdb_queries/matches" %>

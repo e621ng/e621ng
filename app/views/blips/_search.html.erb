@@ -2,9 +2,8 @@
   <%= f.input :creator_name, label: "Blipper", autocomplete: "user" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :response_to, label: "Parent Blip #" %>
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_admin? %>
     <%= f.input :ip_addr, label: "Ip Address" %>
   <% end %>
   <%= f.input :order, include_blank: false, collection: [%w(Created id_desc), %w(Updated updated_at_desc)] %>
-  <%= f.submit "Search" %>
 <% end %>

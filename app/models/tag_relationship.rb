@@ -25,8 +25,8 @@ class TagRelationship < ApplicationRecord
   validates :approver, presence: { message: "must exist" }, if: -> { approver_id.present? }
   validates :forum_topic, presence: { message: "must exist" }, if: -> { forum_topic_id.present? }
   validate :validate_creator_is_not_limited, on: :create
-  validates :antecedent_name, tag_name: { disable_ascii_check: true }, on: :create
-  validates :consequent_name, tag_name: true, on: :create
+  validates :antecedent_name, tag_name: { disable_ascii_check: true }, if: :antecedent_name_changed?
+  validates :consequent_name, tag_name: true, if: :consequent_name_changed?
   validate :antecedent_and_consequent_are_different
 
   def initialize_creator
@@ -73,15 +73,15 @@ class TagRelationship < ApplicationRecord
   end
 
   def approvable_by?(user)
-    is_pending? && user.is_moderator?
+    is_pending? && user.is_admin?
   end
 
   def deletable_by?(user)
-    user.is_moderator? || (is_pending? && creator.id == user.id)
+    user.is_admin? || (is_pending? && creator.id == user.id)
   end
 
   def editable_by?(user)
-    is_pending? && user.is_moderator?
+    is_pending? && user.is_admin?
   end
 
   module SearchMethods
@@ -103,14 +103,20 @@ class TagRelationship < ApplicationRecord
       where("creator_id = ?", id)
     end
 
-    def tag_matches(field, params)
-      return all if params.blank?
-      where(field => Tag.search(params).reorder(nil).select(:name))
-    end
-
     def pending_first
       # unknown statuses return null and are sorted first
-      order(Arel.sql("array_position(array['queued', 'processing', 'pending', 'active', 'deleted', 'retired'], status::text) NULLS FIRST, antecedent_name, consequent_name"))
+      order(Arel.sql("array_position(array['queued', 'processing', 'pending', 'active', 'deleted', 'retired'], status::text) NULLS FIRST, #{table_name}.id desc"))
+    end
+
+    # FIXME: Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag)
+    # This makes it impossible to use when ordering, at least from what I can tell.
+    # There must be a different solution for this.
+    def join_antecedent
+      joins("LEFT OUTER JOIN tags antecedent_tag on antecedent_tag.name = antecedent_name")
+    end
+
+    def join_consequent
+      joins("LEFT OUTER JOIN tags consequent_tag on consequent_tag.name = consequent_name")
     end
 
     def default_order
@@ -138,11 +144,11 @@ class TagRelationship < ApplicationRecord
       end
 
       if params[:antecedent_tag_category].present?
-        q = q.joins(:antecedent_tag).where("antecedent_tag.category": params[:antecedent_tag_category])
+        q = q.join_antecedent.where("antecedent_tag.category": params[:antecedent_tag_category].split(",").first(100))
       end
 
       if params[:consequent_tag_category].present?
-        q = q.joins(:consequent_tag).where("consequent_tag.category": params[:consequent_tag_category])
+        q = q.join_consequent.where("consequent_tag.category": params[:consequent_tag_category].split(",").first(100))
       end
 
       if params[:creator_name].present?
@@ -153,14 +159,6 @@ class TagRelationship < ApplicationRecord
         q = q.where("approver_id = ?", User.name_to_id(params[:approver_name]))
       end
 
-      # Legacy params?
-      q = q.tag_matches(:antecedent_name, params[:antecedent_tag])
-      q = q.tag_matches(:consequent_name, params[:consequent_tag])
-
-      if params[:category].present?
-        q = q.joins(:consequent_tag).where("tags.category": params[:category].split)
-      end
-
       case params[:order]
       when "created_at"
         q = q.order("#{table_name}.created_at desc nulls last, #{table_name}.id desc")
@@ -169,7 +167,7 @@ class TagRelationship < ApplicationRecord
       when "name"
         q = q.order("antecedent_name asc, consequent_name asc")
       when "tag_count"
-        q = q.joins(:consequent_tag).order("tags.post_count desc, antecedent_name asc, consequent_name asc")
+        q = q.join_consequent.order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
       else
         q = q.apply_default_order(params)
       end
@@ -220,7 +218,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def estimate_update_count
-    Post.fast_count(antecedent_name, skip_cache: true)
+    Post.fast_count(antecedent_name)
   end
 
   def update_posts

@@ -2,5 +2,5 @@
   <%= f.input :creator_name, label: "Creator Name", autocomplete: "user" %>
   <%= f.input :user_name, label: "User Name", autocomplete: "user" %>
   <%= f.input :body_matches, label: "Body" %>
-  <%= f.submit "Search" %>
+  <%= f.input :without_system_user, as: :boolean, label: "Hide automated?" %>
 <% end %>

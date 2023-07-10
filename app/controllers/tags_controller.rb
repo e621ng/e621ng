@@ -14,18 +14,6 @@ class TagsController < ApplicationController
     respond_with(@tags)
   end
 
-  def autocomplete
-    @tags = Tag.names_matches_with_aliases(params[:search][:name_matches])
-
-    expires_in params[:expiry].to_i.days if params[:expiry]
-
-    respond_with(@tags) do |fmt|
-      fmt.json do
-        render json: @tags.to_json
-      end
-    end
-  end
-
   def preview
     @preview = TagsPreview.new(tags: params[:tags])
     respond_to do |format|
@@ -59,12 +47,8 @@ class TagsController < ApplicationController
 
   def tag_params
     permitted_params = [:category]
-    permitted_params << :is_locked if CurrentUser.is_moderator?
+    permitted_params << :is_locked if CurrentUser.is_admin?
 
     params.require(:tag).permit(permitted_params)
-  end
-
-  def allowed_readonly_actions
-    super + %w[autocomplete]
   end
 end

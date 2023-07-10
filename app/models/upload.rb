@@ -82,7 +82,7 @@ class Upload < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+      where(post_id: Post.tag_match_sql(query))
     end
 
     def search(params)
@@ -176,6 +176,12 @@ class Upload < ApplicationRecord
 
   def md5_is_unique
     if md5.nil?
+      return
+    end
+
+    if (destroyed_post = DestroyedPost.find_by(md5: md5))
+      errors.add(:base, "An unexpected errror occured")
+      DummyTicket.new(uploader, destroyed_post.post_id).notify
       return
     end
 

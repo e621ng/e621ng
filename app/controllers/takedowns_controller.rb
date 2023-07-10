@@ -1,6 +1,6 @@
 class TakedownsController < ApplicationController
   respond_to :html, :json
-  before_action :admin_only, only: [:update, :edit, :destroy, :add_by_ids, :add_by_tags, :count_matching_posts, :remove_by_ids]
+  before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids]
 
   def index
     @takedowns = Takedown.search(search_params).paginate(params[:page], limit: params[:limit])
@@ -10,6 +10,7 @@ class TakedownsController < ApplicationController
   def destroy
     @takedown = Takedown.find(params[:id])
     @takedown.destroy
+    ModAction.log(:takedown_delete, { takedown_id: @takedown.id })
     respond_with(@takedown)
   end
 
@@ -47,7 +48,7 @@ class TakedownsController < ApplicationController
     @takedown.save
     if @takedown.valid?
       flash[:notice] = 'Takedown request updated'
-      if params[:process_takedown] == "true"
+      if params[:process_takedown].to_s.truthy?
         @takedown.process!(CurrentUser.user, params[:delete_reason])
       end
     end
@@ -90,15 +91,14 @@ class TakedownsController < ApplicationController
 
   def search_params
     permitted_params = %i[status]
-    if CurrentUser.is_admin?
-      permitted_params << %i[source reason ip_addr creator_id creator_name email vericode order reason_hidden instructions post_id notes]
-    end
+    permitted_params += %i[source reason creator_id creator_name reason_hidden instructions post_id notes] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr email vericode order] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 
   def takedown_params
     permitted_params = %i[email source instructions reason post_ids reason_hidden]
-    if CurrentUser.is_admin?
+    if CurrentUser.can_handle_takedowns?
       permitted_params << %i[notes del_post_ids status]
     end
     params.require(:takedown).permit(*permitted_params, post_ids: [])

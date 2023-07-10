@@ -2,6 +2,6 @@
   <%= f.input :topic_title_matches, label: "Title" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :creator_name, label: "Author", autocomplete: "user" %>
+  <%= f.input :creator_id, label: "Author ID", hide_unless_value: true %>
   <%= f.input :topic_category_id, label: "Category", collection: ForumCategory.visible.reverse_mapping, include_blank: true %>
-  <%= f.submit "Search" %>
 <% end %>

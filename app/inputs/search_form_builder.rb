@@ -1,14 +1,15 @@
 class SearchFormBuilder < SimpleForm::FormBuilder
   def input(attribute_name, options = {}, &)
+    value = value_for_attribute(attribute_name, options)
+    return "".html_safe if value.nil? && options[:hide_unless_value]
     options = insert_autocomplete(options)
-    options = insert_value(attribute_name, options)
+    options = insert_value(value, options)
     super
   end
 
   private
 
-  def insert_value(attribute_name, options)
-    value = @options[:search_params][attribute_name] || options[:default]&.to_s
+  def insert_value(value, options)
     return options if value.nil?
 
     if options[:collection]
@@ -19,6 +20,10 @@ class SearchFormBuilder < SimpleForm::FormBuilder
       options[:input_html][:value] = value
     end
     options
+  end
+
+  def value_for_attribute(attribute_name, options)
+    @options[:search_params][attribute_name] || options[:default]&.to_s
   end
 
   include FormBuilderCommon

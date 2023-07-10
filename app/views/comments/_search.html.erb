@@ -1,14 +1,16 @@
 <%= form_search(path: comments_path) do |f| %>
-  <%= hidden_field_tag "group_by", "comment", :id => "group_by_full" %>
+  <%= hidden_field_tag "group_by", "comment", id: "group_by_full" %>
   <%= f.input :creator_name, label: "Commenter", autocomplete: "user" %>
+  <%= f.input :creator_id, label: "Commenter ID", hide_unless_value: true %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
-  <% if CurrentUser.is_moderator? %>
-    <%= f.input :ip_addr, label: "Ip Address" %>
-    <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]] %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :ip_addr, label: "IP Address" %>
   <% end %>
-  <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]] %>
-  <%= f.input :do_not_bump_post, label: "Bumping?", collection: [["Yes", false], ["No", true]] %>
-  <%= f.input :order, include_blank: false, collection: [%w(Created id_desc), %w(Updated updated_at_desc), %w(Score score_desc), %w(Post post_id_desc)] %>
-  <%= f.submit "Search" %>
+  <% if CurrentUser.is_moderator? %>
+    <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+  <% end %>
+  <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+  <%= f.input :do_not_bump_post, label: "Bumping?", collection: [["Yes", false], ["No", true]], include_blank: true %>
+  <%= f.input :order, include_blank: false, collection: [%w[Created id_desc], %w[Updated updated_at_desc], %w[Score score_desc], %w[Post post_id_desc]] %>
 <% end %>

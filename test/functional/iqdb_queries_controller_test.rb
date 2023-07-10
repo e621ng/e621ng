@@ -3,17 +3,17 @@ require 'test_helper'
 class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
   context "The iqdb controller" do
     setup do
-      Danbooru.config.stubs(:iqdbs_server).returns("https://karasuma.donmai.us")
+      Danbooru.config.stubs(:iqdb_server).returns("https://karasuma.donmai.us")
       @user = create(:user)
-      as_user do
-        @posts = FactoryBot.create_list(:post, 2)
+      as(@user) do
+        @posts = create_list(:post, 2)
       end
     end
 
     context "show action" do
       context "with a url parameter" do
         setup do
-          FactoryBot.create(:upload_whitelist, pattern: "*google.com")
+          create(:upload_whitelist, pattern: "*google.com")
           @url = "https://google.com"
           @params = { url: @url }
           @mocked_response = [{
@@ -24,8 +24,8 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "render a response" do
-          IqdbProxy.expects(:query).with(@url).returns(@mocked_response)
-          get_auth iqdb_queries_path(variant: "xhr"), @user, params: @params
+          IqdbProxy.expects(:query_url).with(@url, nil).returns(@mocked_response)
+          get_auth iqdb_queries_path, @user, params: @params
           assert_select("#post_#{@posts[0].id}")
         end
       end
@@ -41,8 +41,8 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
           }]
         end
 
-        should "redirect to iqdbs" do
-          IqdbProxy.expects(:query_path).with(@posts[0].preview_file_path).returns(@mocked_response)
+        should "redirect to iqdb" do
+          IqdbProxy.expects(:query_post).with(@posts[0], nil).returns(@mocked_response)
           get_auth iqdb_queries_path, @user, params: @params
           assert_select("#post_#{@posts[0].id}")
         end

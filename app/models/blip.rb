@@ -34,23 +34,22 @@ class Blip < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:body_index]
-    end
-
     def method_attributes
       super + [:creator_name]
     end
   end
 
   module PermissionsMethods
-    def can_hide?(user)
-      user.is_moderator? || user.id == creator_id
+    def can_edit?(user)
+      return true if user.is_admin?
+      return false if was_warned?
+      creator_id == user.id && created_at > 5.minutes.ago
     end
 
-    def can_edit?(user)
-      return false if was_warned? && !user.is_moderator?
-      (creator_id == user.id && created_at > 5.minutes.ago) || user.is_moderator?
+    def can_hide?(user)
+      return true if user.is_moderator?
+      return false if was_warned?
+      user.id == creator_id
     end
 
     def visible_to?(user)
@@ -81,7 +80,7 @@ class Blip < ApplicationRecord
 
       q = q.includes(:creator).includes(:responses).includes(:parent)
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:response_to].present?
         q = q.where('response_to = ?', params[:response_to].to_i)

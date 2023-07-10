@@ -1,0 +1,8 @@
+<div>
+  <%= form_tag(path) do %>
+    <%= hidden_field type, "skip_forum", value: "1" %>
+    <label>From: <%= text_field type, "antecedent_name", data: { autocomplete: "tag"} %></label>
+    <label>To: <%= text_field type, "consequent_name", data: { autocomplete: "tag"} %></label>
+    <%= submit_tag "New #{type.to_s.humanize}" %>
+  <% end %>
+</div>

@@ -3,7 +3,9 @@
     <aside id="sidebar">
       <%= render "posts/partials/common/search", :path => posts_path, :tags => "fav:#{@user.name} ", :tags_dom_id => "tags" %>
       <div style="color:darkorange;margin-bottom:0.5rem;">*Searching favorites does not preserve the order they were added in.<br/></div>
-      <%= render "posts/partials/index/mode_menu" %>
+      <% if CurrentUser.is_member? %>
+        <%= render "posts/partials/index/mode_menu" %>
+      <% end %>
 
       <%= render "posts/partials/index/blacklist" %>
 
@@ -20,9 +22,10 @@
 
       <%= render "posts/partials/index/edit" %>
 
-      <div id="posts">
-        <%= @favorite_set.presenter.post_previews_html(self) %>
-
+      <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
+        <div id="posts-container">
+          <%= @favorite_set.presenter.post_previews_html(self) %>
+        </div>
         <%= numbered_paginator(@favorite_set.posts) %>
       </div>
     </section>

@@ -7,20 +7,28 @@ module Moderator
 
       def create
         post = ::Post.find(params[:post_id])
-        @approval = post.approve!
-        respond_with do |fmt|
-          fmt.json do
-            render json: {}, status: 201
+        if post.is_approvable?
+          post.approve!(resolve_flags: params[:resolve_flags].nil? ? false : params[:resolve_flags].to_s.truthy?)
+          respond_with do |fmt|
+            fmt.json do
+              render json: {}, status: 201
+            end
           end
+        elsif post.approver.present?
+          flash[:notice] = "Post is already approved"
+        else
+          flash[:notice] = "You can't approve this post"
         end
-      rescue ::Post::ApprovalError => e
-        render_expected_error(422, e.message)
       end
 
       def destroy
         post = ::Post.find(params[:post_id])
-        post.unapprove!
-        respond_with(nil)
+        if post.is_unapprovable?(CurrentUser.user)
+          post.unapprove!
+          respond_with(nil)
+        else
+          flash[:notice] = "You can't unapprove this post"
+        end
       end
     end
   end

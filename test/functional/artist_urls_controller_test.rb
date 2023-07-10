@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class ArtistUrlsControllerTest < ActionDispatch::IntegrationTest
   context "The artist urls controller" do
@@ -10,15 +10,15 @@ class ArtistUrlsControllerTest < ActionDispatch::IntegrationTest
 
       should "render for a complex search" do
         @user = create(:user)
-        as_user do
-          @artist = FactoryBot.create(:artist, name: "bkub", url_string: "-http://bkub.com")
+        as(@user) do
+          @artist = create(:artist, name: "bkub", url_string: "-http://bkub.com")
         end
 
         get artist_urls_path(search: {
           artist: { name: "bkub", },
           url_matches: "*bkub*",
           is_active: "false",
-          order: "created_at"
+          order: "created_at",
         })
 
         assert_response :success

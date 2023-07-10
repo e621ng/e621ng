@@ -1,13 +1,13 @@
 class PostPresenter < Presenter
   attr_reader :pool
-  delegate :tag_list_html, :split_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
+  delegate :post_show_sidebar_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
 
   def self.preview(post, options = {})
     if post.nil?
       return "<em>none</em>".html_safe
     end
 
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i && !options[:raw]
+    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
       return ""
     end
 
@@ -87,22 +87,17 @@ class PostPresenter < Presenter
     ApplicationController.render(partial: "posts/partials/index/preview", locals: locals)
   end
 
-  def self.preview_class(post, highlight_score: nil, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["post-preview", "captioned"]
-    # Always captioned with new post stats section.
-    # klass << "captioned" if pool || size || similarity
+  def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
+    klass = ["post-preview"]
     klass << "post-status-pending" if post.is_pending?
     klass << "post-status-flagged" if post.is_flagged?
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-pos-score" if highlight_score && post.score >= 3
-    klass << "post-neg-score" if highlight_score && post.score <= -3
     klass << "post-rating-safe" if post.rating == 's'
     klass << "post-rating-questionable" if post.rating == 'q'
     klass << "post-rating-explicit" if post.rating == 'e'
     klass << "post-no-blacklist" if options[:no_blacklist]
-    klass << "post-thumbnail-blacklisted" if options[:thumbnail_blacklisted]
     klass
   end
 
@@ -132,11 +127,6 @@ class PostPresenter < Presenter
     attributes["data-post"] = post_attribute_attribute(post).to_json if include_post
 
     attributes
-  end
-
-  def self.nullable_to_truthy(v)
-    return false if v.nil?
-    v
   end
 
   def self.post_attribute_attribute(post)
@@ -174,16 +164,16 @@ class PostPresenter < Presenter
         created_at: post.created_at,
         updated_at: post.updated_at,
         fav_count: post.fav_count,
-        comment_count: post.comment_count,
+        comment_count: post.visible_comment_count(CurrentUser),
         change_seq: post.change_seq,
         uploader_id: post.uploader_id,
         description: post.description,
         flags: {
             pending: post.is_pending,
             flagged: post.is_flagged,
-            note_locked: nullable_to_truthy(post.is_note_locked),
-            status_locked: nullable_to_truthy(post.is_status_locked),
-            rating_locked: nullable_to_truthy(post.is_rating_locked),
+            note_locked: post.is_note_locked,
+            status_locked: post.is_status_locked,
+            rating_locked: post.is_rating_locked,
             deleted: post.is_deleted,
             has_notes: post.has_notes?
         },
@@ -266,7 +256,7 @@ class PostPresenter < Presenter
   end
 
   def has_sequential_navigation?(params)
-    return false if Tag.has_metatag?(params[:q], :order, :ordpool)
+    return false if Tag.has_metatag?(params[:q], :order)
     return false if params[:pool_id].present? || params[:post_set_id].present?
     true
   end

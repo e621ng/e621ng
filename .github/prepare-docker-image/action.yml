@@ -1,0 +1,19 @@
+name: Load Docker Image
+description: Load Docker Image
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build
+      uses: docker/build-push-action@v4
+      with:
+        cache-from: type=gha
+        load: true
+        tags: e621
+
+    - name: Set docker run command
+      run: echo "DOCKER_RUN=docker-compose run -e CI=true" >> "$GITHUB_ENV"
+      shell: bash

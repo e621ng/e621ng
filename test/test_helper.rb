@@ -1,15 +1,20 @@
-ENV["RAILS_ENV"] = "test"
+ENV["RAILS_ENV"] ||= "test"
+ENV["MT_NO_EXPECTATIONS"] = "true"
+require_relative "../config/environment"
+require "rails/test_help"
 
-require File.expand_path('../../config/environment', __FILE__)
-require 'rails/test_help'
-require 'cache'
-require 'webmock/minitest'
+require "factory_bot_rails"
+require "mocha/minitest"
+require "shoulda-context"
+require "shoulda-matchers"
+require "webmock/minitest"
 
-require 'sidekiq/testing'
-Sidekiq::Testing::fake!
-
-Dir[File.expand_path(File.dirname(__FILE__) + "/factories/*.rb")].each {|file| require file}
-Dir[File.expand_path(File.dirname(__FILE__) + "/test_helpers/*.rb")].each {|file| require file}
+require "sidekiq/testing"
+Sidekiq::Testing.fake!
+# https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
+Sidekiq.configure_client do |cfg|
+  cfg.logger.level = Logger::WARN
+end
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
@@ -18,34 +23,26 @@ Shoulda::Matchers.configure do |config|
   end
 end
 
-module TestHelpers
-  def create(factory_bot_model, params = {})
-    record = FactoryBot.build(factory_bot_model, params)
-    record.save
-    raise ActiveRecord::RecordInvalid.new(record) if record.errors.any?
-    record
-  end
+WebMock.disable_net_connect!(allow: [
+  Danbooru.config.elasticsearch_host,
+])
 
-  def as(user, &block)
-    CurrentUser.as(user, &block)
-  end
-
-  def as_user(&block)
-    CurrentUser.as(@user, &block)
-  end
-
-  def as_admin(&block)
-    CurrentUser.as_admin(&block)
-  end
+FactoryBot::SyntaxRunner.class_eval do
+  include ActiveSupport::Testing::FileFixtures
+  include ActionDispatch::TestProcess::FixtureFile
+  self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
 
+# Make tests not take ages. Remove the const first to avoid a const redefinition warning.
+BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
+BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
+
 class ActiveSupport::TestCase
-  include UploadTestHelper
-  include TestHelpers
+  include ActionDispatch::TestProcess::FixtureFile
+  include FactoryBot::Syntax::Methods
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
-    WebMock.allow_net_connect!
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles?).returns(true)
 
@@ -54,18 +51,26 @@ class ActiveSupport::TestCase
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
     Danbooru.config.stubs(:enable_email_verification?).returns(false)
+    CurrentUser.ip_addr = "127.0.0.1"
   end
 
   teardown do
     # The below line is only mildly insane and may have resulted in the destruction of my data several times.
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
+    RequestStore.clear!
+  end
+
+  def as(user, ip_addr = "127.0.0.1", &)
+    CurrentUser.scoped(user, ip_addr, &)
+  end
+
+  def with_inline_jobs(&)
+    Sidekiq::Testing.inline!(&)
   end
 end
 
 class ActionDispatch::IntegrationTest
-  include TestHelpers
-
   def method_authenticated(method_name, url, user, options)
     post session_path, params: { name: user.name, password: user.password }
     self.send(method_name, url, **options)
@@ -85,17 +90,6 @@ class ActionDispatch::IntegrationTest
 
   def delete_auth(url, user, options = {})
     method_authenticated(:delete, url, user, options)
-  end
-
-  def setup
-    super
-    Socket.stubs(:gethostname).returns("www.example.com")
-    Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
-  end
-
-  def teardown
-    super
-    Cache.clear
   end
 end
 

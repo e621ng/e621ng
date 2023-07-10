@@ -16,7 +16,7 @@
         <%= @post_set.presenter.post_previews_html(self) %>
       </div>
 
-      <%= numbered_paginator(@post_set) %>
+      <%= numbered_paginator(@post_set.posts) %>
     </div>
   </div>
 </div>
@@ -25,8 +25,4 @@
 
 <% content_for(:page_title) do %>
   Pool - <%= @pool.pretty_name %>
-<% end %>
-
-<% content_for(:html_header) do %>
-  <meta name="description" content="<%= strip_dtext(@pool.description) %>">
 <% end %>

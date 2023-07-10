@@ -5,24 +5,12 @@ let Note = {
     create: function(id) {
       var $inner_border = $('<div/>');
       $inner_border.addClass("note-box-inner-border");
-
-      var opacity = 0;
-      if (Note.embed) {
-        opacity = 0.95
-      } else {
-        opacity = 0.5
-      }
-
       $inner_border.css({
-        opacity: opacity,
+        opacity: 0.5,
       });
 
       var $note_box = $('<div/>');
       $note_box.addClass("note-box");
-
-      if (Note.embed) {
-        $note_box.addClass("embedded");
-      }
 
       $note_box.data("id", String(id));
       $note_box.attr("data-id", String(id));
@@ -73,12 +61,6 @@ let Note = {
           Note.dragging = true;
           Note.clear_timeouts();
           Note.Body.hide_all();
-          if (Note.embed) {
-            var $bg = $note_box_inner.find("div.bg")
-            if ($bg.length) {
-              $bg.hide();
-            }
-          }
           e.stopPropagation();
         }
       );
@@ -95,14 +77,6 @@ let Note = {
         "dragstop.danbooru resizestop.danbooru",
         function(e) {
           Note.dragging = false;
-          if (Note.embed) {
-            var $note_box_inner = $(e.currentTarget);
-            var $bg = $note_box_inner.find("div.bg")
-            if ($bg.length) {
-              $bg.show();
-              Note.Box.resize_inner_border($note_box_inner.closest(".note-box"));
-            }
-          }
           e.stopPropagation();
         }
       );
@@ -162,14 +136,6 @@ let Note = {
 
       if ($inner_border.height() >= $note_box.height() - 2) {
         $note_box.height($inner_border.height() + 2);
-      }
-
-      if (Note.embed) {
-        var $bg = $inner_border.find("div.bg");
-        if ($bg.length) {
-          $bg.height($inner_border.height());
-          $bg.width($inner_border.width());
-        }
       }
     },
 
@@ -316,17 +282,11 @@ let Note = {
 
     set_text: function($note_body, $note_box, text) {
       Note.Body.display_text($note_body, text);
-      if (Note.embed) {
-        Note.Body.display_text($note_box.children("div.note-box-inner-border"), text);
-      }
       Note.Body.resize($note_body);
       Note.Body.bound_position($note_body);
     },
 
     display_text: function($note_body, text) {
-      text = text.replace(/<tn>/g, '<p class="tn">');
-      text = text.replace(/<\/tn>/g, '</p>');
-      text = text.replace(/\n/g, '<br>');
       $note_body.html(text);
     },
 
@@ -373,10 +333,6 @@ let Note = {
       $(".note-box").resizable("disable");
       $(".note-box").draggable("disable");
 
-      if (Note.embed) {
-        $(".note-box").css("opacity", "0.5");
-      }
-
       let $textarea = $('<textarea></textarea>');
       $textarea.css({
         width: "97%",
@@ -420,10 +376,6 @@ let Note = {
         Note.editing = false;
         $(".note-box").resizable("enable");
         $(".note-box").draggable("enable");
-
-        if (Note.embed) {
-          $(".note-box").css("opacity", "0.95");
-        }
       });
 
       $textarea.selectEnd();
@@ -736,9 +688,6 @@ let Note = {
     $note_body.data("original-body", original_body);
     Note.Box.scale($note_box);
     Note.Body.display_text($note_body, sanitized_body);
-    if (Note.embed) {
-      Note.Body.display_text($note_box.children("div.note-box-inner-border"), sanitized_body);
-    }
   },
 
   create: function(x, y, w, h) {
@@ -783,11 +732,6 @@ let Note = {
       );
     });
     $("#note-container").append(fragment);
-    if (Note.embed) {
-      $.each($(".note-box"), function(i, note_box) {
-        Note.Box.resize_inner_border($(note_box));
-      });
-    }
   },
 
   initialize_all: function() {
@@ -795,7 +739,6 @@ let Note = {
       return;
     }
 
-    Note.embed = (Utility.meta("post-has-embedded-notes") === "true");
     Note.load_all();
 
     this.initialize_shortcuts();

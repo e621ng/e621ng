@@ -48,7 +48,7 @@ class WikiPageVersion < ApplicationRecord
   end
   memoize :previous
 
-  def category_name
+  def category_id
     Tag.category_for(title)
   end
 end

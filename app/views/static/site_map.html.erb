@@ -9,12 +9,6 @@
           <li><%= link_to("Upload Listing", uploads_path) %></li>
         <% end %>
         <li><%= link_to("Popular", popular_index_path) %></li>
-        <% if CurrentUser.can_approve_posts? %>
-          <li><%= link_to("Moderate", moderator_post_queue_path) %></li>
-        <% end %>
-        <% if CurrentUser.is_moderator? %>
-          <li><%= link_to("Mass Edit", edit_moderator_tag_path) %></li>
-        <% end %>
         <li><%= link_to("Similar Images Search", iqdb_queries_path) %></li>
         <% if CurrentUser.can_approve_posts? %>
           <li><%= link_to("Disapprovals", moderator_post_disapprovals_path) %></li>
@@ -33,6 +27,7 @@
       <ul>
         <li><h1>Tools</h1></li>
         <li><%= link_to("News Updates", news_updates_path) %></li>
+        <li><%= link_to("Mascots", mascots_path) %></li>
         <li><%= link_to("Source Code", Danbooru.config.source_code_url) %></li>
         <li><%= link_to("Keyboard Shortcuts", keyboard_shortcuts_path) %></li>
         <li><%= link_to("API Documentation", help_page_path(id: "api")) %></li>
@@ -95,9 +90,6 @@
     <section>
       <ul>
         <li><h1>Users</h1></li>
-        <% if CurrentUser.is_moderator? %>
-          <li><%= link_to("Dashboard", moderator_dashboard_path) %></li>
-        <% end %>
         <li><%= link_to("Listing", users_path) %></li>
         <li><%= link_to("Bans", bans_path) %></li>
         <% if CurrentUser.is_anonymous? %>
@@ -113,15 +105,17 @@
       </ul>
       <ul>
         <li><h1>Admin</h1></li>
+        <% if CurrentUser.is_moderator? %>
+          <li><%= link_to("Mod Dashboard", moderator_dashboard_path) %></li>
+        <% end %>
         <% if CurrentUser.is_admin? %>
           <li><%= link_to("Admin Dashboard", admin_dashboard_path) %></li>
           <li><%= link_to("Email Blacklist", email_blacklists_path) %></li>
           <li><%= link_to("Post Report Reasons", post_report_reasons_path) %></li>
-          <li><%= link_to("Alias & Implication Import", new_admin_alias_and_implication_import_path) %></li>
           <li><%= link_to("Danger Zone", admin_danger_zone_index_path) %></li>
-        <% end %>
-        <% if CurrentUser.is_moderator? %>
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
+          <li><%= link_to("Alt list", alt_list_admin_users_path) %></li>
+          <li><%= link_to("Stuck DNP tags", new_admin_stuck_dnp_path) %></li>
         <% end %>
         <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
         <li><%= link_to("Mod Actions", mod_actions_path) %></li>

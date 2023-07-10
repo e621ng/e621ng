@@ -2,11 +2,6 @@ class PostFlag < ApplicationRecord
   class Error < Exception;
   end
 
-  module Reasons
-    UNAPPROVED = "Unapproved in 30 days"
-    BANNED = "Artist requested removal"
-  end
-
   COOLDOWN_PERIOD = 1.days
   MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
 
@@ -26,19 +21,11 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name, :user_reason, :force_flag
+  attr_accessor :parent_id, :reason_name, :force_flag
 
   module SearchMethods
-    def duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('dup | duplicate | sample | smaller')")
-    end
-
-    def not_duplicate
-      where("to_tsvector('english', post_flags.reason) @@ to_tsquery('!dup & !duplicate & !sample & !smaller')")
-    end
-
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+      where(post_id: Post.tag_match_sql(query))
     end
 
     def resolved
@@ -49,14 +36,6 @@ class PostFlag < ApplicationRecord
       where("is_resolved = ?", false)
     end
 
-    def recent
-      where("created_at >= ?", 1.day.ago)
-    end
-
-    def old
-      where("created_at <= ?", 3.days.ago)
-    end
-
     def for_creator(user_id)
       where("creator_id = ?", user_id)
     end
@@ -65,6 +44,7 @@ class PostFlag < ApplicationRecord
       q = super
 
       q = q.attribute_matches(:reason, params[:reason_matches])
+      q = q.attribute_matches(:is_resolved, params[:is_resolved])
 
       if params[:creator_id].present?
         if CurrentUser.can_view_flagger?(params[:creator_id].to_i)
@@ -91,23 +71,15 @@ class PostFlag < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
-      q = q.attribute_matches(:is_resolved, params[:is_resolved])
-
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
-      case params[:category]
-      when "normal"
-        q = q.where("reason NOT IN (?)", [Reasons::UNAPPROVED, Reasons::BANNED])
-      when "unapproved"
-        q = q.where(reason: Reasons::UNAPPROVED)
-      when "banned"
-        q = q.where(reason: Reasons::BANNED)
-      when "deleted"
-        q = q.where("reason = ?", Reasons::UNAPPROVED)
-      when "duplicate"
-        q = q.duplicate
+      case params[:type]
+      when "flag"
+        q = q.where(is_deletion: false)
+      when "deletion"
+        q = q.where(is_deletion: true)
       end
 
       q.apply_default_order(params)
@@ -124,22 +96,16 @@ class PostFlag < ApplicationRecord
     end
 
     def method_attributes
-      super + [:category]
+      super + [:type]
     end
   end
 
   extend SearchMethods
   include ApiMethods
 
-  def category
-    case reason
-    when Reasons::UNAPPROVED
-      :unapproved
-    when Reasons::BANNED
-      :banned
-    else
-      :normal
-    end
+  def type
+    return :deletion if is_deletion
+    :flag
   end
 
   def update_post
@@ -167,7 +133,7 @@ class PostFlag < ApplicationRecord
 
     flag = post.flags.in_cooldown.last
     if flag.present?
-      errors.add(:post, "cannot be flagged more than once every #{COOLDOWN_PERIOD.inspect} (last flagged: #{flag.created_at.to_s(:long)})")
+      errors.add(:post, "cannot be flagged more than once every #{COOLDOWN_PERIOD.inspect} (last flagged: #{flag.created_at.to_fs(:long)})")
     end
   end
 
@@ -178,8 +144,6 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
-    when 'test'
-      errors.add(:reason, "is not one of the available choices") unless Rails.env.test?
     when 'deletion'
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
@@ -188,10 +152,9 @@ class PostFlag < ApplicationRecord
         errors.add(:parent_id, "must exist")
         return false
       end
-      errors.add(:parent_id,  "cannot be set to the post being flagged") if parent_post.id == post.id
-    when 'user'
-      errors.add(:user_reason, "cannot be blank") unless user_reason.present? && user_reason.strip.length > 0
-      errors.add(:user_reason, "cannot be used after 48 hours or on posts you didn't upload") if post.created_at < 48.hours.ago || post.uploader_id != creator_id
+      errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
+    when 'uploading_guidelines'
+      errors.add(:reason, "cannot be used. The post is either not pending, or grandfathered") unless post.flaggable_for_guidelines?
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end
@@ -199,8 +162,6 @@ class PostFlag < ApplicationRecord
 
   def update_reason
     case reason_name
-    when 'test'
-      self.reason = user_reason if Rails.env.test?
     when 'deletion'
       # NOP
     when 'inferior'
@@ -217,8 +178,6 @@ class PostFlag < ApplicationRecord
       # Update parent flags on old parent post, if it exists
       Post.find(old_parent_id).update_has_children_flag if (old_parent_id && parent_post.id != old_parent_id)
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
-    when "user"
-      self.reason = "Uploader requested removal within 48 hours (Reason: #{user_reason})"
     else
       self.reason = MAPPED_REASONS[reason_name]
     end

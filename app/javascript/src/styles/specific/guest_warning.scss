@@ -5,7 +5,7 @@
   height: 100vh;
   width: 100vw;
   z-index: 10;
-  background-color: $main-background;
+  background-color: themed("color-background");
 
   .guest-warning-dialog {
     z-index: 100;
@@ -16,13 +16,12 @@
     height: 40vh;
     width: 40vw;
     overflow-x: scroll;
-    background-color: $section-background;
-    border: 1px solid border_color($section-background);
+    background-color: themed("color-section");
 
     .dialog-header {
       padding: $padding-050 $base-padding;
-      background-color: $lighten-background-5;
-      border-bottom: 1px solid border_color($section-background);
+      background-color: themed("color-section-lighten-5");
+      border-bottom: 1px solid themed("color-background");
     }
     .dialog-content {
       padding: $padding-050 $base-padding;

@@ -1,10 +1,6 @@
 class ElasticPostQueryBuilder
   attr_accessor :query_string
 
-  SEARCHABLE_COUNT_METATAGS = [
-      :comment_count,
-  ].freeze
-
   def initialize(query_string)
     @query_string = query_string
   end
@@ -44,12 +40,6 @@ class ElasticPostQueryBuilder
     relation
   end
 
-  def escape_string_for_tsquery(array)
-    array.map do |token|
-      token.to_escaped_for_tsquery
-    end
-  end
-
   def add_tag_string_search_relation(tags, relation)
     should = tags[:include].map {|x| {term: {tags: x}}}
     must = tags[:related].map {|x| {term: {tags: x}}}
@@ -62,28 +52,6 @@ class ElasticPostQueryBuilder
     }}
     search[:bool][:minimum_should_match] = 1 if should.size > 0
     relation.push(search)
-  end
-
-  def table_for_metatag(metatag)
-    if metatag.in?(Tag::COUNT_METATAGS)
-      metatag[/(?<table>[a-z]+)_count\z/i, :table]
-    else
-      nil
-    end
-  end
-
-  def tables_for_query(q)
-    metatags = q.keys
-    metatags << q[:order].remove(/_(asc|desc)\z/i) if q[:order].present?
-
-    tables = metatags.map {|metatag| table_for_metatag(metatag.to_s)}
-    tables.compact.uniq
-  end
-
-  def add_joins(q, relation)
-    tables = tables_for_query(q)
-    relation = relation.with_stats(tables)
-    relation
   end
 
   def hide_deleted_posts?(q)
@@ -160,7 +128,7 @@ class ElasticPostQueryBuilder
 
     add_range_relation(q[:post_tag_count], :tag_count, must)
 
-    SEARCHABLE_COUNT_METATAGS.each do |column|
+    Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
       add_range_relation(q[column], column, must)
     end
 
@@ -563,7 +531,7 @@ class ElasticPostQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{SEARCHABLE_COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{Tag::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])

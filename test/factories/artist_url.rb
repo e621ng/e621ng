@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:artist_url) do
     artist
-    url {FFaker::Internet.domain_name}
+    sequence(:url) { |n| "artist_domain_#{n}.com" }
   end
 end

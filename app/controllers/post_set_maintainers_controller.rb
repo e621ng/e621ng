@@ -26,7 +26,7 @@ class PostSetMaintainersController < ApplicationController
     end
 
     if RateLimiter.check_limit("set.invite.#{CurrentUser.id}", 5, 1.hours)
-      flash[:notice] = "You must wait an hour before inviting more set maintainers."
+      flash[:notice] = "You must wait an hour before inviting more set maintainers"
     end
 
     PostSetMaintainer.where(user_id: @user.id, post_set_id: @set.id).destroy_all

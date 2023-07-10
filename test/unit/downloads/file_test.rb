@@ -2,12 +2,23 @@ require 'test_helper'
 
 module Downloads
   class FileTest < ActiveSupport::TestCase
+    def assert_correct_escaping(input, output)
+      file = Downloads::File.new(input)
+      assert_equal(file.url.to_s, output)
+
+      # Validate that no double-encoding is going on
+      file = Downloads::File.new(file.url.to_s)
+      assert_equal(file.url.to_s, output)
+    end
+
     context "A post download" do
       setup do
         CurrentUser.user = create(:user)
+        CloudflareService.stubs(:ips).returns([])
         UploadWhitelist.stubs(:is_whitelisted?).returns(true)
         @source = "http://www.google.com/intl/en_ALL/images/logo.gif"
         @download = Downloads::File.new(@source)
+        stub_request(:get, @source).to_return(status: 200, body: file_fixture("test.jpg").read, headers: {})
       end
 
       context "for a banned IP" do
@@ -66,6 +77,26 @@ module Downloads
       should "store the file in the tempfile path" do
         tempfile = @download.download!
         assert_operator(tempfile.size, :>, 0, "should have data")
+      end
+
+      context "url normalization" do
+        should "correctly escapes cyrilic characters" do
+          input = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg"
+          output = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_%D0%B7%D0%B0%D0%BB%D0%B8%D0%B2%D0%B0%D1%82%D1%8C-%D0%B3%D0%B8%D1%82%D0%B0%D1%80%D1%83.jpg"
+          assert_correct_escaping(input, output)
+        end
+
+        should "correctly escapes square brackets" do
+          input = "https://d.furaffinity.net/art/kinniro/1461084939/1461084939.kinniro_[commission]41.png"
+          output = "https://d.furaffinity.net/art/kinniro/1461084939/1461084939.kinniro_%5Bcommission%5D41.png"
+          assert_correct_escaping(input, output)
+        end
+
+        should "correctly escapes ＠" do
+          input = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co＠f-r9512.png"
+          output = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co%EF%BC%A0f-r9512.png"
+          assert_correct_escaping(input, output)
+        end
       end
     end
   end

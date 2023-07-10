@@ -3,9 +3,9 @@ require "test_helper"
 class PostsControllerTest < ActionDispatch::IntegrationTest
   context "The posts controller" do
     setup do
-      @user = travel_to(1.month.ago) {create(:user)}
-      as_user do
-        @post = create(:post, :tag_string => "aaaa")
+      @user = create(:user, created_at: 1.month.ago)
+      as(@user) do
+        @post = create(:post, tag_string: "aaaa")
       end
     end
 
@@ -47,7 +47,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     context "show_seq action" do
       should "render" do
-        posts = FactoryBot.create_list(:post, 3)
+        posts = create_list(:post, 3)
 
         get show_seq_post_path(posts[1].id), params: { seq: "prev" }
         assert_response :success
@@ -81,7 +81,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
     context "revert action" do
       setup do
-        as_user do
+        as(@user) do
           @post.update(tag_string: "zzz")
         end
       end
@@ -96,8 +96,8 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another post" do
-        as_user do
-          @post2 = create(:post, :uploader_id => @user.id, :tag_string => "herp")
+        as(@user) do
+          @post2 = create(:post, uploader_id: @user.id, tag_string: "herp")
         end
 
         put_auth revert_post_path(@post), @user, params: { :version_id => @post2.versions.first.id }

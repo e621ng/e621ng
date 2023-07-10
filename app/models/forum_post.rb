@@ -32,6 +32,8 @@ class ForumPost < ApplicationRecord
     ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
   end
 
+  attr_accessor :bypass_limits
+
   module SearchMethods
     def topic_title_matches(title)
       joins(:topic).merge(ForumTopic.search(title_matches: title))
@@ -71,7 +73,7 @@ class ForumPost < ApplicationRecord
         q = q.topic_title_matches(params[:topic_title_matches])
       end
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :text_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:creator_name].present?
         q = q.creator_name(params[:creator_name].tr(" ", "_"))
@@ -87,25 +89,7 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  module ApiMethods
-    def hidden_attributes
-      super + [:text_index]
-    end
-  end
-
   extend SearchMethods
-  include ApiMethods
-
-  def self.new_reply(params)
-    if params[:topic_id]
-      new(:topic_id => params[:topic_id])
-    elsif params[:post_id]
-      forum_post = ForumPost.find(params[:post_id])
-      forum_post.build_response
-    else
-      new
-    end
-  end
 
   def tag_change_request
     bulk_update_request || tag_alias || tag_implication
@@ -128,6 +112,8 @@ class ForumPost < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
+    return true if bypass_limits
+
     allowed = creator.can_forum_post_with_reason
     if allowed != true
       errors.add(:creator, User.throttle_reason(allowed))
@@ -158,8 +144,9 @@ class ForumPost < ApplicationRecord
   end
 
   def editable_by?(user)
-    return false if was_warned? && !user.is_moderator?
-    (creator_id == user.id || user.is_moderator?) && visible?(user)
+    return true if user.is_admin?
+    return false if was_warned?
+    creator_id == user.id && visible?(user)
   end
 
   def visible?(user)
@@ -167,11 +154,13 @@ class ForumPost < ApplicationRecord
   end
 
   def can_hide?(user)
-    user.is_moderator? || user.id == creator_id
+    return true if user.is_moderator?
+    return false if was_warned?
+    user.id == creator_id
   end
 
   def can_delete?(user)
-    user.is_moderator?
+    user.is_admin?
   end
 
   def update_topic_updated_at_on_create
@@ -222,10 +211,6 @@ class ForumPost < ApplicationRecord
     User.id_to_name(updater_id)
   end
 
-  def quoted_response
-    DText.quote(body, creator_name)
-  end
-
   def forum_topic_page
     ((ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count) / Danbooru.config.posts_per_page.to_f).ceil
   end
@@ -244,11 +229,5 @@ class ForumPost < ApplicationRecord
     end
 
     true
-  end
-
-  def build_response
-    dup.tap do |x|
-      x.body = x.quoted_response
-    end
   end
 end

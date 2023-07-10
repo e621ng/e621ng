@@ -17,10 +17,10 @@ Rails.application.routes.draw do
         get :alt_list
       end
     end
-    resource :alias_and_implication_import, :only => [:new, :create]
     resource :dashboard, :only => [:show]
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
+    resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
@@ -36,9 +36,7 @@ Rails.application.routes.draw do
         get :export
       end
     end
-    resource :tag, :only => [:edit, :update]
     namespace :post do
-      resource :queue, :only => [:show]
       resource :approval, :only => [:create, :destroy]
       resources :disapprovals, :only => [:create, :index]
       resources :posts, :only => [:delete, :undelete, :expunge, :confirm_delete] do
@@ -100,7 +98,7 @@ Rails.application.routes.draw do
       get :show_or_new
     end
   end
-  resources :artist_urls, only: [:index, :update]
+  resources :artist_urls, only: [:index]
   resources :artist_versions, :only => [:index] do
     collection do
       get :search
@@ -151,8 +149,6 @@ Rails.application.routes.draw do
     member do
       post :hide
       post :unhide
-      get :new_merge
-      post :create_merge
       post :subscribe
       post :unsubscribe
     end
@@ -173,8 +169,6 @@ Rails.application.routes.draw do
   resource :iqdb_queries, :only => [:show] do
     collection do
       post :show
-      get :preview
-      get :check, to: redirect {|path_params, req| "/iqdb_queries?#{req.query_string}"}
     end
   end
   resources :mod_actions
@@ -192,10 +186,6 @@ Rails.application.routes.draw do
   resources :pools do
     member do
       put :revert
-      post :undelete
-      get :import
-      get :import_preview
-      post :import_posts
     end
     collection do
       get :gallery
@@ -256,7 +246,6 @@ Rails.application.routes.draw do
   resources :tags do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
     collection do
-      get :autocomplete
       post :preview
     end
   end
@@ -342,6 +331,7 @@ Rails.application.routes.draw do
       get :resend_confirmation
     end
   end
+  resources :mascots, only: [:index, :new, :create, :edit, :update, :destroy]
 
   options "*all", to: "application#enable_cors"
 
@@ -395,14 +385,13 @@ Rails.application.routes.draw do
   get "/post/index" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post" => redirect {|params, req| "/posts?tags=#{CGI::escape(req.params[:tags].to_s)}&page=#{req.params[:page]}"}
   get "/post/upload" => redirect("/uploads/new")
-  get "/post/moderate" => redirect("/moderator/post/queue")
   get "/post/atom" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
   get "/post/atom.feed" => redirect {|params, req| "/posts.atom?tags=#{CGI::escape(req.params[:tags].to_s)}"}
   get "/post/popular_by_day" => redirect("/popular")
   get "/post/popular_by_week" => redirect("/popular")
   get "/post/popular_by_month" => redirect("/popular")
   # This redirect preserves all query parameters and the request format
-  get "/post/explore/popular(*all)" => redirect(path: "/popular%{all}"), defaults: { all: "" }
+  get "/explore/posts/popular(*all)" => redirect(path: "/popular%{all}"), defaults: { all: "" }
   get "/post/show/:id/:tag_title" => redirect("/posts/%{id}")
   get "/post/show/:id" => redirect("/posts/%{id}")
   get "/post/show" => redirect {|params, req| "/posts?md5=#{req.params[:md5]}"}
@@ -421,6 +410,8 @@ Rails.application.routes.draw do
 
   get "/tag_implication" => redirect {|params, req| "/tag_implications?search[name_matches]=#{CGI::escape(req.params[:query].to_s)}"}
   get "/tag_alias" => redirect {|params, req| "/tag_aliases?search[antecedent_name]=#{CGI.escape(req.params[:query].to_s)}&search[consequent_name]=#{CGI.escape(req.params[:aliased_to].to_s)}"}
+
+  get "/takedown/show/:id" => redirect("/takedowns/%{id}")
 
   get "/user" => redirect {|params, req| "/users?page=#{req.params[:page]}"}
   get "/user/index" => redirect {|params, req| "/users?page=#{req.params[:page]}"}

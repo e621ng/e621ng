@@ -29,13 +29,13 @@ class TagCategory
       @@humanized_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["humanized"]]}]
     end
 
-    # Returns a hash mapping for split_tag_list_html (presenters/tag_set_presenter.rb)
+    # Returns a hash mapping for post_show_sidebar_tag_list_html (presenters/tag_set_presenter.rb)
     def header_mapping
       @@header_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["header"]]}]
     end
 
-    def mod_only_mapping
-      @@mod_only_mapping ||= Hash[Danbooru.config.full_tag_config_info.map {|k,v| [k,v["mod_only"] || false]}]
+    def admin_only_mapping
+      @@admin_only_mapping ||= Hash[Danbooru.config.full_tag_config_info.map { |k,v| [k, v["admin_only"] || false] }]
     end
   end
 

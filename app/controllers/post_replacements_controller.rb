@@ -1,8 +1,9 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: [:create, :new]
-  before_action :janitor_only, only: [:approve, :reject, :promote, :toggle_penalize]
-  before_action :moderator_only, only: [:destroy]
+  before_action :approver_only, only: [:approve, :reject, :promote, :toggle_penalize]
+  before_action :admin_only, only: [:destroy]
+  before_action :ensure_uploads_enabled, only: [:new, :create]
 
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
@@ -20,12 +21,16 @@ class PostReplacementsController < ApplicationController
     check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
-    if @post_replacement.errors.any?
-      flash[:notice] = @post_replacement.errors.full_messages.join('; ')
-    else
+    if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end
-    respond_with(@post_replacement, location: @post)
+    respond_to do |format|
+      format.json do
+        return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 if @post_replacement.errors.any?
+
+        render json: { success: true, location: post_path(@post) }
+      end
+    end
   end
 
   def approve
@@ -85,5 +90,11 @@ class PostReplacementsController < ApplicationController
 
   def create_params
     params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source)
+  end
+
+  def ensure_uploads_enabled
+    if DangerZone.uploads_disabled?(CurrentUser.user)
+      access_denied "Uploads are disabled"
+    end
   end
 end

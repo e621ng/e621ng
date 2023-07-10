@@ -1,6 +1,3 @@
-require 'upload_service/replacer'
-require 'upload_service/utils'
-
 class UploadService
   attr_reader :params, :post, :upload
 
@@ -41,7 +38,6 @@ class UploadService
     @post = convert_to_post(upload)
     @post.save!
     @post.reload
-    @post.generate_video_samples if @post.is_video?
 
     upload.update(status: "completed", post_id: @post.id)
 

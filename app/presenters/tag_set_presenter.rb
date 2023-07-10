@@ -15,13 +15,12 @@ class TagSetPresenter < Presenter
     @_cached = {}
   end
 
-  def tag_list_html(current_query: "", show_extra_links: false, name_only: false)
+  def post_index_sidebar_tag_list_html(current_query: "")
     html = ""
-
     if ordered_tags.present?
       html << '<ul>'
       ordered_tags.each do |tag|
-        html << build_list_item(tag, current_query: current_query, show_extra_links: show_extra_links, name_only: name_only)
+        html << build_list_item(tag, current_query: current_query)
       end
       html << "</ul>"
     end
@@ -29,17 +28,17 @@ class TagSetPresenter < Presenter
     html.html_safe
   end
 
-  def split_tag_list_html(headers: true, category_list: TagCategory.split_header_list, current_query: "", show_extra_links: false, name_only: false, humanize_tags: true)
+  def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
     html = ""
 
-    category_list.each do |category|
+    TagCategory.split_header_list.each do |category|
       typetags = tags_for_category(category)
 
       if typetags.any?
-        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory.header_mapping[category]}</h2>} if headers
+        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory.header_mapping[category]}</h2>}
         html << %{<ul class="#{category}-tag-list">}
         typetags.each do |tag|
-          html << build_list_item(tag, current_query: current_query, show_extra_links: show_extra_links, name_only: name_only, humanize_tags: humanize_tags)
+          html << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name))
         end
         html << "</ul>"
       end
@@ -49,16 +48,20 @@ class TagSetPresenter < Presenter
   end
 
   # compact (horizontal) list, as seen in the /comments index.
-  def inline_tag_list_html(humanize_tags: false)
-    html = split_tag_list_html(category_list: TagCategory.categorized_list, headers: false, show_extra_links: false, name_only: true, humanize_tags: humanize_tags)
-    %{<span class="inline-tag-list">#{html}</span>}.html_safe
+  def inline_tag_list_html
+    html = TagCategory.categorized_list.map do |category|
+      tags_for_category(category).map do |tag|
+        %(<li class="category-#{tag.category}">#{tag_link(tag)}</li>)
+      end.join
+    end.join
+    %(<ul class="inline-tag-list">#{html}</ul>).html_safe
   end
 
   # the list of tags inside the tag box in the post edit form.
-  def split_tag_list_text(category_list: TagCategory.categorized_list)
-    category_list.map do |category|
+  def split_tag_list_text
+    TagCategory.categorized_list.map do |category|
       tags_for_category(category).map(&:name).join(" ")
-    end.reject(&:blank?).join(" \n")
+    end.compact_blank.join(" \n")
   end
 
   def humanized_essential_tag_string(category_list: TagCategory.humanized_list, default: "")
@@ -122,47 +125,47 @@ class TagSetPresenter < Presenter
     ordered
   end
 
-  def build_list_item(tag, name_only: false, humanize_tags: true, show_extra_links: false, current_query: "")
+  def build_list_item(tag, current_query: "", highlight: false)
     name = tag.name
     count = tag.post_count
     category = tag.category
 
     html = %{<li class="category-#{tag.category}">}
 
-    unless name_only
-      if category == Tag.categories.artist
-        html << %{<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> }
-      else
-        html << %{<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> }
-      end
-
-      if show_extra_links && current_query.present?
-        html << %{<a rel="nofollow" href="/posts?tags=#{u(current_query)}+#{u(name)}" class="search-inc-tag">+</a> }
-        html << %{<a rel="nofollow" href="/posts?tags=#{u(current_query)}+-#{u(name)}" class="search-exl-tag">&ndash;</a> }
-      end
+    if category == Tag.categories.artist
+      html << %{<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> }
+    else
+      html << %{<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> }
     end
 
-    humanized_tag = humanize_tags ? name.tr("_", " ") : name
-    itemprop = 'itemprop="author"' if category == Tag.categories.artist
-    html << %{<a rel="nofollow" class="search-tag" #{itemprop} href="/posts?tags=#{u(name)}">#{h(humanized_tag)}</a> }
-
-    unless name_only || tag.new_record?
-      if count >= 10_000
-        post_count = "#{count / 1_000}k"
-      elsif count >= 1_000
-        post_count = "%.1fk" % (count / 1_000.0)
-      else
-        post_count = count
-      end
-
-      is_underused_tag = count <= 1 && category == Tag.categories.general
-      klass = "color-muted post-count#{is_underused_tag ? " low-post-count" : ""}"
-      title = "New general tag detected. Check the spelling or populate it now."
-
-      html << %{<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}
+    if current_query.present?
+      html << %{<a rel="nofollow" href="/posts?tags=#{u(current_query)}+#{u(name)}" class="search-inc-tag">+</a> }
+      html << %{<a rel="nofollow" href="/posts?tags=#{u(current_query)}+-#{u(name)}" class="search-exl-tag">&ndash;</a> }
     end
+
+    html << tag_link(tag, name.tr("_", " "))
+    html << %(<i title="Uploaded by the artist" class="highlight fa-regular fa-circle-check"></i>) if highlight
+
+    if count >= 10_000
+      post_count = "#{count / 1_000}k"
+    elsif count >= 1_000
+      post_count = "%.1fk" % (count / 1_000.0)
+    else
+      post_count = count
+    end
+
+    is_underused_tag = count <= 1 && category == Tag.categories.general
+    klass = "color-muted post-count#{is_underused_tag ? " low-post-count" : ""}"
+    title = "New general tag detected. Check the spelling or populate it now."
+
+    html << %{<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}
 
     html << "</li>"
     html
+  end
+
+  def tag_link(tag, link_text = tag.name)
+    itemprop = 'itemprop="author"' if tag.category == Tag.categories.artist
+    %(<a rel="nofollow" class="search-tag" #{itemprop} href="/posts?tags=#{u(tag.name)}">#{h(link_text)}</a> )
   end
 end

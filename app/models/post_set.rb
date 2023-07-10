@@ -1,6 +1,5 @@
-# -*- encoding : utf-8 -*-
 class PostSet < ApplicationRecord
-  array_attribute :post_ids, parse: /\d+/, cast: :to_i
+  array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
 
   has_many :post_set_maintainers, dependent: :destroy do
     def in_cooldown(user)
@@ -43,13 +42,13 @@ class PostSet < ApplicationRecord
     if name =~ /\A\d+\z/
       name.to_i
     else
-      select_value_sql("SELECT id FROM post_sets WHERE lower(shortname) = ?", name.downcase.tr(" ", "_")).to_i
+      PostSet.where("lower(shortname) = ?", name.downcase.tr(" ", "_")).pick(:id)
     end
   end
 
   def self.visible(user = CurrentUser.user)
     return where('is_public = true') if user.nil?
-    return all() if user.is_admin?
+    return all if user.is_moderator?
     where('is_public = true OR creator_id = ?', user.id)
   end
 
@@ -146,7 +145,7 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || is_owner?(user) || user.is_admin?
+      is_public || is_owner?(user) || user.is_moderator?
     end
 
     def can_edit_settings?(user)
@@ -319,7 +318,7 @@ class PostSet < ApplicationRecord
 
       q = q.attribute_exact_matches(:creator_id, params[:creator_id])
       if params[:name].present?
-        q = q.where_ilike(:name, params[:name])
+        q = q.attribute_matches(:name, params[:name], convert_to_wildcard: true)
       end
       if params[:shortname].present?
         q = q.where_ilike(:shortname, params[:shortname])
@@ -333,11 +332,11 @@ class PostSet < ApplicationRecord
         q = q.order(:name, id: :desc)
       when 'shortname'
         q = q.order(:shortname, id: :desc)
-      when 'postcount'
+      when 'postcount', 'post_count'
         q = q.order(post_count: :desc, id: :desc)
       when 'created_at'
         q = q.order(:id)
-      when 'update'
+      when 'update', 'updated_at'
         q = q.order(updated_at: :desc)
       else
         q = q.order(id: :desc)

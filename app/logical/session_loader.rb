@@ -96,17 +96,16 @@ private
   end
 
   def authenticate_api_key(name, api_key)
-    CurrentUser.user = User.authenticate_api_key(name, api_key)
-
-    if CurrentUser.user.nil?
-      raise AuthenticationFailure.new
-    end
+    user = User.authenticate_api_key(name, api_key)
+    raise AuthenticationFailure if user.nil?
+    CurrentUser.user = user
   end
 
   def load_session_user
     user = User.find_by_id(session[:user_id])
+    raise AuthenticationFailure if user.nil?
     return if session[:ph] != user.password_token
-    CurrentUser.user = user if user
+    CurrentUser.user = user
   end
 
   def update_last_logged_in_at

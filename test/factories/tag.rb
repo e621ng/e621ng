@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:tag) do
-    name {"#{FFaker::Name.first_name.downcase}#{rand(1000)}"}
+    sequence(:name) { |n| "tag_name_#{n}" }
     post_count { 0 }
     category {Tag.categories.general}
     related_tags { "" }

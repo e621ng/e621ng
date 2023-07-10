@@ -57,7 +57,7 @@ class Comment < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(id: :desc).limit(300))
+      where(post_id: Post.tag_match_sql(query).order(id: :desc).limit(300))
     end
 
     def poster_id(user_id)
@@ -75,7 +75,7 @@ class Comment < ApplicationRecord
     def search(params)
       q = super.includes(:creator).includes(:updater).includes(:post)
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:post_id].present?
         q = q.where("post_id in (?)", params[:post_id].split(",").map(&:to_i))
@@ -103,13 +103,18 @@ class Comment < ApplicationRecord
 
       case params[:order]
       when "post_id", "post_id_desc"
-        q = q.order("comments.post_id DESC, comments.id DESC")
+        q = q.order("comments.post_id DESC, comments.created_at DESC")
       when "score", "score_desc"
-        q = q.order("comments.score DESC, comments.id DESC")
+        q = q.order("comments.score DESC, comments.created_at DESC")
       when "updated_at", "updated_at_desc"
         q = q.order("comments.updated_at DESC")
       else
-        q = q.apply_default_order(params)
+        # Force a better query plan
+        if %i[body_matches creator_name creator_id].any? { |key| params[key].present? }
+          q = q.order(created_at: :desc)
+        else
+          q = q.apply_default_order(params)
+        end
       end
 
       if params[:poster_id].present?
@@ -177,12 +182,15 @@ class Comment < ApplicationRecord
   end
 
   def editable_by?(user)
-    return false if was_warned? && !user.is_moderator?
-    creator_id == user.id || user.is_moderator?
+    return true if user.is_admin?
+    return false if was_warned?
+    creator_id == user.id
   end
 
   def can_hide?(user)
-    user.is_moderator? || user.id == creator_id
+    return true if user.is_moderator?
+    return false if was_warned?
+    user.id == creator_id
   end
 
   def visible_to?(user)
@@ -197,10 +205,6 @@ class Comment < ApplicationRecord
     (creator_id == user.id) && user.show_hidden_comments?
   end
 
-  def hidden_attributes
-    super + [:body_index]
-  end
-
   def method_attributes
     super + [:creator_name, :updater_name]
   end
@@ -211,9 +215,5 @@ class Comment < ApplicationRecord
 
   def unhide!
     update(is_hidden: false)
-  end
-
-  def quoted_response
-    DText.quote(body, creator_name)
   end
 end

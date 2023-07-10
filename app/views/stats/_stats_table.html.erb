@@ -1,0 +1,16 @@
+<table class="striped">
+  <thead>
+    <tr>
+      <th style="width: 275px;"><h2><%= header_title %></h2></th>
+      <th style="width: 125px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% data.each do |(data_title, data_or_stats_key)| %>
+      <tr>
+        <td><%= data_title %></td>
+        <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

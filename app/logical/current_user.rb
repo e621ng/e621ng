@@ -14,32 +14,8 @@ class CurrentUser
     end
   end
 
-  def self.as(user_or_id, &block)
-    if user_or_id.is_a?(String) || user_or_id.is_a?(Integer)
-      user = ::User.find(user_or_id)
-    else
-      user = user_or_id
-    end
-
-    scoped(user, &block)
-  end
-
-  def self.as_admin(&block)
-    if block_given?
-      scoped(::User.admins.first, "127.0.0.1", &block)
-    else
-      self.user = ::User.admins.first
-      self.ip_addr = "127.0.0.1"
-    end
-  end
-
-  def self.as_system(&block)
-    if block_given?
-      scoped(::User.system, "127.0.0.1", &block)
-    else
-      self.user = User.system
-      self.ip_addr = "127.0.0.1"
-    end
+  def self.as_system(&)
+    scoped(::User.system, &)
   end
 
   def self.user=(user)
@@ -56,14 +32,6 @@ class CurrentUser
 
   def self.ip_addr
     RequestStore[:current_ip_addr]
-  end
-
-  def self.root_url
-    RequestStore[:current_root_url] || "https://#{Danbooru.config.hostname}"
-  end
-
-  def self.root_url=(root_url)
-    RequestStore[:current_root_url] = root_url
   end
 
   def self.id

@@ -11,7 +11,7 @@ class TagAlias < TagRelationship
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
         create_undo_information
-        TagAliasJob.perform_async(id, update_topic)
+        TagAliasJob.perform_later(id, update_topic)
       end
     end
 
@@ -259,9 +259,10 @@ class TagAlias < TagRelationship
 
   def ensure_category_consistency
     return if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
-    if antecedent_tag.category != consequent_tag.category && antecedent_tag.category != Tag.categories.general
-      consequent_tag.update_attribute(:category, antecedent_tag.category)
-    end
+    return if consequent_tag.category != Tag.categories.general # Don't change the already existing category of the target tag
+    return if antecedent_tag.category == Tag.categories.general # Don't set the target tag to general
+
+    consequent_tag.update_attribute(:category, antecedent_tag.category)
   end
 
   def update_blacklists
@@ -313,7 +314,7 @@ class TagAlias < TagRelationship
 
   def self.update_cached_post_counts_for_all
     TagAlias.without_timeout do
-      execute_sql("UPDATE tag_aliases SET post_count = tags.post_count FROM tags WHERE tags.name = tag_aliases.consequent_name")
+      connection.execute("UPDATE tag_aliases SET post_count = tags.post_count FROM tags WHERE tags.name = tag_aliases.consequent_name")
     end
   end
 

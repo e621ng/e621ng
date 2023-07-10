@@ -1,7 +1,3 @@
-require 'digest/sha1'
-require 'zlib'
-require 'danbooru/has_bit_flags'
-
 class User < ApplicationRecord
   class Error < Exception ; end
   class PrivilegeError < Exception
@@ -20,10 +16,7 @@ class User < ApplicationRecord
 
   # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
   Roles = Levels.constants.map(&:downcase) + [
-    :banned,
     :approver,
-    :voter,
-    :verified,
   ]
 
   # candidates for removal:
@@ -62,29 +55,20 @@ class User < ApplicationRecord
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
+    is_bd_staff
   )
 
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
 
-  attr_accessor :password, :old_password
+  attr_accessor :password, :old_password, :validate_email_format, :is_admin_edit
 
   after_initialize :initialize_attributes, if: :new_record?
 
-  before_validation :normalize_email
-  if Danbooru.config.enable_email_verification?
-    validates :email, presence: { on: :create }
-    validates :email, presence: { on: :update, if: ->(rec) { rec.email_changed? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.saved_change_to_email? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :update, if: ->(rec) { rec.email.present? && rec.email_changed? } }
-    validates :email, uniqueness: { case_sensitive: false, on: :create }
-    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :create }
-    validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, on: :update, if: ->(rec) { rec.email_changed? } }
-  else
-    validates :email, uniqueness: { case_sensitive: false, on: :create, if: ->(rec) { rec.email.present?} }
-  end
+  validates :email, presence: { if: :enable_email_verification? }
+  validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
+  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
-
 
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { :in => %w(large fit fitv original) }
@@ -101,9 +85,10 @@ class User < ApplicationRecord
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
-  validates  :custom_style, length: { maximum: 500_000}
+  validates :custom_style, length: { maximum: 500_000 }
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
   validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
+  validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   before_create :encrypt_password_on_create
   before_update :encrypt_password_on_update
   after_save :update_cache
@@ -157,13 +142,9 @@ class User < ApplicationRecord
 
     module ClassMethods
       def name_to_id(name)
-        Cache.get("uni:#{Cache.hash(name)}", 4.hours) do
-          val = select_value_sql("SELECT id FROM users WHERE lower(name) = ?", name.downcase.tr(" ", "_").to_s)
-          if val.present?
-            val.to_i
-          else
-            nil
-          end
+        normalized_name = normalize_name(name)
+        Cache.fetch("uni:#{normalized_name}", expires_in: 4.hours) do
+          User.where("lower(name) = ?", normalized_name).pick(:id)
         end
       end
 
@@ -186,15 +167,15 @@ class User < ApplicationRecord
         if RequestStore[:id_name_cache].key?(user_id)
           return RequestStore[:id_name_cache][user_id]
         end
-        name = Cache.get("uin:#{user_id}", 4.hours) do
-          select_value_sql("SELECT name FROM users WHERE id = ?", user_id) || Danbooru.config.default_guest_name
+        name = Cache.fetch("uin:#{user_id}", expires_in: 4.hours) do
+          User.where(id: user_id).pick(:name) || Danbooru.config.default_guest_name
         end
         RequestStore[:id_name_cache][user_id] = name
         name
       end
 
       def find_by_name(name)
-        where("lower(name) = ?", name.downcase.tr(" ", "_")).first
+        where("lower(name) = ?", normalize_name(name)).first
       end
 
       def find_by_name_or_id(name)
@@ -215,8 +196,8 @@ class User < ApplicationRecord
     end
 
     def update_cache
-      Cache.put("uin:#{id}", name, 4.hours)
-      Cache.put("uni:#{Cache.hash(name)}", id, 4.hours)
+      Cache.write("uin:#{id}", name, expires_in: 4.hours)
+      Cache.write("uni:#{name}", id, expires_in: 4.hours)
     end
   end
 
@@ -230,7 +211,6 @@ class User < ApplicationRecord
     end
 
     def encrypt_password_on_create
-      return if Rails.env.test?
       self.password_hash = ""
       self.bcrypt_password_hash = User.bcrypt(password)
     end
@@ -259,9 +239,6 @@ class User < ApplicationRecord
     module ClassMethods
       def authenticate(name, pass)
         user = find_by_name(name)
-        if Rails.env.test? && user && user.password_hash.present? && user.password_hash == pass
-          return user
-        end
         if user && user.password_hash.present? && Pbkdf2.validate_password(pass, user.password_hash)
           user.upgrade_password(pass)
           user
@@ -336,26 +313,15 @@ class User < ApplicationRecord
       # TODO: HACK: Remove this and make the below logic better to work with the new setup.
       next if [0, 10].include?(value)
       normalized_name = name.downcase.tr(' ', '_')
-      define_method("is_exactly_#{normalized_name}?") do
-        self.level == value && self.id.present?
-      end
 
       # Changed from e6 to match new Danbooru semantics.
       define_method("is_#{normalized_name}?") do
         is_verified? && self.level >= value && self.id.present?
       end
-
-      define_method("is_#{normalized_name}_or_higher?") do
-        is_verified? && self.level >= value && self.id.present?
-      end
-
-      define_method("is_#{normalized_name}_or_lower?") do
-        !is_verified? || (self.level <= value && self.id.present?)
-      end
     end
 
-    def is_voter?
-      is_member?
+    def is_bd_staff?
+      is_bd_staff
     end
 
     def is_approver?
@@ -380,8 +346,8 @@ class User < ApplicationRecord
       self.disable_user_dmails = false if self.is_janitor?
     end
 
-    def level_class
-      "user-#{level_string.downcase}"
+    def level_css_class
+      "user-#{level_string.parameterize}"
     end
 
     def create_user_status
@@ -402,8 +368,10 @@ class User < ApplicationRecord
       update_attribute(:email_verification_key, nil)
     end
 
-    def normalize_email
-      self.email = nil if email.blank?
+    def enable_email_verification?
+      # Allow admins to edit users with blank/duplicate emails
+      return false if is_admin_edit && !email_changed?
+      Danbooru.config.enable_email_verification? && validate_email_format
     end
 
     def validate_email_address_allowed
@@ -444,7 +412,7 @@ class User < ApplicationRecord
   module ThrottleMethods
     def throttle_reason(reason)
       reasons = {
-          REJ_NEWBIE: 'can not yet perform this action. Account is too new.',
+          REJ_NEWBIE: 'can not yet perform this action. Account is too new',
           REJ_LIMITED: 'have reached the hourly limit for this action'
       }
       reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
@@ -555,6 +523,10 @@ class User < ApplicationRecord
       is_janitor?
     end
 
+    def can_handle_takedowns?
+      is_bd_staff?
+    end
+
     def can_upload?
       can_upload_with_reason == true
     end
@@ -605,18 +577,18 @@ class User < ApplicationRecord
     memoize :upload_limit_pieces
 
     def post_upload_throttle
-      return hourly_upload_limit if is_privileged_or_higher?
+      return hourly_upload_limit if is_privileged?
       [hourly_upload_limit, post_edit_limit].min
     end
     memoize :post_upload_throttle
 
     def tag_query_limit
-      40
+      Danbooru.config.tag_query_limit
     end
 
     def favorite_limit
       if is_contributor?
-        250_000
+        200_000
       elsif is_privileged?
         125_000
       else
@@ -689,7 +661,7 @@ class User < ApplicationRecord
       [
         :wiki_page_version_count, :artist_version_count, :pool_version_count,
         :forum_post_count, :comment_count,
-        :flag_count, :positive_feedback_count,
+        :flag_count, :favorite_count, :positive_feedback_count,
         :neutral_feedback_count, :negative_feedback_count, :upload_limit
       ]
     end
@@ -744,6 +716,10 @@ class User < ApplicationRecord
       user_status.post_flag_count
     end
 
+    def ticket_count
+      user_status.ticket_count
+    end
+
     def positive_feedback_count
       feedback.positive.count
     end
@@ -774,7 +750,11 @@ class User < ApplicationRecord
           post_count: Post.for_user(id).count,
           post_deleted_count: Post.for_user(id).deleted.count,
           post_update_count: PostVersion.for_user(id).count,
-          note_count: NoteVersion.where(updater_id: id).count
+          favorite_count: Favorite.for_user(id).count,
+          note_count: NoteVersion.for_user(id).count,
+          own_post_replaced_count: PostReplacement.for_uploader_on_approve(id).count,
+          own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
+          post_replacement_rejected_count: PostReplacement.rejected.for_user(id).count,
         )
       end
     end
@@ -797,16 +777,11 @@ class User < ApplicationRecord
       q = super
       q = q.joins(:user_status)
 
-      params = params.dup
-      params[:name_matches] = params.delete(:name) if params[:name].present?
-
-      q = q.search_text_attribute(:name, params)
       q = q.attribute_matches(:level, params[:level])
-      # TODO: Doesn't support relation filtering using this method.
-      # q = q.attribute_matches(:post_upload_count, params[:post_upload_count])
-      # q = q.attribute_matches(:post_update_count, params[:post_update_count])
-      # q = q.attribute_matches(:note_update_count, params[:note_update_count])
-      # q = q.attribute_matches(:favorite_count, params[:favorite_count])
+
+      if params[:about_me].present?
+        q = q.attribute_matches(:profile_about, params[:about_me]).or(attribute_matches(:profile_artinfo, params[:about_me]))
+      end
 
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
@@ -896,10 +871,6 @@ class User < ApplicationRecord
   extend SearchMethods
   extend ThrottleMethods
 
-  def as_current(&block)
-    CurrentUser.as(self, &block)
-  end
-
   def dmail_count
     if has_mail?
       "(#{unread_dmail_count})"
@@ -909,7 +880,9 @@ class User < ApplicationRecord
   end
 
   def hide_favorites?
-    !CurrentUser.is_admin? && enable_privacy_mode? && CurrentUser.user.id != id
+    return false if CurrentUser.is_moderator?
+    return true if is_blocked?
+    enable_privacy_mode? && CurrentUser.user.id != id
   end
 
   def compact_uploader?
@@ -917,10 +890,6 @@ class User < ApplicationRecord
   end
 
   def initialize_attributes
-    self.last_ip_addr ||= CurrentUser.ip_addr
-    self.enable_keyboard_navigation = true
-    self.enable_auto_complete = true
-
     return if Rails.env.test?
     Danbooru.config.customize_new_user(self)
   end

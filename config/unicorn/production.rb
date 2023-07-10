@@ -1,21 +1,24 @@
+require "dotenv"
+
 # Set your full path to application.
 app_path = "/home/e621/e621ng"
 
+# Should be "production" by default, otherwise use other env
+rails_env = ENV.fetch("RAILS_ENV", "production")
+
+Dotenv.load("#{app_path}/.env.#{rails_env}")
+
 # Set unicorn options
-worker_processes 15
+worker_processes ENV.fetch("UNICORN_WORKER_COUNT").to_i
 
 timeout 180
-#listen "127.0.0.1:9000", :tcp_nopush => true
-listen "#{app_path}/tmp/.unicorn.sock", :backlog => 512
+listen ENV.fetch("UNICORN_LISTEN_ADDRESS"), tcp_nopush: true, backlog: 2048
 
 # Spawn unicorn master worker for user apps (group: apps)
-user 'e621', 'e621'
+user "e621", "e621"
 
 # Fill path to your app
 working_directory app_path
-
-# Should be 'production' by default, otherwise use other env
-rails_env = ENV['RAILS_ENV'] || 'production'
 
 # Log everything to one file
 stderr_path "/dev/null"

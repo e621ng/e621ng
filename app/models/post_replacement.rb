@@ -17,11 +17,14 @@ class PostReplacement < ApplicationRecord
   end
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
-  validates :reason, length: { maximum: 150 }, on: :create
+  validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
+
+  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"]
+  HIGHLIGHTED_TAGS = ["better_version_at_source", "avoid_posting", "conditional_dnp"]
 
   def replacement_url_parsed
     return nil unless replacement_url =~ %r!\Ahttps?://!i
@@ -39,6 +42,13 @@ class PostReplacement < ApplicationRecord
 
   def no_pending_duplicates
     return true if is_backup
+
+    if (destroyed_post = DestroyedPost.find_by(md5: md5))
+      errors.add(:base, "An unexpected errror occured")
+      DummyTicket.new(creator, destroyed_post.post_id).notify
+      return
+    end
+
     post = Post.where(md5: md5).first
     if post
       self.errors.add(:md5, "duplicate of existing post ##{post.id}")
@@ -195,7 +205,10 @@ class PostReplacement < ApplicationRecord
       upload = transaction do
         processor = UploadService.new(new_upload_params)
         new_upload = processor.start!
-        update_attribute(:status, 'promoted')
+        if new_upload.valid? && new_upload.post&.valid?
+          update_attribute(:status, "promoted")
+          PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { source_post_id: post.id })
+        end
         new_upload
       end
       post.update_index
@@ -234,7 +247,7 @@ class PostReplacement < ApplicationRecord
 
   concerning :Search do
     class_methods do
-      def search(params = {})
+      def search(params)
         q = super
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])

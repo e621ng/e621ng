@@ -14,7 +14,7 @@ FactoryBot.define do
     file_size { 2000 }
     rating { "q" }
     duration { 0.0 }
-    source { FFaker::Internet.http_url }
+    sequence(:source) { |n| "https://example.com/#{n}" }
 
     after(:create) do |post|
       post.update_index

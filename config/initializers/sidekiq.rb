@@ -1,4 +1,4 @@
-require 'sidekiq'
+require "sidekiq-unique-jobs"
 
 Sidekiq.configure_server do |config|
   config.redis = { url: Danbooru.config.redis_url }

@@ -1,6 +1,6 @@
 <div id="c-artists">
   <div id="a-show">
-    <h1>Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_name}" %></h1>
+    <h1>Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %></h1>
 
     <% if @artist.notes.present? && @artist.visible? %>
       <div class="dtext-container">
@@ -16,7 +16,7 @@
     <%= yield %>
 
     <div class="recent-posts">
-      <h1>Recent Posts</h1>
+      <h1>Recent Posts (<%= link_to "view all", posts_path(tags: @artist.name) %>)</h1>
 
       <%= render "posts/partials/common/inline_blacklist" %>
 

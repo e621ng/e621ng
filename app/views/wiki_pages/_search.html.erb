@@ -6,5 +6,4 @@
   <%= f.input :other_names_present, collection: %w[Yes No], include_blank: true %>
   <%= f.input :hide_deleted, collection: %w[Yes No] %>
   <%= f.input :order, collection: [%w[Name title], %w[Date time], %w[Posts post_count]] %>
-  <%= f.submit "Search" %>
 <% end %>

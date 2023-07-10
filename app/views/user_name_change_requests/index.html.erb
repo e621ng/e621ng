@@ -4,11 +4,12 @@
 
     <h1>Name Change Requests</h1>
 
-    <table class="striped" width="100%">
+    <table class="striped">
       <thead>
         <tr>
           <th>User</th>
-          <th>Request</th>
+          <th>Original Name</th>
+          <th>Desired Name</th>
           <th>Reason</th>
           <th>Status</th>
           <th>Date</th>
@@ -19,10 +20,8 @@
         <% @change_requests.each do |change_request| %>
           <tr>
             <td><%= link_to_user change_request.user %></td>
-            <td>
-              <strong><%= change_request.original_name %></strong> ->
-              <strong><%= change_request.desired_name %></strong>
-            </td>
+            <td><%= change_request.original_name %></td>
+            <td><%= change_request.desired_name %></td>
             <td>
               <% if CurrentUser.is_admin? || CurrentUser.user == change_request.user %>
                 <%= change_request.change_reason %>

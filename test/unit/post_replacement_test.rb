@@ -2,97 +2,89 @@ require 'test_helper'
 
 class PostReplacementTest < ActiveSupport::TestCase
   setup do
-    Timecop.travel(2.weeks.ago) do
-      @user = FactoryBot.create(:user)
-      @mod_user = FactoryBot.create(:moderator_user)
-    end
-    @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload).merge(uploader: @mod_user, uploader_ip_addr: '127.0.0.1')).start!
+    @user = create(:user, created_at: 2.weeks.ago)
+    @mod_user = create(:moderator_user, created_at: 2.weeks.ago)
+    @upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @mod_user)).start!
     @post = @upload.post
     @post.update_columns({is_pending: false, approver_id: @mod_user.id})
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
   end
 
   context "User Limits:" do
     should "fail on too many per post in one day" do
       Danbooru.config.stubs(:post_replacement_per_day_limit).returns(-1)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal ['Creator has already suggested too many replacements for this post today'], @replacement.errors.full_messages
     end
 
     should "fail on too many per post total" do
       Danbooru.config.stubs(:post_replacement_per_post_limit).returns(-1)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal ['Creator has already suggested too many total replacements for this post'], @replacement.errors.full_messages
     end
 
     should "fail if user has no remaining upload limit" do
       User.any_instance.stubs(:upload_limit).returns(0)
       Danbooru.config.stubs(:disable_throttles?).returns(false)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal ['Creator have reached your upload limit'], @replacement.errors.full_messages
     end
   end
 
   context "Upload:" do
     should "allow non duplicate replacement submission" do
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal @replacement.errors.size, 0
       assert_equal @post.replacements.size, 1
       assert_equal @replacement.status, 'pending'
       assert @replacement.storage_id
-      assert_equal Digest::MD5.file("#{Rails.root}/test/files/test.png").hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
+      assert_equal Digest::MD5.file(file_fixture("test.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
     end
 
     should "not allow duplicate replacement submission" do
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:jpg_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:jpg_replacement).merge(creator: @user))
       assert_equal(["Md5 duplicate of existing post ##{@post.id}"], @replacement.errors.full_messages)
     end
 
     should "not allow duplicate of pending replacement submission" do
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal @replacement.errors.size, 0
       assert_equal @post.replacements.size, 1
       assert_equal @replacement.status, 'pending'
       assert @replacement.storage_id
-      @new_replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @new_replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal(["Md5 duplicate of pending replacement on post ##{@post.id}"], @new_replacement.errors.full_messages)
     end
 
     should "not allow invalid or blank file replacements" do
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:empty_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:empty_replacement).merge(creator: @user))
       assert_match(/File ext \S* is invalid/, @replacement.errors.full_messages.join)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:jpg_invalid_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:jpg_invalid_replacement).merge(creator: @user))
       assert_equal(["File is corrupt"], @replacement.errors.full_messages)
     end
 
     should "not allow files that are too large" do
       Danbooru.config.stubs(:max_file_sizes).returns({ "png" => 0 })
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_match(/File size is too large/, @replacement.errors.full_messages.join)
     end
 
     should "not allow an apng that is too large" do
       Danbooru.config.stubs(:max_apng_file_size).returns(0)
-      @replacement = @post.replacements.create(FactoryBot.attributes_for(:apng_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @replacement = @post.replacements.create(attributes_for(:apng_replacement).merge(creator: @user))
       assert_match(/File size is too large/, @replacement.errors.full_messages.join)
     end
 
     should "affect user upload limit" do
       assert_difference(->{PostReplacement.pending.for_user(@user.id).count}, 1) do
-        @replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+        @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
   end
 
   context "Reject:" do
     setup do
-      @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
     end
 
@@ -104,7 +96,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "allow duplicate replacement after rejection" do
       @replacement.reject!
       assert_equal 'rejected', @replacement.status
-      @new_replacement = @post.replacements.create(FactoryBot.attributes_for(:png_replacement).merge(creator: @user, creator_ip_addr: '127.0.0.1'))
+      @new_replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert @new_replacement.valid?
       assert_equal [], @new_replacement.errors.full_messages
     end
@@ -134,8 +126,8 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context "Approve:" do
     setup do
-      @note = FactoryBot.create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
-      @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      @note = create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
+      @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
     end
 
@@ -160,7 +152,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "generate videos samples if replacement is video" do
-      @replacement = FactoryBot.create(:webm_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      @replacement = create(:webm_replacement, creator: @user, post: @post)
       @post.expects(:generate_video_samples).times(1)
       @replacement.approve! penalize_current_uploader: true
     end
@@ -251,7 +243,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     context "update the duration" do
       setup do
-        @replacement = FactoryBot.create(:webm_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+        @replacement = create(:webm_replacement, creator: @user, post: @post)
       end
 
       should "when the replacement is a video" do
@@ -264,7 +256,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context "Toggle:" do
     setup do
-      @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
     end
 
@@ -286,7 +278,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context "Promote:" do
     setup do
-      @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+      @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
     end
 

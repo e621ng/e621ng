@@ -31,7 +31,7 @@ Blip.quote = function (id) {
     }
   }).done(function (data) {
     const stripped_body = data.body.replace(/\[quote\](?:.|\n|\r)+?\[\/quote\][\n\r]*/gm, "");
-    $('#blip_body_for_')[0].value += `[quote]"${data.creator_name}":/user/show/${data.creator_id} said:
+    $('#blip_body_for_')[0].value += `[quote]"${data.creator_name}":/users/${data.creator_id} said:
 ${stripped_body}
 [/quote]
 
@@ -43,7 +43,7 @@ ${stripped_body}
   });
 };
 
-$(function() {
+Blip.initialize_all = function() {
   if($("#c-blips").length) {
     $(".blip-atme-link").on('click', e => {
       Blip.atme($(e.target).data('bid'));
@@ -54,6 +54,18 @@ $(function() {
       e.preventDefault();
     });
   }
+}
+
+Blip.reinitialize_all = function() {
+  if($("#c-blips").length) {
+    $(".blip-atme-link").off('click');
+    $(".blip-reply-link").off('click');
+    Blip.initialize_all();
+  }
+}
+
+$(function() {
+  Blip.initialize_all();
 });
 
 export default Blip;

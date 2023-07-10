@@ -1,45 +1,54 @@
 import Utility from './utility'
 
 let Shortcuts = {};
+Shortcuts.disabled = false;
 
 Shortcuts.initialize = function() {
-  Utility.keydown("s", "scroll_down", Shortcuts.nav_scroll_down);
-  Utility.keydown("w", "scroll_up", Shortcuts.nav_scroll_up);
+  Shortcuts.keydown("s", "scroll_down", Shortcuts.nav_scroll_down);
+  Shortcuts.keydown("w", "scroll_up", Shortcuts.nav_scroll_up);
   Shortcuts.initialize_data_shortcuts();
 }
 
 // Bind keyboard shortcuts to links that have a `data-shortcut="..."` attribute. If multiple links have the
 // same shortcut, then only the first link will be triggered by the shortcut.
-//
-// Add `data-shortcut-when="$selector"`, where `selector` is any valid jQuery selector, to make the shortcut
-// active only when the link matches the selector. For example, `data-shortcut-when=":visible"` makes the
-// shortcut apply only when the link is visible.
 Shortcuts.initialize_data_shortcuts = function() {
   $(document).off("keydown.danbooru.shortcut");
 
   $("[data-shortcut]").each((_i, element) => {
-    const id = $(element).attr("id");
-    const keys = $(element).attr("data-shortcut");
+    const $e = $(element)
+    const id = $e.attr("id");
+    const keys = $e.attr("data-shortcut");
     const namespace = `shortcut.${id}`;
 
-    const title = `Shortcut is ${keys.split(/\s+/).join(" or ")}`;
-    $(element).attr("title", title);
+    if (Utility.meta("enable-js-navigation") === "true") {
+      $e.attr("title", `Shortcut is ${keys.split(/\s+/).join(" or ")}`);
+    } else {
+      $e.attr("title", "Shortcuts are disabled. Enable them in your user settings.");
+    }
 
-    Utility.keydown(keys, namespace, event => {
+    Shortcuts.keydown(keys, namespace, event => {
       const e = $(`[data-shortcut="${keys}"]`).get(0);
-      const condition = $(e).attr("data-shortcut-when") || "*";
-
-      if ($(e).is(condition)) {
-        if ($(e).is("input, textarea")) {
-          $(e).focus().selectEnd();
-        } else {
-          e.click();
-        }
-
-        event.preventDefault();
+      if ($e.is("input, textarea")) {
+        $e.trigger("focus").selectEnd();
+      } else {
+        e.click();
       }
+
+      event.preventDefault();
     });
   });
+};
+
+Shortcuts.keydown = function(keys, namespace, handler) {
+  if (Utility.meta("enable-js-navigation") === "true") {
+    $(document).off("keydown.danbooru." + namespace);
+    $(document).on("keydown.danbooru." + namespace, null, keys, e => {
+      if (Shortcuts.disabled) {
+        return;
+      }
+      handler(e);
+    });
+  }
 };
 
 Shortcuts.nav_scroll_down = function() {

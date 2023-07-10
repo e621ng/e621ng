@@ -1,22 +1,25 @@
-<% if CurrentUser.is_janitor? && post.is_flagged? && !post.is_deleted? && post.flags.any? %>
+<% if post.is_flagged? && !post.is_deleted? && post.flags.any? %>
   <div class="notice notice-flagged">
-    <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(:title => "howto:flag") %>): </p>
+    <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(title: "howto:flag") %>): </p>
 
     <%= post_flag_reasons(post) %>
 
     <% if CurrentUser.can_approve_posts? %>
       <div>
-        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: 'button btn-neutral' %> |
-        <%= tag.a "Unflag", href: '#', 'data-pid': post.id, 'data-type': 'none', class: 'unflag-post-link button btn-neutral' %> |
-        <%= tag.a "Unflag+unapprove", href: '#', 'data-pid': post.id, 'data-type': 'unapprove', class: 'unflag-post-link button btn-neutral' %> |
-        <%= tag.a "Unflag+approve", href: '#', 'data-pid': post.id, 'data-type': 'approve', class: 'unflag-post-link button btn-neutral' %> |
-        <%= tag.a "Delete with given reason", href: '#', 'data-post-id': post.id, class: 'delete-with-reason-link button btn-neutral', 'data-reason': '', 'data-prompt': 'given reason' %>
+        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: 'button btn-neutral' %>
+         | <%= tag.a "Unflag", href: '#', 'data-pid': post.id, 'data-type': 'none', class: 'unflag-post-link button btn-neutral' %>
+        <% if post.is_approvable? %>
+           | <%= tag.a "Unflag+approve", href: '#', 'data-pid': post.id, 'data-type': 'approve', class: 'unflag-post-link button btn-neutral' %>
+        <% end %>
+        <% unless post.pending_flag&.reason =~ /uploading_guidelines/ %>
+           | <%= tag.a "Delete with given reason", href: '#', 'data-post-id': post.id, class: 'delete-with-reason-link button btn-neutral', 'data-reason': '', 'data-prompt': 'given reason' %>
+        <% end %>
       </div>
     <% end %>
   </div>
 <% end %>
 
-<% if CurrentUser.is_janitor? && post.is_deleted? %>
+<% if post.is_deleted? %>
   <div class="notice notice-deleted">
     <% if post.flags.any? %>
       <p>This post was deleted or flagged for the following reasons: </p>
@@ -25,13 +28,13 @@
       <p>This post was deleted</p>
     <% end %>
 
-    <%= render "post_disapprovals/counts", :disapprovals => post.disapprovals, :post => post %>
+    <%= render "post_disapprovals/counts", disapprovals: post.disapprovals, post: post %>
   </div>
 <% end %>
 
-<% if CurrentUser.is_janitor? && post.is_pending? %>
+<% if post.is_pending? %>
   <div class="notice notice-pending" id="pending-approval-notice">
-    This post is pending approval. (<%= link_to "learn more", wiki_pages_path(:title => "about:mod_queue") %>)
+    This post is pending approval. (<%= link_to "learn more", wiki_pages_path(title: "about:mod_queue") %>)
 
     <%= render "post_disapprovals/counts", disapprovals: post.disapprovals, post: post %>
 
@@ -42,8 +45,8 @@
   </div>
 <% end %>
 
-<% if CurrentUser.is_janitor? && post.replacements.pending.any? %>
+<% if post.replacements.pending.any? %>
   <div class="notice notice-flagged">
-    <p>This post has <%= fast_link_to "pending replacements.", post_replacements_path(:search => {:post_id => @post.id}) %></p>
+    <p>This post has <%= link_to "pending replacements.", post_replacements_path(search: {post_id: @post.id}) %></p>
   </div>
 <% end %>

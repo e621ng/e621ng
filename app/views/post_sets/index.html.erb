@@ -5,7 +5,7 @@
     <h2>Sets</h2>
 
     <div id="set-index">
-      <table width="100%" class="table striped">
+      <table class="striped">
         <thead>
         <tr>
           <th width="30%">Name</th>
@@ -50,9 +50,7 @@
       </table>
     </div>
 
-    <div id="paginator">
-      <%= numbered_paginator(@post_sets) %>
-    </div>
+    <%= numbered_paginator(@post_sets) %>
   </div>
 </div>
 

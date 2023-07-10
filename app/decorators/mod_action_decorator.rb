@@ -23,12 +23,23 @@ class ModActionDecorator < ApplicationDecorator
       ### Takedowns ###
     when "takedown_process"
       "Completed takedown ##{vals['takedown_id']}"
+    when "takedown_delete"
+      "Deleted takedown ##{vals['takedown_id']}"
 
       ### IP Ban ###
     when "ip_ban_create"
-      "Created ip ban"
+      msg = "Created ip ban"
+      if CurrentUser.is_admin?
+        msg += " #{vals['ip_addr']}\nBan reason: #{vals['reason']}"
+      end
+      msg
+
     when "ip_ban_delete"
-      "Removed ip ban"
+      msg = "Removed ip ban"
+      if CurrentUser.is_admin?
+        msg += " #{vals['ip_addr']}\nBan reason: #{vals['reason']}"
+      end
+      msg
 
       ### Ticket ###
     when "ticket_update"
@@ -58,7 +69,7 @@ class ModActionDecorator < ApplicationDecorator
       if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
         "Banned #{user} permanently"
       elsif vals['duration']
-        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? "day" : "days"}"
+        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? 'day' : 'days'}"
       else
         "Banned #{user}"
       end
@@ -85,7 +96,18 @@ class ModActionDecorator < ApplicationDecorator
     when "user_feedback_create"
       "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_update"
-      "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      if vals["reason_was"].present? || vals["type_was"].present?
+        text = "Edited record ##{vals['record_id']} for #{user}"
+        if vals["type"] != vals["type_was"]
+          text += "\nChanged type from #{vals['type_was']} to #{vals['type']}"
+        end
+        if vals["reason"] != vals["reason_was"]
+          text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
+        end
+        text
+      else
+        "Edited #{vals['type']} record ##{vals['record_id']} for #{user} to: #{vals['reason']}"
+      end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
@@ -219,6 +241,13 @@ class ModActionDecorator < ApplicationDecorator
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end
 
+      ### BURs ###
+
+    when "mass_update"
+      "Mass updated [[#{vals['antecedent']}]] -> [[#{vals['consequent']}]]"
+    when "nuke_tag"
+      "Nuked tag [[#{vals['tag_name']}]]"
+
       ### Flag Reason ###
 
     when "created_flag_reason"
@@ -233,7 +262,14 @@ class ModActionDecorator < ApplicationDecorator
     when "report_reason_create"
       "Created post report reason #{vals['reason']}"
     when "report_reason_update"
-      "Edited post report reason #{vals['reason_was']} to #{vals['reason']}"
+      text = "Edited post report reason #{vals['reason']}"
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["description"] != vals["description_was"]
+        text += "\nChanged description from \"#{vals['description_was']}\" to \"#{vals['description']}\""
+      end
+      text
     when "report_reason_delete"
       "Deleted post report reason #{vals['reason']} by #{user}"
 
@@ -276,14 +312,20 @@ class ModActionDecorator < ApplicationDecorator
       ### Wiki ###
     when "wiki_page_delete"
       "Deleted wiki page [[#{vals['wiki_page']}]]"
-    when "wiki_page_undelete"
-      "Undeleted wiki page [[#{vals['wiki_page']}"
     when "wiki_page_lock"
       "Locked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_unlock"
       "Unlocked wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_rename"
       "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
+
+      ### Mascots ###
+    when "mascot_create"
+      "Created mascot ##{vals['id']}"
+    when "mascot_update"
+      "Updated mascot ##{vals['id']}"
+    when "mascot_delete"
+      "Deleted mascot ##{vals['id']}"
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"

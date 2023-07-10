@@ -7,7 +7,7 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         @user = create(:user)
         @mod = create(:moderator_user)
       end
-      as_user do
+      as(@user) do
         @post = create(:post)
         @pool = create(:pool)
       end
@@ -85,11 +85,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
 
     context "revert action" do
       setup do
-        as_user do
+        as(@user) do
           @post_2 = create(:post)
           @pool = create(:pool, post_ids: [@post.id])
         end
-        CurrentUser.scoped(@user, "1.2.3.4") do
+        as(@user, "1.2.3.4") do
           @pool.update(post_ids: [@post.id, @post_2.id])
         end
       end
@@ -104,7 +104,7 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another pool" do
-        as_user do
+        as(@user) do
           @pool2 = create(:pool)
         end
         put_auth revert_pool_path(@pool), @user, params: {:version_id => @pool2.versions.first.id }

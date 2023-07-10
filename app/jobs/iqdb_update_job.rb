@@ -1,9 +1,10 @@
-class IqdbUpdateJob
-  include Sidekiq::Worker
+class IqdbUpdateJob < ApplicationJob
+  queue_as :iqdb
 
-  sidekiq_options queue: 'iqdb'
+  def perform(post_id)
+    post = Post.find_by id: post_id
+    return unless post
 
-  def perform(post_id, thumbnail_url)
-    # STUB: The implementation of this is performed by the iqdb component.
+    IqdbProxy.update_post(post)
   end
 end

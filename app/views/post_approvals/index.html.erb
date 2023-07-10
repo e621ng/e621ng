@@ -6,10 +6,9 @@
     <%= form_search(path: post_approvals_path) do |f| %>
       <%= f.input :user_name, label: "Approver", autocomplete: "user" %>
       <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
-      <%= f.submit "Search" %>
     <% end %>
 
-    <table width="100%" class="striped">
+    <table class="striped">
       <thead>
         <tr>
           <th width="1%">Post</th>
@@ -20,7 +19,7 @@
         <% @post_approvals.each do |post_approval| %>
           <tr>
             <td>
-              <%= PostPresenter.preview(post_approval.post, :tags => "status:any") %>
+              <%= PostPresenter.preview(post_approval.post, show_deleted: true) %>
             </td>
 
             <td>

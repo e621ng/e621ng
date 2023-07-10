@@ -10,8 +10,8 @@ class Artist < ApplicationRecord
   before_validation :normalize_other_names
   validate :validate_user_can_edit?
   validate :user_not_limited
-  validates :name, tag_name: true, uniqueness: true, on: :create
-  validates :group_name, length: { maximum: 100 }
+  validates :name, tag_name: true, uniqueness: true, if: :name_changed?
+  validates :name, :group_name, length: { maximum: 100 }
   after_save :log_changes
   after_save :create_version
   after_save :categorize_tag
@@ -33,7 +33,7 @@ class Artist < ApplicationRecord
 
   def log_changes
     if saved_change_to_name? && !previously_new_record?
-      ModAction.log(:artist_page_rename, { new_name: name, old_name: name_was })
+      ModAction.log(:artist_page_rename, { new_name: name, old_name: name_before_last_save })
     end
     if saved_change_to_is_locked?
       ModAction.log(is_locked ? :artist_page_lock : :artist_page_unlock, { artist_page: id })
@@ -43,7 +43,7 @@ class Artist < ApplicationRecord
       if linked_user_id.present?
         ModAction.log(:artist_user_linked, { artist_page: id, user_id: linked_user_id })
       else
-        ModAction.log(:artist_user_unlinked, { artist_page: id, user_id: linked_user_id_was })
+        ModAction.log(:artist_user_unlinked, { artist_page: id, user_id: linked_user_id_before_last_save })
       end
     end
   end
@@ -53,7 +53,6 @@ class Artist < ApplicationRecord
 
     MAX_URLS_PER_ARTIST = 25
     module ClassMethods
-
       # Subdomains are automatically included. e.g., "twitter.com" matches "www.twitter.com",
       # "mobile.twitter.com" and any other subdomain of "twitter.com".
       SITE_BLACKLIST = [
@@ -182,7 +181,7 @@ class Artist < ApplicationRecord
         while artists.empty? && url.length > 10
           u = url.sub(/\/+$/, "") + "/"
           u = u.to_escaped_for_sql_like.gsub(/\*/, '%') + '%'
-          artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url LIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
+          artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url ILIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
           url = File.dirname(url) + "/"
 
           break if url =~ SITE_BLACKLIST_REGEXP
@@ -209,12 +208,17 @@ class Artist < ApplicationRecord
     end
 
     def url_string=(string)
+      # FIXME: This is a hack. Setting an association directly immediatly updates without regard for the parents validity.
+      # As a consequence, removing urls always works. This does not create a new ArtistVersion.
+      # This fix isn't great but it's the best I came up with without rather large changes.
+      return unless valid?
+
       url_string_was = url_string
 
       self.urls = string.to_s.scan(/[^[:space:]]+/).map do |url|
         is_active, url = ArtistUrl.parse_prefix(url)
         self.urls.find_or_initialize_by(url: url, is_active: is_active)
-      end.uniq(&:url)[0..MAX_URLS_PER_ARTIST]
+      end.uniq(&:url).first(MAX_URLS_PER_ARTIST)
 
       self.url_string_changed = (url_string_was != url_string)
     end
@@ -233,7 +237,7 @@ class Artist < ApplicationRecord
     # Returns a count of sourced domains for the artist.
     # A domain only gets counted once per post, direct image urls are filtered out.
     def domains
-      Cache.get("artist-domains-#{id}", 1.day) do
+      Cache.fetch("artist-domains-#{id}", expires_in: 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
         counted = Hash.new(0)
         sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|
@@ -255,6 +259,7 @@ class Artist < ApplicationRecord
   module NameMethods
     extend ActiveSupport::Concern
 
+    MAX_OTHER_NAMES_PER_ARTIST = 25
     module ClassMethods
       def normalize_name(name)
         name.to_s.downcase.strip.gsub(/ /, '_').to_s
@@ -272,7 +277,7 @@ class Artist < ApplicationRecord
     def normalize_other_names
       self.other_names = other_names.map { |x| Artist.normalize_name(x) }.uniq
       self.other_names -= [name]
-      self.other_names = other_names[0..25]
+      self.other_names = other_names.first(MAX_OTHER_NAMES_PER_ARTIST).map { |other_name| other_name.first(100) }
     end
   end
 
@@ -353,18 +358,14 @@ class Artist < ApplicationRecord
       if persisted? && saved_change_to_name? && attribute_before_last_save("name").present? && WikiPage.titled(attribute_before_last_save("name")).exists?
         # we're renaming the artist, so rename the corresponding wiki page
         old_page = WikiPage.titled(name_before_last_save).first
-
-        if wiki_page.present?
-          # a wiki page with the new name already exists, so update the content
-          wiki_page.update(body: "#{wiki_page.body}\n\n#{@notes}")
-        else
+        if wiki_page.nil?
           # a wiki page doesn't already exist for the new name, so rename the old one
-          old_page.update(title: name, body: @notes)
+          old_page.update(title: name, body: @notes || old_page.body)
         end
       elsif wiki_page.nil?
         # if there are any notes, we need to create a new wiki page
         if @notes.present?
-          wp = create_wiki_page(body: @notes, title: name)
+          create_wiki_page(body: @notes, title: name)
         end
       elsif (!@notes.nil? && (wiki_page.body != @notes)) || wiki_page.title != name
         # if anything changed, we need to update the wiki page
@@ -376,7 +377,7 @@ class Artist < ApplicationRecord
   end
 
   module TagMethods
-    def category_name
+    def category_id
       Tag.category_for(name)
     end
 
@@ -423,24 +424,16 @@ class Artist < ApplicationRecord
     end
 
     def any_name_matches(query)
-      if query =~ %r!\A/(.*)/\z!
-        where_regex(:name, $1).or(any_other_name_matches($1)).or(where_regex(:group_name, $1))
-      else
-        normalized_name = normalize_name(query)
-        normalized_name = "*#{normalized_name}*" unless normalized_name.include?("*")
-        where_like(:name, normalized_name).or(any_other_name_like(normalized_name)).or(where_like(:group_name, normalized_name))
-      end
+      normalized_name = normalize_name(query)
+      normalized_name = "*#{normalized_name}*" unless normalized_name.include?("*")
+      where_like(:name, normalized_name).or(any_other_name_like(normalized_name)).or(where_like(:group_name, normalized_name))
     end
 
     def url_matches(query)
-      if query =~ %r!\A/(.*)/\z!
-        where(id: ArtistUrl.where_regex(:url, $1).select(:artist_id))
-      elsif query.include?("*")
-        where(id: ArtistUrl.where_like(:url, query).select(:artist_id))
-      elsif query =~ %r!\Ahttps?://!i
+      if query =~ %r!\Ahttps?://!i
         find_artists(query)
       else
-        where(id: ArtistUrl.where_like(:url, "*#{query}*").select(:artist_id))
+        where(id: ArtistUrl.search(url_matches: query).select(:artist_id))
       end
     end
 
@@ -455,8 +448,8 @@ class Artist < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.search_text_attribute(:name, params)
-      q = q.search_text_attribute(:group_name, params)
+      q = q.attribute_matches(:name, params[:name])
+      q = q.attribute_matches(:group_name, params[:group_name])
 
       if params[:any_other_name_like]
         q = q.any_other_name_like(params[:any_other_name_like])
@@ -490,7 +483,7 @@ class Artist < ApplicationRecord
         q = q.includes(:tag).where("tags.name IS NULL OR tags.post_count <= 0").references(:tags)
       end
 
-      if params[:is_linked] == "1"
+      if params[:is_linked].to_s.truthy?
         q = q.where("linked_user_id IS NOT NULL")
       end
 

@@ -3,21 +3,15 @@ require 'test_helper'
 class CommentsControllerTest < ActionDispatch::IntegrationTest
   context "A comments controller" do
     setup do
-      @mod = FactoryBot.create(:moderator_user)
-      @user = FactoryBot.create(:member_user)
+      @mod = create(:moderator_user)
+      @user = create(:member_user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
 
-      @post = FactoryBot.create(:post)
-      @comment = FactoryBot.create(:comment, :post => @post)
-      CurrentUser.scoped(@mod) do
-        @mod_comment = FactoryBot.create(:comment, :post => @post)
+      @post = create(:post)
+      @comment = create(:comment, post: @post)
+      as(@mod) do
+        @mod_comment = create(:comment, post: @post)
       end
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "index action" do
@@ -76,6 +70,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       context "when stickying a comment" do
         should "succeed if updater is a moderator" do
+          @comment = create(:comment, creator: @mod)
           put_auth comment_path(@comment.id), @mod, params: {comment: {is_sticky: true}}
           assert_equal(true, @comment.reload.is_sticky)
           assert_redirected_to @comment.post
@@ -99,7 +94,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow changing do_not_bump_post or post_id" do
-        as_user do
+        as(@user) do
           @another_post = create(:post)
         end
         put_auth comment_path(@comment.id), @comment.creator, params: {do_not_bump_post: true, post_id: @another_post.id}
@@ -118,7 +113,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     context "create action"do
       should "create a comment" do
         assert_difference("Comment.count", 1) do
-          post_auth comments_path, @user, params: {comment: FactoryBot.attributes_for(:comment, post_id: @post.id)}
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
         end
         comment = Comment.last
         assert_redirected_to post_path(comment.post)
@@ -126,7 +121,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       should "not allow commenting on nonexistent posts" do
         assert_difference("Comment.count", 0) do
-          post_auth comments_path, @user, params: {comment: FactoryBot.attributes_for(:comment, post_id: -1)}
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: -1 } }
         end
         assert_redirected_to comments_path
       end
@@ -160,7 +155,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the comment" do
-        delete_auth comment_path(@comment.id), @mod
+        delete_auth comment_path(@comment.id), create(:admin_user)
         assert_equal(0, Comment.where(id: @comment.id).count)
       end
     end

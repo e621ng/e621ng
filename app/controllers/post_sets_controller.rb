@@ -4,13 +4,13 @@ class PostSetsController < ApplicationController
 
   def index
     if !params[:post_id].blank?
-      if CurrentUser.is_admin?
+      if CurrentUser.is_moderator?
         @post_sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       else
         @post_sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       end
     elsif !params[:maintainer_id].blank?
-      if CurrentUser.is_admin?
+      if CurrentUser.is_moderator?
         @post_sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
       else
         @post_sets = PostSet.visible(CurrentUser.user).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
@@ -86,7 +86,7 @@ class PostSetsController < ApplicationController
   def destroy
     @post_set = PostSet.find(params[:id])
     check_settings_edit_access(@post_set)
-    if CurrentUser.is_admin?
+    if @post_set.creator != CurrentUser.user 
       ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
     end
     @post_set.destroy
@@ -151,7 +151,7 @@ class PostSetsController < ApplicationController
 
   def search_params
     permitted_params = %i[name shortname creator_id creator_name order]
-    permitted_params += %i[is_public] if CurrentUser.is_admin?
+    permitted_params += %i[is_public] if CurrentUser.is_moderator?
     permit_search_params permitted_params
   end
 end

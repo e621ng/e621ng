@@ -9,7 +9,7 @@ class Note < ApplicationRecord
   validate :user_not_limited
   validate :post_must_exist
   validate :note_within_image
-  validates :body, length: { minimum: 1, maximum: Danbooru.config.note_max_size }
+  validates :body, length: { minimum: 1, maximum: Danbooru.config.note_max_size }, if: :body_changed?
   after_save :update_post
   after_save :create_version
   validate :post_must_not_be_note_locked
@@ -20,7 +20,7 @@ class Note < ApplicationRecord
     end
 
     def post_tags_match(query)
-      where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+      where(post_id: Post.tag_match_sql(query))
     end
 
     def for_creator(user_id)
@@ -34,7 +34,7 @@ class Note < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index)
+      q = q.attribute_matches(:body, params[:body_matches])
       q = q.attribute_matches(:is_active, params[:is_active])
 
       if params[:post_id].present?
@@ -58,10 +58,6 @@ class Note < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:body_index]
-    end
-
     def method_attributes
       super + [:creator_name]
     end
@@ -114,12 +110,9 @@ class Note < ApplicationRecord
   end
 
   def update_post
-    if self.saved_changes?
-      if Note.where(:is_active => true, :post_id => post_id).exists?
-        execute_sql("UPDATE posts SET last_noted_at = ? WHERE id = ?", updated_at, post_id)
-      else
-        execute_sql("UPDATE posts SET last_noted_at = NULL WHERE id = ?", post_id)
-      end
+    if saved_changes?
+      post_noted_at = Note.where(is_active: true, post_id: post_id).exists? ? updated_at : nil
+      Post.where(id: post_id).update_all(last_noted_at: post_noted_at)
       post.reload.update_index
     end
   end

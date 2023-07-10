@@ -2,11 +2,16 @@
   <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches" %>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
   <%= f.input :post_id, label: "Post ID" %>
+  <%= f.input :type, collection: [
+    ["Flag", "flag"],
+    ["Deletion", "deletion"],
+  ], include_blank: true %>
+  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% if CurrentUser.is_janitor? %>
     <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+    <%= f.input :creator_id, label: "Creator ID", hide_unless_value: true %>
+  <% end %>
+  <% if CurrentUser.is_admin? %>
     <%= f.input :ip_addr, label: "Ip Address" %>
   <% end %>
-  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
-  <%= f.input :category, label: "Category", collection: ["normal", "unapproved", "deleted", "banned", "duplicate"], include_blank: true %>
-  <%= f.submit "Search" %>
 <% end %>

@@ -3,51 +3,23 @@
   width: 15em; // Match width to that of the
 }
 
-@keyframes heartbeat {
-  0% {
-    transform:scale(1);
-  }
-  50% {
-    transform:scale(1.3);
-  }
-  100% {
-    transform:scale(1);
-  }
-}
-
-@keyframes sharpen {
-  from {
-    filter: blur(8px);
-  }
-
-  to {
-    filter: none;
-  }
-}
-
 article.post-preview {
   box-sizing: border-box;
-  height: 154px;
+  height: auto;
   width: 154px;
   margin: 0 10px 10px 0;
   overflow: hidden;
   text-align: center;
   display: inline-block;
   position: relative;
+  vertical-align: text-top;
 
   a {
     display: inline-block;
   }
 
-  &.captioned {
-    height: auto;
-    vertical-align: text-top;
-  }
-
   .desc {
-    @include themable {
-      background-color: lighten( themed("color-section"), 5%);
-    }
+    background-color: themed("color-section-lighten-5");
     font-size: 80%;
     margin-bottom: 0;
   }
@@ -128,27 +100,26 @@ article.post-preview {
   }
 
 
-  /* Pending and flagged posts have blue borders (except in the modqueue). */
-  &.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-pending img,
+  &.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-pending-color;
   }
 
-  &.post-status-has-children.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-children.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-children.post-status-pending img,
+  &.post-status-has-children.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-children-color;
   }
 
-  &.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-parent.post-status-pending img,
+  &.post-status-has-parent.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-parent-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }
 
-  &.post-status-has-children.post-status-has-parent.post-status-pending:not(.mod-queue-preview) img,
-  &.post-status-has-children.post-status-has-parent.post-status-flagged:not(.mod-queue-preview) img {
+  &.post-status-has-children.post-status-has-parent.post-status-pending img,
+  &.post-status-has-children.post-status-has-parent.post-status-flagged img {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
   }
@@ -202,9 +173,7 @@ div#c-posts {
   }
   .source-link:hover {
     a {
-      @include themable {
-        background: themed("color-background");
-      }
+      background: themed("color-background");
     }
     overflow:visible;
     height:auto;
@@ -236,7 +205,7 @@ div#c-posts {
 
   div.parent-children {
     display: flex;
-    margin: 0 -$padding-025;
+    margin: 0 (-$padding-025);
     margin-bottom: $padding-025;
     div.notice {
       margin: 0 $padding-025;
@@ -265,62 +234,21 @@ div#c-posts {
       font-weight: bold;
     }
 
-    &.notice-parent {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
+    &.notice-parent, &.notice-child, &.notice-pending, &.notice-resized {
+      background-color: themed("color-section");
+      border: 1px solid themed("color-foreground");
     }
 
-    &.notice-child {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
-    }
-
-    &.notice-pending {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
-    }
-
-    &.notice-no-shortcuts {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-flagged {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-deleted {
-      @include themable {
-        background-color: darken( themed('color-danger'), 10%);
-        border: 1px solid themed("color-foreground");
-      }
-    }
-
-    &.notice-resized {
-      @include themable {
-        background-color: themed('color-section');
-        border: 1px solid themed('color-foreground');
-      }
+    &.notice-no-shortcuts, &.notice-flagged, &.notice-deleted {
+      background-color: themed("color-danger-darken-10");
+      border: 1px solid themed("color-foreground");
     }
   }
 
   div.nav-notice {
     padding: 0.5em;
     margin-bottom: $padding-050;
-    @include themable {
-      background-color: themed('color-section');
-    }
+    background-color: themed('color-section');
     position: relative;
 
     p {
@@ -391,9 +319,7 @@ div#c-posts {
         position: sticky;
         bottom: 0;
 
-        @include themable {
-          background: themed("color-section");
-        }
+        background: themed("color-section");
         width: min-content;
         padding: 1rem 1rem 1rem 0.5rem;
         margin: 0;
@@ -402,18 +328,16 @@ div#c-posts {
         width: 100%;
       }
 
-      @include themable {
-        #post_rating_e:checked + label {
-          background-color: themed("color-rating-explicit");
-        }
+      #post_rating_e:checked + label {
+        background-color: themed("color-rating-explicit");
+      }
 
-        #post_rating_q:checked + label {
-          background-color: themed("color-rating-questionable");
-        }
-  
-        #post_rating_s:checked + label {
-          background-color: themed("color-rating-safe");
-        }
+      #post_rating_q:checked + label {
+        background-color: themed("color-rating-questionable");
+      }
+
+      #post_rating_s:checked + label {
+        background-color: themed("color-rating-safe");
       }
     }
 
@@ -422,9 +346,7 @@ div#c-posts {
     }
 
     .pool-nav, .search-seq-nav, .set-nav {
-      @include themable {
-        background: themed("color-section");
-      }
+      background: themed("color-section");
       li {
         display: flex;
         height: 1.25rem;
@@ -616,7 +538,6 @@ body[data-user-can-approve-posts="true"] .notice {
     }
     &.post_flag_parent_id { display: flex }
     span.error { margin-left: 1rem; }
-    input#post_flag_user_reason { width: 100%; }
   }
   
   hr { margin: 0.75rem 1.25rem; }

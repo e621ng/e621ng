@@ -4,10 +4,7 @@ ul.backtrace {
   font-family: monospace;
   font-size: 1.2em;
   list-style-type: none;
-  background: $section-background;
-  @include themable {
-    background: themed('color-section');
-  }
+  background: themed('color-section');
   padding: 1em;
   margin-bottom: 1em;
 }

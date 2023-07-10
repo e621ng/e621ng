@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory(:wiki_page) do
-    creator :factory => :user
-    title {FFaker::Lorem.words.join(" ")}
-    body {FFaker::Lorem.sentences.join(" ")}
+    creator factory: :user
+    sequence(:title) { |n| "wiki_page_title_#{n}" }
+    sequence(:body) { |n| "wiki_page_body_#{n}" }
   end
 end

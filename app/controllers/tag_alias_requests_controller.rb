@@ -21,7 +21,7 @@ private
 
   def tar_params
     permitted = %i{antecedent_name consequent_name reason}
-    permitted += [:skip_forum] if CurrentUser.is_moderator?
+    permitted += [:skip_forum] if CurrentUser.is_admin?
     params.require(:tag_alias_request).permit(permitted)
   end
 end

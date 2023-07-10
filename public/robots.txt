@@ -15,6 +15,7 @@ Disallow: /comments/*.atom
 Disallow: /counts
 Disallow: /data/
 Disallow: /delayed_jobs
+Disallow: /deleted_posts
 Disallow: /dmails
 Disallow: /explore
 Disallow: /favorite

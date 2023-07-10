@@ -3,7 +3,7 @@
     <%= render "uploads/search" %>
     <%= render "posts/partials/common/inline_blacklist" %>
 
-    <table width="100%" class="striped autofit">
+    <table class="striped autofit">
       <thead>
         <tr>
           <th>Upload</th>
@@ -19,20 +19,20 @@
               <%= PostPresenter.preview(upload.post, tags: "user:#{upload.uploader_name}", show_deleted: true) %>
             </td>
             <td class="col-expand upload-info">
-              <span class="info">
+              <span class="post-info">
                 <strong>Upload</strong>
                 <%= link_to "##{upload.id}", upload %>
               </span>
 
-              <span class="info">
+              <span class="post-info">
                 <strong>Rating</strong>
                 <%= upload.rating %>
               </span>
 
               <% if upload.post.present? %>
-                <span class="info">
+                <span class="post-info">
                   <strong>Size</strong>
-                  <%= link_to "#{upload.post.file_size.to_s(:human_size, precision: 4)} #{upload.post.file_ext}", upload.post.file_url %>
+                  <%= link_to "#{upload.post.file_size.to_fs(:human_size, precision: 4)} #{upload.post.file_ext}", upload.post.file_url %>
                   <% if upload.post.has_dimensions? %>
                     (<%= upload.post.image_width %>x<%= upload.post.image_height %>)
                   <% end %>
@@ -40,14 +40,14 @@
               <% end %>
               <br>
 
-              <span class="info">
+              <span class="post-info">
                 <strong>Source</strong>
                 <%= link_to_if (upload.source =~ %r!\Ahttps?://!i), (upload.source.presence.try(:truncate, 50) || content_tag(:em, "none")), upload.source %>
                 <%= link_to "»", uploads_path(search: params[:search].merge(source_matches: upload.source)) %>
               </span>
               <br>
 
-              <span class="info">
+              <span class="post-info">
                 <strong>Tags</strong>
                 <%= upload.presenter.inline_tag_list_html %>
               </span>

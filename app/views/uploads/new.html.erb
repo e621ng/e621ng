@@ -11,7 +11,7 @@
       with? <%= link_to "Tagging Checklist", help_page_path(id: "tagging_checklist") %></p>
   </div>
   <div id="uploader"></div>
-  <% if CurrentUser.is_member_or_lower? && (CurrentUser.upload_limit <= 5 || CurrentUser.post_upload_throttle <= 5) %>
+  <% if CurrentUser.upload_limit <= 5 || CurrentUser.post_upload_throttle <= 5 %>
     <% @limit_pieces = CurrentUser.upload_limit_pieces %>
     <div id="post-uploads-remaining" class="box-section section<% if [CurrentUser.upload_limit, CurrentUser.post_upload_throttle].min <= 0 %> sect_red<% end %>" style="width:640px;">
       <p>

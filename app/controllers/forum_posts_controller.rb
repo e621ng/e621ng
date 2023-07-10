@@ -1,26 +1,19 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show, :search]
-  before_action :moderator_only, only: [:destroy, :unhide, :warning]
+  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :admin_only, only: [:destroy]
   before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :warning]
   before_action :check_min_level, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
   skip_before_action :api_check
 
   def new
-    if params[:topic_id]
-      @forum_topic = ForumTopic.find(params[:topic_id])
-      raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user) && @forum_topic.can_reply?(CurrentUser.user)
-    end
-    if params[:post_id]
-      quoted_post = ForumPost.find(params[:post_id])
-      raise User::PrivilegeError.new unless quoted_post.topic.visible?(CurrentUser.user) && quoted_post.topic.can_reply?(CurrentUser.user)
-    end
-    @forum_post = ForumPost.new_reply(params)
+    @forum_post = ForumPost.new(forum_post_params(:create))
     respond_with(@forum_post)
   end
 
   def edit
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     respond_with(@forum_post)
   end
 
@@ -43,30 +36,37 @@ class ForumPostsController < ApplicationController
   end
 
   def create
-    @forum_post = ForumPost.create(forum_post_params(:create))
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
+    @forum_post = ForumPost.new(forum_post_params(:create))
+    if @forum_post.valid?
+      @forum_topic = @forum_post.topic
+      check_min_level
+      @forum_post.save
+      respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
+    else
+      respond_with(@forum_post)
+    end
   end
 
   def update
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     @forum_post.update(forum_post_params(:update))
-    respond_with(@forum_post, :location => forum_topic_path(@forum_post.topic, :page => @forum_post.forum_topic_page, :anchor => "forum_post_#{@forum_post.id}"))
+    respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
   end
 
   def destroy
-    check_privilege(@forum_post)
+    check_editable(@forum_post)
     @forum_post.destroy
     respond_with(@forum_post)
   end
 
   def hide
-    check_privilege(@forum_post)
+    check_hidable(@forum_post)
     @forum_post.hide!
     respond_with(@forum_post)
   end
 
   def unhide
-    check_privilege(@forum_post)
+    check_hidable(@forum_post)
     @forum_post.unhide!
     respond_with(@forum_post)
   end
@@ -75,33 +75,37 @@ class ForumPostsController < ApplicationController
     if params[:record_type] == 'unmark'
       @forum_post.remove_user_warning!
     else
-      @forum_post.user_warned!(params[:record_type])
+      @forum_post.user_warned!(params[:record_type], CurrentUser.user)
     end
-    respond_with(@forum_post)
+    html = render_to_string partial: "forum_posts/forum_post", locals: { forum_post: @forum_post, original_forum_post_id: @forum_post.topic.original_post.id }, formats: [:html]
+    render json: { html: html, posts: deferred_posts }
   end
 
-private
+  private
+
   def load_post
     @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
     @forum_topic = @forum_post.topic
   end
 
   def check_min_level
-    raise User::PrivilegeError.new unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError.new if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
-    raise User::PrivilegeError.new if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
   end
 
-  def check_privilege(forum_post)
-    if !forum_post.editable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+  def check_editable(forum_post)
+    raise User::PrivilegeError unless forum_post.editable_by?(CurrentUser.user)
+  end
+
+  def check_hidable(forum_post)
+    raise User::PrivilegeError unless forum_post.can_hide?(CurrentUser.user)
   end
 
   def forum_post_params(context)
     permitted_params = [:body]
     permitted_params += [:topic_id] if context == :create
 
-    params.require(:forum_post).permit(permitted_params)
+    params.fetch(:forum_post, {}).permit(permitted_params)
   end
 end

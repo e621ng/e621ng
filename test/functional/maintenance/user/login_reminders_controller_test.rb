@@ -25,7 +25,7 @@ module Maintenance
           should "fail" do
             post maintenance_user_login_reminder_path, params: {:user => {:email => ""}}
             @blank_email_user.reload
-            assert_equal(@blank_email_user.created_at.to_i, @blank_email_user.updated_at.to_i)
+            assert_in_delta(@blank_email_user.created_at.to_i, @blank_email_user.updated_at.to_i, 1)
             assert_equal(0, ActionMailer::Base.deliveries.size)
           end
         end

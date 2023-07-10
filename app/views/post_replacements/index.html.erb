@@ -5,7 +5,7 @@
     <%= render "search" %>
     <%= render "posts/partials/common/inline_blacklist" %>
 
-    <table width="100%" class="striped autofit" style="max-width:100%">
+    <table class="striped autofit" style="max-width:100%">
       <thead>
         <tr>
           <th width="1%">Post</th>
@@ -31,7 +31,7 @@
                       <% end %>
                     </ul>
                   <% else %>
-                    <em>file</em>
+                    <em>None provided</em>
                   <% end %>
                 </dd>
                 <dt>Filename</dt>
@@ -47,7 +47,7 @@
                     <dt>Current Size</dt>
                     <dd>
                       <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %>
-                      (<%= post_replacement.post.file_size.to_s(:human_size, precision: 5) %>, <%= post_replacement.post.file_ext %>)
+                      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>, <%= post_replacement.post.file_ext %>)
                     </dd>
                   <% end %>
                 </dl>
@@ -56,7 +56,7 @@
                     <dt>Replacement Size</dt>
                     <dd>
                       <%= post_replacement.image_width %>x<%= post_replacement.image_height %>
-                      (<%= post_replacement.file_size.to_s(:human_size, precision: 5) %>, <%= post_replacement.file_ext %>)
+                      (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %>, <%= post_replacement.file_ext %>)
                     </dd>
                   <% end %>
                 </dl>
@@ -66,7 +66,12 @@
             <td>
               <dl>
                 <dt>Status</dt>
-                <dd><div class="replacement-status"><%= post_replacement.status %></div></dd>
+                <dd><div class="replacement-status">
+                  <%= post_replacement.status %>
+                  <% if post_replacement.status == "pending" && (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).any? %>
+                    <%= tag.i class: "fa-solid fa-circle-exclamation", title: (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).join(", ") %>
+                  <% end %>
+                </div></dd>
                 <dt>Reason</dt>
                 <dd class="replacement-reason"><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
                 <% if post_replacement.status == 'approved' %>
@@ -76,7 +81,7 @@
                     <% if CurrentUser.is_janitor? || post_replacement.uploader_on_approve == CurrentUser.user %>
                       | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
                     <% end %>
-                    <% if CurrentUser.is_janitor? %>
+                    <% if CurrentUser.can_approve_posts? %>
                       <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                     <% end %>
                   </dd>
@@ -99,7 +104,7 @@
             </td>
 
             <td>
-              <% if CurrentUser.is_janitor? %>
+              <% if CurrentUser.can_approve_posts? %>
                 <div class="pending-links">
                   <% if post_replacement.status == "pending"%>
                     <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
@@ -113,7 +118,7 @@
                   <%= link_to "Reset To", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
                 <% end %>
               <% end %>
-              <% if CurrentUser.is_moderator? %>
+              <% if CurrentUser.is_admin? %>
                 <%= link_to "Destroy", post_replacement_path(post_replacement), method: :DELETE, 'data-confirm': 'Are you sure you want to destroy this replacement?' %>
               <% end %>
             </td>

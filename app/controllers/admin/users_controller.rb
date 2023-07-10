@@ -1,7 +1,7 @@
-require_relative '../../logical/danbooru/paginator/elasticsearch_extensions'
 module Admin
   class UsersController < ApplicationController
-    before_action :moderator_only
+    before_action :admin_only
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset]
     respond_to :html, :json
 
     def alt_list
@@ -9,16 +9,16 @@ module Admin
       offset -= 1
       offset = offset.clamp(0, 9999)
       offset *= 250
-      @alts = ::User.connection.select_all("
-SELECT u1.id as u1id, u1.name as u1name, u2.id as u2id, u2.name as u2name, u1.last_ip_addr, u1.email as u1email, u2.email as u2email, u2.last_logged_in_at,
-u2.created_at, u2.level as u2level, u2.bit_prefs as u2flags, u2.email_verification_key as u2activation, u1.level as u1level, u1.bit_prefs as u1flags, u1.email_verification_key as u1activation
-FROM (SELECT * FROM users ORDER BY id DESC LIMIT 250 OFFSET #{offset}) u1
-INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
-ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
-      @alts = @alts.to_a.group_by {|i| i['u1id']}
-      @alts = ::Danbooru::Paginator::PaginatedArray.new(@alts.values,
-    {mode: :numbered, per_page: 250, total: 9999999999, current_page: params[:page].to_i}
-      )
+      @alts = User.connection.select_all <<~SQL.squish
+        SELECT u1.id as u1id, u2.id as u2id
+        FROM (SELECT * FROM users ORDER BY id DESC LIMIT 250 OFFSET #{offset}) u1
+        INNER JOIN users u2 ON u1.last_ip_addr = u2.last_ip_addr AND u1.id != u2.id AND u2.last_logged_in_at > now() - interval '3 months'
+        ORDER BY u1.id DESC, u2.last_logged_in_at DESC;
+      SQL
+      @alts = @alts.group_by { |i| i["u1id"] }.transform_values { |v| v.pluck("u2id") }
+      user_ids = @alts.flatten(2).uniq
+      @users = User.where(id: user_ids).index_by(&:id)
+      @alts = Danbooru::Paginator::PaginatedArray.new(@alts.to_a, { pagination_mode: :numbered, records_per_page: 250, total_count: 9_999_999_999, current_page: params[:page].to_i })
       respond_with(@alts)
     end
 
@@ -28,21 +28,25 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
 
     def update
       @user = User.find(params[:id])
-      old_username = @user.name
-      desired_username = params[:user][:name]
-      @user.update!(user_params)
+      @user.validate_email_format = true
+      @user.is_admin_edit = true
+      @user.update!(user_params(CurrentUser.user))
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
       end
       if @user.saved_change_to_base_upload_limit
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
       end
-      @user.mark_verified! if params[:user][:verified] == 'true'
-      @user.mark_unverified! if params[:user][:verified] == 'false'
-      params[:user][:is_upgrade] = true
-      params[:user][:skip_dmail] = true
+
+      if @user.is_bd_staff?
+        @user.mark_verified! if params[:user][:verified].to_s.truthy?
+        @user.mark_unverified! if params[:user][:verified].to_s.falsy?
+      end
       @user.promote_to!(params[:user][:level], params[:user])
-      if old_username != desired_username
+
+      old_username = @user.name
+      desired_username = params[:user][:name]
+      if old_username != desired_username && desired_username.present?
         change_request = UserNameChangeRequest.create!({
                                                            original_name: @user.name,
                                                            user_id: @user.id,
@@ -51,7 +55,7 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
                                                            skip_limited_validation: true})
         change_request.approve!
       end
-      redirect_to user_path(@user), :notice => "User updated"
+      redirect_to user_path(@user), notice: "User updated"
     end
 
     def edit_blacklist
@@ -76,13 +80,17 @@ ORDER BY u1.id DESC, u2.last_logged_in_at DESC;")
         return redirect_to request_password_reset_admin_user_path(@user), notice: "Password wrong"
       end
 
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
+
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
     end
 
     private
 
-    def user_params
-      params.require(:user).slice(:profile_about, :profile_artinfo, :email, :base_upload_limit, :enable_privacy_mode).permit([:profile_about, :profile_artinfo, :email, :base_upload_limit, :enable_privacy_mode])
+    def user_params(user)
+      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
+      permitted_params << :email if user.is_bd_staff?
+      params.require(:user).slice(*permitted_params).permit(permitted_params)
     end
   end
 end

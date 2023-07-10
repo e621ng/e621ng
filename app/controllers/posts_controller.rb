@@ -10,7 +10,7 @@ class PostsController < ApplicationController
         format.html { redirect_to(@post) }
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], raw: params[:raw], random: params[:random], format: params[:format])
+      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random], format: params[:format])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
         format.json do
@@ -126,14 +126,14 @@ class PostsController < ApplicationController
                                        title: "Post update notices for post ##{post.id}",
                                        body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings[0..45_000]}"
                                    })
-            flash[:notice] = "What the heck did you even do to this poor post? That generated way too many warnings. But you get a dmail with most of them anyways."
+            flash[:notice] = "What the heck did you even do to this poor post? That generated way too many warnings. But you get a dmail with most of them anyways"
           elsif warnings.length > 1500
             Dmail.create_automated({
                                        to_id: CurrentUser.id,
                                        title: "Post update notices for post ##{post.id}",
                                        body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings}"
                                    })
-            flash[:notice] = "This edit created a LOT of notices. They have been dmailed to you. Please review them."
+            flash[:notice] = "This edit created a LOT of notices. They have been dmailed to you. Please review them"
           else
             flash[:notice] = warnings
           end
@@ -169,7 +169,6 @@ class PostsController < ApplicationController
       description old_description
       rating old_rating
       edit_reason
-      has_embedded_notes
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?

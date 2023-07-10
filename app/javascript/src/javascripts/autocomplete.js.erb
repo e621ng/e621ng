@@ -279,7 +279,7 @@ Autocomplete.render_item = function(list, item) {
   if (item.type === "tag") {
     $link.addClass("tag-type-" + item.category);
   } else if (item.type === "user") {
-    var level_class = "user-" + item.level.toLowerCase();
+    var level_class = "user-" + item.level.replaceAll(" ", "-").toLowerCase();
     $link.addClass(level_class);
     if (Utility.meta("style-usernames") === "true") {
       $link.addClass("with-style");
@@ -369,9 +369,6 @@ Autocomplete.static_metatags = {
   type: [
     "jpg", "png", "gif", "swf", "webm", "mp4"
   ],
-  disapproval: [
-    "any", "none", "borderline_quality", "borderline_relevancy", "other"
-  ]
 }
 
 Autocomplete.static_metatag_source = function(term, resp, metatag) {
@@ -434,7 +431,7 @@ Autocomplete.artist_source = function(term, resp) {
   return $.ajax({
     url: "/artists.json",
     data: {
-      "search[name_like]": term.trim().replace(/\s+/g, "_") + "*",
+      "search[name]": term.trim().replace(/\s+/g, "_") + "*",
       "search[is_active]": true,
       "search[order]": "post_count",
       "limit": 10,
@@ -473,7 +470,7 @@ Autocomplete.wiki_source = function(term, resp) {
           type: "wiki_page",
           label: wiki_page.title.replace(/_/g, " "),
           value: wiki_page.title,
-          category: wiki_page.category_name
+          category: wiki_page.category_id
         };
       }));
     }

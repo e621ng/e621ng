@@ -6,14 +6,13 @@
       <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
       <%= f.input :post_id, label: "Post ID" %>
       <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
-      <%= f.input :message_matches, label: "Message" %>
-      <%= f.input :reason, label: "Reason", collection: %w[borderline_quality borderline_relevancy other].map { |x| [x.humanize, x] }, include_blank: true %>
+      <%= f.input :message, hint: "Use * for wildcard" %>
+      <%= f.input :reason, collection: %w[borderline_quality borderline_relevancy other].map { |x| [x.humanize, x] }, include_blank: true %>
       <%= f.input :has_message, label: "Has Message?", collection: %w[Yes No], include_blank: true %>
       <%= f.input :order, collection: [["ID", "id_desc"], ["Post ID", "post_id_desc"]] %>
-      <%= f.submit "Search" %>
     <% end %>
 
-    <table class="striped autofit" width="100%">
+    <table class="striped autofit">
       <thead>
         <tr>
           <th>Post</th>

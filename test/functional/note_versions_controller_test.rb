@@ -8,16 +8,16 @@ class NoteVersionsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
+        as(@user) do
           @note = create(:note)
         end
         @user_2 = create(:user)
 
-        CurrentUser.scoped(@user_2, "1.2.3.4") do
+        as(@user_2, "1.2.3.4") do
           @note.update(:body => "1 2")
         end
 
-        CurrentUser.scoped(@user, "1.2.3.4") do
+        as(@user, "1.2.3.4") do
           @note.update(:body => "1 2 3")
         end
       end

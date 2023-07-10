@@ -5,14 +5,9 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @user = create(:user)
       @unrelated_user = create(:user)
-      as_user do
-        @dmail = create(:dmail, :owner => @user)
+      as(@user) do
+        @dmail = create(:dmail, owner: @user)
       end
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "new action" do

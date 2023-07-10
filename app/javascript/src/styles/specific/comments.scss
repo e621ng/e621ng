@@ -13,7 +13,7 @@ div.comments-for-post {
       }
 
       &[data-is-sticky="true"] {
-        background: $comment-sticky-background;
+        background: themed("color-section-lighten-10");
       }
 
       &[data-is-deleted="true"] {
@@ -42,7 +42,7 @@ div.comments-for-post {
 div#c-comments {
   div#a-index, div#a-show {
     div.header {
-      span.info {
+      .post-info {
         margin-right: 1.5em;
       }
 
@@ -74,10 +74,8 @@ div#c-comments {
 div#c-comments {
   div#a-index {
     .comment-post {
-      @include themable {
-        border-left: 0.25rem solid themed("color-detail-expandable");
-        background: rgba(lighten(themed("color-section"), 10%), 0.7);
-      }
+      border-left: 0.25rem solid themed("color-dtext-section");
+      background: themed("color-section-lighten-5");
       box-sizing: border-box;
       padding-left: $padding-050;
       padding-bottom: $padding-025;

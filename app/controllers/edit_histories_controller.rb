@@ -8,7 +8,7 @@ class EditHistoriesController < ApplicationController
   end
 
   def show
-    @edits = EditHistoryDecorator.decorate_collection(EditHistory.includes(:user).where('versionable_id = ? AND versionable_type = ?', params[:id], params[:type]).order(:id))
+    @edits = EditHistory.includes(:user).where('versionable_id = ? AND versionable_type = ?', params[:id], params[:type]).order(:id)
     respond_with(@edits)
   end
 end

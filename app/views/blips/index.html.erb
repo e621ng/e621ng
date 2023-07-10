@@ -23,9 +23,7 @@
         <%= render "form", blip: Blip.new %>
       <% end %>
 
-      <div id="paginator">
-        <%= numbered_paginator(@blips) %>
-      </div>
+      <%= numbered_paginator(@blips) %>
     </div>
   </div>
 </div>

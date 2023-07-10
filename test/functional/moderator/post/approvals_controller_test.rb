@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 module Moderator
   module Post
@@ -6,7 +6,7 @@ module Moderator
       context "The moderator post approvals controller" do
         setup do
           @admin = create(:admin_user)
-          as_admin do
+          as(@admin) do
             @post = create(:post, is_pending: true)
           end
         end

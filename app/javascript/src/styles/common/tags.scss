@@ -7,11 +7,11 @@
   .ui-widget-content a.tag-type-#{$tag-category} {
 
     &, &:link, &:visited {
-      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+      color: themed("color-tag-#{$tag-category-name}");
     }
 
     &:hover {
-      @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
+      color: themed("color-tag-#{$tag-category-name}-alt");
     }
 
     &.selected {
@@ -20,14 +20,14 @@
   }
 
   .ui-widget-content .ui-state-active a.tag-type-#{$tag-category} {
-    @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
+    color: themed("color-tag-#{$tag-category-name}-alt");
 
     &:link, &:visited {
-      @include themable { color: themed("color-tag-#{$tag-category-name}") };
+      color: themed("color-tag-#{$tag-category-name}");
     }
 
     &:hover {
-      @include themable { color: themed("color-tag-#{$tag-category-name}-alt") };
+      color: themed("color-tag-#{$tag-category-name}-alt");
     }
 
     &.selected {
@@ -36,19 +36,12 @@
   }
 }
 
-.category-banned a, a.tag-type-banned, .ui-state-active a.tag-type-banned {
-  color: $tag-banned-color;
-  background-color: $tag-banned-background;
-}
+ul.inline-tag-list {
+  display: inline;
 
-.inline-tag-list {
-  ul {
+  li {
     display: inline;
-
-    li {
-      display: inline;
-      margin-right: 0.5em;
-    }
+    margin-right: 0.5em;
   }
 }
 

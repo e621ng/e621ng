@@ -1,8 +1,6 @@
 class StaffNote < ApplicationRecord
-  belongs_to :creator, :class_name => "User"
+  belongs_to :creator, class_name: "User"
   belongs_to :user
-
-  after_create :add_audit_entry
 
   module SearchMethods
     def for_creator(user_id)
@@ -14,7 +12,7 @@ class StaffNote < ApplicationRecord
     end
 
     def for_user(user_id)
-      user_id.present? ? where('creator_id  = ?', user_id) : none
+      user_id.present? ? where('user_id  = ?', user_id) : none
     end
 
     def for_user_name(user_name)
@@ -39,6 +37,11 @@ class StaffNote < ApplicationRecord
       if params[:creator_name].present?
         q = q.for_creator_name(params[:creator_name])
       end
+
+      if params[:without_system_user]&.truthy?
+        q = q.where.not(creator: User.system)
+      end
+
       q.apply_default_order(params)
     end
 
@@ -48,11 +51,6 @@ class StaffNote < ApplicationRecord
   end
 
   extend SearchMethods
-
-
-  def add_audit_entry
-    StaffAuditLog.log(:staff_note_add, creator, {user_id: user_id})
-  end
 
   def resolve!
     self.resolved = true

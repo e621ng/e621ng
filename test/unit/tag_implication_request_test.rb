@@ -3,14 +3,8 @@ require 'test_helper'
 class TagImplicationRequestTest < ActiveSupport::TestCase
   context "A tag implication request" do
     setup do
-      @user = FactoryBot.create(:user)
+      @user = create(:user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     should "handle invalid attributes" do

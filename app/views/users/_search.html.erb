@@ -1,5 +1,6 @@
 <%= form_search(path: users_path) do |f| %>
   <%= f.input :name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "user" %>
+  <%= f.input :about_me, label: "About", hint: "Use * for wildcard" %>
 
   <% if CurrentUser.is_admin? %>
     <%= f.input :email_matches, label: "Email", hint: "Use * for wildcard" %>
@@ -13,5 +14,4 @@
   <%= f.input :can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: true %>
 
   <%= f.input :order, collection: [["Join date", "date"], ["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]] %>
-  <%= f.submit "Search" %>
 <% end %>

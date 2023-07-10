@@ -5,11 +5,13 @@
     <%= custom_form_for(@user, url: admin_user_path(@user), method: :put) do |f| %>
       <%= f.input :id, as: :hidden %>
       <%= f.input :name, input_html: { size: 50 } %>
-      <%= f.input :email, input_html: { size: 50 } %>
-      <div class="input">
-        <label class="block" for="user_verified">Email Verified</label>
-        <%= select_tag("user[verified]", options_for_select([["Yes", true], ["No", false]], @user.is_verified?)) %>
-      </div>
+      <% if CurrentUser.is_bd_staff? %>
+        <%= f.input :email, input_html: { size: 50 } %>
+        <div class="input">
+          <label class="block" for="user_verified">Email Verified</label>
+          <%= select_tag("user[verified]", options_for_select([["Yes", true], ["No", false]], @user.is_verified?)) %>
+        </div>
+      <% end %>
 
       <div class="input">
         <label class="block" for="user_enable_privacy_mode">Hide Favorites</label>
@@ -20,10 +22,12 @@
       <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
       <%= f.input :base_upload_limit %>
 
-      <div class="input integer optional">
-        <label for="user_level" class="optional">Level</label>
-        <%= user_level_select(:user, :level) %>
-      </div>
+      <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>
+        <div class="input integer optional">
+          <label for="user_level" class="optional">Level</label>
+          <%= user_level_select(:user, :level) %>
+        </div>
+      <% end %>
 
       <div class="input">
         <label for="user_can_upload_free" class="optional">Unrestricted Uploads</label>

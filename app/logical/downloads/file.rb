@@ -10,7 +10,13 @@ module Downloads
     validate :validate_url
 
     def initialize(url)
-      @url = Addressable::URI.parse(url) rescue nil
+      begin
+        unencoded = Addressable::URI.unencode(url)
+        escaped = Addressable::URI.escape(unencoded)
+        @url = Addressable::URI.parse(escaped)
+      rescue Addressable::URI::InvalidURIError
+        @url = nil
+      end
       validate!
     end
 
@@ -83,10 +89,8 @@ module Downloads
     end
 
     def is_cloudflare?(url)
-      return false if ENV["SKIP_CLOUDFLARE_CHECK"]
-
       ip_addr = IPAddr.new(Resolv.getaddress(url.hostname))
-      CloudflareService.new.ips.any? { |subnet| subnet.include?(ip_addr) }
+      CloudflareService.ips.any? { |subnet| subnet.include?(ip_addr) }
     end
   end
 

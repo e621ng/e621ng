@@ -6,12 +6,7 @@
         <p>Your verification code is <span class='takedown-vericode'><%= @takedown.vericode %></span></p>
         <p>Your takedown request has been successfully created. Using the gallery account that you specified below as the "source", <span style="font-weight:bold;">please send your verification code via PM/note to</span>:</p>
 
-        <ul>
-          <% Danbooru.config.takedown_links.each do |link| %>
-            <li><%= link_to link[0], link[1] %></li>
-          <% end %>
-          <li>Or via email from your personal website (e.g. from me@mywebsite.com to <%= Danbooru.config.takedown_email %>)</li>
-        </ul>
+        <%= format_text(WikiPage.find_by(title: "e621:takedown_verification")&.body) %>
 
         <p>Once you send the verification code, we can process your takedown. This step is necessary in order to confirm that you are who you claim to be.</p>
         <p>Bookmark this page to be able to access your verification code later, as it will not appear when viewing the takedown otherwise.</p>
@@ -24,7 +19,7 @@
         <tr>
           <td><label>Source</label></td>
           <td>
-            <% if !@takedown.reason_hidden  || CurrentUser.is_admin? || @show_instructions %>
+            <% if !@takedown.reason_hidden  || CurrentUser.is_moderator? || @show_instructions %>
               <% if @takedown.source.match(/^https?:\/\//i) %>
                 <%= link_to @takedown.source, @takedown.source, rel: "noopener noreferrer nofollow" %>
               <% else %>
@@ -38,7 +33,7 @@
 
         <tr>
           <td><label>Reason</label></td>
-          <% if !@takedown.reason_hidden || CurrentUser.is_admin? || @show_instructions %>
+          <% if !@takedown.reason_hidden || CurrentUser.is_moderator? || @show_instructions %>
             <td><%= h @takedown.reason %>
               <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %></td>
           <% else %>
@@ -63,7 +58,9 @@
             <td><label>IP Addr</label></td>
             <td><%= link_to_ip(@takedown.creator_ip_addr) %></td>
           </tr>
+        <% end %>
 
+        <% if CurrentUser.is_moderator? %>
           <tr>
             <td><label>User</label></td>
             <td><%= link_to_user @takedown.creator %></td>
@@ -74,13 +71,13 @@
 
         <tr>
           <td><label>Created</label></td>
-          <td style="cursor:help;" title="<%= @takedown.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.created_at) %> ago</td>
+          <td><%= time_ago_in_words_tagged(@takedown.created_at) %></td>
         </tr>
 
         <% if @takedown.created_at != @takedown.updated_at %>
           <tr>
             <td><label>Handled</label></td>
-            <td style="cursor:help;" title="<%= @takedown.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@takedown.updated_at) %> ago</td>
+            <td><%= time_ago_in_words_tagged(@takedown.updated_at) %></td>
           </tr>
         <% end %>
 
@@ -102,7 +99,7 @@
     <% if !@takedown.notes.blank? && @takedown.notes.downcase != "none" %>
       <h3>Admin notes</h3>
       <div class="box-section dtext-container">
-        <% if !@takedown.reason_hidden || CurrentUser.is_admin? %>
+        <% if !@takedown.reason_hidden || CurrentUser.is_moderator? %>
           <%= format_text(@takedown.notes) %>
           <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %>
         <% else %>
@@ -111,13 +108,15 @@
       </div>
     <% end %>
 
-    <% if CurrentUser.is_admin? %>
+    <% if CurrentUser.is_moderator? %>
       <% if !@takedown.instructions.blank? %>
         <h3>Special instructions</h3>
         <div class="box-section">
           <%= h @takedown.instructions %>
         </div>
       <% end %>
+    <% end %>
+    <% if CurrentUser.is_admin? %>
       <%= render "editor" %>
     <% end %>
 
@@ -178,7 +177,7 @@
           <% end %>
         </div>
       <% end %>
-    <% elsif !CurrentUser.is_admin? %>
+    <% elsif !CurrentUser.is_moderator? %>
       <div class="box-section">
         Post lists and special instructions are not visible to users.
       </div>

@@ -33,10 +33,8 @@ class PostFlagsController < ApplicationController
   def destroy
     @post = Post.find(params[:post_id])
     @post.unflag!
-    if params[:approval] == 'unapprove'
-      @post.unapprove!
-    elsif params[:approval] == 'approve'
-      @post.approve!(force: true)
+    if params[:approval] == "approve" && @post.is_approvable?
+      @post.approve!
     end
     respond_with(nil)
   end
@@ -52,12 +50,12 @@ class PostFlagsController < ApplicationController
 
   def search_params
     # creator_id and creator_name are special cased in the model search function
-    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match is_resolved category]
-    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match type is_resolved]
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 
   def post_flag_params
-    params.fetch(:post_flag, {}).permit(%i[post_id reason_name user_reason parent_id])
+    params.fetch(:post_flag, {}).permit(%i[post_id reason_name parent_id])
   end
 end

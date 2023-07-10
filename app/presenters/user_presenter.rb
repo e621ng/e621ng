@@ -47,7 +47,7 @@ class UserPresenter
     %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr>
     + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10)
     - (<abbr title="Deleted or Replaced Posts, Rejected Replacements\n#{upload_limit_pieces[:deleted_ignore]} of your Replaced Posts do not affect your upload limit">#{upload_limit_pieces[:deleted]}</abbr> / 4)
-    - <abbr title="Pending or Flagged Posts">#{upload_limit_pieces[:pending]}</abbr>
+    - <abbr title="Pending or Flagged Posts, Pending Replacements">#{upload_limit_pieces[:pending]}</abbr>
     = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
@@ -69,11 +69,11 @@ class UserPresenter
   end
 
   def upload_count(template)
-    template.link_to(user.post_upload_count, template.posts_path(:tags => "user:#{user.name}"))
+    template.link_to(user.post_upload_count, template.posts_path(tags: "user:#{user.name}"))
   end
 
   def active_upload_count(template)
-    template.link_to(user.post_upload_count - user.post_deleted_count, template.posts_path(:tags => "user:#{user.name}"))
+    template.link_to(user.post_upload_count - user.post_deleted_count, template.posts_path(tags: "user:#{user.name}"))
   end
 
   def deleted_upload_count(template)
@@ -81,61 +81,65 @@ class UserPresenter
   end
 
   def replaced_upload_count(template)
-    template.link_to(user.own_post_replaced_count, template.post_replacements_path(search: {uploader_name_on_approve: user.name}))
+    template.link_to(user.own_post_replaced_count, template.post_replacements_path(search: { uploader_id_on_approve: user.id }))
   end
 
   def rejected_replacements_count(template)
-    template.link_to(user.post_replacement_rejected_count, template.post_replacements_path(search: { creator_name: user.name, status: "rejected" }))
+    template.link_to(user.post_replacement_rejected_count, template.post_replacements_path(search: { creator_id: user.id, status: "rejected" }))
   end
 
   def favorite_count(template)
-    template.link_to(user.favorite_count, template.favorites_path(:user_id => user.id))
+    template.link_to(user.favorite_count, template.favorites_path(user_id: user.id))
   end
 
   def comment_count(template)
-    template.link_to(user.comment_count, template.comments_path(:search => {:creator_id => user.id}, :group_by => "comment"))
+    template.link_to(user.comment_count, template.comments_path(search: { creator_id: user.id }, group_by: "comment"))
   end
 
   def commented_posts_count(template)
     count = CurrentUser.without_safe_mode { Post.fast_count("commenter:#{user.name}") }
-    template.link_to(count, template.posts_path(:tags => "commenter:#{user.name} order:comment_bumped"))
+    template.link_to(count, template.posts_path(tags: "commenter:#{user.name} order:comment_bumped"))
   end
 
   def post_version_count(template)
-    template.link_to(user.post_update_count, template.post_versions_path(:lr => user.id, :search => {:updater_id => user.id}))
+    template.link_to(user.post_update_count, template.post_versions_path(lr: user.id, search: { updater_id: user.id }))
   end
 
   def note_version_count(template)
-    template.link_to(user.note_version_count, template.note_versions_path(:search => {:updater_id => user.id}))
+    template.link_to(user.note_version_count, template.note_versions_path(search: { updater_id: user.id }))
   end
 
   def noted_posts_count(template)
     count = CurrentUser.without_safe_mode { Post.fast_count("noteupdater:#{user.name}") }
-    template.link_to(count, template.posts_path(:tags => "noteupdater:#{user.name} order:note"))
+    template.link_to(count, template.posts_path(tags: "noteupdater:#{user.name} order:note"))
   end
 
   def wiki_page_version_count(template)
-    template.link_to(user.wiki_page_version_count, template.wiki_page_versions_path(:search => {:updater_id => user.id}))
+    template.link_to(user.wiki_page_version_count, template.wiki_page_versions_path(search: { updater_id: user.id }))
   end
 
   def artist_version_count(template)
-    template.link_to(user.artist_version_count, template.artist_versions_path(:search => {:updater_id => user.id}))
+    template.link_to(user.artist_version_count, template.artist_versions_path(search: { updater_id: user.id }))
   end
 
   def forum_post_count(template)
-    template.link_to(user.forum_post_count, template.forum_posts_path(:search => {:creator_id => user.id}))
+    template.link_to(user.forum_post_count, template.forum_posts_path(search: { creator_id: user.id }))
   end
 
   def pool_version_count(template)
-    template.link_to(user.pool_version_count, template.pool_versions_path(:search => {:updater_id => user.id}))
+    template.link_to(user.pool_version_count, template.pool_versions_path(search: { updater_id: user.id }))
   end
 
   def flag_count(template)
-    template.link_to(user.flag_count, template.post_flags_path(:search => {:creator_name => user.name}))
+    template.link_to(user.flag_count, template.post_flags_path(search: { creator_id: user.id }))
+  end
+
+  def ticket_count(template)
+    template.link_to(user.ticket_count, template.tickets_path(search: { creator_id: user.id }))
   end
 
   def approval_count(template)
-    template.link_to(Post.where("approver_id = ?", user.id).count, template.posts_path(:tags => "approver:#{user.name}"))
+    template.link_to(Post.where("approver_id = ?", user.id).count, template.posts_path(tags: "approver:#{user.name}"))
   end
 
   def feedbacks
@@ -172,11 +176,5 @@ class UserPresenter
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)
     tags = tags.take(50)
     Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
-  end
-
-  def can_view_favorites?
-    return true if CurrentUser.id == user.id
-    return false if user.enable_privacy_mode? && !CurrentUser.is_admin?
-    true
   end
 end

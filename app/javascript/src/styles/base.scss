@@ -5,7 +5,7 @@
 @import "base/reset";
 @import "base/base";
 @import "base/links";
-
+@import "base/fontawesome";
 
 @import "common/helper_classes";
 @import "common/ads.scss";
@@ -48,13 +48,11 @@
 @import "specific/maintenance.scss";
 @import "specific/meta_searches.scss";
 @import "specific/moderator_dashboard.scss";
-@import "specific/mod_queue.scss";
 @import "specific/news_updates.scss";
 @import "specific/notes.scss";
 @import "specific/pools.scss";
 @import "specific/popular.scss";
 @import "specific/post_delete.scss";
-@import "specific/post_events.scss";
 @import "specific/post_flags.scss";
 @import "specific/post_mode_menu.scss";
 @import "specific/posts.scss";
@@ -71,10 +69,8 @@
 @import "specific/uploads.scss";
 @import "specific/user_deletions.scss";
 @import "specific/user_feedback.scss";
-@import "specific/user_name_change_requests.scss";
 @import "specific/user_warned.scss";
 @import "specific/users.scss";
-@import "specific/wiki_pages.scss";
 @import "specific/wiki_page_versions.scss";
 
 @import "common/z_responsive.scss";

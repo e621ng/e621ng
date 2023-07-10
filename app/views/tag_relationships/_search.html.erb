@@ -1,6 +1,6 @@
 <%# url %>
 
-<%= form_search(path: url) do |f| %>
+<%= form_search(path: url, always_display: true) do |f| %>
   <%= f.input :name_matches, label: "Name", autocomplete: "tag", hint: "Use * for wildcard" %>
   <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
   <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
@@ -10,5 +10,4 @@
   <%= f.input :consequent_tag_category, label: "To Category", collection: TagCategory.canonical_mapping.to_a, include_blank: true %>
   <%= f.input :status, label: "Status", collection: %w[Approved Active Pending Deleted Retired Processing Queued], include_blank: true %>
   <%= f.input :order, label: "Order", collection: [%w[Status status], %w[Recently\ created created_at], %w[Recently\ updated updated_at], %w[Name name], %w[Tag\ count tag_count]] %>
-  <%= f.submit "Search" %>
 <% end %>

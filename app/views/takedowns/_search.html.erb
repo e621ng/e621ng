@@ -4,7 +4,7 @@
                                                       ["Denied", "denied"],
                                                       ["Partially Approved", "partial"],
                                                       ["Approved", "approved"]], include_blank: true %>
-  <% if CurrentUser.is_admin? %>
+  <% if CurrentUser.is_moderator? %>
     <%= f.input :source, label: 'Source' %>
     <%= f.input :reason, label: 'Reason' %>
     <%= f.input :notes, label: 'Admin Response' %>
@@ -14,6 +14,8 @@
     ], include_blank: true %>
     <%= f.input :instructions, label: "Instructions" %>
     <%= f.input :post_id, label: "Post ID" %>
+  <% end %>
+  <% if CurrentUser.is_admin? %>
     <%= f.input :email, label: "Email" %>
     <%= f.input :ip_addr, label: "IP Address" %>
     <%= f.input :vericode, label: "Vericode" %>
@@ -25,5 +27,4 @@
                                                       ["Status", "status"],
                                                       ["Post count", "post_count"]] %>
   <% end %>
-  <%= f.submit "Submit" %>
 <% end %>

@@ -2,6 +2,6 @@ FactoryBot.define do
   factory(:user_feedback) do
     user
     category { "positive" }
-    body {FFaker::Lorem.words.join(" ")}
+    sequence(:body) { |n| "user_feedback_body_#{n}" }
   end
 end

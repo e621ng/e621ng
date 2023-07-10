@@ -1,13 +1,13 @@
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
   class ReadOnlyException < Exception; end
+  class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
   before_action :set_current_user
   before_action :normalize_search
   before_action :api_check
-  before_action :set_variant
   before_action :enable_cors
   before_action :enforce_readonly
   after_action :reset_current_user
@@ -33,12 +33,6 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def self.rescue_with(*klasses, status: 500)
-    rescue_from *klasses do |exception|
-      render_error_page(status, exception)
-    end
-  end
-
   def api_check
     if !CurrentUser.is_anonymous? && !request.get? && !request.head?
       throttled = CurrentUser.user.token_bucket.throttled?
@@ -56,12 +50,8 @@ class ApplicationController < ActionController::Base
   def rescue_exception(exception)
     @exception = exception
 
-    if Rails.env.test? && ENV["DEBUG"]
-      puts "---"
-      STDERR.puts("#{exception.class} exception thrown: #{exception.message}")
-      exception.backtrace.each {|x| STDERR.puts(x)}
-      puts "---"
-    end
+    # If InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to do it here manually.
+    CurrentUser.user ||= User.anonymous
 
     case exception
     when ProcessingError
@@ -77,25 +67,27 @@ class ApplicationController < ActionController::Base
       cookies.delete :remember
       render_expected_error(401, exception.message)
     when ActionController::InvalidAuthenticityToken
-      render_error_page(403, exception)
+      render_expected_error(403, "ActionController::InvalidAuthenticityToken. Did you properly authorize your request?")
     when ActiveRecord::RecordNotFound
       render_404
     when ActionController::RoutingError
       render_error_page(405, exception)
     when ActionController::UnknownFormat, ActionView::MissingTemplate
-      render_error_page(406, exception, message: "#{request.format.to_s} is not a supported format for this page", format: :html)
+      render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
     when Post::SearchError
       render_expected_error(422, exception.message)
-    when NotImplementedError
-      render_error_page(501, exception, message: "This feature isn't available: #{exception.message}")
+    when FeatureUnavailable
+      render_expected_error(400, "This feature isn't available")
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
       render_expected_error(400, exception.message)
     when ReadOnlyException
       render_expected_error(400, exception.message)
+    when BCrypt::Errors::InvalidHash
+      render_expected_error(400, "You must reset your password.")
     else
       render_error_page(500, exception)
     end
@@ -103,23 +95,26 @@ class ApplicationController < ActionController::Base
 
   def render_404
     respond_to do |fmt|
-        fmt.html do
-          render "static/404", formats: [:html, :atom], status: 404
-        end
-        fmt.json do
-          render json: {:success => false, reason: "not found"}, :status => 404
-        end
-        fmt.atom do
-          render "static/404", formats: [:atom], status: 404
-        end
+      fmt.html do
+        render "static/404", formats: [:html, :atom], status: 404
+      end
+      fmt.json do
+        render json: { success: false, reason: "not found" }, status: 404
+      end
+      fmt.any do
+        render_unsupported_format
+      end
     end
+  end
+
+  def render_unsupported_format
+    render_expected_error(406, "#{request.format} is not a supported format for this page", format: :html)
   end
 
   def render_expected_error(status, message, format: request.format.symbol)
     format = :html unless format.in?(%i[html json atom])
-    layout = CurrentUser.user.present? ? "default" : "blank"
     @message = message
-    render "static/error", layout: layout, status: status, formats: format
+    render "static/error", status: status, formats: format
   end
 
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
@@ -129,35 +124,14 @@ class ApplicationController < ActionController::Base
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 
-    # if InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to use the blank layout.
-    layout = CurrentUser.user.present? ? "default" : "blank"
-
-    if !CurrentUser.user&.try(:is_janitor?) && message == exception.message
+    if !CurrentUser.user.is_janitor? && message == exception.message
       @message = "An unexpected error occurred."
     end
 
-
     DanbooruLogger.log(@exception, expected: @expected)
-    log_params = {
-        host: Socket.gethostname,
-        params: request.filtered_parameters,
-        user_id: CurrentUser.id,
-        referrer: request.referrer,
-        user_agent: request.user_agent
-    }
-    # Required to unwrap exceptions that occur inside template rendering.
-    new_exception = exception
-    if exception.respond_to?(:cause) && exception.is_a?(ActionView::Template::Error)
-      new_exception = exception.cause
-    end
-    if new_exception&.is_a?(ActiveRecord::QueryCanceled)
-      log_params[:sql] = {}
-      log_params[:sql][:query] = new_exception&.sql || "[NOT FOUND?]"
-      log_params[:sql][:binds] = new_exception&.binds
-    end
-    log = ExceptionLog.add(exception, CurrentUser.ip_addr, log_params) if !@expected
+    log = ExceptionLog.add(exception, CurrentUser.id, request) if !@expected
     @log_code = log&.code
-    render "static/error", layout: layout, status: status, formats: format
+    render "static/error", status: status, formats: format
   end
 
   def access_denied(exception = nil)
@@ -191,18 +165,23 @@ class ApplicationController < ActionController::Base
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
-    CurrentUser.root_url = root_url.chomp("/")
   end
 
-  def set_variant
-    request.variant = params[:variant].try(:to_sym)
+  def user_access_check(method)
+    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+      access_denied
+    end
   end
 
   User::Roles.each do |role|
     define_method("#{role}_only") do
-      if !CurrentUser.user.send("is_#{role}?") || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
-        access_denied
-      end
+      user_access_check("is_#{role}?")
+    end
+  end
+
+  %i[is_bd_staff can_view_staff_notes can_handle_takedowns].each do |role|
+    define_method("#{role}_only") do
+      user_access_check("#{role}?")
     end
   end
 
@@ -220,7 +199,7 @@ class ApplicationController < ActionController::Base
     return unless request.get? || request.head?
     params[:search] ||= ActionController::Parameters.new
 
-    deep_reject_blank = lambda do |hash|
+    deep_reject_blank = ->(hash) do
       hash.reject { |k, v| v.blank? || (v.is_a?(Hash) && deep_reject_blank.call(v).blank?) }
     end
     if params[:search].is_a?(ActionController::Parameters)

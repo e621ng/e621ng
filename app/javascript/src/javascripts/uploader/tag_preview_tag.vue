@@ -5,7 +5,7 @@
   </span>
   <span v-else-if="tag.type === 'implication'" class="tag-preview tag-preview-implication">
     <tag-link :name="tag.a" :tagType="tag.tagTypeA"></tag-link>
-    ⇐ <tag-link :name="tag.b" :tagType="tag.tagTypeB"></tag-link>
+    ⇒ <tag-link :name="tag.b" :tagType="tag.tagTypeB"></tag-link>
   </span>
   <span v-else class="tag-preview">
     <tag-link :name="tag.a" :tagType="tag.tagTypeA"></tag-link>

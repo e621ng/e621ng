@@ -1,9 +1,7 @@
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "Listing", takedowns_path %>
-    <%= subnav_link_to "New", new_takedown_path %>
-    <% if @takedown && !@takedown.new_record? && @takedown.can_delete?(CurrentUser.user) %>
-      <%= subnav_link_to "Delete", takedown_path(@takedown), method: :delete, data: {confirm: 'Are you sure you want to delete this takedown?'} %>
-    <% end %>
-  </menu>
+  <%= subnav_link_to "Listing", takedowns_path %>
+  <%= subnav_link_to "New", new_takedown_path %>
+  <% if @takedown && !@takedown.new_record? && @takedown.can_delete?(CurrentUser.user) %>
+    <%= subnav_link_to "Delete", takedown_path(@takedown), method: :delete, data: { confirm: "Are you sure you want to delete this takedown?" } %>
+  <% end %>
 <% end %>

@@ -6,6 +6,6 @@ FactoryBot.define do
     width { 1 }
     height { 1 }
     is_active { true }
-    body { FFaker::Lorem.sentences.join(" ") }
+    sequence(:body) { |n| "note_body_#{n}" }
   end
 end

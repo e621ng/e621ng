@@ -29,11 +29,18 @@ class ArtistsController < ApplicationController
     else
       @artist = Artist.find_by(name: Artist.normalize_name(params[:id]))
       unless @artist
-        redirect_to(show_or_new_artists_path(name: params[:id]))
+        respond_to do |format|
+          format.html do
+            redirect_to(show_or_new_artists_path(name: params[:id]))
+          end
+          format.json do
+            raise ActiveRecord::RecordNotFound
+          end
+        end
         return
       end
     end
-    @post_set = PostSets::Artist.new(@artist)
+    @post_set = PostSets::Post.new(@artist.name, 1, 10)
     respond_with(@artist, methods: [:domains], include: [:urls])
   end
 
@@ -50,11 +57,15 @@ class ArtistsController < ApplicationController
   end
 
   def destroy
-    if !@artist.deletable_by?(CurrentUser.user)
+    unless @artist.deletable_by?(CurrentUser.user)
       raise User::PrivilegeError
     end
     @artist.update_attribute(:is_active, false)
-    redirect_to(artist_path(@artist), :notice => "Artist deleted")
+    respond_with(@artist) do |format|
+      format.html do
+        redirect_to(artist_path(@artist), notice: "Artist deleted")
+      end
+    end
   end
 
   def revert
@@ -71,7 +82,7 @@ class ArtistsController < ApplicationController
       redirect_to artist_path(@artist)
     else
       @artist = Artist.new(name: params[:name] || "")
-      @post_set = PostSets::Artist.new(@artist)
+      @post_set = PostSets::Post.new(@artist.name, 1, 10)
       respond_with(@artist)
     end
   end
@@ -89,7 +100,7 @@ private
   end
 
   def ensure_can_edit(user)
-    return user.is_janitor?
+    return if user.is_janitor?
     raise User::PrivilegeError if @artist.is_locked?
     raise User::PrivilegeError if !@artist.is_active?
   end

@@ -5,7 +5,7 @@
       <div style="margin-bottom: 1em;">
         <h1><%= "Help: #{HelpPage.title(@help.name)}" %></h1>
         <div class="dtext-container">
-          <%= format_text(@wiki_page.body, allow_color: true) %>
+          <%= format_text(WikiPage.find_by(title: @help.wiki_page).body, allow_color: true) %>
         </div>
       </div>
     </section>

@@ -1,8 +1,4 @@
-require 'danbooru/has_bit_flags'
-
 class Post < ApplicationRecord
-  class ApprovalError < Exception ; end
-  class DisapprovalError < Exception ; end
   class RevertError < Exception ; end
   class SearchError < Exception ; end
   class DeletionError < Exception ; end
@@ -40,7 +36,7 @@ class Post < ApplicationRecord
   after_commit :delete_files, :on => :destroy
   after_commit :remove_iqdb_async, :on => :destroy
   after_commit :update_iqdb_async, :on => :create
-  after_commit :notify_pubsub
+  after_commit :generate_video_samples, on: :create, if: :is_video?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
@@ -96,10 +92,6 @@ class Post < ApplicationRecord
 
     def file(type = :original)
       storage_manager.open_file(self, type)
-    end
-
-    def tagged_file_url
-      storage_manager.file_url(self, :original)
     end
 
     def tagged_large_file_url
@@ -224,9 +216,9 @@ class Post < ApplicationRecord
 
     def generate_video_samples(later: false)
       if later
-        PostVideoConversionJob.perform_in(1.minute, self.id)
+        PostVideoConversionJob.set(wait: 1.minute).perform_later(id)
       else
-        PostVideoConversionJob.perform_async(self.id)
+        PostVideoConversionJob.perform_later(id)
       end
     end
 
@@ -288,8 +280,8 @@ class Post < ApplicationRecord
   end
 
   module ApprovalMethods
-    def is_approvable?(user = CurrentUser.user)
-      !is_status_locked? && (is_pending? || is_flagged? || is_deleted?)
+    def is_approvable?
+      !is_status_locked? && is_pending? && approver.nil?
     end
 
     def unflag!
@@ -307,16 +299,29 @@ class Post < ApplicationRecord
       update(approver: nil, is_pending: true)
     end
 
-    def approve!(approver = CurrentUser.user, force: false)
-      raise ApprovalError.new("Post already approved.") if self.approver != nil && !force
+    def is_unapprovable?(user)
+      # Allow unapproval only by the approver
+      return false if approver.present? && approver != user
+      # Prevent unapproving self approvals by someone else
+      return false if approver.nil? && uploader != user
+      # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
+      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+    end
 
-      approv = approvals.create(user: approver)
-      if flags.unresolved.any?
+    def approve!(approver = CurrentUser.user, resolve_flags: false)
+      return if self.approver != nil
+
+      if resolve_flags && flags.unresolved.any?
         unflag!
       end
-      PostEvent.add(id, CurrentUser.user, :approved)
-      update(approver: approver, is_flagged: false, is_pending: false, is_deleted: false)
-      approv
+
+      if uploader == approver
+        update(is_pending: false)
+      else
+        PostEvent.add(id, CurrentUser.user, :approved)
+        approvals.create(user: approver)
+        update(approver: approver, is_pending: false)
+      end
     end
   end
 
@@ -453,10 +458,10 @@ class Post < ApplicationRecord
       set_tag_count(category, self.send("tag_count_#{category}") + 1)
     end
 
-    def set_tag_counts(disable_cache = true)
+    def set_tag_counts(disable_cache: true)
       self.tag_count = 0
       TagCategory.categories.each {|x| set_tag_count(x, 0)}
-      categories = Tag.categories_for(tag_array, :disable_caching => disable_cache)
+      categories = Tag.categories_for(tag_array, disable_cache: disable_cache)
       categories.each_value do |category|
         self.tag_count += 1
         inc_tag_count(TagCategory.reverse_mapping[category])
@@ -539,7 +544,8 @@ class Post < ApplicationRecord
         locked = Tag.scan_tags(locked_tags.downcase)
         to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
         to_remove = to_remove.map {|x| x[1..-1]}
-        @locked_to_remove = TagAlias.to_aliased(to_remove)
+        to_remove = TagAlias.to_aliased(to_remove)
+        @locked_to_remove = to_remove + to_remove.map { |tag_name| TagImplication.cached_descendants(tag_name) }.flatten
         @locked_to_add = TagAlias.to_aliased(to_add)
       end
 
@@ -557,10 +563,10 @@ class Post < ApplicationRecord
       normalized_tags = remove_dnp_tags(normalized_tags)
       normalized_tags = TagAlias.to_aliased(normalized_tags)
       normalized_tags = apply_locked_tags(normalized_tags, @locked_to_add, @locked_to_remove)
-      normalized_tags = %w(tagme) if normalized_tags.empty?
+      normalized_tags = %w[tagme] if normalized_tags.empty?
       normalized_tags = add_automatic_tags(normalized_tags)
       normalized_tags = TagImplication.with_descendants(normalized_tags)
-      enforce_dnp_tags(normalized_tags)
+      add_dnp_tags_to_locked(normalized_tags)
       normalized_tags -= @locked_to_remove if @locked_to_remove # Prevent adding locked tags through implications or aliases.
       normalized_tags = normalized_tags.compact.uniq
       normalized_tags = Tag.find_or_create_by_name_list(normalized_tags)
@@ -568,13 +574,21 @@ class Post < ApplicationRecord
       set_tag_string(normalized_tags.map(&:name).uniq.sort.join(" "))
     end
 
-
-
+    # Prevent adding these without an implication
     def remove_dnp_tags(tags)
-      tags - ['avoid_posting', 'conditional_dnp']
+      locked = locked_tags || ""
+      # Don't remove dnp tags here if they would be later added through locked tags
+      # to prevent the warning message from appearing when they didn't actually get removed
+      if locked.exclude?("avoid_posting")
+        tags -= ["avoid_posting"]
+      end
+      if locked.exclude?("conditional_dnp")
+        tags -= ["conditional_dnp"]
+      end
+      tags
     end
 
-    def enforce_dnp_tags(tags)
+    def add_dnp_tags_to_locked(tags)
       locked = Tag.scan_tags((locked_tags || '').downcase)
       if tags.include? 'avoid_posting'
         locked << 'avoid_posting'
@@ -1010,75 +1024,22 @@ class Post < ApplicationRecord
   end
 
   module CountMethods
-    def fast_count(tags = "", timeout: 1_000, raise_on_timeout: false, skip_cache: false)
+    def fast_count(tags = "")
       tags = tags.to_s
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
       tags = Tag.normalize_query(tags)
 
-      count = nil
-
-      unless skip_cache
-        count = get_count_from_cache(tags)
-      end
-
+      cache_key = "pfc:#{tags}"
+      count = Cache.fetch(cache_key)
       if count.nil?
-        count = fast_count_search(tags, timeout: timeout, raise_on_timeout: raise_on_timeout)
+        count = Post.tag_match(tags).count_only
+        expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
+        Cache.write(cache_key, count, expires_in: expiry)
       end
-
       count
     rescue SearchError
       0
-    end
-
-    def fast_count_search(tags, timeout:, raise_on_timeout:)
-      count = Post.with_timeout(timeout, nil, tags: tags) do
-        Post.tag_match(tags).count_only
-      end
-
-      if count.nil?
-        # give up
-        if raise_on_timeout
-          raise TimeoutError.new("timed out")
-        end
-
-        count = Danbooru.config.blank_tag_search_fast_count
-      else
-        set_count_in_cache(tags, count)
-      end
-
-      count ? count.to_i : nil
-    rescue PG::ConnectionBad
-      return nil
-    end
-
-    def fix_post_counts(post)
-      post.set_tag_counts(false)
-      if post.changes_saved?
-        args = Hash[TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}].update(:tag_count => post.tag_count)
-        post.update_columns(args)
-      end
-    end
-
-    def get_count_from_cache(tags)
-      if Tag.is_simple_tag?(tags)
-        count = Tag.find_by(name: tags).try(:post_count)
-      else
-        # this will only have a value for multi-tag searches or single metatag searches
-        count = Cache.get(count_cache_key(tags))
-      end
-
-      count.try(:to_i)
-    end
-
-    def set_count_in_cache(tags, count, expiry = nil)
-      expiry ||= count.seconds.clamp(3.minutes, 20.hours).to_i
-
-      Cache.put(count_cache_key(tags), count, expiry)
-    end
-
-    def count_cache_key(tags)
-      "pfc:#{Cache.hash(tags)}"
     end
   end
 
@@ -1237,12 +1198,15 @@ class Post < ApplicationRecord
       end
 
       if reason.blank?
-        last_flag = flags.unresolved.order(id: :desc).first
-        if last_flag.blank?
-          self.errors.add(:base, "Cannot flag with blank reason when no active flag exists.")
-          return false
+        if pending_flag.blank?
+          errors.add(:base, "Cannot delete with given reason when no active flag exists.")
+          return
         end
-        reason = last_flag.reason
+        if pending_flag.reason =~ /uploading_guidelines/
+          errors.add(:base, "Cannot delete with given reason when the flag is for uploading guidelines.")
+          return
+        end
+        reason = pending_flag.reason
       end
 
       force_flag = options.fetch(:force, false)
@@ -1279,18 +1243,22 @@ class Post < ApplicationRecord
 
     def undelete!(options = {})
       if is_status_locked? && !options.fetch(:force, false)
-        self.errors.add(:is_status_locked, "; cannot undelete post")
-        return false
+        errors.add(:is_status_locked, "; cannot undelete post")
+        return
       end
 
-      if !CurrentUser.is_admin?
-        if uploader_id == CurrentUser.id
-          raise ApprovalError.new("You cannot undelete a post you uploaded")
-        end
+      if !CurrentUser.is_admin? && uploader_id == CurrentUser.id
+        raise User::PrivilegeError, "You cannot undelete a post you uploaded"
+      end
+
+      if !is_deleted
+        errors.add(:base, "Post is not deleted")
+        return
       end
 
       transaction do
         self.is_deleted = false
+        self.is_pending = false
         self.approver_id = CurrentUser.id
         flags.each { |x| x.resolve! }
         increment_tag_post_counts
@@ -1304,6 +1272,10 @@ class Post < ApplicationRecord
 
     def deletion_flag
       flags.order(id: :desc).first
+    end
+
+    def pending_flag
+      flags.unresolved.order(id: :desc).first
     end
   end
 
@@ -1340,10 +1312,6 @@ class Post < ApplicationRecord
     def revert_to!(target)
       revert_to(target)
       save!
-    end
-
-    def notify_pubsub
-      # NOTE: Left as a potentially useful hook into post updating.
     end
   end
 
@@ -1390,7 +1358,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:tag_index, :pool_string, :fav_string]
+      list = super + [:pool_string, :fav_string]
       if !visible?
         list += [:md5, :file_ext]
       end
@@ -1473,73 +1441,6 @@ class Post < ApplicationRecord
       joins("CROSS JOIN unnest(string_to_array(tag_string, ' ')) AS tag")
     end
 
-    def with_comment_stats
-      relation = left_outer_joins(:comments).group(:id).select("posts.*")
-      relation = relation.select("COUNT(comments.id) AS comment_count")
-      relation = relation.select("COUNT(comments.id) FILTER (WHERE comments.is_deleted = TRUE)  AS deleted_comment_count")
-      relation = relation.select("COUNT(comments.id) FILTER (WHERE comments.is_deleted = FALSE) AS active_comment_count")
-      relation
-    end
-
-    def with_note_stats
-      relation = left_outer_joins(:notes).group(:id).select("posts.*")
-      relation = relation.select("COUNT(notes.id) AS note_count")
-      relation = relation.select("COUNT(notes.id) FILTER (WHERE notes.is_active = TRUE)  AS active_note_count")
-      relation = relation.select("COUNT(notes.id) FILTER (WHERE notes.is_active = FALSE) AS deleted_note_count")
-      relation
-    end
-
-    def with_flag_stats
-      relation = left_outer_joins(:flags).group(:id).select("posts.*")
-      relation = relation.select("COUNT(post_flags.id) AS flag_count")
-      relation = relation.select("COUNT(post_flags.id) FILTER (WHERE post_flags.is_resolved = TRUE)  AS resolved_flag_count")
-      relation = relation.select("COUNT(post_flags.id) FILTER (WHERE post_flags.is_resolved = FALSE) AS unresolved_flag_count")
-      relation
-    end
-
-    def with_approval_stats
-      relation = left_outer_joins(:approvals).group(:id).select("posts.*")
-      relation = relation.select("COUNT(post_approvals.id) AS approval_count")
-      relation
-    end
-
-    def with_replacement_stats
-      relation = left_outer_joins(:replacements).group(:id).select("posts.*")
-      relation = relation.select("COUNT(post_replacements.id) AS replacement_count")
-      relation
-    end
-
-    def with_child_stats
-      relation = left_outer_joins(:children).group(:id).select("posts.*")
-      relation = relation.select("COUNT(children_posts.id) AS child_count")
-      relation = relation.select("COUNT(children_posts.id) FILTER (WHERE children_posts.is_deleted = TRUE)  AS deleted_child_count")
-      relation = relation.select("COUNT(children_posts.id) FILTER (WHERE children_posts.is_deleted = FALSE) AS active_child_count")
-      relation
-    end
-
-    def with_pool_stats
-      pool_posts = Pool.joins("CROSS JOIN unnest(post_ids) AS post_id").select(:id, :category, "post_id")
-      relation = joins("LEFT OUTER JOIN (#{pool_posts.to_sql}) pools ON pools.post_id = posts.id").group(:id).select("posts.*")
-
-      relation = relation.select("COUNT(pools.id) AS pool_count")
-      relation = relation.select("0 AS deleted_pool_count")
-      relation = relation.select("COUNT(pools.id) AS active_pool_count")
-      relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.category = 'series') AS series_pool_count")
-      relation = relation.select("COUNT(pools.id) FILTER (WHERE pools.category = 'collection') AS collection_pool_count")
-      relation
-    end
-
-    def with_stats(tables)
-      return all if tables.empty?
-
-      relation = all
-      tables.each do |table|
-        relation = relation.send("with_#{table}_stats")
-      end
-
-      from(relation.arel.as("posts"))
-    end
-
     def pending
       where(is_pending: true)
     end
@@ -1569,16 +1470,21 @@ class Post < ApplicationRecord
     end
 
     def sql_raw_tag_match(tag)
-      where("posts.tag_index @@ to_tsquery('danbooru', E?)", tag.to_escaped_for_tsquery)
+      where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tag)
     end
 
+    # Does a search without resolving aliases
     def raw_tag_match(tag)
-      tags = {related: tag.split(' '), include: [], exclude: []}
-      ElasticPostQueryBuilder.new({tag_count: tags[:related].size, tags: tags}).build
+      tags = { related: tag.split, include: [], exclude: [] }
+      ElasticPostQueryBuilder.new({ tag_count: tags[:related].size, tags: tags }).build
     end
 
     def tag_match(query)
       ElasticPostQueryBuilder.new(query).build
+    end
+
+    def tag_match_sql(query)
+      PostQueryBuilder.new(query).build
     end
   end
 
@@ -1587,20 +1493,19 @@ class Post < ApplicationRecord
 
     module ClassMethods
       def iqdb_enabled?
-        Danbooru.config.iqdbs_server.present?
+        Danbooru.config.iqdb_server.present?
       end
 
       def remove_iqdb(post_id)
         if iqdb_enabled?
-          IqdbRemoveJob.perform_async(post_id)
+          IqdbRemoveJob.perform_later(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if Post.iqdb_enabled? && has_preview?
-        # IqdbUpdateJob.perform_async(id, preview_file_url)
-        IqdbUpdateJob.perform_async(id, "md5:#{md5}.jpg")
+        IqdbUpdateJob.perform_later(id)
       end
     end
 
@@ -1656,34 +1561,35 @@ class Post < ApplicationRecord
     def added_tags_are_valid
       # Load this only once since it isn't cached
       added = added_tags
-      added_invalid_tags = added.select {|t| t.category == Tag.categories.invalid}
-      new_tags = added.select {|t| t.post_count <= 0}
-      new_general_tags = new_tags.select {|t| t.category == Tag.categories.general}
-      new_artist_tags = new_tags.select {|t| t.category == Tag.categories.artist}
-      repopulated_tags = new_tags.select {|t| (t.category != Tag.categories.general) && (t.category != Tag.categories.meta)}
+      added_invalid_tags = added.select { |t| t.category == Tag.categories.invalid }
+      new_tags = added.select { |t| t.post_count <= 0 }
+      new_general_tags = new_tags.select { |t| t.category == Tag.categories.general }
+      new_artist_tags = new_tags.select { |t| t.category == Tag.categories.artist }
+      # See https://github.com/e621ng/e621ng/issues/494
+      # If the tag is fresh it's save to assume it was created with a prefix
+      repopulated_tags = new_tags.select { |t| t.category != Tag.categories.general && t.category != Tag.categories.meta && t.created_at < 10.seconds.ago }
 
       if added_invalid_tags.present?
         n = added_invalid_tags.size
-        tag_wiki_links = added_invalid_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Added #{n} invalid tags. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
+        tag_wiki_links = added_invalid_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Added #{n} invalid #{'tag'.pluralize(n)}. See the wiki page for each tag for help on resolving these: #{tag_wiki_links.join(', ')}")
       end
 
       if new_general_tags.present?
         n = new_general_tags.size
-        tag_wiki_links = new_general_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Created #{n} new #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = new_general_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Created #{n} new #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
       if repopulated_tags.present?
         n = repopulated_tags.size
-        tag_wiki_links = repopulated_tags.map {|tag| "[[#{tag.name}]]"}
-        self.warnings.add(:base, "Repopulated #{n} old #{n == 1 ? "tag" : "tags"}: #{tag_wiki_links.join(", ")}")
+        tag_wiki_links = repopulated_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Repopulated #{n} old #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
       end
 
-      ActiveRecord::Associations::Preloader.new.preload(new_artist_tags, :artist)
       new_artist_tags.each do |tag|
         if tag.artist.blank?
-          self.warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI::escape(tag.name)}]")
+          warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI.escape(tag.name)}]")
         end
       end
     end
@@ -1700,12 +1606,9 @@ class Post < ApplicationRecord
 
     def has_artist_tag
       return if !new_record?
-      return if source !~ %r!\Ahttps?://!
-      return if has_tag?("artist_request") || has_tag?("official_art")
-      return if tags.any? {|t| t.category == Tag.categories.artist}
-      return if Sources::Strategies.find(source).is_a?(Sources::Strategies::Null)
+      return if tags.any? { |t| t.category == Tag.categories.artist }
 
-      self.warnings.add(:base, "Artist tag is required. \"Create new artist tag\":[/artists/new?artist%5Bsource%5D=#{CGI::escape(source)}]. Ask on the forum if you need naming help")
+      self.warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#catchange if you need help changing the category of an tag. Ask on the forum if you need naming help')
     end
 
     def has_enough_tags
@@ -1744,7 +1647,7 @@ class Post < ApplicationRecord
   include PostIndex
 
   BOOLEAN_ATTRIBUTES = %w(
-    has_embedded_notes
+    _has_embedded_notes
     has_cropped
     hide_from_anonymous
     hide_from_search_engines
@@ -1809,15 +1712,18 @@ class Post < ApplicationRecord
     save
   end
 
-  def update_column(name, value)
-    ret = super(name, value)
-    notify_pubsub
-    ret
+  def uploader_linked_artists
+    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
+    linked_artists.select { |artist| artist.linked_user_id == uploader_id }
   end
 
-  def update_columns(attributes)
-    ret = super(attributes)
-    notify_pubsub
-    ret
+  def flaggable_for_guidelines?
+    return true if is_pending?
+    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    false
+  end
+
+  def visible_comment_count(user)
+    user.is_moderator? || !is_comment_disabled ? comment_count : 0
   end
 end

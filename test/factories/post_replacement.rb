@@ -2,71 +2,39 @@ FactoryBot.define do
   factory(:post_replacement) do
     creator_ip_addr { "127.0.0.1" }
     creator { create(:user, created_at: 2.weeks.ago) }
-    replacement_url { FFaker::Internet.http_url }
-    reason { FFaker::Lorem.words.join(" ") }
+    sequence(:replacement_url) { |n| "https://example.com/#{n}.jpg" }
+    sequence(:reason) { |n| "post_replacement_reason#{n}" }
 
     factory(:webm_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test-512x512.webm", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "video.webm")
-      end
+      replacement_file { fixture_file_upload("test-512x512.webm") }
     end
 
     factory(:mp4_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test-300x300.mp4", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "video.mp4")
-      end
+      replacement_file { fixture_file_upload("test-300x300.mp4") }
     end
 
     factory(:jpg_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test.jpg", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
-      end
+      replacement_file { fixture_file_upload("test.jpg") }
     end
 
     factory(:jpg_invalid_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test-corrupt.jpg", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
-      end
+      replacement_file { fixture_file_upload("test-corrupt.jpg") }
     end
 
     factory(:gif_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test.gif", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.gif")
-      end
+      replacement_file { fixture_file_upload("test.gif") }
     end
 
     factory(:empty_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/empty.jpg", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.jpg")
-      end
+      replacement_file { fixture_file_upload("empty.jpg") }
     end
 
     factory(:png_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/test.png", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.png")
-      end
+      replacement_file { fixture_file_upload("test.png") }
     end
 
     factory(:apng_replacement) do
-      replacement_file do
-        f = Tempfile.new
-        IO.copy_stream("#{Rails.root}/test/files/apng/normal_apng.png", f.path)
-        ActionDispatch::Http::UploadedFile.new(tempfile: f, filename: "test.png")
-      end
+      replacement_file { fixture_file_upload("apng/normal_apng.png") }
     end
   end
 end

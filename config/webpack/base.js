@@ -4,7 +4,10 @@ const vueConfig = require('./loaders/vue')
 
 const customConfig = {
   resolve: {
-    extensions: ['.css']
+    extensions: ['.css'],
+    alias: {
+      "jquery": "jquery/src/jquery",
+    },
   },
   module: {
     rules: [
@@ -19,9 +22,6 @@ const customConfig = {
   },
   optimization: {
     runtimeChunk: false
-  },
-  externals: {
-    jquery: "jQuery"
   },
   target: ['web', 'es5']
 }

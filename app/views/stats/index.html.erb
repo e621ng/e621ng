@@ -1,403 +1,102 @@
-<%= javascript_tag nonce: true do -%>
-  function pct(current,total) {
-    return Math.round((current/total)*100) + "%"
-  }
+<div id="c-stats">
+  <div id="a-index">
+    <p>Refreshed once a day.</p>
+    <div class="stats-column">
+      <%= render "stats_table", header_title: "Site", data: [
+          ["Started", compact_time(DateTime.parse(@stats["started"]))],
+          ["Average registrations per day", "average_registrations_per_day"],
+          ["Average posts per day", "average_posts_per_day"],
+          ["Average comments per day", "average_comments_per_day"],
+          ["Average forum posts per day", "average_forum_posts_per_day"],
+          ["Average blips per day", "average_blips_per_day"],
+        ]
+      %>
 
-  jQuery(function(){
-    // Do all the math on the clientside (JS) instead of serverside (Ruby)
+      <%= render "percentage_table", header_title: "Posts", data: [
+          ["Total posts", "total_posts"],
+          ["Active posts", "active_posts", "total_posts"],
+          ["Deleted posts", "deleted_posts", "total_posts"],
+          ["Destroyed posts", "destroyed_posts", "total_posts"],
+          ["Safe posts", "safe_posts", "existing_posts"],
+          ["Questionable posts", "questionable_posts", "existing_posts"],
+          ["Explicit posts", "explicit_posts", "existing_posts"],
+          ["Total post votes", "total_votes"],
+          ["Note count", "total_notes"],
+          ["Total favorited posts", "total_favorites"],
+          ["Pools", "total_pools"],
+          ["Average posts per pool", "average_posts_per_pool"],
+          ["Public sets", "public_sets", "total_sets"],
+          ["Private sets", "private_sets", "total_sets"],
+          ["Average posts per set", "average_posts_per_set"],
+        ]
+      %>
+    </div>
 
-    jQuery("#stats-pct-activeposts").html(pct(stats.posts.active, stats.posts.total));
-    jQuery("#stats-pct-deletedposts").html(pct(stats.posts.deleted, stats.posts.total));
-    jQuery("#stats-pct-destroyedposts").html(pct(stats.posts.destroyed, stats.posts.total));
+    <div class="stats-column">
+      <%= render "percentage_table", header_title: "Image files", data: [
+          ["Total existing posts", "existing_posts"],
+          ["JPG posts", "jpg_posts", "existing_posts"],
+          ["PNG posts", "png_posts", "existing_posts"],
+          ["GIF posts", "gif_posts", "existing_posts"],
+          ["Flash posts", "swf_posts", "existing_posts"],
+          ["WebM posts", "webm_posts", "existing_posts"],
+          ["Average file size", number_to_human_size(@stats["average_file_size"], precision: 3)],
+          ["Total file size", number_to_human_size(@stats["total_file_size"], precision: 3)],
+        ]
+      %>
 
-    jQuery("#stats-pct-publicsets").html(pct(stats.sets.public, stats.sets.public+stats.sets.private));
-    jQuery("#stats-pct-privatesets").html(pct(stats.sets.private, stats.sets.public+stats.sets.private));
+      <%= render "percentage_table", header_title: "Users", data: [
+          ["User count", "total_users"],
+          ["Unactivated users", "unactivated_users", "total_users"],
+          ["Banned users", "blocked_users", "total_users"],
+          ["Members", "member_users", "total_users"],
+          ["Privileged users", "privileged_users", "total_users"],
+          ["Contributors", "contributor_users", "total_users"],
+          ["Janitors", "janitor_users", "total_users"],
+          ["Moderators", "moderator_users", "total_users"],
+          ["Admins", "admin_users", "total_users"],
+          ["Dmails sent", "total_dmails"],
+        ]
+      %>
+    </div>
 
-    const postsCount = stats.posts.active+stats.posts.deleted
-    jQuery("#stats-pct-jpgposts").html(pct(stats.posts.jpg, postsCount));
-    jQuery("#stats-pct-pngposts").html(pct(stats.posts.png, postsCount));
-    jQuery("#stats-pct-gifposts").html(pct(stats.posts.gif, postsCount));
-    jQuery("#stats-pct-swfposts").html(pct(stats.posts.swf, postsCount));
-    jQuery("#stats-pct-webmposts").html(pct(stats.posts.webm, postsCount));
+    <div class="stats-column">
+      <%= render "percentage_table", header_title: "Comments", data: [
+          ["Comment count", "total_comments"],
+          ["Active comments", "active_comments", "total_comments"],
+          ["Hidden comments", "hidden_comments", "total_comments"],
+          ["Deleted comments", "deleted_comments", "total_comments"],
+        ]
+      %>
 
-    jQuery("#stats-pct-safeposts").html(pct(stats.posts.safe, postsCount));
-    jQuery("#stats-pct-questionableposts").html(pct(stats.posts.questionable, postsCount));
-    jQuery("#stats-pct-explicitposts").html(pct(stats.posts.explicit, postsCount));
+      <%= render "stats_table", header_title: "Forum Posts", data: [
+          ["Thread count", "total_forum_threads"],
+          ["Post count", "total_forum_posts"],
+          ["Average posts per thread", "average_posts_per_thread"],
+        ]
+      %>
 
-    jQuery("#stats-pct-unactivatedusers").html(pct(stats.users.unactivated, stats.users.total));
-    jQuery("#stats-pct-blockedusers").html(pct(stats.users.blocked, stats.users.total));
-    jQuery("#stats-pct-memberusers").html(pct(stats.users.member, stats.users.total));
-    jQuery("#stats-pct-privilegedusers").html(pct(stats.users.privileged, stats.users.total));
-    jQuery("#stats-pct-contributorusers").html(pct(stats.users.contributor, stats.users.total));
-    jQuery("#stats-pct-janitorusers").html(pct(stats.users.janitor, stats.users.total));
-    jQuery("#stats-pct-modusers").html(pct(stats.users.mod, stats.users.total));
-    jQuery("#stats-pct-adminusers").html(pct(stats.users.admin, stats.users.total));
+      <%= render "percentage_table", header_title: "Blips", data: [
+          ["Blip count", "total_blips"],
+          ["Active blips", "active_blips", "total_blips"],
+          ["Hidden blips", "hidden_blips", "total_blips"],
+          ["Deleted blips", "deleted_blips", "total_blips"],
+        ]
+      %>
 
-    jQuery("#stats-pct-activecomments").html(pct(stats.comments.active, stats.comments.total));
-    jQuery("#stats-pct-hiddencomments").html(pct(stats.comments.hidden, stats.comments.total));
-    jQuery("#stats-pct-deletedcomments").html(pct(stats.comments.deleted, stats.comments.total));
-
-    jQuery("#stats-pct-activeblips").html(pct(stats.blips.active, stats.blips.total));
-    jQuery("#stats-pct-hiddenblips").html(pct(stats.blips.hidden, stats.blips.total));
-    jQuery("#stats-pct-deletedblips").html(pct(stats.blips.deleted, stats.blips.total));
-
-    jQuery("#stats-pct-generaltags").html(pct(stats.tags.general, stats.tags.total));
-    jQuery("#stats-pct-artisttags").html(pct(stats.tags.artist, stats.tags.total));
-    jQuery("#stats-pct-charactertags").html(pct(stats.tags.character, stats.tags.total));
-    jQuery("#stats-pct-copyrighttags").html(pct(stats.tags.copyright, stats.tags.total));
-    jQuery("#stats-pct-speciestags").html(pct(stats.tags.species, stats.tags.total));
-    jQuery("#stats-pct-metatags").html(pct(stats.tags.meta, stats.tags.total));
-    jQuery("#stats-pct-invalidtags").html(pct(stats.tags.invalid, stats.tags.total));
-    jQuery("#stats-pct-loretags").html(pct(stats.tags.lore, stats.tags.total));
-  });
-
-  var stats = {
-    posts: {
-      total:       <%= @stats['total_posts'] %>,
-      active:      <%= @stats['active_posts'] %>,
-      deleted:     <%= @stats['deleted_posts'] %>,
-      destroyed:   <%= @stats['destroyed_posts'] %>,
-
-      jpg:         <%= @stats['jpg_posts'] %>,
-      png:         <%= @stats['png_posts'] %>,
-      gif:         <%= @stats['gif_posts'] %>,
-      swf:         <%= @stats['swf_posts'] %>,
-      webm:        <%= @stats['webm_posts'] %>,
-
-      safe:        <%= @stats['safe_posts'] %>,
-      questionable: <%= @stats['questionable_posts'] %>,
-      explicit:    <%= @stats['explicit_posts'] %>,
-    },
-
-    sets: {
-      public:      <%= @stats['public_sets'] %>,
-      private:     <%= @stats['private_sets'] %>,
-    },
-
-    users: {
-      total:       <%= @stats['total_users'] %>,
-      blocked:     <%= @stats['blocked_users'] %>,
-      member:      <%= @stats['member_users'] %>,
-      privileged:  <%= @stats['privileged_users'] %>,
-      contributor: <%= @stats['contributor_users'] %>,
-      janitor:     <%= @stats['janitor_users'] %>,
-      mod:         <%= @stats['moderator_users'] %>,
-      admin:       <%= @stats['admin_users'] %>,
-      unactivated: <%= @stats['unactivated_users'] %>
-    },
-
-    comments: {
-      total:       <%= @stats['total_comments'] %>,
-      active:      <%= @stats['active_comments'] %>,
-      hidden:      <%= @stats['hidden_comments'] %>,
-      deleted:     <%= @stats['deleted_comments'] %>,
-    },
-
-    blips: {
-      total:       <%= @stats['total_blips'] %>,
-      active:      <%= @stats['active_blips'] %>,
-      hidden:      <%= @stats['hidden_blips'] %>,
-      deleted:     <%= @stats['deleted_blips'] %>,
-    },
-
-    tags: {
-      total:       <%= @stats['total_tags'] %>,
-      general:     <%= @stats['general_tags'] %>,
-      artist:      <%= @stats['artist_tags'] %>,
-      character:   <%= @stats['character_tags'] %>,
-      copyright:   <%= @stats['copyright_tags'] %>,
-      species:     <%= @stats['species_tags'] %>,
-      meta:        <%= @stats['meta_tags'] %>,
-      invalid:     <%= @stats['invalid_tags'] %>,
-      lore:        <%= @stats['lore_tags'] %>
-    }
-  };
-<% end -%>
-
-
-<div>
-  <p>Refreshed once a day.</p>
-  <div class='stats-column' id='stats-column-1'>
-    <h2>Site</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Started</td>
-        <td style='width:105px;'><%= @stats['started'] %></td>
-      </tr>
-      <tr>
-        <td>Average registrations per day</td>
-        <td><%= del(@stats['average_registrations_per_day']) %></td>
-      </tr>
-      <tr>
-        <td>Average posts per day</td>
-        <td><%= del(@stats['average_posts_per_day']) %></td>
-      </tr>
-      <tr>
-        <td>Average comments per day</td>
-        <td><%= del(@stats['average_comments_per_day']) %></td>
-      </tr>
-      <tr>
-        <td>Average forum posts per day</td>
-        <td><%= del(@stats['average_forum_posts_per_day']) %></td>
-      </tr>
-      <tr>
-        <td>Average blips per day</td>
-        <td><%= del(@stats['average_blips_per_day']) %></td>
-      </tr>
-    </table>
-
-    <h2>Posts</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Total posts</td>
-        <td style='width:50px;'><%= del(@stats['total_posts']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-      <tr>
-        <td>Active posts</td>
-        <td><%= del(@stats['active_posts']) %></td><td class='stats-pct' id='stats-pct-activeposts'></td>
-      </tr>
-      <tr>
-        <td>Deleted posts</td>
-        <td><%= del(@stats['deleted_posts']) %></td><td class='stats-pct' id='stats-pct-deletedposts'></td>
-      </tr>
-      <tr>
-        <td>Destroyed posts</td>
-        <td><%= del(@stats['destroyed_posts']) %></td><td class='stats-pct' id='stats-pct-destroyedposts'></td>
-      </tr>
-      <tr>
-        <td>Safe posts</td>
-        <td><%= del(@stats['safe_posts']) %></td><td class='stats-pct' id='stats-pct-safeposts'></td>
-      </tr>
-      <tr>
-        <td>Questionable posts</td>
-        <td><%= del(@stats['questionable_posts']) %></td><td class='stats-pct' id='stats-pct-questionableposts'></td>
-      </tr>
-      <tr>
-        <td>Explicit posts</td>
-        <td><%= del(@stats['explicit_posts']) %></td><td class='stats-pct' id='stats-pct-explicitposts'></td>
-      </tr>
-      <tr>
-        <td>Total post votes</td>
-        <td><%= del(@stats['total_votes']) %></td><td></td>
-      </tr>
-      <tr>
-        <td>Note count</td>
-        <td><%= del(@stats['total_notes']) %></td><td></td>
-      </tr>
-      <tr>
-        <td>Total favorited posts</td>
-        <td><%= del(@stats['total_favorites']) %></td><td></td>
-      </tr>
-      <tr>
-        <td>Pools</td>
-        <td><%= del(@stats['total_pools']) %></td><td></td>
-      </tr>
-      <tr>
-        <td>Average posts per pool</td>
-        <td><%= del(@stats['average_posts_per_pool']) %></td><td></td>
-      </tr>
-
-      <tr>
-        <td>Public sets</td>
-        <td><%= del(@stats['public_sets']) %></td><td class='stats-pct' id='stats-pct-publicsets'></td>
-      </tr>
-
-      <tr>
-        <td>Private sets</td>
-        <td><%= del(@stats['private_sets']) %></td><td class='stats-pct' id='stats-pct-privatesets'></td>
-      </tr>
-
-      <tr>
-        <td>Average posts per set</td>
-        <td><%= del(@stats['average_posts_per_set']) %></td><td></td>
-      </tr>
-    </table>
-  </div>
-
-  <div class='stats-column' id='stats-column-2'>
-    <h2>Image files</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Total existing posts</td>
-        <td style='width:50px;'><%= del(@stats['active_posts']+@stats['deleted_posts']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-
-      <tr>
-        <td style='width:250px;'>JPG posts</td>
-        <td style='width:50px;'><%= del(@stats['jpg_posts']) %></td><td class='stats-pct' id='stats-pct-jpgposts'></td>
-      </tr>
-      <tr>
-        <td>PNG posts</td>
-        <td><%= del(@stats['png_posts']) %></td><td class='stats-pct' id='stats-pct-pngposts'></td>
-      </tr>
-      <tr>
-        <td>GIF posts</td>
-        <td><%= del(@stats['gif_posts']) %></td><td class='stats-pct' id='stats-pct-gifposts'></td>
-      </tr>
-      <tr>
-        <td>Flash posts</td>
-        <td><%= del(@stats['swf_posts']) %></td><td class='stats-pct' id='stats-pct-swfposts'></td>
-      </tr>
-      <tr>
-        <td>WebM posts</td>
-        <td><%= del(@stats['webm_posts']) %></td><td class='stats-pct' id='stats-pct-webmposts'></td>
-      </tr>
-      <tr>
-        <td>Average file size</td>
-        <td><%= humansize(@stats['average_file_size']) %></td><td></td>
-      </tr>
-      <tr>
-        <td>Total file size</td>
-        <td><%= humansize(@stats['total_file_size'],1) %></td><td></td>
-      </tr>
-    </table>
-    <h2>Users</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>User count</td>
-        <td style='width:50px;'><%= del(@stats['total_users']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-      <tr>
-        <td>Unactivated users</td>
-        <td><%= del(@stats['unactivated_users']) %></td><td class='stats-pct' id='stats-pct-unactivatedusers'></td>
-      </tr>
-      <tr>
-        <td>Banned users</td>
-        <td><%= del(@stats['blocked_users']) %></td><td class='stats-pct' id='stats-pct-blockedusers'></td>
-      </tr>
-      <tr>
-        <td>Members</td>
-        <td><%= del(@stats['member_users']) %></td><td class='stats-pct' id='stats-pct-memberusers'></td>
-      </tr>
-      <tr>
-        <td>Privileged users</td>
-        <td><%= del(@stats['privileged_users']) %></td><td class='stats-pct' id='stats-pct-privilegedusers'></td>
-      </tr>
-      <tr>
-        <td>Contributors</td>
-        <td><%= del(@stats['contributor_users']) %></td><td class='stats-pct' id='stats-pct-contributorusers'></td>
-      </tr>
-      <tr>
-        <td>Janitors</td>
-        <td><%= del(@stats['janitor_users']) %></td><td class='stats-pct' id='stats-pct-janitorusers'></td>
-      </tr>
-      <tr>
-        <td>Mods</td>
-        <td><%= del(@stats['moderator_users']) %></td><td class='stats-pct' id='stats-pct-modusers'></td>
-      </tr>
-      <tr>
-        <td>Admins</td>
-        <td><%= del(@stats['admin_users']) %></td><td class='stats-pct' id='stats-pct-adminusers'></td>
-      </tr>
-      <tr>
-        <td>Dmails sent</td>
-        <td><%= del(@stats['total_dmails']) %></td><td></td>
-      </tr>
-    </table>
-  </div>
-
-  <div class='stats-column' id='stats-column-3'>
-    <h2>Comments</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Comment count</td>
-        <td style='width:50px;'><%= del(@stats['total_comments']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-      <tr>
-        <td>Active comments</td>
-        <td><%= del(@stats['active_comments']) %></td><td class='stats-pct' id='stats-pct-activecomments'></td>
-      </tr>
-      <tr>
-        <td>Hidden comments</td>
-        <td><%= del(@stats['hidden_comments']) %></td><td class='stats-pct' id='stats-pct-hiddencomments'></td>
-      </tr>
-      <tr>
-        <td>Deleted comments</td>
-        <td><%= del(@stats['deleted_comments']) %></td><td class='stats-pct' id='stats-pct-deletedcomments'></td>
-      </tr>
-    </table>
-
-    <h2>Forum Posts</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Thread count</td>
-        <td style='width:100px;'><%= del(@stats['total_forum_threads']) %></td>
-      </tr>
-      <tr>
-        <td>Post count</td>
-        <td><%= del(@stats['total_forum_posts']) %></td>
-      </tr>
-      <tr>
-        <td>Average posts per thread</td>
-        <td><%= del(@stats['average_posts_per_thread']) %></td>
-      </tr>
-    </table>
-
-    <h2>Blips</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Blip count</td>
-        <td style='width:50px;'><%= del(@stats['total_blips']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-      <tr>
-        <td>Active blips</td>
-        <td><%= del(@stats['active_blips']) %></td><td class='stats-pct' id='stats-pct-activeblips'></td>
-      </tr>
-      <tr>
-        <td>Hidden blips</td>
-        <td><%= del(@stats['hidden_blips']) %></td><td class='stats-pct' id='stats-pct-hiddenblips'></td>
-      </tr>
-      <tr>
-        <td>Deleted blips</td>
-        <td><%= del(@stats['deleted_blips']) %></td><td class='stats-pct' id='stats-pct-deletedblips'></td>
-      </tr>
-    </table>
-
-    <h2>Tags</h2>
-    <table class='stats-rounded'>
-      <tr>
-        <td style='width:250px;'>Tag count</td>
-        <td style='width:50px;'><%= del(@stats['total_tags']) %></td>
-        <td style='width:50px;'></td>
-      </tr>
-      <tr>
-        <td>General tag count</td>
-        <td><%= del(@stats['general_tags']) %></td><td class='stats-pct' id='stats-pct-generaltags'></td>
-      </tr>
-      <tr>
-        <td>Artist tag count</td>
-        <td><%= del(@stats['artist_tags']) %></td><td class='stats-pct' id='stats-pct-artisttags'></td>
-      </tr>
-      <tr>
-        <td>Character tag count</td>
-        <td><%= del(@stats['character_tags']) %></td><td class='stats-pct' id='stats-pct-charactertags'></td>
-      </tr>
-      <tr>
-        <td>Copyright tag count</td>
-        <td><%= del(@stats['copyright_tags']) %></td><td class='stats-pct' id='stats-pct-copyrighttags'></td>
-      </tr>
-      <tr>
-        <td>Species tag count</td>
-        <td><%= del(@stats['species_tags']) %></td><td class='stats-pct' id='stats-pct-speciestags'></td>
-      </tr>
-      <tr>
-        <td>Meta tag count</td>
-        <td><%= del(@stats['meta_tags']) %></td><td class='stats-pct' id='stats-pct-metatags'></td>
-      </tr>
-      <tr>
-        <td>Invalid tag count</td>
-        <td><%= del(@stats['invalid_tags']) %></td><td class='stats-pct' id='stats-pct-invalidtags'></td>
-      </tr>
-      <tr>
-        <td>Lore tag count</td>
-        <td><%= del(@stats['lore_tags']) %></td><td class='stats-pct' id='stats-pct-loretags'></td>
-      </tr>
-    </table>
+      <%= render "percentage_table", header_title: "Tags", data: [
+          ["Tag count", "total_tags"],
+          ["General tag count", "general_tags", "total_tags"],
+          ["Artist tag count", "artist_tags", "total_tags"],
+          ["Character tag count", "character_tags", "total_tags"],
+          ["Copyright tag count", "copyright_tags", "total_tags"],
+          ["Species tag count", "species_tags", "total_tags"],
+          ["Meta tag count", "meta_tags", "total_tags"],
+          ["Invalid tag count", "invalid_tags", "total_tags"],
+          ["Lore tag count", "lore_tags", "total_tags"],
+        ]
+      %>
+    </div>
   </div>
 </div>
 

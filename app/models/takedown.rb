@@ -17,14 +17,6 @@ class Takedown < ApplicationRecord
   after_validation :normalize_deleted_post_ids
   before_save :update_post_count
 
-  PRETTY_STATUS = {
-      'partial': 'Partially Approved'
-  }
-
-  def pretty_status
-    PRETTY_STATUS.fetch(status, status.capitalize)
-  end
-
   def initialize_fields
     self.status = "pending"
     self.vericode = Takedown.create_vericode
@@ -54,14 +46,22 @@ class Takedown < ApplicationRecord
     end
 
     def can_create_takedown
-      return true if creator && creator.is_moderator?
-      if Takedown.where('creator_ip_addr = ? AND created_at > ?', creator_ip_addr.to_s, 5.minutes.ago).count > 0
-        errors.add(:base, "You have created a takedown too recently")
-        return false
+      return if creator&.is_admin?
+
+      if IpBan.is_banned?(creator_ip_addr.to_s)
+        errors.add(:base, "Something went wrong. Please email us at #{Danbooru.config.takedown_email} instead")
+        return
       end
-      if creator_id && Takedown.where('creator_id = ? AND created_at > ?', creator_id, 5.minutes.ago).count > 0
-        errors.add(:base, "You have created a takedown too recently")
-        return false
+
+      takedowns_ip = Takedown.where(creator_ip_addr: creator_ip_addr, created_at: 1.day.ago..)
+      if takedowns_ip.count > 5
+        errors.add(:base, "You have created too many takedowns. Please email us at #{Danbooru.config.takedown_email} or try again later")
+        return
+      end
+
+      takedowns_user = Takedown.where(creator_id: creator_id, created_at: 1.day.ago..)
+      if creator_id && takedowns_user.count > 5
+        errors.add(:base, "You have created too many takedowns. Please email us at #{Danbooru.config.takedown_email} or try again later")
       end
     end
 
@@ -88,8 +88,7 @@ class Takedown < ApplicationRecord
     def add_posts_by_ids!(ids)
       added_ids = []
       with_lock do
-        ids = ids.gsub(/(https?:\/\/)?(e621|e926)\.net\/posts\/(\d+)/i, '\3')
-        self.post_ids = (post_array + ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        self.post_ids = (post_array + matching_post_ids(ids)).uniq.join(' ')
         added_ids = self.post_array - self.post_array_was
         save!
       end
@@ -107,9 +106,13 @@ class Takedown < ApplicationRecord
 
     def remove_posts_by_ids!(ids)
       with_lock do
-        self.post_ids = (post_array - ids.scan(/\d+/).map(&:to_i)).uniq.join(' ')
+        self.post_ids = (post_array - matching_post_ids(ids)).uniq.join(' ')
         save!
       end
+    end
+
+    def matching_post_ids(input)
+      input.scan(%r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i).flatten.map(&:to_i).uniq
     end
   end
 
@@ -119,12 +122,12 @@ class Takedown < ApplicationRecord
     end
 
     def normalize_post_ids
-      self.post_ids = post_ids.scan(/\d+/).uniq.join(' ')
+      self.post_ids = matching_post_ids(post_ids).join(' ')
     end
 
     def normalize_deleted_post_ids
-      posts = post_ids.scan(/\d+/).uniq
-      del_posts = del_post_ids.scan(/\d+/).uniq
+      posts = matching_post_ids(post_ids)
+      del_posts = matching_post_ids(del_post_ids)
       del_posts = del_posts & posts # ensure that all deleted posts are also posts
       self.del_post_ids = del_posts.join(' ')
     end
@@ -135,7 +138,7 @@ class Takedown < ApplicationRecord
     end
 
     def del_post_array
-      del_post_ids.scan(/\d+/).map(&:to_i)
+      matching_post_ids(del_post_ids)
     end
 
     def actual_deleted_posts
@@ -143,11 +146,11 @@ class Takedown < ApplicationRecord
     end
 
     def post_array
-      post_ids.scan(/\d+/).map(&:to_i)
+      matching_post_ids(post_ids)
     end
 
     def post_array_was
-      post_ids_was.scan(/\d+/).map(&:to_i)
+      matching_post_ids(post_ids_was)
     end
 
     def actual_posts
@@ -189,7 +192,7 @@ class Takedown < ApplicationRecord
     end
 
     def process!(approver, del_reason)
-      TakedownJob.perform_async(id, approver.id, del_reason)
+      TakedownJob.perform_later(id, approver.id, del_reason)
     end
   end
 

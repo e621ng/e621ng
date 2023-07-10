@@ -1,5 +1,3 @@
-require 'digest/sha1'
-
 class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
@@ -15,9 +13,9 @@ class Dmail < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   before_create :auto_read_if_filtered
   after_create :update_recipient
-  after_commit :send_email, on: :create
+  after_commit :send_email, on: :create, unless: :no_email_notification
 
-  attr_accessor :bypass_limits
+  attr_accessor :bypass_limits, :no_email_notification
 
   module AddressMethods
     def to_name=(name)
@@ -80,10 +78,6 @@ class Dmail < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:message_index]
-    end
-
     def method_attributes
       super + [:key]
     end
@@ -130,7 +124,7 @@ class Dmail < ApplicationRecord
       q = super
 
       q = q.attribute_matches(:title, params[:title_matches])
-      q = q.attribute_matches(:body, params[:message_matches], index_column: :message_index)
+      q = q.attribute_matches(:body, params[:message_matches])
 
       if params[:to_name].present?
         q = q.to_name_matches(params[:to_name])
@@ -167,7 +161,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_admin?
+    return true if from.is_moderator?
     allowed = CurrentUser.can_dmail_with_reason
     minute_allowed = CurrentUser.can_dmail_minute_with_reason
     if allowed != true || minute_allowed != true
@@ -247,7 +241,8 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user)
-    return true if user.is_admin? && from_id == ::User.system.id
-    owner_id == user.id || (user.is_admin? && (to.is_admin? || from.is_admin? || Ticket.exists?(qtype: 'dmail', disp_id: id)))
+    return true if user.is_moderator? && (from_id == User.system.id || Ticket.exists?(qtype: "dmail", disp_id: id))
+    return true if user.is_admin? && (to.is_admin? || from.is_admin?)
+    owner_id == user.id
   end
 end

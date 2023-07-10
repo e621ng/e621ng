@@ -1,20 +1,11 @@
-require 'test_helper'
+require "test_helper"
 
 class UserDeletionTest < ActiveSupport::TestCase
-  setup do
-    Sidekiq::Testing::inline!
-  end
-
-  teardown do
-    Sidekiq::Testing::fake!
-  end
-
   context "an invalid user deletion" do
     context "for an invalid password" do
       setup do
-        @user = FactoryBot.create(:user)
+        @user = create(:user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
         @deletion = UserDeletion.new(@user, "wrongpassword")
       end
 
@@ -27,9 +18,8 @@ class UserDeletionTest < ActiveSupport::TestCase
 
     context "for an admin" do
       setup do
-        @user = FactoryBot.create(:admin_user)
+        @user = create(:admin_user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
         @deletion = UserDeletion.new(@user, "password")
       end
 
@@ -43,17 +33,16 @@ class UserDeletionTest < ActiveSupport::TestCase
 
   context "a valid user deletion" do
     setup do
-      @user = FactoryBot.create(:user, created_at: 2.weeks.ago)
+      @user = create(:privileged_user, created_at: 2.weeks.ago)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
 
-      @post = FactoryBot.create(:post)
+      @post = create(:post)
       FavoriteManager.add!(user: @user, post: @post)
 
       @user.update(email: "ted@danbooru.com")
 
       @deletion = UserDeletion.new(@user, "password")
-      @deletion.delete!
+      with_inline_jobs { @deletion.delete! }
       @user.reload
     end
 
@@ -66,7 +55,13 @@ class UserDeletionTest < ActiveSupport::TestCase
     end
 
     should "reset the password" do
-      assert_nil(User.authenticate(@user.name, "password"))
+      assert_raises(BCrypt::Errors::InvalidHash) do
+        User.authenticate(@user.name, "password")
+      end
+    end
+
+    should "reset the level" do
+      assert_equal(User::Levels::MEMBER, @user.level)
     end
 
     should "remove any favorites" do

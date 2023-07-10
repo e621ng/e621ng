@@ -5,5 +5,4 @@
   <%= f.input :script_matches, label: "Script" %>
   <%= f.input :status, label: "Status", collection: %w[pending approved rejected], include_blank: true %>
   <%= f.input :order, collection: [%w[Status status_desc], %w[Last\ updated updated_at_desc], %w[Newest id_desc], %w[Oldest id_asc]], include_blank: false %>
-  <%= f.submit "Search" %>
 <% end %>

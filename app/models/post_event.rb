@@ -19,8 +19,9 @@ class PostEvent < ApplicationRecord
     comment_enabled: 19,
     replacement_accepted: 14,
     replacement_rejected: 15,
+    replacement_promoted: 20,
     replacement_deleted: 16,
-    expunged: 17
+    expunged: 17,
   }
 
   def self.add(post_id, creator, action, data = {})
@@ -47,6 +48,9 @@ class PostEvent < ApplicationRecord
   def self.search(params)
     q = super
 
+    unless CurrentUser.is_moderator?
+      q = q.where.not(action: [actions[:comment_disabled], actions[:comment_enabled]])
+    end
     if params[:post_id].present?
       q = q.where("post_id = ?", params[:post_id].to_i)
     end

@@ -1,12 +1,12 @@
 <%= form_search path: tickets_path do |f| %>
-  <% if CurrentUser.is_admin? %>
+  <% if CurrentUser.is_moderator? %>
     <%= f.input :creator_name, label: "Reporter", autocomplete: "user" %>
     <%= f.input :creator_id, label: "Reporter ID" %>
     <%= f.input :accused_name, label: "Accused", autocomplete: "user" %>
+    <%= f.input :accused_id, label: "Accused ID" %>
     <%= f.input :reason %>
   <% end %>
-  <%= f.input :type, collection: [
-      ["Any", ""],
+  <%= f.input :qtype, label: "Type", collection: [
       ["User complaint", "user"],
       ["Private message complaint", "dmail"],
       ["Comment complaint", "comment"],
@@ -16,15 +16,12 @@
       ["Pool complaint", "pool"],
       ["Set complaint", "set"],
       ["Post complaint", "post"]
-  ] %>
+  ], include_blank: true %>
   <%= f.input :status, collection: [
-      ["Any", ""],
       ["Pending + Unclaimed", "pending_unclaimed"],
       ["Pending + Claimed", "pending_claimed"],
       ["Approved/investigated", "approved"],
       ["Under investigation", "partial"],
       ["Pending", "pending"],
-      ["Denied", "denied"]
-  ] %>
-  <%= f.submit "Search" %>
+  ], include_blank: true %>
 <% end %>

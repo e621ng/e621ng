@@ -6,7 +6,7 @@
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
       <label>File:
-        <input type="file" :name="fileInputName" ref="post_file" @change="updatePreviewFile"
+        <input type="file" ref="post_file" @change="updatePreviewFile"
           accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
           :disabled="disableFileUpload"/>
       </label>
@@ -18,7 +18,7 @@
         You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
       </div>
       <label>{{!disableFileUpload ? "(or) " : "" }}URL:
-        <input type="text" :name="urlInputName" size="50" v-model="uploadURL" :disabled="disableURLUpload"/>
+        <input type="text" size="50" v-model="uploadURL" :disabled="disableURLUpload"/>
       </label>
       <div id="whitelist-warning" v-show="whitelist.visible"
             :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
@@ -49,7 +49,6 @@ export default {
       disableURLUpload: false,
     }
   },
-  props: ["fileInputName", "urlInputName"],
   computed: {
     directURLProblem: function () {
       return this.directURLCheck(this.uploadURL);

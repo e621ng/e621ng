@@ -3,10 +3,6 @@ require 'test_helper'
 class StorageManagerTest < ActiveSupport::TestCase
   BASE_DIR = "#{Rails.root}/tmp/test-storage"
 
-  setup do
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
   context "StorageManager::Match" do
     setup do
       @storage_manager = StorageManager::Match.new do |matcher|
@@ -82,7 +78,7 @@ class StorageManagerTest < ActiveSupport::TestCase
 
     context "#store_file and #delete_file methods" do
       setup do
-        @post = FactoryBot.create(:post, file_ext: "png")
+        @post = create(:post, file_ext: "png")
 
         @storage_manager.store_file(StringIO.new("data"), @post, :preview)
         @storage_manager.store_file(StringIO.new("data"), @post, :large)
@@ -112,7 +108,7 @@ class StorageManagerTest < ActiveSupport::TestCase
 
     context "#file_url method" do
       should "return the correct urls" do
-        @post = FactoryBot.create(:post, file_ext: "png")
+        @post = create(:post, file_ext: "png")
 
         assert_equal("/data/#{@post.md5}.png", @storage_manager.file_url(@post, :original))
         assert_equal("/data/sample/sample-#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
@@ -120,7 +116,7 @@ class StorageManagerTest < ActiveSupport::TestCase
       end
 
       should "return the correct url for flash files" do
-        @post = FactoryBot.create(:post, file_ext: "swf")
+        @post = create(:post, file_ext: "swf")
 
         @storage_manager.stubs(:base_url).returns("/data")
         assert_equal("/images/download-preview.png", @storage_manager.file_url(@post, :preview))
@@ -133,8 +129,8 @@ class StorageManagerTest < ActiveSupport::TestCase
 
   context "StorageManager::Hybrid" do
     setup do
-      @post1 = FactoryBot.build(:post, id: 1, file_ext: "png")
-      @post2 = FactoryBot.build(:post, id: 2, file_ext: "png")
+      @post1 = build(:post, id: 1, file_ext: "png")
+      @post2 = build(:post, id: 2, file_ext: "png")
 
       @storage_manager = StorageManager::Hybrid.new do |id, md5, file_ext, type|
         if id.odd?
