@@ -17,23 +17,17 @@ div#c-uploads {
     .toggle-button:last-child { margin-right: 0; }
 
     .toggle-button.active {
-      @include themable { background-color: themed("color-button-active"); }
+      background-color: themed("color-button-active");
     }
 
     .rating-e.active {
-      @include themable {
-        background-color: themed("color-rating-explicit");
-      }
+      background-color: themed("color-rating-explicit");
     }
     .rating-q.active {
-      @include themable {
-        background-color: themed("color-rating-questionable");
-      }
+      background-color: themed("color-rating-questionable");
     }
     .rating-s.active {
-      @include themable {
-        background-color: themed("color-rating-safe");
-      }
+      background-color: themed("color-rating-safe");
     }
 
     .flex-grid-outer {
@@ -156,7 +150,7 @@ div#c-uploads {
     }
   }
   div#a-index {
-    .info {
+    .post-info {
       margin-right: 1.5em;
     }
   }

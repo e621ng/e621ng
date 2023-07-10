@@ -3,7 +3,7 @@
     <li class="vpad-05"><%= tag.a "+Favorite", href: '#', class: 'button btn-success', :id => "add-to-favorites", :"data-shortcut" => "f", style: ("display: none;" if @post.is_favorited?), 'data-pid': @post.id %></li>
     <li class="vpad-05"><%= tag.a "-Favorite", href: '#', class: 'button btn-danger', :id => "remove-from-favorites", :"data-shortcut" => "shift+f", style: ("display: none;" if !@post.is_favorited?), 'data-pid': @post.id %></li>
     <li><%= link_to "Edit", "#edit", :id => "side-edit-link" %></li>
-    <li><%= link_to_if post.visible?, "Download", post.tagged_file_url + "?download=1", download: post.presenter.filename_for_download %></li>
+    <li><%= link_to_if post.visible?, "Download", post.file_url %></li>
     <li id="add-to-pool-list"><%= link_to "Add to pool", "#", :id => "pool" %></li>
     <li id="add-to-set-list"><%= link_to "Add to set", "#", id: "set" %></li>
     <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: {post_id: post.id} %></li>
@@ -27,29 +27,28 @@
           <li><%= link_to "Flag", new_post_flag_path(post_flag: {post_id: post.id}), id: "flag" %></li>
         <% end %>
       <% end %>
-      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, type: 'post') %></li>
+      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, qtype: 'post') %></li>
 
       <% if CurrentUser.can_approve_posts? %>
         <% if post.is_deleted? %>
           <li><%= tag.a "Undelete", href: '#', class: 'undelete-post-link', 'data-pid': post.id %></li>
           <% if post.fav_count > 0 && post.parent_id %>
-            <li><%= link_to "Move favorites", confirm_move_favorites_moderator_post_post_path(:post_id => post.id) %></li>
+            <li><%= link_to "Move favorites", confirm_move_favorites_moderator_post_post_path(post) %></li>
           <% end %>
         <% else %>
-          <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(:post_id => post.id) %></li>
+          <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post) %></li>
         <% end %>
 
-        <% if post.is_approvable? && !post.is_deleted? %>
-          <li><%= tag.a "Approve", href: '#', class: 'approve-post-link', :"data-shortcut" => "shift+o", 'data-pid': post.id %></li>
-          <li><%= tag.a "Hide from queue", href: '#', class: 'disapprove-post-link', 'data-pid': post.id, 'data-reason': 'other' %></li>
+        <% if post.is_approvable? %>
+          <li><%= tag.a "Approve", href: '#', class: 'approve-post-link', 'data-pid': post.id %></li>
         <% end %>
 
-        <% if !post.is_pending? && !post.is_deleted? %>
+        <% if post.is_unapprovable?(CurrentUser.user) %>
           <li><%= tag.a "Unapprove", href: '#', 'data-pid': post.id, id: 'unapprove-post-link' %></li>
         <% end %>
 
         <% if CurrentUser.is_admin? %>
-          <% if Danbooru.config.iqdbs_server.present? %>
+          <% if Danbooru.config.iqdb_server.present? %>
             <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
           <% end %>
           <li><%= tag.a "Destroy", href: '#', id: 'destroy-post-link', 'data-pid': post.id %></li>

@@ -2,7 +2,7 @@ require "test_helper"
 
 class DTextTest < ActiveSupport::TestCase
   def inspect(filename)
-    apng = ApngInspector.new("#{Rails.root}/test/files/apng/#{filename}")
+    apng = ApngInspector.new(file_fixture("apng/#{filename}"))
     apng.inspect!
     apng
   end

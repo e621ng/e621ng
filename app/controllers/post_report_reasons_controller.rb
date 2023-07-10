@@ -38,9 +38,9 @@ class PostReportReasonsController < ApplicationController
     @reason = PostReportReason.find(params[:id])
     PostReportReason.transaction do
       @reason.update(reason_params)
-      ModAction.log(:report_reason_update, {reason: @reason.reason, reason_was: @reason.reason_before_last_save}) if @reason.valid?
+      ModAction.log(:report_reason_update, { reason: @reason.reason, reason_was: @reason.reason_before_last_save, description: @reason.description, description_was: @reason.description_before_last_save }) if @reason.valid?
     end
-    flash[:notice] = @reason.valid? ? 'Post report reason updated' : @reason.errors.full_messages.join('; ')
+    flash[:notice] = @reason.valid? ? "Post report reason updated" : @reason.errors.full_messages.join("; ")
     redirect_to post_report_reasons_path
   end
 

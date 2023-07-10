@@ -3,7 +3,7 @@
   <% unless current_user.anon? %>
   <li><%= link_to "Mine", action: "index", user_id: current_user.id %></li>
   <% end %>
-  <% if current_user.is_admin? %>
+  <% if current_user.is_moderator? %>
     <li><%= link_to "Claimed", action: "index", claim_id: current_user.id %></li>
   <% end %>
   <li><%= link_to "Help", controller: "help" %></li>

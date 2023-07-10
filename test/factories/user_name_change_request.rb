@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:user_name_change_request) do
-    desired_name {FFaker::Internet.user_name}
-    change_reason {FFaker::Lorem.sentence}
+    sequence(:desired_name) { |n| "desired_name_#{n}" }
+    change_reason { "" }
   end
 end

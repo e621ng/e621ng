@@ -12,10 +12,7 @@ module Maintenance
     ignoring_exceptions { Ban.prune! }
     ignoring_exceptions { UserPasswordResetNonce.prune! }
     ignoring_exceptions { StatsUpdater.run! }
-  end
-
-  def weekly
-    return if Danbooru.config.readonly_mode?
+    ignoring_exceptions { JanitorReportGenerator.run! }
   end
 
   def ignoring_exceptions(&block)

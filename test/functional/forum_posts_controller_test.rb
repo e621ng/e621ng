@@ -6,7 +6,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @other_user = create(:user)
       @mod = create(:moderator_user)
-      as_user do
+      as(@user) do
         @forum_topic = create(:forum_topic, title: "my forum topic", original_post_attributes: { body: "alias xxx -> yyy" })
         @forum_post = @forum_topic.original_post
       end
@@ -14,7 +14,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "with votes" do
       setup do
-        as_user do
+        as(@user) do
           @tag_alias = create(:tag_alias, forum_post: @forum_post, status: "pending")
           @vote = create(:forum_post_vote, forum_post: @forum_post, score: 1)
           @forum_post.reload
@@ -87,12 +87,12 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
-      should "render if the editor is a moderator" do
-        get_auth edit_forum_post_path(@forum_post), @mod
+      should "render if the editor is an admin" do
+        get_auth edit_forum_post_path(@forum_post), create(:admin_user)
         assert_response :success
       end
 
-      should "fail if the editor is not the creator of the topic and is not a moderator" do
+      should "fail if the editor is not the creator of the topic and is not an admin" do
         get_auth edit_forum_post_path(@forum_post), @other_user
         assert_response(403)
       end
@@ -100,7 +100,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "new action" do
       should "render" do
-        get_auth new_forum_post_path, @user, params: {:topic_id => @forum_topic.id}
+        get_auth new_forum_post_path, @user, params: { forum_post: { topic_id: @forum_topic.id }}
         assert_response :success
       end
     end
@@ -115,8 +115,9 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the posts" do
-        delete_auth forum_post_path(@forum_post), @mod
-        get_auth forum_post_path(@forum_post), @mod
+        @admin = create(:admin_user)
+        delete_auth forum_post_path(@forum_post), @admin
+        get_auth forum_post_path(@forum_post), @admin
         assert_response :not_found
       end
     end

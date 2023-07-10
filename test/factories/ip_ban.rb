@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory(:ip_ban) do
     creator
-    reason { FFaker::Lorem.words.join(" ") }
+    sequence(:reason) { |n| "ip_ban_reason_#{n}" }
   end
 end

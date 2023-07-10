@@ -1,7 +1,9 @@
 
-table.table {
+table.striped {
   width: 100%;
-  p {
+
+  // DText formatting fix
+  *:last-child {
     margin: 0;
   }
 
@@ -24,21 +26,14 @@ table.table {
           }
         }
       }
-      @include themable {
-        background-color: themed("color-section");
-        border-bottom: 1px solid themed("color-foreground");
-      }
+      background-color: themed("color-section");
+      border-bottom: 1px solid themed("color-table-border");
       &:hover {
-        @include themable {
-          background-color: lighten( themed("color-section"), 10%);
-        }
+        background-color: themed("color-section-lighten-10");
       }
       &.selected {
-        @include themable {
-          background-color: lighten( themed("color-section"), 10%);
-        }
+        background-color: themed("color-section-lighten-10");
       }
-      border-bottom: 1px solid $table-stripe-border;
     }
   }
 
@@ -48,25 +43,16 @@ table.table {
 
   thead {
     tr {
-      @include themable {
-        background-color: darken( themed("color-section"), 5%);
-        border-bottom: 1px solid themed("color-foreground");
-      }
+      background-color: themed("color-section-darken-5");
+      border-bottom: 1px solid themed("color-foreground");
     }
 
     th {
       font-weight: bold;
       text-align: left;
-      @include themable {
-        color: darken( themed("color-text"), 10%);
-      }
+      color: themed("color-text-table-header");
     }
   }
-}
-
-// Needed so that unconverted tables work.
-table.striped {
-  @extend .table;
 }
 
 /*

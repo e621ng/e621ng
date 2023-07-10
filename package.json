@@ -1,15 +1,18 @@
 {
   "name": "app",
+  "packageManager": "yarn@1.22.19",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.2.1",
+    "@rails/ujs": "^7.0.4",
     "@rails/webpacker": "^6.0.0-rc.5",
-    "@vue/compiler-sfc": "^3.1.0",
     "babel-plugin-macros": "^3.1.0",
     "core-js": "3.8",
     "css-loader": "^6.3.0",
     "css-minimizer-webpack-plugin": "^3.0.2",
+    "jquery": "^3.6.3",
+    "jquery-hotkeys": "^0.2.2",
     "jquery-ui": "^1.12.1",
-    "jquery-ujs": "^1.2.2",
     "mini-css-extract-plugin": "^2.3.0",
     "rails-erb-loader": "^5.5.2",
     "sass": "^1.42.1",
@@ -19,11 +22,8 @@
     "vue": "^3.1.0",
     "vue-loader": "https://github.com/earlopain/vue-loader#const-fix",
     "webpack": "^5.51.1",
-    "webpack-cli": "^4.8.0",
     "zingtouch": "^1.0.6"
   },
   "version": "0.1.0",
-  "devDependencies": {
-    "webpack-dev-server": "^4.2.1"
-  }
+  "devDependencies": {}
 }

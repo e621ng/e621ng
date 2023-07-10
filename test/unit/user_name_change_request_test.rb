@@ -3,15 +3,9 @@ require 'test_helper'
 class UserNameChangeRequestTest < ActiveSupport::TestCase
   context "in all cases" do
     setup do
-      @admin = FactoryBot.create(:admin_user)
-      @requester = FactoryBot.create(:user)
+      @admin = create(:admin_user)
+      @requester = create(:user)
       CurrentUser.user = @requester
-      CurrentUser.ip_addr = "127.0.0.1"
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "approving a request" do
@@ -39,7 +33,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
 
       should "clear the user name cache" do
         @change_request.approve!
-        assert_equal("abc", Cache.get("uin:#{@requester.id}"))
+        assert_equal("abc", Cache.fetch("uin:#{@requester.id}"))
       end
 
       should "create mod action" do
@@ -63,8 +57,8 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       end
 
       should "not convert the desired name to lower case" do
-        uncr = FactoryBot.create(:user_name_change_request, user: @requester, original_name: "provence.", desired_name: "Provence")
-        CurrentUser.scoped(@admin) { uncr.approve! }
+        uncr = create(:user_name_change_request, user: @requester, original_name: "provence.", desired_name: "Provence")
+        as(@admin) { uncr.approve! }
 
         assert_equal("Provence", @requester.name)
       end

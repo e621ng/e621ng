@@ -5,7 +5,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @admin = create(:admin_user)
       @user = create(:user)
-      as_user do
+      as(@user) do
         @artist = create(:artist, notes: "message")
         @masao = create(:artist, name: "masao", url_string: "http://www.pixiv.net/member.php?id=32777")
         @artgerm = create(:artist, name: "artgerm", url_string: "http://artgerm.deviantart.com/")
@@ -43,7 +43,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "create an artist" do
-      attributes = FactoryBot.attributes_for(:artist)
+      attributes = attributes_for(:artist)
       assert_difference("Artist.count", 1) do
         attributes.delete(:is_active)
         post_auth artists_path, @user, params: {artist: attributes}
@@ -78,7 +78,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         old_timestamp = @wiki_page.updated_at
         old_updater_id = @wiki_page.updater_id
 
-        travel_to(1.minutes.from_now) do
+        travel_to(1.minute.from_now) do
           as(@another_user) do
             @artist.update(notes: "testing")
           end
@@ -86,7 +86,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
         @artist.reload
         @wiki_page = @artist.wiki_page
-        assert_equal(old_timestamp.to_i, @wiki_page.updated_at.to_i)
+        assert_in_delta(old_timestamp.to_i, @wiki_page.updated_at.to_i, 1)
         assert_equal(old_updater_id, @wiki_page.updater_id)
       end
 
@@ -98,16 +98,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
           @wiki_page.reload
           assert_equal("bbb", @wiki_page.title)
           assert_equal("more testing", @wiki_page.body)
-        end
-
-        should "merge the new notes with the existing wiki page's contents if a wiki page for the new name already exists" do
-          as_user do
-            @existing_wiki_page = create(:wiki_page, title: "bbb", body: "xxx")
-          end
-          put_auth artist_path(@artist.id), @user, params: {artist: {name: "bbb", notes: "yyy"}}
-          @existing_wiki_page.reload
-          assert_equal("bbb", @existing_wiki_page.title)
-          assert_equal("xxx\n\nyyy", @existing_wiki_page.body)
         end
       end
     end
@@ -129,7 +119,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
     context "reverting an artist" do
       should "work" do
-        as_user do
+        as(@user) do
           @artist.update(name: "xyz")
           @artist.update(name: "abc")
         end
@@ -138,7 +128,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another artist" do
-        as_user do
+        as(@user) do
           @artist2 = create(:artist)
         end
         put_auth artist_path(@artist.id), @user, params: {version_id: @artist2.versions.first.id}

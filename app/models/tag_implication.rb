@@ -31,6 +31,12 @@ class TagImplication < TagRelationship
           result[x.antecedent_name].merge x.descendant_names
         end
       end
+
+      def cached_descendants(tag_name)
+        Cache.fetch("descendants-#{tag_name}", expires_in: 1.day) do
+          TagImplication.active.where("descendant_names && array[?]", tag_name).pluck(:antecedent_name)
+        end
+      end
     end
 
     def descendants
@@ -44,6 +50,12 @@ class TagImplication < TagRelationship
       end.sort.uniq
     end
     memoize :descendants
+
+    def invalidate_cached_descendants
+      descendant_names.each do |tag_name|
+        Cache.delete("descendants-#{tag_name}")
+      end
+    end
 
     def update_descendant_names
       self.descendant_names = descendants
@@ -153,11 +165,13 @@ class TagImplication < TagRelationship
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
       create_undo_information
-      TagImplicationJob.perform_async(id, update_topic)
+      invalidate_cached_descendants
+      TagImplicationJob.perform_later(id, update_topic)
     end
 
     def reject!(update_topic: true)
       update_column(:status,  "deleted")
+      invalidate_cached_descendants
       forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
     end
 

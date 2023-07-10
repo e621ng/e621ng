@@ -1,5 +1,4 @@
 class ArtistVersionsController < ApplicationController
-  before_action :member_only
   respond_to :html, :json
 
   def index
@@ -11,7 +10,7 @@ class ArtistVersionsController < ApplicationController
 
   def search_params
     permitted_params = %i[name updater_name updater_id artist_id is_active order]
-    permitted_params += %i[ip_addr] if CurrentUser.is_moderator?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 end

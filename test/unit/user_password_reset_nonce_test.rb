@@ -3,8 +3,8 @@ require 'test_helper'
 class UserPasswordResetNonceTest < ActiveSupport::TestCase
   context "Creating a new nonce" do
     setup do
-      @user = FactoryBot.create(:user)
-      @nonce = FactoryBot.create(:user_password_reset_nonce, user: @user)
+      @user = create(:user)
+      @nonce = create(:user_password_reset_nonce, user: @user)
     end
 
     should "validate" do

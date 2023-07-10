@@ -21,7 +21,7 @@ div#c-wiki-page-versions {
 
   #a-show {
     span.version {
-      color: $info-color;
+      color: themed("color-text-muted");
     }
   }
 }

@@ -4,10 +4,10 @@
 
     <div style="margin-bottom: 1em;">
       <ul>
-        <li><strong>category actual</strong>: <%= @correction.category %></li>
-        <li><strong>category memcache</strong>: <%= @correction.category_cache || "none" %></li>
-        <li><strong>post count db cache</strong>: <%= @correction.post_count %></li>
-        <li><strong>post count actual:</strong> <%= @correction.real_post_count %></li>
+        <li><strong>Category actual</strong>: <%= TagCategory.reverse_mapping[@correction.category] %></li>
+        <li><strong>Category memcache</strong>: <%= TagCategory.reverse_mapping[@correction.category_cache] || "none" %></li>
+        <li><strong>Post count db cache</strong>: <%= @correction.post_count %></li>
+        <li><strong>Post count actual:</strong> <%= @correction.real_post_count %></li>
       </ul>
     </div>
 

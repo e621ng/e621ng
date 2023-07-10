@@ -9,11 +9,7 @@ module Danbooru
 
     # The name of this Danbooru.
     def app_name
-      if CurrentUser.safe_mode?
-        "e926"
-      else
-        "e621"
-      end
+      "e621"
     end
 
     def description
@@ -34,12 +30,6 @@ module Danbooru
       Socket.gethostname
     end
 
-    # The list of all domain names this site is accessible under.
-    # Example: %w[danbooru.donmai.us sonohara.donmai.us hijiribe.donmai.us safebooru.donmai.us]
-    def hostnames
-      [hostname]
-    end
-
     # Contact email address of the admin.
     def contact_email
       "management@#{domain}"
@@ -47,10 +37,6 @@ module Danbooru
 
     def takedown_email
       "management@#{domain}"
-    end
-
-    def takedown_links
-      []
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -62,11 +48,7 @@ module Danbooru
     end
 
     def source_code_url
-      "https://github.com/zwagoth/e621ng"
-    end
-
-    def commit_url(hash)
-      "#{source_code_url}/commit/#{hash}"
+      "https://github.com/e621ng/e621ng"
     end
 
     # Stripped of any special characters.
@@ -95,15 +77,17 @@ module Danbooru
 
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
-      user.comment_threshold = -10 unless user.will_save_change_to_comment_threshold?
-      user.blacklisted_tags = 'gore
-scat
-watersports
-young -rating:s
-loli
-shota
-fart'
-      true
+      user.blacklisted_tags = default_blacklist.join("\n")
+      user.comment_threshold = -10
+      user.enable_auto_complete = true
+      user.enable_keyboard_navigation = true
+      user.per_page = 75
+      user.show_post_statistics = true
+      user.style_usernames = true
+    end
+
+    def default_blacklist
+      []
     end
 
     # This allows using statically linked copies of ffmpeg in non default locations. Not universally supported across
@@ -247,7 +231,7 @@ fart'
     end
 
     def post_flag_limit
-      10
+      20
     end
 
     # Flat limit that applies to all users, regardless of level
@@ -281,16 +265,8 @@ fart'
     end
 
     # Users cannot search for more than X regular tags at a time.
-    def base_tag_query_limit
-      20
-    end
-
     def tag_query_limit
-      if CurrentUser.user.present?
-        CurrentUser.user.tag_query_limit
-      else
-        base_tag_query_limit
-      end
+      40
     end
 
     # Return true if the given tag shouldn't count against the user's tag search limit.
@@ -302,57 +278,53 @@ fart'
     def max_numbered_pages
       750
     end
-    
+
     def blip_max_size
       1_000
     end
-    
+
     def comment_max_size
       10_000
     end
-    
+
     def dmail_max_size
       50_000
     end
-    
+
     def forum_post_max_size
       50_000
     end
-    
+
     def note_max_size
       1_000
     end
-    
+
     def pool_descr_max_size
       10_000
     end
-    
+
     def post_descr_max_size
       50_000
     end
-    
+
     def ticket_max_size
       5_000
     end
-    
+
     def user_about_max_size
       50_000
     end
-    
+
     def wiki_page_max_size
       250_000
     end
 
-    def beta_notice?
-      false
-    end
-
     def discord_site
-      ""
+      "http://localhost:8000"
     end
 
     def discord_secret
-      ""
+      "abc123"
     end
 
     # Maximum size of an upload. If you change this, you must also change
@@ -364,8 +336,8 @@ fart'
     def max_file_sizes
       {
         'jpg' => 100.megabytes,
-        'gif' => 20.megabytes,
         'png' => 100.megabytes,
+        'gif' => 20.megabytes,
         'webm' => 100.megabytes
       }
     end
@@ -420,7 +392,7 @@ fart'
       # base_url - where to serve files from (default: http://#{hostname}/data)
       # hierarchical: false - store files in a single directory
       # hierarchical: true - store files in a hierarchical directory structure, based on the MD5 hash
-      StorageManager::Local.new(base_url: "#{CurrentUser.root_url}/", base_dir: "#{Rails.root}/public/data", hierarchical: true)
+      StorageManager::Local.new(base_dir: "#{Rails.root}/public/data", hierarchical: true)
 
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|
@@ -452,7 +424,6 @@ fart'
           "extra" => [],
           "header" => 'General',
           "humanized" => nil,
-          "mod_only" => false,
         },
         "species" => {
           "category" => 5,
@@ -460,7 +431,6 @@ fart'
           "extra" => [],
           "header" => 'Species',
           "humanized" => nil,
-          "mod_only" => false,
         },
         "character" => {
           "category" => 4,
@@ -473,7 +443,6 @@ fart'
             "regexmap" => /^(.+?)(?:_\(.+\))?$/,
             "formatstr" => "%s"
           },
-          "mod_only" => false,
         },
         "copyright" => {
           "category" => 3,
@@ -486,7 +455,6 @@ fart'
             "regexmap" => //,
             "formatstr" => "(%s)"
           },
-          "mod_only" => false,
         },
         "artist" => {
           "category" => 1,
@@ -495,11 +463,10 @@ fart'
           "header" => 'Artists',
           "humanized" => {
             "slice" => 0,
-            "exclusion" => %w(avoid_posting conditional_dnp),
+            "exclusion" => %w(avoid_posting conditional_dnp epilepsy_warning sound_warning),
             "regexmap" => //,
             "formatstr" => "created by %s"
           },
-          "mod_only" => false,
         },
         "invalid" => {
           "category" => 6,
@@ -507,7 +474,7 @@ fart'
           "extra" => [],
           "header" => 'Invalid',
           "humanized" => nil,
-          "mod_only" => true,
+          "admin_only" => true,
         },
         "lore" => {
           "category" => 8,
@@ -515,7 +482,7 @@ fart'
           'extra' => [],
           'header' => 'Lore',
           'humanized' => nil,
-          'mod_only' => true,
+          "admin_only" => true,
         },
         "meta" => {
           "category" => 7,
@@ -523,7 +490,7 @@ fart'
           "extra" => [],
           "header" => 'Meta',
           "humanized" => nil,
-          "mod_only" => true,
+          "admin_only" => true,
         }
       }
     end
@@ -558,47 +525,48 @@ fart'
 
     def flag_reasons
       [
-          {
-            name: 'dnp_artist',
-            reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]",
-            text: "Certain artists have requested that their work is not to be published on this site, and were granted [[avoid_posting|Do Not Post]] status.\nSometimes, that status comes with conditions; see [[conditional_dnp]] for more information"
-          },
-          {
-            name: 'pay_content',
-            reason: "Paysite, commercial, or subscription content",
-            text: "We do not host paysite or commercial content of any kind. This includes Patreon leaks, reposts from piracy websites, and so on."
-          },
-          {
-            name: 'trace',
-            reason: "Trace of another artist's work",
-            text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site."
-          },
-          {
-            name: 'previously_deleted',
-            reason: "Previously deleted",
-            text: "Posts usually get removed for a good reason, and reuploading of deleted content is not acceptable.\nPlease, leave more information in the comments, or simply add the original post as this post's parent."
-          },
-          {
-            name: 'real_porn',
-            reason: "Real-life pornography",
-            text: "Posts featuring real-life pornography are not acceptable on this site. No exceptions.\nNote that images featuring non-erotic photographs are acceptable."
-          },
-          {
-            name: 'corrupt',
-            reason: "File is either corrupted, broken, or otherwise does not work",
-            text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments."
-          },
-          {
-            name: 'inferior',
-            reason: "Duplicate or inferior version of another post",
-            text: "A superior version of this post already exists on the site.\nThis may include images with better visual quality (larger, less compressed), but may also feature \"fixed\" versions, with visual mistakes accounted for by the artist.\nNote that edits and alternate versions do not fall under this category.",
-            parent: true
-          },
+        {
+          name: "uploading_guidelines",
+          reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
+          text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it."
+        },
+        {
+          name: 'dnp_artist',
+          reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]",
+          text: "Certain artists have requested that their work is not to be published on this site, and were granted [[avoid_posting|Do Not Post]] status.\nSometimes, that status comes with conditions; see [[conditional_dnp]] for more information"
+        },
+        {
+          name: 'pay_content',
+          reason: "Paysite, commercial, or subscription content",
+          text: "We do not host paysite or commercial content of any kind. This includes Patreon leaks, reposts from piracy websites, and so on."
+        },
+        {
+          name: 'trace',
+          reason: "Trace of another artist's work",
+          text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site."
+        },
+        {
+          name: 'previously_deleted',
+          reason: "Previously deleted",
+          text: "Posts usually get removed for a good reason, and reuploading of deleted content is not acceptable.\nPlease, leave more information in the comments, or simply add the original post as this post's parent."
+        },
+        {
+          name: 'real_porn',
+          reason: "Real-life pornography",
+          text: "Posts featuring real-life pornography are not acceptable on this site. No exceptions.\nNote that images featuring non-erotic photographs are acceptable."
+        },
+        {
+          name: 'corrupt',
+          reason: "File is either corrupted, broken, or otherwise does not work",
+          text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments."
+        },
+        {
+          name: 'inferior',
+          reason: "Duplicate or inferior version of another post",
+          text: "A superior version of this post already exists on the site.\nThis may include images with better visual quality (larger, less compressed), but may also feature \"fixed\" versions, with visual mistakes accounted for by the artist.\nNote that edits and alternate versions do not fall under this category.",
+          parent: true
+        },
       ]
-    end
-
-    def flag_reason_48hours
-      "If you are the artist, and want this image to be taken down [b]permanently[/b], file a \"takedown\":/static/takedown instead.\nTo replace the image with a \"fixed\" version, upload that image first, and then use the \"Duplicate or inferior version\" reason above.\nFor accidentally released paysite or private content, use the \"Paysite, commercial, or private content\" reason above."
     end
 
     def deletion_reasons
@@ -607,11 +575,13 @@ fart'
         "Previously deleted (post #%PARENT_ID%)",
         "Excessive same base image set",
         "Colored base",
+        "Advertisement",
+        "Underage artist",
         "",
         "Does not meet minimum quality standards (Artistic)",
         "Does not meet minimum quality standards (Resolution)",
         "Does not meet minimum quality standards (Compression)",
-        "Does not meet minimum quality standards (Low quality/effort edit)",
+        "Does not meet minimum quality standards (Trivial or low quality edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
         "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
@@ -621,6 +591,7 @@ fart'
         "Irrelevant to site (Human only)",
         "Irrelevant to site (Screencap)",
         "Irrelevant to site (Zero pictured)",
+        "Irrelevant to site (AI assisted/generated)",
         "Irrelevant to site (%OTHER_ID%)",
         "",
         "Paysite/commercial content",
@@ -662,7 +633,7 @@ fart'
     end
 
     def can_user_see_post?(user, post)
-      return false if post.is_deleted? && !user.is_moderator?
+      return false if post.is_deleted? && !user.is_janitor?
       if is_user_restricted?(user) && is_post_restricted?(post)
         false
       else
@@ -678,19 +649,8 @@ fart'
       posts.select {|x| can_user_see_post?(user, x)}
     end
 
-    # Counting every post is typically expensive because it involves a sequential scan on
-    # potentially millions of rows. If this method returns a value, then blank searches
-    # will return that number for the fast_count call instead.
-    def blank_tag_search_fast_count
-      nil
-    end
-
     def enable_dimension_autotagging?
       true
-    end
-
-    def tags_to_remove_after_replacement_accepted
-      ["better_version_at_source"]
     end
 
     # The default headers to be sent with outgoing http requests. Some external
@@ -744,15 +704,12 @@ fart'
       end
     end
 
-    def twitter_site
-    end
-
     # disable this for tests
     def enable_sock_puppet_validation?
       true
     end
 
-    def iqdbs_server
+    def iqdb_server
     end
 
     def elasticsearch_host
@@ -794,19 +751,6 @@ fart'
       {zone: nil, revive_id: nil, checksum: nil}
     end
 
-    def mascots
-      [
-          ["https://static1.e621.net/data/mascot_bg/esix1.jpg", "#012e56", "<a href='http://www.furaffinity.net/user/keishinkae'>Keishinkae</a>"],
-          ["https://static1.e621.net/data/mascot_bg/esix2.jpg", "#012e56", "<a href='http://www.furaffinity.net/user/keishinkae'>Keishinkae</a>"],
-          ["https://static1.e621.net/data/mascot_bg/raptor1.jpg", "#012e56", "<a href='http://nowhereincoming.net/'>darkdoomer</a>"],
-          ["https://static1.e621.net/data/mascot_bg/hexerade.jpg", "#002d55", "<a href='http://www.furaffinity.net/user/chizi'>chizi</a>"],
-          ["https://static1.e621.net/data/mascot_bg/wiredhooves.jpg", "#012e56", "<a href='http://www.furaffinity.net/user/wiredhooves'>wiredhooves</a>"],
-          ["https://static1.e621.net/data/mascot_bg/ecmajor.jpg", "#012e57", "<a href='http://www.horsecore.org/'>ECMajor</a>"],
-          ["https://static1.e621.net/data/mascot_bg/evalionfix.jpg", "#012e57", "<a href='http://www.furaffinity.net/user/evalion'>evalion</a>"],
-          ["https://static1.e621.net/data/mascot_bg/peacock.png", "#012e57", "<a href='http://www.furaffinity.net/user/ratte'>Ratte</a>"]
-      ]
-    end
-
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
@@ -819,6 +763,14 @@ fart'
 
     def readonly_mode?
       false
+    end
+
+    def enable_visitor_metrics?
+      false
+    end
+
+    def janitor_reports_discord_webhook_url
+      nil
     end
   end
 

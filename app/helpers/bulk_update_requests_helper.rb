@@ -1,6 +1,6 @@
 module BulkUpdateRequestsHelper
   def approved?(command, antecedent, consequent)
-    return false unless CurrentUser.is_moderator?
+    return false unless CurrentUser.is_admin?
 
     case command
     when :create_alias
@@ -25,7 +25,7 @@ module BulkUpdateRequestsHelper
   end
 
   def failed?(command, antecedent, consequent)
-    return false unless CurrentUser.is_moderator?
+    return false unless CurrentUser.is_admin?
 
     case command
     when :create_alias
@@ -46,7 +46,7 @@ module BulkUpdateRequestsHelper
       when :create_alias, :create_implication, :remove_alias, :remove_implication
         names.add(arg1)
         names.add(arg2)
-      when :change_category
+      when :change_category, :nuke_tag
         names.add(arg1)
       end
     end
@@ -54,27 +54,28 @@ module BulkUpdateRequestsHelper
   end
 
   def script_tag_links(cmd, arg1, arg2, script_tags)
+    arg1_count = script_tags[arg1].try(:post_count).to_i
+    arg2_count = script_tags[arg2].try(:post_count).to_i
+
     case cmd
     when :create_alias, :create_implication, :remove_alias, :remove_implication
-      arg1_count = script_tags[arg1].try(:post_count).to_i
-      arg2_count = script_tags[arg2].try(:post_count).to_i
-
       "[[#{arg1}]] (#{arg1_count}) -> [[#{arg2}]] (#{arg2_count})"
 
     when :mass_update
       "[[#{arg1}]] -> [[#{arg2}]]"
 
-    when :change_category
-      arg1_count = script_tags[arg1].try(:post_count).to_i
+    when :nuke_tag
+      "[[#{arg1}]] (#{arg1_count})"
 
+    when :change_category
       "[[#{arg1}]] (#{arg1_count}) -> #{arg2}"
     end
   end
 
   def script_with_line_breaks(bur, with_decorations:)
-    hash = Cache.hash "#{CurrentUser.is_moderator? ? "mod" : ""}#{with_decorations ? "color" : ""}#{bur.status}#{bur.script}"
-    Cache.get(hash, 3600) do
-      script_tokenized = AliasAndImplicationImporter.tokenize(bur.script)
+    cache_key = "#{CurrentUser.is_admin? ? 'mod' : ''}#{with_decorations ? 'color' : ''}#{bur.updated_at}"
+    Cache.fetch(cache_key, expires_in: 1.hour) do
+      script_tokenized = BulkUpdateRequestImporter.tokenize(bur.script)
       script_tags = collect_script_tags(script_tokenized)
       script_tokenized.map do |cmd, arg1, arg2, arg3|
         if with_decorations && approved?(cmd, arg1, arg2)
@@ -88,7 +89,7 @@ module BulkUpdateRequestsHelper
         "#{btag}#{cmd.to_s.tr("_", " ")} #{links}#{arg3 if bur.is_pending?}#{etag}"
       end.join("\n")
 
-    rescue AliasAndImplicationImporter::Error
+    rescue BulkUpdateRequestImporter::Error
       "!!!!!!Invalid Script!!!!!!"
     end
   end

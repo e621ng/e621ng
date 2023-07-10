@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class PostEventTest < ActiveSupport::TestCase
-  def setup
+  setup do
     travel_to(1.month.ago) do
       @user = create(:user)
       @janitor = create(:janitor_user)
@@ -104,14 +104,16 @@ class PostEventTest < ActiveSupport::TestCase
 
       should "create both post events" do
         assert_post_events_created(@janitor, [:flag_removed, :approved]) do
-          @post.approve!(@janitor)
+          @post.approve!(@janitor, resolve_flags: true)
         end
       end
     end
 
     context "replacements" do
       setup do
-        @replacement = FactoryBot.create(:png_replacement, creator: @user, creator_ip_addr: '127.0.0.1', post: @post)
+        upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
+        @post = upload.post
+        @replacement = create(:png_replacement, creator: @user, post: @post)
       end
 
       should "reject" do

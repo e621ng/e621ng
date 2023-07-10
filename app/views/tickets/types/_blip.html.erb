@@ -1,8 +1,8 @@
-<% if @ticket.blip %>
+<% if @ticket.content %>
     <tr>
       <td><span class='title'>Reported Blip</span></td>
       <td>
-        <%= link_to "Blip by #{@ticket.blip.creator_name}", blip_path(@ticket.blip) %>
+        <%= link_to "Blip by #{@ticket.content.creator_name}", blip_path(@ticket.content) %>
       </td>
     </tr>
 <% else %>

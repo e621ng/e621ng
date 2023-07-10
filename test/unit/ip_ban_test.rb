@@ -2,13 +2,7 @@ require 'test_helper'
 
 class IpBanTest < ActiveSupport::TestCase
   setup do
-    CurrentUser.user = FactoryBot.create(:mod_user)
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
+    CurrentUser.user = create(:mod_user)
   end
 
   should "be able to ban a user" do
@@ -27,7 +21,7 @@ class IpBanTest < ActiveSupport::TestCase
   end
 
   context "validation" do
-    subject { FactoryBot.build(:ip_ban) }
+    subject { build(:ip_ban) }
 
     should allow_value("1.2.3.4").for(:ip_addr)
     should allow_value("1.2.3.4/24").for(:ip_addr)

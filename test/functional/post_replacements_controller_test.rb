@@ -1,20 +1,11 @@
 require 'test_helper'
 
 class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
-
-  setup do
-    Sidekiq::Testing.inline!
-  end
-
-  teardown do
-    Sidekiq::Testing.fake!
-  end
-
   context "The post replacements controller" do
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)
-      @user.as_current do
-        @upload = UploadService.new(FactoryBot.attributes_for(:jpg_upload).merge({uploader: @user})).start!
+      as(@user) do
+        @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
         @replacement = create(:png_replacement, creator: @user, post: @post)
       end
@@ -22,8 +13,9 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "accept new non duplicate replacement" do
-        file = Rack::Test::UploadedFile.new("#{Rails.root}/test/files/alpha.png", "image/png")
+        file = fixture_file_upload("alpha.png")
         params = {
+          format: :json,
           post_id: @post.id,
           post_replacement: {
             replacement_file: file,
@@ -36,7 +28,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           @post.reload
         end
 
-        assert_redirected_to post_path(@post)
+        assert_equal @response.parsed_body["location"], post_path(@post)
       end
     end
 

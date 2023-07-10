@@ -60,29 +60,23 @@
               <li><%= link_to "Edit", edit_forum_post_path(forum_post.id), :id => "edit_forum_post_link_#{forum_post.id}", :class => "edit_forum_post_link" %></li>
             <% end %>
           <% end %>
+          <% if params[:controller] == "forum_posts" %>
+            <li><%= link_to "Parent", forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %></li>
+          <% end %>
           <% if CurrentUser.is_member? %>
-            <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, type: 'forum') %></li>
+            <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, qtype: 'forum') %></li>
           <% end %>
           <% if CurrentUser.is_moderator? %>
             <li>|</li>
             <li><%= link_to "Show Edits", edit_history_path(id: forum_post.id, type: 'ForumPost') %></li>
+            <%= render "user_warnable/buttons", model: forum_post %>
+          <% end %>
+          <% if CurrentUser.is_admin? %>
+            <li>|</li>
             <li>
               <strong>IP</strong>
               <span><%= link_to_ip forum_post.creator_ip_addr %></span>
             </li>
-            <li>|</li>
-            <% if !forum_post.was_warned? %>
-              <li>Mark for:</li>
-              <li><%= tag.a "Warning", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'warning' } %></li>
-              <li><%= tag.a "Record", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'record' } %></li>
-              <li><%= tag.a "Ban", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'ban' } %></li>
-            <% else %>
-              <li><%= tag.a "Unmark", href: '#', class: 'item-mark-user-warned', data: { 'item-type': 'forum_post', 'item-id': forum_post.id, 'record-type': 'unmark' } %></li>
-            <% end %>
-            <li>|</li>
-          <% end %>
-          <% if params[:controller] == "forum_posts" %>
-            <li><%= link_to "Parent", forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %></li>
           <% end %>
           <% if forum_post.votable? %>
             <ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">

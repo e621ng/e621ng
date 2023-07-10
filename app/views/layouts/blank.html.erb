@@ -1,25 +1,15 @@
 <!doctype html>
 <html>
 <head>
-  <title><%= get_title %></title>
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="top" title="<%= Danbooru.config.app_name %>" href="/">
-  <%= csrf_meta_tag %>
-  <% unless disable_mobile_mode? %>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-  <% end %>
-  <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
-  <%= raw Danbooru.config.custom_html_header_content %>
-  <script src="/vendor/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-  <%= stylesheet_pack_tag "application", nonce: true %>
-  <%= javascript_pack_tag "application", nonce: true %>
-  <%= yield :html_header %>
+  <%= render "layouts/head" %>
 </head>
-<body lang="en">
+<%= tag.body **body_attributes(CurrentUser.user) do %>
   <%= render "layouts/theme_include" %>
+  <% if CurrentUser.is_anonymous? %>
+    <%= render "static/guest_warning" %>
+  <% end %>
   <div id="page">
     <%= yield :layout %>
   </div>
-</body>
+<% end %>
 </html>

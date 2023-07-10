@@ -28,8 +28,6 @@ module PostIndex
         indexes :comment_count,       type: 'integer'
 
         indexes :file_size,     type: 'integer'
-        # TODO: Remove
-        indexes :pixiv_id,      type: 'integer'
         indexes :parent,        type: 'integer'
         indexes :pools,         type: 'integer'
         indexes :sets,          type: 'integer'

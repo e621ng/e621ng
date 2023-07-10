@@ -1,65 +1,16 @@
 .stats-column {
-  width:400px;
-  display:inline-block;
-  vertical-align:top;
-}
+  width: 400px;
+  display: inline-block;
+  vertical-align: top;
+  padding-right: 1em;
 
-.stats-chart {
-  display:inline-block;
-  width:300px;
-  height:300px;
-  }
+  table {
+    margin-bottom: 1em;
+    box-shadow: 2px 2px 5px themed("color-background");
 
-.stats-chart-container {
-  white-space:nowrap;
-}
-
-.stats-pct {
-  text-align:right;
-}
-
-#stats-column-1 table {
-  margin-bottom:60px;
-}
-
-#stats-column-2 table {
-  margin-bottom:19px;
-}
-
-#stats-column-3 table {
-    margin-bottom:5px;
-}
-
-.stats-column table:last-child {
-  margin-bottom:10px !important;
-}
-
-.stats-column table {
-  margin-bottom:2em;
-  padding:3px;
-  border-spacing:0;
-}
-
-.stats-rounded {
-  @include themable {
-    background-color: themed("color-section");
-    box-shadow:2px 2px 5px darken( themed("color-section"), 15%);
-  }
-  border-radius:8px;
-  overflow: hidden;
-}
-
-.stats-rounded tr:nth-child(even) {
-  @include themable {
-    background-color: lighten( themed("color-section"), 3%);
+    .stats-pct {
+      text-align: right;
+      padding-right: 0.5em;
+    }
   }
 }
-.stats-rounded tr:nth-child(even) td {
-  @include themable {
-    border-top:1px solid lighten( themed("color-section"), 10%);
-    border-bottom:1px solid lighten( themed("color-section"), 10%);
-  }
-}
-.stats-rounded tr:last-child td{ border-bottom:none !important; }
-.stats-rounded td { padding:2px 10px; vertical-align:top; }
-.stats-rounded th { font-weight:bold; text-align:left; vertical-align:top; padding:0.2em 0.5em; white-space:nowrap; }

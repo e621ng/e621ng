@@ -1,26 +1,30 @@
 module FileMethods
   def is_image?
-    file_ext =~ /jpg|jpeg|gif|png/i
+    is_png? || is_jpg? || is_gif?
   end
 
   def is_png?
-    file_ext =~ /png/i
+    file_ext == "png"
+  end
+
+  def is_jpg?
+    file_ext == "jpg"
   end
 
   def is_gif?
-    file_ext =~ /gif/i
+    file_ext == "gif"
   end
 
   def is_flash?
-    file_ext =~ /swf/i
+    file_ext == "swf"
   end
 
   def is_webm?
-    file_ext =~ /webm/i
+    file_ext == "webm"
   end
 
   def is_mp4?
-    file_ext =~ /mp4/i
+    file_ext == "mp4"
   end
 
   def is_video?
@@ -43,6 +47,26 @@ module FileMethods
     else
       raise result
     end
+  end
+
+  def is_ai_generated?(file_path)
+    return false if !is_image?
+
+    image = Vips::Image.new_from_file(file_path)
+    fetch = ->(key) do
+      value = image.get(key)
+      value.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
+    rescue Vips::Error
+      ""
+    end
+
+    return true if fetch.call("png-comment-0-parameters").present?
+    return true if fetch.call("png-comment-0-Dream").present?
+    return true if fetch.call("exif-ifd0-Software").include?("NovelAI") || fetch.call("png-comment-2-Software").include?("NovelAI")
+    return true if ["exif-ifd0-ImageDescription", "exif-ifd2-UserComment", "png-comment-4-Comment"].any? { |field| fetch.call(field).include?('"sampler": "') }
+    exif_data = fetch.call("exif-data")
+    return true if ["Model hash", "OpenAI", "NovelAI"].any? { |marker| exif_data.include?(marker) }
+    false
   end
 
   def file_header_to_file_ext(file_path)

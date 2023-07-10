@@ -1,7 +1,5 @@
 .comment-post-grid {
-  @include themable {
-    background: themed("color-section");
-  }
+  background: themed("color-section");
   display: grid;
   grid-template-rows: 1fr;
   grid-template-columns: 165px 1fr;

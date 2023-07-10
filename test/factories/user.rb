@@ -5,14 +5,12 @@ FactoryBot.define do
     end
     password { "password" }
     password_confirmation { "password" }
-    password_hash {"password"}
-    email {FFaker::Internet.email}
+    sequence(:email) { |n| "user_email_#{n}@example.com" }
     default_image_size { "large" }
     base_upload_limit { 10 }
     level { 20 }
     created_at {Time.now}
     last_logged_in_at {Time.now}
-    bit_prefs { 0 }
 
     factory(:banned_user) do
       transient { ban_duration { 3 } }
@@ -29,18 +27,18 @@ FactoryBot.define do
 
     factory(:janitor_user) do
       level { 35 }
-      bit_prefs { User.flag_value_for("can_upload_free") }
+      can_upload_free { true }
       can_approve_posts { true }
     end
 
     factory(:contributor_user) do
       level { 33 }
-      bit_prefs { User.flag_value_for("can_upload_free") }
+      can_upload_free { true }
     end
 
     factory(:contrib_user) do
       level { 33 }
-      bit_prefs { User.flag_value_for("can_upload_free") }
+      can_upload_free { true }
     end
 
     factory(:moderator_user) do
@@ -59,4 +57,3 @@ FactoryBot.define do
     end
   end
 end
-

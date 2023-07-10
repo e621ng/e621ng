@@ -3,6 +3,7 @@ class StorageManager
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
   IMAGE_TYPES = %i[preview large crop original]
+  MASCOT_PREFIX = "mascots"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -24,7 +25,7 @@ class StorageManager
   end
 
   def default_base_url
-    "#{CurrentUser.root_url}"
+    Rails.application.routes.url_helpers.root_url
   end
 
   # Store the given file at the given path. If a file already exists at that
@@ -183,6 +184,24 @@ class StorageManager
     subdir = subdir_for(storage_id)
     file = "#{storage_id}#{'_thumb' if image_size == :preview}.#{file_ext}"
     "#{base_dir}/#{replacement_prefix}/#{subdir}#{file}"
+  end
+
+  def store_mascot(io, mascot)
+    store(io, mascot_path(mascot.md5, mascot.file_ext))
+  end
+
+  def mascot_path(md5, file_ext)
+    file = "#{md5}.#{file_ext}"
+    "#{base_dir}/#{MASCOT_PREFIX}/#{file}"
+  end
+
+  def mascot_url(mascot)
+    file = "#{mascot.md5}.#{mascot.file_ext}"
+    "#{base_url}#{base_path}/#{MASCOT_PREFIX}/#{file}"
+  end
+
+  def delete_mascot(md5, file_ext)
+    delete(mascot_path(md5, file_ext))
   end
 
   def subdir_for(md5)

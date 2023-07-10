@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
   context "The user feedbacks controller" do
@@ -42,7 +42,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
 
       context "with search parameters" do
         should "render" do
-          get_auth user_feedbacks_path, @critic, params: {:search => {:user_id => @user.id}}
+          get_auth user_feedbacks_path, @critic, params: { search: { user_id: @user.id } }
           assert_response :success
         end
       end
@@ -50,8 +50,8 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "create a new feedback" do
-        assert_difference("UserFeedback.count", 1) do
-          post_auth user_feedbacks_path, @critic, params: {:user_feedback => {:category => "positive", :user_name => @user.name, :body => "xxx"}}
+        assert_difference([-> { UserFeedback.count }, -> { Dmail.count }], 1) do
+          post_auth user_feedbacks_path, @critic, params: { user_feedback: { category: "positive", user_name: @user.name, body: "xxx" } }
         end
       end
     end
@@ -61,10 +61,24 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
         as(@critic) do
           @feedback = create(:user_feedback, user: @user, category: "negative")
         end
-        put_auth user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { category: "positive" }}
+
+        assert_no_difference(-> { Dmail.count }) do
+          put_auth user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { category: "positive" } }
+        end
 
         assert_redirected_to(@feedback)
         assert("positive", @feedback.reload.category)
+        assert_match(/created a/, Dmail.last.body)
+      end
+
+      should "send a new dmail" do
+        as(@critic) do
+          @feedback = create(:user_feedback, user: @user, category: "negative")
+        end
+        assert_difference(-> { Dmail.count }, 1) do
+          put_auth user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { body: "changed", send_update_dmail: true } }
+        end
+        assert_match(/updated a/, Dmail.last.body)
       end
     end
 
@@ -76,14 +90,14 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "delete a feedback" do
-        assert_difference "UserFeedback.count", -1 do
+        assert_difference(-> { UserFeedback.count }, -1) do
           delete_auth user_feedback_path(@user_feedback), @critic
         end
       end
 
       context "by a moderator" do
         should "allow deleting feedbacks given to other users" do
-          assert_difference "UserFeedback.count", -1 do
+          assert_difference(-> { UserFeedback.count }, -1) do
             delete_auth user_feedback_path(@user_feedback), @mod
           end
         end
@@ -93,7 +107,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
             @user_feedback = create(:user_feedback, user: @mod)
           end
 
-          assert_difference "UserFeedback.count", 0 do
+          assert_no_difference(-> { UserFeedback.count }) do
             delete_auth user_feedback_path(@user_feedback), @mod
           end
         end

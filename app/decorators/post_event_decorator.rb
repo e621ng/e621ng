@@ -15,6 +15,8 @@ class PostEventDecorator < ApplicationDecorator
       "Target: post ##{vals['parent_id']}"
     when "favorites_received"
       "From: post ##{vals['child_id']}"
+    when "replacement_promoted"
+      "From: post ##{vals['source_post_id']}"
     end
   end
 end

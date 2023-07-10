@@ -1,28 +1,22 @@
 module UserWarnable
   extend ActiveSupport::Concern
 
-  WARNING_TYPES = {
-      'warning' => 1,
-      'record' => 2,
-      'ban' => 3,
-      'unmark' => nil
-  }
-
   included do
-    scope :user_warned, -> { where('warning_type IS NOT NULL') }
-    validates :warning_type, inclusion: { :in => [1, 2, 3, nil] }
+    enum warning_type: {
+      warning: 1,
+      record: 2,
+      ban: 3,
+    }
+
+    scope :user_warned, -> { where("warning_type IS NOT NULL") }
   end
 
-  def user_warned!(type, user=CurrentUser.id)
-    unless WARNING_TYPES.has_key?(type)
-      errors.add(:warning_type, 'invalid warning type')
-      return
-    end
-    update({warning_type: WARNING_TYPES[type], warning_user_id: user})
+  def user_warned!(type, user)
+    update({ warning_type: type, warning_user_id: user })
   end
 
   def remove_user_warning!
-    update_columns({warning_type: nil, warning_user_id: nil})
+    update_columns({ warning_type: nil, warning_user_id: nil })
   end
 
   def was_warned?
@@ -31,11 +25,11 @@ module UserWarnable
 
   def warning_type_string
     case warning_type
-    when 1
+    when "warning"
       "User received a warning for the contents of this message."
-    when 2
+    when "record"
       "User received a record for the contents of this message."
-    when 3
+    when "ban"
       "User was banned for the contents of this message."
     else
       "[This is a bug with the website. Woo!]"

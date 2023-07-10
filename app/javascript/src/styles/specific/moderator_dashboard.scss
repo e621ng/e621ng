@@ -1,24 +1,11 @@
 div#c-moderator-dashboards {
-  div#col1 {
-    width: 45%;
-    float: left;
-    padding-right: 5%;
-  }
+  .activity-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    column-gap: 2em;
 
-  div#col2 {
-    width: 45%;
-    float: left;
-  }
-
-  div.activity {
-    margin-bottom: 1em;
-  }
-
-  div#ip-addr-search {
-    margin-bottom: 2em;
-
-    .hint {
-      display: block;
+    .activity {
+      margin-bottom: 1em;
     }
   }
 
@@ -26,17 +13,9 @@ div#c-moderator-dashboards {
     margin-bottom: 2em;
   }
 
-  table {
-    width: 100%;
-  }
-
   caption {
     font-size: 1.1em;
     font-weight: bold;
-    text-align: left;
-  }
-
-  th {
     text-align: left;
   }
 }

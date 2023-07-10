@@ -29,13 +29,13 @@ class ArtistUrl < ApplicationRecord
     end
   end
 
-  def self.search(params = {})
+  def self.search(params)
     q = super
 
     q = q.attribute_matches(:artist_id, params[:artist_id])
     q = q.attribute_matches(:is_active, params[:is_active])
-    q = q.search_text_attribute(:url, params)
-    q = q.search_text_attribute(:normalized_url, params)
+    q = q.attribute_matches(:url, params[:url])
+    q = q.attribute_matches(:normalized_url, params[:normalized_url])
 
     if params[:artist_name].present?
       q = q.joins(:artist).where("artists.name = ?", params[:artist_name])
@@ -65,12 +65,9 @@ class ArtistUrl < ApplicationRecord
   def self.url_attribute_matches(attr, url)
     if url.blank?
       all
-    elsif url =~ %r!\A/(.*)/\z!
-      where_regex(attr, $1)
-    elsif url.include?("*")
-      where_ilike(attr, url)
     else
-      where(attr => normalize(url))
+      url = "*#{url}*" if url.exclude?("*")
+      where_ilike(attr, url)
     end
   end
 

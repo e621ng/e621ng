@@ -1,4 +1,4 @@
-form.simple_form {
+.simple_form {
   margin: 0 0 1em 0;
 
   div.input.boolean label {
@@ -60,12 +60,12 @@ form.simple_form {
     }
 
     input:checked + label { 
-      @include themable { background-color: themed("color-button-active"); }
-     }
+      background-color: themed("color-button-active");
+    }
   }
 }
 
-form.inline-form {
+.inline-form {
   display: table;
 
   > div.input {
@@ -76,7 +76,7 @@ form.inline-form {
       text-align: right;
     }
 
-    // Reset style from form.simple_form boolean workaround
+    // Reset style from simple_form boolean workaround
     // The specificity is higher, so it wouldn't get set correctly
     &.boolean label {
       display: table-cell;

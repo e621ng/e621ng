@@ -16,6 +16,9 @@
       <li>imply aaa -> bbb</li>
       <li>update aaa -> bbb</li>
       <li>category tag_name -> category_name</li>
+      <% if CurrentUser.is_admin? %>
+        <li>nuke tag_name</li>
+      <% end %>
     </ul>
   </div>
 
@@ -23,7 +26,7 @@
     <%= f.input :reason, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
   <% end %>
 
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_admin? %>
     <div class="input">
       <label class="checkbox optional" for="bulk_update_request_skip_forum">
         <%= check_box "bulk_update_request", "skip_forum" %>
@@ -33,10 +36,10 @@
   <% end %>
 
   <% if @bulk_update_request.new_record? %>
-    <%= f.input :forum_topic_id, :hint => " (optional)" %>
+    <%= f.input :forum_topic_id, as: :string, :hint => " (optional)" %>
   <% elsif @bulk_update_request.persisted? && CurrentUser.is_admin? %>
-    <%= f.input :forum_topic_id %>
-    <%= f.input :forum_post_id %>
+    <%= f.input :forum_topic_id, as: :string %>
+    <%= f.input :forum_post_id, as: :string %>
   <% end %>
 
   <%= f.button :submit, :value => "Submit" %>

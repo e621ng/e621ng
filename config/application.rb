@@ -1,17 +1,21 @@
-require_relative 'boot'
-require "rails"
-require "active_record/railtie"
-#require "active_storage/engine"
-require "action_controller/railtie"
-require "action_view/railtie"
-require "action_mailer/railtie"
-require "active_job/railtie"
-#require "action_cable/engine"
-#require "action_mailbox/engine"
-#require "action_text/engine"
-require "rails/test_unit/railtie"
-#require "sprockets/railtie"
+require_relative "boot"
 
+require "rails"
+# Pick the frameworks you want:
+require "active_model/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+# require "active_storage/engine"
+require "action_controller/railtie"
+require "action_mailer/railtie"
+# require "action_mailbox/engine"
+# require "action_text/engine"
+require "action_view/railtie"
+# require "action_cable/engine"
+require "rails/test_unit/railtie"
+
+# Require the gems listed in Gemfile, including any gems
+# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 require_relative "danbooru_default_config"
@@ -22,16 +26,8 @@ require 'elasticsearch/rails/instrumentation'
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults '6.1'
+    config.load_defaults 7.0
     config.active_record.schema_format = :sql
-    config.encoding = "utf-8"
-    config.filter_parameters += [:password, :password_hash, :api_key]
-    #config.assets.enabled = true
-    #config.assets.version = '1.0'
-    config.autoload_paths += %W(#{config.root}/app/presenters #{config.root}/app/logical #{config.root}/app/mailers #{config.root}/app/indexes)
-    config.plugins = [:all]
-    config.time_zone = 'UTC'
-    config.action_mailer.perform_deliveries = true
     config.log_tags = [->(req) {"PID:#{Process.pid}"}]
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
@@ -47,20 +43,20 @@ module Danbooru
       }
     end
 
-    if File.exist?("#{config.root}/REVISION")
-      config.x.git_hash = File.read("#{config.root}/REVISION").strip
-    elsif system("type git > /dev/null && git rev-parse --show-toplevel > /dev/null")
-      config.x.git_hash = %x(git rev-parse --short HEAD).strip
-    else
-      config.x.git_hash = nil
-    end
-
     config.after_initialize do
       Rails.application.routes.default_url_options = {
         host: Danbooru.config.hostname,
       }
     end
-  end
 
-  I18n.enforce_available_locales = false
+    config.i18n.enforce_available_locales = false
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
+  end
 end

@@ -8,17 +8,17 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
+        as(@user) do
           @pool = create(:pool)
         end
         @user_2 = create(:user)
         @user_3 = create(:user)
 
-        CurrentUser.scoped(@user_2, "1.2.3.4") do
+        as(@user_2, "1.2.3.4") do
           @pool.update(:post_ids => "1 2")
         end
 
-        CurrentUser.scoped(@user_3, "5.6.7.8") do
+        as(@user_3, "5.6.7.8") do
           @pool.update(:post_ids => "1 2 3 4")
         end
 

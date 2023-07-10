@@ -3,12 +3,13 @@
     <%= render partial: 'search' %>
 
     <h2>Ticket Center</h2>
-    <table class="valign striped">
+    <table class="striped">
       <thead>
         <tr>
           <th style="width:5%">ID</th>
-          <% if CurrentUser.is_admin? %>
+          <% if CurrentUser.is_moderator? %>
             <th style="width:10%">Reporter</th>
+            <th style="width:10%">Accused</th>
             <th style="width:10%">Claimed By</th>
           <% end %>
           <th style="width:15%">Type</th>
@@ -23,35 +24,40 @@
         <% @tickets.each do |ticket| %>
           <tr data-link="<%= ticket_path(ticket) %>">
             <td><%= link_to ticket.id, ticket_path(ticket) %></td>
-            <% if CurrentUser.is_admin? %>
+            <% if CurrentUser.is_moderator? %>
               <td><%= link_to_user ticket.creator %></td>
-            <td>
-            <% if ticket.claimant.nil? %>
-              <span class="redtext">Unclaimed</span>
-            <% else %>
-              <%= link_to_user ticket.claimant %>
-            <% end %>
-            </td>
+              <td>
+                <% if ticket.accused %>
+                  <%= link_to_user ticket.accused %>
+                <% end %>
+              </td>
+              <td>
+              <% if ticket.claimant.nil? %>
+                <span class="redtext">Unclaimed</span>
+              <% else %>
+                <%= link_to_user ticket.claimant %>
+              <% end %>
+              </td>
             <% end %>
             <td><%= link_to ticket.type_title, ticket_path(ticket) %></td>
 
-            <% if !ticket.can_see_reason?(CurrentUser.user) %>
+            <% if !ticket.can_see_details?(CurrentUser.user) %>
               <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
             <% else %>
-              <td class="ticket-subject full-width-link" title="<%= h(truncate(strip_dtext(ticket.reason), length: 200)) %>"><%= link_to h(strip_dtext(truncate(ticket.subject, length: 200))), action: "show", id: ticket.id %></td>
+              <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
+                <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
+              <% end %>
             <% end %>
 
             <td class="<%= ticket.status %>-ticket"><%= pretty_ticket_status(ticket) %></td>
-            <td style="cursor:help;" title="<%= ticket.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(ticket.updated_at) %> ago</td>
-            <td style="cursor:help;" title="<%= ticket.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(ticket.created_at) %> ago</td>
+            <td style="cursor:help;"><%= time_ago_in_words_tagged(ticket.updated_at) %></td>
+            <td style="cursor:help;"><%= time_ago_in_words_tagged(ticket.created_at) %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
 
-    <div id="paginator">
-      <%= numbered_paginator(@tickets) %>
-    </div>
+    <%= numbered_paginator(@tickets) %>
   </div>
 </div>
 

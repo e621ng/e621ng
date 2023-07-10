@@ -3,7 +3,7 @@
   <p class="hint">Found <%= pluralize(@matches.length, "similar post") %>:</p>
 
   <% @matches.each do |match| %>
-    <%= PostPresenter.preview(match["post"], :tags => "status:any", :similarity => match["score"], :size => true) %>
+    <%= PostPresenter.preview(match["post"], show_deleted: true, similarity: match["score"], size: true) %>
   <% end %>
 <% else %>
   <h3>Similar Posts</h3>

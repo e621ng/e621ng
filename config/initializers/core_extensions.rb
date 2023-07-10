@@ -16,10 +16,6 @@ module Danbooru
         string
       end
 
-      def to_escaped_for_tsquery
-        "'#{gsub(/\0/, '').gsub(/'/, '\0\0').gsub(/\\/, '\0\0\0\0')}'"
-      end
-
       def truthy?
         self.match?(/\A(true|t|yes|y|on|1)\z/i)
       end
@@ -33,10 +29,4 @@ end
 
 class String
   include Danbooru::Extensions::String
-end
-
-class FalseClass
-  def to_i
-    0
-  end
 end

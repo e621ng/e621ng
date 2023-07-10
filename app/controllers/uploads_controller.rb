@@ -50,7 +50,7 @@ class UploadsController < ApplicationController
                                    title: "Upload notices for post ##{@service.post.id}",
                                    body: "While uploading post ##{@service.post.id} some notices were generated. Please review them below:\n\n#{warnings}"
                                })
-        flash[:notice] = "This upload created a LOT of notices. They have been dmailed to you. Please review them."
+        flash[:notice] = "This upload created a LOT of notices. They have been dmailed to you. Please review them"
       else
         flash[:notice] = warnings
       end

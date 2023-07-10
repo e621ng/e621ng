@@ -1,14 +1,11 @@
 require 'test_helper'
 
 class PostVoteTest < ActiveSupport::TestCase
-  def setup
-    super
-
-    Timecop.travel(1.month.ago) { @user = FactoryBot.create(:user) }
+  setup do
+    @user = create(:user, created_at: 1.month.ago)
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
 
-    @post = FactoryBot.create(:post)
+    @post = create(:post)
   end
 
   context "Voting for a post" do
@@ -23,7 +20,7 @@ class PostVoteTest < ActiveSupport::TestCase
     end
 
     should "not accept any other scores" do
-      error = assert_raises(PostVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 'xxx') }
+      error = assert_raises(UserVote::Error) { VoteManager.vote!(user: @user, post: @post, score: 'xxx') }
       assert_equal("Invalid vote", error.message)
     end
 

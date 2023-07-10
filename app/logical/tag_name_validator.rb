@@ -38,7 +38,7 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
     end
 
-    if normalized =~ /[^[:ascii:]é]/ && !options[:disable_ascii_check] == true
+    if normalized =~ /[^[:ascii:]]/ && !options[:disable_ascii_check] == true
       record.errors.add(attribute,  "'#{value}' must consist of only ASCII characters")
     end
   end

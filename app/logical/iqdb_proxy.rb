@@ -1,51 +1,95 @@
-class IqdbProxy
-  class Error < ::Exception; end
-  def self.query(image_url)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+# frozen_string_literal: true
 
-    url = URI.parse(Danbooru.config.iqdbs_server)
-    url.path = "/similar"
-    url.query = {url: image_url}.to_query
-    json = HTTParty.get(url.to_s, Danbooru.config.httparty_options)
-    return [] if json.code != 200
-    decorate_posts(json.parsed_response)
+module IqdbProxy
+  class Error < StandardError; end
+
+  IQDB_NUM_PIXELS = 128
+
+  module_function
+
+  def make_request(path, request_type, params = {})
+    url = URI.parse(Danbooru.config.iqdb_server)
+    url.path = path
+    HTTParty.send(request_type, url, { body: params.to_json, headers: { "Content-Type" => "application/json" } })
+  rescue Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL, Errno::EHOSTUNREACH
+    raise Error, "This service is temporarily unavailable. Please try again later."
   end
 
-  def self.query_file(image)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
+  def update_post(post)
+    return unless post.has_preview?
 
-    url = URI.parse(Danbooru.config.iqdbs_server)
-    url.path = "/similar"
-    json = HTTParty.post(url.to_s, body: {
-        file: image
-    }.merge(Danbooru.config.httparty_options))
-    return [] if json.code != 200
-    decorate_posts(json.parsed_response)
+    thumb = generate_thumbnail(post.preview_file_path)
+    raise Error, "failed to generate thumb for #{post.id}" unless thumb
+
+    response = make_request("/images/#{post.id}", :post, get_channels_data(thumb))
+    raise Error, "iqdb request failed" if response.code != 200
   end
 
-  def self.query_path(image_path)
-    raise NotImplementedError unless Danbooru.config.iqdbs_server.present?
-
-    f = File.open(image_path)
-    url = URI.parse(Danbooru.config.iqdbs_server)
-    url.path = "/similar"
-    json = HTTParty.post(url.to_s, body: {
-        file: f
-    }.merge(Danbooru.config.httparty_options))
-    f.close
-    return [] if json.code != 200
-    decorate_posts(json.parsed_response)
+  def remove_post(post_id)
+    response = make_request("/images/#{post_id}", :delete)
+    raise Error, "iqdb request failed" if response.code != 200
   end
 
-  def self.decorate_posts(json)
-    raise Error.new("Server returned an error. Most likely the url is not found.") unless json.kind_of?(Array)
+  def query_url(image_url, score_cutoff)
+    file, _strategy = Downloads::File.new(image_url).download!
+    query_file(file, score_cutoff)
+  end
+
+  def query_post(post, score_cutoff)
+    return [] unless post&.has_preview?
+
+    File.open(post.preview_file_path) do |f|
+      query_file(f, score_cutoff)
+    end
+  end
+
+  def query_file(file, score_cutoff)
+    thumb = generate_thumbnail(file.path)
+    return [] unless thumb
+
+    response = make_request("/query", :post, get_channels_data(thumb))
+    return [] if response.code != 200
+
+    process_iqdb_result(response.parsed_response, score_cutoff)
+  end
+
+  def query_hash(hash, score_cutoff)
+    response = make_request "/query", :post, { hash: hash }
+    return [] if response.code != 200
+
+    process_iqdb_result(response.parsed_response, score_cutoff)
+  end
+
+  def process_iqdb_result(json, score_cutoff)
+    raise Error, "Server returned an error. Most likely the url is not found." unless json.is_a?(Array)
+
+    json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff.presence || 60).to_i }
     json.map do |x|
-      begin
-        x["post"] = Post.find(x["post_id"])
-        x
-      rescue ActiveRecord::RecordNotFound
-        nil
-      end
+      x["post"] = Post.find(x["post_id"])
+      x
+    rescue ActiveRecord::RecordNotFound
+      nil
     end.compact
+  end
+
+  def generate_thumbnail(file_path)
+    Vips::Image.thumbnail(file_path, IQDB_NUM_PIXELS, height: IQDB_NUM_PIXELS, size: :force)
+  rescue Vips::Error
+    nil
+  end
+
+  def get_channels_data(thumbnail)
+    r = []
+    g = []
+    b = []
+    is_grayscale = thumbnail.bands == 1
+    thumbnail.to_a.each do |data|
+      data.each do |rgb|
+        r << rgb[0]
+        g << (is_grayscale ? rgb[0] : rgb[1])
+        b << (is_grayscale ? rgb[0] : rgb[2])
+      end
+    end
+    { channels: { r: r, g: g, b: b } }
   end
 end

@@ -43,11 +43,11 @@ class ForumPostVote < ApplicationRecord
 
   def fa_class
     if score == 1
-      return "fa-thumbs-up"
+      "fa-thumbs-up"
     elsif score == -1
-      return "fa-thumbs-down"
+      "fa-thumbs-down"
     else
-      return "fa-meh"
+      "fa-face-meh"
     end
   end
 

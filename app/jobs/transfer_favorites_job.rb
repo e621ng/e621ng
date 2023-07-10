@@ -9,7 +9,7 @@ class TransferFavoritesJob < ApplicationJob
       return
     end
 
-    CurrentUser.as(@user) do
+    CurrentUser.scoped(@user) do
       @post.give_favorites_to_parent!
     end
   end

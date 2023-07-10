@@ -2,14 +2,6 @@
   display: none;
 }
 
-#desktop-version-link {
-  display: none;
-}
-
-#searchbox-redirect-link {
-  display: none;
-}
-
 @media screen and (max-width: 900px) {
   #ad-leaderboard {
     height: 50px;
@@ -77,14 +69,6 @@
       }
     }
 
-    #desktop-version-link {
-      display: inline;
-    }
-
-    #searchbox-redirect-link {
-      display: inline;
-    }
-
     div#page aside#sidebar {
       padding: 5px;
 
@@ -127,15 +111,31 @@
       position: relative;
     }
 
+    #page-footer {
+      display: revert;
+      text-align: center;
+
+      .left {
+        padding-right: revert;
+      }
+    
+      .right {
+        padding-left: revert;
+      }
+
+      .right::before {
+        content: "–";
+      }
+
+      .logo-container {
+        display: none;
+      }
+    }
+
     #maintoggle {
       display: block;
       font-weight: bold;
       font-size: 2em;
-
-      &.toggler-active {
-        background-color: lighten($link-color, 25%);
-        color: #000;
-      }
     }
 
     /* Make the quick search box in the navbar full width. */
@@ -215,7 +215,6 @@
       justify-content: space-evenly;
     }
 
-    //
     article.post-preview {
       float: none;
       margin: 0 0 10px 0;
@@ -280,8 +279,39 @@
       display: none;
     }
 
-    header#top menu.main {
-      padding: 5px 10px;
+    header#top {
+      input {
+        font-size: 18pt;
+      }
+
+      menu.main {
+        padding: 5px 10px;
+
+        .mobile-logo {
+          display: inline-block;
+          width: 1.5em;
+          box-sizing: border-box;
+
+          a {
+            display: inline-block;
+            padding: 6px 10px;
+
+            background-image: url("main-logo.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+
+            // Gives the link height
+            &::after {
+              content: "Placeholder";
+              visibility: hidden;
+            }
+          }
+        }
+      }
+
+      menu.secondary.empty {
+        display: none;
+      }
     }
 
     h1 {
@@ -330,10 +360,6 @@
 
 @media screen and (max-width: 440px) {
   body.resp {
-    input#expand-search {
-      display: none;
-    }
-
     body {
       width: 100%;
     }
@@ -341,9 +367,5 @@
     #post-sections {
       font-size: 1em;
     }
-
-    //div article.post-preview {
-    //  overflow: visible;
-    //}
   }
 }

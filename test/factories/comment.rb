@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory(:comment) do
     post { create(:post) }
-    body { FFaker::Lorem.sentences.join(" ") }
+    sequence(:body) { |n| "comment_body_#{n}" }
+    creator_ip_addr { "127.0.0.1" }
   end
 end

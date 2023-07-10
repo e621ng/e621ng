@@ -7,8 +7,8 @@ module Moderator
         setup do
           @user = create(:user)
           @admin = create(:admin_user)
-          as_user do
-            @post = create(:post, :is_pending => true)
+          as(@user) do
+            @post = create(:post, is_pending: true)
           end
 
           CurrentUser.user = @admin
@@ -25,7 +25,7 @@ module Moderator
 
         context "index action" do
           should "render" do
-            disapproval = FactoryBot.create(:post_disapproval, post: @post)
+            disapproval = create(:post_disapproval, post: @post)
             get_auth moderator_post_disapprovals_path, @admin
 
             assert_response :success

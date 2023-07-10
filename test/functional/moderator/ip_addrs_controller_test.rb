@@ -4,13 +4,16 @@ module Moderator
   class IpAddrsControllerTest < ActionDispatch::IntegrationTest
     context "The ip addrs controller" do
       setup do
-        travel_to(1.month.ago) do
-          @user = create(:moderator_user)
-        end
+        @user = create(:admin_user, created_at: 1.month.ago)
 
-        as_user do
+        as(@user) do
           create(:comment)
         end
+      end
+
+      should "fail for moderators" do
+        get_auth moderator_ip_addrs_path, create(:moderator_user), params: { search: { ip_addr: "127.0.0.1" } }
+        assert_response :forbidden
       end
 
       should "find by ip addr" do

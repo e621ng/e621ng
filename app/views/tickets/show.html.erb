@@ -4,28 +4,46 @@
       <h3><%= @ticket.type_title %> Ticket</h3>
 
       <table>
-        <% if @ticket.can_see_username?(CurrentUser) %>
+        <% if @ticket.can_see_reporter?(CurrentUser) %>
           <tr>
             <td><span class='title'>Requested by</span></td>
-            <td><%= link_to_user @ticket.creator %></td>
+            <td>
+              <%= link_to_user @ticket.creator %>
+              (<%= link_to "Pending Tickets", tickets_path(search: { creator_id: @ticket.creator.id, status: "pending" }) %>)
+            </td>
+          </tr>
+        <% end %>
+        <% if @ticket.accused.present? && CurrentUser.is_moderator? %>
+          <tr>
+            <td><span class="title">Accused</span></td>
+            <td>
+              <%= link_to_user @ticket.accused %>
+              <% if (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
+                (<%= link_to "#{pending_accused_count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, status: "pending" }) %>)
+              <% end %>
+            </td>
           </tr>
         <% end %>
         <tr>
           <td><span class="title">Created</span></td>
-          <td style="cursor:help;" title="<%= @ticket.created_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.created_at) %> ago</td>
+          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.created_at) %></td>
         </tr>
         <tr>
           <td><span class="title">Updated</span></td>
-          <td style="cursor:help;" title="<%= @ticket.updated_at.strftime("%b %d, %Y %I:%M %p") %>"><%= time_ago_in_words(@ticket.updated_at) %> ago</td>
+          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.updated_at) %></td>
         </tr>
-        <% if CurrentUser.is_admin? %>
+        <% if CurrentUser.is_moderator? %>
           <tr>
             <td><span class="title">Claimed By</span></td>
             <% if @ticket.claimant.nil? %>
               <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
             <% else %>
-              <td id="claimed_by"><%= link_to_user @ticket.claimant %>
-                <% if @ticket.claimant.id == CurrentUser.id %> | <%= link_to 'Unclaim', unclaim_ticket_path(@ticket), method: :post %><% end %></td>
+              <td id="claimed_by">
+                <%= link_to_user @ticket.claimant %>
+                <% if @ticket.claimant.id == CurrentUser.id %>
+                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
+                <% end %>
+              </td>
             <% end %>
           </tr>
         <% end %>
@@ -39,6 +57,9 @@
             <td><span class='title'>IP</span></td>
             <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
           </tr>
+        <% end %>
+
+        <% if CurrentUser.is_moderator? %>
           <tr>
             <td><span class="title">Open Duplicates</span></td>
             <td><ul>
@@ -53,18 +74,18 @@
 
         <tr>
           <td><span class='title'>Reason</span></td>
-
-          <% if @ticket.can_see_reason?(CurrentUser) %>
-            <td class="dtext-container"><%= format_text(@ticket.reason) %></td>
-          <% else %>
-            <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
-          <% end %>
+          <td class="dtext-container">
+            <% if @ticket.qtype == "post" && @ticket.post_report_reason.present? %>
+              <p><%= @ticket.post_report_reason.reason %></p>
+            <% end %>
+            <%= format_text(@ticket.reason) %>
+          </td>
         </tr>
 
-        <% if(!@ticket.response.blank?) %>
+        <% if @ticket.response.present? %>
           <tr>
             <td><span class='title'>Handled by</span></td>
-            <% if (!@ticket.handler.nil?)%>
+            <% if @ticket.handler.present? %>
               <td><%= link_to_user @ticket.handler %></td>
             <% else %>
               <td>Unknown</td>
@@ -73,29 +94,31 @@
 
           <tr>
             <td><span class='title'>Response</span></td>
-            <% if @ticket.can_see_response?(CurrentUser) %>
-              <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
-            <% else %>
-              <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
-            <% end %>
+            <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
           </tr>
         <% end %>
       </table>
     </div>
 
-    <% if CurrentUser.is_admin? %>
-      <%= custom_form_for(@ticket) do |f| %>
-        <div class='section'>
+    <% if CurrentUser.is_moderator? %>
+      <div class="section">
+        <%= custom_form_for(@ticket) do |f| %>
+          <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
+          <% if @ticket.warnable? %>
+            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+          <% end %>
+          <% unless @ticket.pending? %>
+            <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
+          <% end %>
           <table>
-            <%= f.input :status, collection: [['Investigated', 'approved'], ['Under Investigation', 'partial']], selected: @ticket.status || 'approved' %>
             <tr>
               <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
             </tr>
           </table>
-          <%= tag.input name: 'force_claim', type: 'hidden', value: params[:force_claim] %>
+          <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
           <%= f.button :submit, "Submit" %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>

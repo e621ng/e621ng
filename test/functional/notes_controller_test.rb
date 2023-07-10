@@ -4,7 +4,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
   context "The notes controller" do
     setup do
       @user = create(:user)
-      as_user do
+      as(@user) do
         @note = create(:note, body: "000")
       end
     end
@@ -43,7 +43,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a note" do
         assert_difference("Note.count", 1) do
-          as_user do
+          as(@user) do
             @post = create(:post)
           end
           post_auth notes_path, @user, params: {:note => {:x => 0, :y => 0, :width => 10, :height => 10, :body => "abc", :post_id => @post.id}, :format => :json}
@@ -75,12 +75,12 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
     context "revert action" do
       setup do
-        as_user do
+        as(@user) do
           travel_to(1.day.from_now) do
-            @note.update(:body => "111")
+            @note.update(body: "111")
           end
           travel_to(2.days.from_now) do
-            @note.update(:body => "222")
+            @note.update(body: "222")
           end
         end
       end
@@ -91,8 +91,8 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not allow reverting to a previous version of another note" do
-        as_user do
-          @note2 = create(:note, :body => "note 2")
+        as(@user) do
+          @note2 = create(:note, body: "note 2")
         end
         put_auth revert_note_path(@note), @user, params: { :version_id => @note2.versions.first.id }
         assert_not_equal(@note.reload.body, @note2.body)

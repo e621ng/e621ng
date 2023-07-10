@@ -1,18 +1,19 @@
 class WikiPage < ApplicationRecord
   class RevertError < Exception ; end
 
-  before_save :normalize_title
-  before_save :normalize_other_names
+  before_validation :normalize_title
+  before_validation :normalize_other_names
   after_save :create_version
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :body, presence: { :unless => -> { is_deleted? || other_names.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
-  validate :user_not_limited, on: :save
+  validate :user_not_limited
   validate :validate_rename
   validate :validate_not_locked
 
+  before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   before_save :log_changes
 
@@ -24,6 +25,13 @@ class WikiPage < ApplicationRecord
   has_one :artist, -> {where(:is_active => true)}, :foreign_key => "name", :primary_key => "title"
   has_many :versions, -> {order("wiki_page_versions.id ASC")}, :class_name => "WikiPageVersion", :dependent => :destroy
 
+  def validate_not_used_as_help_page
+    if HelpPage.find_by(wiki_page: title).present?
+      errors.add(:wiki_page, "is used by a help page")
+      throw :abort
+    end
+  end
+
   def log_destroy
     ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})
   end
@@ -31,9 +39,6 @@ class WikiPage < ApplicationRecord
   def log_changes
     if title_changed? && !new_record?
       ModAction.log(:wiki_page_rename, {new_title: title, old_title: title_was})
-    end
-    if is_deleted_changed?
-      ModAction.log(is_deleted ? :wiki_page_delete : :wiki_page_undelete, {wiki_page: title})
     end
     if is_locked_changed?
       ModAction.log(is_locked ? :wiki_page_lock : :wiki_page_unlock, {wiki_page: title})
@@ -72,7 +77,7 @@ class WikiPage < ApplicationRecord
       order(updated_at: :desc)
     end
 
-    def search(params = {})
+    def search(params)
       q = super
 
       if params[:title].present?
@@ -83,7 +88,7 @@ class WikiPage < ApplicationRecord
         q = q.where("creator_id = ?", params[:creator_id])
       end
 
-      q = q.attribute_matches(:body, params[:body_matches], index_column: :body_index, ts_config: "danbooru")
+      q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:other_names_match].present?
         q = q.other_names_match(params[:other_names_match])
@@ -120,12 +125,8 @@ class WikiPage < ApplicationRecord
   end
 
   module ApiMethods
-    def hidden_attributes
-      super + [:body_index]
-    end
-
     def method_attributes
-      super + [:creator_name, :category_name]
+      super + [:creator_name, :category_id]
     end
   end
 
@@ -188,7 +189,7 @@ class WikiPage < ApplicationRecord
     @skip_secondary_validations = value.to_s.truthy?
   end
 
-  def category_name
+  def category_id
     Tag.category_for(title)
   end
 
@@ -197,8 +198,8 @@ class WikiPage < ApplicationRecord
   end
 
   def pretty_title_with_category
-    return pretty_title if category_name == 0
-    "#{Tag.category_for_value(category_name)}: #{pretty_title}"
+    return pretty_title if category_id == 0
+    "#{Tag.category_for_value(category_id)}: #{pretty_title}"
   end
 
   def wiki_page_changed?
@@ -225,11 +226,7 @@ class WikiPage < ApplicationRecord
   end
 
   def post_set
-    @post_set ||= PostSets::WikiPage.new(title, 1, 4)
-  end
-
-  def presenter
-    @presenter ||= WikiPagePresenter.new(self)
+    @post_set ||= PostSets::Post.new(title, 1, 4)
   end
 
   def tags

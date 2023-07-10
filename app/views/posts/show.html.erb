@@ -6,8 +6,7 @@
       <%= render "posts/partials/index/blacklist" %>
 
       <section id="tag-list">
-        <!-- TODO: Lock off these extra items? -->
-        <%= @post.presenter.split_tag_list_html(current_query: params[:q], show_extra_links: true) %>
+        <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
       </section>
 
       <section id="post-information">
@@ -24,10 +23,10 @@
         <section id="post-history">
           <h1>History</h1>
           <ul>
-            <li><%= fast_link_to "Tags/Desc", post_versions_path(search: { post_id: @post.id }) %></li>
-            <li><%= fast_link_to "Notes", note_versions_path(search: { post_id: @post.id }) %></li>
-            <li><%= fast_link_to "Events", post_events_path(search: { post_id: @post.id }) %></li>
-            <li><%= fast_link_to "Replacements", post_replacements_path(search: { post_id: @post.id }) %></li>
+            <li><%= link_to "Tags/Desc", post_versions_path(search: { post_id: @post.id }) %></li>
+            <li><%= link_to "Notes", note_versions_path(search: { post_id: @post.id }) %></li>
+            <li><%= link_to "Events", post_events_path(search: { post_id: @post.id }) %></li>
+            <li><%= link_to "Replacements", post_replacements_path(search: { post_id: @post.id }) %></li>
           </ul>
         </section>
 
@@ -38,11 +37,11 @@
           <h1>Related</h1>
           <ul>
             <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
-            <% if @post.has_preview? %>
-              <li><%= link_to "Visually similar on E6", iqdb_queries_path(post_id: @post.id), rel: "nofollow" %></li>
+            <% if Danbooru.config.iqdb_server.present? && @post.has_preview? %>
+              <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
             <% end %>
             <% if @post.is_image? %>
-              <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url %>">Reverse Google Search</a></li>
+              <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
               <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">Reverse SauceNAO Search</a></li>
               <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Reverse Derpibooru Search</a></li>
               <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url %>">Reverse Kheina Search</a></li>
@@ -68,7 +67,9 @@
             Adobe Flash has reached end of life, and no longer works in browsers. Please see <a href="/forum_topics/22535" rel="nofollow">this thread</a> on the forum for details on how you can continue to play this file.
             <br>Keyboard shortcuts are disabled on this page because it contains flash.
           </div>
-          <%= render "posts/partials/show/notices", :post => @post %>
+          <% if CurrentUser.is_janitor? %>
+            <%= render "posts/partials/show/notices", post: @post %>
+          <% end %>
         </div>
 
         <%= render "ads/leaderboard" %>
@@ -81,7 +82,7 @@
 
         <% if @post.visible? && @post.has_large? %>
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
-            <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, :precision => 0 %></span> of original (<%= link_to "view original", @post.tagged_file_url, :id => "image-resize-link" %>)</span>
+            <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, precision: 0 %></span> of original (<%= link_to "view original", @post.file_url, id: "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>
           </div>
         <% end %>
@@ -100,8 +101,8 @@
             <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
           </div>
           <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
-            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", "data-disable-with": tag.i(class: "fas fa-spinner fa-spin"), 'data-pid': @post.id %>
+            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", 'data-pid': @post.id %>
+            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", 'data-pid': @post.id %>
           <% end %>
         <% end %>
         <% if @post.visible? %>
@@ -127,7 +128,26 @@
         <% end %>
       </section>
 
-      <%= render "posts/partials/show/notices_bottom", :post => @post %>
+      <div class="bottom-notices">
+        <div class="parent-children">
+          <% if @post.parent_id && @post.parent_exists? %>
+            <div class="notice notice-child">
+              <%= has_parent_message(@post, @parent_post_set) %>
+              <div id="has-parent-relationship-preview" style="display: none;"><%= @parent_post_set.presenter.post_previews_html(self) %></div>
+            </div>
+          <% end %>
+
+          <% if @post.has_visible_children? %>
+            <div class="notice notice-parent">
+              <%= has_children_message(@post, @children_post_set) %>
+              <div id="has-children-relationship-preview" style="display: none;"><%= @children_post_set.presenter.post_previews_html(self) %></div>
+            </div>
+          <% end %>
+        </div>
+        <% if !CurrentUser.is_janitor? %>
+          <%= render "posts/partials/show/notices", post: @post %>
+        <% end %>
+      </div>
 
       <section id="mark-as-translated-section" style="display: none;">
         <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>
@@ -154,15 +174,12 @@
 
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-          <div id="description" class="expandable <%= 'expanded' unless CurrentUser.description_collapsed_initially? %>">
-            <div class="expandable-header">
-              <span class="section-arrow"></span>
-              <span>Description</span>
-            </div>
-            <div class="expandable-content dtext-container">
+          <details id="description" <%= 'open' unless CurrentUser.description_collapsed_initially? %>>
+            <summary>Description</summary>
+            <div>
               <%= format_text(@post.description, max_thumbs: 0) %>
             </div>
-          </div>
+          </details>
         </div>
       <% end %>
 
@@ -242,7 +259,6 @@
 
   <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
   <meta name="post-id" content="<%= @post.id %>">
-  <meta name="post-has-embedded-notes" content="false">
   <%= tag.meta property: "og:site", content: Danbooru.config.app_name %>
   <%= tag.meta property: "og:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
   <%= tag.meta property: "og:url", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>
@@ -267,7 +283,6 @@
   <%# Twitter properties %>
   <% if @post.twitter_card_supported? && @post.is_image? %>
     <meta name="twitter:card" content="summary_large_image">
-    <%= tag.meta name: "twitter:site", content: Danbooru.config.twitter_site %>
     <%= tag.meta name: "twitter:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
     <%= tag.meta name: "twitter:description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
 

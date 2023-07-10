@@ -1,9 +1,9 @@
-require 'test_helper'
+require "test_helper"
 
 class DmailTest < ActiveSupport::TestCase
   context "A dmail" do
     setup do
-      @user = FactoryBot.create(:user)
+      @user = create(:user)
       CurrentUser.user = @user
       CurrentUser.ip_addr = "1.2.3.4"
       ActionMailer::Base.delivery_method = :test
@@ -11,15 +11,11 @@ class DmailTest < ActiveSupport::TestCase
       ActionMailer::Base.deliveries = []
     end
 
-    teardown do
-      CurrentUser.user = nil
-    end
-
     context "filter" do
       setup do
-        @recipient = FactoryBot.create(:user)
-        @recipient.create_dmail_filter(:words => "banned")
-        @dmail = FactoryBot.build(:dmail, :title => "xxx", :owner => @recipient, :body => "banned word here", :to => @recipient, :from => @user)
+        @recipient = create(:user)
+        @recipient.create_dmail_filter(words: "banned")
+        @dmail = build(:dmail, title: "xxx", owner: @recipient, body: "banned word here", to: @recipient, from: @user)
       end
 
       should "detect banned words" do
@@ -38,8 +34,8 @@ class DmailTest < ActiveSupport::TestCase
       end
 
       should "be ignored when sender is a moderator" do
-        CurrentUser.scoped(FactoryBot.create(:moderator_user), "127.0.0.1") do
-          @dmail = FactoryBot.create(:dmail, :owner => @recipient, :body => "banned word here", :to => @recipient)
+        as(create(:moderator_user)) do
+          @dmail = create(:dmail, owner: @recipient, body: "banned word here", to: @recipient)
         end
 
         assert_equal(false, !!@recipient.dmail_filter.filtered?(@dmail))
@@ -49,11 +45,11 @@ class DmailTest < ActiveSupport::TestCase
 
       context "that is empty" do
         setup do
-          @recipient.dmail_filter.update(:words => "   ")
+          @recipient.dmail_filter.update(words: "   ")
         end
 
         should "not filter everything" do
-          assert(!@recipient.dmail_filter.filtered?(@dmail))
+          assert_not(@recipient.dmail_filter.filtered?(@dmail))
         end
       end
     end
@@ -64,7 +60,7 @@ class DmailTest < ActiveSupport::TestCase
       end
 
       should "not validate" do
-        dmail = FactoryBot.build(:dmail, :title => "xxx", :owner => @user)
+        dmail = build(:dmail, title: "xxx", owner: @user)
         dmail.save
         assert_equal(1, dmail.errors.size)
         assert_equal(["Sender is banned and cannot send messages"], dmail.errors.full_messages)
@@ -73,7 +69,7 @@ class DmailTest < ActiveSupport::TestCase
 
     context "search" do
       should "return results based on title contents" do
-        dmail = FactoryBot.create(:dmail, :title => "xxx", :owner => @user)
+        dmail = create(:dmail, title: "xxx", body: "bbb", owner: @user)
 
         matches = Dmail.search(title_matches: "x*")
         assert_equal([dmail.id], matches.map(&:id))
@@ -81,15 +77,12 @@ class DmailTest < ActiveSupport::TestCase
         matches = Dmail.search(title_matches: "X*")
         assert_equal([dmail.id], matches.map(&:id))
 
-        matches = Dmail.search(message_matches: "xxx")
-        assert_equal([dmail.id], matches.map(&:id))
-
         matches = Dmail.search(message_matches: "aaa")
         assert(matches.empty?)
       end
 
       should "return results based on body contents" do
-        dmail = FactoryBot.create(:dmail, :body => "xxx", :owner => @user)
+        dmail = create(:dmail, body: "xxx", owner: @user)
         matches = Dmail.search(message_matches: "xxx")
         assert(matches.any?)
         matches = Dmail.search(message_matches: "aaa")
@@ -98,14 +91,14 @@ class DmailTest < ActiveSupport::TestCase
     end
 
     should "should parse user names" do
-      dmail = FactoryBot.build(:dmail, :owner => @user)
+      dmail = build(:dmail, owner: @user)
       dmail.to_id = nil
       dmail.to_name = @user.name
       assert(dmail.to_id == @user.id)
     end
 
     should "construct a response" do
-      dmail = FactoryBot.create(:dmail, :owner => @user)
+      dmail = create(:dmail, owner: @user)
       response = dmail.build_response
       assert_equal("Re: #{dmail.title}", response.title)
       assert_equal(dmail.from_id, response.to_id)
@@ -113,66 +106,75 @@ class DmailTest < ActiveSupport::TestCase
     end
 
     should "create a copy for each user" do
-      @new_user = FactoryBot.create(:user)
-      assert_difference("Dmail.count", 2) do
-        Dmail.create_split(:to_id => @new_user.id, :title => "foo", :body => "foo")
+      @new_user = create(:user)
+      assert_difference(-> { Dmail.count }, 2) do
+        Dmail.create_split(to_id: @new_user.id, title: "foo", body: "foo")
       end
     end
 
     should "record the creator's ip addr" do
-      dmail = FactoryBot.create(:dmail, owner: @user)
+      dmail = create(:dmail, owner: @user)
       assert_equal(CurrentUser.ip_addr, dmail.creator_ip_addr.to_s)
     end
 
     should "send an email if the user wants it" do
-      user = FactoryBot.create(:user, :receive_email_notifications => true)
-      assert_difference("ActionMailer::Base.deliveries.size", 1) do
-        FactoryBot.create(:dmail, :to => user, :owner => user)
+      user = create(:user, receive_email_notifications: true)
+      assert_difference(-> { ActionMailer::Base.deliveries.size }, 1) do
+        create(:dmail, to: user, owner: user)
       end
     end
 
+    should "not send an email if no_email_notification is set" do
+      user = create(:user, receive_email_notifications: true)
+      assert_no_difference(-> { ActionMailer::Base.deliveries.size }) do
+        create(:dmail, to: user, owner: user, no_email_notification: true)
+        Dmail.create_automated(to: user, title: "test", body: "abc", no_email_notification: true)
+      end
+      assert_equal(2, Dmail.count)
+    end
+
     should "create only one message for a split response" do
-      user = FactoryBot.create(:user, :receive_email_notifications => true)
-      assert_difference("ActionMailer::Base.deliveries.size", 1) do
-        Dmail.create_split(:to_id => user.id, :title => "foo", :body => "foo")
+      user = create(:user, receive_email_notifications: true)
+      assert_difference(-> { ActionMailer::Base.deliveries.size }, 1) do
+        Dmail.create_split(to_id: user.id, title: "foo", body: "foo")
       end
     end
 
     should "be marked as read after the user reads it" do
-      dmail = FactoryBot.create(:dmail, :owner => @user)
-      assert(!dmail.is_read?)
+      dmail = create(:dmail, owner: @user)
+      assert_not(dmail.is_read?)
       dmail.mark_as_read!
       assert(dmail.is_read?)
     end
 
     should "notify the recipient he has mail" do
-      recipient = FactoryBot.create(:user)
+      recipient = create(:user)
       Dmail.create_split(title: "hello", body: "hello", to_id: recipient.id)
       dmail = Dmail.where(owner_id: recipient.id).last
       recipient.reload
       assert(recipient.has_mail?)
       assert_equal(1, recipient.unread_dmail_count)
 
-      CurrentUser.scoped(recipient) do
+      as(recipient) do
         dmail.mark_as_read!
       end
 
       recipient.reload
-      refute(recipient.has_mail?)
+      assert_not(recipient.has_mail?)
       assert_equal(0, recipient.unread_dmail_count)
     end
 
     context "that is automated" do
       setup do
-        @bot = FactoryBot.create(:user)
+        @bot = create(:user)
         User.stubs(:system).returns(@bot)
       end
 
       should "only create a copy for the recipient" do
         Dmail.create_automated(to: @user, title: "test", body: "test")
 
-        assert @user.dmails.exists?(from: @bot, title: "test", body: "test")
-        assert !@bot.dmails.exists?(from: @bot, title: "test", body: "test")
+        assert @user.dmails.where(from: @bot, title: "test", body: "test").exists?
+        assert_not @bot.dmails.where(from: @bot, title: "test", body: "test").exists?
       end
 
       should "fail gracefully if recipient doesn't exist" do
@@ -184,12 +186,11 @@ class DmailTest < ActiveSupport::TestCase
     end
 
     context "during validation" do
-      subject { FactoryBot.build(:dmail) }
+      subject { build(:dmail) }
 
       should_not allow_value(" ").for(:title)
       should_not allow_value(" ").for(:body)
       should_not allow_value(nil).for(:to)
-      should_not allow_value(nil).for(:from)
       should_not allow_value(nil).for(:owner)
     end
   end

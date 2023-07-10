@@ -10,20 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
---
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -54,81 +40,9 @@ END;
 $$;
 
 
---
--- Name: sourcepattern(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.sourcepattern(src text) RETURNS text
-    LANGUAGE plpgsql IMMUTABLE STRICT
-    AS $_$
-               BEGIN
-                 RETURN regexp_replace(src, '^[^/]*(//)?[^/]*.pixiv.net/img.*(/[^/]*/[^/]*)$', E'pixiv\\2');
-               END;
-             $_$;
-
-
---
--- Name: testprs_end(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_end(internal) RETURNS void
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_end';
-
-
---
--- Name: testprs_getlexeme(internal, internal, internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_getlexeme(internal, internal, internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_getlexeme';
-
-
---
--- Name: testprs_lextype(internal); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_lextype(internal) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_lextype';
-
-
---
--- Name: testprs_start(internal, integer); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.testprs_start(internal, integer) RETURNS internal
-    LANGUAGE c STRICT
-    AS '$libdir/test_parser', 'testprs_start';
-
-
---
--- Name: testparser; Type: TEXT SEARCH PARSER; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH PARSER public.testparser (
-    START = public.testprs_start,
-    GETTOKEN = public.testprs_getlexeme,
-    END = public.testprs_end,
-    HEADLINE = prsd_headline,
-    LEXTYPES = public.testprs_lextype );
-
-
---
--- Name: danbooru; Type: TEXT SEARCH CONFIGURATION; Schema: public; Owner: -
---
-
-CREATE TEXT SEARCH CONFIGURATION public.danbooru (
-    PARSER = public.testparser );
-
-ALTER TEXT SEARCH CONFIGURATION public.danbooru
-    ADD MAPPING FOR word WITH simple;
-
-
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+SET default_table_access_method = heap;
 
 --
 -- Name: api_keys; Type: TABLE; Schema: public; Owner: -
@@ -138,8 +52,8 @@ CREATE TABLE public.api_keys (
     id integer NOT NULL,
     user_id integer NOT NULL,
     key character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -184,8 +98,8 @@ CREATE TABLE public.artist_urls (
     artist_id integer NOT NULL,
     url text NOT NULL,
     normalized_url text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     is_active boolean DEFAULT true NOT NULL
 );
 
@@ -222,8 +136,8 @@ CREATE TABLE public.artist_versions (
     updater_ip_addr inet NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     group_name character varying DEFAULT ''::character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     urls text[] DEFAULT '{}'::text[] NOT NULL,
     notes_changed boolean DEFAULT false
@@ -260,8 +174,8 @@ CREATE TABLE public.artists (
     creator_id integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     group_name character varying DEFAULT ''::character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     linked_user_id integer,
     is_locked boolean DEFAULT false
@@ -294,12 +208,12 @@ ALTER SEQUENCE public.artists_id_seq OWNED BY public.artists.id;
 
 CREATE TABLE public.bans (
     id integer NOT NULL,
-    user_id integer,
+    user_id integer NOT NULL,
     reason text NOT NULL,
     banner_id integer NOT NULL,
     expires_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -334,7 +248,6 @@ CREATE TABLE public.blips (
     body character varying NOT NULL,
     response_to integer,
     is_hidden boolean DEFAULT false,
-    body_index tsvector NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     warning_type integer,
@@ -371,8 +284,8 @@ CREATE TABLE public.bulk_update_requests (
     forum_topic_id integer,
     script text NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     approver_id integer,
     forum_post_id integer,
     title text,
@@ -409,8 +322,8 @@ CREATE TABLE public.comment_votes (
     comment_id integer NOT NULL,
     user_id integer NOT NULL,
     score integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     user_ip_addr inet
 );
 
@@ -445,10 +358,9 @@ CREATE TABLE public.comments (
     creator_id integer NOT NULL,
     body text NOT NULL,
     creator_ip_addr inet NOT NULL,
-    body_index tsvector NOT NULL,
     score integer DEFAULT 0 NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     updater_id integer,
     updater_ip_addr inet,
     do_not_bump_post boolean DEFAULT false NOT NULL,
@@ -525,8 +437,8 @@ CREATE TABLE public.dmail_filters (
     id integer NOT NULL,
     user_id integer NOT NULL,
     words text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -561,11 +473,10 @@ CREATE TABLE public.dmails (
     to_id integer NOT NULL,
     title text NOT NULL,
     body text NOT NULL,
-    message_index tsvector NOT NULL,
     is_read boolean DEFAULT false NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet NOT NULL
 );
 
@@ -806,10 +717,9 @@ CREATE TABLE public.forum_posts (
     creator_id integer NOT NULL,
     updater_id integer NOT NULL,
     body text NOT NULL,
-    text_index tsvector NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet,
     warning_type integer,
     warning_user_id integer
@@ -878,8 +788,8 @@ CREATE TABLE public.forum_topic_visits (
     user_id integer,
     forum_topic_id integer,
     last_read_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -916,11 +826,10 @@ CREATE TABLE public.forum_topics (
     is_sticky boolean DEFAULT false NOT NULL,
     is_locked boolean DEFAULT false NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    text_index tsvector NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     category_id integer DEFAULT 0 NOT NULL,
-    creator_ip_addr inet
+    creator_ip_addr inet NOT NULL
 );
 
 
@@ -954,8 +863,8 @@ CREATE TABLE public.help_pages (
     updated_at timestamp without time zone NOT NULL,
     name character varying NOT NULL,
     wiki_page character varying NOT NULL,
-    related character varying,
-    title character varying
+    related character varying DEFAULT ''::character varying NOT NULL,
+    title character varying DEFAULT ''::character varying NOT NULL
 );
 
 
@@ -987,8 +896,8 @@ CREATE TABLE public.ip_bans (
     creator_id integer NOT NULL,
     ip_addr inet NOT NULL,
     reason text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -1013,26 +922,30 @@ ALTER SEQUENCE public.ip_bans_id_seq OWNED BY public.ip_bans.id;
 
 
 --
--- Name: janitor_trials; Type: TABLE; Schema: public; Owner: -
+-- Name: mascots; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.janitor_trials (
-    id integer NOT NULL,
-    creator_id integer NOT NULL,
-    user_id integer NOT NULL,
-    original_level integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    status character varying DEFAULT 'active'::character varying NOT NULL
+CREATE TABLE public.mascots (
+    id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    display_name character varying NOT NULL,
+    md5 character varying NOT NULL,
+    file_ext character varying NOT NULL,
+    background_color character varying NOT NULL,
+    artist_url character varying NOT NULL,
+    artist_name character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL
 );
 
 
 --
--- Name: janitor_trials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: mascots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.janitor_trials_id_seq
-    AS integer
+CREATE SEQUENCE public.mascots_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1041,10 +954,10 @@ CREATE SEQUENCE public.janitor_trials_id_seq
 
 
 --
--- Name: janitor_trials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: mascots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.janitor_trials_id_seq OWNED BY public.janitor_trials.id;
+ALTER SEQUENCE public.mascots_id_seq OWNED BY public.mascots.id;
 
 
 --
@@ -1066,8 +979,8 @@ CREATE SEQUENCE public.mod_actions_id_seq
 CREATE TABLE public.mod_actions (
     id integer DEFAULT nextval('public.mod_actions_id_seq'::regclass) NOT NULL,
     creator_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     action text,
     "values" json
 );
@@ -1082,8 +995,8 @@ CREATE TABLE public.news_updates (
     message text NOT NULL,
     creator_id integer NOT NULL,
     updater_id integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -1123,9 +1036,9 @@ CREATE TABLE public.note_versions (
     height integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     body text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    version integer DEFAULT 0 NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    version integer NOT NULL
 );
 
 
@@ -1163,9 +1076,8 @@ CREATE TABLE public.notes (
     height integer NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     body text NOT NULL,
-    body_index tsvector NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     version integer DEFAULT 0 NOT NULL
 );
 
@@ -1206,8 +1118,8 @@ CREATE TABLE public.pool_versions (
     description_changed boolean DEFAULT false NOT NULL,
     name text,
     name_changed boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     category character varying,
     version integer DEFAULT 1 NOT NULL
@@ -1239,13 +1151,13 @@ ALTER SEQUENCE public.pool_versions_id_seq OWNED BY public.pool_versions.id;
 
 CREATE TABLE public.pools (
     id integer NOT NULL,
-    name character varying,
+    name character varying NOT NULL,
     creator_id integer NOT NULL,
     description text,
     is_active boolean DEFAULT true NOT NULL,
     post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     category character varying DEFAULT 'series'::character varying NOT NULL
 );
 
@@ -1381,7 +1293,7 @@ CREATE TABLE public.post_flags (
     creator_ip_addr inet NOT NULL,
     reason text,
     is_resolved boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     is_deletion boolean DEFAULT false NOT NULL
 );
@@ -1529,7 +1441,7 @@ CREATE TABLE public.post_sets (
     id bigint NOT NULL,
     name character varying NOT NULL,
     shortname character varying NOT NULL,
-    description text DEFAULT ''::text,
+    description text DEFAULT ''::text NOT NULL,
     is_public boolean DEFAULT false NOT NULL,
     transfer_on_delete boolean DEFAULT false NOT NULL,
     creator_id integer NOT NULL,
@@ -1574,7 +1486,7 @@ CREATE TABLE public.post_versions (
     added_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
     removed_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
     updater_id integer,
-    updater_ip_addr inet,
+    updater_ip_addr inet NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     rating character varying(1),
     rating_changed boolean DEFAULT false NOT NULL,
@@ -1617,8 +1529,8 @@ CREATE TABLE public.post_votes (
     post_id integer NOT NULL,
     user_id integer NOT NULL,
     score integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     user_ip_addr inet
 );
 
@@ -1649,12 +1561,12 @@ ALTER SEQUENCE public.post_votes_id_seq OWNED BY public.post_votes.id;
 
 CREATE TABLE public.posts (
     id integer NOT NULL,
-    created_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     up_score integer DEFAULT 0 NOT NULL,
     down_score integer DEFAULT 0 NOT NULL,
     score integer DEFAULT 0 NOT NULL,
-    source character varying DEFAULT ''::character varying NOT NULL,
+    source character varying NOT NULL,
     md5 character varying NOT NULL,
     rating character(1) DEFAULT 'q'::bpchar NOT NULL,
     is_note_locked boolean DEFAULT false NOT NULL,
@@ -1672,7 +1584,6 @@ CREATE TABLE public.posts (
     last_comment_bumped_at timestamp without time zone,
     fav_count integer DEFAULT 0 NOT NULL,
     tag_string text DEFAULT ''::text NOT NULL,
-    tag_index tsvector,
     tag_count integer DEFAULT 0 NOT NULL,
     tag_count_general integer DEFAULT 0 NOT NULL,
     tag_count_artist integer DEFAULT 0 NOT NULL,
@@ -1685,7 +1596,7 @@ CREATE TABLE public.posts (
     parent_id integer,
     has_children boolean DEFAULT false NOT NULL,
     last_commented_at timestamp without time zone,
-    has_active_children boolean DEFAULT false,
+    has_active_children boolean DEFAULT false NOT NULL,
     bit_flags bigint DEFAULT 0 NOT NULL,
     tag_count_meta integer DEFAULT 0 NOT NULL,
     locked_tags text,
@@ -1976,7 +1887,7 @@ CREATE TABLE public.tags (
     id integer NOT NULL,
     name character varying NOT NULL,
     post_count integer DEFAULT 0 NOT NULL,
-    category integer DEFAULT 0 NOT NULL,
+    category smallint DEFAULT 0 NOT NULL,
     related_tags text,
     related_tags_updated_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
@@ -2066,7 +1977,8 @@ CREATE TABLE public.tickets (
     handler_id integer DEFAULT 0 NOT NULL,
     claimant_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    accused_id integer
 );
 
 
@@ -2139,8 +2051,8 @@ CREATE TABLE public.uploads (
     backtrace text,
     post_id integer,
     md5_confirmation character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     parent_id integer,
     md5 character varying,
     file_ext character varying,
@@ -2181,8 +2093,8 @@ CREATE TABLE public.user_feedback (
     creator_id integer NOT NULL,
     category character varying NOT NULL,
     body text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet
 );
 
@@ -2220,8 +2132,8 @@ CREATE TABLE public.user_name_change_requests (
     desired_name character varying,
     change_reason text,
     rejection_reason text,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -2252,8 +2164,8 @@ ALTER SEQUENCE public.user_name_change_requests_id_seq OWNED BY public.user_name
 CREATE TABLE public.user_password_reset_nonces (
     id integer NOT NULL,
     key character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     user_id integer NOT NULL
 );
 
@@ -2302,7 +2214,8 @@ CREATE TABLE public.user_statuses (
     artist_edit_count integer DEFAULT 0 NOT NULL,
     own_post_replaced_count integer DEFAULT 0,
     own_post_replaced_penalize_count integer DEFAULT 0,
-    post_replacement_rejected_count integer DEFAULT 0
+    post_replacement_rejected_count integer DEFAULT 0,
+    ticket_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2331,7 +2244,7 @@ ALTER SEQUENCE public.user_statuses_id_seq OWNED BY public.user_statuses.id;
 
 CREATE TABLE public.users (
     id integer NOT NULL,
-    created_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     name character varying NOT NULL,
     password_hash character varying NOT NULL,
@@ -2342,7 +2255,7 @@ CREATE TABLE public.users (
     last_logged_in_at timestamp without time zone,
     last_forum_read_at timestamp without time zone,
     recent_tags text,
-    comment_threshold integer DEFAULT '-1'::integer NOT NULL,
+    comment_threshold integer DEFAULT '-2'::integer NOT NULL,
     default_image_size character varying DEFAULT 'large'::character varying NOT NULL,
     favorite_tags text,
     blacklisted_tags text DEFAULT 'spoilers
@@ -2351,7 +2264,7 @@ scat
 furry -rating:s'::text,
     time_zone character varying DEFAULT 'Eastern Time (US & Canada)'::character varying NOT NULL,
     bcrypt_password_hash text,
-    per_page integer DEFAULT 20 NOT NULL,
+    per_page integer DEFAULT 75 NOT NULL,
     custom_style text,
     bit_prefs bigint DEFAULT 0 NOT NULL,
     last_ip_addr inet,
@@ -2394,8 +2307,8 @@ CREATE TABLE public.wiki_page_versions (
     title character varying NOT NULL,
     body text NOT NULL,
     is_locked boolean NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
     reason character varying
@@ -2431,10 +2344,9 @@ CREATE TABLE public.wiki_pages (
     creator_id integer NOT NULL,
     title character varying NOT NULL,
     body text NOT NULL,
-    body_index tsvector NOT NULL,
     is_locked boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     updater_id integer,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL
@@ -2630,10 +2542,10 @@ ALTER TABLE ONLY public.ip_bans ALTER COLUMN id SET DEFAULT nextval('public.ip_b
 
 
 --
--- Name: janitor_trials id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: mascots id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.janitor_trials ALTER COLUMN id SET DEFAULT nextval('public.janitor_trials_id_seq'::regclass);
+ALTER TABLE ONLY public.mascots ALTER COLUMN id SET DEFAULT nextval('public.mascots_id_seq'::regclass);
 
 
 --
@@ -3082,11 +2994,11 @@ ALTER TABLE ONLY public.ip_bans
 
 
 --
--- Name: janitor_trials janitor_trials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: mascots mascots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.janitor_trials
-    ADD CONSTRAINT janitor_trials_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.mascots
+    ADD CONSTRAINT mascots_pkey PRIMARY KEY (id);
 
 
 --
@@ -3513,10 +3425,17 @@ CREATE INDEX index_bans_on_user_id ON public.bans USING btree (user_id);
 
 
 --
--- Name: index_blips_on_body_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_blips_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_blips_on_body_index ON public.blips USING gin (body_index);
+CREATE INDEX index_blips_on_lower_body_trgm ON public.blips USING gin (lower((body)::text) public.gin_trgm_ops);
+
+
+--
+-- Name: index_blips_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_blips_on_to_tsvector_english_body ON public.blips USING gin (to_tsvector('english'::regconfig, (body)::text));
 
 
 --
@@ -3555,13 +3474,6 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 
 
 --
--- Name: index_comments_on_body_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_comments_on_body_index ON public.comments USING gin (body_index);
-
-
---
 -- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3583,10 +3495,24 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 
 
 --
+-- Name: index_comments_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_lower_body_trgm ON public.comments USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
 -- Name: index_comments_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_comments_on_post_id ON public.comments USING btree (post_id);
+
+
+--
+-- Name: index_comments_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -3618,10 +3544,10 @@ CREATE INDEX index_dmails_on_is_read ON public.dmails USING btree (is_read);
 
 
 --
--- Name: index_dmails_on_message_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_dmails_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_index);
+CREATE INDEX index_dmails_on_lower_body_trgm ON public.dmails USING gin (lower(body) public.gin_trgm_ops);
 
 
 --
@@ -3629,6 +3555,13 @@ CREATE INDEX index_dmails_on_message_index ON public.dmails USING gin (message_i
 --
 
 CREATE INDEX index_dmails_on_owner_id ON public.dmails USING btree (owner_id);
+
+
+--
+-- Name: index_dmails_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_on_to_tsvector_english_body ON public.dmails USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -3688,10 +3621,17 @@ CREATE INDEX index_forum_posts_on_creator_id ON public.forum_posts USING btree (
 
 
 --
--- Name: index_forum_posts_on_text_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_forum_posts_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_forum_posts_on_text_index ON public.forum_posts USING gin (text_index);
+CREATE INDEX index_forum_posts_on_lower_body_trgm ON public.forum_posts USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
+-- Name: index_forum_posts_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_to_tsvector_english_body ON public.forum_posts USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -3751,10 +3691,17 @@ CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topi
 
 
 --
--- Name: index_forum_topics_on_text_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_forum_topics_on_lower_title_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_forum_topics_on_text_index ON public.forum_topics USING gin (text_index);
+CREATE INDEX index_forum_topics_on_lower_title_trgm ON public.forum_topics USING gin (lower((title)::text) public.gin_trgm_ops);
+
+
+--
+-- Name: index_forum_topics_on_to_tsvector_english_title; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_to_tsvector_english_title ON public.forum_topics USING gin (to_tsvector('english'::regconfig, (title)::text));
 
 
 --
@@ -3772,10 +3719,17 @@ CREATE UNIQUE INDEX index_ip_bans_on_ip_addr ON public.ip_bans USING btree (ip_a
 
 
 --
--- Name: index_janitor_trials_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_mascots_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_janitor_trials_on_user_id ON public.janitor_trials USING btree (user_id);
+CREATE INDEX index_mascots_on_creator_id ON public.mascots USING btree (creator_id);
+
+
+--
+-- Name: index_mascots_on_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mascots_on_md5 ON public.mascots USING btree (md5);
 
 
 --
@@ -3828,13 +3782,6 @@ CREATE INDEX index_note_versions_on_updater_ip_addr ON public.note_versions USIN
 
 
 --
--- Name: index_notes_on_body_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_notes_on_body_index ON public.notes USING gin (body_index);
-
-
---
 -- Name: index_notes_on_creator_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3842,10 +3789,24 @@ CREATE INDEX index_notes_on_creator_id_and_post_id ON public.notes USING btree (
 
 
 --
+-- Name: index_notes_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notes_on_lower_body_trgm ON public.notes USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
 -- Name: index_notes_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_notes_on_post_id ON public.notes USING btree (post_id);
+
+
+--
+-- Name: index_notes_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notes_on_to_tsvector_english_body ON public.notes USING gin (to_tsvector('english'::regconfig, body));
 
 
 --
@@ -4087,10 +4048,11 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
--- Name: index_posts_on_tags_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_posts_on_tags_index ON public.posts USING gin (tag_index);
+CREATE INDEX index_posts_on_string_to_array_tag_string ON public.posts USING gin (string_to_array(tag_string, ' '::text));
+ALTER INDEX public.index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET STATISTICS 3000;
 
 
 --
@@ -4276,6 +4238,20 @@ CREATE INDEX index_user_feedback_on_creator_ip_addr ON public.user_feedback USIN
 
 
 --
+-- Name: index_user_feedback_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_feedback_on_lower_body_trgm ON public.user_feedback USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
+-- Name: index_user_feedback_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_feedback_on_to_tsvector_english_body ON public.user_feedback USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_user_feedback_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4314,7 +4290,7 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+CREATE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
@@ -4325,6 +4301,20 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 
 
 --
+-- Name: index_users_on_lower_profile_about_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_about_trgm ON public.users USING gin (lower(profile_about) public.gin_trgm_ops);
+
+
+--
+-- Name: index_users_on_lower_profile_artinfo_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_lower_profile_artinfo_trgm ON public.users USING gin (lower(profile_artinfo) public.gin_trgm_ops);
+
+
+--
 -- Name: index_users_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4332,10 +4322,17 @@ CREATE UNIQUE INDEX index_users_on_name ON public.users USING btree (lower((name
 
 
 --
--- Name: index_users_on_name_trgm; Type: INDEX; Schema: public; Owner: -
+-- Name: index_users_on_to_tsvector_english_profile_about; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_users_on_name_trgm ON public.users USING gin (lower((name)::text) public.gin_trgm_ops);
+CREATE INDEX index_users_on_to_tsvector_english_profile_about ON public.users USING gin (to_tsvector('english'::regconfig, profile_about));
+
+
+--
+-- Name: index_users_on_to_tsvector_english_profile_artinfo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_to_tsvector_english_profile_artinfo ON public.users USING gin (to_tsvector('english'::regconfig, profile_artinfo));
 
 
 --
@@ -4360,10 +4357,17 @@ CREATE INDEX index_wiki_page_versions_on_wiki_page_id ON public.wiki_page_versio
 
 
 --
--- Name: index_wiki_pages_on_body_index_index; Type: INDEX; Schema: public; Owner: -
+-- Name: index_wiki_pages_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_wiki_pages_on_body_index_index ON public.wiki_pages USING gin (body_index);
+CREATE INDEX index_wiki_pages_on_lower_body_trgm ON public.wiki_pages USING gin (lower(body) public.gin_trgm_ops);
+
+
+--
+-- Name: index_wiki_pages_on_lower_title_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_lower_title_trgm ON public.wiki_pages USING gin (lower((title)::text) public.gin_trgm_ops);
 
 
 --
@@ -4388,6 +4392,13 @@ CREATE INDEX index_wiki_pages_on_title_pattern ON public.wiki_pages USING btree 
 
 
 --
+-- Name: index_wiki_pages_on_to_tsvector_english_body; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_to_tsvector_english_body ON public.wiki_pages USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
 -- Name: index_wiki_pages_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4398,63 +4409,7 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER posts_update_change_seq BEFORE UPDATE ON public.posts FOR EACH ROW EXECUTE PROCEDURE public.posts_trigger_change_seq();
-
-
---
--- Name: blips trigger_blips_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_blips_on_update BEFORE INSERT OR UPDATE ON public.blips FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: comments trigger_comments_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_comments_on_update BEFORE INSERT OR UPDATE ON public.comments FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: dmails trigger_dmails_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_dmails_on_update BEFORE INSERT OR UPDATE ON public.dmails FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('message_index', 'pg_catalog.english', 'title', 'body');
-
-
---
--- Name: forum_posts trigger_forum_posts_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_forum_posts_on_update BEFORE INSERT OR UPDATE ON public.forum_posts FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('text_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: forum_topics trigger_forum_topics_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_forum_topics_on_update BEFORE INSERT OR UPDATE ON public.forum_topics FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('text_index', 'pg_catalog.english', 'title');
-
-
---
--- Name: notes trigger_notes_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_notes_on_update BEFORE INSERT OR UPDATE ON public.notes FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'pg_catalog.english', 'body');
-
-
---
--- Name: posts trigger_posts_on_tag_index_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_posts_on_tag_index_update BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('tag_index', 'public.danbooru', 'tag_string', 'fav_string', 'pool_string');
-
-
---
--- Name: wiki_pages trigger_wiki_pages_on_update; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wiki_pages FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('body_index', 'public.danbooru', 'body', 'title');
+CREATE TRIGGER posts_update_change_seq BEFORE UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION public.posts_trigger_change_seq();
 
 
 --
@@ -4463,6 +4418,22 @@ CREATE TRIGGER trigger_wiki_pages_on_update BEFORE INSERT OR UPDATE ON public.wi
 
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT fk_rails_02329e5ef9 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT fk_rails_45cd696dba FOREIGN KEY (accused_id) REFERENCES public.users(id);
+
+
+--
+-- Name: mascots fk_rails_9901e810fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mascots
+    ADD CONSTRAINT fk_rails_9901e810fa FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -4746,6 +4717,22 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220219202441'),
 ('20220316162257'),
 ('20220516103329'),
-('20220710133556');
+('20220710133556'),
+('20220810131625'),
+('20221014085948'),
+('20230203162010'),
+('20230204141325'),
+('20230210092829'),
+('20230219115601'),
+('20230221145226'),
+('20230221153458'),
+('20230226152600'),
+('20230312103728'),
+('20230314170352'),
+('20230316084945'),
+('20230506161827'),
+('20230513074838'),
+('20230517155547'),
+('20230518182034');
 
 

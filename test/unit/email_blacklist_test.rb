@@ -2,14 +2,8 @@ require 'test_helper'
 
 class EmailBlacklistTest < ActiveSupport::TestCase
   setup do
-    @user = FactoryBot.create(:user)
-    CurrentUser.user = FactoryBot.create(:mod_user)
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
+    @user = create(:user)
+    CurrentUser.user = create(:mod_user)
   end
 
   should "detect email by suffix" do

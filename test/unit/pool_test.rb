@@ -4,22 +4,13 @@ require 'test_helper'
 
 class PoolTest < ActiveSupport::TestCase
   setup do
-    Timecop.travel(1.month.ago) do
-      @user = FactoryBot.create(:user)
-      CurrentUser.user = @user
-    end
-
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  teardown do
-    CurrentUser.user = nil
-    CurrentUser.ip_addr = nil
+    @user = create(:user, created_at: 1.month.ago)
+    CurrentUser.user = @user
   end
 
   context "A name" do
     setup do
-      @pool = FactoryBot.create(:pool, :name => "xxx")
+      @pool = create(:pool, name: "xxx")
     end
 
     should "be mapped to a pool id" do
@@ -29,7 +20,7 @@ class PoolTest < ActiveSupport::TestCase
 
   context "A multibyte character name" do
     setup do
-      @mb_pool = FactoryBot.create(:pool, :name => "àáâãäå")
+      @mb_pool = create(:pool, name: "àáâãäå")
     end
 
     should "be mapped to a pool id" do
@@ -39,7 +30,7 @@ class PoolTest < ActiveSupport::TestCase
 
   context "An id number" do
     setup do
-      @pool = FactoryBot.create(:pool)
+      @pool = create(:pool)
     end
 
     should "be mapped to a pool id" do
@@ -49,8 +40,8 @@ class PoolTest < ActiveSupport::TestCase
 
   context "Creating a pool" do
     setup do
-      @posts = FactoryBot.create_list(:post, 5)
-      @pool = FactoryBot.create(:pool, post_ids: @posts.map(&:id))
+      @posts = create_list(:post, 5)
+      @pool = create(:pool, post_ids: @posts.map(&:id))
     end
 
     should "initialize the post count" do
@@ -67,27 +58,27 @@ class PoolTest < ActiveSupport::TestCase
 
   context "Reverting a pool" do
     setup do
-      @pool = FactoryBot.create(:pool)
-      @p1 = FactoryBot.create(:post)
-      @p2 = FactoryBot.create(:post)
-      @p3 = FactoryBot.create(:post)
-      CurrentUser.scoped(@user, "1.2.3.4") do
+      @pool = create(:pool)
+      @p1 = create(:post)
+      @p2 = create(:post)
+      @p3 = create(:post)
+      as(@user, "1.2.3.4") do
         @pool.add!(@p1)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.5") do
+      as(@user, "1.2.3.5") do
         @pool.add!(@p2)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.6") do
+      as(@user, "1.2.3.6") do
         @pool.add!(@p3)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.7") do
+      as(@user, "1.2.3.7") do
         @pool.remove!(@p1)
         @pool.reload
       end
-      CurrentUser.scoped(@user, "1.2.3.8") do
+      as(@user, "1.2.3.8") do
         version = @pool.versions[1]
         @pool.revert_to!(version)
         @pool.reload
@@ -120,9 +111,9 @@ class PoolTest < ActiveSupport::TestCase
 
   context "Updating a pool" do
     setup do
-      @pool = FactoryBot.create(:pool, category: "series")
-      @p1 = FactoryBot.create(:post)
-      @p2 = FactoryBot.create(:post)
+      @pool = create(:pool, category: "series")
+      @p1 = create(:post)
+      @p2 = create(:post)
     end
 
     context "by adding a new post" do
@@ -222,19 +213,15 @@ class PoolTest < ActiveSupport::TestCase
         @pool.add!(@p2)
       end
 
-      teardown do
-        Danbooru.config.unstub(:pool_category_change_limit)
-      end
-
       should "not allow Members to change the category of large pools" do
-        @member = FactoryBot.create(:member_user)
+        @member = create(:member_user)
         as(@member) { @pool.update(category: "collection") }
 
         assert_equal(["You cannot change the category of pools with greater than 1 posts"], @pool.errors[:base])
       end
 
       should "allow janitors to change the category of large pools" do
-        @janitor = FactoryBot.create(:janitor_user)
+        @janitor = create(:janitor_user)
         as(@janitor) { @pool.update(category: "collection") }
 
         assert_equal(true, @pool.valid?)
@@ -246,9 +233,9 @@ class PoolTest < ActiveSupport::TestCase
 
     should "create new versions for each distinct user" do
       assert_equal(1, @pool.versions.size)
-      user2 = Timecop.travel(1.month.ago) {FactoryBot.create(:user)}
+      user2 = create(:user, created_at: 1.month.ago)
 
-      CurrentUser.scoped(user2, "127.0.0.2") do
+      as(user2, "127.0.0.2") do
         @pool.post_ids = [@p1.id]
         @pool.save
       end
@@ -258,7 +245,7 @@ class PoolTest < ActiveSupport::TestCase
       assert_equal(user2.id, @pool.versions.last.updater_id)
       assert_equal("127.0.0.2", @pool.versions.last.updater_ip_addr.to_s)
 
-      CurrentUser.scoped(user2, "127.0.0.3") do
+      as(user2, "127.0.0.3") do
         @pool.post_ids = [@p1.id, @p2.id]
         @pool.save
       end
@@ -308,10 +295,10 @@ class PoolTest < ActiveSupport::TestCase
 
   context "An existing pool" do
     setup do
-      @pool = FactoryBot.create(:pool)
-      @p1 = FactoryBot.create(:post)
-      @p2 = FactoryBot.create(:post)
-      @p3 = FactoryBot.create(:post)
+      @pool = create(:pool)
+      @p1 = create(:post)
+      @p2 = create(:post)
+      @p3 = create(:post)
       @pool.add!(@p1)
       @pool.add!(@p2)
       @pool.add!(@p3)

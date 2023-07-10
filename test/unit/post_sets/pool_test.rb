@@ -4,22 +4,16 @@ module PostSets
   class PoolTest < ActiveSupport::TestCase
     context "In all cases" do
       setup do
-        @user = FactoryBot.create(:user)
+        @user = create(:user)
         CurrentUser.user = @user
-        CurrentUser.ip_addr = "127.0.0.1"
 
-        @post_1 = FactoryBot.create(:post)
-        @post_2 = FactoryBot.create(:post)
-        @post_3 = FactoryBot.create(:post)
-        @pool = FactoryBot.create(:pool)
+        @post_1 = create(:post)
+        @post_2 = create(:post)
+        @post_3 = create(:post)
+        @pool = create(:pool)
         @pool.add!(@post_2)
         @pool.add!(@post_1)
         @pool.add!(@post_3)
-      end
-
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
       end
 
       context "a post pool set for page 2" do
@@ -34,11 +28,11 @@ module PostSets
         end
 
         should "know the total number of pages" do
-          assert_equal(3, @set.total_pages)
+          assert_equal(3, @set.posts.total_pages)
         end
 
         should "know the current page" do
-          assert_equal(2, @set.current_page)
+          assert_equal(2, @set.posts.current_page)
         end
       end
 

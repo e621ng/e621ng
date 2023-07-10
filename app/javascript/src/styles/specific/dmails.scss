@@ -1,18 +1,5 @@
-
-
 div#c-dmails {
   tr.read-false {
     font-weight: bold;
-  }
-
-  div#preview {
-    margin: 1em 0;
-    border: 1px solid $dmail-preview-border;
-    padding: 1em;
-    width: 40em;
-
-    h1 {
-      font-size: $h2-size;
-    }
   }
 }

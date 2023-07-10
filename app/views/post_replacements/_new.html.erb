@@ -3,21 +3,14 @@
     <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page).first.try(&:body)) %>
   </div>
 
-  <%= custom_form_for(post_replacement, url: post_replacements_path(post_id: post_replacement.post_id), html: { multipart: true }, method: :post) do |f| %>
-    <div>
-      <% if post.visible? %>
-        <%= PostPresenter.preview(post, tags: "status:any", no_blacklist: true) %>
-      <% end %>
-      <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_s(:human_size, precision: 5)})" %></div>
-    </div>
-    <br>
-    <div id="replacement-uploader"></div>
-    <br>
-    <%= f.input :source, label: "Additional Source", hint: "(Optional) The submission page the replacement file came from.", input_html: {size: 40} %>
-    <%= f.input :reason, label: "Reason", hint: "Tell us why this file should replace the original.", as: :string, input_html: {size: 40} %>
-    <%= f.submit "Submit" %>
-  <% end %>
-  <div id="replacement-preview"></div>
+  <div>
+    <% if post.visible? %>
+      <%= PostPresenter.preview(post, show_deleted: true, no_blacklist: true) %>
+    <% end %>
+    <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
+  </div>
+  <br>
+  <div id="replacement-uploader" class="simple_form"></div>
 </div>
 
 <%= javascript_tag nonce: true do -%>

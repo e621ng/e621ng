@@ -1,0 +1,79 @@
+<div id="c-<%= type.model_name.plural %>">
+  <div id="a-index">
+    <%# path is a string here because of duplicate routes %>
+    <%= form_search(path: type.model_name.route_key) do |f| %>
+      <%= f.input :user_name, label: "Voter Username", autocomplete: "user" %>
+      <%= f.input :"#{type.model_type}_id", label: "#{type.model_type.capitalize} ID" %>
+      <br>
+      <%= f.input :"#{type.model_type}_creator_name", label: "#{type.model_type.capitalize} Creator Username", autocomplete: "user" %>
+      <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]] %>
+      <%= f.input :score, label: "Type", include_blank: true, collection: [["Upvote", "1"], ["Locked", "0"], ["Downvote", "-1"]] %>
+      <% if CurrentUser.is_admin? %>
+        <%= f.input :user_ip_addr, label: "IP Address" %>
+        <%= f.input :duplicates_only, label: "Duplicates Only", as: :boolean %>
+        <%= f.input :order, collection: [["Created", "id"], ["IP Address", "ip_addr"]] %>
+      <% end %>
+    <% end %>
+
+    <table class="striped" id='votes'>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th><%= type.model_type.capitalize %></th>
+        <th><%= type.model_type.capitalize %> Creator</th>
+        <th>Voter</th>
+        <% if CurrentUser.is_admin? %>
+          <th>Email</th>
+        <% end %>
+        <th>Signed Up</th>
+        <th>Vote</th>
+        <th>Created</th>
+        <% if CurrentUser.is_admin? %>
+          <th>IP</th>
+        <% end %>
+      </tr>
+      </thead>
+      <tbody>
+      <% votes.each do |vote| %>
+        <tr id="r<%= vote.id %>">
+          <td><%= vote.id %></td>
+          <td><%= link_to vote.send("#{type.model_type}_id"), vote.send(type.model_type) %></td>
+          <td><%= link_to_user vote.send(type.model_type).send(type.model_creator_column) %></td>
+          <td><%= link_to_user vote.user %></td>
+          <% if CurrentUser.is_admin? %>
+            <td><%= vote.user.email %></td>
+          <% end %>
+          <td><%= time_ago_in_words_tagged(vote.user.created_at) %></td>
+          <td>
+            <% if vote.is_positive? %><span class='greentext'>Up</span>
+            <% elsif vote.is_locked? %><span class='yellowtext'>Locked</span>
+            <% else %><span class='redtext'>Down</span>
+            <% end %>
+          </td>
+          <td><%= time_ago_in_words_tagged(vote.created_at) %></td>
+          <% if CurrentUser.is_admin? %>
+            <td><%= link_to_ip vote.user_ip_addr %></td>
+          <% end %>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+    <br/>
+    <%= tag.button "Select All", id: "select-all-votes" %><br/>
+    <%= tag.button "Lock Votes",  id: "lock-votes" %> Set the votes to 0, preventing the user
+    from voting on the <%= type.model_type %> again<br/>
+    <% if CurrentUser.is_admin? %>
+      <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
+    <% end %>
+
+    <%= javascript_tag nonce: true do -%>
+      new Danbooru.VoteManager('<%= type.model_type %>');
+    <% end -%>
+
+    <%= numbered_paginator(votes) %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  <%= type.model_name.plural.titleize %>
+<% end %>

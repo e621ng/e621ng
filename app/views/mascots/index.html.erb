@@ -1,0 +1,49 @@
+<div id="c-mascots">
+  <div id="a-index">
+    <h1>Mascots</h1>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Background Color</th>
+          <th>Artist Name</th>
+          <th>Artist URL</th>
+          <th>Active</th>
+          <th>Available on</th>
+          <th>Created</th>
+          <% if CurrentUser.user.is_admin? %>
+            <th></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @mascots.each do |mascot| %>
+          <tr>
+            <td><%= link_to mascot.display_name, mascot.url_path %></td>
+            <td><%= mascot.background_color %></td>
+            <td><%= mascot.artist_name %></td>
+            <td><%= mascot.artist_url %></td>
+            <td><%= mascot.active %></td>
+            <td><%= mascot.available_on_string %></td>
+            <td><%= compact_time mascot.created_at %></td>
+            <% if CurrentUser.user.is_admin? %>
+              <td>
+                <%= link_to "Edit", edit_mascot_path(mascot) %>
+                | <%= link_to "Delete", mascot_path(mascot), method: :delete, data: { confirm: "Are you sure you want to delete this mascot?" } %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@mascots) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Mascots
+<% end %>

@@ -37,9 +37,12 @@
             [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
           <% end %>
         </span>
-        
+
         <span>Replaced</span>
-        <span><%= presenter.replaced_upload_count(self) %></span>
+        <span>
+          <%= presenter.replaced_upload_count(self) %>
+          [<%= link_to "pending", post_replacements_path(search: { creator_name: user.name }) %>]
+        </span>
 
         <span>Rejected</span>
         <span><%= presenter.rejected_replacements_count(self) %></span>
@@ -81,10 +84,10 @@
 
         <% if CurrentUser.is_admin? %>
           <span>Email</span>
-          <span><%= user.email %></span>
-        <% end %>
-
-        <% if CurrentUser.is_moderator? %>
+          <span>
+            <%= user.email %>
+            <%= email_domain_search(user.email) %>
+          </span>
           <span>Last IP</span>
           <span><%= link_to_ip(user.last_ip_addr) %></span>
         <% end %>
@@ -137,6 +140,17 @@
           <span>Flags</span>
           <span><%= presenter.flag_count(self) %></span>
         <% end %>
+
+        <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+            <span>Tickets</span>
+            <span>
+              <%= presenter.ticket_count(self) %>
+              <% if CurrentUser.is_moderator? %>
+                [<%= link_to "pending", tickets_path(search: { creator_id: user.id, status: "pending" }) %>]
+                [<%= link_to "accused", tickets_path(search: { accused_id: user.id }) %>]
+              <% end %>
+            </span>
+          <% end %>
 
         <% if CurrentUser.id == user.id %>
           <span>API Key</span>

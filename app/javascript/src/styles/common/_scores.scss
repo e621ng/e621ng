@@ -6,42 +6,33 @@
 }
 
 .score-positive, span.score-positive {
-  @include themable {
+  color: themed("color-score-positive");
+
+  a {
     color: themed("color-score-positive");
-    a {
-      color: themed("color-score-positive");
-    }
-    a:hover {
-      color: darken(themed("color-score-positive"), 10%);
-    }
   }
 }
 .score-negative, span.score-negative {
-  @include themable {
+  color: themed("color-score-negative");
+
+  a {
     color: themed("color-score-negative");
-    a {
-      color: themed("color-score-negative");
-    }
-    a:hover {
-      color: darken(themed("color-score-negative"), 10%);
-    }
   }
 }
 .score-neutral, span.score-neutral {
-  @include themable {
+  color: themed("color-text-muted");
+
+  a {
     color: themed("color-text-muted");
-    a:hover {
-      color: darken(themed("color-text-muted"), 10%);
-    }
   }
 }
 
 .post-rating-text-safe {
-  @include themable { color: themed("color-rating-safe"); }
+  color: themed("color-rating-safe");
 }
 .post-rating-text-questionable {
-  @include themable { color: themed("color-rating-questionable"); }
+  color: themed("color-rating-questionable");
 }
 .post-rating-text-explicit {
-  @include themable { color: themed("color-rating-explicit"); }
+  color: themed("color-rating-explicit");
 }

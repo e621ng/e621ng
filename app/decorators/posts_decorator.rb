@@ -7,16 +7,12 @@ class PostsDecorator < ApplicationDecorator
 
   def preview_class(options)
     post = object
-    klass = ["post-preview", "captioned"]
-    # Always captioned with new post stats section.
-    # klass << "captioned" if pool || size || similarity
+    klass = ["post-preview"]
     klass << "post-status-pending" if post.is_pending?
     klass << "post-status-flagged" if post.is_flagged?
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-pos-score" if post.score >= 3
-    klass << "post-neg-score" if post.score <= -3
     klass << "post-rating-safe" if post.rating == 's'
     klass << "post-rating-questionable" if post.rating == 'q'
     klass << "post-rating-explicit" if post.rating == 'e'
@@ -76,7 +72,7 @@ class PostsDecorator < ApplicationDecorator
     post_score_icon = "#{"&uarr;" if post.score > 0}#{"&darr;" if post.score < 0}#{"&varr;" if post.score == 0}"
     score = t.tag.span("#{post_score_icon}#{post.score}".html_safe, class: "post-score-score " + score_class(post.score))
     favs =  t.tag.span("&hearts;#{post.fav_count}".html_safe, class: 'post-score-faves')
-    comments = t.tag.span "C#{post.comment_count}", class: 'post-score-comments'
+    comments = t.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
     rating =  t.tag.span(post.rating.upcase, class: "post-score-rating")
     status = t.tag.span(status_flags.join(''), class: 'post-score-extras')
     t.tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
@@ -88,7 +84,7 @@ class PostsDecorator < ApplicationDecorator
       return "<em>none</em>".html_safe
     end
 
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i && !options[:raw]
+    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
       return ""
     end
 

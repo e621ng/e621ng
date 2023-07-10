@@ -3,14 +3,14 @@ module PostFlagsHelper
     html = []
     html << '<ul>'
 
-    post.flags.each do |flag|
+    post.flags.order(id: :desc).each do |flag|
       html << '<li>'
       html << (flag.is_deletion ? "[DELETION] " : "[FLAG] ")
       html << format_text(flag.reason, inline: true)
 
       if CurrentUser.can_view_flagger_on_post?(flag)
         html << " - #{link_to_user(flag.creator)}"
-        if CurrentUser.is_moderator?
+        if CurrentUser.is_admin?
            html << " (#{link_to_ip(flag.creator_ip_addr)})"
         end
       end

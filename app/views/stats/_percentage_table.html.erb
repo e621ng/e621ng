@@ -1,0 +1,22 @@
+<table class="striped">
+  <thead>
+    <tr>
+      <th style="width: 275px;"><h2><%= header_title %></h2></th>
+      <th style="width: 75px;"></th>
+      <th style="width: 50px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% data.each do |(data_title, data_or_stats_key, data_total_key)| %>
+      <tr>
+        <td><%= data_title %></td>
+        <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
+        <% if data_total_key %>
+          <td class="stats-pct"><%= (@stats[data_or_stats_key].to_f / @stats[data_total_key] * 100).round %>%</td>
+        <% else %>
+          <td></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

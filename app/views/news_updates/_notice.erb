@@ -1,0 +1,10 @@
+<% if news_update.present? %>
+  <div class="ui-state-highlight site-notice" style="display: none;" id="news" data-id="<%= news_update.id %>">
+    <div id="news-closebutton" class="closebutton">Dismiss</div>
+    <h6>News - <%= news_update.created_at.strftime("%b %d, %Y") %>
+      (<%= time_ago_in_words_tagged news_update.created_at %>)
+      <span id="news-showtext" class="showtext">Click to show.</span>
+    </h6>
+    <div class="newsbody dtext-container"><%= format_text(news_update.message) %></div>
+  </div>
+<% end %>

@@ -1,15 +1,13 @@
 require 'test_helper'
 
 class DmailFilterTest < ActiveSupport::TestCase
-  def setup
-    super
-
-    @receiver = FactoryBot.create(:user)
-    @sender = FactoryBot.create(:user)
+  setup do
+    @receiver = create(:user)
+    @sender = create(:user)
   end
 
   def create_dmail(body, title)
-    CurrentUser.scoped(@sender, "127.0.0.1") do
+    as(@sender) do
       Dmail.create_split(:to_id => @receiver.id, :body => body, :title => title)
     end
   end

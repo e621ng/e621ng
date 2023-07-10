@@ -1,29 +1,27 @@
 <% content_for(:secondary_links) do %>
-  <menu>
-    <%= subnav_link_to "List", post_sets_path %>
-    <%= subnav_link_to "New", new_post_set_path %>
-    <%= subnav_link_to "Help", help_page_path(id: "sets") %>
-    <% if CurrentUser.is_member? %>
-      <%= subnav_link_to "Mine", post_sets_path(search: {creator_id: CurrentUser.id}) %>
-      <%= subnav_link_to "Invites", post_set_maintainers_path %>
+  <%= subnav_link_to "List", post_sets_path %>
+  <%= subnav_link_to "New", new_post_set_path %>
+  <%= subnav_link_to "Help", help_page_path(id: "sets") %>
+  <% if CurrentUser.is_member? %>
+    <%= subnav_link_to "Mine", post_sets_path(search: { creator_id: CurrentUser.id }) %>
+    <%= subnav_link_to "Invites", post_set_maintainers_path %>
+  <% end %>
+  <% if @post_set&.id %>
+    <li>|</li>
+    <%= subnav_link_to "Posts", posts_path(tags: "set:#{@post_set.shortname}") %>
+    <%= subnav_link_to "Maintainers", maintainers_post_set_path(@post_set) %>
+
+    <% if @post_set.can_edit_settings?(CurrentUser.user) %>
+      <%= subnav_link_to "Edit", edit_post_set_path(@post_set) %>
     <% end %>
-    <% if @post_set && @post_set.id %>
-      <li>|</li>
-      <%= subnav_link_to "Posts", posts_path(tags: "set:#{@post_set.shortname}") %>
-      <%= subnav_link_to "Maintainers", maintainers_post_set_path(@post_set) %>
 
-      <% if @post_set.can_edit_settings?(CurrentUser.user) %>
-        <%= subnav_link_to "Edit", edit_post_set_path(@post_set) %>
-      <% end %>
-
-      <% if @post_set.can_edit_posts?(CurrentUser.user) %>
-        <%= subnav_link_to "Edit Posts", post_list_post_set_path(@post_set) %>
-      <% end %>
-
-      <% if @post_set.can_edit_settings?(CurrentUser.user) %>
-        <%= subnav_link_to "Delete", post_set_path(@post_set), method: 'delete', data: {confirm: 'Are you sure you want to delete this set?'} %>
-      <% end %>
-      <%= subnav_link_to "Report", new_ticket_path(type: 'set', disp_id: @post_set.id) %>
+    <% if @post_set.can_edit_posts?(CurrentUser.user) %>
+      <%= subnav_link_to "Edit Posts", post_list_post_set_path(@post_set) %>
     <% end %>
-  </menu>
+
+    <% if @post_set.can_edit_settings?(CurrentUser.user) %>
+      <%= subnav_link_to "Delete", post_set_path(@post_set), method: :delete, data: { confirm: "Are you sure you want to delete this set?" } %>
+    <% end %>
+    <%= subnav_link_to "Report", new_ticket_path(qtype: "set", disp_id: @post_set.id) %>
+  <% end %>
 <% end %>

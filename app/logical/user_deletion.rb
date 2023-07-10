@@ -30,16 +30,19 @@ class UserDeletion
   end
 
   def clear_user_settings
-    user.update_columns(recent_tags: '',
-                        favorite_tags: '',
-                        blacklisted_tags: '',
-                        time_zone: "Eastern Time (US & Canada)",
-                        email: '',
-                        email_verification_key: '1',
-                        avatar_id: nil,
-                        profile_about: '',
-                        profile_artinfo: '',
-                        custom_style: '')
+    user.update_columns(
+      recent_tags: '',
+      favorite_tags: '',
+      blacklisted_tags: '',
+      time_zone: "Eastern Time (US & Canada)",
+      email: '',
+      email_verification_key: '1',
+      avatar_id: nil,
+      profile_about: '',
+      profile_artinfo: '',
+      custom_style: '',
+      level: User::Levels::MEMBER,
+    )
   end
 
   def reset_password

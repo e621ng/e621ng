@@ -6,12 +6,12 @@ class UserRevertTest < ActiveSupport::TestCase
       @creator = create(:user)
       @user = create(:user)
 
-      CurrentUser.scoped(@creator) do
+      as(@creator) do
         @parent = create(:post)
         @post = create(:post, :tag_string => "aaa bbb ccc", :rating => "q", :source => "xyz")
       end
 
-      CurrentUser.scoped(@user) do
+      as(@user) do
         @post.update(:tag_string => "bbb ccc xxx", :source => "", :rating => "e")
       end
     end
@@ -26,7 +26,7 @@ class UserRevertTest < ActiveSupport::TestCase
 
     context "when processed" do
       setup do
-        CurrentUser.as(@user) do
+        as(@user) do
           subject.process
         end
         @post.reload

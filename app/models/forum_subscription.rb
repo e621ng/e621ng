@@ -10,7 +10,7 @@ class ForumSubscription < ApplicationRecord
     ForumSubscription.find_each do |subscription|
       forum_topic = subscription.forum_topic
       if forum_topic.updated_at > subscription.last_read_at
-        CurrentUser.scoped(subscription.user, "127.0.0.1") do
+        CurrentUser.scoped(subscription.user) do
           forum_posts = forum_topic.posts.where("created_at > ?", subscription.last_read_at).order("id desc")
           begin
             UserMailer.forum_notice(subscription.user, forum_topic, forum_posts).deliver_now

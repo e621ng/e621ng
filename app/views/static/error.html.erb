@@ -1,11 +1,12 @@
 <% if CurrentUser.user.try(:is_janitor?) && @exception.present? %>
   <h1><%= @exception.class.to_s %> exception raised</h1>
 
-  <p><%= @exception.message.dup.force_encoding("utf-8") %></p>
+  <p><%= @message || @exception.message.dup.force_encoding("utf-8") %></p>
+  <p>Log ID: <%= @log_code || "(none)" %></p>
   <%= render "static/backtrace", backtrace: @exception.backtrace %>
 <% elsif @message %>
   <p><%= @message %></p>
-  <p>Log ID: <%= @log_code || '(none)' %></p>
+  <p>Log ID: <%= @log_code || "(none)" %></p>
 <% else %>
   <p>An error happened but there are no details provided. That's pretty odd.</p>
 <% end %>

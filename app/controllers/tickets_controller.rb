@@ -1,8 +1,7 @@
 class TicketsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index]
-  before_action :admin_only, only: [:update, :edit, :destroy, :claim, :unclaim]
-
+  before_action :moderator_only, only: [:update, :edit, :destroy, :claim, :unclaim]
 
   def index
     @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])
@@ -10,13 +9,16 @@ class TicketsController < ApplicationController
   end
 
   def new
-    @ticket = Ticket.new(qtype: params[:type], disp_id: params[:disp_id])
+    @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
     check_new_permission(@ticket)
   end
 
   def create
-    @ticket = Ticket.create(ticket_params)
+    @ticket = Ticket.new(ticket_params)
+    check_new_permission(@ticket)
     if @ticket.valid?
+      @ticket.save
+      @ticket.push_pubsub('create')
       flash[:notice] = 'Ticket created'
       redirect_to(ticket_path(@ticket))
     else
@@ -33,14 +35,22 @@ class TicketsController < ApplicationController
   def update
     @ticket = Ticket.find(params[:id])
     @ticket.transaction do
-      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && params[:force_claim] != 'true'
-        flash[:error] = "Ticket has already been claimed by somebody else, submit again to force."
+      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
+        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
         redirect_to ticket_path(@ticket, force_claim: 'true')
         return
       end
+      ticket_params = update_ticket_params
+      if @ticket.warnable? && ticket_params[:record_type].present?
+        @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
+      end
+
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
-      @ticket.update(update_ticket_params)
+      @ticket.update(ticket_params)
+      @ticket.push_pubsub("update")
+      not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
+      flash[:notice] = "Not sending update, no changes" if not_changed
     end
 
     respond_with(@ticket)
@@ -54,7 +64,7 @@ class TicketsController < ApplicationController
       redirect_to ticket_path(@ticket)
       return
     end
-    flash[:error] = 'Ticket already claimed.'
+    flash[:notice] = "Ticket already claimed"
     redirect_to ticket_path(@ticket)
   end
 
@@ -62,16 +72,20 @@ class TicketsController < ApplicationController
     @ticket = Ticket.find(params[:id])
 
     if @ticket.claimant.nil?
-      flash[:error] = 'Ticket not claimed.'
+      flash[:notice] = "Ticket not claimed"
       redirect_to ticket_path(@ticket)
       return
     elsif @ticket.claimant.id != CurrentUser.id
-      flash[:error] = 'Ticket not claimed by you.'
+      flash[:notice] = "Ticket not claimed by you"
+      redirect_to ticket_path(@ticket)
+      return
+    elsif @ticket.approved?
+      flash[:notice] = "Cannot unclaim approved ticket"
       redirect_to ticket_path(@ticket)
       return
     end
     @ticket.unclaim!
-    flash[:notice] = 'Claim removed.'
+    flash[:notice] = "Claim removed"
     redirect_to ticket_path(@ticket)
   end
 
@@ -82,14 +96,14 @@ class TicketsController < ApplicationController
   end
 
   def update_ticket_params
-    params.require(:ticket).permit(%i[response status])
+    params.require(:ticket).permit(%i[response status record_type send_update_dmail])
   end
 
   def search_params
     current_search_params = params.fetch(:search, {})
-    permitted_params = %i[type status order]
-    permitted_params += %i[creator_id] if CurrentUser.is_admin? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
-    permitted_params += %i[creator_name accused_name accused_id claimant_id reason] if CurrentUser.is_admin?
+    permitted_params = %i[qtype status order]
+    permitted_params += %i[creator_id] if CurrentUser.is_moderator? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
+    permitted_params += %i[creator_name accused_name accused_id claimant_id reason] if CurrentUser.is_moderator?
     permit_search_params permitted_params
   end
 
@@ -104,5 +118,4 @@ class TicketsController < ApplicationController
       raise User::PrivilegeError
     end
   end
-
 end

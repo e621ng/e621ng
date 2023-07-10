@@ -5,7 +5,7 @@
     <section id="content">
       <h1 id="wiki-page-title">
 
-        <%= link_to @wiki_page.pretty_title_with_category, posts_path(:tags => @wiki_page.title), :class => "tag-type-#{@wiki_page.category_name}" %>
+        <%= link_to @wiki_page.pretty_title_with_category, posts_path(:tags => @wiki_page.title), :class => "tag-type-#{@wiki_page.category_id}" %>
 
         <% if @wiki_page.is_locked? %>
           (locked)
@@ -37,10 +37,6 @@
 
 <% content_for(:page_title) do %>
   Wiki - <%= @wiki_page.pretty_title %>
-<% end %>
-
-<% content_for(:html_header) do %>
-  <meta name="description" content="<%= strip_dtext(@wiki_page.presenter.excerpt) %>"></meta>
 <% end %>
 
 <%= render "secondary_links" %>

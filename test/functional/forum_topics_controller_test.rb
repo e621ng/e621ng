@@ -7,8 +7,8 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       @other_user = create(:user)
       @mod = create(:moderator_user)
 
-      as_user do
-        @forum_topic = create(:forum_topic, :title => "my forum topic", :original_post_attributes => {:body => "xxx"})
+      as(@user) do
+        @forum_topic = create(:forum_topic, title: "my forum topic", original_post_attributes: { body: "xxx" })
       end
     end
 
@@ -33,9 +33,9 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
     context "index action" do
       setup do
-        as_user do
-          @topic1 = create(:forum_topic, :is_sticky => true, :original_post_attributes => {:body => "xxx"})
-          @topic2 = create(:forum_topic, :original_post_attributes => {:body => "xxx"})
+        as(@user) do
+          @topic1 = create(:forum_topic, title: "a", is_sticky: true, original_post_attributes: { body: "xxx" })
+          @topic2 = create(:forum_topic, title: "b", original_post_attributes: { body: "xxx" })
         end
       end
 
@@ -106,13 +106,13 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       setup do
-        as_user do
-          @post = create(:forum_post, :topic_id => @forum_topic.id)
+        as(@user) do
+          @post = create(:forum_post, topic_id: @forum_topic.id)
         end
       end
 
       should "destroy the topic and any associated posts" do
-        delete_auth forum_topic_path(@forum_topic), @mod
+        delete_auth forum_topic_path(@forum_topic), create(:admin_user)
         assert_response :no_content
       end
     end

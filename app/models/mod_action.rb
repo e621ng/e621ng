@@ -3,8 +3,6 @@ class ModAction < ApplicationRecord
   before_validation :initialize_creator, :on => :create
   validates :creator_id, presence: true
 
-  serialize :values_old
-
   KnownActions = [
       :artist_page_rename,
       :artist_page_lock,
@@ -39,6 +37,9 @@ class ModAction < ApplicationRecord
       :help_update,
       :ip_ban_create,
       :ip_ban_delete,
+      :mascot_create,
+      :mascot_update,
+      :mascot_delete,
       :pool_delete,
       :report_reason_create,
       :report_reason_delete,
@@ -74,8 +75,10 @@ class ModAction < ApplicationRecord
       :wiki_page_unlock,
 
       :mass_update,
+      :nuke_tag,
 
-      :takedown_process
+      :takedown_delete,
+      :takedown_process,
   ]
 
   def self.search(params)

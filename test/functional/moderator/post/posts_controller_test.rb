@@ -6,11 +6,9 @@ module Moderator
       context "The moderator posts controller" do
         setup do
           @admin = create(:admin_user)
-          travel_to(1.month.ago) do
-            @user = create(:privileged_user)
-          end
+          @user = create(:privileged_user, created_at: 1.month.ago)
 
-          as_user do
+          as(@user) do
             @post = create(:post)
           end
         end
@@ -29,7 +27,7 @@ module Moderator
           end
 
           should "work even if the deleter has flagged the post previously" do
-            as_user do
+            as(@user) do
               PostFlag.create(post: @post, reason: "aaa", is_resolved: false)
             end
             post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
@@ -39,7 +37,7 @@ module Moderator
 
         context "undelete action" do
           should "render" do
-            as_user do
+            as(@user) do
               @post.delete! "test delete"
             end
             assert_difference(-> { PostEvent.count }, 1) do
@@ -57,11 +55,11 @@ module Moderator
           end
 
           should "render" do
-            as_user do
+            as(@user) do
               @parent = create(:post)
               @child = create(:post, parent: @parent)
             end
-            users = FactoryBot.create_list(:user, 2)
+            users = create_list(:user, 2)
             users.each do |u|
               FavoriteManager.add!(user: u, post: @child)
               @child.reload
@@ -69,6 +67,7 @@ module Moderator
 
             post_auth move_favorites_moderator_post_post_path(@child.id), @admin, params: { commit: "Submit" }
             assert_redirected_to(@child)
+            perform_enqueued_jobs(only: TransferFavoritesJob)
             @parent.reload
             @child.reload
             as(@admin) do

@@ -6,7 +6,7 @@
       <p>Showing differences between <%= compact_time @thispage.updated_at %> (<%= link_to_user @thispage.updater %>) and <%= compact_time @otherpage.updated_at %> (<%= link_to_user @otherpage.updater %>)</p>
 
       <div>
-        <%= wiki_page_diff(@thispage, @otherpage) %>
+        <%= lcs_diff(@thispage.body, @otherpage.body) %>
       </div>
     <% else %>
       <p>The artist requested removal of this page.</p>

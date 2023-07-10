@@ -6,10 +6,9 @@
       <%= f.input :normalized_url_matches, label: "Normalized URL" %>
       <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true %>
       <%= f.input :order, collection: [["ID", "id"], ["Created", "created_at"], ["Updated", "updated_at"]] %>
-      <%= f.submit "Search" %>
     <% end %>
 
-    <table class="striped" width="100%">
+    <table class="striped">
       <thead>
         <tr>
           <th>ID</th>

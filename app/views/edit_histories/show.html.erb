@@ -7,13 +7,15 @@
         <div class="edit-item box-section">
           <div class="author">
             <h6><%= link_to_user edit.user %></h6>
-            <span class="date" title="<%= time_ago_in_words(edit.created_at) + " ago" %>"><%= edit.created_at.strftime("%b %d, %Y %I:%M %p") %></span>
-            <div><%= link_to_ip edit.ip_addr %></div>
+            <%= compact_time edit.created_at %>
+            <% if CurrentUser.is_admin? %>
+              <div><%= link_to_ip edit.ip_addr %></div>
+            <% end %>
           </div>
           <div class="content">
             <div class="body">
               <% if edit.version > 1 %>
-                <%= edit.diff(@edits[idx-1]) %>
+                <%= lcs_diff(@edits[idx-1].body, edit.body) %>
               <% else %>
                 <%= edit.body %>
               <% end %>

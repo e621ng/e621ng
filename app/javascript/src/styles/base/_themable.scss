@@ -1,35 +1,18 @@
-@import "../themes/index";
+@import "../themes/theme_hexagon";
+@import "../themes/theme_pony";
+@import "../themes/theme_bloodlust";
+@import "../themes/theme_serpent";
+@import "../themes/theme_hotdog";
 
-@mixin themable($data_map: $theme_main_index, $apply_to_self: false) {
-  // Apply the default style to the original element
-  $data_current: map-get($data_map, "default") !global;
-  @content;
-  $data_current: null !global;
+@import "../themes/extra_none";
+@import "../themes/extra_autumn";
+@import "../themes/extra_winter";
+@import "../themes/extra_spring";
+@import "../themes/extra_aurora";
+@import "../themes/extra_hexagons";
+@import "../themes/extra_space";
+@import "../themes/extra_stars";
 
-  $data_attr: "custom";
-  @if (map_has_key($data_map, "data-attr")) {
-    $data_attr: map-get($data_map, "data-attr");
-  }
-
-  // Iterates over the list of themes and creates corresponding classes
-  @each $theme, $map in map-get($data_map, "themes") {
-    @if ($apply_to_self == true) {
-      &[data-th-#{$data_attr}=#{$theme}] {
-        $data_current: $map !global;
-        @content;
-        $data_current: null !global;
-      }
-    } @else {
-      [data-th-#{$data_attr}=#{$theme}] & {
-        $data_current: $map !global;
-        @content;
-        $data_current: null !global;
-      }
-    }
-  }
-}
-
-// Used inside @themable mixin to fetch necessary values
-@function themed($key, $important: false) {
-  @return map-get($data_current, $key);
+@function themed($key) {
+  @return var(--#{$key});
 }

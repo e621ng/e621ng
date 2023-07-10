@@ -3,6 +3,9 @@
     <%= f.input :user_name, label: "User", autocomplete: "user", input_html: { value: user_feedback.user.try(:name) } %>
   <% end %>
   <%= f.input :category, as: :button_select, collection: ["positive", "neutral", "negative"].map { |e| [e.titleize, e] } %>
+  <% unless user_feedback.new_record? %>
+    <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean %>
+  <% end %>
   <%= f.input :body, as: :dtext %>
   <%= f.button :submit, "Submit" %>
 <% end %>

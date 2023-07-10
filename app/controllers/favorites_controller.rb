@@ -11,7 +11,7 @@ class FavoritesController < ApplicationController
       @user = User.find(user_id)
 
       if @user.hide_favorites?
-        raise User::PrivilegeError.new "User has hidden their favorites"
+        raise Favorite::HiddenError
       end
 
       @favorite_set = PostSets::Favorites.new(@user, params[:page], params[:limit])

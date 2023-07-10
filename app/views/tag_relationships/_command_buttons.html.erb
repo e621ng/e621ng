@@ -3,7 +3,7 @@
                                data-relationship-id="<%= tag_relation.id %>">
   <% links = [] %>
   <% if with_show_link %>
-    <% links.push link_to("Show", action: "show", controller: tag_relation.model_name.route_key, id: tag_relation.id) %>
+    <% links.push link_to("Show", action: "show", controller: "/#{tag_relation.model_name.route_key}", id: tag_relation.id) %>
   <% end %>
   <% if tag_relation.approvable_by?(CurrentUser.user) %>
     <% links.push link_to("Approve", "#", class: "tag-relationship-accept") %>
@@ -12,7 +12,7 @@
     <% links.push link_to("Reject", "#", class: "tag-relationship-reject") %>
   <% end %>
   <% if tag_relation.editable_by?(CurrentUser.user) %>
-    <% links.push link_to("Edit", action: "edit", controller: tag_relation.model_name.route_key, id: tag_relation.id) %>
+    <% links.push link_to("Edit", action: "edit", controller: "/#{tag_relation.model_name.route_key}", id: tag_relation.id) %>
   <% end %>
   <%= safe_join(links, " | ") %>
 </span>

@@ -1,7 +1,5 @@
-
-
 div#c-iqdb-queries {
-  div#a-check {
+  div#a-show {
     article.post-preview {
       width: 180px;
       border: $iqdb-post-border solid 1px;
@@ -9,10 +7,6 @@ div#c-iqdb-queries {
       img {
         margin-top: 10px;
       }
-    }
-
-    #filedropzone {
-      margin: 1em 0;
     }
   }
 }

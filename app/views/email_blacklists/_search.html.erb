@@ -1,6 +1,5 @@
 <%= form_search(path: email_blacklists_path) do |f| %>
-  <%= f.input :pattern, label: "Domain", hint: "Use * for wildcard" %>
+  <%= f.input :domain, label: "Domain", hint: "Use * for wildcard" %>
   <%= f.input :reason, label: "Ban Reason" %>
   <%= f.input :order, collection: [["Recently created", "id"], ["Last updated", "updated_at"], ["Domain", "domain"], ["Reason", "reason"]] %>
-  <%= f.submit "Search" %>
 <% end %>

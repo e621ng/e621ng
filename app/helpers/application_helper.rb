@@ -1,5 +1,3 @@
-require 'dtext'
-
 module ApplicationHelper
   def disable_mobile_mode?
     if CurrentUser.user.present? && CurrentUser.is_member?
@@ -40,45 +38,12 @@ module ApplicationHelper
     tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
   end
 
-  def fast_link_to(text, link_params, options = {})
-    if options
-      attributes = options.map do |k, v|
-        %{#{k}="#{h(v)}"}
-      end.join(" ")
-    else
-      attributes = ""
-    end
-
-    if link_params.is_a?(Hash)
-      action = link_params.delete(:action)
-      controller = link_params.delete(:controller) || controller_name
-      id = link_params.delete(:id)
-
-      link_params = link_params.map {|k, v| "#{k}=#{u(v)}"}.join("&")
-
-      if link_params.present?
-        link_params = "?#{link_params}"
-      end
-
-      if id
-        url = "/#{controller}/#{action}/#{id}#{link_params}"
-      else
-        url = "/#{controller}/#{action}#{link_params}"
-      end
-    else
-      url = link_params
-    end
-
-    raw %{<a href="#{h(url)}" #{attributes}>#{text}</a>}
-  end
-
   def dtext_ragel(text, **options)
-    options.merge!(disable_mentions: true)
-    parsed = DTextRagel.parse(text, **options)
+    parsed = DText.parse(text, **options)
     return raw "" if parsed.nil?
     deferred_post_ids.merge(parsed[1]) if parsed[1].present?
     raw parsed[0]
-  rescue DTextRagel::Error => e
+  rescue DText::Error => e
     raw ""
   end
 
@@ -96,10 +61,6 @@ module ApplicationHelper
     simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
   end
 
-  def strip_dtext(text)
-    dtext_ragel(text, strip: true)
-  end
-
   def error_messages_for(instance_name)
     instance = instance_variable_get("@#{instance_name}")
 
@@ -114,14 +75,6 @@ module ApplicationHelper
     datetime = time.strftime("%Y-%m-%dT%H:%M%:z")
 
     content_tag(:time, content || datetime, :datetime => datetime, :title => time.to_formatted_s)
-  end
-
-  def humanized_duration(from, to)
-    duration = distance_of_time_in_words(from, to)
-    datetime = from.iso8601 + "/" + to.iso8601
-    title = "#{from.strftime("%Y-%m-%d %H:%M")} to #{to.strftime("%Y-%m-%d %H:%M")}"
-
-    raw content_tag(:time, duration, datetime: datetime, title: title)
   end
 
   def time_ago_in_words_tagged(time, compact: false)
@@ -155,45 +108,17 @@ module ApplicationHelper
     link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
-  def link_to_wiki(*wiki_titles, **options)
-    links = wiki_titles.map do |title|
-      link_to title.tr("_", " "), wiki_pages_path(title: title)
-    end
-
-    to_sentence(links, **options)
-  end
-
-  def link_to_user(user, options = {})
+  def link_to_user(user, include_activation: false)
     return "anonymous" if user.blank?
 
-    user_class = user.level_class
-    user_class = user_class + " user-post-approver" if user.can_approve_posts?
-    user_class = user_class + " user-post-uploader" if user.can_upload_free?
-    user_class = user_class + " user-banned" if user.is_banned?
-    user_class = user_class + " with-style" if CurrentUser.user.style_usernames?
-    if options[:raw_name]
-      name = user.name
-    else
-      name = user.pretty_name
-    end
-    link_to(name, user_path(user), :class => user_class, rel: "nofollow")
-  end
-
-  def mod_link_to_user(user, positive_or_negative)
-    html = ""
-    html << link_to_user(user)
-
-    if positive_or_negative == :positive
-      html << " [" + link_to("+", new_user_feedback_path(:user_feedback => {:category => "positive", :user_id => user.id})) + "]"
-
-      unless user.is_moderator?
-        html << " [" + link_to("promote", edit_admin_user_path(user)) + "]"
-      end
-    else
-      html << " [" + link_to("&ndash;".html_safe, new_user_feedback_path(:user_feedback => {:category => "negative", :user_id => user.id})) + "]"
-    end
-
-    html.html_safe
+    user_class = user.level_css_class
+    user_class += " user-post-approver" if user.can_approve_posts?
+    user_class += " user-post-uploader" if user.can_upload_free?
+    user_class += " user-banned" if user.is_banned?
+    user_class += " with-style" if CurrentUser.user.style_usernames?
+    html = link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
+    html << " (Unactivated)" if include_activation && !user.is_verified?
+    html
   end
 
   def body_attributes(user = CurrentUser.user)
@@ -257,7 +182,7 @@ protected
     when "notes", "note_versions"
       /^\/notes/
 
-    when "posts", "uploads", "post_versions", "explore/posts", "moderator/post/dashboards", "favorites", "post_favorites"
+    when "posts", "uploads", "post_versions", "popular", "moderator/post/dashboards", "favorites", "post_favorites"
       /^\/posts/
 
     when "artists", "artist_versions"

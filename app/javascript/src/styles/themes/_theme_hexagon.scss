@@ -1,100 +1,112 @@
 $hexagon-color-background:        #020f23;
+$hexagon-color-foreground:        #152f56;
 $hexagon-color-link:              #b4c7d9;
 $hexagon-color-link-hover:        #e9f2fa;
+$hexagon-color-text:              #ffffff;
 $hexagon-color-text-muted:        #999999;
 $hexagon-color-section:           #1f3c67;
 $hexagon-color-section-border:    $hexagon-color-background;
 
-$theme_hexagon: (
+body {
   // Theme-specific images
-  "image-background":             url('images/hexagon/background.png'),
+  --image-background:             url("images/hexagon/background.png");
 
   // Layout Colors
-  "color-background":             $hexagon-color-background, // Main background (dark blue, large hexagons)
-  "color-foreground":             #152f56,                   // Foreground (lighter blue, small hexagons)
-  "color-section":                $hexagon-color-section,    // Foreground sections - boxes, sections, etc
+  --color-background:             #{$hexagon-color-background}; // Main background (dark blue, large hexagons)
+  --color-foreground:             #{$hexagon-color-foreground}; // Foreground (lighter blue, small hexagons)
+  --color-section:                #{$hexagon-color-section};    // Foreground sections - boxes, sections, etc
+  --color-section-lighten-5:      #{lighten($hexagon-color-section, 5%)};
+  --color-section-lighten-10:     #{lighten($hexagon-color-section, 10%)};
+  --color-section-darken-5:       #{darken($hexagon-color-section, 5%)};
+  --color-table-border:           #{lighten($hexagon-color-section, 10%)};
 
-  "color-section-pending":        $hexagon-color-section,
-  "color-section-pending-border": $hexagon-color-section-border,
+  --color-section-pending:        #{$hexagon-color-section};
+  --color-section-pending-border: #{$hexagon-color-section-border};
 
   // Main Colors
-  "color-text":                   #ffffff,
-  "color-text-muted":             #999999,
-  "color-text-white":             #ffffff,
+  --color-text:                   #{$hexagon-color-text};
+  --color-text-muted:             #999999;
+  --color-text-white:             #{$hexagon-color-text};
+  --color-text-table-header:      #{darken($hexagon-color-text, 10%)};
 
-  "color-link":                   $hexagon-color-link,
-  "color-link-hover":             $hexagon-color-link-hover,
-  "color-link-active":            #e8c446,
-  "color-button-active":          #e8c446,
+  --color-link:                   #{$hexagon-color-link};
+  --color-link-hover:             #{$hexagon-color-link-hover};
+  --color-link-active:            #e8c446;
+  --color-button-active:          #e8c446;
 
-  "color-link-last-page":         $hexagon-color-text-muted,
-  "color-link-last-hover":        $hexagon-color-link-hover,
+  --color-link-last-page:         #666;
 
-  "color-success":                darkgreen,
-  "color-danger":                 maroon,
-  "color-warning":                sienna,
+  --color-success:                darkgreen;
+  --color-success-darken-5:       #{darken(darkgreen, 5%)};
+  --color-danger:                 maroon;
+  --color-danger-darken-5:        #{darken(maroon, 5%)};
+  --color-danger-darken-10:       #{darken(maroon, 10%)};
+  --color-warning:                sienna;
+  --color-warning-darken-5:       #{darken(sienna, 5%)};
 
-  "color-rating-explicit":        #e45f5f,
-  "color-rating-questionable":    hsl(50, 100%, 70%),
-  "color-rating-safe":            #3e9e49,
+  --color-rating-explicit:        #e45f5f;
+  --color-rating-questionable:    hsl(50, 100%, 70%);
+  --color-rating-safe:            #3e9e49;
 
-  "color-score-positive":         #3e9e49,
-  "color-score-negative":         #e45f5f,
+  --color-score-positive:         #3e9e49;
+  --color-score-negative:         #e45f5f;
 
-  "color-active-tag":             #006ffa,
+  --color-active-tag:             #006ffa;
 
-  // Detail Colors
-  "color-detail-quote":           #b4c7d9,
-  "color-detail-code":            #ffe380,
-  "color-detail-expandable":      #17a2b8,
+  // DText Colors
+  --color-dtext-quote:            #b4c7d9;
+  --color-dtext-code:             #ffe380;
+  --color-dtext-section:          #17a2b8;
 
   // User Groups
-  "color-user-member":            #b4c7d9,
-  "color-user-member-alt":        #2e76b4,
-  "color-user-privileged":        #b4c7d9,
-  "color-user-privileged-alt":    #2e76b4,
-  "color-user-contributor":       #b4c7d9,
-  "color-user-contributor-alt":   #2e76b4,
+  --color-user-member:            #b4c7d9;
+  --color-user-member-alt:        #2e76b4;
+  --color-user-privileged:        #b4c7d9;
+  --color-user-privileged-alt:    #2e76b4;
+  --color-user-contributor:       #b4c7d9;
+  --color-user-contributor-alt:   #2e76b4;
 
-  "color-user-blocked":           #b4c7d9,
-  "color-user-blocked-alt":       #2e76b4,
+  --color-user-blocked:           #b4c7d9;
+  --color-user-blocked-alt:       #2e76b4;
 
-  "color-user-former-staff":      #78dca5,
-  "color-user-former-staff-alt":  #4da073,
-  "color-user-janitor":           #d82828,
-  "color-user-janitor-alt":       #cc5151,
-  "color-user-admin":             #e69500,
-  "color-user-admin-alt":         #9d6703,
+  --color-user-former-staff:      #78dca5;
+  --color-user-former-staff-alt:  #4da073;
+  --color-user-janitor:           #d82828;
+  --color-user-janitor-alt:       #cc5151;
+  --color-user-moderator:         #d82828;
+  --color-user-moderator-alt:     #cc5151;
+  --color-user-admin:             #e69500;
+  --color-user-admin-alt:         #9d6703;
 
   // Tag Categories
-  "color-tag-general":            #b4c7d9,
-  "color-tag-general-alt":        #2e76b4,
+  --color-tag-general:            #b4c7d9;
+  --color-tag-general-alt:        #2e76b4;
 
-  "color-tag-artist":             #f2ac08,
-  "color-tag-artist-alt":         #fbd67f,
+  --color-tag-artist:             #f2ac08;
+  --color-tag-artist-alt:         #fbd67f;
 
-  "color-tag-copyright":          #d0d,
-  "color-tag-copyright-alt":      #ff5eff,
+  --color-tag-copyright:          #d0d;
+  --color-tag-copyright-alt:      #ff5eff;
 
-  "color-tag-character":          #0a0,
-  "color-tag-character-alt":      #2bff2b,
+  --color-tag-character:          #0a0;
+  --color-tag-character-alt:      #2bff2b;
 
-  "color-tag-species":            #ed5d1f,
-  "color-tag-species-alt":        #f6b295,
+  --color-tag-species:            #ed5d1f;
+  --color-tag-species-alt:        #f6b295;
 
-  "color-tag-invalid":            #ff3d3d,
-  "color-tag-invalid-alt":        lighten(#ff3d3d, 25%),
+  --color-tag-invalid:            #ff3d3d;
+  --color-tag-invalid-alt:        lighten(#ff3d3d, 25%);
 
-  "color-tag-meta":               #fff,
-  "color-tag-meta-alt":           #666,
+  --color-tag-meta:               #fff;
+  --color-tag-meta-alt:           #666;
 
-  "color-tag-lore":               #282,
-  "color-tag-lore-alt":           #5fdb5f,
+  --color-tag-lore:               #282;
+  --color-tag-lore-alt:           #5fdb5f;
 
-  "color-tag-pool":               wheat,
-  "color-tag-pool-alt":           #d0b27a,
+  --color-tag-pool:               wheat;
+  --color-tag-pool-alt:           #d0b27a;
 
   // Spoilers
-  "color-spoiler-link":           $hexagon-color-link,
-  "color-spoiler-link-hover":     $hexagon-color-link-hover,
-);
+  --color-spoiler-link:           #{$hexagon-color-link};
+  --color-spoiler-link-hover:     #{$hexagon-color-link-hover};
+}

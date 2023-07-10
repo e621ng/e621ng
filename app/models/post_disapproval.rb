@@ -1,7 +1,5 @@
 class PostDisapproval < ApplicationRecord
-  DELETION_THRESHOLD = 1.month
-
-  belongs_to :post, required: true
+  belongs_to :post
   belongs_to :user
   after_initialize :initialize_attributes, if: :new_record?
   validates :post_id, uniqueness: { :scope => [:user_id], :message => "have already hidden this post" }
@@ -19,7 +17,7 @@ class PostDisapproval < ApplicationRecord
   concerning :SearchMethods do
     class_methods do
       def post_tags_match(query)
-        where(post_id: PostQueryBuilder.new(query).build.reorder(""))
+        where(post_id: Post.tag_match_sql(query))
       end
 
       def search(params)
@@ -27,8 +25,7 @@ class PostDisapproval < ApplicationRecord
 
         q = q.attribute_matches(:post_id, params[:post_id])
         q = q.attribute_matches(:user_id, params[:user_id])
-        q = q.attribute_matches(:message, params[:message_matches])
-        q = q.search_text_attribute(:message, params)
+        q = q.attribute_matches(:message, params[:message])
 
         q = q.post_tags_match(params[:post_tags_match]) if params[:post_tags_match].present?
         q = q.where(user_id: User.search(name_matches: params[:creator_name])) if params[:creator_name].present?

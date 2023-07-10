@@ -4,15 +4,10 @@ module Moderator
   class IpAddrSearchTest < ActiveSupport::TestCase
     context "an ip addr search" do
       setup do
-        @user = FactoryBot.create(:user)
+        @user = create(:user)
         CurrentUser.user = @user
         CurrentUser.ip_addr = "170.1.2.3"
-        FactoryBot.create(:comment, creator: @user, creator_ip_addr: CurrentUser.ip_addr)
-      end
-
-      teardown do
-        CurrentUser.user = nil
-        CurrentUser.ip_addr = nil
+        create(:comment, creator: @user, creator_ip_addr: CurrentUser.ip_addr)
       end
 
       should "find by ip addr" do

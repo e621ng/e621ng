@@ -12,14 +12,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
-      should "list all users for /users?name=<name>" do
-        get users_path, params: { name: @user.name }
-        assert_redirected_to(@user)
-      end
-
-      should "raise error for /users?name=<nonexistent>" do
-        get users_path, params: { name: "nobody" }
-        assert_response :error
+      should "redirect for /users?name=<name>" do
+        get users_path, params: { name: "some_username" }
+        assert_redirected_to(user_path(id: "some_username"))
       end
 
       should "list all users (with search)" do
@@ -36,7 +31,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     context "show action" do
       setup do
         # flesh out profile to get more test coverage of user presenter.
-        as_user do
+        as(@user) do
           create(:post, uploader: @user, tag_string: "fav:#{@user.name}")
         end
       end
@@ -77,12 +72,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "create action" do
-      # FIXME: Broken because of special password handling in tests
-      # should "create a user" do
-      #   assert_difference("User.count", 1) do
-      #     post users_path, params: {:user => {:name => "xxx", :password => "xxxxx1", :password_confirmation => "xxxxx1"}}
-      #   end
-      # end
+      should "create a user" do
+        assert_difference(-> { User.count }, 1) do
+          post users_path, params: { user: { name: "xxx", password: "xxxxx1", password_confirmation: "xxxxx1" } }
+        end
+        created_user = User.find(session[:user_id])
+        assert_equal("xxx", created_user.name)
+        assert_not_nil(created_user.last_ip_addr)
+      end
 
       context "with sockpuppet validation enabled" do
         setup do
@@ -93,6 +90,43 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         should "not allow registering multiple accounts with the same IP" do
           assert_difference("User.count", 0) do
             post users_path, params: {:user => {:name => "dupe", :password => "xxxxx1", :password_confirmation => "xxxxx1"}}
+          end
+        end
+      end
+
+      context "with a duplicate username" do
+        setup do
+          create(:user, name: "test123")
+        end
+
+        should "prevent creation" do
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "TEst123", password: "xxxxx1", password_confirmation: "xxxxx1" } }
+            assert_match(/Name already exists/, flash[:notice])
+          end
+        end
+      end
+
+      context "with email validation" do
+        setup do
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "reject invalid emails" do
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx" } }
+            assert_match(/Email can't be blank/, flash[:notice])
+            post users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx", email: "invalid" } }
+            assert_match(/Email is invalid/, flash[:notice])
+          end
+        end
+
+        should "reject duplicate emails" do
+          create(:user, email: "valid@e621.net")
+
+          assert_no_difference(-> { User.count }) do
+            post users_path, params: { user: { name: "test2", password: "xxxxxx", password_confirmation: "xxxxxx", email: "VaLid@E621.net" } }
+            assert_match(/Email has already been taken/, flash[:notice])
           end
         end
       end
@@ -129,6 +163,18 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
           put_auth user_path(@user), @cuser, params: {:user => {:level => 40}}
           @user.reload
           assert_equal(20, @user.level)
+        end
+      end
+
+      context "for an user with blank email" do
+        setup do
+          @user = create(:user, email: "")
+          Danbooru.config.stubs(:enable_email_verification?).returns(true)
+        end
+
+        should "force them to update their email" do
+          put_auth user_path(@user), @user, params: { user: { comment_threshold: "-100" } }
+          assert_match(/Email can't be blank/, flash[:notice])
         end
       end
     end

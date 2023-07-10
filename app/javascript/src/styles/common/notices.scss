@@ -18,16 +18,12 @@ div#notice {
   width: 50%;
   z-index: 100;
 
-  @include themable {
-    color: themed("color-text");
-    background-color: themed("color-success");
-    border: 1px solid themed("color-foreground");
-  }
+  color: themed("color-text");
+  background-color: themed("color-success");
+  border: 1px solid themed("color-foreground");
 
   &.ui-state-error {
-    @include themable {
-      background-color: themed("color-danger");
-    }
+    background-color: themed("color-danger");
   }
 }
 

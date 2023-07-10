@@ -1,53 +1,61 @@
 version: "3"
 
 x-environment: &common-env
-  DATABASE_URL: postgresql://danbooru:@postgres
   DANBOORU_HOSTNAME: http://localhost:3000
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_ELASTICSEARCH_HOST: elastic
   DANBOORU_MEMCACHED_SERVERS: memcached
-  DANBOORU_IQDBS_SERVER: http://iqdb:4567
+  DANBOORU_IQDB_SERVER: http://iqdb:5588
   # These are just development secrets, do not use them in production
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
 
+x-depends-on: &common-depends-on
+  elastic:
+    condition: service_healthy
+  memcached:
+    condition: service_started
+  postgres:
+    condition: service_started
+  redis:
+    condition: service_started
+
 services:
   e621:
-    build: ./
+    build:
+      context: ./
+      args:
+        COMPOSE_PROFILES: ${COMPOSE_PROFILES-}
     image: e621
     volumes:
       - .:/app
       - node_modules:/app/node_modules
       - public_packs:/app/public/packs
       - post_data:/app/public/data
+      - ./docker/cron_tasks/daily:/etc/periodic/daily
+    tmpfs:
+      - /app/tmp/pids
     environment:
       <<: *common-env
       RAILS_ENV: development
     depends_on:
-      - postgres
-      - redis
-      - memcached
-      - elastic
-      - iqdb
+      <<: *common-depends-on
+      autocompleted:
+        condition: service_started
+      iqdb:
+        condition: service_started
     tty: true
 
-  tests:
-    image: e621
+  autocompleted:
+    image: ghcr.io/e621ng/autocompleted:54b516eded7b6641d6e958b0700eb6a887502dc1
+    command: /app/autocompleted
     environment:
-      <<: *common-env
-      # Hide annoying output from libvips on corrupt files
-      VIPS_WARNING: "0"
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    depends_on:
-      - postgres
-      - redis
-      - memcached
-      - elastic
-    entrypoint: ["docker/test_runner.sh"]
-    profiles:
-      - test
+      SERVER_ADDR: autocompleted:8118
+      PG__USER: e621
+      PG__HOST: postgres
+      PG__PORT: 5432
+      PG__DBNAME: e621_development
+      PG__POOL__MAX_SIZE: 1
 
   nginx:
     image: nginx:stable-alpine
@@ -60,14 +68,16 @@ services:
       NGINX_HOST: localhost
       NGINX_PORT: 3000
     depends_on:
+      - autocompleted
       - e621
     ports:
       - "3000:3000"
     
   postgres:
-    build:  ./docker/postgres
+    image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=danbooru
+      - POSTGRES_USER=e621
+      - POSTGRES_DB=e621_development
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -75,13 +85,13 @@ services:
       - "34517:5432"
   
   redis:
-    image: redis:alpine
+    image: redis:7.0.10-alpine
     command: redis-server --save 10 1 --loglevel warning
     volumes:
-      - redis_data:/data
+      - redis_data_v2:/data
 
   memcached:
-    image: memcached:alpine
+    image: memcached:1.5.22-alpine
 
   elastic:
     image: elasticsearch:7.14.2
@@ -92,31 +102,65 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
-  
+    healthcheck:
+      interval: 10s
+      timeout: 2s
+      test: nc -z elastic 9200
+
   iqdb:
-    build: ./docker/iqdb
-    environment:
-      - IQDB_HOSTNAME=localhost
-      - IQDB_PORT=62125
-      # Hardcoded in iqdbs Procfile
-      - IQDB_DATABASE_FILE=/home/vagrant/iqdbs/e621.db
-      - SINATRA_PORT=4567
-      - IMAGES_FOLDER=/data
-      - REDIS_URL=redis://redis
-      # Sinatra only binds to localhost in development, but to 0.0.0.0 for anything else
-      - APP_ENV=docker
-    depends_on:
-      - redis
+    image: ghcr.io/e621ng/iqdb:d4fed9d9a51184e72d2f14d4ec461d7830bd177a 
+    command: iqdb http 0.0.0.0 5588 /iqdb/e621_v2.db
     volumes:
-      - post_data:/data
-      - iqdb_data:/home/vagrant/iqdbs
+      - iqdb_data:/iqdb
+
+  # Useful for development
+
+  tests:
+    image: e621
+    environment:
+      <<: *common-env
+      RAILS_ENV: test
+      # Hide annoying output from libvips on corrupt files
+      VIPS_WARNING: "0"
+    volumes:
+      - .:/app
+      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - node_modules:/app/node_modules
+    depends_on:
+      <<: *common-depends-on
+    entrypoint: bundle exec rails test
+    profiles:
+      - tests
+
+  rubocop:
+    image: e621
+    volumes:
+      - .:/app
+      - rubocop_cache:/rubocop_cache
+    entrypoint: bundle exec rubocop --cache-root /rubocop_cache
+    profiles: 
+      - rubocop
+
+  solargraph:
+    image: e621
+    entrypoint: solargraph socket -h 0.0.0.0
+    working_dir: $PWD
+    volumes:
+      - .:$PWD
+    environment:
+      IGNORE_RUBOCOP_TODO: "1"
+    ports:
+      - 7658:7658
+    profiles:
+      - solargraph
 
 volumes:
   post_data:
   iqdb_data:
   elastic_data:
   db_data:
-  redis_data:
+  redis_data_v2:
   node_modules:
   public_packs:
   public_packs_test:
+  rubocop_cache:

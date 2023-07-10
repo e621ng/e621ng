@@ -5,20 +5,7 @@ server {
   index index.html;
   access_log off;
   client_max_body_size 100m;
-  location /stylesheets {
-    expires max;
-    break;
-  }
-  location /javascripts {
-    expires max;
-    break;
-  }
   location /data {
-    # if you want to block hotlinking
-    valid_referers none ${NGINX_HOST} ~\.google\. ~\.bing\. ~\.yahoo\.;
-    if ($invalid_referer) {
-      return 403;
-    }
     rewrite ^/data/sample/__.+?__(.+) /data/sample/$1 last;
     rewrite ^/data/__.+?__(.+) /data/$1 last;
     expires max;
@@ -32,6 +19,11 @@ server {
   if (-f $document_root/maintenance.html) {
     rewrite ^(.*)$ /maintenance.html last;
     break;
+  }
+
+  location /tags/autocomplete.json {
+    proxy_pass http://autocompleted:8118/;
+    proxy_redirect off;
   }
 
   location @app_server {

@@ -6,7 +6,6 @@ class ForumPostVotesControllerTest < ActionDispatch::IntegrationTest
       @user1 = create(:user)
       @user2 = create(:user)
       CurrentUser.user = @user1
-      CurrentUser.ip_addr = "127.0.0.1"
 
       as @user1 do
         @forum_topic = create(:forum_topic, original_post_attributes: { body: "alias" })

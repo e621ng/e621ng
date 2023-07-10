@@ -1,8 +1,6 @@
-// === Extra Theming - Hexagons ===
-
-$extra_hexagons: (
-
-    "image-foreground": url('images/extras/hex.png'),
-    "image-foreground-position": left top,
-    "image-foreground-repeat": repeat-x,
-);
+body {
+  --image-foreground: url("images/extras/hex.png");
+  --image-foreground-position: left top;
+  --image-foreground-repeat: repeat-x;
+  --content-padding-bottom: 0.5rem;
+}

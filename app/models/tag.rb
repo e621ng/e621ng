@@ -1,10 +1,6 @@
 class Tag < ApplicationRecord
   COUNT_METATAGS = %w[
     comment_count
-    note_count
-    flag_count
-    child_count
-    pool_count
   ]
 
   BOOLEAN_METATAGS = %w[
@@ -14,11 +10,11 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater
-    -pool pool ordpool -fav fav -favoritedby favoritedby md5 -rating rating note -note
+    -pool pool -fav fav -favoritedby favoritedby md5 -rating rating note -note
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child search upvote downvote voted filetype -filetype flagger type -type
-    -flagger disapproval -disapproval set -set randseed -voted
+    -flagger set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
@@ -42,7 +38,6 @@ class Tag < ApplicationRecord
     duration duration_desc duration_asc
     rank
     random
-    custom
   ] +
       COUNT_METATAGS +
       TagCategory.short_name_list.flat_map {|str| ["#{str}tags", "#{str}tags_asc"]}
@@ -122,22 +117,14 @@ class Tag < ApplicationRecord
         @category_mapping ||= CategoryMapping.new
       end
 
-      def select_category_for(tag_name)
-        select_value_sql("SELECT category FROM tags WHERE name = ?", tag_name).to_i
-      end
-
-      def category_for(tag_name, options = {})
-        if options[:disable_caching]
-          select_category_for(tag_name)
-        else
-          Cache.get("tc:#{Cache.hash(tag_name)}") do
-            select_category_for(tag_name)
-          end
+      def category_for(tag_name)
+        Cache.fetch("tc:#{tag_name}") do
+          Tag.where(name: tag_name).pick(:category)
         end
       end
 
-      def categories_for(tag_names, options = {})
-        if options[:disable_caching]
+      def categories_for(tag_names, disable_cache: false)
+        if disable_cache
           tag_cats = {}
           Tag.where(name: Array(tag_names)).select([:id, :name, :category]).find_each do |tag|
             tag_cats[tag.name] = tag.category
@@ -149,7 +136,7 @@ class Tag < ApplicationRecord
           if not_found.count > 0
             # Is multi_write worth it here? Normal usage of this will be short put lists and then never touched.
             Tag.where(name: not_found).select([:id, :name, :category]).find_each do |tag|
-              Cache.put("tc:#{Cache.hash(tag.name)}", tag.category)
+              Cache.write("tc:#{tag.name}", tag.category)
               found[tag.name] = tag.category
             end
           end
@@ -173,7 +160,7 @@ class Tag < ApplicationRecord
     def update_category_post_counts!
       Post.with_timeout(30_000, nil, {:tags => name}) do
         Post.sql_raw_tag_match(name).find_each do |post|
-          post.set_tag_counts(false)
+          post.set_tag_counts(disable_cache: false)
           args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update("tag_count" => post.tag_count)
           Post.where(:id => post.id).update_all(args)
           post.update_index
@@ -186,13 +173,13 @@ class Tag < ApplicationRecord
     end
 
     def update_category_cache
-      Cache.put("tc:#{Cache.hash(name)}", category, 3.hours)
+      Cache.write("tc:#{name}", category, expires_in: 3.hours)
     end
 
     def user_can_change_category?
       cat = TagCategory.reverse_mapping[category]
-      if !CurrentUser.is_moderator? && TagCategory.mod_only_mapping[cat]
-        errors.add(:category,  "can only used by moderators")
+      if !CurrentUser.is_admin? && TagCategory.admin_only_mapping[cat]
+        errors.add(:category,  "can only used by admins")
         return false
       end
       if cat == "lore"
@@ -215,45 +202,6 @@ class Tag < ApplicationRecord
                             old_type: category_was.to_i,
                             new_type: category.to_i,
                             is_locked: is_locked?)
-    end
-  end
-
-  module StatisticsMethods
-    def trending_count_limit
-      10
-    end
-
-    def trending
-      Cache.get("popular-tags-v3", 1.hour) do
-        CurrentUser.scoped(User.system, "127.0.0.1") do
-          n = 24
-          counts = {}
-
-          while counts.empty? && n < 1000
-            tag_strings = Post.select_values_sql("select tag_string from posts where created_at >= ?", n.hours.ago)
-            tag_strings.each do |tag_string|
-              tag_string.split.each do |tag|
-                counts[tag] ||= 0
-                counts[tag] += 1
-              end
-            end
-            n *= 2
-          end
-
-          counts = counts.to_a.select {|x| x[1] > trending_count_limit}
-          counts = counts.map do |tag_name, recent_count|
-            tag = Tag.find_or_create_by_name(tag_name)
-            if tag.category == Tag.categories.artist
-              # we're not interested in artists in the trending list
-              [tag_name, 0]
-            else
-              [tag_name, recent_count.to_f / tag.post_count.to_f]
-            end
-          end
-
-          counts.sort_by {|x| -x[1]}.slice(0, 25).map(&:first)
-        end
-      end
     end
   end
 
@@ -725,11 +673,6 @@ class Tag < ApplicationRecord
               q[:pools] << Pool.name_to_id(g2)
             end
 
-          when "ordpool"
-            pool_id = Pool.name_to_id(g2)
-            q[:tags][:related] << "pool:#{pool_id}"
-            q[:ordpool] = pool_id
-
           when "set"
             q[:sets] ||= []
             post_set_id = PostSet.name_to_id(g2)
@@ -763,7 +706,7 @@ class Tag < ApplicationRecord
             next unless favuser
 
             if favuser.hide_favorites?
-              raise User::PrivilegeError.new
+              raise Favorite::HiddenError
             end
 
             q[:fav_ids_neg] << favuser.id
@@ -775,7 +718,7 @@ class Tag < ApplicationRecord
             next unless favuser
 
             if favuser.hide_favorites?
-              raise User::PrivilegeError.new
+              raise Favorite::HiddenError
             end
 
             q[:fav_ids] << favuser.id
@@ -989,9 +932,7 @@ class Tag < ApplicationRecord
     def update_related
       return unless should_update_related?
 
-      CurrentUser.scoped(User.first, "127.0.0.1") do
-        self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
-      end
+      self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
       self.related_tags_updated_at = Time.now
       fix_post_count if post_count > 20 && rand(post_count) <= 1
       save
@@ -999,11 +940,9 @@ class Tag < ApplicationRecord
     end
 
     def update_related_if_outdated
-      key = Cache.hash(name)
-
-      if Cache.get("urt:#{key}").nil? && should_update_related?
+      if Cache.fetch("urt:#{name}").nil? && should_update_related?
         TagUpdateRelatedJob.perform_later(id)
-        Cache.put("urt:#{key}", true, 600) # mutex to prevent redundant updates
+        Cache.write("urt:#{name}", true, expires_in: 10.minutes) # mutex to prevent redundant updates
       end
     end
 
@@ -1069,7 +1008,8 @@ class Tag < ApplicationRecord
       end
 
       if params[:category].present?
-        q = q.where("category = ?", params[:category])
+        category_ids = params[:category].split(",").first(100).grep(/^\d+$/)
+        q = q.where(category: category_ids)
       end
 
       if params[:hide_empty].blank? || params[:hide_empty].to_s.truthy?
@@ -1105,32 +1045,6 @@ class Tag < ApplicationRecord
 
       q
     end
-
-    def names_matches_with_aliases(name)
-      name = normalize_name(name)
-      wildcard_name = name + '*'
-
-      query1 = Tag.select("tags.id, tags.name, tags.post_count, tags.category, null AS antecedent_name")
-                   .search(:name_matches => wildcard_name, :order => "count").limit(10)
-
-      query2 = TagAlias.select("tags.id, tags.name, tags.post_count, tags.category, tag_aliases.antecedent_name")
-                   .joins("INNER JOIN tags ON tags.name = tag_aliases.consequent_name")
-                   .where("tag_aliases.antecedent_name LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
-                   .active
-                   .where("tags.name NOT LIKE ? ESCAPE E'\\\\'", wildcard_name.to_escaped_for_sql_like)
-                   .where("tag_aliases.post_count > 0")
-                   .order("tag_aliases.post_count desc")
-                   .limit(20) # Get 20 records even though only 10 will be displayed in case some duplicates get filtered out.
-
-      sql_query = "((#{query1.to_sql}) UNION ALL (#{query2.to_sql})) AS unioned_query"
-      tags = Tag.select("DISTINCT ON (name, post_count) *").from(sql_query).order("post_count desc").limit(10).to_a
-
-      if tags.size == 0
-        tags = Tag.select("tags.id, tags.name, tags.post_count, tags.category, null AS antecedent_name").fuzzy_name_matches(name).order_similarity(name).nonempty.limit(10)
-      end
-
-      tags
-    end
   end
 
   def category_editable_by_implicit?(user)
@@ -1141,17 +1055,16 @@ class Tag < ApplicationRecord
   end
 
   def category_editable_by?(user)
-    return false if user.nil? or !user.is_member?
-    return false if is_locked? && !user.is_moderator?
-    return false if TagCategory.mod_only_mapping[TagCategory.reverse_mapping[category]] && !user.is_moderator?
+    return true if user.is_admin?
+    return false if is_locked?
+    return false if TagCategory.admin_only_mapping[TagCategory.reverse_mapping[category]]
     return true if post_count < Danbooru.config.tag_type_change_cutoff
-    return true if user.is_moderator?
     false
   end
 
   def user_can_create_tag?
-    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_moderator?
-      errors.add(:base, "Can not create lore tags unless moderator")
+    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_admin?
+      errors.add(:base, "Can not create lore tags unless admin")
       errors.add(:name, "is invalid")
       return false
     end
@@ -1160,7 +1073,6 @@ class Tag < ApplicationRecord
 
   include CountMethods
   include CategoryMethods
-  extend StatisticsMethods
   extend NameMethods
   extend ParseMethods
   include RelationMethods

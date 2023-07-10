@@ -1,0 +1,76 @@
+<title><%= get_title %></title>
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#00549e">
+<meta name="theme-color" content="#00549e">
+<meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
+<link rel="top" title="<%= Danbooru.config.app_name %>" href="/">
+<%= csrf_meta_tag %>
+<% unless disable_mobile_mode? %>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+<% end %>
+
+<meta name="current-user-name" content="<%= CurrentUser.name %>">
+<meta name="current-user-id" content="<%= CurrentUser.id %>">
+<meta name="current-user-can-approve-posts" content="<%= CurrentUser.can_approve_posts? %>">
+<meta name="user-comment-threshold" content="<%= CurrentUser.comment_threshold %>">
+<% if CurrentUser.user.blacklisted_tags.present? %>
+  <meta name="blacklisted-tags" content="<%= CurrentUser.user.blacklisted_tags.split(/(?:\r|\n)+/).to_json %>">
+  <meta name="blacklist-users" content="<%= CurrentUser.blacklist_users? %>">
+<% end %>
+<meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
+<meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
+<meta name="style-usernames" content="<%= CurrentUser.user.style_usernames? %>">
+<meta name="last-forum-read-at" content="<%= CurrentUser.user.last_forum_read_at %>">
+<% if CurrentUser.user.custom_style.present? %>
+  <%= stylesheet_link_tag custom_style_users_path(md5: Digest::MD5.hexdigest(CurrentUser.user.custom_style)), media: "screen", nonce: true %>
+<% end %>
+
+<% if flash[:notice] =~ /error/i %>
+  <meta name="errors" content="true">
+<% end %>
+<%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
+
+<%= stylesheet_pack_tag "application", nonce: true %>
+<%= javascript_pack_tag "application", nonce: true, defer: false %>
+
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "WebSite",
+  "url" : "<%= root_url %>",
+  "potentialAction": [{
+    "@type": "SearchAction",
+    "target": "<%= posts_url %>?tags={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "WebSite",
+  "name": "<%= Danbooru.config.app_name %>",
+  "alternateName": "<%= Danbooru.config.description %>",
+  "url" : "<%= root_url %>"
+}
+</script>
+
+<style id="blacklisted-hider">
+  .post-preview, #image-container, #c-comments .post, .post-thumbnail {
+    visibility: hidden !important;
+  }
+</style>
+<noscript>
+  <style>
+    .post-preview, #image-container, #c-comments .post, .post-thumbnail {
+      visibility: visible !important;
+    }
+  </style>
+</noscript>
+
+<%= raw Danbooru.config.custom_html_header_content %>
+<%= yield :html_header %>

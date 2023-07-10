@@ -2,11 +2,8 @@ require 'test_helper'
 
 class UploadServiceTest < ActiveSupport::TestCase
   setup do
-    Timecop.travel(2.weeks.ago) do
-      @user = FactoryBot.create(:user)
-    end
+    @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    CurrentUser.ip_addr = "127.0.0.1"
     UploadWhitelist.create!(pattern: '*', reason: 'test')
   end
 
@@ -18,7 +15,8 @@ class UploadServiceTest < ActiveSupport::TestCase
         setup do
           @source = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Moraine_Lake_17092005.jpg"
           @upload = Upload.new
-          @upload.source = @source
+          @upload.direct_url = @source
+          Downloads::File.any_instance.stubs(:download!).returns(fixture_file_upload("test.jpg"))
         end
 
         should "work on a jpeg" do
@@ -29,42 +27,17 @@ class UploadServiceTest < ActiveSupport::TestCase
           file.close
         end
       end
-
-      context "for a corrupt jpeg" do
-        setup do
-          @source = "https://raikou1.donmai.us/93/f4/93f4dd66ef1eb11a89e56d31f9adc8d0.jpg"
-          @mock_upload = mock("upload")
-          @mock_upload.stubs(:direct_url_parsed).returns(@source)
-          @bad_file = File.open("#{Rails.root}/test/files/test-corrupt.jpg", "rb")
-          Downloads::File.any_instance.stubs(:download!).returns(@bad_file)
-        end
-
-        teardown do
-          @bad_file.close
-        end
-
-        should "retry three times" do
-          DanbooruImageResizer.expects(:validate_shell).times(4).returns(false)
-          assert_raise(UploadService::Utils::CorruptFileError) do
-            subject.get_file_for_upload(@mock_upload)
-          end
-        end
-      end
     end
 
     context ".calculate_dimensions" do
       context "for a video" do
         setup do
-          @file = File.open("test/files/test-512x512.webm", "rb")
+          @path = file_fixture("test-512x512.webm").to_s
           @upload = Upload.new(file_ext: "webm")
         end
 
-        teardown do
-          @file.close
-        end
-
         should "return the dimensions" do
-          w, h = @upload.calculate_dimensions(@file.path)
+          w, h = @upload.calculate_dimensions(@path)
           assert_operator(w, :>, 0)
           assert_operator(h, :>, 0)
         end
@@ -72,16 +45,12 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       context "for an image" do
         setup do
-          @file = File.open("test/files/test.jpg", "rb")
+          @path = file_fixture("test.jpg").to_s
           @upload = Upload.new(file_ext: "jpg")
         end
 
-        teardown do
-          @file.close
-        end
-
         should "find the dimensions" do
-          w, h = @upload.calculate_dimensions(@file.path)
+          w, h = @upload.calculate_dimensions(@path)
           assert_operator(w, :>, 0)
           assert_operator(h, :>, 0)
         end
@@ -92,8 +61,8 @@ class UploadServiceTest < ActiveSupport::TestCase
       context "for a video" do
         context "for a webm" do
           setup do
-            @file = File.open("test/files/test-512x512.webm", "rb")
-            @upload = UploadService.new(FactoryBot.attributes_for(:upload).merge(file: @file, uploader: @user, uploader_ip_addr: '127.0.0.1')).start!
+            @file = file_fixture("test-512x512.webm").open
+            @upload = UploadService.new(attributes_for(:upload).merge(file: @file, uploader: @user)).start!
           end
 
           teardown do
@@ -124,7 +93,7 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
 
         setup do
-          @upload = mock()
+          @upload = mock
           @upload.stubs(:is_video?).returns(false)
           @upload.stubs(:is_image?).returns(true)
           @upload.stubs(:image_width).returns(1200)
@@ -133,7 +102,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a jpeg" do
           setup do
-            @file = File.open("test/files/test.jpg", "rb")
+            @file = file_fixture("test.jpg").open
           end
 
           should "generate a preview" do
@@ -150,7 +119,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a png" do
           setup do
-            @file = File.open("test/files/test.png", "rb")
+            @file = file_fixture("test.png").open
           end
 
           should "generate a preview" do
@@ -167,7 +136,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
         context "for a gif" do
           setup do
-            @file = File.open("test/files/test.png", "rb")
+            @file = file_fixture("test.gif").open
           end
 
           should "generate a preview" do
@@ -187,7 +156,7 @@ class UploadServiceTest < ActiveSupport::TestCase
     context ".generate_video_preview_for" do
       context "for an mp4" do
         setup do
-          @path = "test/files/test-300x300.mp4"
+          @path = file_fixture("test-300x300.mp4").to_s
         end
 
         should "generate a video" do
@@ -200,7 +169,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
       context "for a webm" do
         setup do
-          @path = "test/files/test-512x512.webm"
+          @path = file_fixture("test-512x512.webm").to_s
         end
 
         should "generate a video" do
@@ -218,32 +187,25 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     setup do
       @source = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
-      CurrentUser.user = FactoryBot.create(:user, created_at: 1.month.ago)
-      CurrentUser.ip_addr = "127.0.0.1"
+      CurrentUser.user = create(:user, created_at: 1.month.ago)
       @build_service = ->(**params) { subject.new({ rating: "s", uploader: CurrentUser.user, uploader_ip_addr: CurrentUser.ip_addr }.merge(params)) }
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "automatic tagging" do
       should "tag animated png files" do
-        service = @build_service.call(file: upload_file("test/files/apng/normal_apng.png"))
+        service = @build_service.call(file: fixture_file_upload("apng/normal_apng.png"))
         upload = service.start!
-        puts upload.errors.full_messages.join('; ')
         assert_match(/animated_png/, upload.tag_string)
       end
 
       should "tag animated gif files" do
-        service = @build_service.call(file: upload_file("test/files/test-animated-86x52.gif"))
+        service = @build_service.call(file: fixture_file_upload("test-animated-86x52.gif"))
         upload = service.start!
         assert_match(/animated_gif/, upload.tag_string)
       end
 
       should "not tag static gif files" do
-        service = @build_service.call(file: upload_file("test/files/test-static-32x32.gif"))
+        service = @build_service.call(file: fixture_file_upload("test-static-32x32.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
@@ -251,11 +213,11 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "that is too large" do
       setup do
-        Danbooru.config.stubs(:max_image_resolution).returns(31*31)
+        Danbooru.config.stubs(:max_image_resolution).returns(31 * 31)
       end
 
       should "should fail validation" do
-        service = @build_service.call(file: upload_file("test/files/test-large.jpg"))
+        service = @build_service.call(file: fixture_file_upload("test-large.jpg"))
         upload = service.start!
         assert_match(/image resolution is too large/, upload.status)
       end
@@ -279,23 +241,13 @@ class UploadServiceTest < ActiveSupport::TestCase
     end
 
     context "with a source containing unicode characters" do
-      should "upload successfully" do
-        source1 = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg?one=東方&two=a%20b"
-        source2 = "https://raikou1.donmai.us/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg?one=%E6%9D%B1%E6%96%B9&two=a%20b"
-        service = @build_service.call(source: source1, rating: "s")
-
-        assert_nothing_raised { @upload = service.start! }
-        assert_equal(true, @upload.is_completed?)
-        assert_equal(source2, @upload.source)
-      end
-
       should "normalize unicode characters in the source field" do
         source1 = "poke\u0301mon" # pokémon (nfd form)
         source2 = "pok\u00e9mon"  # pokémon (nfc form)
-        service = @build_service.call(source: source1, rating: "s", file: upload_file("test/files/test.jpg"))
+        service = @build_service.call(source: source1, rating: "s", file: fixture_file_upload("test.jpg"))
 
         assert_nothing_raised { @upload = service.start! }
-        assert_equal(source2, @upload.source)
+        assert_equal(source2, @upload.post.source)
       end
     end
 
@@ -311,7 +263,7 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "with both a file and a source url" do
       should "upload the file and set the source field to the given source" do
-        service = @build_service.call(file: upload_file("test/files/test.jpg"), source: "http://www.example.com", rating: "s")
+        service = @build_service.call(file: fixture_file_upload("test.jpg"), source: "http://www.example.com", rating: "s")
 
         assert_nothing_raised { @upload = service.start! }
         assert_equal(true, @upload.is_completed?)
@@ -326,17 +278,11 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     setup do
       CurrentUser.user = create(:user, created_at: 1.month.ago)
-      CurrentUser.ip_addr = "127.0.0.1"
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
     end
 
     context "for an image" do
       setup do
-        @upload = FactoryBot.create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, file: Tempfile.new)
+        @upload = create(:source_upload, file_size: 1000, md5: "12345", file_ext: "jpg", image_width: 100, image_height: 100, file: Tempfile.new)
       end
 
       should "create a post" do

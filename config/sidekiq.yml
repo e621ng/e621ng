@@ -1,6 +1,5 @@
 ---
 :verbose: false
-:concurrency: 5
 
 # Set timeout to 8 on Heroku, longer if you manage your own systems.
 :timeout: 30
@@ -9,13 +8,8 @@
 # even put in dynamic logic, like a host-specific queue.
 # http://www.mikeperham.com/2013/11/13/advanced-sidekiq-host-specific-queues/
 :queues:
-  - [low_prio, 1]
-  - [tags, 2]
-  - [default, 3]
-  - [high_prio, 5]
+<% ENV.fetch("SIDEKIQ_QUEUES").split(";").map { |e| e.split(":") }.each do |queue, priority| %>
+  - [<%= queue %>, <%= priority %>]
+<% end %>
 
-# you can override concurrency based on environment
-production:
-  :concurrency: 15
-staging:
-  :concurrency: 5
+:concurrency: <%= ENV.fetch("SIDEKIQ_CONCURRENCY", 5) %>

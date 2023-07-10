@@ -1,0 +1,26 @@
+default: &default
+  adapter: postgresql
+  timeout: 5000
+  username: e621
+
+development:
+  <<: *default
+  database: e621_development
+  host: postgres
+  pool: 5
+
+test:
+  <<: *default
+  database: e621_test
+  host: postgres
+  pool: 5
+
+<% if Rails.env.production? %>
+production:
+  <<: *default
+  database: e621
+  password: <%= ENV.fetch("DB_PASSWORD") %>
+  host: <%= ENV.fetch("DB_HOST") %>
+  port: <%= ENV.fetch("DB_PORT") %>
+  pool: <%= Sidekiq.server? ? ENV.fetch("DB_WORKER_POOL_SIZE") : ENV.fetch("DB_POOL_SIZE") %>
+<% end %>

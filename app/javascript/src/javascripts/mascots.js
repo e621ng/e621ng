@@ -4,28 +4,24 @@ const Mascots = {
   current: 0
 };
 
-function showMascot(cur) {
-  const mascots = window.mascots;
+function showMascot(mascot) {
+  $('body').css("background-image", "url(" + mascot.background_url + ")");
+  $('body').css("background-color", mascot.background_color);
+  $('.mascotbox').css("background-image", "url(" + mascot.background_url + ")");
+  $('.mascotbox').css("background-color", mascot.background_color);
 
-  const blurred = mascots[cur][0].substr(0, mascots[cur][0].lastIndexOf(".")) + "_blur" + mascots[cur][0].slice(mascots[cur][0].lastIndexOf("."));
-
-  $('body').css("background-image", "url(" + mascots[cur][0] + ")");
-  $('body').css("background-color", mascots[cur][1]);
-  $('.mascotbox').css("background-image", "url(" + blurred + ")");
-  $('.mascotbox').css("background-color", mascots[cur][1]);
-
-  if (mascots[cur][2])
-    $('#mascot_artist').html("Mascot by " + mascots[cur][2]);
-  else
-    $('#mascot_artist').html("&nbsp;");
+  const artistLink = $("<span>").text("Mascot by ").append($("<a>").text(mascot.artist_name).attr("href", mascot.artist_url));
+  $("#mascot_artist").empty().append(artistLink);
 }
 
 function changeMascot() {
   const mascots = window.mascots;
 
-  Mascots.current += 1;
-  Mascots.current = Mascots.current % mascots.length;
-  showMascot(Mascots.current);
+  const availableMascotIds  = Object.keys(mascots);
+  const currentMascotIndex = availableMascotIds.indexOf(Mascots.current);
+
+  Mascots.current = availableMascotIds[(currentMascotIndex + 1) % availableMascotIds.length];
+  showMascot(mascots[Mascots.current]);
 
   LS.put('mascot', Mascots.current);
 }
@@ -33,10 +29,13 @@ function changeMascot() {
 function initMascots() {
   $('#change-mascot').on('click', changeMascot);
   const mascots = window.mascots;
-  Mascots.current = parseInt(LS.get("mascot"));
-  if (isNaN(Mascots.current) || Mascots.current < 0 || Mascots.current >= mascots.length)
-    Mascots.current = Math.floor(Math.random() * mascots.length);
-  showMascot(Mascots.current);
+  Mascots.current = LS.get("mascot");
+  if (!mascots[Mascots.current]) {
+    const availableMascotIds  = Object.keys(mascots);
+    const mascotIndex  = Math.floor(Math.random() * availableMascotIds.length);
+    Mascots.current = availableMascotIds[mascotIndex];
+  }
+  showMascot(mascots[Mascots.current]);
 }
 
 $(function () {

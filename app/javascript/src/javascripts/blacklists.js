@@ -221,7 +221,7 @@ Blacklist.apply = function () {
 }
 
 Blacklist.posts = function () {
-  return $(".post-preview, #image-container, #c-comments .post, .mod-queue-preview.post-preview, .post-thumbnail");
+  return $(".post-preview, #image-container, #c-comments .post, .post-thumbnail");
 }
 
 Blacklist.postMatch = function (post, entry) {

@@ -20,20 +20,14 @@ $dtext_h3_size: 1.6em;
 $dtext_h4_size: 1.4em;
 $dtext_h5_size: 1.2em;
 $dtext_h6_size: 1em;
-$h1_padding: 0.8em 0 0.25em 0;
-$h2_padding: 0.8em 0 0.25em 0;
-$h3_padding: 0.8em 0 0.25em 0;
-$h4_padding: 0.8em 0 0.25em 0;
 $base_font_family: Verdana, sans-serif;
 
 $box-shadow-size: 2px 2px 5px;
 
 @mixin preview-type-badge($text) {
-  @include themable {
-    background-color: themed("color-section");
-    border: 1px solid themed("color-text-white");
-    color: themed("color-text");
-  }
+  background-color: themed("color-section");
+  border: 1px solid themed("color-text-white");
+  color: themed("color-text");
   z-index: 5;
   position: absolute;
   left: 0;
@@ -44,19 +38,6 @@ $box-shadow-size: 2px 2px 5px;
   font-size: 60%;
   font-weight: bold;
   content: $text;
-}
-
-// https://fontawesome.com/how-to-use/on-the-web/advanced/css-pseudo-elements
-@mixin font-awesome-icon {
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  display: inline-block;
-  font-style: normal;
-  font-variant: normal;
-  text-rendering: auto;
-  
-  font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro";
-  font-weight: 900;
 }
 
 // Prevent the user from selecting the text
@@ -74,8 +55,4 @@ $box-shadow-size: 2px 2px 5px;
 // This occasionally causes issues. See https://github.com/sass/sass/issues/1395
 @function unicode($str) {
   @return unquote("\"")+unquote(str-insert($str, "\\", 1))+unquote("\"");
-}
-
-@mixin section-box-shadow($size: $box-shadow-size, $color: $box-shadow-color) {
-  box-shadow: $size $color;
 }

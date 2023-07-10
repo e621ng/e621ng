@@ -3,16 +3,9 @@ require 'test_helper'
 class ForumTopicTest < ActiveSupport::TestCase
   context "A forum topic" do
     setup do
-      travel_to Time.now
-      @user = FactoryBot.create(:user)
+      @user = create(:user)
       CurrentUser.user = @user
-      CurrentUser.ip_addr = "127.0.0.1"
-      @topic = FactoryBot.create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
-    end
-
-    teardown do
-      CurrentUser.user = nil
-      CurrentUser.ip_addr = nil
+      @topic = create(:forum_topic, title: "xxx", original_post_attributes: { body: "aaa" })
     end
 
     context "#read_by?" do
@@ -38,7 +31,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
           context "that predates the topic" do
             setup do
-              FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 16.hours.from_now)
+              create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 16.hours.from_now)
             end
 
             should "return false" do
@@ -48,7 +41,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
           context "that postdates the topic" do
             setup do
-              FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 2.days.from_now)
+              create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 2.days.from_now)
             end
 
             should "return true" do
@@ -68,7 +61,7 @@ class ForumTopicTest < ActiveSupport::TestCase
         context "and a visit" do
           context "that predates the topic" do
             setup do
-              FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.day.ago)
+              create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.day.ago)
             end
 
             should "return false" do
@@ -78,7 +71,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
           context "that postdates the topic" do
             setup do
-              FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.days.from_now)
+              create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.day.from_now)
             end
 
             should "return true" do
@@ -94,38 +87,27 @@ class ForumTopicTest < ActiveSupport::TestCase
         should "create a new visit" do
           @topic.mark_as_read!(@user)
           @user.reload
-          assert_equal(@topic.updated_at.to_i, @user.last_forum_read_at.to_i)
+          assert_in_delta(@topic.updated_at.to_i, @user.last_forum_read_at.to_i, 1)
         end
       end
 
       context "with a previous visit" do
         setup do
-          FactoryBot.create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.day.ago)
+          create(:forum_topic_visit, user: @user, forum_topic: @topic, last_read_at: 1.day.ago)
         end
 
         should "update the visit" do
           @topic.mark_as_read!(@user)
           @user.reload
-          assert_equal(@topic.updated_at.to_i, @user.last_forum_read_at.to_i)
+          assert_in_delta(@topic.updated_at.to_i, @user.last_forum_read_at.to_i, 1)
         end
-      end
-    end
-
-    context "#merge" do
-      setup do
-        @topic2 = FactoryBot.create(:forum_topic, title: "yyy", original_post_attributes: { body: "bbb" })
-      end
-
-      should "merge all the posts in one topic into the other" do
-        @topic.merge(@topic2)
-        assert_equal(2, @topic2.posts.count)
       end
     end
 
     context "constructed with nested attributes for its original post" do
       should "create a matching forum post" do
         assert_difference(["ForumTopic.count", "ForumPost.count"], 1) do
-          @topic = FactoryBot.create(:forum_topic, :title => "abc", :original_post_attributes => {:body => "abc"})
+          @topic = create(:forum_topic, title: "abc", original_post_attributes: { body: "abc" })
        end
       end
     end
@@ -146,7 +128,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
     context "updated by a second user" do
       setup do
-        @second_user = FactoryBot.create(:user)
+        @second_user = create(:user)
         CurrentUser.user = @second_user
       end
 
@@ -159,7 +141,7 @@ class ForumTopicTest < ActiveSupport::TestCase
     context "with multiple posts that has been deleted" do
       setup do
         5.times do
-          FactoryBot.create(:forum_post, :topic_id => @topic.id)
+          create(:forum_post, topic_id: @topic.id)
         end
       end
 

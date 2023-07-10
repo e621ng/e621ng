@@ -1,7 +1,7 @@
 <div class="flag-dialog-preview">
 
   <div class="flag_post">
-    <%= PostPresenter.preview(@post, tags: 'status:any', no_blacklist: true) %>
+    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
   </div>
   
   
@@ -19,24 +19,20 @@
     <%= f.hidden_field :post_id %>
 
     <% Danbooru.config.flag_reasons.each do |flag_reason| %>
-      <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
-      <label for="post_flag_reason_name_<%= flag_reason[:name] %>"><%= format_text(flag_reason[:reason], inline: true) %></label>
-      <div class="dtext-container"><%= format_text(flag_reason[:text]) %></div>
+      <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
+        <% next %>
+      <% end %>
+
+      <label>
+        <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
+        <span class="flag-reason-title"><%= format_text(flag_reason[:reason], inline: true) %></span>
+        <div class="dtext-container flag-reason-text"><%= format_text(flag_reason[:text]) %></div>
+      </label>
       
       <% if flag_reason[:parent] %>
         <%= f.input :parent_id, as: :string, label: "Inferior of Post #" %>
       <% end %>
       
-    <% end %>
-    
-    <hr />
-    <h3>Only use if no other option fits:</h3>
-        
-    <%= radio_button_tag "post_flag[reason_name]", "user", false, disabled: !(@post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago) %>
-    <label for="post_flag_reason_name_user">I'm the uploader, and I uploaded the file by mistake (only possible within 48 hours of uploading).</label>
-    <div class="dtext-container"><%= format_text(Danbooru.config.flag_reason_48hours) %></div>
-    <% if @post.uploader_id == CurrentUser.id && @post.created_at > 48.hours.ago %>
-      <%= f.input :user_reason, label: "Reason" %>
     <% end %>
     
     <div>

@@ -18,29 +18,19 @@ module PostsHelper
   end
 
   def post_source_tag(source)
-
-    if source =~ %r!\Ahttp://img\d+\.pixiv\.net/img/([^\/]+)/!i
-      text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
-      source_search = "source:pixiv/#{$1}/"
-    elsif source =~ %r!\Ahttp://i\d\.pixiv\.net/img\d+/img/([^\/]+)/!i
-      text = "pixiv/<wbr>#{wordbreakify($1)}".html_safe
-      source_search = "source:pixiv/#{$1}/"
-    elsif source =~ %r{\Ahttps?://}i
-      text = source.sub(/\Ahttps?:\/\/(?:www\.)?/i, "")
-      source_search = "source:#{source.sub(/[^\/]*$/, "")}"
-    end
-
     # Only allow http:// and https:// links. Disallow javascript: links.
-    if source =~ %r!\Ahttps?://!i
-      source_link = fast_link_to(text, source, target: "_blank", rel: 'nofollow noreferrer noopener')
-    else
-      source_link = source
-    end
+    if source =~ %r{\Ahttps?://}i
+      source_link = link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
 
-    if CurrentUser.is_janitor? && !source_search.blank?
-      source_link + "&nbsp;".html_safe + link_to("&raquo;".html_safe, posts_path(:tags => source_search), :rel => "nofollow")
-    else
+      if CurrentUser.is_janitor?
+        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
+      end
+
       source_link
+    elsif source.start_with?("-")
+      tag.s(source[1..])
+    else
+      source
     end
   end
 
@@ -103,7 +93,7 @@ module PostsHelper
     post_score_icon = "#{"&uarr;" if post.score > 0}#{"&darr;" if post.score < 0}#{"&varr;" if post.score == 0}"
     score = tag.span("#{post_score_icon}#{post.score}".html_safe, class: "post-score-score " + score_class(post.score))
     favs =  tag.span("&hearts;#{post.fav_count}".html_safe, class: 'post-score-faves')
-    comments = tag.span "C#{post.comment_count}", class: 'post-score-comments'
+    comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
     rating =  tag.span(post.rating.upcase, class: "post-score-rating")
     status = tag.span(status_flags.join(''), class: 'post-score-extras')
     tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
@@ -148,11 +138,11 @@ module PostsHelper
                      class: 'post-vote-down-link', 'data-id': post.id)
     if buttons
       score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      CurrentUser.is_voter? ? up_tag + score_tag + down_tag : ''
+      CurrentUser.is_member? ? up_tag + score_tag + down_tag : ""
     else
       vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
       score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      score_tag + (CurrentUser.is_voter? ? vote_block : '')
+      score_tag + (CurrentUser.is_member? ? vote_block : "")
     end
   end
 
