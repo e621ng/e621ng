@@ -73,9 +73,19 @@ class ModActionDecorator < ApplicationDecorator
       else
         "Banned #{user}"
       end
+    when "user_ban_update"
+      text = "Updated ban ##{vals['ban_id']} for #{user}"
+      if vals['duration'] != vals['duration_was']
+        duration = vals['duration'] < 0 ? "permanent" : "#{vals['duration']} #{'day'.pluralize(vals['duration'])}"
+        duration_was = vals['duration_was'] < 0 ? "permanent" : "#{vals['duration_was']} #{'day'.pluralize(vals['duration_was'])}"
+        text += "\nChanged duration from #{duration_was} to #{duration}"
+      end
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
+      end
+      text
     when "user_unban"
       "Unbanned #{user}"
-
     when "user_level_change"
       "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
     when "user_flags_change"

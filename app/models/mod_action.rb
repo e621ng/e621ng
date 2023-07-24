@@ -65,6 +65,7 @@ class ModAction < ApplicationRecord
       :user_name_change,
       :user_delete,
       :user_ban,
+      :user_ban_update,
       :user_unban,
       :user_feedback_create,
       :user_feedback_update,

@@ -3,6 +3,7 @@ class Ban < ApplicationRecord
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
+  after_update :create_ban_update_mod_action
   after_destroy :update_user_on_destroy
   after_destroy :create_unban_mod_action
   belongs_to :user
@@ -148,6 +149,11 @@ class Ban < ApplicationRecord
 
   def create_ban_mod_action
     ModAction.log(:user_ban, {duration: duration, reason: reason, user_id: user_id})
+  end
+
+  def create_ban_update_mod_action
+    old_duration = expires_at_before_last_save.nil? ? -1 : ((expires_at_before_last_save - Time.now) / 1.day).ceil
+    ModAction.log(:user_ban_update, {user_id: user_id, ban_id: id, duration: duration, duration_was: old_duration, reason: reason, reason_was: reason_before_last_save})
   end
 
   def create_unban_mod_action
