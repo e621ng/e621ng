@@ -10,7 +10,7 @@ class JanitorReportGenerator
     content = <<~REPORT.chomp
       Janitor report for <t:#{Time.now.to_i}:D>
       Currently, there are:
-      #{formatted_number(current_stats[:pending][:posts])} pending posts. That is #{formatted_number(diff.abs)} #{diff >= 0 ? 'more' : 'less'} than the day before.
+      #{formatted_number(current_stats[:pending][:posts])} pending posts. That is #{formatted_number(diff.abs)} #{diff >= 0 ? 'more' : 'fewer'} than the day before.
       #{formatted_number(current_stats[:pending][:flags])} pending flags.
       #{formatted_number(current_stats[:pending][:replacements])} pending replacements.
 
