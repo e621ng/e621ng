@@ -197,7 +197,7 @@ class User < ApplicationRecord
 
     def update_cache
       Cache.write("uin:#{id}", name, expires_in: 4.hours)
-      Cache.write("uni:#{name}", id, expires_in: 4.hours)
+      Cache.write("uni:#{User.normalize_name(name)}", id, expires_in: 4.hours)
     end
   end
 
