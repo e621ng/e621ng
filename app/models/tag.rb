@@ -119,7 +119,7 @@ class Tag < ApplicationRecord
 
       def category_for(tag_name)
         Cache.fetch("tc:#{tag_name}") do
-          Tag.where(name: tag_name).pick(:category)
+          Tag.where(name: tag_name).pick(:category).to_i
         end
       end
 

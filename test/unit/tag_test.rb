@@ -17,6 +17,10 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(Tag.categories.artist, Tag.category_for("!@ab"))
     end
 
+    should "return general for a tag that doesn't exist" do
+      assert_equal(Tag.categories.general, Tag.category_for("missing"))
+    end
+
     should "fetch for multiple tags" do
       create(:artist_tag, name: "aaa")
       create(:copyright_tag, name: "bbb")
