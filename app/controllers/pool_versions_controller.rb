@@ -3,8 +3,8 @@ class PoolVersionsController < ApplicationController
   before_action :member_only
 
   def index
-    if params[:search] && params[:search][:pool_id].present?
-      @pool = Pool.find(params[:search][:pool_id])
+    if (pool_id = params.dig(:search, :pool_id)).present?
+      @pool = Pool.find_by(id: pool_id)
     end
 
     @pool_versions = PoolVersion.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
