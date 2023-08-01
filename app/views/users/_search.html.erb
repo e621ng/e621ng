@@ -1,6 +1,7 @@
 <%= form_search(path: users_path) do |f| %>
   <%= f.input :name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "user" %>
   <%= f.input :about_me, label: "About", hint: "Use * for wildcard" %>
+  <%= f.input :avatar_id, label: "Avatar ID" %>
 
   <% if CurrentUser.is_admin? %>
     <%= f.input :email_matches, label: "Email", hint: "Use * for wildcard" %>

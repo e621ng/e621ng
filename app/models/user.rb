@@ -791,6 +791,10 @@ class User < ApplicationRecord
         q = q.attribute_matches(:profile_about, params[:about_me]).or(attribute_matches(:profile_artinfo, params[:about_me]))
       end
 
+      if params[:avatar_id].present?
+        q = q.where(avatar_id: params[:avatar_id])
+      end
+
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
       end
