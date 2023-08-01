@@ -1,8 +1,8 @@
 <% if model.was_warned? %>
-  <li><%= tag.a "Unmark", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "unmark" } %></li>
+  <li><%= tag.a "Unmark", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "unmark", "item-type": model.model_name.human.downcase } %></li>
 <% else %>
 <li>Mark for:</li>
-  <li><%= tag.a "Warning", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "warning" } %></li>
-  <li><%= tag.a "Record", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "record" } %></li>
-  <li><%= tag.a "Ban", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "ban" } %></li>
+  <li><%= tag.a "Warning", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "warning", "item-type": model.model_name.human.downcase } %></li>
+  <li><%= tag.a "Record", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "record", "item-type": model.model_name.human.downcase } %></li>
+  <li><%= tag.a "Ban", href: "#", class: "item-mark-user-warned", data: { "item-route": model.model_name.route_key, "item-id": model.id, "record-type": "ban", "item-type": model.model_name.human.downcase } %></li>
 <% end %>
