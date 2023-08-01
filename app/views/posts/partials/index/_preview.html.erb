@@ -23,7 +23,7 @@
   <% end -%>
   <% if size -%>
     <p class="desc">
-      <%= number_to_human_size(size) %> (<%= width %>x<%= height %>)
+      <%= number_to_human_size(size) %>  <%= file_ext.upcase %> (<%= width %>x<%= height %>)
     </p>
   <% end -%>
 <% end -%>
