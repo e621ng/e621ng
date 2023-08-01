@@ -9,7 +9,7 @@
   </div>
   <div>
     <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/>
-      No available source / I am the source.
+      No available source.
     </label>
   </div>
 </template>
