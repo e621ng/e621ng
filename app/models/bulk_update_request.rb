@@ -73,16 +73,12 @@ class BulkUpdateRequest < ApplicationRecord
 
       params[:order] ||= "status_desc"
       case params[:order]
-      when "id_desc"
-        q = q.order(id: :desc)
-      when "id_asc"
-        q = q.order(id: :asc)
       when "updated_at_desc"
         q = q.order(updated_at: :desc)
       when "updated_at_asc"
         q = q.order(updated_at: :asc)
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

@@ -53,7 +53,7 @@ class Note < ApplicationRecord
         q = q.where(creator_id: params[:creator_id].split(",").map(&:to_i))
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

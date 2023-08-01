@@ -43,7 +43,7 @@ class EmailBlacklist < ApplicationRecord
     when "domain"
       q = q.order("email_blacklists.domain")
     else
-      q = q.apply_default_order(params)
+      q = q.apply_basic_order(params)
     end
 
     q

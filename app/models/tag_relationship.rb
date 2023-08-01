@@ -169,7 +169,7 @@ class TagRelationship < ApplicationRecord
       when "tag_count"
         q = q.join_consequent.order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

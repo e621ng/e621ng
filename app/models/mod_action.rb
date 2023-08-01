@@ -96,7 +96,7 @@ class ModAction < ApplicationRecord
       q = q.where('action = ?', params[:action])
     end
 
-    q.apply_default_order(params)
+    q.apply_basic_order(params)
   end
 
   def hidden_attributes

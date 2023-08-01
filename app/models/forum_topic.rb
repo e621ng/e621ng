@@ -83,7 +83,7 @@ class ForumTopic < ApplicationRecord
       when "sticky"
         q = q.sticky_first
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

@@ -27,7 +27,7 @@ class IpBan < ApplicationRecord
 
     q = q.attribute_matches(:reason, params[:reason])
 
-    q.apply_default_order(params)
+    q.apply_basic_order(params)
   end
 
   def validate_ip_addr

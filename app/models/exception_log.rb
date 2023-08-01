@@ -48,6 +48,6 @@ class ExceptionLog < ApplicationRecord
       q = q.where("class_name != 'ActiveRecord::QueryCanceled'")
     end
 
-    q.apply_default_order(params)
+    q.apply_basic_order(params)
   end
 end

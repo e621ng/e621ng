@@ -34,7 +34,7 @@ class PostApproval < ApplicationRecord
         q = q.attribute_matches(:user_id, params[:user_id])
         q = q.attribute_matches(:post_id, params[:post_id])
 
-        q.apply_default_order(params)
+        q.apply_basic_order(params)
       end
     end
   end

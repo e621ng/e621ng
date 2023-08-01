@@ -68,7 +68,7 @@ class UserFeedback < ApplicationRecord
         q = q.where("category = ?", params[:category])
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

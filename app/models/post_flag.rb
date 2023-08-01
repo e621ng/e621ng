@@ -82,7 +82,7 @@ class PostFlag < ApplicationRecord
         q = q.where(is_deletion: true)
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
   end
 

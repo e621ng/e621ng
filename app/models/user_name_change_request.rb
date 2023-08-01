@@ -36,7 +36,7 @@ class UserNameChangeRequest < ApplicationRecord
       q = q.where_ilike(:desired_name, User.normalize_name(params[:desired_name]))
     end
 
-    q.apply_default_order(params)
+    q.apply_basic_order(params)
   end
 
   def rejected?

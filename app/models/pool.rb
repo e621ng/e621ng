@@ -89,7 +89,7 @@ class Pool < ApplicationRecord
       when "post_count"
         q = q.order(Arel.sql("cardinality(post_ids) desc")).default_order
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
 
       q

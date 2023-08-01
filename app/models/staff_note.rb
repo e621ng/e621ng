@@ -42,7 +42,7 @@ class StaffNote < ApplicationRecord
         q = q.where.not(creator: User.system)
       end
 
-      q.apply_default_order(params)
+      q.apply_basic_order(params)
     end
 
     def default_order

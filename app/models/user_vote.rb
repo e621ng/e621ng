@@ -91,7 +91,7 @@ class UserVote < ApplicationRecord
       if params[:order] == "ip_addr" && allow_complex_params
         q = q.order(:user_ip_addr)
       else
-        q = q.apply_default_order(params)
+        q = q.apply_basic_order(params)
       end
       q
     end
