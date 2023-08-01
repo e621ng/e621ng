@@ -30,7 +30,7 @@ class CommentVotesController < ApplicationController
   end
 
   def lock
-    ids = params[:ids].split(/,/)
+    ids = params[:ids].split(",")
 
     ids.each do |id|
       VoteManager.comment_lock!(id)
@@ -38,7 +38,7 @@ class CommentVotesController < ApplicationController
   end
 
   def delete
-    ids = params[:ids].split(/,/)
+    ids = params[:ids].split(",")
 
     ids.each do |id|
       VoteManager.admin_comment_unvote!(id)

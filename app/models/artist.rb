@@ -8,7 +8,7 @@ class Artist < ApplicationRecord
   belongs_to_creator
   before_validation :normalize_name
   before_validation :normalize_other_names
-  validate :validate_user_can_edit?
+  validate :validate_user_can_edit
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, if: :name_changed?
   validates :name, :group_name, length: { maximum: 100 }
@@ -180,7 +180,7 @@ class Artist < ApplicationRecord
         artists = []
         while artists.empty? && url.length > 10
           u = url.sub(/\/+$/, "") + "/"
-          u = u.to_escaped_for_sql_like.gsub(/\*/, '%') + '%'
+          u = u.to_escaped_for_sql_like.gsub("*", "%") + "%"
           artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url ILIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
           url = File.dirname(url) + "/"
 
@@ -399,7 +399,7 @@ class Artist < ApplicationRecord
       saved_change_to_is_locked?
     end
 
-    def validate_user_can_edit?
+    def validate_user_can_edit
       return if CurrentUser.is_janitor?
 
       if !is_active?

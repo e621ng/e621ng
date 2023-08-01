@@ -298,7 +298,7 @@ class Tag < ApplicationRecord
 
   module ParseMethods
     def normalize(query)
-      query.to_s.unicode_normalize(:nfc).gsub(/\u3000/, " ").strip
+      query.to_s.unicode_normalize(:nfc).strip
     end
 
     def normalize_query(query, sort: true)
@@ -454,7 +454,7 @@ class Tag < ApplicationRecord
         return [:gt, parse_cast($1, type)]
 
       when /,/
-        return [:in, range.split(/,/)[0..99].map {|x| parse_cast(x, type)}]
+        return [:in, range.split(",")[0..99].map { |x| parse_cast(x, type) }]
 
       else
         return [:eq, parse_cast(range, type)]
@@ -553,7 +553,7 @@ class Tag < ApplicationRecord
     end
 
     def has_metatag?(tags, *metatags)
-      return nil if tags.blank?
+      return false if tags.blank?
 
       tags = scan_query(tags.to_str) if tags.respond_to?(:to_str)
       tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
@@ -724,7 +724,7 @@ class Tag < ApplicationRecord
             q[:fav_ids] << favuser.id
 
           when "md5"
-            q[:md5] = g2.downcase.split(/,/)[0..99]
+            q[:md5] = g2.downcase.split(",")[0..99]
 
           when "-rating"
             q[:rating_negated] = g2.downcase

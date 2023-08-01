@@ -30,9 +30,9 @@ module Downloads
       end
     end
 
-    def download!(tries: 3, **options)
+    def download!(tries: 3, **)
       Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
-        http_get_streaming(uncached_url, **options)
+        http_get_streaming(uncached_url, **)
       end
     end
 

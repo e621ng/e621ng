@@ -30,7 +30,7 @@
     <% else %>
       <p>An error occurred: <%= render_status(@upload) %></p>
       <% if CurrentUser.user.is_janitor? %>
-        <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split(/\n/) %>
+        <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split("\n") %>
       <% end %>
     <% end %>
   </div>

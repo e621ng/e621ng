@@ -8,7 +8,7 @@ module TextHelper
     cbo = Diff::LCS::ContextDiffCallbacks.new
     diffs = thisarr.diff(otharr, cbo)
 
-    escape_html = ->(str) { str.gsub(/&/, "&amp;").gsub(/</, "&lt;").gsub(/>/, "&gt;") }
+    escape_html = ->(str) { str.gsub("&", "&amp;").gsub("<", "&lt;").gsub(">", "&gt;") }
 
     output = thisarr
     output.each {|q| q.replace(escape_html[q])}

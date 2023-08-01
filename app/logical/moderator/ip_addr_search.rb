@@ -9,11 +9,11 @@ module Moderator
     def execute
       with_history = params[:with_history].to_s.truthy?
       if params[:user_id].present?
-        search_by_user_id(params[:user_id].split(/,/).map(&:strip), with_history)
+        search_by_user_id(params[:user_id].split(",").map(&:strip), with_history)
       elsif params[:user_name].present?
-        search_by_user_name(params[:user_name].split(/,/).map(&:strip), with_history)
+        search_by_user_name(params[:user_name].split(",").map(&:strip), with_history)
       elsif params[:ip_addr].present?
-        ip_addrs = params[:ip_addr].split(/,/).map(&:strip)
+        ip_addrs = params[:ip_addr].split(",").map(&:strip)
         if params[:add_ip_mask].to_s.truthy? && ip_addrs.count == 1 && ip_addrs[0].exclude?("/")
           mask = IPAddr.new(ip_addrs[0]).ipv4? ? 24 : 64
           ip_addrs[0] = "#{ip_addrs[0]}/#{mask}"

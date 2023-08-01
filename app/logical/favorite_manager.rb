@@ -25,20 +25,18 @@ class FavoriteManager
     end
   end
 
-  def self.remove!(user:, post:, post_id: nil)
-    post_id = post ? post.id : post_id
-    raise Favorite::Error, "Must specify a post or post_id to remove favorite" unless post_id
+  def self.remove!(user:, post:)
     retries = 5
     begin
       Favorite.transaction(**ISOLATION) do
-        unless Favorite.for_user(user.id).where(:user_id => user.id, :post_id => post_id).exists?
+        unless Favorite.for_user(user.id).where(user_id: user.id, post_id: post.id).exists?
           return
         end
 
-        Favorite.for_user(user.id).where(post_id: post_id).destroy_all
-        post.delete_user_from_fav_string(user.id) if post
+        Favorite.for_user(user.id).where(post_id: post.id).destroy_all
+        post.delete_user_from_fav_string(user.id)
         post.do_not_version_changes = true
-        post.save if post
+        post.save
       end
     rescue ActiveRecord::SerializationFailure => e
       retries -= 1

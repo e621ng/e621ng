@@ -68,7 +68,7 @@ class CurrentUser
     RequestStore[:safe_mode] = safe_mode
   end
 
-  def self.method_missing(method, *params, &block)
-    user.__send__(method, *params, &block)
+  def self.method_missing(method, *, &)
+    user.__send__(method, *, &)
   end
 end

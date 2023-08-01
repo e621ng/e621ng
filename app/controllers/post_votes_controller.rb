@@ -27,7 +27,7 @@ class PostVotesController < ApplicationController
   end
 
   def lock
-    ids = params[:ids].split(/,/)
+    ids = params[:ids].split(",")
 
     ids.each do |id|
       VoteManager.lock!(id)
@@ -35,7 +35,7 @@ class PostVotesController < ApplicationController
   end
 
   def delete
-    ids = params[:ids].split(/,/)
+    ids = params[:ids].split(",")
 
     ids.each do |id|
       VoteManager.admin_unvote!(id)

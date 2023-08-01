@@ -786,13 +786,13 @@ module Danbooru
       var
     end
 
-    def method_missing(method, *args)
+    def method_missing(method, *)
       var = ENV["DANBOORU_#{method.to_s.upcase.chomp("?")}"]
 
       if var.present?
         env_to_boolean(method, var)
       else
-        custom_configuration.send(method, *args)
+        custom_configuration.send(method, *)
       end
     end
   end

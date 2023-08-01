@@ -88,7 +88,6 @@ module BulkUpdateRequestsHelper
         links = script_tag_links(cmd, arg1, arg2, script_tags)
         "#{btag}#{cmd.to_s.tr("_", " ")} #{links}#{arg3 if bur.is_pending?}#{etag}"
       end.join("\n")
-
     rescue BulkUpdateRequestImporter::Error
       "!!!!!!Invalid Script!!!!!!"
     end

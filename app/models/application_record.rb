@@ -26,17 +26,17 @@ class ApplicationRecord < ActiveRecord::Base
         where("#{column} = ?", value)
       end
 
-      def attribute_matches(attribute, value, **options)
+      def attribute_matches(attribute, value, **)
         return all if value.nil?
 
         column = column_for_attribute(attribute)
         case column.sql_type_metadata.type
         when :boolean
-          boolean_attribute_matches(attribute, value, **options)
+          boolean_attribute_matches(attribute, value, **)
         when :integer, :datetime
-          numeric_attribute_matches(attribute, value, **options)
+          numeric_attribute_matches(attribute, value, **)
         when :string, :text
-          text_attribute_matches(attribute, value, **options)
+          text_attribute_matches(attribute, value, **)
         else
           raise ArgumentError, "unhandled attribute type"
         end

@@ -34,8 +34,8 @@ class FavoritesController < ApplicationController
   end
 
   def destroy
-    @post = Post.find_by_id(params[:id])
-    FavoriteManager.remove!(user: CurrentUser.user, post: @post, post_id: params[:id])
+    @post = Post.find(params[:id])
+    FavoriteManager.remove!(user: CurrentUser.user, post: @post)
 
     flash.now[:notice] = "You have unfavorited this post"
     respond_with(@post)

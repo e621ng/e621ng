@@ -28,8 +28,8 @@ module ApplicationHelper
     li_link_to(text, url, id_prefix: "nav-", class: klass, **options)
   end
 
-  def subnav_link_to(text, url, **options)
-    li_link_to(text, url, id_prefix: "subnav-", **options)
+  def subnav_link_to(text, url, **)
+    li_link_to(text, url, id_prefix: "subnav-", **)
   end
 
   def li_link_to(text, url, id_prefix: "", **options)
@@ -38,8 +38,8 @@ module ApplicationHelper
     tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
   end
 
-  def dtext_ragel(text, **options)
-    parsed = DText.parse(text, **options)
+  def dtext_ragel(text, **)
+    parsed = DText.parse(text, **)
     return raw "" if parsed.nil?
     deferred_post_ids.merge(parsed[1]) if parsed[1].present?
     raw parsed[0]

@@ -13,6 +13,8 @@ require:
 
 AllCops:
   NewCops: enable
+  SuggestExtensions:
+    rubocop-factory_bot: false
 
 Bundler/OrderedGems:
   Enabled: false

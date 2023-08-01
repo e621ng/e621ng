@@ -3,7 +3,7 @@ module UploadsHelper
     case upload.status
     when /duplicate: (\d+)/
       dup_post_id = $1
-      link_to(upload.status.gsub(/error: RuntimeError - /, ""), post_path(dup_post_id))
+      link_to(upload.status.gsub("error: RuntimeError - ", ""), post_path(dup_post_id))
 
     when /\Aerror: /
       search_params = params[:search].permit!
