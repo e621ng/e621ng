@@ -1307,6 +1307,7 @@ class Post < ApplicationRecord
       self.source = target.source
       self.parent_id = target.parent_id
       self.description = target.description
+      self.edit_reason = "Revert to version #{target.version}"
     end
 
     def revert_to!(target)

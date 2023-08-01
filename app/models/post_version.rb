@@ -369,6 +369,8 @@ class PostVersion < ApplicationRecord
         post.tag_string = "#{post.tag_string} #{tag}".strip
       end
     end
+
+    post.edit_reason = "Undo of version #{version}"
   end
 
   def undo!

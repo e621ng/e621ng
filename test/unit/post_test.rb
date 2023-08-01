@@ -2208,13 +2208,16 @@ class PostTest < ActiveSupport::TestCase
 
       context "and then reverted to an early version" do
         setup do
-          @post.revert_to(@post.versions[1])
+          @version = @post.versions[1]
+          @post.revert_to!(@version)
+          @post.reload
         end
 
         should "correctly revert all fields" do
           assert_equal("aaa bbb ccc ddd", @post.tag_string)
           assert_equal("", @post.source)
           assert_equal("q", @post.rating)
+          assert_equal("Revert to version #{@version.version}", @post.versions.last.reason)
         end
       end
 

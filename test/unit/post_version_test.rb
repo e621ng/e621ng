@@ -26,9 +26,11 @@ class PostVersionTest < ActiveSupport::TestCase
       end
 
       should "undo the changes" do
-        @post.versions.second.undo!
+        version = @post.versions.second
+        version.undo!
         @post.reload
         assert_equal("3", @post.tag_string)
+        assert_equal("Undo of version #{version.version}", @post.versions.last.reason)
       end
     end
 
