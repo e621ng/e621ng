@@ -531,6 +531,14 @@ class User < ApplicationRecord
       can_upload_with_reason == true
     end
 
+    def can_undo_post_versions?
+      is_member?
+    end
+
+    def can_revert_post_versions?
+      is_member?
+    end
+
     def can_upload_with_reason
       if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY

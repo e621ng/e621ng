@@ -2,7 +2,7 @@
   <% @post_versions.each do |post_version| %>
     <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" data-post-id="<%= post_version.post_id %>" class="post-version">
       <div class="post-version-row-select pv-check pv-label">
-        <input type="checkbox" class="post-version-select" <%= "disabled" unless post_version.can_undo?(CurrentUser.user) %> >
+        <input type="checkbox" class="post-version-select" <%= "disabled" if !CurrentUser.can_undo_post_versions? || !post_version.undoable? %> >
       </div>
       <div class="pv-post-label pv-label">
         Post #:Version
@@ -54,11 +54,11 @@
         <%= post_version_locked_diff(post_version) %>
       </div>
       <div class="pv-actions pv-content">
-        <% if post_version.can_undo?(CurrentUser.user) %>
-          <%= link_to "Undo", undo_post_version_path(post_version), :method => :put %>
+        <% if CurrentUser.can_undo_post_versions? && post_version.undoable? %>
+          <%= link_to "Undo", undo_post_version_path(post_version), method: :put %>
         <% end %>
-        <% if params.dig(:search, :post_id).present? && post_version.can_revert_to?(CurrentUser.user) %>
-          | <%= link_to "Revert to", revert_post_path(post_version.post_id, :version_id => post_version.id, format: :json), class: 'revert-item-link', 'data-noun': 'post' %>
+        <% if params.dig(:search, :post_id).present? && CurrentUser.can_revert_post_versions? %>
+          | <%= link_to "Revert to", revert_post_path(post_version.post_id, version_id: post_version.id, format: :json), class: "revert-item-link", data: { noun: "post" } %>
         <% end %>
       </div>
       <div class="pv-tags-label pv-label">
