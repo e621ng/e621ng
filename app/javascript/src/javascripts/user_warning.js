@@ -14,7 +14,10 @@ class UserWarnable {
       const item_type = target.data('item-type');
       const record_type = target.data('record-type');
 
-      if(!confirm(record_type === "unmark" ? `Are you sure you want to unmark this ${item_type}?` : `Are you sure you want to mark this ${item_type} for a ${record_type}?`)) {
+      const message = record_type === "unmark"
+        ? `Are you sure you want to unmark this ${item_type}?`
+        : `Are you sure you want to mark this ${item_type} for having received ${record_type}?`
+      if(!confirm(message)) {
         return;
       }
 
