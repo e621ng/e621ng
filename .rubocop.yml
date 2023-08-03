@@ -103,6 +103,9 @@ Rails/WhereEquals:
 Rails/WhereExists:
   EnforcedStyle: where
 
+Rails/WhereNotWithMultipleConditions:
+  Enabled: false
+
 Style/ConditionalAssignment:
   Enabled: false
 
