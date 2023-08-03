@@ -43,10 +43,6 @@ class ForumPost < ApplicationRecord
       where("forum_posts.creator_id = ?", user_id)
     end
 
-    def creator_name(name)
-      where("forum_posts.creator_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
-    end
-
     def active
       where("(forum_posts.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id)
     end
@@ -61,9 +57,7 @@ class ForumPost < ApplicationRecord
       q = super
       q = q.permitted
 
-      if params[:creator_id].present?
-        q = q.where("forum_posts.creator_id = ?", params[:creator_id].to_i)
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
       if params[:topic_id].present?
         q = q.where("forum_posts.topic_id = ?", params[:topic_id].to_i)
@@ -74,10 +68,6 @@ class ForumPost < ApplicationRecord
       end
 
       q = q.attribute_matches(:body, params[:body_matches])
-
-      if params[:creator_name].present?
-        q = q.creator_name(params[:creator_name].tr(" ", "_"))
-      end
 
       if params[:topic_category_id].present?
         q = q.joins(:topic).where("forum_topics.category_id = ?", params[:topic_category_id].to_i)

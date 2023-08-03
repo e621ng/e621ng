@@ -46,21 +46,8 @@ class PostFlag < ApplicationRecord
       q = q.attribute_matches(:reason, params[:reason_matches])
       q = q.attribute_matches(:is_resolved, params[:is_resolved])
 
-      if params[:creator_id].present?
-        if CurrentUser.can_view_flagger?(params[:creator_id].to_i)
-          q = q.where("creator_id = ?", params[:creator_id].to_i)
-        else
-          q = q.none
-        end
-      end
-
-      if params[:creator_name].present?
-        flagger_id = User.name_to_id(params[:creator_name].strip)
-        if flagger_id && CurrentUser.can_view_flagger?(flagger_id)
-          q = q.where("creator_id = ?", flagger_id)
-        else
-          q = q.none
-        end
+      q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
+        condition.where.not(creator_id: user_ids.reject { |user_id| CurrentUser.can_view_flagger?(user_id) })
       end
 
       if params[:post_id].present?

@@ -102,6 +102,27 @@ class ApplicationRecord < ActiveRecord::Base
         end
       end
 
+      # Searches for a user both by id and name.
+      # Accepts a block to modify the query when one of the params is present and yields the ids.
+      def where_user(db_field, query_field, params)
+        user_name_key = query_field.is_a?(Symbol) ? "#{query_field}_name" : query_field[0]
+        user_id_key = query_field.is_a?(Symbol) ? "#{query_field}_id" : query_field[1]
+
+        if params[user_name_key].present?
+          user_ids = [User.name_to_id(params[user_name_key]) || 0]
+        end
+        if params[user_id_key].present?
+          user_ids = params[user_id_key].split(",").first(100).map(&:to_i)
+        end
+
+        q = all
+        if user_ids
+          q = yield(q, user_ids) if block_given?
+          q = q.where(to_where_hash(db_field, user_ids))
+        end
+        q
+      end
+
       def apply_basic_order(params)
         case params[:order]
         when "id_asc"
@@ -126,6 +147,20 @@ class ApplicationRecord < ActiveRecord::Base
         q = q.attribute_matches(:updated_at, params[:updated_at]) if attribute_names.include?("updated_at")
 
         q
+      end
+
+      private
+
+      # to_where_hash(:a, 1) => { a: 1 }
+      # to_where_hash(a: :b, 1) => { a: { b: 1 } }
+      def to_where_hash(field, value)
+        if field.is_a?(Symbol)
+          { field => value }
+        elsif field.is_a?(Hash) && field.size == 1 && field.values.first.is_a?(Symbol)
+          { field.keys.first => { field.values.first => value } }
+        else
+          raise StandardError, "Unsupported field: #{field.class} => #{field}"
+        end
       end
     end
   end

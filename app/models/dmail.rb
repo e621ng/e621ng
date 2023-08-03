@@ -112,35 +112,14 @@ class Dmail < ApplicationRecord
       where("owner_id = ?", CurrentUser.id)
     end
 
-    def to_name_matches(name)
-      where("to_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
-    end
-
-    def from_name_matches(name)
-      where("from_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
-    end
-
     def search(params)
       q = super
 
       q = q.attribute_matches(:title, params[:title_matches])
       q = q.attribute_matches(:body, params[:message_matches])
 
-      if params[:to_name].present?
-        q = q.to_name_matches(params[:to_name])
-      end
-
-      if params[:to_id].present?
-        q = q.where("to_id = ?", params[:to_id].to_i)
-      end
-
-      if params[:from_name].present?
-        q = q.from_name_matches(params[:from_name])
-      end
-
-      if params[:from_id].present?
-        q = q.where("from_id = ?", params[:from_id].to_i)
-      end
+      q = q.where_user(:to_id, :to, params)
+      q = q.where_user(:from_id, :from, params)
 
       q = q.attribute_matches(:is_read, params[:is_read])
       q = q.attribute_matches(:is_deleted, params[:is_deleted])

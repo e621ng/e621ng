@@ -12,10 +12,6 @@ class ArtistVersion < ApplicationRecord
       where("updater_id = ?", user_id)
     end
 
-    def updater_name(name)
-      where("updater_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
-    end
-
     def search(params)
       q = super
 
@@ -23,13 +19,7 @@ class ArtistVersion < ApplicationRecord
         q = q.where("name like ? escape E'\\\\'", params[:name].to_escaped_for_sql_like)
       end
 
-      if params[:updater_name].present?
-        q = q.updater_name(params[:updater_name])
-      end
-
-      if params[:updater_id].present?
-        q = q.where(updater_id: params[:updater_id].split(",").map(&:to_i))
-      end
+      q = q.where_user(:updater_id, :updater, params)
 
       if params[:artist_id].present?
         q = q.where(artist_id: params[:artist_id].split(",").map(&:to_i))

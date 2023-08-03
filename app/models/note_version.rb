@@ -6,13 +6,7 @@ class NoteVersion < ApplicationRecord
   def self.search(params)
     q = super
 
-    if params[:updater_id]
-      q = q.where(updater_id: params[:updater_id].split(",").map(&:to_i))
-    end
-
-    if params[:updater_name]
-      q = q.where(updater_id: User.name_to_id(params[:updater_name]))
-    end
+    q = q.where_user(:updater_id, :updater, params)
 
     if params[:post_id]
       q = q.where(post_id: params[:post_id].split(",").map(&:to_i))

@@ -18,11 +18,6 @@ class PostVersion < ApplicationRecord
       end
     end
 
-    def for_user_name(name)
-      user_id = User.name_to_id(name)
-      for_user(user_id)
-    end
-
     def build_query(params)
       must = []
       must_not = []

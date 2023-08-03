@@ -469,13 +469,7 @@ class Artist < ApplicationRecord
 
       q = q.attribute_matches(:is_active, params[:is_active])
 
-      if params[:creator_name].present?
-        q = q.where("artists.creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").downcase)
-      end
-
-      if params[:creator_id].present?
-        q = q.where("artists.creator_id = ?", params[:creator_id].to_i)
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
       if params[:has_tag].to_s.truthy?
         q = q.joins(:tag).where("tags.post_count > 0")

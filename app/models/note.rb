@@ -27,10 +27,6 @@ class Note < ApplicationRecord
       where("creator_id = ?", user_id)
     end
 
-    def creator_name(name)
-      where("creator_id = (select _.id from users _ where lower(_.name) = ?)", name.downcase)
-    end
-
     def search(params)
       q = super
 
@@ -45,13 +41,7 @@ class Note < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
-      if params[:creator_name].present?
-        q = q.creator_name(params[:creator_name].tr(" ", "_"))
-      end
-
-      if params[:creator_id].present?
-        q = q.where(creator_id: params[:creator_id].split(",").map(&:to_i))
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
       q.apply_basic_order(params)
     end

@@ -11,14 +11,7 @@ class TagTypeVersion < ApplicationRecord
         q = q.where(tag: tag)
       end
 
-      if params[:user_id].present?
-        user = User.find_by_id(params[:user_id])
-        q = q.where(creator: user)
-      end
-      if params[:user_name].present?
-        user = User.find_by_name(params[:user_name])
-        q = q.where(creator: user)
-      end
+      q = q.where_user(:creator_id, :user, params)
 
       q.order(id: :desc)
     end

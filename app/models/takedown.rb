@@ -222,12 +222,7 @@ class Takedown < ApplicationRecord
       if params[:ip_addr].present?
         q = q.where('creator_ip_addr <<= ?', params[:ip_addr])
       end
-      if params[:creator_id].present?
-        q = q.where('creator_id = ?', params[:creator_id])
-      end
-      if params[:creator_name].present?
-        q = q.where('takedowns.creator_id = (select _.id from users _ WHERE lower(_.name) ? ?)', params[:creator_name].tr(' ', '_').downcase)
-      end
+      q = q.where_user(:creator_id, :creator, params)
       if params[:email].present?
         q = q.where_ilike(:email, params[:email])
       end

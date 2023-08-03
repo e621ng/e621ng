@@ -71,10 +71,6 @@ class Blip < ApplicationRecord
       user_id.present? ? where("creator_id = ?", user_id) : none
     end
 
-    def for_creator_name(user_name)
-      for_creator(User.name_to_id(user_name))
-    end
-
     def search(params)
       q = super
 
@@ -86,13 +82,7 @@ class Blip < ApplicationRecord
         q = q.where('response_to = ?', params[:response_to].to_i)
       end
 
-      if params[:creator_name].present?
-        q = q.for_creator_name(params[:creator_name])
-      end
-
-      if params[:creator_id].present?
-        q = q.for_creator(params[:creator_id].to_i)
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])

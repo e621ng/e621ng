@@ -21,9 +21,7 @@ class IpBan < ApplicationRecord
       q = q.where("ip_addr >>= ?", params[:ip_addr])
     end
 
-    if params[:banner_name].present?
-      q = q.where(creator_id: User.name_to_id(params[:banner_name]))
-    end
+    q = q.where_user(:creator_id, :banner, params)
 
     q = q.attribute_matches(:reason, params[:reason])
 

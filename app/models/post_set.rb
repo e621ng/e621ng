@@ -311,12 +311,8 @@ class PostSet < ApplicationRecord
     def search(params)
       q = super
 
-      if params[:creator_name].present?
-        user = User.find_by_name(params[:creator_name])
-        q = q.where(creator_id: user)
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
-      q = q.attribute_exact_matches(:creator_id, params[:creator_id])
       if params[:name].present?
         q = q.attribute_matches(:name, params[:name], convert_to_wildcard: true)
       end

@@ -84,13 +84,7 @@ class ModAction < ApplicationRecord
   def self.search(params)
     q = super
 
-    if params[:creator_id].present?
-      q = q.where("creator_id = ?", params[:creator_id].to_i)
-    end
-
-    if params[:creator_name].present?
-      q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].downcase)
-    end
+    q = q.where_user(:creator_id, :creator, params)
 
     if params[:action].present?
       q = q.where('action = ?', params[:action])

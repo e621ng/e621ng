@@ -84,19 +84,13 @@ class WikiPage < ApplicationRecord
         q = q.where("title LIKE ? ESCAPE E'\\\\'", params[:title].downcase.strip.tr(" ", "_").to_escaped_for_sql_like)
       end
 
-      if params[:creator_id].present?
-        q = q.where("creator_id = ?", params[:creator_id])
-      end
-
       q = q.attribute_matches(:body, params[:body_matches])
 
       if params[:other_names_match].present?
         q = q.other_names_match(params[:other_names_match])
       end
 
-      if params[:creator_name].present?
-        q = q.where("creator_id = (select _.id from users _ where lower(_.name) = ?)", params[:creator_name].tr(" ", "_").downcase)
-      end
+      q = q.where_user(:creator_id, :creator, params)
 
       if params[:hide_deleted].to_s.truthy?
         q = q.where("is_deleted = false")

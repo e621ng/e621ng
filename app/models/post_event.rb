@@ -37,14 +37,6 @@ class PostEvent < ApplicationRecord
     end
   end
 
-  def self.for_user(q, user_id)
-    q = q.where("creator_id = ?", user_id)
-    unless CurrentUser.can_view_flagger?(user_id)
-      q = q.where.not(action: actions[:flag_created])
-    end
-    q
-  end
-
   def self.search(params)
     q = super
 
@@ -55,13 +47,11 @@ class PostEvent < ApplicationRecord
       q = q.where("post_id = ?", params[:post_id].to_i)
     end
 
-    if params[:creator_name].present?
-      creator_id = User.name_to_id(params[:creator_name].strip)
-      q = for_user(q, creator_id.to_i)
-    end
-
-    if params[:creator_id].present?
-      q = for_user(q, params[:creator_id].to_i)
+    q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
+      condition.where.not(
+        action: actions[:flag_created],
+        creator_id: user_ids.reject { |user_id| CurrentUser.can_view_flagger?(user_id) },
+      )
     end
 
     if params[:action].present?

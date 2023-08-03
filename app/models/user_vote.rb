@@ -45,29 +45,13 @@ class UserVote < ApplicationRecord
         q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(100))
       end
 
-      if params[:user_name].present?
-        user_id = User.name_to_id(params[:user_name])
-        if user_id
-          q = q.where("user_id = ?", user_id)
-        else
-          q = q.none
-        end
-      end
-
-      if params[:user_id].present?
-        q = q.where(user_id: params[:user_id].split(",").first(100))
-      end
+      q = q.where_user(:user_id, :user, params)
 
       allow_complex_params = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
 
       if allow_complex_params
-        if params[:"#{model_type}_creator_name"].present?
-          creator_id = User.name_to_id(params[:"#{model_type}_creator_name"])
-          if creator_id
-            q = q.joins(model_type).where(model_type => { "#{model_creator_column}_id": creator_id })
-          else
-            q = q.none
-          end
+        q = q.where_user({ model_type => :"#{model_creator_column}_id" }, :"#{model_type}_creator", params) do |q, _user_ids|
+          q.joins(model_type)
         end
 
         if params[:timeframe].present?

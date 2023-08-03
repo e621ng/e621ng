@@ -22,21 +22,8 @@ class Ban < ApplicationRecord
   def self.search(params)
     q = super
 
-    if params[:banner_name]
-      q = q.where("banner_id = (select _.id from users _ where lower(_.name) = ?)", params[:banner_name].downcase)
-    end
-
-    if params[:banner_id]
-      q = q.where("banner_id = ?", params[:banner_id].to_i)
-    end
-
-    if params[:user_name]
-      q = q.where("user_id = (select _.id from users _ where lower(_.name) = ?)", params[:user_name].downcase)
-    end
-
-    if params[:user_id]
-      q = q.where("user_id = ?", params[:user_id].to_i)
-    end
+    q = q.where_user(:banner_id, :banner, params)
+    q = q.where_user(:user_id, :user, params)
 
     q = q.attribute_matches(:reason, params[:reason_matches])
 

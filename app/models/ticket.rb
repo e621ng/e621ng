@@ -225,27 +225,9 @@ class Ticket < ApplicationRecord
     def search(params)
       q = super.includes(:creator).includes(:claimant)
 
-      if params[:creator_id].present?
-        q = q.where('creator_id = ?', params[:creator_id].to_i)
-      end
-
-      if params[:claimant_id].present?
-        q = q.where('claimant_id = ?', params[:claimant_id].to_i)
-      end
-
-      if params[:creator_name].present?
-        user_id = User.name_to_id(params[:creator_name])
-        q = q.where('creator_id = ?', user_id) if user_id
-      end
-
-      if params[:accused_name].present?
-        user_id = User.name_to_id(params[:accused_name])
-        q = q.where('accused_id = ?', user_id) if user_id
-      end
-
-      if params[:accused_id].present?
-        q = q.where('accused_id = ?', params[:accused_id].to_i)
-      end
+      q = q.where_user(:creator_id, :creator, params)
+      q = q.where_user(:claimant_id, :claimant, params)
+      q = q.where_user(:accused_id, :accused, params)
 
       if params[:qtype].present?
         q = q.where('qtype = ?', params[:qtype])
