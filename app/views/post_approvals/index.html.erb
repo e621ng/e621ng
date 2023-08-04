@@ -4,7 +4,7 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <%= form_search(path: post_approvals_path) do |f| %>
-      <%= f.input :user_name, label: "Approver", autocomplete: "user" %>
+      <%= f.user :user, label: "Approver" %>
       <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
     <% end %>
 

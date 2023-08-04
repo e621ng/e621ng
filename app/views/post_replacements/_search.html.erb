@@ -1,11 +1,8 @@
 <%= form_search(path: post_replacements_path) do |f| %>
   <%= f.input :md5, label: "MD5" %>
   <%= f.input :post_id, label: "Post ID" %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
-  <%= f.input :creator_id, label: "Creator ID", hide_unless_value: true %>
-  <%= f.input :approver_name, label: "Approver", autocomplete: "user" %>
-  <%= f.input :approver_id, label: "Approver ID", hide_unless_value: true %>
-  <%= f.input :uploader_name_on_approve, label: "Original Uploader", autocomplete: "user" %>
-  <%= f.input :uploader_id_on_approve, label: "Original Uploader ID", hide_unless_value: true %>
+  <%= f.user :creator %>
+  <%= f.user :approver %>
+  <%= f.user %i[uploader_name_on_approve uploader_id_on_approve], label: "Original Uploader" %>
   <%= f.input :status, collection: ["pending", "rejected", "approved", "promoted"], include_blank: true %>
 <% end %>

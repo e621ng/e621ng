@@ -1,7 +1,6 @@
 <%= form_search(path: user_feedbacks_path) do |f| %>
-  <%= f.input :user_name, label: "User", autocomplete: "user" %>
-  <%= f.input :user_id, label: "User ID", hide_unless_value: true %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.user :user %>
+  <%= f.user :creator %>
   <%= f.input :body_matches, label: "Message" %>
   <%= f.input :category, collection: %w[positive negative neutral], include_blank: true %>
 <% end %>

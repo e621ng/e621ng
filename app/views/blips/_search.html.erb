@@ -1,5 +1,5 @@
 <%= form_search path: blips_path do |f| %>
-  <%= f.input :creator_name, label: "Blipper", autocomplete: "user" %>
+  <%= f.user :creator, label: "Blipper" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :response_to, label: "Parent Blip #" %>
   <% if CurrentUser.is_admin? %>

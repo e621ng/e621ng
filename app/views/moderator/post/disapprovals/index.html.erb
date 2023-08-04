@@ -3,7 +3,7 @@
     <h1>Disapprovals</h1>
 
     <%= form_search(path: moderator_post_disapprovals_path) do |f| %>
-      <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+      <%= f.user :creator %>
       <%= f.input :post_id, label: "Post ID" %>
       <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
       <%= f.input :message, hint: "Use * for wildcard" %>

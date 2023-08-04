@@ -1,7 +1,6 @@
 <%= form_search(path: comments_path) do |f| %>
   <%= hidden_field_tag "group_by", "comment", id: "group_by_full" %>
-  <%= f.input :creator_name, label: "Commenter", autocomplete: "user" %>
-  <%= f.input :creator_id, label: "Commenter ID", hide_unless_value: true %>
+  <%= f.user :creator, label: "Commenter" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
   <% if CurrentUser.is_admin? %>

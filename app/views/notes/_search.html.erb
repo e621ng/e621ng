@@ -1,6 +1,6 @@
 <%= form_search(path: notes_path) do |f| %>
   <%= f.input :body_matches, label: "Body" %>
-  <%= f.input :creator_name, label: "Author", autocomplete: "user" %>
+  <%= f.user :creator, label: "Author" %>
   <%= f.input :post_id, label: "Post #"%>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Deleted", "false"]], :include_blank => true %>

@@ -1,6 +1,6 @@
 <%= form_search(path: bulk_update_requests_path) do |f| %>
-  <%= f.input :user_name, label: "Creator", autocomplete: "user" %>
-  <%= f.input :approver_name, label: "Approver", autocomplete: "user" %>
+  <%= f.user :user, label: "Creator" %>
+  <%= f.user :approver %>
   <%= f.input :title_matches, label: "Title" %>
   <%= f.input :script_matches, label: "Script" %>
   <%= f.input :status, label: "Status", collection: %w[pending approved rejected], include_blank: true %>

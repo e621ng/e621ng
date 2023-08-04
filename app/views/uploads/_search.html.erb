@@ -1,5 +1,5 @@
 <%= form_search(path: uploads_path) do |f| %>
-  <%= f.input :uploader_name, label: "Uploader", autocomplete: "user" %>
+  <%= f.user :uploader %>
   <%= f.input :post_tags_match, label: "Post Tags" %>
   <%= f.input :source_matches, label: "Source" %>
   <%= f.input :status, collection: [%w[Completed completed], %w[Processing processing], %w[Pending pending], %w[Duplicate *duplicate*], %w[Error error*]], include_blank: true %>

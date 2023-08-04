@@ -1,6 +1,5 @@
 <%= form_search path: post_versions_path do |f| %>
-  <%= f.input :updater_name, label: "User", autocomplete: "user" %>
-  <%= f.input :updater_id, label: "User ID" %>
+  <%= f.user :updater, label: "User" %>
   <%= f.input :post_id, label: "Post #" %>
   <%= f.input :reason, label: "Reason" %>
   <%= f.input :description, label: "Description" %>

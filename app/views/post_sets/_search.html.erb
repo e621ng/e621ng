@@ -1,7 +1,7 @@
 <%= form_search path: post_sets_path do |f| %>
   <%= f.input :name, label: "Name" %>
   <%= f.input :shortname, label: "Short Name" %>
-  <%= f.input :creator_name, label: "Username", autocomplete: "user" %>
+  <%= f.user :creator %>
   <% if CurrentUser.is_moderator? %>
     <%= f.input :is_public, label: "Public?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% end %>

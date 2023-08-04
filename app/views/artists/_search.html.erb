@@ -1,7 +1,7 @@
 <%= form_search(path: artists_path) do |f| %>
   <%= f.input :any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "artist" %>
   <%= f.input :url_matches, label: "URL", as: :string %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.user :creator %>
   <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :has_tag, label: "Has tag?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :is_linked, label: "Linked Only", as: :boolean %>

@@ -4,7 +4,7 @@
 
     <%= form_search(path: ip_bans_path) do |f| %>
       <%= f.input :ip_addr, label: "IP Address" %>
-      <%= f.input :banner_name, label: "Banner" %>
+      <%= f.user :banner %>
       <%= f.input :reason %>
     <% end %>
 

@@ -1,7 +1,7 @@
 <%= form_search(path: request.path) do |f| %>
   <%= f.input :name_matches, label: "Name", autocomplete: "pool" %>
   <%= f.input :description_matches, label: "Description" %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.user :creator %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Inactive", "false"]], :include_blank => true %>
   <%= f.input :category, label: "Category", collection: [["Series", "series"], ["Collection", "collection"]], :include_blank => true %>
   <%= f.input :order, label: "Order", collection: [["Last updated", "updated_at"], ["Name", "name"], ["Recently created", "created_at"], ["Post count", "post_count"]], :include_blank => true %>

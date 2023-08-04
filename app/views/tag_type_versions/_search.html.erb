@@ -1,5 +1,4 @@
 <%= form_search path: tag_type_versions_path do |f| %>
   <%= f.input :tag, label: "Tag" %>
-  <%= f.input :user_name, label: "Username", autocomplete: "user" %>
-  <%= f.input :user_id, label: "User ID" %>
+  <%= f.user :user %>
 <% end %>

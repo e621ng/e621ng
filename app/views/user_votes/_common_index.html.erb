@@ -2,10 +2,10 @@
   <div id="a-index">
     <%# path is a string here because of duplicate routes %>
     <%= form_search(path: type.model_name.route_key) do |f| %>
-      <%= f.input :user_name, label: "Voter Username", autocomplete: "user" %>
+      <%= f.user :user, label: "Voter" %>
       <%= f.input :"#{type.model_type}_id", label: "#{type.model_type.capitalize} ID" %>
       <br>
-      <%= f.input :"#{type.model_type}_creator_name", label: "#{type.model_type.capitalize} Creator Username", autocomplete: "user" %>
+      <%= f.user :"#{type.model_type}_creator", label: "#{type.model_type.capitalize} Creator" %>
       <%= f.input :timeframe, label: "Timeframe", include_blank: true, collection: [["Last Week", "7"], ["Last Month", "30"], ["Last Three Months", "90"], ["Last Year", "360"]] %>
       <%= f.input :score, label: "Type", include_blank: true, collection: [["Upvote", "1"], ["Locked", "0"], ["Downvote", "-1"]] %>
       <% if CurrentUser.is_admin? %>

@@ -1,5 +1,5 @@
 <%= form_search path: user_name_change_requests_path do |f| %>
-  <%= f.input :current_name, label: "Current Name", autocomplete: "user" %>
+  <%= f.user :current %>
   <%= f.input :original_name, label: "Original Name", hint: "Use * for wildcard" %>
   <%= f.input :desired_name, label: "Desired Name", hint: "Use * for wildcard" %>
 <% end %>

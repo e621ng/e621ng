@@ -7,6 +7,16 @@ class SearchFormBuilder < SimpleForm::FormBuilder
     super
   end
 
+  def user(user_attribute, **args)
+    name_attribute = user_attribute.is_a?(Symbol) ? :"#{user_attribute}_name" : user_attribute[0]
+    id_attribute = user_attribute.is_a?(Symbol) ? :"#{user_attribute}_id" : user_attribute[1]
+    label = args[:label] || user_attribute.capitalize
+
+    name_input = input(name_attribute, { **args.deep_dup, label: label, autocomplete: "user" })
+    id_input = input(id_attribute, { **args, label: "#{label} ID", hide_unless_value: true })
+    name_input + id_input
+  end
+
   private
 
   def insert_value(value, options)

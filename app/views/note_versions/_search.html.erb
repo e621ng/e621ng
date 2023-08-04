@@ -1,7 +1,6 @@
 <%= form_search(path: note_versions_path) do |f| %>
   <%= f.input :body_matches, label: "Body" %>
-  <%= f.input :updater_name, label: "User", autocomplete: "user" %>
-  <%= f.input :updater_id, label: "User ID", hide_unless_value: true %>
+  <%= f.user :updater, label: "Editor" %>
   <%= f.input :post_id, label: "Post #"%>
   <%= f.input :note_id, label: "Note #"%>
 <% end %>

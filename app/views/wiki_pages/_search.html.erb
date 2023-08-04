@@ -1,7 +1,7 @@
 <%= form_search(path: wiki_pages_path) do |f| %>
   <%= f.input :title, label: "Title", hint: "Use * for wildcard searches", autocomplete: "wiki-page" %>
   <%= f.input :body_matches, label: "Body" %>
-  <%= f.input :creator_name, autocomplete: "user" %>
+  <%= f.user :creator %>
   <%= f.input :other_names_match, label: "Other names", hint: "Use * for wildcard searches" %>
   <%= f.input :other_names_present, collection: %w[Yes No], include_blank: true %>
   <%= f.input :hide_deleted, collection: %w[Yes No] %>

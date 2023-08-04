@@ -1,5 +1,5 @@
 <%= form_search path: post_events_path do |f| %>
   <%= f.input :post_id, label: "Post #" %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.user :creator %>
   <%= f.input :action, label: "Action", collection: PostEvent.actions.keys.map {|k| [k.to_s.capitalize.tr("_"," "), k.to_s]}, include_blank: true %>
 <% end %>

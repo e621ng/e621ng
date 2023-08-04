@@ -1,4 +1,4 @@
 <%= form_search(path: mod_actions_path) do |f| %>
-  <%= f.input :creator_name, label: "Creator", autocomplete: "user" %>
+  <%= f.user :creator %>
   <%= f.input :action, label: "Action", collection: ModAction::KnownActions.map {|k| [k.to_s.capitalize.tr("_"," "), k.to_s]}, include_blank: true %>
 <% end %>

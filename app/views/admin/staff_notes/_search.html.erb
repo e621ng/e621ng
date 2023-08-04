@@ -1,6 +1,6 @@
 <%= form_search path: admin_staff_notes_path, always_display: true do |f| %>
-  <%= f.input :creator_name, label: "Creator Name", autocomplete: "user" %>
-  <%= f.input :user_name, label: "User Name", autocomplete: "user" %>
+  <%= f.user :creator %>
+  <%= f.user :user %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :without_system_user, as: :boolean, label: "Hide automated?" %>
 <% end %>

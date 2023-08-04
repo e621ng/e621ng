@@ -1,6 +1,6 @@
 <%= form_search(path: bans_path) do |f| %>
-  <%= f.input :user_name, label: "User", autocomplete: "user" %>
-  <%= f.input :banner_name, label: "Banner", autocomplete: "user" %>
+  <%= f.user :user %>
+  <%= f.user :banner %>
   <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard" %>
   <%= f.input :expired, label: "Expired?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :order, include_blank: false, collection: [%w[Created id_desc], %w[Expiration expires_at_desc]] %>

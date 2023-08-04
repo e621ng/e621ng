@@ -2,6 +2,6 @@
   <%= f.hidden_field :folder, value: params[:folder] %>
   <%= f.input :title_matches, label: "Title", hint: "Use * for wildcard" %>
   <%= f.input :message_matches, label: "Message", hint: "Use * for wildcard" %>
-  <%= f.input :to_name, label: "To" %>
-  <%= f.input :from_name, label: "From", autocomplete: "user" %>
+  <%= f.user :to %>
+  <%= f.user :from %>
 <% end %>

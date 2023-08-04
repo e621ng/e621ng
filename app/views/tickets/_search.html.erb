@@ -1,9 +1,7 @@
 <%= form_search path: tickets_path do |f| %>
   <% if CurrentUser.is_moderator? %>
-    <%= f.input :creator_name, label: "Reporter", autocomplete: "user" %>
-    <%= f.input :creator_id, label: "Reporter ID" %>
-    <%= f.input :accused_name, label: "Accused", autocomplete: "user" %>
-    <%= f.input :accused_id, label: "Accused ID" %>
+    <%= f.user :creator, label: "Reporter" %>
+    <%= f.user :accused %>
     <%= f.input :reason %>
   <% end %>
   <%= f.input :qtype, label: "Type", collection: [
