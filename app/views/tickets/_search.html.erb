@@ -2,6 +2,7 @@
   <% if CurrentUser.is_moderator? %>
     <%= f.user :creator, label: "Reporter" %>
     <%= f.user :accused %>
+    <%= f.user :claimant %>
     <%= f.input :reason %>
   <% end %>
   <%= f.input :qtype, label: "Type", collection: [
