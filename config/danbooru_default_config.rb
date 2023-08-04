@@ -320,11 +320,9 @@ module Danbooru
     end
 
     def discord_site
-      "http://localhost:8000"
     end
 
     def discord_secret
-      "abc123"
     end
 
     # Maximum size of an upload. If you change this, you must also change

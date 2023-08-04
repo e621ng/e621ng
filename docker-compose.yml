@@ -6,6 +6,8 @@ x-environment: &common-env
   DANBOORU_ELASTICSEARCH_HOST: elastic
   DANBOORU_MEMCACHED_SERVERS: memcached
   DANBOORU_IQDB_SERVER: http://iqdb:5588
+  DANBOORU_DISCORD_SITE: http://localhost:8000
+  DANBOORU_DISCORD_SECRET: super_secret_for_url_discord
   # These are just development secrets, do not use them in production
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
@@ -113,6 +115,26 @@ services:
     volumes:
       - iqdb_data:/iqdb
 
+  # Discord integration
+
+  discord_joiner:
+    image: ghcr.io/e621ng/discord_joiner:71c6abe72a93b2cfad129d1156108c93f920d880
+    environment:
+      FETCH_SECRET: abc123
+      URL_SECRET: super_secret_for_url_discord
+      JOINER_BASE_URL: http://localhost:8000
+      BOT_TOKEN: ${JOINER_BOT_TOKEN}
+      OAUTH2_CLIENT_ID: ${JOINER_OAUTH2_CLIENT_ID}
+      OAUTH2_CLIENT_SECRET: ${JOINER_OAUTH2_CLIENT_SECRET}
+      GUILD_ID: ${JOINER_GUILD_ID}
+      FAILED_JOIN_URL: ${JOINER_FAILED_JOIN_WEBHOOK_URL}
+    ports:
+      - 8000:8000
+    volumes:
+      - discord_joiner_data:/opt/app/data
+    profiles:
+      - discord
+
   # Useful for development
 
   tests:
@@ -164,3 +186,4 @@ volumes:
   public_packs:
   public_packs_test:
   rubocop_cache:
+  discord_joiner_data:
