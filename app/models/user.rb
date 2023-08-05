@@ -98,9 +98,9 @@ class User < ApplicationRecord
   has_many :posts, :foreign_key => "uploader_id"
   has_many :post_approvals, :dependent => :destroy
   has_many :post_disapprovals, :dependent => :destroy
+  has_many :post_replacements, foreign_key: :creator_id
   has_many :post_votes
   has_many :post_versions
-  has_many :note_versions
   has_many :bans, -> { order("bans.id desc") }
   has_many :staff_notes, -> { order("staff_notes.id desc") }
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -556,7 +556,9 @@ class User < ApplicationRecord
     end
 
     def hourly_upload_limit
-      Danbooru.config.hourly_upload_limit - Post.for_user(id).where("created_at >= ?", 1.hour.ago).count
+      post_count = posts.where("created_at >= ?", 1.hour.ago).count
+      replacement_count = post_replacements.where("created_at >= ?", 1.hour.ago).count
+      Danbooru.config.hourly_upload_limit - post_count - replacement_count
     end
     memoize :hourly_upload_limit
 
@@ -572,7 +574,7 @@ class User < ApplicationRecord
       rejected_replacement_count = post_replacement_rejected_count
       replaced_penalize_count = own_post_replaced_penalize_count
       unapproved_count = Post.pending_or_flagged.for_user(id).count
-      unapproved_replacements_count = PostReplacement.pending.for_user(id).count
+      unapproved_replacements_count = post_replacements.pending.count
       approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
 
       {
@@ -762,7 +764,7 @@ class User < ApplicationRecord
           note_count: NoteVersion.for_user(id).count,
           own_post_replaced_count: PostReplacement.for_uploader_on_approve(id).count,
           own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
-          post_replacement_rejected_count: PostReplacement.rejected.for_user(id).count,
+          post_replacement_rejected_count: post_replacements.rejected.count.count,
         )
       end
     end

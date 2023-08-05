@@ -76,7 +76,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "affect user upload limit" do
-      assert_difference(->{PostReplacement.pending.for_user(@user.id).count}, 1) do
+      assert_difference(-> { @user.post_replacements.pending.count}, 1) do
         @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
@@ -102,14 +102,14 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "give user back their upload slot" do
-      assert_difference(->{PostReplacement.pending.for_user(@user.id).count}, -1) do
+      assert_difference(-> { @user.post_replacements.pending.count }, -1) do
         @replacement.reject!
       end
     end
 
     should "increment the users rejected replacements count" do
-      assert_difference(->{@user.post_replacement_rejected_count}, 1) do
-        assert_difference(->{PostReplacement.rejected.for_user(@user.id).count}, 1) do
+      assert_difference(-> { @user.post_replacement_rejected_count }, 1) do
+        assert_difference(-> { @user.post_replacements.rejected.count }, 1) do
           @replacement.reject!
           @user.reload
         end
