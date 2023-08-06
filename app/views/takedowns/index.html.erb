@@ -20,7 +20,7 @@
       </thead>
       <tbody>
       <% @takedowns.each do |takedown| %>
-        <%= content_tag(:tr, id: "takedown-#{takedown.id}") do %>
+        <%= tag.tr(id: "takedown-#{takedown.id}") do %>
           <td><%= link_to takedown.id, takedown_path(takedown) %></td>
           <td>
             <% if !takedown.reason_hidden || CurrentUser.is_moderator? %>

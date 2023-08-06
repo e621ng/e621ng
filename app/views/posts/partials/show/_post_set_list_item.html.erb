@@ -1,4 +1,4 @@
-<%= content_tag :li, id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}" do -%>
+<%= tag.li(id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}") do -%>
   <% if !post_set.first_post?(post.id) && post_set.post_ids.first -%>
     <%= link_to("« first", post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
   <% else -%>

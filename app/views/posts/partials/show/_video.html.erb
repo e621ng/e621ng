@@ -1,6 +1,6 @@
-<%= content_tag(:video, nil, id: 'image', class: post.display_class_for(CurrentUser.user) ,:loop => "true", :controls => "controls", poster: post.large_file_url) do %>
-  <%= content_tag(:source, nil, src: post.file_url_ext_for(CurrentUser.user, 'webm'), type: 'video/webm') %>
-  <%= content_tag(:source, nil, src: post.file_url_ext_for(CurrentUser.user, 'mp4'), type: 'video/mp4') %>
+<%= tag.video(id: "image", class: post.display_class_for(CurrentUser.user), loop: "true", controls: "controls", poster: post.large_file_url) do %>
+  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "webm"), type: "video/webm") %>
+  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "mp4"), type: "video/mp4") %>
 <% end %>
 
 <%= javascript_tag nonce: true do -%>

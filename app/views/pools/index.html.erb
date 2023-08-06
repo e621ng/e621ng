@@ -12,7 +12,7 @@
       </thead>
       <tbody>
         <% @pools.each do |pool| %>
-          <%= content_tag(:tr, :id => "pool-#{pool.id}", :class => "pool-category-#{pool.category}") do %>
+          <%= tag.tr(id: "pool-#{pool.id}", class: "pool-category-#{pool.category}") do %>
             <td>
 
             </td>

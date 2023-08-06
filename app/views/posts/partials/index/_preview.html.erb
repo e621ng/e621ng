@@ -1,6 +1,6 @@
-<%= content_tag(:article, article_attrs) do -%>
+<%= tag.article(**article_attrs) do -%>
   <%= link_to polymorphic_path(link_target, link_params) do -%>
-    <%= content_tag(:picture) do -%>
+    <%= tag.picture do -%>
       <%= tag.source media: "(max-width: 800px)", srcset: cropped_url -%>
       <%= tag.source media: "(min-width: 800px)", srcset: preview_url -%>
       <%= tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text -%>

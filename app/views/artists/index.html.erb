@@ -12,7 +12,7 @@
       <tbody>
         <% @artists.each do |artist| %>
           <% if artist.visible? %>
-            <%= content_tag(:tr, :id => "artist-#{artist.id}") do %>
+            <%= tag.tr(id: "artist-#{artist.id}") do %>
               <td>
                 <%= link_to h(artist.name), artist_path(artist) %>
                 <% if !artist.group_name.blank? %>

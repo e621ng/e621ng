@@ -31,7 +31,7 @@
               <%= hidden_field_tag :random, params[:random] %>
             <% end %>
             <div class="search-input"><%= text_field_tag("tags", params[:tags], :id => "mobile-search-input", :"data-autocomplete" => "tag-query") %></div>
-            <div class="search-button"><%= content_tag "button", content_tag("i", nil, class: "fa-solid fa-magnifying-glass"), type: "submit" %></div>
+            <div class="search-button"><%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %></div>
           <% end %>
         </div>
       </div>

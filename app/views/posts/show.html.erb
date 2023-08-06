@@ -74,7 +74,7 @@
 
         <%= render "ads/leaderboard" %>
 
-        <%= content_tag(:section, { id: "image-container" }.merge(PostPresenter.data_attributes(@post, include_post: true))) do -%>
+        <%= tag.section(id: "image-container", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/embedded", post: @post %>
@@ -100,7 +100,7 @@
           <div class="image-vote-buttons">
             <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
           </div>
-          <%= content_tag(:div, class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
+          <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
             <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", 'data-pid': @post.id %>
             <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", 'data-pid': @post.id %>
           <% end %>

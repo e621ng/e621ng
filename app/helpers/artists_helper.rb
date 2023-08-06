@@ -4,12 +4,14 @@ module ArtistsHelper
   end
 
   def link_to_artist(name)
-    artist = Artist.find_by_name(name)
+    artist = Artist.find_by(name: name)
 
     if artist
       link_to(artist.name, artist_path(artist))
     else
-      link_to(name, new_artist_path(:name => name)) + " " + content_tag("span", "*", :class => "new-artist", :title => "No artist with this name currently exists.")
+      link = link_to(name, new_artist_path(name: name))
+      notice = tag.span("*", class: "new-artist", title: "No artist with this name currently exists.")
+      "#{link} #{notice}"
     end
   end
 

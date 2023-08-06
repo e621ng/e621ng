@@ -73,8 +73,7 @@ module ApplicationHelper
 
   def time_tag(content, time)
     datetime = time.strftime("%Y-%m-%dT%H:%M%:z")
-
-    content_tag(:time, content || datetime, :datetime => datetime, :title => time.to_formatted_s)
+    tag.time(content || datetime, datetime: datetime, title: time.to_fs)
   end
 
   def time_ago_in_words_tagged(time, compact: false)

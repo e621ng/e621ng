@@ -5,10 +5,10 @@
 
 <li class="vote-score-<%= vote.vote_type %> <%= 'own-forum-vote' if vote.creator_id == CurrentUser.id %>">
   <% if forum_post.tag_change_request&.is_pending? && vote.creator_id == CurrentUser.id %>
-    <%= link_to content_tag(:i, nil, class: "fa-regular #{vote.fa_class}"), "#", class: "forum-vote-remove", 'data-forum-id': forum_post.id %>
+    <%= link_to tag.i(class: "fa-regular #{vote.fa_class}"), "#", class: "forum-vote-remove", 'data-forum-id': forum_post.id %>
     <%= link_to_user vote.creator %>
   <% else %>
-    <%= content_tag(:i, nil, class: "fa-regular #{vote.fa_class}") %>
+    <%= tag.i(class: "fa-regular #{vote.fa_class}") %>
     <%= link_to_user vote.creator %>
   <% end %>
 </li>

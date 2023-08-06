@@ -140,15 +140,12 @@ class PostsDecorator < ApplicationDecorator
 
     pool = options[:pool]
 
-    width = post.image_width
-    height = post.image_height
-
     similarity = options[:similarity]&.round
 
     size = options[:size] ? post.file_size : nil
 
     img_contents = t.link_to t.polymorphic_path(link_target, link_params) do
-      t.content_tag(:picture) do
+      t.tag.picture do
         t.concat t.tag.source media: "(max-width: 800px)", srcset: cropped_url
         t.concat t.tag.source media: "(min-width: 800px)", srcset: preview_url
         t.concat t.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
@@ -161,7 +158,7 @@ class PostsDecorator < ApplicationDecorator
                     else
                       "".html_safe
                     end
-    t.content_tag(:article, nil, article_attrs) do
+    t.tag.article(**article_attrs) do
       img_contents + desc_contents
     end
   end
