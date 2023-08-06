@@ -1,15 +1,15 @@
 <%= content_tag :li, id: "nav-link-for-pool-#{pool.id}", class: "pool-category-#{pool.category} pool-selected-#{selected}" do -%>
   <% if !pool.first_post?(post.id) && pool.post_ids.first -%>
-    <%= link_to("&laquo; first".html_safe, post_path(pool.post_ids.first, pool_id: pool.id), class: "first", title: "to page 1") %>
+    <%= link_to("« first", post_path(pool.post_ids.first, pool_id: pool.id), class: "first", title: "to page 1") %>
   <% else -%>
-    <span class="first">&laquo; first</span>
+    <span class="first">« first</span>
   <% end -%>
 
   <% pool.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
-      <%= link_to "&lsaquo;&thinsp;prev".html_safe, post_path(previous_post_id, pool_id: pool.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{pool.page_number(previous_post_id)}" -%>
+      <%= link_to "‹ prev", post_path(previous_post_id, pool_id: pool.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{pool.page_number(previous_post_id)}" -%>
     <% else -%>
-      <span class="prev">&lsaquo;&thinsp;prev</span>
+      <span class="prev">‹ prev</span>
     <% end %>
   <% end -%>
 
@@ -19,15 +19,15 @@
 
   <% pool.next_post_id(post.id).tap do |next_post_id| -%>
     <% if next_post_id %>
-      <%= link_to("next&thinsp;&rsaquo;".html_safe, post_path(next_post_id, pool_id: pool.id), rel: selected ? "next" : nil, class: "next", title: "to page #{pool.page_number(next_post_id)}") -%>
+      <%= link_to("next ›", post_path(next_post_id, pool_id: pool.id), rel: selected ? "next" : nil, class: "next", title: "to page #{pool.page_number(next_post_id)}") -%>
     <% else -%>
-      <span class="next">next&thinsp;&rsaquo;</span>
+      <span class="next">next ›</span>
     <% end -%>
   <% end -%>
 
   <% if !pool.last_post?(post.id) && pool.post_ids.last -%>
-    <%= link_to("last &raquo;".html_safe, post_path(pool.post_ids.last, pool_id: pool.id), class: "last", title: "to page #{pool.post_count}") -%>
+    <%= link_to("last »", post_path(pool.post_ids.last, pool_id: pool.id), class: "last", title: "to page #{pool.post_count}") -%>
   <% else -%>
-    <span class="last">last &raquo;</span>
+    <span class="last">last »</span>
   <% end -%>
 <% end -%>

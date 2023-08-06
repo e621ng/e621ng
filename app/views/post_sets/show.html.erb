@@ -27,8 +27,7 @@
     <% end %>
     <div class='set-description-bottom'></div>
 
-    <span class="set-viewposts"><%= link_to "&raquo; View Posts (#{@post_set.post_count.to_s})".html_safe, posts_path(tags: "set:#{@post_set.shortname}") %></span><br/>
-    <%#= link_to "&raquo; Maintainers (" + PostSetMaintainer.count(conditions: ["post_set_id = ?", @post_set.id]).to_s + ")", action: "maintainers", id: @post_set.id %>
+    <span class="set-viewposts"><%= link_to "» View Posts (#{@post_set.post_count})", posts_path(tags: "set:#{@post_set.shortname}") %></span><br/>
     <br/>
 
     <% if @post_set.post_count == 0 %>

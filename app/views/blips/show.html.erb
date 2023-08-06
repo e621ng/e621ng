@@ -14,7 +14,7 @@
     </div>
 
     <% if CurrentUser.is_anonymous? %>
-        <h5 id="respond-link"><%= link_to "Login to respond &raquo;".html_safe, new_session_path %></h5>
+        <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
     <% else %>
         <%= render "form", blip: @blip.responses.new %>
     <% end %>

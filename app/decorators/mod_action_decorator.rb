@@ -195,23 +195,21 @@ class ModActionDecorator < ApplicationDecorator
 
     when "tag_alias_create"
       if vals[:tag1]
-        "Created tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+        "Created tag alias ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       else
         "Created tag alias #{vals['alias_desc']}"
       end
     when "tag_alias_approve"
       if vals[:tag1]
-        "Approved tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-      else
+        "Approved tag alias ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
     when "tag_alias_delete"
       if vals[:tag1]
-        "Deleted tag alias ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-      else
+        "Deleted tag alias ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
     when "tag_alias_update"
       if vals[:tag1]
-        "Edited tag alias ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+        "Edited tag alias ({{#{vals[:oldtag1]}}} → {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       else
         "Updated tag alias #{vals['alias_desc']}\n#{vals['change_desc']}"
       end
@@ -220,23 +218,21 @@ class ModActionDecorator < ApplicationDecorator
 
     when "tag_implication_create"
       if vals[:tag1]
-        "Created tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+        "Created tag implication ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       else
         "Created tag implication #{vals['implication_desc']}"
       end
     when "tag_implication_approve"
       if vals[:tag1]
-        "Approved tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-      else
+        "Approved tag implication ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
     when "tag_implicaton_delete"
       if vals[:tag1]
-        "Deleted tag implication ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
-      else
+        "Deleted tag implication ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
     when "tag_implication_update"
       if vals[:tag1]
-        "Edited tag implication ({{#{vals[:oldtag1]}}} &rarr; {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} &rarr; {{#{vals[:tag2]}}})"
+        "Edited tag implication ({{#{vals[:oldtag1]}}} → {{#{vals[:oldtag2]}}}) to ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       else
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end

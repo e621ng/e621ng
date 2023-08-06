@@ -257,7 +257,7 @@ Autocomplete.render_item = function(list, item) {
 
   if (item.antecedent) {
     var antecedent = item.antecedent.replace(/_/g, " ");
-    var arrow = $("<span/>").html(" &rarr; ").addClass("autocomplete-arrow");
+    var arrow = $("<span/>").text(" → ").addClass("autocomplete-arrow");
     var antecedent_element = $("<span/>").text(antecedent).addClass("autocomplete-antecedent");
     $link.prepend([
       antecedent_element,

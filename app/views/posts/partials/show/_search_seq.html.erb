@@ -1,7 +1,7 @@
 <div class="search-seq-nav">
   <ul>
     <li class="active">
-      <%= link_to "&lsaquo;&thinsp;prev".html_safe, show_seq_post_path(post, :q => params[:q], :seq => "prev"), :rel => "prev nofollow", :class => "prev" %>
+      <%= link_to "‹ prev", show_seq_post_path(post, q: params[:q], seq: "prev"), rel: "prev nofollow", class: "prev" %>
       <span class="search-name"> 
         <% if params[:q].nil? %>
           Search: (none)
@@ -9,7 +9,7 @@
           <%= link_to("Search: #{params[:q]}", posts_path(:tags => params[:q])) %>
         <% end %>
       </span>
-      <%= link_to "next&thinsp;&rsaquo;".html_safe, show_seq_post_path(post, :q => params[:q], :seq => "next"), :rel => "next nofollow", :class => "next" %>
+      <%= link_to "next ›", show_seq_post_path(post, q: params[:q], seq: "next"), rel: "next nofollow", class: "next" %>
     </li>
   </ul>
 </div>

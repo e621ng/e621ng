@@ -3,19 +3,19 @@
 
   <div class="section" style="width:450px;">
     <ul class="link-page">
-      <li>&raquo; <%= link_to "Login", new_session_path %></li>
+      <li>» <%= link_to "Login", new_session_path %></li>
 
       <% if Danbooru.config.enable_signups? %>
-        <li>&raquo; <%= link_to "Sign up", new_user_path %></li>
+        <li>» <%= link_to "Sign up", new_user_path %></li>
       <% else %>
         <li>Signups are disabled</li>
       <% end %>
 
-      <li>&raquo; <%= link_to "Reset password", new_maintenance_user_password_reset_path %></li>
-      <li>&raquo; <%= link_to "Login reminder", new_maintenance_user_login_reminder_path %></li>
+      <li>» <%= link_to "Reset password", new_maintenance_user_password_reset_path %></li>
+      <li>» <%= link_to "Login reminder", new_maintenance_user_login_reminder_path %></li>
 
       <% if Danbooru.config.enable_email_verification? %>
-        <li>&raquo; <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
+        <li>» <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
       <% end %>
     </ul>
   </div>
@@ -130,27 +130,27 @@
 
   <div class="section" style="width:450px;">
     <ul class="link-page">
-      <li>&raquo; <%= link_to "Sign out", session_path, method: :delete %></li>
-      <li>&raquo; <%= link_to "Settings", edit_user_path(CurrentUser.user) %></li>
-      <li>&raquo; <%= link_to "Change password", edit_user_password_path(CurrentUser.user) %></li>
-      <li>&raquo; <%= link_to "Manage API Access", user_api_key_path(CurrentUser.user) %></li>
-      <li>&raquo; <%= link_to "Change username", new_user_name_change_request_path %></li>
+      <li>» <%= link_to "Sign out", session_path, method: :delete %></li>
+      <li>» <%= link_to "Settings", edit_user_path(CurrentUser.user) %></li>
+      <li>» <%= link_to "Change password", edit_user_password_path(CurrentUser.user) %></li>
+      <li>» <%= link_to "Manage API Access", user_api_key_path(CurrentUser.user) %></li>
+      <li>» <%= link_to "Change username", new_user_name_change_request_path %></li>
       <% if Danbooru.config.enable_email_verification? && !CurrentUser.is_verified? %>
-        <li>&raquo; <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
+        <li>» <%= link_to "Resend activation email", resend_confirmation_email_path %></li>
       <% end %>
-      <li>&nbsp;</li>
-      <li>&raquo; <%= link_to "My profile", action: "show", id: CurrentUser.id %></li>
-      <li>&raquo; <%= link_to "My messages", dmails_path %></li>
-      <li>&raquo; <%= link_to "My favorites", favorites_path %></li>
-      <li>&nbsp;</li>
-      <li>&raquo; <%= link_to "My sets", post_sets_path(search: {creator_id: CurrentUser.id}) %></li>
-      <li>&raquo; <%= link_to "Sets I maintain", post_sets_path(maintainer_id: CurrentUser.id) %></li>
-      <li>&raquo; <%= link_to "Set maintainer invites", post_set_maintainers_path %></li>
-      <li>&nbsp;</li>
-      <li>&raquo; <%= link_to "Search for myself in comments", comments_path(group_by: :comment, search:{ body_matches: CurrentUser.name }) %></li>
-      <li>&raquo; <%= link_to "Search for myself in blips", blips_path(search: {body_matches: CurrentUser.pretty_name}) %></li>
-      <li>&raquo; <%= link_to "Search for myself in forums", forum_posts_path(search: {body_matches: CurrentUser.pretty_name}) %></li>
-      <li>&raquo; <%= link_to "Comments on my posts", comments_path(group_by: :comment, search: {poster_id: CurrentUser.id}) %></li>
+      <br>
+      <li>» <%= link_to "My profile", action: "show", id: CurrentUser.id %></li>
+      <li>» <%= link_to "My messages", dmails_path %></li>
+      <li>» <%= link_to "My favorites", favorites_path %></li>
+      <br>
+      <li>» <%= link_to "My sets", post_sets_path(search: {creator_id: CurrentUser.id}) %></li>
+      <li>» <%= link_to "Sets I maintain", post_sets_path(maintainer_id: CurrentUser.id) %></li>
+      <li>» <%= link_to "Set maintainer invites", post_set_maintainers_path %></li>
+      <br>
+      <li>» <%= link_to "Search for myself in comments", comments_path(group_by: :comment, search: { body_matches: CurrentUser.name }) %></li>
+      <li>» <%= link_to "Search for myself in blips", blips_path(search: { body_matches: CurrentUser.pretty_name }) %></li>
+      <li>» <%= link_to "Search for myself in forums", forum_posts_path(search: { body_matches: CurrentUser.pretty_name }) %></li>
+      <li>» <%= link_to "Comments on my posts", comments_path(group_by: :comment, search: { poster_id: CurrentUser.id }) %></li>
     </ul>
   </div>
 <% end %>

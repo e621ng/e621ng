@@ -7,11 +7,11 @@
         <%= render "form" %>
       </div>
 
-      <%= link_to "&raquo; Click here to edit maintainers.".html_safe, maintainers_post_set_path(@post_set) %><br/>
+      <%= link_to "» Click here to edit maintainers.", maintainers_post_set_path(@post_set) %><br/>
     <% end %>
 
     <% if @post_set.can_edit_posts?(CurrentUser) %>
-      <%= link_to "&raquo; Click here to add/remove posts.".html_safe, post_list_post_set_path(@post_set) %><br/>
+      <%= link_to "» Click here to add/remove posts.", post_list_post_set_path(@post_set) %><br/>
     <% end %>
   </div>
 </div>

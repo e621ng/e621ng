@@ -50,7 +50,7 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("&raquo; show".html_safe, "#", :id => "has-parent-relationship-preview-link")
+    html << link_to("» show", "#", id: "has-parent-relationship-preview-link")
 
     html.html_safe
   end
@@ -64,7 +64,7 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("&raquo; show".html_safe, "#", :id => "has-children-relationship-preview-link")
+    html << link_to("» show", "#", id: "has-children-relationship-preview-link")
 
     html.html_safe
   end
@@ -90,9 +90,9 @@ module PostsHelper
     status_flags << 'U' if post.is_pending?
     status_flags << 'F' if post.is_flagged?
 
-    post_score_icon = "#{"&uarr;" if post.score > 0}#{"&darr;" if post.score < 0}#{"&varr;" if post.score == 0}"
-    score = tag.span("#{post_score_icon}#{post.score}".html_safe, class: "post-score-score " + score_class(post.score))
-    favs =  tag.span("&hearts;#{post.fav_count}".html_safe, class: 'post-score-faves')
+    post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
+    score = tag.span("#{post_score_icon}#{post.score}", class: "post-score-score #{score_class(post.score)}")
+    favs = tag.span("♥#{post.fav_count}", class: "post-score-faves")
     comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
     rating =  tag.span(post.rating.upcase, class: "post-score-rating")
     status = tag.span(status_flags.join(''), class: 'post-score-extras')
@@ -130,12 +130,16 @@ module PostsHelper
     vote_score = voted ? vote.score : 0
     post_score = post.score
 
-    up_tag = tag.a(tag.span('&#x25B2;'.html_safe,
-                            class: "post-vote-up-#{post.id} " + confirm_score_class(vote_score, 1, buttons)),
-                   class: 'post-vote-up-link', 'data-id': post.id)
-    down_tag = tag.a(tag.span('&#x25BC;'.html_safe,
-                              class: "post-vote-down-#{post.id} " + confirm_score_class(vote_score, -1, buttons)),
-                     class: 'post-vote-down-link', 'data-id': post.id)
+    up_tag = tag.a(
+      tag.span("▲", class: "post-vote-up-#{post.id} " + confirm_score_class(vote_score, 1, buttons)),
+      class: "post-vote-up-link",
+      data: { id: post.id },
+    )
+    down_tag = tag.a(
+      tag.span("▼", class: "post-vote-down-#{post.id} " + confirm_score_class(vote_score, -1, buttons)),
+      class: "post-vote-down-link",
+      data: { id: post.id },
+    )
     if buttons
       score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
       CurrentUser.is_member? ? up_tag + score_tag + down_tag : ""

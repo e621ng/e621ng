@@ -32,7 +32,7 @@
         <%= render "comments/form", comment: post.comments.new, hidden: true %>
       </div>
     <% else %>
-      <h5 id="respond-link"><%= link_to "Login to respond &raquo;".html_safe, new_session_path %></h5>
+      <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
     <% end %>
   <% end %>
 </div>

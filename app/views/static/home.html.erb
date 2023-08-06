@@ -104,7 +104,7 @@
           <%= link_to "Tags", tags_path, title: "A paginated list of every tag" %>
           <%= link_to "Wiki", wiki_pages_path(title: 'help:home'), title: "Wiki" %>
           <%= link_to "Forum", forum_topics_path, title: "Forum" %>
-          <%= link_to "&raquo;".html_safe, site_map_path, title: "A site map" %>
+          <%= link_to "»", site_map_path, title: "A site map" %>
         </div>
         <div>
           <%= form_tag(posts_path, method: "get") do %>

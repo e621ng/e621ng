@@ -1,15 +1,15 @@
 <%= content_tag :li, id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}" do -%>
   <% if !post_set.first_post?(post.id) && post_set.post_ids.first -%>
-    <%= link_to("&laquo; first".html_safe, post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
+    <%= link_to("« first", post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
   <% else -%>
-    <span class="first">&laquo; first</span>
+    <span class="first">« first</span>
   <% end -%>
 
   <% post_set.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
-      <%= link_to "&lsaquo;&thinsp;prev".html_safe, post_path(previous_post_id, post_set_id: post_set.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{post_set.page_number(previous_post_id)}" -%>
+      <%= link_to "‹ prev", post_path(previous_post_id, post_set_id: post_set.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{post_set.page_number(previous_post_id)}" -%>
     <% else -%>
-      <span class="prev">&lsaquo;&thinsp;prev</span>
+      <span class="prev">‹ prev</span>
     <% end %>
   <% end -%>
 
@@ -19,15 +19,15 @@
 
   <% post_set.next_post_id(post.id).tap do |next_post_id| -%>
     <% if next_post_id %>
-      <%= link_to("next&thinsp;&rsaquo;".html_safe, post_path(next_post_id, post_set_id: post_set.id), rel: selected ? "next" : nil, class: "next", title: "to page #{post_set.page_number(next_post_id)}") -%>
+      <%= link_to("next ›", post_path(next_post_id, post_set_id: post_set.id), rel: selected ? "next" : nil, class: "next", title: "to page #{post_set.page_number(next_post_id)}") -%>
     <% else -%>
-      <span class="next">next&thinsp;&rsaquo;</span>
+      <span class="next">next ›</span>
     <% end -%>
   <% end -%>
 
   <% if !post_set.last_post?(post.id) && post_set.post_ids.last -%>
-    <%= link_to("last &raquo;".html_safe, post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "last", title: "to page #{post_set.post_count}") -%>
+    <%= link_to("last »", post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "last", title: "to page #{post_set.post_count}") -%>
   <% else -%>
-    <span class="last">last &raquo;</span>
+    <span class="last">last »</span>
   <% end -%>
 <% end -%>

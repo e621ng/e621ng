@@ -443,9 +443,9 @@ Post.initialize_post_relationship_previews = function() {
 Post.toggle_relationship_preview = function(preview, preview_link) {
   preview.toggle();
   if (preview.is(":visible")) {
-    preview_link.html("&laquo; hide");
+    preview_link.text("« hide");
   } else {
-    preview_link.html("show &raquo;");
+    preview_link.text("show »");
   }
 }
 

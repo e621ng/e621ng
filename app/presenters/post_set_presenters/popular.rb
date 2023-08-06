@@ -71,7 +71,7 @@ module PostSetPresenters
       html = []
       html << '<span class="period">'
       html << template.link_to(
-        "&laquo;prev".html_safe,
+        "«prev",
         template.popular_index_path(
           :date => prev_date_for_scale(scale),
           :scale => scale.downcase
@@ -89,7 +89,7 @@ module PostSetPresenters
         :class => "desc"
       )
       html << template.link_to(
-        "next&raquo;".html_safe,
+        "next»",
         template.popular_index_path(
           :date => next_date_for_scale(scale),
           :scale => scale.downcase
