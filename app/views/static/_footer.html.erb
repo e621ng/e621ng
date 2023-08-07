@@ -8,7 +8,7 @@
     – <%= link_to "Advertising", help_page_path(id: "advertising") %>
   </span>
   <span class="logo-container">
-    <a href="/"><img class="footer-logo" src="/main-logo.png"></a>
+    <a href="/"><%= image_pack_tag("main-logo.png", class: "footer-logo") %></a>
   </span>
   <span class="right">
     <%= link_to "Themes / Gestures", theme_path %>
