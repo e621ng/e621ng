@@ -336,8 +336,6 @@ Post.initialize_shortcuts = function() {
   }
 }
 
-const legacyApproveCallback = () => { location.reload(); };
-
 Post.initialize_links = function() {
   $(".undelete-post-link").on('click', e => {
     e.preventDefault();
@@ -347,12 +345,12 @@ Post.initialize_links = function() {
   });
   $(".approve-post-link").on('click', e => {
     e.preventDefault();
-    Post.approve($(e.target).data('pid'), legacyApproveCallback, true);
+    Post.approve($(e.target).data('pid'), () => { location.reload(); });
   });
   $(".approve-post-and-navigate-link").on('click', e => {
     e.preventDefault();
     const $target = $(e.target);
-    Post.approve($target.data('pid'), () => { location.href = $target.data('location') }, true);
+    Post.approve($target.data('pid'), () => { location.href = $target.data('location') });
   });
   $("#destroy-post-link").on('click', e => {
     e.preventDefault();
@@ -870,16 +868,12 @@ Post.regenerate_video_samples = function(post_id) {
   });
 };
 
-Post.approve = function(post_id, callback, resolveFlags = false) {
-  if(callback === true) {
-    // TODO: Remove this after some grace period
-    callback = legacyApproveCallback;
-  }
+Post.approve = function(post_id, callback) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.post(
       "/moderator/post/approval.json",
-      {"post_id": post_id, "resolve_flags": resolveFlags}
+      { "post_id": post_id }
     ).fail(function(data) {
       const message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
       Danbooru.error("Error: " + message);

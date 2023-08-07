@@ -95,20 +95,6 @@ class PostEventTest < ActiveSupport::TestCase
       end
     end
 
-    context "unflag on approve" do
-      setup do
-        as @janitor do
-          create(:post_flag, post: @post)
-        end
-      end
-
-      should "create both post events" do
-        assert_post_events_created(@janitor, [:flag_removed, :approved]) do
-          @post.approve!(@janitor, resolve_flags: true)
-        end
-      end
-    end
-
     context "replacements" do
       setup do
         upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!

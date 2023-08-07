@@ -428,19 +428,11 @@ class PostTest < ActiveSupport::TestCase
           @post.reload
         end
 
-        should "no longer be pending with resolve_flags: false" do
-          @post.approve!(resolve_flags: false)
+        should "no longer be pending" do
+          @post.approve!
           assert(@post.errors.empty?, @post.errors.full_messages.join(", "))
           @post.reload
           assert_equal(true, @post.is_flagged?)
-          assert_equal(false, @post.is_pending?)
-        end
-
-        should "no longer be flagged or pending with resolve_flags: true" do
-          @post.approve!(resolve_flags: true)
-          assert(@post.errors.empty?, @post.errors.full_messages.join(", "))
-          @post.reload
-          assert_equal(false, @post.is_flagged?)
           assert_equal(false, @post.is_pending?)
         end
       end

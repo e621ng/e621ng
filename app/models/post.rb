@@ -308,12 +308,8 @@ class Post < ApplicationRecord
       !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
     end
 
-    def approve!(approver = CurrentUser.user, resolve_flags: false)
+    def approve!(approver = CurrentUser.user)
       return if self.approver != nil
-
-      if resolve_flags && flags.unresolved.any?
-        unflag!
-      end
 
       if uploader == approver
         update(is_pending: false)

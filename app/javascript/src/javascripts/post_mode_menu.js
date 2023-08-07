@@ -218,7 +218,7 @@ PostModeMenu.click = function(e) {
   } else if (s === 'unflag') {
     Post.unflag(post_id, "none", false);
   } else if (s === 'approve') {
-    Post.approve(post_id, null, false);
+    Post.approve(post_id);
   } else if (s === 'remove-parent') {
     Post.update(post_id, {"post[parent_id]": ""});
   } else if (s === "tag-script") {
