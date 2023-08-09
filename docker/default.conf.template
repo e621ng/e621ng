@@ -12,15 +12,6 @@ server {
     break;
   }
 
-  location /maintenance.html {
-    expires 10;
-   }
-
-  if (-f $document_root/maintenance.html) {
-    rewrite ^(.*)$ /maintenance.html last;
-    break;
-  }
-
   location /tags/autocomplete.json {
     proxy_pass http://autocompleted:8118/;
     proxy_redirect off;
