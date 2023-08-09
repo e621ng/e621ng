@@ -1,8 +1,8 @@
 body[data-th-extra="spring"] {
-  --image-foreground: url("images/extras/spring_bottom.png"),
-                      url("images/extras/spring_bottom_fox.png"),
-                      url("images/extras/spring_top.png"),
-                      url("images/extras/spring_top_sky.png");
+  --image-foreground: url("images/themes/extras/spring_bottom.png"),
+                      url("images/themes/extras/spring_bottom_fox.png"),
+                      url("images/themes/extras/spring_top.png"),
+                      url("images/themes/extras/spring_top_sky.png");
   --image-foreground-position: left bottom, right bottom ,right top ,left top;
   --image-foreground-repeat: repeat-x, no-repeat, no-repeat, repeat-x;
   --content-padding-bottom: 3rem;
