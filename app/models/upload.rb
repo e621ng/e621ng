@@ -150,6 +150,9 @@ class Upload < ApplicationRecord
   include DirectURLMethods
 
   def uploader_is_not_limited
+    # Uploads created when approving a replacemnet should always go through
+    return if replacement_id.present?
+
     uploadable = uploader.can_upload_with_reason
     if uploadable != true
       self.errors.add(:uploader, User.upload_reason_string(uploadable))

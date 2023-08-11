@@ -40,14 +40,14 @@ class UploadService
           file: replacement.replacement_file,
           replaced_post: post,
           original_post_id: post.id,
-          replacement_id: replacement.id
+          replacement_id: replacement.id,
         )
 
-        begin
-          if upload.invalid? || upload.is_errored?
-            raise ProcessingError, upload.status
-          end
+        if upload.invalid? || upload.is_errored?
+          raise ProcessingError, upload.errors.full_messages.to_sentence
+        end
 
+        begin
           upload.update(status: "processing")
 
           upload.file = Utils.get_file_for_upload(upload, file: upload.file)
@@ -56,7 +56,7 @@ class UploadService
           upload.save!
         rescue Exception => e
           upload.update(status: "error: #{e.class} - #{e.message}", backtrace: e.backtrace.join("\n"))
-          raise ProcessingError, upload.status
+          raise ProcessingError, "#{e.class} - #{e.message}"
         end
         md5_changed = upload.md5 != post.md5
 

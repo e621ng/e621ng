@@ -128,7 +128,6 @@ class PostReplacementTest < ActiveSupport::TestCase
     setup do
       @note = create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
       @replacement = create(:png_replacement, creator: @user, post: @post)
-      assert @replacement
     end
 
     should "fail if post cannot be backed up" do
@@ -149,6 +148,14 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal @replacement.creator_id, @post.uploader_id
       assert_equal @replacement.file_ext, @post.file_ext
       assert_equal @replacement.file_size, @post.file_size
+    end
+
+    should "work if the approver is above their upload limit" do
+      User.any_instance.stubs(:upload_limit).returns(0)
+      Danbooru.config.stubs(:disable_throttles?).returns(false)
+
+      assert_nothing_raised { @replacement.approve!(penalize_current_uploader: true) }
+      assert_equal @replacement.md5, @post.md5
     end
 
     should "generate videos samples if replacement is video" do
