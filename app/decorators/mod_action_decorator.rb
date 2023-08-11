@@ -86,6 +86,7 @@ class ModActionDecorator < ApplicationDecorator
       text
     when "user_unban"
       "Unbanned #{user}"
+
     when "user_level_change"
       "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
     when "user_flags_change"
