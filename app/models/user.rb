@@ -527,10 +527,6 @@ class User < ApplicationRecord
       is_bd_staff?
     end
 
-    def can_upload?
-      can_upload_with_reason == true
-    end
-
     def can_undo_post_versions?
       is_member?
     end

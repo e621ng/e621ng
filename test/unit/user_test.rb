@@ -41,9 +41,9 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should "limit post uploads" do
-      assert(!@user.can_upload?)
+      assert_equal(:REJ_UPLOAD_NEWBIE, @user.can_upload_with_reason)
       @user.update_column(:created_at, 15.days.ago)
-      assert(@user.can_upload?)
+      assert_equal(true, @user.can_upload_with_reason)
       assert_equal(10, @user.upload_limit)
 
       9.times do
@@ -52,10 +52,10 @@ class UserTest < ActiveSupport::TestCase
 
       @user = User.find(@user.id)
       assert_equal(1, @user.upload_limit)
-      assert(@user.can_upload?)
+      assert_equal(true, @user.can_upload_with_reason)
       create(:post, uploader: @user, is_pending: true)
       @user = User.find(@user.id)
-      assert(!@user.can_upload?)
+      assert_equal(:REJ_UPLOAD_LIMIT, @user.can_upload_with_reason)
     end
 
     should "limit comment votes" do
