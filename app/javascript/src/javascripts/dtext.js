@@ -2,137 +2,47 @@ import { SendQueue } from './send_queue';
 
 const DText = {};
 
-DText.buttons = [
-  { icon: "f032",   title: "Bold",            content: "[b]%selection%[/b]" },
-  { icon: "f033",   title: "Italics",         content: "[i]%selection%[/i]" },
-  { icon: "f0cc",   title: "Strikethrough",   content: "[s]%selection%[/s]" },
-  { icon: "f0cd",   title: "Underline",       content: "[u]%selection%[/u]" },
-  null,
-  { icon: "f1dc",   title: "Header",          content: "h2.%selection%" },
-  { icon: "f070",   title: "Spoiler",         content: "[spoiler]%selection%[/spoiler]" },
-  { icon: "f121",   title: "Code",            content: "[code]%selection%[/code]" },
-  { icon: "f10e",   title: "Quote",           content: "[quote]%selection%[/quote]" },
-];
+DText.initialze_input = function($element) {
+  const $preview = $(".dtext-formatter-preview", $element);
+  const $textarea = $(".dtext-formatter-input", $element);
+  const $charcount = $(".dtext-formatter-charcount", $element);
 
-/**
- * Set up the wrapper for the target input with
- * DText preview and formatting buttons.
- * @param {JQuery<HTMLElement>} textarea Target input
- */
-DText.create_wrapper = function(textarea) {
-  const wrapper = $("<div>")
-    .addClass("dtext-formatter")
-    .attr({ "data-editing": "true", })
-    .insertBefore(textarea);
-  
-  build_tabs(wrapper);
-  build_buttons(wrapper, textarea);
-  
-  textarea
-    .addClass("dtext-formatter-input")
-    .appendTo(wrapper);
-  
-  build_preview(wrapper, textarea);
-  build_charcounter(wrapper, textarea);
-  textarea.attr("data-initialized", "true");
-}
-
-/**
- * Unwraps the textarea and restores it back
- * to its original state.
- * @param {JQuery<HTMLElement>} textarea Target input
- */
-DText.destroy_wrapper = function(textarea) {
-  const wrapper = textarea.parents(".dtext-formatter");
-  if(!wrapper.length) return;
-  
-  textarea
-    .insertAfter(wrapper)
-    .removeClass("dtext-formatter-input")
-    .off("input.danbooru.formatter");
-  wrapper.remove();
-}
-
-function build_tabs(wrapper) {
-  $("<div>")
-    .addClass("dtext-formatter-tabs")
-    .html(
-      `<a data-action="edit" role="tab">Write</a>` +
-      `<a data-action="show" role="tab">Preview</a>`
-    )
-    .on("click", "a", (event) => {
-      event.preventDefault();
-      wrapper.trigger("e621:toggle");
-    })
-    .appendTo(wrapper);
-}
-
-function build_buttons(wrapper, textarea) {
-  const container = $("<div>")
-    .addClass("dtext-formatter-buttons")
-    .attr({ "role": "toolbar", })
-    .appendTo(wrapper);
-  
-  wrapper.on("e621:reload", () => {
-    container.html("");
-    for(const button of DText.buttons) {
-
-      // Spacer
-      if(button == null) {
-        $("<span>").appendTo(container);
-        continue;
-      }
-  
-      // Normal button
-      $("<a>")
-        .html("&#x" + button.icon)
-        .attr({
-          "title": button.title,
-          "role": "button",
-        })
-        .on("click", (event) => {
-          event.preventDefault();
-          DText.process_formatting(button.content, textarea);
-        })
-        .appendTo(container);
-    }
-  });
-  wrapper.trigger("e621:reload");
-}
-
-function build_preview(wrapper, textarea) {
-  const preview = $("<div>")
-    .addClass("dtext-formatter-preview dtext-container")
-    .appendTo(wrapper);
-  
-  wrapper.on("e621:toggle", () => {
-    if(wrapper.attr("data-editing") == "true") {
-      preview.css("min-height", textarea.outerHeight());
-      wrapper.attr("data-editing", "false");
-      update_preview(textarea, preview);
+  // Tab switching
+  $(".dtext-formatter-tabs a", $element).on("click", event => {
+    event.preventDefault();
+    if($element.attr("data-editing") == "true") {
+      $preview.css("min-height", $textarea.outerHeight());
+      $element.attr("data-editing", "false");
+      update_preview($textarea, $preview);
     } else {
-      wrapper.attr("data-editing", "true");
-      preview.attr("loading", "false");
+      $element.attr("data-editing", "true");
+      $preview.attr("loading", "false");
     }
   });
+
+  // Character count limit
+  const limit = $charcount.attr("data-limit") || 0;
+  $textarea.on("input.danbooru.formatter", () => {
+    const length = ($textarea.val() + "").length;
+    $charcount.toggleClass("overfill", length >= limit).attr("data-count", length);
+  });
+
+  DText.initialize_formatting_buttons($element);
+  $element.attr("data-initialized", "true");
 }
 
-function build_charcounter(wrapper, textarea) {
-  const limit = textarea.attr("data-limit") || 0;
-  const charcount = $("<div>")
-    .addClass("dtext-formatter-charcount")
-    .attr({
-      "data-limit": limit,
-      "data-count": (textarea.val() + "").length,
-    })
-    .appendTo(wrapper);
+DText.initialize_formatting_buttons = function(element) {
+  const $textarea = $(".dtext-formatter-input", element);
   
-  textarea.on("input.danbooru.formatter", () => {
-    const length = (textarea.val() + "").length;
-    charcount
-      .toggleClass("overfill", length >= limit)
-      .attr("data-count", length);
-  });
+  for(const button of $(".dtext-formatter-buttons a", element)) {
+    const $button = $(button);
+    const content = $button.attr("data-content");
+    $button.off("click");
+    $button.on("click", event => {
+      event.preventDefault();
+      DText.process_formatting(content, $textarea);
+    });
+  }
 }
 
 /** Refreshes the preview field to match the provided input */
@@ -213,8 +123,8 @@ DText.process_formatting = function (content, input) {
 
 /** Add formatters to all appropriate inputs */
 DText.initialize_all_inputs = function() {
-  $("textarea.dtext[data-initialized='false']").each((index, element) => {
-    DText.create_wrapper($(element));
+  $(".dtext-formatter[data-initialized='false']").each((index, element) => {
+    DText.initialze_input($(element));
   });
 }
 
