@@ -303,5 +303,11 @@ class UserTest < ActiveSupport::TestCase
         assert_equal([user3.id], User.search(name_matches: "bar\*baz").map(&:id))
       end
     end
+
+    context "when fixing counts" do
+      should "not raise" do
+        assert_nothing_raised { @user.refresh_counts! }
+      end
+    end
   end
 end

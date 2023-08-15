@@ -760,7 +760,7 @@ class User < ApplicationRecord
           note_count: NoteVersion.for_user(id).count,
           own_post_replaced_count: PostReplacement.for_uploader_on_approve(id).count,
           own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
-          post_replacement_rejected_count: post_replacements.rejected.count.count,
+          post_replacement_rejected_count: post_replacements.rejected.count,
         )
       end
     end
