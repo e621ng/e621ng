@@ -6,7 +6,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.vue$/,
+        test: /\.vue|\.vue\.erb$/,
         loader: 'vue-loader',
         options: {
           compilerOptions: {

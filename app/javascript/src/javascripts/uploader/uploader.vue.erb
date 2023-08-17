@@ -203,7 +203,7 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <textarea class="tag-textarea dtext" id="post_description" v-model="description" rows="10" :data-limit="descrLimit" data-initialized="false"></textarea>
+                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Danbooru.config.post_descr_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe }) %>
                 </div>
             </div>
             <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
@@ -371,8 +371,6 @@
         rating: '',
         error: '',
         duplicateId: 0,
-        
-        descrLimit: window.uploaderSettings.descrLimit,
       };
     },
     mounted() {

@@ -41,7 +41,6 @@
     allowLockedTags: <%= CurrentUser.is_admin?.to_json %>,
     allowRatingLock: <%= CurrentUser.is_privileged?.to_json %>,
     allowUploadAsPending: <%= CurrentUser.can_upload_free?.to_json %>,
-    descrLimit: <%= Danbooru.config.post_descr_max_size %>,
     maxFileSize: <%= Danbooru.config.max_file_size %>,
   };
   Danbooru.Uploader.init();
