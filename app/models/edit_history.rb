@@ -40,6 +40,7 @@ class EditHistory < ApplicationRecord
     versions[index - 1]
   end
 
+  # rubocop:disable Rails/OutputSafety
   def text_content
     if is_contentful?
       return subject if subject.present?
@@ -47,6 +48,7 @@ class EditHistory < ApplicationRecord
     end
     "<b>#{EDIT_MAP[edit_type.to_sym] || pretty_edit_type}</b>".html_safe
   end
+  # rubocop:enable Rails/OutputSafety
 
   def is_contentful?
     %w[original edit].include?(edit_type)
