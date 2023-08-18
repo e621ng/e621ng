@@ -1,7 +1,6 @@
 class TagCorrection
   include ActiveModel::Model
   include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
 
   attr_reader :tag
   delegate :category, :post_count, :real_post_count, to: :tag

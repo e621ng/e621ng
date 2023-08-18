@@ -1,6 +1,5 @@
 class RelatedTagQuery
   include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
 
   attr_reader :query, :category, :user
 
