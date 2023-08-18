@@ -23,7 +23,11 @@ class RelatedTagQueryTest < ActiveSupport::TestCase
       end
 
       should "render the json" do
-        assert_equal("{\"query\":\"aaa\",\"category\":null,\"tags\":[[\"aaa\",0],[\"bbb\",0],[\"ccc\",0]]}", @query.to_json)
+        assert_equal([
+          { name: "aaa", category_id: 0 },
+          { name: "bbb", category_id: 0 },
+          { name: "ccc", category_id: 0 },
+        ].to_json, @query.to_json)
       end
     end
 
@@ -74,7 +78,7 @@ class RelatedTagQueryTest < ActiveSupport::TestCase
       @post_1 = create(:post, tag_string: "aaa bbb")
       @post_2 = create(:post, tag_string: "aaa art:ccc")
       @post_3 = create(:post, tag_string: "aaa copy:ddd")
-      @query = RelatedTagQuery.new(query: "aaa", category: "artist")
+      @query = RelatedTagQuery.new(query: "aaa", category_id: Tag.categories.artist)
     end
 
     should "find the related tags" do

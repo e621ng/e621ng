@@ -4,16 +4,16 @@ class RelatedTagsController < ApplicationController
   before_action :member_only
 
   def show
-    @query = RelatedTagQuery.new(query: params[:query], category: params[:category], user: CurrentUser.user)
-    expires_in 30.second
-    respond_with(@query)
+    @related_tags = RelatedTagQuery.new(query: params[:search][:query], category_id: params[:search][:category_id])
+    expires_in 30.seconds
+    respond_with(@related_tags)
   end
 
   def bulk
-    @query = BulkRelatedTagQuery.new(query: params[:query], category: params[:category], user: CurrentUser.user)
-    respond_with(@query) do |fmt|
+    @related_tags = BulkRelatedTagQuery.new(query: params[:query], category_id: params[:category_id])
+    respond_with(@related_tags) do |fmt|
       fmt.json do
-        render json: @query.to_json
+        render json: @related_tags.to_json
       end
     end
   end
