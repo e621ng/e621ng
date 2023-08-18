@@ -85,7 +85,7 @@ class TagTest < ActiveSupport::TestCase
     end
 
     context "not be settable to an invalid category" do
-      should validate_inclusion_of(:category).in_array(TagCategory.category_ids)
+      should validate_inclusion_of(:category).in_array(TagCategory::CATEGORY_IDS)
     end
   end
 
@@ -238,7 +238,7 @@ class TagTest < ActiveSupport::TestCase
       should_not allow_value("東方").for(:name).on(:create)
       should_not allow_value("FAV:blah").for(:name).on(:create)
 
-      metatags = Tag::METATAGS + TagCategory.mapping.keys
+      metatags = Tag::METATAGS + TagCategory::MAPPING.keys
       metatags.each do |metatag|
         should_not allow_value("#{metatag}:foo").for(:name).on(:create)
       end

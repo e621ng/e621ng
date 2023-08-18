@@ -31,11 +31,11 @@ class TagSetPresenter < Presenter
   def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
     html = ""
 
-    TagCategory.split_header_list.each do |category|
+    TagCategory::SPLIT_HEADER_LIST.each do |category|
       typetags = tags_for_category(category)
 
       if typetags.any?
-        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory.header_mapping[category]}</h2>}
+        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory::HEADER_MAPPING[category]}</h2>}
         html << %{<ul class="#{category}-tag-list">}
         typetags.each do |tag|
           html << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name))
@@ -49,7 +49,7 @@ class TagSetPresenter < Presenter
 
   # compact (horizontal) list, as seen in the /comments index.
   def inline_tag_list_html
-    html = TagCategory.categorized_list.map do |category|
+    html = TagCategory::CATEGORIZED_LIST.map do |category|
       tags_for_category(category).map do |tag|
         %(<li class="category-#{tag.category}">#{tag_link(tag)}</li>)
       end.join
@@ -59,15 +59,15 @@ class TagSetPresenter < Presenter
 
   # the list of tags inside the tag box in the post edit form.
   def split_tag_list_text
-    TagCategory.categorized_list.map do |category|
+    TagCategory::CATEGORIZED_LIST.map do |category|
       tags_for_category(category).map(&:name).join(" ")
     end.compact_blank.join(" \n")
   end
 
-  def humanized_essential_tag_string(category_list: TagCategory.humanized_list, default: "")
+  def humanized_essential_tag_string(category_list: TagCategory::HUMANIZED_LIST, default: "")
     return @_humanized if @_cached[:humanized]
     strings = category_list.map do |category|
-      mapping = TagCategory.humanized_mapping[category]
+      mapping = TagCategory::HUMANIZED_MAPPING[category]
       max_tags = mapping["slice"]
       regexmap = mapping["regexmap"]
       formatstr = mapping["formatstr"]
@@ -109,7 +109,7 @@ class TagSetPresenter < Presenter
   end
 
   def tags_for_category(category_name)
-    category = TagCategory.mapping[category_name.downcase]
+    category = TagCategory::MAPPING[category_name.downcase]
     tags_by_category[category] || []
   end
 

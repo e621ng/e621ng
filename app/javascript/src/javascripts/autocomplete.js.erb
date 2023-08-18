@@ -3,7 +3,7 @@ import Utility from './utility'
 let Autocomplete = {};
 
 Autocomplete.METATAGS = <%= Tag::METATAGS.to_json.html_safe %>;
-Autocomplete.TAG_CATEGORIES = <%= TagCategory.mapping.to_json.html_safe %>;
+Autocomplete.TAG_CATEGORIES = <%= TagCategory::MAPPING.to_json.html_safe %>;
 Autocomplete.ORDER_METATAGS = <%= Tag::ORDER_METATAGS.to_json.html_safe %>;
 
 Autocomplete.TAG_PREFIXES = "-|~|" + Object.keys(Autocomplete.TAG_CATEGORIES).map(category => category + ":").join("|");
@@ -81,7 +81,7 @@ Autocomplete.initialize_tag_autocomplete = function() {
       case "age":
       case "limit":
       case "tagcount":
-      <% TagCategory.short_name_list.each do |category| %>
+      <% TagCategory::SHORT_NAME_LIST.each do |category| %>
         case "<%= category %>tags": // eslint-disable-line
       <% end %>
         resp([]);

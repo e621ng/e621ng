@@ -17,7 +17,7 @@ class Tag < ApplicationRecord
     -flagger set -set randseed -voted
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
-  ] + TagCategory.short_name_list.map {|x| "#{x}tags"} + COUNT_METATAGS + BOOLEAN_METATAGS
+  ] + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
 
   SUBQUERY_METATAGS = %w[commenter comm noter noteupdater flagger -flagger]
 
@@ -40,7 +40,7 @@ class Tag < ApplicationRecord
     random
   ] +
       COUNT_METATAGS +
-      TagCategory.short_name_list.flat_map {|str| ["#{str}tags", "#{str}tags_asc"]}
+      TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }
 
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
   has_one :artist, :foreign_key => "name", :primary_key => "name"
@@ -51,25 +51,25 @@ class Tag < ApplicationRecord
 
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates :name, length: { in: 1..100 }
-  validates :category, inclusion: { in: TagCategory.category_ids }
+  validates :category, inclusion: { in: TagCategory::CATEGORY_IDS }
   validate :user_can_create_tag?, on: :create
   validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
 
   class CategoryMapping
-    TagCategory.reverse_mapping.each do |value, category|
+    TagCategory::REVERSE_MAPPING.each do |value, category|
       define_method(category) do
         value
       end
     end
 
     def regexp
-      @regexp ||= Regexp.compile(TagCategory.mapping.keys.sort_by {|x| -x.size}.join("|"))
+      @regexp ||= Regexp.compile(TagCategory::MAPPING.keys.sort_by { |x| -x.length }.join("|"))
     end
 
     def value_for(string)
-      TagCategory.mapping[string.to_s.downcase] || 0
+      TagCategory::MAPPING[string.to_s.downcase] || 0
     end
   end
 
@@ -145,7 +145,7 @@ class Tag < ApplicationRecord
       end
 
       def category_for_value(value)
-        TagCategory.reverse_mapping.fetch(value, "unknown category").capitalize
+        TagCategory::REVERSE_MAPPING.fetch(value, "unknown category").capitalize
       end
     end
 
@@ -154,14 +154,14 @@ class Tag < ApplicationRecord
     end
 
     def category_name
-      TagCategory.reverse_mapping[category].capitalize
+      TagCategory::REVERSE_MAPPING[category].capitalize
     end
 
     def update_category_post_counts!
       Post.with_timeout(30_000, nil, {:tags => name}) do
         Post.sql_raw_tag_match(name).find_each do |post|
           post.set_tag_counts(disable_cache: false)
-          args = TagCategory.categories.map {|x| ["tag_count_#{x}", post.send("tag_count_#{x}")]}.to_h.update("tag_count" => post.tag_count)
+          args = TagCategory::CATEGORIES.to_h { |x| ["tag_count_#{x}", post.send("tag_count_#{x}")] }.update("tag_count" => post.tag_count)
           Post.where(:id => post.id).update_all(args)
           post.update_index
         end
@@ -177,8 +177,8 @@ class Tag < ApplicationRecord
     end
 
     def user_can_change_category?
-      cat = TagCategory.reverse_mapping[category]
-      if !CurrentUser.is_admin? && TagCategory.admin_only_mapping[cat]
+      cat = TagCategory::REVERSE_MAPPING[category]
+      if !CurrentUser.is_admin? && TagCategory::ADMIN_ONLY_MAPPING[cat]
         errors.add(:category,  "can only used by admins")
         return false
       end
@@ -789,8 +789,8 @@ class Tag < ApplicationRecord
           when "tagcount"
             q[:post_tag_count] = parse_helper(g2)
 
-          when /(#{TagCategory.short_name_regex})tags/
-            q["#{TagCategory.short_name_mapping[$1]}_tag_count".to_sym] = parse_helper(g2)
+          when /(#{TagCategory::SHORT_NAME_REGEX})tags/
+            q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
 
           when "parent"
             q[:parent] = g2.downcase
@@ -1057,7 +1057,7 @@ class Tag < ApplicationRecord
   def category_editable_by?(user)
     return true if user.is_admin?
     return false if is_locked?
-    return false if TagCategory.admin_only_mapping[TagCategory.reverse_mapping[category]]
+    return false if TagCategory::ADMIN_ONLY_MAPPING[TagCategory::REVERSE_MAPPING[category]]
     return true if post_count < Danbooru.config.tag_type_change_cutoff
     false
   end

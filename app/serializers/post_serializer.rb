@@ -1,7 +1,7 @@
 class PostSerializer < ActiveModel::Serializer
   def tags
     tags = {}
-    TagCategory.categories.each do |category|
+    TagCategory::CATEGORIES.each do |category|
       tags[category] = object.typed_tags(category)
     end
     tags

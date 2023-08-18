@@ -4,8 +4,8 @@
 
     <div style="margin-bottom: 1em;">
       <ul>
-        <li><strong>Category actual</strong>: <%= TagCategory.reverse_mapping[@correction.category] %></li>
-        <li><strong>Category memcache</strong>: <%= TagCategory.reverse_mapping[@correction.category_cache] || "none" %></li>
+        <li><strong>Category actual</strong>: <%= TagCategory::REVERSE_MAPPING[@correction.category] %></li>
+        <li><strong>Category memcache</strong>: <%= TagCategory::REVERSE_MAPPING[@correction.category_cache] || "none" %></li>
         <li><strong>Post count db cache</strong>: <%= @correction.post_count %></li>
         <li><strong>Post count actual:</strong> <%= @correction.real_post_count %></li>
       </ul>
