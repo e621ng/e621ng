@@ -26,7 +26,8 @@
       <% if comment.was_warned? %>
         <div class="user-warning">
           <hr>
-          <em><%= comment.warning_type_string %></em>
+          <em><%= comment.warning_type_string %><% if comment.warning_user.present? %> by <%= link_to_user(comment.warning_user) %><% end %>.</em>
+          <span class="info"><%= time_ago_in_words_tagged(comment.updated_at) %></span>
         </div>
       <% end %>
         <div class="content-menu">

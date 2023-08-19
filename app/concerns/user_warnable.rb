@@ -26,11 +26,11 @@ module UserWarnable
   def warning_type_string
     case warning_type
     when "warning"
-      "User received a warning for the contents of this message."
+      "User received a warning for the contents of this message"
     when "record"
-      "User received a record for the contents of this message."
+      "User received a record for the contents of this message"
     when "ban"
-      "User was banned for the contents of this message."
+      "User was banned for the contents of this message"
     else
       "[This is a bug with the website. Woo!]"
     end

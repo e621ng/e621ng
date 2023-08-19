@@ -26,7 +26,8 @@
       <% if forum_post.was_warned? %>
         <div class="user-warning">
           <hr>
-          <em><%= forum_post.warning_type_string %></em>
+          <em><%= forum_post.warning_type_string %><% if forum_post.warning_user.present? %> by <%= link_to_user(forum_post.warning_user) %><% end %>.</em>
+          <span class="info"><%= time_ago_in_words_tagged(forum_post.updated_at) %></span>
         </div>
       <% end %>
       <div class="content-menu">
