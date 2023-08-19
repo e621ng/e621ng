@@ -89,50 +89,46 @@ class PostQueryBuilder
       relation = relation.where("posts.pool_string != ''")
     end
 
-    if q[:uploader_id_neg]
-      relation = relation.where.not("posts.uploader_id": q[:uploader_id_neg])
+    if q[:uploader_ids_neg]
+      relation = relation.where.not("posts.uploader_id": q[:uploader_ids_neg])
     end
 
-    if q[:uploader_id]
-      relation = relation.where("posts.uploader_id": q[:uploader_id])
+    if q[:uploader_ids]
+      relation = relation.where("posts.uploader_id": q[:uploader_ids])
     end
 
-    if q[:approver_id_neg]
-      relation = relation.where.not("posts.approver_id": q[:approver_id_neg])
+    if q[:approver_ids_neg]
+      relation = relation.where.not("posts.approver_id": q[:approver_ids_neg])
     end
 
-    if q[:approver_id]
-      if q[:approver_id] == "any"
-        relation = relation.where("posts.approver_id is not null")
-      elsif q[:approver_id] == "none"
-        relation = relation.where("posts.approver_id is null")
-      else
-        relation = relation.where("posts.approver_id": q[:approver_id])
-      end
+    if q[:approver] == "any"
+      relation = relation.where("posts.approver_id is not null")
+    elsif q[:approver] == "none"
+      relation = relation.where("posts.approver_id is null")
     end
 
-    if q[:commenter_ids]
-      q[:commenter_ids].each do |commenter_id|
-        if commenter_id == "any"
-          relation = relation.where("posts.last_commented_at is not null")
-        elsif commenter_id == "none"
-          relation = relation.where("posts.last_commented_at is null")
-        else
-          relation = relation.where("posts.id": Comment.unscoped.where(creator_id: commenter_id).select(:post_id).distinct)
-        end
-      end
+    if q[:approver_ids]
+      relation = relation.where("posts.approver_id": q[:approver_ids])
+    end
+
+    if q[:commenter] == "any"
+      relation = relation.where("posts.last_commented_at is not null")
+    elsif q[:commenter] == "none"
+      relation = relation.where("posts.last_commented_at is null")
+    end
+
+    if q[:commenter_ids]&.each do |commenter_id|
+      relation = relation.where("posts.id": Comment.unscoped.where(creator_id: commenter_id).select(:post_id).distinct)
+    end
+
+    if q[:noter] == "any"
+      relation = relation.where("posts.last_noted_at is not null")
+    elsif q[:noter] == "none"
+      relation = relation.where("posts.last_noted_at is null")
     end
 
     if q[:noter_ids]
-      q[:noter_ids].each do |noter_id|
-        if noter_id == "any"
-          relation = relation.where("posts.last_noted_at is not null")
-        elsif noter_id == "none"
-          relation = relation.where("posts.last_noted_at is null")
-        else
-          relation = relation.where("posts.id": Note.unscoped.where(creator_id: noter_id).select("post_id").distinct)
-        end
-      end
+      relation = relation.where("posts.id": Note.unscoped.where(creator_id: noter_id).select("post_id").distinct)
     end
 
     if q[:note_updater_ids]
@@ -149,16 +145,14 @@ class PostQueryBuilder
       relation = relation.where("posts.parent_id IS NULL")
     elsif q[:parent] == "any"
       relation = relation.where("posts.parent_id IS NOT NULL")
-    elsif q[:parent]
-      relation = relation.where("posts.parent_id = ?", q[:parent].to_i)
     end
 
-    if q[:parent_neg_ids]
-      neg_ids = q[:parent_neg_ids].map(&:to_i)
-      neg_ids.delete(0)
-      if neg_ids.present?
-        relation = relation.where("posts.id not in (?) and (posts.parent_id is null or posts.parent_id not in (?))", neg_ids, neg_ids)
-      end
+    if q[:parent_ids]
+      relation = relation.where("posts.parent_id = ?", q[:parent_ids])
+    end
+
+    if q[:parent_ids_neg]
+      relation = relation.where.not("posts.parent_id = ?", q[:parent_ids])
     end
 
     if q[:child] == "none"

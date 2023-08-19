@@ -549,61 +549,63 @@ class Tag < ApplicationRecord
         metatag_name, g2 = token.split(":", 2)
         case metatag_name.downcase
         when "-user"
-          q[:uploader_id_neg] ||= []
+          q[:uploader_ids_neg] ||= []
           user_id = User.name_or_id_to_id(g2)
-          q[:uploader_id_neg] << id_or_invalid(user_id)
+          q[:uploader_ids_neg] << id_or_invalid(user_id)
 
         when "user"
+          q[:uploader_ids] ||= []
           user_id = User.name_or_id_to_id(g2)
-          q[:uploader_id] = id_or_invalid(user_id)
+          q[:uploader_ids] << id_or_invalid(user_id)
 
         when "user_id"
-          q[:uploader_id] = g2.to_i
+          q[:uploader_ids] ||= []
+          q[:uploader_ids] << g2.to_i
 
         when "-user_id"
-          q[:uploader_id_neg] << g2.to_i
+          q[:uploader_ids_neg] ||= []
+          q[:uploader_ids_neg] << g2.to_i
 
         when "-approver"
           if g2 == "none"
-            q[:approver_id] = "any"
+            q[:approver] = "any"
           elsif g2 == "any"
-            q[:approver_id] = "none"
+            q[:approver] = "none"
           else
-            q[:approver_id_neg] ||= []
+            q[:approver_ids_neg] ||= []
             user_id = User.name_or_id_to_id(g2)
-            q[:approver_id_neg] << id_or_invalid(user_id)
+            q[:approver_ids_neg] << id_or_invalid(user_id)
           end
 
         when "approver"
           if g2 == "none"
-            q[:approver_id] = "none"
+            q[:approver] = "none"
           elsif g2 == "any"
-            q[:approver_id] = "any"
+            q[:approver] = "any"
           else
+            q[:approver_ids] ||= []
             user_id = User.name_or_id_to_id(g2)
-            q[:approver_id] = id_or_invalid(user_id)
+            q[:approver_ids] << id_or_invalid(user_id)
           end
 
         when "commenter", "comm"
-          q[:commenter_ids] ||= []
-
           if g2 == "none"
-            q[:commenter_ids] << "none"
+            q[:commenter] = "none"
           elsif g2 == "any"
-            q[:commenter_ids] << "any"
+            q[:commenter] = "any"
           else
+            q[:commenter_ids] ||= []
             user_id = User.name_or_id_to_id(g2)
             q[:commenter_ids] << id_or_invalid(user_id)
           end
 
         when "noter"
-          q[:noter_ids] ||= []
-
           if g2 == "none"
-            q[:noter_ids] << "none"
+            q[:noter] = "none"
           elsif g2 == "any"
-            q[:noter_ids] << "any"
+            q[:noter] = "any"
           else
+            q[:noter_ids] ||= []
             user_id = User.name_or_id_to_id(g2)
             q[:noter_ids] << id_or_invalid(user_id)
           end
@@ -614,33 +616,33 @@ class Tag < ApplicationRecord
           q[:note_updater_ids] << id_or_invalid(user_id)
 
         when "-pool"
-          q[:pools_neg] ||= []
+          q[:pool_ids_neg] ||= []
           if g2.downcase == "none"
             q[:pool] = "any"
           elsif g2.downcase == "any"
             q[:pool] = "none"
           elsif g2.include?("*")
             pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-            q[:pools_neg] += pool_ids
+            q[:pool_ids_neg] += pool_ids
           else
-            q[:pools_neg] << Pool.name_to_id(g2)
+            q[:pool_ids_neg] << Pool.name_to_id(g2)
           end
 
         when "pool"
-          q[:pools] ||= []
+          q[:pool_ids] ||= []
           if g2.downcase == "none"
             q[:pool] = "none"
           elsif g2.downcase == "any"
             q[:pool] = "any"
           elsif g2.include?("*")
             pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-            q[:pools] += pool_ids
+            q[:pool_ids] += pool_ids
           else
-            q[:pools] << Pool.name_to_id(g2)
+            q[:pool_ids] << Pool.name_to_id(g2)
           end
 
         when "set"
-          q[:sets] ||= []
+          q[:set_ids] ||= []
           post_set_id = PostSet.name_to_id(g2)
           post_set = PostSet.find_by_id(post_set_id)
 
@@ -650,10 +652,10 @@ class Tag < ApplicationRecord
             raise User::PrivilegeError
           end
 
-          q[:sets] << post_set_id
+          q[:set_ids] << post_set_id
 
         when "-set"
-          q[:sets_neg] ||= []
+          q[:set_ids_neg] ||= []
           post_set_id = PostSet.name_to_id(g2)
           post_set = PostSet.find_by_id(post_set_id)
 
@@ -663,7 +665,7 @@ class Tag < ApplicationRecord
             raise User::PrivilegeError
           end
 
-          q[:sets_neg] << post_set_id
+          q[:set_ids_neg] << post_set_id
 
         when "-fav", "-favoritedby"
           q[:fav_ids_neg] ||= []
@@ -759,7 +761,14 @@ class Tag < ApplicationRecord
           q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
 
         when "parent"
-          q[:parent] = g2.downcase
+          if g2.downcase == "none"
+            q[:parent] = "none"
+          elsif g2.downcase == "any"
+            q[:parent] = "any"
+          else
+            q[:parent_ids] ||= []
+            q[:parent_ids] << g2.downcase
+          end
 
         when "-parent"
           if g2.downcase == "none"
@@ -767,8 +776,8 @@ class Tag < ApplicationRecord
           elsif g2.downcase == "any"
             q[:parent] = "none"
           else
-            q[:parent_neg_ids] ||= []
-            q[:parent_neg_ids] << g2.downcase
+            q[:parent_ids_neg] ||= []
+            q[:parent_ids_neg] << g2.downcase
           end
 
         when "child"
@@ -834,11 +843,25 @@ class Tag < ApplicationRecord
             q[:upvote] = CurrentUser.id
           end
 
+        when "-upvote", "-votedup"
+          if CurrentUser.is_moderator?
+            q[:upvote_neg] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:upvote_neg] = CurrentUser.id
+          end
+
         when "downvote", "voteddown"
           if CurrentUser.is_moderator?
             q[:downvote] = User.name_or_id_to_id(g2)
           elsif CurrentUser.is_member?
             q[:downvote] = CurrentUser.id
+          end
+
+        when "-downvote", "-voteddown"
+          if CurrentUser.is_moderator?
+            q[:downvote_neg] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:downvote_neg] = CurrentUser.id
           end
 
         when "voted"
@@ -850,23 +873,9 @@ class Tag < ApplicationRecord
 
         when "-voted"
           if CurrentUser.is_moderator?
-            q[:neg_voted] = User.name_or_id_to_id(g2)
+            q[:voted_neg] = User.name_or_id_to_id(g2)
           elsif CurrentUser.is_member?
-            q[:neg_voted] = CurrentUser.id
-          end
-
-        when "-upvote", "-votedup"
-          if CurrentUser.is_moderator?
-            q[:neg_upvote] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:neg_upvote] = CurrentUser.id
-          end
-
-        when "-downvote", "-voteddown"
-          if CurrentUser.is_moderator?
-            q[:neg_downvote] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:neg_downvote] = CurrentUser.id
+            q[:voted_neg] = CurrentUser.id
           end
 
         when *COUNT_METATAGS

@@ -211,22 +211,18 @@ class ElasticPostQueryBuilder
       must.push({exists: {field: :pools}})
     end
 
-    if q[:pools]
-      q[:pools].each do |p|
-        must.push({term: {pools: p}})
-      end
+    if q[:pool_ids]
+      must.concat(q[:pool_ids].map { |x| { term: { pools: x } } })
     end
-    if q[:pools_neg]
-      q[:pools_neg].each do |p|
-        must_not.push({term: {pools: p}})
-      end
+    if q[:pool_ids_neg]
+      must_not.concat(q[:pool_ids_neg].map { |x| { term: { pools: x } } })
     end
 
-    if q[:sets]
-      must.concat(q[:sets].map {|x| {term: {sets: x}}})
+    if q[:set_ids]
+      must.concat(q[:set_ids].map { |x| { term: { sets: x } } })
     end
-    if q[:sets_neg]
-      must_not.concat(q[:sets_neg].map {|x| {term: {sets: x}}})
+    if q[:set_ids_neg]
+      must_not.concat(q[:set_ids_neg].map { |x| { term: { sets: x } } })
     end
 
     if q[:fav_ids]
@@ -236,54 +232,50 @@ class ElasticPostQueryBuilder
       must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
     end
 
-    if q[:uploader_id_neg]
-      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader: x.to_i}}})
+    if q[:uploader_ids_neg]
+      must_not.concat(q[:uploader_ids_neg].map { |x| { term: { uploader: x } } })
     end
 
-    if q[:uploader_id]
-      must.push({term: {uploader: q[:uploader_id].to_i}})
+    if q[:uploader_ids]
+      must.concat(q[:uploader_ids].map { |x| { term: { uploader: x } } })
     end
 
-    if q[:approver_id_neg]
-      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver: x.to_i}}})
+    if q[:approver_ids_neg]
+      must_not.concat(q[:approver_ids_neg].map { |x| { term: { approver: x } } })
     end
 
-    if q[:approver_id]
-      if q[:approver_id] == "any"
-        must.push({exists: {field: :approver}})
-      elsif q[:approver_id] == "none"
-        must_not.push({exists: {field: :approver}})
-      else
-        must.push({term: {approver: q[:approver_id].to_i}})
-      end
+    if q[:approver] == "any"
+      must.push({ exists: { field: :approver } })
+    elsif q[:approver] == "none"
+      must_not.push({ exists: { field: :approver } })
+    end
+
+    if q[:approver_ids]
+      must.concat(q[:approver_ids].map { |x| { term: { approver: x } } })
+    end
+
+    if q[:commenter] == "any"
+      must.push({ exists: { field: :commenters } })
+    elsif q[:commenter] == "none"
+      must_not.push({ exists: { field: :commenters } })
     end
 
     if q[:commenter_ids]
-      q[:commenter_ids].each do |commenter_id|
-        if commenter_id == "any"
-          must.push({exists: {field: :commenters}})
-        elsif commenter_id == "none"
-          must_not.push({exists: {field: :commenters}})
-        else
-          must.concat(q[:commenter_ids].map {|x| {term: {commenters: x.to_i}}} )
-        end
-      end
+      must.concat(q[:commenter_ids].map { |x| { term: { commenters: x } } })
+    end
+
+    if q[:noter] == "any"
+      must.push({ exists: { field: :noters } })
+    elsif q[:noter] == "none"
+      must_not.push({ exists: { field: :noters } })
     end
 
     if q[:noter_ids]
-      q[:noter_ids].each do |noter_id|
-        if noter_id == "any"
-          must.push({exists: {field: :noters}})
-        elsif noter_id == "none"
-          must_not.push({exists: {field: :noters}})
-        else
-          must.concat(q[:noter_ids].map {|x| {term: {noters: x.to_i}}} )
-        end
-      end
+      must.concat(q[:noter_ids].map { |x| { term: { noters: x } } })
     end
 
     if q[:note_updater_ids]
-      must.concat(q[:note_updater_ids].map {|x| {term: {noters: x.to_i}}} )
+      must.concat(q[:note_updater_ids].map { |x| { term: { noters: x } } })
     end
 
     if q[:note]
@@ -318,16 +310,14 @@ class ElasticPostQueryBuilder
       must_not.push({exists: {field: :parent}})
     elsif q[:parent] == "any"
       must.push({exists: {field: :parent}})
-    elsif q[:parent]
-      must.push({term: {parent: q[:parent].to_i}})
     end
 
-    if q[:parent_neg_ids]
-      neg_ids = q[:parent_neg_ids].map(&:to_i)
-      neg_ids.delete(0)
-      if neg_ids.present?
-        must_not.push(should(*(neg_ids.map {|p| {term: {parent: p}}})))
-      end
+    if q[:parent_ids]
+      must.concat(q[:parent_ids].map { |x| { term: { parent: x.to_i } } })
+    end
+
+    if q[:parent_ids_neg]
+      must_not.concat(q[:parent_ids_neg].map { |x| { term: { parent: x.to_i } } })
     end
 
     if q[:child] == "none"
@@ -418,17 +408,16 @@ class ElasticPostQueryBuilder
       must.push(should({term: {upvotes: q[:voted].to_i}},
                        {term: {downvotes: q[:voted].to_i}}))
     end
-    if q[:neg_upvote].present?
-      must_not.push({term: {upvotes: q[:neg_upvote].to_i}})
+    if q[:upvote_neg].present?
+      must_not.push({ term: { upvotes: q[:upvote_neg].to_i } })
     end
 
-    if q[:neg_downvote].present?
-      must_not.push({term: {downvotes: q[:neg_downvote].to_i}})
+    if q[:downvote_neg].present?
+      must_not.push({ term: { downvotes: q[:downvote_neg].to_i } })
     end
 
-    if q[:neg_voted].present?
-      must_not.concat([{term: {upvotes: q[:neg_voted].to_i}},
-                       {term: {downvotes: q[:neg_voted].to_i}}])
+    if q[:voted_neg].present?
+      must_not.push({ term: { upvotes: q[:voted_neg].to_i } }, { term: { downvotes: q[:voted_neg].to_i } })
     end
 
     if q[:order] == "rank"
