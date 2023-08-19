@@ -4,9 +4,8 @@ class Tag < ApplicationRecord
   ]
 
   BOOLEAN_METATAGS = %w[
-    hassource hasdescription ratinglocked notelocked statuslocked
-    tagslocked hideanon hidegoogle isparent ischild inpool pending_replacements
-  ]
+    hassource hasdescription isparent ischild inpool pending_replacements
+  ].freeze
 
   METATAGS = %w[
     -user user -approver approver commenter comm noter noteupdater
@@ -14,7 +13,7 @@ class Tag < ApplicationRecord
     -locked locked width height mpixels ratio score favcount filesize source
     -source id -id date age order limit -status status tagcount parent -parent
     child search upvote downvote voted filetype -filetype flagger type -type
-    -flagger set -set randseed -voted
+    -flagger set -set randseed -voted ratinglocked notelocked statuslocked
     -upvote -downvote description -description change -user_id user_id delreason -delreason
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
@@ -657,7 +656,23 @@ class Tag < ApplicationRecord
           add_to_query_single(q, type, :rating) { g2[0]&.downcase || "miss" }
 
         when "locked", "-locked"
-          add_to_query_single(q, type, :locked) { g2.downcase }
+          add_to_query(q, type, :locked) do
+            case g2.downcase
+            when "rating"
+              :rating
+            when "note", "notes"
+              :note
+            when "status"
+              :status
+            end
+          end
+
+        when "ratinglocked"
+          add_to_query(q, parse_boolean(g2) ? :must : :must_not, :locked) { :rating }
+        when "notelocked"
+          add_to_query(q, parse_boolean(g2) ? :must : :must_not, :locked) { :note }
+        when "statuslocked"
+          add_to_query(q, parse_boolean(g2) ? :must : :must_not, :locked) { :status }
 
         when "id"
           q[:post_id] = parse_helper(g2)

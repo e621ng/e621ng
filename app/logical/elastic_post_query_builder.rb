@@ -1,4 +1,10 @@
 class ElasticPostQueryBuilder
+  LOCK_TYPE_TO_INDEX_FIELD = {
+    rating: :rating_locked,
+    note: :note_locked,
+    status: :status_locked,
+  }.freeze
+
   attr_accessor :query_string, :must, :must_not, :order
 
   def initialize(query_string)
@@ -259,32 +265,12 @@ class ElasticPostQueryBuilder
       must.push({term: {has_children: true}})
     end
 
-    if q[:locked] == "rating"
-      must.push({term: {rating_locked: true}})
-    elsif q[:locked] == "note" || q[:locked] == "notes"
-      must.push({term: {note_locked: true}})
-    elsif q[:locked] == "status"
-      must.push({term: {status_locked: true}})
+    q[:locked]&.each do |lock_type|
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
     end
 
-    if q[:locked_neg] == "rating"
-      must.push({term: {rating_locked: false}})
-    elsif q[:locked_neg] == "note" || q[:locked_neg] == "notes"
-      must.push({term: {note_locked: false}})
-    elsif q[:locked_neg] == "status"
-      must.push({term: {status_locked: false}})
-    end
-
-    if q.include?(:ratinglocked)
-      must.push({term: {rating_locked: q[:ratinglocked]}})
-    end
-
-    if q.include?(:notelocked)
-      must.push({term: {note_locked: q[:notelocked]}})
-    end
-
-    if q.include?(:statuslocked)
-      must.push({term: {status_locked: q[:statuslocked]}})
+    q[:locked_neg]&.each do |lock_type|
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
     end
 
     if q.include?(:hassource)
