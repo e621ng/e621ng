@@ -117,24 +117,10 @@ class PostQueryBuilder
       relation = relation.where("posts.last_commented_at is null")
     end
 
-    if q[:commenter_ids]&.each do |commenter_id|
-      relation = relation.where("posts.id": Comment.unscoped.where(creator_id: commenter_id).select(:post_id).distinct)
-    end
-
     if q[:noter] == "any"
       relation = relation.where("posts.last_noted_at is not null")
     elsif q[:noter] == "none"
       relation = relation.where("posts.last_noted_at is null")
-    end
-
-    if q[:noter_ids]
-      relation = relation.where("posts.id": Note.unscoped.where(creator_id: noter_id).select("post_id").distinct)
-    end
-
-    if q[:note_updater_ids]
-      q[:note_updater_ids].each do |note_updater_id|
-        relation = relation.where("posts.id": NoteVersion.unscoped.where(updater_id: note_updater_id).select("post_id").distinct)
-      end
     end
 
     if q[:post_id_negated]
@@ -193,20 +179,6 @@ class PostQueryBuilder
       relation = relation.where("posts.is_status_locked = FALSE")
     end
 
-    relation = add_tag_string_search_relation(q[:tags], relation)
-
-    if q[:upvote].present?
-      user_id = q[:upvote]
-      post_ids = PostVote.where(:user_id => user_id).where("score > 0").limit(400).pluck(:post_id)
-      relation = relation.where("posts.id": post_ids)
-    end
-
-    if q[:downvote].present?
-      user_id = q[:downvote]
-      post_ids = PostVote.where(:user_id => user_id).where("score < 0").limit(400).pluck(:post_id)
-      relation = relation.where("posts.id": post_ids)
-    end
-
-    relation
+    add_tag_string_search_relation(q[:tags], relation)
   end
 end
