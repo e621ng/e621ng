@@ -653,7 +653,7 @@ class Tag < ApplicationRecord
           q[:md5] = g2.downcase.split(",")[0..99]
 
         when "rating", "-rating"
-          add_to_query_single(q, type, :rating) { g2[0]&.downcase || "miss" }
+          add_to_query(q, type, :rating) { g2[0]&.downcase || "miss" }
 
         when "locked", "-locked"
           add_to_query(q, type, :locked) do
@@ -708,7 +708,7 @@ class Tag < ApplicationRecord
           q[:change_seq] = parse_helper(g2)
 
         when "source", "-source"
-          add_to_query_single(q, type, :source) do
+          add_to_query(q, type, :source) do
             src = g2.gsub(/\A"(.*)"\Z/, '\1')
             "#{src.to_escaped_for_sql_like}%".gsub(/%+/, "%")
           end
@@ -751,29 +751,29 @@ class Tag < ApplicationRecord
           add_to_query_single(q, type, :status) { g2.downcase }
 
         when "filetype", "type", "-filetype", "-type"
-          add_to_query_single(q, type, :filetype) { g2.downcase }
+          add_to_query(q, type, :filetype) { g2.downcase }
 
         when "description", "-description"
-          add_to_query_single(q, type, :description) { g2 }
+          add_to_query(q, type, :description) { g2 }
 
         when "note", "-note"
-          add_to_query_single(q, type, :note) { g2 }
+          add_to_query(q, type, :note) { g2 }
 
         when "delreason", "-delreason"
-          add_to_query_single(q, type, :delreason) do
-            q[:status] ||= "any"
+          q[:status] ||= "any"
+          add_to_query(q, type, :delreason) do
             g2.to_escaped_for_sql_like
           end
 
         when "deletedby", "-deletedby"
-          add_to_query_single(q, type, :deleter) do
-            q[:status] ||= "any"
+          q[:status] ||= "any"
+          add_to_query(q, type, :deleter) do
             user_id = User.name_or_id_to_id(g2)
             id_or_invalid(user_id)
           end
 
         when "upvote", "votedup", "-upvote", "-votedup"
-          add_to_query_single(q, type, :upvote) do
+          add_to_query(q, type, :upvote) do
             if CurrentUser.is_moderator?
               user_id = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
@@ -783,7 +783,7 @@ class Tag < ApplicationRecord
           end
 
         when "downvote", "voteddown", "-downvote", "-voteddown"
-          add_to_query_single(q, type, :downvote) do
+          add_to_query(q, type, :downvote) do
             if CurrentUser.is_moderator?
               user_id = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?
@@ -793,7 +793,7 @@ class Tag < ApplicationRecord
           end
 
         when "voted", "-voted"
-          add_to_query_single(q, type, :voted) do
+          add_to_query(q, type, :voted) do
             if CurrentUser.is_moderator?
               user_id = User.name_or_id_to_id(g2)
             elsif CurrentUser.is_member?

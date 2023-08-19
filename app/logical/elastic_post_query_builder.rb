@@ -49,28 +49,19 @@ class ElasticPostQueryBuilder
     relation
   end
 
-  def add_array_relation(q, key, index_key, any_none_key: nil)
+  def add_array_relation(q, key, index_key, any_none_key: nil, action: :term)
     if q[key]
-      must.concat(q[key].map { |x| { term: { index_key => x } } })
+      must.concat(q[key].map { |x| { action => { index_key => x } } })
     end
 
     if q[:"#{key}_neg"]
-      must_not.concat(q[:"#{key}_neg"].map { |x| { term: { index_key => x } } })
+      must_not.concat(q[:"#{key}_neg"].map { |x| { action => { index_key => x } } })
     end
 
     if q[any_none_key] == "any"
       must.push({ exists: { field: index_key } })
     elsif q[any_none_key] == "none"
       must_not.push({ exists: { field: index_key } })
-    end
-  end
-
-  def add_single_relation(q, key, index_key, action: :term)
-    if q[key]
-      must.push({ action => { index_key => q[key] } })
-    end
-    if q[:"#{key}_neg"]
-      must_not.push({ action => { index_key => q[:"#{key}_neg"] } })
     end
   end
 
@@ -200,23 +191,23 @@ class ElasticPostQueryBuilder
       must.push({term: {deleted: false}})
     end
 
-    if q[:source]
-      if q[:source] == "none%"
+    q[:source]&.each do |source|
+      if source == "none%"
         must_not.push({exists: {field: :source}})
-      elsif q[:source] == "http%"
+      elsif source == "http%"
         must.push({prefix: {source: "http"}})
       else
-        must.push(sql_like_to_elastic(:source, q[:source]))
+        must.push(sql_like_to_elastic(:source, source))
       end
     end
 
-    if q[:source_neg]
-      if q[:source_neg] == "none%"
+    q[:source_neg]&.each do |source|
+      if source == "none%"
         must.push({exists: {field: :source}})
-      elsif q[:source_neg] == "http%"
+      elsif source == "http%"
         must_not.push({prefix: {source: "http"}})
       else
-        must_not.push(sql_like_to_elastic(:source, q[:source_neg]))
+        must_not.push(sql_like_to_elastic(:source, source))
       end
     end
 
@@ -230,29 +221,28 @@ class ElasticPostQueryBuilder
     add_array_relation(q, :fav_ids, :faves)
     add_array_relation(q, :parent_ids, :parent, any_none_key: :parent)
 
-    add_single_relation(q, :rating, :rating)
-    add_single_relation(q, :filetype, :file_ext)
-    add_single_relation(q, :description, :description, action: :match)
-    add_single_relation(q, :note, :notes, action: :match)
-    add_single_relation(q, :deleter, :deleter)
-    add_single_relation(q, :delreason, :del_reason)
-    add_single_relation(q, :upvote, :upvotes)
-    add_single_relation(q, :downvote, :downvotes)
+    add_array_relation(q, :rating, :rating)
+    add_array_relation(q, :filetype, :file_ext)
+    add_array_relation(q, :description, :description, action: :match)
+    add_array_relation(q, :note, :notes, action: :match)
+    add_array_relation(q, :deleter, :deleter)
+    add_array_relation(q, :upvote, :upvotes)
+    add_array_relation(q, :downvote, :downvotes)
 
-    if q[:voted].present?
-      must.push(should({ term: { upvotes: q[:voted] } }, { term: { downvotes: q[:voted] } }))
+    q[:voted]&.each do |voter_id|
+      must.push(should({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
     end
 
-    if q[:voted_neg].present?
-      must_not.push({ term: { upvotes: q[:voted_neg] } }, { term: { downvotes: q[:voted_neg] } })
+    q[:voted_neg]&.each do |voter_id|
+      must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
     end
 
-    if q[:delreason]
-      must.push(sql_like_to_elastic(:del_reason, q[:delreason]))
+    q[:delreason]&.each do |delreason|
+      must.push(sql_like_to_elastic(:del_reason, delreason))
     end
 
-    if q[:delreason_neg]
-      must_not.push(sql_like_to_elastic(:del_reason, q[:delreason]))
+    q[:delreason_neg]&.each do |delreason|
+      must_not.push(sql_like_to_elastic(:del_reason, delreason))
     end
 
     if q[:post_id_neg]
