@@ -264,20 +264,12 @@ class ElasticPostQueryBuilder
       must.push({term: {has_children: true}})
     end
 
-    if q[:rating] =~ /\Aq/
-      must.push({term: {rating: "q"}})
-    elsif q[:rating] =~ /\As/
-      must.push({term: {rating: "s"}})
-    elsif q[:rating] =~ /\Ae/
-      must.push({term: {rating: "e"}})
+    if q[:rating].present?
+      must.push({ term: { rating: q[:rating] } })
     end
 
-    if q[:rating_negated] =~ /\Aq/
-      must_not.push({term: {rating: "q"}})
-    elsif q[:rating_negated] =~ /\As/
-      must_not.push({term: {rating: "s"}})
-    elsif q[:rating_negated] =~ /\Ae/
-      must_not.push({term: {rating: "e"}})
+    if q[:rating_negated].present?
+      must_not.push({ term: { rating: q[:rating_negated] } })
     end
 
     if q[:locked] == "rating"

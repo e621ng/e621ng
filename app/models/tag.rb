@@ -645,10 +645,10 @@ class Tag < ApplicationRecord
           q[:md5] = g2.downcase.split(",")[0..99]
 
         when "-rating"
-          q[:rating_negated] = g2.downcase
+          q[:rating_negated] = g2[0]&.downcase || "miss"
 
         when "rating"
-          q[:rating] = g2.downcase
+          q[:rating] = g2[0]&.downcase || "miss"
 
         when "-locked"
           q[:locked_negated] = g2.downcase
