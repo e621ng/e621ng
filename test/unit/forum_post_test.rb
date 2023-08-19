@@ -99,16 +99,53 @@ class ForumPostTest < ActiveSupport::TestCase
       assert_equal(@user.id, post.creator_id)
     end
 
-    context "updated by a second user" do
+    context "that is edited by a moderator" do
       setup do
         @post = create(:forum_post, topic_id: @topic.id)
-        @second_user = create(:user)
-        CurrentUser.user = @second_user
+        @mod = create(:moderator_user)
+        CurrentUser.user = @mod
       end
 
-      should "record its updater" do
-        @post.update(:body => "abc")
-        assert_equal(@second_user.id, @post.updater_id)
+      should "create a mod action" do
+        assert_difference("ModAction.count") do
+          @post.update(body: "nope")
+        end
+      end
+
+      should "credit the moderator as the updater" do
+        @post.update(body: "test")
+        assert_equal(@mod.id, @post.updater_id)
+      end
+    end
+
+    context "that is hidden by a moderator" do
+      setup do
+        @post = create(:forum_post, topic_id: @topic.id)
+        @mod = create(:moderator_user)
+        CurrentUser.user = @mod
+      end
+
+      should "create a mod action" do
+        assert_difference("ModAction.count") do
+          @post.update(is_hidden: true)
+        end
+      end
+
+      should "credit the moderator as the updater" do
+        @post.update(is_hidden: true)
+        assert_equal(@mod.id, @post.updater_id)
+      end
+    end
+
+    context "that is deleted" do
+      setup do
+        @post = create(:forum_post, topic_id: @topic.id)
+      end
+
+      should "create a mod action" do
+        assert_difference("ModAction.count") do
+          @post.destroy
+        end
       end
     end
 
