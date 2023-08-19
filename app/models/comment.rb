@@ -11,7 +11,7 @@ class Comment < ApplicationRecord
   belongs_to :warning_user, class_name: "User", optional: true
 
   after_create :update_last_commented_at_on_create
-  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && !rec.saved_change_to_is_sticky? && CurrentUser.id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && (rec.saved_change_to_is_sticky? || CurrentUser.id != rec.creator_id) }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy :update_last_commented_at_on_destroy
