@@ -555,6 +555,15 @@ class Tag < ApplicationRecord
       end
     end
 
+    def add_to_query_single(q, type, key)
+      case type
+      when :must
+        q[key] = yield
+      when :must_not
+        q[:"#{key}_neg"] = yield
+      end
+    end
+
     def parse_query(query, options = {})
       q = {
         tag_count: 0,
@@ -576,7 +585,7 @@ class Tag < ApplicationRecord
         type = metatag_name.start_with?("-") ? :must_not : :must
 
         case metatag_name.downcase
-        when "-user", "user"
+        when "user", "-user"
           add_to_query(q, type, :uploader_ids) do
             user_id = User.name_or_id_to_id(g2)
             id_or_invalid(user_id)
@@ -644,23 +653,17 @@ class Tag < ApplicationRecord
         when "md5"
           q[:md5] = g2.downcase.split(",")[0..99]
 
-        when "-rating"
-          q[:rating_negated] = g2[0]&.downcase || "miss"
+        when "rating", "-rating"
+          add_to_query_single(q, type, :rating) { g2[0]&.downcase || "miss" }
 
-        when "rating"
-          q[:rating] = g2[0]&.downcase || "miss"
-
-        when "-locked"
-          q[:locked_negated] = g2.downcase
-
-        when "locked"
-          q[:locked] = g2.downcase
+        when "locked", "-locked"
+          add_to_query_single(q, type, :locked) { g2.downcase }
 
         when "id"
           q[:post_id] = parse_helper(g2)
 
         when "-id"
-          q[:post_id_negated] = g2.to_i
+          q[:post_id_neg] = g2.to_i
 
         when "width"
           q[:width] = parse_helper(g2)
@@ -689,13 +692,11 @@ class Tag < ApplicationRecord
         when "change"
           q[:change_seq] = parse_helper(g2)
 
-        when "source"
-          src = g2.gsub(/\A"(.*)"\Z/, '\1')
-          q[:source] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
-
-        when "-source"
-          src = g2.gsub(/\A"(.*)"\Z/, '\1')
-          q[:source_neg] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
+        when "source", "-source"
+          add_to_query_single(q, type, :source) do
+            src = g2.gsub(/\A"(.*)"\Z/, '\1')
+            "#{src.to_escaped_for_sql_like}%".gsub(/%+/, "%")
+          end
 
         when "date"
           parsed_date = parse_date(g2)
@@ -731,86 +732,59 @@ class Tag < ApplicationRecord
         when "limit"
           # Do nothing. The controller takes care of it.
 
-        when "-status"
-          q[:status_neg] = g2.downcase
+        when "status", "-status"
+          add_to_query_single(q, type, :status) { g2.downcase }
 
-        when "status"
-          q[:status] = g2.downcase
+        when "filetype", "type", "-filetype", "-type"
+          add_to_query_single(q, type, :filetype) { g2.downcase }
 
-        when "filetype", "type"
-          q[:filetype] = g2.downcase
+        when "description", "-description"
+          add_to_query_single(q, type, :description) { g2 }
 
-        when "-filetype", "-type"
-          q[:filetype_neg] = g2.downcase
+        when "note", "-note"
+          add_to_query_single(q, type, :note) { g2 }
 
-        when "description"
-          q[:description] = g2
-
-        when "-description"
-          q[:description_neg] = g2
-
-        when "note"
-          q[:note] = g2
-
-        when "-note"
-          q[:note_neg] = g2
-
-        when "delreason"
-          q[:delreason] = g2.to_escaped_for_sql_like
-          q[:status] ||= 'any'
-
-        when "-delreason"
-          q[:delreason] = g2.to_escaped_for_sql_like
-          q[:status] ||= 'any'
-
-        when "deletedby"
-          q[:deleter] = User.name_or_id_to_id(g2)
-          q[:status] ||= 'any'
-
-        when "-deletedby"
-          q[:deleter_neg] = User.name_or_id_to_id(g2)
-          q[:status] ||= 'any'
-
-        when "upvote", "votedup"
-          if CurrentUser.is_moderator?
-            q[:upvote] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:upvote] = CurrentUser.id
+        when "delreason", "-delreason"
+          add_to_query_single(q, type, :delreason) do
+            q[:status] ||= "any"
+            g2.to_escaped_for_sql_like
           end
 
-        when "-upvote", "-votedup"
-          if CurrentUser.is_moderator?
-            q[:upvote_neg] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:upvote_neg] = CurrentUser.id
+        when "deletedby", "-deletedby"
+          add_to_query_single(q, type, :deleter) do
+            q[:status] ||= "any"
+            user_id = User.name_or_id_to_id(g2)
+            id_or_invalid(user_id)
           end
 
-        when "downvote", "voteddown"
-          if CurrentUser.is_moderator?
-            q[:downvote] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:downvote] = CurrentUser.id
+        when "upvote", "votedup", "-upvote", "-votedup"
+          add_to_query_single(q, type, :upvote) do
+            if CurrentUser.is_moderator?
+              user_id = User.name_or_id_to_id(g2)
+            elsif CurrentUser.is_member?
+              user_id = CurrentUser.id
+            end
+            id_or_invalid(user_id)
           end
 
-        when "-downvote", "-voteddown"
-          if CurrentUser.is_moderator?
-            q[:downvote_neg] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:downvote_neg] = CurrentUser.id
+        when "downvote", "voteddown", "-downvote", "-voteddown"
+          add_to_query_single(q, type, :downvote) do
+            if CurrentUser.is_moderator?
+              user_id = User.name_or_id_to_id(g2)
+            elsif CurrentUser.is_member?
+              user_id = CurrentUser.id
+            end
+            id_or_invalid(user_id)
           end
 
-        when "voted"
-          if CurrentUser.is_moderator?
-            q[:voted] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:voted] = CurrentUser.id
-          end
-
-        when "-voted"
-          if CurrentUser.is_moderator?
-            q[:voted_neg] = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            q[:voted_neg] = CurrentUser.id
+        when "voted", "-voted"
+          add_to_query_single(q, type, :voted) do
+            if CurrentUser.is_moderator?
+              user_id = User.name_or_id_to_id(g2)
+            elsif CurrentUser.is_member?
+              user_id = CurrentUser.id
+            end
+            id_or_invalid(user_id)
           end
 
         when *COUNT_METATAGS

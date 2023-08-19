@@ -59,6 +59,15 @@ class ElasticPostQueryBuilder
     end
   end
 
+  def add_single_relation(q, key, index_key, action: :term)
+    if q[key]
+      must.push({ action => { index_key => q[key] } })
+    end
+    if q[:"#{key}_neg"]
+      must_not.push({ action => { index_key => q[:"#{key}_neg"] } })
+    end
+  end
+
   def add_tag_string_search_relation(tags, relation)
     should = tags[:include].map {|x| {term: {tags: x}}}
     must = tags[:related].map {|x| {term: {tags: x}}}
@@ -147,13 +156,6 @@ class ElasticPostQueryBuilder
       add_range_relation(q[column], column, must)
     end
 
-    if q[:description]
-      must.push({match: {description: q[:description]}})
-    end
-    if q[:description_neg]
-      must_not.push({match: {description: q[:description_neg]}})
-    end
-
     if q[:md5]
       must.push(should(*(q[:md5].map {|m| {term: {md5: m}}})))
     end
@@ -192,14 +194,6 @@ class ElasticPostQueryBuilder
       must.push({term: {deleted: false}})
     end
 
-    if q[:filetype]
-      must.push({term: {file_ext: q[:filetype]}})
-    end
-
-    if q[:filetype_neg]
-      must_not.push({term: {file_ext: q[:filetype_neg]}})
-    end
-
     if q[:source]
       if q[:source] == "none%"
         must_not.push({exists: {field: :source}})
@@ -230,12 +224,21 @@ class ElasticPostQueryBuilder
     add_array_relation(q, :fav_ids, :faves)
     add_array_relation(q, :parent_ids, :parent, any_none_key: :parent)
 
-    if q[:note]
-      must.push({match: {notes: q[:note]}})
+    add_single_relation(q, :rating, :rating)
+    add_single_relation(q, :filetype, :file_ext)
+    add_single_relation(q, :description, :description, action: :match)
+    add_single_relation(q, :note, :notes, action: :match)
+    add_single_relation(q, :deleter, :deleter)
+    add_single_relation(q, :delreason, :del_reason)
+    add_single_relation(q, :upvote, :upvotes)
+    add_single_relation(q, :downvote, :downvotes)
+
+    if q[:voted].present?
+      must.push(should({ term: { upvotes: q[:voted] } }, { term: { downvotes: q[:voted] } }))
     end
 
-    if q[:note_neg]
-      must_not.push({match: {notes: q[:note_neg]}})
+    if q[:voted_neg].present?
+      must_not.push({ term: { upvotes: q[:voted_neg] } }, { term: { downvotes: q[:voted_neg] } })
     end
 
     if q[:delreason]
@@ -246,30 +249,14 @@ class ElasticPostQueryBuilder
       must_not.push(sql_like_to_elastic(:del_reason, q[:delreason]))
     end
 
-    if q[:deleter]
-      must.push({term: {deleter: q[:deleter].to_i}})
-    end
-
-    if q[:deleter_neg]
-      must_not.push({term: {deleter: q[:deleter].to_i}})
-    end
-
-    if q[:post_id_negated]
-      must_not.push({term: {id: q[:post_id_negated].to_i}})
+    if q[:post_id_neg]
+      must_not.push({ term: { id: q[:post_id_neg] } })
     end
 
     if q[:child] == "none"
       must.push({term: {has_children: false}})
     elsif q[:child] == "any"
       must.push({term: {has_children: true}})
-    end
-
-    if q[:rating].present?
-      must.push({ term: { rating: q[:rating] } })
-    end
-
-    if q[:rating_negated].present?
-      must_not.push({ term: { rating: q[:rating_negated] } })
     end
 
     if q[:locked] == "rating"
@@ -280,11 +267,11 @@ class ElasticPostQueryBuilder
       must.push({term: {status_locked: true}})
     end
 
-    if q[:locked_negated] == "rating"
+    if q[:locked_neg] == "rating"
       must.push({term: {rating_locked: false}})
-    elsif q[:locked_negated] == "note" || q[:locked_negated] == "notes"
+    elsif q[:locked_neg] == "note" || q[:locked_neg] == "notes"
       must.push({term: {note_locked: false}})
-    elsif q[:locked_negated] == "status"
+    elsif q[:locked_neg] == "status"
       must.push({term: {status_locked: false}})
     end
 
@@ -325,30 +312,6 @@ class ElasticPostQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags], must)
-
-    if q[:upvote].present?
-      must.push({term: {upvotes: q[:upvote].to_i}})
-    end
-
-    if q[:downvote].present?
-      must.push({term: {downvotes: q[:downvote].to_i}})
-    end
-
-    if q[:voted].present?
-      must.push(should({term: {upvotes: q[:voted].to_i}},
-                       {term: {downvotes: q[:voted].to_i}}))
-    end
-    if q[:upvote_neg].present?
-      must_not.push({ term: { upvotes: q[:upvote_neg].to_i } })
-    end
-
-    if q[:downvote_neg].present?
-      must_not.push({ term: { downvotes: q[:downvote_neg].to_i } })
-    end
-
-    if q[:voted_neg].present?
-      must_not.push({ term: { upvotes: q[:voted_neg].to_i } }, { term: { downvotes: q[:voted_neg].to_i } })
-    end
 
     if q[:order] == "rank"
       must.push({range: {score: {gt: 0}}})

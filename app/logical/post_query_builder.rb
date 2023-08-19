@@ -123,8 +123,8 @@ class PostQueryBuilder
       relation = relation.where("posts.last_noted_at is null")
     end
 
-    if q[:post_id_negated]
-      relation = relation.where("posts.id <> ?", q[:post_id_negated])
+    if q[:post_id_neg]
+      relation = relation.where("posts.id <> ?", q[:post_id_neg])
     end
 
     if q[:parent] == "none"
@@ -151,8 +151,8 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", q[:rating])
     end
 
-    if q[:rating_negated].present?
-      relation = relation.where("posts.rating <> ?", q[:rating_negated])
+    if q[:rating_neg].present?
+      relation = relation.where("posts.rating <> ?", q[:rating_neg])
     end
 
     if q[:locked] == "rating"
@@ -163,11 +163,11 @@ class PostQueryBuilder
       relation = relation.where("posts.is_status_locked = TRUE")
     end
 
-    if q[:locked_negated] == "rating"
+    if q[:locked_neg] == "rating"
       relation = relation.where("posts.is_rating_locked = FALSE")
-    elsif q[:locked_negated] == "note" || q[:locked_negated] == "notes"
+    elsif q[:locked_neg] == "note" || q[:locked_neg] == "notes"
       relation = relation.where("posts.is_note_locked = FALSE")
-    elsif q[:locked_negated] == "status"
+    elsif q[:locked_neg] == "status"
       relation = relation.where("posts.is_status_locked = FALSE")
     end
 
