@@ -5,10 +5,10 @@ module PostSets
 
     def initialize(tags, page = 1, per_page = nil, options = {})
       tags ||= ""
-      @public_tag_array = Tag.scan_query(tags)
+      @public_tag_array = Tag.scan_tags(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
-      @tag_array = Tag.scan_query(tags)
+      @tag_array = Tag.scan_tags(tags)
       @page = page
       @per_page = per_page
       @random = options[:random].present?

@@ -91,8 +91,8 @@ class TagTest < ActiveSupport::TestCase
 
   context "A tag parser" do
     should "scan a query" do
-      assert_equal(%w(aaa bbb), Tag.scan_query("aaa bbb"))
-      assert_equal(%w(~AAa -BBB* -bbb*), Tag.scan_query("~AAa -BBB* -bbb*"))
+      assert_equal(%w(aaa bbb), Tag.scan_tags("aaa bbb"))
+      assert_equal(%w(~AAa -BBB* -bbb*), Tag.scan_tags("~AAa -BBB* -bbb*"))
     end
 
     should "not strip out valid characters when scanning" do

@@ -302,7 +302,7 @@ class Tag < ApplicationRecord
     end
 
     def normalize_query(query, sort: true)
-      tags = Tag.scan_query(query.to_s)
+      tags = Tag.scan_tags(query.to_s)
       tags = tags.map {|t| Tag.normalize_name(t)}
       tags = TagAlias.to_aliased(tags)
       tags = tags.sort if sort
@@ -310,20 +310,10 @@ class Tag < ApplicationRecord
       tags.join(" ")
     end
 
-    def scan_query(query)
-      tagstr = normalize(query)
+    def scan_tags(tags)
+      tagstr = normalize(tags)
       list = tagstr.scan(/-?source:".*?"/) || []
       list + tagstr.gsub(/-?source:".*?"/, "").scan(/[^[:space:]]+/).uniq
-    end
-
-    def scan_tags(tags, options = {})
-      tagstr = normalize(tags)
-      list = tagstr.scan(/source:".*?"/) || []
-      list += tagstr.gsub(/source:".*?"/, "").scan(/[^[:space:]]+/).uniq
-      if options[:strip_metatags]
-        list = list.map {|x| x.sub(/^[-~]/, "")}
-      end
-      list
     end
 
     def yester_helper(count, unit)
@@ -534,7 +524,7 @@ class Tag < ApplicationRecord
     def has_metatag?(tags, *metatags)
       return false if tags.blank?
 
-      tags = scan_query(tags.to_str) if tags.respond_to?(:to_str)
+      tags = scan_tags(tags.to_str) if tags.respond_to?(:to_str)
       tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
     end
 
@@ -554,7 +544,7 @@ class Tag < ApplicationRecord
         val
       end
 
-      scan_query(query).each do |token|
+      scan_tags(query).each do |token|
         q[:tag_count] += 1 unless Danbooru.config.is_unlimited_tag?(token)
 
         if token =~ /\A(#{METATAGS.join("|")}):(.+)\z/i
