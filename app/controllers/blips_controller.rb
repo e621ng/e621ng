@@ -29,10 +29,7 @@ class BlipsController < ApplicationController
   def update
     @blip = Blip.find(params[:id])
     check_edit_privilege(@blip)
-    Blip.transaction do
-      @blip.update(blip_params(:update))
-      ModAction.log(:blip_update, { blip_id: @blip.id, user_id: @blip.creator_id }) if CurrentUser.user != @blip.creator
-    end
+    @blip.update(blip_params(:update))
     flash[:notice] = 'Blip updated'
     respond_with(@blip)
   end
@@ -52,8 +49,6 @@ class BlipsController < ApplicationController
 
   def destroy
     @blip = Blip.find(params[:id])
-
-    ModAction.log(:blip_delete, {blip_id: @blip.id, user_id: @blip.creator_id})
     @blip.destroy
     flash[:notice] = 'Blip deleted'
     respond_with(@blip) do |format|
