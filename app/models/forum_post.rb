@@ -29,7 +29,7 @@ class ForumPost < ApplicationRecord
   after_update(if: ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
     ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_destroy(if: ->(rec) { rec.updater_id != rec.creator_id }) do |rec|
+  after_destroy do |rec|
     ModAction.log(:forum_post_delete, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
 
