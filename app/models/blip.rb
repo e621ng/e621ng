@@ -2,13 +2,16 @@ class Blip < ApplicationRecord
   include UserWarnable
   simple_versioning
   belongs_to_creator
-  user_status_counter :blip_count
+  belongs_to_updater optional: true
   validates :body, presence: true
-  belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
-  has_many :responses, class_name: "Blip", foreign_key: "response_to"
   validates :body, length: { minimum: 5, maximum: Danbooru.config.blip_max_size }
-  validate :validate_parent_exists, :on => :create
-  validate :validate_creator_is_not_limited, :on => :create
+  validate :validate_parent_exists, on: create
+  validate :validate_creator_is_not_limited, on: create
+
+  user_status_counter :blip_count
+  belongs_to :parent, class_name: "Blip", foreign_key: "response_to", optional: true
+  belongs_to :warning_user, class_name: "User", optional: true
+  has_many :responses, class_name: "Blip", foreign_key: "response_to"
 
   def response?
     parent.present?

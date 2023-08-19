@@ -24,6 +24,7 @@
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
       <% if blip.was_warned? %>
+        <%= render "application/update_notice", record: blip %>
         <div class="user-warning">
           <hr>
           <em><%= blip.warning_type_string %></em>
