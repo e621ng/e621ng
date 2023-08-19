@@ -529,14 +529,13 @@ class Tag < ApplicationRecord
     end
 
     def parse_query(query, options = {})
-      q = {}
-
-      q[:tag_count] = 0
-
-      q[:tags] = {
-          :related => [],
-          :include => [],
-          :exclude => []
+      q = {
+        tag_count: 0,
+        tags: {
+          related: [],
+          include: [],
+          exclude: [],
+        },
       }
 
       def id_or_invalid(val)
@@ -547,338 +546,334 @@ class Tag < ApplicationRecord
       scan_tags(query).each do |token|
         q[:tag_count] += 1 unless Danbooru.config.is_unlimited_tag?(token)
 
-        if token =~ /\A(#{METATAGS.join("|")}):(.+)\z/i
-          g1 = $1.downcase
-          g2 = $2
-          case g1
-          when "-user"
-            q[:uploader_id_neg] ||= []
+        metatag_name, g2 = token.split(":", 2)
+        case metatag_name.downcase
+        when "-user"
+          q[:uploader_id_neg] ||= []
+          user_id = User.name_or_id_to_id(g2)
+          q[:uploader_id_neg] << id_or_invalid(user_id)
+
+        when "user"
+          user_id = User.name_or_id_to_id(g2)
+          q[:uploader_id] = id_or_invalid(user_id)
+
+        when "user_id"
+          q[:uploader_id] = g2.to_i
+
+        when "-user_id"
+          q[:uploader_id_neg] << g2.to_i
+
+        when "-approver"
+          if g2 == "none"
+            q[:approver_id] = "any"
+          elsif g2 == "any"
+            q[:approver_id] = "none"
+          else
+            q[:approver_id_neg] ||= []
             user_id = User.name_or_id_to_id(g2)
-            q[:uploader_id_neg] << id_or_invalid(user_id)
-
-          when "user"
-            user_id = User.name_or_id_to_id(g2)
-            q[:uploader_id] = id_or_invalid(user_id)
-
-          when "user_id"
-            q[:uploader_id] = g2.to_i
-
-          when "-user_id"
-            q[:uploader_id_neg] << g2.to_i
-
-          when "-approver"
-            if g2 == "none"
-              q[:approver_id] = "any"
-            elsif g2 == "any"
-              q[:approver_id] = "none"
-            else
-              q[:approver_id_neg] ||= []
-              user_id = User.name_or_id_to_id(g2)
-              q[:approver_id_neg] << id_or_invalid(user_id)
-            end
-
-          when "approver"
-            if g2 == "none"
-              q[:approver_id] = "none"
-            elsif g2 == "any"
-              q[:approver_id] = "any"
-            else
-              user_id = User.name_or_id_to_id(g2)
-              q[:approver_id] = id_or_invalid(user_id)
-            end
-
-          when "commenter", "comm"
-            q[:commenter_ids] ||= []
-
-            if g2 == "none"
-              q[:commenter_ids] << "none"
-            elsif g2 == "any"
-              q[:commenter_ids] << "any"
-            else
-              user_id = User.name_or_id_to_id(g2)
-              q[:commenter_ids] << id_or_invalid(user_id)
-            end
-
-          when "noter"
-            q[:noter_ids] ||= []
-
-            if g2 == "none"
-              q[:noter_ids] << "none"
-            elsif g2 == "any"
-              q[:noter_ids] << "any"
-            else
-              user_id = User.name_or_id_to_id(g2)
-              q[:noter_ids] << id_or_invalid(user_id)
-            end
-
-          when "noteupdater"
-            q[:note_updater_ids] ||= []
-            user_id = User.name_or_id_to_id(g2)
-            q[:note_updater_ids] << id_or_invalid(user_id)
-
-          when "-pool"
-            q[:pools_neg] ||= []
-            if g2.downcase == "none"
-              q[:pool] = "any"
-            elsif g2.downcase == "any"
-              q[:pool] = "none"
-            elsif g2.include?("*")
-              pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-              q[:pools_neg] += pool_ids
-            else
-              q[:pools_neg] << Pool.name_to_id(g2)
-            end
-
-          when "pool"
-            q[:pools] ||= []
-            if g2.downcase == "none"
-              q[:pool] = "none"
-            elsif g2.downcase == "any"
-              q[:pool] = "any"
-            elsif g2.include?("*")
-              pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-              q[:pools] += pool_ids
-            else
-              q[:pools] << Pool.name_to_id(g2)
-            end
-
-          when "set"
-            q[:sets] ||= []
-            post_set_id = PostSet.name_to_id(g2)
-            post_set = PostSet.find_by_id(post_set_id)
-
-            next unless post_set
-
-            unless post_set.can_view?(CurrentUser.user)
-              raise User::PrivilegeError
-            end
-
-            q[:sets] << post_set_id
-
-          when "-set"
-            q[:sets_neg] ||= []
-            post_set_id = PostSet.name_to_id(g2)
-            post_set = PostSet.find_by_id(post_set_id)
-
-            next unless post_set
-
-            unless post_set.can_view?(CurrentUser.user)
-              raise User::PrivilegeError
-            end
-
-            q[:sets_neg] << post_set_id
-
-          when "-fav", "-favoritedby"
-            q[:fav_ids_neg] ||= []
-            favuser = User.find_by_name_or_id(g2)
-
-            next unless favuser
-
-            if favuser.hide_favorites?
-              raise Favorite::HiddenError
-            end
-
-            q[:fav_ids_neg] << favuser.id
-
-          when "fav", "favoritedby"
-            q[:fav_ids] ||= []
-            favuser = User.find_by_name_or_id(g2)
-
-            next unless favuser
-
-            if favuser.hide_favorites?
-              raise Favorite::HiddenError
-            end
-
-            q[:fav_ids] << favuser.id
-
-          when "md5"
-            q[:md5] = g2.downcase.split(",")[0..99]
-
-          when "-rating"
-            q[:rating_negated] = g2.downcase
-
-          when "rating"
-            q[:rating] = g2.downcase
-
-          when "-locked"
-            q[:locked_negated] = g2.downcase
-
-          when "locked"
-            q[:locked] = g2.downcase
-
-          when "id"
-            q[:post_id] = parse_helper(g2)
-
-          when "-id"
-            q[:post_id_negated] = g2.to_i
-
-          when "width"
-            q[:width] = parse_helper(g2)
-
-          when "height"
-            q[:height] = parse_helper(g2)
-
-          when "mpixels"
-            q[:mpixels] = parse_helper_fudged(g2, :float)
-
-          when "ratio"
-            q[:ratio] = parse_helper(g2, :ratio)
-
-          when "duration"
-            q[:duration] = parse_helper(g2, :float)
-
-          when "score"
-            q[:score] = parse_helper(g2)
-
-          when "favcount"
-            q[:fav_count] = parse_helper(g2)
-
-          when "filesize"
-            q[:filesize] = parse_helper_fudged(g2, :filesize)
-
-          when "change"
-            q[:change_seq] = parse_helper(g2)
-
-          when "source"
-            src = g2.gsub(/\A"(.*)"\Z/, '\1')
-            q[:source] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
-
-          when "-source"
-            src = g2.gsub(/\A"(.*)"\Z/, '\1')
-            q[:source_neg] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
-
-          when "date"
-            parsed_date = parse_date(g2)
-            q[:date] = parsed_date unless parsed_date[1].nil?
-
-          when "age"
-            q[:age] = reverse_parse_helper(parse_helper(g2, :age))
-
-          when "tagcount"
-            q[:post_tag_count] = parse_helper(g2)
-
-          when /(#{TagCategory::SHORT_NAME_REGEX})tags/
-            q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
-
-          when "parent"
-            q[:parent] = g2.downcase
-
-          when "-parent"
-            if g2.downcase == "none"
-              q[:parent] = "any"
-            elsif g2.downcase == "any"
-              q[:parent] = "none"
-            else
-              q[:parent_neg_ids] ||= []
-              q[:parent_neg_ids] << g2.downcase
-            end
-
-          when "child"
-            q[:child] = g2.downcase
-
-          when "randseed"
-            q[:random] = g2.to_i
-
-          when "order"
-            g2 = g2.downcase
-
-            order, suffix, _ = g2.partition(/_(asc|desc)\z/i)
-
-            q[:order] = g2
-
-          when "limit"
-            # Do nothing. The controller takes care of it.
-
-          when "-status"
-            q[:status_neg] = g2.downcase
-
-          when "status"
-            q[:status] = g2.downcase
-
-          when "filetype", "type"
-            q[:filetype] = g2.downcase
-
-          when "-filetype", "-type"
-            q[:filetype_neg] = g2.downcase
-
-          when "description"
-            q[:description] = g2
-
-          when "-description"
-            q[:description_neg] = g2
-
-          when "note"
-            q[:note] = g2
-
-          when "-note"
-            q[:note_neg] = g2
-
-          when "delreason"
-            q[:delreason] = g2.to_escaped_for_sql_like
-            q[:status] ||= 'any'
-
-          when "-delreason"
-            q[:delreason] = g2.to_escaped_for_sql_like
-            q[:status] ||= 'any'
-
-          when "deletedby"
-            q[:deleter] = User.name_or_id_to_id(g2)
-            q[:status] ||= 'any'
-
-          when "-deletedby"
-            q[:deleter_neg] = User.name_or_id_to_id(g2)
-            q[:status] ||= 'any'
-
-          when "upvote", "votedup"
-            if CurrentUser.is_moderator?
-              q[:upvote] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:upvote] = CurrentUser.id
-            end
-
-          when "downvote", "voteddown"
-            if CurrentUser.is_moderator?
-              q[:downvote] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:downvote] = CurrentUser.id
-            end
-
-          when "voted"
-            if CurrentUser.is_moderator?
-              q[:voted] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:voted] = CurrentUser.id
-            end
-
-          when "-voted"
-            if CurrentUser.is_moderator?
-              q[:neg_voted] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:neg_voted] = CurrentUser.id
-            end
-
-          when "-upvote", "-votedup"
-            if CurrentUser.is_moderator?
-              q[:neg_upvote] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:neg_upvote] = CurrentUser.id
-            end
-
-          when "-downvote", "-voteddown"
-            if CurrentUser.is_moderator?
-              q[:neg_downvote] = User.name_or_id_to_id(g2)
-            elsif CurrentUser.is_member?
-              q[:neg_downvote] = CurrentUser.id
-            end
-
-          when *COUNT_METATAGS
-            q[g1.to_sym] = parse_helper(g2)
-
-          when *BOOLEAN_METATAGS
-            q[g1.to_sym] = parse_boolean(g2)
-
+            q[:approver_id_neg] << id_or_invalid(user_id)
           end
+
+        when "approver"
+          if g2 == "none"
+            q[:approver_id] = "none"
+          elsif g2 == "any"
+            q[:approver_id] = "any"
+          else
+            user_id = User.name_or_id_to_id(g2)
+            q[:approver_id] = id_or_invalid(user_id)
+          end
+
+        when "commenter", "comm"
+          q[:commenter_ids] ||= []
+
+          if g2 == "none"
+            q[:commenter_ids] << "none"
+          elsif g2 == "any"
+            q[:commenter_ids] << "any"
+          else
+            user_id = User.name_or_id_to_id(g2)
+            q[:commenter_ids] << id_or_invalid(user_id)
+          end
+
+        when "noter"
+          q[:noter_ids] ||= []
+
+          if g2 == "none"
+            q[:noter_ids] << "none"
+          elsif g2 == "any"
+            q[:noter_ids] << "any"
+          else
+            user_id = User.name_or_id_to_id(g2)
+            q[:noter_ids] << id_or_invalid(user_id)
+          end
+
+        when "noteupdater"
+          q[:note_updater_ids] ||= []
+          user_id = User.name_or_id_to_id(g2)
+          q[:note_updater_ids] << id_or_invalid(user_id)
+
+        when "-pool"
+          q[:pools_neg] ||= []
+          if g2.downcase == "none"
+            q[:pool] = "any"
+          elsif g2.downcase == "any"
+            q[:pool] = "none"
+          elsif g2.include?("*")
+            pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
+            q[:pools_neg] += pool_ids
+          else
+            q[:pools_neg] << Pool.name_to_id(g2)
+          end
+
+        when "pool"
+          q[:pools] ||= []
+          if g2.downcase == "none"
+            q[:pool] = "none"
+          elsif g2.downcase == "any"
+            q[:pool] = "any"
+          elsif g2.include?("*")
+            pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
+            q[:pools] += pool_ids
+          else
+            q[:pools] << Pool.name_to_id(g2)
+          end
+
+        when "set"
+          q[:sets] ||= []
+          post_set_id = PostSet.name_to_id(g2)
+          post_set = PostSet.find_by_id(post_set_id)
+
+          next unless post_set
+
+          unless post_set.can_view?(CurrentUser.user)
+            raise User::PrivilegeError
+          end
+
+          q[:sets] << post_set_id
+
+        when "-set"
+          q[:sets_neg] ||= []
+          post_set_id = PostSet.name_to_id(g2)
+          post_set = PostSet.find_by_id(post_set_id)
+
+          next unless post_set
+
+          unless post_set.can_view?(CurrentUser.user)
+            raise User::PrivilegeError
+          end
+
+          q[:sets_neg] << post_set_id
+
+        when "-fav", "-favoritedby"
+          q[:fav_ids_neg] ||= []
+          favuser = User.find_by_name_or_id(g2)
+
+          next unless favuser
+
+          if favuser.hide_favorites?
+            raise Favorite::HiddenError
+          end
+
+          q[:fav_ids_neg] << favuser.id
+
+        when "fav", "favoritedby"
+          q[:fav_ids] ||= []
+          favuser = User.find_by_name_or_id(g2)
+
+          next unless favuser
+
+          if favuser.hide_favorites?
+            raise Favorite::HiddenError
+          end
+
+          q[:fav_ids] << favuser.id
+
+        when "md5"
+          q[:md5] = g2.downcase.split(",")[0..99]
+
+        when "-rating"
+          q[:rating_negated] = g2.downcase
+
+        when "rating"
+          q[:rating] = g2.downcase
+
+        when "-locked"
+          q[:locked_negated] = g2.downcase
+
+        when "locked"
+          q[:locked] = g2.downcase
+
+        when "id"
+          q[:post_id] = parse_helper(g2)
+
+        when "-id"
+          q[:post_id_negated] = g2.to_i
+
+        when "width"
+          q[:width] = parse_helper(g2)
+
+        when "height"
+          q[:height] = parse_helper(g2)
+
+        when "mpixels"
+          q[:mpixels] = parse_helper_fudged(g2, :float)
+
+        when "ratio"
+          q[:ratio] = parse_helper(g2, :ratio)
+
+        when "duration"
+          q[:duration] = parse_helper(g2, :float)
+
+        when "score"
+          q[:score] = parse_helper(g2)
+
+        when "favcount"
+          q[:fav_count] = parse_helper(g2)
+
+        when "filesize"
+          q[:filesize] = parse_helper_fudged(g2, :filesize)
+
+        when "change"
+          q[:change_seq] = parse_helper(g2)
+
+        when "source"
+          src = g2.gsub(/\A"(.*)"\Z/, '\1')
+          q[:source] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
+
+        when "-source"
+          src = g2.gsub(/\A"(.*)"\Z/, '\1')
+          q[:source_neg] = (src.to_escaped_for_sql_like + "%").gsub(/%+/, '%')
+
+        when "date"
+          parsed_date = parse_date(g2)
+          q[:date] = parsed_date unless parsed_date[1].nil?
+
+        when "age"
+          q[:age] = reverse_parse_helper(parse_helper(g2, :age))
+
+        when "tagcount"
+          q[:post_tag_count] = parse_helper(g2)
+
+        when /(#{TagCategory::SHORT_NAME_REGEX})tags/
+          q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
+
+        when "parent"
+          q[:parent] = g2.downcase
+
+        when "-parent"
+          if g2.downcase == "none"
+            q[:parent] = "any"
+          elsif g2.downcase == "any"
+            q[:parent] = "none"
+          else
+            q[:parent_neg_ids] ||= []
+            q[:parent_neg_ids] << g2.downcase
+          end
+
+        when "child"
+          q[:child] = g2.downcase
+
+        when "randseed"
+          q[:random] = g2.to_i
+
+        when "order"
+          g2 = g2.downcase
+
+          order, suffix, _ = g2.partition(/_(asc|desc)\z/i)
+
+          q[:order] = g2
+
+        when "limit"
+          # Do nothing. The controller takes care of it.
+
+        when "-status"
+          q[:status_neg] = g2.downcase
+
+        when "status"
+          q[:status] = g2.downcase
+
+        when "filetype", "type"
+          q[:filetype] = g2.downcase
+
+        when "-filetype", "-type"
+          q[:filetype_neg] = g2.downcase
+
+        when "description"
+          q[:description] = g2
+
+        when "-description"
+          q[:description_neg] = g2
+
+        when "note"
+          q[:note] = g2
+
+        when "-note"
+          q[:note_neg] = g2
+
+        when "delreason"
+          q[:delreason] = g2.to_escaped_for_sql_like
+          q[:status] ||= 'any'
+
+        when "-delreason"
+          q[:delreason] = g2.to_escaped_for_sql_like
+          q[:status] ||= 'any'
+
+        when "deletedby"
+          q[:deleter] = User.name_or_id_to_id(g2)
+          q[:status] ||= 'any'
+
+        when "-deletedby"
+          q[:deleter_neg] = User.name_or_id_to_id(g2)
+          q[:status] ||= 'any'
+
+        when "upvote", "votedup"
+          if CurrentUser.is_moderator?
+            q[:upvote] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:upvote] = CurrentUser.id
+          end
+
+        when "downvote", "voteddown"
+          if CurrentUser.is_moderator?
+            q[:downvote] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:downvote] = CurrentUser.id
+          end
+
+        when "voted"
+          if CurrentUser.is_moderator?
+            q[:voted] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:voted] = CurrentUser.id
+          end
+
+        when "-voted"
+          if CurrentUser.is_moderator?
+            q[:neg_voted] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:neg_voted] = CurrentUser.id
+          end
+
+        when "-upvote", "-votedup"
+          if CurrentUser.is_moderator?
+            q[:neg_upvote] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:neg_upvote] = CurrentUser.id
+          end
+
+        when "-downvote", "-voteddown"
+          if CurrentUser.is_moderator?
+            q[:neg_downvote] = User.name_or_id_to_id(g2)
+          elsif CurrentUser.is_member?
+            q[:neg_downvote] = CurrentUser.id
+          end
+
+        when *COUNT_METATAGS
+          q[metatag_name.downcase.to_sym] = parse_helper(g2)
+
+        when *BOOLEAN_METATAGS
+          q[metatag_name.downcase.to_sym] = parse_boolean(g2)
 
         else
           parse_tag(token, q[:tags])
