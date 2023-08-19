@@ -19,8 +19,6 @@ class Tag < ApplicationRecord
     deletedby -deletedby votedup voteddown -votedup -voteddown duration
   ] + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
 
-  SUBQUERY_METATAGS = %w[commenter comm noter noteupdater flagger -flagger]
-
   ORDER_METATAGS = %w[
     id id_desc
     score score_asc
@@ -528,6 +526,35 @@ class Tag < ApplicationRecord
       tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
     end
 
+    def add_to_query(q, type, key, any_none_key: nil, value: nil, &)
+      if any_none_key && (value.downcase == "none" || value.downcase == "any")
+        add_any_none_to_query(q, type, value.downcase, any_none_key)
+        return
+      end
+
+      case type
+      when :must
+        q[key] ||= []
+        q[key] << yield
+      when :must_not
+        q[:"#{key}_neg"] ||= []
+        q[:"#{key}_neg"] << yield
+      end
+    end
+
+    def add_any_none_to_query(q, type, value, key)
+      case type
+      when :must
+        q[key] = value
+      when :must_not
+        if value == "none"
+          q[key] = "any"
+        else
+          q[key] = "none"
+        end
+      end
+    end
+
     def parse_query(query, options = {})
       q = {
         tag_count: 0,
@@ -545,151 +572,74 @@ class Tag < ApplicationRecord
 
       scan_tags(query).each do |token|
         q[:tag_count] += 1 unless Danbooru.config.is_unlimited_tag?(token)
-
         metatag_name, g2 = token.split(":", 2)
+        type = metatag_name.start_with?("-") ? :must_not : :must
+
         case metatag_name.downcase
-        when "-user"
-          q[:uploader_ids_neg] ||= []
-          user_id = User.name_or_id_to_id(g2)
-          q[:uploader_ids_neg] << id_or_invalid(user_id)
-
-        when "user"
-          q[:uploader_ids] ||= []
-          user_id = User.name_or_id_to_id(g2)
-          q[:uploader_ids] << id_or_invalid(user_id)
-
-        when "user_id"
-          q[:uploader_ids] ||= []
-          q[:uploader_ids] << g2.to_i
-
-        when "-user_id"
-          q[:uploader_ids_neg] ||= []
-          q[:uploader_ids_neg] << g2.to_i
-
-        when "-approver"
-          if g2 == "none"
-            q[:approver] = "any"
-          elsif g2 == "any"
-            q[:approver] = "none"
-          else
-            q[:approver_ids_neg] ||= []
+        when "-user", "user"
+          add_to_query(q, type, :uploader_ids) do
             user_id = User.name_or_id_to_id(g2)
-            q[:approver_ids_neg] << id_or_invalid(user_id)
+            id_or_invalid(user_id)
           end
 
-        when "approver"
-          if g2 == "none"
-            q[:approver] = "none"
-          elsif g2 == "any"
-            q[:approver] = "any"
-          else
-            q[:approver_ids] ||= []
+        when "user_id", "-user_id"
+          add_to_query(q, type, :uploader_ids) do
+            g2.to_id
+          end
+
+        when "approver", "-approver"
+          add_to_query(q, type, :approver_ids, any_none_key: :approver, value: g2) do
             user_id = User.name_or_id_to_id(g2)
-            q[:approver_ids] << id_or_invalid(user_id)
+            id_or_invalid(user_id)
           end
 
         when "commenter", "comm"
-          if g2 == "none"
-            q[:commenter] = "none"
-          elsif g2 == "any"
-            q[:commenter] = "any"
-          else
-            q[:commenter_ids] ||= []
+          add_to_query(q, type, :commenter_ids, any_none_key: :commenter, value: g2) do
             user_id = User.name_or_id_to_id(g2)
-            q[:commenter_ids] << id_or_invalid(user_id)
+            id_or_invalid(user_id)
           end
 
         when "noter"
-          if g2 == "none"
-            q[:noter] = "none"
-          elsif g2 == "any"
-            q[:noter] = "any"
-          else
-            q[:noter_ids] ||= []
+          add_to_query(q, type, :noter_ids, any_none_key: :noter, value: g2) do
             user_id = User.name_or_id_to_id(g2)
-            q[:noter_ids] << id_or_invalid(user_id)
+            id_or_invalid(user_id)
           end
 
         when "noteupdater"
-          q[:note_updater_ids] ||= []
-          user_id = User.name_or_id_to_id(g2)
-          q[:note_updater_ids] << id_or_invalid(user_id)
-
-        when "-pool"
-          q[:pool_ids_neg] ||= []
-          if g2.downcase == "none"
-            q[:pool] = "any"
-          elsif g2.downcase == "any"
-            q[:pool] = "none"
-          elsif g2.include?("*")
-            pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-            q[:pool_ids_neg] += pool_ids
-          else
-            q[:pool_ids_neg] << Pool.name_to_id(g2)
+          add_to_query(q, type, :note_updater_ids) do
+            user_id = User.name_or_id_to_id(g2)
+            id_or_invalid(user_id)
           end
 
-        when "pool"
-          q[:pool_ids] ||= []
-          if g2.downcase == "none"
-            q[:pool] = "none"
-          elsif g2.downcase == "any"
-            q[:pool] = "any"
-          elsif g2.include?("*")
-            pool_ids = Pool.search(name_matches: g2, order: "post_count").select(:id).limit(Danbooru.config.tag_query_limit).pluck(:id)
-            q[:pool_ids] += pool_ids
-          else
-            q[:pool_ids] << Pool.name_to_id(g2)
+        when "pool", "-pool"
+          add_to_query(q, type, :pool_ids, any_none_key: :pool, value: g2) do
+            Pool.name_to_id(g2)
           end
 
-        when "set"
-          q[:set_ids] ||= []
-          post_set_id = PostSet.name_to_id(g2)
-          post_set = PostSet.find_by_id(post_set_id)
+        when "set", "-set"
+          add_to_query(q, type, :set_ids) do
+            post_set_id = PostSet.name_to_id(g2)
+            post_set = PostSet.find_by(id: post_set_id)
 
-          next unless post_set
+            next 0 unless post_set
+            unless post_set.can_view?(CurrentUser.user)
+              raise User::PrivilegeError
+            end
 
-          unless post_set.can_view?(CurrentUser.user)
-            raise User::PrivilegeError
+            post_set_id
           end
 
-          q[:set_ids] << post_set_id
+        when "fav", "favoritedby", "-fav", "-favoritedby"
+          add_to_query(q, type, :fav_ids) do
+            favuser = User.find_by_name_or_id(g2)
 
-        when "-set"
-          q[:set_ids_neg] ||= []
-          post_set_id = PostSet.name_to_id(g2)
-          post_set = PostSet.find_by_id(post_set_id)
+            next 0 unless favuser
+            if favuser.hide_favorites?
+              raise Favorite::HiddenError
+            end
 
-          next unless post_set
-
-          unless post_set.can_view?(CurrentUser.user)
-            raise User::PrivilegeError
+            favuser.id
           end
-
-          q[:set_ids_neg] << post_set_id
-
-        when "-fav", "-favoritedby"
-          q[:fav_ids_neg] ||= []
-          favuser = User.find_by_name_or_id(g2)
-
-          next unless favuser
-
-          if favuser.hide_favorites?
-            raise Favorite::HiddenError
-          end
-
-          q[:fav_ids_neg] << favuser.id
-
-        when "fav", "favoritedby"
-          q[:fav_ids] ||= []
-          favuser = User.find_by_name_or_id(g2)
-
-          next unless favuser
-
-          if favuser.hide_favorites?
-            raise Favorite::HiddenError
-          end
-
-          q[:fav_ids] << favuser.id
 
         when "md5"
           q[:md5] = g2.downcase.split(",")[0..99]
@@ -760,24 +710,9 @@ class Tag < ApplicationRecord
         when /(#{TagCategory::SHORT_NAME_REGEX})tags/
           q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
 
-        when "parent"
-          if g2.downcase == "none"
-            q[:parent] = "none"
-          elsif g2.downcase == "any"
-            q[:parent] = "any"
-          else
-            q[:parent_ids] ||= []
-            q[:parent_ids] << g2.downcase
-          end
-
-        when "-parent"
-          if g2.downcase == "none"
-            q[:parent] = "any"
-          elsif g2.downcase == "any"
-            q[:parent] = "none"
-          else
-            q[:parent_ids_neg] ||= []
-            q[:parent_ids_neg] << g2.downcase
+        when "parent", "-parent"
+          add_to_query(q, type, :parent_ids, any_none_key: :parent, value: g2) do
+            g2.to_i
           end
 
         when "child"

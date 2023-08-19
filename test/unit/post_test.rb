@@ -1614,8 +1614,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post1], "pool:test_a")
       assert_tag_match([post2], "-pool:test_a")
       assert_tag_match([], "-pool:test_a -pool:test_b")
-      # FIXME: This only works when only one pool matches the wildcard
-      # assert_tag_match([post2, post1], "pool:test*")
 
       assert_tag_match([post2, post1], "pool:any")
       assert_tag_match([], "pool:none")

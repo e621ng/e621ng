@@ -1,8 +1,11 @@
 class ElasticPostQueryBuilder
-  attr_accessor :query_string
+  attr_accessor :query_string, :must, :must_not, :order
 
   def initialize(query_string)
     @query_string = query_string
+    @must = [] # These terms are ANDed together
+    @must_not = [] # These terms are NOT ANDed together
+    @order = []
   end
 
   def add_range_relation(arr, field, relation)
@@ -38,6 +41,22 @@ class ElasticPostQueryBuilder
     end
 
     relation
+  end
+
+  def add_array_relation(q, key, index_key, any_none_key: nil)
+    if q[key]
+      must.concat(q[key].map { |x| { term: { index_key => x } } })
+    end
+
+    if q[:"#{key}_neg"]
+      must_not.concat(q[:"#{key}_neg"].map { |x| { term: { index_key => x } } })
+    end
+
+    if q[any_none_key] == "any"
+      must.push({ exists: { field: index_key } })
+    elsif q[any_none_key] == "none"
+      must_not.push({ exists: { field: index_key } })
+    end
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -100,10 +119,6 @@ class ElasticPostQueryBuilder
     if q[:tag_count].to_i > Danbooru.config.tag_query_limit
       raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
     end
-
-    must = [] # These terms are ANDed together
-    must_not = [] # These terms are NOT ANDed together
-    order = []
 
     if CurrentUser.safe_mode?
       must.push({term: {rating: "s"}})
@@ -205,78 +220,15 @@ class ElasticPostQueryBuilder
       end
     end
 
-    if q[:pool] == "none"
-      must_not.push({exists: {field: :pools}})
-    elsif q[:pool] == "any"
-      must.push({exists: {field: :pools}})
-    end
-
-    if q[:pool_ids]
-      must.concat(q[:pool_ids].map { |x| { term: { pools: x } } })
-    end
-    if q[:pool_ids_neg]
-      must_not.concat(q[:pool_ids_neg].map { |x| { term: { pools: x } } })
-    end
-
-    if q[:set_ids]
-      must.concat(q[:set_ids].map { |x| { term: { sets: x } } })
-    end
-    if q[:set_ids_neg]
-      must_not.concat(q[:set_ids_neg].map { |x| { term: { sets: x } } })
-    end
-
-    if q[:fav_ids]
-      must.concat(q[:fav_ids].map {|x| {term: {faves: x}}})
-    end
-    if q[:fav_ids_neg]
-      must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
-    end
-
-    if q[:uploader_ids_neg]
-      must_not.concat(q[:uploader_ids_neg].map { |x| { term: { uploader: x } } })
-    end
-
-    if q[:uploader_ids]
-      must.concat(q[:uploader_ids].map { |x| { term: { uploader: x } } })
-    end
-
-    if q[:approver_ids_neg]
-      must_not.concat(q[:approver_ids_neg].map { |x| { term: { approver: x } } })
-    end
-
-    if q[:approver] == "any"
-      must.push({ exists: { field: :approver } })
-    elsif q[:approver] == "none"
-      must_not.push({ exists: { field: :approver } })
-    end
-
-    if q[:approver_ids]
-      must.concat(q[:approver_ids].map { |x| { term: { approver: x } } })
-    end
-
-    if q[:commenter] == "any"
-      must.push({ exists: { field: :commenters } })
-    elsif q[:commenter] == "none"
-      must_not.push({ exists: { field: :commenters } })
-    end
-
-    if q[:commenter_ids]
-      must.concat(q[:commenter_ids].map { |x| { term: { commenters: x } } })
-    end
-
-    if q[:noter] == "any"
-      must.push({ exists: { field: :noters } })
-    elsif q[:noter] == "none"
-      must_not.push({ exists: { field: :noters } })
-    end
-
-    if q[:noter_ids]
-      must.concat(q[:noter_ids].map { |x| { term: { noters: x } } })
-    end
-
-    if q[:note_updater_ids]
-      must.concat(q[:note_updater_ids].map { |x| { term: { noters: x } } })
-    end
+    add_array_relation(q, :uploader_ids, :uploader)
+    add_array_relation(q, :approver_ids, :approver, any_none_key: :approver)
+    add_array_relation(q, :commenter_ids, :commenters, any_none_key: :commenter)
+    add_array_relation(q, :noter_ids, :noters, any_none_key: :noter)
+    add_array_relation(q, :note_updater_ids, :noters) # Broken, index field missing
+    add_array_relation(q, :pool_ids, :pools, any_none_key: :pool)
+    add_array_relation(q, :set_ids, :sets)
+    add_array_relation(q, :fav_ids, :faves)
+    add_array_relation(q, :parent_ids, :parent, any_none_key: :parent)
 
     if q[:note]
       must.push({match: {notes: q[:note]}})
@@ -304,20 +256,6 @@ class ElasticPostQueryBuilder
 
     if q[:post_id_negated]
       must_not.push({term: {id: q[:post_id_negated].to_i}})
-    end
-
-    if q[:parent] == "none"
-      must_not.push({exists: {field: :parent}})
-    elsif q[:parent] == "any"
-      must.push({exists: {field: :parent}})
-    end
-
-    if q[:parent_ids]
-      must.concat(q[:parent_ids].map { |x| { term: { parent: x.to_i } } })
-    end
-
-    if q[:parent_ids_neg]
-      must_not.concat(q[:parent_ids_neg].map { |x| { term: { parent: x.to_i } } })
     end
 
     if q[:child] == "none"
