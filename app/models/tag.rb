@@ -710,7 +710,7 @@ class Tag < ApplicationRecord
         when "source", "-source"
           add_to_query(q, type, :source) do
             src = g2.gsub(/\A"(.*)"\Z/, '\1')
-            "#{src.to_escaped_for_sql_like}%".gsub(/%+/, "%")
+            "#{src}*"
           end
 
         when "date"
@@ -761,9 +761,7 @@ class Tag < ApplicationRecord
 
         when "delreason", "-delreason"
           q[:status] ||= "any"
-          add_to_query(q, type, :delreason) do
-            g2.to_escaped_for_sql_like
-          end
+          add_to_query(q, type, :delreason) { g2 }
 
         when "deletedby", "-deletedby"
           q[:status] ||= "any"

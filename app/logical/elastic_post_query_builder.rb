@@ -86,27 +86,9 @@ class ElasticPostQueryBuilder
     true
   end
 
-  def sql_like_to_elastic(field, query)
-    # First escape any existing wildcard characters
-    # in the term
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      (\*|\?)    # single asterisk or question mark
-    /x, '\\\\\1')
-
-    # Then replace any unescaped SQL LIKE characters
-    # with a Kleene star
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      %          # single percent sign
-    /x, '*')
-
+  def prepare_wildcard_query(query)
     # Collapse runs of wildcards for efficiency
-    query = query.gsub(/(?:\*)+\*/, '*')
-
-    {wildcard: {field => query}}
+    query.squeeze("*")
   end
 
   def build
@@ -192,22 +174,22 @@ class ElasticPostQueryBuilder
     end
 
     q[:source]&.each do |source|
-      if source == "none%"
+      if source == "none*"
         must_not.push({exists: {field: :source}})
-      elsif source == "http%"
+      elsif source == "http*"
         must.push({prefix: {source: "http"}})
       else
-        must.push(sql_like_to_elastic(:source, source))
+        must.push({ wildcard: { source: prepare_wildcard_query(source) } })
       end
     end
 
     q[:source_neg]&.each do |source|
-      if source == "none%"
+      if source == "none*"
         must.push({exists: {field: :source}})
-      elsif source == "http%"
+      elsif source == "http*"
         must_not.push({prefix: {source: "http"}})
       else
-        must_not.push(sql_like_to_elastic(:source, source))
+        must_not.push({ wildcard: { source: prepare_wildcard_query(source) } })
       end
     end
 
@@ -238,11 +220,11 @@ class ElasticPostQueryBuilder
     end
 
     q[:delreason]&.each do |delreason|
-      must.push(sql_like_to_elastic(:del_reason, delreason))
+      must.push({ wildcard: { del_reason: prepare_wildcard_query(delreason) } })
     end
 
     q[:delreason_neg]&.each do |delreason|
-      must_not.push(sql_like_to_elastic(:del_reason, delreason))
+      must_not.push({ wildcard: { del_reason: prepare_wildcard_query(delreason) } })
     end
 
     if q[:post_id_neg]
