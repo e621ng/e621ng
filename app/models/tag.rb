@@ -7,16 +7,16 @@ class Tag < ApplicationRecord
     hassource hasdescription isparent ischild inpool pending_replacements
   ].freeze
 
+  NEGATABLE_METATAGS = %w[
+    id filetype type rating description parent user user_id approver flagger deletedby delreason
+    source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
+  ].freeze
+
   METATAGS = %w[
-    -user user -approver approver commenter comm noter noteupdater
-    -pool pool -fav fav -favoritedby favoritedby md5 -rating rating note -note
-    -locked locked width height mpixels ratio score favcount filesize source
-    -source id -id date age order limit -status status tagcount parent -parent
-    child search upvote downvote voted filetype -filetype flagger type -type
-    -flagger set -set randseed -voted ratinglocked notelocked statuslocked
-    -upvote -downvote description -description change -user_id user_id delreason -delreason
-    deletedby -deletedby votedup voteddown -votedup -voteddown duration
-  ] + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
+    commenter comm noter noteupdater md5
+    width height mpixels ratio score favcount filesize date age order limit tagcount child
+    randseed ratinglocked notelocked statuslocked change duration
+  ] + Tag::NEGATABLE_METATAGS.map { |tag| [tag, "-#{tag}"] }.flatten + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
 
   ORDER_METATAGS = %w[
     id id_desc
