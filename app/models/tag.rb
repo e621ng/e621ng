@@ -514,10 +514,6 @@ class Tag < ApplicationRecord
       end
     end
 
-    def is_metatag?(tag)
-      has_metatag?(tag, *METATAGS)
-    end
-
     def has_metatag?(tags, *metatags)
       return false if tags.blank?
 

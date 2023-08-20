@@ -172,7 +172,6 @@ class UserPresenter
   def recent_tags_with_types
     versions = PostVersion.where(updater_id: user.id).where("updated_at > ?", 1.hour.ago).order(id: :desc).limit(150)
     tags = versions.flat_map(&:added_tags)
-    tags = tags.reject { |tag| Tag.is_metatag?(tag) }
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)
     tags = tags.take(50)
     Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
