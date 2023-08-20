@@ -10,13 +10,13 @@ class Tag < ApplicationRecord
   NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
     source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
-  ].freeze
+    width height mpixels ratio filesize duration score favcount date age change tagcount
+    commenter comm noter noteupdater
+  ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" }
 
   METATAGS = %w[
-    commenter comm noter noteupdater md5
-    width height mpixels ratio score favcount filesize date age order limit tagcount child
-    randseed ratinglocked notelocked statuslocked change duration
-  ] + Tag::NEGATABLE_METATAGS.map { |tag| [tag, "-#{tag}"] }.flatten + TagCategory::SHORT_NAME_LIST.map { |x| "#{x}tags" } + COUNT_METATAGS + BOOLEAN_METATAGS
+    md5 order limit child randseed ratinglocked notelocked statuslocked
+  ] + Tag::NEGATABLE_METATAGS.map { |tag| [tag, "-#{tag}"] }.flatten + COUNT_METATAGS + BOOLEAN_METATAGS
 
   ORDER_METATAGS = %w[
     id id_desc
@@ -604,19 +604,19 @@ class Tag < ApplicationRecord
             id_or_invalid(user_id)
           end
 
-        when "commenter", "comm"
+        when "commenter", "-commenter", "comm", "-comm"
           add_to_query(q, type, :commenter_ids, any_none_key: :commenter, value: g2) do
             user_id = User.name_or_id_to_id(g2)
             id_or_invalid(user_id)
           end
 
-        when "noter"
+        when "noter", "-noter"
           add_to_query(q, type, :noter_ids, any_none_key: :noter, value: g2) do
             user_id = User.name_or_id_to_id(g2)
             id_or_invalid(user_id)
           end
 
-        when "noteupdater"
+        when "noteupdater", "-noteupdater"
           add_to_query(q, type, :note_updater_ids) do
             user_id = User.name_or_id_to_id(g2)
             id_or_invalid(user_id)
@@ -683,32 +683,32 @@ class Tag < ApplicationRecord
         when "-id"
           q[:post_id_neg] = g2.to_i
 
-        when "width"
-          q[:width] = parse_helper(g2)
+        when "width", "-width"
+          add_to_query(q, type, :width) { parse_helper(g2) }
 
-        when "height"
-          q[:height] = parse_helper(g2)
+        when "height", "-height"
+          add_to_query(q, type, :height) { parse_helper(g2) }
 
-        when "mpixels"
-          q[:mpixels] = parse_helper_fudged(g2, :float)
+        when "mpixels", "-mpixels"
+          add_to_query(q, type, :mpixels) { parse_helper_fudged(g2, :float) }
 
-        when "ratio"
-          q[:ratio] = parse_helper(g2, :ratio)
+        when "ratio", "-ratio"
+          add_to_query(q, type, :ratio) { parse_helper(g2, :ratio) }
 
-        when "duration"
-          q[:duration] = parse_helper(g2, :float)
+        when "duration", "-duration"
+          add_to_query(q, type, :duration) { parse_helper(g2, :float) }
 
-        when "score"
-          q[:score] = parse_helper(g2)
+        when "score", "-score"
+          add_to_query(q, type, :score) { parse_helper(g2) }
 
-        when "favcount"
-          q[:fav_count] = parse_helper(g2)
+        when "favcount", "-favcount"
+          add_to_query(q, type, :fav_count) { parse_helper(g2) }
 
-        when "filesize"
-          q[:filesize] = parse_helper_fudged(g2, :filesize)
+        when "filesize", "-filesize"
+          add_to_query(q, type, :filesize) { parse_helper_fudged(g2, :filesize) }
 
-        when "change"
-          q[:change_seq] = parse_helper(g2)
+        when "change", "-change"
+          add_to_query(q, type, :change_seq) { parse_helper(g2) }
 
         when "source", "-source"
           add_to_query(q, type, :sources, any_none_key: :source, value: g2, wildcard: true) do
@@ -716,18 +716,17 @@ class Tag < ApplicationRecord
             "#{src}*"
           end
 
-        when "date"
-          parsed_date = parse_date(g2)
-          q[:date] = parsed_date unless parsed_date[1].nil?
+        when "date", "-date"
+          add_to_query(q, type, :date) { parse_date(g2) }
 
-        when "age"
-          q[:age] = reverse_parse_helper(parse_helper(g2, :age))
+        when "age", "-age"
+          add_to_query(q, type, :age) { reverse_parse_helper(parse_helper(g2, :age)) }
 
-        when "tagcount"
-          q[:post_tag_count] = parse_helper(g2)
+        when "tagcount", "-tagcount"
+          add_to_query(q, type, :post_tag_count) { parse_helper(g2) }
 
-        when /(#{TagCategory::SHORT_NAME_REGEX})tags/
-          q["#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count".to_sym] = parse_helper(g2)
+        when /-?(#{TagCategory::SHORT_NAME_REGEX})tags/
+          add_to_query(q, type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { parse_helper(g2) }
 
         when "parent", "-parent"
           add_to_query(q, type, :parent_ids, any_none_key: :parent, value: g2) do

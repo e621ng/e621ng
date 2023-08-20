@@ -45,9 +45,13 @@ class ElasticPostQueryBuilder
     end
   end
 
-  def add_range_relation(key, index_key)
+  def add_array_range_relation(key, index_key)
     if q[key]
-      must.push(range_relation(q[key], index_key))
+      must.concat(q[key].map { |x| range_relation(x, index_key) })
+    end
+
+    if q[:"#{key}_neg"]
+      must_not.concat(q[:"#{key}_neg"].map { |x| range_relation(x, index_key) })
     end
   end
 
@@ -104,27 +108,38 @@ class ElasticPostQueryBuilder
       must.push({term: {rating: "s"}})
     end
 
-    add_range_relation(:post_id, :id)
-    add_range_relation(:mpixels, :mpixels)
-    add_range_relation(:ratio, :aspect_ratio)
-    add_range_relation(:width, :width)
-    add_range_relation(:height, :height)
-    add_range_relation(:duration, :duration)
-    add_range_relation(:score, :score)
-    add_range_relation(:fav_count, :fav_count)
-    add_range_relation(:filesize, :file_size)
-    add_range_relation(:change_seq, :change_seq)
-    add_range_relation(:date, :created_at)
-    add_range_relation(:age, :created_at)
-
-    TagCategory::CATEGORIES.each do |category|
-      add_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}")
+    if q[:post_id]
+      relation = range_relation(q[:post_id], :id)
+      must.push(relation) if relation
     end
 
-    add_range_relation(q[:post_tag_count], :tag_count)
+    if q[:post_id_neg]
+      must_not.push({ term: { id: q[:post_id_neg] } })
+    end
+
+    add_array_range_relation(:mpixels, :mpixels)
+    add_array_range_relation(:ratio, :aspect_ratio)
+    add_array_range_relation(:width, :width)
+    add_array_range_relation(:height, :height)
+    add_array_range_relation(:duration, :duration)
+    add_array_range_relation(:score, :score)
+    add_array_range_relation(:fav_count, :fav_count)
+    add_array_range_relation(:filesize, :file_size)
+    add_array_range_relation(:change_seq, :change_seq)
+    add_array_range_relation(:date, :created_at)
+    add_array_range_relation(:age, :created_at)
+
+    TagCategory::CATEGORIES.each do |category|
+      add_array_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}")
+    end
+
+    add_array_range_relation(q[:post_tag_count], :tag_count)
 
     Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
-      add_range_relation(q[column], column)
+      if q[column]
+        relation = range_relation(q[column], column)
+        must.push(relation) if relation
+      end
     end
 
     if q[:md5]
@@ -191,10 +206,6 @@ class ElasticPostQueryBuilder
 
     q[:voted_neg]&.each do |voter_id|
       must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
-    end
-
-    if q[:post_id_neg]
-      must_not.push({ term: { id: q[:post_id_neg] } })
     end
 
     if q[:child] == "none"

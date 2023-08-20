@@ -19,6 +19,13 @@ class PostQueryBuilder
     relation
   end
 
+  def add_array_range_relation(relation, values, field)
+    values&.each do |value|
+      relation = relation.add_range_relation(value, field)
+    end
+    relation
+  end
+
   def build
     q = Tag.parse_query(query_string)
     relation = Post.all
@@ -28,23 +35,24 @@ class PostQueryBuilder
     end
 
     relation = relation.add_range_relation(q[:post_id], "posts.id")
-    relation = relation.add_range_relation(q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
-    relation = relation.add_range_relation(q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)")
-    relation = relation.add_range_relation(q[:width], "posts.image_width")
-    relation = relation.add_range_relation(q[:height], "posts.image_height")
-    relation = relation.add_range_relation(q[:score], "posts.score")
-    relation = relation.add_range_relation(q[:fav_count], "posts.fav_count")
-    relation = relation.add_range_relation(q[:filesize], "posts.file_size")
-    relation = relation.add_range_relation(q[:change_seq], "posts.change_seq")
-    relation = relation.add_range_relation(q[:date], "posts.created_at")
-    relation = relation.add_range_relation(q[:age], "posts.created_at")
+    relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
+    relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
+    relation = add_array_range_relation(relation, q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)")
+    relation = add_array_range_relation(relation, q[:width], "posts.image_width")
+    relation = add_array_range_relation(relation, q[:height], "posts.image_height")
+    relation = add_array_range_relation(relation, q[:score], "posts.score")
+    relation = add_array_range_relation(relation, q[:fav_count], "posts.fav_count")
+    relation = add_array_range_relation(relation, q[:filesize], "posts.file_size")
+    relation = add_array_range_relation(relation, q[:change_seq], "posts.change_seq")
+    relation = add_array_range_relation(relation, q[:date], "posts.created_at")
+    relation = add_array_range_relation(relation, q[:age], "posts.created_at")
     TagCategory::CATEGORIES.each do |category|
-      relation = relation.add_range_relation(q["#{category}_tag_count".to_sym], "posts.tag_count_#{category}")
+      relation = add_array_range_relation(relation, q["#{category}_tag_count".to_sym], "posts.tag_count_#{category}")
     end
-    relation = relation.add_range_relation(q[:post_tag_count], "posts.tag_count")
+    relation = add_array_range_relation(relation, q[:post_tag_count], "posts.tag_count")
 
     Tag::COUNT_METATAGS.each do |column|
-      relation = relation.add_range_relation(q[column.to_sym], "posts.#{column}")
+      relation = add_array_range_relation(relation, q[column.to_sym], "posts.#{column}")
     end
 
     if q[:md5]
