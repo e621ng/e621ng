@@ -525,19 +525,22 @@ class Tag < ApplicationRecord
       tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
     end
 
-    def add_to_query(q, type, key, any_none_key: nil, value: nil, &)
+    def add_to_query(q, type, key, any_none_key: nil, value: nil, wildcard: false, &) # rubocop:disable Metrics/ParameterLists (TODO: convert to class)
       if any_none_key && (value.downcase == "none" || value.downcase == "any")
         add_any_none_to_query(q, type, value.downcase, any_none_key)
         return
       end
 
+      value = yield
+      value = value.squeeze("*") if wildcard # Collapse runs of wildcards for efficiency
+
       case type
       when :must
         q[key] ||= []
-        q[key] << yield
+        q[key] << value
       when :must_not
         q[:"#{key}_neg"] ||= []
-        q[:"#{key}_neg"] << yield
+        q[:"#{key}_neg"] << value
       end
     end
 
@@ -708,7 +711,7 @@ class Tag < ApplicationRecord
           q[:change_seq] = parse_helper(g2)
 
         when "source", "-source"
-          add_to_query(q, type, :source) do
+          add_to_query(q, type, :sources, any_none_key: :source, value: g2, wildcard: true) do
             src = g2.gsub(/\A"(.*)"\Z/, '\1')
             "#{src}*"
           end
@@ -761,7 +764,7 @@ class Tag < ApplicationRecord
 
         when "delreason", "-delreason"
           q[:status] ||= "any"
-          add_to_query(q, type, :delreason) { g2 }
+          add_to_query(q, type, :delreason, wildcard: true) { g2 }
 
         when "deletedby", "-deletedby"
           q[:status] ||= "any"

@@ -86,11 +86,6 @@ class ElasticPostQueryBuilder
     true
   end
 
-  def prepare_wildcard_query(query)
-    # Collapse runs of wildcards for efficiency
-    query.squeeze("*")
-  end
-
   def build
     function_score = nil
     def should(*args)
@@ -173,26 +168,6 @@ class ElasticPostQueryBuilder
       must.push({term: {deleted: false}})
     end
 
-    q[:source]&.each do |source|
-      if source == "none*"
-        must_not.push({exists: {field: :source}})
-      elsif source == "http*"
-        must.push({prefix: {source: "http"}})
-      else
-        must.push({ wildcard: { source: prepare_wildcard_query(source) } })
-      end
-    end
-
-    q[:source_neg]&.each do |source|
-      if source == "none*"
-        must.push({exists: {field: :source}})
-      elsif source == "http*"
-        must_not.push({prefix: {source: "http"}})
-      else
-        must_not.push({ wildcard: { source: prepare_wildcard_query(source) } })
-      end
-    end
-
     add_array_relation(q, :uploader_ids, :uploader)
     add_array_relation(q, :approver_ids, :approver, any_none_key: :approver)
     add_array_relation(q, :commenter_ids, :commenters, any_none_key: :commenter)
@@ -205,8 +180,10 @@ class ElasticPostQueryBuilder
 
     add_array_relation(q, :rating, :rating)
     add_array_relation(q, :filetype, :file_ext)
+    add_array_relation(q, :delreason, :del_reason, action: :wildcard)
     add_array_relation(q, :description, :description, action: :match)
     add_array_relation(q, :note, :notes, action: :match)
+    add_array_relation(q, :sources, :source, any_none_key: :source, action: :wildcard)
     add_array_relation(q, :deleter, :deleter)
     add_array_relation(q, :upvote, :upvotes)
     add_array_relation(q, :downvote, :downvotes)
@@ -217,14 +194,6 @@ class ElasticPostQueryBuilder
 
     q[:voted_neg]&.each do |voter_id|
       must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
-    end
-
-    q[:delreason]&.each do |delreason|
-      must.push({ wildcard: { del_reason: prepare_wildcard_query(delreason) } })
-    end
-
-    q[:delreason_neg]&.each do |delreason|
-      must_not.push({ wildcard: { del_reason: prepare_wildcard_query(delreason) } })
     end
 
     if q[:post_id_neg]
