@@ -5,10 +5,14 @@ class ElasticPostQueryBuilder
     status: :status_locked,
   }.freeze
 
-  attr_accessor :query_string, :must, :must_not, :order
+  attr_accessor :q, :must, :must_not, :order
 
   def initialize(query_string)
-    @query_string = query_string
+    if query_string.is_a?(Hash)
+      @q = query_string
+    else
+      @q = Tag.parse_query(query_string)
+    end
     @must = [] # These terms are ANDed together
     @must_not = [] # These terms are NOT ANDed together
     @order = []
@@ -49,7 +53,7 @@ class ElasticPostQueryBuilder
     relation
   end
 
-  def add_array_relation(q, key, index_key, any_none_key: nil, action: :term)
+  def add_array_relation(key, index_key, any_none_key: nil, action: :term)
     if q[key]
       must.concat(q[key].map { |x| { action => { index_key => x } } })
     end
@@ -79,25 +83,20 @@ class ElasticPostQueryBuilder
     relation.push(search)
   end
 
-  def hide_deleted_posts?(q)
+  def hide_deleted_posts?
     return false if CurrentUser.admin_mode?
     return false if q[:status].in?(%w[deleted active any all])
     return false if q[:status_neg].in?(%w[deleted active any all])
     true
   end
 
+  def should(*args)
+    # Explicitly set minimum should match, even though it may not be required in this context.
+    { bool: { minimum_should_match: 1, should: args } }
+  end
+
   def build
     function_score = nil
-    def should(*args)
-      # Explicitly set minimum should match, even though it may not be required in this context.
-      {bool: {minimum_should_match: 1, should: args}}
-    end
-
-    if query_string.is_a?(Hash)
-      q = query_string
-    else
-      q = Tag.parse_query(query_string)
-    end
 
     if q[:tag_count].to_i > Danbooru.config.tag_query_limit
       raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
@@ -164,29 +163,29 @@ class ElasticPostQueryBuilder
                        {term: {flagged: true}}))
     end
 
-    if hide_deleted_posts?(q)
+    if hide_deleted_posts?
       must.push({term: {deleted: false}})
     end
 
-    add_array_relation(q, :uploader_ids, :uploader)
-    add_array_relation(q, :approver_ids, :approver, any_none_key: :approver)
-    add_array_relation(q, :commenter_ids, :commenters, any_none_key: :commenter)
-    add_array_relation(q, :noter_ids, :noters, any_none_key: :noter)
-    add_array_relation(q, :note_updater_ids, :noters) # Broken, index field missing
-    add_array_relation(q, :pool_ids, :pools, any_none_key: :pool)
-    add_array_relation(q, :set_ids, :sets)
-    add_array_relation(q, :fav_ids, :faves)
-    add_array_relation(q, :parent_ids, :parent, any_none_key: :parent)
+    add_array_relation(:uploader_ids, :uploader)
+    add_array_relation(:approver_ids, :approver, any_none_key: :approver)
+    add_array_relation(:commenter_ids, :commenters, any_none_key: :commenter)
+    add_array_relation(:noter_ids, :noters, any_none_key: :noter)
+    add_array_relation(:note_updater_ids, :noters) # Broken, index field missing
+    add_array_relation(:pool_ids, :pools, any_none_key: :pool)
+    add_array_relation(:set_ids, :sets)
+    add_array_relation(:fav_ids, :faves)
+    add_array_relation(:parent_ids, :parent, any_none_key: :parent)
 
-    add_array_relation(q, :rating, :rating)
-    add_array_relation(q, :filetype, :file_ext)
-    add_array_relation(q, :delreason, :del_reason, action: :wildcard)
-    add_array_relation(q, :description, :description, action: :match)
-    add_array_relation(q, :note, :notes, action: :match)
-    add_array_relation(q, :sources, :source, any_none_key: :source, action: :wildcard)
-    add_array_relation(q, :deleter, :deleter)
-    add_array_relation(q, :upvote, :upvotes)
-    add_array_relation(q, :downvote, :downvotes)
+    add_array_relation(:rating, :rating)
+    add_array_relation(:filetype, :file_ext)
+    add_array_relation(:delreason, :del_reason, action: :wildcard)
+    add_array_relation(:description, :description, action: :match)
+    add_array_relation(:note, :notes, action: :match)
+    add_array_relation(:sources, :source, any_none_key: :source, action: :wildcard)
+    add_array_relation(:deleter, :deleter)
+    add_array_relation(:upvote, :upvotes)
+    add_array_relation(:downvote, :downvotes)
 
     q[:voted]&.each do |voter_id|
       must.push(should({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
