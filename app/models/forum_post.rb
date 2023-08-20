@@ -23,13 +23,13 @@ class ForumPost < ApplicationRecord
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
-    ModAction.log(:forum_post_update, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+    ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
   after_update(:if => ->(rec) {rec.saved_change_to_is_hidden?}) do |rec|
-    ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+    ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_destroy(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
-    ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+  after_destroy do |rec|
+    ModAction.log(:forum_post_delete, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
 
   attr_accessor :bypass_limits
