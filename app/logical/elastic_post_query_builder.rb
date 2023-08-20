@@ -18,39 +18,37 @@ class ElasticPostQueryBuilder
     @order = []
   end
 
-  def add_range_relation(arr, field, relation)
-    return relation if arr.nil?
-    return relation if arr.size < 2
-    return relation if arr[1].nil?
+  def range_relation(arr, field)
+    return if arr.nil?
+    return if arr.size < 2
+    return if arr[1].nil?
 
     case arr[0]
     when :eq
       if arr[1].is_a?(Time)
-        relation.concat([
-                            {range: {field => {gte: arr[1].beginning_of_day}}},
-                            {range: {field => {lte: arr[1].end_of_day}}},
-                        ])
+        { range: { field => { gte: arr[1].beginning_of_day, lte: arr[1].end_of_day } } }
       else
-        relation.push({term: {field => arr[1]}})
+        { term: { field => arr[1] } }
       end
     when :gt
-      relation.push({range: {field => {gt: arr[1]}}})
+      { range: { field => { gt: arr[1] } } }
     when :gte
-      relation.push({range: {field => {gte: arr[1]}}})
+      { range: { field => { gte: arr[1] } } }
     when :lt
-      relation.push({range: {field => {lt: arr[1]}}})
+      { range: { field => { lt: arr[1] } } }
     when :lte
-      relation.push({range: {field => {lte: arr[1]}}})
+      { range: { field => { lte: arr[1] } } }
     when :in
-      relation.push({terms: {field => arr[1]}})
+      { terms: { field => arr[1] } }
     when :between
-      relation.concat([
-                          {range: {field => {gte: arr[1]}}},
-                          {range: {field => {lte: arr[2]}}},
-                      ])
+      { range: { field => { gte: arr[1], lte: arr[2] } } }
     end
+  end
 
-    relation
+  def add_range_relation(key, index_key)
+    if q[key]
+      must.push(range_relation(q[key], index_key))
+    end
   end
 
   def add_array_relation(key, index_key, any_none_key: nil, action: :term)
@@ -106,27 +104,27 @@ class ElasticPostQueryBuilder
       must.push({term: {rating: "s"}})
     end
 
-    add_range_relation(q[:post_id], :id, must)
-    add_range_relation(q[:mpixels], :mpixels, must)
-    add_range_relation(q[:ratio], :aspect_ratio, must)
-    add_range_relation(q[:width], :width, must)
-    add_range_relation(q[:height], :height, must)
-    add_range_relation(q[:duration], :duration, must)
-    add_range_relation(q[:score], :score, must)
-    add_range_relation(q[:fav_count], :fav_count, must)
-    add_range_relation(q[:filesize], :file_size, must)
-    add_range_relation(q[:change_seq], :change_seq, must)
-    add_range_relation(q[:date], :created_at, must)
-    add_range_relation(q[:age], :created_at, must)
+    add_range_relation(:post_id, :id)
+    add_range_relation(:mpixels, :mpixels)
+    add_range_relation(:ratio, :aspect_ratio)
+    add_range_relation(:width, :width)
+    add_range_relation(:height, :height)
+    add_range_relation(:duration, :duration)
+    add_range_relation(:score, :score)
+    add_range_relation(:fav_count, :fav_count)
+    add_range_relation(:filesize, :file_size)
+    add_range_relation(:change_seq, :change_seq)
+    add_range_relation(:date, :created_at)
+    add_range_relation(:age, :created_at)
 
     TagCategory::CATEGORIES.each do |category|
-      add_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}", must)
+      add_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}")
     end
 
-    add_range_relation(q[:post_tag_count], :tag_count, must)
+    add_range_relation(q[:post_tag_count], :tag_count)
 
     Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
-      add_range_relation(q[column], column, must)
+      add_range_relation(q[column], column)
     end
 
     if q[:md5]
