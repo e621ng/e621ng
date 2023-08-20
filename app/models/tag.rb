@@ -16,7 +16,7 @@ class Tag < ApplicationRecord
 
   METATAGS = %w[
     md5 order limit child randseed ratinglocked notelocked statuslocked
-  ] + Tag::NEGATABLE_METATAGS.map { |tag| [tag, "-#{tag}"] }.flatten + COUNT_METATAGS + BOOLEAN_METATAGS
+  ] + NEGATABLE_METATAGS + COUNT_METATAGS + BOOLEAN_METATAGS
 
   ORDER_METATAGS = %w[
     id id_desc
