@@ -1,9 +1,9 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :format
+    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count
 
-    def initialize(tags, page = 1, per_page = nil, options = {})
+    def initialize(tags, page = 1, per_page = nil, random: nil)
       tags ||= ""
       @public_tag_array = Tag.scan_tags(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
@@ -11,8 +11,7 @@ module PostSets
       @tag_array = Tag.scan_tags(tags)
       @page = page
       @per_page = per_page
-      @random = options[:random].present?
-      @format = options[:format] || "html"
+      @random = random.present?
     end
 
     def tag_string
