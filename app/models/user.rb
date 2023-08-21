@@ -593,13 +593,7 @@ class User < ApplicationRecord
     end
 
     def favorite_limit
-      if is_former_staff?
-        200_000
-      elsif is_privileged?
-        125_000
-      else
-        80_000
-      end
+      Danbooru.config.legacy_favorite_limit.fetch(id, 80_000)
     end
 
     def api_regen_multiplier

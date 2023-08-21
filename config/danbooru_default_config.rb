@@ -74,6 +74,13 @@ module Danbooru
       }
     end
 
+    # Prevent new users from going above 80k while allowing those currently above
+    # it to continue adding new favorites with the old limit.
+    # { 123 => 200_000 }
+    def legacy_favorite_limit
+      {}
+    end
+
     # Set the default level, permissions, and other settings for new users here.
     def customize_new_user(user)
       user.blacklisted_tags = default_blacklist.join("\n")
