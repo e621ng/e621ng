@@ -1312,7 +1312,7 @@ class PostTest < ActiveSupport::TestCase
   context "Favorites:" do
     context "Removing a post from a user's favorites" do
       setup do
-        @user = create(:contributor_user)
+        @user = create(:privileged_user)
         @post = create(:post)
         FavoriteManager.add!(user: @user, post: @post)
         @user.reload
@@ -1341,7 +1341,7 @@ class PostTest < ActiveSupport::TestCase
 
     context "Adding a post to a user's favorites" do
       setup do
-        @user = create(:contributor_user)
+        @user = create(:privileged_user)
         @post = create(:post)
       end
 

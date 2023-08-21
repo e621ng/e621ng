@@ -31,16 +31,6 @@ FactoryBot.define do
       can_approve_posts { true }
     end
 
-    factory(:contributor_user) do
-      level { 33 }
-      can_upload_free { true }
-    end
-
-    factory(:contrib_user) do
-      level { 33 }
-      can_upload_free { true }
-    end
-
     factory(:moderator_user) do
       level { 40 }
       can_approve_posts { true }

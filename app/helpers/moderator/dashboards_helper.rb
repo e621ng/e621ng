@@ -5,7 +5,6 @@ module Moderator
         ["", ""],
         ["Member", 20],
         ["Privileged", 30],
-        ["Contributor", 31],
         ["Moderator", 40],
         ["Admin", 50]
       ]
