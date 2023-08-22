@@ -298,13 +298,11 @@ class Tag < ApplicationRecord
       query.to_s.unicode_normalize(:nfc).strip
     end
 
-    def normalize_query(query, sort: true)
+    def normalize_query(query)
       tags = Tag.scan_tags(query.to_s)
       tags = tags.map {|t| Tag.normalize_name(t)}
       tags = TagAlias.to_aliased(tags)
-      tags = tags.sort if sort
-      tags = tags.uniq
-      tags.join(" ")
+      tags.sort.uniq.join(" ")
     end
 
     def scan_tags(tags)
