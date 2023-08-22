@@ -1023,7 +1023,7 @@ class Post < ApplicationRecord
     def fast_count(tags = "")
       tags = tags.to_s
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
+      tags += " -status:deleted" unless Tag.has_metatag?(tags, "status", "-status")
       tags = Tag.normalize_query(tags)
 
       cache_key = "pfc:#{tags}"

@@ -512,11 +512,18 @@ class Tag < ApplicationRecord
       end
     end
 
-    def has_metatag?(tags, *metatags)
-      return false if tags.blank?
+    def has_metatag?(tags, *)
+      fetch_metatag(tags, *).present?
+    end
 
-      tags = scan_tags(tags.to_str) if tags.respond_to?(:to_str)
-      tags.grep(/\A(?:#{metatags.map(&:to_s).join("|")}):(.+)\z/i) {$1}.first
+    def fetch_metatag(tags, *metatags)
+      return nil if tags.blank?
+
+      tags = scan_tags(tags) if tags.is_a?(String)
+      tags.find do |tag|
+        metatag_name, value = tag.split(":", 2)
+        return value if metatags.include?(metatag_name)
+      end
     end
 
     def add_to_query(q, type, key, any_none_key: nil, value: nil, wildcard: false, &) # rubocop:disable Metrics/ParameterLists (TODO: convert to class)
