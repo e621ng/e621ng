@@ -311,166 +311,6 @@ class Tag < ApplicationRecord
       list + tagstr.gsub(/-?source:".*?"/, "").scan(/[^[:space:]]+/).uniq
     end
 
-    def yester_range(count, unit)
-      origin = Date.current - count.send(unit)
-      start = origin.send("beginning_of_#{unit}")
-      stop = origin.send("end_of_#{unit}")
-      [:between, start, stop]
-    end
-
-    def parse_date_range(target)
-      case target
-      # 10_yesterweeks_ago, 10yesterweekago
-      when /\A(\d{1,2})_?yester(week|month|year)s?_?ago\z/
-        yester_range($1.to_i, $2)
-      when /\Ayester(week|month|year)\z/
-        yester_range(1, $1)
-      when /\A(day|week|month|year)\z/
-        [:gte, Time.zone.now - 1.send($1)]
-      # 10_weeks_ago, 10w
-      when /\A(\d+)_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)_?(ago)?\z/i
-        [:gte, parse_time_string(target)]
-      else
-        parse_range(target, :date)
-      end
-    end
-
-    def parse_time_string(target)
-      target =~ /\A(\d+)_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)_?(ago)?\z/i
-
-      size = $1.to_i
-      unit = $2
-
-      case unit
-      when /^s/i
-        size.seconds.ago
-      when /^mi/i
-        size.minutes.ago
-      when /^h/i
-        size.hours.ago
-      when /^d/i
-        size.days.ago
-      when /^w/i
-        size.weeks.ago
-      when /^mo/i
-        size.months.ago
-      when /^y/i
-        size.years.ago
-      else
-        nil
-      end
-    end
-
-    def parse_cast(object, type)
-      case type
-      when :integer
-        object.to_i
-
-      when :float
-        object.to_f
-
-      when :date, :datetime
-        case object
-        when "today"
-          return Date.current
-        when "yesterday"
-          return Date.yesterday
-        when "decade"
-          return Date.current - 10.years
-        when /\A(day|week|month|year)\z/
-          return Date.current - 1.send($1.to_sym)
-        end
-
-        ago = parse_time_string(object)
-        return ago if ago
-
-        begin
-          Time.zone.parse(object)
-        rescue Exception
-          nil
-        end
-
-      when :age
-        parse_time_string(object)
-
-      when :ratio
-        left, right = object.split(":", 2)
-
-        if left && right.to_f != 0.0
-          (left.to_f / right.to_f).round(2)
-        else
-          object.to_f.round(2)
-        end
-
-      when :filesize
-        conversion_factor = case object
-                            when /mb?\Z/i
-                              1024 * 1024
-                            when /kb?\Z/i
-                              1024
-                            else
-                              1
-                            end
-
-        (object.to_f * conversion_factor).to_i
-      end
-    end
-
-    def parse_range(range, type = :integer)
-      if range.include?("..")
-        left, right = range.split("..", 2)
-        [:between, parse_cast(left, type), parse_cast(right, type)]
-
-      elsif range.start_with?("<=")
-        [:lte, parse_cast(range.delete_prefix("<="), type)]
-
-      elsif range.start_with?("<")
-        [:lt, parse_cast(range.delete_prefix("<"), type)]
-
-      elsif range.start_with?(">=")
-        [:gte, parse_cast(range.delete_prefix(">="), type)]
-
-      elsif range.start_with?(">")
-        [:gt, parse_cast(range.delete_prefix(">"), type)]
-
-      elsif range.include?(",")
-        [:in, range.split(",")[0..99].map { |x| parse_cast(x, type) }]
-
-      else
-        [:eq, parse_cast(range, type)]
-
-      end
-    end
-
-    def parse_range_fudged(range, type)
-      result = parse_range(range, type)
-      # Don't fudge the filesize when searching filesize:123b or filesize:123.
-      if result[0] == :eq && type == :filesize && range !~ /[km]b?\Z/i
-        result
-      elsif result[0] == :eq
-        new_min = [(result[1] * 0.95).to_i, -2147483648].max
-        new_max = [(result[1] * 1.05).to_i, 2147483647].min
-        [:between, new_min, new_max]
-      else
-        result
-      end
-    end
-
-    RANGE_INVERSIONS = {
-      lte: :gte,
-      lt: :gt,
-      gte: :lte,
-      gt: :lt,
-    }.freeze
-
-    def invert_range(range)
-      # >10 <=> <10
-      range[0] = RANGE_INVERSIONS[range[0]] || range[0]
-      # 10..20 <=> 20..10
-      range[1], range[2] = range[2], range[1] if range[0] == :between
-      range
-    end
-
     def pull_wildcard_tags(tag)
       matches = Tag.name_matches(tag).limit(Danbooru.config.tag_query_limit).order("post_count DESC").pluck(:name)
       matches = ['~~not_found~~'] if matches.empty?
@@ -674,37 +514,37 @@ class Tag < ApplicationRecord
           add_to_query(q, parse_boolean(g2) ? :must : :must_not, :locked) { :status }
 
         when "id"
-          q[:post_id] = parse_range(g2)
+          q[:post_id] = ParseValue.range(g2)
 
         when "-id"
           q[:post_id_neg] = g2.to_i
 
         when "width", "-width"
-          add_to_query(q, type, :width) { parse_range(g2) }
+          add_to_query(q, type, :width) { ParseValue.range(g2) }
 
         when "height", "-height"
-          add_to_query(q, type, :height) { parse_range(g2) }
+          add_to_query(q, type, :height) { ParseValue.range(g2) }
 
         when "mpixels", "-mpixels"
-          add_to_query(q, type, :mpixels) { parse_range_fudged(g2, :float) }
+          add_to_query(q, type, :mpixels) { ParseValue.range_fudged(g2, :float) }
 
         when "ratio", "-ratio"
-          add_to_query(q, type, :ratio) { parse_range(g2, :ratio) }
+          add_to_query(q, type, :ratio) { ParseValue.range(g2, :ratio) }
 
         when "duration", "-duration"
-          add_to_query(q, type, :duration) { parse_range(g2, :float) }
+          add_to_query(q, type, :duration) { ParseValue.range(g2, :float) }
 
         when "score", "-score"
-          add_to_query(q, type, :score) { parse_range(g2) }
+          add_to_query(q, type, :score) { ParseValue.range(g2) }
 
         when "favcount", "-favcount"
-          add_to_query(q, type, :fav_count) { parse_range(g2) }
+          add_to_query(q, type, :fav_count) { ParseValue.range(g2) }
 
         when "filesize", "-filesize"
-          add_to_query(q, type, :filesize) { parse_range_fudged(g2, :filesize) }
+          add_to_query(q, type, :filesize) { ParseValue.range_fudged(g2, :filesize) }
 
         when "change", "-change"
-          add_to_query(q, type, :change_seq) { parse_range(g2) }
+          add_to_query(q, type, :change_seq) { ParseValue.range(g2) }
 
         when "source", "-source"
           add_to_query(q, type, :sources, any_none_key: :source, value: g2, wildcard: true) do
@@ -713,16 +553,16 @@ class Tag < ApplicationRecord
           end
 
         when "date", "-date"
-          add_to_query(q, type, :date) { parse_date_range(g2) }
+          add_to_query(q, type, :date) { ParseValue.date_range(g2) }
 
         when "age", "-age"
-          add_to_query(q, type, :age) { invert_range(parse_range(g2, :age)) }
+          add_to_query(q, type, :age) { ParseValue.invert_range(ParseValue.range(g2, :age)) }
 
         when "tagcount", "-tagcount"
-          add_to_query(q, type, :post_tag_count) { parse_range(g2) }
+          add_to_query(q, type, :post_tag_count) { ParseValue.range(g2) }
 
         when /-?(#{TagCategory::SHORT_NAME_REGEX})tags/
-          add_to_query(q, type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { parse_range(g2) }
+          add_to_query(q, type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { ParseValue.range(g2) }
 
         when "parent", "-parent"
           add_to_query(q, type, :parent_ids, any_none_key: :parent, value: g2) do
@@ -799,7 +639,7 @@ class Tag < ApplicationRecord
           end
 
         when *COUNT_METATAGS
-          q[metatag_name.downcase.to_sym] = parse_range(g2)
+          q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
         when *BOOLEAN_METATAGS
           q[metatag_name.downcase.to_sym] = parse_boolean(g2)

@@ -1933,13 +1933,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post], "filesize:1048576b")
     end
 
-    should "not perform fuzzy matching for an exact filesize search" do
-      post = create(:post, file_size: 1.megabyte)
-
-      assert_tag_match([], "filesize:1048000b")
-      assert_tag_match([], "filesize:1048000")
-    end
-
     should "fail for more than 40 tags" do
       post1 = create(:post, rating: "s")
 

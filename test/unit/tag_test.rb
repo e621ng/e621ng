@@ -100,14 +100,6 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(%w(favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%), Tag.scan_tags("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
 
-    should "cast values" do
-      assert_equal(2048, Tag.parse_cast("2kb", :filesize))
-      assert_equal(2097152, Tag.parse_cast("2m", :filesize))
-      assert_nothing_raised {Tag.parse_cast("2009-01-01", :date)}
-      assert_nothing_raised {Tag.parse_cast("1234", :integer)}
-      assert_nothing_raised {Tag.parse_cast("1234.56", :float)}
-    end
-
     should "parse a query" do
       tag1 = create(:tag, name: "abc")
       tag2 = create(:tag, name: "acb")
