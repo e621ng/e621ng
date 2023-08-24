@@ -27,7 +27,7 @@ class PostQueryBuilder
   end
 
   def build
-    q = Tag.parse_query(query_string)
+    q = TagQuery.new(query_string)
     relation = Post.all
 
     if q[:tag_count].to_i > Danbooru.config.tag_query_limit
@@ -51,7 +51,7 @@ class PostQueryBuilder
     end
     relation = add_array_range_relation(relation, q[:post_tag_count], "posts.tag_count")
 
-    Tag::COUNT_METATAGS.each do |column|
+    TagQuery::COUNT_METATAGS.each do |column|
       relation = add_array_range_relation(relation, q[column.to_sym], "posts.#{column}")
     end
 

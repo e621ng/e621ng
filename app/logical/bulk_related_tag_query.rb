@@ -4,7 +4,7 @@ class BulkRelatedTagQuery
   attr_reader :query, :category_id
 
   def initialize(query: nil, category_id: nil)
-    @query = Tag.normalize_query(query).split.slice(0, 25)
+    @query = TagQuery.normalize(query).split.slice(0, 25)
     @category_id = category_id
   end
 

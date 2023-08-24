@@ -7,12 +7,8 @@ class ElasticPostQueryBuilder
 
   attr_accessor :q, :must, :must_not, :order
 
-  def initialize(query_string)
-    if query_string.is_a?(Hash)
-      @q = query_string
-    else
-      @q = Tag.parse_query(query_string)
-    end
+  def initialize(query_string, resolve_aliases: true, free_tags_count: 0)
+    @q = TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count)
     @must = [] # These terms are ANDed together
     @must_not = [] # These terms are NOT ANDed together
     @order = []
@@ -135,7 +131,7 @@ class ElasticPostQueryBuilder
 
     add_array_range_relation(q[:post_tag_count], :tag_count)
 
-    Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
+    TagQuery::COUNT_METATAGS.map(&:to_sym).each do |column|
       if q[column]
         relation = range_relation(q[column], column)
         must.push(relation) if relation
@@ -348,7 +344,7 @@ class ElasticPostQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{Tag::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])

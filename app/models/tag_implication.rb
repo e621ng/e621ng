@@ -228,7 +228,7 @@ class TagImplication < TagRelationship
         tag_rel_undos.where(applied: false).each do |tu|
           Post.where(id: tu.undo_data.keys).find_each do |post|
             post.do_not_version_changes = true
-            if Tag.scan_tags(tu.undo_data[post.id]).include?(consequent_name)
+            if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
               Rails.logger.info("[TIU] Skipping post that already contains target tag.")
               next
             end

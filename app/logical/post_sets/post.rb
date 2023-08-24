@@ -5,10 +5,10 @@ module PostSets
 
     def initialize(tags, page = 1, per_page = nil, random: nil)
       tags ||= ""
-      @public_tag_array = Tag.scan_tags(tags)
+      @public_tag_array = TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless Tag.has_metatag?(tags, "status", "-status")
-      @tag_array = Tag.scan_tags(tags)
+      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      @tag_array = TagQuery.scan(tags)
       @page = page
       @per_page = per_page
       @random = random.present?
@@ -43,11 +43,11 @@ module PostSets
     end
 
     def per_page
-      (@per_page || Tag.fetch_metatag(tag_array, "limit") || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
+      (@per_page || TagQuery.fetch_metatag(tag_array, "limit") || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
     end
 
     def is_random?
-      random || (Tag.fetch_metatag(tag_array, "order") == "random" && !Tag.has_metatag?(tag_array, "randseed"))
+      random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
     end
 
     def posts

@@ -7,8 +7,8 @@ class TagBatchJob < ApplicationJob
     updater_id = args[2]
     updater_ip_addr = args[3]
 
-    scanned_antecedent = Tag.scan_tags(antecedent.downcase)
-    scanned_consequent = Tag.scan_tags(consequent.downcase)
+    scanned_antecedent = TagQuery.scan(antecedent.downcase)
+    scanned_consequent = TagQuery.scan(consequent.downcase)
     raise JobError, "#{antecedent} or #{consequent} has unexpected format" if scanned_antecedent.count != 1 || scanned_consequent.count != 1
 
     normalized_antecedent = TagAlias.to_aliased(scanned_antecedent).first

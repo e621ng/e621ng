@@ -89,32 +89,6 @@ class TagTest < ActiveSupport::TestCase
     end
   end
 
-  context "A tag parser" do
-    should "scan a query" do
-      assert_equal(%w(aaa bbb), Tag.scan_tags("aaa bbb"))
-      assert_equal(%w(~AAa -BBB* -bbb*), Tag.scan_tags("~AAa -BBB* -bbb*"))
-    end
-
-    should "not strip out valid characters when scanning" do
-      assert_equal(%w(aaa bbb), Tag.scan_tags("aaa bbb"))
-      assert_equal(%w(favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%), Tag.scan_tags("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
-    end
-
-    should "parse a query" do
-      tag1 = create(:tag, name: "abc")
-      tag2 = create(:tag, name: "acb")
-
-      assert_equal(["abc"], Tag.parse_query("md5:abc")[:md5])
-      assert_equal([:between, 1, 2], Tag.parse_query("id:1..2")[:post_id])
-      assert_equal([:gt, 2], Tag.parse_query("id:>2")[:post_id])
-      assert_equal([:lt, 3], Tag.parse_query("id:<3")[:post_id])
-      assert_equal([:lt, 3], Tag.parse_query("ID:<3")[:post_id])
-
-      Tag.expects(:normalize_tags_in_query).returns(nil)
-      assert_equal(["acb"], Tag.parse_query("a*b")[:tags][:include])
-    end
-  end
-
   context "A tag" do
     should "be found when one exists" do
       tag = create(:tag)
@@ -205,7 +179,7 @@ class TagTest < ActiveSupport::TestCase
       should_not allow_value("東方").for(:name).on(:create)
       should_not allow_value("FAV:blah").for(:name).on(:create)
 
-      metatags = Tag::METATAGS + TagCategory::MAPPING.keys
+      metatags = TagQuery::METATAGS + TagCategory::MAPPING.keys
       metatags.each do |metatag|
         should_not allow_value("#{metatag}:foo").for(:name).on(:create)
       end

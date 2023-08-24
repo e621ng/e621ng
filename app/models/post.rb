@@ -410,11 +410,11 @@ class Post < ApplicationRecord
     end
 
     def tag_array
-      @tag_array ||= Tag.scan_tags(tag_string)
+      @tag_array ||= TagQuery.scan(tag_string)
     end
 
     def tag_array_was
-      @tag_array_was ||= Tag.scan_tags(tag_string_in_database.presence || tag_string_before_last_save || "")
+      @tag_array_was ||= TagQuery.scan(tag_string_in_database.presence || tag_string_before_last_save || "")
     end
 
     def tags
@@ -472,7 +472,7 @@ class Post < ApplicationRecord
         # then try to merge the tag changes together.
         current_tags = tag_array_was()
         new_tags = tag_array()
-        old_tags = Tag.scan_tags(old_tag_string)
+        old_tags = TagQuery.scan(old_tag_string)
 
         kept_tags = current_tags & new_tags
         @removed_tags = old_tags - kept_tags
@@ -503,7 +503,7 @@ class Post < ApplicationRecord
       return unless tag_string_diff.present?
 
       current_tags = tag_array
-      diff = Tag.scan_tags(tag_string_diff.downcase)
+      diff = TagQuery.scan(tag_string_diff.downcase)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -526,7 +526,7 @@ class Post < ApplicationRecord
 
     def tag_count_not_insane
       max_count = Danbooru.config.max_tags_per_post
-      if Tag.scan_tags(tag_string).size > max_count
+      if TagQuery.scan(tag_string).size > max_count
         self.errors.add(:tag_string, "tag count exceeds maximum of #{max_count}")
         throw :abort
       end
@@ -537,7 +537,7 @@ class Post < ApplicationRecord
       if !locked_tags.nil? && locked_tags.strip.blank?
         self.locked_tags = nil
       elsif locked_tags.present?
-        locked = Tag.scan_tags(locked_tags.downcase)
+        locked = TagQuery.scan(locked_tags.downcase)
         to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
         to_remove = to_remove.map {|x| x[1..-1]}
         to_remove = TagAlias.to_aliased(to_remove)
@@ -545,7 +545,7 @@ class Post < ApplicationRecord
         @locked_to_add = TagAlias.to_aliased(to_add)
       end
 
-      normalized_tags = Tag.scan_tags(tag_string)
+      normalized_tags = TagQuery.scan(tag_string)
       # Sanity check input, this is checked again on output as well to prevent bad cases where implications push post
       # over the limit and posts will fail to edit later on.
       if normalized_tags.size > Danbooru.config.max_tags_per_post
@@ -585,7 +585,7 @@ class Post < ApplicationRecord
     end
 
     def add_dnp_tags_to_locked(tags)
-      locked = Tag.scan_tags((locked_tags || '').downcase)
+      locked = TagQuery.scan((locked_tags || '').downcase)
       if tags.include? 'avoid_posting'
         locked << 'avoid_posting'
       end
@@ -1023,8 +1023,8 @@ class Post < ApplicationRecord
     def fast_count(tags = "")
       tags = tags.to_s
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless Tag.has_metatag?(tags, "status", "-status")
-      tags = Tag.normalize_query(tags)
+      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      tags = TagQuery.normalize(tags)
 
       cache_key = "pfc:#{tags}"
       count = Cache.fetch(cache_key)
@@ -1427,9 +1427,7 @@ class Post < ApplicationRecord
 
     def sample(query, sample_size)
       CurrentUser.without_safe_mode do
-        query = Tag.parse_query("#{query} order:random")
-        query[:tag_count] -= 1 # Cheat to fix tag count
-        tag_match(query).limit(sample_size).records
+        tag_match("#{query} order:random", free_tags_count: 1).limit(sample_size).records
       end
     end
 
@@ -1470,14 +1468,8 @@ class Post < ApplicationRecord
       where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tag)
     end
 
-    # Does a search without resolving aliases
-    def raw_tag_match(tag)
-      tags = { related: tag.split, include: [], exclude: [] }
-      ElasticPostQueryBuilder.new({ tag_count: tags[:related].size, tags: tags }).build
-    end
-
-    def tag_match(query)
-      ElasticPostQueryBuilder.new(query).build
+    def tag_match(query, resolve_aliases: true, free_tags_count: 0)
+      ElasticPostQueryBuilder.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count).build
     end
 
     def tag_match_sql(query)

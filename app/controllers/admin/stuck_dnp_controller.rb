@@ -23,7 +23,7 @@ module Admin
 
           p.do_not_version_changes = true
 
-          locked_tags = Tag.scan_tags((p.locked_tags || "").downcase)
+          locked_tags = TagQuery.scan((p.locked_tags || "").downcase)
           locked_tags -= dnp_tags
           p.locked_tags = locked_tags.join(" ")
           p.remove_tag(dnp_tags)
