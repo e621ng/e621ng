@@ -1,4 +1,6 @@
 class TagQuery
+  class CountExceededError < StandardError; end
+
   COUNT_METATAGS = %w[
     comment_count
   ].freeze
@@ -42,8 +44,6 @@ class TagQuery
 
   def initialize(query, resolve_aliases: true, free_tags_count: 0)
     @q = {
-      # If a query adds order:random automatically, prevent exceptions because of the limit being overriden
-      tag_count: -free_tags_count,
       tags: {
         related: [],
         include: [],
@@ -51,7 +51,12 @@ class TagQuery
       },
     }
     @resolve_aliases = resolve_aliases
+    @tag_count = 0
+
     parse_query(query)
+    if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
+      raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+    end
   end
 
   def self.normalize(query)
@@ -85,7 +90,7 @@ class TagQuery
 
   def parse_query(query)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
-      q[:tag_count] += 1 unless Danbooru.config.is_unlimited_tag?(token)
+      @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
 
       # Short-circuit when there is no metatag or the metatag has no value

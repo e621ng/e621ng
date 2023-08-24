@@ -1933,14 +1933,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post], "filesize:1048576b")
     end
 
-    should "fail for more than 40 tags" do
-      post1 = create(:post, rating: "s")
-
-      assert_raise(::Post::SearchError) do
-        Post.tag_match("rating:s width:10 height:10 user:bob " + [*'aa'..'zz'].join(' '))
-      end
-    end
-
     should "not count free tags against the user's search limit" do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 

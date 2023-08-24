@@ -30,10 +30,6 @@ class PostQueryBuilder
     q = TagQuery.new(query_string)
     relation = Post.all
 
-    if q[:tag_count].to_i > Danbooru.config.tag_query_limit
-      raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
-    end
-
     relation = relation.add_range_relation(q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")

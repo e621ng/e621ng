@@ -20,4 +20,10 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal([:lt, 3], TagQuery.new("ID:<3")[:post_id])
     assert_equal(["acb"], TagQuery.new("a*b")[:tags][:include])
   end
+
+  should "fail for more than 40 tags" do
+    assert_raise(TagQuery::CountExceededError) do
+      TagQuery.new("rating:s width:10 height:10 user:bob #{[*'aa'..'zz'].join(' ')}")
+    end
+  end
 end

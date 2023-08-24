@@ -1,6 +1,5 @@
 class Post < ApplicationRecord
   class RevertError < Exception ; end
-  class SearchError < Exception ; end
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
@@ -1034,7 +1033,7 @@ class Post < ApplicationRecord
         Cache.write(cache_key, count, expires_in: expiry)
       end
       count
-    rescue SearchError
+    rescue TagQuery::CountExceededError
       0
     end
   end
