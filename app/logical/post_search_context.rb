@@ -7,7 +7,7 @@ class PostSearchContext
     @seq = params[:seq]
     @tags = params[:q].presence || params[:tags].presence || ""
     @tags += " rating:s" if CurrentUser.safe_mode?
-    @tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
+    @tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
   end
 
   def post_id

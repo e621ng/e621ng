@@ -58,7 +58,7 @@ class ApplicationRecord < ActiveRecord::Base
       def numeric_attribute_matches(attribute, range)
         column = column_for_attribute(attribute)
         qualified_column = "#{table_name}.#{column.name}"
-        parsed_range = Tag.parse_helper(range, column.type)
+        parsed_range = ParseValue.range(range, column.type)
 
         add_range_relation(parsed_range, qualified_column)
       end

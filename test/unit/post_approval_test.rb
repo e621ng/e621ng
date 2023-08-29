@@ -35,7 +35,7 @@ class PostApprovalTest < ActiveSupport::TestCase
     context "#search method" do
       should "work" do
         @post.approve!(@approver)
-        @approvals = PostApproval.search(user_name: @approver.name, post_tags_match: "touhou", post_id: @post.id)
+        @approvals = PostApproval.search(user_name: @approver.name, post_tags_match: "touhou", post_id: @post.id.to_s)
 
         assert_equal([@post.id], @approvals.map(&:post_id))
       end

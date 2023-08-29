@@ -75,7 +75,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when Post::SearchError
+    when TagQuery::CountExceededError
       render_expected_error(422, exception.message)
     when FeatureUnavailable
       render_expected_error(400, "This feature isn't available")

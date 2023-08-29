@@ -1,43 +1,70 @@
 class ElasticPostQueryBuilder
-  attr_accessor :query_string
+  LOCK_TYPE_TO_INDEX_FIELD = {
+    rating: :rating_locked,
+    note: :note_locked,
+    status: :status_locked,
+  }.freeze
 
-  def initialize(query_string)
-    @query_string = query_string
+  attr_accessor :q, :must, :must_not, :order
+
+  def initialize(query_string, resolve_aliases: true, free_tags_count: 0)
+    @q = TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count)
+    @must = [] # These terms are ANDed together
+    @must_not = [] # These terms are NOT ANDed together
+    @order = []
   end
 
-  def add_range_relation(arr, field, relation)
-    return relation if arr.nil?
-    return relation if arr.size < 2
-    return relation if arr[1].nil?
+  def range_relation(arr, field)
+    return if arr.nil?
+    return if arr.size < 2
+    return if arr[1].nil?
 
     case arr[0]
     when :eq
       if arr[1].is_a?(Time)
-        relation.concat([
-                            {range: {field => {gte: arr[1].beginning_of_day}}},
-                            {range: {field => {lte: arr[1].end_of_day}}},
-                        ])
+        { range: { field => { gte: arr[1].beginning_of_day, lte: arr[1].end_of_day } } }
       else
-        relation.push({term: {field => arr[1]}})
+        { term: { field => arr[1] } }
       end
     when :gt
-      relation.push({range: {field => {gt: arr[1]}}})
+      { range: { field => { gt: arr[1] } } }
     when :gte
-      relation.push({range: {field => {gte: arr[1]}}})
+      { range: { field => { gte: arr[1] } } }
     when :lt
-      relation.push({range: {field => {lt: arr[1]}}})
+      { range: { field => { lt: arr[1] } } }
     when :lte
-      relation.push({range: {field => {lte: arr[1]}}})
+      { range: { field => { lte: arr[1] } } }
     when :in
-      relation.push({terms: {field => arr[1]}})
+      { terms: { field => arr[1] } }
     when :between
-      relation.concat([
-                          {range: {field => {gte: arr[1]}}},
-                          {range: {field => {lte: arr[2]}}},
-                      ])
+      { range: { field => { gte: arr[1], lte: arr[2] } } }
+    end
+  end
+
+  def add_array_range_relation(key, index_key)
+    if q[key]
+      must.concat(q[key].map { |x| range_relation(x, index_key) })
     end
 
-    relation
+    if q[:"#{key}_neg"]
+      must_not.concat(q[:"#{key}_neg"].map { |x| range_relation(x, index_key) })
+    end
+  end
+
+  def add_array_relation(key, index_key, any_none_key: nil, action: :term)
+    if q[key]
+      must.concat(q[key].map { |x| { action => { index_key => x } } })
+    end
+
+    if q[:"#{key}_neg"]
+      must_not.concat(q[:"#{key}_neg"].map { |x| { action => { index_key => x } } })
+    end
+
+    if q[any_none_key] == "any"
+      must.push({ exists: { field: index_key } })
+    elsif q[any_none_key] == "none"
+      must_not.push({ exists: { field: index_key } })
+    end
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -54,89 +81,57 @@ class ElasticPostQueryBuilder
     relation.push(search)
   end
 
-  def hide_deleted_posts?(q)
+  def hide_deleted_posts?
     return false if CurrentUser.admin_mode?
     return false if q[:status].in?(%w[deleted active any all])
     return false if q[:status_neg].in?(%w[deleted active any all])
     true
   end
 
-  def sql_like_to_elastic(field, query)
-    # First escape any existing wildcard characters
-    # in the term
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      (\*|\?)    # single asterisk or question mark
-    /x, '\\\\\1')
-
-    # Then replace any unescaped SQL LIKE characters
-    # with a Kleene star
-    query = query.gsub(/
-      (?<!\\)    # not preceded by a backslash
-      (?:\\\\)*  # zero or more escaped backslashes
-      %          # single percent sign
-    /x, '*')
-
-    # Collapse runs of wildcards for efficiency
-    query = query.gsub(/(?:\*)+\*/, '*')
-
-    {wildcard: {field => query}}
+  def should(*args)
+    # Explicitly set minimum should match, even though it may not be required in this context.
+    { bool: { minimum_should_match: 1, should: args } }
   end
 
   def build
     function_score = nil
-    def should(*args)
-      # Explicitly set minimum should match, even though it may not be required in this context.
-      {bool: {minimum_should_match: 1, should: args}}
-    end
-
-    if query_string.is_a?(Hash)
-      q = query_string
-    else
-      q = Tag.parse_query(query_string)
-    end
-
-    if q[:tag_count].to_i > Danbooru.config.tag_query_limit
-      raise ::Post::SearchError.new("You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
-    end
-
-    must = [] # These terms are ANDed together
-    must_not = [] # These terms are NOT ANDed together
-    order = []
 
     if CurrentUser.safe_mode?
       must.push({term: {rating: "s"}})
     end
 
-    add_range_relation(q[:post_id], :id, must)
-    add_range_relation(q[:mpixels], :mpixels, must)
-    add_range_relation(q[:ratio], :aspect_ratio, must)
-    add_range_relation(q[:width], :width, must)
-    add_range_relation(q[:height], :height, must)
-    add_range_relation(q[:duration], :duration, must)
-    add_range_relation(q[:score], :score, must)
-    add_range_relation(q[:fav_count], :fav_count, must)
-    add_range_relation(q[:filesize], :file_size, must)
-    add_range_relation(q[:change_seq], :change_seq, must)
-    add_range_relation(q[:date], :created_at, must)
-    add_range_relation(q[:age], :created_at, must)
+    if q[:post_id]
+      relation = range_relation(q[:post_id], :id)
+      must.push(relation) if relation
+    end
+
+    if q[:post_id_neg]
+      must_not.push({ term: { id: q[:post_id_neg] } })
+    end
+
+    add_array_range_relation(:mpixels, :mpixels)
+    add_array_range_relation(:ratio, :aspect_ratio)
+    add_array_range_relation(:width, :width)
+    add_array_range_relation(:height, :height)
+    add_array_range_relation(:duration, :duration)
+    add_array_range_relation(:score, :score)
+    add_array_range_relation(:fav_count, :fav_count)
+    add_array_range_relation(:filesize, :file_size)
+    add_array_range_relation(:change_seq, :change_seq)
+    add_array_range_relation(:date, :created_at)
+    add_array_range_relation(:age, :created_at)
 
     TagCategory::CATEGORIES.each do |category|
-      add_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}", must)
+      add_array_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}")
     end
 
-    add_range_relation(q[:post_tag_count], :tag_count, must)
+    add_array_range_relation(q[:post_tag_count], :tag_count)
 
-    Tag::COUNT_METATAGS.map(&:to_sym).each do |column|
-      add_range_relation(q[column], column, must)
-    end
-
-    if q[:description]
-      must.push({match: {description: q[:description]}})
-    end
-    if q[:description_neg]
-      must_not.push({match: {description: q[:description_neg]}})
+    TagQuery::COUNT_METATAGS.map(&:to_sym).each do |column|
+      if q[column]
+        relation = range_relation(q[column], column)
+        must.push(relation) if relation
+      end
     end
 
     if q[:md5]
@@ -173,161 +168,36 @@ class ElasticPostQueryBuilder
                        {term: {flagged: true}}))
     end
 
-    if hide_deleted_posts?(q)
+    if hide_deleted_posts?
       must.push({term: {deleted: false}})
     end
 
-    if q[:filetype]
-      must.push({term: {file_ext: q[:filetype]}})
+    add_array_relation(:uploader_ids, :uploader)
+    add_array_relation(:approver_ids, :approver, any_none_key: :approver)
+    add_array_relation(:commenter_ids, :commenters, any_none_key: :commenter)
+    add_array_relation(:noter_ids, :noters, any_none_key: :noter)
+    add_array_relation(:note_updater_ids, :noters) # Broken, index field missing
+    add_array_relation(:pool_ids, :pools, any_none_key: :pool)
+    add_array_relation(:set_ids, :sets)
+    add_array_relation(:fav_ids, :faves)
+    add_array_relation(:parent_ids, :parent, any_none_key: :parent)
+
+    add_array_relation(:rating, :rating)
+    add_array_relation(:filetype, :file_ext)
+    add_array_relation(:delreason, :del_reason, action: :wildcard)
+    add_array_relation(:description, :description, action: :match)
+    add_array_relation(:note, :notes, action: :match)
+    add_array_relation(:sources, :source, any_none_key: :source, action: :wildcard)
+    add_array_relation(:deleter, :deleter)
+    add_array_relation(:upvote, :upvotes)
+    add_array_relation(:downvote, :downvotes)
+
+    q[:voted]&.each do |voter_id|
+      must.push(should({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
     end
 
-    if q[:filetype_neg]
-      must_not.push({term: {file_ext: q[:filetype_neg]}})
-    end
-
-    if q[:source]
-      if q[:source] == "none%"
-        must_not.push({exists: {field: :source}})
-      elsif q[:source] == "http%"
-        must.push({prefix: {source: "http"}})
-      else
-        must.push(sql_like_to_elastic(:source, q[:source]))
-      end
-    end
-
-    if q[:source_neg]
-      if q[:source_neg] == "none%"
-        must.push({exists: {field: :source}})
-      elsif q[:source_neg] == "http%"
-        must_not.push({prefix: {source: "http"}})
-      else
-        must_not.push(sql_like_to_elastic(:source, q[:source_neg]))
-      end
-    end
-
-    if q[:pool] == "none"
-      must_not.push({exists: {field: :pools}})
-    elsif q[:pool] == "any"
-      must.push({exists: {field: :pools}})
-    end
-
-    if q[:pools]
-      q[:pools].each do |p|
-        must.push({term: {pools: p}})
-      end
-    end
-    if q[:pools_neg]
-      q[:pools_neg].each do |p|
-        must_not.push({term: {pools: p}})
-      end
-    end
-
-    if q[:sets]
-      must.concat(q[:sets].map {|x| {term: {sets: x}}})
-    end
-    if q[:sets_neg]
-      must_not.concat(q[:sets_neg].map {|x| {term: {sets: x}}})
-    end
-
-    if q[:fav_ids]
-      must.concat(q[:fav_ids].map {|x| {term: {faves: x}}})
-    end
-    if q[:fav_ids_neg]
-      must_not.concat(q[:fav_ids_neg].map {|x| {term: {faves: x}}})
-    end
-
-    if q[:uploader_id_neg]
-      must_not.concat(q[:uploader_id_neg].map {|x| {term: {uploader: x.to_i}}})
-    end
-
-    if q[:uploader_id]
-      must.push({term: {uploader: q[:uploader_id].to_i}})
-    end
-
-    if q[:approver_id_neg]
-      must_not.concat(q[:approver_id_neg].map {|x| {term: {approver: x.to_i}}})
-    end
-
-    if q[:approver_id]
-      if q[:approver_id] == "any"
-        must.push({exists: {field: :approver}})
-      elsif q[:approver_id] == "none"
-        must_not.push({exists: {field: :approver}})
-      else
-        must.push({term: {approver: q[:approver_id].to_i}})
-      end
-    end
-
-    if q[:commenter_ids]
-      q[:commenter_ids].each do |commenter_id|
-        if commenter_id == "any"
-          must.push({exists: {field: :commenters}})
-        elsif commenter_id == "none"
-          must_not.push({exists: {field: :commenters}})
-        else
-          must.concat(q[:commenter_ids].map {|x| {term: {commenters: x.to_i}}} )
-        end
-      end
-    end
-
-    if q[:noter_ids]
-      q[:noter_ids].each do |noter_id|
-        if noter_id == "any"
-          must.push({exists: {field: :noters}})
-        elsif noter_id == "none"
-          must_not.push({exists: {field: :noters}})
-        else
-          must.concat(q[:noter_ids].map {|x| {term: {noters: x.to_i}}} )
-        end
-      end
-    end
-
-    if q[:note_updater_ids]
-      must.concat(q[:note_updater_ids].map {|x| {term: {noters: x.to_i}}} )
-    end
-
-    if q[:note]
-      must.push({match: {notes: q[:note]}})
-    end
-
-    if q[:note_neg]
-      must_not.push({match: {notes: q[:note_neg]}})
-    end
-
-    if q[:delreason]
-      must.push(sql_like_to_elastic(:del_reason, q[:delreason]))
-    end
-
-    if q[:delreason_neg]
-      must_not.push(sql_like_to_elastic(:del_reason, q[:delreason]))
-    end
-
-    if q[:deleter]
-      must.push({term: {deleter: q[:deleter].to_i}})
-    end
-
-    if q[:deleter_neg]
-      must_not.push({term: {deleter: q[:deleter].to_i}})
-    end
-
-    if q[:post_id_negated]
-      must_not.push({term: {id: q[:post_id_negated].to_i}})
-    end
-
-    if q[:parent] == "none"
-      must_not.push({exists: {field: :parent}})
-    elsif q[:parent] == "any"
-      must.push({exists: {field: :parent}})
-    elsif q[:parent]
-      must.push({term: {parent: q[:parent].to_i}})
-    end
-
-    if q[:parent_neg_ids]
-      neg_ids = q[:parent_neg_ids].map(&:to_i)
-      neg_ids.delete(0)
-      if neg_ids.present?
-        must_not.push(should(*(neg_ids.map {|p| {term: {parent: p}}})))
-      end
+    q[:voted_neg]&.each do |voter_id|
+      must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
     end
 
     if q[:child] == "none"
@@ -336,48 +206,12 @@ class ElasticPostQueryBuilder
       must.push({term: {has_children: true}})
     end
 
-    if q[:rating] =~ /\Aq/
-      must.push({term: {rating: "q"}})
-    elsif q[:rating] =~ /\As/
-      must.push({term: {rating: "s"}})
-    elsif q[:rating] =~ /\Ae/
-      must.push({term: {rating: "e"}})
+    q[:locked]&.each do |lock_type|
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
     end
 
-    if q[:rating_negated] =~ /\Aq/
-      must_not.push({term: {rating: "q"}})
-    elsif q[:rating_negated] =~ /\As/
-      must_not.push({term: {rating: "s"}})
-    elsif q[:rating_negated] =~ /\Ae/
-      must_not.push({term: {rating: "e"}})
-    end
-
-    if q[:locked] == "rating"
-      must.push({term: {rating_locked: true}})
-    elsif q[:locked] == "note" || q[:locked] == "notes"
-      must.push({term: {note_locked: true}})
-    elsif q[:locked] == "status"
-      must.push({term: {status_locked: true}})
-    end
-
-    if q[:locked_negated] == "rating"
-      must.push({term: {rating_locked: false}})
-    elsif q[:locked_negated] == "note" || q[:locked_negated] == "notes"
-      must.push({term: {note_locked: false}})
-    elsif q[:locked_negated] == "status"
-      must.push({term: {status_locked: false}})
-    end
-
-    if q.include?(:ratinglocked)
-      must.push({term: {rating_locked: q[:ratinglocked]}})
-    end
-
-    if q.include?(:notelocked)
-      must.push({term: {note_locked: q[:notelocked]}})
-    end
-
-    if q.include?(:statuslocked)
-      must.push({term: {status_locked: q[:statuslocked]}})
+    q[:locked_neg]&.each do |lock_type|
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
     end
 
     if q.include?(:hassource)
@@ -405,31 +239,6 @@ class ElasticPostQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags], must)
-
-    if q[:upvote].present?
-      must.push({term: {upvotes: q[:upvote].to_i}})
-    end
-
-    if q[:downvote].present?
-      must.push({term: {downvotes: q[:downvote].to_i}})
-    end
-
-    if q[:voted].present?
-      must.push(should({term: {upvotes: q[:voted].to_i}},
-                       {term: {downvotes: q[:voted].to_i}}))
-    end
-    if q[:neg_upvote].present?
-      must_not.push({term: {upvotes: q[:neg_upvote].to_i}})
-    end
-
-    if q[:neg_downvote].present?
-      must_not.push({term: {downvotes: q[:neg_downvote].to_i}})
-    end
-
-    if q[:neg_voted].present?
-      must_not.concat([{term: {upvotes: q[:neg_voted].to_i}},
-                       {term: {downvotes: q[:neg_voted].to_i}}])
-    end
 
     if q[:order] == "rank"
       must.push({range: {score: {gt: 0}}})
@@ -531,7 +340,7 @@ class ElasticPostQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{Tag::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])

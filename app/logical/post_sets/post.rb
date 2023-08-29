@@ -1,18 +1,17 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :format
+    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count
 
-    def initialize(tags, page = 1, per_page = nil, options = {})
+    def initialize(tags, page = 1, per_page = nil, random: nil)
       tags ||= ""
-      @public_tag_array = Tag.scan_query(tags)
+      @public_tag_array = TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" if !Tag.has_metatag?(tags, "status", "-status")
-      @tag_array = Tag.scan_query(tags)
+      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      @tag_array = TagQuery.scan(tags)
       @page = page
       @per_page = per_page
-      @random = options[:random].present?
-      @format = options[:format] || "html"
+      @random = random.present?
     end
 
     def tag_string
@@ -44,11 +43,11 @@ module PostSets
     end
 
     def per_page
-      (@per_page || Tag.has_metatag?(tag_array, :limit) || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
+      (@per_page || TagQuery.fetch_metatag(tag_array, "limit") || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
     end
 
     def is_random?
-      random || (Tag.has_metatag?(tag_array, :order) == "random" && !Tag.has_metatag?(tag_array, :randseed))
+      random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
     end
 
     def posts

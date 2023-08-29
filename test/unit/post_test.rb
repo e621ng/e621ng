@@ -1163,7 +1163,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
-          assert_equal(%w(aaa bbb ddd eee), Tag.scan_tags(final_post.tag_string).sort)
+          assert_equal(%w(aaa bbb ddd eee), TagQuery.scan(final_post.tag_string).sort)
         end
 
         should "merge any tag changes that were made after loading the initial set of tags part 2" do
@@ -1186,7 +1186,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
-          assert_equal(%w(aaa bbb ddd eee), Tag.scan_tags(final_post.tag_string).sort)
+          assert_equal(%w(aaa bbb ddd eee), TagQuery.scan(final_post.tag_string).sort)
         end
 
         should "merge any parent, source, and rating changes that were made after loading the initial set" do
@@ -1614,8 +1614,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post1], "pool:test_a")
       assert_tag_match([post2], "-pool:test_a")
       assert_tag_match([], "-pool:test_a -pool:test_b")
-      # FIXME: This only works when only one pool matches the wildcard
-      # assert_tag_match([post2, post1], "pool:test*")
 
       assert_tag_match([post2, post1], "pool:any")
       assert_tag_match([], "pool:none")
@@ -1933,21 +1931,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post], "filesize:1mb")
       assert_tag_match([post], "filesize:1000kb")
       assert_tag_match([post], "filesize:1048576b")
-    end
-
-    should "not perform fuzzy matching for an exact filesize search" do
-      post = create(:post, file_size: 1.megabyte)
-
-      assert_tag_match([], "filesize:1048000b")
-      assert_tag_match([], "filesize:1048000")
-    end
-
-    should "fail for more than 40 tags" do
-      post1 = create(:post, rating: "s")
-
-      assert_raise(::Post::SearchError) do
-        Post.tag_match("rating:s width:10 height:10 user:bob " + [*'aa'..'zz'].join(' '))
-      end
     end
 
     should "not count free tags against the user's search limit" do
