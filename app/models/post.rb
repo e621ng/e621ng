@@ -833,8 +833,8 @@ class Post < ApplicationRecord
 
     def inject_tag_categories(tag_cats)
       @tag_categories = tag_cats
-      @typed_tags = tag_array.group_by do |x|
-        @tag_categories[x] || 'general'
+      @typed_tags = tag_array.group_by do |tag_name|
+        @tag_categories[tag_name]
       end
     end
 
@@ -842,11 +842,11 @@ class Post < ApplicationRecord
       @tag_categories ||= Tag.categories_for(tag_array)
     end
 
-    def typed_tags(name)
+    def typed_tags(category_id)
       @typed_tags ||= {}
-      @typed_tags[name] ||= begin
+      @typed_tags[category_id] ||= begin
         tag_array.select do |tag|
-          tag_categories[tag] == TagCategory::MAPPING[name]
+          tag_categories[tag] == category_id
         end
       end
     end
