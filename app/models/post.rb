@@ -851,12 +851,6 @@ class Post < ApplicationRecord
       end
     end
 
-    TagCategory::CATEGORIES.each do |category|
-      define_method("tag_string_#{category}") do
-        typed_tags(category).join(" ")
-      end
-    end
-
     def copy_tags_to_parent
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
@@ -1363,7 +1357,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?] + TagCategory::CATEGORIES.map { |x| "tag_string_#{x}".to_sym }
+      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?]
       if visible?
         list += [:file_url, :large_file_url, :preview_file_url]
       end
