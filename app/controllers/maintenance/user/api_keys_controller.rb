@@ -2,22 +2,24 @@ module Maintenance
   module User
     class ApiKeysController < ApplicationController
       before_action :member_only
-      before_action :authenticate!, :except => [:show]
-      rescue_from ::SessionLoader::AuthenticationFailure, :with => :authentication_failed
+      before_action :authenticate!, except: [:show]
+      rescue_from ::SessionLoader::AuthenticationFailure, with: :authentication_failed
       respond_to :html
 
+      def show
+      end
+
       def view
-        respond_with(CurrentUser.user, @api_key)
       end
 
       def update
         @api_key.regenerate!
-        respond_with(CurrentUser.user, @api_key) { |format| format.js }
+        redirect_to(user_api_key_path(CurrentUser.user), notice: "API key regenerated")
       end
 
       def destroy
         @api_key.destroy
-        respond_with(CurrentUser.user, @api_key, location: CurrentUser.user)
+        redirect_to(CurrentUser.user)
       end
 
       protected
@@ -32,7 +34,7 @@ module Maintenance
       end
 
       def authentication_failed
-        redirect_to(user_api_key_path(CurrentUser.user), :notice => "Password was incorrect.")
+        redirect_to(user_api_key_path(CurrentUser.user), notice: "Password was incorrect.")
       end
     end
   end

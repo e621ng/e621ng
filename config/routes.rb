@@ -66,7 +66,7 @@ Rails.application.routes.draw do
       resource :deletion, :only => [:show, :destroy]
       resource :email_change, :only => [:new, :create]
       resource :dmail_filter, :only => [:edit, :update]
-      resource :api_key, :only => [:show, :view, :update, :destroy] do
+      resource :api_key, only: %i[show update destroy] do
         post :view
       end
     end
