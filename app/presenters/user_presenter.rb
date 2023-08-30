@@ -166,7 +166,14 @@ class UserPresenter
     tag_names = user&.favorite_tags.to_s.split
     tag_names = TagAlias.to_aliased(tag_names)
     indices = tag_names.each_with_index.map {|x, i| [x, i]}.to_h
-    Tag.where(name: tag_names).map {|x| [x.name, x.post_count, x.category]}.sort_by {|x| indices[x[0]] }
+    tags = Tag.where(name: tag_names).map do |tag|
+      {
+        name: tag.name,
+        count: tag.post_count,
+        category_id: tag.category,
+      }
+    end
+    tags.sort_by { |entry| indices[entry[:name]] }
   end
 
   def recent_tags_with_types
@@ -174,6 +181,12 @@ class UserPresenter
     tags = versions.flat_map(&:added_tags)
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)
     tags = tags.take(50)
-    Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
+    Tag.where(name: tags).map do |tag|
+      {
+        name: tag.name,
+        count: tag.post_count,
+        category_id: tag.category,
+      }
+    end
   end
 end
