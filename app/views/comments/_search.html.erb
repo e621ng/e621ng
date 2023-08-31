@@ -3,6 +3,7 @@
   <%= f.user :creator, label: "Commenter" %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
+  <%= f.user :post_note_updater, label: "Post Note Updater", hide_unless_value: true %>
   <% if CurrentUser.is_admin? %>
     <%= f.input :ip_addr, label: "IP Address" %>
   <% end %>

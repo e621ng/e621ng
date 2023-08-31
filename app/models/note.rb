@@ -41,6 +41,10 @@ class Note < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
+      with_resolved_user_ids(:post_note_updater, params) do |user_ids|
+        q = q.where(post_id: NoteVersion.select(:post_id).where(updater_id: user_ids))
+      end
+
       q = q.where_user(:creator_id, :creator, params)
 
       q.apply_basic_order(params)

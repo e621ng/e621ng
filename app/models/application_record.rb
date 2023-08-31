@@ -102,9 +102,7 @@ class ApplicationRecord < ActiveRecord::Base
         end
       end
 
-      # Searches for a user both by id and name.
-      # Accepts a block to modify the query when one of the params is present and yields the ids.
-      def where_user(db_field, query_field, params)
+      def with_resolved_user_ids(query_field, params, &)
         user_name_key = query_field.is_a?(Symbol) ? "#{query_field}_name" : query_field[0]
         user_id_key = query_field.is_a?(Symbol) ? "#{query_field}_id" : query_field[1]
 
@@ -115,8 +113,14 @@ class ApplicationRecord < ActiveRecord::Base
           user_ids = params[user_id_key].split(",").first(100).map(&:to_i)
         end
 
+        yield(user_ids) if user_ids
+      end
+
+      # Searches for a user both by id and name.
+      # Accepts a block to modify the query when one of the params is present and yields the ids.
+      def where_user(db_field, query_field, params)
         q = all
-        if user_ids
+        with_resolved_user_ids(query_field, params) do |user_ids|
           q = yield(q, user_ids) if block_given?
           q = q.where(to_where_hash(db_field, user_ids))
         end
