@@ -122,10 +122,10 @@ class ElasticPostQueryBuilder
     add_array_range_relation(:age, :created_at)
 
     TagCategory::CATEGORIES.each do |category|
-      add_array_range_relation(q["#{category}_tag_count".to_sym], "tag_count_#{category}")
+      add_array_range_relation(:"#{category}_tag_count", "tag_count_#{category}")
     end
 
-    add_array_range_relation(q[:post_tag_count], :tag_count)
+    add_array_range_relation(:post_tag_count, :tag_count)
 
     TagQuery::COUNT_METATAGS.map(&:to_sym).each do |column|
       if q[column]

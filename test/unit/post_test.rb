@@ -1756,10 +1756,12 @@ class PostTest < ActiveSupport::TestCase
       post = create(:post, tag_string: "artist:wokada copyright:vocaloid char:hatsune_miku twintails")
 
       assert_tag_match([post], "tagcount:4")
+      assert_tag_match([], "tagcount:3")
       assert_tag_match([post], "arttags:1")
       assert_tag_match([post], "copytags:1")
       assert_tag_match([post], "chartags:1")
       assert_tag_match([post], "gentags:1")
+      assert_tag_match([], "gentags:0")
     end
 
     should "return posts for the md5:<md5> metatag" do
