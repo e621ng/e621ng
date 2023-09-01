@@ -11,7 +11,7 @@ module ArtistsHelper
     else
       link = link_to(name, new_artist_path(name: name))
       notice = tag.span("*", class: "new-artist", title: "No artist with this name currently exists.")
-      "#{link} #{notice}"
+      "#{link} #{notice}".html_safe
     end
   end
 
