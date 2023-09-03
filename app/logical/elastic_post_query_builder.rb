@@ -50,6 +50,10 @@ class ElasticPostQueryBuilder
     if q[:"#{key}_must_not"]
       must_not.concat(q[:"#{key}_must_not"].map { |x| range_relation(x, index_key) })
     end
+
+    if q[:"#{key}_should"]
+      should.concat(q[:"#{key}_should"].map { |x| range_relation(x, index_key) })
+    end
   end
 
   def add_array_relation(key, index_key, any_none_key: nil, action: :term)
@@ -59,6 +63,10 @@ class ElasticPostQueryBuilder
 
     if q[:"#{key}_must_not"]
       must_not.concat(q[:"#{key}_must_not"].map { |x| { action => { index_key => x } } })
+    end
+
+    if q[:"#{key}_should"]
+      should.concat(q[:"#{key}_should"].map { |x| { action => { index_key => x } } })
     end
 
     if q[any_none_key] == "any"
@@ -189,6 +197,10 @@ class ElasticPostQueryBuilder
       must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
     end
 
+    q[:voted_should]&.each do |voter_id|
+      should.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
+    end
+
     if q[:child] == "none"
       must.push({term: {has_children: false}})
     elsif q[:child] == "any"
@@ -201,6 +213,10 @@ class ElasticPostQueryBuilder
 
     q[:locked_must_not]&.each do |lock_type|
       must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
+    end
+
+    q[:locked_should]&.each do |lock_type|
+      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
     end
 
     if q.include?(:hassource)

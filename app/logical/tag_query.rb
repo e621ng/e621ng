@@ -92,6 +92,11 @@ class TagQuery
 
   private
 
+  METATAG_SEARCH_TYPE = {
+    "-" => :must_not,
+    "~" => :should,
+  }.freeze
+
   def parse_query(query)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
@@ -106,49 +111,49 @@ class TagQuery
       # Remove quotes from description:"abc def"
       g2 = g2.delete_prefix('"').delete_suffix('"')
 
-      type = metatag_name.start_with?("-") ? :must_not : :must
+      type = METATAG_SEARCH_TYPE.fetch(metatag_name[0], :must)
       case metatag_name.downcase
-      when "user", "-user"
+      when "user", "-user", "~user"
         add_to_query(type, :uploader_ids) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "user_id", "-user_id"
+      when "user_id", "-user_id", "~user_id"
         add_to_query(type, :uploader_ids) do
           g2.to_id
         end
 
-      when "approver", "-approver"
+      when "approver", "-approver", "~approver"
         add_to_query(type, :approver_ids, any_none_key: :approver, value: g2) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "commenter", "-commenter", "comm", "-comm"
+      when "commenter", "-commenter", "~commenter", "comm", "-comm", "~comm"
         add_to_query(type, :commenter_ids, any_none_key: :commenter, value: g2) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "noter", "-noter"
+      when "noter", "-noter", "~noter"
         add_to_query(type, :noter_ids, any_none_key: :noter, value: g2) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "noteupdater", "-noteupdater"
+      when "noteupdater", "-noteupdater", "~noteupdater"
         add_to_query(type, :note_updater_ids) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "pool", "-pool"
+      when "pool", "-pool", "~pool"
         add_to_query(type, :pool_ids, any_none_key: :pool, value: g2) do
           Pool.name_to_id(g2)
         end
 
-      when "set", "-set"
+      when "set", "-set", "~set"
         add_to_query(type, :set_ids) do
           post_set_id = PostSet.name_to_id(g2)
           post_set = PostSet.find_by(id: post_set_id)
@@ -161,7 +166,7 @@ class TagQuery
           post_set_id
         end
 
-      when "fav", "favoritedby", "-fav", "-favoritedby"
+      when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
           favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
 
@@ -176,10 +181,10 @@ class TagQuery
       when "md5"
         q[:md5] = g2.downcase.split(",")[0..99]
 
-      when "rating", "-rating"
+      when "rating", "-rating", "~rating"
         add_to_query(type, :rating) { g2[0]&.downcase || "miss" }
 
-      when "locked", "-locked"
+      when "locked", "-locked", "~locked"
         add_to_query(type, :locked) do
           case g2.downcase
           when "rating"
@@ -204,51 +209,51 @@ class TagQuery
       when "-id"
         q[:post_id_must_not] = g2.to_i
 
-      when "width", "-width"
+      when "width", "-width", "~width"
         add_to_query(type, :width) { ParseValue.range(g2) }
 
-      when "height", "-height"
+      when "height", "-height", "~height"
         add_to_query(type, :height) { ParseValue.range(g2) }
 
-      when "mpixels", "-mpixels"
+      when "mpixels", "-mpixels", "~mpixels"
         add_to_query(type, :mpixels) { ParseValue.range_fudged(g2, :float) }
 
-      when "ratio", "-ratio"
+      when "ratio", "-ratio", "~ratio"
         add_to_query(type, :ratio) { ParseValue.range(g2, :ratio) }
 
-      when "duration", "-duration"
+      when "duration", "-duration", "~duration"
         add_to_query(type, :duration) { ParseValue.range(g2, :float) }
 
-      when "score", "-score"
+      when "score", "-score", "~score"
         add_to_query(type, :score) { ParseValue.range(g2) }
 
-      when "favcount", "-favcount"
+      when "favcount", "-favcount", "~favcount"
         add_to_query(type, :fav_count) { ParseValue.range(g2) }
 
-      when "filesize", "-filesize"
+      when "filesize", "-filesize", "~filesize"
         add_to_query(type, :filesize) { ParseValue.range_fudged(g2, :filesize) }
 
-      when "change", "-change"
+      when "change", "-change", "~change"
         add_to_query(type, :change_seq) { ParseValue.range(g2) }
 
-      when "source", "-source"
+      when "source", "-source", "~source"
         add_to_query(type, :sources, any_none_key: :source, value: g2, wildcard: true) do
           "#{g2}*"
         end
 
-      when "date", "-date"
+      when "date", "-date", "~date"
         add_to_query(type, :date) { ParseValue.date_range(g2) }
 
-      when "age", "-age"
+      when "age", "-age", "~age"
         add_to_query(type, :age) { ParseValue.invert_range(ParseValue.range(g2, :age)) }
 
-      when "tagcount", "-tagcount"
+      when "tagcount", "-tagcount", "~tagcount"
         add_to_query(type, :post_tag_count) { ParseValue.range(g2) }
 
-      when /-?(#{TagCategory::SHORT_NAME_REGEX})tags/
+      when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
         add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { ParseValue.range(g2) }
 
-      when "parent", "-parent"
+      when "parent", "-parent", "~parent"
         add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) do
           g2.to_i
         end
@@ -265,30 +270,33 @@ class TagQuery
       when "limit"
         # Do nothing. The controller takes care of it.
 
-      when "status", "-status"
-        add_to_query_single(type, :status) { g2.downcase }
+      when "status"
+        q[:status] = g2.downcase
 
-      when "filetype", "type", "-filetype", "-type"
+      when "-status"
+        q[:status_must_not] = g2.downcase
+
+      when "filetype", "-filetype", "~filetype", "type", "-type", "~type"
         add_to_query(type, :filetype) { g2.downcase }
 
-      when "description", "-description"
+      when "description", "-description", "~description"
         add_to_query(type, :description) { g2 }
 
-      when "note", "-note"
+      when "note", "-note", "~note"
         add_to_query(type, :note) { g2 }
 
-      when "delreason", "-delreason"
+      when "delreason", "-delreason", "~delreason"
         q[:status] ||= "any"
         add_to_query(type, :delreason, wildcard: true) { g2 }
 
-      when "deletedby", "-deletedby"
+      when "deletedby", "-deletedby", "~deletedby"
         q[:status] ||= "any"
         add_to_query(type, :deleter) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
         end
 
-      when "upvote", "votedup", "-upvote", "-votedup"
+      when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
         add_to_query(type, :upvote) do
           if CurrentUser.is_moderator?
             user_id = User.name_or_id_to_id(g2)
@@ -298,7 +306,7 @@ class TagQuery
           id_or_invalid(user_id)
         end
 
-      when "downvote", "voteddown", "-downvote", "-voteddown"
+      when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
         add_to_query(type, :downvote) do
           if CurrentUser.is_moderator?
             user_id = User.name_or_id_to_id(g2)
@@ -308,7 +316,7 @@ class TagQuery
           id_or_invalid(user_id)
         end
 
-      when "voted", "-voted"
+      when "voted", "-voted", "~voted"
         add_to_query(type, :voted) do
           if CurrentUser.is_moderator?
             user_id = User.name_or_id_to_id(g2)
@@ -368,6 +376,9 @@ class TagQuery
     when :must_not
       q[:"#{key}_must_not"] ||= []
       q[:"#{key}_must_not"] << value
+    when :should
+      q[:"#{key}_should"] ||= []
+      q[:"#{key}_should"] << value
     end
   end
 
@@ -381,15 +392,8 @@ class TagQuery
       else
         q[key] = "none"
       end
-    end
-  end
-
-  def add_to_query_single(type, key)
-    case type
-    when :must
-      q[key] = yield
-    when :must_not
-      q[:"#{key}_must_not"] = yield
+    when :should
+      # Do nothing
     end
   end
 
