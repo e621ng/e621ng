@@ -60,7 +60,7 @@ class TagQuery
   end
 
   def self.normalize(query)
-    tags = TagQuery.scan(query.to_s)
+    tags = TagQuery.scan(query)
     tags = tags.map { |t| Tag.normalize_name(t) }
     tags = TagAlias.to_aliased(tags)
     tags.sort.uniq.join(" ")
@@ -68,8 +68,12 @@ class TagQuery
 
   def self.scan(query)
     tagstr = query.to_s.unicode_normalize(:nfc).strip
-    list = tagstr.scan(/-?source:".*?"/) || []
-    list + tagstr.gsub(/-?source:".*?"/, "").scan(/[^[:space:]]+/).uniq
+    quote_delimited = []
+    tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
+      quote_delimited << match
+      ""
+    end
+    quote_delimited + tagstr.split.uniq
   end
 
   def self.has_metatag?(tags, *)
@@ -98,6 +102,9 @@ class TagQuery
         add_tag(token)
         next
       end
+
+      # Remove quotes from description:"abc def"
+      g2 = g2.delete_prefix('"').delete_suffix('"')
 
       type = metatag_name.start_with?("-") ? :must_not : :must
       case metatag_name.downcase
@@ -226,8 +233,7 @@ class TagQuery
 
       when "source", "-source"
         add_to_query(type, :sources, any_none_key: :source, value: g2, wildcard: true) do
-          src = g2.gsub(/\A"(.*)"\Z/, '\1')
-          "#{src}*"
+          "#{g2}*"
         end
 
       when "date", "-date"

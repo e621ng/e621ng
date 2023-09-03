@@ -4,6 +4,7 @@ class TagQueryTest < ActiveSupport::TestCase
   should "scan a query" do
     assert_equal(%w[aaa bbb], TagQuery.scan("aaa bbb"))
     assert_equal(%w[~AAa -BBB* -bbb*], TagQuery.scan("~AAa -BBB* -bbb*"))
+    assert_equal(['test:"with spaces"', "aaa", "def"], TagQuery.scan('aaa test:"with spaces" def'))
   end
 
   should "not strip out valid characters when scanning" do
