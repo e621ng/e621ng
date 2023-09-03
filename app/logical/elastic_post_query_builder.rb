@@ -74,6 +74,12 @@ class ElasticPostQueryBuilder
     elsif q[any_none_key] == "none"
       must_not.push({ exists: { field: index_key } })
     end
+
+    if q[:"#{any_none_key}_should"] == "any"
+      should.push({ exists: { field: index_key } })
+    elsif q[:"#{any_none_key}_should"] == "none"
+      should.push(match_none({ exists: { field: index_key } }))
+    end
   end
 
   def add_tag_string_search_relation(tags)
@@ -92,6 +98,10 @@ class ElasticPostQueryBuilder
   def match_any(*args)
     # Explicitly set minimum should match, even though it may not be required in this context.
     { bool: { minimum_should_match: 1, should: args } }
+  end
+
+  def match_none(*args)
+    { bool: { must_not: args } }
   end
 
   def build

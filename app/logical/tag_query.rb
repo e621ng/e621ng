@@ -405,7 +405,7 @@ class TagQuery
         q[key] = "none"
       end
     when :should
-      # Do nothing
+      q[:"#{key}_should"] = value
     end
   end
 
