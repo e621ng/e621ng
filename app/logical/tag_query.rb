@@ -133,7 +133,7 @@ class TagQuery
 
       when "user_id", "-user_id", "~user_id"
         add_to_query(type, :uploader_ids) do
-          g2.to_id
+          g2.to_i
         end
 
       when "approver", "-approver", "~approver"
