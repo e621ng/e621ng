@@ -96,6 +96,10 @@ module Danbooru
       []
     end
 
+    def safeblocked_tags
+      []
+    end
+
     # This allows using statically linked copies of ffmpeg in non default locations. Not universally supported across
     # the codebase at this time.
     def ffmpeg_path

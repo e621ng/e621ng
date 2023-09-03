@@ -90,6 +90,14 @@ class TagQuery
     end
   end
 
+  def self.has_tag?(tag_array, *)
+    fetch_tags(tag_array, *).any?
+  end
+
+  def self.fetch_tags(tag_array, *tags)
+    tags.select { |tag| tag_array.include?(tag) }
+  end
+
   private
 
   METATAG_SEARCH_TYPE = {

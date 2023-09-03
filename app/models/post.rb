@@ -248,7 +248,7 @@ class Post < ApplicationRecord
       return true if is_video?
       return false if is_gif?
       return false if is_flash?
-      return false if has_tag?("animated_gif|animated_png")
+      return false if has_tag?("animated_gif", "animated_png")
       is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
     end
 
@@ -818,8 +818,12 @@ class Post < ApplicationRecord
       end
     end
 
-    def has_tag?(tag)
-      !!(tag_string =~ /(?:^| )(?:#{tag})(?:$| )/)
+    def has_tag?(*)
+      TagQuery.has_tag?(tag_array, *)
+    end
+
+    def fetch_tags(*)
+      TagQuery.fetch_tags(tag_array, *)
     end
 
     def add_tag(tag)
@@ -1638,7 +1642,7 @@ class Post < ApplicationRecord
 
   def safeblocked?
     return true if Danbooru.config.safe_mode? && rating != "s"
-    CurrentUser.safe_mode? && (rating != "s" || has_tag?("toddlercon|rape|bestiality|beastiality|lolita|loli|shota|pussy|penis|genitals"))
+    CurrentUser.safe_mode? && (rating != "s" || has_tag?(*Danbooru.config.safeblocked_tags))
   end
 
   def deleteblocked?
@@ -1683,7 +1687,7 @@ class Post < ApplicationRecord
     add_tag("partially_translated") if params["partially_translated"].to_s.truthy?
     remove_tag("partially_translated") if params["partially_translated"].to_s.falsy?
 
-    if has_tag?("translation_check") || has_tag?("partially_translated")
+    if has_tag?("translation_check", "partially_translated")
       add_tag("translation_request")
       remove_tag("translated")
     else

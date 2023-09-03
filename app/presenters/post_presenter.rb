@@ -105,7 +105,7 @@ class PostPresenter < Presenter
   def self.data_attributes(post, include_post: false)
     attributes = {
         "data-id" => post.id,
-        "data-has-sound" => post.has_tag?('video_with_sound|flash_with_sound'),
+        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
         "data-tags" => post.tag_string,
         "data-rating" => post.rating,
         "data-width" => post.image_width,

@@ -24,7 +24,7 @@ class PostsDecorator < ApplicationDecorator
     post = object
     attributes = {
         "data-id" => post.id,
-        "data-has-sound" => post.has_tag?('video_with_sound|flash_with_sound'),
+        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
         "data-tags" => post.tag_string,
         "data-rating" => post.rating,
         "data-flags" => post.status_flags,
