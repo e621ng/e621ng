@@ -1,11 +1,15 @@
 module PostSets
   class Base
     def tag_string
-      nil
+      ""
     end
 
     def public_tag_string
-      nil
+      ""
+    end
+
+    def ad_tag_string
+      ""
     end
 
     def fill_tag_types(posts)

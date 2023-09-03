@@ -826,6 +826,10 @@ class Post < ApplicationRecord
       TagQuery.fetch_tags(tag_array, *)
     end
 
+    def ad_tag_string
+      TagQuery.ad_tag_string(tag_array)
+    end
+
     def add_tag(tag)
       set_tag_string("#{tag_string} #{tag}")
     end

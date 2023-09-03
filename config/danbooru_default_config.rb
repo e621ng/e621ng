@@ -650,6 +650,11 @@ module Danbooru
       false
     end
 
+    # These tags will be sent to the revive server to do filtering on
+    def ads_keyword_tags
+      []
+    end
+
     def ads_zone_desktop
       {zone: nil, revive_id: nil, checksum: nil}
     end

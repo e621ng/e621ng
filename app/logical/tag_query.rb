@@ -98,6 +98,10 @@ class TagQuery
     tags.select { |tag| tag_array.include?(tag) }
   end
 
+  def self.ad_tag_string(tag_array)
+    fetch_tags(tag_array, *Danbooru.config.ads_keyword_tags).join(" ")
+  end
+
   private
 
   METATAG_SEARCH_TYPE = {

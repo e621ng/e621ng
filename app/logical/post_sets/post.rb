@@ -22,6 +22,10 @@ module PostSets
       @public_tag_string ||= public_tag_array.uniq.join(" ")
     end
 
+    def ad_tag_string
+      TagQuery.ad_tag_string(public_tag_array)
+    end
+
     def humanized_tag_string
       public_tag_array.slice(0, 25).join(" ").tr("_", " ")
     end
