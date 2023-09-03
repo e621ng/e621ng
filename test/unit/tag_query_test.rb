@@ -19,7 +19,7 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal([:gt, 2], TagQuery.new("id:>2")[:post_id])
     assert_equal([:lt, 3], TagQuery.new("id:<3")[:post_id])
     assert_equal([:lt, 3], TagQuery.new("ID:<3")[:post_id])
-    assert_equal(["acb"], TagQuery.new("a*b")[:tags][:include])
+    assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
   end
 
   should "fail for more than 40 tags" do

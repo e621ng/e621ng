@@ -45,9 +45,9 @@ class TagQuery
   def initialize(query, resolve_aliases: true, free_tags_count: 0)
     @q = {
       tags: {
-        related: [],
-        include: [],
-        exclude: [],
+        must: [],
+        must_not: [],
+        should: [],
       },
     }
     @resolve_aliases = resolve_aliases
@@ -336,19 +336,19 @@ class TagQuery
     tag = tag.downcase
     if tag.start_with?("-") && tag.length > 1
       if tag.include?("*")
-        q[:tags][:exclude] += pull_wildcard_tags(tag.delete_prefix("-"))
+        q[:tags][:must_not] += pull_wildcard_tags(tag.delete_prefix("-"))
       else
-        q[:tags][:exclude] << tag.delete_prefix("-")
+        q[:tags][:must_not] << tag.delete_prefix("-")
       end
 
     elsif tag[0] == "~" && tag.length > 1
-      q[:tags][:include] << tag.delete_prefix("~")
+      q[:tags][:should] << tag.delete_prefix("~")
 
     elsif tag.include?("*")
-      q[:tags][:include] += pull_wildcard_tags(tag)
+      q[:tags][:should] += pull_wildcard_tags(tag)
 
     else
-      q[:tags][:related] << tag.downcase
+      q[:tags][:must] << tag.downcase
     end
   end
 
@@ -400,9 +400,9 @@ class TagQuery
   end
 
   def normalize_tags
-    q[:tags][:exclude] = TagAlias.to_aliased(q[:tags][:exclude])
-    q[:tags][:include] = TagAlias.to_aliased(q[:tags][:include])
-    q[:tags][:related] = TagAlias.to_aliased(q[:tags][:related])
+    q[:tags][:must] = TagAlias.to_aliased(q[:tags][:must])
+    q[:tags][:must_not] = TagAlias.to_aliased(q[:tags][:must_not])
+    q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
   end
 
   def parse_boolean(value)

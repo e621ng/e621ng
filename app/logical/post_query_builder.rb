@@ -6,14 +6,14 @@ class PostQueryBuilder
   end
 
   def add_tag_string_search_relation(tags, relation)
-    if tags[:include].any?
-      relation = relation.where("string_to_array(posts.tag_string, ' ') && ARRAY[?]", tags[:include])
+    if tags[:must].any?
+      relation = relation.where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tags[:must])
     end
-    if tags[:related].any?
-      relation = relation.where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tags[:related])
+    if tags[:must_not].any?
+      relation = relation.where("NOT(string_to_array(posts.tag_string, ' ') && ARRAY[?])", tags[:must_not])
     end
-    if tags[:exclude].any?
-      relation = relation.where("NOT(string_to_array(posts.tag_string, ' ') && ARRAY[?])", tags[:exclude])
+    if tags[:should].any?
+      relation = relation.where("string_to_array(posts.tag_string, ' ') && ARRAY[?]", tags[:should])
     end
 
     relation

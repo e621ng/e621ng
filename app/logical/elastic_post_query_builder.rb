@@ -68,14 +68,14 @@ class ElasticPostQueryBuilder
   end
 
   def add_tag_string_search_relation(tags, relation)
-    should = tags[:include].map {|x| {term: {tags: x}}}
-    must = tags[:related].map {|x| {term: {tags: x}}}
-    must_not = tags[:exclude].map {|x| {term: {tags: x}}}
+    must = tags[:must].map { |x| { term: { tags: x } } }
+    must_not = tags[:must_not].map { |x| { term: { tags: x } } }
+    should = tags[:should].map { |x| { term: { tags: x } } }
 
     search = {bool: {
-        should: should,
-        must: must,
-        must_not: must_not,
+      must: must,
+      must_not: must_not,
+      should: should,
     }}
     search[:bool][:minimum_should_match] = 1 if should.size > 0
     relation.push(search)
