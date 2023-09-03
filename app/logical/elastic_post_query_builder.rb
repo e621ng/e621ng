@@ -5,12 +5,13 @@ class ElasticPostQueryBuilder
     status: :status_locked,
   }.freeze
 
-  attr_accessor :q, :must, :must_not, :order
+  attr_accessor :q, :must, :must_not, :should, :order
 
   def initialize(query_string, resolve_aliases: true, free_tags_count: 0)
     @q = TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count)
     @must = [] # These terms are ANDed together
     @must_not = [] # These terms are NOT ANDed together
+    @should = [] # These terms are ORed together
     @order = []
   end
 
@@ -67,18 +68,10 @@ class ElasticPostQueryBuilder
     end
   end
 
-  def add_tag_string_search_relation(tags, relation)
-    must = tags[:must].map { |x| { term: { tags: x } } }
-    must_not = tags[:must_not].map { |x| { term: { tags: x } } }
-    should = tags[:should].map { |x| { term: { tags: x } } }
-
-    search = {bool: {
-      must: must,
-      must_not: must_not,
-      should: should,
-    }}
-    search[:bool][:minimum_should_match] = 1 if should.size > 0
-    relation.push(search)
+  def add_tag_string_search_relation(tags)
+    must.concat(tags[:must].map { |x| { term: { tags: x } } })
+    must_not.concat(tags[:must_not].map { |x| { term: { tags: x } } })
+    should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
   def hide_deleted_posts?
@@ -88,7 +81,7 @@ class ElasticPostQueryBuilder
     true
   end
 
-  def should(*args)
+  def match_any(*args)
     # Explicitly set minimum should match, even though it may not be required in this context.
     { bool: { minimum_should_match: 1, should: args } }
   end
@@ -135,7 +128,7 @@ class ElasticPostQueryBuilder
     end
 
     if q[:md5]
-      must.push(should(*(q[:md5].map {|m| {term: {md5: m}}})))
+      must.push(match_any(*(q[:md5].map { |m| { term: { md5: m } } })))
     end
 
     if q[:status] == "pending"
@@ -143,7 +136,7 @@ class ElasticPostQueryBuilder
     elsif q[:status] == "flagged"
       must.push({term: {flagged: true}})
     elsif q[:status] == "modqueue"
-      must.push(should({term: {pending: true}}, {term: {flagged: true}}))
+      must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status] == "deleted"
       must.push({term: {deleted: true}})
     elsif q[:status] == "active"
@@ -157,15 +150,11 @@ class ElasticPostQueryBuilder
     elsif q[:status_neg] == "flagged"
       must_not.push({term: {flagged: true}})
     elsif q[:status_neg] == "modqueue"
-      must_not.push(should({term: {pending: true}},
-                      {term: {flagged: true}},
-                  ))
+      must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status_neg] == "deleted"
       must_not.push({term: {deleted: true}})
     elsif q[:status_neg] == "active"
-      must.push(should({term: {pending: true}},
-                       {term: {deleted: true}},
-                       {term: {flagged: true}}))
+      must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
     end
 
     if hide_deleted_posts?
@@ -193,7 +182,7 @@ class ElasticPostQueryBuilder
     add_array_relation(:downvote, :downvotes)
 
     q[:voted]&.each do |voter_id|
-      must.push(should({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
+      must.push(match_any({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
     end
 
     q[:voted_neg]&.each do |voter_id|
@@ -238,7 +227,7 @@ class ElasticPostQueryBuilder
       must.push({term: {has_pending_replacements: q[:pending_replacements]}})
     end
 
-    add_tag_string_search_relation(q[:tags], must)
+    add_tag_string_search_relation(q[:tags])
 
     if q[:order] == "rank"
       must.push({range: {score: {gt: 0}}})
@@ -395,7 +384,15 @@ class ElasticPostQueryBuilder
       must.push({match_all: {}})
     end
 
-    query = {bool: {must: must, must_not: must_not}}
+    query = {
+      bool: {
+        must: must,
+        must_not: must_not,
+        should: should,
+      },
+    }
+    query[:bool][:minimum_should_match] = 1 if should.any?
+
     if function_score.present?
       function_score[:function_score][:query] = query
       query = function_score
