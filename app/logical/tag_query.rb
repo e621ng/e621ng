@@ -202,7 +202,7 @@ class TagQuery
         q[:post_id] = ParseValue.range(g2)
 
       when "-id"
-        q[:post_id_neg] = g2.to_i
+        q[:post_id_must_not] = g2.to_i
 
       when "width", "-width"
         add_to_query(type, :width) { ParseValue.range(g2) }
@@ -366,8 +366,8 @@ class TagQuery
       q[key] ||= []
       q[key] << value
     when :must_not
-      q[:"#{key}_neg"] ||= []
-      q[:"#{key}_neg"] << value
+      q[:"#{key}_must_not"] ||= []
+      q[:"#{key}_must_not"] << value
     end
   end
 
@@ -389,7 +389,7 @@ class TagQuery
     when :must
       q[key] = yield
     when :must_not
-      q[:"#{key}_neg"] = yield
+      q[:"#{key}_must_not"] = yield
     end
   end
 

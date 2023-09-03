@@ -47,8 +47,8 @@ class ElasticPostQueryBuilder
       must.concat(q[key].map { |x| range_relation(x, index_key) })
     end
 
-    if q[:"#{key}_neg"]
-      must_not.concat(q[:"#{key}_neg"].map { |x| range_relation(x, index_key) })
+    if q[:"#{key}_must_not"]
+      must_not.concat(q[:"#{key}_must_not"].map { |x| range_relation(x, index_key) })
     end
   end
 
@@ -57,8 +57,8 @@ class ElasticPostQueryBuilder
       must.concat(q[key].map { |x| { action => { index_key => x } } })
     end
 
-    if q[:"#{key}_neg"]
-      must_not.concat(q[:"#{key}_neg"].map { |x| { action => { index_key => x } } })
+    if q[:"#{key}_must_not"]
+      must_not.concat(q[:"#{key}_must_not"].map { |x| { action => { index_key => x } } })
     end
 
     if q[any_none_key] == "any"
@@ -77,7 +77,7 @@ class ElasticPostQueryBuilder
   def hide_deleted_posts?
     return false if CurrentUser.admin_mode?
     return false if q[:status].in?(%w[deleted active any all])
-    return false if q[:status_neg].in?(%w[deleted active any all])
+    return false if q[:status_must_not].in?(%w[deleted active any all])
     true
   end
 
@@ -98,8 +98,8 @@ class ElasticPostQueryBuilder
       must.push(relation) if relation
     end
 
-    if q[:post_id_neg]
-      must_not.push({ term: { id: q[:post_id_neg] } })
+    if q[:post_id_must_not]
+      must_not.push({ term: { id: q[:post_id_must_not] } })
     end
 
     add_array_range_relation(:mpixels, :mpixels)
@@ -145,15 +145,15 @@ class ElasticPostQueryBuilder
                    {term: {flagged: false}}])
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
-    elsif q[:status_neg] == "pending"
+    elsif q[:status_must_not] == "pending"
       must_not.push({term: {pending: true}})
-    elsif q[:status_neg] == "flagged"
+    elsif q[:status_must_not] == "flagged"
       must_not.push({term: {flagged: true}})
-    elsif q[:status_neg] == "modqueue"
+    elsif q[:status_must_not] == "modqueue"
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
-    elsif q[:status_neg] == "deleted"
+    elsif q[:status_must_not] == "deleted"
       must_not.push({term: {deleted: true}})
-    elsif q[:status_neg] == "active"
+    elsif q[:status_must_not] == "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
     end
 
@@ -185,7 +185,7 @@ class ElasticPostQueryBuilder
       must.push(match_any({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } }))
     end
 
-    q[:voted_neg]&.each do |voter_id|
+    q[:voted_must_not]&.each do |voter_id|
       must_not.push({ term: { upvotes: voter_id } }, { term: { downvotes: voter_id } })
     end
 
@@ -199,7 +199,7 @@ class ElasticPostQueryBuilder
       must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
     end
 
-    q[:locked_neg]&.each do |lock_type|
+    q[:locked_must_not]&.each do |lock_type|
       must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
     end
 

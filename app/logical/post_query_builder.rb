@@ -67,15 +67,15 @@ class PostQueryBuilder
       relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE")
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
-    elsif q[:status_neg] == "pending"
+    elsif q[:status_must_not] == "pending"
       relation = relation.where("posts.is_pending = FALSE")
-    elsif q[:status_neg] == "flagged"
+    elsif q[:status_must_not] == "flagged"
       relation = relation.where("posts.is_flagged = FALSE")
-    elsif q[:status_neg] == "modqueue"
+    elsif q[:status_must_not] == "modqueue"
       relation = relation.where("posts.is_pending = FALSE AND posts.is_flagged = FALSE")
-    elsif q[:status_neg] == "deleted"
+    elsif q[:status_must_not] == "deleted"
       relation = relation.where("posts.is_deleted = FALSE")
-    elsif q[:status_neg] == "active"
+    elsif q[:status_must_not] == "active"
       relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_flagged = TRUE")
     end
 
@@ -83,7 +83,7 @@ class PostQueryBuilder
       relation = relation.where("posts.file_ext": filetype)
     end
 
-    q[:filetype_neg]&.each do |filetype|
+    q[:filetype_must_not]&.each do |filetype|
       relation = relation.where.not("posts.file_ext": filetype)
     end
 
@@ -97,7 +97,7 @@ class PostQueryBuilder
       relation = relation.where("posts.uploader_id": uploader_id)
     end
 
-    q[:uploader_ids_neg]&.each do |uploader_id|
+    q[:uploader_ids_must_not]&.each do |uploader_id|
       relation = relation.where.not("posts.uploader_id": uploader_id)
     end
 
@@ -111,7 +111,7 @@ class PostQueryBuilder
       relation = relation.where("posts.approver_id": approver_id)
     end
 
-    q[:approver_ids_neg]&.each do |approver_id|
+    q[:approver_ids_must_not]&.each do |approver_id|
       relation = relation.where.not("posts.approver_id": approver_id)
     end
 
@@ -127,8 +127,8 @@ class PostQueryBuilder
       relation = relation.where("posts.last_noted_at is null")
     end
 
-    if q[:post_id_neg]
-      relation = relation.where("posts.id <> ?", q[:post_id_neg])
+    if q[:post_id_must_not]
+      relation = relation.where("posts.id <> ?", q[:post_id_must_not])
     end
 
     if q[:parent] == "none"
@@ -141,7 +141,7 @@ class PostQueryBuilder
       relation = relation.where("posts.parent_id = ?", parent_id)
     end
 
-    q[:parent_ids_neg]&.each do |parent_id|
+    q[:parent_ids_must_not]&.each do |parent_id|
       relation = relation.where.not("posts.parent_id = ?", parent_id)
     end
 
@@ -155,7 +155,7 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", rating)
     end
 
-    q[:rating_neg]&.each do |rating|
+    q[:rating_must_not]&.each do |rating|
       relation = relation.where("posts.rating = ?", rating)
     end
 
