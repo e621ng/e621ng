@@ -90,6 +90,7 @@ class VoteManager
     begin
       raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
       raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
+      raise UserVote::Error.new("Comment section is disabled") if !user.is_moderator? && comment.post.is_comment_disabled?
       CommentVote.transaction(**ISOLATION) do
         CommentVote.uncached do
           score_modifier = score
