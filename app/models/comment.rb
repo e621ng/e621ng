@@ -137,7 +137,7 @@ class Comment < ApplicationRecord
   end
 
   def post_not_comment_disabled
-    errors.add(:base, "Post has comments disabled") if Post.find_by(id: post_id)&.is_comment_disabled
+    errors.add(:base, "Post has comments disabled") if !CurrentUser.is_moderator? && Post.find_by(id: post_id)&.is_comment_disabled?
   end
 
   def update_last_commented_at_on_create
@@ -173,6 +173,12 @@ class Comment < ApplicationRecord
 
   def below_threshold?(user = CurrentUser.user)
     score < user.comment_threshold
+  end
+
+  def can_reply?(user)
+    return false if is_sticky?
+    return false if !user.is_moderator? && post.is_comment_disabled?
+    true
   end
 
   def editable_by?(user)

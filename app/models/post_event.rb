@@ -23,6 +23,10 @@ class PostEvent < ApplicationRecord
     replacement_deleted: 16,
     expunged: 17,
   }
+  MOD_ONLY_ACTIONS = [
+    actions[:comment_disabled],
+    actions[:comment_enabled],
+  ].freeze
 
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
@@ -41,7 +45,7 @@ class PostEvent < ApplicationRecord
     q = super
 
     unless CurrentUser.is_moderator?
-      q = q.where.not(action: [actions[:comment_disabled], actions[:comment_enabled]])
+      q = q.where.not(action: MOD_ONLY_ACTIONS)
     end
     if params[:post_id].present?
       q = q.where("post_id = ?", params[:post_id].to_i)
