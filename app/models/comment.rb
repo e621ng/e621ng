@@ -183,12 +183,14 @@ class Comment < ApplicationRecord
 
   def editable_by?(user)
     return true if user.is_admin?
+    return false if !user.is_moderator? && post.is_comment_disabled?
     return false if was_warned?
     creator_id == user.id
   end
 
   def can_hide?(user)
     return true if user.is_moderator?
+    return false if post.is_comment_disabled?
     return false if was_warned?
     user.id == creator_id
   end
