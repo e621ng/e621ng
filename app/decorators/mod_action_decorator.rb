@@ -89,7 +89,7 @@ class ModActionDecorator < ApplicationDecorator
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_name_change"
-      "Changed name of #{user} from #{vals['old_name']} to #{vals['new_name']}"
+      "Changed name of #{user}"
 
       ### User Record ###
 

@@ -27,6 +27,14 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
           @user.reload
           assert_equal(30, @user.level)
         end
+
+        should "rename" do
+          assert_difference(-> { ModAction.count }, 1) do
+            put_auth admin_user_path(@user), @admin, params: { user: { name: "renamed" } }
+            assert_redirected_to(user_path(@user))
+            assert_equal("renamed", @user.reload.name)
+          end
+        end
       end
 
       context "on an user with a blank email" do
@@ -36,14 +44,14 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "succeed" do
-          put_auth admin_user_path(@user), @admin, params: { user: { level: "30", email: "" } }
+          put_auth admin_user_path(@user), @admin, params: { user: { level: "30" } }
           assert_redirected_to(user_path(@user))
           @user.reload
           assert_equal(30, @user.level)
         end
 
         should "prevent invalid emails" do
-          put_auth admin_user_path(@user), @admin, params: { user: { level: "10", email: "invalid" } }
+          put_auth admin_user_path(@user), @admin, params: { user: { email: "invalid" } }
           @user.reload
           assert_equal("", @user.email)
         end
@@ -63,7 +71,7 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "allow changing the email" do
-          put_auth admin_user_path(@user1), @admin, params: { user: { level: "20", email: "abc@e621.net" } }
+          put_auth admin_user_path(@user1), @admin, params: { user: { email: "abc@e621.net" } }
           @user1.reload
           assert_equal("abc@e621.net", @user1.email)
         end
