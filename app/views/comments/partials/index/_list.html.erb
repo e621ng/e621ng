@@ -1,6 +1,6 @@
 <div class="comments-for-post" data-post-id="<%= post.id %>">
-  <% if post.is_comment_disabled? %>
-    Comment section has been disabled.
+  <% if post.is_comment_locked? %>
+    Comment section has been locked.
   <% end %>
   <div class="row notices">
     <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > 6) %>
@@ -22,7 +22,7 @@
     <% end %>
   </div>
 
-  <% if !CurrentUser.is_moderator? && post.is_comment_disabled? %>
+  <% if post.is_comment_locked? && !CurrentUser.is_moderator? %>
   <% elsif CurrentUser.is_member? %>
     <div class="new-comment">
       <% if !CurrentUser.is_anonymous? && !CurrentUser.user.is_janitor? %>
