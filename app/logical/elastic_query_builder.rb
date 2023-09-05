@@ -7,6 +7,36 @@ class ElasticQueryBuilder
     @must_not = [] # These terms are NOT ANDed together
     @should = [] # These terms are ORed together
     @order = []
+    @function_score = nil
+    build
+  end
+
+  def search
+    if must.empty?
+      must.push({ match_all: {} })
+    end
+
+    query = {
+      bool: {
+        must: must,
+        must_not: must_not,
+        should: should,
+      },
+    }
+    query[:bool][:minimum_should_match] = 1 if should.any?
+
+    if @function_score.present?
+      @function_score[:query] = query
+      query = { function_score: @function_score }
+    end
+    search_body = {
+      query: query,
+      sort: order,
+      _source: false,
+      timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms",
+    }
+
+    model_class.__elasticsearch__.search(search_body)
   end
 
   def match_any(*args)

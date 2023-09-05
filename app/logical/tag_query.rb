@@ -274,7 +274,7 @@ class TagQuery
         q[:child] = g2.downcase
 
       when "randseed"
-        q[:random] = g2.to_i
+        q[:random_seed] = g2.to_i
 
       when "order"
         q[:order] = g2.downcase

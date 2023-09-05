@@ -9,6 +9,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
   end
 
+  def model_class
+    Post
+  end
+
   def add_tag_string_search_relation(tags)
     must.concat(tags[:must].map { |x| { term: { tags: x } } })
     must_not.concat(tags[:must_not].map { |x| { term: { tags: x } } })
@@ -23,8 +27,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def build
-    function_score = nil
-
     if CurrentUser.safe_mode?
       must.push({term: {rating: "s"}})
     end
@@ -291,31 +293,28 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc})
 
     when "rank"
-      must.push({function_score: {
-          query: {match_all: {}},
-          script_score: {
-              script: {
-                  params: {log3: Math.log(3), date2005_05_24: 1116936000},
-                  source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
-              },
+      @function_score = {
+        script_score: {
+          script: {
+            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+            source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
           },
-      }})
+        },
+      }
 
       order.push({_score: :desc})
 
     when "random"
-      if q[:random].present?
-        function_score = {function_score: {
-            query: {match_all: {}},
-            random_score: {seed: q[:random].to_i, field: 'id'},
-            boost_mode: :replace
-        }}
+      if q[:random_seed].present?
+        @function_score = {
+          random_score: { seed: q[:random_seed], field: "id" },
+          boost_mode: :replace,
+        }
       else
-        function_score = {function_score: {
-            query: {match_all: {}},
-            random_score: {},
-            boost_mode: :replace
-        }}
+        @function_score = {
+          random_score: {},
+          boost_mode: :replace,
+        }
       end
 
       order.push({_score: :desc})
@@ -323,31 +322,5 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     else
       order.push({id: :desc})
     end
-
-    if must.empty?
-      must.push({match_all: {}})
-    end
-
-    query = {
-      bool: {
-        must: must,
-        must_not: must_not,
-        should: should,
-      },
-    }
-    query[:bool][:minimum_should_match] = 1 if should.any?
-
-    if function_score.present?
-      function_score[:function_score][:query] = query
-      query = function_score
-    end
-    search_body = {
-        query: query,
-        sort: order,
-        _source: false,
-        timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
-    }
-
-    Post.__elasticsearch__.search(search_body)
   end
 end

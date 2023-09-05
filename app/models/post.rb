@@ -1470,11 +1470,11 @@ class Post < ApplicationRecord
     end
 
     def tag_match(query, resolve_aliases: true, free_tags_count: 0)
-      ElasticPostQueryBuilder.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count).build
+      ElasticPostQueryBuilder.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count).search
     end
 
     def tag_match_sql(query)
-      PostQueryBuilder.new(query).build
+      PostQueryBuilder.new(query).search
     end
   end
 

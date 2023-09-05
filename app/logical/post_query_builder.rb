@@ -26,7 +26,7 @@ class PostQueryBuilder
     relation
   end
 
-  def build
+  def search
     q = TagQuery.new(query_string)
     relation = Post.all
 
