@@ -220,13 +220,13 @@ class CommentTest < ActiveSupport::TestCase
 
       context "on a comment locked post" do
         setup do
-          @post = create(:post, is_comment_disabled: true)
+          @post = create(:post, is_comment_locked: true)
         end
 
         should "prevent new comments" do
           comment = build(:comment, post: @post)
           comment.save
-          assert_equal(["Post has comments disabled"], comment.errors.full_messages)
+          assert_equal(["Post has comments locked"], comment.errors.full_messages)
         end
       end
     end

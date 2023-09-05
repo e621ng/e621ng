@@ -1,38 +1,37 @@
 <div class="comments-for-post" data-post-id="<%= post.id %>">
-  <% if post.is_comment_disabled %>
-    Comment section has been disabled.
+  <% if post.is_comment_locked? %>
+    Comment section has been locked.
   <% end %>
-  <% if !post.is_comment_disabled || CurrentUser.is_moderator? %>
-    <div class="row notices">
-      <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > 6) %>
-        <span id="threshold-comments-notice-for-<%= post.id %>">
-          <%= link_to "Show all comments", comments_path(:post_id => post.id), 'data-pid': post.id, class: 'show-all-comments-for-post-link' %>
-        </span>
-      <% end %>
-    </div>
-
-    <div class="list-of-comments">
-      <% if comments.empty? %>
-        <% if post.last_commented_at.present? %>
-          <p>There are no visible comments.</p>
-        <% else %>
-          <p>There are no comments.</p>
-        <% end %>
-      <% else %>
-        <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
-      <% end %>
-    </div>
-
-    <% if CurrentUser.is_member? %>
-      <div class="new-comment">
-        <% if !CurrentUser.is_anonymous? && !CurrentUser.user.is_janitor? %>
-          <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
-        <% end %>
-        <p><%= link_to "Post comment", new_comment_path(comment: { post_id: post.id }), :class => "expand-comment-response" %></p>
-        <%= render "comments/form", comment: post.comments.new, hidden: true %>
-      </div>
-    <% else %>
-      <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
+  <div class="row notices">
+    <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > 6) %>
+      <span id="threshold-comments-notice-for-<%= post.id %>">
+        <%= link_to "Show all comments", comments_path(:post_id => post.id), 'data-pid': post.id, class: 'show-all-comments-for-post-link' %>
+      </span>
     <% end %>
+  </div>
+
+  <div class="list-of-comments">
+    <% if comments.empty? %>
+      <% if post.last_commented_at.present? %>
+        <p>There are no visible comments.</p>
+      <% else %>
+        <p>There are no comments.</p>
+      <% end %>
+    <% else %>
+      <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
+    <% end %>
+  </div>
+
+  <% if post.is_comment_locked? && !CurrentUser.is_moderator? %>
+  <% elsif CurrentUser.is_member? %>
+    <div class="new-comment">
+      <% if !CurrentUser.is_anonymous? && !CurrentUser.user.is_janitor? %>
+        <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
+      <% end %>
+      <p><%= link_to "Post comment", new_comment_path(comment: { post_id: post.id }), :class => "expand-comment-response" %></p>
+      <%= render "comments/form", comment: post.comments.new, hidden: true %>
+    </div>
+  <% else %>
+    <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
   <% end %>
 </div>
