@@ -1,85 +1,12 @@
-class ElasticPostQueryBuilder
+class ElasticPostQueryBuilder < ElasticQueryBuilder
   LOCK_TYPE_TO_INDEX_FIELD = {
     rating: :rating_locked,
     note: :note_locked,
     status: :status_locked,
   }.freeze
 
-  attr_accessor :q, :must, :must_not, :should, :order
-
   def initialize(query_string, resolve_aliases: true, free_tags_count: 0)
-    @q = TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count)
-    @must = [] # These terms are ANDed together
-    @must_not = [] # These terms are NOT ANDed together
-    @should = [] # These terms are ORed together
-    @order = []
-  end
-
-  def range_relation(arr, field)
-    return if arr.nil?
-    return if arr.size < 2
-    return if arr[1].nil?
-
-    case arr[0]
-    when :eq
-      if arr[1].is_a?(Time)
-        { range: { field => { gte: arr[1].beginning_of_day, lte: arr[1].end_of_day } } }
-      else
-        { term: { field => arr[1] } }
-      end
-    when :gt
-      { range: { field => { gt: arr[1] } } }
-    when :gte
-      { range: { field => { gte: arr[1] } } }
-    when :lt
-      { range: { field => { lt: arr[1] } } }
-    when :lte
-      { range: { field => { lte: arr[1] } } }
-    when :in
-      { terms: { field => arr[1] } }
-    when :between
-      { range: { field => { gte: arr[1], lte: arr[2] } } }
-    end
-  end
-
-  def add_array_range_relation(key, index_key)
-    if q[key]
-      must.concat(q[key].map { |x| range_relation(x, index_key) })
-    end
-
-    if q[:"#{key}_must_not"]
-      must_not.concat(q[:"#{key}_must_not"].map { |x| range_relation(x, index_key) })
-    end
-
-    if q[:"#{key}_should"]
-      should.concat(q[:"#{key}_should"].map { |x| range_relation(x, index_key) })
-    end
-  end
-
-  def add_array_relation(key, index_key, any_none_key: nil, action: :term)
-    if q[key]
-      must.concat(q[key].map { |x| { action => { index_key => x } } })
-    end
-
-    if q[:"#{key}_must_not"]
-      must_not.concat(q[:"#{key}_must_not"].map { |x| { action => { index_key => x } } })
-    end
-
-    if q[:"#{key}_should"]
-      should.concat(q[:"#{key}_should"].map { |x| { action => { index_key => x } } })
-    end
-
-    if q[any_none_key] == "any"
-      must.push({ exists: { field: index_key } })
-    elsif q[any_none_key] == "none"
-      must_not.push({ exists: { field: index_key } })
-    end
-
-    if q[:"#{any_none_key}_should"] == "any"
-      should.push({ exists: { field: index_key } })
-    elsif q[:"#{any_none_key}_should"] == "none"
-      should.push(match_none({ exists: { field: index_key } }))
-    end
+    super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
   end
 
   def add_tag_string_search_relation(tags)
@@ -93,15 +20,6 @@ class ElasticPostQueryBuilder
     return false if q[:status].in?(%w[deleted active any all])
     return false if q[:status_must_not].in?(%w[deleted active any all])
     true
-  end
-
-  def match_any(*args)
-    # Explicitly set minimum should match, even though it may not be required in this context.
-    { bool: { minimum_should_match: 1, should: args } }
-  end
-
-  def match_none(*args)
-    { bool: { must_not: args } }
   end
 
   def build
