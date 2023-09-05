@@ -175,15 +175,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     add_tag_string_search_relation(q[:tags])
 
-    if q[:order] == "rank"
-      must.push({range: {score: {gt: 0}}})
-      must.push({range: {created_at: {gte: 2.days.ago}}})
-    elsif q[:order] == "landscape" || q[:order] == "portrait" ||
-        q[:order] == "mpixels" || q[:order] == "mpixels_desc"
-      must.push({exists: {field: :width}})
-      must.push({exists: {field: :height}})
-    end
-
     case q[:order]
     when "id", "id_asc"
       order.push({id: :asc})
@@ -301,8 +292,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
           },
         },
       }
-
-      order.push({_score: :desc})
+      must.push({ range: { score: { gt: 0 } } })
+      must.push({ range: { created_at: { gte: 2.days.ago } } })
+      order.push({ _score: :desc })
 
     when "random"
       if q[:random_seed].present?
