@@ -68,6 +68,17 @@ class ActiveSupport::TestCase
   def with_inline_jobs(&)
     Sidekiq::Testing.inline!(&)
   end
+
+  # TODO: Remove with upgrade to Rails 7.1
+  def stub_const(mod, constant, new_value)
+    old_value = mod.const_get(constant, false)
+    mod.send(:remove_const, constant)
+    mod.const_set(constant, new_value)
+    yield
+  ensure
+    mod.send(:remove_const, constant)
+    mod.const_set(constant, old_value)
+  end
 end
 
 class ActionDispatch::IntegrationTest

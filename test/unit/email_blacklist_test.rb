@@ -23,12 +23,14 @@ class EmailBlacklistTest < ActiveSupport::TestCase
   end
 
   should "keep accounts verified if there are too many matches" do
-    (EmailBlacklist::UNVERIFY_COUNT_TRESHOLD + 1).times do |i|
-      @domain_blocked_user = create(:user, email: "#{i}@domain.com")
+    stub_const(EmailBlacklist, :UNVERIFY_COUNT_TRESHOLD, 5) do
+      users = create_list(:user, EmailBlacklist::UNVERIFY_COUNT_TRESHOLD + 1) do |user, i|
+        user.email = "#{i}@domain.com"
+      end
+      EmailBlacklist.create(creator: @user, domain: "domain.com", reason: "test")
+      users.each(&:reload)
+      assert users.all?(&:is_verified?)
     end
-    EmailBlacklist.create(creator: @user, domain: "domain.com", reason: "test")
-    @domain_blocked_user.reload
-    assert @domain_blocked_user.is_verified?
   end
 
   should "unverify accounts if there are few matches" do
