@@ -63,7 +63,7 @@ class UserTest < ActiveSupport::TestCase
       assert_equal(@user.can_comment_vote_with_reason, :REJ_NEWBIE)
       @user.update_column(:created_at, 1.year.ago)
       user2 = create(:user, created_at: 1.year.ago)
-      
+
       comments = as(user2) do
         create_list(:comment, Danbooru.config.comment_vote_limit)
       end
