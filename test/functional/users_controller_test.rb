@@ -178,5 +178,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         end
       end
     end
+
+    context "custom css" do
+      should "return the correct styling" do
+        @user.update(custom_style: "body { display:none; }")
+        get_auth custom_style_users_path(format: :css), @user
+        assert_response :success
+        assert_equal("body { display:none !important; }", @response.body.strip)
+      end
+    end
   end
 end
