@@ -4,7 +4,7 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
   setup do
     user = create(:user)
     CurrentUser.user = user
-    Post.__elasticsearch__.create_index! force: true
+    reset_post_index
   end
 
   context "A related tag calculator" do

@@ -83,6 +83,12 @@ class ActiveSupport::TestCase
     mod.send(:remove_const, constant)
     mod.const_set(constant, old_value)
   end
+
+  def reset_post_index
+    # This seems slightly faster than deleting and recreating the index
+    Post.__elasticsearch__.client.delete_by_query(index: Post.index_name, q: "*", body: {})
+    Post.__elasticsearch__.refresh_index!
+  end
 end
 
 class ActionDispatch::IntegrationTest

@@ -188,7 +188,7 @@ class TagTest < ActiveSupport::TestCase
 
   context "A tag with a negative post count" do
     should "be fixed" do
-      Post.__elasticsearch__.create_index! force: true
+      reset_post_index
       tag = create(:tag, name: "touhou", post_count: -10)
       post = create(:post, tag_string: "touhou")
 

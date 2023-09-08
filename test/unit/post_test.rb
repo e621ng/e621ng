@@ -8,7 +8,7 @@ class PostTest < ActiveSupport::TestCase
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    Post.__elasticsearch__.create_index!
+    reset_post_index
   end
 
   context "Deletion:" do
@@ -1488,14 +1488,6 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Searching:" do
-    setup do
-      Post.__elasticsearch__.create_index!
-    end
-
-    teardown do
-      Post.__elasticsearch__.delete_index!
-    end
-
     should "return posts for the age:<1minute tag" do
       post = create(:post)
       assert_tag_match([post], "age:<1minute")
@@ -2033,8 +2025,6 @@ class PostTest < ActiveSupport::TestCase
   # context "Counting:" do
   #   context "Creating a post" do
   #     setup do
-  #       Post.__elasticsearch__.delete_index!
-  #       Post.__elasticsearch__.create_index!
   #       create(:tag_alias, antecedent_name: "alias", consequent_name: "aaa")
   #       create(:post, tag_string: "aaa", score: 42)
   #     end
@@ -2105,7 +2095,6 @@ class PostTest < ActiveSupport::TestCase
   #         setup do
   #           CurrentUser.stubs(:safe_mode?).returns(true)
   #           create(:post, rating: "s")
-  #           Post.__elasticsearch__.refresh_index!
   #         end
   #
   #         should "work for a blank search" do
