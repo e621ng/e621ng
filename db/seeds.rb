@@ -4,12 +4,6 @@ require "digest/md5"
 require "net/http"
 require "tempfile"
 
-puts "== Creating elasticsearch indices ==\n"
-Post.__elasticsearch__.create_index!
-PostVersion.__elasticsearch__.create_index!
-
-puts "== Seeding database with sample content ==\n"
-
 # Uncomment to see detailed logs
 # ActiveRecord::Base.logger = ActiveSupport::Logger.new($stdout)
 

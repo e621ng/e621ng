@@ -18,6 +18,9 @@ FileUtils.chdir APP_ROOT do
     FileUtils.cp 'docker/danbooru_local_config.rb', 'config/danbooru_local_config.rb'
   end
 
+  puts "== Creating elasticsearch indices ==\n"
+  system! "RAILS_ENV=development bin/rails runner '[Post, PostVersion].each { |model| model.__elasticsearch__.create_index! }'"
+
   puts "\n== Preparing database =="
   # Create the test database, since only development exists at this point
   system! 'RAILS_ENV=test bin/rails db:create'
