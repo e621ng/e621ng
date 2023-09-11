@@ -5,8 +5,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, resolve_aliases: true, free_tags_count: 0)
+  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
+    @enable_safe_mode = enable_safe_mode
+    @always_show_deleted = always_show_deleted
   end
 
   def model_class
@@ -20,14 +22,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def hide_deleted_posts?
-    return false if CurrentUser.admin_mode?
+    return false if @always_show_deleted
     return false if q[:status].in?(%w[deleted active any all])
     return false if q[:status_must_not].in?(%w[deleted active any all])
     true
   end
 
   def build
-    if CurrentUser.safe_mode?
+    if @enable_safe_mode
       must.push({term: {rating: "s"}})
     end
 

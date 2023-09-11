@@ -15,12 +15,10 @@ class TagBatchJob < ApplicationJob
     normalized_consequent = TagAlias.to_aliased(scanned_consequent).first
     updater = User.find(updater_id)
 
-    CurrentUser.without_safe_mode do
-      CurrentUser.scoped(updater, updater_ip_addr) do
-        migrate_posts(normalized_antecedent, normalized_consequent)
-        migrate_blacklists(normalized_antecedent, normalized_consequent)
-        ModAction.log(:mass_update, { antecedent: antecedent, consequent: consequent })
-      end
+    CurrentUser.scoped(updater, updater_ip_addr) do
+      migrate_posts(normalized_antecedent, normalized_consequent)
+      migrate_blacklists(normalized_antecedent, normalized_consequent)
+      ModAction.log(:mass_update, { antecedent: antecedent, consequent: consequent })
     end
   end
 

@@ -15,12 +15,10 @@ class TagNukeJob < ApplicationJob
 
     updater = User.find(updater_id)
 
-    CurrentUser.without_safe_mode do
-      CurrentUser.scoped(updater, updater_ip_addr) do
-        create_undo_information(tag)
-        migrate_posts(tag.name)
-        ModAction.log(:nuke_tag, { tag_name: tag_name })
-      end
+    CurrentUser.scoped(updater, updater_ip_addr) do
+      create_undo_information(tag)
+      migrate_posts(tag.name)
+      ModAction.log(:nuke_tag, { tag_name: tag_name })
     end
   end
 

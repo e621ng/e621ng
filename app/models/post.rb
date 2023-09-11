@@ -1024,9 +1024,9 @@ class Post < ApplicationRecord
   end
 
   module CountMethods
-    def fast_count(tags = "")
+    def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
-      tags += " rating:s" if CurrentUser.safe_mode?
+      tags += " rating:s" if enable_safe_mode
       tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
       tags = TagQuery.normalize(tags)
 
@@ -1430,9 +1430,7 @@ class Post < ApplicationRecord
     end
 
     def sample(query, sample_size)
-      CurrentUser.without_safe_mode do
-        tag_match("#{query} order:random", free_tags_count: 1).limit(sample_size).records
-      end
+      tag_match_system("#{query} order:random", free_tags_count: 1).limit(sample_size).records
     end
 
     # unflattens the tag_string into one tag per row.
@@ -1472,8 +1470,18 @@ class Post < ApplicationRecord
       where("string_to_array(posts.tag_string, ' ') @> ARRAY[?]", tag)
     end
 
-    def tag_match(query, resolve_aliases: true, free_tags_count: 0)
-      ElasticPostQueryBuilder.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count).search
+    def tag_match_system(query, free_tags_count: 0)
+      tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
+    end
+
+    def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
+      ElasticPostQueryBuilder.new(
+        query,
+        resolve_aliases: resolve_aliases,
+        free_tags_count: free_tags_count,
+        enable_safe_mode: enable_safe_mode,
+        always_show_deleted: always_show_deleted,
+      ).search
     end
 
     def tag_match_sql(query)

@@ -16,22 +16,20 @@ module Admin
 
       dnp_tags = %w[avoid_posting conditional_dnp]
       post_ids = []
-      CurrentUser.without_safe_mode do
-        Post.tag_match("#{query} ~avoid_posting ~conditional_dnp").limit(1000).records.each do |p|
-          previous_tags = p.fetch_tags(*dnp_tags)
+      Post.tag_match_system("#{query} ~avoid_posting ~conditional_dnp").limit(1000).records.each do |p|
+        previous_tags = p.fetch_tags(*dnp_tags)
 
-          p.do_not_version_changes = true
+        p.do_not_version_changes = true
 
-          locked_tags = TagQuery.scan((p.locked_tags || "").downcase)
-          locked_tags -= dnp_tags
-          p.locked_tags = locked_tags.join(" ")
-          p.remove_tag(dnp_tags)
+        locked_tags = TagQuery.scan((p.locked_tags || "").downcase)
+        locked_tags -= dnp_tags
+        p.locked_tags = locked_tags.join(" ")
+        p.remove_tag(dnp_tags)
 
-          p.save
+        p.save
 
-          if previous_tags != p.fetch_tags(*dnp_tags)
-            post_ids << p.id
-          end
+        if previous_tags != p.fetch_tags(*dnp_tags)
+          post_ids << p.id
         end
       end
 
