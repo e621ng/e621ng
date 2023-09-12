@@ -134,7 +134,6 @@ GEM
       activesupport (> 3)
       elasticsearch (~> 7)
       hashie
-    elasticsearch-rails (7.2.1)
     elasticsearch-transport (7.17.7)
       faraday (~> 1)
       multi_json
@@ -408,7 +407,6 @@ DEPENDENCIES
   draper
   dtext_rb!
   elasticsearch-model
-  elasticsearch-rails
   factory_bot_rails
   httparty
   listen

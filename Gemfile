@@ -30,7 +30,6 @@ gem 'redis'
 gem 'request_store'
 
 gem 'elasticsearch-model'
-gem 'elasticsearch-rails'
 
 gem 'mailgun-ruby'
 gem 'resolv'
