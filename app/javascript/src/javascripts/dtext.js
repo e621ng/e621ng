@@ -26,6 +26,7 @@ DText.initialze_input = function($element) {
     const length = ($textarea.val() + "").length;
     $charcount.toggleClass("overfill", length >= limit).attr("data-count", length);
   });
+  $textarea.trigger("input.danbooru.formatter");
 
   DText.initialize_formatting_buttons($element);
   $element.attr("data-initialized", "true");
