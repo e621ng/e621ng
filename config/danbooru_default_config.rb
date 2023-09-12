@@ -329,6 +329,10 @@ module Danbooru
       250_000
     end
 
+    def user_feedback_max_size
+      20_000
+    end
+
     def discord_site
     end
 
