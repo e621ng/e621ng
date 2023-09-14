@@ -7,6 +7,7 @@
 module Indexable
   def self.included(base)
     base.include Elasticsearch::Model
+    base.include DocumentStore::Model
 
     base.index_name("#{base.model_name.plural}_#{Rails.env}")
 

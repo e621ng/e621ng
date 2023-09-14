@@ -38,8 +38,8 @@ BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
 BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
 
 # Clear the elastic indicies completly
-Post.__elasticsearch__.create_index!(force: true)
-PostVersion.__elasticsearch__.create_index!(force: true)
+Post.document_store_create_index!(delete_existing: true)
+PostVersion.document_store_create_index!(delete_existing: true)
 
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
