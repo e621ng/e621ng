@@ -34,7 +34,8 @@ class DocumentStoreTest < ActiveSupport::TestCase
 
   test "it creates the index if it doesn't exist" do
     head_request = stub_elastic(:head, "/posts_test").to_return(status: 404)
-    put_request = stub_elastic(:put, "/posts_test")
+    put_request = stub_elastic(:put, "/posts_test").with(body: Post.document_store_index)
+    assert(Post.document_store_index.present?)
 
     Post.document_store_create_index!
 

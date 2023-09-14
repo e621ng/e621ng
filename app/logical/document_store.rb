@@ -5,16 +5,15 @@ module DocumentStore
     end
 
     module ClassMethods
+      attr_accessor :document_store_index
+
       def document_store_create_index!(delete_existing: false)
         exists = document_store_index_exist?
         return if exists && !delete_existing
 
         document_store_delete_index! if exists && delete_existing
 
-        document_store_client.indices.create(index: __elasticsearch__.index_name, body: {
-          settings: __elasticsearch__.settings.to_hash,
-          mappings: __elasticsearch__.mappings.to_hash,
-        })
+        document_store_client.indices.create(index: __elasticsearch__.index_name, body: document_store_index)
       end
 
       def document_store_delete_index!
