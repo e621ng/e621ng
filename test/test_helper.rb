@@ -86,8 +86,8 @@ class ActiveSupport::TestCase
 
   def reset_post_index
     # This seems slightly faster than deleting and recreating the index
-    Post.__elasticsearch__.client.delete_by_query(index: Post.index_name, q: "*", body: {})
-    Post.__elasticsearch__.refresh_index!
+    Post.document_store_delete_by_query(query: "*", body: {})
+    Post.document_store_refresh_index!
   end
 end
 

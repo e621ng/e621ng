@@ -25,6 +25,14 @@ module DocumentStore
         document_store_client.indices.exists(index: __elasticsearch__.index_name)
       end
 
+      def document_store_refresh_index!
+        document_store_client.indices.refresh(index: __elasticsearch__.index_name)
+      end
+
+      def document_store_delete_by_query(query:, body:)
+        document_store_client.delete_by_query(index: __elasticsearch__.index_name, q: query, body: body)
+      end
+
       def document_store_client
         DocumentStore.client
       end

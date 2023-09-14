@@ -54,6 +54,18 @@ class DocumentStoreTest < ActiveSupport::TestCase
     assert_requested(put_request)
   end
 
+  test "it deletes by query" do
+    post_request = stub_elastic(:post, "/posts_test/_delete_by_query?q=*").with(body: "{}")
+    Post.document_store_delete_by_query(query: "*", body: {})
+    assert_requested(post_request)
+  end
+
+  test "it refreshes the index" do
+    post_request = stub_elastic(:post, "/posts_test/_refresh")
+    Post.document_store_refresh_index!
+    assert_requested(post_request)
+  end
+
   test "models share the same client" do
     assert_equal(Post.document_store_client.object_id, PostVersion.document_store_client.object_id)
   end
