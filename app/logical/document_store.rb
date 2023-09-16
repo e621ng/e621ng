@@ -8,6 +8,10 @@ module DocumentStore
       document_store_client.index(index: __elasticsearch__.index_name, id: id, body: as_indexed_json, refresh: refresh)
     end
 
+    def document_store_delete_document(refresh: "false")
+      document_store_client.delete(index: __elasticsearch__.index_name, id: id, refresh: refresh)
+    end
+
     def document_store_client
       DocumentStore.client
     end

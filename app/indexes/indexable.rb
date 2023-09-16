@@ -16,7 +16,7 @@ module Indexable
     end
 
     base.after_commit on: [:destroy] do
-      __elasticsearch__.delete_document(Rails.env.test? ? { refresh: "true" } : {})
+      document_store_delete_document(refresh: Rails.env.test?.to_s)
     end
   end
 
