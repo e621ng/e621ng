@@ -76,13 +76,13 @@ module PostIndex
       },
     }
 
-    base.__elasticsearch__.extend ClassMethods
+    base.extend ClassMethods
   end
 
   module ClassMethods
     # Denormalizing the input can be made significantly more
     # efficient when processing large numbers of posts.
-    def import(options = {})
+    def document_store_import(options = {})
       batch_size = options[:batch_size] || 1000
 
       relation = all
@@ -206,7 +206,7 @@ module PostIndex
           }
         end
 
-        client.bulk({
+        document_store_client.bulk({
           index: index_name,
           body:  batch,
         })

@@ -40,11 +40,11 @@ module PostVersionIndex
       },
     }
 
-    base.__elasticsearch__.extend ClassMethods
+    base.extend ClassMethods
   end
 
   module ClassMethods
-    def import(options = {})
+    def document_store_import(options = {})
       q = all
       q = q.where("id >= ?", options[:from]) if options[:from]
       q = q.where("id <= ?", options[:to]) if options[:to]
@@ -62,7 +62,7 @@ module PostVersionIndex
           }
         end
 
-        client.bulk({
+        document_store_client.bulk({
                         index: index_name,
                         body: batch
                     })
