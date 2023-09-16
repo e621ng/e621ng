@@ -23,8 +23,7 @@ module Admin
         p.update({ uploader_id: @new_user.id })
         p.versions.where(updater_id: @old_user.id).each do |pv|
           pv.update_column(:updater_id, @new_user.id)
-          pv.reload
-          pv.__elasticsearch__.index_document
+          pv.update_index
         end
       end
 

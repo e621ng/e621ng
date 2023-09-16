@@ -11,12 +11,8 @@ module Indexable
 
     base.index_name("#{base.model_name.plural}_#{Rails.env}")
 
-    base.after_commit on: [:create] do
-      __elasticsearch__.index_document(Rails.env.test? ? { refresh: "true" } : {})
-    end
-
-    base.after_commit on: [:update] do
-      update_index # XXX
+    base.after_commit on: %i[create update] do
+      update_index
     end
 
     base.after_commit on: [:destroy] do
@@ -26,12 +22,8 @@ module Indexable
 
   def update_index(queue: :high_prio)
     # TODO: race condition hack, makes tests SLOW!!!
-    return __elasticsearch__.index_document refresh: "true" if Rails.env.test?
+    return document_store_update_index refresh: "true" if Rails.env.test?
 
     IndexUpdateJob.set(queue: queue).perform_later(self.class.to_s, id)
-  end
-
-  def update_index!
-    __elasticsearch__.index_document
   end
 end

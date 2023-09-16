@@ -4,6 +4,14 @@ module DocumentStore
       klass.extend(ClassMethods)
     end
 
+    def document_store_update_index(refresh: "false")
+      document_store_client.index(index: __elasticsearch__.index_name, id: id, body: as_indexed_json, refresh: refresh)
+    end
+
+    def document_store_client
+      DocumentStore.client
+    end
+
     module ClassMethods
       attr_accessor :document_store_index
 
