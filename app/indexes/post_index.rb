@@ -208,7 +208,6 @@ module PostIndex
 
         client.bulk({
           index: index_name,
-          type:  document_type,
           body:  batch,
         })
       end
