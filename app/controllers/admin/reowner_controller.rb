@@ -17,7 +17,7 @@ module Admin
       end
 
       moved_post_ids = []
-      Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).records.each do |p|
+      Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).each do |p|
         moved_post_ids << p.id
         p.do_not_version_changes = true
         p.update({ uploader_id: @new_user.id })

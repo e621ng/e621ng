@@ -1430,7 +1430,7 @@ class Post < ApplicationRecord
     end
 
     def sample(query, sample_size)
-      tag_match_system("#{query} order:random", free_tags_count: 1).limit(sample_size).records
+      tag_match_system("#{query} order:random", free_tags_count: 1).limit(sample_size).relation
     end
 
     # unflattens the tag_string into one tag per row.

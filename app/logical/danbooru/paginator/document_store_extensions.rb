@@ -57,7 +57,7 @@ module Danbooru
       end
     end
 
-    module ElasticsearchExtensions
+    module DocumentStoreExtensions
       include BaseExtension
 
       def paginate(page, options)
@@ -71,7 +71,7 @@ module Danbooru
           current_page: current_page,
         }
 
-        PaginatedArray.new(records(includes: options[:includes]).to_a, new_opts)
+        PaginatedArray.new(records(includes: options[:includes]), new_opts)
       end
 
       def paginate_numbered

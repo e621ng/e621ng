@@ -36,7 +36,7 @@ module DocumentStore
 
       def document_store_search(body)
         search = SearchRequest.new({ index: __elasticsearch__.index_name, body: body }, document_store_client)
-        Elasticsearch::Model::Response::Response.new(self, search)
+        Response.new(self, search)
       end
 
       def document_store_create_index!(delete_existing: false)
