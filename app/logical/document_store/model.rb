@@ -3,6 +3,8 @@ module DocumentStore
     def self.included(klass)
       klass.extend(ClassMethods)
 
+      klass.document_store_index_name = "#{klass.model_name.plural}_#{Rails.env}"
+
       klass.after_commit on: %i[create update] do
         update_index
       end
@@ -20,11 +22,15 @@ module DocumentStore
     end
 
     def document_store_update_index(refresh: "false")
-      document_store_client.index(index: __elasticsearch__.index_name, id: id, body: as_indexed_json, refresh: refresh)
+      document_store_client.index(index: document_store_index_name, id: id, body: as_indexed_json, refresh: refresh)
     end
 
     def document_store_delete_document(refresh: "false")
-      document_store_client.delete(index: __elasticsearch__.index_name, id: id, refresh: refresh)
+      document_store_client.delete(index: document_store_index_name, id: id, refresh: refresh)
+    end
+
+    def document_store_index_name
+      self.class.document_store_index_name
     end
 
     def document_store_client
@@ -32,10 +38,10 @@ module DocumentStore
     end
 
     module ClassMethods
-      attr_accessor :document_store_index
+      attr_accessor :document_store_index, :document_store_index_name
 
       def document_store_search(body)
-        search = SearchRequest.new({ index: __elasticsearch__.index_name, body: body }, document_store_client)
+        search = SearchRequest.new({ index: document_store_index_name, body: body }, document_store_client)
         Response.new(self, search)
       end
 
@@ -45,23 +51,23 @@ module DocumentStore
 
         document_store_delete_index! if exists && delete_existing
 
-        document_store_client.indices.create(index: __elasticsearch__.index_name, body: document_store_index)
+        document_store_client.indices.create(index: document_store_index_name, body: document_store_index)
       end
 
       def document_store_delete_index!
-        document_store_client.indices.delete(index: __elasticsearch__.index_name, ignore: 404)
+        document_store_client.indices.delete(index: document_store_index_name, ignore: 404)
       end
 
       def document_store_index_exist?
-        document_store_client.indices.exists(index: __elasticsearch__.index_name)
+        document_store_client.indices.exists(index: document_store_index_name)
       end
 
       def document_store_refresh_index!
-        document_store_client.indices.refresh(index: __elasticsearch__.index_name)
+        document_store_client.indices.refresh(index: document_store_index_name)
       end
 
       def document_store_delete_by_query(query:, body:)
-        document_store_client.delete_by_query(index: __elasticsearch__.index_name, q: query, body: body)
+        document_store_client.delete_by_query(index: document_store_index_name, q: query, body: body)
       end
 
       def document_store_client

@@ -63,7 +63,7 @@ module PostVersionIndex
         end
 
         document_store_client.bulk({
-                        index: index_name,
+                        index: document_store_index_name,
                         body: batch
                     })
       end
