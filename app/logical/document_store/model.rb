@@ -34,19 +34,6 @@ module DocumentStore
     module ClassMethods
       attr_accessor :document_store_index
 
-      class SearchRequest
-        attr_reader :definition
-
-        def initialize(definition, client)
-          @definition = definition
-          @client = client
-        end
-
-        def execute!
-          @client.search(@definition)
-        end
-      end
-
       def document_store_search(body)
         search = SearchRequest.new({ index: __elasticsearch__.index_name, body: body }, document_store_client)
         Elasticsearch::Model::Response::Response.new(self, search)
