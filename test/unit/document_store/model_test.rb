@@ -17,28 +17,28 @@ module DocumentStore
 
     test "it deletes the index" do
       delete_request = stub_elastic(:delete, "/posts_test")
-      Post.document_store_delete_index!
+      Post.document_store.delete_index!
       assert_requested delete_request
     end
 
     test "it checks for the existance of the index" do
       head_request = stub_elastic(:head, "/posts_test")
-      Post.document_store_index_exist?
+      Post.document_store.index_exist?
       assert_requested head_request
     end
 
     test "it skips creating the index if it already exists" do
       head_request = stub_elastic(:head, "/posts_test").to_return(status: 200)
-      Post.document_store_create_index!
+      Post.document_store.create_index!
       assert_requested head_request
     end
 
     test "it creates the index if it doesn't exist" do
       head_request = stub_elastic(:head, "/posts_test").to_return(status: 404)
-      put_request = stub_elastic(:put, "/posts_test").with(body: Post.document_store_index)
-      assert(Post.document_store_index.present?)
+      put_request = stub_elastic(:put, "/posts_test").with(body: Post.document_store.index)
+      assert(Post.document_store.index.present?)
 
-      Post.document_store_create_index!
+      Post.document_store.create_index!
 
       assert_requested(head_request)
       assert_requested(put_request)
@@ -49,7 +49,7 @@ module DocumentStore
       delete_request = stub_elastic(:delete, "/posts_test")
       put_request = stub_elastic(:put, "/posts_test")
 
-      Post.document_store_create_index!(delete_existing: true)
+      Post.document_store.create_index!(delete_existing: true)
 
       assert_requested(head_request)
       assert_requested(delete_request)
@@ -58,18 +58,18 @@ module DocumentStore
 
     test "it deletes by query" do
       post_request = stub_elastic(:post, "/posts_test/_delete_by_query?q=*").with(body: "{}")
-      Post.document_store_delete_by_query(query: "*", body: {})
+      Post.document_store.delete_by_query(query: "*", body: {})
       assert_requested(post_request)
     end
 
     test "it refreshes the index" do
       post_request = stub_elastic(:post, "/posts_test/_refresh")
-      Post.document_store_refresh_index!
+      Post.document_store.refresh_index!
       assert_requested(post_request)
     end
 
     test "models share the same client" do
-      assert_equal(Post.document_store_client.object_id, PostVersion.document_store_client.object_id)
+      assert_equal(Post.document_store.client.object_id, PostVersion.document_store.client.object_id)
     end
   end
 end

@@ -38,8 +38,8 @@ BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
 BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
 
 # Clear the elastic indicies completly
-Post.document_store_create_index!(delete_existing: true)
-PostVersion.document_store_create_index!(delete_existing: true)
+Post.document_store.create_index!(delete_existing: true)
+PostVersion.document_store.create_index!(delete_existing: true)
 
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
@@ -86,8 +86,8 @@ class ActiveSupport::TestCase
 
   def reset_post_index
     # This seems slightly faster than deleting and recreating the index
-    Post.document_store_delete_by_query(query: "*", body: {})
-    Post.document_store_refresh_index!
+    Post.document_store.delete_by_query(query: "*", body: {})
+    Post.document_store.refresh_index!
   end
 end
 

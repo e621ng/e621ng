@@ -2,7 +2,7 @@
 
 module PostVersionIndex
   def self.included(base)
-    base.document_store_index = {
+    base.document_store.index = {
       settings: {
         index: {
           number_of_shards: 8,
@@ -40,11 +40,11 @@ module PostVersionIndex
       },
     }
 
-    base.extend ClassMethods
+    base.document_store.extend ClassMethods
   end
 
   module ClassMethods
-    def document_store_import(options = {})
+    def import(options = {})
       q = all
       q = q.where("id >= ?", options[:from]) if options[:from]
       q = q.where("id <= ?", options[:to]) if options[:to]
@@ -62,8 +62,8 @@ module PostVersionIndex
           }
         end
 
-        document_store_client.bulk({
-                        index: document_store_index_name,
+        client.bulk({
+                        index: index_name,
                         body: batch
                     })
       end

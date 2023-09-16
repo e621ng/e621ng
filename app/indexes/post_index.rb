@@ -2,7 +2,7 @@
 
 module PostIndex
   def self.included(base)
-    base.document_store_index = {
+    base.document_store.index = {
       settings: {
         index: {
           number_of_shards: 5,
@@ -76,13 +76,13 @@ module PostIndex
       },
     }
 
-    base.extend ClassMethods
+    base.document_store.extend ClassMethods
   end
 
   module ClassMethods
     # Denormalizing the input can be made significantly more
     # efficient when processing large numbers of posts.
-    def document_store_import(options = {})
+    def import(options = {})
       batch_size = options[:batch_size] || 1000
 
       relation = all
@@ -206,8 +206,8 @@ module PostIndex
           }
         end
 
-        document_store_client.bulk({
-          index: document_store_index_name,
+        client.bulk({
+          index: index_name,
           body:  batch,
         })
       end
