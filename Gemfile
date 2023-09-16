@@ -29,7 +29,7 @@ gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
 
-gem 'elasticsearch-model'
+gem 'elasticsearch'
 
 gem 'mailgun-ruby'
 gem 'resolv'

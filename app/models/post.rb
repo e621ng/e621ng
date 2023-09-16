@@ -1644,7 +1644,7 @@ class Post < ApplicationRecord
   include ValidationMethods
   include PostEventMethods
   include Danbooru::HasBitFlags
-  include Indexable
+  include DocumentStore::Model
   include PostIndex
 
   BOOLEAN_ATTRIBUTES = %w(

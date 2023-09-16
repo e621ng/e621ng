@@ -130,10 +130,6 @@ GEM
       elasticsearch-transport (= 7.17.7)
     elasticsearch-api (7.17.7)
       multi_json
-    elasticsearch-model (7.2.1)
-      activesupport (> 3)
-      elasticsearch (~> 7)
-      hashie
     elasticsearch-transport (7.17.7)
       faraday (~> 1)
       multi_json
@@ -172,7 +168,6 @@ GEM
     globalid (1.1.0)
       activesupport (>= 5.0)
     hashdiff (1.0.1)
-    hashie (5.0.0)
     http-accept (1.7.0)
     http-cookie (1.0.5)
       domain_name (~> 0.5)
@@ -406,7 +401,7 @@ DEPENDENCIES
   dotenv-rails
   draper
   dtext_rb!
-  elasticsearch-model
+  elasticsearch
   factory_bot_rails
   httparty
   listen
