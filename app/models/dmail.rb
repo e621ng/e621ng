@@ -39,6 +39,7 @@ class Dmail < ApplicationRecord
           copy = Dmail.new(params)
           copy.owner_id = copy.to_id
           copy.save unless copy.to_id == copy.from_id
+          raise ActiveRecord::Rollback if copy.errors.any?
 
           # sender's copy
           copy = Dmail.new(params)
