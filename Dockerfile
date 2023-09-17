@@ -30,6 +30,7 @@ WORKDIR /app
 RUN git config --global --add safe.directory $(pwd)
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+ENV RUBY_YJIT_ENABLE=1
 
 # Setup node and yarn
 COPY --from=node-builder /usr/lib /usr/lib
