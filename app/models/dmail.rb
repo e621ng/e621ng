@@ -141,13 +141,22 @@ class Dmail < ApplicationRecord
     return true if bypass_limits == true
     return true if from_id == User.system.id
     return true if from.is_moderator?
+
     allowed = CurrentUser.can_dmail_with_reason
-    minute_allowed = CurrentUser.can_dmail_minute_with_reason
-    if allowed != true || minute_allowed != true
-      errors.add(:base, "Sender #{User.throttle_reason(allowed != true ? allowed : minute_allowed)}")
-      false
+    if allowed != true
+      errors.add(:base, "Sender #{User.throttle_reason(allowed)}")
+      return
     end
-    true
+    minute_allowed = CurrentUser.can_dmail_minute_with_reason
+    if minute_allowed != true
+      errors.add(:base, "Please wait a bit before trying to send again")
+      return
+    end
+    day_allowed = CurrentUser.can_dmail_day_with_reason
+    if day_allowed != true
+      errors.add(:base, "Sender #{User.throttle_reason(day_allowed, 'daily')}")
+      return
+    end
   end
 
   def recipient_accepts_dmails

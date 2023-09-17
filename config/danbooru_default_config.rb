@@ -184,12 +184,16 @@ module Danbooru
       3_000
     end
 
-    def dmail_limit
-      20
-    end
-
     def dmail_minute_limit
       1
+    end
+
+    def dmail_limit
+      10
+    end
+
+    def dmail_day_limit
+      50
     end
 
     def tag_suggestion_limit

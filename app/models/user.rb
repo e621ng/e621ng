@@ -410,12 +410,12 @@ class User < ApplicationRecord
   end
 
   module ThrottleMethods
-    def throttle_reason(reason)
+    def throttle_reason(reason, timeframe = "hourly")
       reasons = {
-          REJ_NEWBIE: 'can not yet perform this action. Account is too new',
-          REJ_LIMITED: 'have reached the hourly limit for this action'
+        REJ_NEWBIE: "can not yet perform this action. Account is too new",
+        REJ_LIMITED: "have reached the #{timeframe} limit for this action",
       }
-      reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
+      reasons.fetch(reason, "unknown throttle reason, please report this as a bug")
     end
 
     def upload_reason_string(reason)
@@ -482,9 +482,11 @@ class User < ApplicationRecord
                          nil, 3.days)
     create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
+    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
+                         nil, 7.days)
     create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.hour.ago).count },
                          nil, 7.days)
-    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
+    create_user_throttle(:dmail_day, ->{ Danbooru.config.dmail_day_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.day.ago).count },
                          nil, 7.days)
     create_user_throttle(:comment_vote, ->{ Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
