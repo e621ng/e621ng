@@ -2,7 +2,6 @@ class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.dmail_max_size }
-  validate :sender_is_not_banned, on: :create
   validate :recipient_accepts_dmails, on: :create
   validate :user_not_limited, on: :create
 
@@ -148,15 +147,6 @@ class Dmail < ApplicationRecord
       false
     end
     true
-  end
-
-  def sender_is_not_banned
-    if from.try(:is_banned?)
-      errors.add(:base, "Sender is banned and cannot send messages")
-      return false
-    else
-      return true
-    end
   end
 
   def recipient_accepts_dmails
