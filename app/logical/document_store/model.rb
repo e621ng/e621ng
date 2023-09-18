@@ -5,7 +5,11 @@ module DocumentStore
 
       klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}"
 
-      klass.after_commit on: %i[create update] do
+      klass.after_commit on: [:create] do
+        document_store.update_index(refresh: Rails.env.test?.to_s)
+      end
+
+      klass.after_commit on: [:update] do
         update_index
       end
 
