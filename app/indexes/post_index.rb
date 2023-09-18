@@ -2,71 +2,81 @@
 
 module PostIndex
   def self.included(base)
-    base.settings index: { number_of_shards: 5, number_of_replicas: 1, max_result_window: 250_000 } do
-      mappings dynamic: false do
-        indexes :created_at,        type: 'date'
-        indexes :updated_at,        type: 'date'
-        indexes :commented_at,      type: 'date'
-        indexes :comment_bumped_at, type: 'date'
-        indexes :noted_at,          type: 'date'
-        indexes :id,                type: 'integer'
-        indexes :up_score,          type: 'integer'
-        indexes :down_score,        type: 'integer'
-        indexes :score,             type: 'integer'
-        indexes :fav_count,         type: 'integer'
-        indexes :tag_count,         type: 'integer'
-        indexes :change_seq,        type: 'long'
+    base.document_store.index = {
+      settings: {
+        index: {
+          number_of_shards: 5,
+          number_of_replicas: 1,
+          max_result_window: 250_000,
+        },
+      },
+      mappings: {
+        dynamic: false,
+        properties: {
+          created_at: { type: "date" },
+          updated_at: { type: "date" },
+          commented_at: { type: "date" },
+          comment_bumped_at: { type: "date" },
+          noted_at: { type: "date" },
+          id: { type: "integer" },
+          up_score: { type: "integer" },
+          down_score: { type: "integer" },
+          score: { type: "integer" },
+          fav_count: { type: "integer" },
+          tag_count: { type: "integer" },
+          change_seq: { type: "long" },
 
-        indexes :tag_count_general,   type: 'integer'
-        indexes :tag_count_artist,    type: 'integer'
-        indexes :tag_count_character, type: 'integer'
-        indexes :tag_count_copyright, type: 'integer'
-        indexes :tag_count_meta,      type: 'integer'
-        indexes :tag_count_species,   type: 'integer'
-        indexes :tag_count_invalid,   type: 'integer'
-        indexes :tag_count_lore,      type: 'integer'
-        indexes :comment_count,       type: 'integer'
+          tag_count_general: { type: "integer" },
+          tag_count_artist: { type: "integer" },
+          tag_count_character: { type: "integer" },
+          tag_count_copyright: { type: "integer" },
+          tag_count_meta: { type: "integer" },
+          tag_count_species: { type: "integer" },
+          tag_count_invalid: { type: "integer" },
+          tag_count_lore: { type: "integer" },
+          comment_count: { type: "integer" },
 
-        indexes :file_size,     type: 'integer'
-        indexes :parent,        type: 'integer'
-        indexes :pools,         type: 'integer'
-        indexes :sets,          type: 'integer'
-        indexes :commenters,    type: 'integer'
-        indexes :noters,        type: 'integer'
-        indexes :faves,         type: 'integer'
-        indexes :upvotes,       type: 'integer'
-        indexes :downvotes,     type: 'integer'
-        indexes :children,      type: 'integer'
-        indexes :uploader,      type: 'integer'
-        indexes :approver,      type: 'integer'
-        indexes :deleter,       type: 'integer'
-        indexes :width,         type: 'integer'
-        indexes :height,        type: 'integer'
-        indexes :mpixels,       type: 'float'
-        indexes :aspect_ratio,  type: 'float'
-        indexes :duration,      type: 'float'
+          file_size: { type: "integer" },
+          parent: { type: "integer" },
+          pools: { type: "integer" },
+          sets: { type: "integer" },
+          commenters: { type: "integer" },
+          noters: { type: "integer" },
+          faves: { type: "integer" },
+          upvotes: { type: "integer" },
+          downvotes: { type: "integer" },
+          children: { type: "integer" },
+          uploader: { type: "integer" },
+          approver: { type: "integer" },
+          deleter: { type: "integer" },
+          width: { type: "integer" },
+          height: { type: "integer" },
+          mpixels: { type: "float" },
+          aspect_ratio: { type: "float" },
+          duration: { type: "float" },
 
-        indexes :tags,          type: 'keyword'
-        indexes :md5,           type: 'keyword'
-        indexes :rating,        type: 'keyword'
-        indexes :file_ext,      type: 'keyword'
-        indexes :source,        type: 'keyword'
-        indexes :description,   type: 'text'
-        indexes :notes,         type: 'text'
-        indexes :del_reason,    type: 'keyword'
+          tags: { type: "keyword" },
+          md5: { type: "keyword" },
+          rating: { type: "keyword" },
+          file_ext: { type: "keyword" },
+          source: { type: "keyword" },
+          description: { type: "text" },
+          notes: { type: "text" },
+          del_reason: { type: "keyword" },
 
-        indexes :rating_locked,   type: 'boolean'
-        indexes :note_locked,     type: 'boolean'
-        indexes :status_locked,   type: 'boolean'
-        indexes :flagged,         type: 'boolean'
-        indexes :pending,         type: 'boolean'
-        indexes :deleted,         type: 'boolean'
-        indexes :has_children,    type: 'boolean'
-        indexes :has_pending_replacements, type: 'boolean'
-      end
-    end
+          rating_locked: { type: "boolean" },
+          note_locked: { type: "boolean" },
+          status_locked: { type: "boolean" },
+          flagged: { type: "boolean" },
+          pending: { type: "boolean" },
+          deleted: { type: "boolean" },
+          has_children: { type: "boolean" },
+          has_pending_replacements: { type: "boolean" },
+        },
+      },
+    }
 
-    base.__elasticsearch__.extend ClassMethods
+    base.document_store.extend ClassMethods
   end
 
   module ClassMethods
@@ -198,7 +208,6 @@ module PostIndex
 
         client.bulk({
           index: index_name,
-          type:  document_type,
           body:  batch,
         })
       end

@@ -16,7 +16,7 @@ module Admin
 
       dnp_tags = %w[avoid_posting conditional_dnp]
       post_ids = []
-      Post.tag_match_system("#{query} ~avoid_posting ~conditional_dnp").limit(1000).records.each do |p|
+      Post.tag_match_system("#{query} ~avoid_posting ~conditional_dnp").limit(1000).each do |p|
         previous_tags = p.fetch_tags(*dnp_tags)
 
         p.do_not_version_changes = true

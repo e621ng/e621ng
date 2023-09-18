@@ -2,7 +2,7 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
+    assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id))
   end
 
   setup do

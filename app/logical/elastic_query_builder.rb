@@ -36,7 +36,7 @@ class ElasticQueryBuilder
       timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms",
     }
 
-    model_class.__elasticsearch__.search(search_body)
+    model_class.document_store.search(search_body)
   end
 
   def match_any(*args)

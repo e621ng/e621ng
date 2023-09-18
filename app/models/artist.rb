@@ -240,7 +240,7 @@ class Artist < ApplicationRecord
       Cache.fetch("artist-domains-#{id}", expires_in: 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
         counted = Hash.new(0)
-        sources = Post.tag_match(name, resolve_aliases: false).limit(100).records.pluck(:source).each do |source_string|
+        sources = Post.tag_match(name, resolve_aliases: false).limit(100).pluck(:source).each do |source_string|
           sources = source_string.split("\n")
           # try to filter out direct file urls
           domains = sources.filter {|s| !re.match?(s) }.map do |x|

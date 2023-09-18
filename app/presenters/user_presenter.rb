@@ -52,7 +52,7 @@ class UserPresenter
   end
 
   def uploads
-    Post.tag_match("user:#{user.name}").limit(6).records
+    Post.tag_match("user:#{user.name}").limit(6)
   end
 
   def has_uploads?

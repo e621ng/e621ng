@@ -89,7 +89,7 @@ class PostsController < ApplicationController
 
   def random
     tags = params[:tags] || ''
-    @post = Post.tag_match(tags + " order:random").limit(1).records[0]
+    @post = Post.tag_match(tags + " order:random").limit(1).first
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, :tags => params[:tags]) }

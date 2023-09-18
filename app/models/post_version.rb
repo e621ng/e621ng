@@ -119,7 +119,7 @@ class PostVersion < ApplicationRecord
   end
 
   extend SearchMethods
-  include Indexable
+  include DocumentStore::Model
   include PostVersionIndex
 
   def self.queue(post)
