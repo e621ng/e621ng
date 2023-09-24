@@ -206,7 +206,7 @@ module PostIndex
           }
         end
 
-        client.bulk({
+        os_client.bulk({
           index: index_name,
           body:  batch,
         })
