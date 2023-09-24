@@ -228,6 +228,9 @@ GEM
     nokogiri (1.15.3)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    opensearch-ruby (3.0.1)
+      faraday (>= 1.0, < 3)
+      multi_json (>= 1.0)
     parallel (1.23.0)
     parser (3.2.2.3)
       ast (~> 2.4.1)
@@ -410,6 +413,7 @@ DEPENDENCIES
   memoist
   mocha
   newrelic_rpm
+  opensearch-ruby
   pg
   puma
   rails (~> 7.0)

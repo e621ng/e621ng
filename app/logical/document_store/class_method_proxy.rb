@@ -40,5 +40,9 @@ module DocumentStore
     def client
       DocumentStore.client
     end
+
+    def os_client
+      DocumentStore.os_client
+    end
   end
 end
