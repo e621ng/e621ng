@@ -8,7 +8,8 @@ module DocumentStore
     end
 
     def search(body)
-      search = SearchRequest.new({ index: index_name, body: body }, client)
+      c = CurrentUser.use_opensearch? ? os_client : client
+      search = SearchRequest.new({ index: index_name, body: body }, c)
       Response.new(@target, search)
     end
 

@@ -4,6 +4,7 @@ class PostVersionsController < ApplicationController
   respond_to :js, only: [:undo]
 
   def index
+    CurrentUser.use_opensearch = params[:use_os]&.truthy?
     @post_versions = PostVersion.document_store.search(PostVersion.build_query(search_params)).paginate(params[:page], limit: params[:limit], max_count: 10_000, search_count: params[:search], includes: [:updater, post: [:versions]])
     respond_with(@post_versions)
   end

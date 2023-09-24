@@ -4,6 +4,7 @@ x-environment: &common-env
   DANBOORU_HOSTNAME: http://localhost:3000
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_ELASTICSEARCH_HOST: elastic
+  DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
   DANBOORU_IQDB_SERVER: http://iqdb:5588
   DANBOORU_DISCORD_SITE: http://localhost:8000
@@ -109,6 +110,21 @@ services:
       timeout: 2s
       test: nc -z elastic 9200
 
+  opensearch:
+    image: opensearchproject/opensearch:2.9.0
+    environment:
+      - discovery.type=single-node
+      - logger.level=WARN
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      interval: 10s
+      timeout: 2s
+      test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
+
   iqdb:
     image: ghcr.io/e621ng/iqdb:d4fed9d9a51184e72d2f14d4ec461d7830bd177a 
     command: iqdb http 0.0.0.0 5588 /iqdb/e621_v2.db
@@ -180,6 +196,7 @@ volumes:
   post_data:
   iqdb_data:
   elastic_data:
+  opensearch_data:
   db_data:
   redis_data_v2:
   node_modules:

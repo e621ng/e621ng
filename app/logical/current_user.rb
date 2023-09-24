@@ -54,6 +54,14 @@ class CurrentUser
     RequestStore[:safe_mode] = safe_mode
   end
 
+  def self.use_opensearch?
+    RequestStore[:use_opensearch]
+  end
+
+  def self.use_opensearch=(use_opensearch)
+    RequestStore[:use_opensearch] = use_opensearch
+  end
+
   def self.method_missing(method, *, &)
     user.__send__(method, *, &)
   end
