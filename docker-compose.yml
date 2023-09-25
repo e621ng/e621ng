@@ -1,7 +1,7 @@
 version: "3"
 
 x-environment: &common-env
-  DANBOORU_HOSTNAME: http://localhost:3000
+  DANBOORU_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-3000}
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_ELASTICSEARCH_HOST: elastic
   DANBOORU_MEMCACHED_SERVERS: memcached
@@ -70,13 +70,12 @@ services:
       - ./docker/default.conf.template:/etc/nginx/templates/default.conf.template
     environment:
       <<: *common-env
-      NGINX_HOST: localhost
-      NGINX_PORT: 3000
+      NGINX_PORT: ${EXPOSED_SERVER_PORT:-3000}
     depends_on:
       - autocompleted
       - e621
     ports:
-      - "3000:3000"
+      - "${EXPOSED_SERVER_PORT:-3000}:${EXPOSED_SERVER_PORT:-3000}"
     
   postgres:
     image: postgres:15-alpine
@@ -87,7 +86,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "34517:5432"
+      - "${EXPOSED_POSTGRES_PORT:-34517}:5432"
   
   redis:
     image: redis:7.0.10-alpine

@@ -1,6 +1,6 @@
 server {
   listen ${NGINX_PORT};
-  server_name ${NGINX_HOST};
+  server_name localhost;
   root /app/public;
   index index.html;
   access_log off;
