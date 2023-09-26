@@ -8,11 +8,14 @@ module DocumentStore
     end
 
     def update_index(refresh: "false")
-      client.index(index: index_name, id: id, body: as_indexed_json, refresh: refresh)
+      body = as_indexed_json
+      client.index(index: index_name, id: id, body: body, refresh: refresh)
+      os_client.index(index: index_name, id: id, body: body, refresh: refresh)
     end
 
     def delete_document(refresh: "false")
       client.delete(index: index_name, id: id, refresh: refresh)
+      os_client.delete(index: index_name, id: id, refresh: refresh)
     end
 
     private

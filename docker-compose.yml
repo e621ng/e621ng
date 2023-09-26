@@ -16,6 +16,8 @@ x-environment: &common-env
 x-depends-on: &common-depends-on
   elastic:
     condition: service_healthy
+  opensearch:
+    condition: service_healthy
   memcached:
     condition: service_started
   postgres:

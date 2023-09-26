@@ -8,7 +8,7 @@ module DocumentStore
     end
 
     teardown do
-      WebMock.disable_net_connect!(allow: [Danbooru.config.elasticsearch_host])
+      WebMock.disable_net_connect!(allow: [Danbooru.config.elasticsearch_host, Danbooru.config.opensearch_host])
     end
 
     def stub_elastic(method, path)

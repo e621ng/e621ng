@@ -25,6 +25,7 @@ end
 
 WebMock.disable_net_connect!(allow: [
   Danbooru.config.elasticsearch_host,
+  Danbooru.config.opensearch_host,
 ])
 
 FactoryBot::SyntaxRunner.class_eval do
