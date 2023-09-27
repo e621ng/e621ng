@@ -634,6 +634,10 @@ module Danbooru
     def opensearch_host
     end
 
+    def opensearch_rollout_percentage
+      1
+    end
+
     # Use a recaptcha on the signup page to protect against spambots creating new accounts.
     # https://developers.google.com/recaptcha/intro
     def enable_recaptcha?
