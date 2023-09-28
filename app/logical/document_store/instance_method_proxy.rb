@@ -8,9 +8,7 @@ module DocumentStore
     end
 
     def update_index(refresh: "false")
-      body = as_indexed_json
-      client.index(index: index_name, id: id, body: body, refresh: refresh)
-      os_client.index(index: index_name, id: id, body: body, refresh: refresh)
+      client.index(index: index_name, id: id, body: as_indexed_json, refresh: refresh)
     end
 
     def os_update_index(refresh: "false")

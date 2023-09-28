@@ -7,6 +7,7 @@ module DocumentStore
 
       klass.after_commit on: [:create] do
         document_store.update_index(refresh: Rails.env.test?.to_s)
+        OsIndexUpdateJob.perform_later(self.class.to_s, id)
       end
 
       klass.after_commit on: [:update] do
