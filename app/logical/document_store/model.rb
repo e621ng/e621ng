@@ -23,6 +23,7 @@ module DocumentStore
       return document_store.update_index refresh: "true" if Rails.env.test?
 
       IndexUpdateJob.set(queue: queue).perform_later(self.class.to_s, id)
+      OsIndexUpdateJob.perform_later(self.class.to_s, id)
     end
   end
 

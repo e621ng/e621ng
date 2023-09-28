@@ -13,6 +13,10 @@ module DocumentStore
       os_client.index(index: index_name, id: id, body: body, refresh: refresh)
     end
 
+    def os_update_index(refresh: "false")
+      os_client.index(index: index_name, id: id, body: as_indexed_json, refresh: refresh)
+    end
+
     def delete_document(refresh: "false")
       client.delete(index: index_name, id: id, refresh: refresh)
       os_client.delete(index: index_name, id: id, refresh: refresh)
