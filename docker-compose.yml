@@ -3,7 +3,6 @@ version: "3"
 x-environment: &common-env
   DANBOORU_HOSTNAME: http://localhost:3000
   DANBOORU_REDIS_URL: redis://redis
-  DANBOORU_ELASTICSEARCH_HOST: elastic
   DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
   DANBOORU_IQDB_SERVER: http://iqdb:5588
@@ -14,8 +13,6 @@ x-environment: &common-env
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
 
 x-depends-on: &common-depends-on
-  elastic:
-    condition: service_healthy
   opensearch:
     condition: service_healthy
   memcached:
@@ -97,20 +94,6 @@ services:
 
   memcached:
     image: memcached:1.5.22-alpine
-
-  elastic:
-    image: elasticsearch:7.14.2
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - logger.level=WARN
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    volumes:
-      - elastic_data:/usr/share/elasticsearch/data
-    healthcheck:
-      interval: 10s
-      timeout: 2s
-      test: nc -z elastic 9200
 
   opensearch:
     image: opensearchproject/opensearch:2.9.0
@@ -197,7 +180,6 @@ services:
 volumes:
   post_data:
   iqdb_data:
-  elastic_data:
   opensearch_data:
   db_data:
   redis_data_v2:

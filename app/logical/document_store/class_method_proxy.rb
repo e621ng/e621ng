@@ -8,8 +8,7 @@ module DocumentStore
     end
 
     def search(body)
-      c = CurrentUser.use_opensearch? ? os_client : client
-      search = SearchRequest.new({ index: index_name, body: body }, c)
+      search = SearchRequest.new({ index: index_name, body: body }, client)
       Response.new(@target, search)
     end
 
@@ -40,10 +39,6 @@ module DocumentStore
 
     def client
       DocumentStore.client
-    end
-
-    def os_client
-      DocumentStore.os_client
     end
   end
 end

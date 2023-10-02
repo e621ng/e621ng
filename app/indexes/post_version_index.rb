@@ -62,7 +62,7 @@ module PostVersionIndex
           }
         end
 
-        os_client.bulk({
+        client.bulk({
                         index: index_name,
                         body: batch
                     })

@@ -29,8 +29,4 @@ module DocumentStore
   def self.client
     @client ||= OpenSearch::Client.new(host: Danbooru.config.opensearch_host)
   end
-
-  def self.os_client
-    @os_client ||= OpenSearch::Client.new(host: Danbooru.config.opensearch_host)
-  end
 end

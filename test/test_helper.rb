@@ -24,7 +24,6 @@ Shoulda::Matchers.configure do |config|
 end
 
 WebMock.disable_net_connect!(allow: [
-  Danbooru.config.elasticsearch_host,
   Danbooru.config.opensearch_host,
 ])
 
@@ -38,7 +37,7 @@ end
 BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
 BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
 
-# Clear the elastic indicies completly
+# Clear the opensearch indicies completly
 Post.document_store.create_index!(delete_existing: true)
 PostVersion.document_store.create_index!(delete_existing: true)
 

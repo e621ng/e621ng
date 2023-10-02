@@ -58,9 +58,9 @@ The postgres server accepts outside connections which you can use to access it w
 
 Installation follows the same steps as the docker compose file. Ubuntu 20.04 is the current installation target.
 There is no script that performs these steps for you, as you need to split them up to match your infrastructure.
-Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between postgresql and elasticsearch.
+Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between postgresql and opensearch.
 Minimum RAM is 4GB. You will need to adjust values in config files to match how much RAM is available.
-If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for postgresql and elasticsearch for help planning these requirements.
+If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for postgresql and opensearch for help planning these requirements.
 
 ### Production Troubleshooting
 

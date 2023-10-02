@@ -627,15 +627,7 @@ module Danbooru
     def iqdb_server
     end
 
-    def elasticsearch_host
-      '127.0.0.1'
-    end
-
     def opensearch_host
-    end
-
-    def opensearch_rollout_percentage
-      1
     end
 
     # Use a recaptcha on the signup page to protect against spambots creating new accounts.

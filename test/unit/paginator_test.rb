@@ -8,7 +8,7 @@ class PaginatorTest < ActiveSupport::TestCase
     assert_equal(is_last_page, records.is_last_page?, "is_last_page")
   end
 
-  { active_record: Blip, elasticsearch: Post }.each do |name, model| # rubocop:disable Metrics/BlockLength
+  { active_record: Blip, opensearch: Post }.each do |name, model| # rubocop:disable Metrics/BlockLength
     context name do
       context "sequential pagination (before)" do
         should "return the correct set of records" do
