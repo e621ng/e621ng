@@ -7,7 +7,6 @@ module DocumentStore
 
       klass.after_commit on: [:create] do
         document_store.update_index(refresh: Rails.env.test?.to_s)
-        OsIndexUpdateJob.perform_later(self.class.to_s, id)
       end
 
       klass.after_commit on: [:update] do
@@ -24,7 +23,6 @@ module DocumentStore
       return document_store.update_index refresh: "true" if Rails.env.test?
 
       IndexUpdateJob.set(queue: queue).perform_later(self.class.to_s, id)
-      OsIndexUpdateJob.perform_later(self.class.to_s, id)
     end
   end
 
