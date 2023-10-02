@@ -627,8 +627,7 @@ module Danbooru
     def iqdb_server
     end
 
-    def elasticsearch_host
-      '127.0.0.1'
+    def opensearch_host
     end
 
     # Use a recaptcha on the signup page to protect against spambots creating new accounts.

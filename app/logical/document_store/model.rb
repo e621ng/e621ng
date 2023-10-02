@@ -27,6 +27,6 @@ module DocumentStore
   end
 
   def self.client
-    @client ||= Elasticsearch::Client.new(host: Danbooru.config.elasticsearch_host)
+    @client ||= OpenSearch::Client.new(host: Danbooru.config.opensearch_host)
   end
 end
