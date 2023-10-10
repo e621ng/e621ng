@@ -13,8 +13,12 @@ class DanbooruLogger
   end
 
   def self.initialize(user, remote_ip)
+    add_attributes("user.id" => user.id, "user.name" => user.name, "user.ip" => remote_ip)
+  end
+
+  def self.add_attributes(**)
     return unless defined?(::NewRelic)
 
-    ::NewRelic::Agent.add_custom_attributes({ "user.id" => user.id, "user.name" => user.name, "user.ip" => remote_ip })
+    ::NewRelic::Agent.add_custom_attributes(**)
   end
 end
