@@ -31,6 +31,9 @@ common: &default_settings
   browser_monitoring:
     auto_instrument: false
 
+  attributes:
+    include: request.parameters.*
+
   application_logging:
     # If `true`, all logging-related features for the agent can be enabled or disabled
     # independently. If `false`, all logging-related features are disabled.
