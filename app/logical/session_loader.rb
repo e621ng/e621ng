@@ -38,7 +38,7 @@ class SessionLoader
     set_time_zone
     set_safe_mode
     refresh_old_remember_token
-    DanbooruLogger.initialize(CurrentUser.user, request.remote_ip)
+    DanbooruLogger.initialize(CurrentUser.user)
   end
 
   def has_api_authentication?

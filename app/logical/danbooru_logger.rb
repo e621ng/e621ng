@@ -12,8 +12,8 @@ class DanbooruLogger
     end
   end
 
-  def self.initialize(user, remote_ip)
-    add_attributes("user.id" => user.id, "user.name" => user.name, "user.ip" => remote_ip)
+  def self.initialize(user)
+    add_attributes("user.id" => user.id, "user.name" => user.name)
   end
 
   def self.add_attributes(**)
