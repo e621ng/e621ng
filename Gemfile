@@ -28,6 +28,7 @@ gem 'marcel'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
+gem 'newrelic_rpm'
 
 gem 'opensearch-ruby'
 
@@ -37,7 +38,6 @@ gem 'resolv'
 group :production do
   gem 'unicorn'
   gem 'unicorn-worker-killer'
-  gem 'newrelic_rpm'
 end
 
 group :development, :test do

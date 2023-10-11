@@ -8,6 +8,8 @@ x-environment: &common-env
   DANBOORU_IQDB_SERVER: http://iqdb:5588
   DANBOORU_DISCORD_SITE: http://localhost:8000
   DANBOORU_DISCORD_SECRET: super_secret_for_url_discord
+  NEW_RELIC_AGENT_ENABLED: ${NEW_RELIC_AGENT_ENABLED:-false}
+  NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY:-}
   # These are just development secrets, do not use them in production
   DANBOORU_PROTECTED_FILE_SECRET: 6686a6413d90c43d5e82403ef271ec25d13cc24e3bfcdd094e73d1eff22a3567
   DANBOORU_REPLACEMENT_FILE_SECRET: b35bc54cdc0d0436fc5867c7ef88f9b10a37ae20a06b37e67614fe60019d7bb1
