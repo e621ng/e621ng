@@ -391,7 +391,7 @@ DEPENDENCIES
   opensearch-ruby
   pg
   puma
-  rails (~> 7.0)
+  rails (~> 7.0.0)
   recaptcha
   redis
   request_store
