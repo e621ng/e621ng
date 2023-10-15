@@ -48,6 +48,8 @@ module Downloads
       size = 0
 
       res = HTTParty.get(url, httparty_options) do |chunk|
+        next if [301, 302].include?(chunk.code)
+
         size += chunk.size
         raise Error.new("File is too large (max size: #{max_size})") if size > max_size && max_size > 0
 

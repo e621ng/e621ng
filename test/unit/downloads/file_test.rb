@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 module Downloads
   class FileTest < ActiveSupport::TestCase
@@ -16,9 +16,6 @@ module Downloads
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
         UploadWhitelist.stubs(:is_whitelisted?).returns(true)
-        @source = "http://www.google.com/intl/en_ALL/images/logo.gif"
-        @download = Downloads::File.new(@source)
-        stub_request(:get, @source).to_return(status: 200, body: file_fixture("test.jpg").read, headers: {})
       end
 
       context "for a banned IP" do
@@ -36,14 +33,14 @@ module Downloads
 
         should "not follow redirects to banned IPs" do
           url = "http://httpbin.org/redirect-to?url=http://127.0.0.1"
-          stub_request(:get, url).to_return(status: 301, headers: { "Location": "http://127.0.0.1" })
+          stub_request(:get, url).to_return(status: 301, headers: { location: "http://127.0.0.1" })
 
           assert_raise(Downloads::File::Error) { Downloads::File.new(url).download! }
         end
 
         should "not follow redirects that resolve to a banned IP" do
           url = "http://httpbin.org/redirect-to?url=http://127.0.0.1.nip.io"
-          stub_request(:get, url).to_return(status: 301, headers: { "Location": "http://127.0.0.1.xip.io" })
+          stub_request(:get, url).to_return(status: 301, headers: { location: "http://127.0.0.1.xip.io" })
 
           assert_raise(Downloads::File::Error) { Downloads::File.new(url).download! }
         end
@@ -51,32 +48,49 @@ module Downloads
 
       context "that fails" do
         should "retry three times before giving up" do
+          download = Downloads::File.new("https://example.com")
           HTTParty.expects(:get).times(3).raises(Errno::ETIMEDOUT)
-          assert_raises(Errno::ETIMEDOUT) { @download.download! }
+          assert_raises(Errno::ETIMEDOUT) { download.download! }
         end
 
         should "return an uncorrupted file on the second try" do
-          bomb = stub("bomb")
-          bomb.expects(:size).raises(IOError)
-          resp = stub("resp", success?: true)
+          source = "https://example.com"
+          download = Downloads::File.new(source)
+          stub_request(:get, source).to_raise(IOError).then.to_return(body: "abc")
 
-          HTTParty.expects(:get).twice.multiple_yields("a", bomb, "b", "c").then.multiple_yields("a", "b", "c").returns(resp)
-          @download.stubs(:is_cloudflare?).returns(false)
-          tempfile = @download.download!
-
+          tempfile = download.download!
           assert_equal("abc", tempfile.read)
         end
       end
 
       should "throw an exception when the file is larger than the maximum" do
+        source = "https://example.com"
+        download = Downloads::File.new(source)
+        stub_request(:get, source).to_return(body: "body")
         assert_raise(Downloads::File::Error) do
-          @download.download!(max_size: 1)
+          download.download!(max_size: 1)
         end
       end
 
       should "store the file in the tempfile path" do
-        tempfile = @download.download!
-        assert_operator(tempfile.size, :>, 0, "should have data")
+        source = "https://example.com"
+        download = Downloads::File.new(source)
+        stub_request(:get, source).to_return(body: "body")
+
+        tempfile = download.download!
+        assert_equal(tempfile.read, "body")
+      end
+
+      should "correctly follow redirects" do
+        redirect_url = "https://example.com/redirected"
+        initial_request = stub_request(:get, "https://example.com").to_return(body: "Your are being redirected", status: 302, headers: { location: redirect_url })
+        redirect_request = stub_request(:get, redirect_url).to_return(body: "Actual content")
+
+        file = Downloads::File.new("https://example.com").download!
+
+        assert_requested(initial_request)
+        assert_requested(redirect_request)
+        assert_equal("Actual content", file.read)
       end
 
       context "url normalization" do
