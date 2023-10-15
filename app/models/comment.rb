@@ -1,4 +1,5 @@
 class Comment < ApplicationRecord
+  RECENT_COUNT = 6
   include UserWarnable
   simple_versioning
   belongs_to_creator
@@ -29,7 +30,7 @@ class Comment < ApplicationRecord
 
   module SearchMethods
     def recent
-      reorder("comments.id desc").limit(6)
+      reorder("comments.id desc").limit(RECENT_COUNT)
     end
 
     def hidden(user)
