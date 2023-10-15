@@ -555,7 +555,7 @@ class User < ApplicationRecord
 
     def hourly_upload_limit
       post_count = posts.where("created_at >= ?", 1.hour.ago).count
-      replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ?", 1.hour.ago).count
+      replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ? and status != ?", 1.hour.ago, "original").count
       Danbooru.config.hourly_upload_limit - post_count - replacement_count
     end
     memoize :hourly_upload_limit
