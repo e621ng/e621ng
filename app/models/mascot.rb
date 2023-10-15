@@ -1,7 +1,7 @@
 class Mascot < ApplicationRecord
   belongs_to_creator
 
-  array_attribute :available_on
+  array_attribute :available_on, parse: /[^,]+/, join_character: ","
   attr_accessor :mascot_file
 
   validates :display_name, :background_color, :artist_url, :artist_name, presence: true

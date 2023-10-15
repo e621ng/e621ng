@@ -322,9 +322,9 @@ class ApplicationRecord < ActiveRecord::Base
       # The `<attribute>=` setter parses strings into an array using the
       # `parse` regex. The resulting strings can be converted to another type
       # with the `cast` option.
-      def array_attribute(name, parse: /[^[:space:]]+/, cast: :itself)
+      def array_attribute(name, parse: /[^[:space:]]+/, join_character: " ", cast: :itself)
         define_method "#{name}_string" do
-          send(name).join(" ")
+          send(name).join(join_character)
         end
 
         define_method "#{name}_string=" do |value|
