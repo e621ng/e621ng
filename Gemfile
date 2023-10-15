@@ -8,7 +8,6 @@ gem "dalli", :platforms => :ruby
 gem "simple_form"
 gem 'active_model_serializers', '~> 0.10.0'
 gem 'ruby-vips'
-gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
 gem 'draper'
 gem 'streamio-ffmpeg'
@@ -29,6 +28,9 @@ gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
 gem 'newrelic_rpm'
+
+gem "diffy"
+gem "rugged"
 
 gem 'opensearch-ruby'
 

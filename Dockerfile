@@ -1,6 +1,6 @@
 FROM ruby:3.2.2-alpine3.18 as ruby-builder
 
-RUN apk --no-cache add build-base git glib-dev postgresql15-dev
+RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \

@@ -60,11 +60,15 @@ $spoiler-hover-color: white;
 // Tag types
 $tag-selected-color: white;
 
-// Diffs (wiki/post versions)
-$diff-added-color: green;
-$diff-added-obsolete-color: darkGreen;
-$diff-removed-color: red;
-$diff-removed-obsolete-color: darkRed;
+// Diffs
+$diff-tag-added-color: green;
+$diff-tag-added-obsolete-color: darkGreen;
+$diff-tag-removed-color: red;
+$diff-tag-removed-obsolete-color: darkRed;
+$diff-text-added-color: rgba(46, 160, 67, 0.25);
+$diff-text-added-strong-color: rgba(46, 160, 67, 0.4);
+$diff-text-removed-color: rgba(248, 81, 73, 0.25);
+$diff-text-removed-strong-color: rgba(248 ,81, 73, 0.4);
 
 // Notices
 $error-notice-color: #a00;
@@ -143,8 +147,6 @@ $post-mode-delete: #4e1010;
 // Edit History / Post Versions
 $post-version-grid-border: black;
 $post-version-content-background: inherit;
-$post-version-diff-added-color: $state-success-color;
-$post-version-diff-removed-color: $state-error-color;
 
 // Posts
 $post-rating-explicit-color: $red-color;

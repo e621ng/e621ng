@@ -2,48 +2,82 @@
 
 .diff-list {
   .added, .added a {
-    color: $diff-added-color;
+    color: $diff-tag-added-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   .added.obsolete, .added.obsolete a {
-    color: $diff-added-obsolete-color;
+    color: $diff-tag-added-obsolete-color;
     text-decoration: line-through;
   }
 
   .removed, .removed a {
-    color: $diff-removed-color;
+    color: $diff-tag-removed-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   .removed.obsolete, .removed.obsolete a {
     text-decoration: line-through;
-    color: $diff-removed-obsolete-color;
+    color: $diff-tag-removed-obsolete-color;
   }
 }
 
 .diff-list {
   ins, ins a {
-    color: $diff-added-color;
+    color: $diff-tag-added-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   del, del a {
-    color: $diff-removed-color;
+    color: $diff-tag-removed-color;
     text-decoration: none;
     margin-right: 0.5em;
   }
 
   ins.obsolete, ins.obsolete a {
     text-decoration: line-through;
-    color: $diff-added-obsolete-color;
+    color: $diff-tag-added-obsolete-color;
   }
 
   del.obsolete, del.obsolete a {
     text-decoration: line-through;
-    color: $diff-removed-obsolete-color;
+    color: $diff-tag-removed-obsolete-color;
+  }  
+}
+
+// diffy
+.diff {
+  ins, del {
+    text-decoration: none;
+  }
+
+  ins {
+    background-color: $diff-text-added-color;
+
+    strong {
+      background-color: $diff-text-added-strong-color;
+    }
+  }
+
+  del {
+    background-color: $diff-text-removed-color;
+
+    strong {
+      background-color: $diff-text-removed-strong-color;
+    }
+  }
+
+  // Make empty lines visible
+  li {
+    > span:empty:before {
+      content: "\200b"; // unicode zero width space character
+    }
+
+    > ins > strong:empty:before, > del > strong:empty:before {
+      content: "¶";
+    }
   }
 }

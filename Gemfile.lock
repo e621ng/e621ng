@@ -112,6 +112,7 @@ GEM
     dalli (3.2.5)
     date (3.3.3)
     diff-lcs (1.5.0)
+    diffy (3.4.2)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.8.1)
@@ -299,6 +300,7 @@ GEM
     ruby-vips (2.1.4)
       ffi (~> 1.12)
     ruby2_keywords (0.0.5)
+    rugged (1.7.1)
     semantic_range (3.0.0)
     shoulda-context (2.0.0)
     shoulda-matchers (5.3.0)
@@ -374,7 +376,7 @@ DEPENDENCIES
   bcrypt
   bootsnap
   dalli
-  diff-lcs
+  diffy
   dotenv-rails
   draper
   dtext_rb!
@@ -400,6 +402,7 @@ DEPENDENCIES
   rubocop-erb
   rubocop-rails
   ruby-vips
+  rugged
   shoulda-context
   shoulda-matchers
   sidekiq (~> 7.0)
