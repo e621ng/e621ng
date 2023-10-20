@@ -106,6 +106,12 @@ module Downloads
         raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
       end
 
+      # Check whitelist here again, in case of open redirect vulnerabilities
+      valid, _reason = UploadWhitelist.is_whitelisted?(Addressable::URI.parse(uri))
+      unless valid
+        raise Downloads::File::Error, "'#{uri}' is not whitelisted and can't be direct downloaded"
+      end
+
       super(uri, options)
     end
 

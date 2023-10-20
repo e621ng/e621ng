@@ -11,11 +11,27 @@ module Downloads
       assert_equal(file.url.to_s, output)
     end
 
+    context "A post download that is whitelisted" do
+      setup do
+        CurrentUser.user = create(:user)
+        CloudflareService.stubs(:ips).returns([])
+        create(:upload_whitelist, pattern: "https://example.com/*")
+      end
+
+      should "not follow redirects to non-whitelisted domains" do
+        stub_request(:get, "https://example.com/file.png").to_return(status: 301, headers: { location: "https://e621.net" })
+        error = assert_raises(Downloads::File::Error) do
+          Downloads::File.new("https://example.com/file.png").download!
+        end
+        assert_match("'https://e621.net/' is not whitelisted", error.message)
+      end
+    end
+
     context "A post download" do
       setup do
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
-        UploadWhitelist.stubs(:is_whitelisted?).returns(true)
+        create(:upload_whitelist, pattern: "*")
       end
 
       context "for a banned IP" do
@@ -24,25 +40,37 @@ module Downloads
         end
 
         should "not try to download the file" do
-          assert_raise(Downloads::File::Error) { Downloads::File.new("http://evil.com").download! }
+          error = assert_raises(Downloads::File::Error) do
+            Downloads::File.new("http://evil.com").download!
+          end
+          assert_match("from 127.0.0.1 are not", error.message)
         end
 
         should "not try to fetch the size" do
-          assert_raise(Downloads::File::Error) { Downloads::File.new("http://evil.com").size }
+          error = assert_raises(Downloads::File::Error) do
+            Downloads::File.new("http://evil.com").size
+          end
+          assert_match("from 127.0.0.1 are not", error.message)
         end
 
         should "not follow redirects to banned IPs" do
           url = "http://httpbin.org/redirect-to?url=http://127.0.0.1"
           stub_request(:get, url).to_return(status: 301, headers: { location: "http://127.0.0.1" })
 
-          assert_raise(Downloads::File::Error) { Downloads::File.new(url).download! }
+          error = assert_raises(Downloads::File::Error) do
+            Downloads::File.new(url).download!
+          end
+          assert_match("from 127.0.0.1 are not", error.message)
         end
 
         should "not follow redirects that resolve to a banned IP" do
           url = "http://httpbin.org/redirect-to?url=http://127.0.0.1.nip.io"
           stub_request(:get, url).to_return(status: 301, headers: { location: "http://127.0.0.1.xip.io" })
 
-          assert_raise(Downloads::File::Error) { Downloads::File.new(url).download! }
+          error = assert_raises(Downloads::File::Error) do
+            Downloads::File.new(url).download!
+          end
+          assert_match("from 127.0.0.1 are not", error.message)
         end
       end
 
@@ -67,7 +95,7 @@ module Downloads
         source = "https://example.com"
         download = Downloads::File.new(source)
         stub_request(:get, source).to_return(body: "body")
-        assert_raise(Downloads::File::Error) do
+        assert_raises(Downloads::File::Error) do
           download.download!(max_size: 1)
         end
       end
