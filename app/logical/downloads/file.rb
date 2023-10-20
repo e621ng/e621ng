@@ -102,11 +102,15 @@ module Downloads
     def self.call(uri, options)
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
 
-      if Danbooru.config.banned_ip_for_download?(ip_addr)
+      if ip_blocked?(ip_addr)
         raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
       end
 
       super(uri, options)
+    end
+
+    def self.ip_blocked?(ip_addr)
+      ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
     end
   end
 end

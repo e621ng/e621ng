@@ -603,22 +603,6 @@ module Danbooru
       'noreply@localhost'
     end
 
-    # For downloads, if the host matches any of these IPs, block it
-    def banned_ip_for_download?(ip_addr)
-      raise ArgumentError unless ip_addr.is_a?(IPAddr)
-      ipv4s = %w(127.0.0.1/8 169.254.0.0/16 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16)
-      ipv6s = %w(::1 fe80::/10 fd00::/8)
-
-
-      if ip_addr.ipv4?
-        ipv4s.any? {|range| IPAddr.new(range).include?(ip_addr)}
-      elsif ip_addr.ipv6?
-        ipv6s.any? {|range| IPAddr.new(range).include?(ip_addr)}
-      else
-        false
-      end
-    end
-
     # disable this for tests
     def enable_sock_puppet_validation?
       true
