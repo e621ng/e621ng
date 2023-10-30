@@ -77,7 +77,11 @@ class ModActionDecorator < ApplicationDecorator
       "Unbanned #{user}"
 
     when "user_level_change"
-      "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
+      if vals["level_was"]
+        "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
+      else
+        "Changed #{user} level to #{vals['level']}"
+      end
     when "user_flags_change"
       "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
     when "edited_user"
