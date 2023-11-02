@@ -66,10 +66,10 @@ class ModActionDecorator < ApplicationDecorator
     when "user_delete"
       "Deleted user #{user}"
     when "user_ban"
-      if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
+      if (vals["duration"].is_a?(Numeric) && vals["duration"] < 0) || vals["duration"] == "permanent"
         "Banned #{user} permanently"
-      elsif vals['duration']
-        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? 'day' : 'days'}"
+      elsif vals["duration"]
+        "Banned #{user} for #{vals['duration']} #{'day'.pluralize(vals['duration'])}"
       else
         "Banned #{user}"
       end
@@ -88,7 +88,7 @@ class ModActionDecorator < ApplicationDecorator
       "Edited #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
-    when "changed_user_text", "user_text_change"
+    when "user_text_change"
       "Changed profile text of #{user}"
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
