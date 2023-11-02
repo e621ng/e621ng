@@ -53,7 +53,7 @@ services:
     tty: true
 
   autocompleted:
-    image: ghcr.io/e621ng/autocompleted:54b516eded7b6641d6e958b0700eb6a887502dc1
+    image: ghcr.io/e621ng/autocompleted:8807bc8658f594cd0de04de1c272c3a2f917fc48
     command: /app/autocompleted
     environment:
       SERVER_ADDR: autocompleted:8118
@@ -115,7 +115,7 @@ services:
       test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
   iqdb:
-    image: ghcr.io/e621ng/iqdb:d4fed9d9a51184e72d2f14d4ec461d7830bd177a 
+    image: ghcr.io/e621ng/iqdb:b988f000f17008677c7546c0c13623bc956b585d
     command: iqdb http 0.0.0.0 5588 /iqdb/e621_v2.db
     volumes:
       - iqdb_data:/iqdb
@@ -123,7 +123,7 @@ services:
   # Discord integration
 
   discord_joiner:
-    image: ghcr.io/e621ng/discord_joiner:71c6abe72a93b2cfad129d1156108c93f920d880
+    image: ghcr.io/e621ng/discord_joiner:fdd9563e75d6f1b2b756c032b9749199c08d9765
     environment:
       FETCH_SECRET: abc123
       URL_SECRET: super_secret_for_url_discord
