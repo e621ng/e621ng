@@ -94,7 +94,7 @@ class ArtistUrl < ApplicationRecord
     "skeb.jp",
     "pillowfort.social",
     "reddit.com",
-    "bsky.social",
+    "bsky.app",
     "youtube.com",
     "t.me",
     "instagram.com",
