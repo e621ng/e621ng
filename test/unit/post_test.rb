@@ -908,6 +908,11 @@ class PostTest < ActiveSupport::TestCase
             @post.update(:tag_string => "source:none")
             assert_equal("", @post.source)
           end
+          should "add a source with +source:foo_bar" do
+            @post.update(:source => "foobar")
+            @post.update(:tag_string => "+source:foo_bar")
+            assert_equal("foobar\nfoo_bar", @post.source)
+          end
         end
 
         context "of" do
