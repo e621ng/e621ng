@@ -1,7 +1,5 @@
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
-  extend Memoist
-
   belongs_to :post
   belongs_to_updater
   user_status_counter :post_update_count, foreign_key: :updater_id
@@ -167,7 +165,7 @@ class PostVersion < ApplicationRecord
   end
 
   def tag_array
-    (tags || "").split
+    @tag_array ||= tags.split
   end
 
   def locked_tag_array
@@ -178,23 +176,20 @@ class PostVersion < ApplicationRecord
     PostVersionPresenter.new(self)
   end
 
-  def reload
-    flush_cache
-    super
-  end
-
   def previous
     # HACK: If this if the first version we can avoid a lookup because we know there are no previous versions.
     if version <= 1
       return nil
     end
 
+    return @previous if defined?(@previous)
+
     # HACK: if all the post versions for this post have already been preloaded,
     # we can use that to avoid a SQL query.
     if association(:post).loaded? && post && post.association(:versions).loaded?
-      post.versions.sort_by(&:version).reverse.find {|v| v.version < version}
+      @previous = post.versions.sort_by(&:version).reverse.find { |v| v.version < version }
     else
-      PostVersion.where("post_id = ? and version < ?", post_id, version).order("version desc").first
+      @previous = PostVersion.where("post_id = ? and version < ?", post_id, version).order("version desc").first
     end
   end
 
@@ -251,12 +246,14 @@ class PostVersion < ApplicationRecord
   end
 
   def changes
+    return @changes if defined?(@changes)
+
     delta = {
-        :added_tags => added_tags,
-        :removed_tags => removed_tags,
-        :obsolete_removed_tags => [],
-        :obsolete_added_tags => [],
-        :unchanged_tags => []
+      added_tags: added_tags,
+      removed_tags: removed_tags,
+      obsolete_removed_tags: [],
+      obsolete_added_tags: [],
+      unchanged_tags: [],
     }
 
     latest_tags = post.tag_array
@@ -301,7 +298,7 @@ class PostVersion < ApplicationRecord
       delta[:unchanged_tags] = []
     end
 
-    delta
+    @changes = delta
   end
 
   def undo
@@ -371,6 +368,4 @@ class PostVersion < ApplicationRecord
       changes[:unchanged_tags].join(" ")
     end
   end
-
-  memoize :previous, :tag_array, :changes
 end

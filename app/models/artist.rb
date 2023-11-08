@@ -1,5 +1,4 @@
 class Artist < ApplicationRecord
-  extend Memoist
   class RevertError < Exception ; end
 
   attr_accessor :url_string_changed
@@ -191,10 +190,6 @@ class Artist < ApplicationRecord
       end
     end
 
-    included do
-      memoize :domains
-    end
-
     def sorted_urls
       urls.sort {|a, b| b.priority <=> a.priority}
     end
@@ -337,8 +332,6 @@ class Artist < ApplicationRecord
     end
 
     def reload(options = nil)
-      flush_cache
-
       if instance_variable_defined?(:@notes)
         remove_instance_variable(:@notes)
       end

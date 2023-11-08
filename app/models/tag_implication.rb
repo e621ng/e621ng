@@ -1,6 +1,4 @@
 class TagImplication < TagRelationship
-  extend Memoist
-
   has_many :tag_rel_undos, as: :tag_rel
 
   array_attribute :descendant_names
@@ -17,7 +15,6 @@ class TagImplication < TagRelationship
 
   module DescendantMethods
     extend ActiveSupport::Concern
-    extend Memoist
 
     module ClassMethods
       # assumes names are normalized
@@ -40,16 +37,18 @@ class TagImplication < TagRelationship
     end
 
     def descendants
-      [].tap do |all|
+      @descendants ||= begin
+        result = []
         children = [consequent_name]
 
         until children.empty?
-          all.concat(children)
+          result.concat(children)
           children = TagImplication.active.where(antecedent_name: children).pluck(:consequent_name)
         end
-      end.sort.uniq
+
+        result.sort.uniq
+      end
     end
-    memoize :descendants
 
     def invalidate_cached_descendants
       descendant_names.each do |tag_name|
@@ -76,12 +75,9 @@ class TagImplication < TagRelationship
   end
 
   module ParentMethods
-    extend Memoist
-
     def parents
-      self.class.duplicate_relevant.where("consequent_name = ?", antecedent_name)
+      @parents ||= self.class.duplicate_relevant.where(consequent_name: antecedent_name)
     end
-    memoize :parents
   end
 
   module ValidationMethods
@@ -118,8 +114,6 @@ class TagImplication < TagRelationship
   end
 
   module ApprovalMethods
-    extend Memoist
-
     def process!(update_topic: true)
       unless valid?
         raise errors.full_messages.join("; ")
@@ -208,7 +202,6 @@ class TagImplication < TagRelationship
         skip_update: !TagRelationship::SUPPORT_HARD_CODED
       )
     end
-    memoize :forum_updater
 
     def process_undo!(update_topic: true)
       unless valid?
@@ -260,5 +253,10 @@ class TagImplication < TagRelationship
   def reload(options = {})
     flush_cache
     super
+  end
+
+  def flush_cache
+    @dedescendants = nil
+    @parents = nil
   end
 end
