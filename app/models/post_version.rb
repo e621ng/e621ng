@@ -310,26 +310,6 @@ class PostVersion < ApplicationRecord
     delta
   end
 
-  def added_tags_with_fields
-    changes[:added_tags].join(" ")
-  end
-
-  def removed_tags_with_fields
-    changes[:removed_tags].join(" ")
-  end
-
-  def obsolete_added_tags
-    changes[:obsolete_added_tags].join(" ")
-  end
-
-  def obsolete_removed_tags
-    changes[:obsolete_removed_tags].join(" ")
-  end
-
-  def unchanged_tags
-    changes[:unchanged_tags].join(" ")
-  end
-
   def undo
     raise UndoError, "Version 1 is not undoable" unless undoable?
 
@@ -380,9 +360,23 @@ class PostVersion < ApplicationRecord
     version > 1
   end
 
-  def method_attributes
-    super + [:obsolete_added_tags, :obsolete_removed_tags, :unchanged_tags, :updater_name]
+  concerning :ApiMethods do
+    def method_attributes
+      super + %i[obsolete_added_tags obsolete_removed_tags unchanged_tags updater_name]
+    end
+
+    def obsolete_added_tags
+      changes[:obsolete_added_tags].join(" ")
+    end
+
+    def obsolete_removed_tags
+      changes[:obsolete_removed_tags].join(" ")
+    end
+
+    def unchanged_tags
+      changes[:unchanged_tags].join(" ")
+    end
   end
 
-  memoize :previous, :tag_array, :changes, :added_tags_with_fields, :removed_tags_with_fields, :obsolete_removed_tags, :obsolete_added_tags, :unchanged_tags
+  memoize :previous, :tag_array, :changes
 end
