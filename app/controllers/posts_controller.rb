@@ -34,10 +34,7 @@ class PostsController < ApplicationController
   end
 
   def show_seq
-    context = PostSearchContext.new(params)
-    pid = context.post_id ? context.post_id : params[:id]
-
-    @post = Post.find(pid)
+    @post = PostSearchContext.new(params).post
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted, want_parent: false)

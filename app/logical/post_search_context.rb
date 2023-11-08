@@ -1,22 +1,11 @@
 class PostSearchContext
-  extend Memoist
-  attr_reader :id, :seq, :tags
+  attr_reader :post
 
   def initialize(params)
-    @id = params[:id].to_i
-    @seq = params[:seq]
-    @tags = params[:q].presence || params[:tags].presence || ""
-    @tags += " rating:s" if CurrentUser.safe_mode?
-    @tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+    tags = params[:q].presence || params[:tags].presence || ""
+    tags += " rating:s" if CurrentUser.safe_mode?
+    tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+    pagination_mode = params[:seq] == "prev" ? "a" : "b"
+    @post = Post.tag_match(tags).paginate("#{pagination_mode}#{params[:id]}", limit: 1).first || Post.find(params[:id])
   end
-
-  def post_id
-    if seq == "prev"
-      Post.tag_match(tags).paginate("a#{id}", limit: 1).first.try(:id)
-    else
-      Post.tag_match(tags).paginate("b#{id}", limit: 1).first.try(:id)
-    end
-  end
-
-  memoize :post_id
 end
