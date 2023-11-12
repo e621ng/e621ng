@@ -78,7 +78,7 @@
                   <dt>Original Uploader</dt>
                   <dd>
                     <%= link_to_user post_replacement.uploader_on_approve %>
-                    <% if CurrentUser.is_janitor? || post_replacement.uploader_on_approve == CurrentUser.user %>
+                    <% if CurrentUser.can_approve_posts? %>
                       | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
                     <% end %>
                     <% if CurrentUser.can_approve_posts? %>
@@ -107,8 +107,7 @@
               <% if CurrentUser.can_approve_posts? %>
                 <div class="pending-links">
                   <% if post_replacement.status == "pending"%>
-                    <%= link_to "Approve And Penalize Current Uploader", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: true} %><br>
-                    <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false} %><br>
+                    <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br>
                     <br>
                     <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id} %><br>
                     <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id} %><br>
