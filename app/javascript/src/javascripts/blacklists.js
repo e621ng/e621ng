@@ -74,7 +74,7 @@ Blacklist.entryParse = function (string) {
       entry.require.push(tag);
     }
   }
-  const user_matches = string.match(/user:([\w\d]+)/) || [];
+  const user_matches = string.match(/user:([\S]+)/) || [];
   if (user_matches.length === 2) {
     entry.username = user_matches[1];
   }
