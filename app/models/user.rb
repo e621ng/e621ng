@@ -899,4 +899,22 @@ class User < ApplicationRecord
   def presenter
     @presenter ||= UserPresenter.new(self)
   end
+
+  # Copied from UserNameValidator. Check back later how effective this was.
+  # Users with invalid names may be automatically renamed in the future.
+  def name_error
+    if name.length > 20
+      "must be 2 to 20 characters long"
+    elsif name !~ /\A[a-zA-Z0-9\-_~']+\z/
+      "must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"
+    elsif name =~ /\A[_\-~']/
+      "must not begin with a special character"
+    elsif name =~ /_{2}|-{2}|~{2}|'{2}/
+      "must not contain consecutive special characters"
+    elsif name =~ /\A_|_\z/
+      "cannot begin or end with an underscore"
+    elsif name =~ /\A[0-9]+\z/
+      "cannot consist of numbers only"
+    end
+  end
 end
