@@ -25,7 +25,9 @@ class UploadService
       # Prevent trying to replace deleted posts
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
 
-      create_backup_replacement
+      if PostReplacement.where(post_id: post.id).count == 1 # only the orig. post gets a backup
+        create_backup_replacement
+      end
       PostReplacement.transaction do
         replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
 

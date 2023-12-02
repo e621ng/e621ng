@@ -262,7 +262,7 @@ class PostReplacement < ApplicationRecord
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
 
-        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 ELSE 1 END ASC, id DESC"))
+        q.order(Arel.sql("CASE WHEN status = 'pending' THEN 0 WHEN status = 'original' THEN 2 ELSE 1 END ASC, id DESC"))
       end
 
       def pending
