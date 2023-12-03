@@ -144,7 +144,22 @@ class PostQueryBuilder
     q[:parent_ids_must_not]&.each do |parent_id|
       relation = relation.where.not("posts.parent_id = ?", parent_id)
     end
+    
+    if q[:related] == "none"
+      relation = relation.where("posts.get_full_family IS NULL")
+    elsif q[:related] == "any"
+      
+      relation = relation.where("posts.get_full_family IS NOT NULL")
+    end
 
+    q[:related_ids]&.each do |related_id|
+      relation = relation.where("posts.get_full_family = ?", related_id)
+    end
+
+    q[:related_ids_must_not]&.each do |related_id|
+      relation = relation.where.not("posts.get_full_family = ?", related_id)
+    end
+    #
     if q[:child] == "none"
       relation = relation.where("posts.has_children = FALSE")
     elsif q[:child] == "any"

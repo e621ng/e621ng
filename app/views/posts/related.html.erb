@@ -1,0 +1,17 @@
+<div id="c-posts">
+  <div id="a-related">
+    <%= render "posts/partials/common/related_search" %>
+    <div id="id-listing">
+        <p><br></p>
+        <%if !@results.nil?%>
+            <td><%=@results.join(", ")%></td>
+            <p><br></p>
+            <%= link_to("pool from...", "/pools/new?pool[post_ids]=#{@results.join(', ')}") %>
+            <p><br></p>
+        <%end%>
+
+    </div>
+    <%= render "posts/partials/common/inline_blacklist" %>
+  </div>
+</div>
+<%= render "posts/partials/common/secondary_links" %>

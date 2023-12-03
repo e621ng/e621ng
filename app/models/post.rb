@@ -1132,6 +1132,62 @@ class Post < ApplicationRecord
         @children_ids ||= children.map {|p| p.id}.join(' ')
       end
     end
+    # Gets IDs of all parents and children of the current post.
+    # The last_parent is the post id of the last parent to include.
+    # child_depth of 0 is the current post, and any higher is more levels of children. By default, there is no limit.
+    def get_direct_family(last_parent:, child_depth:)
+      ids = []
+      ids.append(get_decendents(depth: child_depth).flatten)
+      ids.append(get_lineage(last_parent: last_parent).flatten)
+      ids=ids.flatten.uniq
+      return ids
+    end
+    # not fully tested
+    # Gets the IDs of all parents of a post, then uses those IDs to find ALL relatives of a post.
+    # This includes siblings, cousins, etc.
+    def get_full_family
+      ids = []
+      lineage = get_lineage(last_parent: nil).flatten
+      lineage.each do |l|
+        ids.append(Post.find(l).get_decendents(depth: nil).flatten)
+      end
+      ids.append()
+      ids=ids.flatten.uniq
+      return ids
+    end
+    # Recursively gets children of the post. A depth of 0 returns the current post. By default their is no limit.
+    def get_decendents(depth:)
+      depth = -1 if depth.nil?
+      ids = [self.id]
+      if depth == 0
+        return ids
+      elsif self.has_visible_children
+        depth -= 1
+        children.each do |c|
+          ids.append(c.get_decendents(depth: depth).flatten)
+        end
+      end
+      return ids.flatten
+    end
+    # Recursively gets parents of the post. The parent id of the last post will be first in the list.
+    def get_lineage(last_parent:)
+      last_parent = 0 if last_parent.nil?
+      ids = [self.id]
+      if last_parent==self.id
+        return ids
+      elsif self.parent_id!=nil
+        p = Post.find(self.parent_id)
+        #puts(last_parent)
+        ids.append(p.get_lineage(last_parent: last_parent).reverse)
+      end
+      return ids.flatten.reverse
+    end
+    # Given a list of post IDs, removes their parents
+    def separate_family(ids:)
+      ids.each do |id|
+        Post.find(id).update(parent_id: "")
+      end
+    end
   end
 
   module DeletionMethods
@@ -1390,7 +1446,7 @@ class Post < ApplicationRecord
           tags: tag_string,
           score: score,
           uploader_id: uploader_id,
-          uploader: uploader_name
+          uploader: uploader_name,
       }
 
       if visible?

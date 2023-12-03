@@ -353,6 +353,65 @@ class PostTest < ActiveSupport::TestCase
         assert(p1.has_children?, "Parent should have children")
       end
     end
+
+    context "getting family members" do # TODO: FIX TESTS
+      should "return children" do
+        p1 = create(:post)
+        p2 = create(:post, parent_id: p1.id)
+        p1.reload
+        assert_same_elements([p1.id, p2.id], p1.get_decendents(depth: 1))
+        assert_same_elements([p1.id], p1.get_decendents(depth: 0))
+        p3 = create(:post, parent_id: p2.id)
+        p2.reload
+        p1.reload
+        assert_same_elements([p2.id, p3.id, p1.id], p1.get_decendents(depth: nil))
+        assert_same_elements([p1.id], p1.get_decendents(depth: 0))
+        assert_same_elements([p2.id], p2.get_decendents(depth: 0))
+      end
+      should "return parents" do
+        p1 = create(:post)
+        p2 = create(:post, parent_id: p1.id)
+        p3 = create(:post, parent_id: p2.id)
+        p1.reload
+        p2.reload
+        assert_same_elements([p3.id, p2.id, p1.id], p3.get_lineage(last_parent: nil))
+        assert_same_elements([p3.id, p2.id], p3.get_lineage(last_parent: p2.id))
+      end
+      should "return direct family" do
+        p1 = create(:post)
+        p2 = create(:post, parent_id: p1.id)
+        p3 = create(:post, parent_id: p2.id)
+        p4 = create(:post, parent_id: p3.id)
+        p5 = create(:post, parent_id: p3.id)
+        p6 = create(:post, parent_id: p5.id)
+        p1.reload
+        p2.reload
+        p3.reload
+        p4.reload
+        p5.reload
+        p6.reload
+        assert_same_elements([p1.id, p2.id, p3.id, p4.id, p5.id, p6.id], p3.get_direct_family(last_parent: 0, child_depth: -1))
+        assert_same_elements([p2.id, p3.id, p4.id, p5.id], p3.get_direct_family(last_parent: p2.id, child_depth: 1))
+      end
+      should "get full family" do
+        p1 = create(:post)
+
+        p2 = create(:post, parent_id: p1.id)
+        p5 = create(:post, parent_id: p2.id)
+
+        p3 = create(:post, parent_id: p1.id)
+        p4 = create(:post, parent_id: p3.id)
+        p6 = create(:post, parent_id: p4.id)
+        p6.reload
+        p5.reload
+        p4.reload
+        p3.reload
+        p2.reload
+        p1.reload
+        assert_same_elements([p1.id, p2.id, p3.id, p4.id, p5.id, p6.id], p6.get_full_family)
+        assert_same_elements([p1.id, p2.id, p3.id, p4.id, p5.id, p6.id], p5.get_full_family)
+      end
+    end
   end
 
   context "Moderation:" do

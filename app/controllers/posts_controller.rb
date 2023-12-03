@@ -21,6 +21,27 @@ class PostsController < ApplicationController
     end
   end
 
+  def related
+    return unless CurrentUser.user.can_approve_posts?
+    p = params["search"]
+    if p["base_post"].nil? || p["mode"].nil?
+      @p = p
+      return
+    end
+    b = Post.find(p["base_post"])
+    case p["mode"]
+    when "up"
+      @results = b.get_lineage(last_parent: p["last_parent"])
+    when "down"
+      @results = b.get_decendents(depth: p["child_depth"])
+    when "bi"
+      @results = b.get_direct_family(last_parent: p["last_parent"], child_depth: p["child_depth"])
+    when "all"
+      @results = b.get_full_family
+    end
+    Post.find(@results.first).separate_family(ids: p["removals"].parse_csv) unless p["removals"].nil?
+  end
+
   def show
     @post = Post.find(params[:id])
 

@@ -5,6 +5,9 @@ class PoolsController < ApplicationController
 
   def new
     @pool = Pool.new
+    if !params["pool"].nil? && !params["pool"]["post_ids"].nil?
+      @pool.post_ids = params["pool"]["post_ids"].parse_csv
+    end
     respond_with(@pool)
   end
 

@@ -1,0 +1,7 @@
+<%= form_search(path: related_posts_path) do |f| %>
+  <%= f.input :base_post, label: "Base Post"%>
+  <%= f.input :child_depth, label: "Child Depth"%>
+  <%= f.input :last_parent, label: "Last Parent"%>
+  <%= f.input :mode, collection: [%w[Lineage up], %w[Decendents down], %w[Both bi], %w[All all]], include_blank: false %>
+  <%= f.input :removals, label: "Remove Post Parents", value: nil, placeholder: ""%>
+<% end %>

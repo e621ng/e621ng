@@ -208,13 +208,14 @@ Rails.application.routes.draw do
     end
   end
   resources :deleted_posts, only: [:index]
-  resources :posts, :only => [:index, :show, :update] do
+  resources :posts, :only => [:index, :show, :update, :related] do
     resources :replacements, :only => [:index, :new, :create], :controller => "post_replacements"
     resource :votes, :controller => "post_votes", :only => [:create, :destroy]
     resource :flag, controller: 'post_flags', only: [:destroy]
     resources :favorites, :controller => "post_favorites", :only => [:index]
     collection do
       get :random
+      get :related
     end
     member do
       get :update_iqdb
