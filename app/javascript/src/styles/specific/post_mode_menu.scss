@@ -1,44 +1,26 @@
+$modes: (
+  "edit": $post-mode-edit,
+  "add-fav": $post-mode-add-fav,
+  "remove-fav": $post-mode-remove-fav,
+  "add-to-set": $post-mode-add-to-set,
+  "remove-from-set": $post-mode-remove-from-set,
+  "vote-up": $post-mode-vote-up,
+  "vote-down": $post-mode-vote-down,
+  "rating-s": $post-mode-rating-s,
+  "rating-q": $post-mode-rating-q,
+  "rating-e": $post-mode-rating-e,
+  "tag-script": $post-mode-tag-script,
+  "remove-parent": $post-mode-remove-parent,
+  "lock-rating": $post-mode-lock-rating,
+  "lock-note": $post-mode-lock-note,
+  "approve": $post-mode-approve,
+  "delete": $post-mode-delete,
+  "undelete": $post-mode-undelete,
+  "unflag": $post-mode-unflag,
+);
 
-#page.mode-edit {
-  background-color: $post-mode-edit;
-}
-
-#page.mode-tag-script {
-  background-color: $post-mode-tag-script;
-}
-
-#page.mode-add-fav {
-  background-color: $post-mode-add-fav;
-}
-
-#page.mode-remove-fav {
-  background-color: $post-mode-remove-fav;
-}
-
-#page.mode-vote-up {
-  background-color: $post-mode-vote-up;
-}
-
-#page.mode-vote-down {
-  background-color: $post-mode-vote-down;
-}
-
-#page.mode-lock-rating {
-  background-color: $post-mode-lock-rating;
-}
-
-#page.mode-lock-note {
-  background-color: $post-mode-lock-note;
-}
-
-#page.mode-approve {
-  background-color: $post-mode-approve;
-}
-
-#page.mode-notes {
-  background-color: $post-mode-notes;
-}
-
-#page.mode-delete {
-  background-color: $post-mode-delete;
+@each $mode, $color in $modes {
+  #page[data-mode-menu="#{$mode}"] {
+    background-color: $color;
+  }
 }

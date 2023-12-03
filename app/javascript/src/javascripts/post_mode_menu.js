@@ -143,9 +143,7 @@ PostModeMenu.change = function() {
   if (s === undefined) {
     return;
   }
-  const $body = $("#page");
-  $body.removeClass((i, classNames) => classNames.split(/ /).filter(name => /^mode-/.test(name)).join(" "));
-  $body.addClass("mode-" + s);
+  $("#page").attr("data-mode-menu", s);
   LS.put("mode", s, 1);
   $("#set-id").hide();
   $("#tag-script-field").hide();
