@@ -41,6 +41,6 @@ class HelpPage < ApplicationRecord
   end
 
   def self.help_index
-    Cache.fetch("help_index", expires_in: 12.hours) { HelpPage.all.order(:name).to_a }
+    Cache.fetch("help_index", expires_in: 12.hours) { HelpPage.order(:name).to_a }
   end
 end

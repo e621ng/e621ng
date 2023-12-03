@@ -442,9 +442,9 @@ class User < ApplicationRecord
     end
 
     def self.create_user_throttle(name, limiter, checker, newbie_duration)
-      define_method("#{name}_limit".to_sym, limiter)
+      define_method(:"#{name}_limit", limiter)
 
-      define_method("can_#{name}_with_reason".to_sym) do
+      define_method(:"can_#{name}_with_reason") do
         return true if Danbooru.config.disable_throttles?
         return send(checker) if checker && send(checker)
         return :REJ_NEWBIE if newbie_duration && younger_than(newbie_duration)

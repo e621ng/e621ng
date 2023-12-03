@@ -60,7 +60,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.select(:post_id).where(user_id: user.id).order(created_at: :desc).limit(50).map(&:post_id)[0..5]
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..5]
     Post.where(id: ids)
   end
 

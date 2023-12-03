@@ -7,8 +7,8 @@ UserStatus.find_each do |user_status|
 end
 
 # post ids who have two replacements, one approved, one original
-PostReplacement.select(:post_id).where(status: ["approved", "original"]).group(:post_id)
-               .having("count(post_id) = 2").map(&:post_id).each do |post_id|
+PostReplacement.where(status: %w[approved original]).group(:post_id)
+               .having("count(post_id) = 2").pluck(:post_id).each do |post_id|
   replacements = PostReplacement.where(post_id: post_id).order(:status)
 
   approved = replacements[0]

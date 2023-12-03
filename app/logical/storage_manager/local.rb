@@ -33,7 +33,7 @@ class StorageManager::Local < StorageManager
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each do |k,v|
+    Danbooru.config.video_rescales.each_key do |k|
       ['mp4','webm'].each do |ext|
         path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
         new_path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
@@ -52,7 +52,7 @@ class StorageManager::Local < StorageManager
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each do |k,v|
+    Danbooru.config.video_rescales.each_key do |k|
       ['mp4','webm'].each do |ext|
         path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
         new_path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)

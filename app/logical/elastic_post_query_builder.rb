@@ -268,7 +268,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])
