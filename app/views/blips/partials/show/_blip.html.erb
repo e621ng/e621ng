@@ -23,6 +23,7 @@
       <div class="body dtext-container">
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
+      <%= render "application/update_notice", record: blip %>
       <%= render "application/warned_notice", record: blip %>
       <div class="content-menu">
         <menu>
