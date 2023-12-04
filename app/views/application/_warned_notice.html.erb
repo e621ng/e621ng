@@ -1,0 +1,6 @@
+<% if record.was_warned? %>
+  <div class="user-warning">
+    <hr>
+    <em><%= record.warning_type_string %>.</em>
+  </div>
+<% end %>
