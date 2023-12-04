@@ -3,4 +3,8 @@
   <% if CurrentUser.is_moderator? %>
     <%= subnav_link_to "Ban", new_ban_path %>
   <% end %>
+  <% if @ban&.id %>
+    |
+    <%= subnav_link_to "Edit", edit_ban_path(@ban) %>
+  <% end %>
 <% end %>
