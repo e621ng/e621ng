@@ -6,10 +6,10 @@ class ForumTopic < ApplicationRecord
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
   before_validation :initialize_is_hidden, :on => :create
+  validate :category_valid
   validates :title, :creator_id, presence: true
   validates_associated :original_post
   validates_presence_of :original_post
-  validates_associated :category
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
@@ -34,6 +34,12 @@ class ForumTopic < ApplicationRecord
     def category_name
       return '(Unknown)' unless category
       category.name
+    end
+
+    def category_valid
+      return if category
+      errors.add(:category, "is invalid")
+      throw :abort
     end
 
     def category_allows_creation
