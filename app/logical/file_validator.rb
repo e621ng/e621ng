@@ -28,7 +28,7 @@ class FileValidator
 
   def validate_file_ext(max_file_sizes)
     if max_file_sizes.keys.exclude? record.file_ext
-      record.errors.add(:file_ext, "#{record.file_ext} is invalid (only #{max_file_sizes.keys.to_sentence} files are allowed")
+      record.errors.add(:file_ext, "#{record.file_ext} is invalid (only #{max_file_sizes.keys.to_sentence} files are allowed)")
       throw :abort
     end
   end
