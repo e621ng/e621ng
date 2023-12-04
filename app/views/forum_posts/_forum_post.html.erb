@@ -23,12 +23,7 @@
         <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: forum_post %>
-      <% if forum_post.was_warned? %>
-        <div class="user-warning">
-          <hr>
-          <em><%= forum_post.warning_type_string %></em>
-        </div>
-      <% end %>
+      <%= render "application/warned_notice", record: forum_post %>
       <div class="content-menu">
         <menu>
           <% if CurrentUser.is_member? && @forum_topic && params[:controller] != "forum_posts" %>

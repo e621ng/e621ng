@@ -6,6 +6,7 @@ class ForumPost < ApplicationRecord
   belongs_to_updater
   user_status_counter :forum_post_count
   belongs_to :topic, :class_name => "ForumTopic"
+  belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, class_name: "ForumPostVote"
   has_one :tag_alias
   has_one :tag_implication

@@ -26,6 +26,7 @@ class Comment < ApplicationRecord
 
   user_status_counter :comment_count
   belongs_to :post, counter_cache: :comment_count
+  belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
 
   module SearchMethods
