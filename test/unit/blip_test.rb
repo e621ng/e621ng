@@ -55,7 +55,7 @@ class BlipTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @blip.update(body: "nopearino")
           end
         end
@@ -74,7 +74,7 @@ class BlipTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @blip.update(is_hidden: true)
           end
         end
@@ -91,7 +91,7 @@ class BlipTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @blip.destroy
           end
         end
