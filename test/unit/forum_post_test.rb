@@ -107,7 +107,7 @@ class ForumPostTest < ActiveSupport::TestCase
       end
 
       should "create a mod action" do
-        assert_difference("ModAction.count") do
+        assert_difference(-> { ModAction.count }, 1) do
           @post.update(body: "nope")
         end
       end
@@ -126,7 +126,7 @@ class ForumPostTest < ActiveSupport::TestCase
       end
 
       should "create a mod action" do
-        assert_difference("ModAction.count") do
+        assert_difference(-> { ModAction.count }, 1) do
           @post.update(is_hidden: true)
         end
       end
@@ -143,7 +143,7 @@ class ForumPostTest < ActiveSupport::TestCase
       end
 
       should "create a mod action" do
-        assert_difference("ModAction.count") do
+        assert_difference(-> { ModAction.count }, 1) do
           @post.destroy
         end
       end

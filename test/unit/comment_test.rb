@@ -206,7 +206,7 @@ class CommentTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @comment.update(is_hidden: true)
           end
         end
@@ -225,7 +225,7 @@ class CommentTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @comment.update(is_sticky: true)
           end
         end
@@ -242,7 +242,7 @@ class CommentTest < ActiveSupport::TestCase
         end
 
         should "create a mod action" do
-          assert_difference("ModAction.count") do
+          assert_difference(-> { ModAction.count }, 1) do
             @comment.destroy
           end
         end
