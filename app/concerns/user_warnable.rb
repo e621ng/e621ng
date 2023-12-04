@@ -16,7 +16,7 @@ module UserWarnable
   end
 
   def remove_user_warning!
-    update(warning_type: type, warning_user_id: nil)
+    update(warning_type: nil, warning_user_id: nil)
   end
 
   def was_warned?
