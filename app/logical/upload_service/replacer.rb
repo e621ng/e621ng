@@ -1,7 +1,5 @@
 class UploadService
   class Replacer
-    extend Memoist
-
     attr_reader :post, :replacement
 
     def initialize(post:, replacement:)

@@ -52,7 +52,7 @@ class UserPresenter
   end
 
   def uploads
-    Post.tag_match("user:#{user.name}").limit(6).records
+    Post.tag_match("user:#{user.name}").limit(6)
   end
 
   def has_uploads?
@@ -60,7 +60,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.select(:post_id).where(user_id: user.id).order(created_at: :desc).limit(50).map(&:post_id)[0..5]
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..5]
     Post.where(id: ids)
   end
 
@@ -97,7 +97,7 @@ class UserPresenter
   end
 
   def commented_posts_count(template)
-    count = CurrentUser.without_safe_mode { Post.fast_count("commenter:#{user.name}") }
+    count = Post.fast_count("commenter:#{user.name}", enable_safe_mode: false)
     template.link_to(count, template.posts_path(tags: "commenter:#{user.name} order:comment_bumped"))
   end
 
@@ -110,7 +110,7 @@ class UserPresenter
   end
 
   def noted_posts_count(template)
-    count = CurrentUser.without_safe_mode { Post.fast_count("noteupdater:#{user.name}") }
+    count = Post.fast_count("noteupdater:#{user.name}", enable_safe_mode: false)
     template.link_to(count, template.posts_path(tags: "noteupdater:#{user.name} order:note"))
   end
 
@@ -166,15 +166,27 @@ class UserPresenter
     tag_names = user&.favorite_tags.to_s.split
     tag_names = TagAlias.to_aliased(tag_names)
     indices = tag_names.each_with_index.map {|x, i| [x, i]}.to_h
-    Tag.where(name: tag_names).map {|x| [x.name, x.post_count, x.category]}.sort_by {|x| indices[x[0]] }
+    tags = Tag.where(name: tag_names).map do |tag|
+      {
+        name: tag.name,
+        count: tag.post_count,
+        category_id: tag.category,
+      }
+    end
+    tags.sort_by { |entry| indices[entry[:name]] }
   end
 
   def recent_tags_with_types
     versions = PostVersion.where(updater_id: user.id).where("updated_at > ?", 1.hour.ago).order(id: :desc).limit(150)
     tags = versions.flat_map(&:added_tags)
-    tags = tags.reject { |tag| Tag.is_metatag?(tag) }
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)
     tags = tags.take(50)
-    Tag.where(name: tags).map {|x| [x.name, x.post_count, x.category]}
+    Tag.where(name: tags).map do |tag|
+      {
+        name: tag.name,
+        count: tag.post_count,
+        category_id: tag.category,
+      }
+    end
   end
 end

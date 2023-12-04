@@ -67,12 +67,18 @@ module Danbooru
           "Blocked" => 10,
           "Member" => 20,
           "Privileged" => 30,
-          "Contributor" => 33,
           "Former Staff" => 34,
           "Janitor" => 35,
           "Moderator" => 40,
           "Admin" => 50
       }
+    end
+
+    # Prevent new users from going above 80k while allowing those currently above
+    # it to continue adding new favorites with the old limit.
+    # { 123 => 200_000 }
+    def legacy_favorite_limit
+      {}
     end
 
     # Set the default level, permissions, and other settings for new users here.
@@ -87,6 +93,10 @@ module Danbooru
     end
 
     def default_blacklist
+      []
+    end
+
+    def safeblocked_tags
       []
     end
 
@@ -174,12 +184,16 @@ module Danbooru
       3_000
     end
 
-    def dmail_limit
-      20
-    end
-
     def dmail_minute_limit
       1
+    end
+
+    def dmail_limit
+      10
+    end
+
+    def dmail_day_limit
+      50
     end
 
     def tag_suggestion_limit
@@ -317,6 +331,10 @@ module Danbooru
 
     def wiki_page_max_size
       250_000
+    end
+
+    def user_feedback_max_size
+      20_000
     end
 
     def discord_site
@@ -585,22 +603,6 @@ module Danbooru
       'noreply@localhost'
     end
 
-    # For downloads, if the host matches any of these IPs, block it
-    def banned_ip_for_download?(ip_addr)
-      raise ArgumentError unless ip_addr.is_a?(IPAddr)
-      ipv4s = %w(127.0.0.1/8 169.254.0.0/16 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16)
-      ipv6s = %w(::1 fe80::/10 fd00::/8)
-
-
-      if ip_addr.ipv4?
-        ipv4s.any? {|range| IPAddr.new(range).include?(ip_addr)}
-      elsif ip_addr.ipv6?
-        ipv6s.any? {|range| IPAddr.new(range).include?(ip_addr)}
-      else
-        false
-      end
-    end
-
     # disable this for tests
     def enable_sock_puppet_validation?
       true
@@ -609,8 +611,7 @@ module Danbooru
     def iqdb_server
     end
 
-    def elasticsearch_host
-      '127.0.0.1'
+    def opensearch_host
     end
 
     # Use a recaptcha on the signup page to protect against spambots creating new accounts.
@@ -638,6 +639,11 @@ module Danbooru
 
     def ads_enabled?
       false
+    end
+
+    # These tags will be sent to the revive server to do filtering on
+    def ads_keyword_tags
+      []
     end
 
     def ads_zone_desktop

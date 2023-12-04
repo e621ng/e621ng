@@ -1,6 +1,6 @@
 class TagsPreview
   def initialize(tags: nil)
-    @tags = Tag.scan_tags(tags).map {|x| {a: x, type: 'tag'}}
+    @tags = TagQuery.scan(tags).map {|x| {a: x, type: 'tag'}}
     aliases
     implications
     tag_types

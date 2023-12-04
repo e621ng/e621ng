@@ -36,6 +36,13 @@
 
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
+    <% if CurrentUser.is_member? && (name_error = CurrentUser.name_error) %>
+      <div class="ui-state-highlight site-notice">
+        <p>Your current username '<%= CurrentUser.pretty_name %>' is invalid. Please change it <%= link_to "here", new_user_name_change_request_path %>.<p>
+        Error: <%= name_error %>
+      </div>
+    <% end %>
+
     <% if CurrentUser.user.is_banned? %>
       <%= render "users/ban_notice" %>
     <% end %>

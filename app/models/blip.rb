@@ -3,6 +3,7 @@ class Blip < ApplicationRecord
   simple_versioning
   belongs_to_creator
   belongs_to_updater optional: true
+  belongs_to :warning_user, class_name: "User", optional: true
   validates :body, presence: true
   validates :body, length: { minimum: 5, maximum: Danbooru.config.blip_max_size }
   validate :validate_parent_exists, on: :create

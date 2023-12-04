@@ -4,9 +4,7 @@ class WikiPageVersion < ApplicationRecord
   belongs_to_updater
   user_status_counter :wiki_edit_count, foreign_key: :updater_id
   belongs_to :artist, optional: true
-  delegate :visible?, :to => :wiki_page
-
-  extend Memoist
+  delegate :visible?, to: :wiki_page
 
   module SearchMethods
     def for_user(user_id)
@@ -42,9 +40,9 @@ class WikiPageVersion < ApplicationRecord
   end
 
   def previous
-    WikiPageVersion.where("wiki_page_id = ? and id < ?", wiki_page_id, id).order("id desc").first
+    return @previous if defined?(@previous)
+    @previous = WikiPageVersion.where("wiki_page_id = ? and id < ?", wiki_page_id, id).order("id desc").first
   end
-  memoize :previous
 
   def category_id
     Tag.category_for(title)

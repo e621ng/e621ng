@@ -41,6 +41,10 @@ class Note < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
+      with_resolved_user_ids(:post_note_updater, params) do |user_ids|
+        q = q.where(post_id: NoteVersion.select(:post_id).where(updater_id: user_ids))
+      end
+
       q = q.where_user(:creator_id, :creator, params)
 
       q.apply_basic_order(params)
@@ -170,7 +174,7 @@ class Note < ApplicationRecord
 
   def self.undo_changes_by_user(vandal_id)
     transaction do
-      note_ids = NoteVersion.where(:updater_id => vandal_id).select("note_id").distinct.map(&:note_id)
+      note_ids = NoteVersion.where(updater_id: vandal_id).distinct.pluck(:note_id)
       NoteVersion.where(["updater_id = ?", vandal_id]).delete_all
       note_ids.each do |note_id|
         note = Note.find(note_id)

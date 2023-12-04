@@ -28,10 +28,6 @@ class BanTest < ActiveSupport::TestCase
         ban = create(:ban, user: user, banner: @banner)
         assert(ban.errors.empty?)
 
-        user = create(:contributor_user)
-        ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
-
         user = create(:privileged_user)
         ban = create(:ban, user: user, banner: @banner)
         assert(ban.errors.empty?)
@@ -61,10 +57,6 @@ class BanTest < ActiveSupport::TestCase
       end
 
       should "be valid against anyone who is not an admin or a moderator" do
-        user = create(:contributor_user)
-        ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
-
         user = create(:privileged_user)
         ban = create(:ban, user: user, banner: @banner)
         assert(ban.errors.empty?)

@@ -66,30 +66,46 @@ class ModActionDecorator < ApplicationDecorator
     when "user_delete"
       "Deleted user #{user}"
     when "user_ban"
-      if vals['duration'].is_a?(Numeric) && vals['duration'] < 0
+      if (vals["duration"].is_a?(Numeric) && vals["duration"] < 0) || vals["duration"] == "permanent"
         "Banned #{user} permanently"
-      elsif vals['duration']
-        "Banned #{user} for #{vals['duration']} #{vals['duration'] == 1 ? 'day' : 'days'}"
+      elsif vals["duration"]
+        "Banned #{user} for #{vals['duration']} #{'day'.pluralize(vals['duration'])}"
       else
         "Banned #{user}"
       end
+    when "user_ban_update"
+      text = "Updated ban ##{vals['ban_id']} for #{user}"
+      if vals["expires_at"] != vals["expires_at_was"]
+        format_expires_at = ->(timestamp) { timestamp.nil? ? "never" : DateTime.parse(timestamp).strftime("%Y-%m-%d %H:%M") }
+        expires_at = format_expires_at.call(vals["expires_at"])
+        expires_at_was = format_expires_at.call(vals["expires_at_was"])
+        text += "\nChanged expiration from #{expires_at_was} to #{expires_at}"
+      end
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
+      end
+      text
     when "user_unban"
       "Unbanned #{user}"
 
     when "user_level_change"
-      "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
+      if vals["level_was"]
+        "Changed #{user} level from #{vals['level_was']} to #{vals['level']}"
+      else
+        "Changed #{user} level to #{vals['level']}"
+      end
     when "user_flags_change"
       "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
     when "edited_user"
       "Edited #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
-    when "changed_user_text", "user_text_change"
+    when "user_text_change"
       "Changed profile text of #{user}"
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_name_change"
-      "Changed name of #{user} from #{vals['old_name']} to #{vals['new_name']}"
+      "Changed name of #{user}"
 
       ### User Record ###
 

@@ -74,13 +74,13 @@ class Ticket < ApplicationRecord
 
     module Comment
       def can_create_for?(user)
-        content.visible_to?(user)
+        content&.visible_to?(user)
       end
     end
 
     module Dmail
       def can_create_for?(user)
-        content.visible_to?(user) && content.to_id == user.id
+        content&.visible_to?(user) && content.to_id == user.id
       end
 
       def can_see_details?(user)
@@ -122,7 +122,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        content.can_view?(user)
+        content&.can_view?(user)
       end
     end
 
@@ -148,7 +148,7 @@ class Ticket < ApplicationRecord
 
     module Blip
       def can_create_for?(user)
-        content.visible_to?(user)
+        content&.visible_to?(user)
       end
     end
 
@@ -254,7 +254,7 @@ class Ticket < ApplicationRecord
 
   module ClassifyMethods
     def classify
-      extend(TicketTypes.const_get(qtype.camelize)) if TicketTypes.const_defined?(qtype.camelize)
+      extend(TicketTypes.const_get(qtype.camelize)) if TicketTypes.constants.map(&:to_s).include?(qtype&.camelize)
     end
   end
 

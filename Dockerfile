@@ -1,6 +1,6 @@
 FROM ruby:3.2.2-alpine3.18 as ruby-builder
 
-RUN apk --no-cache add build-base git glib-dev postgresql15-dev
+RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
@@ -13,7 +13,7 @@ RUN if [[ $COMPOSE_PROFILES == *"solargraph"* ]]; then \
   bundle exec yard gems; \
 fi
 
-FROM node:18-alpine3.18 as node-builder
+FROM node:20-alpine3.18 as node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -30,6 +30,7 @@ WORKDIR /app
 RUN git config --global --add safe.directory $(pwd)
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+ENV RUBY_YJIT_ENABLE=1
 
 # Setup node and yarn
 COPY --from=node-builder /usr/lib /usr/lib

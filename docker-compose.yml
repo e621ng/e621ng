@@ -1,19 +1,23 @@
 version: "3"
 
 x-environment: &common-env
-  DANBOORU_HOSTNAME: http://localhost:3000
+  DANBOORU_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-3000}
   DANBOORU_REDIS_URL: redis://redis
-  DANBOORU_ELASTICSEARCH_HOST: elastic
+  DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
   DANBOORU_IQDB_SERVER: http://iqdb:5588
   DANBOORU_DISCORD_SITE: http://localhost:8000
   DANBOORU_DISCORD_SECRET: super_secret_for_url_discord
+  NEW_RELIC_AGENT_ENABLED: ${NEW_RELIC_AGENT_ENABLED:-false}
+  NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY:-}
   # These are just development secrets, do not use them in production
+  DANBOORU_PROTECTED_FILE_SECRET: 6686a6413d90c43d5e82403ef271ec25d13cc24e3bfcdd094e73d1eff22a3567
+  DANBOORU_REPLACEMENT_FILE_SECRET: b35bc54cdc0d0436fc5867c7ef88f9b10a37ae20a06b37e67614fe60019d7bb1
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
 
 x-depends-on: &common-depends-on
-  elastic:
+  opensearch:
     condition: service_healthy
   memcached:
     condition: service_started
@@ -49,7 +53,7 @@ services:
     tty: true
 
   autocompleted:
-    image: ghcr.io/e621ng/autocompleted:54b516eded7b6641d6e958b0700eb6a887502dc1
+    image: ghcr.io/e621ng/autocompleted:8807bc8658f594cd0de04de1c272c3a2f917fc48
     command: /app/autocompleted
     environment:
       SERVER_ADDR: autocompleted:8118
@@ -67,13 +71,13 @@ services:
       - public_packs:/app/public/packs
       - ./docker/default.conf.template:/etc/nginx/templates/default.conf.template
     environment:
-      NGINX_HOST: localhost
-      NGINX_PORT: 3000
+      <<: *common-env
+      NGINX_PORT: ${EXPOSED_SERVER_PORT:-3000}
     depends_on:
       - autocompleted
       - e621
     ports:
-      - "3000:3000"
+      - "${EXPOSED_SERVER_PORT:-3000}:${EXPOSED_SERVER_PORT:-3000}"
     
   postgres:
     image: postgres:15-alpine
@@ -84,7 +88,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "34517:5432"
+      - "${EXPOSED_POSTGRES_PORT:-34517}:5432"
   
   redis:
     image: redis:7.0.10-alpine
@@ -95,22 +99,23 @@ services:
   memcached:
     image: memcached:1.5.22-alpine
 
-  elastic:
-    image: elasticsearch:7.14.2
+  opensearch:
+    image: opensearchproject/opensearch:2.9.0
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
       - logger.level=WARN
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
     volumes:
-      - elastic_data:/usr/share/elasticsearch/data
+      - opensearch_data:/usr/share/opensearch/data
     healthcheck:
       interval: 10s
       timeout: 2s
-      test: nc -z elastic 9200
+      test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
   iqdb:
-    image: ghcr.io/e621ng/iqdb:d4fed9d9a51184e72d2f14d4ec461d7830bd177a 
+    image: ghcr.io/e621ng/iqdb:b988f000f17008677c7546c0c13623bc956b585d
     command: iqdb http 0.0.0.0 5588 /iqdb/e621_v2.db
     volumes:
       - iqdb_data:/iqdb
@@ -118,7 +123,7 @@ services:
   # Discord integration
 
   discord_joiner:
-    image: ghcr.io/e621ng/discord_joiner:71c6abe72a93b2cfad129d1156108c93f920d880
+    image: ghcr.io/e621ng/discord_joiner:fdd9563e75d6f1b2b756c032b9749199c08d9765
     environment:
       FETCH_SECRET: abc123
       URL_SECRET: super_secret_for_url_discord
@@ -166,9 +171,9 @@ services:
   solargraph:
     image: e621
     entrypoint: solargraph socket -h 0.0.0.0
-    working_dir: $PWD
+    working_dir: ${PWD-}
     volumes:
-      - .:$PWD
+      - .:${PWD-}
     environment:
       IGNORE_RUBOCOP_TODO: "1"
     ports:
@@ -179,7 +184,7 @@ services:
 volumes:
   post_data:
   iqdb_data:
-  elastic_data:
+  opensearch_data:
   db_data:
   redis_data_v2:
   node_modules:

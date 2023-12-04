@@ -16,6 +16,6 @@
   </div>
   <%= textarea %>
   <div class="dtext-formatter-preview dtext-container"></div>
-  <%= tag.div(class: "dtext-formatter-charcount", data: { limit: limit, count: 0 }) %>
+  <%= tag.div(class: "dtext-formatter-charcount", data: { limit: limit || 0, count: 0 }) %>
 </div>
 <span class="hint">All text is formatted using <a href="/help/dtext" target="_blank" rel="noopener" tabindex="-1">DText</a></span>

@@ -24,7 +24,7 @@ Shoulda::Matchers.configure do |config|
 end
 
 WebMock.disable_net_connect!(allow: [
-  Danbooru.config.elasticsearch_host,
+  Danbooru.config.opensearch_host,
 ])
 
 FactoryBot::SyntaxRunner.class_eval do
@@ -36,6 +36,10 @@ end
 # Make tests not take ages. Remove the const first to avoid a const redefinition warning.
 BCrypt::Engine.send(:remove_const, :DEFAULT_COST)
 BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
+
+# Clear the opensearch indicies completly
+Post.document_store.create_index!(delete_existing: true)
+PostVersion.document_store.create_index!(delete_existing: true)
 
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
@@ -67,6 +71,23 @@ class ActiveSupport::TestCase
 
   def with_inline_jobs(&)
     Sidekiq::Testing.inline!(&)
+  end
+
+  # TODO: Remove with upgrade to Rails 7.1
+  def stub_const(mod, constant, new_value)
+    old_value = mod.const_get(constant, false)
+    mod.send(:remove_const, constant)
+    mod.const_set(constant, new_value)
+    yield
+  ensure
+    mod.send(:remove_const, constant)
+    mod.const_set(constant, old_value)
+  end
+
+  def reset_post_index
+    # This seems slightly faster than deleting and recreating the index
+    Post.document_store.delete_by_query(query: "*", body: {})
+    Post.document_store.refresh_index!
   end
 end
 

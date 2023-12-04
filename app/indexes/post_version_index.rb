@@ -2,36 +2,45 @@
 
 module PostVersionIndex
   def self.included(base)
-    base.settings index: {number_of_shards: 8, number_of_replicas: 1} do
-      mappings dynamic: false do
-        indexes :id, type: 'integer'
-        indexes :post_id, type: 'integer'
-        indexes :version, type: 'integer'
-        indexes :updater_id, type: 'integer'
-        indexes :parent_id, type: 'integer'
-        indexes :rating, type: 'keyword'
-        indexes :source, type: 'keyword'
-        indexes :description, type: 'text'
-        indexes :reason, type: "text"
+    base.document_store.index = {
+      settings: {
+        index: {
+          number_of_shards: 8,
+          number_of_replicas: 1,
+        },
+      },
+      mappings: {
+        dynamic: false,
+        properties: {
+          id: { type: "integer" },
+          post_id: { type: "integer" },
+          version: { type: "integer" },
+          updater_id: { type: "integer" },
+          parent_id: { type: "integer" },
+          rating: { type: "keyword" },
+          source: { type: "keyword" },
+          description: { type: "text" },
+          reason: { type: "text" },
 
-        indexes :description_changed, type: 'boolean'
-        indexes :parent_id_changed, type: 'boolean'
-        indexes :source_changed, type: 'boolean'
-        indexes :rating_changed, type: 'boolean'
+          description_changed: { type: "boolean" },
+          parent_id_changed: { type: "boolean" },
+          source_changed: { type: "boolean" },
+          rating_changed: { type: "boolean" },
 
-        indexes :tags_added, type: 'keyword'
-        indexes :tags_removed, type: 'keyword'
-        indexes :tags, type: 'keyword'
+          tags_added: { type: "keyword" },
+          tags_removed: { type: "keyword" },
+          tags: { type: "keyword" },
 
-        indexes :updated_at, type: 'date'
+          updated_at: { type: "date" },
 
-        indexes :locked_tags_added, type: 'keyword'
-        indexes :locked_tags_removed, type: 'keyword'
-        indexes :locked_tags, type: 'keyword'
-      end
-    end
+          locked_tags_added: { type: "keyword" },
+          locked_tags_removed: { type: "keyword" },
+          locked_tags: { type: "keyword" },
+        },
+      },
+    }
 
-    base.__elasticsearch__.extend ClassMethods
+    base.document_store.extend ClassMethods
   end
 
   module ClassMethods
@@ -55,7 +64,6 @@ module PostVersionIndex
 
         client.bulk({
                         index: index_name,
-                        type: document_type,
                         body: batch
                     })
       end

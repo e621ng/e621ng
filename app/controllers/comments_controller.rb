@@ -1,6 +1,6 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :search, :show]
+  before_action :member_only, except: %i[index search show for_post]
   before_action :moderator_only, only: [:unhide, :warning]
   before_action :admin_only, only: [:destroy]
   skip_before_action :api_check
@@ -45,7 +45,7 @@ class CommentsController < ApplicationController
     flash[:notice] = @comment.valid? ? "Comment posted" : @comment.errors.full_messages.join("; ")
     respond_with(@comment) do |format|
       format.html do
-        redirect_back fallback_location: (@comment.post || comments_path)
+        redirect_back fallback_location: @comment.post || comments_path
       end
     end
   end
@@ -125,7 +125,7 @@ private
   end
 
   def search_params
-    permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id poster_id is_sticky do_not_bump_post order]
+    permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id post_note_updater_name post_note_updater_id poster_id is_sticky do_not_bump_post order]
     permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params

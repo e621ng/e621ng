@@ -1,9 +1,9 @@
-require 'test_helper'
+require "test_helper"
 
 class UploadTest < ActiveSupport::TestCase
   context "In all cases" do
     setup do
-      user = create(:contributor_user)
+      user = create(:privileged_user)
       CurrentUser.user = user
     end
 

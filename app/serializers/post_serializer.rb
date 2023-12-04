@@ -1,8 +1,8 @@
 class PostSerializer < ActiveModel::Serializer
   def tags
     tags = {}
-    TagCategory::CATEGORIES.each do |category|
-      tags[category] = object.typed_tags(category)
+    TagCategory::REVERSE_MAPPING.each do |category_id, category_name|
+      tags[category_name] = object.typed_tags(category_id)
     end
     tags
   end

@@ -1,18 +1,4 @@
-
-
 div#c-wiki-page-versions {
-  #a-diff {
-    del {
-      background: $diff-removed-color;
-      text-decoration: none;
-    }
-
-    ins {
-      background: $diff-added-color;
-      text-decoration: none;
-    }
-  }
-
   #a-index {
     table {
       margin-bottom: 1em;

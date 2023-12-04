@@ -15,9 +15,9 @@
           <div class="content">
             <div class="body">
               <% if edit.version > 1 %>
-                <%= lcs_diff(@edits[idx-1].body, edit.body) %>
+                <%= text_diff(@edits[idx-1].body, edit.body) %>
               <% else %>
-                <%= edit.body %>
+                <div class="original"><%= edit.body %></div>
               <% end %>
             </div>
           </div>

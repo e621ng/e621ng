@@ -4,6 +4,7 @@ class UserFeedback < ApplicationRecord
   belongs_to_creator
   validates :body, :category, presence: true
   validates :category, inclusion: { in: %w[positive negative neutral] }
+  validates :body, length: { minimum: 1, maximum: Danbooru.config.user_feedback_max_size }
   validate :creator_is_moderator, on: :create
   validate :user_is_not_creator
   after_save :create_dmail

@@ -76,10 +76,8 @@ class TakedownsController < ApplicationController
   end
 
   def count_matching_posts
-    CurrentUser.without_safe_mode do
-      post_count = Post.tag_match(params[:post_tags]).count_only
-      render json: {matched_post_count: post_count}
-    end
+    post_count = Post.tag_match_system(params[:post_tags]).count_only
+    render json: {matched_post_count: post_count}
   end
 
   def remove_by_ids

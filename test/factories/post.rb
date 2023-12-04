@@ -15,9 +15,5 @@ FactoryBot.define do
     rating { "q" }
     duration { 0.0 }
     sequence(:source) { |n| "https://example.com/#{n}" }
-
-    after(:create) do |post|
-      post.update_index
-    end
   end
 end

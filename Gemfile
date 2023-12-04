@@ -2,19 +2,17 @@ source 'https://rubygems.org/'
 
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 
-gem "rails", "~> 7.0"
+gem "rails", "~> 7.0.0"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
 gem 'active_model_serializers', '~> 0.10.0'
 gem 'ruby-vips'
-gem 'diff-lcs', :require => "diff/lcs/array"
 gem 'bcrypt', :require => "bcrypt"
 gem 'draper'
 gem 'streamio-ffmpeg'
 gem 'responders'
 gem 'dtext_rb', :git => "https://github.com/e621ng/dtext_rb.git", branch: "master", :require => "dtext"
-gem 'memoist'
 gem 'bootsnap'
 gem 'addressable'
 gem 'httparty'
@@ -28,9 +26,12 @@ gem 'marcel'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
+gem 'newrelic_rpm'
 
-gem 'elasticsearch-model'
-gem 'elasticsearch-rails'
+gem "diffy"
+gem "rugged"
+
+gem 'opensearch-ruby'
 
 gem 'mailgun-ruby'
 gem 'resolv'
@@ -38,7 +39,6 @@ gem 'resolv'
 group :production do
   gem 'unicorn'
   gem 'unicorn-worker-killer'
-  gem 'newrelic_rpm'
 end
 
 group :development, :test do

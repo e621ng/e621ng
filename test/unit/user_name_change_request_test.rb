@@ -35,12 +35,6 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
         @change_request.approve!
         assert_equal("abc", Cache.fetch("uin:#{@requester.id}"))
       end
-
-      should "create mod action" do
-        assert_difference(-> { ModAction.count }, 1) do
-          @change_request.approve!
-        end
-      end
     end
 
     context "creating a new request" do

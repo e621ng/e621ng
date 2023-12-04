@@ -1,7 +1,5 @@
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
-  extend Memoist
-
   belongs_to :post
   belongs_to_updater
   user_status_counter :post_update_count, foreign_key: :updater_id
@@ -29,7 +27,7 @@ class PostVersion < ApplicationRecord
       end
       def tag_list(field, input, target)
         if input.present?
-          target += Tag.scan_tags(input, strip_metatags: true).map {|x| {term: {field => x}}}
+          target += TagQuery.scan(input).map { |x| { term: { field => x } } }
         end
         target
       end
@@ -119,7 +117,7 @@ class PostVersion < ApplicationRecord
   end
 
   extend SearchMethods
-  include Indexable
+  include DocumentStore::Model
   include PostVersionIndex
 
   def self.queue(post)
@@ -167,7 +165,7 @@ class PostVersion < ApplicationRecord
   end
 
   def tag_array
-    (tags || "").split
+    @tag_array ||= tags.split
   end
 
   def locked_tag_array
@@ -178,23 +176,20 @@ class PostVersion < ApplicationRecord
     PostVersionPresenter.new(self)
   end
 
-  def reload
-    flush_cache
-    super
-  end
-
   def previous
     # HACK: If this if the first version we can avoid a lookup because we know there are no previous versions.
     if version <= 1
       return nil
     end
 
+    return @previous if defined?(@previous)
+
     # HACK: if all the post versions for this post have already been preloaded,
     # we can use that to avoid a SQL query.
     if association(:post).loaded? && post && post.association(:versions).loaded?
-      post.versions.sort_by(&:version).reverse.find {|v| v.version < version}
+      @previous = post.versions.sort_by(&:version).reverse.find { |v| v.version < version }
     else
-      PostVersion.where("post_id = ? and version < ?", post_id, version).order("version desc").first
+      @previous = PostVersion.where("post_id = ? and version < ?", post_id, version).order("version desc").first
     end
   end
 
@@ -217,11 +212,7 @@ class PostVersion < ApplicationRecord
   end
 
   def diff(version = nil)
-    if post.nil?
-      latest_tags = tag_array
-    else
-      latest_tags = post.tag_array + parent_rating_tags(post)
-    end
+    latest_tags = post.tag_array + parent_rating_tags(post)
 
     new_tags = tag_array + parent_rating_tags(self)
 
@@ -255,15 +246,15 @@ class PostVersion < ApplicationRecord
   end
 
   def changes
-    delta = {
-        :added_tags => added_tags,
-        :removed_tags => removed_tags,
-        :obsolete_removed_tags => [],
-        :obsolete_added_tags => [],
-        :unchanged_tags => []
-    }
+    return @changes if defined?(@changes)
 
-    return delta if post.nil?
+    delta = {
+      added_tags: added_tags,
+      removed_tags: removed_tags,
+      obsolete_removed_tags: [],
+      obsolete_added_tags: [],
+      unchanged_tags: [],
+    }
 
     latest_tags = post.tag_array
     latest_tags << "rating:#{post.rating}" if post.rating.present?
@@ -307,27 +298,7 @@ class PostVersion < ApplicationRecord
       delta[:unchanged_tags] = []
     end
 
-    delta
-  end
-
-  def added_tags_with_fields
-    changes[:added_tags].join(" ")
-  end
-
-  def removed_tags_with_fields
-    changes[:removed_tags].join(" ")
-  end
-
-  def obsolete_added_tags
-    changes[:obsolete_added_tags].join(" ")
-  end
-
-  def obsolete_removed_tags
-    changes[:obsolete_removed_tags].join(" ")
-  end
-
-  def unchanged_tags
-    changes[:unchanged_tags].join(" ")
+    @changes = delta
   end
 
   def undo
@@ -380,9 +351,21 @@ class PostVersion < ApplicationRecord
     version > 1
   end
 
-  def method_attributes
-    super + [:obsolete_added_tags, :obsolete_removed_tags, :unchanged_tags, :updater_name]
-  end
+  concerning :ApiMethods do
+    def method_attributes
+      super + %i[obsolete_added_tags obsolete_removed_tags unchanged_tags updater_name]
+    end
 
-  memoize :previous, :tag_array, :changes, :added_tags_with_fields, :removed_tags_with_fields, :obsolete_removed_tags, :obsolete_added_tags, :unchanged_tags
+    def obsolete_added_tags
+      changes[:obsolete_added_tags].join(" ")
+    end
+
+    def obsolete_removed_tags
+      changes[:obsolete_removed_tags].join(" ")
+    end
+
+    def unchanged_tags
+      changes[:unchanged_tags].join(" ")
+    end
+  end
 end

@@ -2,13 +2,13 @@ require 'test_helper'
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    assert_equal(posts.map(&:id), Post.tag_match(query).records.pluck(:id))
+    assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id))
   end
 
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    Post.__elasticsearch__.create_index!
+    reset_post_index
   end
 
   context "Deletion:" do
@@ -1163,7 +1163,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
-          assert_equal(%w(aaa bbb ddd eee), Tag.scan_tags(final_post.tag_string).sort)
+          assert_equal(%w(aaa bbb ddd eee), TagQuery.scan(final_post.tag_string).sort)
         end
 
         should "merge any tag changes that were made after loading the initial set of tags part 2" do
@@ -1186,7 +1186,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
-          assert_equal(%w(aaa bbb ddd eee), Tag.scan_tags(final_post.tag_string).sort)
+          assert_equal(%w(aaa bbb ddd eee), TagQuery.scan(final_post.tag_string).sort)
         end
 
         should "merge any parent, source, and rating changes that were made after loading the initial set" do
@@ -1312,7 +1312,7 @@ class PostTest < ActiveSupport::TestCase
   context "Favorites:" do
     context "Removing a post from a user's favorites" do
       setup do
-        @user = create(:contributor_user)
+        @user = create(:privileged_user)
         @post = create(:post)
         FavoriteManager.add!(user: @user, post: @post)
         @user.reload
@@ -1341,7 +1341,7 @@ class PostTest < ActiveSupport::TestCase
 
     context "Adding a post to a user's favorites" do
       setup do
-        @user = create(:contributor_user)
+        @user = create(:privileged_user)
         @post = create(:post)
       end
 
@@ -1488,14 +1488,6 @@ class PostTest < ActiveSupport::TestCase
   end
 
   context "Searching:" do
-    setup do
-      Post.__elasticsearch__.create_index!
-    end
-
-    teardown do
-      Post.__elasticsearch__.delete_index!
-    end
-
     should "return posts for the age:<1minute tag" do
       post = create(:post)
       assert_tag_match([post], "age:<1minute")
@@ -1614,8 +1606,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post1], "pool:test_a")
       assert_tag_match([post2], "-pool:test_a")
       assert_tag_match([], "-pool:test_a -pool:test_b")
-      # FIXME: This only works when only one pool matches the wildcard
-      # assert_tag_match([post2, post1], "pool:test*")
 
       assert_tag_match([post2, post1], "pool:any")
       assert_tag_match([], "pool:none")
@@ -1758,10 +1748,12 @@ class PostTest < ActiveSupport::TestCase
       post = create(:post, tag_string: "artist:wokada copyright:vocaloid char:hatsune_miku twintails")
 
       assert_tag_match([post], "tagcount:4")
+      assert_tag_match([], "tagcount:3")
       assert_tag_match([post], "arttags:1")
       assert_tag_match([post], "copytags:1")
       assert_tag_match([post], "chartags:1")
       assert_tag_match([post], "gentags:1")
+      assert_tag_match([], "gentags:0")
     end
 
     should "return posts for the md5:<md5> metatag" do
@@ -1935,21 +1927,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([post], "filesize:1048576b")
     end
 
-    should "not perform fuzzy matching for an exact filesize search" do
-      post = create(:post, file_size: 1.megabyte)
-
-      assert_tag_match([], "filesize:1048000b")
-      assert_tag_match([], "filesize:1048000")
-    end
-
-    should "fail for more than 40 tags" do
-      post1 = create(:post, rating: "s")
-
-      assert_raise(::Post::SearchError) do
-        Post.tag_match("rating:s width:10 height:10 user:bob " + [*'aa'..'zz'].join(' '))
-      end
-    end
-
     should "not count free tags against the user's search limit" do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 
@@ -2048,8 +2025,6 @@ class PostTest < ActiveSupport::TestCase
   # context "Counting:" do
   #   context "Creating a post" do
   #     setup do
-  #       Post.__elasticsearch__.delete_index!
-  #       Post.__elasticsearch__.create_index!
   #       create(:tag_alias, antecedent_name: "alias", consequent_name: "aaa")
   #       create(:post, tag_string: "aaa", score: 42)
   #     end
@@ -2120,7 +2095,6 @@ class PostTest < ActiveSupport::TestCase
   #         setup do
   #           CurrentUser.stubs(:safe_mode?).returns(true)
   #           create(:post, rating: "s")
-  #           Post.__elasticsearch__.refresh_index!
   #         end
   #
   #         should "work for a blank search" do

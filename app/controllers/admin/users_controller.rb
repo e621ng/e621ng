@@ -38,22 +38,24 @@ module Admin
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
       end
 
-      if @user.is_bd_staff?
+      if CurrentUser.is_bd_staff?
         @user.mark_verified! if params[:user][:verified].to_s.truthy?
         @user.mark_unverified! if params[:user][:verified].to_s.falsy?
       end
-      @user.promote_to!(params[:user][:level], params[:user])
+      @user.promote_to!(params[:user][:level], params[:user]) if params[:user][:level]
 
       old_username = @user.name
       desired_username = params[:user][:name]
       if old_username != desired_username && desired_username.present?
-        change_request = UserNameChangeRequest.create!({
-                                                           original_name: @user.name,
-                                                           user_id: @user.id,
-                                                           desired_name: desired_username,
-                                                           change_reason: "Administrative change",
-                                                           skip_limited_validation: true})
+        change_request = UserNameChangeRequest.create!(
+          original_name: @user.name,
+          user_id: @user.id,
+          desired_name: desired_username,
+          change_reason: "Administrative change",
+          skip_limited_validation: true,
+        )
         change_request.approve!
+        ModAction.log(:user_name_change, { user_id: @user.id })
       end
       redirect_to user_path(@user), notice: "User updated"
     end

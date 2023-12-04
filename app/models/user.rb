@@ -94,27 +94,28 @@ class User < ApplicationRecord
   after_save :update_cache
   #after_create :notify_sock_puppets
   after_create :create_user_status
-  has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
-  has_many :posts, :foreign_key => "uploader_id"
-  has_many :post_approvals, :dependent => :destroy
-  has_many :post_disapprovals, :dependent => :destroy
-  has_many :post_replacements, foreign_key: :creator_id
-  has_many :post_votes
-  has_many :post_versions
-  has_many :bans, -> { order("bans.id desc") }
-  has_many :staff_notes, -> { order("staff_notes.id desc") }
-  has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
-  has_one :user_status
 
   has_one :api_key
   has_one :dmail_filter
+  has_one :user_status
+  has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
+  has_many :bans, -> { order("bans.id desc") }
+  has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
+  has_many :favorites, -> { order(id: :desc) }
+  has_many :feedback, class_name: "UserFeedback", dependent: :destroy
+  has_many :forum_posts, -> { order("forum_posts.created_at, forum_posts.id") }, foreign_key: "creator_id"
   has_many :forum_topic_visits
-  has_many :note_versions, :foreign_key => "updater_id"
-  has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
-  has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
+  has_many :note_versions, foreign_key: "updater_id"
+  has_many :posts, foreign_key: "uploader_id"
+  has_many :post_approvals, dependent: :destroy
+  has_many :post_disapprovals, dependent: :destroy
+  has_many :post_replacements, foreign_key: :creator_id
+  has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
+  has_many :post_versions
+  has_many :post_votes
+  has_many :staff_notes, -> { order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
-  has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
-  has_many :favorites, -> {order(id: :desc)}
+
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
 
@@ -410,12 +411,12 @@ class User < ApplicationRecord
   end
 
   module ThrottleMethods
-    def throttle_reason(reason)
+    def throttle_reason(reason, timeframe = "hourly")
       reasons = {
-          REJ_NEWBIE: 'can not yet perform this action. Account is too new',
-          REJ_LIMITED: 'have reached the hourly limit for this action'
+        REJ_NEWBIE: "can not yet perform this action. Account is too new",
+        REJ_LIMITED: "have reached the #{timeframe} limit for this action",
       }
-      reasons.fetch(reason, 'unknown throttle reason, please report this as a bug')
+      reasons.fetch(reason, "unknown throttle reason, please report this as a bug")
     end
 
     def upload_reason_string(reason)
@@ -430,8 +431,6 @@ class User < ApplicationRecord
   end
 
   module LimitMethods
-    extend Memoist
-
     def younger_than(duration)
       return false if Danbooru.config.disable_age_checks?
       created_at > duration.ago
@@ -443,9 +442,9 @@ class User < ApplicationRecord
     end
 
     def self.create_user_throttle(name, limiter, checker, newbie_duration)
-      define_method("#{name}_limit".to_sym, limiter)
+      define_method(:"#{name}_limit", limiter)
 
-      define_method("can_#{name}_with_reason".to_sym) do
+      define_method(:"can_#{name}_with_reason") do
         return true if Danbooru.config.disable_throttles?
         return send(checker) if checker && send(checker)
         return :REJ_NEWBIE if newbie_duration && younger_than(newbie_duration)
@@ -482,9 +481,11 @@ class User < ApplicationRecord
                          nil, 3.days)
     create_user_throttle(:blip, ->{ Danbooru.config.blip_limit - Blip.for_creator(id).where('created_at > ?', 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
+    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
+                         nil, 7.days)
     create_user_throttle(:dmail, ->{ Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.hour.ago).count },
                          nil, 7.days)
-    create_user_throttle(:dmail_minute, ->{ Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.minute.ago).count },
+    create_user_throttle(:dmail_day, ->{ Danbooru.config.dmail_day_limit - Dmail.sent_by_id(id).where('created_at > ?', 1.day.ago).count },
                          nil, 7.days)
     create_user_throttle(:comment_vote, ->{ Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
@@ -552,54 +553,46 @@ class User < ApplicationRecord
     end
 
     def hourly_upload_limit
-      post_count = posts.where("created_at >= ?", 1.hour.ago).count
-      replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ?", 1.hour.ago).count
-      Danbooru.config.hourly_upload_limit - post_count - replacement_count
+      @hourly_upload_limit ||= begin
+        post_count = posts.where("created_at >= ?", 1.hour.ago).count
+        replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ? and status != ?", 1.hour.ago, "original").count
+        Danbooru.config.hourly_upload_limit - post_count - replacement_count
+      end
     end
-    memoize :hourly_upload_limit
 
     def upload_limit
       pieces = upload_limit_pieces
-
       base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
     end
-    memoize :upload_limit
 
     def upload_limit_pieces
-      deleted_count = Post.deleted.for_user(id).count
-      rejected_replacement_count = post_replacement_rejected_count
-      replaced_penalize_count = own_post_replaced_penalize_count
-      unapproved_count = Post.pending_or_flagged.for_user(id).count
-      unapproved_replacements_count = post_replacements.pending.count
-      approved_count = Post.for_user(id).where('is_flagged = false AND is_deleted = false AND is_pending = false').count
+      @upload_limit_pieces ||= begin
+        deleted_count = Post.deleted.for_user(id).count
+        rejected_replacement_count = post_replacement_rejected_count
+        replaced_penalize_count = own_post_replaced_penalize_count
+        unapproved_count = Post.pending_or_flagged.for_user(id).count
+        unapproved_replacements_count = post_replacements.pending.count
+        approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
 
-      {
-        deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
-        deleted_ignore: own_post_replaced_count - replaced_penalize_count,
-        approved: approved_count,
-        pending: unapproved_count + unapproved_replacements_count
-      }
+        {
+          deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
+          deleted_ignore: own_post_replaced_count - replaced_penalize_count,
+          approved: approved_count,
+          pending: unapproved_count + unapproved_replacements_count,
+        }
+      end
     end
-    memoize :upload_limit_pieces
 
     def post_upload_throttle
-      return hourly_upload_limit if is_privileged?
-      [hourly_upload_limit, post_edit_limit].min
+      @post_upload_throttle ||= is_privileged? ? hourly_upload_limit : [hourly_upload_limit, post_edit_limit].min
     end
-    memoize :post_upload_throttle
 
     def tag_query_limit
       Danbooru.config.tag_query_limit
     end
 
     def favorite_limit
-      if is_contributor?
-        200_000
-      elsif is_privileged?
-        125_000
-      else
-        80_000
-      end
+      Danbooru.config.legacy_favorite_limit.fetch(id, 80_000)
     end
 
     def api_regen_multiplier
@@ -609,7 +602,7 @@ class User < ApplicationRecord
     def api_burst_limit
       # can make this many api calls at once before being bound by
       # api_regen_multiplier refilling your pool
-      if is_contributor?
+      if is_former_staff?
         120
       elsif is_privileged?
         90
@@ -623,7 +616,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      if is_contributor?
+      if is_former_staff?
         9_000
       elsif is_privileged?
         6_000
@@ -906,5 +899,23 @@ class User < ApplicationRecord
 
   def presenter
     @presenter ||= UserPresenter.new(self)
+  end
+
+  # Copied from UserNameValidator. Check back later how effective this was.
+  # Users with invalid names may be automatically renamed in the future.
+  def name_error
+    if name.length > 20
+      "must be 2 to 20 characters long"
+    elsif name !~ /\A[a-zA-Z0-9\-_~']+\z/
+      "must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"
+    elsif name =~ /\A[_\-~']/
+      "must not begin with a special character"
+    elsif name =~ /_{2}|-{2}|~{2}|'{2}/
+      "must not contain consecutive special characters"
+    elsif name =~ /\A_|_\z/
+      "cannot begin or end with an underscore"
+    elsif name =~ /\A[0-9]+\z/
+      "cannot consist of numbers only"
+    end
   end
 end

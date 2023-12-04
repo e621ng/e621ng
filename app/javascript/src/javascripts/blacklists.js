@@ -74,11 +74,13 @@ Blacklist.entryParse = function (string) {
       entry.require.push(tag);
     }
   }
-  const user_matches = string.match(/user:([\w\d]+)/) || [];
+  // Use negative lookahead so it doesn't match user:!123 here
+  const user_matches = string.match(/user:(?!!)([\S]+)/) || [];
   if (user_matches.length === 2) {
     entry.username = user_matches[1];
   }
-  const userid_matches = string.match(/userid:(\d+)/) || [];
+  // Allow both userid:123 and user:!123
+  const userid_matches = string.match(/user(?:id)?:!?(\d+)/) || [];
   if (userid_matches.length === 2) {
     entry.user_id = parseInt(userid_matches[1], 10);
   }
@@ -266,6 +268,7 @@ Blacklist.postMatchObject = function (post, entry) {
   tags.push(`id:${post.id}`);
   tags.push(`rating:${post.rating}`);
   tags.push(`userid:${post.uploader_id}`);
+  tags.push(`user:!${post.uploader_id}`);
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);

@@ -42,13 +42,11 @@ class UserTest < ActiveSupport::TestCase
 
     should "limit post uploads" do
       assert_equal(:REJ_UPLOAD_NEWBIE, @user.can_upload_with_reason)
-      @user.update_column(:created_at, 15.days.ago)
+      @user.update_columns(created_at: 15.days.ago, base_upload_limit: 2)
       assert_equal(true, @user.can_upload_with_reason)
-      assert_equal(10, @user.upload_limit)
+      assert_equal(2, @user.upload_limit)
 
-      9.times do
-        create(:post, uploader: @user, is_pending: true)
-      end
+      create_list(:post, @user.base_upload_limit - 1, uploader: @user, is_pending: true)
 
       @user = User.find(@user.id)
       assert_equal(1, @user.upload_limit)
@@ -60,23 +58,20 @@ class UserTest < ActiveSupport::TestCase
 
     should "limit comment votes" do
       # allow creating one more comment than votes so creating a vote can fail later on
+      Danbooru.config.stubs(:comment_vote_limit).returns(1)
       Danbooru.config.stubs(:member_comment_limit).returns(Danbooru.config.comment_vote_limit + 1)
       assert_equal(@user.can_comment_vote_with_reason, :REJ_NEWBIE)
       @user.update_column(:created_at, 1.year.ago)
-      comment = nil
-      user2 = create(:user)
-      user2.update_column(:created_at, 1.year.ago)
+      user2 = create(:user, created_at: 1.year.ago)
 
-      Danbooru.config.comment_vote_limit.times do
-        as(user2) do
-          comment = create(:comment)
-        end
-        VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
+      comments = as(user2) do
+        create_list(:comment, Danbooru.config.comment_vote_limit)
       end
-
+      comments.each { |c| VoteManager.comment_vote!(comment: c, user: @user, score: -1) }
       assert_equal(@user.can_comment_vote_with_reason, :REJ_LIMITED)
-      as(user2) do
-        comment = create(:comment)
+
+      comment = as(user2) do
+        create(:comment)
       end
       assert_raises ActiveRecord::RecordInvalid do
         VoteManager.comment_vote!(comment: comment, user: @user, score: -1)
@@ -87,15 +82,14 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should "limit comments" do
+      Danbooru.config.stubs(:member_comment_limit).returns(2)
       assert_equal(@user.can_comment_with_reason, :REJ_NEWBIE)
       @user.update_column(:level, User::Levels::PRIVILEGED)
       assert(@user.can_comment_with_reason)
       @user.update_column(:level, User::Levels::MEMBER)
       @user.update_column(:created_at, 1.year.ago)
       assert(@user.can_comment_with_reason)
-      Danbooru.config.member_comment_limit.times do
-        create(:comment)
-      end
+      create_list(:comment, Danbooru.config.member_comment_limit)
       assert_equal(@user.can_comment_with_reason, :REJ_LIMITED)
     end
 

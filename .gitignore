@@ -5,7 +5,6 @@
 config/danbooru_local_config.rb
 config/deploy/*.rb
 config/application.yml
-config/newrelic.yml
 doc/*
 log/*.log
 tmp/*

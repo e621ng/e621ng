@@ -63,8 +63,6 @@ body {
   --color-user-member-alt:        #2e76b4;
   --color-user-privileged:        #b4c7d9;
   --color-user-privileged-alt:    #2e76b4;
-  --color-user-contributor:       #b4c7d9;
-  --color-user-contributor-alt:   #2e76b4;
 
   --color-user-blocked:           #b4c7d9;
   --color-user-blocked-alt:       #2e76b4;
@@ -95,7 +93,7 @@ body {
   --color-tag-species-alt:        #f6b295;
 
   --color-tag-invalid:            #ff3d3d;
-  --color-tag-invalid-alt:        lighten(#ff3d3d, 25%);
+  --color-tag-invalid-alt:        #{lighten(#ff3d3d, 25%)};
 
   --color-tag-meta:               #fff;
   --color-tag-meta-alt:           #666;

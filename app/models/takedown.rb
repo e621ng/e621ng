@@ -3,6 +3,7 @@ class Takedown < ApplicationRecord
   belongs_to :approver, class_name: "User", optional: true
   before_validation :initialize_fields, on: :create
   before_validation :normalize_post_ids
+  before_validation :strip_fields
   validates :email, presence: true
   validates :reason, presence: true
   validates :email, format: { with: /\A([\s*A-Z0-9._%+-]+@[\s*A-Z0-9.-]+\.\s*[A-Z\s*]{2,15}\s*)\z/i, on: :create }
@@ -21,6 +22,11 @@ class Takedown < ApplicationRecord
     self.status = "pending"
     self.vericode = Takedown.create_vericode
     self.del_post_ids = ''
+  end
+
+  def strip_fields
+    self.email = email&.strip
+    self.source = source&.strip
   end
 
   def self.create_vericode
@@ -96,12 +102,8 @@ class Takedown < ApplicationRecord
     end
 
     def add_posts_by_tags!(tag_string)
-      added_ids = []
-      CurrentUser.without_safe_mode do
-        new_ids = Post.tag_match("#{tag_string} -status:deleted").limit(1000).results.map(&:id)
-        added_ids = add_posts_by_ids!(new_ids.join(' '))
-      end
-      added_ids
+      new_ids = Post.tag_match_system("#{tag_string} -status:deleted").limit(1000).pluck(:id)
+      add_posts_by_ids!(new_ids.join(" "))
     end
 
     def remove_posts_by_ids!(ids)

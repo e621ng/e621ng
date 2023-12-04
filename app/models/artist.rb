@@ -1,5 +1,4 @@
 class Artist < ApplicationRecord
-  extend Memoist
   class RevertError < Exception ; end
 
   attr_accessor :url_string_changed
@@ -191,10 +190,6 @@ class Artist < ApplicationRecord
       end
     end
 
-    included do
-      memoize :domains
-    end
-
     def sorted_urls
       urls.sort {|a, b| b.priority <=> a.priority}
     end
@@ -240,7 +235,7 @@ class Artist < ApplicationRecord
       Cache.fetch("artist-domains-#{id}", expires_in: 1.day) do
         re = /\.(png|jpeg|jpg|webm|mp4)$/m
         counted = Hash.new(0)
-        sources = Post.raw_tag_match(name).limit(100).records.pluck(:source).each do |source_string|
+        sources = Post.tag_match(name, resolve_aliases: false).limit(100).pluck(:source).each do |source_string|
           sources = source_string.split("\n")
           # try to filter out direct file urls
           domains = sources.filter {|s| !re.match?(s) }.map do |x|
@@ -337,8 +332,6 @@ class Artist < ApplicationRecord
     end
 
     def reload(options = nil)
-      flush_cache
-
       if instance_variable_defined?(:@notes)
         remove_instance_variable(:@notes)
       end

@@ -88,8 +88,9 @@ class VoteManager
     @vote = nil
     score = score.to_i
     begin
-      raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
-      raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
+      raise UserVote::Error, "Invalid vote" unless [1, -1].include?(score)
+      raise UserVote::Error, "You do not have permission to vote" unless user.is_member?
+      raise UserVote::Error, "Comment section is locked" if comment.post.is_comment_locked?
       CommentVote.transaction(**ISOLATION) do
         CommentVote.uncached do
           score_modifier = score

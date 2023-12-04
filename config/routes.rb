@@ -1,3 +1,4 @@
+id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
 
   require 'sidekiq/web'
@@ -66,7 +67,7 @@ Rails.application.routes.draw do
       resource :deletion, :only => [:show, :destroy]
       resource :email_change, :only => [:new, :create]
       resource :dmail_filter, :only => [:edit, :update]
-      resource :api_key, :only => [:show, :view, :update, :destroy] do
+      resource :api_key, only: %i[show update destroy] do
         post :view
       end
     end
@@ -90,7 +91,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :artists do
+  resources :artists, constraints: id_name_constraint do
     member do
       put :revert
     end
@@ -243,7 +244,7 @@ Rails.application.routes.draw do
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
   resource :session, only: [:new, :create, :destroy]
   resources :stats, only: [:index]
-  resources :tags do
+  resources :tags, constraints: id_name_constraint do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
     collection do
       post :preview
@@ -284,7 +285,7 @@ Rails.application.routes.draw do
   end
   resources :user_name_change_requests
   resource :user_revert, :only => [:new, :create]
-  resources :wiki_pages do
+  resources :wiki_pages, constraints: id_name_constraint do
     member do
       put :revert
     end

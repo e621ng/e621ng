@@ -1,16 +1,39 @@
 server {
   listen ${NGINX_PORT};
-  server_name ${NGINX_HOST};
+  server_name localhost;
   root /app/public;
   index index.html;
   access_log off;
   client_max_body_size 100m;
+
   location /data {
-    rewrite ^/data/sample/__.+?__(.+) /data/sample/$1 last;
-    rewrite ^/data/__.+?__(.+) /data/$1 last;
     expires max;
     break;
   }
+
+  location /data/deleted/ {
+    add_header Cache-Control "private";
+    secure_link $arg_auth,$arg_expires;
+    secure_link_md5 "$secure_link_expires $uri $arg_uid ${DANBOORU_PROTECTED_FILE_SECRET}";
+    if ($secure_link = "") {
+      return 403;
+    }
+    if ($secure_link = "0") {
+      return 403;
+    }
+  }
+
+  location /data/replacements/ {
+    add_header Cache-Control "private";
+    secure_link $arg_auth,$arg_expires;
+    secure_link_md5 "$secure_link_expires $uri $arg_uid ${DANBOORU_REPLACEMENT_FILE_SECRET}";
+    if ($secure_link = "") {
+      return 403;
+    }
+    if ($secure_link = "0") {
+      return 403;
+    }
+}
 
   location /tags/autocomplete.json {
     proxy_pass http://autocompleted:8118/;

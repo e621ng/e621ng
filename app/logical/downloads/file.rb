@@ -48,6 +48,8 @@ module Downloads
       size = 0
 
       res = HTTParty.get(url, httparty_options) do |chunk|
+        next if [301, 302].include?(chunk.code)
+
         size += chunk.size
         raise Error.new("File is too large (max size: #{max_size})") if size > max_size && max_size > 0
 
@@ -100,11 +102,21 @@ module Downloads
     def self.call(uri, options)
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
 
-      if Danbooru.config.banned_ip_for_download?(ip_addr)
+      if ip_blocked?(ip_addr)
         raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
       end
 
+      # Check whitelist here again, in case of open redirect vulnerabilities
+      valid, _reason = UploadWhitelist.is_whitelisted?(Addressable::URI.parse(uri))
+      unless valid
+        raise Downloads::File::Error, "'#{uri}' is not whitelisted and can't be direct downloaded"
+      end
+
       super(uri, options)
+    end
+
+    def self.ip_blocked?(ip_addr)
+      ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
     end
   end
 end

@@ -54,7 +54,6 @@ class UserNameChangeRequest < ApplicationRecord
     user.update_attribute(:name, desired_name)
     body = "Your name change request has been approved. Be sure to log in with your new user name."
     Dmail.create_automated(:title => "Name change request approved", :body => body, :to_id => user_id)
-    ModAction.log(:user_name_change, {user_id: user.id, old_name: original_name, new_name: desired_name})
   end
 
   def not_limited

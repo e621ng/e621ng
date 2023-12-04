@@ -4,5 +4,5 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config',
 
 Post.find_each do |post|
   puts post.id
-  post.__elasticsearch__.update_document_attributes has_pending_replacements: post.replacements.pending.any?
+  post.document_store.client.update_document_attributes has_pending_replacements: post.replacements.pending.any?
 end

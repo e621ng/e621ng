@@ -2,7 +2,6 @@ class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.dmail_max_size }
-  validate :sender_is_not_banned, on: :create
   validate :recipient_accepts_dmails, on: :create
   validate :user_not_limited, on: :create
 
@@ -40,6 +39,7 @@ class Dmail < ApplicationRecord
           copy = Dmail.new(params)
           copy.owner_id = copy.to_id
           copy.save unless copy.to_id == copy.from_id
+          raise ActiveRecord::Rollback if copy.errors.any?
 
           # sender's copy
           copy = Dmail.new(params)
@@ -141,21 +141,21 @@ class Dmail < ApplicationRecord
     return true if bypass_limits == true
     return true if from_id == User.system.id
     return true if from.is_moderator?
-    allowed = CurrentUser.can_dmail_with_reason
-    minute_allowed = CurrentUser.can_dmail_minute_with_reason
-    if allowed != true || minute_allowed != true
-      errors.add(:base, "Sender #{User.throttle_reason(allowed != true ? allowed : minute_allowed)}")
-      false
-    end
-    true
-  end
 
-  def sender_is_not_banned
-    if from.try(:is_banned?)
-      errors.add(:base, "Sender is banned and cannot send messages")
-      return false
-    else
-      return true
+    allowed = CurrentUser.can_dmail_with_reason
+    if allowed != true
+      errors.add(:base, "Sender #{User.throttle_reason(allowed)}")
+      return
+    end
+    minute_allowed = CurrentUser.can_dmail_minute_with_reason
+    if minute_allowed != true
+      errors.add(:base, "Please wait a bit before trying to send again")
+      return
+    end
+    day_allowed = CurrentUser.can_dmail_day_with_reason
+    if day_allowed != true
+      errors.add(:base, "Sender #{User.throttle_reason(day_allowed, 'daily')}")
+      return
     end
   end
 

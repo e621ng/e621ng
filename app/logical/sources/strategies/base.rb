@@ -16,8 +16,6 @@ module Sources
     class Base
       attr_reader :url, :urls, :parsed_url
 
-      extend Memoist
-
       # * <tt>url</tt> - Should point to a resource suitable for 
       #   downloading. This may sometimes point to the binary file. 
       #   It may also point to the artist's profile page, in cases
@@ -95,12 +93,6 @@ module Sources
       def headers
         return Danbooru.config.http_headers
       end
-
-      # Returns the size of the image resource without actually downloading the file.
-      def size
-        Downloads::File.new(image_url).size
-      end
-      memoize :size
 
       def file_url
         image_url

@@ -54,19 +54,6 @@ class DmailTest < ActiveSupport::TestCase
       end
     end
 
-    context "from a banned user" do
-      setup do
-        @user.update_attribute(:is_banned, true)
-      end
-
-      should "not validate" do
-        dmail = build(:dmail, title: "xxx", owner: @user)
-        dmail.save
-        assert_equal(1, dmail.errors.size)
-        assert_equal(["Sender is banned and cannot send messages"], dmail.errors.full_messages)
-      end
-    end
-
     context "search" do
       should "return results based on title contents" do
         dmail = create(:dmail, title: "xxx", body: "bbb", owner: @user)
@@ -88,6 +75,18 @@ class DmailTest < ActiveSupport::TestCase
         matches = Dmail.search(message_matches: "aaa")
         assert(matches.empty?)
       end
+    end
+
+    should "not create a senders copy when validations fail" do
+      Danbooru.config.stubs(:disable_throttles?).returns(false)
+      @user = create(:user, created_at: 2.weeks.ago)
+      @recipient = create(:user)
+      as(@user) do
+        (Danbooru.config.dmail_minute_limit + 1).times do
+          Dmail.create_split(attributes_for(:dmail, from_id: @user.id, to_id: @recipient.id))
+        end
+      end
+      assert_equal(Danbooru.config.dmail_minute_limit * 2, Dmail.count)
     end
 
     should "should parse user names" do

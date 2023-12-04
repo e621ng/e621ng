@@ -22,7 +22,7 @@ class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
 
     context "#estimate_update_count" do
       setup do
-        Post.__elasticsearch__.create_index! force: true
+        reset_post_index
         create(:post, tag_string: "aaa")
         create(:post, tag_string: "bbb")
         create(:post, tag_string: "ccc")

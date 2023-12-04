@@ -105,7 +105,7 @@ class PostPresenter < Presenter
   def self.data_attributes(post, include_post: false)
     attributes = {
         "data-id" => post.id,
-        "data-has-sound" => post.has_tag?('video_with_sound|flash_with_sound'),
+        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
         "data-tags" => post.tag_string,
         "data-rating" => post.rating,
         "data-width" => post.image_width,
@@ -253,11 +253,11 @@ class PostPresenter < Presenter
   end
 
   def has_nav_links?(template)
-    has_sequential_navigation?(template.params) || @post.has_active_pools? || @post.post_sets.visible.any?
+    has_sequential_navigation?(template.params) || @post.has_active_pools? || @post.post_sets.owned.any?
   end
 
   def has_sequential_navigation?(params)
-    return false if Tag.has_metatag?(params[:q], :order)
+    return false if TagQuery.has_metatag?(params[:q], "order")
     return false if params[:pool_id].present? || params[:post_set_id].present?
     true
   end

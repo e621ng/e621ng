@@ -1,20 +1,11 @@
-
-
 #c-edit-history {
   .edit-item {
-    display: flex;
-    &>div {
-      margin-right: 1em;
-      display: inline-block;
-    }
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1em;
   }
 
-  ins {
-    background-color: $post-version-diff-added-color;
-    font-weight: bold;
-  }
-  del {
-    background-color: $post-version-diff-removed-color;
-    font-weight: bold;
+  .original {
+    white-space: pre-wrap;
   }
 }

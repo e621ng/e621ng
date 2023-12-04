@@ -58,7 +58,7 @@ class ApplicationRecord < ActiveRecord::Base
       def numeric_attribute_matches(attribute, range)
         column = column_for_attribute(attribute)
         qualified_column = "#{table_name}.#{column.name}"
-        parsed_range = Tag.parse_helper(range, column.type)
+        parsed_range = ParseValue.range(range, column.type)
 
         add_range_relation(parsed_range, qualified_column)
       end
@@ -102,9 +102,7 @@ class ApplicationRecord < ActiveRecord::Base
         end
       end
 
-      # Searches for a user both by id and name.
-      # Accepts a block to modify the query when one of the params is present and yields the ids.
-      def where_user(db_field, query_field, params)
+      def with_resolved_user_ids(query_field, params, &)
         user_name_key = query_field.is_a?(Symbol) ? "#{query_field}_name" : query_field[0]
         user_id_key = query_field.is_a?(Symbol) ? "#{query_field}_id" : query_field[1]
 
@@ -115,8 +113,14 @@ class ApplicationRecord < ActiveRecord::Base
           user_ids = params[user_id_key].split(",").first(100).map(&:to_i)
         end
 
+        yield(user_ids) if user_ids
+      end
+
+      # Searches for a user both by id and name.
+      # Accepts a block to modify the query when one of the params is present and yields the ids.
+      def where_user(db_field, query_field, params)
         q = all
-        if user_ids
+        with_resolved_user_ids(query_field, params) do |user_ids|
           q = yield(q, user_ids) if block_given?
           q = q.where(to_where_hash(db_field, user_ids))
         end
@@ -274,7 +278,7 @@ class ApplicationRecord < ActiveRecord::Base
     class_methods do
       def user_status_counter(counter_name, options = {})
         class_eval do
-          belongs_to :user_status, **{foreign_key: :creator_id, primary_key: :user_id, counter_cache: counter_name}.merge(options)
+          belongs_to :user_status, foreign_key: :creator_id, primary_key: :user_id, counter_cache: counter_name, **options
         end
       end
 
@@ -318,9 +322,9 @@ class ApplicationRecord < ActiveRecord::Base
       # The `<attribute>=` setter parses strings into an array using the
       # `parse` regex. The resulting strings can be converted to another type
       # with the `cast` option.
-      def array_attribute(name, parse: /[^[:space:]]+/, cast: :itself)
+      def array_attribute(name, parse: /[^[:space:]]+/, join_character: " ", cast: :itself)
         define_method "#{name}_string" do
-          send(name).join(" ")
+          send(name).join(join_character)
         end
 
         define_method "#{name}_string=" do |value|
@@ -330,9 +334,9 @@ class ApplicationRecord < ActiveRecord::Base
 
         define_method "#{name}=" do |value|
           if value.respond_to?(:to_str)
-            super value.to_str.scan(parse).flatten.map(&cast)
+            super(value.to_str.scan(parse).flatten.map(&cast))
           elsif value.respond_to?(:to_a)
-            super value.to_a
+            super(value.to_a)
           else
             raise ArgumentError, "#{name} must be a String or an Array"
           end

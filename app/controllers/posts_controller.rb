@@ -10,7 +10,7 @@ class PostsController < ApplicationController
         format.html { redirect_to(@post) }
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random], format: params[:format])
+      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
         format.json do
@@ -34,10 +34,7 @@ class PostsController < ApplicationController
   end
 
   def show_seq
-    context = PostSearchContext.new(params)
-    pid = context.post_id ? context.post_id : params[:id]
-
-    @post = Post.find(pid)
+    @post = PostSearchContext.new(params).post
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted, want_parent: false)
@@ -89,7 +86,7 @@ class PostsController < ApplicationController
 
   def random
     tags = params[:tags] || ''
-    @post = Post.tag_match(tags + " order:random").limit(1).records[0]
+    @post = Post.tag_match(tags + " order:random").limit(1).first
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, :tags => params[:tags]) }
@@ -172,7 +169,7 @@ class PostsController < ApplicationController
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
-    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_status_locked is_comment_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

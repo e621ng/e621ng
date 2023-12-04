@@ -72,7 +72,7 @@
           <% end %>
         </div>
 
-        <%= render "ads/leaderboard" %>
+        <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
         <%= tag.section(id: "image-container", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container"></div>
