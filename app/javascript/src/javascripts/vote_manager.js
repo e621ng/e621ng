@@ -11,6 +11,7 @@ class VoteManager {
     const self = this;
     self.lastSelected = 0;
     $("#votes").on('click', 'tbody tr', function (evt) {
+      if ($(evt.target).is("a")) return;
       evt.preventDefault();
       if (evt.shiftKey) {
         self.toggleRowsBetween([self.lastSelected, this.rowIndex]);
