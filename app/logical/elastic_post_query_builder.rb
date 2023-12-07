@@ -110,7 +110,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_array_relation(:set_ids, :sets)
     add_array_relation(:fav_ids, :faves)
     add_array_relation(:parent_ids, :parent, any_none_key: :parent)
-    add_array_relation(:related_ids, :related, any_none_key: :related)
 
     add_array_relation(:rating, :rating)
     add_array_relation(:filetype, :file_ext)

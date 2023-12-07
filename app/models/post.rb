@@ -1446,7 +1446,7 @@ class Post < ApplicationRecord
           tags: tag_string,
           score: score,
           uploader_id: uploader_id,
-          uploader: uploader_name,
+          uploader: uploader_name
       }
 
       if visible?

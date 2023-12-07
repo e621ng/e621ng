@@ -13,8 +13,8 @@ class TagQuery
     id filetype type rating description parent user user_id approver flagger deletedby delreason
     source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
     width height mpixels ratio filesize duration score favcount date age change tagcount
-    commenter comm noter noteupdater related 
-  ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" } # lineage descendents family 
+    commenter comm noter noteupdater
+  ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" }
 
   METATAGS = %w[
     md5 order limit child randseed ratinglocked notelocked statuslocked
@@ -269,27 +269,7 @@ class TagQuery
         add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) do
           g2.to_i
         end
-      
-      #when "lineage", "-lineage", "~lineage"
-        #add_to_query(type, :lineage_ids, any_none_key: :lineage, value: g2) do
-        #  g2.to_i
-        #end
-      
-      #when "descendents", "-descendents", "~descendents"
-        #add_to_query(type, :descendents_ids, any_none_key: :descendents, value: g2) do
-        #  g2.to_i
-        #end
-      
-      #when "family", "-family", "~family"
-        #add_to_query(type, :family_ids, any_none_key: :family, value: g2) do
-        #  g2.to_i
-        #end
-      
-      when "related", "-related", "~related"
-        add_to_query(type, :related_ids, any_none_key: :related, value: g2) do
-          g2.to_i
-        end
-      
+
       when "child"
         q[:child] = g2.downcase
 
