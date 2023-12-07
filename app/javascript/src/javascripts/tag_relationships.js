@@ -8,6 +8,11 @@ class TagRelationships {
     const route = parent.data("relationship-route");
     const human = parent.data("relationship-human");
     const id = parent.data("relationship-id");
+
+    if (!confirm(`Are you sure you want to approve this ${human}?`)) {
+      return;
+    }
+
     $.ajax({
       url: `/${route}/${id}/approve.json`,
       type: 'POST',
@@ -27,8 +32,11 @@ class TagRelationships {
     const route = parent.data("relationship-route");
     const human = parent.data("relationship-human");
     const id = parent.data("relationship-id");
-    if(!confirm(`Are you sure you want to reject this ${human}?`))
+
+    if(!confirm(`Are you sure you want to reject this ${human}?`)) {
       return;
+    }
+
     $.ajax({
       url: `/${route}/${id}.json`,
       type: 'DELETE',
