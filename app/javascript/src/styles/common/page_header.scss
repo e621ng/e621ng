@@ -1,52 +1,44 @@
 
-#maintoggle {
-  display: none;
-}
-
-#nav {
-  display: grid; 
-  grid-template-columns: 3.75em 1fr; 
-  grid-template-areas: "logo main" "logo secondary"; 
-
-  .logo {
-    grid-area: logo;
-
-    margin-top: 6px;
-    background-image: url("images/main-logo.png");
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position-y: center;
-  }
-
-  .mobile-logo {
-    display: none;
-  }
-
-  .main {
-    grid-area: main;
-  }
-
-  .secondary {
-    grid-area: secondary;
-  }
-}
-
 header#top {
+  display: flex;
   font-size: 1.05em;
   margin: 0 $base-padding 0.8rem;
   color: themed("color-text");
   background-color: themed("color-background");
   background-image: themed("image-background");
 
+  span.nav-placeholder {
+    flex: 1;
+  }
+
+  .logo, #maintoggle {
+    font-size: 200%;
+    margin: auto 0;
+    width: 2em;
+    cursor: pointer;
+  }
+
+  .logo {
+    display: block;
+    height: 1.5em;
+    background-image: url("images/main-logo.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  #maintoggle {
+    display: none;
+    text-align: right;
+  }
+
   #subnav-height-placeholder {
     visibility: hidden;
   }
 
   menu {
-    margin-top: -2px;
+    margin: 0;
+    padding: 0;
     background-color: themed("color-foreground");
-    border-radius: $border-radius-full;
-    padding: 6px;
 
     form {
       display: inline-block;
@@ -61,13 +53,18 @@ header#top {
     }
 
     li {
-      margin: 0;
-      padding: 0;
+      display: inline-block;
+      padding: 6px 10px;
       white-space: nowrap;
     }
 
-    li a {
-      padding: 6px 10px;
+    li.separator {
+      background: themed(color-text);
+      margin: 0;
+      padding: 0;
+      width: 1px;
+      height: 1.25em;
+      vertical-align: middle;
     }
   }
 
@@ -75,7 +72,8 @@ header#top {
     margin-top: 0;
     background-color: themed("color-background");
 
-    li.current a {
+    li.current {
+      border-radius: 4px 4px 0 0;
       background-color: themed("color-foreground");
       font-weight: bold;
     }
@@ -85,8 +83,12 @@ header#top {
       color: $page-header-sign-in-link-color;
     }
 
-    li.forum-updated a {
+    li.forum-updated {
       font-style: italic;
     }
+  }
+
+  menu.secondary {
+    border-radius: $border-radius-full;
   }
 }

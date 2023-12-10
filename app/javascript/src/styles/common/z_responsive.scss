@@ -16,7 +16,7 @@
 
 @media screen and (max-width: 800px) {
   .mobile-only {
-    display: unset;
+    display: revert !important;
   }
 
   body.resp {
@@ -56,7 +56,7 @@
       .search-button > button {
         width: 32px;
         height: 32px;
-        border-left: 1px solid #ccc; //HACK: hardcoded color
+        border-left: 1px solid #ccc; /* HACK: hardcoded color */
         border-radius: 0 $border-radius-half $border-radius-half 0;
       }
     }
@@ -107,8 +107,114 @@
       }
     }
 
-    header {
+    #mobile-navbar-toggle ~ {
+      header#top {
+        label#maintoggle {
+          #maintoggle-closed {display:block}
+          #maintoggle-open {display:none}
+        }
+
+        .nav-placeholder #nav {
+          display: none;
+        }
+      }
+    }
+
+    #mobile-navbar-toggle:checked ~ {
+      header#top {
+        label#maintoggle {
+          #maintoggle-closed {display:none}
+          #maintoggle-open {display:block}
+        }
+
+        .nav-placeholder #nav {
+          display: flex;
+        }
+      }
+    }
+
+    #covering-toggle {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9;
+    }
+
+    #mobile-navbar-toggle:checked + #covering-toggle {
+      display: block;
+    }
+
+    header#top {
       position: relative;
+      font-size: 150%;
+      text-align: center;
+      margin: $base-padding;
+      line-height: 2em;
+      z-index: 10;
+      background: none;
+
+      menu form input {
+        /* Make the quick search box in the navbar full width. */
+        display: block;
+        width: 100%;
+      }
+
+      .logo, #maintoggle {
+        font-size: 80%;
+        display: block;
+        font-weight: bold;
+      }
+
+      .nav-placeholder {
+        position: relative;
+
+        #nav {
+          position: absolute;
+          display: flex;
+          left: 0;
+          top: 0;
+          width: 100%;
+          border: 1px solid themed(color-section-lighten-10);
+          border-radius: $border-radius-full;
+          overflow: hidden;
+          box-shadow: $box-shadow-size themed(color-background);
+        }
+
+        menu {
+          width: 100%;
+          padding: 0;
+          max-height: 75vh;
+          overflow: auto;
+
+          li {
+            display: block;
+            white-space: revert;
+
+            &.separator {
+              width: calc(100% - 1em);
+              height: 1px;
+              margin: .5ex auto;
+              vertical-align: middle;
+            }
+          }
+        }
+
+        menu.main li.current {
+          border-radius: 0;
+          border-right: none
+        }
+
+        menu.secondary {
+          border-radius: 0;
+        }
+
+        menu.secondary.empty {
+          display: none;
+        }
+      }
     }
 
     #page-footer {
@@ -130,17 +236,6 @@
       .logo-container {
         display: none;
       }
-    }
-
-    #maintoggle {
-      display: block;
-      font-weight: bold;
-      font-size: 2em;
-    }
-
-    /* Make the quick search box in the navbar full width. */
-    header#top menu form input {
-      width: auto;
     }
 
     h1 {
@@ -269,47 +364,6 @@
       }
     }
 
-    #nav {
-      font-size: 2em;
-      line-height: 2em;
-      display: none;
-    }
-
-    header#top {
-      input {
-        font-size: 18pt;
-      }
-
-      menu.main {
-        padding: 5px 10px;
-
-        .mobile-logo {
-          display: inline-block;
-          width: 1.5em;
-          box-sizing: border-box;
-
-          a {
-            display: inline-block;
-            padding: 6px 10px;
-
-            background-image: url("images/main-logo.png");
-            background-repeat: no-repeat;
-            background-size: contain;
-
-            // Gives the link height
-            &::after {
-              content: "Placeholder";
-              visibility: hidden;
-            }
-          }
-        }
-      }
-
-      menu.secondary.empty {
-        display: none;
-      }
-    }
-
     h1 {
       display: block;
       font-size: 2em;
@@ -319,15 +373,6 @@
     h2 {
       font-size: 0.825em;
       margin: 1em 0 0 0;
-    }
-
-    header {
-      text-align: center;
-      line-height: 2em;
-
-      h1 {
-        display: inline; //Needed for menu button
-      }
     }
 
     div#page {

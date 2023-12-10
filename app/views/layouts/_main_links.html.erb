@@ -1,4 +1,3 @@
-<%= nav_link_to("", "/", class: "mobile-logo") %>
 <% if CurrentUser.is_anonymous? %>
   <%= nav_link_to("Sign in", new_session_path) %>
 <% else %>

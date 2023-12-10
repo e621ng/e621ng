@@ -4,16 +4,14 @@
   <%= render "layouts/head" %>
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
+  <input type="checkbox" autocomplete="off" style="display:none" id="mobile-navbar-toggle" />
+  <label id="covering-toggle" for="mobile-navbar-toggle"></label>
   <%= render "layouts/theme_include" %>
 
   <header id="top">
-    <div id="maintoggle">
-      <a href="#"><i id="maintoggle-on" class="fa-solid fa-bars"></i></a>
-      <a href="#"><i id="maintoggle-off" class="fa-solid fa-xmark" style="display: none;"></i></a>
-    </div>
+    <a href="/" class="logo">&nbsp;</a>
 
-    <nav id="nav">
-      <a href="/" class="logo"></a>
+    <span class="nav-placeholder"><nav id="nav">
       <menu class="main">
         <%= render "layouts/main_links" %>
       </menu>
@@ -24,7 +22,12 @@
           <%= subnav_link_to "Height Placeholder", "" %>
         <% end %>
       </menu>
-    </nav>
+    </nav></span>
+
+    <label id="maintoggle" for="mobile-navbar-toggle">
+      <i id="maintoggle-closed" class="fa-solid fa-bars"></i>
+      <i id="maintoggle-open" class="fa-solid fa-xmark"></i>
+    </label>
   </header>
 
   <div id="page">
