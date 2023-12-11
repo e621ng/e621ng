@@ -1,6 +1,6 @@
 class DmailsController < ApplicationController
   respond_to :html
-  before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
+  before_action :member_only
 
   def new
     if params[:respond_to_id]
