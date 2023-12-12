@@ -43,11 +43,11 @@
               </dl>
               <div style="display:grid;grid-template-columns: 1fr 1fr;grid-auto-rows: auto;">
                 <dl>
-                  <% if post_replacement.post %>
-                    <dt>Current Size</dt>
+                  <% if post_replacement.details %>
+                    <dt><%= post_replacement.show_current? ? "Current" : "Previous" %> Size</dt>
                     <dd>
-                      <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %>
-                      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>, <%= post_replacement.post.file_ext %>)
+                      <%= post_replacement.details[:width] %>x<%= post_replacement.details[:height] %>
+                      (<%= post_replacement.details[:size].to_fs(:human_size, precision: 5) %>, <%= post_replacement.details[:ext] %>)
                     </dd>
                   <% end %>
                 </dl>

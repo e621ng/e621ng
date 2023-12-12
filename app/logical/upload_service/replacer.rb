@@ -12,7 +12,7 @@ class UploadService
         repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
                                      image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
                                      file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
-                                     source: post.source, reason: 'Backup of original file', is_backup: true)
+                                     source: post.source, reason: 'Backup of original file', is_backup: true, previous_details: replacement.current_details)
         repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
         repl.save
       rescue Exception => e

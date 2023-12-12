@@ -165,7 +165,7 @@ class PostReplacement < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      super + %i[storage_id protected uploader_id_on_approve penalize_uploader_on_approve]
+      super + %i[storage_id protected uploader_id_on_approve penalize_uploader_on_approve previous_details]
     end
   end
 
@@ -175,6 +175,13 @@ class PostReplacement < ApplicationRecord
         errors.add(:status, "must be pending or original to approve")
         return
       end
+
+      update(previous_details: {
+        width: post.image_width,
+        height: post.image_height,
+        size: post.file_size,
+        ext: post.file_ext,
+      })
 
       processor = UploadService::Replacer.new(post: post, replacement: self)
       processor.process!(penalize_current_uploader: penalize_current_uploader)
@@ -311,4 +318,37 @@ class PostReplacement < ApplicationRecord
   include ProcessingMethods
   include PromotionMethods
   include PostMethods
+
+  def post_details
+    {
+      width: post.image_width,
+      height: post.image_height,
+      size: post.file_size,
+      ext: post.file_ext,
+    }
+  end
+
+  def current_details
+    {
+      width: image_width,
+      height: image_width,
+      size: file_size,
+      ext: file_ext,
+    }
+  end
+
+  def show_current?
+    post && (status == "pending" || previous_details.blank?)
+  end
+
+  def details
+    if status == "pending" && post
+      post_details
+    elsif previous_details.blank?
+      return post_details if post
+      nil
+    else
+      previous_details.transform_keys(&:to_sym)
+    end
+  end
 end

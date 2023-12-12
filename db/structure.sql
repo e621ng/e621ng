@@ -1344,7 +1344,8 @@ CREATE TABLE public.post_replacements2 (
     reason character varying NOT NULL,
     protected boolean DEFAULT false NOT NULL,
     uploader_id_on_approve integer,
-    penalize_uploader_on_approve boolean
+    penalize_uploader_on_approve boolean,
+    previous_details jsonb
 );
 
 
@@ -4753,6 +4754,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230517155547'),
 ('20230518182034'),
 ('20230531080817'),
+('20231201235926'),
 ('20240101042716');
-
-
