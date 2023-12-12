@@ -181,6 +181,7 @@ class PostReplacement < ApplicationRecord
         height: post.image_height,
         size: post.file_size,
         ext: post.file_ext,
+        md5: post.md5,
       })
 
       processor = UploadService::Replacer.new(post: post, replacement: self)
@@ -325,6 +326,7 @@ class PostReplacement < ApplicationRecord
       height: post.image_height,
       size: post.file_size,
       ext: post.file_ext,
+      md5: post.md5
     }
   end
 
@@ -334,6 +336,7 @@ class PostReplacement < ApplicationRecord
       height: image_width,
       size: file_size,
       ext: file_ext,
+      md5: md5,
     }
   end
 
