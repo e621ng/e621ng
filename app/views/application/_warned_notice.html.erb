@@ -1,6 +1,9 @@
 <% if record.was_warned? %>
   <div class="user-warning">
     <hr>
-    <em><%= record.warning_type_string %>.</em>
+    <em><%= record.warning_type_string %><% if record.warning_user.present? %> by <%= link_to_user(record.warning_user) %><% end %>.</em>
+    <% if record.warned_at.present? %>
+      <span class="info"><%= time_ago_in_words_tagged(record.warned_at) %></span>
+    <% end %>
   </div>
 <% end %>

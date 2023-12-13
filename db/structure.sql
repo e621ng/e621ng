@@ -516,7 +516,8 @@ CREATE TABLE public.edit_histories (
     versionable_id integer NOT NULL,
     version integer NOT NULL,
     ip_addr inet NOT NULL,
-    user_id integer NOT NULL
+    user_id integer NOT NULL,
+    edit_type text DEFAULT 'original'::text NOT NULL
 );
 
 
@@ -4423,14 +4424,6 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
--- Name: blips fk_rails_23e7479aac; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.blips
-    ADD CONSTRAINT fk_rails_23e7479aac FOREIGN KEY (updater_id) REFERENCES public.users(id);
-
-
---
 -- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4753,6 +4746,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230517155547'),
 ('20230518182034'),
 ('20230531080817'),
+('20230531081706'),
 ('20240101042716');
-
-

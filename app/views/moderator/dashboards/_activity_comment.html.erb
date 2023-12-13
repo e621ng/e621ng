@@ -14,7 +14,7 @@
         <td>
           <%= link_to activity.comment.body, post_path(activity.comment.post_id) %>
           <% if activity.comment.is_hidden? %>
-            <span class="inactive">(hidden)</span>
+            <span class="inactive"<% if activity.comment.hidden_at.present? %> title="<%= time_ago_in_words(activity.comment.hidden_at) %> ago"<% end %>>(hidden)</span>
           <% end %>
         </td>
         <td><%= link_to_user(activity.comment.creator) %></td>

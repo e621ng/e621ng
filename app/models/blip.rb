@@ -124,4 +124,18 @@ class Blip < ApplicationRecord
   def unhide!
     update(is_hidden: false)
   end
+
+  def hidden_at
+    return nil unless is_hidden?
+    versions.hidden.last&.created_at
+  end
+
+  def warned_at
+    return nil unless was_warned?
+    versions.marked.last&.created_at
+  end
+
+  def edited_at
+    versions.edited.last&.created_at
+  end
 end

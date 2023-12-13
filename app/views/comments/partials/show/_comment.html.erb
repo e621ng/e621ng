@@ -8,7 +8,7 @@
         <h4 class="author-name"><%= link_to_user comment.creator %></h4>
         <%= comment.creator.level_string %>
         <% if comment.is_hidden? %>
-          (hidden)
+          <span<% if comment.hidden_at.present? %> title="<%= time_ago_in_words(comment.hidden_at) %> ago"<% end %>>(hidden)</span>
         <% end %>
       </div>
       <div class="avatar">
