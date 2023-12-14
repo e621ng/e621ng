@@ -1660,6 +1660,78 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([posts[1]], "commenter:none")
     end
 
+    should "Return posts for the disapprover:<name> metatag" do
+      posts = create_list(:post, 3, is_pending: true)
+      @alice = create(:moderator_user, name: "alice")
+      @zach = create(:moderator_user, name: "zach")
+      @john = create(:member_user, name: "john")
+      disapproval1 = create(:post_disapproval, user: @alice, post: posts[0], reason: "borderline_quality")
+      disapproval2 = create(:post_disapproval, user: @zach, post: posts[1], reason: "borderline_quality")
+      disapproval0 = create(:post_disapproval, user: @zach, post: posts[0], reason: "borderline_quality")
+
+      CurrentUser.user = @john
+      assert_tag_match(posts.reverse, "disapprover:alice") # refuse to filter for non-approvers
+      CurrentUser.user = @alice
+      assert_tag_match([posts[0]], "disapprover:alice") # TODO: !NONE
+    end
+
+    should "Return posts for the disapprover:<any|none> metatag" do
+      posts = create_list(:post, 3, is_pending: true)
+      @alice = create(:moderator_user, name: "alice")
+      @zach = create(:moderator_user, name: "zach")
+      @john = create(:member_user, name: "john")
+      disapproval1 = create(:post_disapproval, user: @alice, post: posts[0], reason: "borderline_quality")
+      disapproval2 = create(:post_disapproval, user: @zach, post: posts[1], reason: "borderline_quality")
+      disapproval0 = create(:post_disapproval, user: @zach, post: posts[0], reason: "borderline_quality")
+
+      CurrentUser.user = @john
+      assert_tag_match(posts.reverse, "disapprover:any")
+      assert_tag_match(posts.reverse, "disapprover:none")
+
+      CurrentUser.user = @alice
+      assert_tag_match([posts[2]], "disapprover:none") # TODO: !All
+      assert_tag_match([posts[1], posts[0]], "disapprover:any") # TODO: !none
+    end
+
+    should "Return posts for the disapprovals:<n> metatag" do
+      posts = create_list(:post, 3, is_pending: true)
+      @alice = create(:moderator_user, name: "alice")
+      @zach = create(:moderator_user, name: "zach")
+      @john = create(:member_user, name: "john")
+      disapproval1 = create(:post_disapproval, user: @alice, post: posts[0], reason: "borderline_quality")
+      disapproval2 = create(:post_disapproval, user: @zach, post: posts[1], reason: "borderline_quality")
+      disapproval0 = create(:post_disapproval, user: @zach, post: posts[0], reason: "borderline_quality")
+
+      CurrentUser.user = @john
+      assert_tag_match(posts.reverse, "disapprovals:1")
+      assert_tag_match(posts.reverse, "disapprovals:2")
+      assert_tag_match(posts.reverse, "disapprovals:0")
+      assert_tag_match(posts.reverse, "disapprovals:>=1")
+      CurrentUser.user = @alice
+      assert_tag_match([posts[1]], "disapprovals:1") # TODO: !none
+      assert_tag_match([posts[0]], "disapprovals:2") # TODO: !none
+      assert_tag_match([posts[2]], "disapprovals:0") # TODO: !none
+      assert_tag_match([posts[1], posts[0]], "disapprovals:>=1") # TODO: !none
+    end
+
+    should "Return posts for the disapprovals:<any|none> metatag" do
+      posts = create_list(:post, 3, is_pending: true)
+      @alice = create(:moderator_user, name: "alice")
+      @zach = create(:moderator_user, name: "zach")
+      @john = create(:member_user, name: "john")
+      disapproval1 = create(:post_disapproval, user: @alice, post: posts[0], reason: "borderline_quality")
+      disapproval2 = create(:post_disapproval, user: @zach, post: posts[1], reason: "borderline_quality")
+      disapproval0 = create(:post_disapproval, user: @zach, post: posts[0], reason: "borderline_quality")
+
+      CurrentUser.user = @john
+      assert_tag_match(posts.reverse, "disapprovals:any")
+      assert_tag_match(posts.reverse, "disapprovals:none")
+
+      CurrentUser.user = @alice
+      assert_tag_match([posts[2]], "disapprovals:none") # TODO: !posts
+      assert_tag_match([posts[1], posts[0]], "disapprovals:any") # TODO: !none
+    end
+
     should "return posts for the noter:<name> metatag" do
       users = create_list(:user, 2)
       posts = create_list(:post, 2)
@@ -1865,6 +1937,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:change")
       assert_tag_match(posts.reverse, "order:comment")
       assert_tag_match(posts.reverse, "order:comment_bumped")
+      assert_tag_match(posts.reverse, "order:disapproval_desc")
       assert_tag_match(posts.reverse, "order:note")
       assert_tag_match(posts.reverse, "order:mpixels")
       assert_tag_match(posts.reverse, "order:portrait")
@@ -1886,6 +1959,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts, "order:change_asc")
       assert_tag_match(posts, "order:comment_asc")
       assert_tag_match(posts, "order:comment_bumped_asc")
+      assert_tag_match(posts, "order:disapproval_asc")
       assert_tag_match(posts, "order:note_asc")
       assert_tag_match(posts, "order:mpixels_asc")
       assert_tag_match(posts, "order:landscape")

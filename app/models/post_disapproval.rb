@@ -5,6 +5,9 @@ class PostDisapproval < ApplicationRecord
   validates :post_id, uniqueness: { :scope => [:user_id], :message => "have already hidden this post" }
   validates :reason, inclusion: { :in => %w(borderline_quality borderline_relevancy other) }
 
+  after_create -> { post.update_index }
+  after_destroy -> { post.update_index }
+
   scope :with_message, -> { where("message is not null and message <> ''") }
   scope :without_message, -> { where("message is null or message = ''") }
   scope :poor_quality, -> { where(:reason => "borderline_quality") }
