@@ -34,7 +34,6 @@ gem "rugged"
 gem 'opensearch-ruby'
 
 gem 'mailgun-ruby'
-gem 'resolv'
 
 group :production do
   gem 'unicorn'

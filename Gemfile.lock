@@ -262,7 +262,6 @@ GEM
     regexp_parser (2.8.2)
     request_store (1.5.1)
       rack (>= 1.4)
-    resolv (0.2.2)
     responders (3.1.1)
       actionpack (>= 5.2)
       railties (>= 5.2)
@@ -391,7 +390,6 @@ DEPENDENCIES
   recaptcha
   redis
   request_store
-  resolv
   responders
   retriable
   rubocop
