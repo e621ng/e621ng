@@ -71,6 +71,14 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "mark as read action" do
+      should "mark the dmail as read" do
+        post_auth mark_as_read_dmail_path(@dmail), @dmail.owner, params: { format: :json }
+        assert_response :success
+        assert_predicate @dmail.reload, :is_read?
+      end
+    end
+
     context "create action" do
       setup do
         @user_2 = create(:user)

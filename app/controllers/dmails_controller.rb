@@ -1,6 +1,6 @@
 class DmailsController < ApplicationController
   respond_to :html
-  respond_to :json, only: %i[index show destroy mark_all_as_read]
+  respond_to :json, only: %i[index show destroy mark_as_read mark_all_as_read]
   before_action :member_only
 
   def new
@@ -42,6 +42,12 @@ class DmailsController < ApplicationController
     @dmail.mark_as_read!
     @dmail.update_column(:is_deleted, true)
     redirect_to dmails_path, :notice => "Message destroyed"
+  end
+
+  def mark_as_read
+    @dmail = Dmail.find(params[:id])
+    check_privilege(@dmail)
+    @dmail.mark_as_read!
   end
 
   def mark_all_as_read
