@@ -63,6 +63,13 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
       should "show dmails owned by the current user" do
         get_auth dmail_path(@dmail), @dmail.owner
         assert_response :success
+        assert_predicate @dmail.reload, :is_read?
+      end
+
+      should "not mark the dmail as read for json requests" do
+        get_auth dmail_path(@dmail), @dmail.owner, params: { format: :json }
+        assert_response :success
+        assert_not_predicate @dmail.reload, :is_read?
       end
 
       should "not show dmails not owned by the current user" do

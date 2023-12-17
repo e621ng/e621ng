@@ -27,8 +27,9 @@ class DmailsController < ApplicationController
   def show
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail)
-    @dmail.mark_as_read! unless Danbooru.config.readonly_mode?
-    respond_with(@dmail)
+    respond_with(@dmail) do |fmt|
+      fmt.html { @dmail.mark_as_read! unless Danbooru.config.readonly_mode? }
+    end
   end
 
   def create
