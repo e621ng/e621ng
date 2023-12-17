@@ -52,6 +52,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         get_auth dmails_path, @user, params: {:search => {:owner_id => @dmail.owner_id}}
         assert_response :success
       end
+
+      should "work for json" do
+        get_auth dmails_path, @user, params: { format: :json }
+        assert_response :success
+      end
     end
 
     context "show action" do

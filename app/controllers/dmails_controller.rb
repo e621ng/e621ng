@@ -1,5 +1,6 @@
 class DmailsController < ApplicationController
   respond_to :html
+  respond_to :json, only: %i[index show destroy mark_all_as_read]
   before_action :member_only
 
   def new

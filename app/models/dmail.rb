@@ -77,12 +77,6 @@ class Dmail < ApplicationRecord
     end
   end
 
-  module ApiMethods
-    def method_attributes
-      super + [:key]
-    end
-  end
-
   module SearchMethods
     def sent_by_id(user_id)
       where("dmails.from_id = ? AND dmails.owner_id != ?", user_id, user_id)
@@ -133,7 +127,6 @@ class Dmail < ApplicationRecord
 
   include AddressMethods
   include FactoryMethods
-  include ApiMethods
   extend SearchMethods
 
   def user_not_limited
