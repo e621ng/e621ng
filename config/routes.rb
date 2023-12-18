@@ -130,10 +130,10 @@ Rails.application.routes.draw do
   end
   resources :dmails, :only => [:new, :create, :index, :show, :destroy] do
     member do
-      post :mark_as_read
+      put :mark_as_read
     end
     collection do
-      post :mark_all_as_read
+      put :mark_all_as_read
     end
   end
   resource :dtext_preview, :only => [:create]

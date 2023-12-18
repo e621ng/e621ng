@@ -5,7 +5,7 @@
   <%= subnav_link_to "Sent", sent_dmails_path(set_default_folder: true) %>
   <li>|</li>
   <%= subnav_link_to "New", new_dmail_path %>
-  <%= subnav_link_to "Mark all as read", { controller: "dmails", action: "mark_all_as_read" }, method: :post %></li>
+  <%= subnav_link_to "Mark all as read", mark_all_as_read_dmails_path, method: :put %></li>
   <li>|</li>
   <%= subnav_link_to "Help", help_page_path(id: "dmail") %>
 <% end %>
