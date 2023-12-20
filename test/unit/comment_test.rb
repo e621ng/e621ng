@@ -1,10 +1,10 @@
-require 'test_helper'
+require "test_helper"
 
 class CommentTest < ActiveSupport::TestCase
   context "A comment" do
     setup do
-      user = create(:user)
-      CurrentUser.user = user
+      @user = create(:user)
+      CurrentUser.user = @user
     end
 
     context "created by a limited user" do
@@ -188,13 +188,63 @@ class CommentTest < ActiveSupport::TestCase
 
         should "create a mod action" do
           assert_difference("ModAction.count") do
-            @comment.update(:body => "nope")
+            @comment.update(body: "nope")
           end
         end
 
         should "credit the moderator as the updater" do
           @comment.update(body: "test")
           assert_equal(@mod.id, @comment.updater_id)
+        end
+      end
+
+      context "that is hidden by a moderator" do
+        setup do
+          @comment = create(:comment)
+          @mod = create(:moderator_user)
+          CurrentUser.user = @mod
+        end
+
+        should "create a mod action" do
+          assert_difference(-> { ModAction.count }, 1) do
+            @comment.update(is_hidden: true)
+          end
+        end
+
+        should "credit the moderator as the updater" do
+          @comment.update(is_hidden: true)
+          assert_equal(@mod.id, @comment.updater_id)
+        end
+      end
+
+      context "that is stickied by a moderator" do
+        setup do
+          @comment = create(:comment)
+          @mod = create(:moderator_user)
+          CurrentUser.user = @mod
+        end
+
+        should "create a mod action" do
+          assert_difference(-> { ModAction.count }, 1) do
+            @comment.update(is_sticky: true)
+          end
+        end
+
+        should "credit the moderator as the updater" do
+          @comment.update(is_sticky: true)
+          assert_equal(@mod.id, @comment.updater_id)
+        end
+      end
+
+      context "that is deleted" do
+        setup do
+          @comment = create(:comment)
+        end
+
+        should "create a mod action" do
+          assert_difference(-> { ModAction.count }, 1) do
+            @comment.destroy
+          end
         end
       end
 

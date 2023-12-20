@@ -66,7 +66,7 @@ class StorageManager
       delete(file_path(md5, file_ext, type, false))
       delete(file_path(md5, file_ext, type, true))
     end
-    Danbooru.config.video_rescales.each do |k,v|
+    Danbooru.config.video_rescales.each_key do |k|
       ['mp4','webm'].each do |ext|
         delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
         delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))

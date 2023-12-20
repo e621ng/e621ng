@@ -9,7 +9,7 @@
         <th>Action</th>
       </thead>
       <tbody>
-      <% @invites.where.not(status: "cooldown").each do |m| %>
+      <% @invites.where.not(status: "cooldown").find_each do |m| %>
         <% if m.post_set.is_public %>
           <tr>
             <td><%= link_to m.post_set.name, post_set_path(m.post_set) %></td>

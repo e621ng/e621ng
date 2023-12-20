@@ -26,7 +26,7 @@
 
     <div id="tag-string-editor"></div>
 
-    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: (post.locked_tags || ""), spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
 
   <% if post.is_rating_locked? %>

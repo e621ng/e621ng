@@ -1,6 +1,7 @@
 class DmailsController < ApplicationController
   respond_to :html
-  before_action :member_only, except: [:index, :show, :destroy, :mark_all_as_read]
+  respond_to :json, only: %i[index show destroy mark_as_read mark_all_as_read]
+  before_action :member_only
 
   def new
     if params[:respond_to_id]
@@ -26,8 +27,9 @@ class DmailsController < ApplicationController
   def show
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail)
-    @dmail.mark_as_read! unless Danbooru.config.readonly_mode?
-    respond_with(@dmail)
+    respond_with(@dmail) do |fmt|
+      fmt.html { @dmail.mark_as_read! unless Danbooru.config.readonly_mode? }
+    end
   end
 
   def create
@@ -41,6 +43,12 @@ class DmailsController < ApplicationController
     @dmail.mark_as_read!
     @dmail.update_column(:is_deleted, true)
     redirect_to dmails_path, :notice => "Message destroyed"
+  end
+
+  def mark_as_read
+    @dmail = Dmail.find(params[:id])
+    check_privilege(@dmail)
+    @dmail.mark_as_read!
   end
 
   def mark_all_as_read

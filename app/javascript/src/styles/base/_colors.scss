@@ -130,20 +130,6 @@ $note-box-inner-unsaved-border: red;
 $note-box-highlighted-outline: $note-highlight-color;
 $note-preview-background: white;
 
-// Post Mode
-$post-mode-edit: $section-yellow-background;
-$post-mode-tag-script: #4f114f;
-$post-mode-add-fav: #104e17;
-$post-mode-remove-fav: darken(#104e17, 10%);
-$post-mode-vote-up: $section-green-background;
-$post-mode-vote-down: $section-red-background;
-$post-mode-add-pool: #104b57;
-$post-mode-lock-rating: #AA3;
-$post-mode-lock-note: #3AA;
-$post-mode-approve: #48C;
-$post-mode-notes: darken(#5CD, 50%);
-$post-mode-delete: #4e1010;
-
 // Edit History / Post Versions
 $post-version-grid-border: black;
 $post-version-content-background: inherit;
@@ -154,6 +140,27 @@ $post-rating-questionable-color: hsl(50, 100%, 70%);
 $post-rating-safe-color: $green-color;
 $post-preview-highlight-background: rgba(0,0,0,0.1);
 $post-tag-low-count-color: red;
+
+// Post Mode
+$post-mode-edit: $section-yellow-background;
+$post-mode-tag-script: #4f114f;
+$post-mode-add-fav: #104e17;
+$post-mode-remove-fav: darken($post-mode-add-fav, 10%);
+$post-mode-vote-up: $section-green-background;
+$post-mode-vote-down: $section-red-background;
+$post-mode-add-pool: #104b57;
+$post-mode-lock-rating: #AA3;
+$post-mode-lock-note: #3AA;
+$post-mode-approve: #48C;
+$post-mode-delete: #4e1010;
+$post-mode-add-to-set: #A51;
+$post-mode-remove-from-set: darken($post-mode-add-to-set, 10%);
+$post-mode-rating-s: darken($post-rating-safe-color, 25%);
+$post-mode-rating-q: darken($post-rating-questionable-color, 50%);
+$post-mode-rating-e: darken($post-rating-explicit-color, 25%);
+$post-mode-remove-parent: #38F;
+$post-mode-undelete: #818;
+$post-mode-unflag: #304;
 
 // Tags
 $tags-vote-down-color: red;

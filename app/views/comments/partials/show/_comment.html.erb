@@ -23,12 +23,7 @@
         <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: comment %>
-      <% if comment.was_warned? %>
-        <div class="user-warning">
-          <hr>
-          <em><%= comment.warning_type_string %></em>
-        </div>
-      <% end %>
+      <%= render "application/warned_notice", record: comment %>
         <div class="content-menu">
           <menu>
             <% if post && comment.can_reply?(CurrentUser.user) %>

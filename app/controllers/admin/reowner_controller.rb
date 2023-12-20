@@ -21,7 +21,7 @@ module Admin
         moved_post_ids << p.id
         p.do_not_version_changes = true
         p.update({ uploader_id: @new_user.id })
-        p.versions.where(updater_id: @old_user.id).each do |pv|
+        p.versions.where(updater_id: @old_user.id).find_each do |pv|
           pv.update_column(:updater_id, @new_user.id)
           pv.update_index
         end

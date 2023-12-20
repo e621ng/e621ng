@@ -10,6 +10,11 @@ class PaginatorTest < ActiveSupport::TestCase
 
   { active_record: Blip, opensearch: Post }.each do |name, model| # rubocop:disable Metrics/BlockLength
     context name do
+      setup do
+        @user = create(:user)
+        CurrentUser.user = @user
+      end
+
       context "sequential pagination (before)" do
         should "return the correct set of records" do
           @records = create_list(model.name.underscore, 4)

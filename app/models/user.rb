@@ -94,27 +94,28 @@ class User < ApplicationRecord
   after_save :update_cache
   #after_create :notify_sock_puppets
   after_create :create_user_status
-  has_many :feedback, :class_name => "UserFeedback", :dependent => :destroy
-  has_many :posts, :foreign_key => "uploader_id"
-  has_many :post_approvals, :dependent => :destroy
-  has_many :post_disapprovals, :dependent => :destroy
-  has_many :post_replacements, foreign_key: :creator_id
-  has_many :post_votes
-  has_many :post_versions
-  has_many :bans, -> { order("bans.id desc") }
-  has_many :staff_notes, -> { order("staff_notes.id desc") }
-  has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
-  has_one :user_status
 
   has_one :api_key
   has_one :dmail_filter
+  has_one :user_status
+  has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
+  has_many :bans, -> { order("bans.id desc") }
+  has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
+  has_many :favorites, -> { order(id: :desc) }
+  has_many :feedback, class_name: "UserFeedback", dependent: :destroy
+  has_many :forum_posts, -> { order("forum_posts.created_at, forum_posts.id") }, foreign_key: "creator_id"
   has_many :forum_topic_visits
-  has_many :note_versions, :foreign_key => "updater_id"
-  has_many :dmails, -> {order("dmails.id desc")}, :foreign_key => "owner_id"
-  has_many :forum_posts, -> {order("forum_posts.created_at, forum_posts.id")}, :foreign_key => "creator_id"
+  has_many :note_versions, foreign_key: "updater_id"
+  has_many :posts, foreign_key: "uploader_id"
+  has_many :post_approvals, dependent: :destroy
+  has_many :post_disapprovals, dependent: :destroy
+  has_many :post_replacements, foreign_key: :creator_id
+  has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
+  has_many :post_versions
+  has_many :post_votes
+  has_many :staff_notes, -> { order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
-  has_many :post_sets, -> {order(name: :asc)}, foreign_key: :creator_id
-  has_many :favorites, -> {order(id: :desc)}
+
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
 
@@ -441,9 +442,9 @@ class User < ApplicationRecord
     end
 
     def self.create_user_throttle(name, limiter, checker, newbie_duration)
-      define_method("#{name}_limit".to_sym, limiter)
+      define_method(:"#{name}_limit", limiter)
 
-      define_method("can_#{name}_with_reason".to_sym) do
+      define_method(:"can_#{name}_with_reason") do
         return true if Danbooru.config.disable_throttles?
         return send(checker) if checker && send(checker)
         return :REJ_NEWBIE if newbie_duration && younger_than(newbie_duration)

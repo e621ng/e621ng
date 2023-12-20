@@ -163,7 +163,7 @@ class PostFlag < ApplicationRecord
       # Update parent flags on parent post
       parent_post.update_has_children_flag
       # Update parent flags on old parent post, if it exists
-      Post.find(old_parent_id).update_has_children_flag if (old_parent_id && parent_post.id != old_parent_id)
+      Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
       self.reason = MAPPED_REASONS[reason_name]

@@ -113,7 +113,7 @@ module ParseValue
     when :ratio
       left, right = object.split(":", 2)
 
-      if right && right.to_f != 0.0 # rubocop:disable Lint/FloatComparison
+      if right && right.to_f != 0.0
         (left.to_f / right.to_f).round(2)
       elsif right
         0.0

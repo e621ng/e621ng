@@ -8,6 +8,8 @@
 
     <%if CurrentUser.is_approver? %>
       <li><%= link_to "Deleted", posts_path(:tags => "#{params[:tags]} status:deleted"), :rel => "nofollow" %></li>
+      <li><%= link_to "Pending", posts_path(:tags => "#{params[:tags]} status:pending"), :rel => "nofollow" %></li>
+      <li><%= link_to "Flagged", posts_path(:tags => "#{params[:tags]} status:flagged"), :rel => "nofollow" %></li>
     <% end %>
 
     <li><%= link_to "Random", random_posts_path(:tags => params[:tags]), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
