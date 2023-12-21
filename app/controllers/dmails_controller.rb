@@ -42,9 +42,9 @@ class DmailsController < ApplicationController
     check_privilege(@dmail)
     @dmail.mark_as_read!
     @dmail.update_column(:is_deleted, true)
-    respond_to do |fmt|
-      fmt.html { redirect_to dmails_path, notice: "Message destroyed" }
-      fmt.json { head 204 }
+    respond_to do |format|
+      format.html { redirect_to dmails_path, notice: "Message destroyed" }
+      format.json
     end
   end
 
@@ -59,9 +59,9 @@ class DmailsController < ApplicationController
       x.update_column(:is_read, true)
     end
     CurrentUser.user.update(has_mail: false, unread_dmail_count: 0)
-    respond_to do |fmt|
-      fmt.html { redirect_to dmails_path, notice: "All messages marked as read" }
-      fmt.json { head 204 }
+    respond_to do |format|
+      format.html { redirect_to dmails_path, notice: "All messages marked as read" }
+      format.json
     end
   end
 
