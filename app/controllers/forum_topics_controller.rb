@@ -83,7 +83,10 @@ class ForumTopicsController < ApplicationController
   def mark_all_as_read
     CurrentUser.user.update_attribute(:last_forum_read_at, Time.now)
     ForumTopicVisit.prune!(CurrentUser.user)
-    redirect_to forum_topics_path, :notice => "All topics marked as read"
+    respond_to do |format|
+      format.html { redirect_to forum_topics_path, notice: "All topics marked as read" }
+      format.json
+    end
   end
 
   def subscribe
