@@ -108,6 +108,7 @@ class PostSetsController < ApplicationController
   def add_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    return render_expected_error(422, "post_ids[] is required") if params[:post_ids].blank?
     @post_set.add(params[:post_ids].map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -116,6 +117,7 @@ class PostSetsController < ApplicationController
   def remove_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    return render_expected_error(422, "post_ids[] is required") if params[:post_ids].blank?
     @post_set.remove(params[:post_ids].map(&:to_i))
     @post_set.save
     respond_with(@post_set)
