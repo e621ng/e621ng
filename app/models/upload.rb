@@ -102,7 +102,7 @@ class Upload < ApplicationRecord
       end
 
       if params[:parent_id].present?
-        q = q.attribute_matches(:rating, params[:parent_id])
+        q = q.attribute_matches(:parent_id, params[:parent_id])
       end
 
       if params[:post_id].present?
