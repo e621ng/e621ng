@@ -8,6 +8,7 @@ class Artist < ApplicationRecord
   before_validation :normalize_name
   before_validation :normalize_other_names
   validate :validate_user_can_edit
+  validate :wiki_page_not_locked
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, if: :name_changed?
   validates :name, :group_name, length: { maximum: 100 }
@@ -405,6 +406,15 @@ class Artist < ApplicationRecord
         throw :abort
       end
     end
+
+    def wiki_page_not_locked
+      return if CurrentUser.is_janitor?
+
+      if @notes.present? && is_note_locked? && wiki_page&.body != @notes
+        errors.add(:base, "Wiki page is locked")
+        throw :abort
+      end
+    end
   end
 
   module SearchMethods
@@ -525,5 +535,10 @@ class Artist < ApplicationRecord
 
   def visible?
     true
+  end
+
+  def is_note_locked?
+    return false if CurrentUser.is_janitor?
+    wiki_page&.is_locked? || false
   end
 end
