@@ -266,21 +266,21 @@ class ArtistTest < ActiveSupport::TestCase
         @artist = create(:artist, url_string: "http://foo.com")
       end
 
-      should "create a new version when an url is added" do
+      should "create a new version when a url is added" do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "http://foo.com http://bar.com")
           assert_equal(%w[http://bar.com http://foo.com], @artist.versions.last.urls)
         end
       end
 
-      should "create a new version when an url is removed" do
+      should "create a new version when a url is removed" do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "")
           assert_equal(%w[], @artist.versions.last.urls)
         end
       end
 
-      should "create a new version when an url is marked inactive" do
+      should "create a new version when a url is marked inactive" do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "-http://foo.com")
           assert_equal(%w[-http://foo.com], @artist.versions.last.urls)
@@ -373,6 +373,24 @@ class ArtistTest < ActiveSupport::TestCase
 
         @artist.reload
         assert_equal("https://e621.net", @artist.url_string)
+      end
+
+      should "not change notes when locked" do
+        @artist.notes = "abababab"
+        as(create(:user)) { @artist.save }
+
+        assert_equal("abababab", @artist.wiki_page.body)
+
+        @artist.wiki_page.update_column(:is_locked, true)
+
+        @artist.notes = "babababa"
+        assert_no_difference(-> { ArtistVersion.count }) do
+          as(create(:user)) { @artist.save }
+        end
+
+        assert_equal("abababab", @artist.wiki_page.body)
+
+        assert_equal(["Wiki page is locked"], @artist.errors.full_messages)
       end
     end
   end
