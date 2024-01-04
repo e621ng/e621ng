@@ -2,6 +2,7 @@ class UserFeedback < ApplicationRecord
   self.table_name = "user_feedback"
   belongs_to :user
   belongs_to_creator
+  belongs_to_updater
   validates :body, :category, presence: true
   validates :category, inclusion: { in: %w[positive negative neutral] }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.user_feedback_max_size }
@@ -75,7 +76,7 @@ class UserFeedback < ApplicationRecord
     return unless should_send
 
     action = saved_change_to_id? ? "created" : "updated"
-    body = %(#{creator_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
+    body = %(#{updater_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
     Dmail.create_automated(to_id: user_id, title: "Your user record has been updated", body: body)
   end
 
