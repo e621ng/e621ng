@@ -1,0 +1,11 @@
+<%= error_messages_for :comment  %>
+
+<div class="comment-form">
+  <div class="comment-avatar">
+    <%= comment_avatar(comment.creator.nil? ? CurrentUser : comment.creator) %>
+  </div>
+
+  <div class="comment-edit">
+    <%= render "comments/partials/form", comment: comment %>
+  </div>
+</div>

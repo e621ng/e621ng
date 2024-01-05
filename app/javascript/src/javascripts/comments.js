@@ -1,117 +1,92 @@
 import DText from "./dtext";
+import UserWarnable from "./user_warning";
 import Utility from "./utility";
 
 let Comment = {};
 
 Comment.initialize_all = function () {
-  if ($("#c-posts").length || $("#c-comments").length) {
-    $(".edit_comment_link").on("click", Comment.show_edit_form);
-    $(".expand-comment-response").on("click", Comment.show_new_comment_form);
-    $('.comment-vote-up-link').on("click", Comment.vote_up);
-    $(".comment-vote-down-link").on("click", Comment.vote_down);
-    $(".comment-reply-link").on('click', Comment.quote);
-    $(".comment-hide-link").on('click', Comment.hide);
-    $(".comment-unhide-link").on('click', Comment.unhide);
-    $(".comment-delete-link").on('click', Comment.delete);
-    $(".show-all-comments-for-post-link").on('click', Comment.show_all);
-    $(".comment-tag-hide-link").on("click", Comment.toggle_post_tags);
-  }
+  if (!$("#c-posts").length && !$("#c-comments").length) return;
+
+  // Logged in only – fallback redirects guests to the login page
+  if (!$("meta[name='current-user-id']").attr("content")) return;
+
+  $(".comments-for-post")
+    .on("click", ".comment-vote-link", Comment.vote_handler)
+    .on("click", ".comment-reply-link", Comment.reply)
+    .on("click", ".comment-edit-link", Comment.toggle_edit)
+    .on("click", ".comment-edit .comment-edit-cancel", Comment.toggle_edit)
+    .on("click", ".comment-delete-link", Comment.delete)
+    .on("click", ".comment-undelete-link", Comment.undelete)
+    .on("click", ".comment-mark-link", Comment.toggle_mark)
+    .on("click", ".comment-destroy-link", Comment.destroy);
+
+  $(".show-all-comments-for-post-link").on("click", Comment.show_all);
 }
 
 Comment.reinitialize_all = function () {
-  if ($("#c-posts").length || $("#c-comments").length) {
-    $(".comment-reply-link").off('click');
-    $(".comment-hide-link").off('click');
-    $(".comment-unhide-link").off('click');
-    $(".comment-delete-link").off('click');
-    $(".show-all-comments-for-post-link").off('click');
-    $(".comment-tag-hide-link").off("click");
-    $(".edit_comment_link").off('click');
-    $(".expand-comment-response").off('click');
-    $('.comment-vote-up-link').off('click');
-    $(".comment-vote-down-link").off('click');
-    Comment.initialize_all();
-    DText.initialize_all_inputs();
-  }
+  if (!$("#c-posts").length && !$("#c-comments").length) return;
+
+  $(".comments-for-post").off("click");
+  $(".show-all-comments-for-post-link").off("click");
+
+  Comment.initialize_all();
+  DText.initialize_all_inputs();
+
 }
 
-Comment.show_all = function(e) {
-  e.preventDefault();
-  const target = $(e.target);
-  const post_id = target.data('pid');
-  $.ajax({
-    url: `/posts/${post_id}/comments.json`,
-    type: 'GET',
-    dataType: 'json'
-  }).done(function(data) {
-    $(`#threshold-comments-notice-for-${post_id}`).hide();
+/**
+ * Handles the action of clicking on one of the vote buttons.
+ * @param {Event} event Click event
+ */
+Comment.vote_handler = function (event) {
+  event.preventDefault();
+  const target = $(event.currentTarget);
+  Comment.vote(target.data("comment"), target.data("action"));
+}
 
-    const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
-    current_comment_section.html(data.html);
-    Comment.reinitialize_all();
-    $(window).trigger("e621:add_deferred_posts", data.posts);
-  }).fail(function(data) {
-    Utility.error("Failed to fetch all comments for this post.");
-  });
-};
-
-Comment.hide = function (e) {
-  e.preventDefault();
-  if (!confirm("Are you sure you want to hide this comment?"))
-    return;
-  const parent = $(e.target).parents('article.comment');
-  const cid = parent.data('comment-id');
+/**
+ * Applies a vote to the specified comment.  
+ * Note that if the comment had already been voted on,
+ * the vote will be removed instead.
+ * @param {number} commentID Comment to vote on.
+ * @param {1|-1} action 1 to upvote, -1 to downvote.
+ */
+Comment.vote = function (commentID, action) {
   $.ajax({
-    url: `/comments/${cid}/hide.json`,
-    type: 'POST',
-    dataType: 'json'
-  }).done(function (data) {
-    $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (hidden)");
-    $(`.comment[data-comment-id="${cid}"]`).attr('data-is-deleted', 'true');
+    method: "POST",
+    url: `/comments/${commentID}/votes.json`,
+    data: {
+      score: action
+    },
+    dataType: "json"
+  }).done((data) => {
+    $(`.comment-vote[data-id="${commentID}"]`)
+      .attr({
+        "data-vote": scoreToClass(data.our_score),
+        "data-score": data.score,
+      })
+      .find(".comment-score")
+      .text(data.score)
+      .removeClass("score-neutral score-positive score-negative")
+      .addClass("score-" + scoreToClass(data.score));
+
+    function scoreToClass(num) {
+      if (num === 0) return "neutral";
+      return num > 0 ? "positive" : "negative";
+    }
   }).fail(function (data) {
-    Utility.error("Failed to hide comment.");
+    Utility.error(data.responseJSON.message ? data.responseJSON.message : "Unable to save the vote.");
   });
-};
+}
 
-Comment.unhide = function (e) {
-  e.preventDefault();
-  if (!confirm("Are you sure you want to unhide this comment?"))
-    return;
-  const parent = $(e.target).parents('article.comment');
-  const cid = parent.data('comment-id');
-  $.ajax({
-    url: `/comments/${cid}/unhide.json`,
-    type: 'POST',
-    dataType: 'json'
-  }).done(function (data) {
-    const $author = $(`.comment[data-comment-id="${cid}"] div.author h1`);
-    $author.text($author.text().replace(" (hidden)", ""));
-    $(`.comment[data-comment-id="${cid}"]`).attr('data-is-deleted', 'false');
-  }).fail(function (data) {
-    Utility.error("Failed to unhide comment.");
-  });
-};
-
-Comment.delete = function (e) {
-  e.preventDefault();
-  if (!confirm("Are you sure you want to permanently delete this comment?"))
-    return;
-  const parent = $(e.target).parents('article.comment');
-  const cid = parent.data('comment-id');
-  $.ajax({
-    url: `/comments/${cid}.json`,
-    type: 'DELETE',
-    dataType: 'json'
-  }).done(function (data) {
-    parent.remove();
-  }).fail(function (data) {
-    Utility.error("Failed to delete comment.");
-  });
-};
-
-Comment.quote = function (e) {
-  e.preventDefault();
-  const parent = $(e.target).parents('article.comment');
+/**
+ * Handles the click on the "Reply" button.  
+ * Adds a quote section to the new comment form.
+ * @param {Event} event Click event
+ */
+Comment.reply = function (event) {
+  event.preventDefault();
+  const parent = $(event.target).parents("article.comment");
   const pid = parent.data('post-id');
   const cid = parent.data('comment-id');
   $.ajax({
@@ -142,66 +117,128 @@ ${stripped_body}
   });
 };
 
-Comment.toggle_post_tags = function (e) {
-  e.preventDefault();
-  const link = $(e.target);
-  $(`#post-tags-${link.data('post-id')}`).toggleClass("hidden");
+/**
+ * Handles the click on the "Edit" button.  
+ * Just switches the attribute around, the actual
+ * edit form is added through HTML.
+ * @param {Event} event Click event
+ */
+Comment.toggle_edit = function (event) {
+  event.preventDefault();
+  const parent = $(event.target).parents("article.comment");
+  parent.attr("is-editing", !(parent.attr("is-editing") == "true"))
 }
 
-Comment.show_new_comment_form = function (e) {
-  e.preventDefault();
-  $(e.target).hide();
-  var $form = $(e.target).closest("div.new-comment").find("form");
-  $form.show();
-  $form[0].scrollIntoView(false);
-}
+/**
+ * Handles the click on the "Delete" button.
+ * Not to be confused with `Comment.destroy`, which
+ * permanently removes the comment from the database.
+ * @param {Event} event Click event
+ */
+Comment.delete = function (event) {
+  event.preventDefault();
+  if (!confirm("Are you sure that you want to delete this comment?"))
+    return;
 
-Comment.show_edit_form = function (e) {
-  e.preventDefault();
-  $(this).closest(".comment").find(".edit_comment").show();
-}
-
-Comment.vote_up = function (e) {
-  var id = $(e.target).attr('data-id');
-  Comment.vote(id, 1);
-}
-
-Comment.vote_down = function (e) {
-  var id = $(e.target).attr('data-id');
-  Comment.vote(id, -1);
-}
-
-Comment.vote = function (id, score) {
+  const parent = $(event.target).parents("article.comment");
+  const cid = parent.data("comment-id");
   $.ajax({
-    method: 'POST',
-    url: `/comments/${id}/votes.json`,
-    data: {
-      score: score
-    },
-    dataType: 'json'
-  }).done(function (data) {
-    const scoreClasses = 'score-neutral score-positive score-negative';
-    const commentID = id;
-    const commentScore = data.score;
-    const ourScore = data.our_score;
-    function scoreToClass(inScore) {
-      if (inScore === 0) return 'score-neutral';
-      return inScore > 0 ? 'score-positive' : 'score-negative';
-    }
-    $("#comment-score-"+commentID).removeClass(scoreClasses);
-    $("#comment-vote-up-"+commentID).removeClass(scoreClasses);
-    $("#comment-vote-down-"+commentID).removeClass(scoreClasses);
-    $('#comment-score-'+commentID).text(commentScore);
-    $("#comment-score-"+commentID).addClass(scoreToClass(commentScore));
-    $('#comment-vote-up-'+commentID).addClass(ourScore > 0 ? 'score-positive' : 'score-neutral');
-    $('#comment-vote-down-'+commentID).addClass(ourScore < 0 ? 'score-negative' : 'score-neutral');
-    Utility.notice('Vote saved');
-  }).fail(function(data) {
-    Utility.error(data.responseJSON.message);
+    url: `/comments/${cid}/hide.json`,
+    type: "POST",
+    dataType: "json"
+  }).done(() => {
+    parent.attr("data-is-deleted", true);
+  }).fail(() => {
+    Utility.error("Failed to delete the comment.");
   });
-}
+};
 
-$(document).ready(function () {
+/**
+ * Handles the click on the "Undelete" button.
+ * @param {Event} event Click event
+ */
+Comment.undelete = function (event) {
+  event.preventDefault();
+  if (!confirm("Are you sure that you want to undelete this comment?"))
+    return;
+
+  const parent = $(event.target).parents("article.comment");
+  const cid = parent.data("comment-id");
+  $.ajax({
+    url: `/comments/${cid}/unhide.json`,
+    type: "POST",
+    dataType: "json"
+  }).done(() => {
+    parent.attr("data-is-deleted", false);
+  }).fail(() => {
+    Utility.error("Failed to undelete the comment.");
+  });
+};
+
+/**
+ * Handles the click on the "Mark" button.  
+ * Just toggles the attribute to show the menu.
+ * Actual marking is handled elsewhere.
+ * @param {Event} event Click event
+ */
+Comment.toggle_mark = function (event) {
+  event.preventDefault();
+  const parent = $(event.target).parents("article.comment");
+  parent.attr("is-marking", !(parent.attr("is-marking") == "true"))
+};
+
+/**
+ * Handles the click on the "Destroy" button.  
+ * Note that this action is permanent and irreversible.
+ * @param {Event} event Click event
+ */
+Comment.destroy = function (event) {
+  event.preventDefault();
+  if (!confirm("Are you sure that you want to permanently destroy this comment?"))
+    return;
+
+  const parent = $(event.target).parents("article.comment");
+  const cid = parent.data("comment-id");
+  $.ajax({
+    url: `/comments/${cid}.json`,
+    type: "DELETE",
+    dataType: "json"
+  }).done(() => {
+    parent.remove();
+  }).fail(() => {
+    Utility.error("Failed to destroy the comment.");
+  });
+};
+
+/**
+ * Handles the click on the "Show all comments" button.  
+ * Due to the way comments get loaded, all handlers will be
+ * reinitializes as a result, otherwise buttons won't work.
+ * @param {Event} event Click event
+ */
+Comment.show_all = function (event) {
+  event.preventDefault();
+  const target = $(event.target);
+  const post_id = target.data("pid");
+  $.ajax({
+    url: `/posts/${post_id}/comments.json`,
+    type: "GET",
+    dataType: "json"
+  }).done(function (data) {
+    $(`#threshold-comments-notice-for-${post_id}`).hide();
+
+    $(`div.comments-for-post[data-post-id=${post_id}] div.comments-list`).html(data.html);
+    Comment.reinitialize_all();
+    UserWarnable.reinitialize_click_handlers();
+    $(window).trigger("e621:add_deferred_posts", data.posts);
+  }).fail(function (data) {
+    Utility.error("Failed to fetch all comments for this post.");
+  });
+};
+
+
+
+$(() => {
   Comment.initialize_all();
 });
 

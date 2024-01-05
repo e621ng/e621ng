@@ -1,148 +1,525 @@
-div.comments-for-post {
-  div.notices {
-    margin: 1em 0;
+// Post page comments list
+#c-posts #a-show div.comments-for-post {
+  width: 100%;
+  max-width: 850px;
+  box-sizing: border-box;
+
+  div.comments-list {
+    display: flex;
+    flex-flow: column;
+    gap: 1rem;
   }
 
-  div.list-of-comments {
+  h5#respond-link {
+    margin-bottom: 1rem;
+  }
+}
+
+// Comments index
+#c-comments div.comments-for-post {
+  display: flex;
+  flex-flow: column;
+  gap: 1rem;
+
+  div.comment-post {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  div.comments-list {
+    display: flex;
+    flex-flow: column;
+    gap: 1rem;
+
+    width: 100%;
+    max-width: 850px;
+    box-sizing: border-box;
+  }
+
+  .comment-reply-link {
+    display: none;
+  }
+}
+
+
+/*** Individual comment style ***/
+article.comment {
+  display: grid;
+  grid-template-columns: 100px auto;
+  grid-template-rows: min-content 1fr min-content min-content;
+  grid-template-areas:
+    "avatar info"
+    "avatar body"
+    "avatar edit"
+    "avatar acts"
+    "avatar mark";
+  grid-column-gap: 1rem;
+
+  // Editing
+  div.comment-edit {
+    display: none;
+  }
+
+  &[is-editing="true"] {
+    div.comment-info,
+    div.comment-body,
+    div.comment-acts {
+      display: none;
+    }
+
+    div.comment-edit {
+      display: block;
+    }
+  }
+
+  // Deleted
+  &[data-is-deleted="true"] {
+    div.comment-info {
+      background: #883333;
+
+      &::after {
+        border-right-color: #883333;
+      }
+    }
+
+    div.comment-body,
+    div.comment-acts {
+      background: #822828;
+    }
+
+    .comment-delete-link {
+      display: none;
+    }
+  }
+
+  &[data-is-deleted="false"] {
+    .comment-undelete-link {
+      display: none;
+    }
+  }
+
+  // Sticky
+  &[data-is-sticky="true"] {
+    div.comment-info {
+      background: var(--color-section-lighten-10);
+
+      &::after {
+        border-right-color: var(--color-section-lighten-10);
+      }
+    }
+
+    div.comment-body,
+    div.comment-acts {
+      background: var(--color-section-lighten-5);
+    }
+  }
+
+  // Below threshold
+  &.below-threshold:not([data-is-sticky="true"]) {
+    opacity: 0.3;
+  }
+
+  &.below-threshold:hover {
+    opacity: 1;
+  }
+}
+
+// Commenter's avatar
+article.comment div.comment-avatar,
+div.comment-form div.comment-avatar {
+  grid-area: avatar;
+  text-align: center;
+
+  // Load bearing hack
+  grid-row-end: -1;
+
+  img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: $border-radius-full;
+  }
+
+  .post-thumbnail.blacklisted img {
+    // Scale down blacklist placeholder
+    background-size: 100px 100px !important;
+    padding: 100px 100px 0 0 !important;
+  }
+
+  div.comment-avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+
+    background: var(--color-section);
+    color: var(--color-foreground);
+    font-size: 100px;
+    font-weight: 700;
+
+    // hack to center the text
+    padding-bottom: 7px;
+    box-sizing: border-box;
+  }
+
+  span.comment-rank {
+    color: var(--color-text-muted);
+  }
+}
+
+// Comment meta info
+article.comment div.comment-info {
+  grid-area: info;
+
+  display: flex;
+  position: relative;
+  align-items: baseline;
+  flex-wrap: wrap;
+
+  background: var(--color-section-lighten-5);
+  padding: $padding-050 $padding-100;
+  border-radius: $border-radius-full $border-radius-full 0 0;
+
+  &::after {
+    content: "";
+
+    border: 0.5rem solid transparent;
+    border-right-color: var(--color-section-lighten-5);
+
+    position: absolute;
+    left: -1rem;
+    top: 0.5rem;
+  }
+
+  span.comment-edited-when {
+    color: var(--color-text-muted);
+    font-size: 85%;
+
+    &::before {
+      content: "•";
+      padding: 0 0.25rem;
+    }
+  }
+
+  span.comment-ip {
+    margin-left: auto;
+  }
+}
+
+// Comment text
+article.comment div.comment-body {
+  grid-area: body;
+
+  background: var(--color-section);
+  padding: $padding-050 $padding-100;
+
+  // Not needed, but nice to have
+  .styled-dtext p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Comment actions
+article.comment div.comment-acts {
+  grid-area: acts;
+
+  display: flex;
+  gap: $padding-025;
+  flex-wrap: wrap;
+
+  background: var(--color-section);
+  padding: $padding-050 $padding-050;
+  border-radius: 0 0 $border-radius-full $border-radius-full;
+  user-select: none;
+
+  // Votes
+  div.comment-vote {
+    display: grid;
+    grid-template-columns: min-content minmax(1rem, auto) min-content;
+    grid-column-gap: 0.25rem;
+    justify-items: center;
+
+    &[data-vote="positive"] .comment-vote-link[data-action="1"] {
+      color: var(--color-score-positive);
+
+      &:hover {
+        background: var(--color-score-positive);
+        color: var(--color-text);
+      }
+    }
+
+    &[data-vote="negative"] .comment-vote-link[data-action="-1"] {
+      color: var(--color-score-negative);
+
+      &:hover {
+        background: var(--color-score-negative);
+        color: var(--color-text);
+      }
+    }
+  }
+
+  // Other actions
+  li {
+    display: block;
+
+    a {
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
+
+      color: var(--color-text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--color-section-lighten-5);
+        color: var(--color-text);
+
+        &.comment-report-link {
+          color: var(--color-score-negative);
+        }
+      }
+
+      &:active {
+        color: var(--color-link-active);
+      }
+    }
+
+    &.dot {
+      align-self: center;
+
+      &:first-child {
+        display: none;
+      }
+
+      &::after {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 4px;
+        background: var(--color-text-muted);
+        border-radius: 2px;
+      }
+    }
+
+    &.spacer {
+      margin: 0 auto;
+    }
+  }
+}
+
+// Marking rule violations
+article.comment div.comment-mark {
+  grid-area: mark;
+
+  display: none;
+  gap: 1rem;
+  justify-content: center;
+  justify-self: center;
+
+  background: var(--color-section-lighten-5);
+  padding: 0.25rem 1rem;
+  border-radius: 0 0 6px 6px;
+
+  li {
+    display: inline;
+  }
+}
+
+article.comment[is-marking="true"] div.comment-mark {
+  display: flex;
+}
+
+
+/*** Comment form overrides **/
+form.comment-simple-form {
+  background: unset;
+  padding: 0;
+
+  div.input {
+    margin-bottom: 0;
+  }
+}
+
+div.comment-form {
+  display: grid;
+  grid-template-columns: 100px auto;
+  grid-template-areas: "avatar edit";
+  grid-column-gap: 1rem;
+}
+
+div.comment-form div.comment-edit,
+article.comment div.comment-edit {
+  grid-area: edit;
+  position: relative;
+  padding: 0;
+
+  &::after {
+    content: "";
+
+    border: 0.5rem solid transparent;
+    border-right-color: var(--color-section-lighten-5);
+
+    position: absolute;
+    left: -1rem;
+    top: 0.5rem;
+  }
+
+  // Tweak formatter colors to match the comment look
+  .dtext-formatter {
+    background: var(--color-section-lighten-5);
+
+    &[data-editing="true"] .dtext-formatter-tabs a[data-action="edit"],
+    &[data-editing="false"] .dtext-formatter-tabs a[data-action="show"] {
+      background: var(--color-section);
+    }
+
+    .dtext-formatter-input,
+    .dtext-formatter-preview {
+      border-top-color: var(--color-section);
+    }
+
+    .dtext-formatter-preview {
+      background: var(--color-section);
+    }
+  }
+
+  span.hint {
+    display: none;
+  }
+}
+
+div.comment-edit div.comment-edit-options {
+  display: flex;
+  flex-wrap: wrap;
+
+  background: var(--color-section);
+  padding: $padding-050 $padding-050;
+  border-radius: 0 0 $border-radius-full $border-radius-full;
+  user-select: none;
+
+  align-items: center;
+  gap: 1rem;
+
+  input[type="submit"],
+  button[type="button"] {
+    background: var(--color-section-lighten-10);
+    color: var(--color-text);
+    padding: 0.5rem 0.5rem;
+    width: 6rem;
+
+    &:hover {
+      background: var(--color-section-lighten-5);
+    }
+
+    &:active {
+      color: var(--color-link-active);
+    }
+  }
+
+  span.spacer {
+    margin: 0 auto;
+
+    font-size: 70%;
+    font-style: italic;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+}
+
+div.new-comment button[name="cancel"] {
+  display: none;
+}
+
+
+/** Mobile Overrides **/
+@media screen and (max-width: 800px) {
+  body.resp {
+
+    // Post page comments list
+    #c-posts #a-show div.comments-for-post {
+      padding: 0 5px;
+    }
+
+    // Comments index
+    #c-comments #a-index {
+      div.comment-post {
+        padding: 0 5px;
+      }
+    }
+
+    // Individual comment
     article.comment {
-      border-radius: $border-radius-half;
-      margin-bottom: $padding-050;
+      grid-template-areas: "avatar" "info" "body" "acts" "mark";
+      grid-template-columns: auto;
+      grid-template-rows: unset;
+      position: relative;
 
-      &:target {
-        background-color: $comment-highlight-background;
+      div.comment-avatar {
+        grid-row-end: unset;
+        position: absolute;
+        z-index: 1;
+        top: -10px;
+
+        img {
+          width: 50px;
+          height: 50px;
+        }
+
+        .post-thumbnail.blacklisted img {
+          // Scale down blacklist placeholder
+          background-size: 50px 50px !important;
+          padding: 50px 50px 0 0 !important;
+        }
+
+        div.comment-avatar-placeholder {
+          width: 50px;
+          height: 50px;
+          font-size: 40px;
+          padding-bottom: 1px;
+        }
+
+        span.comment-rank {
+          display: none;
+        }
       }
 
-      &[data-is-sticky="true"] {
-        background: themed("color-section-lighten-10");
-      }
+      div.comment-info {
+        padding-left: 60px;
 
-      &[data-is-deleted="true"] {
-        background: $comment-hidden-background;
-      }
-
-      div.content {
-        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
-          background-color: $comment-vote-background;
-          border-radius: $border-radius-half;
+        &::after {
+          display: none;
         }
       }
     }
 
-    article.comment.below-threshold:not([data-is-sticky="true"]) {
-      opacity: 0.3;
-    }
+    // Comment form
+    div.comment-form {
+      grid-template-areas: "edit";
+      grid-template-columns: auto;
+      grid-template-rows: unset;
 
-    article.comment.below-threshold:hover {
-      opacity: 1.0;
-    }
-  }
-}
-
-
-div#c-comments {
-  div#a-index, div#a-show {
-    div.header {
-      .post-info {
-        margin-right: 1.5em;
+      div.comment-avatar {
+        display: none;
       }
 
-      strong, time {
-        margin-right: 0.3em;
+      div.comment-edit::after {
+        display: none;
       }
 
-      div.notices {
-        margin: 1em 0;
-      }
+      div.comment-acts {
+        justify-content: center;
+        padding: 0.5rem 0;
 
-      div.list-of-tags {
-        .comment-tag-hide-link::before {
-          content: "Hide Tags";
-        }
-        &.hidden {
-          .tag-list {
-            display: none;
-          }
-          .comment-tag-hide-link::before {
-            content: "Show Tags";
-          }
-        }
-      }
-    }
-  }
-}
-
-div#c-comments {
-  div#a-index {
-    .comment-post {
-      border-left: 0.25rem solid themed("color-dtext-section");
-      background: themed("color-section-lighten-5");
-      box-sizing: border-box;
-      padding-left: $padding-050;
-      padding-bottom: $padding-025;
-      margin-bottom: $padding-100;
-
-      .comments {
-        margin-left: 2rem;
-      }
-    }
-    .post-container {
-      display: flex;
-      .post {
-        width: 165px;
-      }
-    }
-
-    div.comments-for-post {
-      .comment-post {
-        display: flex;
-        .comments {
-          margin-left: 0;
+        input[type="submit"],
+        span.spacer {
           width: 100%;
         }
       }
     }
-  }
-}
-
-
-@media screen and (max-width: 800px) {
-  body.resp {
-    div#c-comments {
-      div#a-index {
-        .comment-post {
-          .comments {
-            margin-left: 1rem;
-          }
-        }
-
-        .post-container {
-          .post-information {
-            margin-left: $padding-050;
-          }
-
-          .post {
-            width: unset;
-          }
-        }
-
-        div.comments-for-post {
-          .comment-post {
-            display: block;
-            .comments {
-              width: unset;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-form.edit_comment div.input.boolean {
-  display: inline-block;
-
-  label {
-    font-weight: normal;
-    vertical-align: initial;
   }
 }
