@@ -432,12 +432,9 @@ textarea[data-autocomplete="tag-edit"] {
 
 section#image-extra-controls {
   display: flex;
-  align-items: center;
-  div {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-right: 0.5em;
-  }
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0.5em 0;
 }
 
 section#tag-list {
