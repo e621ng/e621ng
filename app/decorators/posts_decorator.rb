@@ -16,32 +16,13 @@ class PostsDecorator < ApplicationDecorator
     klass << "post-rating-safe" if post.rating == 's'
     klass << "post-rating-questionable" if post.rating == 'q'
     klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
   def data_attributes
-    post = object
-    attributes = {
-        "data-id" => post.id,
-        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
-        "data-tags" => post.tag_string,
-        "data-rating" => post.rating,
-        "data-flags" => post.status_flags,
-        "data-uploader-id" => post.uploader_id,
-        "data-uploader" => post.uploader_name,
-        "data-file-ext" => post.file_ext,
-        "data-score" => post.score,
-        "data-fav-count" => post.fav_count,
-        "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
-    }
-
-    if post.visible?
-      attributes["data-file-url"] = post.file_url
-      attributes["data-large-file-url"] = post.large_file_url
-      attributes["data-preview-file-url"] = post.preview_file_url
-    end
-
+    attributes = {}
+    object.thumbnail_attributes.each_pair { |key, value| attributes["data-#{key}"] = value }
     attributes
   end
 
