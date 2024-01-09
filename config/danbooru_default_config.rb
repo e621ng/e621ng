@@ -675,6 +675,10 @@ module Danbooru
     def janitor_reports_discord_webhook_url
       nil
     end
+
+    def moderator_stats_discord_webhook_url
+      nil
+    end
   end
 
   class EnvironmentConfiguration

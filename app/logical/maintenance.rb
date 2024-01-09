@@ -13,6 +13,7 @@ module Maintenance
     ignoring_exceptions { UserPasswordResetNonce.prune! }
     ignoring_exceptions { StatsUpdater.run! }
     ignoring_exceptions { DiscordReport::JanitorStats.new.run! }
+    ignoring_exceptions { DiscordReport::ModeratorStats.new.run! }
   end
 
   def ignoring_exceptions(&block)
