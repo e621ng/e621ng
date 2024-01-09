@@ -67,7 +67,7 @@
                     hint: "Enables auto-completion on most tag and user entry fields." %>
 
         <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-        hint: "Makes a cursory effort to prevent showing your favorites to others users. Has not been well tested." %>
+        hint: "Prevent showing your favorites to others users (except staff)." %>
 
         <%= f.input :show_post_statistics, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
         hint: "Show post statistics below posts on search pages." %>
