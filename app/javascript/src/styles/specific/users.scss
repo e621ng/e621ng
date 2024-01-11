@@ -1,4 +1,3 @@
-
 .user-greeting-outer {
   padding: $padding-025 0 $padding-025;
   span.user-greeting {
@@ -15,6 +14,7 @@ div#c-users {
 
     .bottom-section {
       display: flex;
+      flex-flow: column;
     }
 
     .stats-section {
@@ -22,8 +22,109 @@ div#c-users {
     }
 
     .posts-section {
+      margin-bottom: 1em;
+
+      .blacklist {
+        margin-bottom: 0.5em;
+      }
+
       .posts {
         display: flex;
+        flex-flow: column;
+        gap: 0.5rem;
+      }
+
+      .box {
+        display: grid;
+        grid-template-areas: "box-label box-extra"
+            "box-posts box-posts";
+        grid-template-columns: auto 1fr;
+        gap: 0 0.25rem;
+      }
+
+      .box h2.box-label {
+        display: block;
+        grid-area: box-label;
+        font-size: 1.5em; // Mobile shenanigans
+        margin: unset;
+
+        a {
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+
+          width: min-content;
+          height: 100%;
+          box-sizing: border-box;
+          padding: 0.125em;
+
+          background: var(--color-section);
+          border-radius: 6px 6px 0 0;
+          min-width: 150px;
+
+          &:focus, &:active {
+            outline: 0;
+            color: var(--color-link-active);
+          }
+        }
+      }
+
+      .box span.box-extra {
+        grid-area: box-extra;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-bottom: 0.25em;
+
+        a {
+          display: flex;
+          background: var(--color-section);
+          align-items: center;
+          padding: 0.125rem 0.5rem;
+          border-radius: 6px;
+          white-space: nowrap;
+
+          &:focus, &:active {
+            outline: 0;
+            color: var(--color-link-active);
+          }
+        }
+
+        span.text {
+          display: flex;
+          align-items: center;
+          justify-items: center;
+          padding: 0.125rem 0.5rem;
+          white-space: nowrap;
+        }
+      }
+
+      .box div.box-posts {
+        grid-area: box-posts;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 150px);
+        grid-auto-flow: column;
+
+        min-height: 201px; // Yes, 201. 150 + 3 * 1em
+        border-radius: 0 6px 6px 6px;
+        background: var(--color-section);
+        align-items: self-end;
+        justify-content: space-between;
+        overflow: hidden;
+        padding: 1em;
+        gap: 1em;
+        box-sizing: border-box;
+
+        article.post-preview {
+          margin: 0;
+          width: 150px;
+          overflow: visible;
+
+          img {
+            width: 100%;
+          }
+        }
       }
     }
 
@@ -32,20 +133,16 @@ div#c-users {
     }
 
     .about-section {
-      flex-grow: 2;
       display: flex;
+      flex-grow: 2;
+      gap: 1em;
+
       .about-piece {
         flex-grow: 1;
-        margin: 0 1em;
       }
       div {
         flex-basis: 50%;
       }
-    }
-
-    .vertical-section {
-      display: flex;
-      flex-direction: column;
     }
 
     .profile-stats {
@@ -126,12 +223,7 @@ div#c-users {
         }
         .posts-section {
           order: 2;
-          .posts {
-            display: block;
-          }
-        }
-        .user-uploads {
-          order: 1;
+          padding: 0 5px;
         }
         .about-section {
           flex-direction: column;
@@ -143,4 +235,29 @@ div#c-users {
       }
     }
   }
+}
+
+@media screen and (max-width: 600px) {
+body.resp #c-users #a-show {
+  .posts-section {
+    .box {
+      grid-template-areas: "box-label"
+      "box-extra"
+      "box-posts";
+      grid-template-columns: auto;
+    }
+    .box h2.box-label a {
+      border-radius: 6px;
+    }
+    .box span.box-extra {
+      margin-top: 0.25em;
+    }
+    .box div.box-posts {
+      grid-auto-flow: dense;
+      border-radius: 6px;
+      padding: 1em 0.25em;
+      gap: 1em 0.25em;
+    }
+  }
+}
 }

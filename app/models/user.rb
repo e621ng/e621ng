@@ -115,6 +115,7 @@ class User < ApplicationRecord
   has_many :post_votes
   has_many :staff_notes, -> { order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
+  has_many :artists, foreign_key: "linked_user_id"
 
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter

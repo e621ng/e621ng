@@ -51,8 +51,12 @@ class UserPresenter
     = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
+  def artwork(name)
+    Post.tag_match(name).limit(10)
+  end
+
   def uploads
-    Post.tag_match("user:#{user.name}").limit(6)
+    Post.tag_match("user:#{user.name}").limit(10)
   end
 
   def has_uploads?
@@ -60,7 +64,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..5]
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..9]
     Post.where(id: ids)
   end
 
