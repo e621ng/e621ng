@@ -28,13 +28,6 @@
         "data-shortcut": "shift+w"
       %>
     <% end %>
-    <% if Post.iqdb_enabled? %>
-      <% @dupicates = IqdbProxy.query_post(post, 60).count - 1 %>
-      <% if @dupicates > 0 %>
-        &bull;
-        <%= link_to pluralize(@dupicates, "Duplicate"), iqdb_queries_path(search: { post_id: @post.id }), class: "button btn-neutral" %>
-      <% end %>
-    <% end %>
   </div>
   <% end %>
   <div class="quick-mod-group">
