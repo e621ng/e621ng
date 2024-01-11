@@ -2096,7 +2096,8 @@ CREATE TABLE public.user_feedback (
     body text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    creator_ip_addr inet
+    creator_ip_addr inet,
+    updater_id integer
 );
 
 
@@ -4438,6 +4439,14 @@ ALTER TABLE ONLY public.tickets
 
 
 --
+-- Name: user_feedback fk_rails_9329a36823; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_feedback
+    ADD CONSTRAINT fk_rails_9329a36823 FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
 -- Name: mascots fk_rails_9901e810fa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4743,6 +4752,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230513074838'),
 ('20230517155547'),
 ('20230518182034'),
-('20230531080817');
+('20230531080817'),
+('20240101042716');
 
 
