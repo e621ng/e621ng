@@ -6,3 +6,20 @@
 <div class="dtext-container">
   <%= format_text(@comment.body) %>
 </div>
+
+<% warnings = generate_comment_warnings(@comment) %>
+<% if warnings.any?%>
+<span class="ticket-warning">
+<h4>Warning</h4>
+  <ul>
+  <% warnings.each do |message| %>
+    <li><%= message %></li>
+  <% end %>
+  </ul>
+  <div class="warning-notice">
+    <strong>Are you sure that you still wish to report this comment?</strong><br />
+    Keep in mind that extreme or illegal content should still be reported, so that it can be properly removed.
+  </div>
+</span>
+<% end %>
+
