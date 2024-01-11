@@ -8,11 +8,6 @@ RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
-ARG COMPOSE_PROFILES
-RUN if [[ $COMPOSE_PROFILES == *"solargraph"* ]]; then \
-  bundle exec yard gems; \
-fi
-
 FROM node:20-alpine3.18 as node-builder
 RUN apk --no-cache add git
 WORKDIR /app

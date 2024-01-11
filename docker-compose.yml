@@ -28,10 +28,7 @@ x-depends-on: &common-depends-on
 
 services:
   e621:
-    build:
-      context: ./
-      args:
-        COMPOSE_PROFILES: ${COMPOSE_PROFILES-}
+    build: ./
     image: e621
     volumes:
       - .:/app
@@ -167,19 +164,6 @@ services:
     entrypoint: bundle exec rubocop --cache-root /rubocop_cache
     profiles: 
       - rubocop
-
-  solargraph:
-    image: e621
-    entrypoint: solargraph socket -h 0.0.0.0
-    working_dir: ${PWD-}
-    volumes:
-      - .:${PWD-}
-    environment:
-      IGNORE_RUBOCOP_TODO: "1"
-    ports:
-      - 7658:7658
-    profiles:
-      - solargraph
 
 volumes:
   post_data:

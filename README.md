@@ -21,7 +21,6 @@ To mitigate this you can install a WSL distribution and clone the project inside
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
-1. Uncomment the `COMPOSE_PROFILES` variable if you wish to use solargraph. Doesn't work on Windows without WSL.
 1. Run the following commands:
     ```
     docker compose run --rm -e SEED_POST_COUNT=100 e621 /app/bin/setup
@@ -53,6 +52,8 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
+
+This repo comes with [Ruby LSP](https://github.com/Shopify/ruby-lsp) preconfigured. Install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp) and follow the instructions. The only requirement is that the Ruby version used by e621 ([see here](https://github.com/e621ng/e621ng/blob/master/.ruby-version)) is installed on your host. I recommend [rbenv](https://github.com/rbenv/rbenv) to manage your Ruby versions.
 
 ## Production Setup
 
