@@ -45,11 +45,13 @@ group :development, :test do
   gem 'puma'
 end
 
-group :docker do
+group :development do
+  gem "debug", require: false
   gem "rubocop", require: false
   gem "rubocop-erb", require: false
   gem "rubocop-rails", require: false
-  gem "solargraph", require: false
+  gem "ruby-lsp"
+  gem "ruby-lsp-rails"
 end
 
 group :test do

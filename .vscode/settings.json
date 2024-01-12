@@ -1,10 +1,7 @@
 {
-  "solargraph.checkGemVersion": false,
-  "solargraph.diagnostics": true,
-  "solargraph.externalServer": {
-    "host": "localhost",
-    "port": 7658
+  "[ruby]": {
+    "editor.formatOnSave": false
   },
-  "solargraph.formatting": true,
-  "solargraph.transport": "external",
+  // Trick ruby-lsp into not doing any updates
+  "rubyLsp.bundleGemfile": "Gemfile",
 }

@@ -1,0 +1,28 @@
+{
+  "name": "E621ng project development",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "e621",
+	"workspaceFolder": "/app",
+	"features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+	},
+	"postAttachCommand": {
+		// Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
+		// Put it back into the Dockerfile once that is resolved
+		"git-safe-dir": "git config --global --add safe.directory /app"
+	},
+	"postCreateCommand": {
+		"bash-completion": "apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"Shopify.ruby-lsp",
+        "Vue.volar"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	}
+}

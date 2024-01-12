@@ -186,10 +186,6 @@ div#c-posts {
   .fav-buttons {
     font-size: 14pt;
 
-    i {
-      margin-right: 0.1em;
-    }
-
     button.ui-button {
       padding: 0.25em 0.75em;
     }
@@ -201,6 +197,29 @@ div#c-posts {
 
   .fav-buttons-false #remove-fav-button {
     display: none;
+  }
+
+  .fav-buttons,
+  #image-download-link {
+    .button > i {
+      display: none;
+    }
+  }
+
+  @media only screen and (max-width: 500px) {
+    #image-extra-controls {
+      justify-content: center;
+    }
+    
+    .fav-buttons,
+    #image-download-link {
+      .button > i {
+        display: inline-block;
+      }
+      .button > span {
+        display: none;
+      }
+    }
   }
 
   div.parent-children {
@@ -444,12 +463,9 @@ textarea[data-autocomplete="tag-edit"] {
 
 section#image-extra-controls {
   display: flex;
-  align-items: center;
-  div {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-right: 0.5em;
-  }
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0.5em 0;
 }
 
 section#tag-list {

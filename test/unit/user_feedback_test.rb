@@ -5,18 +5,36 @@ class UserFeedbackTest < ActiveSupport::TestCase
     setup do
       @user = create(:user)
       @mod = create(:moderator_user)
+      @admin = create(:admin_user)
       CurrentUser.user = @mod
     end
 
     should "create a dmail" do
-      dmail = <<~EOS.chomp
+      dmail = <<~DMAIL.chomp
         #{@mod.name} created a "positive record":/user_feedbacks?search[user_id]=#{@user.id} for your account:
 
         good job!
-      EOS
+      DMAIL
       assert_difference("Dmail.count", 1) do
         create(:user_feedback, user: @user, body: "good job!")
-        assert_equal(dmail, @user.dmails.last.body)
+        assert_equal(dmail, @user.dmails.first.body)
+      end
+    end
+
+    should "correctly credit the updater" do
+      feedback = create(:user_feedback, user: @user, body: "good job!")
+
+      dmail = <<~DMAIL.chomp
+        #{@admin.name} updated a "positive record":/user_feedbacks?search[user_id]=#{@user.id} for your account:
+
+        great job!
+      DMAIL
+
+      assert_difference("Dmail.count", 1) do
+        CurrentUser.scoped(@admin) do
+          feedback.update(body: "great job!", send_update_dmail: true)
+        end
+        assert_equal(dmail, @user.dmails.first.body)
       end
     end
 

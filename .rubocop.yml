@@ -1,4 +1,4 @@
-<% unless ENV["IGNORE_RUBOCOP_TODO"] %>
+<% unless $PROGRAM_NAME.end_with?("ruby-lsp") %>
 inherit_from: .rubocop_todo.yml
 <% end %>
 

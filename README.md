@@ -2,18 +2,12 @@
 
 ### Prerequisites
 
- * Latest version of Docker ([download](https://docs.docker.com/get-docker)). The WSL2 backend on Windows is required.
+ * Latest version of Docker ([download](https://docs.docker.com/get-docker)).
  * Latest version of Docker Compose ([download](https://docs.docker.com/compose/install))
  * Git ([download](https://git-scm.com/downloads))
  
  If you are on Windows Docker Compose is already included, you do not need to install it yourself.
  If you are on Linux/MacOS you can probably use your package manager.
-
-### Windows development environment
-
-Developing on Windows requires some special setup to get good response times. Unfortunately performance across file systems is not great for WSL2 and recieving inotify events isn't possible. This leads to an all-around unpleasant experience. Read more about this [here](https://docs.docker.com/desktop/windows/wsl/#best-practices).
-
-To mitigate this you can install a WSL distribution and clone the project inside there. Executing docker inside the container will still work, without directly accessing the host. Access the code with [Remote Development for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) or simply use the network address `\\wsl$`.
 
 ### Installation
 
@@ -21,7 +15,6 @@ To mitigate this you can install a WSL distribution and clone the project inside
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
-1. Uncomment the `COMPOSE_PROFILES` variable if you wish to use solargraph. Doesn't work on Windows without WSL.
 1. Run the following commands:
     ```
     docker compose run --rm -e SEED_POST_COUNT=100 e621 /app/bin/setup
@@ -32,13 +25,17 @@ To mitigate this you can install a WSL distribution and clone the project inside
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
+### Development environment
+
+This repo provides a Dev Container configuration. You can use something like the [Dev Container extension for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to make use of it. Simply install it, open the folder in VSCode, and click the button in the bottom right to open the folder in the Dev Container.
+
 #### <a id="docker-troubleshooting"></a>I followed the above instructions but it doesn't work, what should I do?
 
 Try this:
 
 1. `docker compose down -v` to remove all volumes.
 1. `docker compose build --no-cache` to rebuild the image from scratch.
-1. Follow the [instructions](#installation) starting from step 6.
+1. Follow the [instructions](#installation) starting from step 5.
 
 #### <a id="windows-executable-bit"></a>Why are there a bunch of changes I can't revert?
 
@@ -48,9 +45,9 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 #### <a id="development-tools"></a>Things to aid you during development
 
-`docker compose run --rm tests` to execute the test suite.
+`bin/rails tests` to execute the test suite.
 
-`docker compose run --rm rubocop` to run the linter.
+`bundle exec rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 

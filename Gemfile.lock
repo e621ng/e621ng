@@ -85,10 +85,8 @@ GEM
     addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
     ast (2.4.2)
-    backport (1.2.0)
     base64 (0.2.0)
     bcrypt (3.1.20)
-    benchmark (0.3.0)
     better_html (2.0.2)
       actionview (>= 6.0)
       activesupport (>= 6.0)
@@ -111,7 +109,9 @@ GEM
     crass (1.0.6)
     dalli (3.2.6)
     date (3.3.4)
-    diff-lcs (1.5.0)
+    debug (1.9.1)
+      irb (~> 1.10)
+      reline (>= 0.3.8)
     diffy (3.4.2)
     domain_name (0.6.20231109)
     dotenv (2.8.1)
@@ -125,7 +125,6 @@ GEM
       activesupport (>= 5.0)
       request_store (>= 1.0)
       ruby2_keywords
-    e2mmap (0.1.0)
     erubi (1.12.0)
     factory_bot (6.4.2)
       activesupport (>= 5.0.0)
@@ -151,14 +150,13 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
-    jaro_winkler (1.5.6)
+    io-console (0.7.1)
+    irb (1.11.1)
+      rdoc
+      reline (>= 0.4.2)
     json (2.7.0)
     jsonapi-renderer (0.2.2)
     kgio (2.11.4)
-    kramdown (2.4.0)
-      rexml
-    kramdown-parser-gfm (1.1.0)
-      kramdown (~> 2.0)
     language_server-protocol (3.17.0.3)
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -210,6 +208,9 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.4)
+    prism (0.19.0)
+    psych (5.1.2)
+      stringio
     public_suffix (5.0.4)
     puma (6.4.0)
       nio4r (~> 2.0)
@@ -253,13 +254,16 @@ GEM
     rb-fsevent (0.11.2)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rbs (2.8.4)
+    rdoc (6.6.2)
+      psych (>= 4.0.0)
     recaptcha (5.16.0)
     redis (5.0.8)
       redis-client (>= 0.17.0)
     redis-client (0.18.0)
       connection_pool
     regexp_parser (2.8.2)
+    reline (0.4.2)
+      io-console (~> 0.5)
     request_store (1.5.1)
       rack (>= 1.4)
     responders (3.1.1)
@@ -271,8 +275,6 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     retriable (3.1.2)
-    reverse_markdown (2.1.1)
-      nokogiri
     rexml (3.2.6)
     rubocop (1.58.0)
       json (~> 2.3)
@@ -295,6 +297,16 @@ GEM
       rack (>= 1.1)
       rubocop (>= 1.33.0, < 2.0)
       rubocop-ast (>= 1.30.0, < 2.0)
+    ruby-lsp (0.13.3)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 0.19.0, < 0.20)
+      sorbet-runtime (>= 0.5.5685)
+    ruby-lsp-rails (0.2.8)
+      actionpack (>= 6.0)
+      activerecord (>= 6.0)
+      railties (>= 6.0)
+      ruby-lsp (>= 0.13.0, < 0.14.0)
+      sorbet-runtime (>= 0.5.9897)
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.0)
       ffi (~> 1.12)
@@ -318,26 +330,11 @@ GEM
       actionpack (>= 5.2)
       activemodel (>= 5.2)
     smart_properties (1.17.0)
-    solargraph (0.49.0)
-      backport (~> 1.2)
-      benchmark
-      bundler (~> 2.0)
-      diff-lcs (~> 1.4)
-      e2mmap
-      jaro_winkler (~> 1.5)
-      kramdown (~> 2.3)
-      kramdown-parser-gfm (~> 1.1)
-      parser (~> 3.0)
-      rbs (~> 2.0)
-      reverse_markdown (~> 2.0)
-      rubocop (~> 1.38)
-      thor (~> 1.0)
-      tilt (~> 2.0)
-      yard (~> 0.9, >= 0.9.24)
+    sorbet-runtime (0.5.11188)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
+    stringio (3.1.0)
     thor (1.3.0)
-    tilt (2.3.0)
     timeout (0.4.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -360,7 +357,6 @@ GEM
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    yard (0.9.34)
     zeitwerk (2.6.12)
 
 PLATFORMS
@@ -372,6 +368,7 @@ DEPENDENCIES
   bcrypt
   bootsnap
   dalli
+  debug
   diffy
   dotenv-rails
   draper
@@ -395,6 +392,8 @@ DEPENDENCIES
   rubocop
   rubocop-erb
   rubocop-rails
+  ruby-lsp
+  ruby-lsp-rails
   ruby-vips
   rugged
   shoulda-context
@@ -402,7 +401,6 @@ DEPENDENCIES
   sidekiq (~> 7.0)
   sidekiq-unique-jobs
   simple_form
-  solargraph
   streamio-ffmpeg
   unicorn
   unicorn-worker-killer

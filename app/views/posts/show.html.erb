@@ -94,36 +94,45 @@
         <% end %>
       </div>
 
-      <section id="image-extra-controls" style="display: flex;">
+      <section id="image-extra-controls">
 
         <% if CurrentUser.is_member? %>
           <div class="image-vote-buttons">
             <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
           </div>
           <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", 'data-pid': @post.id %>
-            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", 'data-pid': @post.id %>
+            <%= button_tag id: "add-fav-button", class: "button btn-success", "data-pid": @post.id do %>
+              <%= tag.i(class: "fa-regular fa-star") %>
+              <span>Favorite</span>
+            <% end %>
+            <%= button_tag id: "remove-fav-button", class: "button btn-danger", "data-pid": @post.id do %>
+              <%= tag.i(class: "fa-solid fa-star") %>
+              <span>Unfavorite</span>
+            <% end %>
           <% end %>
         <% end %>
         <% if @post.visible? %>
           <div id="image-download-link">
-            <%= link_to "Download", @post.file_url, class: "button btn-warn" %>
+            <%= link_to @post.file_url, class: "button btn-warn" do %>
+              <%= tag.i(class: "fa-solid fa-right-to-bracket fa-rotate-90") %>
+              <span>Download</span>
+            <% end %>
           </div>
         <% end %>
         <% if !@post.force_original_size? %>
           <div>
-            | <select id="image-resize-selector" class="button btn-neutral">
-                <option value="original">Original</option>
-                <option value="fit">Fit (Horizontal)</option>
-                <option value="fitv">Fit (Vertical)</option>
-                <% if !@post.is_video? %>
-                  <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
-                <% end %>
-                <% Danbooru.config.video_rescales.keys.each do |size| %>
-                  <% next unless @post.has_sample_size?(size) %>
-                  <option value="<%= size %>">Sample (<%= size %>)</option>
-                <% end %>
-              </select>
+            <select id="image-resize-selector" class="button btn-neutral">
+              <option value="original">Original</option>
+              <option value="fit">Fit (Horizontal)</option>
+              <option value="fitv">Fit (Vertical)</option>
+              <% if !@post.is_video? %>
+                <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
+              <% end %>
+              <% Danbooru.config.video_rescales.keys.each do |size| %>
+                <% next unless @post.has_sample_size?(size) %>
+                <option value="<%= size %>">Sample (<%= size %>)</option>
+              <% end %>
+          </select>
           </div>
         <% end %>
       </section>
