@@ -109,8 +109,9 @@ services:
     volumes:
       - opensearch_data:/usr/share/opensearch/data
     healthcheck:
-      interval: 10s
+      interval: 5s
       timeout: 2s
+      retries: 12
       test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
   iqdb:
