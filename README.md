@@ -2,22 +2,21 @@
 
 ### Prerequisites
 
- * Latest version of Docker ([download](https://docs.docker.com/get-docker)). The WSL2 backend on Windows is required.
+ * Latest version of Docker ([download](https://docs.docker.com/get-docker)).
  * Latest version of Docker Compose ([download](https://docs.docker.com/compose/install))
- * Git ([download](https://git-scm.com/downloads))
  
  If you are on Windows Docker Compose is already included, you do not need to install it yourself.
  If you are on Linux/MacOS you can probably use your package manager.
 
 ### Windows development environment
 
-Developing on Windows requires some special setup to get good response times. Unfortunately performance across file systems is not great for WSL2 and recieving inotify events isn't possible. This leads to an all-around unpleasant experience. Read more about this [here](https://docs.docker.com/desktop/windows/wsl/#best-practices).
-
-To mitigate this you can install a WSL distribution and clone the project inside there. Executing docker inside the container will still work, without directly accessing the host. Access the code with [Remote Development for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) or simply use the network address `\\wsl$`.
+It is recommended to work exclusively inside of WSL for performance and compatibility reasons. You can use something like [Remote Development for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) for this. All following instructions will assume that you are in a Linux environment.
 
 ### Installation
 
-1. Download and install the [prerequisites](#prerequisites).
+1. Install the [prerequisites](#prerequisites) to your host.
+1. If on Windows, [set up WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install) and open a terminal.
+1. [Install git](https://git-scm.com/download/linux).
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
@@ -37,13 +36,7 @@ Try this:
 
 1. `docker compose down -v` to remove all volumes.
 1. `docker compose build --no-cache` to rebuild the image from scratch.
-1. Follow the [instructions](#installation) starting from step 6.
-
-#### <a id="windows-executable-bit"></a>Why are there a bunch of changes I can't revert?
-
-You're most likely using Windows. Give this a shot, it tells Git to stop tracking file mode changes:
-
-`git config core.fileMode false`
+1. Follow the [instructions](#installation) starting from step 7.
 
 #### <a id="development-tools"></a>Things to aid you during development
 
@@ -53,7 +46,19 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
-This repo comes with [Ruby LSP](https://github.com/Shopify/ruby-lsp) preconfigured. Install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp) and follow the instructions. The only requirement is that the Ruby version used by e621 ([see here](https://github.com/e621ng/e621ng/blob/master/.ruby-version)) is installed on your host. I recommend [rbenv](https://github.com/rbenv/rbenv) to manage your Ruby versions.
+#### Ruby LSP
+
+This repo comes with [Ruby LSP](https://github.com/Shopify/ruby-lsp) preconfigured, install its [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp) and follow the instructions if you want to make use of it. The only requirement is that the Ruby version used by e621 is installed.
+
+I recommend [rbenv](https://github.com/rbenv/rbenv) to manage your Ruby versions:
+
+1. Install rbenv with [rbenv-installer](https://github.com/rbenv/rbenv-installer), or follow the [installation instructions](https://github.com/rbenv/rbenv#installation) on the rbenv repo.
+1. Install the [necessary dependencies](https://github.com/rbenv/ruby-build/wiki#suggested-build-environment) to build ruby.
+1. Run `rbenv install`
+1. Install dependencies needed for bundler to install all gems. You can get an idea of those from the [Dockerfile](https://github.com/e621ng/e621ng/blob/master/Dockerfile#L3).  
+For Ubuntu and derivatives you can just run `apt install cmake pkg-config libpq-dev`.
+1. Run `bundle install` to validate that everything can install correctly.
+1. Restart VSCode for good measure and you should be ready to go.
 
 ## Production Setup
 
