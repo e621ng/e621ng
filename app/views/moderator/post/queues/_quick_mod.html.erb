@@ -33,11 +33,13 @@
   <div class="quick-mod-group">
     <%= link_to "Delete", confirm_delete_moderator_post_post_path(id: post.id), class: "button btn-neutral btn-important" %>
     |
-    <%= link_to "Human Only", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> &bull;
-    <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)", post_id: post.id} %> &bull;
-    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being a photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)", post_id: post.id} %> &bull;
-    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being an  excessive base", reason: "Excessive same base image set.", post_id: post.id} %> &bull;
-    <%= link_to "Advertisement", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being an annoying ad", reason: "Advertisement", post_id: post.id} %>
+    <%= link_to "Artistic", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards (Artistic)", post_id: post.id} %> &bull;
+    <%= link_to "Human", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being human only", reason: "Irrelevant to site (Human only)", post_id: post.id} %> &bull;
+    <%= link_to "Photo/Scan", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being a photo/scan", reason: "Does not meet minimum quality standards (Bad digitization of traditional media)", post_id: post.id} %> &bull;
+    <%= link_to "Bad Edit", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being a bad edit", reason: "Does not meet minimum quality standards (Trivial or low quality edit)", post_id: post.id} %> &bull;
+    <%= link_to "AI / Gen", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being AI generated", reason: "Irrelevant to site (AI assisted/generated)", post_id: post.id} %> &bull;
+    <%= link_to "Screencap", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being a screencap", reason: "Irrelevant to site (Screencap)", post_id: post.id} %> &bull;
+    <%= link_to "Advert", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being an advertisement", reason: "Advertisement", post_id: post.id} %>
 
   </div>
   <div class="quick-mod-group">
