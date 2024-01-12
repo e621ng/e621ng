@@ -1,0 +1,7 @@
+{
+  "[ruby]": {
+    "editor.formatOnSave": false
+  },
+  // Trick ruby-lsp into not doing any updates
+  "rubyLsp.bundleGemfile": "Gemfile",
+}

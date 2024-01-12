@@ -22,8 +22,6 @@ RUN apk --no-cache add ffmpeg vips \
 
 WORKDIR /app
 
-RUN git config --global --add safe.directory $(pwd)
-
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV RUBY_YJIT_ENABLE=1
 

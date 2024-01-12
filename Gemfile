@@ -46,6 +46,7 @@ group :development, :test do
 end
 
 group :development do
+  gem "debug", require: false
   gem "rubocop", require: false
   gem "rubocop-erb", require: false
   gem "rubocop-rails", require: false
