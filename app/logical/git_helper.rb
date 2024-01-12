@@ -5,7 +5,7 @@ module GitHelper
     elsif system("type git > /dev/null && git rev-parse --show-toplevel > /dev/null")
       @hash = `git rev-parse HEAD`.strip
     else
-      @hash = nil
+      @hash = ""
     end
   end
 
