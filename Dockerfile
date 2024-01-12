@@ -37,7 +37,4 @@ COPY --from=node-builder /root/.cache/node /root/.cache/node
 COPY --from=node-builder /app/node_modules node_modules
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 
-# Stop bin/rails console from offering autocomplete
-RUN echo "IRB.conf[:USE_AUTOCOMPLETE] = false" > ~/.irbrc
-
 CMD ["foreman", "start"]
