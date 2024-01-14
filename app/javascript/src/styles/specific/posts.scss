@@ -317,8 +317,21 @@ div#c-posts {
       margin: 1em 0;
     }
 
-    span.quick-mod {
-      float: right;
+    div.quick-mod {
+
+      .quick-mod-group {
+        display: flex;
+        color: var(--color-text-muted);
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 0.25em 0;
+
+        a { text-wrap: nowrap; }
+      }
+
+      .btn-important {
+        font-weight: 700;
+      }
     }
 
     .pool-name, .search-name, .set-name {
