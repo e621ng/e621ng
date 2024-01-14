@@ -34,7 +34,9 @@
 
 <% if post.is_pending? %>
   <div class="notice notice-pending" id="pending-approval-notice">
-    This post is pending approval. (<%= link_to "learn more", wiki_pages_path(title: "about:mod_queue") %>)
+    <% unless CurrentUser.can_approve_posts? %>
+      This post is pending approval. (<%= link_to "learn more", wiki_pages_path(title: "about:mod_queue") %>)
+    <% end %>
 
     <%= render "post_disapprovals/counts", disapprovals: post.disapprovals, post: post %>
 
