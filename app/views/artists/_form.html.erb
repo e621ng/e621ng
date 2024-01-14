@@ -15,6 +15,9 @@
   <%= f.input :group_name %>
   <%= f.input :url_string, :label => "URLs", as: :text, input_html: { size: "80x10", value: params.dig(:artist, :url_string) || @artist.urls.join("\n")}, hint: "You can prefix a URL with - to mark it as dead." %>
 
-  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size %>
+  <% if @artist.is_note_locked? %>
+    <p>Artist is note locked. Notes cannot be edited.</p>
+  <% end %>
+  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size, disabled: @artist.is_note_locked? %>
   <%= f.button :submit, "Submit" %>
 <% end %>
