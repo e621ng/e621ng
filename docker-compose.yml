@@ -35,11 +35,8 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
-      - public_packs:/app/public/packs
       - post_data:/app/public/data
       - ./docker/cron_tasks/daily:/etc/periodic/daily
-    tmpfs:
-      - /app/tmp/pids
     environment:
       <<: *common-env
       RAILS_ENV: development
@@ -67,7 +64,6 @@ services:
     volumes:
       - ./public:/app/public
       - post_data:/app/public/data
-      - public_packs:/app/public/packs
       - ./docker/default.conf.template:/etc/nginx/templates/default.conf.template
     environment:
       <<: *common-env
@@ -173,7 +169,5 @@ volumes:
   db_data:
   redis_data_v2:
   node_modules:
-  public_packs:
-  public_packs_test:
   rubocop_cache:
   discord_joiner_data:
