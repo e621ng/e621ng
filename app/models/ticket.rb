@@ -11,6 +11,7 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
+  validates :response, length: { minimum: 2 }, on: :update
   enum status: %i[pending partial approved].index_with(&:to_s)
   after_update :log_update
   after_update :create_dmail

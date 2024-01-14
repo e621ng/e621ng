@@ -34,13 +34,14 @@ class TicketsController < ApplicationController
 
   def update
     @ticket = Ticket.find(params[:id])
+    if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
+      flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
+      redirect_to ticket_path(@ticket, force_claim: "true")
+      return
+    end
+
+    ticket_params = update_ticket_params
     @ticket.transaction do
-      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
-        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
-        redirect_to ticket_path(@ticket, force_claim: 'true')
-        return
-      end
-      ticket_params = update_ticket_params
       if @ticket.warnable? && ticket_params[:record_type].present?
         @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
       end
@@ -48,9 +49,12 @@ class TicketsController < ApplicationController
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
       @ticket.update(ticket_params)
-      @ticket.push_pubsub("update")
+    end
+
+    if @ticket.valid?
       not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
+      @ticket.push_pubsub("update")
     end
 
     respond_with(@ticket)
