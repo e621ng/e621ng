@@ -15,5 +15,5 @@ runs:
         tags: e621
 
     - name: Set docker run command
-      run: echo "DOCKER_RUN=docker-compose run -e CI=true" >> "$GITHUB_ENV"
+      run: echo "DOCKER_RUN=docker-compose run --user 0:0 -e CI=true" >> "$GITHUB_ENV"
       shell: bash
