@@ -39,8 +39,8 @@ COPY --from=node-builder /app/node_modules node_modules
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 
 # Create a user with (potentially) the same id as on the host
-ARG HOST_UID
-ARG HOST_GID
+ARG HOST_UID=1000
+ARG HOST_GID=1000
 RUN addgroup --gid ${HOST_GID} e621ng && \
   adduser -S --shell /bin/sh --uid ${HOST_UID} e621ng && \
   addgroup e621ng wheel && \
