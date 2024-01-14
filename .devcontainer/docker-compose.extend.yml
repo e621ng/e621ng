@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  # Dev Container extension doesn't support `depends_on: !reset []`
+  # https://github.com/microsoft/vscode-remote-release/issues/8734
+  dev-container:
+    image: e621
+    environment:
+      RAILS_ENV: development
+    volumes:
+      - .:/app
+      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - node_modules:/app/node_modules
+
+  # Don't start any other services
+  e621:
+    profiles:
+      - dev-container
+  autocompleted:
+    profiles:
+      - dev-container
+  nginx:
+    profiles:
+      - dev-container
+  postgres:
+    profiles:
+      - dev-container
+  redis:
+    profiles:
+      - dev-container
+  memcached:
+    profiles:
+      - dev-container
+  opensearch:
+    profiles:
+      - dev-container
+  iqdb:
+    profiles:
+      - dev-container
+  discord_joiner:
+    profiles:
+      - dev-container

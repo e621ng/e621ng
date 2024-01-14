@@ -45,9 +45,9 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 #### <a id="development-tools"></a>Things to aid you during development
 
-`bin/rails tests` to execute the test suite.
+`docker compose run --rm tests` to execute the test suite.
 
-`bundle exec rubocop` to run the linter.
+`docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 

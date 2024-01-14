@@ -1,7 +1,8 @@
 {
   "name": "E621ng project development",
-  "dockerComposeFile": "../docker-compose.yml",
-  "service": "e621",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
+  "service": "dev-container",
+	"overrideCommand": true,
 	"workspaceFolder": "/app",
 	"features": {
     "ghcr.io/devcontainers/features/common-utils:2": {}
