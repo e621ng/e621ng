@@ -30,7 +30,11 @@ x-depends-on: &common-depends-on
 
 services:
   e621:
-    build: ./
+    build:
+      context: ./
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
     image: e621
     volumes:
       - .:/app

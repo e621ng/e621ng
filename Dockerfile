@@ -18,7 +18,8 @@ FROM ruby:3.2.2-alpine3.18
 
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \
-  git jemalloc tzdata
+  git jemalloc tzdata \
+  sudo
 
 WORKDIR /app
 
@@ -31,10 +32,22 @@ COPY --from=node-builder /usr/local/share /usr/local/share
 COPY --from=node-builder /usr/local/lib /usr/local/lib
 COPY --from=node-builder /usr/local/include /usr/local/include
 COPY --from=node-builder /usr/local/bin /usr/local/bin
-COPY --from=node-builder /root/.cache/node /root/.cache/node
+COPY --from=node-builder /root/.cache/node /home/e621ng/.cache/node
 
 # Copy gems and js packages
 COPY --from=node-builder /app/node_modules node_modules
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
+
+# Create a user with (potentially) the same id as on the host
+ARG HOST_UID
+ARG HOST_GID
+RUN addgroup --gid ${HOST_GID} e621ng && \
+  adduser -S --shell /bin/sh --uid ${HOST_UID} e621ng && \
+  addgroup e621ng wheel && \
+  echo "e621ng ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+USER e621ng
+
+# Ignore warnings from git about .git permission differences
+RUN git config --global --add safe.directory $(pwd)
 
 CMD ["foreman", "start"]

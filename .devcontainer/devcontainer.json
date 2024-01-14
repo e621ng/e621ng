@@ -6,13 +6,15 @@
 	"features": {
     "ghcr.io/devcontainers/features/common-utils:2": {}
 	},
+	// Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
+	"onCreateCommand": {
+		"remove-gitconfig": "rm ~/.gitconfig"
+	},
 	"postAttachCommand": {
-		// Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
-		// Put it back into the Dockerfile once that is resolved
 		"git-safe-dir": "git config --global --add safe.directory /app"
 	},
 	"postCreateCommand": {
-		"bash-completion": "apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+		"bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
 	},
 	"customizations": {
 		"vscode": {
