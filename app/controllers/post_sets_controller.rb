@@ -86,7 +86,7 @@ class PostSetsController < ApplicationController
   def destroy
     @post_set = PostSet.find(params[:id])
     check_settings_edit_access(@post_set)
-    if @post_set.creator != CurrentUser.user 
+    if @post_set.creator != CurrentUser.user
       ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
     end
     @post_set.destroy
@@ -108,7 +108,7 @@ class PostSetsController < ApplicationController
   def add_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.add(params[:post_ids].map(&:to_i))
+    @post_set.add(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
   end
@@ -116,7 +116,7 @@ class PostSetsController < ApplicationController
   def remove_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.remove(params[:post_ids].map(&:to_i))
+    @post_set.remove(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
   end
@@ -147,6 +147,10 @@ class PostSetsController < ApplicationController
 
   def update_posts_params
     params.require(:post_set).permit([:post_ids_string])
+  end
+
+  def add_remove_posts_params
+    params.except(:id, :format).permit(post_ids: []).require(:post_ids)
   end
 
   def search_params
