@@ -5,6 +5,7 @@ services:
   # https://github.com/microsoft/vscode-remote-release/issues/8734
   dev-container:
     image: e621
+    user: ${DOCKER_USER:-root}
     environment:
       RAILS_ENV: development
     volumes:

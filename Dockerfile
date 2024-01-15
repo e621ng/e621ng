@@ -32,6 +32,8 @@ COPY --from=node-builder /usr/local/share /usr/local/share
 COPY --from=node-builder /usr/local/lib /usr/local/lib
 COPY --from=node-builder /usr/local/include /usr/local/include
 COPY --from=node-builder /usr/local/bin /usr/local/bin
+# Copy yarn to both root and the user created below to support running as both
+COPY --from=node-builder /root/.cache/node /root/.cache/node
 COPY --from=node-builder /root/.cache/node /home/e621ng/.cache/node
 
 # Copy gems and js packages
@@ -45,9 +47,8 @@ RUN addgroup --gid ${HOST_GID} e621ng && \
   adduser -S --shell /bin/sh --uid ${HOST_UID} e621ng && \
   addgroup e621ng wheel && \
   echo "e621ng ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-USER e621ng
 
-# Ignore warnings from git about .git permission differences
+# Ignore warnings from git about .git permission differences when running as root
 RUN git config --global --add safe.directory $(pwd)
 
 CMD ["foreman", "start"]
