@@ -151,5 +151,26 @@ class ForumTopicTest < ActiveSupport::TestCase
         end
       end
     end
+
+    context "that has an alias, implication, or bulk update request" do
+      setup do
+        @tag_alias = create(:tag_alias, forum_post: @topic.original_post)
+        @mod = create(:moderator_user)
+      end
+
+      should "only be hidable by moderators" do
+        @topic.hide!
+
+        assert_equal(["Topic is for an alias, implication, or bulk update request. It cannot be hidden"], @topic.errors.full_messages)
+        assert_equal(@topic.reload.is_hidden, false)
+
+        as(@mod) do
+          @topic.hide!
+        end
+
+        assert_equal([], @topic.errors.full_messages)
+        assert_equal(@topic.reload.is_hidden, true)
+      end
+    end
   end
 end

@@ -12,14 +12,31 @@ class ForumTopic < ApplicationRecord
   validates_presence_of :original_post
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
+  validate :validate_not_aibur, if: :will_save_change_to_is_hidden?
   accepts_nested_attributes_for :original_post
   before_destroy :create_mod_action_for_delete
   after_update :update_original_post
+  after_save :log_changes
   after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(rec.is_locked ? :forum_topic_lock : :forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
   after_save(:if => ->(rec) {rec.saved_change_to_is_sticky?}) do |rec|
     ModAction.log(rec.is_sticky ? :forum_topic_stick : :forum_topic_unstick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  end
+
+  def validate_not_aibur
+    return if CurrentUser.is_moderator? || !original_post&.is_aibur?
+
+    if is_hidden?
+      errors.add(:topic, "is for an alias, implication, or bulk update request. It cannot be hidden")
+      throw :abort
+    end
+  end
+
+  def log_changes
+    if saved_change_to_is_hidden?
+      ModAction.log(is_hidden? ? :forum_topic_hide : :forum_topic_unhide, { forum_topic_id: id, forum_topic_title: title, user_id: creator_id })
+    end
   end
 
   module CategoryMethods
@@ -144,8 +161,10 @@ class ForumTopic < ApplicationRecord
   end
 
   def visible?(user)
-    return false if is_hidden && !can_hide?(user)
-    user.level >= category.can_view
+    return false unless user.level >= category.can_view
+    return true if CurrentUser.is_moderator?
+    return false if is_hidden && user.id != creator_id
+    true
   end
 
   def can_reply?(user = CurrentUser.user)
@@ -153,7 +172,9 @@ class ForumTopic < ApplicationRecord
   end
 
   def can_hide?(user)
-    user.is_moderator? || user.id == creator_id
+    return true if user.is_moderator?
+    return false if original_post&.is_aibur?
+    user.id == creator_id
   end
 
   def can_delete?(user)
@@ -161,15 +182,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def create_mod_action_for_delete
-    ModAction.log(:forum_topic_delete, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
-  end
-
-  def create_mod_action_for_hide
-    ModAction.log(:forum_topic_hide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
-  end
-
-  def create_mod_action_for_unhide
-    ModAction.log(:forum_topic_unhide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
+    ModAction.log(:forum_topic_delete, { forum_topic_id: id, forum_topic_title: title, user_id: creator_id })
   end
 
   def initialize_is_hidden

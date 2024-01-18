@@ -21,6 +21,7 @@ class ForumPost < ApplicationRecord
   validate :topic_is_not_restricted, :on => :create
   validate :category_allows_replies, on: :create
   validate :validate_creator_is_not_limited, on: :create
+  validate :validate_not_aibur, if: :will_save_change_to_is_hidden?
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
@@ -87,6 +88,10 @@ class ForumPost < ApplicationRecord
   end
 
   def votable?
+    is_aibur?
+  end
+
+  def is_aibur?
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
       BulkUpdateRequest.where(forum_post_id: id).exists?
@@ -111,6 +116,15 @@ class ForumPost < ApplicationRecord
       return false
     end
     true
+  end
+
+  def validate_not_aibur
+    return if CurrentUser.is_moderator? || !is_aibur?
+
+    if is_hidden?
+      errors.add(:post, "is for an alias, implication, or bulk update request. It cannot be hidden")
+      throw :abort
+    end
   end
 
   def topic_id_not_invalid
@@ -146,6 +160,7 @@ class ForumPost < ApplicationRecord
 
   def can_hide?(user)
     return true if user.is_moderator?
+    return false if is_aibur?
     return false if was_warned?
     user.id == creator_id
   end

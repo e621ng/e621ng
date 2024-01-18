@@ -10,7 +10,7 @@ ForumPost.initialize_all = function() {
       $("#edit_forum_post_" + forum_post_id).fadeToggle("fast");
       e.preventDefault();
     });
-  
+
     $(".edit_forum_topic_link").on("click.danbooru", function(e) {
       var link_id = $(this).attr("id");
       var forum_topic_id = link_id.match(/^edit_forum_topic_link_(\d+)$/)[1];
@@ -139,7 +139,8 @@ ForumPost.hide = function (e) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-deleted', 'true');
   }).fail(function (data) {
-    Utility.error("Failed to hide post.");
+    const message = Object.values(data.responseJSON.errors).join('; ');
+    Utility.error(`Failed to hide post: ${message}`);
   });
 };
 
