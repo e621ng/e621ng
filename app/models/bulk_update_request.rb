@@ -114,6 +114,7 @@ class BulkUpdateRequest < ApplicationRecord
       else
         forum_topic = ForumTopic.create(title: title, category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: { body: "Reason: #{reason}" })
         update(forum_topic_id: forum_topic.id, forum_post_id: forum_topic.posts.first.id)
+        forum_topic.posts.first.update(tag_change_request: self)
       end
     end
 

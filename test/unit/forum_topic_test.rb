@@ -155,6 +155,7 @@ class ForumTopicTest < ActiveSupport::TestCase
     context "that has an alias, implication, or bulk update request" do
       setup do
         @tag_alias = create(:tag_alias, forum_post: @topic.original_post)
+        @topic.original_post.update_columns(tag_change_request_id: @tag_alias.id, tag_change_request_type: "TagAlias")
         @mod = create(:moderator_user)
       end
 

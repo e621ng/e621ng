@@ -11,6 +11,7 @@ class ForumPost < ApplicationRecord
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
+  belongs_to :tag_change_request, polymorphic: true, optional: true
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
@@ -83,18 +84,12 @@ class ForumPost < ApplicationRecord
 
   extend SearchMethods
 
-  def tag_change_request
-    bulk_update_request || tag_alias || tag_implication
-  end
-
   def votable?
     is_aibur?
   end
 
   def is_aibur?
-    TagAlias.where(forum_post_id: id).exists? ||
-      TagImplication.where(forum_post_id: id).exists? ||
-      BulkUpdateRequest.where(forum_post_id: id).exists?
+    tag_change_request.present?
   end
 
   def validate_topic_is_unlocked

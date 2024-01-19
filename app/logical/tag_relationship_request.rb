@@ -27,6 +27,7 @@ class TagRelationshipRequest
 
         @tag_relationship.forum_topic_id = @forum_topic.id
         @tag_relationship.forum_post_id = @forum_topic.posts.first.id
+        @forum_topic.posts.first.update(tag_change_request: @tag_relationship)
         @tag_relationship.save
       end
     end
