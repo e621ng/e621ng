@@ -145,7 +145,7 @@ class ForumPost < ApplicationRecord
 
   def editable_by?(user)
     return true if user.is_admin?
-    return false if was_warned?
+    return false if was_warned? || (is_aibur? && !tag_change_request.is_pending?)
     creator_id == user.id && visible?(user)
   end
 

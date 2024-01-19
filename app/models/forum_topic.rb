@@ -157,7 +157,9 @@ class ForumTopic < ApplicationRecord
   include SubscriptionMethods
 
   def editable_by?(user)
-    (creator_id == user.id || user.is_moderator?) && visible?(user)
+    return true if user.is_moderator?
+    return false unless visible?(user) && original_post.editable_by?(user)
+    creator_id == user.id
   end
 
   def visible?(user)
