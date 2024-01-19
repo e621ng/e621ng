@@ -224,7 +224,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       setup do
         @admin = create(:admin_user)
         @topic = create(:forum_topic, title: TagImplicationRequest.topic_title("aaa", "bbb"))
-        @post = create(:forum_post, topic_id: @topic.id, body: TagImplicationRequest.command_string("aaa", "bbb"))
+        @post = create(:forum_post, topic_id: @topic.id, body: "Reason: test")
         @implication = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", forum_topic: @topic, forum_post: @post, status: "pending")
       end
 

@@ -26,7 +26,7 @@ class TagAlias < TagRelationship
     def forum_updater
       @forum_updater ||= begin
         post = if forum_topic
-                 forum_post || forum_topic.posts.where("body like ?", TagAliasRequest.command_string(antecedent_name, consequent_name, id) + "%").last
+                 forum_post
                else
                  nil
                end
