@@ -1,0 +1,21 @@
+a.decorated {
+  // Wacky alignment hijinks
+  display: inline-flex;
+  align-items: center;
+
+  // This has to be updated every time the
+  // spritesheet dimensions change.
+  $spriteSize: 32px;
+  $spriteCols: 8;
+  $spriteRows: 10;
+
+  span.link-decoration {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    line-height: 0;
+    background-image: url("images/favicons.png");
+    background-size: ($spriteSize * $spriteCols / 2) ($spriteSize * $spriteRows / 2);
+  }
+}

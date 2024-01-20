@@ -210,4 +210,178 @@ protected
       /^#{site_map_path}/
     end
   end
+
+  # Every time this list changes:
+  # - generate and optimize a new spritesheet file
+  # - update the spritesheet dimensions in the CSS
+  # - regenerate the alias list
+
+  DECORATABLE_DOMAINS = [
+    nil, # default
+    "e621.net",
+    #
+    # Aggregators
+    "linktr.ee",
+    "carrd.co",
+    #
+    # Art sites
+    "artstation.com",
+    "archiveofourown.com",
+    "aryion.com",
+    "derpibooru.org",
+    "deviantart.com",
+    "furaffinity.net",
+    "furrynetwork.com",
+    "furrystation.com",
+    "hentai-foundry.com",
+    "hiccears.com",
+    "imgur.com",
+    "inkbunny.net",
+    "itaku.ee",
+    "pillowfort.social",
+    "pixiv.net",
+    "skeb.jp",
+    "sofurry.com",
+    "toyhou.se",
+    "tumblr.com",
+    "newgrounds.com",
+    "weasyl.com",
+    "webtoons.com",
+    #
+    # Social media
+    "aethy.com",
+    "baraag.net",
+    "bsky.app",
+    "cohost.org",
+    "facebook.com",
+    "instagram.com",
+    "pawoo.net",
+    "plurk.com",
+    "privatter.net",
+    "reddit.com",
+    "tiktok.com",
+    "twitter.com",
+    "vk.com",
+    "weibo.com",
+    "youtube.com",
+    #
+    # Livestreams
+    "picarto.tv",
+    "piczel.tv",
+    "twitch.tv",
+    #
+    # Paysites
+    "artconomy.com",
+    "boosty.to",
+    "buymeacoffee.com",
+    "commishes.com",
+    "gumroad.com",
+    "etsy.com",
+    "fanbox.cc",
+    "itch.io",
+    "ko-fi.com",
+    "patreon.com",
+    "redbubble.com",
+    "subscribestar.adult",
+    #
+    # Bulk storage
+    "amazonaws.com",
+    "catbox.moe",
+    "drive.google.com",
+    "dropbox.com",
+    "mega.nz",
+    "onedrive.live.com",
+    #
+    # Imageboards
+    "4chan.org",
+    "danbooru.donmai.us",
+    "desuarchive.org",
+    "e-hentai.org",
+    "gelbooru.com",
+    "rule34.paheal.net",
+    "rule34.xxx",
+    "u18chan.com",
+    #
+    # Other
+    "curiouscat.me",
+    "discord.com",
+    "steamcommunity.com",
+    "t.me",
+    "trello.com",
+    "web.archive.org",
+  ].freeze
+
+  DECORATABLE_ALIASES = {
+    # alt names
+    "e926.net" => DECORATABLE_DOMAINS.find_index("e621.net"),
+    "discord.gg" => DECORATABLE_DOMAINS.find_index("discord.com"),
+    "pixiv.me" => DECORATABLE_DOMAINS.find_index("pixiv.net"),
+    "x.com" => DECORATABLE_DOMAINS.find_index("twitter.com"),
+
+    # same icon
+    "cloudfront.net" => DECORATABLE_DOMAINS.find_index("amazonaws.com"),
+    "mastodon.art" => DECORATABLE_DOMAINS.find_index("baraag.net"),
+    "meow.social" => DECORATABLE_DOMAINS.find_index("baraag.net"),
+    "sta.sh" => DECORATABLE_DOMAINS.find_index("deviantart.com"),
+
+    # image servers
+    "4cdn.org" => DECORATABLE_DOMAINS.find_index("4chan.org"),
+    "discordapp.com" => DECORATABLE_DOMAINS.find_index("discord.com"),
+    "derpicdn.net" => DECORATABLE_DOMAINS.find_index("derpibooru.org"),
+    "dropboxusercontent.com" => DECORATABLE_DOMAINS.find_index("dropbox.com"),
+    "facdn.net" => DECORATABLE_DOMAINS.find_index("furaffinity.net"),
+    "fbcdn.net" => DECORATABLE_DOMAINS.find_index("facebook.com"),
+    "ib.metapix.net" => DECORATABLE_DOMAINS.find_index("inkbunny.net"),
+    "ngfiles.com" => DECORATABLE_DOMAINS.find_index("newgrounds.com"),
+    "pximg.net" => DECORATABLE_DOMAINS.find_index("pixiv.net"),
+    "redd.it" => DECORATABLE_DOMAINS.find_index("reddit.com"),
+    "twimg.com" => DECORATABLE_DOMAINS.find_index("twitter.com"),
+    "ungrounded.net" => DECORATABLE_DOMAINS.find_index("newgrounds.com"),
+    "wixmp.com" => DECORATABLE_DOMAINS.find_index("deviantart.com"),
+  }.freeze
+
+  def decorated_link_to(text, path, **)
+    begin
+      uri = URI.parse(path)
+    rescue URI::InvalidURIError
+      return link_to(text, path, **)
+    end
+
+    hostname = uri.host
+    hostname = hostname[4..] if hostname.match(/^www\./)
+
+    # First attempt: direct match
+    index = DECORATABLE_DOMAINS.find_index(hostname)
+
+    # Second attempt: subdomains?
+    if index.nil?
+      parts = hostname.split(".")
+      hostname = parts.drop(1).join(".") if parts.length > 2
+      index = DECORATABLE_DOMAINS.find_index(hostname)
+
+      # Third attempt: aliases
+      index = DECORATABLE_ALIASES[hostname] if index.nil?
+    end
+
+    # Calculate the coordinates
+    index = 0 if index.nil?
+    x = 0 - (index.modulo(8) * 16)
+    y = 0 - ((index / 8).floor * 16)
+
+    link_to(path, class: "decorated", **) do
+      safe_join([
+        tag.span(
+          class: "link-decoration",
+          style: "background-position: #{x}px #{y}px",
+          data: {
+            hostname: hostname,
+            index: index,
+            lookup: DECORATABLE_ALIASES[hostname].to_s,
+            isNil: DECORATABLE_ALIASES[hostname].nil?,
+          },
+        ),
+        text,
+      ])
+    end
+  end
 end

@@ -73,57 +73,99 @@ class ArtistUrl < ApplicationRecord
 
   # sites apearing at the start have higher priority than those below
   SITES_PRIORITY_ORDER = [
-    "furaffinity.net",
+    # e621 itself
+    "e621.net",
+    "e926.net",
+    #
+    # aggregators
+    "linktr.ee",
+    "carrd.co",
+    #
+    # art sites
+    "artstation.com",
+    "archiveofourown.com",
+    "aryion.com",
+    "derpibooru.org",
     "deviantart.com",
-    "twitter.com",
+    "furaffinity.net",
+    "furrynetwork.com",
+    "furrystation.com",
+    "hentai-foundry.com",
+    "hiccears.com",
+    "imgur.com",
+    "inkbunny.net",
+    "itaku.ee",
+    "pillowfort.social",
     "pixiv.net",
     "pixiv.me",
-    "inkbunny.net",
+    "skeb.jp",
     "sofurry.com",
-    "weasyl.com",
-    "furrynetwork.com",
-    "itaku.ee",
+    "toyhou.se",
     "tumblr.com",
     "newgrounds.com",
-    "derpibooru.org",
-    "cohost.org",
-    "hentai-foundry.com",
-    "artstation.com",
+    "weasyl.com",
+    "webtoons.com",
+    #
+    # social media
+    "aethy.com",
     "baraag.net",
-    "pawoo.net",
-    "skeb.jp",
-    "pillowfort.social",
-    "reddit.com",
     "bsky.app",
-    "youtube.com",
-    "t.me",
-    "instagram.com",
-    "vk.com",
+    "cohost.org",
     "facebook.com",
+    "instagram.com",
+    "meow.social",
+    "pawoo.net",
+    "plurk.com",
+    "reddit.com",
     "tiktok.com",
+    "twitter.com",
+    "vk.com",
+    "weibo.com",
+    "youtube.com",
+    #
     # livestreams
     "picarto.tv",
     "piczel.tv",
     "twitch.tv",
-    # support the artist
-    "patreon.com",
-    "subscribestar.adult",
-    "ko-fi.com",
-    "commishes.com",
+    #
+    # paysites
+    "artconomy.com",
     "boosty.to",
+    "buymeacoffee.com",
+    "commishes.com",
+    "gumroad.com",
+    "etsy.com",
     "fanbox.cc",
     "itch.io",
-    "gumroad.com",
+    "ko-fi.com",
+    "patreon.com",
     "redbubble.com",
-    "etsy.com",
-    # misc
-    "discord.gg",
-    "discord.com",
-    "trello.com",
+    "subscribestar.adult",
+    #
+    # bulk storage
+    "catbox.moe",
+    "drive.google.com",
+    "dropbox.com",
+    "mega.nz",
+    "onedrive.live.com",
+    "sta.sh",
+    #
+    # imageboards
+    "danbooru.donmai.us",
+    "desuarchive.org",
+    "e-hentai.org",
+    "gelbooru.com",
+    "rule34.paheal.net",
+    "rule34.xxx",
+    #
+    # other
     "curiouscat.me",
-    "toyhou.se",
-    "linktr.ee",
-    "carrd.co",
+    "discord.com",
+    "discord.gg",
+    "steamcommunity.com",
+    "t.me",
+    "trello.com",
+    "web.archive.org",
   ].reverse!
 
   # higher priority will apear higher in the artist url list
