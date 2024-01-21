@@ -679,6 +679,10 @@ module Danbooru
     def moderator_stats_discord_webhook_url
       nil
     end
+
+    def aibur_stats_discord_webhook_url
+      nil
+    end
   end
 
   class EnvironmentConfiguration
