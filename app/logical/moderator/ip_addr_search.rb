@@ -27,14 +27,6 @@ module Moderator
     private
 
     def search_by_ip_addr(ip_addrs, with_history)
-      def add_by_ip_addr(target, name, ips, klass, ip_field, id_field)
-        if ips.size == 1
-          target.merge!({name => klass.where("#{ip_field} <<= ?", ips[0]).group(id_field).count})
-        else
-          target.merge!({name => klass.where(ip_field => ips).group(id_field).count})
-        end
-      end
-
       sums = {}
       add_by_ip_addr(sums, :comment, ip_addrs, ::Comment, :creator_ip_addr, :creator_id)
       add_by_ip_addr(sums, :dmail, ip_addrs, ::Dmail, :creator_ip_addr, :from_id)
@@ -62,10 +54,6 @@ module Moderator
     end
 
     def search_by_user_id(user_ids, with_history)
-      def add_by_user_id(target, name, ids, klass, ip_field, id_field)
-          target.merge!({name => klass.where(id_field => ids).where.not(ip_field => nil).group(ip_field).count})
-      end
-
       sums = {}
       add_by_user_id(sums, :comment, user_ids, ::Comment, :creator_ip_addr, :creator_id)
       add_by_user_id(sums, :dmail, user_ids, ::Dmail, :creator_ip_addr, :from_id)
@@ -84,6 +72,18 @@ module Moderator
 
       ip_addrs = sums.map { |_, v| v.map { |k, _| k } }.reduce([]) { |ids, id| ids + id }.uniq
       {sums: sums, ip_addrs: ip_addrs}
+    end
+
+    def add_by_user_id(target, name, ids, klass, ip_field, id_field)
+      target.merge!({ name => klass.where(id_field => ids).where.not(ip_field => nil).group(ip_field).count })
+    end
+
+    def add_by_ip_addr(target, name, ips, klass, ip_field, id_field)
+      if ips.size == 1
+        target.merge!({ name => klass.where("#{ip_field} <<= ?", ips[0]).group(id_field).count })
+      else
+        target.merge!({ name => klass.where(ip_field => ips).group(id_field).count })
+      end
     end
   end
 end

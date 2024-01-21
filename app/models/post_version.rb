@@ -16,24 +16,28 @@ class PostVersion < ApplicationRecord
       end
     end
 
+    def should(*args)
+      { bool: { should: args } }
+    end
+
+    def split_to_terms(field, input)
+      input.split(",").map(&:to_i).map { |x| { term: { field => x } } }
+    end
+
+    def tag_list(field, input, target)
+      if input.present?
+        target += TagQuery.scan(input).map { |x| { term: { field => x } } }
+      end
+      target
+    end
+
+    def to_rating(input)
+      input.to_s.downcase[0]
+    end
+
     def build_query(params)
       must = []
       must_not = []
-      def should(*args)
-        {bool: {should: args}}
-      end
-      def split_to_terms(field, input)
-        input.split(',').map(&:to_i).map {|x| {term: {field => x}}}
-      end
-      def tag_list(field, input, target)
-        if input.present?
-          target += TagQuery.scan(input).map { |x| { term: { field => x } } }
-        end
-        target
-      end
-      def to_rating(input)
-        input.to_s.downcase[0]
-      end
 
       if params[:updater_name].present?
         user_id = User.name_to_id(params[:updater_name])
