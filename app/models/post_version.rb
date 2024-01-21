@@ -26,7 +26,7 @@ class PostVersion < ApplicationRecord
 
     def tag_list(field, input, target)
       if input.present?
-        target += TagQuery.scan(input).map { |x| { term: { field => x } } }
+        target += TagQuery.scan(input.downcase).map { |x| { term: { field => x } } }
       end
       target
     end
