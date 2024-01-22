@@ -1,6 +1,6 @@
 <div id="p-index-by-comment" class="comments-for-post">
     <% @comments.each do |comment| %>
-      <% if comment.post.present? && (CurrentUser.is_moderator? || !comment.is_hidden?) %>
+      <% if comment.post.present? && comment.visible_to?(CurrentUser.user) %>
       <div class="comment-post">
         <div class="post-container">
           <%= PostPresenter.preview(comment.post, inline: true, show_deleted: true) %>
