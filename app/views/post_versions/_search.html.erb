@@ -15,5 +15,5 @@
   <%= f.input :locked_tags_added, label: "Added Locked Tags" %>
   <%= f.input :locked_tags_removed, label: "Removed Locked Tags" %>
   <%= f.input :source_changed, label: "Source Changed", collection: [%w[Yes true], %w[No false]], include_blank: true %>
-  <%= f.input :uploads, label: "Uploads", collection: [%w[Included included], %w[Excluded excluded], %w[Only only]], include_blank: false %>
+  <%= f.input :uploads, label: "Uploads", collection: [%w[Included included], %w[Excluded excluded], %w[Only only]], include_blank: true %>
 <% end %>
