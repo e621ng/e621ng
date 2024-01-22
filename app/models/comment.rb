@@ -36,9 +36,9 @@ class Comment < ApplicationRecord
 
     def hidden(user)
       if user.is_moderator?
-        where("score < ? and is_sticky = false", user.comment_threshold)
+        where("not(score >= ? or is_sticky = true)", user.comment_threshold)
       else
-        where("(score < ? and is_sticky = false) or (is_hidden = true and creator_id != ?)", user.comment_threshold, user.id)
+        where("not((score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?))", user.comment_threshold, user.id)
       end
     end
 
