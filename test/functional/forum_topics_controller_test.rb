@@ -98,7 +98,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a new forum topic and post" do
         assert_difference(["ForumPost.count", "ForumTopic.count"], 1) do
-          post_auth forum_topics_path, @user, params: {:forum_topic => {:title => "bababa", :category_id => Danbooru.config.alias_implication_forum_category, :original_post_attributes => {:body => "xaxaxa"}}}
+          post_auth forum_topics_path, @user, params: { forum_topic: { title: "bababa", category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: { body: "xaxaxa" } } }
         end
 
         forum_topic = ForumTopic.last
@@ -110,6 +110,17 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
         assert_response :unprocessable_entity
         assert_includes(@response.parsed_body.dig("errors", "category"), "is invalid")
+      end
+
+      should "cause the unread indicator to show" do
+        @other_user.update(last_forum_read_at: Time.now)
+        get_auth posts_path, @other_user
+        assert_select "#nav-forum.forum-updated", false
+
+        post_auth forum_topics_path, @user, params: { forum_topic: { title: "bababa", category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: { body: "xaxaxa" } } }
+
+        get_auth posts_path, @other_user
+        assert_select "#nav-forum.forum-updated"
       end
     end
 
@@ -138,6 +149,48 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(forum_topic_path(@forum_topic))
         @forum_topic.reload
         assert(!@forum_topic.is_hidden?)
+      end
+    end
+
+    context "subscribe action" do
+      setup do
+        @status = create(:forum_topic_status, forum_topic: @forum_topic, user: @user, mute: true)
+      end
+
+      should "ensure mute=false" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth subscribe_forum_topic_path(@forum_topic), @user
+        end
+        @status.reload
+        assert_equal(false, @status.mute)
+        assert_equal(true, @status.subscription)
+      end
+
+      should "not create a new status entry if one already exists" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth subscribe_forum_topic_path(@forum_topic), @user
+        end
+      end
+    end
+
+    context "mute action" do
+      setup do
+        @status = create(:forum_topic_status, forum_topic: @forum_topic, user: @user, subscription: true)
+      end
+
+      should "ensure subscription=false" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth mute_forum_topic_path(@forum_topic), @user, params: { _method: "PUT" }
+        end
+        @status.reload
+        assert_equal(false, @status.subscription)
+        assert_equal(true, @status.mute)
+      end
+
+      should "not create a new status entry if one already exists" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth mute_forum_topic_path(@forum_topic), @user, params: { _method: "PUT" }
+        end
       end
     end
   end
