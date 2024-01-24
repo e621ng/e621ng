@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
   context "The forum topics controller" do
@@ -136,6 +136,48 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(forum_topic_path(@forum_topic))
         @forum_topic.reload
         assert(!@forum_topic.is_hidden?)
+      end
+    end
+
+    context "subscribe action" do
+      setup do
+        @status = create(:forum_topic_status, forum_topic: @forum_topic, user: @user, mute: true)
+      end
+
+      should "ensure mute=false" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth subscribe_forum_topic_path(@forum_topic), @user
+        end
+        @status.reload
+        assert_equal(false, @status.mute)
+        assert_equal(true, @status.subscription)
+      end
+
+      should "not create a new status entry if one already exists" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth subscribe_forum_topic_path(@forum_topic), @user
+        end
+      end
+    end
+
+    context "mute action" do
+      setup do
+        @status = create(:forum_topic_status, forum_topic: @forum_topic, user: @user, subscription: true)
+      end
+
+      should "ensure subscription=false" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth mute_forum_topic_path(@forum_topic), @user, params: { _method: "PUT" }
+        end
+        @status.reload
+        assert_equal(false, @status.subscription)
+        assert_equal(true, @status.mute)
+      end
+
+      should "not create a new status entry if one already exists" do
+        assert_no_difference("ForumTopicStatus.count") do
+          post_auth mute_forum_topic_path(@forum_topic), @user, params: { _method: "PUT" }
+        end
       end
     end
   end
