@@ -20,6 +20,11 @@
     <% else %>
       <%= subnav_link_to "Subscribe", subscribe_forum_topic_path(@forum_topic), method: :post, data: { confirm: "Are you sure you want to receive email notifications for this forum topic?" } %>
     <% end %>
+    <% if @forum_topic.user_mute(CurrentUser.user) %>
+      <%= subnav_link_to "Unmute", unmute_forum_topic_path(@forum_topic), method: :put %>
+    <% else %>
+      <%= subnav_link_to "Mute", mute_forum_topic_path(@forum_topic), method: :put, data: { confirm: "Are you sure you want to mute this forum topic? It will no longer show as unread." } %>
+    <% end %>
     <% if !@forum_topic.new_record? && @forum_topic.editable_by?(CurrentUser.user) %>
       <%= subnav_link_to "Edit", edit_forum_topic_path(@forum_topic), data: { shortcut: "e" } %>
       <% if CurrentUser.is_moderator? %>
