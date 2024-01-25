@@ -7,11 +7,11 @@ let Favorite = {};
 Favorite.initialize_actions = function () {
   $("#add-to-favorites, #add-fav-button").on("click", e => {
     e.preventDefault();
-    Favorite.create($(e.target).closest("button").data("pid"));
+    Favorite.create($(e.target).closest(".button").data("pid"));
   });
   $("#remove-from-favorites, #remove-fav-button").on("click", e => {
     e.preventDefault();
-    Favorite.destroy($(e.target).closest("button").data("pid"));
+    Favorite.destroy($(e.target).closest(".button").data("pid"));
   });
 };
 
