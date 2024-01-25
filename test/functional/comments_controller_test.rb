@@ -29,6 +29,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         get comments_path(group_by: "comment")
         assert_response :success
       end
+
+      should "render for the poster_id search parameter" do
+        get comments_path(group_by: "comment", search: { poster_id: 123 })
+        assert_response :success
+      end
     end
 
     context "search action" do

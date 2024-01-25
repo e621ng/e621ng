@@ -36,21 +36,21 @@ class Comment < ApplicationRecord
 
     def hidden(user)
       if user.is_moderator?
-        where("not(score >= ? or is_sticky = true)", user.comment_threshold)
+        where("not(comments.score >= ? or comments.is_sticky = true)", user.comment_threshold)
       elsif user.is_janitor?
-        where("not((score >= ? or is_sticky = true) and (is_sticky = true or is_hidden = false or creator_id = ?))", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       else
-        where("not((score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?))", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       end
     end
 
     def visible(user)
       if user.is_moderator?
-        where("score >= ? or is_sticky = true", user.comment_threshold)
+        where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
       elsif user.is_janitor?
-        where("(score >= ? or is_sticky = true) and (is_sticky = true or is_hidden = false or creator_id = ?)", user.comment_threshold, user.id)
+        where("(comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?)", user.comment_threshold, user.id)
       else
-        where("(score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?)", user.comment_threshold, user.id)
+        where("(comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?)", user.comment_threshold, user.id)
       end
     end
 
