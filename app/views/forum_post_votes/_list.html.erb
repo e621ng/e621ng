@@ -5,6 +5,7 @@
 
 <% own_vote = votes.find { |vote| vote.creator == CurrentUser.user } %>
 <% other_votes = votes.reject { |vote| vote.creator == CurrentUser.user } %>
+<% no_vote ||= false %>
 
 <% if own_vote %>
   <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post %>
@@ -14,6 +15,6 @@
   <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post %>
 <% end %>
 
-<% if forum_post.tag_change_request&.is_pending? && !own_vote %>
+<% if forum_post.tag_change_request&.is_pending? && !own_vote && !no_vote %>
   <%= render "forum_post_votes/add_vote", forum_post: forum_post %>
 <% end %>

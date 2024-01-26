@@ -1,0 +1,8 @@
+<% if tag_change_request.forum_post_id %>
+  <div style="margin: 1em 0;">
+    <h2>Votes</h2>
+      <ul class="votes" id="forum-post-votes-for-<%= tag_change_request.forum_post_id %>">
+        <%= render "forum_post_votes/list", votes: tag_change_request.forum_post.votes, forum_post: tag_change_request.forum_post, no_vote: true %>
+      </ul>
+  </div>
+<% end %>
