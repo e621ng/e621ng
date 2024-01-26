@@ -208,7 +208,7 @@ class Comment < ApplicationRecord
   end
 
   def should_see?(user)
-    return true if creator_id == user.id && is_hidden? && user.show_hidden_comments?
+    return user.show_hidden_comments? if creator_id == user.id && is_hidden?
     visible_to?(user)
   end
 
