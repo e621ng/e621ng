@@ -1,7 +1,7 @@
 class TicketsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index]
-  before_action :moderator_only, only: [:update, :edit, :destroy, :claim, :unclaim]
+  before_action :moderator_only, only: %i[update edit claim unclaim]
 
   def index
     @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])

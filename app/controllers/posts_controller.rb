@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  before_action :member_only, :except => [:show, :show_seq, :index, :home, :random]
+  before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
   respond_to :html, :json
 

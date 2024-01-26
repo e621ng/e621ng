@@ -1,7 +1,7 @@
 class UploadWhitelistsController < ApplicationController
   respond_to :html, :json, :js
   before_action :admin_only, only: [:new, :create, :edit, :update, :destroy]
-  before_action :load_whitelist, only: [:show, :edit, :update, :destroy]
+  before_action :load_whitelist, only: %i[edit update destroy]
 
   def index
     @whitelists = UploadWhitelist.search(search_params).paginate(params[:page], limit: params[:limit])
