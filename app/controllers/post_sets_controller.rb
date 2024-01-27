@@ -150,7 +150,7 @@ class PostSetsController < ApplicationController
   end
 
   def add_remove_posts_params
-    params.except(:id, :format).permit(post_ids: []).require(:post_ids)
+    params.extract!(:post_ids).permit(post_ids: []).require(:post_ids)
   end
 
   def search_params
