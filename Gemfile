@@ -31,6 +31,9 @@ gem 'newrelic_rpm'
 gem "diffy"
 gem "rugged"
 
+# Blocked by unicorn which lacks a release with Rack 3 support
+gem "rack", "~> 2.0"
+
 gem 'opensearch-ruby'
 
 gem 'mailgun-ruby'
