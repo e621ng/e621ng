@@ -289,6 +289,8 @@ Blacklist.initialize_all = function () {
   Blacklist.initialize_disable_all_blacklists();
   Blacklist.apply();
   $("#blacklisted-hider").remove();
+
+  Blacklist.init_reveal_on_click();
 }
 
 Blacklist.initialize_anonymous_blacklist = function () {
@@ -370,6 +372,14 @@ Blacklist.initialize_collapse = function () {
   });
   Blacklist.collapseUpdate();
 };
+
+/** Reveals the blacklisted post without disabling any filters */
+Blacklist.init_reveal_on_click = function() {
+  if(!$("#c-posts #a-show").length) return;
+  $("#image-container").on("click", (event) => {
+    $(event.currentTarget).removeClass("blacklisted");
+  });
+}
 
 $(document).ready(function () {
   Blacklist.initialize_collapse();
