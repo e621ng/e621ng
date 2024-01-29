@@ -303,7 +303,11 @@ Blacklist.initialize_anonymous_blacklist = function () {
 }
 
 Blacklist.initialize_blacklist_editor = function () {
-  $("#blacklist-edit-dialog").dialog({ autoOpen: false });
+  $("#blacklist-edit-dialog").dialog({
+    autoOpen: false,
+    width: 400,
+    height: 400,
+  });
 
   $("#blacklist-cancel").on('click', function () {
     $("#blacklist-edit-dialog").dialog('close');
