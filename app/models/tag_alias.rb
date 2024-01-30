@@ -89,32 +89,65 @@ class TagAlias < TagRelationship
     TagAlias.to_aliased_with_originals(names).values
   end
 
-  def self.to_aliased_query(query, overrides: nil)
+  def self.to_aliased_query(query, overrides: nil, comments: true)
     # Remove tag types (newline syntax)
     query.gsub!(/(^| )(-)?(#{TagCategory::MAPPING.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, '\1\2\4')
     # Remove tag types (comma syntax)
     query.gsub!(/, (-)?(#{TagCategory::MAPPING.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, ', \1\3')
+
     lines = query.downcase.split("\n")
-    collected_tags = []
+    processed = []
+    lookup = []
+
     lines.each do |line|
-      tags = line.split(" ").reject(&:blank?).map do |x|
-        negated = x[0] == '-'
-        [negated ? x[1..-1] : x, negated]
+      content = { tags: [] }
+      if line.strip.empty?
+        processed << content
+        next
       end
-      tags.each do |t|
-        collected_tags << t[0]
+
+      # Remove comments
+      comment = line.match(/(?: |^)#(.*)/)
+      unless comment.nil?
+        content[:comment] = comment[1].strip
+        line = line.delete_suffix("##{comment[1]}")
       end
+
+      # Process tags
+      line.split.compact_blank.map do |tag|
+        data = {
+          opt: tag.match(/^-?~/),
+          neg: tag.match(/^~?-/),
+          tag: tag.gsub(/^[-~]{1,}/, ""),
+        }
+
+        # ex. only - or ~ surrounded by spaces
+        next if data[:tag].empty?
+
+        content[:tags] << data
+        lookup << data[:tag]
+      end
+
+      processed << content
     end
-    aliased = to_aliased_with_originals(collected_tags)
-    aliased.merge!(overrides) if overrides
-    lines = lines.map do |line|
-      tags = line.split(" ").reject(&:blank?).reject {|t| t == '-'}.map do |x|
-        negated = x[0] == '-'
-        [negated ? x[1..-1] : x, negated]
+
+    # Look up the aliases
+    aliases = to_aliased_with_originals(lookup.uniq)
+    aliases.merge!(overrides) if overrides
+
+    # Rebuild the blacklist text
+    output = processed.map do |line|
+      output_line = line[:tags].map do |data|
+        (data[:opt] ? "~" : "") + (data[:neg] ? "-" : "") + (aliases[data[:tag]] || data[:tag])
       end
-      tags.map { |t| "#{t[1] ? '-' : ''}#{aliased[t[0]]}" }.join(" ")
+      output_line << "# #{line[:comment]}" unless !comments || line[:comment].nil?
+
+      output_line.uniq.join(" ")
     end
-    lines.uniq.join("\n")
+
+    # TODO: This causes every linebreak except for the very first one will get stripped.
+    # At the end of the day, it's not a huge deal.
+    output.uniq.join("\n")
   end
 
   def process_undo!(update_topic: true)
@@ -136,7 +169,7 @@ class TagAlias < TagRelationship
   def update_posts_locked_tags_undo
     Post.without_timeout do
       Post.where_ilike(:locked_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |post|
-        fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: {consequent_name => antecedent_name})
+        fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: { consequent_name => antecedent_name }, comments: false)
         CurrentUser.scoped(creator, creator_ip_addr) do
           post.update_column(:locked_tags, fixed_tags)
         end
@@ -147,7 +180,7 @@ class TagAlias < TagRelationship
   def update_blacklists_undo
     User.without_timeout do
       User.where_ilike(:blacklisted_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |user|
-        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: {consequent_name => antecedent_name})
+        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { consequent_name => antecedent_name })
         user.update_column(:blacklisted_tags, fixed_blacklist)
       end
     end
@@ -277,7 +310,7 @@ class TagAlias < TagRelationship
   def update_posts_locked_tags
     Post.without_timeout do
       Post.where_ilike(:locked_tags, "*#{antecedent_name}*").find_each(batch_size: 50) do |post|
-        fixed_tags = TagAlias.to_aliased_query(post.locked_tags)
+        fixed_tags = TagAlias.to_aliased_query(post.locked_tags, comments: false)
         CurrentUser.scoped(creator, creator_ip_addr) do
           post.update_column(:locked_tags, fixed_tags)
         end
