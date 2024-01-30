@@ -1,6 +1,6 @@
 import Utility from './utility'
-import LS from './local_storage'
 import Post from './posts';
+import Storage from './utility/storage';
 
 let Blacklist = {};
 
@@ -15,7 +15,7 @@ Blacklist.entryGet = function (line) {
 };
 
 Blacklist.entriesAllSet = function (enabled) {
-  LS.put("dab", enabled ? "0" : "1");
+  Storage.LS.put("dab", enabled ? "0" : "1");
   for (const entry of Blacklist.entries) {
     entry.disabled = !enabled;
   }
@@ -124,7 +124,7 @@ Blacklist.postShow = function (post) {
 };
 
 Blacklist.sidebarUpdate = function () {
-  if (LS.get("dab") === "1") {
+  if (Storage.LS.get("dab") === "1") {
     $("#disable-all-blacklists").hide();
     $("#re-enable-all-blacklists").show();
   } else {
@@ -169,7 +169,7 @@ Blacklist.sidebarUpdate = function () {
 }
 
 Blacklist.initialize_disable_all_blacklists = function () {
-  if (LS.get("dab") === "1") {
+  if (Storage.LS.get("dab") === "1") {
     Blacklist.entriesAllSet(false);
   }
 
@@ -296,7 +296,7 @@ Blacklist.initialize_anonymous_blacklist = function () {
     return;
   }
 
-  const anonBlacklist = LS.get('anonymous-blacklist');
+  const anonBlacklist = Storage.LS.get('anonymous-blacklist');
   if (anonBlacklist) {
     $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
   }
@@ -313,7 +313,7 @@ Blacklist.initialize_blacklist_editor = function () {
     const blacklist_content = $("#blacklist-edit").val();
     const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
     if($(document.body).data('user-is-anonymous') === true) {
-      LS.put('anonymous-blacklist', blacklist_json);
+      Storage.LS.put('anonymous-blacklist', blacklist_json);
     } else {
       $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
         method: "PUT",
@@ -343,12 +343,12 @@ Blacklist.initialize_blacklist_editor = function () {
 };
 
 Blacklist.collapseGet = function () {
-  const lsValue = LS.get('bc') || '1';
+  const lsValue = Storage.LS.get('bc') || '1';
   return lsValue === '1';
 };
 
 Blacklist.collapseSet = function (collapsed) {
-  LS.put('bc', collapsed ? "1" : "0");
+  Storage.LS.put('bc', collapsed ? "1" : "0");
 };
 
 Blacklist.collapseUpdate = function () {

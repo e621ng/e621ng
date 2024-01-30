@@ -1,6 +1,6 @@
 import {SendQueue} from './send_queue'
 import Post from './posts'
-import LS from './local_storage'
+import Storage from './utility/storage';
 
 let PostSet = {};
 
@@ -74,9 +74,9 @@ PostSet.update_sets_menu = function() {
       $(window).trigger('danbooru:error', "Error getting sets list: " + data.message);
     }).done(function(data) {
       target.on('change', function(e) {
-        LS.put('set', e.target.value);
-      })
-      const target_set = LS.get('set') || 0;
+        Storage.Posts.Set = e.target.value;
+      });
+      const target_set = Storage.Posts.Set;
       target.empty();
       ['Owned', "Maintained"].forEach(function(v) {
         let group = $('<optgroup>', {label: v});

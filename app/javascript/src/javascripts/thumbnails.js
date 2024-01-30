@@ -1,5 +1,5 @@
 import Blacklist from './blacklists';
-import LS from './local_storage';
+import Storage from './utility/storage';
 
 const Thumbnails = {};
 
@@ -13,7 +13,7 @@ Thumbnails.initialize = function () {
   };
   const postsData = window.___deferred_posts || {};
   const posts = $('.post-thumb.placeholder, .thumb-placeholder-link');
-  const DAB = LS.get("dab") === "1";
+  const DAB = Storage.LS.get("dab") === "1";
   $.each(posts, function (i, post) {
     const p = $(post);
     const postID = p.data('id');
