@@ -24,11 +24,7 @@ require_relative "danbooru_local_config"
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
-
-    # Remove if load_defaults 7.1
-    config.add_autoload_paths_to_load_path = false
-    config.active_support.cache_format_version = 7.1
+    config.load_defaults 7.1
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false
