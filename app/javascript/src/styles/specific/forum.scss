@@ -62,7 +62,7 @@ div#c-forum-topics {
   }
 
   tr.forum-topic-row {
-    &[data-is-deleted="true"] {
+    &[data-topic-is-deleted="true"] {
       background-color: $forum-topic-hidden-background;
     }
 
