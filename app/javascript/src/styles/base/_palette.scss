@@ -1,0 +1,22 @@
+// Base color palette.
+// These colors should not normally change between
+// themes, but could still be overriden if need be.
+
+// Palette definitions
+$palette: (
+  "background-red": #76312E,
+  "background-yellow": #828028,
+  "background-green": #227d2a,
+  "background-grey": #60686f,
+);
+
+:root {
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+}
+
+// Helper function
+@function palette($key) {
+  @return var(--palette-#{$key});
+}

@@ -1,0 +1,5 @@
+@each $name in ("red", "yellow", "green", "grey") {
+  .background-#{$name} {
+    background: palette("background-#{$name}") !important;
+  }
+}
