@@ -2313,7 +2313,8 @@ CREATE TABLE public.wiki_page_versions (
     updated_at timestamp without time zone NOT NULL,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
-    reason character varying
+    reason character varying,
+    parent character varying
 );
 
 
