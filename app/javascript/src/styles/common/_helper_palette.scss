@@ -2,4 +2,16 @@
   .background-#{$name} {
     background: palette("background-#{$name}") !important;
   }
+  .text-#{$name} {
+    color: palette("text-#{$name}") !important;
+  }
+}
+
+.text-error {
+  color: palette("text-red") !important;
+  font-weight: bold;
+}
+
+.text-bold {
+  font-weight: bold;
 }

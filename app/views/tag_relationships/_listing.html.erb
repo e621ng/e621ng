@@ -22,7 +22,7 @@
           <span class="count"><%= tag_relation.consequent_tag.post_count rescue 0 %></span>
           <% if tag_relation.is_a?(TagAlias) %>
             <% if CurrentUser.is_member? && tag_relation.status == "pending" && tag_relation.has_transitives %>
-              <span class="redtext"> HAS TRANSITIVES</span>
+              <span class="text-error"> HAS TRANSITIVES</span>
             <% end %>
           <% end %>
         </td>

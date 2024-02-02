@@ -26,7 +26,7 @@
                 <%= link_to @takedown.source, "https://#{@takedown.source}", rel: "noopener noreferrer nofollow" %>
               <% end %>
             <% else %>
-              <span class="redtext">[Source hidden by submitter]</span>
+              <span class="text-error">[Source hidden by submitter]</span>
             <% end %>
           </td>
         </tr>
@@ -35,9 +35,9 @@
           <td><label>Reason</label></td>
           <% if !@takedown.reason_hidden || CurrentUser.is_moderator? || @show_instructions %>
             <td><%= h @takedown.reason %>
-              <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %></td>
+              <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %></td>
           <% else %>
-            <td><span class="redtext">[Reason hidden by submitter]</span></td>
+            <td><span class="text-error">[Reason hidden by submitter]</span></td>
           <% end %>
         </tr>
 
@@ -101,9 +101,9 @@
       <div class="box-section dtext-container">
         <% if !@takedown.reason_hidden || CurrentUser.is_moderator? %>
           <%= format_text(@takedown.notes) %>
-          <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %>
+          <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %>
         <% else %>
-          <span class="redtext">[Admin notes hidden]</span>
+          <span class="text-error">[Admin notes hidden]</span>
         <% end %>
       </div>
     <% end %>
