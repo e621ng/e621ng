@@ -1,17 +1,17 @@
 #c-bans #a-index {
   tr[data-expired="true"] {
-    background-color: $positive-record-background;
+    background-color: palette("background-green");
 
     &:hover {
-      background-color: darken($positive-record-background, 5%);
+      background-color: palette("background-green-d5");
     }
   }
 
   tr[data-expired="false"] {
-    background-color: $negative-record-background;
+    background-color: palette("background-red");
 
     &:hover {
-      background-color: darken($negative-record-background, 5%);
+      background-color: palette("background-red-d5");
     }
   }
 }

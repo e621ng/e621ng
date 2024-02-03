@@ -7,9 +7,15 @@
   }
 }
 
-.text-error {
-  color: palette("text-red") !important;
-  font-weight: bold;
+.text {
+  &-explicit { color: palette("text-red"); }
+  &-questionable { color: palette("text-yellow"); }
+  &-safe { color: palette("text-green"); }
+
+  &-error {
+    color: palette("text-red") !important;
+    font-weight: bold;
+  }
 }
 
 .text-bold {

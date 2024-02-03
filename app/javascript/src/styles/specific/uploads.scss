@@ -21,13 +21,19 @@ div#c-uploads {
     }
 
     .rating-e.active {
-      background-color: themed("color-rating-explicit");
+      background-color: palette("background-red");
+      color: palette("text-white");
+      text-shadow: 0 0 2px #000;
     }
     .rating-q.active {
-      background-color: themed("color-rating-questionable");
+      background-color: palette("background-yellow");
+      color: palette("text-white");
+      text-shadow: 0 0 2px #000;
     }
     .rating-s.active {
-      background-color: themed("color-rating-safe");
+      background-color: palette("background-green");
+      color: palette("text-white");
+      text-shadow: 0 0 2px #000;
     }
 
     .flex-grid-outer {
