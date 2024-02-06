@@ -1,7 +1,7 @@
 <% content_for(:secondary_links) do %>
   <li><%= render "artists/quick_search" %></li>
   <%= subnav_link_to "Listing", artists_path %>
-  <%= subnav_link_to "Avoid Posting", wiki_page_path(id: "avoid_posting") %>
+  <%= subnav_link_to "Avoid Posting", avoid_postings_path %>
   <% if CurrentUser.is_member? %>
     <%= subnav_link_to "New", new_artist_path %>
   <% end %>
@@ -14,6 +14,9 @@
     <% if CurrentUser.is_member? %>
       <%= subnav_link_to "Edit", edit_artist_path(@artist), data: { shortcut: "e" } %>
     <% end %>
+    <% if @artist.is_dnp? %>
+      <%= subnav_link_to "DNP", avoid_posting_path(@artist.avoid_posting) %>
+    <% end %>
     <%= subnav_link_to "History", artist_versions_path(search: { artist_id: @artist.id }) %>
     <% if @artist.deletable_by?(CurrentUser.user) %>
       <% if @artist.is_active? %>
@@ -21,6 +24,11 @@
       <% else %>
         <%= subnav_link_to "Undelete", "#", id: "undelete-artist-link", data: { aid: @artist.id } %>
       <% end %>
+    <% end %>
+  <% else %>
+    <li>|</li>
+    <% if @artist&.is_dnp? %>
+      <%= subnav_link_to "DNP", avoid_posting_path(@artist.avoid_posting) %>
     <% end %>
   <% end %>
 <% end %>

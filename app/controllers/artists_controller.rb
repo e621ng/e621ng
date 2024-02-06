@@ -51,7 +51,7 @@ class ArtistsController < ApplicationController
 
   def update
     ensure_can_edit(CurrentUser.user)
-    @artist.update(artist_params)
+    @artist.update(artist_params(:update))
     flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
     respond_with(@artist)
   end
@@ -60,10 +60,10 @@ class ArtistsController < ApplicationController
     unless @artist.deletable_by?(CurrentUser.user)
       raise User::PrivilegeError
     end
-    @artist.update_attribute(:is_active, false)
+    @artist.update(is_active: false)
     respond_with(@artist) do |format|
       format.html do
-        redirect_to(artist_path(@artist), notice: "Artist deleted")
+        redirect_to(artist_path(@artist), notice: @artist.valid? ? "Artist deleted" : @artist.errors.full_messages.join("; "))
       end
     end
   end
@@ -107,8 +107,9 @@ private
 
   def artist_params(context = nil)
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
-    permitted_params += [:is_active, :linked_user_id, :is_locked] if CurrentUser.is_janitor?
+    permitted_params += %i[is_active linked_user_id is_locked] if CurrentUser.is_janitor?
     permitted_params << :source if context == :new
+    permitted_params << :rename_dnp if context == :update && CurrentUser.can_edit_avoid_posting_entries?
 
     params.fetch(:artist, {}).permit(permitted_params)
   end

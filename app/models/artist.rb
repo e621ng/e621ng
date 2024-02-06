@@ -1,12 +1,14 @@
 class Artist < ApplicationRecord
   class RevertError < Exception ; end
 
-  attr_accessor :url_string_changed
+  attr_accessor :url_string_changed, :rename_dnp
   array_attribute :other_names
 
   belongs_to_creator
   before_validation :normalize_name
   before_validation :normalize_other_names
+  before_validation :validate_protected_properties_not_changed
+  before_validation :validate_dnp_rename_not_conflicting, if: :will_save_change_to_name?
   validate :validate_user_can_edit
   validate :wiki_page_not_locked
   validate :user_not_limited
@@ -16,6 +18,7 @@ class Artist < ApplicationRecord
   after_save :create_version
   after_save :categorize_tag
   after_save :update_wiki
+  after_save :update_dnp, if: :saved_change_to_name?
   after_save :propagate_locked, if: :should_propagate_locked
   after_save :clear_url_string_changed
 
@@ -25,6 +28,7 @@ class Artist < ApplicationRecord
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
   has_one :tag_alias, :foreign_key => "antecedent_name", :primary_key => "name"
   has_one :tag, :foreign_key => "name", :primary_key => "name"
+  has_one :avoid_posting, -> { active }, foreign_key: "artist_name", primary_key: "name"
   belongs_to :linked_user, class_name: "User", optional: true
   attribute :notes, :string
 
@@ -499,6 +503,47 @@ class Artist < ApplicationRecord
     end
   end
 
+  module AvoidPostingMethods
+    def validate_protected_properties_not_changed
+      return if CurrentUser.can_edit_avoid_posting_entries?
+      dnp = will_save_change_to_name? ? AvoidPosting.for_artist(name_was) : AvoidPosting.for_artist(name)
+      return if dnp.blank?
+
+      errors.add(:name, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_name?
+      errors.add(:group_name, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_group_name?
+      errors.add(:other_names, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_other_names?
+      errors.add(:base, "Artist cannot be deleted while on the avoid posting list") if will_save_change_to_is_active? && !is_active?
+      throw :abort if errors.any?
+    end
+
+    def is_dnp?
+      avoid_posting.present?
+    end
+
+    def dnp_restricted?
+      is_dnp? && !CurrentUser.can_edit_avoid_posting_entries?
+    end
+
+    def validate_dnp_rename_not_conflicting
+      return unless CurrentUser.can_edit_avoid_posting_entries? && rename_dnp.to_s.truthy?
+      return unless AvoidPosting.where(artist_name: name_was).exists?
+      if AvoidPosting.where(artist_name: name).exists?
+        errors.add(:base, "Cannot rename artist and dnp, a conflicting dnp entry already exists")
+        throw :abort
+      end
+    end
+
+    def update_dnp
+      return unless CurrentUser.can_edit_avoid_posting_entries? && rename_dnp.to_s.truthy?
+      dnp = AvoidPosting.where(artist_name: name_before_last_save)
+      return if dnp.blank?
+      return if AvoidPosting.where(artist_name: name).exists?
+      dnp.update(artist_name: name)
+    end
+  end
+
+  include AvoidPostingMethods
+
   include UrlMethods
   include NameMethods
   include GroupMethods
@@ -517,7 +562,7 @@ class Artist < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_janitor?
+    !dnp_restricted? && user.is_janitor?
   end
 
   def editable_by?(user)

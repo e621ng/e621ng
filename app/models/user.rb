@@ -325,6 +325,10 @@ class User < ApplicationRecord
       is_bd_staff
     end
 
+    def is_staff?
+      is_janitor?
+    end
+
     def is_approver?
       can_approve_posts?
     end
@@ -521,10 +525,14 @@ class User < ApplicationRecord
     end
 
     def can_view_staff_notes?
-      is_janitor?
+      is_staff?
     end
 
     def can_handle_takedowns?
+      is_bd_staff?
+    end
+
+    def can_edit_avoid_posting_entries?
       is_bd_staff?
     end
 

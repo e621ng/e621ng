@@ -1,0 +1,72 @@
+<div id="c-avoid-posting-versions">
+  <div id="a-index">
+    <h1>Avoid Postings</h1>
+
+    <%= render "search" %>
+
+    <table class="striped autofit">
+      <thead>
+      <tr>
+        <th>Artist</th>
+        <th>Status</th>
+        <th>Details</th>
+        <% if CurrentUser.is_staff? %>
+          <th>Staff Notes</th>
+        <% end %>
+        <th>Updater</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @avoid_posting_versions.each do |avoid_posting_version| %>
+        <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
+          <td>
+            <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
+          </td>
+          <td>
+            <%= avoid_posting_version.status %>
+          </td>
+          <td>
+            <% if avoid_posting_version.previous && avoid_posting_version.previous.details == avoid_posting_version.details %>
+              (No Changes)
+            <% else %>
+              <%= avoid_posting_version.details %>
+            <% end %>
+          </td>
+          <% if CurrentUser.is_staff? %>
+            <td>
+              <% if avoid_posting_version.previous && avoid_posting_version.previous.staff_notes == avoid_posting_version.staff_notes %>
+                (No Changes)
+              <% else %>
+                <%= avoid_posting_version.staff_notes %>
+              <% end %>
+            </td>
+          <% end %>
+          <td>
+            <%= link_to_user avoid_posting_version.updater %>
+            <%= link_to "»", avoid_posting_versions_path(search: { updater_name: avoid_posting_version.updater_name }) %>
+            <p>
+              <%= compact_time(avoid_posting_version.updated_at) %>
+              <% if CurrentUser.is_admin? %>
+                (<%= link_to_ip avoid_posting_version.updater_ip_addr %>)
+              <% end %>
+            </p>
+          </td>
+          <td>
+            <% if CurrentUser.can_edit_avoid_posting_entries? %>
+              <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@avoid_posting_versions) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Avoid Posting Versions
+<% end %>
