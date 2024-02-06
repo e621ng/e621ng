@@ -42,15 +42,36 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
-    should "create an artist" do
-      attributes = attributes_for(:artist)
-      assert_difference("Artist.count", 1) do
-        attributes.delete(:is_active)
-        post_auth artists_path, @user, params: {artist: attributes}
+    context "when creating an artist" do
+      should "work" do
+        attributes = attributes_for(:artist)
+        assert_difference("Artist.count", 1) do
+          attributes.delete(:is_active)
+          post_auth artists_path, @user, params: { artist: attributes }
+        end
+
+        artist = Artist.find_by_name(attributes[:name])
+        assert_not_nil(artist)
+        assert_redirected_to(artist_path(artist.id))
       end
-      artist = Artist.find_by_name(attributes[:name])
-      assert_not_nil(artist)
-      assert_redirected_to(artist_path(artist.id))
+
+      should "work even if artist is dnp" do
+        attributes = attributes_for(:artist)
+        assert_difference("AvoidPosting.count", 1) do
+          as(create(:bd_staff_user)) do
+            create(:avoid_posting, artist_name: attributes[:name])
+          end
+        end
+
+        assert_difference("Artist.count", 1) do
+          attributes.delete(:is_active)
+          post_auth artists_path, @user, params: { artist: attributes }
+        end
+
+        artist = Artist.find_by_name(attributes[:name])
+        assert_not_nil(artist)
+        assert_redirected_to(artist_path(artist.id))
+      end
     end
 
     context "with an artist that has notes" do
@@ -135,6 +156,79 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         @artist.reload
         assert_not_equal(@artist.name, @artist2.name)
         assert_redirected_to(artist_path(@artist.id))
+      end
+    end
+
+    context "with a dnp entry" do
+      setup do
+        @bd_user = create(:bd_staff_user)
+        CurrentUser.user = @bd_user
+        @avoid_posting = create(:avoid_posting, artist_name: @artist.name)
+      end
+
+      should "rename the dnp entry" do
+        put_auth artist_path(@artist), @bd_user, params: { artist: { name: "another_artist", rename_dnp: true }}
+
+        assert_redirected_to(artist_path(@artist))
+        assert_equal(%w[artist_page_rename wiki_page_rename avoid_posting_update], ModAction.last(3).map(&:action))
+        assert_equal("another_artist", @artist.reload.name)
+        assert_equal("another_artist", @artist.wiki_page.reload.title)
+        assert_equal("another_artist", @avoid_posting.reload.artist_name)
+      end
+
+      should "not rename dnp if new name already exists" do
+        name = @avoid_posting.artist_name
+        new_dnp = create(:avoid_posting)
+        put_auth artist_path(@artist), @bd_user, params: { artist: { name: new_dnp.artist_name, rename_dnp: true }}
+
+        assert_equal(name, @artist.reload.name)
+        assert_equal(name, @artist.wiki_page.reload.title)
+        assert_equal(name, @avoid_posting.reload.artist_name)
+      end
+
+      should "not rename dnp if rename_dnp=false" do
+        name = @avoid_posting.artist_name
+        assert_difference("ModAction.count", 2) do
+          put_auth artist_path(@artist), @bd_user, params: { artist: { name: "another_artist", rename_dnp: false }}
+        end
+
+        assert_equal(%w[artist_page_rename wiki_page_rename], ModAction.last(2).map(&:action))
+        assert_equal("another_artist", @artist.reload.name)
+        assert_equal("another_artist", @artist.wiki_page.reload.title)
+        assert_equal(name, @avoid_posting.reload.artist_name)
+      end
+
+      should "not allow deleting" do
+        @janitor = create(:janitor_user)
+        delete_auth artist_path(@artist), @janitor
+
+        assert_equal(true, @artist.reload.is_active)
+      end
+
+      should "allow undeleting" do
+        @janitor = create(:janitor_user)
+        put_auth artist_path(@artist), @janitor, params: { artist: { is_active: true } }
+
+        assert_equal(true, @artist.reload.is_active)
+      end
+
+      should "not allow editing protected properties" do
+        @janitor = create(:janitor_user)
+        name = @artist.name
+        group_name = @artist.group_name
+        other_names = @artist.other_names
+        is_active = @artist.is_active
+        assert_no_difference("ModAction.count") do
+          put_auth artist_path(@artist), @janitor, params: { artist: { name: "another_name", group_name: "some_group", other_names: "some other names", is_active: false } }
+        end
+
+        @artist.reload
+        assert_equal(name, @artist.name)
+        assert_equal(group_name, @artist.group_name)
+        assert_equal(other_names, @artist.other_names)
+        assert_equal(is_active, @artist.is_active)
+        assert_equal(name, @artist.wiki_page.reload.title)
+        assert_equal(name, @avoid_posting.reload.artist_name)
       end
     end
   end
