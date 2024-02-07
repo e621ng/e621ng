@@ -45,6 +45,9 @@
       <%= render "post_disapprovals/detailed_rejection_dialog" %>
     <% end %>
   </div>
+
+
+  <%= render "posts/partials/show/avoid_posting", post: post %>
 <% end %>
 
 <% if post.replacements.pending.any? %>
