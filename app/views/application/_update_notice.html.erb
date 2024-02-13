@@ -1,7 +1,13 @@
 <%# record %>
 
-<% if record.respond_to?(:updater) && record.updater != record.creator  %>
-  <p class="info">Updated by <%= link_to_user record.updater %> <%= time_ago_in_words_tagged(record.updated_at) %></p>
-<% elsif record.updated_at - record.created_at > 5.minutes %>
-  <p class="info">Updated <%= time_ago_in_words_tagged(record.updated_at) %></p>
+<% advanced = %w[Blip Comment ForumPost].include?(record.model_name.name) %>
+<% always_show_edits = advanced && CurrentUser.is_moderator? %>
+<% timestamp = advanced ? record.edited_at : record.updated_at %>
+
+<% if (advanced && record.edited_at.present?) || !advanced %>
+  <% if record.respond_to?(:updater) && record.updater != record.creator %>
+    <p class="info">Updated by <%= link_to_user record.updater %> <%= time_ago_in_words_tagged(timestamp) %></p>
+  <% elsif always_show_edits || timestamp - record.created_at > 5.minutes %>
+    <p class="info">Updated <%= time_ago_in_words_tagged(timestamp) %></p>
+  <% end %>
 <% end %>

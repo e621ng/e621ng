@@ -285,5 +285,96 @@ class CommentTest < ActiveSupport::TestCase
       subject { build(:comment) }
       should_not allow_value(" ").for(:body)
     end
+
+    context "when modified" do
+      setup do
+        @post = create(:post)
+        @comment = create(:comment, post_id: @post.id)
+        original_body = @comment.body
+        @comment.class_eval do
+          after_save do
+            if @body_history.nil?
+              @body_history = [original_body]
+            end
+            @body_history.push(body)
+          end
+
+          define_method :body_history do
+            @body_history
+          end
+        end
+      end
+
+      instance_exec do
+        define_method :verify_history do |history, comment, edit_type, user = comment.creator_id|
+          throw "history is nil (#{comment.id}:#{edit_type}:#{user}:#{comment.creator_id})" if history.nil?
+          assert_equal(comment.body_history[history.version - 1], history.body, "history body did not match")
+          assert_equal(edit_type, history.edit_type, "history edit_type did not match")
+          assert_equal(user, history.user_id, "history user_id did not match")
+        end
+      end
+
+      should "create edit histories when body is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 3) do
+          @comment.update(body: "test")
+          as(@mod) { @comment.update(body: "test2") }
+
+          original, edit, edit2 = EditHistory.where(versionable_id: @comment.id).order(version: :asc)
+          verify_history(original, @comment, "original", @user.id)
+          verify_history(edit, @comment, "edit", @user.id)
+          verify_history(edit2, @comment, "edit", @mod.id)
+        end
+      end
+
+      should "create edit histories when hidden is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 3) do
+          @comment.hide!
+          as(@mod) { @comment.unhide! }
+
+          original, hide, unhide = EditHistory.where(versionable_id: @comment.id).order(version: :asc)
+          verify_history(original, @comment, "original")
+          verify_history(hide, @comment, "hide")
+          verify_history(unhide, @comment, "unhide", @mod.id)
+        end
+      end
+
+      should "create edit histories when sticky is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 3) do
+          as(@mod) { @comment.update(is_sticky: true) }
+
+          as(@mod) { @comment.update(is_sticky: false) }
+          original, stick, unstick = EditHistory.where(versionable_id: @comment.id).order(version: :asc)
+          verify_history(original, @comment, "original")
+          verify_history(stick, @comment, "stick", @mod.id)
+          verify_history(unstick, @comment, "unstick", @mod.id)
+        end
+      end
+
+      should "create edit histories when warning is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 7) do
+          as(@mod) do
+            @comment.user_warned!("warning", @mod)
+            @comment.remove_user_warning!
+            @comment.user_warned!("record", @mod)
+            @comment.remove_user_warning!
+            @comment.user_warned!("ban", @mod)
+            @comment.remove_user_warning!
+
+            original, warn, unmark1, record, unmark2, ban, unmark3 = EditHistory.where(versionable_id: @comment.id).order(version: :asc)
+            verify_history(original, @comment, "original")
+            verify_history(warn, @comment, "mark_warning", @mod.id)
+            verify_history(unmark1, @comment, "unmark", @mod.id)
+            verify_history(record, @comment, "mark_record", @mod.id)
+            verify_history(unmark2, @comment, "unmark", @mod.id)
+            verify_history(ban, @comment, "mark_ban", @mod.id)
+            verify_history(unmark3, @comment, "unmark", @mod.id)
+          end
+        end
+      end
+    end
   end
 end

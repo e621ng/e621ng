@@ -20,7 +20,9 @@
               </td>
               <td class="forum-post-excerpt">
                 <%= link_to truncate(forum_post.body, :length => 50), forum_post_path(forum_post) %>
-                <%= "(hidden)" if forum_post.is_hidden? %>
+                <% if forum_post.is_hidden? %>
+                  <span<% if forum_post.hidden_at.present? %> title="<%= time_ago_in_words(forum_post.hidden_at) %> ago"<% end %>>(hidden)</span>
+                <% end %>
               </td>
               <td><%= link_to_user forum_post.creator %></td>
               <td><%= time_ago_in_words_tagged forum_post.created_at %></td>

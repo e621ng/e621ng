@@ -1,0 +1,9 @@
+<%= form_search(path: edit_histories_path) do |f| %>
+  <%= f.input :versionable_type, label: "Versionable Type", collection: EditHistory::KNOWN_TYPES.map { |k| [k.to_s.titleize, k.to_s.titleize.tr(" ", "")] }, include_blank: true %>
+  <%= f.input :versionable_id, label: "Versionable ID" %>
+  <%= f.input :edit_type, label: "Edit Type", collection: EditHistory::KNOWN_EDIT_TYPES.map { |k| [k.to_s.titleize, k.to_s] }, include_blank: true %>
+  <%= f.user :user, label: "Updater" %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :ip_addr, label: "IP Address" %>
+  <% end %>
+<% end %>

@@ -29,7 +29,9 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :edit_histories
+  resources :edit_histories do
+    get :diff, on: :collection
+  end
   namespace :moderator do
     resource :dashboard, :only => [:show]
     resources :ip_addrs, :only => [:index] do
