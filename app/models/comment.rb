@@ -113,13 +113,11 @@ class Comment < ApplicationRecord
         end
       end
 
-      if %i[poster_id poster_name].any? { |key| params[key].present? }
-        q = q.joins(:post).where_user(:"posts.uploader_id", :poster, params)
+      q.where_user(:"posts.uploader_id", :poster, params) do |condition, _ids|
+        condition = condition.joins(:post)
         # Force a better query plan by ordering by created_at
-        q = q.reorder("comments.created_at desc")
+        condition.reorder("comments.created_at desc")
       end
-
-      q
     end
   end
 
