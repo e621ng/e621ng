@@ -5,11 +5,11 @@
 
 <ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">
   <% if own_vote %>
-    <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post %>
+    <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post, votable: votable %>
   <% end %>
 
   <% other_votes.each do |vote| %>
-    <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post %>
+    <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post, votable: false %>
   <% end %>
 
   <% if forum_post.tag_change_request&.is_pending? && !own_vote && votable %>
