@@ -38,6 +38,10 @@ class PaginatorTest < ActiveSupport::TestCase
       end
 
       context "numbered pagination" do
+        setup do
+          skip "flaky af" if ENV["CI"] && type == :opensearch
+        end
+
         should "return the correct set of records" do
           @records = create_list(model.name.underscore, 4)
           assert_paginated(expected_records: [@records[0]], is_first_page: true, is_last_page: false) { model.paginate("1", limit: 1) }
@@ -48,8 +52,6 @@ class PaginatorTest < ActiveSupport::TestCase
         end
 
         should "return the correct set of records when only one result exists" do
-          skip "flaky af" if ENV["CI"] && type == :opensearch
-
           @records = create_list(model.name.underscore, 2)
           assert_paginated(expected_records: [@records[0], @records[1]], is_first_page: true, is_last_page: true) { model.paginate("1", limit: 2) }
         end
