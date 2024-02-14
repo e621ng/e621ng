@@ -38,15 +38,23 @@ div.list-of-forum-posts {
       menu {
         margin-top: 0.5em;
 
-        ul.votes {
-          margin: 0.5em 0;
-        }
-
         li {
           margin-right: 1em;
         }
       }
+
+      .forum-post-votes-list {
+        margin-top: 0.5em;
+        margin-left: 0.2em;
+      }
     }
+  }
+}
+
+.forum-post-votes-list {
+  li {
+    display: inline;
+    margin-right: 1em;
   }
 }
 

@@ -73,12 +73,10 @@
               <span><%= link_to_ip forum_post.creator_ip_addr %></span>
             </li>
           <% end %>
-          <% if forum_post.votable? %>
-            <ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">
-              <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
-            </ul>
-          <% end %>
         </menu>
+        <% if forum_post.votable? %>
+          <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
+        <% end %>
         <% if forum_post.editable_by?(CurrentUser.user) %>
           <% if forum_post.is_original_post?(original_forum_post_id) %>
             <%= render "forum_topics/form", :forum_topic => forum_post.topic %>

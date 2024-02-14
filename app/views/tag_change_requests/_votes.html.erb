@@ -1,0 +1,6 @@
+<% if tag_change_request.forum_post&.votes&.any? %>
+  <div style="margin: 1em 0;">
+    <h2>Votes</h2>
+    <%= render "forum_post_votes/list", votes: tag_change_request.forum_post.votes, forum_post: tag_change_request.forum_post, votable: false %>
+  </div>
+<% end %>
