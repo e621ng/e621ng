@@ -137,7 +137,7 @@ ForumPost.hide = function (e) {
     dataType: 'json'
   }).done(function (data) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-deleted', 'true');
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-hidden', 'true');
   }).fail(function (data) {
     Utility.error("Failed to hide post.");
   });
@@ -156,7 +156,7 @@ ForumPost.unhide = function (e) {
   }).done(function (data) {
     const $author = $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`);
     $author.text($author.text().replace(" (hidden)", ""));
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-deleted', 'false');
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-hidden', 'false');
   }).fail(function (data) {
     Utility.error("Failed to unhide post.");
   });

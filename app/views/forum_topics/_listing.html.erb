@@ -9,7 +9,7 @@
   </thead>
   <tbody>
     <% forum_topics.each do |topic| %>
-      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-deleted="<%= topic.is_hidden? %>">
+      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-hidden="<%= topic.is_hidden? %>">
         <td>
           <% if topic.is_sticky? %>
             <span class="sticky">Sticky:</span>
