@@ -2,7 +2,7 @@ source 'https://rubygems.org/'
 
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 
-gem "rails", "~> 7.0.0"
+gem "rails", "~> 7.1.0"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
@@ -30,6 +30,9 @@ gem 'newrelic_rpm'
 
 gem "diffy"
 gem "rugged"
+
+# Blocked by unicorn which lacks a release with Rack 3 support
+gem "rack", "~> 2.0"
 
 gem 'opensearch-ruby'
 

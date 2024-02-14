@@ -1,5 +1,5 @@
 class ExceptionLog < ApplicationRecord
-  serialize :extra_params, JSON
+  serialize :extra_params, coder: JSON
 
   def self.add(exception, user_id, request)
     extra_params = {

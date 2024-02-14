@@ -4,7 +4,7 @@ def get_cache_store
   elsif Danbooru.config.disable_cache_store?
     :null_store
   else
-    [:mem_cache_store, Danbooru.config.memcached_servers, { namespace: Danbooru.config.safe_app_name }]
+    [:mem_cache_store, Danbooru.config.memcached_servers, { pool: false, namespace: Danbooru.config.safe_app_name }]
   end
 end
 

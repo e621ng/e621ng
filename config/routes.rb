@@ -73,7 +73,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets do
+  resources :tickets, except: %i[destroy] do
     member do
       post :claim
       post :unclaim
@@ -164,7 +164,7 @@ Rails.application.routes.draw do
   resources :forum_categories
   resources :help_pages, controller: "help", path: "help"
   resources :ip_bans
-  resources :upload_whitelists do
+  resources :upload_whitelists, except: %i[show] do
     collection do
       get :is_allowed
     end
