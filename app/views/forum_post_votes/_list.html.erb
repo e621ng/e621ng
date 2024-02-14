@@ -3,7 +3,7 @@
 <% own_vote = votes.find { |vote| vote.creator == CurrentUser.user } %>
 <% other_votes = votes.reject { |vote| vote.creator == CurrentUser.user } %>
 
-<ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">
+<ul class="forum-post-votes-list" id="forum-post-votes-for-<%= forum_post.id %>">
   <% if own_vote %>
     <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post, votable: votable %>
   <% end %>
