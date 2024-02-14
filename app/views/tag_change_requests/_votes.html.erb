@@ -1,4 +1,4 @@
-<% if tag_change_request.forum_post_id %>
+<% if tag_change_request.forum_post&.votes&.any? %>
   <div style="margin: 1em 0;">
     <h2>Votes</h2>
       <ul class="votes" id="forum-post-votes-for-<%= tag_change_request.forum_post_id %>">
