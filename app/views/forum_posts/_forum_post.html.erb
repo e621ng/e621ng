@@ -74,9 +74,7 @@
             </li>
           <% end %>
           <% if forum_post.votable? %>
-            <ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">
-              <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
-            </ul>
+            <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
           <% end %>
         </menu>
         <% if forum_post.editable_by?(CurrentUser.user) %>
