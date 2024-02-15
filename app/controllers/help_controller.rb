@@ -8,14 +8,12 @@ class HelpController < ApplicationController
     if params[:id] =~ /\A\d+\Z/
       @help = HelpPage.find(params[:id])
     else
-      @help = HelpPage.find_by(name: HelpPage.normalize_name(params[:id]))
+      @help = HelpPage.find_by(name: params[:id])
     end
     respond_with(@help) do |format|
       format.html do
         if @help.blank?
           redirect_to help_pages_path
-        else
-          @related = @help.related.split(", ")
         end
       end
       format.json do
