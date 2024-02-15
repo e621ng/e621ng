@@ -46,7 +46,7 @@ module DiscordReport
     def counting(clazz)
       {
         pending: clazz.pending.count,
-        handled: clazz.where(status: %w[approved active processing queued deleted]).where("created_at >= ? AND forum_topic_id IS NOT NULL", 1.day.ago).count,
+        handled: clazz.where(status: %w[approved active processing queued deleted]).where("updated_at >= ? AND forum_topic_id IS NOT NULL", 1.day.ago).count,
       }
     end
 
