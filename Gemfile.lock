@@ -121,10 +121,7 @@ GEM
       reline (>= 0.3.8)
     diffy (3.4.2)
     domain_name (0.6.20240107)
-    dotenv (2.8.1)
-    dotenv-rails (2.8.1)
-      dotenv (= 2.8.1)
-      railties (>= 3.2)
+    dotenv (3.0.2)
     draper (4.0.2)
       actionpack (>= 5.0)
       activemodel (>= 5.0)
@@ -386,7 +383,7 @@ DEPENDENCIES
   dalli
   debug
   diffy
-  dotenv-rails
+  dotenv
   draper
   dtext_rb!
   factory_bot_rails

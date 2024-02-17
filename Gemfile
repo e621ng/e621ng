@@ -1,6 +1,6 @@
 source 'https://rubygems.org/'
 
-gem 'dotenv-rails', require: 'dotenv/rails-now'
+gem "dotenv", require: "dotenv/load"
 
 gem "rails", "~> 7.1.0"
 gem "pg"
