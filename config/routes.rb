@@ -131,6 +131,7 @@ Rails.application.routes.draw do
   resources :dmails, :only => [:new, :create, :index, :show, :destroy] do
     member do
       put :mark_as_read
+      put :mark_as_unread
     end
     collection do
       put :mark_all_as_read
