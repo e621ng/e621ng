@@ -179,15 +179,11 @@ class TagAlias < TagRelationship
   end
 
   def process!(update_topic: true)
-    unless valid?
-      raise errors.full_messages.join("; ")
-    end
-
     tries = 0
 
     begin
       CurrentUser.scoped(approver) do
-        update(status: "processing")
+        update!(status: "processing")
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
@@ -210,7 +206,7 @@ class TagAlias < TagRelationship
 
       CurrentUser.scoped(approver) do
         forum_updater.update(failure_message(e), "FAILED") if update_topic
-        update(status: "error: #{e}")
+        update_columns(status: "error: #{e}")
       end
 
       DanbooruLogger.log(e, tag_alias_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
