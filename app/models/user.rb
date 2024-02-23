@@ -633,7 +633,18 @@ class User < ApplicationRecord
       ]
 
       if id == CurrentUser.user.id
-        list += BOOLEAN_ATTRIBUTES + [
+        boolean_attributes = %i[
+          blacklist_users description_collapsed_initially
+          hide_comments show_hidden_comments show_post_statistics
+          is_banned has_mail receive_email_notifications
+          enable_keyboard_navigation enable_privacy_mode
+          style_usernames enable_auto_complete
+          can_approve_posts can_upload_free
+          disable_cropped_thumbnails enable_safe_mode
+          disable_responsive_mode no_flagging disable_user_dmails
+          enable_compact_uploader replacements_beta
+        ]
+        list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
           :recent_tags, :comment_threshold, :default_image_size,
           :favorite_tags, :blacklisted_tags, :time_zone, :per_page,
