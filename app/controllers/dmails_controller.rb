@@ -68,7 +68,7 @@ class DmailsController < ApplicationController
     Dmail.visible.unread.each do |x|
       x.update_column(:is_read, true)
     end
-    CurrentUser.user.update(has_mail: false, unread_dmail_count: 0)
+    CurrentUser.user.update(unread_dmail_count: 0)
     respond_to do |format|
       format.html { redirect_to dmails_path, notice: "All messages marked as read" }
       format.json

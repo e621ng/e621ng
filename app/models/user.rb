@@ -28,7 +28,7 @@ class User < ApplicationRecord
     show_hidden_comments
     show_post_statistics
     is_banned
-    has_mail
+    _has_mail
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
@@ -636,7 +636,7 @@ class User < ApplicationRecord
         boolean_attributes = %i[
           blacklist_users description_collapsed_initially
           hide_comments show_hidden_comments show_post_statistics
-          is_banned has_mail receive_email_notifications
+          is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
           can_approve_posts can_upload_free
@@ -651,7 +651,7 @@ class User < ApplicationRecord
           :custom_style, :favorite_count,
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
           :statement_timeout, :favorite_limit,
-          :tag_query_limit
+          :tag_query_limit, :has_mail?
         ]
       end
 
@@ -876,6 +876,10 @@ class User < ApplicationRecord
   include CountMethods
   extend SearchMethods
   extend ThrottleMethods
+
+  def has_mail?
+    unread_dmail_count > 0
+  end
 
   def dmail_count
     if has_mail?
