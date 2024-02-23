@@ -22,6 +22,11 @@ class ForumTopicTest < ActiveSupport::TestCase
           should "return false" do
             assert_equal(false, @topic.read_by?(@user))
           end
+
+          should "return true if muted" do
+              create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
+              assert_equal(true, @topic.read_by?(@user))
+          end
         end
 
         context "and a visit for a topic" do
@@ -36,6 +41,11 @@ class ForumTopicTest < ActiveSupport::TestCase
 
             should "return false" do
               assert_equal(false, @topic.read_by?(@user))
+            end
+
+            should "return true if muted" do
+              create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
+              assert_equal(true, @topic.read_by?(@user))
             end
           end
 
@@ -56,6 +66,11 @@ class ForumTopicTest < ActiveSupport::TestCase
           should "return false" do
             assert_equal(false, @topic.read_by?(@user))
           end
+
+          should "return true if muted" do
+            create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
+            assert_equal(true, @topic.read_by?(@user))
+          end
         end
 
         context "and a visit" do
@@ -66,6 +81,11 @@ class ForumTopicTest < ActiveSupport::TestCase
 
             should "return false" do
               assert_equal(false, @topic.read_by?(@user))
+            end
+
+            should "return true if muted" do
+              create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
+              assert_equal(true, @topic.read_by?(@user))
             end
           end
 
