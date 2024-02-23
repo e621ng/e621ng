@@ -184,8 +184,6 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_read!
-    return if Danbooru.config.readonly_mode?
-
     update_column(:is_read, true)
     owner.dmails.unread.count.tap do |unread_count|
       owner.update(has_mail: (unread_count > 0), unread_dmail_count: unread_count)
@@ -193,8 +191,6 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_unread!
-    return if Danbooru.config.readonly_mode?
-
     update_column(:is_read, false)
     owner.dmails.unread.count.tap do |unread_count|
       owner.update(has_mail: (unread_count > 0), unread_dmail_count: unread_count)

@@ -664,10 +664,6 @@ module Danbooru
       []
     end
 
-    def readonly_mode?
-      false
-    end
-
     def enable_visitor_metrics?
       false
     end

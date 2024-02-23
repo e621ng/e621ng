@@ -26,10 +26,4 @@ class SessionsController < ApplicationController
     cookies.delete :remember
     redirect_to(posts_path, :notice => "You are now logged out")
   end
-
-  private
-
-  def allowed_readonly_actions
-    super + %w[destroy]
-  end
 end

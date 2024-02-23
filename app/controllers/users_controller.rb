@@ -140,8 +140,4 @@ class UsersController < ApplicationController
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
-
-  def allowed_readonly_actions
-    super + %w[home upload_limit]
-  end
 end

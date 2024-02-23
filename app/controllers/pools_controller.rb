@@ -80,8 +80,4 @@ class PoolsController < ApplicationController
     permitted_params = %i[name description category is_active post_ids post_ids_string]
     params.require(:pool).permit(*permitted_params, post_ids: [])
   end
-
-  def allowed_readonly_actions
-    super + ["gallery"]
-  end
 end
