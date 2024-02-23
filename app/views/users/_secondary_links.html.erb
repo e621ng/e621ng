@@ -12,7 +12,7 @@
     <% if @user.id == CurrentUser.user.id %>
       <%= subnav_link_to "Settings", edit_user_path(CurrentUser.user) %>
       <%= subnav_link_to "Profile", user_path(CurrentUser.user) %>
-      <%= subnav_link_to "Messages #{CurrentUser.user.dmail_count}", dmails_current_folder_path %>
+      <%= subnav_link_to "Messages #{unread_dmails(CurrentUser.user)}", dmails_current_folder_path %>
     <% else %>
       <%= subnav_link_to "Send message", new_dmail_path(dmail: { to_id: @user.id }) %>
       <%= subnav_link_to "Report/Commend", new_ticket_path(disp_id: @user.id, qtype: "user") %>

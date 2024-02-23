@@ -157,6 +157,14 @@ module ApplicationHelper
     end
   end
 
+  def unread_dmails(user)
+    if user.has_mail?
+      "(#{user.unread_dmail_count})"
+    else
+      ""
+    end
+  end
+
 protected
   def nav_link_match(controller, url)
     # Static routes must match completely

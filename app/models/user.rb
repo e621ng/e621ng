@@ -881,14 +881,6 @@ class User < ApplicationRecord
     unread_dmail_count > 0
   end
 
-  def dmail_count
-    if has_mail?
-      "(#{unread_dmail_count})"
-    else
-      ""
-    end
-  end
-
   def hide_favorites?
     return false if CurrentUser.is_moderator?
     return true if is_blocked?
