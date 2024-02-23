@@ -1401,6 +1401,41 @@ class Post < ApplicationRecord
       hash
     end
 
+    def thumbnail_attributes
+      attributes = {
+        "id": id,
+        "flags": status_flags,
+        "tags": tag_string,
+        "rating": rating,
+        "file-ext": file_ext,
+
+        "width": image_width,
+        "height": image_height,
+        "size": file_size,
+
+        "created-at": created_at,
+        "uploader": uploader_name,
+        "uploader-id": uploader_id,
+
+        "score": score,
+        "fav-count": fav_count,
+        "is-favorited": favorited_by?(CurrentUser.user.id),
+
+        "pools": pool_ids,
+      }
+
+      if visible?
+        attributes["md5"] = md5
+        attributes["preview-url"] = preview_file_url
+        attributes["large-url"] = large_file_url
+        attributes["file-url"] = file_url
+        attributes["preview-width"] = preview_dimensions[1]
+        attributes["preview-height"] = preview_dimensions[0]
+      end
+
+      attributes
+    end
+
     def status
       if is_pending?
         "pending"

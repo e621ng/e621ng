@@ -1,78 +1,186 @@
+/*** QUick Edit Form ***/
+#blacklist-edit-dialog {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: min-content 1fr min-content min-content;
+  gap: 0.5rem;
 
+  textarea {
+    grid-column: -1 / 1;
+  }
+  p {
+    margin-bottom: 0;
+    text-align: center;
+  }
+}
 
-#blacklist-box {
-  display: none;
-  margin-bottom: 1em;
+/*** Sidebar Blacklist ***/
+.blacklist-ui {
+  display: flex;
+  flex-flow: column;
 
-  .blacklist-help {
-    font-size: 0.85em;
-    font-weight: bold;
+  &[filters="0"] {
+    display: none;
   }
 
+  // Header
   .blacklist-header {
     display: flex;
-    justify-content: space-between;
-  }
-  #blacklist-collapse {
+
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-left: 1.3em;
+    position: relative;
     cursor: pointer;
+
+    .blacklisted-count {
+      margin-left: 0.25em;
+    }
+
     &::before {
-      content: '▼ '
+      content: "";
+      position: absolute;
+      left: -1.2em;
+      border: 0.3em solid transparent;
+      border-color: transparent var(--color-text) var(--color-text) transparent;
+      transform: rotate(45deg);
+      bottom: 0.25em;
+      transition: 0.25s ease-in-out;
     }
-    &.hidden::before {
-      content: '► ';
+  }
+  &[collapsed="true"] {
+    .blacklist-header::before {
+      transform: rotate(-45deg);
+    }
+
+    .blacklist-filters {
+      max-height: 0;
     }
   }
 
-  #blacklist-list {
-    a {
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      vertical-align: bottom;
-    }
+  // Filters
+  .blacklist-filters {
+    display: flex;
+    flex-flow: column;
+    font-size: 1.1em;
+    gap: 0.125rem;
+    margin: 0.25em 0;
 
-    a.entry-disabled {
-      text-decoration: line-through;
-    }
-  }
+    max-height: 50vh;
+    overflow: hidden auto;
+    transition: max-height 0.25s ease-in-out;
 
-  &.sidebar-blacklist ul li {
-    list-style-type: disc;
-    list-style-position: inside;
+    li {
+      display: flex;
+      cursor: pointer;
 
-    a {
-      max-width: 75%;
-    }
-  }
+      span {
+        color: var(--color-text-muted);
+        margin-left: 0.5em;
+      }
 
-  &.inline-blacklist {
-    margin-bottom: 1em;
+      &::before {
+        content: "\2610"; // ☐
+        display: block;
+        width: 1em;
+        margin-right: 0.5em;
+      }
 
-    #blacklist-list {
-      display: inline;
+      &[enabled="true"] {
+        &::before {
+          content: "\2611"; // ☑
+        }
+      }
 
-      li {
-        display: inline;
-        margin-right: 1em;
-
+      &[enabled="false"] {
+        color: var(--color-text-muted);
         a {
-          max-width: 25%;
+          color: var(--color-text-muted);
         }
       }
     }
   }
+
+  // Footer
+  .blacklist-footer {
+    display: flex;
+
+    a.blacklist-toggle-all {
+      cursor: pointer;
+    }
+
+    .blacklist-help {
+      margin-left: auto;
+    }
+  }
 }
 
+
+/*** Inline Blacklist ***/
+.blacklist-ui.blacklist-inline {
+  flex-flow: row;
+  flex-wrap: wrap;
+
+  .blacklist-header {
+    font-size: 1em;
+    margin-left: 0;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .blacklist-filters {
+    flex-flow: row;
+    gap: 0.75rem;
+    margin: 0 0.75rem;
+
+    li {
+      &::before {
+        display: none; 
+      }
+    }
+  }
+  &[collapsed=true]{
+    .blacklist-filters {
+      display: none;
+    }
+    .blacklist-footer {
+      margin-left: 0.75rem;
+    }
+  }
+  
+  .blacklist-footer {
+    .blacklist-help {
+      display: none;
+    }
+  }
+}
+
+
+// Settings
+#c-users #a-edit {
+  #user_blacklisted_tags {
+    min-height: 25em;
+    width: 100%;
+  }
+}
+
+
 // Completely hide the blacklisted posts on these pages only
-#c-posts #a-index, #c-popular, #c-favorites {
+#c-posts #a-index,
+#c-popular,
+#c-favorites {
   .post-preview.blacklisted {
     display: none !important;
   }
 }
 
-#image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
-  img, video {
+#image-container.blacklisted,
+.post-thumbnail.blacklisted,
+.post-preview.blacklisted {
+  img,
+  video {
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
