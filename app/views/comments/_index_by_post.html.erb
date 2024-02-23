@@ -1,10 +1,5 @@
-<div id="p-index-by-post">
-  <% if !CurrentUser.user.is_janitor? %>
-    <div style="margin-bottom: 1em;">
-      <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
-    </div>
-  <% end %>
-
+<div id="p-index-by-post" class="comments-for-post">
+  
   <% if @posts.empty? %>
     <%= render "posts/blank" %>
   <% end %>
@@ -14,12 +9,9 @@
       <div class="comment-post">
         <div class="post-container">
           <%= PostPresenter.preview(post, inline: true, show_deleted: true) %>
-          <div class="post-information">
-            <%= render "comments/partials/index/header", :post => post %>
-          </div>
         </div>
-        <div class="comments">
-          <%= render "comments/partials/index/list", :post => post, :comments => post.comments.visible(CurrentUser.user).recent.reverse %>
+        <div class="comments-list">
+          <%= render partial: "comments/partials/show/comment", collection: post.comments.visible(CurrentUser.user).recent, locals: { post: post } %>
         </div>
       </div>
     <% end %>

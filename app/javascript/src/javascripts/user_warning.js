@@ -4,7 +4,7 @@ import DText from './dtext.js';
 import ForumPost from './forum_posts.js';
 import Utility from './utility.js';
 
-class UserWarnable {
+export default class UserWarnable {
   static initialize_click_handlers() {
     $('.item-mark-user-warned').on('click', evt => {
       evt.preventDefault();

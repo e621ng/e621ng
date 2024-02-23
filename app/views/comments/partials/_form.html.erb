@@ -1,0 +1,21 @@
+<%= custom_form_for(comment, html: { style: ("display: none;" if local_assigns[:hidden]), class: "comment-simple-form" }) do |f| %>
+<% if comment.new_record? %>
+  <%= f.hidden_field :post_id %>
+<% end %>
+
+<%= f.input :body, as: :dtext, label: false, limit: Danbooru.config.comment_max_size %>
+
+<div class="comment-edit-options">
+  <%= f.button :submit, "Submit", data: { disable_with: "Submitting..." } %>
+  <%= f.button :button, "Cancel", name: "cancel", type: "button", class: "comment-edit-cancel" %>
+
+  <span class="spacer">All text is formatted using <a href="/help/dtext" target="_blank" rel="noopener" tabindex="-1">DText</a></span>
+    
+  <% if comment.new_record? %>
+    <%= f.input :do_not_bump_post, label: "No bump" %>
+  <% end %>
+  <% if CurrentUser.is_janitor? %>
+    <%= f.input :is_sticky, label: "Sticky" %>
+  <% end %>
+</div>
+<% end %>

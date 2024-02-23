@@ -1,10 +1,16 @@
 <div id="c-comments">
   <div id="a-show">
-    <%= PostPresenter.preview(@comment.post, inline: true, show_deleted: true) %>
     <div class="comments-for-post">
-      <div class="list-of-comments">
-        <%= render "comments/partials/show/comment", comment: @comment, post: nil %>
+
+      <div class="comment-post">
+        <div class="post-container">
+          <%= PostPresenter.preview(@comment.post, inline: true, show_deleted: true) %>
+        </div>
+        <div class="comments-list">
+          <%= render "comments/partials/show/comment", comment: @comment, post: nil %>
+        </div>
       </div>
+
     </div>
   </div>
 </div>

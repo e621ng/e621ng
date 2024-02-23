@@ -5,7 +5,7 @@
         <div class="post-container">
           <%= PostPresenter.preview(comment.post, inline: true, show_deleted: true) %>
         </div>
-        <div class="comments list-of-comments">
+        <div class="comments-list">
           <%= render "comments/partials/show/comment", comment: comment, post: nil %>
         </div>
       </div>
