@@ -19,17 +19,9 @@ class User < ApplicationRecord
     :approver,
   ]
 
-  # candidates for removal:
-  # - disable_cropped_thumbnails (enabled by 22)
-  # - has_saved_searches (removed in removal of saved searches)
-  # - no_feedback
-  # - show_avatars
-  # - blacklist_avatars
-  # - disable_mobile_gestures
-  # - disable_post_tooltips
-  BOOLEAN_ATTRIBUTES = %w(
-    show_avatars
-    blacklist_avatars
+  BOOLEAN_ATTRIBUTES = %w[
+    _show_avatars
+    _blacklist_avatars
     blacklist_users
     description_collapsed_initially
     hide_comments
@@ -42,21 +34,21 @@ class User < ApplicationRecord
     enable_privacy_mode
     style_usernames
     enable_auto_complete
-    has_saved_searches
+    _has_saved_searches
     can_approve_posts
     can_upload_free
     disable_cropped_thumbnails
-    disable_mobile_gestures
+    _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
-    disable_post_tooltips
+    _disable_post_tooltips
     no_flagging
-    no_feedback
+    _no_feedback
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
     is_bd_staff
-  )
+  ].freeze
 
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
