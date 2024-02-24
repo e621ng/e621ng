@@ -145,14 +145,6 @@ class Pool < ApplicationRecord
     PoolVersion.where("pool_id = ?", id).order("id asc")
   end
 
-  def is_series?
-    category == "series"
-  end
-
-  def is_collection?
-    category == "collection"
-  end
-
   def normalize_name
     self.name = Pool.normalize_name(name)
   end
@@ -166,7 +158,7 @@ class Pool < ApplicationRecord
   end
 
   def normalize_post_ids
-    self.post_ids = post_ids.uniq if is_collection?
+    self.post_ids = post_ids.uniq
   end
 
   def revert_to!(version)
