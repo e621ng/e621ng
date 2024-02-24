@@ -236,18 +236,8 @@ class Pool < ApplicationRecord
     end
   end
 
-  def posts(options = {})
-    offset = options[:offset] || 0
-    limit = options[:limit] || Danbooru.config.posts_per_page
-    slice = post_ids.slice(offset, limit)
-    if slice && slice.any?
-      # This hack is here to work around posts that are not found but present in the pool id list.
-      # Previously there was an N+1 post lookup loop.
-      posts = Hash[Post.where(id: slice).map {|p| [p.id, p]}]
-      slice.map {|id| posts[id]}.compact
-    else
-      []
-    end
+  def posts
+    Post.joins("left join pools on posts.id = ANY(pools.post_ids)").where(pools: { id: id }).order(Arel.sql("array_position(pools.post_ids, posts.id)"))
   end
 
   def synchronize

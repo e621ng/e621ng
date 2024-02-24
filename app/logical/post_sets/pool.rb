@@ -7,10 +7,6 @@ module PostSets
       @page = page
     end
 
-    def offset
-      (current_page - 1) * limit
-    end
-
     def limit
       CurrentUser.user.per_page
     end
@@ -20,11 +16,7 @@ module PostSets
     end
 
     def posts
-      @posts ||= begin
-        posts = pool.posts(offset: offset, limit: limit)
-        options = { pagination_mode: :numbered, records_per_page: limit, total_count: pool.post_count, current_page: current_page }
-        Danbooru::Paginator::PaginatedArray.new(posts, options)
-      end
+      @posts ||= pool.posts.paginate(page, limit: limit, total_count: pool.post_ids.count)
     end
 
     def tag_string
@@ -37,10 +29,6 @@ module PostSets
 
     def presenter
       @presenter ||= PostSetPresenters::Pool.new(self)
-    end
-
-    def current_page
-      [page.to_i, 1].max
     end
   end
 end
