@@ -155,20 +155,17 @@ module LinkHelper
     hostname = uri.host.delete_prefix("www.")
 
     # First attempt: direct match
-    index = DECORATABLE_DOMAINS.find_index(hostname)
+    return hostname if DECORATABLE_DOMAINS.include?(hostname)
 
     # Second attempt: subdomains?
-    if index.nil?
-      parts = hostname.split(".")
-      hostname = parts.drop(1).join(".") if parts.length > 2
-      index = DECORATABLE_DOMAINS.find_index(hostname)
+    _removed, remaining_hostname = hostname.split(".", 2)
+    return hostname if DECORATABLE_DOMAINS.include?(remaining_hostname)
 
-      # Third attempt: aliases
-      index = DECORATABLE_DOMAINS.find_index(DECORATABLE_ALIASES[hostname]) if index.nil?
-    end
+    hostname = remaining_hostname || hostname
 
-    # Calculate the coordinates
-    index = 0 if index.nil?
-    DECORATABLE_DOMAINS[index]
+    # Third attempt: aliases
+    return DECORATABLE_ALIASES[hostname] if DECORATABLE_ALIASES[hostname]
+
+    NONE
   end
 end
