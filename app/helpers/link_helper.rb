@@ -126,10 +126,28 @@ module LinkHelper
   }.freeze
 
   def decorated_link_to(text, path, **)
+    link_to(path, class: "decorated", **) do
+      favicon_for_link(path) + text
+    end
+  end
+
+  def favicon_for_link(path)
+    hostname = hostname_for_link(path)
+    image_url = asset_pack_path("static/#{hostname}.png")
+    tag.span(
+      class: "link-decoration",
+      style: "background-image: url(#{image_url})",
+      data: {
+        hostname: hostname,
+      },
+    )
+  end
+
+  def hostname_for_link(path)
     begin
       uri = URI.parse(path)
     rescue URI::InvalidURIError
-      return link_to(text, path, **)
+      return BLANK
     end
 
     hostname = uri.host
@@ -150,20 +168,6 @@ module LinkHelper
 
     # Calculate the coordinates
     index = 0 if index.nil?
-    host = DECORATABLE_DOMAINS[index]
-
-    image_url = asset_pack_path("static/#{host}.png")
-    link_to(path, class: "decorated", **) do
-      safe_join([
-        tag.span(
-          class: "link-decoration",
-          style: "background-image: url(#{image_url})",
-          data: {
-            hostname: host,
-          },
-        ),
-        text,
-      ])
-    end
+    DECORATABLE_DOMAINS[index]
   end
 end
