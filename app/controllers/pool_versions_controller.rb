@@ -13,12 +13,6 @@ class PoolVersionsController < ApplicationController
 
   def diff
     @pool_version = PoolVersion.find(params[:id])
-
-    if params[:other_id]
-      @other_version = PoolVersion.find(params[:other_id])
-    else
-      @other_version = @pool_version.previous
-    end
   end
 
   private
