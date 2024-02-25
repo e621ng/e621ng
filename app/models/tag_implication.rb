@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 class TagImplication < TagRelationship
   has_many :tag_rel_undos, as: :tag_rel
 
   array_attribute :descendant_names
 
   before_save :update_descendant_names
-  after_save :update_descendant_names_for_parents
   after_destroy :update_descendant_names_for_parents
-  after_save :create_mod_action, if: :status_changed?
+  after_save :update_descendant_names_for_parents
+  after_save :create_mod_action, if: :saved_change_to_status?
   validates :antecedent_name, uniqueness: { scope: [:consequent_name], conditions: -> { duplicate_relevant } }
   validate :absence_of_circular_relation
   validate :absence_of_transitive_relation
@@ -115,15 +117,11 @@ class TagImplication < TagRelationship
 
   module ApprovalMethods
     def process!(update_topic: true)
-      unless valid?
-        raise errors.full_messages.join("; ")
-      end
-
       tries = 0
 
       begin
         CurrentUser.scoped(approver) do
-          update(status: "processing")
+          update!(status: "processing")
           update_posts
           update(status: "active")
           update_descendant_names_for_parents
@@ -137,7 +135,7 @@ class TagImplication < TagRelationship
         end
 
         forum_updater.update(failure_message(e), "FAILED") if update_topic
-        update(status: "error: #{e}")
+        update_columns(status: "error: #{e}")
 
         DanbooruLogger.log(e, tag_implication_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
       end
@@ -164,7 +162,7 @@ class TagImplication < TagRelationship
     end
 
     def reject!(update_topic: true)
-      update_column(:status,  "deleted")
+      update(status: "deleted")
       invalidate_cached_descendants
       forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
     end

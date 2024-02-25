@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ElasticPostQueryBuilder < ElasticQueryBuilder
   LOCK_TYPE_TO_INDEX_FIELD = {
     rating: :rating_locked,

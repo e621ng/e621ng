@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
   context "The alias and implication importer" do
@@ -104,15 +106,14 @@ class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
         @importer = BulkUpdateRequestImporter.new(@script, nil)
       end
 
-      # FIXME: Aliases/Implications are hard-deleted currently
-      should_eventually "set aliases and implications as deleted" do
+      should "set aliases and implications as deleted" do
         @importer.process!
 
         assert_equal("deleted", @ta.reload.status)
         assert_equal("deleted", @ti.reload.status)
       end
 
-      should_eventually "create modactions for each removal" do
+      should "create modactions for each removal" do
         assert_difference(-> { ModAction.count }, 2) do
           @importer.process!
         end

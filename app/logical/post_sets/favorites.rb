@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSets
   class Favorites < PostSets::Base
     attr_reader :page, :limit

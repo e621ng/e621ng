@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Moderator
   module DashboardsHelper
     def user_level_select_tag(name, options = {})

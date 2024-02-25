@@ -121,10 +121,7 @@ GEM
       reline (>= 0.3.8)
     diffy (3.4.2)
     domain_name (0.6.20240107)
-    dotenv (2.8.1)
-    dotenv-rails (2.8.1)
-      dotenv (= 2.8.1)
-      railties (>= 3.2)
+    dotenv (3.0.2)
     draper (4.0.2)
       actionpack (>= 5.0)
       activemodel (>= 5.0)
@@ -336,7 +333,7 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.19.0)
-    sidekiq-unique-jobs (8.0.6)
+    sidekiq-unique-jobs (8.0.9)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 7.0.0, < 8.0.0)
       thor (>= 1.0, < 3.0)
@@ -386,7 +383,7 @@ DEPENDENCIES
   dalli
   debug
   diffy
-  dotenv-rails
+  dotenv
   draper
   dtext_rb!
   factory_bot_rails

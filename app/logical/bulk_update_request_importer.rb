@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr
@@ -190,7 +192,7 @@ class BulkUpdateRequestImporter
 
     tag_alias.rename_artist
     raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
-    tag_alias.approve!(approver: approver, update_topic: false, deny_transitives: true)
+    tag_alias.approve!(approver: approver, update_topic: false)
   end
 
   def find_create_implication(token, approver)

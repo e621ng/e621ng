@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Diffy normally calls out to git diff, this makes it use libgit2 instead
 module DiffyNoSubprocess
   # https://github.com/samg/diffy/blob/85b18fa6b659f724937dea58ebbc0564f4475c8c/lib/diffy/diff.rb#L43-L77

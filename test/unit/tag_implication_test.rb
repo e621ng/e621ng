@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagImplicationTest < ActiveSupport::TestCase
   context "A tag implication" do
@@ -218,6 +220,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       assert_equal("aaa bbb ccc xxx yyy", p1.reload.tag_string)
+    end
+
+    should "error on approve if its not valid anymore" do
+      create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @user)
+      ti.save(validate: false)
+      with_inline_jobs { ti.approve!(approver: @user) }
+
+      assert_match "error", ti.reload.status
     end
 
     context "with an associated forum topic" do

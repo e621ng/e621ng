@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SessionsController < ApplicationController
   def new
     @user = User.new
@@ -25,11 +27,5 @@ class SessionsController < ApplicationController
     session.delete(:user_id)
     cookies.delete :remember
     redirect_to(posts_path, :notice => "You are now logged out")
-  end
-
-  private
-
-  def allowed_readonly_actions
-    super + %w[destroy]
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserMailerPreview < ActionMailer::Preview
   def dmail_notice
     dmail = User.admins.first.dmails.first

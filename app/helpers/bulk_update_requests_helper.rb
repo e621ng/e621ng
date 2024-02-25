@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module BulkUpdateRequestsHelper
   def approved?(command, antecedent, consequent)
     return false unless CurrentUser.is_admin?

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
   include UserWarnable
@@ -66,10 +68,6 @@ class Comment < ApplicationRecord
       where(post_id: Post.tag_match_sql(query).order(id: :desc).limit(300))
     end
 
-    def poster_id(user_id)
-      joins(:post).where("posts.uploader_id = ?", user_id)
-    end
-
     def for_creator(user_id)
       user_id.present? ? where("creator_id = ?", user_id) : none
     end
@@ -117,13 +115,11 @@ class Comment < ApplicationRecord
         end
       end
 
-      if params[:poster_id].present?
-        q = q.poster_id(params[:poster_id].to_i)
+      q.where_user(:"posts.uploader_id", :poster, params) do |condition, _ids|
+        condition = condition.joins(:post)
         # Force a better query plan by ordering by created_at
-        q = q.reorder("comments.created_at desc")
+        condition.reorder("comments.created_at desc")
       end
-
-      q
     end
   end
 

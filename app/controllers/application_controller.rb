@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
-  class ReadOnlyException < Exception; end
   class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
@@ -9,7 +10,6 @@ class ApplicationController < ActionController::Base
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
-  before_action :enforce_readonly
   after_action :reset_current_user
   layout "default"
 
@@ -82,8 +82,6 @@ class ApplicationController < ActionController::Base
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
-      render_expected_error(400, exception.message)
-    when ReadOnlyException
       render_expected_error(400, exception.message)
     when BCrypt::Errors::InvalidHash
       render_expected_error(400, "You must reset your password.")
@@ -219,14 +217,5 @@ class ApplicationController < ActionController::Base
 
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit([:id, :created_at, :updated_at] + permitted_params)
-  end
-
-  def enforce_readonly
-    return unless Danbooru.config.readonly_mode?
-    raise ReadOnlyException.new "The site is in readonly mode" unless allowed_readonly_actions.include? action_name
-  end
-
-  def allowed_readonly_actions
-    %w[index show search]
   end
 end

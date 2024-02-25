@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Takedown < ApplicationRecord
   belongs_to_creator optional: true
   belongs_to :approver, class_name: "User", optional: true

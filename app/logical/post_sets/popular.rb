@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSets
   class Popular < PostSets::Base
     attr_reader :date, :scale, :limit

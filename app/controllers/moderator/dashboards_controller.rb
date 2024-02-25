@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Moderator
   class DashboardsController < ApplicationController
     before_action :janitor_only

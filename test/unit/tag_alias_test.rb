@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagAliasTest < ActiveSupport::TestCase
   context "A tag alias" do
@@ -127,7 +129,7 @@ class TagAliasTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb", category: 3)
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal(3, tag2.reload.category)
     end
@@ -145,9 +147,18 @@ class TagAliasTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb", category: 3, is_locked: true)
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal(3, tag2.reload.category)
+    end
+
+    should "error on approve if its not valid anymore" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", creator: @admin)
+      ta.save(validate: false)
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_match "error", ta.reload.status
     end
 
     context "with an associated forum topic" do

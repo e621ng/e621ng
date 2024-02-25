@@ -10,7 +10,7 @@ ForumPost.initialize_all = function() {
       $("#edit_forum_post_" + forum_post_id).fadeToggle("fast");
       e.preventDefault();
     });
-  
+
     $(".edit_forum_topic_link").on("click.danbooru", function(e) {
       var link_id = $(this).attr("id");
       var forum_topic_id = link_id.match(/^edit_forum_topic_link_(\d+)$/)[1];
@@ -57,16 +57,16 @@ ForumPost.vote = function(evt, score) {
     container.append(icon).append(' ').append(username);
     $(`#forum-post-votes-for-${new_vote.forum_post_id}`).prepend(container);
   };
-  const id = $(evt.target.parentNode).data('forum-id');
+  const id = $(evt.currentTarget).data("forum-id");
   $.ajax({
     url: `/forum_posts/${id}/votes.json`,
-    type: 'POST',
-    dataType: 'json',
-    accept: 'text/javascript',
-    data: {'forum_post_vote[score]': score}
+    type: "POST",
+    dataType: "json",
+    accept: "text/javascript",
+    data: { "forum_post_vote[score]": score }
   }).done(function(data) {
     create_post(data);
-    $('.forum-post-vote-block').remove();
+    $(`#forum-post-votes-for-${id} .forum-post-vote-block`).hide();
   }).fail(function(data) {
     if(data?.responseJSON?.reason) {
       Utility.error(data.responseJSON.reason);
@@ -78,14 +78,15 @@ ForumPost.vote = function(evt, score) {
 
 ForumPost.vote_remove = function(evt) {
   evt.preventDefault();
-  const id = $(evt.target.parentNode).data('forum-id');
+  const id = $(evt.currentTarget).data("forum-id");
   $.ajax({
     url: `/forum_posts/${id}/votes.json`,
-    type: 'DELETE',
-    dataType: 'json',
-    accept: 'text/javascript',
+    type: "DELETE",
+    dataType: "json",
+    accept: "text/javascript",
   }).done(function(data) {
     $(evt.target).parents(".own-forum-vote").remove();
+    $(`#forum-post-votes-for-${id} .forum-post-vote-block`).show();
     Utility.notice("Vote removed.");
   }).fail(function(data) {
     Utility.error("Failed to unvote on forum post.");
@@ -137,7 +138,7 @@ ForumPost.hide = function (e) {
     dataType: 'json'
   }).done(function (data) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-deleted', 'true');
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-hidden', 'true');
   }).fail(function (data) {
     Utility.error("Failed to hide post.");
   });
@@ -156,7 +157,7 @@ ForumPost.unhide = function (e) {
   }).done(function (data) {
     const $author = $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`);
     $author.text($author.text().replace(" (hidden)", ""));
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-deleted', 'false');
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-hidden', 'false');
   }).fail(function (data) {
     Utility.error("Failed to unhide post.");
   });

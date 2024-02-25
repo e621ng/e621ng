@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserFeedbacksController < ApplicationController
   before_action :moderator_only, :only => [:new, :edit, :create, :update, :destroy]
   respond_to :html, :json

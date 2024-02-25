@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EmailLinkValidator
   def self.generate(message, purpose, expires = nil)
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Admin
   class StaffNotesController < ApplicationController
     before_action :can_view_staff_notes_only

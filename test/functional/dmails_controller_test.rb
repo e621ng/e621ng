@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class DmailsControllerTest < ActionDispatch::IntegrationTest
   context "The dmails controller" do
@@ -83,6 +85,21 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         put_auth mark_as_read_dmail_path(@dmail), @dmail.owner, params: { format: :json }
         assert_response :success
         assert_predicate @dmail.reload, :is_read?
+      end
+    end
+
+    context "mark as unread action" do
+      should "mark the dmail as unread" do
+        @dmail.mark_as_read!
+        assert_equal 0, @dmail.owner.reload.unread_dmail_count
+        assert_not_predicate @dmail.owner, :has_mail?
+
+        put_auth mark_as_unread_dmail_path(@dmail), @dmail.owner, params: { format: :json }
+        assert_response :success
+        assert_not_predicate @dmail.reload, :is_read?
+
+        assert_equal 1, @dmail.owner.reload.unread_dmail_count
+        assert_predicate @dmail.owner, :has_mail?
       end
     end
 

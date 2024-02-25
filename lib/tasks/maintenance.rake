@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tasks/newrelic" if defined?(NewRelic)
 
 namespace :maintenance do

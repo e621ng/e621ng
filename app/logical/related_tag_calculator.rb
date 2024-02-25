@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RelatedTagCalculator
   MAX_RESULTS = 25
 

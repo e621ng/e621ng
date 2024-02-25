@@ -3,9 +3,7 @@
     <h1>Bulk Update Request: <%= @bulk_update_request.title %></h1>
 
     <ul>
-      <% if @bulk_update_request.forum_topic_id %>
-        <li><strong>Reference</strong> <%= link_to "topic ##{@bulk_update_request.forum_topic_id}", forum_topic_path(@bulk_update_request.forum_topic_id) %></li>
-      <% end %>
+      <%= render "tag_change_requests/reference", tag_change_request: @bulk_update_request %>
       <li><strong>Creator</strong> <%= link_to_user @bulk_update_request.user %></li>
       <li><strong>Date</strong> <%= @bulk_update_request.created_at %></li>
       <li><strong>Status</strong>: <%= @bulk_update_request.status %></li>
@@ -18,6 +16,8 @@
 
       <%= render "bur_edit_links", bur: @bulk_update_request %>
     </div>
+
+     <%= render "tag_change_requests/votes", tag_change_request: @bulk_update_request %>
   </div>
 </div>
 

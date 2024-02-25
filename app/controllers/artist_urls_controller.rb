@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ArtistUrlsController < ApplicationController
   respond_to :json, :html
   before_action :member_only, except: [:index]

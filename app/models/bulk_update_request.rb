@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequest < ApplicationRecord
   attr_accessor :reason, :skip_forum, :should_validate
 

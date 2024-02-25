@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSetPresenters
   class Base
     def posts
@@ -5,18 +7,14 @@ module PostSetPresenters
     end
 
     def post_previews_html(template, options = {})
-      html = ""
-
       if posts.empty?
         return template.render("posts/blank")
       end
 
-      posts.each do |post|
-        html << PostPresenter.preview(post, options.merge(tags: @post_set.public_tag_string))
-        html << "\n"
+      previews = posts.map do |post|
+        PostPresenter.preview(post, options.merge(tags: @post_set.public_tag_string))
       end
-
-      html.html_safe
+      template.safe_join(previews)
     end
   end
 end

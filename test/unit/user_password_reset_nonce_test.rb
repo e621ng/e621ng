@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class UserPasswordResetNonceTest < ActiveSupport::TestCase
   context "Creating a new nonce" do

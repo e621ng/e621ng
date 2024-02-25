@@ -1,14 +1,15 @@
+# frozen_string_literal: true
+
 class HelpPage < ApplicationRecord
   validates :wiki_page, :name, uniqueness: true
   validates :wiki_page, :name, presence: true
-  before_validation :normalize
+  normalizes :name, with: ->(name) { name.downcase.strip.tr(" ", "_") }
   validate :wiki_page_exists
   after_destroy :invalidate_cache
   after_save :invalidate_cache
 
   def invalidate_cache
     Cache.delete("help_index")
-    Cache.delete("help_index:#{name}")
     true
   end
 
@@ -16,31 +17,23 @@ class HelpPage < ApplicationRecord
     errors.add(:wiki_page, "must exist") if WikiPage.find_by(title: wiki_page).blank?
   end
 
-  def normalize
-    self.name = HelpPage.normalize_name(name)
+  def pretty_title
+    title.presence || name.titleize
   end
 
-  def self.find_cached_by_name(name)
-    Cache.fetch("help_index:#{name}", expires_in: 12.hours) { where("name = ?", name).first }
+  def related_array
+    related.split(",").map(&:strip)
   end
 
-  def self.normalize_name(name)
-    name.downcase.strip.tr(" ", "_")
-  end
+  def self.pretty_related_title(related, help_pages)
+    related_help_page = help_pages.find { |help_page| help_page.name == related }
 
-  def self.title(name)
-    help = HelpPage.find_cached_by_name(name)
+    return related_help_page.pretty_title if related_help_page
 
-    # Prevents exceptions when related links aren't in the help DB
-    return name.titleize unless help
-
-    # Generate pretty name if title doesn't exist
-    return help.name.titleize if help.title.blank?
-
-    help.title
+    related.titleize
   end
 
   def self.help_index
-    Cache.fetch("help_index", expires_in: 12.hours) { HelpPage.order(:name).to_a }
+    Cache.fetch("help_index", expires_in: 12.hours) { HelpPage.all.sort_by(&:pretty_title) }
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveArtistCommentaries < ActiveRecord::Migration[6.1]
   def change
     remove_column :uploads, :artist_commentary_title

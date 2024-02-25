@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserRevertsController < ApplicationController
   before_action :moderator_only
 

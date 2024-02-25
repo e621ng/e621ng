@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostQueryBuilder
   attr_accessor :query_string
 

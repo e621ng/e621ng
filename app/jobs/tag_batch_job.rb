@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagBatchJob < ApplicationJob
   queue_as :tags
 

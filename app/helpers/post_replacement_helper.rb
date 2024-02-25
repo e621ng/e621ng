@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostReplacementHelper
   def replacement_thumbnail(replacement)
     if replacement.post.deleteblocked?

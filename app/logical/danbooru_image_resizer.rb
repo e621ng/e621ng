@@ -1,13 +1,13 @@
-module DanbooruImageResizer
-  extend self
+# frozen_string_literal: true
 
-  # Taken from ArgyllCMS 2.0.0 (see also: https://ninedegreesbelow.com/photography/srgb-profile-comparison.html)
-  SRGB_PROFILE = "#{Rails.root}/config/sRGB.icm"
+module DanbooruImageResizer
+  module_function
+
   # https://www.libvips.org/API/current/libvips-resample.html#vips-thumbnail
-  THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE }
+  THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: "srgb", import_profile: "srgb" }.freeze
   # https://www.libvips.org/API/current/VipsForeignSave.html#vips-jpegsave
-  JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }
-  CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: SRGB_PROFILE, import_profile: SRGB_PROFILE, crop: :attention }
+  JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }.freeze
+  CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: "srgb", import_profile: "srgb", crop: :attention }.freeze
 
   def resize(file, width, height, resize_quality = 90)
     output_file = Tempfile.new

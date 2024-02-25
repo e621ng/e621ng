@@ -1,6 +1,8 @@
-source 'https://rubygems.org/'
+# frozen_string_literal: true
 
-gem 'dotenv-rails', require: 'dotenv/rails-now'
+source "https://rubygems.org/"
+
+gem "dotenv", require: "dotenv/load"
 
 gem "rails", "~> 7.1.0"
 gem "pg"

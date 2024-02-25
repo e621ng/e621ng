@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagNukeJob < ApplicationJob
   queue_as :tags
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TakedownsController < ApplicationController
   respond_to :html, :json
   before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids]

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DummyTicket
   def initialize(accused, post_id)
     @ticket = Ticket.new(

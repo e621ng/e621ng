@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagAlias < TagRelationship
   has_many :tag_rel_undos, as: :tag_rel
 
@@ -6,8 +8,7 @@ class TagAlias < TagRelationship
   validate :absence_of_transitive_relation
 
   module ApprovalMethods
-    def approve!(update_topic: true, approver: CurrentUser.user, deny_transitives: false)
-      raise ::ValueError.new("Alias would modify other aliases or implications through transitive relationships.") if deny_transitives && has_transitives
+    def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
         create_undo_information
@@ -180,15 +181,11 @@ class TagAlias < TagRelationship
   end
 
   def process!(update_topic: true)
-    unless valid?
-      raise errors.full_messages.join("; ")
-    end
-
     tries = 0
 
     begin
       CurrentUser.scoped(approver) do
-        update(status: "processing")
+        update!(status: "processing")
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
@@ -211,7 +208,7 @@ class TagAlias < TagRelationship
 
       CurrentUser.scoped(approver) do
         forum_updater.update(failure_message(e), "FAILED") if update_topic
-        update(status: "error: #{e}")
+        update_columns(status: "error: #{e}")
       end
 
       DanbooruLogger.log(e, tag_alias_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
@@ -308,7 +305,7 @@ class TagAlias < TagRelationship
   end
 
   def reject!(update_topic: true)
-    update_column(:status,  "deleted")
+    update(status: "deleted")
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
   end
 

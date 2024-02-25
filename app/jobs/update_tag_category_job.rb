@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UpdateTagCategoryJob < ApplicationJob
   queue_as :low_prio
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args

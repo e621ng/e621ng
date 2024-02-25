@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Presenter
   def self.h(s)
     CGI.escapeHTML(s.to_s)

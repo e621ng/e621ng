@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Downloads
   class File
     include ActiveModel::Validations

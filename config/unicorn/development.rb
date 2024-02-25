@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Set your full path to application.
 app_path = "/app"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PoolsHelper
   def recent_updated_pools
     pool_ids = session[:recent_pool_ids].to_s.scan(/\d+/)

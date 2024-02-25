@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumCategoriesController < ApplicationController
   respond_to :html
   before_action :admin_only
