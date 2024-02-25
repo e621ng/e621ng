@@ -98,31 +98,31 @@ module LinkHelper
 
   DECORATABLE_ALIASES = {
     # alt names
-    "e926.net": "e621.net",
-    "discord.gg": "discord.com",
-    "pixiv.me": "pixiv.net",
-    "x.com": "twitter.com",
+    "e926.net" => "e621.net",
+    "discord.gg" => "discord.com",
+    "pixiv.me" => "pixiv.net",
+    "x.com" => "twitter.com",
 
     # same icon
-    "cloudfront.net": "amazonaws.com",
-    "mastodon.art": "baraag.net",
-    "meow.social": "baraag.net",
-    "sta.sh": "deviantart.com",
+    "cloudfront.net" => "amazonaws.com",
+    "mastodon.art" => "baraag.net",
+    "meow.social" => "baraag.net",
+    "sta.sh" => "deviantart.com",
 
     # image servers
-    "4cdn.org": "4chan.org",
-    "discordapp.com": "discord.com",
-    "derpicdn.net": "derpibooru.org",
-    "dropboxusercontent.com": "dropbox.com",
-    "facdn.net": "furaffinity.net",
-    "fbcdn.net": "facebook.com",
-    "ib.metapix.net": "inkbunny.net",
-    "ngfiles.com": "newgrounds.com",
-    "pximg.net": "pixiv.net",
-    "redd.it": "reddit.com",
-    "twimg.com": "twitter.com",
-    "ungrounded.net": "newgrounds.com",
-    "wixmp.com": "deviantart.com",
+    "4cdn.org" => "4chan.org",
+    "discordapp.com" => "discord.com",
+    "derpicdn.net" => "derpibooru.org",
+    "dropboxusercontent.com" => "dropbox.com",
+    "facdn.net" => "furaffinity.net",
+    "fbcdn.net" => "facebook.com",
+    "ib.metapix.net" => "inkbunny.net",
+    "ngfiles.com" => "newgrounds.com",
+    "pximg.net" => "pixiv.net",
+    "redd.it" => "reddit.com",
+    "twimg.com" => "twitter.com",
+    "ungrounded.net" => "newgrounds.com",
+    "wixmp.com" => "deviantart.com",
   }.freeze
 
   def decorated_link_to(text, path, **)
@@ -163,7 +163,7 @@ module LinkHelper
       index = DECORATABLE_DOMAINS.find_index(hostname)
 
       # Third attempt: aliases
-      index = DECORATABLE_ALIASES[hostname] if index.nil?
+      index = DECORATABLE_DOMAINS.find_index(DECORATABLE_ALIASES[hostname]) if index.nil?
     end
 
     # Calculate the coordinates
