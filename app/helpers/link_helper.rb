@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module LinkHelper
+  NONE = "empty"
   DECORATABLE_DOMAINS = [
-    "empty", # default
     "e621.net",
     #
     # Aggregators
@@ -148,11 +148,11 @@ module LinkHelper
     begin
       uri = URI.parse(path)
     rescue URI::InvalidURIError
-      return BLANK
+      return NONE
     end
+    return NONE unless uri.host
 
-    hostname = uri.host
-    hostname = hostname[4..] if hostname.match(/^www\./)
+    hostname = uri.host.delete_prefix("www.")
 
     # First attempt: direct match
     index = DECORATABLE_DOMAINS.find_index(hostname)
