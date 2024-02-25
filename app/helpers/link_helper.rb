@@ -113,6 +113,7 @@ module LinkHelper
     "4cdn.org" => "4chan.org",
     "discordapp.com" => "discord.com",
     "derpicdn.net" => "derpibooru.org",
+    "deviantart.net" => "deviantart.com",
     "dropboxusercontent.com" => "dropbox.com",
     "facdn.net" => "furaffinity.net",
     "fbcdn.net" => "facebook.com",
