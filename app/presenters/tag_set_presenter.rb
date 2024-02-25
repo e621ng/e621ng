@@ -16,7 +16,7 @@ class TagSetPresenter < Presenter
   end
 
   def post_index_sidebar_tag_list_html(current_query: "")
-    html = ""
+    html = +""
     if ordered_tags.present?
       html << '<ul>'
       ordered_tags.each do |tag|
@@ -29,7 +29,7 @@ class TagSetPresenter < Presenter
   end
 
   def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
-    html = ""
+    html = +""
 
     TagCategory::SPLIT_HEADER_LIST.each do |category|
       typetags = tags_for_category(category)

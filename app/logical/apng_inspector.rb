@@ -35,7 +35,7 @@ class ApngInspector
       #We could be dealing with large number of chunks,
       #so the code should be optimized to create as few objects as possible.
       #All literal strings are frozen and read() function uses string buffer.
-      chunkheader = ''
+      chunkheader = +""
       while file.read(8, chunkheader)
         #ensure that first 8 bytes from chunk were read properly
         if chunkheader == nil || chunkheader.length < 8
