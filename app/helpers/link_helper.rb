@@ -152,11 +152,12 @@ module LinkHelper
     index = 0 if index.nil?
     host = DECORATABLE_DOMAINS[index]
 
+    image_url = asset_pack_path("static/#{host}.png")
     link_to(path, class: "decorated", **) do
       safe_join([
         tag.span(
           class: "link-decoration",
-          style: "background-image: url('/images/favicons/#{host}.png')",
+          style: "background-image: url(#{image_url})",
           data: {
             hostname: host,
           },
