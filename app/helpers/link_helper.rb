@@ -10,6 +10,7 @@ module LinkHelper
     "carrd.co",
     #
     # Art sites
+    "artfight.net",
     "artstation.com",
     "archiveofourown.com",
     "aryion.com",
@@ -154,17 +155,18 @@ module LinkHelper
 
     hostname = uri.host.delete_prefix("www.")
 
-    # First attempt: direct match
+    # 1: direct match
     return hostname if DECORATABLE_DOMAINS.include?(hostname)
 
-    # Second attempt: subdomains?
-    _removed, remaining_hostname = hostname.split(".", 2)
-    return hostname if DECORATABLE_DOMAINS.include?(remaining_hostname)
-
-    hostname = remaining_hostname || hostname
-
-    # Third attempt: aliases
+    # 2: aliases
     return DECORATABLE_ALIASES[hostname] if DECORATABLE_ALIASES[hostname]
+
+    # 3: Try the same, this time with the leftmost subdomain removed
+    if hostname.count(".") > 1
+      _removed, remaining_hostname = hostname.split(".", 2)
+      return remaining_hostname if DECORATABLE_DOMAINS.include?(remaining_hostname)
+      return DECORATABLE_ALIASES[remaining_hostname] if DECORATABLE_ALIASES[remaining_hostname]
+    end
 
     NONE
   end
