@@ -300,8 +300,8 @@ class Pool < ApplicationRecord
     post_ids[n]
   end
 
-  def cover_post_id
-    post_ids.first
+  def cover_post
+    Post.find_by(id: post_ids.first)
   end
 
   def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)

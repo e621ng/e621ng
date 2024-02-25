@@ -27,13 +27,15 @@ class PoolsController < ApplicationController
     params[:limit] ||= CurrentUser.user.per_page
 
     @pools = Pool.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
-    @post_set = PostSets::PoolGallery.new(@pools)
   end
 
   def show
     @pool = Pool.find(params[:id])
-    @post_set = PostSets::Pool.new(@pool, params[:page])
-    respond_with(@pool)
+    respond_with(@pool) do |format|
+      format.html do
+        @posts = @pool.posts.paginate(params[:page], limit: params[:limit], total_count: @pool.post_ids.count)
+      end
+    end
   end
 
   def create

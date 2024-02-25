@@ -81,7 +81,7 @@ class PostsDecorator < ApplicationDecorator
   def preview_html(t, options = {})
     post = object
     if post.nil?
-      return "<em>none</em>".html_safe
+      return ""
     end
 
     if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
