@@ -12,12 +12,6 @@ module ApplicationHelper
     render "diff_list", diff: diff
   end
 
-  def wordbreakify(string)
-    lines = string.scan(/.{1,10}/)
-    wordbreaked_string = lines.map{|str| h(str)}.join("<wbr>")
-    raw(wordbreaked_string)
-  end
-
   def nav_link_to(text, url, **options)
     klass = options.delete(:class)
 
