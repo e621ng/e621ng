@@ -1,4 +1,4 @@
-require 'socket'
+# frozen_string_literal: true
 
 module Danbooru
   class Configuration

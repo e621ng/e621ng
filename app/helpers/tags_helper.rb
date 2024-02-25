@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TagsHelper
   def format_transitive_item(transitive)
     html = "<strong class=\"redtext\">#{transitive[0].to_s.titlecase}</strong> ".html_safe

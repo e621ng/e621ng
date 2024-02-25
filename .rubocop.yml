@@ -118,9 +118,6 @@ Style/EmptyMethod:
 Style/FloatDivision:
   Enabled: false
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
 Style/GuardClause:
   Enabled: false
 

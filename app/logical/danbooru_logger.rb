@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DanbooruLogger
   def self.log(exception, expected: false, **params)
     if expected

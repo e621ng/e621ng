@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSetPresenters
   class Popular < Base
     delegate :posts, :date, :min_date, :max_date, to: :post_set

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadWhitelistsController < ApplicationController
   respond_to :html, :json, :js
   before_action :admin_only, only: [:new, :create, :edit, :update, :destroy]

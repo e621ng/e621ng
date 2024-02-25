@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Cache
   def self.read_multi(keys, prefix)
     sanitized_key_to_key_hash = keys.index_by { |key| "#{prefix}:#{key}" }

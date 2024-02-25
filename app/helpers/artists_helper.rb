@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ArtistsHelper
   def link_to_artist(name)
     artist = Artist.find_by(name: name)

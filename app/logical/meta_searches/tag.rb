@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MetaSearches::Tag
   MAX_RESULTS = 25
   attr_reader :search, :tags, :tag_aliases, :tag_implications

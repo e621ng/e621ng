@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagImplication < TagRelationship
   has_many :tag_rel_undos, as: :tag_rel
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SearchFormBuilder < SimpleForm::FormBuilder
   def input(attribute_name, options = {}, &)
     value = value_for_attribute(attribute_name, options)

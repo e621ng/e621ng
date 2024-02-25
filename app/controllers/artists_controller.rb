@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ArtistsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show, :show_or_new]

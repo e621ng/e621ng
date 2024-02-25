@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
 

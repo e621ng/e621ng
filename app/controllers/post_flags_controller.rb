@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostFlagsController < ApplicationController
   before_action :member_only, :except => [:index, :show]
   before_action :janitor_only, only: [:destroy]

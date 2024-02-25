@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NoteVersionsHelper
   def note_version_body_diff_info(note_version)
     previous = note_version.previous

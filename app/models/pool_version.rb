@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PoolVersion < ApplicationRecord
   user_status_counter :pool_edit_count, foreign_key: :updater_id
   belongs_to :updater, :class_name => "User"

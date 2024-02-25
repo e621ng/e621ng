@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StorageManager::Hybrid < StorageManager
   attr_reader :submanager
 

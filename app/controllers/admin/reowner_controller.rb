@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Admin
   class ReownerController < ApplicationController
     before_action :is_bd_staff_only

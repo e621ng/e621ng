@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MascotsController < ApplicationController
   respond_to :html, :json
   before_action :admin_only, except: [:index]

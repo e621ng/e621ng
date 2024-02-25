@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostVersionsHelper
   def post_source_diff(post_version)
     diff = post_version.diff_sources(post_version.previous)

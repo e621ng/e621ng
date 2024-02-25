@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PoolVersionsHelper
   def pool_version_posts_diff(pool_version)
     changes = []

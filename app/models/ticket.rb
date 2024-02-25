@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Ticket < ApplicationRecord
   belongs_to_creator
   user_status_counter :ticket_count

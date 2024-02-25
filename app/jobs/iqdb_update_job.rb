@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class IqdbUpdateJob < ApplicationJob
   queue_as :iqdb
 

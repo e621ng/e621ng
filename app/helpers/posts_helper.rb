@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostsHelper
   def discover_mode?
     params[:tags] =~ /order:rank/

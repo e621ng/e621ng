@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
   include UserWarnable

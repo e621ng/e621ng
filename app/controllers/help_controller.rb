@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class HelpController < ApplicationController
   respond_to :html, :json
   helper :wiki_pages

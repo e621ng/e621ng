@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index search show for_post]

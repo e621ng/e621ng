@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CommentVote < UserVote
   validate :validate_user_can_vote
   validate :validate_comment_can_be_voted

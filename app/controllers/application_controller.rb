@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
   class FeatureUnavailable < StandardError; end

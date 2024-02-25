@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CommentsHelper
   def comment_vote_block(comment, vote)
     return if comment.is_sticky

@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class DmailsControllerTest < ActionDispatch::IntegrationTest
   context "The dmails controller" do

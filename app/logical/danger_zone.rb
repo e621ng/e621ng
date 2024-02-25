@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DangerZone
   def self.uploads_disabled?(user)
     user.level < min_upload_level

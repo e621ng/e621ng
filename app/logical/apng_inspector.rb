@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApngInspector
   attr_reader :frames
 
@@ -44,12 +46,12 @@ class ApngInspector
 
         current_pos = file.tell
 
-        chunk_len, chunk_name = chunkheader.unpack("Na4".freeze)
+        chunk_len, chunk_name = chunkheader.unpack("Na4")
         return false if chunk_name =~ /[^A-Za-z]/
         yield chunk_name, chunk_len, file
 
         #no need to read further if IEND is reached
-        if chunk_name == "IEND".freeze
+        if chunk_name == "IEND"
           iend_reached = true
           break
         end
@@ -74,7 +76,7 @@ class ApngInspector
     actl_corrupted = false
 
     read_success = each_chunk do |name, len, file|
-      if name == 'acTL'.freeze
+      if name == "acTL"
         framecount = parse_actl(len, file)
         if framecount < 1
           actl_corrupted = true
@@ -106,7 +108,7 @@ class ApngInspector
       if framedata == nil || framedata.length != 4
         return -1
       end
-      return framedata.unpack("N".freeze)[0]
+      framedata.unpack1("N")
     end
 
 end

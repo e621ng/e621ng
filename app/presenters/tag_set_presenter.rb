@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 =begin rdoc
   A tag set represents a set of tags that are displayed together.
   This class makes it easy to fetch the categories for all the

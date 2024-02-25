@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DmailsController < ApplicationController
   respond_to :html
   respond_to :json, except: %i[new create]

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ExceptionLog < ApplicationRecord
   serialize :extra_params, coder: JSON
 

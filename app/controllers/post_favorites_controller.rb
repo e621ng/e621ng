@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostFavoritesController < ApplicationController
   respond_to :html
 

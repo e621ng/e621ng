@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostCommentLocked < ActiveRecord::Migration[6.1]
   def change
     Post.without_timeout do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Pool < ApplicationRecord
   class RevertError < Exception;
   end

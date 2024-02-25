@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr

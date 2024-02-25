@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DtextInput < SimpleForm::Inputs::TextInput
   def input(wrapper_options = nil)
     input_html_options[:cols] = "80"

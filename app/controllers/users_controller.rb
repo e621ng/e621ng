@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DtextPreviewsController < ApplicationController
   def create
     body = params[:body] || ""

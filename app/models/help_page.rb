@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class HelpPage < ApplicationRecord
   validates :wiki_page, :name, uniqueness: true
   validates :wiki_page, :name, presence: true

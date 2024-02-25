@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Ban < ApplicationRecord
   attr_accessor :is_permaban
   after_create :create_feedback

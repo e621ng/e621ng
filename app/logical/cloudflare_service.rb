@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CloudflareService
   def self.ips
     text, code = Cache.fetch("cloudflare_ips", expires_in: 24.hours) do

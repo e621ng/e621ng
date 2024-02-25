@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StatsController < ApplicationController
   respond_to :html
 

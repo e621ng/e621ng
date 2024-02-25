@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class BulkUpdateRequestImporterTest < ActiveSupport::TestCase
   context "The alias and implication importer" do
