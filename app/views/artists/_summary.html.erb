@@ -19,7 +19,7 @@
     <li><strong>Domains</strong></li>
     <ul>
       <% artist.domains.each do |url, count| %>
-        <li><%= url %>: <%= count %></li>
+        <li><%= favicon_for_link("https://#{url}") %> <%= url %>: <%= count %></li>
       <% end %>
     </ul>
   <% end %>
@@ -29,7 +29,7 @@
       <% artist.sorted_urls.each do |url| %>
         <li>
           <% if url.is_active? %>
-            <%= link_to h(url.to_s), h(url) %>
+            <%= decorated_link_to(h(url.to_s), h(url)) %>
           <% else %>
             <del><%= h(url.url) %></del>
           <% end %>
