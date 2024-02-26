@@ -135,10 +135,9 @@ module LinkHelper
 
   def favicon_for_link(path)
     hostname = hostname_for_link(path)
-    image_url = asset_pack_path("static/#{hostname}.png")
-    tag.span(
+    tag.img(
       class: "link-decoration",
-      style: "background-image: url(#{image_url})",
+      src: asset_pack_path("static/#{hostname}.png"),
       data: {
         hostname: hostname,
       },
