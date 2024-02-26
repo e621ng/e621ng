@@ -52,7 +52,7 @@ module PostVersionsHelper
     diff[:removed_locked_tags].each do |tag_name|
       changes << tag.del(link_to("-#{tag_name}", posts_path(tags: tag_name)))
     end
-    diff[:unchanged_locked_tags].each do |tag|
+    diff[:unchanged_locked_tags].each do |tag_name|
       changes << tag.span(link_to(tag_name, posts_path(tags: tag_name)))
     end
 
