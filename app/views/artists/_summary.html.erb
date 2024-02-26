@@ -31,7 +31,7 @@
           <% if url.is_active? %>
             <%= decorated_link_to(h(url.to_s), h(url)) %>
           <% else %>
-            <del><%= h(url.url) %></del>
+            <del><%= favicon_for_link(url.url) %> <%= h(url.url) %></del>
           <% end %>
         </li>
       <% end %>
