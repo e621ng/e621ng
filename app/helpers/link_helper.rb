@@ -42,6 +42,7 @@ module LinkHelper
     "facebook.com",
     "instagram.com",
     "mastodon.social",
+    "nijie.info",
     "pawoo.net",
     "plurk.com",
     "privatter.net",
