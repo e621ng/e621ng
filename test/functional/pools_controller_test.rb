@@ -115,5 +115,10 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response :missing
       end
     end
+
+    should "render the order action" do
+      get_auth edit_pool_order_path(@pool), @user
+      assert_response :success
+    end
   end
 end
