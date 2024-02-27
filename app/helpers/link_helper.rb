@@ -11,7 +11,7 @@ module LinkHelper
     # Art sites
     "artfight.net",
     "artstation.com",
-    "archiveofourown.com",
+    "archiveofourown.org",
     "aryion.com",
     "derpibooru.org",
     "deviantart.com",
@@ -102,6 +102,7 @@ module LinkHelper
 
   DECORATABLE_ALIASES = {
     # alt names
+    "archiveofourown.com" => "archiveofourown.org",
     "e926.net" => "e621.net",
     "discord.gg" => "discord.com",
     "pixiv.me" => "pixiv.net",
