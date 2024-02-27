@@ -99,6 +99,7 @@ module LinkHelper
     "trello.com",
     "web.archive.org",
     "wordpress.com",
+    "wikimedia.org",
   ].freeze
 
   DECORATABLE_ALIASES = {
