@@ -93,6 +93,7 @@ module LinkHelper
     # Other
     "curiouscat.me",
     "discord.com",
+    "f-list.net",
     "steamcommunity.com",
     "t.me",
     "trello.com",
