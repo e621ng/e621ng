@@ -103,10 +103,15 @@ module LinkHelper
   DECORATABLE_ALIASES = {
     # alt names
     "archiveofourown.com" => "archiveofourown.org",
+    "curiouscat.live" => "curiouscat.me",
     "e926.net" => "e621.net",
     "discord.gg" => "discord.com",
+    "pillowfort.io" => "pillowfort.social",
     "pixiv.me" => "pixiv.net",
+    "subscribestar.com" => "subscribestar.adult",
+    "t.co" => "t.me",
     "x.com" => "twitter.com",
+    "youtu.be" => "youtube.com",
 
     # same icon
     "baraag.net" => "mastodon.social",
@@ -117,6 +122,7 @@ module LinkHelper
 
     # image servers
     "4cdn.org" => "4chan.org",
+    "cohostcdn.org" => "cohost.org",
     "discordapp.com" => "discord.com",
     "derpicdn.net" => "derpibooru.org",
     "deviantart.net" => "deviantart.com",
@@ -127,6 +133,7 @@ module LinkHelper
     "ngfiles.com" => "newgrounds.com",
     "pximg.net" => "pixiv.net",
     "redd.it" => "reddit.com",
+    "sofurryfiles.com" => "sofurry.com",
     "twimg.com" => "twitter.com",
     "ungrounded.net" => "newgrounds.com",
     "wixmp.com" => "deviantart.com",
