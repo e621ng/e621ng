@@ -35,11 +35,11 @@ module LinkHelper
     #
     # Social media
     "aethy.com",
-    "baraag.net",
     "bsky.app",
     "cohost.org",
     "facebook.com",
     "instagram.com",
+    "mastodon.social",
     "pawoo.net",
     "plurk.com",
     "privatter.net",
@@ -104,9 +104,10 @@ module LinkHelper
     "x.com" => "twitter.com",
 
     # same icon
+    "baraag.net" => "mastodon.social",
     "cloudfront.net" => "amazonaws.com",
-    "mastodon.art" => "baraag.net",
-    "meow.social" => "baraag.net",
+    "mastodon.art" => "mastodon.social",
+    "meow.social" => "mastodon.social",
     "sta.sh" => "deviantart.com",
 
     # image servers
