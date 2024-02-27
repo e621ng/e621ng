@@ -112,7 +112,6 @@ module LinkHelper
     "pillowfort.io" => "pillowfort.social",
     "pixiv.me" => "pixiv.net",
     "subscribestar.com" => "subscribestar.adult",
-    "t.co" => "t.me",
     "x.com" => "twitter.com",
     "youtu.be" => "youtube.com",
 
