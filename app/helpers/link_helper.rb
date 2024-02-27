@@ -30,6 +30,7 @@ module LinkHelper
     "toyhou.se",
     "tumblr.com",
     "newgrounds.com",
+    "yiff.life",
     "weasyl.com",
     "webtoons.com",
     #
