@@ -116,4 +116,13 @@ class ActionDispatch::IntegrationTest
   end
 end
 
+module ActionView
+  class TestCase
+    # Stub webpacker method so these tests don't compile assets
+    def asset_pack_path(name, **_options)
+      name
+    end
+  end
+end
+
 Rails.application.load_seed

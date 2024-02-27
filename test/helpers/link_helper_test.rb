@@ -4,15 +4,15 @@ require "test_helper"
 
 class LinkHelperTest < ActionView::TestCase
   test "for a non-handled url" do
-    assert_equal(LinkHelper::NONE, hostname_for_link("https://example.com"))
+    assert_nil(hostname_for_link("https://example.com"))
   end
 
   test "for a invalid url" do
-    assert_equal(LinkHelper::NONE, hostname_for_link("https:example.com"))
+    assert_nil(hostname_for_link("https:example.com"))
   end
 
   test "for a non-url" do
-    assert_equal(LinkHelper::NONE, hostname_for_link("text"))
+    assert_nil(hostname_for_link("text"))
   end
 
   test "for a normal domain" do
@@ -31,9 +31,18 @@ class LinkHelperTest < ActionView::TestCase
     assert_equal("inkbunny.net", hostname_for_link("https://qb.ib.metapix.net"))
   end
 
+  test "it returns an image if a hostname is found" do
+    assert_match("furaffinity.net.png", favicon_for_link("https://furaffinity.net"))
+  end
+
+  test "it returns a fontawesome icon if no hostname is found" do
+    pp favicon_for_link("https://example.com")
+    assert_match("globe", favicon_for_link("https://example.com"))
+  end
+
   test "all listed images exist" do
     favicon_folder = Rails.public_path.join("images/favicons")
-    all_domains = LinkHelper::DECORATABLE_DOMAINS + LinkHelper::DECORATABLE_ALIASES.values + [LinkHelper::NONE]
+    all_domains = LinkHelper::DECORATABLE_DOMAINS + LinkHelper::DECORATABLE_ALIASES.values
     all_domains.each do |domain|
       assert(favicon_folder.join("#{domain}.png").exist?, "missing #{domain}")
     end

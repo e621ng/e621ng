@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module LinkHelper
-  NONE = "empty"
   DECORATABLE_DOMAINS = [
     "e621.net",
     #
@@ -135,22 +134,29 @@ module LinkHelper
 
   def favicon_for_link(path)
     hostname = hostname_for_link(path)
-    tag.img(
-      class: "link-decoration",
-      src: asset_pack_path("static/#{hostname}.png"),
-      data: {
-        hostname: hostname,
-      },
-    )
+    if hostname
+      tag.img(
+        class: "link-decoration",
+        src: asset_pack_path("static/#{hostname}.png"),
+        data: {
+          hostname: hostname,
+        },
+      )
+    else
+      tag.i(
+        class: "fa-solid fa-globe link-decoration",
+        data: { hostname: "none" },
+      )
+    end
   end
 
   def hostname_for_link(path)
     begin
       uri = URI.parse(path)
     rescue URI::InvalidURIError
-      return NONE
+      return nil
     end
-    return NONE unless uri.host
+    return nil unless uri.host
 
     hostname = uri.host.delete_prefix("www.")
 
@@ -164,9 +170,7 @@ module LinkHelper
     if hostname.count(".") > 1
       _removed, remaining_hostname = hostname.split(".", 2)
       return remaining_hostname if DECORATABLE_DOMAINS.include?(remaining_hostname)
-      return DECORATABLE_ALIASES[remaining_hostname] if DECORATABLE_ALIASES[remaining_hostname]
+      DECORATABLE_ALIASES[remaining_hostname]
     end
-
-    NONE
   end
 end
