@@ -36,6 +36,7 @@ module LinkHelper
     # Social media
     "aethy.com",
     "bsky.app",
+    "blogspot.com",
     "cohost.org",
     "facebook.com",
     "instagram.com",
