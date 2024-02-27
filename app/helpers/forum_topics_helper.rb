@@ -16,7 +16,7 @@ module ForumTopicsHelper
       elsif obj.is_pending?
         return "The #{obj.relationship} ##{obj.id} [[#{obj.antecedent_name}]] -> [[#{obj.consequent_name}]] is pending approval."
       elsif obj.is_errored?
-        return "The #{obj.relationship} ##{obj.id} [[#{obj.antecedent_name}]] -> [[#{obj.consequent_name}]] (#{obj.relationship} failed during processing."
+        return "The #{obj.relationship} ##{obj.id} [[#{obj.antecedent_name}]] -> [[#{obj.consequent_name}]] failed during processing."
       else # should never happen
         return "The #{obj.relationship} ##{obj.id} [[#{obj.antecedent_name}]] -> [[#{obj.consequent_name}]] has an unknown status."
       end
