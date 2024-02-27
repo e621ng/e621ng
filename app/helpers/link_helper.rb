@@ -135,6 +135,7 @@ module LinkHelper
     "furrycdn.org" => "furbooru.org",
     "ib.metapix.net" => "inkbunny.net",
     "ngfiles.com" => "newgrounds.com",
+    "patreonusercontent.com" => "patreon.com",
     "pximg.net" => "pixiv.net",
     "redd.it" => "reddit.com",
     "sofurryfiles.com" => "sofurry.com",
