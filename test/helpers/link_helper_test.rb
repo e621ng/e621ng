@@ -36,7 +36,6 @@ class LinkHelperTest < ActionView::TestCase
   end
 
   test "it returns a fontawesome icon if no hostname is found" do
-    pp favicon_for_link("https://example.com")
     assert_match("globe", favicon_for_link("https://example.com"))
   end
 
