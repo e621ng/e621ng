@@ -37,11 +37,11 @@ class Takedown < ApplicationRecord
     pass = ""
 
     4.times do
-      pass << consonants[rand(21), 1]
-      pass << vowels[rand(5), 1]
+      pass += consonants[rand(21), 1]
+      pass += vowels[rand(5), 1]
     end
 
-    pass << rand(100).to_s
+    pass += rand(100).to_s
     pass
   end
 
