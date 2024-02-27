@@ -94,6 +94,7 @@ module LinkHelper
     # Other
     "curiouscat.me",
     "discord.com",
+    "fandom.com",
     "f-list.net",
     "steamcommunity.com",
     "t.me",
@@ -112,6 +113,7 @@ module LinkHelper
     "pillowfort.io" => "pillowfort.social",
     "pixiv.me" => "pixiv.net",
     "subscribestar.com" => "subscribestar.adult",
+    "wikia.com" => "fandom.com",
     "x.com" => "twitter.com",
     "youtu.be" => "youtube.com",
 
@@ -138,6 +140,7 @@ module LinkHelper
     "pximg.net" => "pixiv.net",
     "redd.it" => "reddit.com",
     "sofurryfiles.com" => "sofurry.com",
+    "static.wikia.nocookie.net" => "fandom.com",
     "twimg.com" => "twitter.com",
     "ungrounded.net" => "newgrounds.com",
     "wixmp.com" => "deviantart.com",
