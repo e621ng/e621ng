@@ -89,7 +89,7 @@ module PostSetPresenters
 
     def nav_links(template)
       template.tag.p(id: "popular-nav-links") do
-        template.safe_join(%w[day week month].map { |scale| nav_links_for_scale(template, scale) })
+        template.safe_join(%w[day week month].map { |scale| nav_links_for_scale(template, scale) }, " ")
       end
     end
 
