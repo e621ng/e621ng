@@ -21,6 +21,17 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_equal([:in, [8, 9, 10, 11, 12]], subject.range("8,9,10,11,12"))
   end
 
+  should "parse negative values" do
+    assert_equal([:lt, -1], subject.range("<-1"))
+  end
+
+  should "clamp huge values" do
+    assert_equal(ParseValue::MAX_INT, eq_value("1234567890987654321", :integer))
+    assert_equal(ParseValue::MIN_INT, eq_value("-1234567890987654321", :integer))
+    assert_equal(ParseValue::MAX_INT, eq_value("123456789098765432.1", :float))
+    assert_equal(ParseValue::MIN_INT, eq_value("-123456789098765432.1", :float))
+  end
+
   should "parse floats" do
     assert_equal(10.0, eq_value("10", :float))
     assert_equal(0.1, eq_value(".1", :float))

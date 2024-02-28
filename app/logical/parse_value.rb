@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ParseValue
+  MAX_INT = 2_147_483_647
+  MIN_INT = -2_147_483_648
   extend self
 
   def date_range(target)
@@ -23,8 +25,8 @@ module ParseValue
   def range_fudged(range, type)
     result = range(range, type)
     if result[0] == :eq
-      new_min = [(result[1] * 0.95).to_i, -2_147_483_648].max
-      new_max = [(result[1] * 1.05).to_i, 2_147_483_647].min
+      new_min = [(result[1] * 0.95).to_i, MIN_INT].max
+      new_max = [(result[1] * 1.05).to_i, MAX_INT].min
       [:between, new_min, new_max]
     else
       result
@@ -83,10 +85,11 @@ module ParseValue
   def cast(object, type)
     case type
     when :integer
-      object.to_i
+      object.to_i.clamp(MIN_INT, MAX_INT)
 
     when :float
-      object.to_f
+      # Floats obviously have a different range but this is good enough
+      object.to_f.clamp(MIN_INT, MAX_INT)
 
     when :date, :datetime
       case object
