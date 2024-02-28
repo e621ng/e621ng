@@ -109,6 +109,7 @@ module LinkHelper
     "archiveofourown.com" => "archiveofourown.org",
     "curiouscat.live" => "curiouscat.me",
     "e926.net" => "e621.net",
+    "exhentai.org" => "e-hentai.org",
     "discord.gg" => "discord.com",
     "pillowfort.io" => "pillowfort.social",
     "pixiv.me" => "pixiv.net",
