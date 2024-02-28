@@ -29,11 +29,11 @@ module PostVersionsHelper
 
     diff[:added_tags].each do |tag_name|
       classes = diff[:obsolete_added_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.ins(link_to("+#{tag_name}", posts_path(tags: tag_name), class: classes))
+      changes << tag.ins(link_to("+#{tag_name}", posts_path(tags: tag_name)), class: classes)
     end
     diff[:removed_tags].each do |tag_name|
       classes = diff[:obsolete_removed_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.del(link_to("-#{tag_name}", posts_path(tags: tag_name), class: classes))
+      changes << tag.del(link_to("-#{tag_name}", posts_path(tags: tag_name)), class: classes)
     end
     diff[:unchanged_tags].each do |tag_name|
       changes << tag.span(link_to(tag_name, posts_path(tags: tag_name)))
