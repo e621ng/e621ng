@@ -181,7 +181,7 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def approvable?(user)
-    !is_approved? && user.is_admin?
+    is_pending? && user.is_admin?
   end
 
   def rejectable?(user)
