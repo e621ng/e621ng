@@ -32,7 +32,7 @@ require('../src/styles/base.scss');
 
 importAll(require.context('../src/javascripts', true, /\.js(\.erb)?$/));
 
-require.context("../../../public/images/favicons", true)
+require.context("../../../public/images", true)
 
 export { default as Artist } from '../src/javascripts/artist.js';
 export { default as Autocomplete } from '../src/javascripts/autocomplete.js.erb';
