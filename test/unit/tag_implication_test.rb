@@ -121,6 +121,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       assert_includes(ti.errors[:base], "Consequent tag must not be aliased to another tag")
     end
 
+    should "allow rejecting if active aliases exist" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @user)
+      ti.save(validate: false)
+
+      ti.reject!
+      assert_equal("deleted", ti.reload.status)
+    end
+
     should "calculate all its descendants" do
       ti1 = create(:tag_implication, antecedent_name: "bbb", consequent_name: "ccc")
       assert_equal(%w[ccc], ti1.descendant_names)

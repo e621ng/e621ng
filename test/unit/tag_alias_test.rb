@@ -154,11 +154,29 @@ class TagAliasTest < ActiveSupport::TestCase
 
     should "error on approve if its not valid anymore" do
       create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
-      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", creator: @admin)
+      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @admin)
       ta.save(validate: false)
       with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_match "error", ta.reload.status
+    end
+
+    should "allow rejecting if an active duplicate exists" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @admin)
+      ta.save(validate: false)
+      ta.reject!
+
+      assert_equal "deleted", ta.reload.status
+    end
+
+    should "allow rejecting if an active transitive exists" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "bbb", consequent_name: "aaa", status: "pending", creator: @admin)
+      ta.save(validate: false)
+      ta.reject!
+
+      assert_equal "deleted", ta.reload.status
     end
 
     context "with an associated forum topic" do

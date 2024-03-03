@@ -9,11 +9,13 @@ class TagImplication < TagRelationship
   after_destroy :update_descendant_names_for_parents
   after_save :update_descendant_names_for_parents
   after_save :create_mod_action, if: :saved_change_to_status?
-  validates :antecedent_name, uniqueness: { scope: [:consequent_name], conditions: -> { duplicate_relevant } }
-  validate :absence_of_circular_relation
-  validate :absence_of_transitive_relation
-  validate :antecedent_is_not_aliased
-  validate :consequent_is_not_aliased
+  with_options unless: :is_deleted? do
+    validates :antecedent_name, uniqueness: { scope: [:consequent_name], conditions: -> { duplicate_relevant } }
+    validate :absence_of_circular_relation
+    validate :absence_of_transitive_relation
+    validate :antecedent_is_not_aliased
+    validate :consequent_is_not_aliased
+  end
 
   module DescendantMethods
     extend ActiveSupport::Concern
