@@ -17,11 +17,18 @@ class TagQueryTest < ActiveSupport::TestCase
   should "parse a query" do
     create(:tag, name: "acb")
     assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
-    assert_equal([:between, 1, 2], TagQuery.new("id:1..2")[:post_id])
-    assert_equal([:gt, 2], TagQuery.new("id:>2")[:post_id])
-    assert_equal([:lt, 3], TagQuery.new("id:<3")[:post_id])
-    assert_equal([:lt, 3], TagQuery.new("ID:<3")[:post_id])
+    assert_equal([[:between, 1, 2]], TagQuery.new("id:1..2")[:post_id])
+    assert_equal([[:gt, 2]], TagQuery.new("id:>2")[:post_id])
+    assert_equal([[:lt, 3]], TagQuery.new("id:<3")[:post_id])
+    assert_equal([[:lt, 3]], TagQuery.new("ID:<3")[:post_id])
     assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
+  end
+
+  should "allow multiple types for a metatag in a single query" do
+    query = TagQuery.new("id:1 -id:2 ~id:3 id:4 -id:5 ~id:6")
+    assert_equal([[:eq, 1], [:eq, 4]], query[:post_id])
+    assert_equal([[:eq, 2], [:eq, 5]], query[:post_id_must_not])
+    assert_equal([[:eq, 3], [:eq, 6]], query[:post_id_should])
   end
 
   should "fail for more than 40 tags" do

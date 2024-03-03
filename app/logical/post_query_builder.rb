@@ -32,8 +32,7 @@ class PostQueryBuilder
     q = TagQuery.new(query_string)
     relation = Post.all
 
-    relation = relation.add_range_relation(q[:post_id], "posts.id")
-    relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
+    relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
     relation = add_array_range_relation(relation, q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)")
     relation = add_array_range_relation(relation, q[:width], "posts.image_width")
@@ -127,10 +126,6 @@ class PostQueryBuilder
       relation = relation.where("posts.last_noted_at is not null")
     elsif q[:noter] == "none"
       relation = relation.where("posts.last_noted_at is null")
-    end
-
-    if q[:post_id_must_not]
-      relation = relation.where("posts.id <> ?", q[:post_id_must_not])
     end
 
     if q[:parent] == "none"

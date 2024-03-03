@@ -217,11 +217,8 @@ class TagQuery
       when "statuslocked"
         add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :status }
 
-      when "id"
-        q[:post_id] = ParseValue.range(g2)
-
-      when "-id"
-        q[:post_id_must_not] = g2.to_i
+      when "id", "-id", "~id"
+        add_to_query(type, :post_id) { ParseValue.range(g2) }
 
       when "width", "-width", "~width"
         add_to_query(type, :width) { ParseValue.range(g2) }
