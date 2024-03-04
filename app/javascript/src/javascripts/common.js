@@ -1,5 +1,5 @@
 import Cookie from './cookie'
-import LS from './local_storage'
+import Storage from './utility/storage';
 import Utility from './utility'
 
 function initSearch() {
@@ -25,12 +25,12 @@ function initSearch() {
 $(function() {
   $("#theme-switcher").change(function(e) {
     let theme = $(this).val();
-    LS.put("theme", theme);
+    Storage.LS.put("theme", theme);
     $("body").attr("data-th-main", theme);
   });
 
   {
-    let theme = LS.get("theme") || "hexagon";
+    let theme = Storage.LS.get("theme") || "hexagon";
     $("body").attr("data-th-main", theme);
     $("#theme-switcher").val(theme);
   }

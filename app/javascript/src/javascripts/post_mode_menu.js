@@ -1,5 +1,4 @@
 import Utility from './utility'
-import LS from './local_storage'
 import Post from './posts'
 import Favorite from './favorites'
 import PostSet from './post_sets'
@@ -7,6 +6,7 @@ import TagScript from './tag_script'
 import { SendQueue } from './send_queue'
 import Rails from '@rails/ujs'
 import Shortcuts from './shortcuts'
+import Storage from './utility/storage'
 
 let PostModeMenu = {};
 
@@ -30,29 +30,21 @@ PostModeMenu.show_notice = function(i) {
 }
 
 PostModeMenu.change_tag_script = function(e) {
-  if ($("#mode-box-mode").val() === "tag-script") {
-    const old_tag_script_id = LS.get("current_tag_script_id") || "1";
+  e.preventDefault();
+  if ($("#mode-box-mode").val() !== "tag-script")
+    return;
 
-    const new_tag_script_id = parseInt(e.key, 10);
-    const new_tag_script = LS.get("tag-script-" + new_tag_script_id);
+  const newScriptID = parseInt(e.key, 10);
+  if(!newScriptID || newScriptID == Storage.Posts.TagScriptID)
+    return;
 
-    $("#tag-script-field").val(new_tag_script);
-    LS.put("current_tag_script_id", new_tag_script_id);
-    if (old_tag_script_id !== new_tag_script_id) {
-      PostModeMenu.show_notice(new_tag_script_id);
-    }
-
-    e.preventDefault();
-  }
+  Storage.Posts.TagScriptID = newScriptID;
+  $("#tag-script-field").val(Storage.Posts.TagScript);
+  PostModeMenu.show_notice(newScriptID);
 }
 
 PostModeMenu.initialize_selector = function() {
-  if (!LS.get("mode")) {
-    LS.put("mode", "view");
-    $("#mode-box-mode").val("view");
-  } else {
-    $("#mode-box-mode").val(LS.get("mode"));
-  }
+  $("#mode-box-mode").val(Storage.Posts.Mode);
 
   $("#mode-box-mode").on("change.danbooru", function(e) {
     PostModeMenu.change();
@@ -105,9 +97,7 @@ PostModeMenu.close_edit_form = function() {
 PostModeMenu.initialize_tag_script_field = function() {
   $("#tag-script-field").blur(function(e) {
     const script = $(this).val();
-
-    const current_script_id = LS.get("current_tag_script_id");
-    LS.put("tag-script-" + current_script_id, script);
+    Storage.Posts.TagScript = script;
   });
 }
 
@@ -122,10 +112,10 @@ PostModeMenu.update_sets_menu = function() {
       $(window).trigger('danbooru:error', "Error getting sets list: " + data.message);
     }).done(function(data) {
       target.on('change', function(e) {
-        LS.put('set', e.target.value);
+        Storage.Posts.Set = e.target.value;
       });
       target.empty();
-      const target_set = LS.get('set') || 0;
+      const target_set = Storage.Posts.Set;
       ['Owned', "Maintained"].forEach(function(v) {
         let group = $('<optgroup>', {label: v});
         data[v].forEach(function(gi) {
@@ -144,21 +134,14 @@ PostModeMenu.change = function() {
     return;
   }
   $("#page").attr("data-mode-menu", s);
-  LS.put("mode", s, 1);
+  Storage.Posts.Mode = s;
   $("#set-id").hide();
   $("#tag-script-field").hide();
   $("#quick-mode-reason").hide();
 
   if (s === "tag-script") {
-    let current_script_id = LS.get("current_tag_script_id");
-    if (!current_script_id) {
-      current_script_id = "1";
-      LS.put("current_tag_script_id", current_script_id);
-    }
-    const script = LS.get("tag-script-" + current_script_id);
-
-    $("#tag-script-field").val(script).show();
-    PostModeMenu.show_notice(current_script_id);
+    $("#tag-script-field").val(Storage.Posts.TagScript).show();
+    PostModeMenu.show_notice(Storage.Posts.TagScriptID);
   } else if (s === 'add-to-set' || s === 'remove-from-set') {
     PostModeMenu.update_sets_menu();
     $("#set-id").show();
@@ -220,8 +203,7 @@ PostModeMenu.click = function(e) {
   } else if (s === 'remove-parent') {
     Post.update(post_id, {"post[parent_id]": ""});
   } else if (s === "tag-script") {
-    const current_script_id = LS.get("current_tag_script_id");
-    const tag_script = LS.get("tag-script-" + current_script_id);
+    const tag_script = Storage.Posts.TagScript;
     if (!tag_script) {
       e.preventDefault();
       return;

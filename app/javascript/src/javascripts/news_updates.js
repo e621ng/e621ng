@@ -1,4 +1,4 @@
-import LS from './local_storage'
+import Storage from './utility/storage';
 
 let NewsUpdate = {};
 
@@ -13,11 +13,10 @@ NewsUpdate.initialize = function () {
   });
   $('#news-closebutton').on('click', function () {
     $('#news').hide();
-    LS.put('hide_news_notice', key.toString());
+    Storage.Site.NewsUpdate = key;
   });
-  if (parseInt(LS.get("hide_news_notice") || 0, 10) < key) {
+  if (Storage.Site.NewsUpdate < key)
     $("#news").show();
-  }
 };
 
 $(function () {

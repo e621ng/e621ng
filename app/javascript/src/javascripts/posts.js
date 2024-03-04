@@ -1,9 +1,9 @@
 import Utility from './utility'
 import ZingTouch from 'zingtouch'
-import LS from './local_storage'
 import Note from './notes'
 import { SendQueue } from './send_queue'
 import Shortcuts from './shortcuts'
+import Storage from './utility/storage'
 
 let Post = {};
 
@@ -254,7 +254,7 @@ class E6Swipe extends ZingTouch.Swipe {
 }
 
 Post.initialize_gestures = function() {
-  if (LS.get("emg") !== "true") {
+  if (Storage.LS.get("emg") !== "true") {
     return;
   }
   if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0)))
@@ -416,15 +416,10 @@ Post.initialize_post_relationship_previews = function() {
   }
 
   const flip_saved = function() {
-    if (LS.get("show-relationship-previews") === "1")
-      LS.put("show-relationship-previews", "0");
-    else
-      LS.put("show-relationship-previews", "1");
+    Storage.Posts.ShowPostChildren = !Storage.Posts.ShowPostChildren;
   }
 
-  if (LS.get("show-relationship-previews") === "1") {
-    toggle();
-  }
+  if (Storage.Posts.ShowPostChildren) toggle();
 
   $("#has-children-relationship-preview-link").on("click.danbooru", function(e) {
     toggle();
