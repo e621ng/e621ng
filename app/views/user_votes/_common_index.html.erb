@@ -45,9 +45,9 @@
           <% end %>
           <td><%= time_ago_in_words_tagged(vote.user.created_at) %></td>
           <td>
-            <% if vote.is_positive? %><span class='greentext'>Up</span>
-            <% elsif vote.is_locked? %><span class='yellowtext'>Locked</span>
-            <% else %><span class='redtext'>Down</span>
+            <% if vote.is_positive? %><span class="text-green text-bold">Up</span>
+            <% elsif vote.is_locked? %><span class="text-yellow text-bold">Locked</span>
+            <% else %><span class="text-red text-bold">Down</span>
             <% end %>
           </td>
           <td><%= time_ago_in_words_tagged(vote.created_at) %></td>

@@ -19,7 +19,7 @@
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
 
-  <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
+  <div class="background-red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
     
