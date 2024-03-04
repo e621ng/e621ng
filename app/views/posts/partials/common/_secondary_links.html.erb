@@ -11,4 +11,11 @@
   <%= subnav_link_to "Changes", post_versions_path %>
   <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
   <%= subnav_link_to "Help", help_page_path(id: "posts") %>
+  <% if CurrentUser.can_approve_posts? %>
+    <% if @post %>
+      <%= subnav_link_to "Related", related_posts_path(search: { base_post: @post.id }) %>
+    <% else %>
+      <%= subnav_link_to "Related", related_posts_path %>
+    <% end %>
+  <% end %>
 <% end %>
