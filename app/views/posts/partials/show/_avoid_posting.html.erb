@@ -1,0 +1,33 @@
+<% if post.avoid_posting_artists.any? %>
+  <div class="notice" id="avoid-posting-notice">
+    <div class="avoid-posting">
+      <h3>Avoid Posting</h3>
+      <ul>
+        <% post.avoid_posting_artists.each do |dnp| %>
+          <% verified = dnp.artist && dnp.artist.linked_user_id == post.uploader_id %>
+          <li>
+          <% if dnp.details.blank? %>
+            <% if verified %>
+              <span class="artist"><%= link_to dnp.artist_name, avoid_posting_path(dnp) %> <i class="uploader-is-artist fa-regular fa-circle-check" title="The uploader is linked to this artist."></i></span>
+              <span class="separator">&dash;</span>
+              <span class="details">Only the artist is allowed to post.</span>
+            <% else %>
+              <span class="artist"><%= link_to dnp.artist_name, avoid_posting_path(dnp) %></span>
+              <span class="separator">&dash;</span> Avoid posting.
+            <% end %>
+          <% else %>
+              <span class="artist">
+              <%= link_to dnp.artist.name, avoid_posting_path(dnp) %>
+                <% if verified %>
+                <i class="uploader-is-artist fa-regular fa-circle-check" title="The uploader is linked to this artist."></i>
+              <% end %>
+              </span>
+              <span class="separator">&dash;</span>
+              <span class="details"><%= dnp.details %></span>
+          <% end %>
+            </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% end %>

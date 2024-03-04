@@ -47,5 +47,11 @@ FactoryBot.define do
       level { 50 }
       can_approve_posts { true }
     end
+
+    factory(:bd_staff_user) do
+      level { 50 }
+      can_approve_posts { true }
+      is_bd_staff { true }
+    end
   end
 end
