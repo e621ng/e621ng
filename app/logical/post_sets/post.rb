@@ -3,21 +3,22 @@
 module PostSets
   class Post < PostSets::Base
     MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count
+    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :use_new_syntax
 
-    def initialize(tags, page = 1, per_page = nil, random: nil)
+    def initialize(tags, page = 1, per_page = nil, random: nil, use_new_syntax: false)
       tags ||= ""
-      @public_tag_array = TagQuery.scan(tags)
+      @public_tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      @tag_array = TagQuery.scan(tags)
+      @tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       @page = page
       @per_page = per_page
       @random = random.present?
+      @use_new_syntax = use_new_syntax
     end
 
     def tag_string
-      @tag_string ||= tag_array.uniq.join(" ")
+      @tag_string ||= use_new_syntax ? tag_array.join(" ") : tag_array.uniq.join(" ")
     end
 
     def public_tag_string
@@ -58,7 +59,7 @@ module PostSets
 
     def posts
       @posts ||= begin
-        temp = ::Post.tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
+        temp = ::Post.tag_match(tag_string, use_new_syntax: use_new_syntax).paginate(page, limit: per_page, includes: [:uploader])
 
         @post_count = temp.total_count
         temp
