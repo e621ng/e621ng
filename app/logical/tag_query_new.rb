@@ -169,8 +169,8 @@ class TagQueryNew < TagQuery
   private
   TOKENS_TO_SKIP = ["~", "-"].freeze
 
-  def parse_range(val, key)
-    range = ParseValue.range(val)
+  def parse_range(val, key, type = :integer, fudged = false)
+    range = fudged ? ParseValue.range_fudged(val, type) : ParseValue.range(val, type)
 
     case range[0]
     when :eq
@@ -314,7 +314,21 @@ class TagQueryNew < TagQuery
       b = parse_boolean(v)
       return { as_query: { term: { :status_locked => b } } }
     when "id"
-      return { as_query: parse_range(v, :id)}
+      return { as_query: parse_range(v, :id) }
+    when "width"
+      return { as_query: parse_range(v, :width) }
+    when "height"
+      return { as_query: parse_range(v, :height) }
+    when "mpixels"
+      return { as_query: parse_range(v, :mpixels, :float, true) }
+    when "ratio"
+      return { as_query: parse_range(v, :aspect_ratio, :ratio) }
+    when "duration"
+      return { as_query: parse_range(v, :duration, :float) }
+    when "score"
+      return { as_query: parse_range(v, :score) }
+    when "favcount"
+      return { as_query: parse_range(v, :fav_count) }
     else
       return { ignore: true }
     end
