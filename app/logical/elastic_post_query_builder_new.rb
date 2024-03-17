@@ -15,6 +15,8 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     source.each do |tag|
       if tag.is_a? String
         target.push({term: {tags: tag}})
+      elsif tag[:as_query]
+        target.push(tag[:as_query])
       else
         new_q = {bool: {must: [], should: [], must_not: []}}
         if tag[:must].any? 
@@ -47,6 +49,10 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     recurse(q[:tags][:should], should)
     recurse(q[:tags][:must_not], must_not)
 
-    order.push({id: :desc})
+    if q[:order_queries].length() == 0
+      order.push({id: :desc})
+    else
+      order = q[:order_queries]
+    end
   end
 end

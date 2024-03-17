@@ -90,6 +90,16 @@ class TagAlias < TagRelationship
     TagAlias.to_aliased_with_originals(names).values
   end
 
+  def self.to_alias(name)
+    tag_alias = active.where(antecedent_name: name).map { |ta| ta.consequent_name }
+    
+    if tag_alias.length() > 0
+      return tag_alias[0]
+    end
+
+    return name
+  end
+
   def self.to_aliased_query(query, overrides: nil)
     # Remove tag types (newline syntax)
     query.gsub!(/(^| )(-)?(#{TagCategory::MAPPING.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, '\1\2\4')

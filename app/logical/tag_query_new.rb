@@ -11,6 +11,7 @@ class TagQueryNew < TagQuery
         must_not: [],
         should: [],
       },
+      order_queries: []
     }
     @resolve_aliases = resolve_aliases
     @tag_count = 0
@@ -36,12 +37,22 @@ class TagQueryNew < TagQuery
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     token = ""
     tokenized = []
+    in_quote = false
     tagstr.split("") do |char|
-      if char == " "
+      if char == " " && !in_quote
         tokenized.push(token)
         token = ""
       elsif char == "-" && token.length == 0
         tokenized.push(char)
+      elsif char == "\""
+        token += char
+        if !in_quote
+          in_quote = true
+        else
+          in_quote = false
+          tokenized.push(token)
+          token = ""
+        end
       else
         token += char
       end
@@ -52,15 +63,17 @@ class TagQueryNew < TagQuery
     tokenized
   end
 
-  def build_query(group, curQuery)
-    if curQuery == nil
-      curQuery = { must: [], should: [], must_not: [] }
+  def build_query(group, cur_query)
+    if cur_query == nil
+      cur_query = { must: [], should: [], must_not: [] }
     end
 
     modifier = 0
 
     if resolve_aliases
-      group[:tokens] = TagAlias.to_aliased(group[:tokens])
+      group[:tokens].each_with_index do |token, i|
+        group[:tokens][i] = TagAlias.to_alias(token)
+      end
     end
 
     group[:tokens].each_with_index do |token, i|
@@ -68,102 +81,202 @@ class TagQueryNew < TagQuery
         next
       end
 
-      previousToken = i > 0 ? group[:tokens][i - 1] : nil
-      previousNegate = previousToken == "-"
-      nextToken = i < group[:tokens].length() - 1 ? group[:tokens][i + 1] : nil
+      previous_token = i > 0 ? group[:tokens][i - 1] : nil
+      previous_negate = previous_token == "-"
+      next_token = i < group[:tokens].length() - 1 ? group[:tokens][i + 1] : nil
 
-      if nextToken == "~"
+      if next_token == "~"
         modifier = 1
       end
 
-      if !token.start_with?("__")
+      if !token.start_with?("__") && !token.start_with?("--")
+        @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
         if modifier == 0
-          if !previousNegate
+          if !previous_negate
             if token.include?("*")
-              curQuery[:must].push({ should: pull_wildcard_tags(token) })
+              cur_query[:must].push({ should: pull_wildcard_tags(token) })
             else
-              curQuery[:must].push(token)
+              cur_query[:must].push(token)
             end
           else
             if token.include?("*")
-              curQuery[:must_not].push({ should: pull_wildcard_tags(token) })
+              cur_query[:must_not].push({ should: pull_wildcard_tags(token) })
             else
-              curQuery[:must_not].push(token)
+              cur_query[:must_not].push(token)
             end
           end
         elsif modifier == 1
-          if !previousNegate
+          if !previous_negate
             if token.include?("*")
-              curQuery[:should].push({ should: pull_wildcard_tags(token) })
+              cur_query[:should].push({ should: pull_wildcard_tags(token) })
             else
-              curQuery[:should].push(token)
+              cur_query[:should].push(token)
             end
           else
             if token.include?("*")
-              curQuery[:should].push({must_not: { should: pull_wildcard_tags(token) }})
+              cur_query[:should].push({must_not: { should: pull_wildcard_tags(token) }})
             else
-              curQuery[:should].push({must_not: token})
+              cur_query[:should].push({must_not: token})
             end
           end
         end
-      else
-        nextGroup = group[:groups][Integer(token[2..-1])]
+      elsif token.start_with?("__")
+        next_group = group[:groups][Integer(token[2..-1])]
 
         query = { must: [], should: [], must_not: [] }
 
-        build_query(nextGroup, query)
+        build_query(next_group, query)
 
         if modifier == 0
-          if !previousNegate
-            curQuery[:must].push(query)
+          if !previous_negate
+            cur_query[:must].push(query)
           else
-            curQuery[:must_not].push(query)
+            cur_query[:must_not].push(query)
           end
         elsif modifier == 1
-          if !previousNegate
-            curQuery[:should].push(query)
+          if !previous_negate
+            cur_query[:should].push(query)
           else
-            curQuery[:should].push({must_not: query})
+            cur_query[:should].push({must_not: query})
+          end
+        end
+      elsif token.start_with?("--")
+        next_meta_tag = group[:meta_tags][Integer(token[2..-1])]
+
+        if modifier == 0
+          if !previous_negate
+            cur_query[:must].push(next_meta_tag)
+          else
+            cur_query[:must_not].push(next_meta_tag)
+          end
+        elsif modifier == 1
+          if !previous_negate
+            cur_query[:should].push(next_meta_tag)
+          else
+            cur_query[:should].push({must_not: next_meta_tag})
           end
         end
       end
 
-      if modifier == 1 && nextToken != "~" 
+      if modifier == 1 && next_token != "~" 
         modifier = 0
       end
     end
 
-    curQuery
+    cur_query
   end
 
   private
   TOKENS_TO_SKIP = ["~", "-"].freeze
 
+  def process_any_none(key, value)
+    if value == "any" || value == "none"
+      return { exists: { :field => key } }, value == "none"
+    end
+
+    return nil
+  end
+
+  def meta_tag_parser(token)
+    metatag_name, v = token.split(":", 2)
+
+    if v.blank?
+      return false
+    end
+
+    v = v.delete_prefix('"').delete_suffix('"')
+
+    case metatag_name.downcase
+
+    when "user"
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:uploader => id_or_invalid(user_id)}} }
+
+    when "user_id"
+      return { as_query: {term: {:uploader => v.to_i}} }
+
+    when "approver"
+      any_none, negate = process_any_none(:approver, v.downcase)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:approver => id_or_invalid(user_id)}} }
+
+    when "commenter"
+      any_none, negate = process_any_none(:commenters, v.downcase)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:commenters => id_or_invalid(user_id)}} }
+
+    end
+  end
+
   def parse_query(query)
-    currentGroupIndex = []
-    group = { tokens: [], groups: [], orderTags: [] }
+    current_group_index = []
+    group = { tokens: [], groups: [], order_tags: [], meta_tags: [] }
 
     TagQueryNew.tokenize(query).each do |token|
-      curGroup = group
-      currentGroupIndex.each do |g|
-        curGroup = curGroup[:groups][g]
+      cur_group = group
+      current_group_index.each do |g|
+        cur_group = cur_group[:groups][g]
       end
 
       if token == "("
-        currentGroupIndex.push(curGroup[:groups].length())
-        curGroup[:groups].push({ tokens: [], groups: [] })
-        curGroup[:tokens].push("__#{curGroup[:groups].length() - 1}")
+        current_group_index.push(cur_group[:groups].length())
+        cur_group[:groups].push({ tokens: [], groups: [], meta_tags: [] })
+        cur_group[:tokens].push("__#{cur_group[:groups].length() - 1}")
       elsif token == ")"
-        currentGroupIndex.pop()
+        current_group_index.pop()
       else
-        curGroup[:tokens].push(token)
+        parsed_meta_tag, negate = meta_tag_parser(token)
+        if parsed_meta_tag
+          if parsed_meta_tag[:is_order_tag]
+            if parsed_meta_tag[:is_random]
+              group[:order_tags].push({ random: true })
+            elsif parsed_meta_tag[:is_random_seed]
+              group[:order_tags].push({ random_seed: parsed_meta_tag[:random_seed] })
+            elsif parsed_meta_tag[:is_rank]
+              group[:order_tags].push(parsed_meta_tag)
+            else
+              group[:order_tags].push(parsed_meta_tag[:as_query])
+            end
+          elsif !parsed_meta_tag[:ignore]
+            cur_group[:meta_tags].push(parsed_meta_tag)
+            if negate
+              if cur_group[:tokens][cur_group[:tokens].length()] == "-" then
+                cur_group[:tokens].pop()
+              else
+                cur_group[:tokens].push("-")
+              end
+            end
+            cur_group[:tokens].push("--#{cur_group[:meta_tags].length - 1}")
+          end
+        else
+          cur_group[:tokens].push(token)
+        end
       end
     end
 
-    if currentGroupIndex.length() != 0
+    if current_group_index.length() != 0
       # ERROR: GROUPS NOT CLOSED!
     end
 
-    @q = { tags: build_query(group, nil) }
+    @q = { tags: build_query(group, nil), order_queries: group[:order_tags] }
+  end
+
+  def parse_boolean(value)
+    value&.downcase == "true"
+  end
+
+  def id_or_invalid(val)
+    return -1 if val.blank?
+    val
   end
 end
