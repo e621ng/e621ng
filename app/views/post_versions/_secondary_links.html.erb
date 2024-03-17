@@ -6,7 +6,7 @@
   <% if params[:action] == "index" %>
     | <%= subnav_link_to "Undo selected", "" %>
     <%= subnav_link_to "Select All", "" %>
-    <% if CurrentUser.is_admin? %>
+    <% if CurrentUser.is_moderator? %>
     | <%= subnav_link_to "Apply Tag Script To Selected", "" %>
     <% end %>
   <% end %>
