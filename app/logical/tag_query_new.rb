@@ -181,7 +181,7 @@ class TagQueryNew < TagQuery
     metatag_name, v = token.split(":", 2)
 
     if v.blank?
-      return false
+      return { ignore: true }
     end
 
     v = v.delete_prefix('"').delete_suffix('"')
@@ -215,6 +215,54 @@ class TagQueryNew < TagQuery
       user_id = User.name_or_id_to_id(v)
       return { as_query: {term: {:commenters => id_or_invalid(user_id)}} }
 
+    when "noter"
+      any_none, negate = process_any_none(:noters, v.downcase)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:noters => id_or_invalid(user_id)}} }
+
+    when "noteupdater"
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:noters => id_or_invalid(user_id)}} }
+
+    when "pool"
+      any_none, negate = process_any_none(:pools, v.downcase)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      return { as_query: {term: {:pools => Pool.name_to_id(v)}} }
+
+    when "set"
+      post_set_id = PostSet.name_to_id(v)
+      post_set = PostSet.find_by(id: post_set_id)
+
+      return { as_query: {term: {:sets => 0}} } unless post_set
+
+      unless post_set.can_view?(CurrentUser.user)
+        raise User::PrivilegeError
+      end
+
+      return { as_query: {term: {:sets => post_set_id}} }
+
+    when "fav", "favoritedby"
+      favuser = User.find_by_name_or_id(v)
+
+      return { as_query: {term: {:faves => 0}} } unless favuser
+
+      if favuser.hide_favorites?
+        raise Favorite::HiddenError
+      end
+
+      return { as_query: {term: {:faves => favuser.id}} }
+
+    else
+      return { ignore: true }
     end
   end
 
