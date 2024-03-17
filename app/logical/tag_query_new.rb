@@ -169,6 +169,27 @@ class TagQueryNew < TagQuery
   private
   TOKENS_TO_SKIP = ["~", "-"].freeze
 
+  def parse_range(val, key)
+    range = ParseValue.range(val)
+
+    case range[0]
+    when :eq
+      return { term: { key => range[1] } }
+    when :gt
+      return { range: { key => { :gt => range[1] } } }
+    when :gte
+      return { range: { key => { :gte => range[1] } } }
+    when :lt
+      return { range: { key => { :lt => range[1] } } }
+    when :lte
+      return { range: { key => { :lte => range[1] } } }
+    when :between
+      return { range: { key => { :gte => range[1], :lte => range[2] } } }
+    when :in
+      return { terms: { key => range[1] } }
+    end
+  end
+
   def process_any_none(key, value)
     if value == "any" || value == "none"
       return { exists: { :field => key } }, value == "none"
@@ -283,6 +304,17 @@ class TagQueryNew < TagQuery
       end
 
       return { as_query: { term: { locked => true } } }
+    when "ratinglocked"
+      b = parse_boolean(v)
+      return { as_query: { term: { :rating_locked => b } } }
+    when "notelocked"
+      b = parse_boolean(v)
+      return { as_query: { term: { :note_locked => b } } }
+    when "statuslocked"
+      b = parse_boolean(v)
+      return { as_query: { term: { :status_locked => b } } }
+    when "id"
+      return { as_query: parse_range(v, :id)}
     else
       return { ignore: true }
     end
