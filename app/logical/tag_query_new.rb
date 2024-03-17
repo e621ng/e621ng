@@ -261,6 +261,28 @@ class TagQueryNew < TagQuery
 
       return { as_query: {term: {:faves => favuser.id}} }
 
+    when "md5"
+      md5s = v.downcase.split(",")[0..99]
+      return { as_query: { bool: { should: md5s.map { |md5| { term: { :md5 => md5 } } }, minimum_should_match: 1 } } }
+    when "rating"
+      return { as_query: { term: { :rating => v[0]&.downcase || "miss" } } }
+    when "locked"
+      locked = nil
+
+      case v.downcase
+      when "rating"
+        locked = :rating_locked
+      when "note", "notes"
+        locked = :note_locked
+      when "status"
+        locked = :status_locked
+      end
+
+      if locked == nil
+        return { ignore: true }
+      end
+
+      return { as_query: { term: { locked => true } } }
     else
       return { ignore: true }
     end
