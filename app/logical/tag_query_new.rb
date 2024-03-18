@@ -418,6 +418,7 @@ class TagQueryNew < TagQuery
       else
         return { ignore: true }
       end
+
     when "ischild"
       boolean, negate = process_boolean(:parent, v)
 
@@ -426,8 +427,18 @@ class TagQueryNew < TagQuery
       end
 
       return { ignore: true }
+
     when "isparent"
       return { as_query: {term: {:has_children => v.downcase == "true"}} }
+
+    when "filetype"
+      return { as_query: {term: {:file_ext => v.downcase}} }
+
+    when "description"
+      return { as_query: {match_phrase_prefix: {:description => v}} }
+
+    when "note"
+      return { as_query: {match_phrase_prefix: {:notes => v}} }
     else
       return { ignore: true }
     end
