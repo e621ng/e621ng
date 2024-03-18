@@ -363,6 +363,14 @@ class TagQueryNew < TagQuery
       end
 
       return { as_query: {wildcard: {:source => v}} }
+    when "hassource"
+      any_none, negate = process_any_none(:source, v.downcase == "true" ? "any" : "none")
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      return { ignore: true }
     when "date"
       date_range = ParseValue.date_range(v)
       relation = range_relation(date_range, :created_at)
