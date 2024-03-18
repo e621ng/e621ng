@@ -373,6 +373,12 @@ class TagQueryNew < TagQuery
       relation = range_relation(age, :created_at)
 
       return { as_query: relation }
+
+    when "tagcount"
+      return { as_query: parse_range(v, :tag_count) }
+
+    when /(#{TagCategory::SHORT_NAME_REGEX})tags/
+      return { as_query: parse_range(v, :"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}") }
     else
       return { ignore: true }
     end
