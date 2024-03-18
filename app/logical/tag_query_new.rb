@@ -212,8 +212,20 @@ class TagQueryNew < TagQuery
   end
 
   def process_any_none(key, value)
+    value = value.downcase
+
     if value == "any" || value == "none"
       return { exists: { :field => key } }, value == "none"
+    end
+
+    return nil
+  end
+
+  def process_boolean(key, value)
+    value = value.downcase
+
+    if value == "true" || value == "false"
+      return { exists: { :field => key } }, value == "false"
     end
 
     return nil
@@ -364,7 +376,7 @@ class TagQueryNew < TagQuery
 
       return { as_query: {wildcard: {:source => v}} }
     when "hassource"
-      any_none, negate = process_any_none(:source, v.downcase == "true" ? "any" : "none")
+      any_none, negate = process_boolean(:source, v)
 
       if any_none
         return { as_query: any_none }, negate
