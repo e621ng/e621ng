@@ -175,14 +175,8 @@ class TagQueryNew < TagQuery
     case range[0]
     when :eq
       return { term: { key => range[1] } }
-    when :gt
-      return { range: { key => { :gt => range[1] } } }
-    when :gte
-      return { range: { key => { :gte => range[1] } } }
-    when :lt
-      return { range: { key => { :lt => range[1] } } }
-    when :lte
-      return { range: { key => { :lte => range[1] } } }
+    when :gt, :gte, :lt, :lte
+      return { range: { key => { range[0] => range[1] } } }
     when :between
       return { range: { key => { :gte => range[1], :lte => range[2] } } }
     when :in
