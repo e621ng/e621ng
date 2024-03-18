@@ -379,6 +379,25 @@ class TagQueryNew < TagQuery
 
     when /(#{TagCategory::SHORT_NAME_REGEX})tags/
       return { as_query: parse_range(v, :"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}") }
+
+    when "parent"
+      any_none, negate = process_any_none(:parent, v)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      return { as_query: {term: {:parent => v.to_i}} }
+
+    when "child"
+      v = v.downcase
+      if v == "none"
+        return { as_query: {term: {:has_children => false}} }
+      elsif v == "any"
+        return { as_query: {term: {:has_children => true}} }
+      else
+        return { ignore: true }
+      end
     else
       return { ignore: true }
     end
