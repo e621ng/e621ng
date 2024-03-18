@@ -376,10 +376,10 @@ class TagQueryNew < TagQuery
 
       return { as_query: {wildcard: {:source => v}} }
     when "hassource"
-      any_none, negate = process_boolean(:source, v)
+      boolean, negate = process_boolean(:source, v)
 
-      if any_none
-        return { as_query: any_none }, negate
+      if boolean
+        return { as_query: boolean }, negate
       end
 
       return { ignore: true }
@@ -418,6 +418,16 @@ class TagQueryNew < TagQuery
       else
         return { ignore: true }
       end
+    when "ischild"
+      boolean, negate = process_boolean(:parent, v)
+
+      if boolean
+        return { as_query: boolean }, negate
+      end
+
+      return { ignore: true }
+    when "isparent"
+      return { as_query: {term: {:has_children => v.downcase == "true"}} }
     else
       return { ignore: true }
     end
