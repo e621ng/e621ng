@@ -446,6 +446,33 @@ class TagQueryNew < TagQuery
     when "deletedby"
       user_id = User.name_or_id_to_id(v)
       return { as_query: {term: {:deleter= => id_or_invalid(user_id)}} }
+
+    when "voted"
+      if CurrentUser.is_moderator?
+        user_id = User.name_or_id_to_id(v)
+      elsif CurrentUser.is_member?
+        user_id = CurrentUser.id
+      end
+      id = id_or_invalid(user_id)
+      return { as_query: { bool: { should: [{term: {:upvotes => id}}, {term: {:downvotes => id}}], minimum_should_match: 1 } } }
+
+    when "upvote", "votedup"
+      if CurrentUser.is_moderator?
+        user_id = User.name_or_id_to_id(v)
+      elsif CurrentUser.is_member?
+        user_id = CurrentUser.id
+      end
+      id = id_or_invalid(user_id)
+      return { as_query: { term: {:upvotes => id}} }
+
+    when "downvote", "voteddown"
+      if CurrentUser.is_moderator?
+        user_id = User.name_or_id_to_id(v)
+      elsif CurrentUser.is_member?
+        user_id = CurrentUser.id
+      end
+      id = id_or_invalid(user_id)
+      return { as_query: { term: {:downvotes => id}} }
     else
       return { ignore: true }
     end
