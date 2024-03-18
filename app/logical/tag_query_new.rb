@@ -439,6 +439,13 @@ class TagQueryNew < TagQuery
 
     when "note"
       return { as_query: {match_phrase_prefix: {:notes => v}} }
+
+    when "delreason"
+      return { as_query: {wildcard: {:del_reason => v}} }
+
+    when "deletedby"
+      user_id = User.name_or_id_to_id(v)
+      return { as_query: {term: {:deleter= => id_or_invalid(user_id)}} }
     else
       return { ignore: true }
     end
