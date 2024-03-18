@@ -184,6 +184,33 @@ class TagQueryNew < TagQuery
     end
   end
 
+  def range_relation(arr, field)
+    return if arr.nil?
+    return if arr.size < 2
+    return if arr[1].nil?
+
+    case arr[0]
+    when :eq
+      if arr[1].is_a?(Time)
+        { range: { field => { gte: arr[1].beginning_of_day, lte: arr[1].end_of_day } } }
+      else
+        { term: { field => arr[1] } }
+      end
+    when :gt
+      { range: { field => { gt: arr[1] } } }
+    when :gte
+      { range: { field => { gte: arr[1] } } }
+    when :lt
+      { range: { field => { lt: arr[1] } } }
+    when :lte
+      { range: { field => { lte: arr[1] } } }
+    when :in
+      { terms: { field => arr[1] } }
+    when :between
+      { range: { field => { gte: arr[1], lte: arr[2] } } }
+    end
+  end
+
   def process_any_none(key, value)
     if value == "any" || value == "none"
       return { exists: { :field => key } }, value == "none"
@@ -323,6 +350,29 @@ class TagQueryNew < TagQuery
       return { as_query: parse_range(v, :score) }
     when "favcount"
       return { as_query: parse_range(v, :fav_count) }
+    when "filesize"
+      return { as_query: parse_range(v, :file_size, :filesize, true) }
+    when "change"
+      return { as_query: parse_range(v, :change_seq) }
+    when "source"
+      v = "#{v}*"
+      any_none, negate = process_any_none(:source, v)
+
+      if any_none
+        return { as_query: any_none }, negate
+      end
+
+      return { as_query: {wildcard: {:source => v}} }
+    when "date"
+      date_range = ParseValue.date_range(v)
+      relation = range_relation(date_range, :created_at)
+
+      return { as_query: relation }
+    when "age"
+      age = ParseValue.invert_range(ParseValue.range(v, :age))
+      relation = range_relation(age, :created_at)
+
+      return { as_query: relation }
     else
       return { ignore: true }
     end
