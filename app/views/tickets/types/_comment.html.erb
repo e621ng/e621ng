@@ -1,6 +1,6 @@
 <% if @ticket.content %>
   <tr>
-    <td><span class='title'>Reported Comment</span></td>
+    <td><span class="title">Reported Comment</span></td>
     <td>
       <%= link_to("Comment by #{@ticket.content.creator_name}", comment_path(@ticket.content)) %> on
       <%= link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
@@ -8,7 +8,7 @@
   </tr>
 <% else %>
   <tr>
-    <td><span class='title'>Reported Comment</span></td>
-    <td><span class='redtext'>Comment has been deleted</span></td>
+    <td><span class="title">Reported Comment</span></td>
+    <td><span class="text-error">Comment has been deleted</span></td>
   </tr>
 <% end %>

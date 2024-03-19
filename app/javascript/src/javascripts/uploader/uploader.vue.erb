@@ -113,7 +113,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-if="showErrors && invalidRating">
+                    <div class="box-section background-red" v-if="showErrors && invalidRating">
                         You must select an appropriate rating for this image.
                     </div>
                     <div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="col2">
                   <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
-                    <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
+                    <div class="box-section background-red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
@@ -218,16 +218,16 @@
             <div class="flex-grid">
                 <div class="col"></div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-show="preventUpload && showErrors">
+                    <div class="box-section background-red" v-show="preventUpload && showErrors">
                         Unmet requirements above prevent the submission of the post.
                     </div>
-                    <div class="box-section sect_green" v-show="submitting">
+                    <div class="box-section background-green" v-show="submitting">
                         Submitting your post, please wait.
                     </div>
-                    <div class="box-section sect_red" v-show="error">
+                    <div class="box-section background-red" v-show="error">
                         {{ error }}
                     </div>
-                    <div class="box-section sect_red" v-show="duplicateId">
+                    <div class="box-section background-red" v-show="duplicateId">
                         Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
                     </div>
                     <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">

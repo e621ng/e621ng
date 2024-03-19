@@ -30,15 +30,15 @@ article.post-preview {
   }
 
   &.post-rating-explicit .post-score-rating {
-    color: $post-rating-explicit-color;
+    color: palette("text-red");
   }
 
   &.post-rating-safe .post-score-rating {
-    color: $post-rating-safe-color;
+    color: palette("text-green");
   }
 
   &.post-rating-questionable .post-score-rating {
-    color: $post-rating-questionable-color;
+    color: palette("text-yellow");
   }
 
   img {
@@ -361,15 +361,21 @@ div#c-posts {
       }
 
       #post_rating_e:checked + label {
-        background-color: themed("color-rating-explicit");
+        background-color: palette("background-red");
+        color: palette("text-white") !important;
+        text-shadow: 0 0 2px BLACK;
       }
 
       #post_rating_q:checked + label {
-        background-color: themed("color-rating-questionable");
+        background-color: palette("background-yellow");
+        color: palette("text-white") !important;
+        text-shadow: 0 0 2px BLACK;
       }
 
       #post_rating_s:checked + label {
-        background-color: themed("color-rating-safe");
+        background-color: palette("background-green");
+        color: palette("text-white") !important;
+        text-shadow: 0 0 2px BLACK;
       }
     }
 

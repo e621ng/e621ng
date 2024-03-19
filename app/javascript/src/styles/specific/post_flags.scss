@@ -1,6 +1,6 @@
 div#c-post-flags {
   tr.flag-resolved-true {
-    background: $negative-record-background !important;
+    background: palette("background-red") !important;
   }
 
   .flag-reason-title, .flag-reason-text {

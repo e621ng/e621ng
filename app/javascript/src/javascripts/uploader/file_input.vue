@@ -1,7 +1,7 @@
 <template>
   <span>
     <div v-if="!disableFileUpload">
-      <div class="box-section sect_red" v-if="fileTooLarge">
+      <div class="box-section background-red" v-if="fileTooLarge">
         The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
@@ -13,7 +13,7 @@
       <button @click.prevent="clearFileUpload" v-show="disableURLUpload">Clear</button>
     </div>
     <div v-if="!disableURLUpload">
-      <div class="box-section sect_red" v-if="badDirectURL">
+      <div class="box-section background-red" v-if="badDirectURL">
         The direct URL entered has the following problem: {{ directURLProblem }}<br>
         You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
       </div>
