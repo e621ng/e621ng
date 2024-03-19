@@ -11,11 +11,11 @@ class TagSetPresenter < Presenter
 
   attr_reader :tag_names
 
-  # @param [Array<String>] a list of tags to present. Tags will be presented in
+  # @param [Array<String>] tag_names a list of tags to present. Tags will be presented in
   # the order given. The list should not contain duplicates. The list may
   # contain tags that do not exist in the tags table, such as metatags.
   def initialize(tag_names)
-    @tag_names = tag_names
+    @tag_names = normalize_tags(tag_names)
     @_cached = {}
   end
 
@@ -106,6 +106,16 @@ class TagSetPresenter < Presenter
 
   def tags
     @_tags ||= Tag.where(name: tag_names).select(:name, :post_count, :category)
+  end
+
+  def strip_metatags(tags)
+    tags.grep_v(/\A(?:rating|-?parent|-?locked|-?pool|newpool|-?set|-?fav|-?child|upvote|downvote):/i)
+  end
+
+  def normalize_tags(tags)
+    tags = tags.map(&:downcase)
+    tags = strip_metatags(tags)
+    tags.map { |tag| tag.gsub(/(?:#{(TagCategory::CATEGORIES + TagCategory::SHORT_NAME_LIST).join('|')}):/, "") }
   end
 
   def tags_by_category
