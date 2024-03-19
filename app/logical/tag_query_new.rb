@@ -5,9 +5,9 @@ class TagQueryNew < TagQuery
   attr_reader :q, :resolve_aliases
 
   BOOLEAN_METATAG_MAPPER = {
-    hassource: :source
-    hasdescription: :description
-    ischild: :parent
+    hassource: :source,
+    hasdescription: :description,
+    ischild: :parent,
     inpool: :pools
   }.freeze
 
@@ -70,9 +70,10 @@ class TagQueryNew < TagQuery
     tokenized
   end
 
-  def build_query(group, cur_query)
+  def build_query(group, cur_query, parent = nil)
     if cur_query == nil
-      cur_query = { must: [], should: [], must_not: [] }
+      cur_query = { must: [], should: [], must_not: [], mentions_status: false }
+      parent = cur_query
     end
 
     modifier = 0
@@ -130,9 +131,13 @@ class TagQueryNew < TagQuery
       elsif token.start_with?("__")
         next_group = group[:groups][Integer(token[2..-1])]
 
-        query = { must: [], should: [], must_not: [] }
+        query = { must: [], should: [], must_not: [], mentions_status: false }
 
-        build_query(next_group, query)
+        build_query(next_group, query, cur_query)
+
+        if query[:mentions_status] && parent != nil
+          parent[:mentions_status] = true
+        end
 
         if modifier == 0
           if !previous_negate
@@ -149,6 +154,10 @@ class TagQueryNew < TagQuery
         end
       elsif token.start_with?("--")
         next_meta_tag = group[:meta_tags][Integer(token[2..-1])]
+
+        if next_meta_tag[:is_status]
+          cur_query[:mentions_status] = true
+        end
 
         if modifier == 0
           if !previous_negate
@@ -242,7 +251,7 @@ class TagQueryNew < TagQuery
     metatag_name, v = token.split(":", 2)
 
     if v.blank?
-      return { ignore: true }
+      return nil
     end
 
     v = v.delete_prefix('"').delete_suffix('"')
@@ -464,11 +473,14 @@ class TagQueryNew < TagQuery
       id = id_or_invalid(user_id)
       return { as_query: { term: {:downvotes => id}} }
 
-    when *COUNT_METATAGS
-      return { as_query: parse_range(v, :"#{metatag_name}") }
-
     when "pending_replacements"
       return { as_query: {term: {:has_pending_replacements => v.downcase == "true"}} }
+
+    when "status"
+      return { as_query: {term: {:status => v.downcase}}, is_status: true }
+
+    when *COUNT_METATAGS
+      return { as_query: parse_range(v, :"#{metatag_name}") }
 
     when *BOOLEAN_METATAGS
       boolean, negate = process_boolean(:"#{BOOLEAN_METATAG_MAPPER[metatag_name]}", v)
@@ -479,7 +491,7 @@ class TagQueryNew < TagQuery
 
       return { ignore: true }
     else
-      return { ignore: true }
+      return nil
     end
   end
 
