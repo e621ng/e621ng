@@ -5,10 +5,10 @@ class TagQueryNew < TagQuery
   attr_reader :q, :resolve_aliases
 
   BOOLEAN_METATAG_MAPPER = {
-    hassource: :source,
-    hasdescription: :description,
-    ischild: :parent,
-    inpool: :pools
+    :hassource => :source,
+    :hasdescription => :description,
+    :ischild => :parent,
+    :inpool => :pools
   }.freeze
 
   def initialize(query, resolve_aliases: true, free_tags_count: 0)
@@ -483,7 +483,7 @@ class TagQueryNew < TagQuery
       return { as_query: parse_range(v, :"#{metatag_name}") }
 
     when *BOOLEAN_METATAGS
-      boolean, negate = process_boolean(:"#{BOOLEAN_METATAG_MAPPER[metatag_name]}", v)
+      boolean, negate = process_boolean(:"#{BOOLEAN_METATAG_MAPPER[:"#{metatag_name}"]}", v)
 
       if boolean
         return { as_query: boolean }, negate
