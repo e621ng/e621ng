@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class TagQueryNew < TagQuery
+  class UnclosedGroupError < StandardError; end
+  class MaxGroupDepthExceededError < StandardError; end
+  class MaxTokensAchievedInGroupError < StandardError; end
 
   attr_reader :q, :resolve_aliases
 
@@ -10,6 +13,8 @@ class TagQueryNew < TagQuery
     :ischild => :parent,
     :inpool => :pools
   }.freeze
+
+  MAX_GROUP_DEPTH = 10
 
   def initialize(query, resolve_aliases: true, free_tags_count: 0)
     @q = {
@@ -522,6 +527,9 @@ class TagQueryNew < TagQuery
 
       if token == "("
         current_group_index.push(cur_group[:groups].length())
+        if current_group_index.length() > MAX_GROUP_DEPTH
+          raise MaxGroupDepthExceededError, "Exceeded the max group depth of: #{MAX_GROUP_DEPTH}"
+        end
         cur_group[:groups].push({ tokens: [], groups: [], meta_tags: [] })
         cur_group[:tokens].push("__#{cur_group[:groups].length() - 1}")
       elsif token == ")"
@@ -553,11 +561,16 @@ class TagQueryNew < TagQuery
         else
           cur_group[:tokens].push(token)
         end
+
+        # If there are more tokens in the group than allowed tags, the searcher is definitely past the tag limit unless they have empty groups, which shouldn't be used anyways
+        if cur_group[:tokens].length() > Danbooru.config.tag_query_limit
+          raise MaxTokensAchievedInGroupError, "You cannot use more than #{Danbooru.config.tag_query_limit} tokens in a single group"
+        end
       end
     end
 
     if current_group_index.length() != 0
-      # ERROR: GROUPS NOT CLOSED!
+      raise UnclosedGroupError, "A tag search group was not properly closed"
     end
 
     @q = { tags: build_query(group, nil), order_queries: group[:order_tags] }
