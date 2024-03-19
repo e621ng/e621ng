@@ -1,0 +1,20 @@
+#c-wiki-pages #a-show,
+#c-wiki-page-versions {
+  .wiki-page-redirect {
+    margin-left: 1em;
+    color: var(--color-text-muted);
+    & > i {
+      display: inline-flex;
+      margin-right: 0.25em;
+    }
+  }
+
+  .wiki-redirect-history {
+    color: var(--color-text-muted);
+    margin-bottom: 1em;
+  }
+
+  #wiki-page-body {
+    margin-top: 0.25em;
+  }
+}

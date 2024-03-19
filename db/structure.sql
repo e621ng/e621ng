@@ -2313,7 +2313,8 @@ CREATE TABLE public.wiki_page_versions (
     updated_at timestamp without time zone NOT NULL,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
-    reason character varying
+    reason character varying,
+    parent character varying
 );
 
 
@@ -2351,7 +2352,8 @@ CREATE TABLE public.wiki_pages (
     updated_at timestamp without time zone NOT NULL,
     updater_id integer,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL
+    is_deleted boolean DEFAULT false NOT NULL,
+    parent character varying
 );
 
 
@@ -4753,6 +4755,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230517155547'),
 ('20230518182034'),
 ('20230531080817'),
-('20240101042716');
+('20240101042716'),
+('20240113112949');
 
 
