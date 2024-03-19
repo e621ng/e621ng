@@ -29,7 +29,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
 
         any_status_mentions = any_status_mentions || tag[:mentions_status]
 
-        new_q = {bool: {must: [], should: [], must_not: !tag[:mentions_status] ? [{term:{:status => :deleted}}] : []}}
+        new_q = {bool: {must: [], should: [], must_not: !tag[:mentions_status] ? [{term:{:deleted => true}}] : []}}
         if tag[:must] != nil && tag[:must].any? 
           mentions = recurse(tag[:must], new_q[:bool][:must])
           any_status_mentions = any_status_mentions || mentions
@@ -77,13 +77,37 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     end
 
     if !any_status_mentions
-      must_not.push({term: {:status => :deleted}})
+      must_not.push({term: {:deleted => true}})
     end
 
-    if q[:order_queries].length() == 0
+    if q[:is_random]
+      if q[:random_seed].present?
+        @function_score = {
+          random_score: { seed: q[:random_seed], field: "id" },
+          boost_mode: :replace,
+        }
+      else
+        @function_score = {
+          random_score: {},
+          boost_mode: :replace,
+        }
+      end
+    elsif q[:is_ranked]
+      @function_score = {
+        script_score: {
+          script: {
+            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+            source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
+          },
+        },
+      }
+      must.push({ range: { score: { gt: 0 } } })
+      must.push({ range: { created_at: { gte: 2.days.ago } } })
+      order.push({ _score: :desc })
+    elsif q[:order_queries].length() == 0
       order.push({id: :desc})
     else
-      order = q[:order_queries]
+      @order = q[:order_queries]
     end
   end
 end

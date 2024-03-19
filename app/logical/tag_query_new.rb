@@ -263,6 +263,122 @@ class TagQueryNew < TagQuery
 
     case metatag_name.downcase
 
+    when "order"
+      case v.downcase
+      when "id", "id_asc"
+        return {as_query: {id: :asc}, is_order_tag: true}
+  
+      when "id_desc"
+        return {as_query: {id: :desc}, is_order_tag: true}
+  
+      when "change", "change_desc"
+        return {as_query: {change_seq: :desc}, is_order_tag: true}
+  
+      when "change_asc"
+        return {as_query: {change_seq: :asc}, is_order_tag: true}
+  
+      when "md5"
+        return {as_query: {md5: :desc}, is_order_tag: true}
+  
+      when "md5_asc"
+        return {as_query: {md5: :asc}, is_order_tag: true}
+  
+      when "score", "score_desc"
+        return {as_query: {score: :desc}, is_order_tag: true}
+        order.concat([{score: :desc}, {id: :desc}])
+  
+      when "score_asc"
+        return {as_query: {score: :asc}, is_order_tag: true}
+  
+      when "duration", "duration_desc"
+        return {as_query: {duration: :desc}, is_order_tag: true}
+  
+      when "duration_asc"
+        return {as_query: {duration: :asc}, is_order_tag: true}
+  
+      when "favcount"
+        return {as_query: {fav_count: :desc}, is_order_tag: true}
+  
+      when "favcount_asc"
+        return {as_query: {fav_count: :asc}, is_order_tag: true}
+  
+      when "created_at", "created_at_desc"
+        return {as_query: {created_at: :desc}, is_order_tag: true}
+  
+      when "created_at_asc"
+        return {as_query: {created_at: :asc}, is_order_tag: true}
+  
+      when "updated", "updated_desc"
+        return {as_query: {updated_at: :desc}, is_order_tag: true}
+  
+      when "updated_asc"
+        return {updated_at: :asc}
+  
+      when "comment", "comm"
+        return {as_query: {commented_at: {order: :desc, missing: :_last}}, is_order_tag: true}
+  
+      when "comment_bumped"
+        must.push({exists: {field: 'comment_bumped_at'}})
+        return {as_query: {comment_bumped_at: {order: :desc, missing: :_last}}, is_order_tag: true}
+  
+      when "comment_bumped_asc"
+        must.push({exists: {field: 'comment_bumped_at'}})
+        return {as_query: {comment_bumped_at: {order: :asc, missing: :_last}}, is_order_tag: true}
+  
+      when "comment_asc", "comm_asc"
+        return {as_query: {commented_at: {order: :asc, missing: :_last}}, is_order_tag: true}
+  
+      when "note"
+        return {as_query: {noted_at: {order: :desc, missing: :_last}}, is_order_tag: true}
+  
+      when "note_asc"
+        return {as_query: {noted_at: {order: :asc, missing: :_first}}, is_order_tag: true}
+  
+      when "mpixels", "mpixels_desc"
+        return {as_query: {mpixels: :desc}, is_order_tag: true}
+  
+      when "mpixels_asc"
+        return {as_query: {mpixels: :asc}, is_order_tag: true}
+  
+      when "portrait"
+        return {as_query: {aspect_ratio: :asc}, is_order_tag: true}
+  
+      when "landscape"
+        return {as_query: {aspect_ratio: :desc}, is_order_tag: true}
+  
+      when "filesize", "filesize_desc"
+        return {as_query: {file_size: :desc}, is_order_tag: true}
+  
+      when "filesize_asc"
+        return {as_query: {file_size: :asc}, is_order_tag: true}
+  
+      when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc|desc))?\z/i
+        column = Regexp.last_match[:column]
+        direction = Regexp.last_match[:direction] || "desc"
+        order.concat([{column => direction}, {id: direction}])
+  
+      when "tagcount", "tagcount_desc"
+        return {as_query: {tag_count: :desc}, is_order_tag: true}
+  
+      when "tagcount_asc"
+        return {as_query: {tag_count: :asc}, is_order_tag: true}
+  
+      when /(#{TagCategory::SHORT_NAME_REGEX})tags(?:\Z|_desc)/
+        return {as_query: {"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc}, is_order_tag: true}
+  
+      when /(#{TagCategory::SHORT_NAME_REGEX})tags_asc/
+        return {as_query: {"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc}, is_order_tag: true}
+  
+      when "random"
+        return {is_random: true, is_order_tag: true}
+
+      when "rank"
+        return {is_rank: true, is_order_tag: true}
+      end
+
+    when "randseed"
+      return { is_random_seed: true, is_order_tag: true, seed: v.to_i }
+
     when "user"
       user_id = User.name_or_id_to_id(v)
       return { as_query: {term: {:uploader => id_or_invalid(user_id)}} }
@@ -539,11 +655,11 @@ class TagQueryNew < TagQuery
         if parsed_meta_tag
           if parsed_meta_tag[:is_order_tag]
             if parsed_meta_tag[:is_random]
-              group[:order_tags].push({ random: true })
+              group[:random_order] = true
             elsif parsed_meta_tag[:is_random_seed]
-              group[:order_tags].push({ random_seed: parsed_meta_tag[:random_seed] })
+              group[:random_seed] = parsed_meta_tag[:seed]
             elsif parsed_meta_tag[:is_rank]
-              group[:order_tags].push(parsed_meta_tag)
+              group[:rank_order] = true
             else
               group[:order_tags].push(parsed_meta_tag[:as_query])
             end
@@ -573,7 +689,7 @@ class TagQueryNew < TagQuery
       raise UnclosedGroupError, "A tag search group was not properly closed"
     end
 
-    @q = { tags: build_query(group, nil), order_queries: group[:order_tags] }
+    @q = { tags: build_query(group, nil), order_queries: group[:order_tags], is_random: group[:random_order], random_seed: group[:random_seed], is_ranked: group[:rank_order] }
   end
 
   def parse_boolean(value)
