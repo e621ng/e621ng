@@ -4,6 +4,13 @@ class TagQueryNew < TagQuery
 
   attr_reader :q, :resolve_aliases
 
+  BOOLEAN_METATAG_MAPPER = {
+    hassource: :source
+    hasdescription: :description
+    ischild: :parent
+    inpool: :pools
+  }.freeze
+
   def initialize(query, resolve_aliases: true, free_tags_count: 0)
     @q = {
       tags: {
@@ -375,14 +382,6 @@ class TagQueryNew < TagQuery
       end
 
       return { as_query: {wildcard: {:source => v}} }
-    when "hassource"
-      boolean, negate = process_boolean(:source, v)
-
-      if boolean
-        return { as_query: boolean }, negate
-      end
-
-      return { ignore: true }
     when "date"
       date_range = ParseValue.date_range(v)
       relation = range_relation(date_range, :created_at)
@@ -418,15 +417,6 @@ class TagQueryNew < TagQuery
       else
         return { ignore: true }
       end
-
-    when "ischild"
-      boolean, negate = process_boolean(:parent, v)
-
-      if boolean
-        return { as_query: boolean }, negate
-      end
-
-      return { ignore: true }
 
     when "isparent"
       return { as_query: {term: {:has_children => v.downcase == "true"}} }
@@ -473,6 +463,21 @@ class TagQueryNew < TagQuery
       end
       id = id_or_invalid(user_id)
       return { as_query: { term: {:downvotes => id}} }
+
+    when *COUNT_METATAGS
+      return { as_query: parse_range(v, :"#{metatag_name}") }
+
+    when "pending_replacements"
+      return { as_query: {term: {:has_pending_replacements => v.downcase == "true"}} }
+
+    when *BOOLEAN_METATAGS
+      boolean, negate = process_boolean(:"#{BOOLEAN_METATAG_MAPPER[metatag_name]}", v)
+
+      if boolean
+        return { as_query: boolean }, negate
+      end
+
+      return { ignore: true }
     else
       return { ignore: true }
     end
