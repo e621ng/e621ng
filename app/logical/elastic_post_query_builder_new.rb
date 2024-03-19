@@ -18,7 +18,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
       elsif tag[:as_query]
         target.push(tag[:as_query])
       else
-        new_q = {bool: {must: [], should: [], must_not: []}}
+        new_q = {bool: {must: [], should: [], must_not: !tag[:mentions_status] ? [{term:{:status => :deleted}}] : []}}
         if tag[:must].any? 
           recurse(tag[:must], new_q[:bool][:must])
         end
