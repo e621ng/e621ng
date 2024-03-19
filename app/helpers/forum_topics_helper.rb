@@ -54,4 +54,9 @@ module ForumTopicsHelper
 
     text
   end
+
+  def tag_change_message(forum_post)
+    return unless forum_post.is_aibur?
+    tag_request_message(forum_post.tag_change_request)
+  end
 end

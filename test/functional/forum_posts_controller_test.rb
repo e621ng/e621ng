@@ -18,6 +18,7 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       setup do
         as(@user) do
           @tag_alias = create(:tag_alias, forum_post: @forum_post, status: "pending")
+          @forum_post.update_columns(tag_change_request_id: @tag_alias.id, tag_change_request_type: "TagAlias")
           @vote = create(:forum_post_vote, forum_post: @forum_post, score: 1)
           @forum_post.reload
         end

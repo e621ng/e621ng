@@ -140,7 +140,8 @@ ForumPost.hide = function (e) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr('data-is-hidden', 'true');
   }).fail(function (data) {
-    Utility.error("Failed to hide post.");
+    const message = Object.values(data.responseJSON.errors).join('; ');
+    Utility.error(`Failed to hide post: ${message}`);
   });
 };
 

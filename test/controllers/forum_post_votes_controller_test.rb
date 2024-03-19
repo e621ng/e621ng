@@ -24,7 +24,8 @@ class ForumPostVotesControllerTest < ActionDispatch::IntegrationTest
 
     context "with an already accepted tag change request" do
       should "not allow voting" do
-        @alias = create(:tag_alias, forum_post: @forum_post)
+        @tag_alias = create(:tag_alias, forum_post: @forum_post)
+        @forum_post.update_columns(tag_change_request_id: @tag_alias.id, tag_change_request_type: "TagAlias")
         post_auth forum_post_votes_path(forum_post_id: @forum_post.id), @user1, params: { forum_post_vote: { score: 1 }, format: :json }
         assert_response :forbidden
       end
@@ -33,7 +34,8 @@ class ForumPostVotesControllerTest < ActionDispatch::IntegrationTest
     context "with a pending tag change request" do
       setup do
         as @user1 do
-          create(:tag_alias, status: "pending", forum_post: @forum_post)
+          @tag_alias = create(:tag_alias, status: "pending", forum_post: @forum_post)
+          @forum_post.update_columns(tag_change_request_id: @tag_alias.id, tag_change_request_type: "TagAlias")
         end
       end
 

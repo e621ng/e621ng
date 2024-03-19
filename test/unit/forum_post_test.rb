@@ -10,14 +10,30 @@ class ForumPostTest < ActiveSupport::TestCase
       @topic = create(:forum_topic)
     end
 
-    context "#votable?" do
+    context "that has an alias, implication, or bulk update request" do
       setup do
         @post = build(:forum_post, topic_id: @topic.id, body: "[[aaa]] -> [[bbb]]")
         @tag_alias = create(:tag_alias, forum_post: @post)
+        @post.update_columns(tag_change_request_id: @tag_alias.id, tag_change_request_type: "TagAlias")
+        @mod = create(:moderator_user)
       end
 
-      should "be true for a post associated with a tag alias" do
+      should "be votable" do
         assert(@post.votable?)
+      end
+
+      should "only be hidable by moderators" do
+        @post.hide!
+
+        assert_equal(["Post is for an alias, implication, or bulk update request. It cannot be hidden"], @post.errors.full_messages)
+        assert_equal(@post.reload.is_hidden, false)
+
+        as(@mod) do
+          @post.hide!
+        end
+
+        assert_equal([], @post.errors.full_messages)
+        assert_equal(@post.reload.is_hidden, true)
       end
     end
 

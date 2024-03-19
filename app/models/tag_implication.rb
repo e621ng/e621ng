@@ -191,7 +191,7 @@ class TagImplication < TagRelationship
 
     def forum_updater
       post = if forum_topic
-        forum_post || forum_topic.posts.where("body like ?", TagImplicationRequest.command_string(antecedent_name, consequent_name, id) + "%").last
+        forum_post
       else
         nil
       end
