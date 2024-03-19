@@ -477,7 +477,22 @@ class TagQueryNew < TagQuery
       return { as_query: {term: {:has_pending_replacements => v.downcase == "true"}} }
 
     when "status"
-      return { as_query: {term: {:status => v.downcase}}, is_status: true }
+      case v.downcase
+      when "pending"
+        return { as_query: {term: {:pending => true}}, is_status: true }
+      when "flagged"
+        return { as_query: {term: {:flagged => true}}, is_status: true }
+      when "modqueue"
+        return { as_query: { bool: { must: [{term: {:deleted => false}}], should: [{term: {:pending => true}}, {term: {:flagged => true}}], minimum_should_match: 1 } } }
+      when "deleted"
+        return { as_query: {term: {:deleted => true}}, is_status: true }
+      when "active"
+        return { as_query: { bool: { must: [{term: {:pending => false}}, {term: {:deleted => false}}, {term: {:flagged => false}}]}}, is_status: true }
+      when "any"
+        return { is_status: true }
+      else
+        return { ignore: true }
+      end
 
     when *COUNT_METATAGS
       return { as_query: parse_range(v, :"#{metatag_name}") }
