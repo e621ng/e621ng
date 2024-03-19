@@ -12,27 +12,37 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
   end
 
   def recurse(source, target)
+    any_status_mentions = false
     source.each do |tag|
       if tag.is_a? String
         target.push({term: {tags: tag}})
       elsif tag[:as_query]
+        if tag[:is_status] 
+          any_status_mentions = true
+        end
         target.push(tag[:as_query])
       else
         if tag[:is_status] 
+          any_status_mentions = true
           next 
         end
 
+        any_status_mentions = any_status_mentions || tag[:mentions_status]
+
         new_q = {bool: {must: [], should: [], must_not: !tag[:mentions_status] ? [{term:{:status => :deleted}}] : []}}
         if tag[:must] != nil && tag[:must].any? 
-          recurse(tag[:must], new_q[:bool][:must])
+          mentions = recurse(tag[:must], new_q[:bool][:must])
+          any_status_mentions = any_status_mentions || mentions
         end
 
         if tag[:should] != nil && tag[:should].any? 
-          recurse(tag[:should], new_q[:bool][:should])
+          mentions = recurse(tag[:should], new_q[:bool][:should])
+          any_status_mentions = any_status_mentions || mentions
         end
 
         if tag[:must_not] != nil && tag[:must_not].any? 
-          recurse(tag[:must_not], new_q[:bool][:must_not])
+          mentions = recurse(tag[:must_not], new_q[:bool][:must_not])
+          any_status_mentions = any_status_mentions || mentions
         end
 
         if new_q[:bool][:should].any?
@@ -42,6 +52,8 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
         target.push(new_q)
       end
     end
+
+    return any_status_mentions
   end
 
   def build
@@ -49,9 +61,24 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
       must.push({term: {rating: "s"}})
     end
 
-    recurse(q[:tags][:must], must)
-    recurse(q[:tags][:should], should)
-    recurse(q[:tags][:must_not], must_not)
+    any_status_mentions = false
+
+    if recurse(q[:tags][:must], must)
+      any_status_mentions = true
+    end
+
+    if recurse(q[:tags][:should], should)
+      any_status_mentions = true
+    end
+
+
+    if recurse(q[:tags][:must_not], must_not)
+      any_status_mentions = true
+    end
+
+    if !any_status_mentions
+      must_not.push({term: {:status => :deleted}})
+    end
 
     if q[:order_queries].length() == 0
       order.push({id: :desc})

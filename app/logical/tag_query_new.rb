@@ -440,11 +440,11 @@ class TagQueryNew < TagQuery
       return { as_query: {match_phrase_prefix: {:notes => v}} }
 
     when "delreason"
-      return { as_query: {wildcard: {:del_reason => v}} }
+      return { as_query: {wildcard: {:del_reason => v}}, is_status: true }
 
     when "deletedby"
       user_id = User.name_or_id_to_id(v)
-      return { as_query: {term: {:deleter= => id_or_invalid(user_id)}} }
+      return { as_query: {term: {:deleter= => id_or_invalid(user_id)}}, is_status: true }
 
     when "voted"
       if CurrentUser.is_moderator?

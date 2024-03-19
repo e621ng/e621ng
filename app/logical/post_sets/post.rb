@@ -9,7 +9,9 @@ module PostSets
       tags ||= ""
       @public_tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      if !use_new_syntax 
+        tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      end
       @tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       @page = page
       @per_page = per_page
