@@ -56,7 +56,9 @@ class TagQueryNew < TagQuery
       end
     end
 
-    tokenized.push(token)
+    if token.length > 0
+      tokenized.push(token)
+    end
 
     tokenized
   end

@@ -546,7 +546,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
               order.push(parsed_meta_tag[:as_query])
             end
           elsif !parsed_meta_tag[:ignore]
-            if next_meta_tag[:is_status]
+            if parsed_meta_tag[:is_status]
               cur_query[:mentions_status] = true
             end
 
@@ -623,10 +623,6 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
             cur_query[:should].push({must_not: query})
           end
         end
-      elsif token.start_with?("--")
-        next_meta_tag = group[:meta_tags][Integer(token[2..-1])]
-
-        
       end
 
       if modifier == 1 && next_token != "~" 
@@ -641,7 +637,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     if @enable_safe_mode
       must.push({term: {rating: "s"}})
     end
-
+    
     built_query = recursive_build(q, nil)
 
     any_status_mentions = false
