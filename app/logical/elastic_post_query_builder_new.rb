@@ -450,10 +450,10 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
         return { ignore: true }
       end
 
-    when *COUNT_METATAGS
+    when *TagQuery::COUNT_METATAGS
       return { as_query: parse_range(v, :"#{metatag_name}") }
 
-    when *BOOLEAN_METATAGS
+    when *TagQuery::BOOLEAN_METATAGS
       boolean, negate = process_boolean(:"#{BOOLEAN_METATAG_MAPPER[:"#{metatag_name}"]}", v)
 
       if boolean
