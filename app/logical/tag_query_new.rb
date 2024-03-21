@@ -38,8 +38,10 @@ class TagQueryNew < TagQuery
     in_quote = false
     tagstr.split("") do |char|
       if char == " " && !in_quote
-        tokenized.push(token)
-        token = ""
+        if token.length > 0
+          tokenized.push(token)
+          token = ""
+        end
       elsif char == "-" && token.length == 0
         tokenized.push(char)
       elsif char == "\""
