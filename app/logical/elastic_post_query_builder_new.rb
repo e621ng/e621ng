@@ -633,6 +633,12 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     cur_query
   end
 
+  def pull_wildcard_tags(tag)
+    matches = Tag.name_matches(tag).limit(Danbooru.config.tag_query_limit).order("post_count DESC").pluck(:name)
+    matches = ["~~not_found~~"] if matches.empty?
+    matches
+  end
+
   def build
     if @enable_safe_mode
       must.push({term: {rating: "s"}})
