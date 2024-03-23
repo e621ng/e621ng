@@ -251,6 +251,7 @@ class TagAlias < TagRelationship
   end
 
   def ensure_category_consistency
+    return if consequent_tag.post_count > 10_000 # Don't change category of large established tags.
     return if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
     return if consequent_tag.category != Tag.categories.general # Don't change the already existing category of the target tag
     return if antecedent_tag.category == Tag.categories.general # Don't set the target tag to general
