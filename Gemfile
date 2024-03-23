@@ -28,7 +28,6 @@ gem 'marcel'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
-gem 'newrelic_rpm'
 
 gem "diffy"
 gem "rugged"
