@@ -21,7 +21,7 @@
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
       <div class="body dtext-container">
-        <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
+        <%= format_text(blip.body, allow_color: blip.creator.is_privileged?, fool: true) %>
       </div>
       <%= render "application/update_notice", record: blip %>
       <%= render "application/warned_notice", record: blip %>
