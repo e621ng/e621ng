@@ -68,6 +68,7 @@ class PostSetsController < ApplicationController
 
   def maintainers
     @post_set = PostSet.find(params[:id])
+    check_view_access(@post_set)
   end
 
   def post_list
