@@ -620,7 +620,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
           if !previous_negate
             cur_query[:should].push(query)
           else
-            cur_query[:should].push({must_not: query})
+            cur_query[:should].push({must_not: [query]})
           end
         end
       end
