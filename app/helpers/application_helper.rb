@@ -54,6 +54,7 @@ module ApplicationHelper
       if something_funny
         raw uwuify(result)
       else
+        uwuify(result)
         raw result
       end
     end
