@@ -16,6 +16,8 @@ class TagQueryNew < TagQuery
 
     parse_query(query)
 
+    print("\nTAG COUNT: #{@tag_count}\n")
+
     if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
       raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
     end
@@ -87,7 +89,7 @@ class TagQueryNew < TagQuery
       elsif token == ")"
         current_group_index.pop()
       else
-        @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
+        @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token) || token == "~" || token.start_with?("order:")
         cur_group[:tokens].push(resolve_aliases ? TagAlias.to_alias(token) : token)
 
         # If there are more tokens in the group than allowed tags, the searcher is definitely past the tag limit unless they have empty groups, which shouldn't be used anyways
