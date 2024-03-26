@@ -564,7 +564,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
               if !previous_negate
                 cur_query[:should].push(parsed_meta_tag)
               else
-                cur_query[:should].push({must_not: parsed_meta_tag})
+                cur_query[:should].push({must_not: [parsed_meta_tag]})
               end
             end
           end
@@ -594,7 +594,7 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
               if token.include?("*")
                 cur_query[:should].push({must_not: { should: pull_wildcard_tags(token) }})
               else
-                cur_query[:should].push({must_not: token})
+                cur_query[:should].push({must_not: [token]})
               end
             end
           end
