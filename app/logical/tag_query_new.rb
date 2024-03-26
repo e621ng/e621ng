@@ -15,9 +15,6 @@ class TagQueryNew < TagQuery
     @tag_count = 0
 
     parse_query(query)
-
-    print("\nTAG COUNT: #{@tag_count}\n")
-
     if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
       raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
     end
