@@ -66,6 +66,10 @@ class TagQueryNew < TagQuery
 
   private
 
+  def is_special_token(token)
+    return token == "~" || token == "-" || token.start_with?("order:")
+  end
+
   def parse_query(query)
     current_group_index = []
     group = { tokens: [], groups: [] }
@@ -86,8 +90,9 @@ class TagQueryNew < TagQuery
       elsif token == ")"
         current_group_index.pop()
       else
-        @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token) || token == "~" || token.start_with?("order:")
-        cur_group[:tokens].push(resolve_aliases ? TagAlias.to_alias(token) : token)
+        is_special = is_special_token(token)
+        @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token) || is_special
+        cur_group[:tokens].push(resolve_aliases && !is_special ? TagAlias.to_alias(token) : token)
 
         # If there are more tokens in the group than allowed tags, the searcher is definitely past the tag limit unless they have empty groups, which shouldn't be used anyways
         if cur_group[:tokens].length() > Danbooru.config.tag_query_limit
