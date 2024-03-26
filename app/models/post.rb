@@ -1476,24 +1476,24 @@ class Post < ApplicationRecord
       tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
     end
 
-    def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false, use_new_syntax: false)
-      if !use_new_syntax
-        ElasticPostQueryBuilder.new(
-          query,
-          resolve_aliases: resolve_aliases,
-          free_tags_count: free_tags_count,
-          enable_safe_mode: enable_safe_mode,
-          always_show_deleted: always_show_deleted
-        ).search
-      else
-        ElasticPostQueryBuilderNew.new(
-          query,
-          resolve_aliases: resolve_aliases,
-          free_tags_count: free_tags_count,
-          enable_safe_mode: enable_safe_mode,
-          always_show_deleted: always_show_deleted
-        ).search
-      end
+    def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
+      ElasticPostQueryBuilder.new(
+        query,
+        resolve_aliases: resolve_aliases,
+        free_tags_count: free_tags_count,
+        enable_safe_mode: enable_safe_mode,
+        always_show_deleted: always_show_deleted
+      ).search
+    end
+
+    def tag_match_new(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
+      ElasticPostQueryBuilderNew.new(
+        query,
+        resolve_aliases: resolve_aliases,
+        free_tags_count: free_tags_count,
+        enable_safe_mode: enable_safe_mode,
+        always_show_deleted: always_show_deleted
+      ).search
     end
 
     def tag_match_sql(query)

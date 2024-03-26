@@ -1081,6 +1081,7 @@ Naming/VariableNumber:
     - 'app/controllers/application_controller.rb'
     - 'app/controllers/maintenance/user/email_notifications_controller.rb'
     - 'app/logical/elastic_post_query_builder.rb'
+    - 'app/logical/elastic_post_query_builder_new.rb'
     - 'test/functional/dmails_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'
     - 'test/functional/pool_versions_controller_test.rb'

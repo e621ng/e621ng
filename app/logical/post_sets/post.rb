@@ -9,8 +9,8 @@ module PostSets
       tags ||= ""
       @public_tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
-      if !use_new_syntax 
-        tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      if !use_new_syntax && !TagQuery.has_metatag?(tags, "status", "-status")
+        tags += " -status:deleted"
       end
       @tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       @page = page
@@ -61,7 +61,7 @@ module PostSets
 
     def posts
       @posts ||= begin
-        temp = ::Post.tag_match(tag_string, use_new_syntax: use_new_syntax).paginate(page, limit: per_page, includes: [:uploader])
+        temp = (use_new_syntax ? ::Post.tag_match_new(tag_string) : ::Post.tag_match(tag_string)).paginate(page, limit: per_page, includes: [:uploader])
 
         @post_count = temp.total_count
         temp

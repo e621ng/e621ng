@@ -12,7 +12,7 @@ class PostsController < ApplicationController
         format.html { redirect_to(@post) }
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random], use_new_syntax: (params[:use_new_syntax] != nil ? params[:use_new_syntax] : CurrentUser.use_new_search_syntax?))
+      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random], use_new_syntax: (params[:use_new_syntax].nil? ? CurrentUser.use_new_search_syntax? : params[:use_new_syntax]))
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
         format.json do
