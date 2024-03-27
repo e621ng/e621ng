@@ -86,7 +86,7 @@ class TagQueryNew < TagQuery
         if current_group_index.length > MAX_GROUP_DEPTH
           raise MaxGroupDepthExceededError, "Exceeded the max group depth of: #{MAX_GROUP_DEPTH}"
         end
-        cur_group[:groups].push({ tokens: [], groups: [], meta_tags: [] })
+        cur_group[:groups].push({ tokens: [], groups: [] })
         cur_group[:tokens].push("__#{cur_group[:groups].length - 1}")
       elsif token == ")"
         current_group_index.pop
