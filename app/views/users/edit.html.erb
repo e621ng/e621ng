@@ -95,6 +95,10 @@
           hint: "Enables a more compact and less guided post uploader." %>
         <% end %>
 
+        <%= f.input :use_new_search_syntax, :as => :select, label: "Use New Search Syntax",
+                    hint: raw("Enables the use of the new search syntax."),
+                    :include_blank => false, collection: [["No", "false"], ["Yes", "true"]] %>
+
         <div class="input text optional field_with_hint">
           <label class="text optional" for="user_dmail_filter_attributes_words">Dmail filter</label>
           <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>

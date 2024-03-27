@@ -48,6 +48,7 @@ class User < ApplicationRecord
     _no_feedback
     disable_user_dmails
     enable_compact_uploader
+    use_new_search_syntax
     replacements_beta
     is_bd_staff
   ].freeze
@@ -644,7 +645,7 @@ class User < ApplicationRecord
           can_approve_posts can_upload_free
           disable_cropped_thumbnails enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
-          enable_compact_uploader replacements_beta
+          enable_compact_uploader use_new_search_syntax replacements_beta
         ]
         list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
@@ -891,6 +892,10 @@ class User < ApplicationRecord
 
   def compact_uploader?
     post_upload_count >= 10 && enable_compact_uploader?
+  end
+
+  def use_new_search_syntax?
+    use_new_search_syntax
   end
 
   def initialize_attributes
