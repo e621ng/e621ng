@@ -23,19 +23,19 @@ class TagQueryTestNew < ActiveSupport::TestCase
 
   should "properly parse a simple query" do
     query = TagQuery.new("female male duo")
-    assert_equal(["female", "male", "duo"], query[:tokens])
+    assert_equal(%w[female male duo], query[:tokens])
   end
 
   should "properly parse groups within a query" do
     query = TagQuery.new("rating:s ( female ~ male ) ( solo ~ duo )")
     assert_equal(["rating:s", "__0", "__1"], query[:tokens])
-    assert_equal([{:tokens=>["female", "~", "male"], :groups=>[]}, {:tokens=>["solo", "~", "duo"], :groups=>[]}], query[:groups])
+    assert_equal([{ tokens: ["female", "~", "male"], groups: [] }, { tokens: ["solo", "~", "duo"], groups: [] }], query[:groups])
   end
 
   should "properly parse groups within groups" do
     query = TagQuery.new("( female ( male solo ) )")
     assert_equal(["__0"], query[:tokens])
-    assert_equal([{:tokens=>["female", "__0"], :groups=>[{:tokens=>["male", "solo"], :groups=>[]}]}], query[:groups])
+    assert_equal([{ tokens: %w[female __0], groups: [{ tokens: %w[male solo], groups: [] }] }], query[:groups])
   end
 
   should "properly assign negation symbol as its own token" do
