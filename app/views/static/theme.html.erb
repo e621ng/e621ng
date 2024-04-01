@@ -7,6 +7,13 @@
   <h3 class="redtext" id="no_save_warning">Your device does not allow the site to save theme settings.</h3>
 </noscript>
 
+<% if fool? %>
+  <p>
+    Click <%= link_to "here", dont_fool_me_static_path %> to kill the joke early.
+  </p>
+<% end %>
+
+
 <div class="simple_form">
   <div class="input">
     <label for="theme_name">Theme</label>

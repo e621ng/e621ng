@@ -60,12 +60,13 @@ module ApplicationHelper
   end
 
   def fool?
-    return true if params[:fool]
+    return false if Danbooru.config.app_name == "e926"
+    return false if cookies[:dont_fool_me]
 
     Time.use_zone(Time.find_zone("UTC")) do
       target = Date.new(2024, 4, 1)
       start = target.beginning_of_day - 12.hours
-      stop = target.end_of_day + 12.hours
+      stop = target.end_of_day + 6.hours
       Time.now.between?(start, stop)
     end
   end
