@@ -49,12 +49,6 @@ class StaticController < ApplicationController
     redirect_back fallback_location: posts_path
   end
 
-  def dont_fool_me
-    cookies[:dont_fool_me] = { value: "1", expires: 1.week }
-    flash[:notice] = "òwō"
-    redirect_back fallback_location: posts_path
-  end
-
   def discord
     unless CurrentUser.can_discord?
       raise User::PrivilegeError.new("You must have an account for at least one week in order to join the Discord server.")

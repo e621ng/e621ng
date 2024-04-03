@@ -20,7 +20,7 @@
     </div>
     <div class="content">
       <div class="body dtext-container">
-        <%= format_text(comment.body, allow_color: comment.creator.is_privileged?, fool: true) %>
+        <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: comment %>
       <%= render "application/warned_notice", record: comment %>

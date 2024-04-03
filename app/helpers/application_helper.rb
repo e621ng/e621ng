@@ -44,56 +44,12 @@ module ApplicationHelper
   end
 
   def format_text(text, **options)
-    something_funny = options[:fool] && fool?
-    options = options.except(:fool)
     # preserve the currrent inline behaviour
     if options[:inline]
       dtext_ragel(text, **options)
     else
-      result = %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
-      if something_funny
-        raw uwuify(result)
-      else
-        raw result
-      end
+      raw %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
     end
-  end
-
-  def fool?
-    return false if Danbooru.config.app_name == "e926"
-    return false if cookies[:dont_fool_me]
-
-    Time.use_zone(Time.find_zone("UTC")) do
-      target = Date.new(2024, 4, 1)
-      start = target.beginning_of_day - 12.hours
-      stop = target.end_of_day + 6.hours
-      Time.now.between?(start, stop)
-    end
-  end
-
-  FACE_CHANCE = 0.25
-  FACE = [" (・`ω´・) ", " ;;w;; ", " owo ", " UwU ", " >w< ", " ^w^ "].freeze
-
-  def uwuify(html_input)
-    fragment = Nokogiri::HTML5.fragment(html_input)
-
-    fragment.traverse do |x|
-      if x.text?
-        text = x.content.tr("rlRL", "wwWW")
-        text = text.gsub(/(n)([aeiou])/i, '\1y\2')
-        text = text.gsub("ove", "uv")
-        text = text.gsub(/(\.+)/) do
-          if Random.rand < FACE_CHANCE
-            FACE.sample
-          else
-            $1
-          end
-        end
-        x.content = text
-      end
-    end
-
-    fragment.to_html
   end
 
   def custom_form_for(object, *args, &)
