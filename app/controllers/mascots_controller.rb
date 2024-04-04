@@ -5,7 +5,7 @@ class MascotsController < ApplicationController
   before_action :admin_only, except: [:index]
 
   def index
-    @mascots = Mascot.search(search_params).paginate(params[:page], limit: 75)
+    @mascots = Mascot.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@mascots)
   end
 

@@ -2,17 +2,17 @@
 
 module PostSets
   class Post < PostSets::Base
-    MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count
+    attr_reader :tag_array, :public_tag_array, :page, :limit, :random, :post_count
 
-    def initialize(tags, page = 1, per_page = nil, random: nil)
+    def initialize(tags, page = 1, limit: nil, random: nil)
+      super()
       tags ||= ""
       @public_tag_array = TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
       @tag_array = TagQuery.scan(tags)
       @page = page
-      @per_page = per_page
+      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")
       @random = random.present?
     end
 
@@ -48,17 +48,13 @@ module PostSets
       @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
     end
 
-    def per_page
-      (@per_page || TagQuery.fetch_metatag(tag_array, "limit") || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
-    end
-
     def is_random?
       random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
     end
 
     def posts
       @posts ||= begin
-        temp = ::Post.tag_match(tag_string).paginate(page, limit: per_page, includes: [:uploader])
+        temp = ::Post.tag_match(tag_string).paginate_posts(page, limit: limit, includes: [:uploader])
 
         @post_count = temp.total_count
         temp

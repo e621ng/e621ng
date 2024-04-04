@@ -179,7 +179,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def last_page
-    (response_count / Danbooru.config.posts_per_page.to_f).ceil
+    (response_count / Danbooru.config.records_per_page.to_f).ceil
   end
 
   def hide!

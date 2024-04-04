@@ -75,7 +75,6 @@ class User < ApplicationRecord
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
-  before_validation :set_per_page
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
@@ -321,14 +320,6 @@ class User < ApplicationRecord
 
     def is_approver?
       can_approve_posts?
-    end
-
-    def set_per_page
-      if per_page.nil?
-        self.per_page = Danbooru.config.posts_per_page
-      end
-
-      return true
     end
 
     def blank_out_nonexistent_avatars

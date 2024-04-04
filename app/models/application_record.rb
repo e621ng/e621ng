@@ -9,6 +9,10 @@ class ApplicationRecord < ActiveRecord::Base
         extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
       end
 
+      def paginate_posts(page, options = {})
+        extending(Danbooru::Paginator::ActiveRecordExtension).paginate_posts(page, options)
+      end
+
       def qualified_column_for(attr)
         "#{table_name}.#{column_for_attribute(attr).name}"
       end

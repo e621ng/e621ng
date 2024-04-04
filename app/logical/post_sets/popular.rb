@@ -2,17 +2,17 @@
 
 module PostSets
   class Popular < PostSets::Base
-    attr_reader :date, :scale, :limit
+    attr_reader :date, :scale
 
-    def initialize(date, scale, limit: nil)
+    def initialize(date, scale)
+      super()
       @date = date.blank? ? Time.zone.now : Time.zone.parse(date)
       @scale = scale
-      @limit = limit || CurrentUser.per_page
     end
 
     def posts
       @posts ||= begin
-        query = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").limit(limit)
+        query = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").paginate_posts(1)
         query.each # hack to force rails to eager load
         query
       end

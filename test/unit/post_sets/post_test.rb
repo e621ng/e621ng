@@ -16,7 +16,7 @@ module PostSets
 
       context "a set for page 2" do
         setup do
-          @set = PostSets::Post.new("", 2, 1)
+          @set = PostSets::Post.new("", 2, limit: 1)
         end
 
         should "return the second element" do
@@ -32,7 +32,7 @@ module PostSets
 
         context "with no page" do
           setup do
-            @set = PostSets::Post.new("a")
+            @set = PostSets::Post.new("a", nil)
           end
 
           should "return the first element" do
@@ -42,7 +42,7 @@ module PostSets
 
         context "for before the first element" do
           setup do
-            @set = PostSets::Post.new("a", "b#{@post_5.id}", 1)
+            @set = PostSets::Post.new("a", "b#{@post_5.id}", limit: 1)
           end
 
           should "return the second element" do
@@ -52,7 +52,7 @@ module PostSets
 
         context "for after the second element" do
           setup do
-            @set = PostSets::Post.new("a", "a#{@post_4.id}", 1)
+            @set = PostSets::Post.new("a", "a#{@post_4.id}", limit: 1)
           end
 
           should "return the first element" do
@@ -61,28 +61,16 @@ module PostSets
         end
       end
 
-      context "a set going to the 1,001st page" do
-        setup do
-          @set = PostSets::Post.new("a", 1_001)
-        end
+      context "#limit method" do
+        should "take the limit from the params first, then the limit:<n> metatag" do
+          set = PostSets::Post.new("a limit:23 b", 1, limit: "42")
+          assert_equal("42", set.limit)
 
-        should "fail" do
-          assert_raises(Danbooru::Paginator::PaginationError) do
-            @set.posts
-          end
-        end
-      end
+          set = PostSets::Post.new("a limit:23 b", 1)
+          assert_equal("23", set.limit)
 
-      context "#per_page method" do
-        should "take the limit from the params first, then the limit:<n> metatag, then the account settings" do
-          set = PostSets::Post.new("a limit:23 b", 1, 42)
-          assert_equal(42, set.per_page)
-
-          set = PostSets::Post.new("a limit:23 b", 1, nil)
-          assert_equal(23, set.per_page)
-
-          set = PostSets::Post.new("a", 1, nil)
-          assert_equal(CurrentUser.user.per_page, set.per_page)
+          set = PostSets::Post.new("a", 1)
+          assert_nil(set.limit)
         end
       end
     end

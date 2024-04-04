@@ -224,17 +224,6 @@ class PostSet < ApplicationRecord
       end
     end
 
-    def posts(options = {})
-      offset = options[:offset] || 0
-      limit = options[:limit] || Danbooru.config.posts_per_page
-      slice = post_ids.slice(offset, limit)
-      if slice && slice.any?
-        Post.where(id: slice).sort_by {|record| slice.index {|id| id == record.id}}
-      else
-        []
-      end
-    end
-
     def post_count
       post_ids.size
     end
