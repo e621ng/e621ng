@@ -23,8 +23,6 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
     Post
   end
 
-  OKENS_TO_SKIP = ["~", "-"].freeze
-
   def parse_range(val, key, type = :integer, fudged: false)
     range = fudged ? ParseValue.range_fudged(val, type) : ParseValue.range(val, type)
 
