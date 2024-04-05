@@ -233,7 +233,7 @@ Blacklist.postMatch = function (post, entry) {
   let post_data = {
     id: $post.data('id'),
     score: parseInt($post.data('score'), 10),
-    tags: $post.data('tags'),
+    tags: $post.data('tags').toString(),
     rating: $post.data('rating'),
     uploader_id: $post.data('uploader-id'),
     user: $post.data('uploader').toString().toLowerCase(),

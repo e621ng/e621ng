@@ -2,7 +2,7 @@
   <div class="notice notice-flagged">
     <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(title: "howto:flag") %>): </p>
 
-    <%= post_flag_reasons(post) %>
+    <%= render "posts/partials/show/flag_reasons", post: post %>
 
     <% if CurrentUser.can_approve_posts? %>
       <div>
@@ -23,7 +23,7 @@
   <div class="notice notice-deleted">
     <% if post.flags.any? %>
       <p>This post was deleted or flagged for the following reasons: </p>
-      <%= post_flag_reasons(post) %>
+      <%= render "posts/partials/show/flag_reasons", post: post %>
     <% else %>
       <p>This post was deleted</p>
     <% end %>

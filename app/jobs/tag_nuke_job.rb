@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagNukeJob < ApplicationJob
   queue_as :tags
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args
@@ -26,7 +28,7 @@ class TagNukeJob < ApplicationJob
     Post.sql_raw_tag_match(tag_name).find_each do |post|
       post.with_lock do
         post.do_not_version_changes = true
-        post.tag_string_diff = "-#{tag_name}"
+        post.remove_tag(tag_name)
         post.save
       end
     end
@@ -48,7 +50,7 @@ class TagNukeJob < ApplicationJob
     TagRelUndo.where(tag_rel: tag, applied: false).find_each do |tag_rel_undo|
       Post.where(id: tag_rel_undo.undo_data).find_each do |post|
         post.do_not_version_changes = true
-        post.tag_string_diff = tag.name
+        post.add_tag(tag.name)
         post.save
       end
       tag_rel_undo.update(applied: true)

@@ -2,7 +2,7 @@
   <div id="a-show">
     <h2>
       <%= @pool.pretty_category %>:
-      <%= link_to @pool.pretty_name, posts_path(:tags => "pool:#{@pool.id}"), :class => "pool-category-#{@pool.category}" %>
+      <%= link_to @pool.pretty_name, posts_path(tags: "pool:#{@pool.id}"), class: "pool-category-#{@pool.category}" %>
     </h2>
 
     <div id="description" class="dtext-container">
@@ -13,11 +13,16 @@
 
     <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
       <div id="posts-container">
-        <%= @post_set.presenter.post_previews_html(self) %>
+        <% if @posts.none? %>
+          <%= render "posts/blank" %>
+        <% else %>
+          <% @posts.each do |post| %>
+            <%= PostPresenter.preview(post, pool_id: @pool.id, show_cropped: true, show_deleted: true) %>
+          <% end %>
+        <% end %>
       </div>
-
-      <%= numbered_paginator(@post_set.posts) %>
     </div>
+    <%= numbered_paginator(@posts) %>
   </div>
 </div>
 

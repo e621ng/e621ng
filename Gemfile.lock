@@ -121,10 +121,7 @@ GEM
       reline (>= 0.3.8)
     diffy (3.4.2)
     domain_name (0.6.20240107)
-    dotenv (2.8.1)
-    dotenv-rails (2.8.1)
-      dotenv (= 2.8.1)
-      railties (>= 3.2)
+    dotenv (3.0.2)
     draper (4.0.2)
       actionpack (>= 5.0)
       activemodel (>= 5.0)
@@ -204,7 +201,6 @@ GEM
     net-smtp (0.4.0.1)
       net-protocol
     netrc (0.11.0)
-    newrelic_rpm (9.7.1)
     nio4r (2.7.0)
     nokogiri (1.16.0)
       mini_portile2 (~> 2.8.2)
@@ -217,7 +213,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.4)
-    prism (0.19.0)
+    prism (0.24.0)
     psych (5.1.2)
       stringio
     public_suffix (5.0.4)
@@ -312,15 +308,15 @@ GEM
       rack (>= 1.1)
       rubocop (>= 1.33.0, < 2.0)
       rubocop-ast (>= 1.30.0, < 2.0)
-    ruby-lsp (0.13.3)
+    ruby-lsp (0.16.1)
       language_server-protocol (~> 3.17.0)
-      prism (>= 0.19.0, < 0.20)
-      sorbet-runtime (>= 0.5.5685)
-    ruby-lsp-rails (0.2.8)
+      prism (>= 0.22.0, < 0.25)
+      sorbet-runtime (>= 0.5.10782)
+    ruby-lsp-rails (0.3.4)
       actionpack (>= 6.0)
       activerecord (>= 6.0)
       railties (>= 6.0)
-      ruby-lsp (>= 0.13.0, < 0.14.0)
+      ruby-lsp (>= 0.16.0, < 0.17.0)
       sorbet-runtime (>= 0.5.9897)
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.0)
@@ -336,7 +332,7 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.19.0)
-    sidekiq-unique-jobs (8.0.6)
+    sidekiq-unique-jobs (8.0.9)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 7.0.0, < 8.0.0)
       thor (>= 1.0, < 3.0)
@@ -344,7 +340,7 @@ GEM
       actionpack (>= 5.2)
       activemodel (>= 5.2)
     smart_properties (1.17.0)
-    sorbet-runtime (0.5.11188)
+    sorbet-runtime (0.5.11330)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
     stringio (3.1.0)
@@ -386,7 +382,7 @@ DEPENDENCIES
   dalli
   debug
   diffy
-  dotenv-rails
+  dotenv
   draper
   dtext_rb!
   factory_bot_rails
@@ -395,7 +391,6 @@ DEPENDENCIES
   mailgun-ruby
   marcel
   mocha
-  newrelic_rpm
   opensearch-ruby
   pg
   puma

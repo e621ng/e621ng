@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class MetaSearchesControllerTest < ActionDispatch::IntegrationTest
   context "The meta searches controller" do

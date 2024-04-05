@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class ApiKeyTest < ActiveSupport::TestCase
   context "in all cases a user" do

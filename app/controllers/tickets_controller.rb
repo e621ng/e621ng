@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TicketsController < ApplicationController
   respond_to :html
   before_action :member_only, except: [:index]

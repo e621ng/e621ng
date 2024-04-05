@@ -83,6 +83,13 @@ end
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"
-  import_posts
-  import_mascots
+  begin
+    import_posts
+    import_mascots
+  rescue StandardError => e
+    puts "--------"
+    puts "#{e.class}: #{e.message}"
+    puts "Failure during seeding, continuing on..."
+    puts "--------"
+  end
 end

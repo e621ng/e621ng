@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserNameChangeRequest < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   validates :user_id, :original_name, :desired_name, presence: true

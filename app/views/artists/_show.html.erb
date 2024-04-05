@@ -9,10 +9,10 @@
 
       <p><%= link_to "View wiki page", @artist.wiki_page %></p>
     <% else %>
-      <p><%= link_to "View wiki page", show_or_new_wiki_pages_path(:title => @artist.name) %></p>
+      <p><%= link_to_wiki_or_new "View wiki page", @artist.name %></p>
     <% end %>
 
-    <%= artist_alias_and_implication_list(@artist) %>
+    <%= render "tags/alias_and_implication_list", tag: @artist.tag %>
     <%= yield %>
 
     <div class="recent-posts">

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagAliasUndoJob < ApplicationJob
   queue_as :tags
 

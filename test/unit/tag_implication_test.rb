@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagImplicationTest < ActiveSupport::TestCase
   context "A tag implication" do
@@ -119,6 +121,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       assert_includes(ti.errors[:base], "Consequent tag must not be aliased to another tag")
     end
 
+    should "allow rejecting if active aliases exist" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @user)
+      ti.save(validate: false)
+
+      ti.reject!
+      assert_equal("deleted", ti.reload.status)
+    end
+
     should "calculate all its descendants" do
       ti1 = create(:tag_implication, antecedent_name: "bbb", consequent_name: "ccc")
       assert_equal(%w[ccc], ti1.descendant_names)
@@ -218,6 +229,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       assert_equal("aaa bbb ccc xxx yyy", p1.reload.tag_string)
+    end
+
+    should "error on approve if its not valid anymore" do
+      create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @user)
+      ti.save(validate: false)
+      with_inline_jobs { ti.approve!(approver: @user) }
+
+      assert_match "error", ti.reload.status
     end
 
     context "with an associated forum topic" do

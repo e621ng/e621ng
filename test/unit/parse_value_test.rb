@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class ParseValueTest < ActiveSupport::TestCase
@@ -17,6 +19,17 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_equal([:gte, 10], subject.range("10.."))
     assert_equal([:between, 5, 15], subject.range("5..15"))
     assert_equal([:in, [8, 9, 10, 11, 12]], subject.range("8,9,10,11,12"))
+  end
+
+  should "parse negative values" do
+    assert_equal([:lt, -1], subject.range("<-1"))
+  end
+
+  should "clamp huge values" do
+    assert_equal(ParseValue::MAX_INT, eq_value("1234567890987654321", :integer))
+    assert_equal(ParseValue::MIN_INT, eq_value("-1234567890987654321", :integer))
+    assert_equal(ParseValue::MAX_INT, eq_value("123456789098765432.1", :float))
+    assert_equal(ParseValue::MIN_INT, eq_value("-123456789098765432.1", :float))
   end
 
   should "parse floats" do

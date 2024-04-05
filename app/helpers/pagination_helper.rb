@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PaginationHelper
   def sequential_paginator(records)
     with_paginator_wrapper do

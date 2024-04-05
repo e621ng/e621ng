@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BansController < ApplicationController
   before_action :moderator_only, :except => [:show, :index]
   respond_to :html

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiscordReport
   class Base
     def webhook_url

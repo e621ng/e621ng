@@ -1,6 +1,6 @@
 <div id="c-help">
   <div id="a-index">
-    <%= render partial: "sidebar" %>
+    <%= render "sidebar", help_pages: @help_pages %>
     <%= render partial: "secondary_links" %>
 
     <% if CurrentUser.is_admin? %>
@@ -18,21 +18,18 @@
             </thead>
             <tbody>
             <% @help_pages.each do |help| %>
-              <% help.title ||= help.name.titleize %>
               <tr>
                 <td>
                   <%= link_to "Edit", edit_help_page_path(help) %> |
-                  <%= link_to "Delete", help_page_path(help), method: :delete, 'data-confirm': "Are you sure you want to delete this entry?" %>
+                  <%= link_to "Delete", help_page_path(help), method: :delete, data: { confirm: "Are you sure you want to delete this entry?" } %>
                 </td>
 
-                <td><%= link_to "#{HelpPage.title(help.name)}", help_page_path(id: help.name) %></td>
+                <td><%= link_to help.pretty_title, help_page_path(id: help.name) %></td>
                 <td><%= link_to help.wiki_page, wiki_pages_path(title: help.wiki_page) %></td>
                 <td>
-                  <% @related = help.related.split(",") %>
-                  <% if @related.present? %>
-                    <% @related.each do |related| %>
-                      <%= link_to HelpPage.title(related.strip), help_page_path(id: related.strip) %><%= ", " unless related == @related.last %>
-                    <% end %>
+                  <% (related_array = help.related_array).each.with_index do |related| %>
+                    <%= link_to HelpPage.pretty_related_title(related, @help_pages), help_page_path(id: related) %>
+                    <%= ", " if related != related_array.last %>
                   <% end %>
                 </td>
               </tr>

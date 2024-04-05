@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostPruner
   DELETION_WINDOW = 30
 

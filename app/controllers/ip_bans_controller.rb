@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class IpBansController < ApplicationController
   respond_to :html, :json
   before_action :admin_only

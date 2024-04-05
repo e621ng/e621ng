@@ -87,6 +87,8 @@ Rails/Output:
   Exclude:
     - db/seeds.rb
     - db/fixes/*.rb
+  Include:
+    - test/**/*.rb
 
 Rails/ReversibleMigration:
   Enabled: false
@@ -116,9 +118,6 @@ Style/EmptyMethod:
   EnforcedStyle: expanded
 
 Style/FloatDivision:
-  Enabled: false
-
-Style/FrozenStringLiteralComment:
   Enabled: false
 
 Style/GuardClause:

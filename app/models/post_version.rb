@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
   belongs_to :post

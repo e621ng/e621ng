@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadPresenter < Presenter
   attr_reader :upload
   delegate :inline_tag_list_html, to: :tag_set_presenter

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TicketHelper
   def pretty_ticket_status(ticket)
     status = ticket.status

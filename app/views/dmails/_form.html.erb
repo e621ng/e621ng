@@ -1,7 +1,7 @@
 <%= error_messages_for :dmail %>
 <%= custom_form_for(dmail) do |f| %>
   <%= f.input :to_name, label: "To", autocomplete: "user", input_html: { value: dmail.to.try(:name) } %>
-  <%= f.input :title, :as => :string %>
+  <%= f.input :title, as: :string, input_html: { size: 100 } %>
   <%= f.input :body, as: :dtext, limit: Danbooru.config.dmail_max_size %>
-  <%= f.button :submit, "Send", :data => { :disable_with => "Sending..." } %>
+  <%= f.button :submit, "Send", data: { disable_with: "Sending..." } %>
 <% end %>

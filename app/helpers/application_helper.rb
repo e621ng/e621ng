@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApplicationHelper
   def disable_mobile_mode?
     if CurrentUser.user.present? && CurrentUser.is_member?
@@ -10,12 +12,6 @@ module ApplicationHelper
   def diff_list_html(new, old, latest)
     diff = SetDiff.new(new, old, latest)
     render "diff_list", diff: diff
-  end
-
-  def wordbreakify(string)
-    lines = string.scan(/.{1,10}/)
-    wordbreaked_string = lines.map{|str| h(str)}.join("<wbr>")
-    raw(wordbreaked_string)
   end
 
   def nav_link_to(text, url, **options)
@@ -154,6 +150,14 @@ module ApplicationHelper
     deferred_post_ids.add(post_id)
     tag.div class: 'post-thumb placeholder', id: "tp-#{post_id}", 'data-id': post_id do
       tag.img class: 'thumb-img placeholder', src: '/images/thumb-preview.png', height: 100, width: 100
+    end
+  end
+
+  def unread_dmails(user)
+    if user.has_mail?
+      "(#{user.unread_dmail_count})"
+    else
+      ""
     end
   end
 

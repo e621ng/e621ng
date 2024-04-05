@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 =begin rdoc
   A tag set represents a set of tags that are displayed together.
   This class makes it easy to fetch the categories for all the
@@ -5,6 +7,8 @@
 =end
 
 class TagSetPresenter < Presenter
+  include Rails.application.routes.url_helpers
+
   attr_reader :tag_names
 
   # @param [Array<String>] a list of tags to present. Tags will be presented in
@@ -16,7 +20,7 @@ class TagSetPresenter < Presenter
   end
 
   def post_index_sidebar_tag_list_html(current_query: "")
-    html = ""
+    html = +""
     if ordered_tags.present?
       html << '<ul>'
       ordered_tags.each do |tag|
@@ -29,7 +33,7 @@ class TagSetPresenter < Presenter
   end
 
   def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
-    html = ""
+    html = +""
 
     TagCategory::SPLIT_HEADER_LIST.each do |category|
       typetags = tags_for_category(category)
@@ -48,10 +52,10 @@ class TagSetPresenter < Presenter
   end
 
   # compact (horizontal) list, as seen in the /comments index.
-  def inline_tag_list_html
+  def inline_tag_list_html(link_type = :tag)
     html = TagCategory::CATEGORIZED_LIST.map do |category|
       tags_for_category(category).map do |tag|
-        %(<li class="category-#{tag.category}">#{tag_link(tag)}</li>)
+        %(<li class="category-#{tag.category}">#{tag_link(tag, tag.name, link_type)}</li>)
       end.join
     end.join
     %(<ul class="inline-tag-list">#{html}</ul>).html_safe
@@ -164,8 +168,9 @@ class TagSetPresenter < Presenter
     html
   end
 
-  def tag_link(tag, link_text = tag.name)
+  def tag_link(tag, link_text = tag.name, link_type = :tag)
+    link = link_type == :wiki_page ? show_or_new_wiki_pages_path(title: tag.name) : posts_path(tags: tag.name)
     itemprop = 'itemprop="author"' if tag.category == Tag.categories.artist
-    %(<a rel="nofollow" class="search-tag" #{itemprop} href="/posts?tags=#{u(tag.name)}">#{h(link_text)}</a> )
+    %(<a rel="nofollow" class="search-tag" #{itemprop} href="#{link}">#{h(link_text)}</a> )
   end
 end

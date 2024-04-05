@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PoolVersionsController < ApplicationController
   respond_to :html, :json
   before_action :member_only
@@ -13,12 +15,6 @@ class PoolVersionsController < ApplicationController
 
   def diff
     @pool_version = PoolVersion.find(params[:id])
-
-    if params[:other_id]
-      @other_version = PoolVersion.find(params[:other_id])
-    else
-      @other_version = @pool_version.previous
-    end
   end
 
   private

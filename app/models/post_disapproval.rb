@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostDisapproval < ApplicationRecord
   belongs_to :post
   belongs_to :user

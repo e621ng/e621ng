@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
@@ -1974,6 +1976,10 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+    end
+
+    should "not error for values beyond Integer.MAX_VALUE" do
+      assert_tag_match([], "id:1234567890987654321")
     end
   end
 

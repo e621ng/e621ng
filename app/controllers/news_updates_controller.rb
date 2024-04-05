@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NewsUpdatesController < ApplicationController
   before_action :admin_only, except: [:index]
   respond_to :html

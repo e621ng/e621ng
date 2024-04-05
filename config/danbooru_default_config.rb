@@ -1,4 +1,4 @@
-require 'socket'
+# frozen_string_literal: true
 
 module Danbooru
   class Configuration
@@ -87,7 +87,7 @@ module Danbooru
       user.comment_threshold = -10
       user.enable_auto_complete = true
       user.enable_keyboard_navigation = true
-      user.per_page = 75
+      user.per_page = records_per_page
       user.show_post_statistics = true
       user.style_usernames = true
     end
@@ -533,9 +533,9 @@ module Danbooru
       "help:replacement_notice"
     end
 
-    # The number of posts displayed per page.
-    def posts_per_page
-      20
+    # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
+    def records_per_page
+      75
     end
 
     def is_post_restricted?(post)
@@ -662,10 +662,6 @@ module Danbooru
 
     def image_rescales
       []
-    end
-
-    def readonly_mode?
-      false
     end
 
     def enable_visitor_metrics?

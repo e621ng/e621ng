@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class BulkUpdateRequestTest < ActiveSupport::TestCase
   context "a bulk update request" do
@@ -149,12 +151,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
         @req.forum_updater.stubs(:update).raises(RuntimeError.new("blah"))
         assert_raises(RuntimeError) { @req.approve!(@admin) }
 
-        # XXX Raises "Couldn't find BulkUpdateRequest without an ID". Possible
-        # rails bug? (cf rails #34637, #34504, #30167, #15018).
-        # @req.reload
-
-        @req = BulkUpdateRequest.find(@req.id)
-        assert_equal("pending", @req.status)
+        assert_equal("pending", @req.reload.status)
       end
 
       should "downcase the text" do

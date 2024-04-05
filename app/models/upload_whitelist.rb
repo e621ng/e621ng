@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadWhitelist < ApplicationRecord
   before_save :clean_pattern
   after_save :clear_cache

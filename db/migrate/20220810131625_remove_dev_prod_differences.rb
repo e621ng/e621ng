@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveDevProdDifferences < ActiveRecord::Migration[6.1]
   def change
     execute "DROP FUNCTION IF EXISTS sourcepattern";

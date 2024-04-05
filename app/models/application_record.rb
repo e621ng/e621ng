@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
@@ -5,6 +7,10 @@ class ApplicationRecord < ActiveRecord::Base
     class_methods do
       def paginate(page, options = {})
         extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
+      end
+
+      def paginate_posts(page, options = {})
+        extending(Danbooru::Paginator::ActiveRecordExtension).paginate_posts(page, options)
       end
 
       def qualified_column_for(attr)
@@ -208,7 +214,7 @@ class ApplicationRecord < ActiveRecord::Base
         connection.execute("SET STATEMENT_TIMEOUT = #{CurrentUser.user.try(:statement_timeout) || 3_000}") unless Rails.env == "test"
       end
 
-      def with_timeout(n, default_value = nil, new_relic_params = {})
+      def with_timeout(n, default_value = nil)
         connection.execute("SET STATEMENT_TIMEOUT = #{n}") unless Rails.env == "test"
         yield
       rescue ::ActiveRecord::StatementInvalid => x

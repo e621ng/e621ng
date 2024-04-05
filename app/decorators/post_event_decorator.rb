@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostEventDecorator < ApplicationDecorator
   def self.collection_decorator_class
     PaginatedDecorator

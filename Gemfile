@@ -1,6 +1,8 @@
-source 'https://rubygems.org/'
+# frozen_string_literal: true
 
-gem 'dotenv-rails', require: 'dotenv/rails-now'
+source "https://rubygems.org/"
+
+gem "dotenv", require: "dotenv/load"
 
 gem "rails", "~> 7.1.0"
 gem "pg"
@@ -26,7 +28,6 @@ gem 'marcel'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
-gem 'newrelic_rpm'
 
 gem "diffy"
 gem "rugged"

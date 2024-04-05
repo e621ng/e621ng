@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveUnusedTextIndexColumns < ActiveRecord::Migration[7.0]
   def up
     drop_trigger_and_column(:blips, :body)

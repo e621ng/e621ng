@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagTypeVersion < ApplicationRecord
   belongs_to :tag
   belongs_to_creator
