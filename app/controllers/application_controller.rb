@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
+  before_action :check_valid_username
   after_action :reset_current_user
   layout "default"
 
@@ -28,6 +29,14 @@ class ApplicationController < ActionController::Base
   def enable_cors
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Authorization"
+  end
+
+  def check_valid_username
+    return if params[:controller] == "user_name_change_requests"
+
+    if request.format.html? && CurrentUser.user.name_error
+      redirect_to new_user_name_change_request_path
+    end
   end
 
   protected

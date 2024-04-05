@@ -143,5 +143,22 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
         assert_equal("s", post.reload.rating)
       end
     end
+
+    context "when the user has an invalid username" do
+      setup do
+        @user = build(:user, name: "12345")
+        @user.save(validate: false)
+      end
+
+      should "redirect for html requests" do
+        get_auth posts_path, @user, params: { format: :html }
+        assert_redirected_to new_user_name_change_request_path
+      end
+
+      should "not redirect for json requests" do
+        get_auth posts_path, @user, params: { format: :json }
+        assert_response :success
+      end
+    end
   end
 end
