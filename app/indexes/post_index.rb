@@ -138,7 +138,7 @@ module PostIndex
         SQL
         note_sql = <<-SQL
           SELECT post_id, body FROM notes
-          WHERE post_id IN (#{post_ids})
+          WHERE post_id IN (#{post_ids}) AND is_active = true
         SQL
         deletion_sql = <<-SQL
           SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason FROM
