@@ -17,7 +17,7 @@ class PostTest < ActiveSupport::TestCase
     context "Expunging a post" do
       # That belonged in a museum!
       setup do
-        @upload = UploadService.new(attributes_for(:jpg_upload)).start!
+        @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
         FavoriteManager.add!(user: @post.uploader, post: @post)
       end
@@ -44,14 +44,14 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should_eventually "decrement the user's note update count" do
+      should "decrement the user's note update count" do
         create(:note, post: @post)
         assert_difference(["@post.uploader.reload.note_update_count"], -1) do
           @post.expunge!
         end
       end
 
-      should_eventually "decrement the user's post update count" do
+      should "decrement the user's post update count" do
         assert_difference(["@post.uploader.reload.post_update_count"], -1) do
           @post.expunge!
         end
