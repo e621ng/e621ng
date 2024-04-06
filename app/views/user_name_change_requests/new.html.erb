@@ -1,5 +1,12 @@
 <div id="c-user-name-change-requests">
   <div id="a-new">
+    <% if CurrentUser.is_member? && (name_error = CurrentUser.user.name_error) %>
+      <div class="ui-state-highlight site-notice">
+        <p>Your current username '<%= CurrentUser.user.pretty_name %>' is invalid. You must change it to continue using the site.<p>
+        Error: <%= name_error %>
+      </div>
+    <% end %>
+
     <h1>Name Change Request</h1>
 
     <p>You can request a name change once per week.</p>

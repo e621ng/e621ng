@@ -22,7 +22,7 @@ class RelatedTagCalculator
   end
 
   def self.calculate_from_sample(tags, sample_size, category_constraint = nil, max_results = MAX_RESULTS)
-    Post.with_timeout(5_000, [], {:tags => tags}) do
+    Post.with_timeout(5_000, []) do
       sample = Post.sample(tags, sample_size)
       posts_with_tags = sample.with_unflattened_tags
 

@@ -173,8 +173,8 @@ module LinkHelper
 
   def hostname_for_link(path)
     begin
-      uri = URI.parse(path)
-    rescue URI::InvalidURIError
+      uri = Addressable::URI.parse(path)
+    rescue Addressable::URI::InvalidURIError
       return nil
     end
     return nil unless uri.host

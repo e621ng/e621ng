@@ -223,7 +223,7 @@ class WikiPage < ApplicationRecord
   end
 
   def post_set
-    @post_set ||= PostSets::Post.new(title, 1, 4)
+    @post_set ||= PostSets::Post.new(title, 1, limit: 4)
   end
 
   def tags

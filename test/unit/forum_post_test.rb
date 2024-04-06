@@ -23,7 +23,7 @@ class ForumPostTest < ActiveSupport::TestCase
 
     context "that belongs to a topic with several pages of posts" do
       setup do
-        Danbooru.config.stubs(:posts_per_page).returns(3)
+        Danbooru.config.stubs(:records_per_page).returns(3)
         @posts = []
         9.times do
           @posts << create(:forum_post, topic_id: @topic.id)

@@ -16,7 +16,7 @@ class FavoritesController < ApplicationController
         raise Favorite::HiddenError
       end
 
-      @favorite_set = PostSets::Favorites.new(@user, params[:page], params[:limit])
+      @favorite_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       respond_with(@favorite_set.posts) do |fmt|
         fmt.json do
           render json: @favorite_set.api_posts, root: 'posts'

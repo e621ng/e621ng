@@ -16,7 +16,7 @@
         <% help_pages = HelpPage.help_index %>
         <li>|</li>
         <% related_array.each do |related| %>
-          <li><%= subnav_link_to HelpPage.pretty_related_title(related, help_pages), help_page_path(@help) %></li>
+          <li><%= subnav_link_to HelpPage.pretty_related_title(related, help_pages), help_page_path(related) %></li>
         <% end %>
       <% end %>
     <% end %>

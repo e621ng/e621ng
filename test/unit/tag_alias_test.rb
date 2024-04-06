@@ -152,6 +152,17 @@ class TagAliasTest < ActiveSupport::TestCase
       assert_equal(3, tag2.reload.category)
     end
 
+    should "not fail if an artist with the same name is locked" do
+      ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      artist = as(@admin) { create(:artist, name: "aaa", is_locked: true) }
+      artist.tag.update(category: Tag.categories.artist)
+
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_equal("active", ta.reload.status)
+      assert_equal("bbb", artist.reload.name)
+    end
+
     should "error on approve if its not valid anymore" do
       create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
       ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @admin)
@@ -177,6 +188,16 @@ class TagAliasTest < ActiveSupport::TestCase
       ta.reject!
 
       assert_equal "deleted", ta.reload.status
+    end
+
+    should "update locked tags on approve" do
+      ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
+      post1 = create(:post, locked_tags: "aaa foo")
+      post2 = create(:post, locked_tags: "-aaa foo")
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_equal("bbb foo", post1.reload.locked_tags)
+      assert_equal("-bbb foo", post2.reload.locked_tags)
     end
 
     context "with an associated forum topic" do

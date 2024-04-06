@@ -31,6 +31,10 @@ class LinkHelperTest < ActionView::TestCase
     assert_equal("inkbunny.net", hostname_for_link("https://qb.ib.metapix.net"))
   end
 
+  test "for a link that contains square brackets" do
+    assert_equal("furaffinity.net", hostname_for_link("https://d.furaffinity.net/square_[brackets].png"))
+  end
+
   test "it returns an image if a hostname is found" do
     assert_match("furaffinity.net.png", favicon_for_link("https://furaffinity.net"))
   end

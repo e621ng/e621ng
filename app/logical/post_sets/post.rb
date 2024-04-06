@@ -2,10 +2,10 @@
 
 module PostSets
   class Post < PostSets::Base
-    MAX_PER_PAGE = 320
-    attr_reader :tag_array, :public_tag_array, :page, :random, :post_count, :use_new_syntax
+    attr_reader :tag_array, :public_tag_array, :page, :limit, :random, :post_count, :use_new_syntax
 
-    def initialize(tags, page = 1, per_page = nil, random: nil, use_new_syntax: false)
+    def initialize(tags, page = 1, limit: nil, random: nil, use_new_syntax: false)
+      super()
       tags ||= ""
       @public_tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
@@ -14,7 +14,7 @@ module PostSets
       end
       @tag_array = use_new_syntax ? TagQueryNew.scan(tags) : TagQuery.scan(tags)
       @page = page
-      @per_page = per_page
+      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")
       @random = random.present?
       @use_new_syntax = use_new_syntax
     end
@@ -51,17 +51,13 @@ module PostSets
       @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
     end
 
-    def per_page
-      (@per_page || TagQuery.fetch_metatag(tag_array, "limit") || CurrentUser.user.per_page).to_i.clamp(0, MAX_PER_PAGE)
-    end
-
     def is_random?
       random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
     end
 
     def posts
       @posts ||= begin
-        temp = (use_new_syntax ? ::Post.tag_match_new(tag_string) : ::Post.tag_match(tag_string)).paginate(page, limit: per_page, includes: [:uploader])
+        temp = (use_new_syntax ? ::Post.tag_match_new(tag_string) : ::Post.tag_match(tag_string)).paginate_posts(page, limit: limit, includes: [:uploader])
 
         @post_count = temp.total_count
         temp

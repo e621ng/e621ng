@@ -42,7 +42,7 @@ class ArtistsController < ApplicationController
         return
       end
     end
-    @post_set = PostSets::Post.new(@artist.name, 1, 10)
+    @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
     respond_with(@artist, methods: [:domains], include: [:urls])
   end
 
@@ -84,7 +84,7 @@ class ArtistsController < ApplicationController
       redirect_to artist_path(@artist)
     else
       @artist = Artist.new(name: params[:name] || "")
-      @post_set = PostSets::Post.new(@artist.name, 1, 10)
+      @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
       respond_with(@artist)
     end
   end
