@@ -50,7 +50,7 @@ class WikiPage < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      where("title = ?", title.downcase.tr(" ", "_"))
+      find_by(title: title.downcase.tr(" ", "_"))
     end
 
     def active

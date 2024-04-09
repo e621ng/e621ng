@@ -60,9 +60,7 @@ class WikiPageTest < ActiveSupport::TestCase
       end
 
       should "search by title" do
-        matches = WikiPage.titled("hot potato")
-        assert_equal(1, matches.count)
-        assert_equal("hot_potato", matches.first.title)
+        assert_equal("hot_potato", WikiPage.titled("hot potato").title)
       end
 
       should "search other names with wildcards" do

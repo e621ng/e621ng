@@ -55,6 +55,6 @@ class RelatedTagQuery
   end
 
   def wiki_page
-    WikiPage.titled(query).first
+    WikiPage.titled(query)
   end
 end
