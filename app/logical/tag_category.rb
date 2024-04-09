@@ -107,4 +107,5 @@ class TagCategory
   CATEGORIZED_LIST = %w[invalid artist copyright character species meta general lore].freeze
 
   SHORT_NAME_REGEX = SHORT_NAME_LIST.join("|").freeze
+  ALL_NAMES_REGEX = MAPPING.keys.join("|").freeze
 end
