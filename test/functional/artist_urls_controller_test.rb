@@ -17,7 +17,7 @@ class ArtistUrlsControllerTest < ActionDispatch::IntegrationTest
         end
 
         get artist_urls_path(search: {
-          artist: { name: "bkub", },
+          artist_name: "bkub",
           url_matches: "*bkub*",
           is_active: "false",
           order: "created_at",
