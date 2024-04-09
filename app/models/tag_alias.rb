@@ -206,8 +206,6 @@ class TagAlias < TagRelationship
         forum_updater.update(failure_message(e), "FAILED") if update_topic
         update_columns(status: "error: #{e}")
       end
-
-      DanbooruLogger.log(e, tag_alias_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
     end
   end
 

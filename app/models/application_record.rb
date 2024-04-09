@@ -217,8 +217,7 @@ class ApplicationRecord < ActiveRecord::Base
       def with_timeout(n, default_value = nil)
         connection.execute("SET STATEMENT_TIMEOUT = #{n}") unless Rails.env == "test"
         yield
-      rescue ::ActiveRecord::StatementInvalid => x
-        DanbooruLogger.log(x, expected: true)
+      rescue ::ActiveRecord::StatementInvalid
         return default_value
       ensure
         connection.execute("SET STATEMENT_TIMEOUT = #{CurrentUser.user.try(:statement_timeout) || 3_000}") unless Rails.env == "test"

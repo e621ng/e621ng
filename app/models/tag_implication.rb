@@ -138,8 +138,6 @@ class TagImplication < TagRelationship
 
         forum_updater.update(failure_message(e), "FAILED") if update_topic
         update_columns(status: "error: #{e}")
-
-        DanbooruLogger.log(e, tag_implication_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
       end
     end
 
