@@ -2,12 +2,12 @@
 
 class ArtistsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show, :show_or_new]
-  before_action :janitor_only, :only => [:destroy]
-  before_action :load_artist, :only => [:edit, :update, :destroy]
+  before_action :member_only, except: %i[index show show_or_new]
+  before_action :janitor_only, only: %i[destroy]
+  before_action :load_artist, only: %i[edit update destroy revert]
 
   def new
-    @artist = Artist.new(artist_params(:new))
+    @artist = Artist.new(artist_params)
     respond_with(@artist)
   end
 
@@ -29,7 +29,7 @@ class ArtistsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @artist = Artist.find(params[:id])
     else
-      @artist = Artist.find_by(name: Artist.normalize_name(params[:id]))
+      @artist = Artist.named(name: params[:id])
       unless @artist
         respond_to do |format|
           format.html do
@@ -71,7 +71,6 @@ class ArtistsController < ApplicationController
   end
 
   def revert
-    @artist = Artist.find(params[:id])
     ensure_can_edit(CurrentUser.user)
     @version = @artist.versions.find(params[:version_id])
     @artist.revert_to!(@version)
@@ -79,11 +78,11 @@ class ArtistsController < ApplicationController
   end
 
   def show_or_new
-    @artist = Artist.find_by(name: params[:name])
+    @artist = Artist.named(params[:name])
     if @artist
       redirect_to artist_path(@artist)
     else
-      @artist = Artist.new(name: params[:name] || "")
+      @artist = Artist.new(name: params[:name].present? ? Artist.normalize_name(params[:name]) : "")
       @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
       respond_with(@artist)
     end
@@ -92,7 +91,12 @@ class ArtistsController < ApplicationController
 private
 
   def load_artist
-    @artist = Artist.find(params[:id])
+    if params[:id] =~ /\A\d+\z/
+      @artist = Artist.find(params[:id])
+    else
+      @artist = Artist.named(name: params[:id])
+      raise ActiveRecord::RecordNotFound if @artist.blank?
+    end
   end
 
   def search_params
@@ -107,10 +111,9 @@ private
     raise User::PrivilegeError if !@artist.is_active?
   end
 
-  def artist_params(context = nil)
+  def artist_params
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
-    permitted_params += [:is_active, :linked_user_id, :is_locked] if CurrentUser.is_janitor?
-    permitted_params << :source if context == :new
+    permitted_params += %i[is_active linked_user_id is_locked] if CurrentUser.is_janitor?
 
     params.fetch(:artist, {}).permit(permitted_params)
   end
