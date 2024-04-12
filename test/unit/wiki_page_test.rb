@@ -61,6 +61,7 @@ class WikiPageTest < ActiveSupport::TestCase
 
       should "search by title" do
         assert_equal("hot_potato", WikiPage.titled("hot potato").title)
+        assert_nil(WikiPage.titled(nil))
       end
 
       should "search other names with wildcards" do
