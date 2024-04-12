@@ -4,9 +4,7 @@ class TagQueryNew < TagQuery
   class UnclosedGroupError < StandardError; end
   class MaxGroupDepthExceededError < StandardError; end
   class MaxTokensAchievedInGroupError < StandardError; end
-
-  attr_reader :q, :resolve_aliases
-
+  
   MAX_GROUP_DEPTH = 10
 
   # We extend tag query simply to not cause any issues anywhere else, but we do not want to initialize the parent.
