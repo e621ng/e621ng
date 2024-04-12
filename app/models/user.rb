@@ -885,10 +885,6 @@ class User < ApplicationRecord
     post_upload_count >= 10 && enable_compact_uploader?
   end
 
-  def use_new_search_syntax?
-    use_new_search_syntax
-  end
-
   def initialize_attributes
     return if Rails.env.test?
     Danbooru.config.customize_new_user(self)
