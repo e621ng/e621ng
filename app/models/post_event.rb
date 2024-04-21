@@ -2,7 +2,7 @@
 
 class PostEvent < ApplicationRecord
   belongs_to :creator, class_name: "User"
-  enum action: {
+  enum :action, {
     deleted: 0,
     undeleted: 1,
     approved: 2,
