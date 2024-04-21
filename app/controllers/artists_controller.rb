@@ -82,7 +82,7 @@ class ArtistsController < ApplicationController
     if @artist
       redirect_to artist_path(@artist)
     else
-      @artist = Artist.new(name: params[:name].present? ? Artist.normalize_name(params[:name]) : "")
+      @artist = Artist.new(name: Artist.normalize_name(params[:name] || ""))
       @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
       respond_with(@artist)
     end
