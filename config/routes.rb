@@ -189,7 +189,6 @@ Rails.application.routes.draw do
     end
   end
   resources :note_versions, :only => [:index]
-  resource :note_previews, :only => [:show]
   resources :pools do
     member do
       put :revert
