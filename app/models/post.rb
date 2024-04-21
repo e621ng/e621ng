@@ -529,6 +529,8 @@ class Post < ApplicationRecord
     end
 
     def tag_count_not_insane
+      return if do_not_version_changes
+
       max_count = Danbooru.config.max_tags_per_post
       if TagQuery.scan(tag_string).size > max_count
         self.errors.add(:tag_string, "tag count exceeds maximum of #{max_count}")
@@ -550,12 +552,6 @@ class Post < ApplicationRecord
       end
 
       normalized_tags = TagQuery.scan(tag_string)
-      # Sanity check input, this is checked again on output as well to prevent bad cases where implications push post
-      # over the limit and posts will fail to edit later on.
-      if normalized_tags.size > Danbooru.config.max_tags_per_post
-        self.errors.add(:tag_string, "tag count exceeds maximum of #{Danbooru.config.max_tags_per_post}")
-        throw :abort
-      end
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
       normalized_tags = filter_metatags(normalized_tags)
