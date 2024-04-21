@@ -563,7 +563,14 @@ class ElasticPostQueryBuilderNew < ElasticQueryBuilder
       if next_token == "~"
         modifier = 1
       elsif modifier == 1 && next_token != "~" && previous_token != "~"
-        modifier = 0
+        if previous_negate
+          negated_or = group[:tokens][i - 2] == "~"
+          unless negated_or
+            modifier = 0
+          end
+        else
+          modifier = 0
+        end
       end
 
       if !token.start_with?("__")
