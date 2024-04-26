@@ -5,7 +5,7 @@ require "test_helper"
 class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
   context "The iqdb controller" do
     setup do
-      Danbooru.config.stubs(:iqdb_server).returns("https://karasuma.donmai.us")
+      IqdbProxy.stubs(:endpoint).returns("http://iqdb:5588")
       @user = create(:user)
       as(@user) do
         @posts = create_list(:post, 2)

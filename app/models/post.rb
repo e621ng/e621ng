@@ -1491,19 +1491,15 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def iqdb_enabled?
-        Danbooru.config.iqdb_server.present?
-      end
-
       def remove_iqdb(post_id)
-        if iqdb_enabled?
+        if IqdbProxy.enabled?
           IqdbRemoveJob.perform_later(post_id)
         end
       end
     end
 
     def update_iqdb_async
-      if Post.iqdb_enabled? && has_preview?
+      if IqdbProxy.enabled? && has_preview?
         IqdbUpdateJob.perform_later(id)
       end
     end
