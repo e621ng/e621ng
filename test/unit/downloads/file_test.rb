@@ -48,13 +48,6 @@ module Downloads
           assert_match("from 127.0.0.1 are not", error.message)
         end
 
-        should "not try to fetch the size" do
-          error = assert_raises(Downloads::File::Error) do
-            Downloads::File.new("http://evil.com").size
-          end
-          assert_match("from 127.0.0.1 are not", error.message)
-        end
-
         should "not follow redirects to banned IPs" do
           url = "http://httpbin.org/redirect-to?url=http://127.0.0.1"
           stub_request(:get, url).to_return(status: 301, headers: { location: "http://127.0.0.1" })

@@ -22,16 +22,6 @@ module Downloads
       validate!
     end
 
-    def size
-      res = HTTParty.head(uncached_url, **httparty_options, timeout: 3)
-
-      if res.success?
-        res.content_length
-      else
-        raise HTTParty::ResponseError.new(res)
-      end
-    end
-
     def download!(tries: 3, **)
       Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
         http_get_streaming(uncached_url, **)
