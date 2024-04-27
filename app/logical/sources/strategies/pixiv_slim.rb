@@ -61,7 +61,7 @@ module Sources
       end
 
       def headers
-        { "Referer" => "https://www.pixiv.net"}
+        { referer: "https://www.pixiv.net" }
       end
     end
   end

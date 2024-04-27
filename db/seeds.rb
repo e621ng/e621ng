@@ -33,9 +33,7 @@ ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") 
 end
 
 def api_request(path)
-  response = HTTParty.get("https://e621.net#{path}", {
-    headers: { "User-Agent" => "e621ng/seeding" },
-  })
+  response = Faraday.get("https://e621.net#{path}", nil, user_agent: "e621ng/seeding")
   JSON.parse(response.body)
 end
 

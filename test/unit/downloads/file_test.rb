@@ -21,11 +21,11 @@ module Downloads
       end
 
       should "not follow redirects to non-whitelisted domains" do
-        stub_request(:get, "https://example.com/file.png").to_return(status: 301, headers: { location: "https://e621.net" })
+        stub_request(:get, "https://example.com/file.png").to_return(status: 301, headers: { location: "https://e621.net/abc" })
         error = assert_raises(Downloads::File::Error) do
           Downloads::File.new("https://example.com/file.png").download!
         end
-        assert_match("'https://e621.net/' is not whitelisted", error.message)
+        assert_match("'https://e621.net/abc' is not whitelisted", error.message)
       end
     end
 
@@ -71,15 +71,19 @@ module Downloads
 
       context "that fails" do
         should "retry three times before giving up" do
-          download = Downloads::File.new("https://example.com")
-          HTTParty.expects(:get).times(3).raises(Errno::ETIMEDOUT)
-          assert_raises(Errno::ETIMEDOUT) { download.download! }
+          download = Downloads::File.new("https://example.com/1")
+          stub_request(:get, "https://example.com/1").to_raise(Errno::ETIMEDOUT).times(2).then.to_return(body: "foo")
+          assert_equal("foo", download.download!.read)
+
+          download = Downloads::File.new("https://example.com/2")
+          stub_request(:get, "https://example.com/2").to_raise(Errno::ETIMEDOUT).times(3)
+          assert_raises(Faraday::Error) { download.download! }
         end
 
         should "return an uncorrupted file on the second try" do
           source = "https://example.com"
           download = Downloads::File.new(source)
-          stub_request(:get, source).to_raise(IOError).then.to_return(body: "abc")
+          stub_request(:get, source).to_raise(Errno::ETIMEDOUT).then.to_return(body: "abc")
 
           tempfile = download.download!
           assert_equal("abc", tempfile.read)

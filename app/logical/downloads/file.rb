@@ -5,8 +5,6 @@ module Downloads
     include ActiveModel::Validations
     class Error < Exception ; end
 
-    RETRIABLE_ERRORS = [Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::EIO, Errno::EHOSTUNREACH, Errno::ECONNREFUSED, Timeout::Error, IOError]
-
     attr_reader :url
 
     validate :validate_url
@@ -22,39 +20,33 @@ module Downloads
       validate!
     end
 
-    def download!(tries: 3, **)
-      Retriable.retriable(on: RETRIABLE_ERRORS, tries: tries, base_interval: 0) do
-        http_get_streaming(uncached_url, **)
+    def download!(max_size: Danbooru.config.max_file_size)
+      file = Tempfile.new(binmode: true)
+      conn = Faraday.new(Danbooru.config.faraday_options) do |f|
+        f.response :follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) }
+        f.request :retry, max: 3, retry_block: ->(*) { file = Tempfile.new(binmode: true) }
       end
+
+      res = conn.get(uncached_url, nil, strategy.headers) do |req|
+        req.options.on_data = ->(chunk, overall_recieved_bytes, env) do
+          next if [301, 302].include?(env.status)
+
+          raise Error, "File is too large (max size: #{max_size})" if overall_recieved_bytes > max_size
+          file.write(chunk)
+        end
+      end
+      raise Error, "HTTP error code: #{res.code} #{res.message}" unless res.success?
+
+      file.rewind
+      file
     end
 
     def validate_url
       errors.add(:base, "URL must not be blank") if url.blank?
       errors.add(:base, "'#{url}' is not a valid url") if !url.host.present?
       errors.add(:base, "'#{url}' is not a valid url. Did you mean 'http://#{url}'?") if !url.scheme.in?(%w[http https])
-      valid, reason = UploadWhitelist.is_whitelisted?(url)
-      errors.add(:base, "'#{url}' is not whitelisted and can't be direct downloaded: #{reason}") if !valid
+      validate_uri_allowed!(url)
     end
-
-    def http_get_streaming(url, file: Tempfile.new(binmode: true), max_size: Danbooru.config.max_file_size)
-      size = 0
-
-      res = HTTParty.get(url, httparty_options) do |chunk|
-        next if [301, 302].include?(chunk.code)
-
-        size += chunk.size
-        raise Error.new("File is too large (max size: #{max_size})") if size > max_size && max_size > 0
-
-        file.write(chunk)
-      end
-
-      if res.success?
-        file.rewind
-        return file
-      else
-        raise Error.new("HTTP error code: #{res.code} #{res.message}")
-      end
-    end # def
 
     # Prevent Cloudflare from potentially mangling the image. See issue #3528.
     def uncached_url
@@ -73,42 +65,21 @@ module Downloads
       @strategy ||= Sources::Strategies.find(url.to_s)
     end
 
-    def httparty_options
-      {
-        timeout: 10,
-        stream_body: true,
-        headers: strategy.headers,
-        connection_adapter: ValidatingConnectionAdapter,
-      }.deep_merge(Danbooru.config.httparty_options)
-    end
-
     def is_cloudflare?(url)
       ip_addr = IPAddr.new(Resolv.getaddress(url.hostname))
       CloudflareService.ips.any? { |subnet| subnet.include?(ip_addr) }
     end
-  end
 
-  # Hook into HTTParty to validate the IP before following redirects.
-  # https://www.rubydoc.info/github/jnunemaker/httparty/HTTParty/ConnectionAdapter
-  class ValidatingConnectionAdapter < HTTParty::ConnectionAdapter
-    def self.call(uri, options)
+    def validate_uri_allowed!(uri)
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
-
-      if ip_blocked?(ip_addr)
+      if ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
         raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
       end
 
-      # Check whitelist here again, in case of open redirect vulnerabilities
-      valid, _reason = UploadWhitelist.is_whitelisted?(Addressable::URI.parse(uri))
+      valid, _reason = UploadWhitelist.is_whitelisted?(uri)
       unless valid
         raise Downloads::File::Error, "'#{uri}' is not whitelisted and can't be direct downloaded"
       end
-
-      super(uri, options)
-    end
-
-    def self.ip_blocked?(ip_addr)
-      ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
     end
   end
 end

@@ -572,17 +572,18 @@ module Danbooru
     # services will fail if you don't set a valid User-Agent.
     def http_headers
       {
-        "User-Agent" => "#{Danbooru.config.safe_app_name}/#{Danbooru.config.version}",
+        user_agent: "#{safe_app_name}/#{version}",
       }
     end
 
-    def httparty_options
-      # proxy example:
-      # {http_proxyaddr: "", http_proxyport: "", http_proxyuser: nil, http_proxypass: nil}
+    # https://lostisland.github.io/faraday/#/customization/connection-options
+    def faraday_options
       {
-        timeout: 10,
-        open_timout: 5,
-        headers: Danbooru.config.http_headers,
+        request: {
+          timeout: 10,
+          open_timeout: 5,
+        },
+        headers: http_headers,
       }
     end
 
