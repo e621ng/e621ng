@@ -132,6 +132,9 @@ Style/IfUnlessModifier:
 Style/Lambda:
   EnforcedStyle: literal
 
+Style/MapIntoArray:
+  Enabled: false
+
 Style/NumericPredicate:
   EnforcedStyle: comparison
 
