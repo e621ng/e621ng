@@ -62,6 +62,7 @@ class User < ApplicationRecord
   validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
   validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
+  validates :email, length: { maximum: 100 }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   validates :name, user_name: true, on: :create
