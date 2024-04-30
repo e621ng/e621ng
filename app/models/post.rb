@@ -1207,10 +1207,12 @@ class Post < ApplicationRecord
         reason = pending_flag.reason
       end
 
+      flags.each(&:resolve!)
+
       force_flag = options.fetch(:force, false)
       Post.with_timeout(30_000) do
         transaction do
-          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true, force_flag: force_flag)
+          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: true, is_deletion: true, force_flag: force_flag)
 
           if flag.errors.any?
             raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
