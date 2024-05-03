@@ -11,6 +11,9 @@
   <% if tag_relation.deletable_by?(CurrentUser.user) %>
     <% links.push link_to("Reject", "#", class: "tag-relationship-reject") %>
   <% end %>
+  <% if tag_relation.undoable_by?(CurrentUser.user) %>
+    <% links.push link_to("Undo", "#", class: "tag-relationship-undo") %>
+  <% end %>
   <% if tag_relation.editable_by?(CurrentUser.user) %>
     <% links.push link_to("Edit", action: "edit", controller: "/#{tag_relation.model_name.route_key}", id: tag_relation.id) %>
   <% end %>

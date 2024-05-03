@@ -3,7 +3,7 @@
 class BulkUpdateRequestsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: [:index, :show]
-  before_action :admin_only, only: [:approve]
+  before_action :admin_only, only: [:approve, :undo]
   before_action :load_bulk_update_request, except: [:new, :create, :index]
 
   def new
@@ -49,6 +49,16 @@ class BulkUpdateRequestsController < ApplicationController
     if @bulk_update_request.rejectable?(CurrentUser.user)
       @bulk_update_request.reject!(CurrentUser.user)
       flash[:notice] = "Bulk update request rejected"
+      respond_with(@bulk_update_request, location: bulk_update_requests_path)
+    else
+      access_denied
+    end
+  end
+
+  def undo
+    if @bulk_update_request.undoable?(CurrentUser.user)
+      @bulk_update_request.undo!(CurrentUser.user)
+      flash[:notice] = "Bulk update request undone"
       respond_with(@bulk_update_request, location: bulk_update_requests_path)
     else
       access_denied

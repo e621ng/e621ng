@@ -24,6 +24,8 @@ class BulkUpdateRequest < ApplicationRecord
   scope :pending_first, -> { order(Arel.sql("(case status when 'pending' then 0 when 'approved' then 1 else 2 end)")) }
   scope :pending, -> {where(status: "pending")}
 
+  has_many :bulk_update_requests_undos, as: :bur_undo
+
   module ApiMethods
     def hidden_attributes
       super + [:user_ip_addr]
@@ -94,7 +96,7 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          BulkUpdateRequestImporter.new(script, forum_topic_id, user_id, user_ip_addr).process!
+          BulkUpdateRequestImporter.new(script, forum_topic_id, user_id, user_ip_addr, bulk_update_requests_undos).process!
           update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
@@ -124,6 +126,48 @@ class BulkUpdateRequest < ApplicationRecord
         update(status: "rejected")
         forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been rejected by @#{rejector.name}.", "REJECTED")
       end
+    end
+
+    def undo!(approver: CurrentUser.user)
+      CurrentUser.scoped(approver) do
+        update(status: "pending")
+
+        bulk_update_requests_undos.where(applied: false).each do |undo|
+          undo.undo_data.created_aliases.each do |id|
+            TagAliasUndoJob.perform_later(id, false)
+          end
+
+          undo.undo_data.removed_aliases.each do |id|
+            TagAliasJob.perform_later(id, false)
+          end
+
+          undo.undo_data.created_implications.each do |id|
+            TagImplicationUndoJob.perform_later(id, false)
+          end
+
+          undo.undo_data.removed_implications.each do |id|
+            TagImplicationJob.perform_later(id, false)
+          end
+
+          undo.undo_data.nukes.each do |tag|
+            TagNukeUndoJob.perform_later(tag)
+          end
+
+          undo.undo_data.mass_updates.each do |tag|
+            TagBatchUndoJob.perform_later(tag)
+          end
+
+          undo.undo_data.category_changes.each do |category_change_data|
+            tag = Tag.find(category_change_data[:tag_name])
+            tag.category = category_change_data[:old_category]
+            tag.save
+          end
+        end
+
+        bulk_update_requests_undos.update_all(applied: true)
+      end
+
+      forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been undone by @#{approver.name}.", "UNDONE") if update_topic
     end
 
     def bulk_update_request_link
@@ -186,6 +230,10 @@ class BulkUpdateRequest < ApplicationRecord
 
   def rejectable?(user)
     is_pending? && editable?(user)
+  end
+
+  def undoable?(user)
+    is_approved? && user.is_admin?
   end
 
   def reason_with_link

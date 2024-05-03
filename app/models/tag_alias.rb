@@ -18,7 +18,7 @@ class TagAlias < TagRelationship
 
     def undo!(approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
-        TagAliaseUndoJob.perform_later(id, true)
+        TagAliasUndoJob.perform_later(id, true)
       end
     end
   end

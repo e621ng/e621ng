@@ -167,6 +167,12 @@ class TagImplication < TagRelationship
       forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
     end
 
+    def undo!(approver: CurrentUser.user)
+      CurrentUser.scoped(approver) do
+        TagImplicationUndoJob.perform_later(id, true)
+      end
+    end
+
     def create_mod_action
       implication = %Q("tag implication ##{id}":[#{Rails.application.routes.url_helpers.tag_implication_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
 
@@ -200,39 +206,6 @@ class TagImplication < TagRelationship
         skip_update: !TagRelationship::SUPPORT_HARD_CODED
       )
     end
-
-    def process_undo!(update_topic: true)
-      unless valid?
-        raise errors.full_messages.join("; ")
-      end
-
-      CurrentUser.scoped(approver) do
-        update(status: "pending")
-        update_posts_undo
-        forum_updater.update(retirement_message, "UNDONE") if update_topic
-      end
-      tag_rel_undos.update_all(applied: true)
-    end
-
-    def update_posts_undo
-      Post.without_timeout do
-        tag_rel_undos.where(applied: false).each do |tu|
-          Post.where(id: tu.undo_data.keys).find_each do |post|
-            post.do_not_version_changes = true
-            if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
-              Rails.logger.info("[TIU] Skipping post that already contains target tag.")
-              next
-            end
-            post.tag_string_diff = "-#{consequent_name}"
-            post.save
-          end
-        end
-
-        # TODO: Race condition with indexing jobs here.
-        antecedent_tag.fix_post_count if antecedent_tag
-        consequent_tag.fix_post_count if consequent_tag
-      end
-    end
   end
 
   include DescendantMethods
@@ -256,5 +229,38 @@ class TagImplication < TagRelationship
   def flush_cache
     @dedescendants = nil
     @parents = nil
+  end
+
+  def process_undo!(update_topic: true)
+    unless valid?
+      raise errors.full_messages.join("; ")
+    end
+
+    CurrentUser.scoped(approver) do
+      update(status: "pending")
+      update_posts_undo
+      forum_updater.update(retirement_message, "UNDONE") if update_topic
+    end
+    tag_rel_undos.update_all(applied: true)
+  end
+
+  def update_posts_undo
+    Post.without_timeout do
+      tag_rel_undos.where(applied: false).each do |tu|
+        Post.where(id: tu.undo_data.keys).find_each do |post|
+          post.do_not_version_changes = true
+          if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
+            Rails.logger.info("[TIU] Skipping post that already contains target tag.")
+            next
+          end
+          post.tag_string_diff = "-#{consequent_name}"
+          post.save
+        end
+      end
+
+      # TODO: Race condition with indexing jobs here.
+      antecedent_tag.fix_post_count if antecedent_tag
+      consequent_tag.fix_post_count if consequent_tag
+    end
   end
 end

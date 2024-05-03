@@ -111,6 +111,7 @@ Rails.application.routes.draw do
   resources :bulk_update_requests do
     member do
       post :approve
+      post :undo
     end
   end
   resources :comments do
@@ -259,12 +260,14 @@ Rails.application.routes.draw do
   resources :tag_aliases do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_alias_request, :only => [:new, :create]
   resources :tag_implications do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_implication_request, :only => [:new, :create]

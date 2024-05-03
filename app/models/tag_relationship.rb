@@ -82,6 +82,10 @@ class TagRelationship < ApplicationRecord
     (user.is_admin? && !is_deleted?) || (is_pending? && creator.id == user.id)
   end
 
+  def undoable_by?(user)
+    user.is_admin? && !is_deleted?
+  end
+
   def editable_by?(user)
     is_pending? && user.is_admin?
   end

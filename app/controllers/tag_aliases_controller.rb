@@ -48,6 +48,12 @@ class TagAliasesController < ApplicationController
     respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
   end
 
+  def undo
+    @tag_alias = TagAlias.find(params[:id])
+    @tag_alias.undo!(approver: CurrentUser.user)
+    respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
+  end
+
   private
 
   def tag_alias_params

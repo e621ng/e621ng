@@ -4,14 +4,18 @@ class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr
 
-  def initialize(text, forum_id, creator = nil, ip_addr = nil)
+  def initialize(text, forum_id, creator = nil, ip_addr = nil, bulk_update_requests_undos = nil)
     @forum_id = forum_id
     @text = text
     @creator_id = creator
     @creator_ip_addr = ip_addr
+    @bulk_update_requests_undos = bulk_update_requests_undos
   end
 
   def process!(approver = CurrentUser.user)
+    if bulk_update_requests_undos == nil
+      raise new Error, "Unable to process, no undos record passed"
+    end
     tokens = BulkUpdateRequestImporter.tokenize(text)
     execute(tokens, approver)
   end
@@ -181,7 +185,7 @@ class BulkUpdateRequestImporter
   def find_create_alias(token, approver)
     tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
     if tag_alias.present?
-      return unless tag_alias.status == 'pending'
+      return tag_alias.id unless tag_alias.status == 'pending'
       tag_alias.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
     else
       tag_alias = TagAlias.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
@@ -193,12 +197,14 @@ class BulkUpdateRequestImporter
     tag_alias.rename_artist
     raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
     tag_alias.approve!(approver: approver, update_topic: false)
+
+    tag_alias.id
   end
 
   def find_create_implication(token, approver)
     tag_implication = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
     if tag_implication.present?
-      return unless tag_implication.status == 'pending'
+      return tag_implication.id unless tag_implication.status == 'pending'
       tag_implication.update_columns(creator_id: creator_id, creator_ip_addr: creator_ip_addr, forum_topic_id: forum_id)
     else
       tag_implication = TagImplication.create(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
@@ -208,37 +214,56 @@ class BulkUpdateRequestImporter
     end
 
     tag_implication.approve!(approver: approver, update_topic: false)
+
+    tag_implication.id
   end
 
   def execute(tokens, approver)
     warnings = []
     ActiveRecord::Base.transaction do
+      undo_info = {
+        :created_aliases => [],
+        :removed_aliases => [],
+        :created_implications => [],
+        :removed_implications => [],
+        :nukes => [],
+        :mass_updates => [],
+        :category_changes => [],
+      }
+
       tokens.map do |token|
         case token[0]
         when :create_alias
-          find_create_alias(token, approver)
+          alias_id = find_create_alias(token, approver)
+          undo_info[:created_aliases].push(alias_id)
 
         when :create_implication
-          find_create_implication(token, approver)
+          implication_id = find_create_implication(token, approver)
+          undo_info[:created_implications].push(implication_id)
 
         when :remove_alias
           tag_alias = TagAlias.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Alias for #{token[1]} not found" if tag_alias.nil?
           tag_alias.reject!(update_topic: false)
+          undo_info[:removed_aliases].push(tag_alias.id)
 
         when :remove_implication
           tag_implication = TagImplication.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Implication for #{token[1]} not found" if tag_implication.nil?
           tag_implication.reject!(update_topic: false)
+          undo_info[:removed_implications].push(removed_implications.id)
 
         when :mass_update
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
+          undo_info[:mass_updates].push("#{token[1]}_#{token[2]}")
 
         when :nuke_tag
           TagNukeJob.perform_later(token[1], CurrentUser.id, CurrentUser.ip_addr)
+          undo_info[:nukes].push(token[1])
 
         when :change_category
           tag = Tag.find_by(name: token[1])
+          undo_info[:category_changes].push({:tag_name => token[1], :old_category => tag.category})
           raise Error, "Tag for #{token[1]} not found" if tag.nil?
           tag.category = Tag.categories.value_for(token[2])
           tag.save
@@ -247,6 +272,8 @@ class BulkUpdateRequestImporter
           raise Error, "Unknown token: #{token[0]}"
         end
       end
+
+      bulk_update_requests_undos.create!(undo_data: undo_info)
     end
   end
 end

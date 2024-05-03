@@ -313,6 +313,36 @@ CREATE SEQUENCE public.bulk_update_requests_id_seq
 
 ALTER SEQUENCE public.bulk_update_requests_id_seq OWNED BY public.bulk_update_requests.id;
 
+--
+-- Name: bulk_update_requests_undos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bulk_update_requests_undos (
+    id bigint NOT NULL,
+    bulk_update_request_id integer,
+    undo_data json,
+    applied boolean DEFAULT false,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+--
+-- Name: bulk_update_requests_undos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bulk_update_requests_undos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bulk_update_requests_undos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bulk_update_requests_undos_id_seq OWNED BY public.bulk_update_requests_undos.id;
 
 --
 -- Name: comment_votes; Type: TABLE; Schema: public; Owner: -
@@ -2423,6 +2453,12 @@ ALTER TABLE ONLY public.blips ALTER COLUMN id SET DEFAULT nextval('public.blips_
 
 ALTER TABLE ONLY public.bulk_update_requests ALTER COLUMN id SET DEFAULT nextval('public.bulk_update_requests_id_seq'::regclass);
 
+--
+-- Name: bulk_update_requests_undos id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_requests_undos ALTER COLUMN id SET DEFAULT nextval('public.bulk_update_requests_undos_id_seq'::regclass);
+
 
 --
 -- Name: comment_votes id; Type: DEFAULT; Schema: public; Owner: -
@@ -2857,6 +2893,13 @@ ALTER TABLE ONLY public.blips
 
 ALTER TABLE ONLY public.bulk_update_requests
     ADD CONSTRAINT bulk_update_requests_pkey PRIMARY KEY (id);
+
+--
+-- Name: bulk_update_requests_undos bulk_update_requests_undos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_requests_undos
+    ADD CONSTRAINT bulk_update_requests_undos_pkey PRIMARY KEY (id);
 
 
 --
@@ -3446,6 +3489,12 @@ CREATE INDEX index_blips_on_to_tsvector_english_body ON public.blips USING gin (
 
 CREATE INDEX index_bulk_update_requests_on_forum_post_id ON public.bulk_update_requests USING btree (forum_post_id);
 
+
+--
+-- Name: index_bulk_update_requests_undos_on_bulk_update_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bulk_update_requests_undos_on_bulk_update_request_id ON public.bulk_update_requests_undos USING btree (bulk_update_request_id);
 
 --
 -- Name: index_comment_votes_on_comment_id; Type: INDEX; Schema: public; Owner: -

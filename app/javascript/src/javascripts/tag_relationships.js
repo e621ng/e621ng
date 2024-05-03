@@ -48,6 +48,30 @@ class TagRelationships {
       Utility.error(`Failed to reject ${human}.`);
     });
   }
+
+  static undo(e) {
+    e.preventDefault();
+    const $e = $(e.target);
+    const parent = $e.parents(".tag-relationship");
+    const route = parent.data("relationship-route");
+    const human = parent.data("relationship-human");
+    const id = parent.data("relationship-id");
+
+    if(!confirm(`Are you sure you want to undo this ${human}?`)) {
+      return;
+    }
+
+    $.ajax({
+      url: `/${route}/${id}/undo.json`,
+      type: 'POST',
+      dataType: 'json'
+    }).done(function (data) {
+      Utility.notice(`Undid ${human}.`);
+      parent.slideUp('fast');
+    }).fail(function (data) {
+      Utility.error(`Failed to undo ${human}.`);
+    });
+  }
 }
 
 $(document).ready(function() {
@@ -56,6 +80,9 @@ $(document).ready(function() {
   });
   $(".tag-relationship-reject").on('click', e => {
     TagRelationships.reject(e);
+  });
+  $(".tag-relationship-undo").on('click', e => {
+    TagRelationships.undo(e);
   });
 });
 
