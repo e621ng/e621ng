@@ -34,7 +34,7 @@ class TagNukeJob < ApplicationJob
   end
 
   def self.create_undo_information(tag)
-    undo_info = Hash.new
+    undo_info = {}
     undo_info["tag"] = tag
     undo_info["post_ids"] = []
 
@@ -46,7 +46,7 @@ class TagNukeJob < ApplicationJob
       end
     end
 
-    return undo_info
+    undo_info
   end
 
   def self.process_undo!(undo_info)

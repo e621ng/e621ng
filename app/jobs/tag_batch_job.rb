@@ -43,10 +43,10 @@ class TagBatchJob < ApplicationJob
   end
 
   def self.create_undo_information(antecedent_tag, consequent_tag)
-    undo_info = Hash.new
+    undo_info = {}
     undo_info["antecedent"] = antecedent_tag
     undo_info["consequent"] = consequent_tag
-    undo_info["posts"] = Hash.new
+    undo_info["posts"] = {}
 
     Post.transaction do
       Post.without_timeout do
@@ -57,8 +57,8 @@ class TagBatchJob < ApplicationJob
         end
       end
     end
-    
-    return undo_info
+
+    undo_info
   end
 
   def self.process_undo!(undo_info)

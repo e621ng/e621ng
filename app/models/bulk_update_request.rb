@@ -129,11 +129,10 @@ class BulkUpdateRequest < ApplicationRecord
       end
     end
 
-    def undo!(approver = CurrentUser.user, update_topic = true)
+    def undo!(approver = CurrentUser.user, update_topic: true)
       update(status: "pending")
 
-      bulk_update_requests_undos.where(applied: false).each do |undo|
-
+      bulk_update_requests_undos.where(applied: false).find_each do |undo|
         undo[:undo_data]["created_aliases"].each do |id|
           TagAliasUndoJob.set(queue: :undo_queue).perform_later(id, false)
         end
@@ -160,7 +159,7 @@ class BulkUpdateRequest < ApplicationRecord
 
         undo[:undo_data]["category_changes"].each do |category_change_data|
           tag = Tag.find_by(name: category_change_data["tag"])
-          raise Error, "Tag for #{category_change_data["tag"]} not found" if tag.nil?
+          raise Error, "Tag for #{category_change_data['tag']} not found" if tag.nil?
           tag.category = category_change_data["old_category"]
           tag.save
         end

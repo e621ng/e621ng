@@ -261,7 +261,7 @@ class BulkUpdateRequestImporter
         when :change_category
           tag = Tag.find_by(name: token[1])
           raise Error, "Tag for #{token[1]} not found" if tag.nil?
-          info = Hash.new
+          info = {}
           info["tag"] = token[1]
           info["old_category"] = tag.category
           undo_info[:category_changes].push(info)
