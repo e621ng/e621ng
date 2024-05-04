@@ -83,7 +83,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def undoable_by?(user)
-    user.is_admin? && !is_deleted?
+    is_active? && user.is_admin?
   end
 
   def editable_by?(user)
