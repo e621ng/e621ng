@@ -4,20 +4,16 @@ class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr
 
-  def initialize(text, forum_id, creator = nil, ip_addr = nil, bulk_update_requests_undos = nil)
+  def initialize(text, forum_id, creator = nil, ip_addr = nil)
     @forum_id = forum_id
     @text = text
     @creator_id = creator
     @creator_ip_addr = ip_addr
-    @bulk_update_requests_undos = bulk_update_requests_undos
   end
 
   def process!(approver = CurrentUser.user)
-    if bulk_update_requests_undos == nil
-      raise new Error, "Unable to process, no undos record passed"
-    end
     tokens = BulkUpdateRequestImporter.tokenize(text)
-    execute(tokens, approver)
+    return execute(tokens, approver)
   end
 
   def validate!(user)
@@ -220,17 +216,18 @@ class BulkUpdateRequestImporter
 
   def execute(tokens, approver)
     warnings = []
-    ActiveRecord::Base.transaction do
-      undo_info = {
-        :created_aliases => [],
-        :removed_aliases => [],
-        :created_implications => [],
-        :removed_implications => [],
-        :nukes => [],
-        :mass_updates => [],
-        :category_changes => [],
-      }
 
+    undo_info = {
+      :created_aliases => [],
+      :removed_aliases => [],
+      :created_implications => [],
+      :removed_implications => [],
+      :nukes => [],
+      :mass_updates => [],
+      :category_changes => [],
+    }
+
+    ActiveRecord::Base.transaction do
       tokens.map do |token|
         case token[0]
         when :create_alias
@@ -251,20 +248,23 @@ class BulkUpdateRequestImporter
           tag_implication = TagImplication.active.find_by(antecedent_name: token[1], consequent_name: token[2])
           raise Error, "Implication for #{token[1]} not found" if tag_implication.nil?
           tag_implication.reject!(update_topic: false)
-          undo_info[:removed_implications].push(removed_implications.id)
+          undo_info[:removed_implications].push(tag_implication.id)
 
         when :mass_update
+          undo_info[:mass_updates].push(TagBatchJob.create_undo_information(token[1], token[2]))
           TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
-          undo_info[:mass_updates].push("#{token[1]}_#{token[2]}")
 
         when :nuke_tag
+          undo_info[:nukes].push(TagNukeJob.create_undo_information(token[1]))
           TagNukeJob.perform_later(token[1], CurrentUser.id, CurrentUser.ip_addr)
-          undo_info[:nukes].push(token[1])
 
         when :change_category
           tag = Tag.find_by(name: token[1])
-          undo_info[:category_changes].push({:tag_name => token[1], :old_category => tag.category})
           raise Error, "Tag for #{token[1]} not found" if tag.nil?
+          info = Hash.new
+          info["tag"] = token[1]
+          info["old_category"] = tag.category
+          undo_info[:category_changes].push(info)
           tag.category = Tag.categories.value_for(token[2])
           tag.save
 
@@ -272,8 +272,8 @@ class BulkUpdateRequestImporter
           raise Error, "Unknown token: #{token[0]}"
         end
       end
-
-      bulk_update_requests_undos.create!(undo_data: undo_info)
     end
+
+    return undo_info
   end
 end

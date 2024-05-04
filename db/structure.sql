@@ -319,7 +319,8 @@ ALTER SEQUENCE public.bulk_update_requests_id_seq OWNED BY public.bulk_update_re
 
 CREATE TABLE public.bulk_update_requests_undos (
     id bigint NOT NULL,
-    bulk_update_request_id integer,
+    bur_undo_type character varying,
+    bur_undo_id bigint,
     undo_data json,
     applied boolean DEFAULT false,
     created_at timestamp(6) without time zone NOT NULL,
@@ -3491,10 +3492,10 @@ CREATE INDEX index_bulk_update_requests_on_forum_post_id ON public.bulk_update_r
 
 
 --
--- Name: index_bulk_update_requests_undos_on_bulk_update_request_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_bulk_update_requests_undos_on_bur_undo_type_and_bur_undo_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_bulk_update_requests_undos_on_bulk_update_request_id ON public.bulk_update_requests_undos USING btree (bulk_update_request_id);
+CREATE INDEX index_bulk_update_requests_undos_on_bur_undo_type_and_bur_undo_id ON public.bulk_update_requests_undos USING btree (bur_undo_type, bur_undo_id);
 
 --
 -- Name: index_comment_votes_on_comment_id; Type: INDEX; Schema: public; Owner: -

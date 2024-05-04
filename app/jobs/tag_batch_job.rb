@@ -16,7 +16,6 @@ class TagBatchJob < ApplicationJob
     updater = User.find(updater_id)
 
     CurrentUser.scoped(updater, updater_ip_addr) do
-      create_undo_information(antecedent, consequent)
       migrate_posts(from, to)
       migrate_blacklists(from, to)
       ModAction.log(:mass_update, { antecedent: antecedent, consequent: consequent })
@@ -43,36 +42,38 @@ class TagBatchJob < ApplicationJob
     end
   end
 
-  def create_undo_information(antecedent_tag, consequent_tag)
+  def self.create_undo_information(antecedent_tag, consequent_tag)
+    undo_info = Hash.new
+    undo_info["antecedent"] = antecedent_tag
+    undo_info["consequent"] = consequent_tag
+    undo_info["posts"] = Hash.new
+
     Post.transaction do
       Post.without_timeout do
-        post_info = Hash.new
         Post.sql_raw_tag_match(antecedent_tag).find_in_batches do |posts|
           posts.each do |p|
-            post_info[p.id] = p.tag_string
+            undo_info["posts"][p.id] = p.tag_string
           end
         end
-        TagRelUndo.create!(tag_rel: "#{antecedent_tag}_#{consequent_tag}", undo_data: post_info)
       end
     end
+    
+    return undo_info
   end
 
-  def self.process_undo!(tag)
-    split = tag.split("_")
-    antecedent = split[0]
-    consequent = split[1]
+  def self.process_undo!(undo_info)
+    antecedent = undo_info["antecedent"]
+    consequent = undo_info["consequent"]
+    posts = undo_info["posts"]
     Post.without_timeout do
-      TagRelUndo.where(tag_rel: tag, applied: false).find_each do |tag_rel_undo|
-        Post.where(id: tag_rel_undo.undo_data.keys).find_each do |post|
-          post.do_not_version_changes = true
-          if TagQuery.scan(tag_rel_undo.undo_data[post.id]).include?(consequent)
-            post.tag_string_diff = antecedent
-          else
-            post.tag_string_diff = "#{antecedent} -#{consequent}"
-          end
-          post.save
+      Post.where(id: posts.keys).find_each do |post|
+        post.do_not_version_changes = true
+        if TagQuery.scan(posts[post.id]).include?(consequent)
+          post.tag_string_diff = antecedent
+        else
+          post.tag_string_diff = "#{antecedent} -#{consequent}"
         end
-        tag_rel_undo.update(applied: true)
+        post.save
       end
     end
   end

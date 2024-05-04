@@ -157,7 +157,8 @@ class TagAlias < TagRelationship
       tag_rel_undos.where(applied: false).each do |tu|
         Post.where(id: tu.undo_data).find_each do |post|
           post.do_not_version_changes = true
-          post.tag_string_diff = "-#{consequent_name} #{antecedent_name}"
+          post.remove_tag(consequent_name) 
+          post.add_tag(antecedent_name)
           post.save
         end
       end

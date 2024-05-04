@@ -3,6 +3,8 @@
 class BulkUpdateRequest < ApplicationRecord
   attr_accessor :reason, :skip_forum, :should_validate
 
+  has_many :bulk_update_requests_undos, as: :bur_undo
+
   belongs_to :user
   belongs_to :forum_topic, optional: true
   belongs_to :forum_post, optional: true
@@ -23,8 +25,6 @@ class BulkUpdateRequest < ApplicationRecord
 
   scope :pending_first, -> { order(Arel.sql("(case status when 'pending' then 0 when 'approved' then 1 else 2 end)")) }
   scope :pending, -> {where(status: "pending")}
-
-  has_many :bulk_update_requests_undos, as: :bur_undo
 
   module ApiMethods
     def hidden_attributes
@@ -96,7 +96,8 @@ class BulkUpdateRequest < ApplicationRecord
     def approve!(approver)
       transaction do
         CurrentUser.scoped(approver) do
-          BulkUpdateRequestImporter.new(script, forum_topic_id, user_id, user_ip_addr, bulk_update_requests_undos).process!
+          undo_info = BulkUpdateRequestImporter.new(script, forum_topic_id, user_id, user_ip_addr).process!
+          bulk_update_requests_undos.create!(undo_data: undo_info)
           update(status: "approved", approver: CurrentUser.user)
           forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED")
         end
@@ -128,44 +129,44 @@ class BulkUpdateRequest < ApplicationRecord
       end
     end
 
-    def undo!(approver: CurrentUser.user)
-      CurrentUser.scoped(approver) do
-        update(status: "pending")
+    def undo!(approver = CurrentUser.user, update_topic = true)
+      update(status: "pending")
 
-        bulk_update_requests_undos.where(applied: false).each do |undo|
-          undo.undo_data.created_aliases.each do |id|
-            TagAliasUndoJob.perform_later(id, false)
-          end
+      bulk_update_requests_undos.where(applied: false).each do |undo|
 
-          undo.undo_data.removed_aliases.each do |id|
-            TagAliasJob.perform_later(id, false)
-          end
-
-          undo.undo_data.created_implications.each do |id|
-            TagImplicationUndoJob.perform_later(id, false)
-          end
-
-          undo.undo_data.removed_implications.each do |id|
-            TagImplicationJob.perform_later(id, false)
-          end
-
-          undo.undo_data.nukes.each do |tag|
-            TagNukeUndoJob.perform_later(tag)
-          end
-
-          undo.undo_data.mass_updates.each do |tag|
-            TagBatchUndoJob.perform_later(tag)
-          end
-
-          undo.undo_data.category_changes.each do |category_change_data|
-            tag = Tag.find(category_change_data[:tag_name])
-            tag.category = category_change_data[:old_category]
-            tag.save
-          end
+        undo[:undo_data]["created_aliases"].each do |id|
+          TagAliasUndoJob.set(queue: :undo_queue).perform_later(id, false)
         end
 
-        bulk_update_requests_undos.update_all(applied: true)
+        undo[:undo_data]["removed_aliases"].each do |id|
+          TagAliasJob.set(queue: :undo_queue).perform_later(id, false)
+        end
+
+        undo[:undo_data]["created_implications"].each do |id|
+          TagImplicationUndoJob.set(queue: :undo_queue).perform_later(id, false)
+        end
+
+        undo[:undo_data]["removed_implications"].each do |id|
+          TagImplicationJob.set(queue: :undo_queue).perform_later(id, false)
+        end
+
+        undo[:undo_data]["nukes"].each do |undo_info|
+          TagNukeUndoJob.set(queue: :undo_queue).perform_later(undo_info)
+        end
+
+        undo[:undo_data]["mass_updates"].each do |undo_info|
+          TagBatchUndoJob.set(queue: :undo_queue).perform_later(undo_info)
+        end
+
+        undo[:undo_data]["category_changes"].each do |category_change_data|
+          tag = Tag.find_by(name: category_change_data["tag"])
+          raise Error, "Tag for #{category_change_data["tag"]} not found" if tag.nil?
+          tag.category = category_change_data["old_category"]
+          tag.save
+        end
       end
+
+      bulk_update_requests_undos.update_all(applied: true)
 
       forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been undone by @#{approver.name}.", "UNDONE") if update_topic
     end

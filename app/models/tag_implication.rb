@@ -253,7 +253,7 @@ class TagImplication < TagRelationship
             Rails.logger.info("[TIU] Skipping post that already contains target tag.")
             next
           end
-          post.tag_string_diff = "-#{consequent_name}"
+          post.remove_tag(consequent_name)
           post.save
         end
       end
