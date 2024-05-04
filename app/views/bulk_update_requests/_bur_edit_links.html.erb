@@ -6,6 +6,9 @@
 <% if bur.rejectable?(CurrentUser.user) %>
   <%= link_to "Reject", bur, method: :delete, "data-confirm": "Are you sure you want to reject this bulk update request?" %> |
 <% end %>
+<% if bur.undoable?(CurrentUser.user) %>
+  <%= link_to "Undo", undo_bulk_update_request_path(bur), method: :post, "data-confirm": "Are you sure you want to undo this bulk update request?" %> |
+<% end %>
 <% if bur.editable?(CurrentUser.user) %>
   <%= link_to "Edit", edit_bulk_update_request_path(bur), :"data-shortcut" => "e" %>
 <% end %>
