@@ -581,7 +581,7 @@ module Danbooru
       {
         request: {
           timeout: 10,
-          open_timeout: 5,
+          open_timeout: 10,
         },
         headers: http_headers,
       }
