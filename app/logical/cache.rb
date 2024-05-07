@@ -28,7 +28,7 @@ class Cache
 
   def self.redis
     # Using a shared variable like this here is OK
-    # since unicorn spawns a new process for each worker
+    # since pitchfork spawns a new process for each worker
     @redis ||= Redis.new(url: Danbooru.config.redis_url)
   end
 end

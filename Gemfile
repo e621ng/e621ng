@@ -30,9 +30,6 @@ gem 'request_store'
 gem "diffy"
 gem "rugged"
 
-# Blocked by unicorn which lacks a release with Rack 3 support
-gem "rack", "~> 2.0"
-
 gem "datadog", require: "datadog/auto_instrument"
 
 gem 'opensearch-ruby'
@@ -44,8 +41,7 @@ gem "faraday-follow_redirects"
 gem "faraday-retry"
 
 group :production do
-  gem 'unicorn'
-  gem 'unicorn-worker-killer'
+  gem "pitchfork"
 end
 
 group :development, :test do
