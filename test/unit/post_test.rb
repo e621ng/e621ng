@@ -64,8 +64,9 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "remove the post from iqdb" do
-        @post.expects(:remove_iqdb_async).once
-        @post.expunge!
+        request_stub = stub_request(:delete, "#{IqdbProxy.endpoint}/images/#{@post.id}")
+        with_inline_jobs { @post.expunge! }
+        assert_requested request_stub
       end
 
       context "that is status locked" do
