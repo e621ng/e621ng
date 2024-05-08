@@ -15,6 +15,12 @@ worker_processes ENV.fetch("PITCHFORK_WORKER_COUNT").to_i
 WorkerData = Data.define(:max_requests, :max_mem)
 worker_data = nil
 
+def worker_pss(pid)
+  data = File.read("/proc/#{pid}/smaps_rollup")
+  pss_line = data.lines.find { |line| line.start_with?("Pss:") }
+  pss_line.split[1].to_i * 1024
+end
+
 after_worker_ready do |server, worker|
   max_requests = Random.rand(5_000..10_000)
   max_mem = Random.rand((386 * (1024**2))..(768 * (1024**2)))
@@ -30,9 +36,9 @@ after_request_complete do |server, worker, _env|
   end
 
   if worker.requests_count % 16 == 0
-    mem_info = Pitchfork::MemInfo.new(worker.pid)
-    if mem_info.pss > worker_data.max_mem
-      server.logger.info("worker=#{worker.nr} gen=#{worker.generation}) exit: memory limit (#{mem_info.pss} bytes > #{worker_data.max_mem} bytes)")
+    pss_bytes = worker_pss(worker.pid)
+    if pss_bytes > worker_data.max_mem
+      server.logger.info("worker=#{worker.nr} gen=#{worker.generation}) exit: memory limit (#{pss_bytes} bytes > #{worker_data.max_mem} bytes), after #{worker.requests_count} requests")
       exit # rubocop:disable Rails/Exit
     end
   end
