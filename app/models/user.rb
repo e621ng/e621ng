@@ -50,6 +50,7 @@ class User < ApplicationRecord
     enable_compact_uploader
     replacements_beta
     is_bd_staff
+    use_new_search_syntax
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -637,7 +638,7 @@ class User < ApplicationRecord
           can_approve_posts can_upload_free
           disable_cropped_thumbnails enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
-          enable_compact_uploader replacements_beta
+          enable_compact_uploader replacements_beta use_new_search_syntax
         ]
         list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
