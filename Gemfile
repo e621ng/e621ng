@@ -40,9 +40,6 @@ gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-retry"
 
-# https://github.com/Shopify/pitchfork/issues/117
-gem "rack", "~> 2.0"
-
 group :production do
   gem "pitchfork"
 end
