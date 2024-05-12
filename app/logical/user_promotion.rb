@@ -81,6 +81,6 @@ class UserPromotion
   def validate
     raise User::PrivilegeError, "Can't demote BD staff" if user.is_bd_staff? && !promoter.is_bd_staff?
     raise User::PrivilegeError, "Only BD staff can promote to admin" if new_level.to_i >= User::Levels::ADMIN && !promoter.is_bd_staff?
-    raise User::PrivilegeError, "AIBUR permission can only be given to staff" if new_level.to_i < User::Levels::JANITOR
+    raise User::PrivilegeError, "AIBUR permission can only be given to staff" if options[:can_manage_aibur] && new_level.to_i < User::Levels::JANITOR
   end
 end
