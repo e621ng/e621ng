@@ -6,23 +6,29 @@ module DanbooruImageResizer
   # https://www.libvips.org/API/current/libvips-resample.html#vips-thumbnail
   THUMBNAIL_OPTIONS = { size: :down, linear: false, no_rotate: true, export_profile: "srgb", import_profile: "srgb" }.freeze
   # https://www.libvips.org/API/current/VipsForeignSave.html#vips-jpegsave
-  JPEG_OPTIONS = { background: 0, strip: true, interlace: true, optimize_coding: true }.freeze
+  JPEG_OPTIONS = { strip: true, interlace: true, optimize_coding: true }.freeze
   CROP_OPTIONS = { linear: false, no_rotate: true, export_profile: "srgb", import_profile: "srgb", crop: :attention }.freeze
 
-  def resize(file, width, height, resize_quality = 90)
+  def resize(file, width, height, resize_quality = 90, background_color: "000000")
+    r = background_color[0..1].to_i(16)
+    g = background_color[2..3].to_i(16)
+    b = background_color[4..5].to_i(16)
     output_file = Tempfile.new
     resized_image = thumbnail(file, width, height, THUMBNAIL_OPTIONS)
-    resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
+    resized_image.jpegsave(output_file.path, Q: resize_quality, background: [r, g, b], **JPEG_OPTIONS)
 
     output_file
   end
 
-  def crop(file, width, height, resize_quality = 90)
+  def crop(file, width, height, resize_quality = 90, background_color: "000000")
     return nil unless Danbooru.config.enable_image_cropping?
 
+    r = background_color[0..1].to_i(16)
+    g = background_color[2..3].to_i(16)
+    b = background_color[4..5].to_i(16)
     output_file = Tempfile.new
     resized_image = thumbnail(file, width, height, CROP_OPTIONS)
-    resized_image.jpegsave(output_file.path, Q: resize_quality, **JPEG_OPTIONS)
+    resized_image.jpegsave(output_file.path, Q: resize_quality, background: [r, g, b], **JPEG_OPTIONS)
 
     output_file
   end
