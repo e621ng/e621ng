@@ -44,9 +44,6 @@ import sources from "./uploader/sources.vue";
 import Utility from './utility';
 
 export default {
-  props: {
-    canApprove: Boolean
-  },
   components: {
     "autocompletable-input": autocompletableInput,
     "file-preview": filePreview,
