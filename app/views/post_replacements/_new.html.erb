@@ -17,5 +17,5 @@
   var uploaderSettings = {
     maxFileSize: <%= Danbooru.config.max_file_size %>,
   };
-  Danbooru.Replacer.init(<%= CurrentUser.can_approve_posts? %>);
+  Danbooru.Replacer.init();
 <% end -%>

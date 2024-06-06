@@ -41,6 +41,7 @@ import autocompletableInput from "./autocompletable_input.vue";
 import filePreview from "./uploader/file_preview.vue";
 import fileInput from "./uploader/file_input.vue";
 import sources from "./uploader/sources.vue";
+import Utility from './utility';
 
 export default {
   props: {
@@ -66,7 +67,8 @@ export default {
       sourceWarning: false,
       submitting: false,
       submittedReason: undefined,
-      approveImmediately: false
+      canApprove: Utility.meta("current-user-can-approve-posts") === "true",
+      approveImmediately: false,
     };
   },
   computed: {
