@@ -94,7 +94,7 @@ class PostReplacementsController < ApplicationController
   end
 
   def create_params
-    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :approve_immediately)
+    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source)
   end
 
   def ensure_uploads_enabled
