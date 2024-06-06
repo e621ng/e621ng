@@ -20,7 +20,7 @@
   </div>
 
   <div v-if="canApprove">
-    <label class="section-label"><input type="checkbox" id="approve-immediately"/>
+    <label class="section-label"><input type="checkbox" id="approve_immediately" v-model="approveImmediately"/>
       Approve immediately
     </label>
   </div>
@@ -66,6 +66,7 @@ export default {
       sourceWarning: false,
       submitting: false,
       submittedReason: undefined,
+      approveImmediately: false
     };
   },
   computed: {
@@ -88,12 +89,13 @@ export default {
       }
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
+      formData.append("post_replacement[approve_immediately]", this.approveImmediately);
 
       this.submittedReason = this.reason;
 
       const postId = new URLSearchParams(window.location.search).get("post_id");
       const self = this;
-      $.ajax("/post_replacements.json?post_id=" + postId + "&approve_immediately=" + document.getElementById("approve-immediately").checked.toString(), {
+      $.ajax("/post_replacements.json?post_id=" + postId, {
         method: "POST",
         data: formData,
         processData: false,
