@@ -19,6 +19,12 @@
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
 
+  <div v-if="canApprove">
+    <label class="section-label"><input type="checkbox" id="approve-immediately"/>
+      Approve immediately
+    </label>
+  </div>
+
   <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
@@ -37,6 +43,9 @@ import fileInput from "./uploader/file_input.vue";
 import sources from "./uploader/sources.vue";
 
 export default {
+  props: {
+    canApprove: Boolean
+  },
   components: {
     "autocompletable-input": autocompletableInput,
     "file-preview": filePreview,
@@ -84,7 +93,7 @@ export default {
 
       const postId = new URLSearchParams(window.location.search).get("post_id");
       const self = this;
-      $.ajax("/post_replacements.json?post_id=" + postId, {
+      $.ajax("/post_replacements.json?post_id=" + postId + "&approve_immediately=" + document.getElementById("approve-immediately").checked.toString(), {
         method: "POST",
         data: formData,
         processData: false,

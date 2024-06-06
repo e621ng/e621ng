@@ -2,8 +2,8 @@ import Replacer from "./replacement_uploader.vue";
 import { createApp } from "vue";
 
 export default {
-  init() {
-    const app = createApp(Replacer);
+  init(canApprove) {
+    const app = createApp(Replacer, { canApprove });
     app.mount("#replacement-uploader");
   }
 }
