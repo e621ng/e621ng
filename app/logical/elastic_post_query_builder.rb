@@ -171,14 +171,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     if q.include?(:uploader_verified)
       verified_uploaders = {}
-      Artist.search({:is_linked => true}).each do |artist|
+      Artist.search({is_linked: true}).each do |artist|
         verified_uploaders[artist.linked_user_id] = artist.name
       end
       script = {
         script: {
           script: {
             lang: "painless",
-            source: 
+            source:
             "
             String id = doc.uploader.value.toString();
             if (params.verified_uploaders.containsKey(id)) {
@@ -186,10 +186,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
             }
             ",
             params: {
-              verified_uploaders: verified_uploaders
-            }
-          }
-        }
+              verified_uploaders: verified_uploaders,
+            },
+          },
+        },
       }
       if q[:uploader_verified]
         must.push(script)
