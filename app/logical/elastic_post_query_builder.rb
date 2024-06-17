@@ -171,7 +171,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     if q.include?(:uploader_verified)
       verified_uploaders = {}
-      Artist.search({is_linked: true}).each do |artist|
+      Artist.search({is_linked: true}).find_each do |artist|
         verified_uploaders[artist.linked_user_id] = artist.name
       end
       script = {
