@@ -169,6 +169,35 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({term: {has_pending_replacements: q[:pending_replacements]}})
     end
 
+    if q.include?(:uploader_verified)
+      verified_uploaders = {}
+      Artist.search({:is_linked => true}).each do |artist|
+        verified_uploaders[artist.linked_user_id] = artist.name
+      end
+      script = {
+        script: {
+          script: {
+            lang: "painless",
+            source: 
+            "
+            String id = doc.uploader.value.toString();
+            if (params.verified_uploaders.containsKey(id)) {
+              return doc.tags.contains(params.verified_uploaders[id]);
+            }
+            ",
+            params: {
+              verified_uploaders: verified_uploaders
+            }
+          }
+        }
+      }
+      if q[:uploader_verified]
+        must.push(script)
+      else
+        must_not.push(script)
+      end
+    end
+
     add_tag_string_search_relation(q[:tags])
 
     case q[:order]

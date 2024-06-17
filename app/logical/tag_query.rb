@@ -337,6 +337,11 @@ class TagQuery
           id_or_invalid(user_id)
         end
 
+      when "uploader_verified"
+        if CurrentUser.can_approve_posts?
+          q[:uploader_verified] = parse_boolean(g2)
+        end
+
       when *COUNT_METATAGS
         q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
