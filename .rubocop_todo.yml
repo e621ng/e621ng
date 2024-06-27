@@ -1307,6 +1307,7 @@ Rails/OutputSafety:
     - 'app/views/users/custom_style.css.erb'
     - 'app/views/users/edit.html.erb'
     - 'app/views/users/home.html.erb'
+    - 'app/views/upload_whitelists/_form.html.erb'
 
 # Offense count: 9
 # This cop supports unsafe autocorrection (--autocorrect-all).

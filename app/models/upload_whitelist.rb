@@ -66,7 +66,7 @@ class UploadWhitelist < ApplicationRecord
     end
 
     entries.each do |x|
-      if File.fnmatch?(x.pattern, url)
+      if File.fnmatch?(x.pattern, url, File::FNM_CASEFOLD)
         return [x.allowed, x.reason]
       end
     end
