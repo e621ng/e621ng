@@ -501,7 +501,7 @@ Post.resize_video = function (post, target_size) {
     default:
       $notice.show();
       const alternate = post?.sample?.alternates[target_size];
-      target_sources.push({type: 'video/webm', url: alternate.urls[0]});
+      target_sources.push({type: 'video/webm; codecs="vp9"', url: alternate.urls[0]});
       target_sources.push({type: 'video/mp4', url: alternate.urls[1]});
       desired_classes.push('fit-window');
       update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
