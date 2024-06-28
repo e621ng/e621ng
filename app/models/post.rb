@@ -30,7 +30,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_lock_post_events
+  after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -1510,7 +1510,7 @@ class Post < ApplicationRecord
   end
 
   module PostEventMethods
-    def create_lock_post_events
+    def create_post_events
       if saved_change_to_is_rating_locked?
         action = is_rating_locked? ? :rating_locked : :rating_unlocked
         PostEvent.add(id, CurrentUser.user, action)
@@ -1526,6 +1526,9 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_locked?
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
         PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_bg_color?
+        PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
       end
     end
   end
