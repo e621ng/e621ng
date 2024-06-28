@@ -8,11 +8,15 @@
     <table class="striped autofit" style="max-width:100%">
       <thead>
         <tr>
-          <th width="1%">Post</th>
-          <th width="1%">Replacement</th>
+          <th>Thumbnail</th>
+          <th>Image</th>
+          <th>Post</th>
+          <th>Creator </th>
           <th></th>
           <th></th>
-          <th></th>
+          <% if CurrentUser.is_admin? || CurrentUser.can_approve_posts? %>
+            <th>Actions</th>
+          <%end%>
         </tr>
       </thead>
       <tbody>
@@ -20,89 +24,79 @@
           <tr id="replacement-<%= post_replacement.id %>" class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
             <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
             <td><%= replacement_thumbnail(post_replacement) %></td>
+            <!--SECTION: info A-->
             <td>
-              <dl>
-                <dt>Replacement Source</dt>
-                <dd>
-                  <% if post_replacement.source.present? %>
-                    <ul>
-                      <% post_replacement.source_list.each do |source| %>
-                        <li><%= external_link_to source, truncate: 64 %></li>
-                      <% end %>
-                    </ul>
-                  <% else %>
-                    <em>None provided</em>
-                  <% end %>
-                </dd>
-                <dt>Filename</dt>
-                <dd><%= truncate post_replacement.file_name, length: 64 %></dd>
-                <% if post_replacement.md5.present? %>
-                    <dt>Replacement MD5</dt>
-                    <dd><%= post_replacement.md5 %></dd>
-                <% end %>
-              </dl>
-              <div style="display:grid;grid-template-columns: 1fr 1fr;grid-auto-rows: auto;">
-                <dl>
-                  <% if post_replacement.post %>
-                    <dt>Current Size</dt>
-                    <dd>
-                      <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %>
-                      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>, <%= post_replacement.post.file_ext %>)
-                    </dd>
-                  <% end %>
-                </dl>
-                <dl>
-                  <% if %i[image_width image_height file_size file_ext].all? { |k| post_replacement[k].present? } %>
-                    <dt>Replacement Size</dt>
-                    <dd>
-                      <%= post_replacement.image_width %>x<%= post_replacement.image_height %>
-                      (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %>, <%= post_replacement.file_ext %>)
-                    </dd>
-                  <% end %>
-                </dl>
-              </div>
-            </td>
+              <dt>Sequence</dt>
+              <dd>
+                <%sequence = @post_replacements.where(post_id: post_replacement.post.id).ids.reverse.index(post_replacement.id)%>
 
+                <%=post_replacement.post_id%>:<%=sequence%>
+              </dd>
+              <dt>Status</dt>
+              <dd>
+              <% if post_replacement.status == 'approved' %>
+                <% if post_replacement.md5 == post_replacement.post.md5 %>
+                approved, current
+                <%else%>
+                approved
+                <% end %> 
+                <dt>Approver</dt>
+                <dd> 
+                <%= link_to_user post_replacement.approver %>
+                </dd>
+              <% elsif post_replacement.status == 'original'%>
+                original
+              <% else %>
+                <%= post_replacement.status %>
+              <% end %>  
+              </dd>
+            </td>
             <td>
-              <dl>
-                <dt>Status</dt>
-                <dd><div class="replacement-status">
-                  <%= post_replacement.status %>
-                  <% if post_replacement.status == "pending" && (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).any? %>
-                    <%= tag.i class: "fa-solid fa-circle-exclamation", title: (post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS).join(", ") %>
-                  <% end %>
-                </div></dd>
-                <dt>Reason</dt>
-                <dd class="replacement-reason"><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
-                <% if post_replacement.status == 'approved' %>
-                  <dt>Original Uploader</dt>
-                  <dd>
-                    <%= link_to_user post_replacement.uploader_on_approve %>
-                    <% if CurrentUser.can_approve_posts? %>
-                      | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
-                    <% end %>
-                    <% if CurrentUser.can_approve_posts? %>
-                      <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
-                    <% end %>
-                  </dd>
-                  <dt>Approver</dt>
-                  <dd><%= link_to_user post_replacement.approver %></dd>
+              <dt>Creator</dt>
+              <dd>
+                <%= link_to_user post_replacement.uploader_on_approve %>
+                <% if CurrentUser.can_approve_posts? %>
+                | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
                 <% end %>
-                <% if post_replacement.status == 'pending' %>
-                  <dt>Current Uploader</dt>
-                  <dd>
-                    <%= link_to_user post_replacement.post.uploader %>
-                  </dd>
+                <% if CurrentUser.can_approve_posts? %>
+                  <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                 <% end %>
-                <dt>Replacer</dt>
-                <dd>
-                  <%= compact_time post_replacement.created_at %>
-                  <br> by <%= link_to_user post_replacement.creator %>
-                  <%= link_to "»", post_replacements_path(search: params[:search].merge(creator_name: post_replacement.creator.name)) %>
-                </dd>
-              </dl>
+              </dd>
+              <dt>Sources</dt>
+              <dd>
+                <% if post_replacement.source.present? %>
+                  <ul>
+                    <% post_replacement.source_list.each do |source| %>
+                      <li><%= external_link_to source, truncate: 46 %></li>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <em>None provided</em>
+                <% end %>
+              </dd>
+              
             </td>
-
+            <td>
+              <dt>Image Info</dt>
+              <dd>
+                <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
+                (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>)
+              </dd>
+              <dd>
+              </dd>
+              <dt>File Info</dt>
+              <dd><%= truncate post_replacement.file_name, length: 64 %></dd>
+              <% if post_replacement.md5.present? %>
+                <dt>Replacement MD5</dt>
+                <dd><%= post_replacement.md5 %></dd>
+                <% end %>
+            </td>
+            <td>
+              <dt>Created at</dt>
+              <%= compact_time post_replacement.created_at %>
+              <dt>Reason</dt>
+              <dd class="replacement-reason"><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
+            </td>
             <td>
               <% if CurrentUser.can_approve_posts? %>
                 <div class="pending-links">
