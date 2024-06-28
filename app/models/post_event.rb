@@ -24,6 +24,7 @@ class PostEvent < ApplicationRecord
     replacement_promoted: 20,
     replacement_deleted: 16,
     expunged: 17,
+    changed_bg_color: 21,
   }
   MOD_ONLY_ACTIONS = [
     actions[:comment_locked],
