@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class BansController < ApplicationController
-  before_action :moderator_only, :except => [:show, :index]
+  before_action :moderator_only, except: %i[index show]
   respond_to :html
+  respond_to :json, only: %i[index show]
   helper_method :search_params
 
   def new
@@ -15,8 +16,8 @@ class BansController < ApplicationController
 
   def index
     @bans = Ban.search(search_params).paginate(params[:page], :limit => params[:limit])
-    respond_with(@bans) do |fmt|
-      fmt.html { @bans = @bans.includes(:user, :banner) }
+    respond_with(@bans) do |format|
+      format.html { @bans = @bans.includes(:user, :banner) }
     end
   end
 
