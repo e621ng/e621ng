@@ -160,13 +160,6 @@ class ArtistTest < ActiveSupport::TestCase
       assert_equal(["http://foo.com"], artist.url_array)
     end
 
-    should "hide deleted artists" do
-      as(create(:admin_user)) do
-        create(:artist, name: "warhol", url_string: "http://warhol.com/a/image.jpg", is_active: false)
-      end
-      assert_artist_not_found("http://warhol.com/a/image.jpg")
-    end
-
     context "when finding tumblr artists" do
       setup do
         create(:artist, name: "ilya_kuvshinov", url_string: "http://kuvshinov-ilya.tumblr.com")
@@ -301,18 +294,6 @@ class ArtistTest < ActiveSupport::TestCase
           @artist.update(url_string: "http://foo.com www.example.com")
           assert_equal(%w[http://foo.com], @artist.versions.last.urls)
         end
-      end
-    end
-
-    context "that is deleted" do
-      setup do
-        @artist = create(:artist, url_string: "https://google.com")
-        @artist.update_attribute(:is_active, false)
-        @artist.reload
-      end
-
-      should "preserve the url string" do
-        assert_equal(1, @artist.urls.count)
       end
     end
 

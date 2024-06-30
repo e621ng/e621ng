@@ -52,6 +52,8 @@ class ModActionDecorator < ApplicationDecorator
       "Unclaimed ticket ##{vals['ticket_id']}"
 
       ### Artist ###
+    when "artist_delete"
+      "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
       "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"

@@ -34,7 +34,6 @@ importAll(require.context('../src/javascripts', true, /\.js(\.erb)?$/));
 
 require.context("../../../public/images", true)
 
-export { default as Artist } from '../src/javascripts/artist.js';
 export { default as Autocomplete } from '../src/javascripts/autocomplete.js.erb';
 export { default as Blacklist } from '../src/javascripts/blacklists.js';
 export { default as Blip } from '../src/javascripts/blips.js';
