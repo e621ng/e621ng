@@ -50,6 +50,7 @@ class User < ApplicationRecord
     enable_compact_uploader
     replacements_beta
     is_bd_staff
+    can_manage_aibur
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -321,6 +322,10 @@ class User < ApplicationRecord
 
     def is_approver?
       can_approve_posts?
+    end
+
+    def is_aibur_manager?
+      can_manage_aibur? || is_admin?
     end
 
     def blank_out_nonexistent_avatars
@@ -624,7 +629,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-        :level_string, :avatar_id
+        :level_string, :avatar_id, :can_manage_aibur
       ]
 
       if id == CurrentUser.user.id

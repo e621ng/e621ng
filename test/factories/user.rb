@@ -46,6 +46,7 @@ FactoryBot.define do
     factory(:admin_user) do
       level { 50 }
       can_approve_posts { true }
+      can_manage_aibur { true }
     end
   end
 end

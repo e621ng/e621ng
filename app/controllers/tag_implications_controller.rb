@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TagImplicationsController < ApplicationController
-  before_action :admin_only, except: [:index, :show, :destroy]
+  before_action :admin_only, except: [:index, :show, :destroy, :update, :approve]
   respond_to :html, :json, :js
 
   def show
@@ -16,11 +16,12 @@ class TagImplicationsController < ApplicationController
   def update
     @tag_implication = TagImplication.find(params[:id])
 
-    if @tag_implication.is_pending? && @tag_implication.editable_by?(CurrentUser.user)
+    if @tag_implication.editable_by?(CurrentUser.user)
       @tag_implication.update(tag_implication_params)
+      respond_with(@tag_implication)
+    else
+      access_denied
     end
-
-    respond_with(@tag_implication)
   end
 
   def index
@@ -30,6 +31,7 @@ class TagImplicationsController < ApplicationController
 
   def destroy
     @tag_implication = TagImplication.find(params[:id])
+
     if @tag_implication.deletable_by?(CurrentUser.user)
       @tag_implication.reject!
       if @tag_implication.errors.any?
@@ -50,8 +52,13 @@ class TagImplicationsController < ApplicationController
 
   def approve
     @tag_implication = TagImplication.find(params[:id])
-    @tag_implication.approve!(approver: CurrentUser.user)
-    respond_with(@tag_implication, :location => tag_implication_path(@tag_implication))
+
+    if @tag_implication.approvable_by?(CurrentUser.user)
+      @tag_implication.approve!(approver: CurrentUser.user)
+      respond_with(@tag_implication, :location => tag_implication_path(@tag_implication))
+    else
+      access_denied
+    end
   end
 
 private

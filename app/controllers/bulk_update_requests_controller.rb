@@ -3,7 +3,6 @@
 class BulkUpdateRequestsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: [:index, :show]
-  before_action :admin_only, only: [:approve]
   before_action :load_bulk_update_request, except: [:new, :create, :index]
 
   def new
@@ -36,13 +35,17 @@ class BulkUpdateRequestsController < ApplicationController
   end
 
   def approve
-    @bulk_update_request.approve!(CurrentUser.user)
-    if @bulk_update_request.errors.size > 0
-      flash[:notice] = @bulk_update_request.errors.full_messages.join(";")
+    if @bulk_update_request.approvable?(CurrentUser.user)
+      @bulk_update_request.approve!(CurrentUser.user)
+      if @bulk_update_request.errors.size > 0
+        flash[:notice] = @bulk_update_request.errors.full_messages.join(";")
+      else
+        flash[:notice] = "Bulk update approved"
+      end
+      respond_with(@bulk_update_request)
     else
-      flash[:notice] = "Bulk update approved"
+      access_denied
     end
-    respond_with(@bulk_update_request)
   end
 
   def destroy

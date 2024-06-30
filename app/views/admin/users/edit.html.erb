@@ -40,6 +40,11 @@
       </div>
 
       <div class="input">
+        <label for="user_can_manage_aibur" class="optional">Manage AIBURs</label>
+        <%= select(:user, :can_manage_aibur, [["Yes", true], ["No", false]]) %>
+      </div>
+
+      <div class="input">
         <label for="user_no_flagging" class="optional">Banned From Flagging</label>
         <%= select(:user, :no_flagging, [["Yes", true], ["No", false]]) %>
       </div>
