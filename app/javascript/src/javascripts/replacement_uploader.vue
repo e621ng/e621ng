@@ -19,6 +19,12 @@
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
 
+  <div v-if="canApprove">
+    <label class="section-label"><input type="checkbox" id="approve_immediately" v-model="approveImmediately"/>
+      Approve immediately
+    </label>
+  </div>
+
   <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
@@ -35,6 +41,7 @@ import autocompletableInput from "./autocompletable_input.vue";
 import filePreview from "./uploader/file_preview.vue";
 import fileInput from "./uploader/file_input.vue";
 import sources from "./uploader/sources.vue";
+import Utility from './utility';
 
 export default {
   components: {
@@ -57,6 +64,8 @@ export default {
       sourceWarning: false,
       submitting: false,
       submittedReason: undefined,
+      canApprove: Utility.meta("current-user-can-approve-posts") === "true",
+      approveImmediately: false,
     };
   },
   computed: {
@@ -79,6 +88,7 @@ export default {
       }
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
+      formData.append("post_replacement[approve_immediately]", this.approveImmediately);
 
       this.submittedReason = this.reason;
 
