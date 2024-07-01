@@ -1,0 +1,10 @@
+<%= custom_form_for(@avoid_posting) do |f| %>
+  <%= f.input :artist_name, as: :string, autocomplete: "tag" %>
+  <% if !@avoid_posting.new_record? && @avoid_posting.artist.present? %>
+    <%= f.input :rename_artist, label: "Rename artist?", as: :boolean, input_html: { checked: true } %>
+  <% end %>
+  <%= f.input :details, label: "Details", as: :text, input_html: { size: "80x10", value: params.dig(:avoid_posting, :details) || @avoid_posting.details }, hint: "Details shown to all users for the Avoid Posting. Conditions should be listed here." %>
+  <%= f.input :staff_notes, label: "Staff Notes", as: :text, input_html: { size: "80x10", value: params.dig(:avoid_posting, :staff_notes) || @avoid_posting.staff_notes }, hint: "Notes shown only to staff members" %>
+  <%= f.input :is_active, label: "Active?", as: :boolean %>
+  <%= f.button :submit, "Submit" %>
+<% end %>

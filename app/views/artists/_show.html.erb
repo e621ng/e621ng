@@ -2,6 +2,18 @@
   <div id="a-show">
     <h1>Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %></h1>
 
+    <% if @artist.is_dnp? %>
+      <div id="avoid-posting">
+        <h2>This artist is on the <%= link_to "Avoid Posting", avoid_postings_path %> list.</h2>
+        <% if @artist.avoid_posting.details.present? %>
+          <div class="dtext-container">
+            <%= format_text(@artist.avoid_posting.details) %>
+          </div>
+        <% end %>
+        <p><%= link_to "Open Avoid Posting entry", avoid_posting_path(@artist.avoid_posting) %></p>
+      </div>
+    <% end %>
+
     <% if @artist.notes.present? && @artist.visible? %>
       <div class="dtext-container">
         <%= format_text(@artist.notes) %>
