@@ -41,7 +41,7 @@
         <span>Replaced</span>
         <span>
           <%= presenter.replaced_upload_count(self) %>
-          [<%= link_to "pending", post_replacements_path(search: { creator_name: user.name }) %>]
+          [<%= link_to "pending", post_replacements_path(search: { creator_name: user.name, status: "pending" }) %>]
         </span>
 
         <span>Rejected</span>
