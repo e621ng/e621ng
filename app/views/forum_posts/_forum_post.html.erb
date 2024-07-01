@@ -20,6 +20,10 @@
     </div>
     <div class="content">
       <div class="dtext-container">
+        <% if forum_post.is_aibur? %>
+          <%= format_text(tag_change_message(forum_post)) %>
+        <% end %>
+
         <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: forum_post %>

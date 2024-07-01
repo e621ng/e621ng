@@ -723,7 +723,9 @@ CREATE TABLE public.forum_posts (
     updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet,
     warning_type integer,
-    warning_user_id integer
+    warning_user_id integer,
+    tag_change_request_id bigint,
+    tag_change_request_type character varying
 );
 
 
@@ -2241,6 +2243,43 @@ ALTER SEQUENCE public.user_statuses_id_seq OWNED BY public.user_statuses.id;
 
 
 --
+-- Name: user_text_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_text_versions (
+    id bigint NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    user_id bigint NOT NULL,
+    about_text character varying NOT NULL,
+    artinfo_text character varying NOT NULL,
+    blacklist_text character varying NOT NULL,
+    version integer DEFAULT 1 NOT NULL,
+    text_changes character varying[] DEFAULT '{}'::character varying[] NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_text_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_text_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_text_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_text_versions_id_seq OWNED BY public.user_text_versions.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2775,6 +2814,13 @@ ALTER TABLE ONLY public.user_statuses ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: user_text_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_text_versions ALTER COLUMN id SET DEFAULT nextval('public.user_text_versions_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3267,6 +3313,14 @@ ALTER TABLE ONLY public.user_password_reset_nonces
 
 ALTER TABLE ONLY public.user_statuses
     ADD CONSTRAINT user_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_text_versions user_text_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_text_versions
+    ADD CONSTRAINT user_text_versions_pkey PRIMARY KEY (id);
 
 
 --
@@ -4289,6 +4343,20 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 
 
 --
+-- Name: index_user_text_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_text_versions_on_updater_id ON public.user_text_versions USING btree (updater_id);
+
+
+--
+-- Name: index_user_text_versions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_text_versions_on_user_id ON public.user_text_versions USING btree (user_id);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4452,6 +4520,14 @@ ALTER TABLE ONLY public.user_feedback
 
 ALTER TABLE ONLY public.mascots
     ADD CONSTRAINT fk_rails_9901e810fa FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: user_text_versions fk_rails_a72e6f79a8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_text_versions
+    ADD CONSTRAINT fk_rails_a72e6f79a8 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -4753,6 +4829,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230517155547'),
 ('20230518182034'),
 ('20230531080817'),
-('20240101042716');
+('20231213010430'),
+('20240101042716'),
+('20240119211758');
 
 
