@@ -124,6 +124,12 @@
           <% end %>
         </span>
 
+        <span>Replaced Posts</span>
+        <span>
+          <%= presenter.approved_replacements_count(self) %>
+          [<%= link_to "pending", post_replacements_path(search: { creator_id: user.id, status: "pending" }) %>]
+        </span>
+
         <span>Wiki Page Changes</span>
         <span><%= presenter.wiki_page_version_count(self) %></span>
 
