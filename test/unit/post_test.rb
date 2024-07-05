@@ -1978,6 +1978,24 @@ class PostTest < ActiveSupport::TestCase
       end
     end
 
+    should "return posts for verified artists" do
+      assert_tag_match([], "artverified:true")
+      assert_tag_match([], "artverified:false")
+      artist = create(:artist, linked_user: @user)
+      post = create(:post, tag_string: artist.name, uploader: @user)
+      assert_tag_match([], "artverified:false")
+      assert_tag_match([post], "artverified:true")
+    end
+
+    should "return posts for verified artists after update" do
+      assert_tag_match([], "artverified:true")
+      assert_tag_match([], "artverified:false")
+      post = create(:post, tag_string: "artist:test", uploader: @user)
+      with_inline_jobs { create(:artist, name: "test", linked_user: @user) }
+      assert_tag_match([], "artverified:false")
+      assert_tag_match([post], "artverified:true")
+    end
+
     should "return posts for replacements" do
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([], "pending_replacements:false")
