@@ -26,7 +26,7 @@ class PostReplacementsController < ApplicationController
     if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end
-    if create_params[:approve_immediately].to_s.truthy? && CurrentUser.can_approve_posts?
+    if @post_replacement.approve_immediately.to_s.truthy? && CurrentUser.can_approve_posts?
       @post_replacement.approve!(penalize_current_uploader: true)
     end
     respond_to do |format|
