@@ -337,6 +337,14 @@ module Danbooru
       20_000
     end
 
+    def pool_post_limit
+      1_000
+    end
+
+    def set_post_limit
+      10_000
+    end
+
     def discord_site
     end
 
