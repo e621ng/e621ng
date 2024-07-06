@@ -434,7 +434,7 @@ let Note = {
       var text = $textarea.val();
       $note_body.data("original-body", text);
       Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", {body: text}).then(function(data) {
+      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function(data) {
         Note.Body.set_text($note_body, $note_box, data.html);
         Note.Box.resize_inner_border($note_box);
         $note_body.show();
@@ -468,7 +468,7 @@ let Note = {
       var $note_box = Note.Box.find(id);
       $note_box.find(".note-box-inner-border").addClass("unsaved");
       Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", {body: text}).then(function(data) {
+      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function(data) {
         Note.Body.set_text($note_body, $note_box, data.html);
         $note_body.show();
         $(window).trigger("e621:add_deferred_posts", data.posts);
