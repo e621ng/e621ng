@@ -96,7 +96,7 @@ class User < ApplicationRecord
   has_many :bans, -> { order("bans.id desc") }
   has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
   has_many :favorites, -> { order(id: :desc) }
-  has_many :feedback, class_name: "UserFeedback", dependent: :destroy
+  has_many :feedback, -> { active }, class_name: "UserFeedback", dependent: :destroy
   has_many :forum_posts, -> { order("forum_posts.created_at, forum_posts.id") }, foreign_key: "creator_id"
   has_many :forum_topic_visits
   has_many :note_versions, foreign_key: "updater_id"

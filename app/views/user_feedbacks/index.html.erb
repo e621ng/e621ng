@@ -3,19 +3,31 @@
     <h1>User Feedback</h1>
 
     <%= render "search" %>
+
+    <% if CurrentUser.is_moderator? && params.dig(:search, :user_id).present? && params.dig(:search, :deleted).blank? %>
+      <% if UserFeedback.for_user(params.dig(:search, :user_id)).deleted.count > 0 %>
+         <%= link_to("View All »", search: params[:search].permit!.merge(deleted: "included")) %>
+      <% end %>
+    <% end %>
     <table class="striped">
       <thead>
         <tr>
-          <th width="15%">User</th>
-          <th width="15%">Creator</th>
-          <th width="15%">When</th>
+          <th width="5%"></th>
+          <th width="12%">User</th>
+          <th width="12%">Creator</th>
+          <th width="12%">When</th>
           <th width="45%">Message</th>
-          <th></th>
+          <th width="14%"></th>
         </tr>
       </thead>
       <tbody>
         <% @user_feedbacks.each do |feedback| %>
           <tr class="feedback-category-<%= feedback.category %>">
+            <td>
+              <% if feedback.is_deleted? %>
+                (deleted)
+              <% end %>
+            </td>
             <td><%= link_to_user feedback.user %></td>
             <td><%= link_to_user feedback.creator %></td>
             <td><%= compact_time(feedback.created_at) %></td>
@@ -28,7 +40,12 @@
             <td>
               <% if feedback.editable_by?(CurrentUser.user) %>
                 <%= link_to "edit", edit_user_feedback_path(feedback) %>
-                | <%= link_to "delete", user_feedback_path(feedback), :method => :delete, :data => {:confirm => "Are you sure you want to delete this user feedback?"} %>
+                <% if feedback.is_deleted? %>
+                  | <%= link_to "undelete", undelete_user_feedback_path(feedback), method: :put, data: { confirm: "Are you sure you want to undelete this user feedback?" } %>
+                <% else %>
+                  | <%= link_to "delete", delete_user_feedback_path(feedback), method: :put, data: { confirm: "Are you sure you want to delete this user feedback?" } %>
+                <% end %>
+                | <%= link_to "destroy", user_feedback_path(feedback), method: :delete, data: { confirm: "Are you sure you want to destroy this user feedback? This cannot be undone." } %>
               <% end %>
             </td>
           </tr>

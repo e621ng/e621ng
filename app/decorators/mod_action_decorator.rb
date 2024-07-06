@@ -128,6 +128,10 @@ class ModActionDecorator < ApplicationDecorator
       end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_undelete"
+      "Undeleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_destroy"
+      "Destroyed #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
     when "created_positive_record"
       "Created positive record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"

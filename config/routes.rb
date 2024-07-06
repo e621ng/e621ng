@@ -287,6 +287,10 @@ Rails.application.routes.draw do
     collection do
       get :search
     end
+    member do
+      put :delete
+      put :undelete
+    end
   end
   resources :user_name_change_requests
   resource :user_revert, :only => [:new, :create]
