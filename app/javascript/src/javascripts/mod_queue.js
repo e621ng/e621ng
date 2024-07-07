@@ -1,5 +1,6 @@
 import Utility from './utility'
 import Post from './posts'
+import LS from './local_storage';
 
 let ModQueue = {};
 
@@ -20,6 +21,25 @@ ModQueue.detailed_rejection_dialog = function() {
 }
 
 $(function() {
+  // Toolbar visibility
+  let toolbarVisible = LS.get("jtb") == "true";
+  const toolbar = $("#pending-approval-notice");
+  if(toolbarVisible) toolbar.addClass("enabled");
+
+  const toolbarToggle = $("#janitor-toolbar-toggle")
+    .on("click", (event) => {
+      event.preventDefault();
+      toolbarVisible = !toolbarVisible;
+      LS.put("jtb", toolbarVisible);
+
+      toolbar.toggleClass("enabled");
+      toolbarToggle.text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
+      
+      return false;
+    })
+    .text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
+
+  // Toolbar buttons
   $(document).on("click.danbooru", ".quick-mod .detailed-rejection-link", ModQueue.detailed_rejection_dialog);
   $(".delete-with-reason-link").on('click', function(e) {
     e.preventDefault();
