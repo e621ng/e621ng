@@ -341,7 +341,7 @@ Post.initialize_links = function() {
     e.preventDefault();
     if(!confirm("Are you sure you want to undelete this post?"))
       return;
-    Post.undelete($(e.target).data('pid'));
+    Post.undelete($(e.target).data('pid'), () => { location.reload(); });
   });
   $(".approve-post-link").on('click', e => {
     e.preventDefault();
@@ -780,7 +780,7 @@ Post.delete_with_reason = function(post_id, reason, reload_after_delete) {
   });
 }
 
-Post.undelete = function(post_id) {
+Post.undelete = function(post_id, callback) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.ajax({
@@ -791,8 +791,9 @@ Post.undelete = function(post_id) {
       const message = data.responseJSON.message;
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function(data) {
-      $(window).trigger("danbooru:notice", "Deleted post.");
+      $(window).trigger("danbooru:notice", "Undeleted post.");
       $(`article#post_${post_id}`).attr('data-flags', 'active');
+      if(callback) callback();
     }).always(function() {
       Post.notice_update("dec");
     });
