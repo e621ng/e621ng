@@ -4,8 +4,16 @@ import Post from './posts'
 let ModQueue = {};
 
 ModQueue.detailed_rejection_dialog = function() {
-  $("#post_disapproval_post_id").val($(this).data("post-id"));
+  const postID = $(this).data("post-id");
+  $("#post_disapproval_post_id").val(postID);
   $("#detailed-rejection-dialog").find("form")[0].reset();
+
+  $("#new_post_disapproval")
+    .off("submit.danbooru")
+    .on("submit.danbooru", () => {
+      Post.disapprove(postID, $("#post_disapproval_reason").val(), $("#post_disapproval_message").val())
+      return false;
+    });
 
   Utility.dialog("Detailed Rejection", "#detailed-rejection-dialog");
   return false;

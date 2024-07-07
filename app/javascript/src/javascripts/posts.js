@@ -369,7 +369,7 @@ Post.initialize_links = function() {
   $(".disapprove-post-link").on('click', e => {
     e.preventDefault();
     const target = $(e.target);
-    Post.disapprove(target.data('pid'), target.data('reason'), true);
+    Post.disapprove(target.data('pid'), target.data('reason'));
   });
   $("#set-as-avatar-link").on('click.danbooru', function(e) {
     e.preventDefault();
@@ -893,12 +893,12 @@ Post.approve = function(post_id, callback) {
   });
 }
 
-Post.disapprove = function(post_id, reason, should_reload) {
+Post.disapprove = function(post_id, reason, message) {
   Post.notice_update("inc");
   SendQueue.add(function() {
     $.post(
       "/moderator/post/disapprovals.json",
-      {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason}
+      {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message}
     ).fail(function(data) {
       var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
