@@ -11,9 +11,6 @@ $state-error-color: #e45f5f;
 // DText
 $dtext-code-background: rgba(255,255,255,0.2);
 
-// Blips
-$blip-hidden-background: palette("background-red");
-
 // Forms
 $form-focus-color: black;
 $form-focus-background: #FFC;
@@ -77,7 +74,6 @@ $negative-record-color: $red-color;
 $neutral-record-color: $dark-grey-color;
 
 $comment-highlight-background: rgba(255,255,255,0.25);
-$comment-hidden-background: palette("background-red");
 $comment-vote-background: rgba(255, 255, 255, 0.2);
 
 // Keyboard shortcuts
@@ -100,8 +96,6 @@ $forum-vote-down-color: red;
 $forum-vote-meh-color: goldenrod;
 $forum-topic-new-color: red;
 $forum-topic-except-color: gray;
-$forum-topic-hidden-background: palette("background-red");
-$forum-post-hidden-background: palette("background-red");
 
 // IQDB lookup
 $iqdb-post-border: lightgrey;

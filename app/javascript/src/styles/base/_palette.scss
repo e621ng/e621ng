@@ -26,3 +26,6 @@ $palette: (
 @function palette($key) {
   @return var(--palette-#{$key});
 }
+
+// Element-specific
+$background-article-hidden: palette("background-red");
