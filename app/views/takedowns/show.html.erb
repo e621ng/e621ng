@@ -1,7 +1,7 @@
 <div id="c-takedowns">
   <div id="c-show">
     <% if @show_instructions && (!@takedown.completed?) %>
-      <div class='box-section sect_red'>
+      <div class="box-section background-red">
         <div style="font-size:2rem;margin-top:0;margin-bottom:1rem;">Wait! You're not done yet!</div>
         <p>Your verification code is <span class='takedown-vericode'><%= @takedown.vericode %></span></p>
         <p>Your takedown request has been successfully created. Using the gallery account that you specified below as the "source", <span style="font-weight:bold;">please send your verification code via PM/note to</span>:</p>
@@ -26,7 +26,7 @@
                 <%= link_to @takedown.source, "https://#{@takedown.source}", rel: "noopener noreferrer nofollow" %>
               <% end %>
             <% else %>
-              <span class="redtext">[Source hidden by submitter]</span>
+              <span class="text-error">[Source hidden by submitter]</span>
             <% end %>
           </td>
         </tr>
@@ -35,9 +35,9 @@
           <td><label>Reason</label></td>
           <% if !@takedown.reason_hidden || CurrentUser.is_moderator? || @show_instructions %>
             <td><%= h @takedown.reason %>
-              <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %></td>
+              <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %></td>
           <% else %>
-            <td><span class="redtext">[Reason hidden by submitter]</span></td>
+            <td><span class="text-error">[Reason hidden by submitter]</span></td>
           <% end %>
         </tr>
 
@@ -101,9 +101,9 @@
       <div class="box-section dtext-container">
         <% if !@takedown.reason_hidden || CurrentUser.is_moderator? %>
           <%= format_text(@takedown.notes) %>
-          <% if @takedown.reason_hidden %><span class="redtext">(HIDDEN)</span><% end %>
+          <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %>
         <% else %>
-          <span class="redtext">[Admin notes hidden]</span>
+          <span class="text-error">[Admin notes hidden]</span>
         <% end %>
       </div>
     <% end %>
@@ -137,7 +137,7 @@
         </div>
 
       <% elsif @takedown.status == "inactive" && !@takedown.takedown_posts.blank? %>
-        <div class='box-section sect_grey'>
+        <div class="box-section background-grey">
           <p style="margin-bottom:0px;">This takedown request has been marked as inactive as the submitter has not responded in a reasonable time frame. It will be handled once the submitter responds.</p>
             <br>
             <p>The following posts are up for dispute:</p>
@@ -147,7 +147,7 @@
         </div>
 
       <% elsif @takedown.status == "denied" %>
-        <div class='box-section sect_red'>
+        <div class="box-section background-red">
           <p>The request has been denied. The following posts were not removed:</p>
           <% @takedown.actual_kept_posts.each do |post| %>
             <%= link_to("post ##{post.id}", post_path(post)) %><br>
@@ -155,14 +155,14 @@
         </div>
 
       <% elsif @takedown.status == "partial" %>
-        <div class='box-section sect_green'>
+        <div class="box-section background-green">
           <p>The request has been partially approved. The following posts were removed:</p>
           <% @takedown.actual_deleted_posts.each do |post| %>
             <%= link_to("post ##{post.id}", post_path(post), class: "takedown_post_deleted") %><br>
           <% end %>
         </div>
 
-        <div class='box-section sect_red'>
+        <div class="box-section background-red">
           <p>The following posts were kept:</p>
           <% @takedown.actual_kept_posts.each do |post| %>
             <%= link_to("post ##{post.id}", post_path(post), class: "takedown_post_kept") %><br>
@@ -170,7 +170,7 @@
         </div>
 
       <% elsif @takedown.status == "approved" %>
-        <div class='box-section sect_green'>
+        <div class="box-section background-green">
           <p>The request has been approved. The following posts were removed:</p>
           <% @takedown.actual_deleted_posts.each do |post| %>
             <%= link_to("post ##{post.id}", post_path(post)) %><br>

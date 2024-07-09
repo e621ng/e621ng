@@ -1,6 +1,6 @@
 <template>
   <div class="upload_preview_container" :class="classes">
-    <div class="box-section sect_red" v-show="overDims">
+    <div class="box-section background-red" v-show="overDims">
       One of the image dimensions is above the maximum allowed of 15,000px and will fail to upload.
     </div>
     <div v-if="!failed">
@@ -12,7 +12,7 @@
         referrerpolicy="no-referrer"
         v-on:load="updateDimensions($event)" v-on:error="previewFailed()"/>
     </div>
-    <div v-else class="preview-fail box-section sect_yellow">
+    <div v-else class="preview-fail box-section background-yellow">
       <p>The preview for this file failed to load. Please, double check that the URL you provided is correct.</p>
       Note that some sites intentionally prevent images they host from being displayed on other sites. The file can still be uploaded despite that.
     </div>
