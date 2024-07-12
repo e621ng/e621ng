@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:avoid_posting) do
     sequence(:artist_name) { |n| "avoid_posting_#{n}" }

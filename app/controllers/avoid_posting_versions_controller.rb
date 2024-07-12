@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AvoidPostingVersionsController < ApplicationController
   respond_to :html, :json
 

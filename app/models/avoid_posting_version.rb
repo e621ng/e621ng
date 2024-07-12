@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AvoidPostingVersion < ApplicationRecord
   belongs_to_updater
   belongs_to :avoid_posting

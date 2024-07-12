@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateAvoidPostingVersions < ActiveRecord::Migration[7.0]
   def change
     create_table :avoid_posting_versions do |t|

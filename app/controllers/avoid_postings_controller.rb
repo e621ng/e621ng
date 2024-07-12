@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AvoidPostingsController < ApplicationController
   respond_to :html, :json
   before_action :can_edit_avoid_posting_entries_only, except: %i[index show]
