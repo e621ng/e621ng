@@ -1,3 +1,5 @@
+import Utility from "./utility";
+
 let Pool = {};
 
 Pool.dialog_setup = false;
@@ -35,12 +37,16 @@ Pool.initialize_simple_edit = function() {
   $("#sortable").disableSelection();
 
   $("#ordering-form").submit(function(e) {
-    $.ajax({
-      type: "put",
-      url: e.target.action,
-      data: $("#sortable").sortable("serialize") + "&" + $(e.target).serialize()
-    });
     e.preventDefault();
+    $.ajax({
+      type: "post",
+      url: e.target.action,
+      data: $("#sortable").sortable("serialize") + "&" + $(e.target).serialize() + "&format=json"
+    }).done(() => {
+      window.location.href = e.target.action;
+    }).fail((data) => {
+      Utility.error(`Error: ${data.responseText}`);
+    });
   });
 }
 
