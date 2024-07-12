@@ -4494,6 +4494,7 @@ ALTER TABLE ONLY public.favorites
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20240706061122'),
 ('20240101042716'),
 ('20230531080817'),
 ('20230518182034'),
