@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DevProdCleanup < ActiveRecord::Migration[7.0]
   def up
     execute("DROP TYPE IF EXISTS post_status")

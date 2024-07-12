@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DocumentStore
   class SearchRequest
     attr_reader :definition

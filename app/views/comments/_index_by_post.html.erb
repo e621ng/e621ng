@@ -10,7 +10,7 @@
   <% end %>
 
   <% @posts.select {|x| x.visible?}.each do |post| %>
-    <% if CurrentUser.is_moderator? || post.comments.undeleted.exists? %>
+    <% if post.comments.visible(CurrentUser.user).exists? %>
       <div class="comment-post">
         <div class="post-container">
           <%= PostPresenter.preview(post, inline: true, show_deleted: true) %>

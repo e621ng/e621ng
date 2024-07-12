@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WikiPage < ApplicationRecord
   class RevertError < Exception ; end
 
@@ -48,7 +50,7 @@ class WikiPage < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      where("title = ?", title.downcase.tr(" ", "_"))
+      find_by(title: title&.downcase&.tr(" ", "_"))
     end
 
     def active
@@ -221,7 +223,7 @@ class WikiPage < ApplicationRecord
   end
 
   def post_set
-    @post_set ||= PostSets::Post.new(title, 1, 4)
+    @post_set ||= PostSets::Post.new(title, 1, limit: 4)
   end
 
   def tags

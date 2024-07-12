@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path('../../state_checker', __FILE__)
 
 StateChecker.instance.check!

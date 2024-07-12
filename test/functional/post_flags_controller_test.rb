@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PostFlagsControllerTest < ActionDispatch::IntegrationTest
   context "The post flags controller" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DocumentStore
   class ClassMethodProxy
     delegate_missing_to :@target

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
@@ -123,8 +125,8 @@ class UsersController < ApplicationController
       enable_privacy_mode disable_user_dmails blacklist_users show_post_statistics
       style_usernames show_hidden_comments
       enable_auto_complete
-      disable_cropped_thumbnails disable_mobile_gestures
-      enable_safe_mode disable_responsive_mode disable_post_tooltips
+      disable_cropped_thumbnails
+      enable_safe_mode disable_responsive_mode
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
@@ -139,9 +141,5 @@ class UsersController < ApplicationController
     permitted_params = %i[name_matches about_me avatar_id level min_level max_level can_upload_free can_approve_posts order]
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
-  end
-
-  def allowed_readonly_actions
-    super + %w[home upload_limit]
   end
 end

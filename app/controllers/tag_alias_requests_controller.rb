@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagAliasRequestsController < ApplicationController
   before_action :member_only
 

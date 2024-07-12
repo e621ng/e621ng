@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ModActionDecorator < ApplicationDecorator
   def self.collection_decorator_class
     PaginatedDecorator
@@ -315,11 +317,11 @@ class ModActionDecorator < ApplicationDecorator
       ### Help ###
 
     when "help_create"
-      "Created help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Created help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
     when "help_update"
-      "Edited help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Edited help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
     when "help_delete"
-      "Deleted help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Deleted help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
 
       ### Wiki ###
     when "wiki_page_delete"

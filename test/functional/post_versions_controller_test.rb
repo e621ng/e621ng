@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class PostVersionsControllerTest < ActionDispatch::IntegrationTest
@@ -11,10 +13,10 @@ class PostVersionsControllerTest < ActionDispatch::IntegrationTest
         as(@user) do
           @post = create(:post)
           travel_to(2.hours.from_now) do
-            @post.update(tag_string: "1 2", source: "xxx")
+            @post.update(tag_string: "1 2", source: "xxx\nyyy", locked_tags: "4 5")
           end
           travel_to(4.hours.from_now) do
-            @post.update(tag_string: "2 3", rating: "e")
+            @post.update(tag_string: "2 3", rating: "e", source: "yyy\nzzz", locked_tags: "5 6")
           end
           @versions = @post.versions
           @post2 = create(:post)

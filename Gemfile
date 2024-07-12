@@ -1,8 +1,10 @@
-source 'https://rubygems.org/'
+# frozen_string_literal: true
 
-gem 'dotenv-rails', require: 'dotenv/rails-now'
+source "https://rubygems.org/"
 
-gem "rails", "~> 7.0.0"
+gem "dotenv", require: "dotenv/load"
+
+gem "rails", "~> 7.1.0"
 gem "pg"
 gem "dalli", :platforms => :ruby
 gem "simple_form"
@@ -15,10 +17,8 @@ gem 'responders'
 gem 'dtext_rb', :git => "https://github.com/e621ng/dtext_rb.git", branch: "master", :require => "dtext"
 gem 'bootsnap'
 gem 'addressable'
-gem 'httparty'
 gem 'recaptcha', require: "recaptcha/rails"
 gem 'webpacker', '>= 4.0.x'
-gem 'retriable'
 gem 'sidekiq', '~> 7.0'
 gem 'marcel'
 # bookmarks for later, if they are needed
@@ -26,18 +26,22 @@ gem 'marcel'
 gem 'sidekiq-unique-jobs'
 gem 'redis'
 gem 'request_store'
-gem 'newrelic_rpm'
 
 gem "diffy"
 gem "rugged"
+
+gem "datadog", require: "datadog/auto_instrument"
 
 gem 'opensearch-ruby'
 
 gem 'mailgun-ruby'
 
+gem "faraday"
+gem "faraday-follow_redirects"
+gem "faraday-retry"
+
 group :production do
-  gem 'unicorn'
-  gem 'unicorn-worker-killer'
+  gem "pitchfork"
 end
 
 group :development, :test do

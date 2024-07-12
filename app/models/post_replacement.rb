@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostReplacement < ApplicationRecord
   self.table_name = 'post_replacements2'
   belongs_to :post

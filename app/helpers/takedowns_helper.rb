@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TakedownsHelper
   def pretty_takedown_status(takedown)
     status = takedown.status.capitalize

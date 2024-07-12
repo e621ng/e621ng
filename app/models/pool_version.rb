@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PoolVersion < ApplicationRecord
   user_status_counter :pool_edit_count, foreign_key: :updater_id
   belongs_to :updater, :class_name => "User"
@@ -54,40 +56,20 @@ class PoolVersion < ApplicationRecord
   end
 
   def fill_changes
-      prev = previous
-
-      if prev
-        self.added_post_ids = post_ids - prev.post_ids
-        self.removed_post_ids = prev.post_ids - post_ids
-      else
-        self.added_post_ids = post_ids
-        self.removed_post_ids = []
-      end
-
-      self.description_changed = prev.nil? || description != prev.try(:description)
-      self.name_changed = prev.nil? || name != prev.try(:name)
-  end
-
-  def build_diff(other = nil)
-    diff = {}
-    prev = previous
-
-    if prev.nil?
-      diff[:added_post_ids] = added_post_ids
-      diff[:removed_post_ids] = removed_post_ids
-      diff[:added_desc] = description
+    if previous
+      self.added_post_ids = post_ids - previous.post_ids
+      self.removed_post_ids = previous.post_ids - post_ids
     else
-      diff[:added_post_ids] = added_post_ids
-      diff[:removed_post_ids] = removed_post_ids
-      diff[:added_desc] = description
-      diff[:removed_desc] = prev.description
+      self.added_post_ids = post_ids
+      self.removed_post_ids = []
     end
 
-    diff
+    self.description_changed = previous.nil? ? true : description != previous.description
+    self.name_changed = previous.nil? ? true : name != previous.name
   end
 
   def previous
-    PoolVersion.where("pool_id = ? and version < ?", pool_id, version).order("version desc").first
+    @previous ||= PoolVersion.where("pool_id = ? and version < ?", pool_id, version).order("version desc").first
   end
 
   def pool

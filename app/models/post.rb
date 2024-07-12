@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Post < ApplicationRecord
   class RevertError < Exception ; end
   class DeletionError < Exception ; end
@@ -28,7 +30,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_lock_post_events
+  after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -232,7 +234,7 @@ class Post < ApplicationRecord
 
     def regenerate_image_samples!
       file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image)
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
@@ -527,6 +529,8 @@ class Post < ApplicationRecord
     end
 
     def tag_count_not_insane
+      return if do_not_version_changes
+
       max_count = Danbooru.config.max_tags_per_post
       if TagQuery.scan(tag_string).size > max_count
         self.errors.add(:tag_string, "tag count exceeds maximum of #{max_count}")
@@ -548,12 +552,6 @@ class Post < ApplicationRecord
       end
 
       normalized_tags = TagQuery.scan(tag_string)
-      # Sanity check input, this is checked again on output as well to prevent bad cases where implications push post
-      # over the limit and posts will fail to edit later on.
-      if normalized_tags.size > Danbooru.config.max_tags_per_post
-        self.errors.add(:tag_string, "tag count exceeds maximum of #{Danbooru.config.max_tags_per_post}")
-        throw :abort
-      end
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
       normalized_tags = filter_metatags(normalized_tags)
@@ -1493,19 +1491,15 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def iqdb_enabled?
-        Danbooru.config.iqdb_server.present?
-      end
-
       def remove_iqdb(post_id)
-        if iqdb_enabled?
+        if IqdbProxy.enabled?
           IqdbRemoveJob.perform_later(post_id)
         end
       end
     end
 
     def update_iqdb_async
-      if Post.iqdb_enabled? && has_preview?
+      if IqdbProxy.enabled? && has_preview?
         IqdbUpdateJob.perform_later(id)
       end
     end
@@ -1516,7 +1510,7 @@ class Post < ApplicationRecord
   end
 
   module PostEventMethods
-    def create_lock_post_events
+    def create_post_events
       if saved_change_to_is_rating_locked?
         action = is_rating_locked? ? :rating_locked : :rating_unlocked
         PostEvent.add(id, CurrentUser.user, action)
@@ -1532,6 +1526,9 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_locked?
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
         PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_bg_color?
+        PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
       end
     end
   end

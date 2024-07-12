@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumCategory < ApplicationRecord
   has_many :forum_topics, -> { order(id: :desc) }, foreign_key: :category
   validates :name, uniqueness: { case_sensitive: false }

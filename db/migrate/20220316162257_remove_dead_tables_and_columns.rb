@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveDeadTablesAndColumns < ActiveRecord::Migration[6.1]
   def up
     User.without_timeout do

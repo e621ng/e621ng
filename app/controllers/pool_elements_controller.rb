@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PoolElementsController < ApplicationController
   respond_to :html, :json, :js
   before_action :member_only

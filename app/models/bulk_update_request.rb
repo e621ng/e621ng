@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequest < ApplicationRecord
   attr_accessor :reason, :skip_forum, :should_validate
 
@@ -180,7 +182,7 @@ class BulkUpdateRequest < ApplicationRecord
   end
 
   def approvable?(user)
-    !is_approved? && user.is_admin?
+    is_pending? && user.is_admin?
   end
 
   def rejectable?(user)

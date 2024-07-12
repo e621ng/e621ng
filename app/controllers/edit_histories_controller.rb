@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EditHistoriesController < ApplicationController
   respond_to :html
   before_action :moderator_only

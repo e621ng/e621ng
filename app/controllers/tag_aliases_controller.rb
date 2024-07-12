@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagAliasesController < ApplicationController
   before_action :admin_only, except: [:index, :show, :destroy]
   respond_to :html, :json, :js

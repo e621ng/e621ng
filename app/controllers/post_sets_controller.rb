@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostSetsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: [:index, :show]
@@ -66,6 +68,7 @@ class PostSetsController < ApplicationController
 
   def maintainers
     @post_set = PostSet.find(params[:id])
+    check_view_access(@post_set)
   end
 
   def post_list
@@ -150,7 +153,7 @@ class PostSetsController < ApplicationController
   end
 
   def add_remove_posts_params
-    params.except(:id, :format).permit(post_ids: []).require(:post_ids)
+    params.extract!(:post_ids).permit(post_ids: []).require(:post_ids)
   end
 
   def search_params

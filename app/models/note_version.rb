@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NoteVersion < ApplicationRecord
   user_status_counter :note_count, foreign_key: :updater_id
   belongs_to_updater

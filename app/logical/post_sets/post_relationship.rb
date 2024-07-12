@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSets
   class PostRelationship < PostSets::Post
     attr_reader :parent, :children

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BlipsController < ApplicationController
   class BlipTooOld < Exception ; end
   respond_to :html, :json

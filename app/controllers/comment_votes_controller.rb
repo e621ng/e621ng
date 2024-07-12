@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CommentVotesController < ApplicationController
   respond_to :json
   respond_to :html, only: [:index]

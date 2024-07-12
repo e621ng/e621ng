@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   docker-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Set up Docker Buildx
@@ -27,7 +27,7 @@ jobs:
           tags: e621
 
   rubocop:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: docker-build
 
     steps:
@@ -38,7 +38,7 @@ jobs:
         run: $DOCKER_RUN rubocop --format github
 
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: docker-build
 
     steps:

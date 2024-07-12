@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DocumentStore
   class InstanceMethodProxy
     delegate :client, :index_name, to: :class_document_store

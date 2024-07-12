@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagCorrection
   include ActiveModel::Model
   include ActiveModel::Serializers::JSON

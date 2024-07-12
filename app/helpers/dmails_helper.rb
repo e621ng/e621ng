@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DmailsHelper
   def dmails_current_folder_path
     case cookies[:dmail_folder]

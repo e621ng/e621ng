@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module GitHelper
   def self.init
     if Rails.root.join("REVISION").exist?

@@ -4,7 +4,7 @@
   <%= f.input :reason, label: "Reason" %>
   <%= f.input :description, label: "Description" %>
   <%= f.input :description_changed, label: "Description Changed", collection: [%w[Yes true], %w[No false]], include_blank: true %>
-  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection + [["Any", "any"]], include_blank: true %>
+  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection + [%w[Any any]], include_blank: true %>
   <%= f.input :rating, label: "Final Rating", collection: rating_collection, include_blank: true %>
   <%= f.input :parent_id, label: "Parent ID" %>
   <%= f.input :parent_id_changed, label: "Parent Changed To" %>
@@ -15,5 +15,5 @@
   <%= f.input :locked_tags_added, label: "Added Locked Tags" %>
   <%= f.input :locked_tags_removed, label: "Removed Locked Tags" %>
   <%= f.input :source_changed, label: "Source Changed", collection: [%w[Yes true], %w[No false]], include_blank: true %>
-  <%= f.input :exclude_uploads, label: "Exclude Initial Uploads?", as: :boolean %>
+  <%= f.input :uploads, label: "Uploads", collection: [%w[Included included], %w[Excluded excluded], %w[Only only]], include_blank: true %>
 <% end %>

@@ -9,7 +9,7 @@
   </thead>
   <tbody>
     <% forum_topics.each do |topic| %>
-      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-deleted="<%= topic.is_hidden? %>">
+      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-hidden="<%= topic.is_hidden? %>">
         <td>
           <% if topic.is_sticky? %>
             <span class="sticky">Sticky:</span>
@@ -21,7 +21,7 @@
 
           <%= link_to topic.title, forum_topic_path(topic), class: "forum-post-link" %>
 
-          <% if topic.response_count > Danbooru.config.posts_per_page %>
+          <% if topic.last_page > 1 %>
             <%= link_to "page #{topic.last_page}", forum_topic_path(topic, :page => topic.last_page), :class => "last-page" %>
           <% end %>
 

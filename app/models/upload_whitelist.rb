@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadWhitelist < ApplicationRecord
   before_save :clean_pattern
   after_save :clear_cache
@@ -64,11 +66,11 @@ class UploadWhitelist < ApplicationRecord
     end
 
     entries.each do |x|
-      if File.fnmatch?(x.pattern, url)
+      if File.fnmatch?(x.pattern, url, File::FNM_CASEFOLD)
         return [x.allowed, x.reason]
       end
     end
-    [false, "#{url.domain} not in whitelist"]
+    [false, "#{url.host} not in whitelist"]
   end
 
   extend SearchMethods

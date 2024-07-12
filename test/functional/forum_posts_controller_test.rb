@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class ForumPostsControllerTest < ActionDispatch::IntegrationTest
   context "The forum posts controller" do
