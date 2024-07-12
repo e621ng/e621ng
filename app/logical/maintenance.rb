@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 module Maintenance
   module_function
 
   def daily
-    return if Danbooru.config.readonly_mode?
-
     ignoring_exceptions { PostPruner.new.prune! }
     ignoring_exceptions { Upload.where('created_at < ?', 1.week.ago).delete_all }
     ignoring_exceptions { ForumSubscription.process_all! }

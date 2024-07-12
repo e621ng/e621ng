@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def get_cache_store
   if Rails.env.test?
     [:memory_store, { size: 32.megabytes }]

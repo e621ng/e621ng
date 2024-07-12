@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SessionCreator
   attr_reader :session, :cookies, :name, :password, :ip_addr, :remember, :secure
 

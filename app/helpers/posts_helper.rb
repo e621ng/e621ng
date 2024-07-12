@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostsHelper
   def discover_mode?
     params[:tags] =~ /order:rank/
@@ -20,7 +22,7 @@ module PostsHelper
   def post_source_tag(source)
     # Only allow http:// and https:// links. Disallow javascript: links.
     if source =~ %r{\Ahttps?://}i
-      source_link = link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
+      source_link = decorated_link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
 
       if CurrentUser.is_janitor?
         source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
@@ -35,7 +37,7 @@ module PostsHelper
   end
 
   def has_parent_message(post, parent_post_set)
-    html = ""
+    html = +""
 
     html << "Parent: "
     html << link_to("post ##{post.parent_id}", post_path(id: post.parent_id))
@@ -56,7 +58,7 @@ module PostsHelper
   end
 
   def has_children_message(post, children_post_set)
-    html = ""
+    html = +""
 
     html << "Children: "
     text = children_post_set.children.count == 1 ? "1 child" : "#{children_post_set.children.count} children"

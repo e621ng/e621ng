@@ -1,4 +1,4 @@
-require 'socket'
+# frozen_string_literal: true
 
 module Danbooru
   class Configuration
@@ -87,7 +87,7 @@ module Danbooru
       user.comment_threshold = -10
       user.enable_auto_complete = true
       user.enable_keyboard_navigation = true
-      user.per_page = 75
+      user.per_page = records_per_page
       user.show_post_statistics = true
       user.style_usernames = true
     end
@@ -533,9 +533,9 @@ module Danbooru
       "help:replacement_notice"
     end
 
-    # The number of posts displayed per page.
-    def posts_per_page
-      20
+    # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
+    def records_per_page
+      75
     end
 
     def is_post_restricted?(post)
@@ -572,17 +572,18 @@ module Danbooru
     # services will fail if you don't set a valid User-Agent.
     def http_headers
       {
-        "User-Agent" => "#{Danbooru.config.safe_app_name}/#{Danbooru.config.version}",
+        user_agent: "#{safe_app_name}/#{version}",
       }
     end
 
-    def httparty_options
-      # proxy example:
-      # {http_proxyaddr: "", http_proxyport: "", http_proxyuser: nil, http_proxypass: nil}
+    # https://lostisland.github.io/faraday/#/customization/connection-options
+    def faraday_options
       {
-        timeout: 10,
-        open_timout: 5,
-        headers: Danbooru.config.http_headers,
+        request: {
+          timeout: 10,
+          open_timeout: 10,
+        },
+        headers: http_headers,
       }
     end
 
@@ -662,10 +663,6 @@ module Danbooru
 
     def image_rescales
       []
-    end
-
-    def readonly_mode?
-      false
     end
 
     def enable_visitor_metrics?

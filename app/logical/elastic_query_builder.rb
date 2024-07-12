@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ElasticQueryBuilder
   attr_accessor :q, :must, :must_not, :should, :order
 

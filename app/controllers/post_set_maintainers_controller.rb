@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostSetMaintainersController < ApplicationController
   respond_to :html
   respond_to :js, except: [:index]

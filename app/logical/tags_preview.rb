@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagsPreview
   def initialize(tags: nil)
     @tags = TagQuery.scan(tags).map {|x| {a: x, type: 'tag'}}

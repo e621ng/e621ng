@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiscordReport
   class Base
     def webhook_url
@@ -15,16 +17,8 @@ module DiscordReport
     end
 
     def post_webhook
-      HTTParty.post(
-        webhook_url,
-        body: {
-          content: report,
-          flags: 4096,
-        }.to_json,
-        headers: {
-          "Content-Type" => "application/json",
-        },
-      )
+      conn = Faraday.new(Danbooru.config.faraday_options)
+      conn.post(webhook_url, { content: report, flags: 4096 }.to_json, { content_type: "application/json" })
     end
 
     def formatted_number(input)

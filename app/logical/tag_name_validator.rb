@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagNameValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     normalized = Tag.normalize_name(value)

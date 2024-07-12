@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Mascot < ApplicationRecord
   belongs_to_creator
 

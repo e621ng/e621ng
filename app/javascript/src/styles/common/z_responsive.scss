@@ -143,10 +143,6 @@
       width: auto;
     }
 
-    h1 {
-      display: none;
-    }
-
     form {
       select, input, textarea, button {
         max-width: 100%;
@@ -292,7 +288,7 @@
             display: inline-block;
             padding: 6px 10px;
 
-            background-image: url("images/main-logo.png");
+            background-image: url("main-logo.png");
             background-repeat: no-repeat;
             background-size: contain;
 
@@ -308,17 +304,6 @@
       menu.secondary.empty {
         display: none;
       }
-    }
-
-    h1 {
-      display: block;
-      font-size: 2em;
-      margin: 1em 0 0 0;
-    }
-
-    h2 {
-      font-size: 0.825em;
-      margin: 1em 0 0 0;
     }
 
     header {

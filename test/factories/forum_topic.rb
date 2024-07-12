@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:forum_topic) do
     sequence(:title) { |n| "forum_topic_title_#{n}" }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StaticController < ApplicationController
   def privacy
     @page = WikiPage.find_by(title: "e621:privacy_policy")
@@ -33,7 +35,7 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_member? && !Danbooru.config.readonly_mode?
+    if CurrentUser.is_member?
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
@@ -61,8 +63,5 @@ class StaticController < ApplicationController
 
       redirect_to(Danbooru.config.discord_site + user_hash, allow_other_host: true)
     end
-  end
-
-  def enforce_readonly
   end
 end

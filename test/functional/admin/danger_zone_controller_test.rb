@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class Admin::DangerZoneControllerTest < ActionDispatch::IntegrationTest
   context "The danger zone controller" do

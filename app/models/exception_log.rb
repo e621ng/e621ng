@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ExceptionLog < ApplicationRecord
   serialize :extra_params, coder: JSON
 
@@ -19,7 +21,7 @@ class ExceptionLog < ApplicationRecord
     if unwrapped_exception.is_a?(ActiveRecord::QueryCanceled)
       extra_params[:sql] = {}
       extra_params[:sql][:query] = unwrapped_exception&.sql || "[NOT FOUND?]"
-      extra_params[:sql][:binds] = unwrapped_exception&.binds
+      extra_params[:sql][:binds] = unwrapped_exception&.binds&.map(&:value_for_database)
     end
 
     create!(
@@ -40,12 +42,16 @@ class ExceptionLog < ApplicationRecord
   def self.search(params)
     q = super
 
-    if params[:version].present?
-      q = q.where(version: params[:version])
+    if params[:commit].present?
+      q = q.where(version: params[:commit])
     end
 
-    if params[:without_timeouts]&.truthy?
-      q = q.where("class_name != 'ActiveRecord::QueryCanceled'")
+    if params[:class_name].present?
+      q = q.where(class_name: params[:class_name])
+    end
+
+    if params[:without_class_name].present?
+      q = q.where.not(class_name: params[:without_class_name])
     end
 
     q.apply_basic_order(params)

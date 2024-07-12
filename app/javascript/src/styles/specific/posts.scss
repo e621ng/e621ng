@@ -317,6 +317,14 @@ div#c-posts {
       margin: 1em 0;
     }
 
+    #pending-approval-notice {
+      .notice-pending-toolbar { display: none; }
+      &.enabled {
+        .notice-pending-status { display: none; }
+        .notice-pending-toolbar { display: block; }
+      }
+    }
+
     div#avoid-posting-notice {
       font-size: 1.25rem;
       line-height: 1.5rem;
@@ -446,7 +454,8 @@ div#c-posts {
 div#c-post-versions, div#c-artist-versions {
   div#a-index {
     a {
-      word-wrap: break-word
+      word-wrap: break-word;
+      word-break: keep-all;
     }
   }
 }
@@ -462,11 +471,7 @@ div#c-popular {
   }
 
   .period {
-    margin: 0 5em;
-
-    &:first-child {
-      margin-left: 0;
-    }
+    margin: 0 4.75em;
   }
 }
 

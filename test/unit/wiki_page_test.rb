@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class WikiPageTest < ActiveSupport::TestCase
   context "A wiki page" do
@@ -58,9 +60,8 @@ class WikiPageTest < ActiveSupport::TestCase
       end
 
       should "search by title" do
-        matches = WikiPage.titled("hot potato")
-        assert_equal(1, matches.count)
-        assert_equal("hot_potato", matches.first.title)
+        assert_equal("hot_potato", WikiPage.titled("hot potato").title)
+        assert_nil(WikiPage.titled(nil))
       end
 
       should "search other names with wildcards" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class IpBan < ApplicationRecord
   belongs_to_creator
   validates :reason, :ip_addr, presence: true

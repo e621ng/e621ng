@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StaffNote < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :user
@@ -6,10 +8,8 @@ class StaffNote < ApplicationRecord
     def search(params)
       q = super
 
-      if params[:resolved]
-        q = q.attribute_matches(:resolved, params[:resolved])
-      end
-
+      q = q.attribute_matches(:resolved, params[:resolved])
+      q = q.attribute_matches(:body, params[:body_matches])
       q = q.where_user(:user_id, :user, params)
       q = q.where_user(:creator_id, :creator, params)
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserMailer < ActionMailer::Base
   helper ApplicationHelper
   helper UsersHelper

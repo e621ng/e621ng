@@ -1,10 +1,7 @@
-<%-
-# vote
-# forum_post
-%>
+<%# locals: (vote:, forum_post:, votable:) -%>
 
 <li class="vote-score-<%= vote.vote_type %> <%= 'own-forum-vote' if vote.creator_id == CurrentUser.id %>">
-  <% if forum_post.tag_change_request&.is_pending? && vote.creator_id == CurrentUser.id %>
+  <% if votable && forum_post.tag_change_request&.is_pending? && vote.creator_id == CurrentUser.id %>
     <%= link_to tag.i(class: "fa-regular #{vote.fa_class}"), "#", class: "forum-vote-remove", 'data-forum-id': forum_post.id %>
     <%= link_to_user vote.creator %>
   <% else %>

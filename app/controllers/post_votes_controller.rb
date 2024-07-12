@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostVotesController < ApplicationController
   before_action :member_only
   before_action :moderator_only, only: [:index, :lock]

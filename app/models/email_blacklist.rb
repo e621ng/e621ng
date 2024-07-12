@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EmailBlacklist < ApplicationRecord
   UNVERIFY_COUNT_TRESHOLD = 250
 

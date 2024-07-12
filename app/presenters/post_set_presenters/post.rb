@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSetPresenters
   class Post < Base
     attr_accessor :post_set

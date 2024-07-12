@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Be sure to restart your server when you modify this file.
 
 # Define an application-wide content security policy.
@@ -7,9 +9,9 @@
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
-    policy.script_src  :self, 'ads.dragonfru.it', 'js-agent.newrelic.com', 'bam.nr-data.net', 'https://www.google.com/recaptcha/', 'https://www.gstatic.com/recaptcha/', 'https://www.recaptcha.net/'
+    policy.script_src  :self, "ads.dragonfru.it", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/"
     policy.style_src   :self, :unsafe_inline
-    policy.connect_src :self, 'ads.dragonfru.it', 'bam.nr-data.net', 'plausible.dragonfru.it'
+    policy.connect_src :self, "ads.dragonfru.it", "plausible.dragonfru.it"
     policy.object_src  :self, 'static1.e621.net', 'static1.e926.net'
     policy.media_src   :self, 'static1.e621.net', 'static1.e926.net'
     policy.frame_ancestors :none

@@ -1,6 +1,0 @@
-<% if @related.present? %>
-  <li>|</li>
-  <% @related.each do |fl| %>
-    <li><%= link_to HelpPage.title(fl), action: "show", id: fl %></li>
-  <% end %>
-<% end %>

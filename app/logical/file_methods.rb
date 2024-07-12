@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FileMethods
   def is_image?
     is_png? || is_jpg? || is_gif?

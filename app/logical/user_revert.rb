@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # reverts all changes made by a user
 class UserRevert
   THRESHOLD = 1_000
