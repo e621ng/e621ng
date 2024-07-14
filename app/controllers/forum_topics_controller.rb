@@ -25,9 +25,8 @@ class ForumTopicsController < ApplicationController
     params[:search] ||= {}
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
-    @query = ForumTopic.permitted.active.search(search_params)
-    @query = ForumTopic.permitted.search(search_params) if CurrentUser.is_moderator?
-    @forum_topics = @query.paginate(params[:page], :limit => per_page, :search_count => params[:search])
+    @query = ForumTopic.visible(CurrentUser.user).search(search_params)
+    @forum_topics = @query.paginate(params[:page], limit: per_page, search_count: params[:search])
 
     respond_with(@forum_topics) do |format|
       format.html do
