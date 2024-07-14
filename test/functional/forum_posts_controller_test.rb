@@ -62,6 +62,27 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
 
+      context "with posts in a hidden category" do
+        setup do
+          as(@mod) do
+            @category2 = ForumCategory.create!(name: "test", can_view: @mod.level)
+            @forum_topic = create(:forum_topic, category: @category2, title: "test", original_post_attributes: { body: "test" })
+            @forum_post2 = @forum_topic.original_post
+          end
+        end
+
+        should "only list visible posts" do
+          get forum_posts_path
+          assert_response :success
+          assert_select "#forum-post-#{@forum_post.id}", true
+          assert_select "#forum-post-#{@forum_post2.id}", false
+
+          get forum_posts_path(format: :json)
+          assert_response :success
+          assert_equal([@forum_post.id], @response.parsed_body.pluck("id"))
+        end
+      end
+
       context "with search conditions" do
         should "list all matching forum posts" do
           get forum_posts_path, params: {:search => {:body_matches => "xxx"}}

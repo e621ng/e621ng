@@ -46,19 +46,18 @@ class ForumPost < ApplicationRecord
       where("forum_posts.creator_id = ?", user_id)
     end
 
-    def active
-      where("(forum_posts.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id)
-    end
-
-    def permitted
-      q = joins(:topic)
-      q = q.where("(forum_topics.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id) unless CurrentUser.is_moderator?
+    def visible(user)
+      q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
+      unless user.is_moderator?
+        q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id)
+        q = q.where("forum_posts.is_hidden = FALSE OR forum_posts.creator_id = ?", user.id)
+      end
       q
     end
 
     def search(params)
       q = super
-      q = q.permitted
+      q = q.visible(CurrentUser.user)
 
       q = q.where_user(:creator_id, :creator, params)
 
