@@ -48,7 +48,7 @@ module Moderator
 
       def expunge
         @post = ::Post.find(params[:id])
-        @post.expunge!
+        @post.expunge!(reason: params[:reason])
         respond_with(@post)
       end
 
