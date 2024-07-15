@@ -617,7 +617,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'test/functional/maintenance/user/login_reminders_controller_test.rb'
     - 'test/functional/maintenance/user/password_resets_controller_test.rb'
     - 'test/functional/meta_searches_controller_test.rb'
-    - 'test/functional/news_updates_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'
     - 'test/functional/notes_controller_test.rb'
     - 'test/functional/pool_elements_controller_test.rb'
@@ -1093,7 +1092,6 @@ Rails/ActionOrder:
     - 'app/controllers/maintenance/user/password_resets_controller.rb'
     - 'app/controllers/mascots_controller.rb'
     - 'app/controllers/moderator/post/disapprovals_controller.rb'
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/pools_controller.rb'
     - 'app/controllers/post_flags_controller.rb'
     - 'app/controllers/post_replacements_controller.rb'
@@ -1630,7 +1628,6 @@ Style/HashSyntax:
     - 'app/controllers/maintenance/user/email_changes_controller.rb'
     - 'app/controllers/maintenance/user/email_notifications_controller.rb'
     - 'app/controllers/maintenance/user/password_resets_controller.rb'
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/note_previews_controller.rb'
     - 'app/controllers/notes_controller.rb'
     - 'app/controllers/pool_elements_controller.rb'
@@ -1809,7 +1806,6 @@ Style/HashSyntax:
     - 'test/functional/maintenance/user/dmail_filters_controller_test.rb'
     - 'test/functional/maintenance/user/login_reminders_controller_test.rb'
     - 'test/functional/maintenance/user/password_resets_controller_test.rb'
-    - 'test/functional/news_updates_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'
     - 'test/functional/notes_controller_test.rb'
     - 'test/functional/pool_elements_controller_test.rb'
@@ -2653,7 +2649,6 @@ Style/SymbolArray:
 # AllowedMethods: define_method, mail, respond_to
 Style/SymbolProc:
   Exclude:
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/pools_controller.rb'
     - 'app/controllers/posts_controller.rb'
     - 'app/logical/post_sets/base.rb'
