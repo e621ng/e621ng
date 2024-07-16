@@ -61,13 +61,11 @@ export default {
   },
   mounted() {
     const params = new URLSearchParams(window.location.search);
-    if (params.has("additional_source")) {
-      this.sources = [params.get("additional_source")]
-    }
+    if (params.has("additional_source"))
+      this.sources = [params.get("additional_source")];
 
-    if (params.has("reason")) {
+    if (params.has("reason"))
       this.reason = params.get("reason");
-    }
   },
   computed: {
     preventUpload() {
