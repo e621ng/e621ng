@@ -43,11 +43,13 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         assert_select "#forum_post_#{@forum_posts.third.id}"
         as(@mod) { @forum_posts.first.hide! }
         assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
 
         get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
         assert_select "#forum_post_#{@forum_posts.second.id}"
         assert_select "#forum_post_#{@forum_posts.third.id}"
         assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
       end
     end
 
