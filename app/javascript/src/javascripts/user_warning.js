@@ -36,7 +36,7 @@ class UserWarnable {
         Comment.reinitialize_all();
         ForumPost.reinitialize_all();
         DText.initialize_all_inputs();
-      }).fail(data => {
+      }).fail(() => {
         Utility.error("Failed to mark as warned.");
       });
     });

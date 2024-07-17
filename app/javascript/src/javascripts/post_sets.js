@@ -14,7 +14,7 @@ PostSet.add_post = function (set_id, post_id) {
       url: "/post_sets/" + set_id + "/add_posts.json",
       data: {post_ids: [post_id]},
     }).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join('; ');
       Post.notice_update("dec");
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function () {
@@ -32,7 +32,7 @@ PostSet.remove_post = function (set_id, post_id) {
       url: "/post_sets/" + set_id + "/remove_posts.json",
       data: {post_ids: [post_id]},
     }).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join('; ');
       Post.notice_update("dec");
       $(window).trigger('danbooru:error', "Error: " + message);
     }).done(function () {

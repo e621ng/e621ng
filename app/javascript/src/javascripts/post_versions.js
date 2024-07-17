@@ -22,11 +22,11 @@ PostVersion.initialize_undo = function () {
     $(event.target).find(".post-version-select:not(:disabled)").prop("checked", (_, checked) => !checked).change();
   });
 
-  $("#post-version-select-all").on("change.danbooru", function (event) {
+  $("#post-version-select-all").on("change.danbooru", function () {
     $(".post-version-select:not(:disabled)").prop("checked", $("#post-version-select-all").prop("checked")).change();
   });
 
-  $(".post-version-select").on("change.danbooru", function (event) {
+  $(".post-version-select").on("change.danbooru", function () {
     let checked = $(".post-version-select:checked");
     $("#subnav-undo-selected-link").text(`Undo selected (${checked.length})`).toggle(checked.length > 0);
   });

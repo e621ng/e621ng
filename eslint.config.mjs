@@ -18,7 +18,7 @@ export default [
       "@stylistic/js": stylistic,
     },
     rules: {
-      "no-unused-vars": "off",
+      "no-unused-vars": "warn",
 
       // https://eslint.style/packages/js
       /*

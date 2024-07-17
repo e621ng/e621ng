@@ -9,7 +9,7 @@ Blacklist.post_count = 0;
 Blacklist.entries = [];
 
 Blacklist.entryGet = function (line) {
-  return $.grep(Blacklist.entries, function (e, i) {
+  return $.grep(Blacklist.entries, function (e) {
     return e.tags === line;
   })[0];
 };
@@ -326,7 +326,7 @@ Blacklist.initialize_blacklist_editor = function () {
         }
       }).done(function () {
         Utility.notice("Blacklist updated");
-      }).fail(function (data, status, xhr) {
+      }).fail(function () {
         Utility.error("Failed to update blacklist");
       });
     }

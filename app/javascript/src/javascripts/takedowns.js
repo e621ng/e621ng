@@ -13,7 +13,7 @@ Takedown.destroy = function (id) {
     data: {
       "id": id
     }
-  }).done(function (data) {
+  }).done(function () {
     Utility.notice("Takedown deleted");
     $("#takedown-" + id).fadeOut("fast");
   }).fail(function (data) {
@@ -128,7 +128,7 @@ Takedown.remove_post = function (id, post_id) {
       id: id,
       post_ids: post_id
     }
-  }).done(function (data) {
+  }).done(function () {
     Utility.notice("Post #" + post_id + " removed from takedown")
     $("#takedown-post-" + post_id).remove();
   }).fail(function (data) {

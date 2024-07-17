@@ -9,10 +9,10 @@ Artist.update = function (id, params) {
       type: "PUT",
       url: "/artists/" + id + ".json",
       data: params,
-      success: function(data) {
+      success: function() {
         Utility.notice("Artist updated.");
       },
-      error: function(data) {
+      error: function() {
         Utility.error(`There was an error updating <a href="/artists/${id}">artist #${id}</a>`);
       }
     });

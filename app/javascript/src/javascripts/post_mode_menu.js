@@ -54,7 +54,7 @@ PostModeMenu.initialize_selector = function() {
     $("#mode-box-mode").val(LS.get("mode"));
   }
 
-  $("#mode-box-mode").on("change.danbooru", function(e) {
+  $("#mode-box-mode").on("change.danbooru", function() {
     PostModeMenu.change();
     $("#tag-script-field:visible").focus().select();
   });
@@ -103,7 +103,7 @@ PostModeMenu.close_edit_form = function() {
 }
 
 PostModeMenu.initialize_tag_script_field = function() {
-  $("#tag-script-field").blur(function(e) {
+  $("#tag-script-field").blur(function() {
     const script = $(this).val();
 
     const current_script_id = LS.get("current_tag_script_id");

@@ -50,7 +50,7 @@ Comment.show_all = function(e) {
     current_comment_section.html(data.html);
     Comment.reinitialize_all();
     $(window).trigger("e621:add_deferred_posts", data.posts);
-  }).fail(function(data) {
+  }).fail(function() {
     Utility.error("Failed to fetch all comments for this post.");
   });
 };
@@ -65,10 +65,10 @@ Comment.hide = function (e) {
     url: `/comments/${cid}/hide.json`,
     type: 'POST',
     dataType: 'json'
-  }).done(function (data) {
+  }).done(function () {
     $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (hidden)");
     $(`.comment[data-comment-id="${cid}"]`).attr('data-is-deleted', 'true');
-  }).fail(function (data) {
+  }).fail(function () {
     Utility.error("Failed to hide comment.");
   });
 };
@@ -83,11 +83,11 @@ Comment.unhide = function (e) {
     url: `/comments/${cid}/unhide.json`,
     type: 'POST',
     dataType: 'json'
-  }).done(function (data) {
+  }).done(function () {
     const $author = $(`.comment[data-comment-id="${cid}"] div.author h1`);
     $author.text($author.text().replace(" (hidden)", ""));
     $(`.comment[data-comment-id="${cid}"]`).attr('data-is-deleted', 'false');
-  }).fail(function (data) {
+  }).fail(function () {
     Utility.error("Failed to unhide comment.");
   });
 };
@@ -102,9 +102,9 @@ Comment.delete = function (e) {
     url: `/comments/${cid}.json`,
     type: 'DELETE',
     dataType: 'json'
-  }).done(function (data) {
+  }).done(function () {
     parent.remove();
-  }).fail(function (data) {
+  }).fail(function () {
     Utility.error("Failed to delete comment.");
   });
 };

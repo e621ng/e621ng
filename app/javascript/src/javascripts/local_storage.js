@@ -13,6 +13,7 @@ let LS = {
     try {
       return JSON.parse(value);
     } catch (error) {
+      console.log(error);
       return null;
     }
   }

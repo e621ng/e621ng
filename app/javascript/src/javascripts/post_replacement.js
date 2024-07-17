@@ -34,7 +34,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     dataType: 'json'
   }).done(function () {
     set_status($row, "approved");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "replacement failed");
   });
@@ -51,7 +51,7 @@ PostReplacement.reject = function (id) {
     dataType: 'json'
   }).done(function () {
     set_status($row, "rejected");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "rejecting failed");
   });
@@ -69,7 +69,7 @@ PostReplacement.promote = function (id) {
   }).done(function (data) {
     Utility.notice(`Replacement promoted to post #${data.post.id}`);
     set_status($row, "promoted");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "promoting failed");
   });
@@ -83,10 +83,10 @@ PostReplacement.toggle_penalize = function ($target) {
     type: "PUT",
     url: `/post_replacements/${id}/toggle_penalize.json`,
     dataType: 'json'
-  }).done(function (data) {
+  }).done(function () {
     $target.removeClass("disabled-link");
     $currentStatus.text($currentStatus.text() == "yes" ? "no" : "yes");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
   });
 }

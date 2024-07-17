@@ -23,7 +23,7 @@ function initSearch() {
 }
 
 $(function() {
-  $("#theme-switcher").change(function(e) {
+  $("#theme-switcher").change(function() {
     let theme = $(this).val();
     LS.put("theme", theme);
     $("body").attr("data-th-main", theme);
@@ -60,9 +60,9 @@ $(function() {
       method: "PUT",
       url: path,
       dataType: 'json'
-    }).done(data => {
+    }).done(() => {
       location.reload();
-    }).fail(data => {
+    }).fail(() => {
       Utility.error("Failed to revert to specified version.");
     })
   });

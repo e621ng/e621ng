@@ -42,7 +42,7 @@ Favorite.create = function (post_id) {
       Post.notice_update("dec");
       Favorite.after_action(post_id, 1);
       Utility.notice("Favorite added");
-    }).fail(function (data, status, xhr) {
+    }).fail(function (data) {
       Utility.error("Error: " + data.responseJSON.message);
     });
   });
@@ -60,7 +60,7 @@ Favorite.destroy = function (post_id) {
       Post.notice_update("dec");
       Favorite.after_action(post_id, -1);
       Utility.notice("Favorite removed");
-    }).fail(function (data, status, xhr) {
+    }).fail(function (data) {
       Utility.error("Error: " + data.responseJSON.message);
     });
   });

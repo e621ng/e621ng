@@ -17,10 +17,10 @@ class TagRelationships {
       url: `/${route}/${id}/approve.json`,
       type: 'POST',
       dataType: 'json'
-    }).done(function (data) {
+    }).done(function () {
       Utility.notice(`Accepted ${human}.`);
       parent.slideUp('fast');
-    }).fail(function (data) {
+    }).fail(function () {
       Utility.error(`Failed to accept ${human}.`);
     });
   }
@@ -41,10 +41,10 @@ class TagRelationships {
       url: `/${route}/${id}.json`,
       type: 'DELETE',
       dataType: 'json'
-    }).done(function (data) {
+    }).done(function () {
       Utility.notice(`Rejected ${human}.`);
       parent.slideUp('fast');
-    }).fail(function (data) {
+    }).fail(function () {
       Utility.error(`Failed to reject ${human}.`);
     });
   }

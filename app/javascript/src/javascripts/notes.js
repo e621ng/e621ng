@@ -16,14 +16,14 @@ let Note = {
       $note_box.attr("data-id", String(id));
       $note_box.draggable({
         containment: $("#image"),
-        stop: function(e, ui) {
+        stop: function() {
           Note.Box.update_data_attributes($note_box);
         }
       });
       $note_box.resizable({
         containment: $("#image"),
         handles: "se, nw",
-        stop: function(e, ui) {
+        stop: function() {
           Note.Box.update_data_attributes($note_box);
         }
       });
@@ -406,11 +406,11 @@ let Note = {
       return hash;
     },
 
-    error_handler: function(xhr, status, exception) {
+    error_handler: function(xhr) {
       Utility.error("Error: " + (xhr.responseJSON.reason || xhr.responseJSON.reasons.join("; ")));
     },
 
-    success_handler: function(data, status, xhr) {
+    success_handler: function(data) {
       var $note_box = null;
 
       if (data.html_id) { // new note

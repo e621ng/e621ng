@@ -106,7 +106,7 @@ Post.open_edit_dialog = function() {
       at: "right-20",
       of: window
     },
-    drag: function(e, ui) {
+    drag: function() {
       if (Utility.meta("enable-auto-complete") === "true") {
         $tag_string.data("uiAutocomplete").close();
       }
@@ -118,7 +118,7 @@ Post.open_edit_dialog = function() {
   var pin_button = $("<button/>").button({icons: {primary: "ui-icon-pin-w"}, label: "pin", text: false});
   pin_button.css({width: "20px", height: "20px", position: "absolute", right: "28.4px"});
   dialog.parent().children(".ui-dialog-titlebar").append(pin_button);
-  pin_button.on("click.danbooru", function(e) {
+  pin_button.on("click.danbooru", function() {
     var dialog_widget = $('.ui-dialog:has(#edit-dialog)');
     var pos = dialog_widget.offset();
 
@@ -139,9 +139,9 @@ Post.open_edit_dialog = function() {
     }
   });
 
-  dialog.parent().mouseout(function(e) {
+  dialog.parent().mouseout(function() {
     dialog.parent().css({"opacity": 0.6, "transition": "opacity .4s ease"});
-  }).mouseover(function(e) {
+  }).mouseover(function() {
     dialog.parent().css({"opacity": 1, "transition": "opacity .2s ease"});
   });
 
@@ -149,7 +149,7 @@ Post.open_edit_dialog = function() {
   $tag_string.focus().selectEnd().height($tag_string[0].scrollHeight);
 }
 
-Post.close_edit_dialog = function(e, ui) {
+Post.close_edit_dialog = function() {
   $("#form").appendTo($("#c-posts #edit,#c-uploads #a-new"));
   $("#edit-dialog").remove();
   var $tag_string = $("#post_tag_string");
@@ -225,7 +225,7 @@ class E6Swipe extends ZingTouch.Swipe {
       const dist = distanceBetweenTwoPoints([acc.last.x, acc.last.y], [move.x, move.y]);
       return {vel: acc.vel + vel, angle: [acc.angle[0] + Math.cos(angle), acc.angle[1] + Math.sin(angle)], dist: acc.dist + dist, last: move};
     }, {vel: 0, angle: 0, dist: 0, last: null});
-    const initial = input.initial;
+    // const initial = input.initial;
     // Add total gesture motion as a bias.
 //    totals.vel += getVelocity([initial.x, initial.y, initial.time], [input.current.x, input.current.y, input.current.time]);
 //    totals.angle += getAngle([initial.x, initial.y], [input.current.x, input.current.y]) + Math.PI;
@@ -387,7 +387,7 @@ Post.initialize_links = function() {
         data: {
           other_post_id: other_post_id
         },
-        success: function(data) {
+        success: function() {
           $(window).trigger("danbooru:notice", "Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
         },
         error: function(data) {
@@ -481,9 +481,8 @@ Post.resize_video = function (post, target_size) {
 
   function original_sources() {
     target_sources.push({type: 'video/webm', url: post?.file?.url});
-    if (typeof post?.sample?.alternates?.original !== 'unknown') {
+    if (typeof post?.sample?.alternates?.original !== "undefined")
       target_sources.push({type: 'video/mp4', url: post?.sample?.alternates?.original?.urls[1]});
-    }
   }
 
   switch (target_size) {
@@ -498,7 +497,7 @@ Post.resize_video = function (post, target_size) {
       original_sources();
       desired_classes.push('fit-window-vertical');
       break;
-    default:
+    default: {
       $notice.show();
       const alternate = post?.sample?.alternates[target_size];
       target_sources.push({type: 'video/webm; codecs="vp9"', url: alternate.urls[0]});
@@ -506,6 +505,7 @@ Post.resize_video = function (post, target_size) {
       desired_classes.push('fit-window');
       update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
       break;
+    }
   }
   $video.removeClass();
   $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
@@ -644,7 +644,7 @@ Post.initialize_resize = function () {
         Post.resize_notes();
     }
 
-    $image.on('load', function (e) {
+    $image.on('load', function () {
       Post.resize_notes();
       $("#image-container").removeClass("image-loading");
     });
@@ -749,7 +749,7 @@ Post.update = function(post_id, params) {
         Post.notice_update("dec");
         Post.update_data(data);
       },
-      error: function(data) {
+      error: function() {
         Post.notice_update("dec");
         $(window).trigger("danbooru:error", 'There was an error updating <a href="/posts/' + post_id + '">post #' + post_id + '</a>');
       }
@@ -765,9 +765,9 @@ Post.delete_with_reason = function(post_id, reason, reload_after_delete) {
       url: `/moderator/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, move_favorites: true}
     }).fail(function(data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join('; ');
       $(window).trigger('danbooru:error', "Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       $(window).trigger("danbooru:notice", "Deleted post.");
       if(reload_after_delete) {
         location.reload();
@@ -790,7 +790,7 @@ Post.undelete = function(post_id, callback) {
 //      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       const message = data.responseJSON.message;
       $(window).trigger('danbooru:error', "Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       $(window).trigger("danbooru:notice", "Undeleted post.");
       $(`article#post_${post_id}`).attr('data-flags', 'active');
       if(callback) callback();
@@ -811,7 +811,7 @@ Post.unflag = function(post_id, approval, reload = true) {
     }).fail(function(data) {
       const message = data.responseJSON.message;
       $(window).trigger('danbooru:error', "Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       $(window).trigger("danbooru:notice", "Unflagged post");
       if (reload) {
         location.reload();
@@ -830,9 +830,9 @@ Post.unapprove = function(post_id) {
       url: "/moderator/post/approval.json",
       data: {post_id: post_id}
     }).fail(function(data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
+      var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join('; ');
       $(window).trigger('danbooru:error', "Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       $(window).trigger("danbooru:notice", "Unapproved post.");
       location.reload();
     }).always(function() {
@@ -844,9 +844,9 @@ Post.unapprove = function(post_id) {
 Post.destroy = function(post_id, reason) {
   $.post(`/moderator/post/posts/${post_id}/expunge.json`, { reason }
   ).fail(data => {
-    var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+    var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join("; ");
     $(window).trigger("danbooru:error", "Error: " + message);
-  }).done(data => {
+  }).done(() => {
     location.href = `/admin/destroyed_posts/${post_id}`;
   });
 };
@@ -855,7 +855,7 @@ Post.regenerate_image_samples = function(post_id) {
   $.post(`/moderator/post/posts/${post_id}/regenerate_thumbnails.json`, {}
   ).fail(data => {
     Utility.error("Error: " + data.responseJSON.reason);
-  }).done(data => {
+  }).done(() => {
     Utility.notice("Image samples regenerated.");
   });
 };
@@ -864,7 +864,7 @@ Post.regenerate_video_samples = function(post_id) {
   $.post(`/moderator/post/posts/${post_id}/regenerate_videos.json`, {}
   ).fail(data => {
     Utility.error("Error: " + data.responseJSON.reason);
-  }).done(data => {
+  }).done(() => {
     Utility.notice("Video samples will be regenerated in a few minutes.");
   });
 };
@@ -876,9 +876,9 @@ Post.approve = function(post_id, callback) {
       "/moderator/post/approval.json",
       { "post_id": post_id }
     ).fail(function(data) {
-      const message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+      const message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join("; ");
       Danbooru.error("Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       var $post = $("#post_" + post_id);
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
@@ -901,9 +901,9 @@ Post.disapprove = function(post_id, reason, message) {
       "/moderator/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message}
     ).fail(function(data) {
-      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join("; ");
+      var message = $.map(data.responseJSON.errors, function(msg) { return msg; }).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
-    }).done(function(data) {
+    }).done(function() {
       if ($("#c-posts #a-show").length) {
         location.reload();
       }
@@ -916,7 +916,7 @@ Post.disapprove = function(post_id, reason, message) {
 Post.update_tag_count = function(event) {
   let string = "0 tags";
   let count = 0;
-  let count2 = 1;
+  // let count2 = 1;
 
   if (event) {
     let tags = [...new Set($(event.target).val().match(/\S+/g))];
@@ -994,7 +994,7 @@ Post.set_as_avatar = function(id) {
       headers: {
         accept: '*/*;q=0.5,text/javascript'
       }
-    }).done(function(data) {
+    }).done(function() {
       $(window).trigger("danbooru:notice", "Post set as avatar");
     });
   });
