@@ -1,6 +1,6 @@
-import Utility from './utility'
-import LS from './local_storage'
-import Post from './posts';
+import Utility from "./utility";
+import LS from "./local_storage";
+import Post from "./posts";
 
 let Blacklist = {};
 
@@ -36,16 +36,16 @@ Blacklist.lineSet = function (line, enabled) {
 };
 
 Blacklist.entryParse = function (string) {
-  const fixInsanity = function(input) {
-    switch(input) {
-      case '=>':
-        return '>=';
-      case '=<':
-        return '<=';
-      case '=':
-        return '==';
-      case '':
-        return '==';
+  const fixInsanity = function (input) {
+    switch (input) {
+      case "=>":
+        return ">=";
+      case "=<":
+        return "<=";
+      case "=":
+        return "==";
+      case "":
+        return "==";
       default:
         return input;
     }
@@ -59,13 +59,13 @@ Blacklist.entryParse = function (string) {
     "hits": 0,
     "score_comparison": null,
     "username": false,
-    "user_id": 0
+    "user_id": 0,
   };
   const matches = string.match(/\S+/g) || [];
   for (const tag of matches) {
-    if (tag.charAt(0) === '-') {
+    if (tag.charAt(0) === "-") {
       entry.exclude.push(tag.slice(1));
-    } else if (tag.charAt(0) === '~') {
+    } else if (tag.charAt(0) === "~") {
       entry.optional.push(tag.slice(1));
     } else if (tag.match(/^score:[<=>]{0,2}-?\d+/)) {
       const score = tag.match(/^score:([<=>]{0,2})(-?\d+)/);
@@ -166,7 +166,7 @@ Blacklist.sidebarUpdate = function () {
 
 
   $("#blacklist-box").show();
-}
+};
 
 Blacklist.initialize_disable_all_blacklists = function () {
   if (LS.get("dab") === "1") {
@@ -184,7 +184,7 @@ Blacklist.initialize_disable_all_blacklists = function () {
     Blacklist.entriesAllSet(true);
     Blacklist.apply();
   });
-}
+};
 
 Blacklist.apply = function () {
   Blacklist.post_count = 0;
@@ -220,25 +220,25 @@ Blacklist.apply = function () {
   }
 
   Blacklist.sidebarUpdate();
-}
+};
 
 Blacklist.posts = function () {
   return $(".post-preview, #image-container, #c-comments .post, .post-thumbnail");
-}
+};
 
 Blacklist.postMatch = function (post, entry) {
   const $post = $(post);
-  if ($post.hasClass('post-no-blacklist'))
+  if ($post.hasClass("post-no-blacklist"))
     return false;
   let post_data = {
-    id: $post.data('id'),
-    score: parseInt($post.data('score'), 10),
-    tags: $post.data('tags').toString(),
-    rating: $post.data('rating'),
-    uploader_id: $post.data('uploader-id'),
-    user: $post.data('uploader').toString().toLowerCase(),
-    flags: $post.data('flags'),
-    is_fav: $post.data('is-favorited')
+    id: $post.data("id"),
+    score: parseInt($post.data("score"), 10),
+    tags: $post.data("tags").toString(),
+    rating: $post.data("rating"),
+    uploader_id: $post.data("uploader-id"),
+    user: $post.data("uploader").toString().toLowerCase(),
+    flags: $post.data("flags"),
+    is_fav: $post.data("is-favorited"),
   };
   return Blacklist.postMatchObject(post_data, entry);
 };
@@ -246,18 +246,18 @@ Blacklist.postMatch = function (post, entry) {
 Blacklist.postMatchObject = function (post, entry) {
   const rangeComparator = function (comparison, target) {
     // Bad comparison, post matches score.
-    if (!Array.isArray(comparison) || typeof target === 'undefined' || comparison.length !== 2)
+    if (!Array.isArray(comparison) || typeof target === "undefined" || comparison.length !== 2)
       return true;
     switch (comparison[0]) {
-      case '<':
+      case "<":
         return target < comparison[1];
-      case '<=':
+      case "<=":
         return target <= comparison[1];
-      case '==':
+      case "==":
         return target == comparison[1];
-      case '>=':
+      case ">=":
         return target >= comparison[1];
-      case '>':
+      case ">":
         return target > comparison[1];
       default:
         return true;
@@ -272,8 +272,8 @@ Blacklist.postMatchObject = function (post, entry) {
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
-  if(post.is_fav)
-    tags.push('fav:me');
+  if (post.is_fav)
+    tags.push("fav:me");
   $.each(post.flags.match(/\S+/g) || [], function (i, v) {
     tags.push(`status:${v}`);
   });
@@ -281,7 +281,7 @@ Blacklist.postMatchObject = function (post, entry) {
   return (Utility.is_subset(tags, entry.require) && score_test)
     && (!entry.optional.length || Utility.intersect(tags, entry.optional).length)
     && !Utility.intersect(tags, entry.exclude).length;
-}
+};
 
 Blacklist.initialize_all = function () {
   Blacklist.entriesParse();
@@ -289,18 +289,18 @@ Blacklist.initialize_all = function () {
   Blacklist.initialize_disable_all_blacklists();
   Blacklist.apply();
   $("#blacklisted-hider").remove();
-}
+};
 
 Blacklist.initialize_anonymous_blacklist = function () {
-  if ($(document.body).data('user-is-anonymous') !== true) {
+  if ($(document.body).data("user-is-anonymous") !== true) {
     return;
   }
 
-  const anonBlacklist = LS.get('anonymous-blacklist');
+  const anonBlacklist = LS.get("anonymous-blacklist");
   if (anonBlacklist) {
     $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
   }
-}
+};
 
 Blacklist.initialize_blacklist_editor = function () {
   $("#blacklist-edit-dialog").dialog({
@@ -309,21 +309,21 @@ Blacklist.initialize_blacklist_editor = function () {
     height: 400,
   });
 
-  $("#blacklist-cancel").on('click', function () {
-    $("#blacklist-edit-dialog").dialog('close');
+  $("#blacklist-cancel").on("click", function () {
+    $("#blacklist-edit-dialog").dialog("close");
   });
 
-  $("#blacklist-save").on('click', function () {
+  $("#blacklist-save").on("click", function () {
     const blacklist_content = $("#blacklist-edit").val();
     const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
-    if($(document.body).data('user-is-anonymous') === true) {
-      LS.put('anonymous-blacklist', blacklist_json);
+    if ($(document.body).data("user-is-anonymous") === true) {
+      LS.put("anonymous-blacklist", blacklist_json);
     } else {
       $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
         method: "PUT",
         data: {
-          "user[blacklisted_tags]": blacklist_content
-        }
+          "user[blacklisted_tags]": blacklist_content,
+        },
       }).done(function () {
         Utility.notice("Blacklist updated");
       }).fail(function () {
@@ -331,42 +331,42 @@ Blacklist.initialize_blacklist_editor = function () {
       });
     }
 
-    $("#blacklist-edit-dialog").dialog('close');
+    $("#blacklist-edit-dialog").dialog("close");
     $("meta[name=blacklisted-tags]").attr("content", blacklist_json);
     Blacklist.initialize_all();
   });
 
-  $("#blacklist-edit-link").on('click', function (event) {
+  $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
     let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
     entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
     entries = entries.filter(e => e.trim() !== "");
-    $("#blacklist-edit").val(entries.join('\n'));
-    $("#blacklist-edit-dialog").dialog('open');
+    $("#blacklist-edit").val(entries.join("\n"));
+    $("#blacklist-edit-dialog").dialog("open");
   });
 };
 
 Blacklist.collapseGet = function () {
-  const lsValue = LS.get('bc') || '1';
-  return lsValue === '1';
+  const lsValue = LS.get("bc") || "1";
+  return lsValue === "1";
 };
 
 Blacklist.collapseSet = function (collapsed) {
-  LS.put('bc', collapsed ? "1" : "0");
+  LS.put("bc", collapsed ? "1" : "0");
 };
 
 Blacklist.collapseUpdate = function () {
   if (Blacklist.collapseGet()) {
-    $('#blacklist-list').hide();
-    $('#blacklist-collapse').addClass('hidden');
+    $("#blacklist-list").hide();
+    $("#blacklist-collapse").addClass("hidden");
   } else {
-    $('#blacklist-list').show();
-    $('#blacklist-collapse').removeClass('hidden');
+    $("#blacklist-list").show();
+    $("#blacklist-collapse").removeClass("hidden");
   }
 };
 
 Blacklist.initialize_collapse = function () {
-  $("#blacklist-collapse").on('click', function (e) {
+  $("#blacklist-collapse").on("click", function (e) {
     e.preventDefault();
     const current = Blacklist.collapseGet();
     Blacklist.collapseSet(!current);
@@ -382,4 +382,4 @@ $(document).ready(function () {
   Blacklist.initialize_all();
 });
 
-export default Blacklist
+export default Blacklist;

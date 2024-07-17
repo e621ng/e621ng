@@ -12,6 +12,7 @@
   "editor.detectIndentation": false,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
+  "editor.rulers": [100],
   "editor.formatOnSave": false,
   
   // Eslint shenanigans

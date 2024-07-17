@@ -21,14 +21,13 @@ export default [
       "no-unused-vars": "warn",
 
       // https://eslint.style/packages/js
-      /*
       "array-bracket-newline": "warn",
       "array-bracket-spacing": "off",
       "array-element-newline": ["warn", "consistent"],
       "arrow-parens": "off",
       "arrow-spacing": "warn",
       "block-spacing": "warn",
-      "brace-style": "warn",
+      "brace-style": ["warn", "1tbs", { allowSingleLine: true }],
       "comma-dangle": ["warn", "always-multiline"],
       "comma-spacing": "warn",
       "comma-style": "warn",
@@ -38,21 +37,21 @@ export default [
       "function-call-argument-newline": ["warn", "consistent"],
       "func-call-spacing": "warn",  // function-call-spacing does not work ???
       "implicit-arrow-linebreak": "warn",
-      "indent": ["warn", 2],
-      "key-spacing": ["warn", { "align": "value" }], // Might get annoying
+      "indent": ["warn", 2, { SwitchCase: 1, }],
+      "key-spacing": ["warn", { mode: "minimum" }],
       "keyword-spacing": "warn",
       "line-comment-position": "off",
       "linebreak-style": "error",
       "lines-around-comment": "off",
       "lines-between-class-members": "warn",
-      "max-len": "warn", // Might get annoying, see https://eslint.style/rules/js/max-len
+      // "max-len": ["warn", { code: 100, tabWidth: 2, ignoreComments: true }], // Might get annoying, see https://eslint.style/rules/js/max-len
       "max-statements-per-line": "warn",
       "multiline-comment-style": "off",
       "multiline-ternary": ["warn", "always-multiline"],
       "new-parens": "warn",
       "newline-per-chained-call": "off",
       "no-confusing-arrow": "warn",
-      "no-extra-parens": "warn",
+      "no-extra-parens": "off",
       "no-extra-semi": "warn",
       "no-floating-decimal": "warn",
       "no-mixed-operators": "error",
@@ -63,7 +62,7 @@ export default [
       "no-trailing-spaces": "warn",
       "no-whitespace-before-property": "warn",
       "nonblock-statement-body-position": "off",
-      "object-curly-newline": ["warn", { "consistent": true }],
+      "object-curly-newline": ["warn", { consistent: true }],
       "one-var-declaration-per-line": "off",
       "operator-linebreak": ["warn", "before"],
       "padded-blocks": "off",
@@ -83,7 +82,6 @@ export default [
       "switch-colon-spacing": "warn",
       "template-curly-spacing": "warn",
       "template-tag-spacing": "warn",
-      */
     },
   },
 ]

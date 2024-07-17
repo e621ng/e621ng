@@ -1,12 +1,13 @@
+/* eslint-disable comma-dangle */
 const TagScript = {
-  parse(script) {
-    return script.match(/\[.+?\]|\S+/g)
+  parse (script) {
+    return script.match(/\[.+?\]|\S+/g);
   },
-  test(tags, predicate) {
+  test (tags, predicate) {
     const split_pred = predicate.match(/\S+/g);
 
     for (const x of split_pred) {
-      if (x[0] === '-') {
+      if (x[0] === "-") {
         if (tags.has(x.substr(1))) {
           return false;
         }
@@ -17,11 +18,11 @@ const TagScript = {
 
     return true;
   },
-  process(tags, command) {
+  process (tags, command) {
     if (command.match(/^\[if/)) {
       const match = command.match(/\[if\s+(.+?)\s*,\s*(.+?)\]/);
       if (TagScript.test(tags, match[1])) {
-        return TagScript.process(tags, match[2])
+        return TagScript.process(tags, match[2]);
       } else {
         return null;
       }
@@ -31,7 +32,7 @@ const TagScript = {
       return command;
     }
   },
-  run(tags, tag_script) {
+  run (tags, tag_script) {
     const changes = [];
     const commands = TagScript.parse(tag_script);
 
@@ -41,7 +42,7 @@ const TagScript = {
         changes.push(result);
       }
     }
-    return changes.join(' ');
+    return changes.join(" ");
   }
 };
 

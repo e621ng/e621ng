@@ -1,28 +1,26 @@
-import Utility from './utility';
-import { SendQueue } from './send_queue';
+import Utility from "./utility";
+import { SendQueue } from "./send_queue";
 
 const Artist = {};
 
 Artist.update = function (id, params) {
-  SendQueue.add(function() {
+  SendQueue.add(() => {
     $.ajax({
       type: "PUT",
       url: "/artists/" + id + ".json",
       data: params,
-      success: function() {
-        Utility.notice("Artist updated.");
-      },
-      error: function() {
+      success: () => { Utility.notice("Artist updated."); },
+      error: () => {
         Utility.error(`There was an error updating <a href="/artists/${id}">artist #${id}</a>`);
-      }
+      },
     });
   });
 };
 
-function init() {
-  $("#undelete-artist-link").on('click', e => {
+function init () {
+  $("#undelete-artist-link").on("click", e => {
     if (confirm("Are you sure you want to undelete this artist?"))
-      Artist.update($(e.target).data('aid'), {"artist[is_active]": true});
+      Artist.update($(e.target).data("aid"), {"artist[is_active]": true});
     e.preventDefault();
   });
 }
