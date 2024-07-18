@@ -3,7 +3,7 @@
     "editor.formatOnSave": false
   },
   "files.associations": {
-    "*.erb": "Ruby ERB"
+    "*.erb": "erb"
   },
   // Trick ruby-lsp into not doing any updates
   "rubyLsp.bundleGemfile": "Gemfile",
