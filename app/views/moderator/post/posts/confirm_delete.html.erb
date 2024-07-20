@@ -16,7 +16,7 @@
         <%= PostPresenter.preview(@post.parent, show_deleted: true, no_blacklist: true) %>
         <div class="input">
           <label for="move_favorites">
-            <%= check_box_tag "move_favorites", true, true %>
+            <%= check_box_tag "move_favorites", true, @reason.starts_with?("Inferior") %>
             Move favorites to parent?
           </label>
           <label for="copy_tags">

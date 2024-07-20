@@ -1,0 +1,70 @@
+<div id="c-admin-destroyed-posts">
+  <div id="a-index">
+    <%= form_search(path: admin_destroyed_posts_path) do |f| %>
+      <%= f.user :destroyer %>
+      <%= f.input :destroyer_ip_addr, label: "Destroyer IP Address" %>
+      <%= f.user :uploader %>
+      <%= f.input :uploader_ip_addr, label: "Uploader IP Address" %>
+      <%= f.input :post_id, label: "Post ID" %>
+      <%= f.input :md5 %>
+    <% end %>
+
+    <table class="striped">
+      <thead>
+      <tr>
+        <th width="4%">ID</th>
+        <th width="12%">Destroyed At</th>
+        <th width="12%">Destroyer</th>
+        <th width="12%">Uploader</th>
+        <th width="20%">MD5</th>
+        <th>Reason</th>
+        <% if CurrentUser.user.is_bd_staff? %>
+          <th width="10%"></th>
+        <% end %>
+      </tr>
+      </thead>
+      <tbody>
+      <% @destroyed_posts.each do |destroyed_post| %>
+        <tr data-notify="<%= destroyed_post.notify %>">
+          <td><%= destroyed_post.post_id %></td>
+          <td><%= compact_time(destroyed_post.created_at) %></td>
+          <td>
+            <%= link_to_user(destroyed_post.destroyer) %><br>
+            <%= link_to_ip(destroyed_post.destroyer_ip_addr) %>
+          </td>
+          <td>
+            <% if destroyed_post.uploader_id.present? %>
+              <%= link_to_user(destroyed_post.uploader) %>
+            <% end %><br>
+            <% if destroyed_post.uploader_ip_addr.present? %>
+              <%= link_to_ip(destroyed_post.uploader_ip_addr) %>
+            <% end %>
+          </td>
+          <td>
+            <%= destroyed_post.md5 %>
+          </td>
+          <td>
+            <%= destroyed_post.reason %>
+          </td>
+          <% if CurrentUser.user.is_bd_staff? %>
+            <td>
+              <% if destroyed_post.notify %>
+                <%= link_to("Disable Notifications", admin_destroyed_post_path(id: destroyed_post.post_id, destroyed_post: { notify: "false" }), method: :put) %>
+              <% else %>
+                <%= link_to("Enable Notifications", admin_destroyed_post_path(id: destroyed_post.post_id, destroyed_post: { notify: "true" }), method: :put) %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <% content_for(:page_title) do %>
+      Destroyed Posts
+    <% end %>
+
+    <%= numbered_paginator(@destroyed_posts) %>
+
+  </div>
+</div>
