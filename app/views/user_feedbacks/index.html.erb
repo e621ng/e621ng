@@ -6,7 +6,6 @@
     <table class="striped">
       <thead>
         <tr>
-          <th width="5%"></th>
           <th width="12%">User</th>
           <th width="12%">Creator</th>
           <th width="12%">When</th>
@@ -17,14 +16,14 @@
       <tbody>
         <% @user_feedbacks.each do |feedback| %>
           <tr class="feedback-category-<%= feedback.category %>">
+            <td><%= link_to_user feedback.user %></td>
+            <td><%= link_to_user feedback.creator %></td>
             <td>
+              <%= compact_time(feedback.created_at) %>
               <% if feedback.is_deleted? %>
                 (deleted)
               <% end %>
             </td>
-            <td><%= link_to_user feedback.user %></td>
-            <td><%= link_to_user feedback.creator %></td>
-            <td><%= compact_time(feedback.created_at) %></td>
             <td>
               <div class="dtext-container">
                 <%= format_text(feedback.body) %>
