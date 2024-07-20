@@ -8,6 +8,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @critic = create(:moderator_user)
       @mod = create(:moderator_user)
+      @admin = create(:admin_user)
     end
 
     context "new action" do
@@ -98,19 +99,51 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       context "by a moderator" do
-        should "allow deleting feedbacks given to other users" do
+        should "allow destroying feedbacks they created" do
+          as(@mod) { @user_feedback = create(:user_feedback, user: @user) }
           assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
             delete_auth user_feedback_path(@user_feedback), @mod
           end
         end
 
-        should "not allow deleting feedbacks given to themselves" do
+        should "now allow destroying feedbacks they did not create" do
+          assert_difference(%w[UserFeedback.count ModAction.count], 0) do
+            delete_auth user_feedback_path(@user_feedback), @mod
+          end
+        end
+
+        should "not allow destroying feedbacks given to themselves" do
           as(@critic) do
             @user_feedback = create(:user_feedback, user: @mod)
           end
 
           assert_no_difference("UserFeedback.count") do
             delete_auth user_feedback_path(@user_feedback), @mod
+          end
+        end
+      end
+
+      context "by an admin" do
+        should "allow destroying feedbacks they created" do
+          as(@admin) { @user_feedback = create(:user_feedback, user: @user) }
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
+            delete_auth user_feedback_path(@user_feedback), @admin
+          end
+        end
+
+        should "allow destroying feedbacks they did not create" do
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
+            delete_auth user_feedback_path(@user_feedback, format: :json), @admin
+          end
+        end
+
+        should "not allow destroying feedbacks given to themselves" do
+          as(@critic) do
+            @user_feedback = create(:user_feedback, user: @admin)
+          end
+
+          assert_no_difference("UserFeedback.count") do
+            delete_auth user_feedback_path(@user_feedback), @admin
           end
         end
       end

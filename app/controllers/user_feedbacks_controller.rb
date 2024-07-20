@@ -11,7 +11,7 @@ class UserFeedbacksController < ApplicationController
 
   def edit
     @user_feedback = UserFeedback.find(params[:id])
-    check_privilege(@user_feedback)
+    check_edit_privilege(@user_feedback)
     respond_with(@user_feedback)
   end
 
@@ -33,7 +33,7 @@ class UserFeedbacksController < ApplicationController
 
   def update
     @user_feedback = UserFeedback.find(params[:id])
-    check_privilege(@user_feedback)
+    check_edit_privilege(@user_feedback)
     params_update = user_feedback_params(:update)
 
     @user_feedback.update(params_update)
@@ -44,7 +44,7 @@ class UserFeedbacksController < ApplicationController
 
   def delete
     @user_feedback = UserFeedback.find(params[:id])
-    check_privilege(@user_feedback)
+    check_delete_privilege(@user_feedback)
     @user_feedback.update(is_deleted: true)
     flash[:notice] = @user_feedback.errors.any? ? @user_feedback.errors.full_messages.join("; ") : "Feedback deleted"
     respond_with(@user_feedback) do |format|
@@ -54,7 +54,7 @@ class UserFeedbacksController < ApplicationController
 
   def undelete
     @user_feedback = UserFeedback.find(params[:id])
-    check_privilege(@user_feedback)
+    check_delete_privilege(@user_feedback)
     @user_feedback.update(is_deleted: false)
     flash[:notice] = @user_feedback.errors.any? ? @user_feedback.errors.full_messages.join("; ") : "Feedback undeleted"
     respond_with(@user_feedback) do |format|
@@ -64,7 +64,7 @@ class UserFeedbacksController < ApplicationController
 
   def destroy
     @user_feedback = UserFeedback.find(params[:id])
-    check_privilege(@user_feedback)
+    check_destroy_privilege(@user_feedback)
     @user_feedback.destroy
     respond_with(@user_feedback) do |format|
       format.html { redirect_back(fallback_location: user_feedbacks_path(search: { user_id: @user_feedback.user_id })) }
@@ -73,8 +73,16 @@ class UserFeedbacksController < ApplicationController
 
   private
 
-  def check_privilege(user_feedback)
+  def check_edit_privilege(user_feedback)
     raise(User::PrivilegeError) unless user_feedback.editable_by?(CurrentUser.user)
+  end
+
+  def check_delete_privilege(user_feedback)
+    raise(User::PrivilegeError) unless user_feedback.deletable_by?(CurrentUser.user)
+  end
+
+  def check_destroy_privilege(user_feedback)
+    raise(User::PrivilegeError) unless user_feedback.destroyable_by?(CurrentUser.user)
   end
 
   def user_feedback_params(context)
