@@ -31,6 +31,26 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         @user.reload
         assert_nil(@user.last_forum_read_at)
       end
+
+      should "have the correct page number" do
+        Danbooru.config.stubs(:records_per_page).returns(2)
+        assert_equal(1, @forum_topic.last_page)
+        as(@user) { @forum_posts = create_list(:forum_post, 3, topic: @forum_topic) }
+        assert_equal(2, @forum_topic.last_page)
+
+        get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
+        assert_select "#forum_post_#{@forum_posts.second.id}"
+        assert_select "#forum_post_#{@forum_posts.third.id}"
+        assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
+
+        as(@mod) { @forum_posts.first.hide! }
+        get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
+        assert_select "#forum_post_#{@forum_posts.second.id}"
+        assert_select "#forum_post_#{@forum_posts.third.id}"
+        assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
+      end
     end
 
     context "index action" do
