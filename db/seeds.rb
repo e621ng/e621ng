@@ -32,6 +32,11 @@ ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") 
   category.can_view = 0
 end
 
+def api_request(path)
+  response = Faraday.get("https://e621.net#{path}", nil, user_agent: "e621ng/seeding")
+  JSON.parse(response.body)
+end
+
 def import_mascots
   api_request("/mascots.json?limit=1").each do |mascot|
     puts mascot["url_path"]
@@ -48,11 +53,18 @@ def import_mascots
   end
 end
 
+def setup_upload_whitelist
+  UploadWhitelist.create do |entry|
+    entry.pattern = "https://static1.e621.net/*"
+  end
+end
+
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"
   begin
     import_mascots
+    setup_upload_whitelist
   rescue StandardError => e
     puts "--------"
     puts "#{e.class}: #{e.message}"
