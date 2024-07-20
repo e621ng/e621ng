@@ -344,7 +344,6 @@ Layout/SpaceAfterComma:
     - 'app/indexes/post_index.rb'
     - 'app/logical/storage_manager.rb'
     - 'app/logical/storage_manager/local.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/presenters/post_presenter.rb'
     - 'app/serializers/post_serializer.rb'
     - 'app/views/admin/danger_zone/index.html.erb'
@@ -403,7 +402,6 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeBlockBraces:
   Exclude:
     - 'app/controllers/posts_controller.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post.rb'
     - 'app/models/tag_relationship.rb'
     - 'app/models/user.rb'
@@ -459,7 +457,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/logical/post_sets/base.rb'
     - 'app/logical/related_tag_calculator.rb'
     - 'app/logical/sources/alternates.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/artist.rb'
     - 'app/models/bulk_update_request.rb'
     - 'app/models/favorite.rb'
@@ -531,7 +528,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/logical/session_creator.rb'
     - 'app/logical/session_loader.rb'
     - 'app/logical/sources/strategies/pixiv_slim.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/logical/user_deletion.rb'
     - 'app/models/ban.rb'
     - 'app/models/bulk_update_request.rb'
@@ -1166,7 +1162,6 @@ Rails/CompactBlank:
   Exclude:
     - 'app/controllers/posts_controller.rb'
     - 'app/logical/bulk_update_request_importer.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post_replacement.rb'
     - 'app/models/tag_alias.rb'
 
@@ -1311,7 +1306,6 @@ Rails/OutputSafety:
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Rails/Pluck:
   Exclude:
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post.rb'
     - 'test/functional/forum_topics_controller_test.rb'
     - 'test/functional/post_events_controller_test.rb'
@@ -2462,7 +2456,6 @@ Style/StringLiterals:
     - 'app/logical/session_loader.rb'
     - 'app/logical/storage_manager.rb'
     - 'app/logical/storage_manager/local.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/logical/upload_service/replacer.rb'
     - 'app/logical/user_deletion.rb'
     - 'app/logical/user_email_change.rb'
@@ -2653,7 +2646,6 @@ Style/SymbolProc:
     - 'app/controllers/posts_controller.rb'
     - 'app/logical/post_sets/base.rb'
     - 'app/logical/post_sets/post.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/artist_url.rb'
     - 'app/models/post.rb'
     - 'app/models/user.rb'
