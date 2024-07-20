@@ -38,11 +38,17 @@
 1. Copy the sample environment file with `cp .env.sample .env`.
 1. Run the following commands:
     ```
-    docker compose run --rm -e SEED_POST_COUNT=100 e621 /app/bin/setup
+    docker compose run --rm e621 /app/bin/setup
     docker compose up
     ```
     After running the commands once only `docker compose up` is needed to bring up the containers.
-1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `e621test` respectively.
+1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `qwerty` respectively.
+1. By default, the site will lack any content. For testing purposes, you can generate some using the following command:
+    ```
+    docker exec -it e621ng-e621-1 /app/bin/populate
+    ```
+    The command can be run multiple times to generate more content.  
+    Environmental variables are available to customize what kind of content is generated.
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
