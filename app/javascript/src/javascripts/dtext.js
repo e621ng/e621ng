@@ -6,6 +6,7 @@ DText.initialze_input = function ($element) {
   const $preview = $(".dtext-formatter-preview", $element);
   const $textarea = $(".dtext-formatter-input", $element);
   const $charcount = $(".dtext-formatter-charcount", $element);
+  const allowColor = $element.attr("data-allow-color") === "true";
 
   // Tab switching
   $(".dtext-formatter-tabs a", $element).on("click", event => {
@@ -13,7 +14,7 @@ DText.initialze_input = function ($element) {
     if ($element.attr("data-editing") == "true") {
       $preview.css("min-height", $textarea.outerHeight());
       $element.attr("data-editing", "false");
-      update_preview($textarea, $preview);
+      update_preview($textarea, $preview, allowColor);
     } else {
       $element.attr("data-editing", "true");
       $preview.attr("loading", "false");
@@ -47,7 +48,7 @@ DText.initialize_formatting_buttons = function (element) {
 };
 
 /** Refreshes the preview field to match the provided input */
-function update_preview (input, preview) {
+function update_preview (input, preview, allowColor = false) {
   const currentText = input.val().trim();
 
   // The input is empty, reset everything
@@ -67,9 +68,9 @@ function update_preview (input, preview) {
   SendQueue.add(() => {
     $.ajax({
       type: "post",
-      url: "/dtext_preview",
+      url: "/dtext_preview.json",
       dataType: "json",
-      data: { body: currentText },
+      data: { body: currentText, allow_color: allowColor },
       success: (response) => {
 
         // The loading was cancelled, since the user toggled back
