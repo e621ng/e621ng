@@ -1,7 +1,4 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
-
-# rubocop:disable Rails/Output, Metrics/BlockLength
 
 # This script populates the database with random data for testing or development purposes.
 # Usage: docker exec -it e621ng-e621-1 /app/bin/populate
@@ -112,15 +109,7 @@ def populate_posts(number, users: [], batch_size: 320)
       puts "  - #{CurrentUser.user.name} : #{post['file']['url']}"
 
       Post.transaction do
-        service = UploadService.new({
-          uploader: CurrentUser.user,
-          uploader_ip_addr: "127.0.0.1",
-          direct_url: post["file"]["url"],
-          tag_string: post["tags"].values.flatten.join(" "),
-          source: post["sources"].join("\n"),
-          description: post["description"],
-          rating: post["rating"],
-        })
+        service = UploadService.new(generate_upload(post))
         @upload = service.start!
       end
 
@@ -137,6 +126,18 @@ def populate_posts(number, users: [], batch_size: 320)
   end
 
   output
+end
+
+def generate_upload(post)
+  {
+    uploader: CurrentUser.user,
+    uploader_ip_addr: "127.0.0.1",
+    direct_url: post["file"]["url"],
+    tag_string: post["tags"].values.flatten.join(" "),
+    source: post["sources"].join("\n"),
+    description: post["description"],
+    rating: post["rating"],
+  }
 end
 
 def fill_avatars(users = [], posts = [])
@@ -257,5 +258,3 @@ fill_avatars(users, posts)
 populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
 populate_forums(FORUMS, users: users)
-
-# rubocop:enable Rails/Output, Metrics/BlockLength
