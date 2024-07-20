@@ -3,12 +3,6 @@
     <h1>User Feedback</h1>
 
     <%= render "search" %>
-
-    <% if CurrentUser.is_moderator? && params.dig(:search, :user_id).present? && params.dig(:search, :deleted).blank? %>
-      <% if UserFeedback.for_user(params.dig(:search, :user_id)).deleted.count > 0 %>
-         <%= link_to("View All »", search: params[:search].permit!.merge(deleted: "included")) %>
-      <% end %>
-    <% end %>
     <table class="striped">
       <thead>
         <tr>
@@ -52,6 +46,12 @@
         <% end %>
       </tbody>
     </table>
+
+    <% if CurrentUser.is_moderator? && params.dig(:search, :user_id).present? && params.dig(:search, :deleted).blank? %>
+      <% if UserFeedback.for_user(params.dig(:search, :user_id)).deleted.count > 0 %>
+        <%= link_to("View All", { search: params[:search].permit!.merge(deleted: "included") }, class: "show-all-user-feedbacks-link button btn-neutral") %>
+      <% end %>
+    <% end %>
 
     <%= numbered_paginator(@user_feedbacks) %>
   </div>
