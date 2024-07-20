@@ -69,7 +69,7 @@ class TagQuery
   end
 
   def self.scan(query)
-    tagstr = query.to_s.unicode_normalize(:nfc).strip
+    tagstr = query.to_s.downcase.unicode_normalize(:nfc).strip
     quote_delimited = []
     tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
       quote_delimited << match
