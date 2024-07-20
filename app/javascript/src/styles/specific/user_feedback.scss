@@ -23,6 +23,10 @@ div#c-user-feedbacks, div#c-moderator-dashboards .activity-container {
     background: $neutral-record-background;
   }
 
+  tr.user-feedback[data-is-deleted="true"] {
+    background: #827428;
+  }
+
   blockquote {
     padding: 0.5em;
   }

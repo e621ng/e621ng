@@ -15,7 +15,7 @@
       </thead>
       <tbody>
         <% @user_feedbacks.each do |feedback| %>
-          <tr class="feedback-category-<%= feedback.category %>">
+          <tr class="user-feedback feedback-category-<%= feedback.category %>" data-is-deleted="<%= feedback.is_deleted? %>">
             <td><%= link_to_user feedback.user %></td>
             <td><%= link_to_user feedback.creator %></td>
             <td>
