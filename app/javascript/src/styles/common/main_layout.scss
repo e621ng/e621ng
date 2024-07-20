@@ -28,10 +28,15 @@ div#page {
     padding: $padding-050;
     text-align: center;
     position: relative;
-    border: 1px solid themed("color-background");
+    border: 0;
+    margin-bottom: 0.5rem;
 
     h1 {
       font-size: $h2-size;
+    }
+    
+    p:last-child {
+      margin-bottom: 0;
     }
   }
 

@@ -2,101 +2,101 @@ import Shortcuts from "./shortcuts";
 
 let Utility = {};
 
-Utility.delay = function(milliseconds) {
+Utility.delay = function (milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
+};
 
-Utility.meta = function(key) {
+Utility.meta = function (key) {
   return $("meta[name=" + key + "]").attr("content");
-}
+};
 
-Utility.test_max_width = function(width) {
+Utility.test_max_width = function (width) {
   if (!window.matchMedia) {
     return false;
   }
-  var mq = window.matchMedia('(max-width: ' + width + 'px)');
+  var mq = window.matchMedia("(max-width: " + width + "px)");
   return mq.matches;
-}
+};
 
 Utility.notice_timeout_id = undefined;
 
-Utility.notice = function(msg, permanent) {
-  $('#notice').addClass("ui-state-highlight").removeClass("ui-state-error").fadeIn("fast").children("span").html(msg);
+Utility.notice = function (msg, permanent) {
+  $("#notice").addClass("ui-state-highlight").removeClass("ui-state-error").fadeIn("fast").children("span").html(msg);
 
   if (Utility.notice_timeout_id !== undefined) {
-    clearTimeout(Utility.notice_timeout_id)
+    clearTimeout(Utility.notice_timeout_id);
   }
   if (!permanent) {
-    Utility.notice_timeout_id = setTimeout(function() {
+    Utility.notice_timeout_id = setTimeout(function () {
       $("#close-notice-link").click();
       Utility.notice_timeout_id = undefined;
     }, 6000);
   }
-}
+};
 
-Utility.error = function(msg) {
-  $('#notice').removeClass("ui-state-highlight").addClass("ui-state-error").fadeIn("fast").children("span").html(msg);
+Utility.error = function (msg) {
+  $("#notice").removeClass("ui-state-highlight").addClass("ui-state-error").fadeIn("fast").children("span").html(msg);
 
   if (Utility.notice_timeout_id !== undefined) {
-    clearTimeout(Utility.notice_timeout_id)
+    clearTimeout(Utility.notice_timeout_id);
   }
-}
+};
 
-Utility.dialog = function(title, html) {
+Utility.dialog = function (title, html) {
   const $dialog = $(html).dialog({
     title: title,
     width: 700,
     modal: true,
-    close: function() {
+    close: function () {
       // Defer removing the dialog to avoid detaching the <form> tag before the
       // form is submitted (which would prevent the submission from going through).
       $(() => $dialog.dialog("destroy"));
     },
     buttons: {
-      "Submit": function() {
+      "Submit": function () {
         $dialog.find("form").submit();
       },
-      "Cancel": function() {
+      "Cancel": function () {
         $dialog.dialog("close");
-      }
-    }
+      },
+    },
   });
 
-  $dialog.find("form").on("submit.danbooru", function() {
+  $dialog.find("form").on("submit.danbooru", function () {
     $dialog.dialog("close");
   });
-}
+};
 
 // TODO: Remove 2024-05-15
 Object.defineProperty(Utility, "disableShortcuts", {
-  get() {
+  get () {
     console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
     return Shortcuts.disabled;
   },
-  set(value) {
+  set (value) {
     console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
-    Shortcuts.disabled = value
-  }
-})
+    Shortcuts.disabled = value;
+  },
+});
 
-Utility.keydown = function(keys, namespace, handler) {
+Utility.keydown = function (keys, namespace, handler) {
   console.log("Utility.keydown is deprecated and will be removed at a later date, use Shortcuts.keydown instead");
-  Shortcuts.keydown(keys, namespace, handler)
+  Shortcuts.keydown(keys, namespace, handler);
 };
 
-Utility.is_subset = function(array, subarray) {
+Utility.is_subset = function (array, subarray) {
   var all = true;
 
-  $.each(subarray, function(i, val) {
+  $.each(subarray, function (i, val) {
     if ($.inArray(val, array) === -1) {
       all = false;
     }
   });
 
   return all;
-}
+};
 
-Utility.intersect = function(a, b) {
+Utility.intersect = function (a, b) {
   a = a.slice(0).sort();
   b = b.slice(0).sort();
   var result = [];
@@ -111,27 +111,27 @@ Utility.intersect = function(a, b) {
     }
   }
   return result;
-}
+};
 
-Utility.regexp_escape = function(string) {
+Utility.regexp_escape = function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
-}
+};
 
-$.fn.selectEnd = function() {
-  return this.each(function() {
+$.fn.selectEnd = function () {
+  return this.each(function () {
     this.focus();
     this.setSelectionRange(this.value.length, this.value.length);
-  })
-}
+  });
+};
 
-$(function() {
-  $(window).on("danbooru:notice", function(event, msg) {
+$(function () {
+  $(window).on("danbooru:notice", function (event, msg) {
     Utility.notice(msg);
-  })
+  });
 
-  $(window).on("danbooru:error", function(event, msg) {
+  $(window).on("danbooru:error", function (event, msg) {
     Utility.error(msg);
-  })
+  });
 });
 
-export default Utility
+export default Utility;
