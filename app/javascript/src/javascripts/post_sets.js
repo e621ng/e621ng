@@ -7,6 +7,11 @@ let PostSet = {};
 PostSet.dialog_setup = false;
 
 PostSet.add_post = function (set_id, post_id) {
+  if (!set_id) {
+    $(window).trigger("danbooru:error", "Error: No set specified");
+    return;
+  }
+
   Post.notice_update("inc");
   SendQueue.add(function () {
     $.ajax({
@@ -26,6 +31,11 @@ PostSet.add_post = function (set_id, post_id) {
 };
 
 PostSet.remove_post = function (set_id, post_id) {
+  if (!set_id) {
+    $(window).trigger("danbooru:error", "Error: No set specified");
+    return;
+  }
+
   Post.notice_update("inc");
   SendQueue.add(function () {
     $.ajax({
