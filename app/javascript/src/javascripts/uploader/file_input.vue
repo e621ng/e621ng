@@ -7,7 +7,7 @@
       </div>
       <label>File:
         <input type="file" ref="post_file" @change="updatePreviewFile"
-          accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
+          accept="image/png,image/apng,image/jpeg,image/gif,image/webp,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webp,.webm"
           :disabled="disableFileUpload"/>
       </label>
       <button @click.prevent="clearFileUpload" v-show="disableURLUpload">Clear</button>
