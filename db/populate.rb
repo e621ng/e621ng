@@ -12,6 +12,7 @@ presets = {
   comments: ENV.fetch("COMMENTS", 0).to_i,
   favorites: ENV.fetch("FAVORITES", 0).to_i,
   forums: ENV.fetch("FORUMS", 0).to_i,
+  postvotes: ENV.fetch("POSTVOTES", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -21,6 +22,7 @@ if presets.values.sum == 0
     comments: 100,
     favorites: 100,
     forums: 100,
+    postvotes: 100,
   }
 end
 
@@ -29,6 +31,7 @@ POSTS     = presets[:posts]
 COMMENTS  = presets[:comments]
 FAVORITES = presets[:favorites]
 FORUMS    = presets[:forums]
+POSTVOTES = presets[:postvotes]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "qwerty")
@@ -247,6 +250,32 @@ def populate_forums(number, users: [])
   end
 end
 
+def populate_post_votes(number, users: [], posts: [])
+  return unless number > 0
+  puts "* Generating votes"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  posts = Post.limit(100).order("random()") if posts.empty?
+
+  number.times do
+    CurrentUser.user = users.sample
+    post = posts.sample
+
+    vote = VoteManager.vote!(
+      user: CurrentUser.user,
+      post: post,
+      score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
+    )
+
+    if vote == :need_unvote
+      puts "    error: #{vote}"
+      next
+    else
+      puts "    vote ##{vote.id} on post ##{post.id}"
+    end
+  end
+end
+
 puts "Populating the Database"
 CurrentUser.user = User.find(1)
 CurrentUser.ip_addr = "127.0.0.1"
@@ -258,3 +287,4 @@ fill_avatars(users, posts)
 populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
 populate_forums(FORUMS, users: users)
+populate_post_votes(POSTVOTES, users: users, posts: posts)
