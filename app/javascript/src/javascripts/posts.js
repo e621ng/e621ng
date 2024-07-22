@@ -488,7 +488,7 @@ Post.resize_video = function (post, target_size) {
   let desired_classes = [];
 
   function original_sources () {
-    target_sources.push({type: "video/webm", url: post?.file?.url});
+    target_sources.push({type: "video/webm; codecs=\"vp9\"", url: post?.file?.url});
     if (typeof post?.sample?.alternates?.original !== "undefined")
       target_sources.push({type: "video/mp4", url: post?.sample?.alternates?.original?.urls[1]});
   }
