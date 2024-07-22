@@ -4,6 +4,7 @@ div#news {
   max-height: 1rem;
   overflow-y: hidden;
   user-select: none;
+  position: relative;
 
   &:hover {
     cursor: pointer;
@@ -18,13 +19,12 @@ div#news {
   }
 
   .closebutton {
-    float: right;
+    position: absolute;
+    right: 0.5rem;
+
     cursor: pointer;
-    margin-right: 10px;
-    font-size: 14pt;
+    font-size: 1.15rem;
     font-weight: bold;
     color: white;
-    vertical-align: center;
-    margin-top: -3px;
   }
 }

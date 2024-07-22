@@ -30,7 +30,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_save :create_lock_post_events
+  after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
@@ -234,7 +234,7 @@ class Post < ApplicationRecord
 
     def regenerate_image_samples!
       file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image)
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
@@ -1133,7 +1133,7 @@ class Post < ApplicationRecord
   end
 
   module DeletionMethods
-    def backup_post_data_destroy
+    def backup_post_data_destroy(reason: "")
       post_data = {
           id: id,
           description: description,
@@ -1157,17 +1157,17 @@ class Post < ApplicationRecord
       DestroyedPost.create!(post_id: id, post_data: post_data, md5: md5,
                             uploader_ip_addr: uploader_ip_addr, uploader_id: uploader_id,
                             destroyer_id: CurrentUser.id, destroyer_ip_addr: CurrentUser.ip_addr,
-                            upload_date: created_at)
+                            upload_date: created_at, reason: reason || "")
     end
 
-    def expunge!
+    def expunge!(reason: "")
       if is_status_locked?
         self.errors.add(:is_status_locked, "; cannot delete post")
         return false
       end
 
       transaction do
-        backup_post_data_destroy
+        backup_post_data_destroy(reason: reason)
       end
 
       transaction do
@@ -1510,7 +1510,7 @@ class Post < ApplicationRecord
   end
 
   module PostEventMethods
-    def create_lock_post_events
+    def create_post_events
       if saved_change_to_is_rating_locked?
         action = is_rating_locked? ? :rating_locked : :rating_unlocked
         PostEvent.add(id, CurrentUser.user, action)
@@ -1526,6 +1526,9 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_locked?
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
         PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_bg_color?
+        PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
       end
     end
   end
