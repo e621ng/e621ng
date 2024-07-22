@@ -27,9 +27,19 @@ class PostReplacementsController < ApplicationController
     if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end
+
     if @post_replacement.approve_immediately.to_s.truthy? && CurrentUser.can_approve_posts?
-      @post_replacement.approve!(penalize_current_uploader: true)
+      if @post_replacement.errors.any?
+        respond_to do |format|
+          format.json do
+            return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+          end
+        end
+      end
+
+      @post_replacement.approve!(penalize_current_uploader: CurrentUser.id != @post.uploader_id)
     end
+
     respond_to do |format|
       format.json do
         return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 if @post_replacement.errors.any?

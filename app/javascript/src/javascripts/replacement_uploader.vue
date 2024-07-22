@@ -19,7 +19,7 @@
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
 
-  <div v-if="canApprove">
+  <div class="input" v-if="canApprove">
     <label class="section-label"><input type="checkbox" id="approve_immediately" v-model="approveImmediately"/>
       Approve immediately
     </label>
