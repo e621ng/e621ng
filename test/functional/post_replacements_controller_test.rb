@@ -67,7 +67,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
             },
             as_pending: false
           }
-          
+
           post_auth post_replacements_path, @regular_user, params: params
           @post.reload
 
@@ -75,7 +75,6 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           assert_not_equal "1e2edf6bdbd971d8c3cc4da0f98f38ab", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
         end
-
       end
 
       context "with a previously destroyed post" do
