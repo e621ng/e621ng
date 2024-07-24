@@ -52,7 +52,7 @@ class ForumPost < ApplicationRecord
 
     def permitted(user)
       q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
-      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) if user.is_moderator?
+      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
       q
     end
 
