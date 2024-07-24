@@ -30,15 +30,15 @@ article.post-preview {
   }
 
   &.post-rating-explicit .post-score-rating {
-    color: $post-rating-explicit-color;
+    color: palette("text-red");
   }
 
   &.post-rating-safe .post-score-rating {
-    color: $post-rating-safe-color;
+    color: palette("text-green");
   }
 
   &.post-rating-questionable .post-score-rating {
-    color: $post-rating-questionable-color;
+    color: palette("text-yellow");
   }
 
   img {

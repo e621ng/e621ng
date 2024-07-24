@@ -9,6 +9,11 @@ $palette: (
   "background-green": #227d2a,
   "background-grey": #60686f,
 
+  "background-red-d5": #{darken(#76312e, 5%)},
+  "background-yellow-d5": #{darken(#827428, 5%)},
+  "background-green-d5": #{darken(#227d2a, 5%)},
+  "background-grey-d5": #{darken(#60686f, 5%)},
+
   "text-white": #ffffff,
   "text-red": #FE6A64,
   "text-yellow": #F5D76E,

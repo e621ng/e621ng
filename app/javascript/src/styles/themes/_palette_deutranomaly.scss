@@ -4,10 +4,15 @@ $palette: (
   "background-green": #794eb1,
   "background-grey": #666664,
 
+  "background-red-d5": #{darken(#bc4c00, 5%)},
+  "background-yellow-d5": #{darken(#4b8099, 5%)},
+  "background-green-d5": #{darken(#794eb1, 5%)},
+  "background-grey-d5": #{darken(#666664, 5%)},
+
   "text-white": #ffffff,
-  "text-red": #ff4c4c,
-  "text-yellow": #b1b1b1,
-  "text-green": #857bff,
+  "text-red": #ff6f1b,
+  "text-yellow": #fdff94,
+  "text-green": #9f98ff,
   "text-grey": #aaaaaa,
 );
 

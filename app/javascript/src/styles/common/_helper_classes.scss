@@ -87,21 +87,21 @@
     }
   }
   &.score-positive {
-    color: themed("color-score-positive");
-    background: themed("color-success");
+    color: palette("text-white");
+    background: palette("background-green");
     &:hover {
-      background: themed("color-success-darken-5");
+      background: palette("background-green-d5");
     }
   }
   &.score-negative {
-    color: themed("color-score-negative");
-    background: themed("color-danger");
+    color: palette("text-white");
+    background: palette("background-red");
     &:hover {
-      background: themed("color-danger-darken-5");
+      background: palette("background-red-d5");
     }
   }
   &.score-neutral {
-    color: themed("color-text-muted");
+    color: palette("text-grey");
     background: themed("color-section");
     &:hover {
       background: themed("color-section-darken-5");
