@@ -28,7 +28,7 @@ class PostReplacementsController < ApplicationController
       flash[:notice] = "Post replacement submitted"
     end
 
-    if @post_replacement.approve_immediately.to_s.truthy? && CurrentUser.can_approve_posts?
+    if CurrentUser.can_approve_posts? && !@post_replacement.upload_as_pending?
       if @post_replacement.errors.any?
         respond_to do |format|
           format.json do
@@ -105,7 +105,7 @@ class PostReplacementsController < ApplicationController
   end
 
   def create_params
-    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :approve_immediately)
+    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending)
   end
 
   def ensure_uploads_enabled

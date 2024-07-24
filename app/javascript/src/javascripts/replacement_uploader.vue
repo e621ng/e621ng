@@ -20,8 +20,8 @@
   </div>
 
   <div class="input" v-if="canApprove">
-    <label class="section-label"><input type="checkbox" id="approve_immediately" v-model="approveImmediately"/>
-      Approve immediately
+    <label class="section-label"><input type="checkbox" id="as_pending" v-model="uploadAsPending"/>
+      Upload as pending
     </label>
   </div>
 
@@ -65,7 +65,7 @@ export default {
       submitting: false,
       submittedReason: undefined,
       canApprove: Utility.meta("current-user-can-approve-posts") === "true",
-      approveImmediately: false,
+      uploadAsPending: false,
     };
   },
   mounted() {
@@ -96,7 +96,7 @@ export default {
       }
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
-      formData.append("post_replacement[approve_immediately]", this.approveImmediately);
+      formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
       this.submittedReason = this.reason;
 
