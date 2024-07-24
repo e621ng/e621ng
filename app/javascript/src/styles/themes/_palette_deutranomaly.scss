@@ -1,0 +1,20 @@
+$palette: (
+  "background-red": #bc4c00,
+  "background-yellow": #4b8099,
+  "background-green": #794eb1,
+  "background-grey": #666664,
+
+  "text-white": #ffffff,
+  "text-red": #ff4c4c,
+  "text-yellow": #b1b1b1,
+  "text-green": #857bff,
+  "text-grey": #aaaaaa,
+);
+
+body[data-th-palette="deut"] {
+
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+
+}

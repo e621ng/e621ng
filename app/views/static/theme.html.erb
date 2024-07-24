@@ -32,6 +32,13 @@
     </select>
   </div>
   <div class="input">
+    <label for="theme_palette">Theme</label>
+    <select id="theme_palette">
+      <option value="default">Default</option>
+      <option value="deut">Protanopia & Deuteranopia</option>
+    </select>
+  </div>
+  <div class="input">
     <label for="theme_navbar">Navigation bar location</label>
     <select id="theme_navbar">
       <option value="top">Top (default)</option>
@@ -60,10 +67,12 @@
       ls.removeItem('test');
       var theme = ls.getItem('theme') || 'hexagon';
       var extra = ls.getItem('theme-extra') || 'hexagon';
+      var palette = ls.getItem('theme-palette') || 'default';
       var nav = ls.getItem('theme-nav') || 'top';
       var emg = ls.getItem('emg') || 'false';
       $('#theme_name').val(theme);
       $('#theme_extra').val(extra);
+      $('#theme_palette').val(palette);
       $('#theme_navbar').val(nav);
       $('#gestures_enable').val(emg);
     } catch(e) {
@@ -78,6 +87,11 @@
       var extra = e.target.value;
       $body.attr('data-th-extra', extra);
       window.localStorage.setItem('theme-extra', extra);
+    });
+    $("#theme_palette").on('change', function(e) {
+      var palette = e.target.value;
+      $body.attr('data-th-palette', palette);
+      window.localStorage.setItem('theme-palette', palette);
     });
     $("#theme_navbar").on('change', function(e) {
       var pos = e.target.value;
