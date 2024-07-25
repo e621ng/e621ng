@@ -64,8 +64,8 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
             post_replacement: {
               replacement_file: file,
               reason: "test replacement",
+              as_pending: false,
             },
-            as_pending: false,
           }
 
           post_auth post_replacements_path, @regular_user, params: params
