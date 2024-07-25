@@ -71,8 +71,8 @@
         <td colspan='2'><%= check_box "takedown", "reason_hidden", checked: @takedown.reason_hidden %>
           <label for="takedown_reason_hidden">Hide Reason?
             (Currently
-            <% if !@takedown.reason_hidden %><span class='greentext'>not hidden</span>
-            <% else %><span class='redtext'>hidden</span>
+            <% if !@takedown.reason_hidden %><span class="text-green text-bold">not hidden</span>
+            <% else %><span class="text-red text-bold">hidden</span>
             <% end %>)
           </label></td>
       </tr>
