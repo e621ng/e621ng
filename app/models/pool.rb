@@ -194,8 +194,9 @@ class Pool < ApplicationRecord
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
     return unless added.size > 0
-    if post_ids.size > 1_000
-      errors.add(:base, "Pools can have up to 1,000 posts each")
+    max = Danbooru.config.pool_post_limit(CurrentUser.user)
+    if post_ids.size > max
+      errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
       false
     else
       true
@@ -211,6 +212,7 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids + [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
       self.skip_sync = false
       post.add_pool!(self)
       post.save
@@ -232,6 +234,7 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids - [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
       self.skip_sync = false
       post.remove_pool!(self)
       post.save
