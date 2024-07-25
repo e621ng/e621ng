@@ -194,7 +194,7 @@ class Pool < ApplicationRecord
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
     return unless added.size > 0
-    max = Danbooru.config.pool_post_limit
+    max = Danbooru.config.pool_post_limit(CurrentUser.user)
     if post_ids.size > max
       errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
       false

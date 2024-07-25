@@ -337,11 +337,11 @@ module Danbooru
       20_000
     end
 
-    def pool_post_limit
+    def pool_post_limit(_user)
       1_000
     end
 
-    def set_post_limit
+    def set_post_limit(_user)
       10_000
     end
 
