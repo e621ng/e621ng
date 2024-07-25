@@ -17,6 +17,10 @@ class StaticController < ApplicationController
     @page = WikiPage.find_by(title: "e621:takedown")
   end
 
+  def avoid_posting
+    @page = WikiPage.find_by(title: "e621:avoid_posting_notice")
+  end
+
   def not_found
     render "static/404", formats: [:html], status: 404
   end

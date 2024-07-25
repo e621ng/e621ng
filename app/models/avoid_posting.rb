@@ -114,6 +114,22 @@ class AvoidPosting < ApplicationRecord
     end
   end
 
+  def header
+    first = artist_name[0]
+    if first =~ /\d/
+      "#"
+    elsif first =~ /[a-z]/
+      first.upcase
+    else
+      "?"
+    end
+  end
+
+  def all_names
+    return artist_name.tr("_", " ") if other_names.blank?
+    "#{artist_name} / #{other_names.join(' / ')}".tr("_", " ")
+  end
+
   include LogMethods
   include ApiMethods
   include ArtistMethods
