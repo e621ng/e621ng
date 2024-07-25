@@ -52,6 +52,8 @@ class ModActionDecorator < ApplicationDecorator
       "Unclaimed ticket ##{vals['ticket_id']}"
 
       ### Artist ###
+    when "artist_delete"
+      "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
       "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"
@@ -128,6 +130,10 @@ class ModActionDecorator < ApplicationDecorator
       end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_undelete"
+      "Undeleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_destroy"
+      "Destroyed #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
     when "created_positive_record"
       "Created positive record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"

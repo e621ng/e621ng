@@ -2,7 +2,7 @@ import Utility from "./utility";
 
 let Cookie = {};
 
-Cookie.put = function(name, value, days) {
+Cookie.put = function (name, value, days) {
   var expires = "";
   if (days !== "session") {
     if (!days) {
@@ -19,12 +19,12 @@ Cookie.put = function(name, value, days) {
     document.cookie = new_val;
     return true;
   } else {
-    Utility.error("You have too many cookies on this site. Consider deleting them all.")
+    Utility.error("You have too many cookies on this site. Consider deleting them all.");
     return false;
   }
-}
+};
 
-Cookie.raw_get = function(name) {
+Cookie.raw_get = function (name) {
   var nameEq = name + "=";
   var ca = document.cookie.split(";");
 
@@ -41,18 +41,18 @@ Cookie.raw_get = function(name) {
   }
 
   return "";
-}
+};
 
-Cookie.get = function(name) {
+Cookie.get = function (name) {
   return this.unescape(this.raw_get(name));
-}
+};
 
-Cookie.remove = function(name) {
+Cookie.remove = function (name) {
   this.put(name, "", -1);
-}
+};
 
-Cookie.unescape = function(val) {
+Cookie.unescape = function (val) {
   return decodeURIComponent(val.replace(/\+/g, " "));
-}
+};
 
-export default Cookie
+export default Cookie;
