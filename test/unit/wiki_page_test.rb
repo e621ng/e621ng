@@ -97,5 +97,43 @@ class WikiPageTest < ActiveSupport::TestCase
         assert_not_equal(@wiki_page.creator_id, version.updater_id)
       end
     end
+
+    context "for a help page" do
+      setup do
+        @janitor = create(:janitor_user)
+        @admin = create(:admin_user)
+        as(@admin) do
+          @help = create(:help_page)
+          @wiki = @help.wiki
+        end
+      end
+
+      should "not allow the title to be changed by janitors" do
+        as(@janitor) do
+          @title = @wiki.title
+          @wiki.update(title: "new_title")
+          assert_equal(["Title is used as a help page and cannot be changed"], @wiki.errors.full_messages)
+          assert_equal(@title, @wiki.reload.title)
+          assert_equal(@title, @help.reload.wiki_page)
+        end
+      end
+
+      should "allow the title to be changed by admins" do
+        as(@admin) do
+          @wiki.update(title: "new_title")
+          assert_equal([], @wiki.errors.full_messages)
+          assert_equal("new_title", @wiki.reload.title)
+          assert_equal("new_title", @help.reload.wiki_page)
+        end
+      end
+
+      should "not allow deleting the wiki page" do
+        as(@admin) do
+          @wiki.destroy
+          assert_equal(["Wiki page is used by a help page"], @wiki.errors.full_messages)
+          assert_not_nil(WikiPage.find_by(id: @wiki.id))
+        end
+      end
+    end
   end
 end
