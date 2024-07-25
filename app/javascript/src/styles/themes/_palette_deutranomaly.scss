@@ -1,0 +1,31 @@
+$palette: (
+  "background-red": #bc4c00,
+  "background-yellow": #4b8099,
+  "background-green": #794eb1,
+  "background-grey": #666664,
+
+  "background-red-d5": #{darken(#bc4c00, 5%)},
+  "background-yellow-d5": #{darken(#4b8099, 5%)},
+  "background-green-d5": #{darken(#794eb1, 5%)},
+  "background-grey-d5": #{darken(#666664, 5%)},
+
+  "text-white": #ffffff,
+  "text-red": #ff6f1b,
+  "text-yellow": #fdff94,
+  "text-green": #9f98ff,
+  "text-grey": #aaaaaa,
+
+  "plain-black": #000,
+  "plain-green": #9e1fff,
+  "plain-yellow": #CC0,
+  "plain-blue": #afb1ff,
+  "plain-red": #bc4c00,
+);
+
+body[data-th-palette="deut"] {
+
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+
+}

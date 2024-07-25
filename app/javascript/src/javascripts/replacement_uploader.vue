@@ -25,7 +25,7 @@
     </label>
   </div>
 
-  <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
+  <div class="background-red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
 
