@@ -8,6 +8,8 @@ services:
     user: ${DOCKER_USER:-root}
     environment:
       RAILS_ENV: development
+      SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
+      SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
     volumes:
       - .:/app
       - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb

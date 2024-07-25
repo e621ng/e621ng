@@ -16,11 +16,7 @@
     <% end %>
     <%= subnav_link_to "History", artist_versions_path(search: { artist_id: @artist.id }) %>
     <% if @artist.deletable_by?(CurrentUser.user) %>
-      <% if @artist.is_active? %>
-        <%= subnav_link_to "Delete", artist_path(@artist), method: :delete, data: { confirm: "Are you sure you want to delete this artist?" } %>
-      <% else %>
-        <%= subnav_link_to "Undelete", "#", id: "undelete-artist-link", data: { aid: @artist.id } %>
-      <% end %>
+      <%= subnav_link_to "Delete", artist_path(@artist), method: :delete, data: { confirm: "Are you sure you want to delete this artist? This cannot be undone." } %>
     <% end %>
   <% end %>
 <% end %>
