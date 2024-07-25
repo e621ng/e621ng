@@ -757,9 +757,12 @@ Post.update = function (post_id, params) {
         Post.notice_update("dec");
         Post.update_data(data);
       },
-      error: function () {
+      error: function (data) {
         Post.notice_update("dec");
-        $(window).trigger("danbooru:error", "There was an error updating <a href=\"/posts/" + post_id + "\">post #" + post_id + "</a>");
+        const message = $
+          .map(data.responseJSON.errors, function (msg) { return msg; })
+          .join("; ");
+        $(window).trigger("danbooru:error", `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${message}`);
       },
     });
   });
