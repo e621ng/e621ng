@@ -23,11 +23,11 @@ $form-submit-button-background: #eee;
 $page-header-sign-in-link-color: #e00;
 
 // Post previews
-$preview-has-children-color: #0F0;
-$preview-has-parent-color: #CC0;
-$preview-deleted-color: #000;
-$preview-pending-color: #00F;
-$preview-flagged-color: #F00;
+$preview-has-children-color: palette("plain-green");
+$preview-has-parent-color: palette("plain-yellow");
+$preview-deleted-color: palette("plain-black");
+$preview-pending-color: palette("plain-blue");
+$preview-flagged-color: palette("plain-red");
 
 // Autocomplete
 $autocomplete-border: #C5C5C5;
