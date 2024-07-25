@@ -371,11 +371,16 @@ div#c-posts {
     }
 
     .pool-name, .search-name, .set-name {
-      word-wrap: break-word;
       flex-grow: 2;
       text-align: center;
-      max-width: 65%;
+      max-width: 80%;
       padding: 0 1rem;
+
+      // Prevent the contents from overflowing
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 0;
     }
 
     textarea {

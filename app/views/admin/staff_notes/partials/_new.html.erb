@@ -1,6 +1,6 @@
 <%= error_messages_for :staff_note %>
 
 <%= custom_form_for(staff_note, url: user_staff_notes_path(user_id: user.id), method: :post) do |f| %>
-  <%= f.input :body, as: :dtext, label: false %>
+  <%= f.input :body, as: :dtext, label: false, allow_color: true %>
   <%= f.button :submit, "Submit" %>
 <% end %>

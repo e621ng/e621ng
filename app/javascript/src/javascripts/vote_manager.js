@@ -1,76 +1,76 @@
-import Utility from './utility';
+import Utility from "./utility";
 
 class VoteManager {
-  constructor(itemType) {
+  constructor (itemType) {
     this._type = itemType;
     this.allSelected = false;
     this.init();
   }
 
-  init() {
+  init () {
     const self = this;
     self.lastSelected = 0;
-    $("#votes").on('click', 'tbody tr', function (evt) {
+    $("#votes").on("click", "tbody tr", function (evt) {
       if ($(evt.target).is("a")) return;
       evt.preventDefault();
       if (evt.shiftKey) {
         self.toggleRowsBetween([self.lastSelected, this.rowIndex]);
       }
-      $(this).toggleClass('selected');
+      $(this).toggleClass("selected");
       self.lastSelected = this.rowIndex;
     });
-    $("#select-all-votes").on('click', () => self.selectAll());
-    $("#lock-votes").on('click', () => self.lockVotes());
-    $("#delete-votes").on('click', () => self.deleteVotes());
+    $("#select-all-votes").on("click", () => self.selectAll());
+    $("#lock-votes").on("click", () => self.lockVotes());
+    $("#delete-votes").on("click", () => self.deleteVotes());
   }
 
-  selectAll() {
+  selectAll () {
     this.allSelected = !this.allSelected;
-    if(this.allSelected)
-      $('#votes').find('tr').addClass('selected');
+    if (this.allSelected)
+      $("#votes").find("tr").addClass("selected");
     else
-      $('#votes').find('tr').removeClass('selected');
+      $("#votes").find("tr").removeClass("selected");
   }
 
-  toggleRowsBetween(indices) {
+  toggleRowsBetween (indices) {
     this.lastSelected = indices[1];
-    let rows = $('#votes').find('tr');
+    let rows = $("#votes").find("tr");
     indices = indices.sort();
     rows = rows.slice(indices[0], indices[1]);
-    rows.toggleClass('selected');
+    rows.toggleClass("selected");
   }
 
-  selectedVotes() {
+  selectedVotes () {
     return $("#votes>tbody>tr.selected").map(function () {
-      return $(this).attr('id').substr(1);
+      return $(this).attr("id").substr(1);
     }).get();
   }
 
-  lockVotes() {
+  lockVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
     $.ajax({
       url: `/${this._type}_votes/lock.json`,
       method: "post",
       data: {
-        ids: votes.join(',')
-      }
+        ids: votes.join(","),
+      },
     }).done(() => {
       Utility.notice(`${this._type} votes locked.`);
     });
   }
 
-  deleteVotes() {
+  deleteVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
     $.ajax({
       url: `/${this._type}_votes/delete.json`,
       method: "post",
       data: {
-        ids: votes.join(',')
-      }
+        ids: votes.join(","),
+      },
     }).done(() => {
-      Utility.notice(`${this._type} votes deleted.`)
+      Utility.notice(`${this._type} votes deleted.`);
     });
   }
 }

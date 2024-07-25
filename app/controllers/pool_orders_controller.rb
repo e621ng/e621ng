@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PoolOrdersController < ApplicationController
-  respond_to :html, :json, :js
+  respond_to :html, :json
   before_action :member_only
 
   def edit

@@ -9,10 +9,10 @@ require "tempfile"
 
 admin = User.find_or_create_by!(name: "admin") do |user|
   user.created_at = 2.weeks.ago
-  user.password = "e621test"
-  user.password_confirmation = "e621test"
+  user.password = "qwerty"
+  user.password_confirmation = "qwerty"
   user.password_hash = ""
-  user.email = "admin@e621.net"
+  user.email = "admin@e621.local"
   user.can_upload_free = true
   user.can_approve_posts = true
   user.level = User::Levels::ADMIN
@@ -22,7 +22,7 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_hash = ""
-  user.email = "system@e621.net"
+  user.email = "system@e621.local"
   user.can_upload_free = true
   user.can_approve_posts = true
   user.level = User::Levels::JANITOR
@@ -37,33 +37,8 @@ def api_request(path)
   JSON.parse(response.body)
 end
 
-def import_posts
-  resources = YAML.load_file Rails.root.join("db/seeds.yml")
-  json = api_request("/posts.json?limit=#{ENV.fetch('SEED_POST_COUNT', 100)}&tags=id:#{resources['post_ids'].join(',')}")
-
-  json["posts"].each do |post|
-    puts post["file"]["url"]
-
-    post["tags"].each do |category, tags|
-      Tag.find_or_create_by_name_list(tags.map { |tag| "#{category}:#{tag}" })
-    end
-
-    service = UploadService.new({
-      uploader: CurrentUser.user,
-      uploader_ip_addr: CurrentUser.ip_addr,
-      direct_url: post["file"]["url"],
-      tag_string: post["tags"].values.flatten.join(" "),
-      source: post["sources"].join("\n"),
-      description: post["description"],
-      rating: post["rating"],
-    })
-
-    service.start!
-  end
-end
-
 def import_mascots
-  api_request("/mascots.json").each do |mascot|
+  api_request("/mascots.json?limit=1").each do |mascot|
     puts mascot["url_path"]
     Mascot.create!(
       creator: CurrentUser.user,
@@ -78,12 +53,18 @@ def import_mascots
   end
 end
 
+def setup_upload_whitelist
+  UploadWhitelist.create do |entry|
+    entry.pattern = "https://static1.e621.net/*"
+  end
+end
+
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"
   begin
-    import_posts
     import_mascots
+    setup_upload_whitelist
   rescue StandardError => e
     puts "--------"
     puts "#{e.class}: #{e.message}"
