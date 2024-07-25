@@ -56,6 +56,7 @@ group :development do
   gem "rubocop-rails", require: false
   gem "ruby-lsp"
   gem "ruby-lsp-rails"
+  gem 'faker', require: false
 end
 
 group :test do
