@@ -195,18 +195,16 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(name, @avoid_posting.reload.artist_name)
       end
 
-      should "not allow deleting" do
-        @janitor = create(:janitor_user)
-        delete_auth artist_path(@artist), @janitor
-
-        assert_equal(true, @artist.reload.is_active)
+      should "allow destroying" do
+        assert_difference("Artist.count AvoidPosting.count", -1) do
+          delete_auth artist_path(@artist), @bd_user
+        end
       end
 
-      should "allow undeleting" do
-        @janitor = create(:janitor_user)
-        put_auth artist_path(@artist), @janitor, params: { artist: { is_active: true } }
-
-        assert_equal(true, @artist.reload.is_active)
+      should "not allow destroying for non-bd staff users" do
+        assert_no_difference("Artist.count") do
+          delete_auth artist_path(@artist), @admin
+        end
       end
 
       should "not allow editing protected properties" do

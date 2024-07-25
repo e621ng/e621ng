@@ -7,8 +7,8 @@ class Artist < ApplicationRecord
   array_attribute :other_names
 
   belongs_to_creator
-  before_validation :normalize_name
-  before_validation :normalize_other_names
+  before_validation :normalize_name, unless: :destroyed?
+  before_validation :normalize_other_names, unless: :destroyed?
   before_validation :validate_protected_properties_not_changed
   before_validation :validate_dnp_rename_not_conflicting, if: :will_save_change_to_name?
   validate :validate_user_can_edit
