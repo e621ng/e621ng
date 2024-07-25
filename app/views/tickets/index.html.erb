@@ -33,7 +33,7 @@
               </td>
               <td>
               <% if ticket.claimant.nil? %>
-                <span class="redtext">Unclaimed</span>
+                <span class="text-error">Unclaimed</span>
               <% else %>
                 <%= link_to_user ticket.claimant %>
               <% end %>

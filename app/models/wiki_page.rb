@@ -19,6 +19,7 @@ class WikiPage < ApplicationRecord
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   before_save :log_changes
+  after_save :update_help_page, if: :saved_change_to_title?
 
   attr_accessor :skip_secondary_validations, :edit_reason
   array_attribute :other_names
@@ -27,13 +28,7 @@ class WikiPage < ApplicationRecord
   has_one :tag, foreign_key: "name", primary_key: "title"
   has_one :artist, foreign_key: "name", primary_key: "title"
   has_many :versions, -> { order("wiki_page_versions.id ASC") }, class_name: "WikiPageVersion", dependent: :destroy
-
-  def validate_not_used_as_help_page
-    if HelpPage.find_by(wiki_page: title).present?
-      errors.add(:wiki_page, "is used by a help page")
-      throw :abort
-    end
-  end
+  has_one :help_page, foreign_key: "wiki_page", primary_key: "title"
 
   def log_destroy
     ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})
@@ -127,8 +122,22 @@ class WikiPage < ApplicationRecord
     end
   end
 
+  module HelpPageMethods
+    def validate_not_used_as_help_page
+      if help_page.present?
+        errors.add(:wiki_page, "is used by a help page")
+        throw :abort
+      end
+    end
+
+    def update_help_page
+      HelpPage.find_by(wiki_page: title_before_last_save)&.update(wiki_page: title)
+    end
+  end
+
   extend SearchMethods
   include ApiMethods
+  include HelpPageMethods
 
   def user_not_limited
     allowed = CurrentUser.can_wiki_edit_with_reason
@@ -147,7 +156,12 @@ class WikiPage < ApplicationRecord
   end
 
   def validate_rename
-    return if !will_save_change_to_title? || skip_secondary_validations
+    return unless will_save_change_to_title?
+    if !CurrentUser.user.is_admin? && HelpPage.find_by(wiki_page: title_was).present?
+      errors.add(:title, "is used as a help page and cannot be changed")
+      return
+    end
+    return if skip_secondary_validations
 
     tag_was = Tag.find_by_name(Tag.normalize_name(title_was))
     if tag_was.present? && tag_was.post_count > 0

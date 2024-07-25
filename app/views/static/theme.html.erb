@@ -1,10 +1,10 @@
 <p>Theme settings are saved using cookies and javascript. This means that they will not persist across private browsing
   sessions, or work inside incognito mode on mobile devices.</p>
 
-<h3 class="redtext" id="no_save_warning" style="display:none;">Your device does not allow the site to save theme
+<h3 class="text-error" id="no_save_warning" style="display:none;">Your device does not allow the site to save theme
   settings.</h3>
 <noscript>
-  <h3 class="redtext" id="no_save_warning">Your device does not allow the site to save theme settings.</h3>
+  <h3 class="text-error" id="no_save_warning">Your device does not allow the site to save theme settings.</h3>
 </noscript>
 
 <div class="simple_form">
@@ -29,6 +29,14 @@
       <option value="spring">Spring</option>
       <option value="stars">Stars</option>
       <option value="winter">Eternal Winter</option>
+    </select>
+  </div>
+  <div class="input">
+    <label for="theme_palette">Theme</label>
+    <select id="theme_palette">
+      <option value="default">Default</option>
+      <option value="deut">Protanopia & Deuteranopia</option>
+      <option value="trit">Tritanopia</option>
     </select>
   </div>
   <div class="input">
@@ -60,10 +68,12 @@
       ls.removeItem('test');
       var theme = ls.getItem('theme') || 'hexagon';
       var extra = ls.getItem('theme-extra') || 'hexagon';
+      var palette = ls.getItem('theme-palette') || 'default';
       var nav = ls.getItem('theme-nav') || 'top';
       var emg = ls.getItem('emg') || 'false';
       $('#theme_name').val(theme);
       $('#theme_extra').val(extra);
+      $('#theme_palette').val(palette);
       $('#theme_navbar').val(nav);
       $('#gestures_enable').val(emg);
     } catch(e) {
@@ -78,6 +88,11 @@
       var extra = e.target.value;
       $body.attr('data-th-extra', extra);
       window.localStorage.setItem('theme-extra', extra);
+    });
+    $("#theme_palette").on('change', function(e) {
+      var palette = e.target.value;
+      $body.attr('data-th-palette', palette);
+      window.localStorage.setItem('theme-palette', palette);
     });
     $("#theme_navbar").on('change', function(e) {
       var pos = e.target.value;
