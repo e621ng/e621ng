@@ -341,7 +341,7 @@ module Danbooru
       1_000
     end
 
-    def set_post_limit(_user)
+    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
       10_000
     end
 
