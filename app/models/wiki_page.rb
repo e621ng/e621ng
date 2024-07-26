@@ -10,7 +10,7 @@ class WikiPage < ApplicationRecord
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :title, tag_name: true, if: :title_changed?
-  validates :body, presence: { :unless => -> { is_deleted? || other_names.present? } }
+  validates :body, presence: { unless: -> { is_deleted? || other_names.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :user_not_limited
@@ -93,6 +93,10 @@ class WikiPage < ApplicationRecord
 
       if params[:hide_deleted].to_s.truthy?
         q = q.where("is_deleted = false")
+      end
+
+      if params[:parent].present?
+        q = q.where("parent LIKE ? ESCAPE E'\\\\'", params[:parent].downcase.strip.tr(" ", "_").to_escaped_for_sql_like)
       end
 
       if params[:other_names_present].to_s.truthy?
