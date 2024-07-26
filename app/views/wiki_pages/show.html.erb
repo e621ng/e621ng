@@ -1,3 +1,4 @@
+<% wiki_content = @wiki_redirect.nil? ? @wiki_page : @wiki_redirect %>
 <div id="c-wiki-pages">
   <div id="a-show">
     <%= render "sidebar" %>
@@ -5,38 +6,41 @@
     <section id="content">
       <h1 id="wiki-page-title">
 
-        <%= link_to @wiki_page.pretty_title_with_category, posts_path(:tags => @wiki_page.title), :class => "tag-type-#{@wiki_page.category_id}" %>
+        <%= link_to wiki_content.pretty_title_with_category, posts_path(:tags => wiki_content.title), :class => "tag-type-#{wiki_content.category_id}" %>
 
-        <% if @wiki_page.is_locked? %>
+        <% if wiki_content.is_locked? %>
           (locked)
         <% end %>
 
-        <% if @wiki_page.is_deleted? %>
+        <% if wiki_content.is_deleted? %>
           (deleted)
         <% end %>
       </h1>
+      <% if !@wiki_redirect.nil? %>
+      <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> <%= @wiki_page.title %></div>
+      <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
-        <% if @wiki_page.visible? %>
-          <%= format_text(@wiki_page.body, allow_color: true, max_thumbs: 75) %>
+        <% if wiki_content.visible? %>
+          <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>
 
-          <% if @wiki_page.artist %>
-            <p><%= link_to "View artist", @wiki_page.artist %></p>
+          <% if wiki_content.artist %>
+            <p><%= link_to "View artist", wiki_content.artist %></p>
           <% end %>
 
-          <%= wiki_page_alias_and_implication_list(@wiki_page) %>
+          <%= wiki_page_alias_and_implication_list(wiki_content) %>
         <% else %>
           <p>This artist has requested removal of their information.</p>
         <% end %>
       </div>
 
-        <%= wiki_page_post_previews(@wiki_page) %>
+        <%= wiki_page_post_previews(wiki_content) %>
     </section>
   </div>
 </div>
 
 <% content_for(:page_title) do %>
-  Wiki - <%= @wiki_page.pretty_title %>
+  Wiki - <%= wiki_content.pretty_title %>
 <% end %>
 
 <%= render "secondary_links" %>

@@ -5,6 +5,7 @@ class WikiPage < ApplicationRecord
 
   before_validation :normalize_title
   before_validation :normalize_other_names
+  before_validation :normalize_parent
   after_save :create_version
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
@@ -176,6 +177,7 @@ class WikiPage < ApplicationRecord
 
     self.title = version.title
     self.body = version.body
+    self.parent = version.parent
     self.other_names = version.other_names
   end
 
@@ -190,6 +192,10 @@ class WikiPage < ApplicationRecord
 
   def normalize_other_names
     self.other_names = other_names.map { |name| WikiPage.normalize_other_name(name) }.uniq
+  end
+
+  def normalize_parent
+    self.parent = nil if parent == ""
   end
 
   def self.normalize_other_name(name)
@@ -214,19 +220,20 @@ class WikiPage < ApplicationRecord
   end
 
   def wiki_page_changed?
-    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names?
+    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names? || saved_change_to_parent?
   end
 
   def create_new_version
     versions.create(
-      :updater_id => CurrentUser.user.id,
-      :updater_ip_addr => CurrentUser.ip_addr,
-      :title => title,
-      :body => body,
-      :is_locked => is_locked,
-      :is_deleted => is_deleted,
-      :other_names => other_names,
-      reason: edit_reason
+      updater_id: CurrentUser.user.id,
+      updater_ip_addr: CurrentUser.ip_addr,
+      title: title,
+      body: body,
+      is_locked: is_locked,
+      is_deleted: is_deleted,
+      other_names: other_names,
+      parent: parent,
+      reason: edit_reason,
     )
   end
 
