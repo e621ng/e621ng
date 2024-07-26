@@ -19,6 +19,13 @@
         <%= render "posts/partials/show/options", :post => @post %>
       </section>
 
+      <% if CurrentUser.can_approve_posts? %>
+        <section id="post-options">
+          <h1>Actions</h1>
+        <%= render "posts/partials/show/options_staff", :post => @post %>
+        </section>
+      <% end %>
+
       <% if CurrentUser.is_member? %>
         <section id="post-history">
           <h1>History</h1>
