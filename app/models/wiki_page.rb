@@ -10,7 +10,7 @@ class WikiPage < ApplicationRecord
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :title, tag_name: true, if: :title_changed?
-  validates :body, presence: { unless: -> { is_deleted? || other_names.present? } }
+  validates :body, presence: { unless: -> { is_deleted? || other_names.present? || parent.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :user_not_limited
