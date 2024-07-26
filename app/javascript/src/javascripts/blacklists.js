@@ -238,7 +238,7 @@ Blacklist.postMatch = function (post, entry) {
     uploader_id: $post.data("uploader-id"),
     user: $post.data("uploader").toString().toLowerCase(),
     flags: $post.data("flags"),
-    is_fav: $post.data("is-favorited"),
+    is_favorited: $post.data("is-favorited"),
   };
   return Blacklist.postMatchObject(post_data, entry);
 };
@@ -272,7 +272,7 @@ Blacklist.postMatchObject = function (post, entry) {
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
-  if (post.is_fav)
+  if (post.is_favorited)
     tags.push("fav:me");
   $.each(post.flags.match(/\S+/g) || [], function (i, v) {
     tags.push(`status:${v}`);
