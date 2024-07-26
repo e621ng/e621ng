@@ -6,7 +6,7 @@
       <%= error_messages_for "pool" %>
 
       <%= f.input :name, :as => :string, :input_html => { :value => @pool.pretty_name } %>
-      <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size %>
+      <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size, allow_color: false %>
       <%= f.input :post_ids_string, as: :text, label: "Posts" %>
       <%= f.input :category, :collection => ["series", "collection"], :include_blank => false %>
       <%= f.input :is_active %>

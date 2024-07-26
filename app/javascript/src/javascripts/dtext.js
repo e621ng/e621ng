@@ -1,19 +1,20 @@
-import { SendQueue } from './send_queue';
+import { SendQueue } from "./send_queue";
 
 const DText = {};
 
-DText.initialze_input = function($element) {
+DText.initialze_input = function ($element) {
   const $preview = $(".dtext-formatter-preview", $element);
   const $textarea = $(".dtext-formatter-input", $element);
   const $charcount = $(".dtext-formatter-charcount", $element);
+  const allowColor = $element.attr("data-allow-color") === "true";
 
   // Tab switching
   $(".dtext-formatter-tabs a", $element).on("click", event => {
     event.preventDefault();
-    if($element.attr("data-editing") == "true") {
+    if ($element.attr("data-editing") == "true") {
       $preview.css("min-height", $textarea.outerHeight());
       $element.attr("data-editing", "false");
-      update_preview($textarea, $preview);
+      update_preview($textarea, $preview, allowColor);
     } else {
       $element.attr("data-editing", "true");
       $preview.attr("loading", "false");
@@ -30,12 +31,12 @@ DText.initialze_input = function($element) {
 
   DText.initialize_formatting_buttons($element);
   $element.attr("data-initialized", "true");
-}
+};
 
-DText.initialize_formatting_buttons = function(element) {
+DText.initialize_formatting_buttons = function (element) {
   const $textarea = $(".dtext-formatter-input", element);
-  
-  for(const button of $(".dtext-formatter-buttons a", element)) {
+
+  for (const button of $(".dtext-formatter-buttons a", element)) {
     const $button = $(button);
     const content = $button.attr("data-content");
     $button.off("click");
@@ -44,39 +45,39 @@ DText.initialize_formatting_buttons = function(element) {
       DText.process_formatting(content, $textarea);
     });
   }
-}
+};
 
 /** Refreshes the preview field to match the provided input */
-function update_preview(input, preview) {
+function update_preview (input, preview, allowColor = false) {
   const currentText = input.val().trim();
-  
+
   // The input is empty, reset everything
-  if(!currentText) {
+  if (!currentText) {
     preview.text("");
     input.removeData("cache");
     return;
   }
-  
+
   // The input is identical to the previous lookup
-  if(input.data("cache") == currentText) return;
+  if (input.data("cache") == currentText) return;
   input.data("cache", currentText);
-  
+
   preview
     .html("")
     .attr("loading", "true");
   SendQueue.add(() => {
     $.ajax({
       type: "post",
-      url: "/dtext_preview",
+      url: "/dtext_preview.json",
       dataType: "json",
-      data: { body: currentText },
+      data: { body: currentText, allow_color: allowColor },
       success: (response) => {
-      
+
         // The loading was cancelled, since the user toggled back
         // to the editing tab and potentially changed the input
-        if(preview.attr("loading") !== "true" || input.data("cache") !== currentText)
+        if (preview.attr("loading") !== "true" || input.data("cache") !== currentText)
           return;
-        
+
         preview
           .attr("loading", "false")
           .html(response.html);
@@ -87,7 +88,7 @@ function update_preview(input, preview) {
           .attr("loading", "false")
           .text("Unable to fetch DText preview.");
         input.removeData("cache");
-      }
+      },
     });
   });
 }
@@ -103,12 +104,12 @@ DText.process_formatting = function (content, input) {
     start: input.prop("selectionStart"),
     end: input.prop("selectionEnd"),
   };
-  
+
   const offset = {
     start: content.indexOf("%selection%"),
     end: content.length - (content.indexOf("%selection%") + 11),
   };
-  
+
   content = content.replace(/%selection%/g, currentText.substring(position.start, position.end));
   input.trigger("focus");
 
@@ -116,18 +117,18 @@ DText.process_formatting = function (content, input) {
   // Check https://bugzilla.mozilla.org/show_bug.cgi?id=1220696 for more information
   if (!document.execCommand("insertText", false, content))
     input.val(currentText.substring(0, position.start) + content + currentText.substring(position.end, currentText.length));
-  
+
   input.prop("selectionStart", position.start + offset.start);
   input.prop("selectionEnd", position.start + content.length - offset.end);
   input.trigger("focus");
-}
+};
 
 /** Add formatters to all appropriate inputs */
-DText.initialize_all_inputs = function() {
+DText.initialize_all_inputs = function () {
   $(".dtext-formatter[data-initialized='false']").each((index, element) => {
     DText.initialze_input($(element));
   });
-}
+};
 
 $(function () {
   DText.initialize_all_inputs();

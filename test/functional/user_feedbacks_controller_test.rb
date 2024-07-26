@@ -8,6 +8,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @critic = create(:moderator_user)
       @mod = create(:moderator_user)
+      @admin = create(:admin_user)
     end
 
     context "new action" do
@@ -52,7 +53,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "create a new feedback" do
-        assert_difference([-> { UserFeedback.count }, -> { Dmail.count }], 1) do
+        assert_difference(%w[UserFeedback.count Dmail.count ModAction.count], 1) do
           post_auth user_feedbacks_path, @critic, params: { user_feedback: { category: "positive", user_name: @user.name, body: "xxx" } }
         end
       end
@@ -64,7 +65,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
           @feedback = create(:user_feedback, user: @user, category: "negative")
         end
 
-        assert_no_difference(-> { Dmail.count }) do
+        assert_difference({ "Dmail.count" => 0, "ModAction.count" => 1 }) do
           put_auth user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { category: "positive" } }
         end
 
@@ -77,7 +78,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
         as(@critic) do
           @feedback = create(:user_feedback, user: @user, category: "negative")
         end
-        assert_difference(-> { Dmail.count }, 1) do
+        assert_difference(%w[Dmail.count ModAction.count], 1) do
           put_auth user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { body: "changed", send_update_dmail: true } }
         end
         assert_match(/updated a/, Dmail.last.body)
@@ -92,15 +93,79 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "delete a feedback" do
-        assert_difference(-> { UserFeedback.count }, -1) do
+        assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
           delete_auth user_feedback_path(@user_feedback), @critic
         end
       end
 
       context "by a moderator" do
-        should "allow deleting feedbacks given to other users" do
-          assert_difference(-> { UserFeedback.count }, -1) do
+        should "allow destroying feedbacks they created" do
+          as(@mod) { @user_feedback = create(:user_feedback, user: @user) }
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
             delete_auth user_feedback_path(@user_feedback), @mod
+          end
+        end
+
+        should "now allow destroying feedbacks they did not create" do
+          assert_difference(%w[UserFeedback.count ModAction.count], 0) do
+            delete_auth user_feedback_path(@user_feedback), @mod
+          end
+        end
+
+        should "not allow destroying feedbacks given to themselves" do
+          as(@critic) do
+            @user_feedback = create(:user_feedback, user: @mod)
+          end
+
+          assert_no_difference("UserFeedback.count") do
+            delete_auth user_feedback_path(@user_feedback), @mod
+          end
+        end
+      end
+
+      context "by an admin" do
+        should "allow destroying feedbacks they created" do
+          as(@admin) { @user_feedback = create(:user_feedback, user: @user) }
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
+            delete_auth user_feedback_path(@user_feedback), @admin
+          end
+        end
+
+        should "allow destroying feedbacks they did not create" do
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
+            delete_auth user_feedback_path(@user_feedback, format: :json), @admin
+          end
+        end
+
+        should "not allow destroying feedbacks given to themselves" do
+          as(@critic) do
+            @user_feedback = create(:user_feedback, user: @admin)
+          end
+
+          assert_no_difference("UserFeedback.count") do
+            delete_auth user_feedback_path(@user_feedback), @admin
+          end
+        end
+      end
+    end
+
+    context "delete action" do
+      setup do
+        as(@critic) do
+          @user_feedback = create(:user_feedback, user: @user)
+        end
+      end
+
+      should "delete a feedback" do
+        assert_difference("ModAction.count", 1) do
+          put_auth delete_user_feedback_path(@user_feedback), @critic
+        end
+      end
+
+      context "by a moderator" do
+        should "allow deleting feedbacks given to other users" do
+          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.count" => -1 }) do
+            put_auth delete_user_feedback_path(@user_feedback), @mod
           end
         end
 
@@ -109,8 +174,40 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
             @user_feedback = create(:user_feedback, user: @mod)
           end
 
-          assert_no_difference(-> { UserFeedback.count }) do
-            delete_auth user_feedback_path(@user_feedback), @mod
+          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.count]) do
+            put_auth delete_user_feedback_path(@user_feedback), @mod
+          end
+        end
+      end
+    end
+
+    context "undelete action" do
+      setup do
+        as(@critic) do
+          @user_feedback = create(:user_feedback, user: @user, is_deleted: true)
+        end
+      end
+
+      should "delete a feedback" do
+        assert_difference("ModAction.count", 1) do
+          put_auth undelete_user_feedback_path(@user_feedback), @critic
+        end
+      end
+
+      context "by a moderator" do
+        should "allow deleting feedbacks given to other users" do
+          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.count" => 1 }) do
+            put_auth undelete_user_feedback_path(@user_feedback), @mod
+          end
+        end
+
+        should "not allow deleting feedbacks given to themselves" do
+          as(@critic) do
+            @user_feedback = create(:user_feedback, user: @mod)
+          end
+
+          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.count]) do
+            put_auth undelete_user_feedback_path(@user_feedback), @mod
           end
         end
       end

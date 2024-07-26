@@ -1,7 +1,5 @@
 <%# artist %>
 <ul>
-  <li><strong>Status</strong> <%= artist.status %></li>
-
   <% if artist.linked_user_id && artist.linked_user %>
     <li><strong>User</strong> <%= link_to_user(artist.linked_user) %></li>
   <% end %>

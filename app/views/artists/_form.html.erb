@@ -18,6 +18,6 @@
   <% if @artist.is_note_locked? %>
     <p>Artist is note locked. Notes cannot be edited.</p>
   <% end %>
-  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size, disabled: @artist.is_note_locked? %>
+  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size, disabled: @artist.is_note_locked?, allow_color: true %>
   <%= f.button :submit, "Submit" %>
 <% end %>

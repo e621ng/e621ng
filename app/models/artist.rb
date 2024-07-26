@@ -14,6 +14,7 @@ class Artist < ApplicationRecord
   validate :user_not_limited
   validates :name, tag_name: true, uniqueness: true, if: :name_changed?
   validates :name, :group_name, length: { maximum: 100 }
+  before_destroy :log_destroy
   after_save :log_changes
   after_save :create_version
   after_save :categorize_tag
@@ -22,17 +23,14 @@ class Artist < ApplicationRecord
   after_save :clear_url_string_changed
   after_save :update_posts_index, if: :saved_change_to_linked_user_id?
 
-  has_many :members, :class_name => "Artist", :foreign_key => "group_name", :primary_key => "name"
-  has_many :urls, :dependent => :destroy, :class_name => "ArtistUrl", :autosave => true
-  has_many :versions, -> {order("artist_versions.id ASC")}, :class_name => "ArtistVersion"
-  has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
-  has_one :tag_alias, :foreign_key => "antecedent_name", :primary_key => "name"
-  has_one :tag, :foreign_key => "name", :primary_key => "name"
+  has_many :members, class_name: "Artist", foreign_key: "group_name", primary_key: "name"
+  has_many :urls, dependent: :destroy, class_name: "ArtistUrl", autosave: true
+  has_many :versions, -> {order("artist_versions.id ASC")}, class_name: "ArtistVersion"
+  has_one :wiki_page, foreign_key: "title", primary_key: "name"
+  has_one :tag_alias, foreign_key: "antecedent_name", primary_key: "name"
+  has_one :tag, foreign_key: "name", primary_key: "name"
   belongs_to :linked_user, class_name: "User", optional: true
   attribute :notes, :string
-
-  scope :active, -> { where(is_active: true) }
-  scope :deleted, -> { where(is_active: false) }
 
   def log_changes
     if saved_change_to_name? && !previously_new_record?
@@ -184,7 +182,7 @@ class Artist < ApplicationRecord
         while artists.empty? && url.length > 10
           u = url.sub(/\/+$/, "") + "/"
           u = u.to_escaped_for_sql_like.gsub("*", "%") + "%"
-          artists += Artist.joins(:urls).where(["artists.is_active = TRUE AND artist_urls.normalized_url ILIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
+          artists += Artist.joins(:urls).where(["artist_urls.normalized_url ILIKE ? ESCAPE E'\\\\'", u]).limit(10).order("artists.name").all
           url = File.dirname(url) + "/"
 
           break if url =~ SITE_BLACKLIST_REGEXP
@@ -288,22 +286,22 @@ class Artist < ApplicationRecord
 
   module VersionMethods
     def create_version(force=false)
-      if saved_change_to_name? || url_string_changed || saved_change_to_is_active? || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
+      if saved_change_to_name? || url_string_changed || saved_change_to_other_names? || saved_change_to_group_name? || saved_change_to_notes? || force
         create_new_version
       end
     end
 
     def create_new_version
       ArtistVersion.create(
-        :artist_id => id,
-        :name => name,
-        :updater_id => CurrentUser.id,
-        :updater_ip_addr => CurrentUser.ip_addr,
-        :urls => url_array,
-        :is_active => is_active,
-        :other_names => other_names,
-        :group_name => group_name,
-        :notes_changed => saved_change_to_notes?
+        artist_id: id,
+        name: name,
+        updater_id: CurrentUser.id,
+        updater_ip_addr: CurrentUser.ip_addr,
+        urls: url_array,
+        is_active: is_active,
+        other_names: other_names,
+        group_name: group_name,
+        notes_changed: saved_change_to_notes?
       )
     end
 
@@ -399,11 +397,6 @@ class Artist < ApplicationRecord
     def validate_user_can_edit
       return if CurrentUser.is_janitor?
 
-      if !is_active?
-        errors.add(:base, "Artist is inactive")
-        throw :abort
-      end
-
       if is_locked?
         errors.add(:base, "Artist is locked")
         throw :abort
@@ -473,8 +466,6 @@ class Artist < ApplicationRecord
         q = q.url_matches(params[:url_matches])
       end
 
-      q = q.attribute_matches(:is_active, params[:is_active])
-
       q = q.where_user(:creator_id, :creator, params)
 
       if params[:has_tag].to_s.truthy?
@@ -511,20 +502,12 @@ class Artist < ApplicationRecord
   include LockMethods
   extend SearchMethods
 
-  def status
-    if is_active?
-      "Active"
-    else
-      "Deleted"
-    end
-  end
-
   def deletable_by?(user)
-    user.is_janitor?
+    user.is_admin?
   end
 
   def editable_by?(user)
-    user.is_janitor? || is_active?
+    user.is_janitor?
   end
 
   def user_not_limited
@@ -543,6 +526,10 @@ class Artist < ApplicationRecord
   def is_note_locked?
     return false if CurrentUser.is_janitor?
     wiki_page&.is_locked? || false
+  end
+
+  def log_destroy
+    ModAction.log(:artist_delete, { artist_id: id, artist_name: name })
   end
 
   def update_posts_index

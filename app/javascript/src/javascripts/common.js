@@ -1,29 +1,29 @@
-import Cookie from './cookie'
-import LS from './local_storage'
-import Utility from './utility'
+import Cookie from "./cookie";
+import LS from "./local_storage";
+import Utility from "./utility";
 
-function initSearch() {
+function initSearch () {
   const $searchForm = $("#searchform");
   const $searchShow = $("#search-form-show-link");
   const $searchHide = $("#search-form-hide-link");
   if ($searchForm.length) {
-    $searchShow.on('click', e => {
+    $searchShow.on("click", e => {
       e.preventDefault();
-      $searchForm.fadeIn('fast');
+      $searchForm.fadeIn("fast");
       $searchShow.hide();
       $searchHide.show();
     });
-    $searchHide.on('click', e => {
+    $searchHide.on("click", e => {
       e.preventDefault();
-      $searchForm.fadeOut('fast');
+      $searchForm.fadeOut("fast");
       $searchShow.show();
       $searchHide.hide();
     });
   }
 }
 
-$(function() {
-  $("#theme-switcher").change(function(e) {
+$(function () {
+  $("#theme-switcher").change(function () {
     let theme = $(this).val();
     LS.put("theme", theme);
     $("body").attr("data-th-main", theme);
@@ -36,7 +36,7 @@ $(function() {
   }
 
   // Account notices
-  $("#hide-dmail-notice").on("click.danbooru", function(e) {
+  $("#hide-dmail-notice").on("click.danbooru", function (e) {
     var $dmail_notice = $("#dmail-notice");
     $dmail_notice.hide();
     var dmail_id = $dmail_notice.data("id");
@@ -44,27 +44,27 @@ $(function() {
     e.preventDefault();
   });
 
-  $("#close-notice-link").on("click.danbooru", function(e) {
-    $('#notice').fadeOut("fast");
+  $("#close-notice-link").on("click.danbooru", function (e) {
+    $("#notice").fadeOut("fast");
     e.preventDefault();
   });
 
-  $(".revert-item-link").on('click', e => {
+  $(".revert-item-link").on("click", e => {
     e.preventDefault();
     const target = $(e.target);
-    const noun = target.data('noun');
+    const noun = target.data("noun");
     if (!confirm(`Are you sure you want to revert ${noun} to this version?`))
       return;
-    const path = target.attr('href');
+    const path = target.attr("href");
     $.ajax({
       method: "PUT",
       url: path,
-      dataType: 'json'
-    }).done(data => {
+      dataType: "json",
+    }).done(() => {
       location.reload();
-    }).fail(data => {
+    }).fail(() => {
       Utility.error("Failed to revert to specified version.");
-    })
+    });
   });
 
   initSearch();
@@ -72,4 +72,4 @@ $(function() {
 
 window.submitInvisibleRecaptchaForm = function () {
   document.getElementById("signup-form").submit();
-}
+};
