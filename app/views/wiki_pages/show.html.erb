@@ -1,4 +1,4 @@
-<% wiki_content = @wiki_redirect.nil? ? @wiki_page : @wiki_redirect %>
+<% wiki_content = @wiki_redirect.blank? ? @wiki_page : @wiki_redirect %>
 <div id="c-wiki-pages">
   <div id="a-show">
     <%= render "sidebar" %>
@@ -16,7 +16,7 @@
           (deleted)
         <% end %>
       </h1>
-      <% if !@wiki_redirect.nil? %>
+      <% if @wiki_redirect.present? %>
       <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> <%= @wiki_page.title %></div>
       <% end %>
 

@@ -55,7 +55,7 @@ class WikiPagesController < ApplicationController
     end
 
     if @wiki_page.present?
-      unless @wiki_page.parent.nil?
+      if @wiki_page.parent.present?
         @wiki_redirect = WikiPage.titled(@wiki_page.parent)
       end
       respond_with(@wiki_page)

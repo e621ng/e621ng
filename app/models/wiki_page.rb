@@ -95,9 +95,7 @@ class WikiPage < ApplicationRecord
         q = q.where("is_deleted = false")
       end
 
-      if params[:parent].present?
-        q = q.where("parent LIKE ? ESCAPE E'\\\\'", params[:parent].downcase.strip.tr(" ", "_").to_escaped_for_sql_like)
-      end
+      q = q.attribute_matches(:parent, params[:parent].try(:tr, " ", "_"))
 
       if params[:other_names_present].to_s.truthy?
         q = q.where("other_names is not null and other_names != '{}'")
