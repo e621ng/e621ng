@@ -1408,31 +1408,39 @@ class Post < ApplicationRecord
       list
     end
 
-    def minimal_attributes
-      preview_dims = preview_dimensions
-      hash = {
-          status: status,
-          flags: status_flags,
-          file_ext: file_ext,
-          id: id,
-          created_at: created_at,
-          rating: rating,
-          preview_width: preview_dims[1],
-          width: image_width,
-          preview_height: preview_dims[0],
-          height: image_height,
-          tags: tag_string,
-          score: score,
-          uploader_id: uploader_id,
-          uploader: uploader_name
+    def thumbnail_attributes
+      attributes = {
+        id: id,
+        flags: status_flags,
+        tags: tag_string,
+        rating: rating,
+        file_ext: file_ext,
+
+        width: image_width,
+        height: image_height,
+        size: file_size,
+
+        created_at: created_at,
+        uploader: uploader_name,
+        uploader_id: uploader_id,
+
+        score: score,
+        fav_count: fav_count,
+        is_favorited: favorited_by?(CurrentUser.user.id),
+
+        pools: pool_ids,
       }
 
       if visible?
-        hash[:md5] = md5
-        hash[:preview_url] = preview_file_url
-        hash[:cropped_url] = crop_file_url
+        attributes[:md5] = md5
+        attributes[:preview_url] = preview_file_url
+        attributes[:large_url] = large_file_url
+        attributes[:file_url] = file_url
+        attributes[:preview_width] = preview_dimensions[1]
+        attributes[:preview_height] = preview_dimensions[0]
       end
-      hash
+
+      attributes
     end
 
     def status
