@@ -12,9 +12,7 @@
 
     <%= f.input :body, as: :dtext, limit: Danbooru.config.wiki_page_max_size, allow_color: true %>
 
-    <% if CurrentUser.is_privileged? %>
-      <%= f.input :parent, :label => "Redirect to", autocomplete: "wiki-page" %>
-    <% end %>
+    <%= f.input :parent, label: "Redirects to", autocomplete: "wiki-page", input_html: { disabled: !CurrentUser.is_privileged? } %>
 
     <% if CurrentUser.is_janitor? && @wiki_page.is_deleted? %>
       <%= f.input :is_deleted, :label => "Deleted", :hint => "Uncheck to restore this wiki page" %>
