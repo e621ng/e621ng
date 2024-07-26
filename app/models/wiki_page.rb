@@ -15,6 +15,7 @@ class WikiPage < ApplicationRecord
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :user_not_limited
   validate :validate_rename
+  validate :validate_redirect
   validate :validate_not_locked
 
   before_destroy :validate_not_used_as_help_page
@@ -169,6 +170,18 @@ class WikiPage < ApplicationRecord
     tag_was = Tag.find_by_name(Tag.normalize_name(title_was))
     if tag_was.present? && tag_was.post_count > 0
       errors.add(:title, "cannot be changed: '#{tag_was.name}' still has #{tag_was.post_count} posts. Move the posts and update any wikis linking to this page first.")
+    end
+  end
+
+  def validate_redirect
+    return unless will_save_change_to_parent? && parent.present?
+    if WikiPage.find_by(title: parent).blank?
+      errors.add(:parent, "does not exist")
+      return
+    end
+
+    if HelpPage.find_by(wiki_page: title).present?
+      errors.add(:title, "is used as a help page and cannot be redirected")
     end
   end
 
