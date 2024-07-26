@@ -55,6 +55,9 @@ class WikiPagesController < ApplicationController
     end
 
     if @wiki_page.present?
+      if @wiki_page.parent.present?
+        @wiki_redirect = WikiPage.titled(@wiki_page.parent)
+      end
       respond_with(@wiki_page)
     elsif request.format.html?
       redirect_to show_or_new_wiki_pages_path(title: params[:id])
@@ -121,6 +124,7 @@ class WikiPagesController < ApplicationController
 
   def wiki_page_params(context)
     permitted_params = %i[body skip_secondary_validations edit_reason]
+    permitted_params += %i[parent] if CurrentUser.is_privileged?
     permitted_params += %i[is_locked is_deleted] if CurrentUser.is_janitor?
     permitted_params += %i[title] if context == :create || CurrentUser.is_janitor?
 

@@ -5,15 +5,17 @@ class WikiPage < ApplicationRecord
 
   before_validation :normalize_title
   before_validation :normalize_other_names
+  before_validation :normalize_parent
   after_save :create_version
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :title, tag_name: true, if: :title_changed?
-  validates :body, presence: { :unless => -> { is_deleted? || other_names.present? } }
+  validates :body, presence: { unless: -> { is_deleted? || other_names.present? || parent.present? } }
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :user_not_limited
   validate :validate_rename
+  validate :validate_redirect
   validate :validate_not_locked
 
   before_destroy :validate_not_used_as_help_page
@@ -94,6 +96,8 @@ class WikiPage < ApplicationRecord
         q = q.where("is_deleted = false")
       end
 
+      q = q.attribute_matches(:parent, params[:parent].try(:tr, " ", "_"))
+
       if params[:other_names_present].to_s.truthy?
         q = q.where("other_names is not null and other_names != '{}'")
       elsif params[:other_names_present].to_s.falsy?
@@ -169,6 +173,18 @@ class WikiPage < ApplicationRecord
     end
   end
 
+  def validate_redirect
+    return unless will_save_change_to_parent? && parent.present?
+    if WikiPage.find_by(title: parent).blank?
+      errors.add(:parent, "does not exist")
+      return
+    end
+
+    if HelpPage.find_by(wiki_page: title).present?
+      errors.add(:title, "is used as a help page and cannot be redirected")
+    end
+  end
+
   def revert_to(version)
     if id != version.wiki_page_id
       raise RevertError.new("You cannot revert to a previous version of another wiki page.")
@@ -176,6 +192,7 @@ class WikiPage < ApplicationRecord
 
     self.title = version.title
     self.body = version.body
+    self.parent = version.parent
     self.other_names = version.other_names
   end
 
@@ -190,6 +207,10 @@ class WikiPage < ApplicationRecord
 
   def normalize_other_names
     self.other_names = other_names.map { |name| WikiPage.normalize_other_name(name) }.uniq
+  end
+
+  def normalize_parent
+    self.parent = nil if parent == ""
   end
 
   def self.normalize_other_name(name)
@@ -214,19 +235,20 @@ class WikiPage < ApplicationRecord
   end
 
   def wiki_page_changed?
-    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names?
+    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names? || saved_change_to_parent?
   end
 
   def create_new_version
     versions.create(
-      :updater_id => CurrentUser.user.id,
-      :updater_ip_addr => CurrentUser.ip_addr,
-      :title => title,
-      :body => body,
-      :is_locked => is_locked,
-      :is_deleted => is_deleted,
-      :other_names => other_names,
-      reason: edit_reason
+      updater_id: CurrentUser.user.id,
+      updater_ip_addr: CurrentUser.ip_addr,
+      title: title,
+      body: body,
+      is_locked: is_locked,
+      is_deleted: is_deleted,
+      other_names: other_names,
+      parent: parent,
+      reason: edit_reason,
     )
   end
 
