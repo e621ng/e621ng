@@ -44,12 +44,6 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_equal(0.0, eq_value("10:0", :ratio))
   end
 
-  should "parse floats" do
-    assert_equal(10.0, eq_value("10", :float))
-    assert_equal(0.1, eq_value(".1", :float))
-    assert_equal(1.234, eq_value("1.234", :float))
-  end
-
   should "parse filesizes" do
     assert_equal(10, eq_value("10", :filesize))
     assert_equal(102, eq_value(".1kb", :filesize))

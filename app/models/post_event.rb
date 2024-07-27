@@ -2,7 +2,7 @@
 
 class PostEvent < ApplicationRecord
   belongs_to :creator, class_name: "User"
-  enum action: {
+  enum :action, {
     deleted: 0,
     undeleted: 1,
     approved: 2,
@@ -24,6 +24,7 @@ class PostEvent < ApplicationRecord
     replacement_promoted: 20,
     replacement_deleted: 16,
     expunged: 17,
+    changed_bg_color: 21,
   }
   MOD_ONLY_ACTIONS = [
     actions[:comment_locked],

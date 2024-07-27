@@ -241,8 +241,8 @@ module PostIndex
 
       file_size:    file_size,
       parent:       parent_id,
-      pools:        options[:pools]      || ::Pool.where("post_ids @> '{?}'", id).pluck(:id),
-      sets:         options[:sets]       || ::PostSet.where("post_ids @> '{?}'", id).pluck(:id),
+      pools:        options[:pools]      || ::Pool.where("? = ANY(post_ids)", id).pluck(:id),
+      sets:         options[:sets]       || ::PostSet.where("? = ANY(post_ids)", id).pluck(:id),
       commenters:   options[:commenters] || ::Comment.undeleted.where(post_id: id).pluck(:creator_id),
       noters:       options[:noters]     || ::Note.active.where(post_id: id).pluck(:creator_id),
       faves:        options[:faves]      || ::Favorite.where(post_id: id).pluck(:user_id),

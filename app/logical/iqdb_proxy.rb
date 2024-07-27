@@ -7,11 +7,18 @@ module IqdbProxy
 
   module_function
 
-  def make_request(path, request_type, params = {})
-    url = URI.parse(Danbooru.config.iqdb_server)
-    url.path = path
-    HTTParty.send(request_type, url, { body: params.to_json, headers: { "Content-Type" => "application/json" } })
-  rescue Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL, Errno::EHOSTUNREACH
+  def endpoint
+    Danbooru.config.iqdb_server
+  end
+
+  def enabled?
+    endpoint.present?
+  end
+
+  def make_request(path, request_type, body = nil)
+    conn = Faraday.new(Danbooru.config.faraday_options)
+    conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
+  rescue Faraday::Error
     raise Error, "This service is temporarily unavailable. Please try again later."
   end
 
@@ -22,12 +29,12 @@ module IqdbProxy
     raise Error, "failed to generate thumb for #{post.id}" unless thumb
 
     response = make_request("/images/#{post.id}", :post, get_channels_data(thumb))
-    raise Error, "iqdb request failed" if response.code != 200
+    raise Error, "iqdb request failed" if response.status != 200
   end
 
   def remove_post(post_id)
     response = make_request("/images/#{post_id}", :delete)
-    raise Error, "iqdb request failed" if response.code != 200
+    raise Error, "iqdb request failed" if response.status != 200
   end
 
   def query_url(image_url, score_cutoff)
@@ -48,16 +55,16 @@ module IqdbProxy
     return [] unless thumb
 
     response = make_request("/query", :post, get_channels_data(thumb))
-    return [] if response.code != 200
+    return [] if response.status != 200
 
-    process_iqdb_result(response.parsed_response, score_cutoff)
+    process_iqdb_result(JSON.parse(response.body), score_cutoff)
   end
 
   def query_hash(hash, score_cutoff)
     response = make_request "/query", :post, { hash: hash }
-    return [] if response.code != 200
+    return [] if response.status != 200
 
-    process_iqdb_result(response.parsed_response, score_cutoff)
+    process_iqdb_result(JSON.parse(response.body), score_cutoff)
   end
 
   def process_iqdb_result(json, score_cutoff)

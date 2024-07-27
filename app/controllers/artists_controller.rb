@@ -3,7 +3,7 @@
 class ArtistsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show show_or_new]
-  before_action :janitor_only, only: %i[destroy]
+  before_action :admin_only, only: %i[destroy]
   before_action :load_artist, only: %i[edit update destroy revert]
 
   def new
@@ -12,6 +12,7 @@ class ArtistsController < ApplicationController
   end
 
   def edit
+    ensure_can_edit(CurrentUser.user)
     respond_with(@artist)
   end
 
@@ -59,13 +60,11 @@ class ArtistsController < ApplicationController
   end
 
   def destroy
-    unless @artist.deletable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
-    @artist.update_attribute(:is_active, false)
+    raise User::PrivilegeError unless @artist.deletable_by?(CurrentUser.user)
+    @artist.destroy
     respond_with(@artist) do |format|
       format.html do
-        redirect_to(artist_path(@artist), notice: "Artist deleted")
+        redirect_to(artists_path, notice: "Artist deleted")
       end
     end
   end
@@ -88,7 +87,7 @@ class ArtistsController < ApplicationController
     end
   end
 
-private
+  private
 
   def load_artist
     if params[:id] =~ /\A\d+\z/
@@ -107,13 +106,13 @@ private
 
   def ensure_can_edit(user)
     return if user.is_janitor?
-    raise User::PrivilegeError if @artist.is_locked?
-    raise User::PrivilegeError if !@artist.is_active?
+    raise(User::PrivilegeError, "Artist is locked.") if @artist.is_locked?
   end
 
   def artist_params
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
-    permitted_params += %i[is_active linked_user_id is_locked] if CurrentUser.is_janitor?
+    permitted_params += %i[linked_user_id is_locked] if CurrentUser.is_janitor?
+    permitted_params << :source if context == :new
 
     params.fetch(:artist, {}).permit(permitted_params)
   end

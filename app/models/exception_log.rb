@@ -21,7 +21,7 @@ class ExceptionLog < ApplicationRecord
     if unwrapped_exception.is_a?(ActiveRecord::QueryCanceled)
       extra_params[:sql] = {}
       extra_params[:sql][:query] = unwrapped_exception&.sql || "[NOT FOUND?]"
-      extra_params[:sql][:binds] = unwrapped_exception&.binds
+      extra_params[:sql][:binds] = unwrapped_exception&.binds&.map(&:value_for_database)
     end
 
     create!(

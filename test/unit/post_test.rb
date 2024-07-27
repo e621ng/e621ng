@@ -64,8 +64,9 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "remove the post from iqdb" do
-        @post.expects(:remove_iqdb_async).once
-        @post.expunge!
+        request_stub = stub_request(:delete, "#{IqdbProxy.endpoint}/images/#{@post.id}")
+        with_inline_jobs { @post.expunge! }
+        assert_requested request_stub
       end
 
       context "that is status locked" do
@@ -1256,6 +1257,32 @@ class PostTest < ActiveSupport::TestCase
         should "warn when an upload doesn't have enough tags" do
           post = create(:post, tag_string: "tagme")
           assert_match(/Uploads must have at least \d+ general tags/, post.warnings.full_messages.join)
+        end
+
+        should "error if the tagcount is above the limit" do
+          Danbooru.config.stubs(:max_tags_per_post).returns(5)
+          post = create(:post, tag_string: "1 2 3 4 5")
+          post.add_tag("6")
+          post.save
+          assert_match(/tag count exceeds maximum/, post.errors.full_messages.join)
+        end
+
+        should "error if the tagcount via implications is above the limit" do
+          Danbooru.config.stubs(:max_tags_per_post).returns(2)
+          create(:tag_implication, antecedent_name: "2", consequent_name: "3")
+          post = create(:post, tag_string: "1")
+          post.add_tag("2")
+          post.save
+          assert_match(/tag count exceeds maximum/, post.errors.full_messages.join)
+        end
+
+        should "allow removing tags when the post is above the limit" do
+          Danbooru.config.stubs(:max_tags_per_post).returns(2)
+          post = build(:post, tag_string: "1 2 3")
+          post.save(validate: false)
+          post.remove_tag("3")
+          post.save
+          assert_no_match(/tag count exceeds maximum/, post.errors.full_messages.join)
         end
       end
     end

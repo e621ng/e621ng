@@ -3,7 +3,7 @@
 <head>
   <%= render "layouts/head" %>
 </head>
-<%= tag.body **body_attributes(CurrentUser.user) do %>
+<%= tag.body(**body_attributes(CurrentUser.user)) do %>
   <%= render "layouts/theme_include" %>
 
   <header id="top">

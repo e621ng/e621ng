@@ -50,6 +50,6 @@ class IqdbQueriesController < ApplicationController
   end
 
   def validate_enabled
-    raise FeatureUnavailable if Danbooru.config.iqdb_server.blank?
+    raise FeatureUnavailable unless IqdbProxy.enabled?
   end
 end

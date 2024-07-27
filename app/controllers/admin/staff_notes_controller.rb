@@ -6,8 +6,8 @@ module Admin
     respond_to :html
 
     def index
-      @user = User.where('id = ?', params[:user_id]).first
-      @notes = StaffNote.search(search_params.merge({user_id: params[:user_id]})).includes(:user, :creator).paginate(params[:page])
+      @user = User.find_by(id: params[:user_id])
+      @notes = StaffNote.search(search_params.merge({ user_id: params[:user_id] })).includes(:user, :creator).paginate(params[:page], limit: params[:limit])
       respond_with(@notes)
     end
 
@@ -30,8 +30,12 @@ module Admin
 
     private
 
+    def search_params
+      permit_search_params(%i[creator_id creator_name user_id user_name resolved body_matches without_system_user])
+    end
+
     def note_params
-      params.fetch(:staff_note, {}).permit([:body])
+      params.fetch(:staff_note, {}).permit(%i[body])
     end
   end
 end

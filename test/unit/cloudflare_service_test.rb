@@ -13,7 +13,7 @@ class CloudflareServiceTest < ActiveSupport::TestCase
           ipv6_cidrs: [ipv6],
         },
       }
-      stub_request(:get, "https://api.cloudflare.com/client/v4/ips").to_return(status: 200, body: dummy_response.to_json)
+      stub_request(:get, CloudflareService.endpoint).to_return(status: 200, body: dummy_response.to_json)
       assert_equal([IPAddr.new(ipv4), IPAddr.new(ipv6)], CloudflareService.ips)
     end
   end

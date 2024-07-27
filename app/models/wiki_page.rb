@@ -24,9 +24,9 @@ class WikiPage < ApplicationRecord
   array_attribute :other_names
   belongs_to_creator
   belongs_to_updater
-  has_one :tag, :foreign_key => "name", :primary_key => "title"
-  has_one :artist, -> {where(:is_active => true)}, :foreign_key => "name", :primary_key => "title"
-  has_many :versions, -> {order("wiki_page_versions.id ASC")}, :class_name => "WikiPageVersion", :dependent => :destroy
+  has_one :tag, foreign_key: "name", primary_key: "title"
+  has_one :artist, foreign_key: "name", primary_key: "title"
+  has_many :versions, -> { order("wiki_page_versions.id ASC") }, class_name: "WikiPageVersion", dependent: :destroy
 
   def validate_not_used_as_help_page
     if HelpPage.find_by(wiki_page: title).present?
@@ -50,7 +50,7 @@ class WikiPage < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      find_by(title: title.downcase.tr(" ", "_"))
+      find_by(title: title&.downcase&.tr(" ", "_"))
     end
 
     def active

@@ -5,60 +5,36 @@ require "test_helper"
 class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
   context "The iqdb controller" do
     setup do
-      Danbooru.config.stubs(:iqdb_server).returns("https://karasuma.donmai.us")
-      @user = create(:user)
-      as(@user) do
-        @posts = create_list(:post, 2)
-      end
+      IqdbProxy.stubs(:endpoint).returns("http://iqdb:5588")
+      CloudflareService.stubs(:ips).returns([])
     end
 
     context "show action" do
       context "with a url parameter" do
-        setup do
-          create(:upload_whitelist, pattern: "*google.com")
-          @url = "https://google.com"
-          @params = { url: @url }
-          @mocked_response = [{
-            "post" => @posts[0],
-            "post_id" => @posts[0].id,
-            "score" => 1
-          }]
-        end
-
         should "render a response" do
-          IqdbProxy.expects(:query_url).with(@url, nil).returns(@mocked_response)
-          get_auth iqdb_queries_path, @user, params: @params
-          assert_select("#post_#{@posts[0].id}")
+          post = create(:post)
+          create(:upload_whitelist, pattern: "https://google.com/*")
+          stub_request(:get, "https://google.com/foo.jpg")
+            .to_return(body: file_fixture("test.jpg").read)
+          response = [{ "post_id" => post.id, "score" => 80 }]
+          stub_request(:post, "#{IqdbProxy.endpoint}/query").to_return_json(body: response)
+          get iqdb_queries_path, params: { url: "https://google.com/foo.jpg" }
+
+          assert_response :success
+          assert_select("#post_#{post.id}")
         end
       end
 
       context "with a post_id parameter" do
-        setup do
-          @params = { post_id: @posts[0].id }
-          @url = @posts[0].preview_file_url
-          @mocked_response = [{
-            "post" => @posts[0],
-            "post_id" => @posts[0].id,
-            "score" => 1
-          }]
-        end
-
         should "redirect to iqdb" do
-          IqdbProxy.expects(:query_post).with(@posts[0], nil).returns(@mocked_response)
-          get_auth iqdb_queries_path, @user, params: @params
-          assert_select("#post_#{@posts[0].id}")
-        end
-      end
+          post = create(:post)
+          response = [{ "post_id" => post.id, "score" => 80 }]
+          stub_request(:post, "#{IqdbProxy.endpoint}/query").to_return_json(body: response)
+          Post.any_instance.stubs(:preview_file_path).returns(file_fixture("test.jpg"))
 
-      context "with matches" do
-        setup do
-          json = @posts.map { |x| { "post_id" => x.id, "score" => 1 } }.to_json
-          @params = { matches: json }
-        end
-
-        should "render with matches" do
-          get_auth iqdb_queries_path, @user, params: @params
+          get iqdb_queries_path, params: { post_id: post.id }
           assert_response :success
+          assert_select("#post_#{post.id}")
         end
       end
     end

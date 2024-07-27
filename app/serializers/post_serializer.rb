@@ -113,12 +113,12 @@ class PostSerializer < ActiveModel::Serializer
         parent_id: object.parent_id,
         has_children: object.has_children,
         has_active_children: object.has_active_children,
-        children: object.children_ids&.split(' ')&.map(&:to_i) || []
+        children: object.children_ids&.split&.map(&:to_i) || []
     }
   end
 
   def locked_tags
-    object.locked_tags&.split(' ') || []
+    object.locked_tags&.split || []
   end
 
   def is_favorited

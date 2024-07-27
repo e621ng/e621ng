@@ -1,4 +1,4 @@
-import Utility from './utility'
+import Utility from "./utility";
 
 let PostReplacement = {};
 
@@ -29,12 +29,12 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     type: "PUT",
     url: `/post_replacements/${id}/approve.json`,
     data: {
-      penalize_current_uploader: penalize_current_uploader
+      penalize_current_uploader: penalize_current_uploader,
     },
-    dataType: 'json'
+    dataType: "json",
   }).done(function () {
     set_status($row, "approved");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "replacement failed");
   });
@@ -48,14 +48,14 @@ PostReplacement.reject = function (id) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/reject.json`,
-    dataType: 'json'
+    dataType: "json",
   }).done(function () {
     set_status($row, "rejected");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "rejecting failed");
   });
-}
+};
 
 PostReplacement.promote = function (id) {
   if (!confirm("Are you sure you want to promote this replacement?"))
@@ -65,15 +65,15 @@ PostReplacement.promote = function (id) {
   $.ajax({
     type: "POST",
     url: `/post_replacements/${id}/promote.json`,
-    dataType: 'json'
+    dataType: "json",
   }).done(function (data) {
     Utility.notice(`Replacement promoted to post #${data.post.id}`);
     set_status($row, "promoted");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
     set_status($row, "promoting failed");
   });
-}
+};
 
 PostReplacement.toggle_penalize = function ($target) {
   const id = $target.data("replacement-id");
@@ -82,22 +82,22 @@ PostReplacement.toggle_penalize = function ($target) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/toggle_penalize.json`,
-    dataType: 'json'
-  }).done(function (data) {
+    dataType: "json",
+  }).done(function () {
     $target.removeClass("disabled-link");
     $currentStatus.text($currentStatus.text() == "yes" ? "no" : "yes");
-  }).fail(function (data, status, xhr) {
+  }).fail(function (data) {
     Utility.error(data.responseText);
   });
-}
+};
 
-function make_processing($row) {
+function make_processing ($row) {
   $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
   $row.find(".replacement-status").text("processing");
   $row.find(".pending-links a").addClass("disabled-link");
 }
 
-function set_status($row, text) {
+function set_status ($row, text) {
   $row.find(".replacement-status").text(text);
   $row.removeClass("replacement-processing-row");
 }
@@ -108,4 +108,4 @@ $(function () {
 });
 
 
-export default PostReplacement
+export default PostReplacement;
