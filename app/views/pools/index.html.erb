@@ -5,8 +5,8 @@
     <table class="striped">
       <thead>
         <tr>
-          <th width="5%"></th>
-          <th width="60%">Name</th>
+          <th width="50%">Name</th>
+          <th width="40%">Artists</th>
           <th width="10%">Count</th>
         </tr>
       </thead>
@@ -14,14 +14,14 @@
         <% @pools.each do |pool| %>
           <%= tag.tr(id: "pool-#{pool.id}", class: "pool-category-#{pool.category}") do %>
             <td>
-
-            </td>
-            <td>
               <%= link_to pool.pretty_name, pool_path(pool) %>
 
               <% if pool.last_page > 1 %>
-                <%= link_to "page #{pool.last_page}", pool_path(pool, :page => pool.last_page), :class => "last-page" %>
+                <%= link_to "page #{pool.last_page}", pool_path(pool, page: pool.last_page), class: "last-page" %>
               <% end %>
+            </td>
+            <td>
+              <%= link_to_pool_artists(pool.artist_names) %>
             </td>
             <td>
               <%= pool.post_count %>

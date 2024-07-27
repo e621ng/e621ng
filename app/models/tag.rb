@@ -120,8 +120,9 @@ class Tag < ApplicationRecord
       Post.with_timeout(30_000, nil) do
         Post.sql_raw_tag_match(name).find_each do |post|
           post.set_tag_counts(disable_cache: false)
-          args = TagCategory::CATEGORIES.to_h { |x| ["tag_count_#{x}", post.send("tag_count_#{x}")] }.update("tag_count" => post.tag_count)
-          Post.where(:id => post.id).update_all(args)
+          categories = TagCategory::CATEGORIES.to_h { |x| ["tag_count_#{x}", post.send("tag_count_#{x}")] }.update("tag_count" => post.tag_count)
+          post.update(**categories)
+          post.update_pool_artists
           post.update_index
         end
       end

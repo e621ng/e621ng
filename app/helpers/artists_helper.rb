@@ -18,4 +18,10 @@ module ArtistsHelper
       link_to_artist(name.downcase)
     end.join(", ").html_safe
   end
+
+  def link_to_pool_artists(names)
+    names.map do |name|
+      link_to(name, show_or_new_artists_path(name: name), class: "tag-type-#{TagCategory::MAPPING['artist']}")
+    end.join(", ").html_safe
+  end
 end
