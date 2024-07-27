@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment"))
 
 # older blips don't have an updater id
 DEFAULT_UPDATER = User.find(1)
 # blips & fourm posts don't store an updater ip
-DEFAULT_IP_ADDR = "127.0.0.1".freeze
+DEFAULT_IP_ADDR = "127.0.0.1"
 
 def update(model)
   has_sticky = model.model_name.name == "Comment"
