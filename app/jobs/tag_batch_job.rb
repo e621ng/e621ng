@@ -36,7 +36,7 @@ class TagBatchJob < ApplicationJob
   def migrate_blacklists(from, to)
     User.without_timeout do
       User.where_ilike(:blacklisted_tags, "*#{from}*").find_each(batch_size: 50) do |user|
-        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { from => to })
+        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { from => to }, comments: true)
         user.update_column(:blacklisted_tags, fixed_blacklist)
       end
     end
