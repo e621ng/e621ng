@@ -2,7 +2,9 @@
   <% @post_versions.each do |post_version| %>
     <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" data-post-id="<%= post_version.post_id %>" class="post-version">
       <div class="post-version-row-select pv-check pv-label">
-        <input type="checkbox" class="post-version-select" <%= "disabled" if !CurrentUser.can_undo_post_versions? || !post_version.undoable? %> >
+        <% if CurrentUser.is_privileged? %>
+          <input type="checkbox" class="post-version-select" <%= "disabled" if !CurrentUser.can_undo_post_versions? || !post_version.undoable? %> >
+        <% end %>
       </div>
       <div class="pv-post-label pv-label">
         Post #:Version

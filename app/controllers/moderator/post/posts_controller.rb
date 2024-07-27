@@ -13,7 +13,6 @@ module Moderator
       def confirm_delete
         @post = ::Post.find(params[:id])
         @reason = @post.pending_flag&.reason || ""
-        @reason = "Inferior version/duplicate of post ##{@post.parent_id}" if @post.parent_id && @reason == ""
         @reason = "" if @reason =~ /uploading_guidelines/
       end
 
@@ -48,7 +47,7 @@ module Moderator
 
       def expunge
         @post = ::Post.find(params[:id])
-        @post.expunge!
+        @post.expunge!(reason: params[:reason])
         respond_with(@post)
       end
 

@@ -1,4 +1,4 @@
 <%= custom_form_for(@news_update) do |f| %>
-  <%= f.input :message, as: :dtext %>
+  <%= f.input :message, as: :dtext, allow_color: false %>
   <%= f.button :submit, "Submit" %>
 <% end %>

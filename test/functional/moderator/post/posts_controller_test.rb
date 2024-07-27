@@ -80,11 +80,19 @@ module Moderator
         end
 
         context "expunge action" do
-          should "render" do
+          should "work" do
             post_auth expunge_moderator_post_post_path(@post), @admin, params: { format: :json }
 
             assert_response :success
             assert_equal(false, ::Post.exists?(@post.id))
+          end
+
+          should "work with reason" do
+            post_auth expunge_moderator_post_post_path(@post), @admin, params: { reason: "test", format: :json }
+
+            assert_response :success
+            assert_equal(false, ::Post.exists?(@post.id))
+            assert_equal("test", DestroyedPost.last.reason)
           end
         end
       end

@@ -85,6 +85,7 @@ Rails/InverseOf:
 
 Rails/Output:
   Exclude:
+    - db/populate.rb
     - db/seeds.rb
     - db/fixes/*.rb
   Include:

@@ -407,7 +407,9 @@ CREATE TABLE public.destroyed_posts (
     upload_date timestamp without time zone,
     post_data json NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reason character varying DEFAULT ''::character varying NOT NULL,
+    notify boolean DEFAULT true NOT NULL
 );
 
 
@@ -2099,7 +2101,8 @@ CREATE TABLE public.user_feedback (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet,
-    updater_id integer
+    updater_id integer,
+    is_deleted boolean DEFAULT false NOT NULL
 );
 
 
@@ -4495,6 +4498,8 @@ ALTER TABLE ONLY public.favorites
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20240709134926'),
+('20240706061122'),
 ('20240119211758'),
 ('20240101042716'),
 ('20230531080817'),

@@ -1,5 +1,3 @@
-
-
 .user-feedback-positive {
   color: $positive-record-color;
 }
@@ -25,7 +23,18 @@ div#c-user-feedbacks, div#c-moderator-dashboards .activity-container {
     background: $neutral-record-background;
   }
 
+  tr.user-feedback[data-is-deleted="true"] {
+    background: #827428;
+  }
+
   blockquote {
     padding: 0.5em;
+  }
+
+  .show-all-user-feedbacks-link {
+    font-size: 1.5em;
+    width: 100%;
+    text-align: center;
+    padding: 0.5em 0;
   }
 }

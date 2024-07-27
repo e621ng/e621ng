@@ -12,18 +12,16 @@
       </thead>
       <tbody>
         <% @forum_posts.each do |forum_post| %>
-          <% if forum_post.visible?(CurrentUser.user) %>
-            <tr id="forum-post-<%= forum_post.id %>" data-topic-is-hidden="<%= forum_post.topic.is_hidden? %>" data-is-hidden="<%= forum_post.is_hidden? %>">
-              <td class="forum-post-topic-title">
-                <%= link_to forum_post.topic.title, forum_topic_path(forum_post.topic) %>
-              </td>
-              <td class="forum-post-excerpt">
-                <%= link_to truncate(forum_post.body, :length => 50), forum_post_path(forum_post) %>
-              </td>
-              <td><%= link_to_user forum_post.creator %></td>
-              <td><%= time_ago_in_words_tagged forum_post.created_at %></td>
-            </tr>
-          <% end %>
+          <tr id="forum-post-<%= forum_post.id %>" data-topic-is-hidden="<%= forum_post.topic.is_hidden? %>" data-is-hidden="<%= forum_post.is_hidden? %>">
+            <td class="forum-post-topic-title">
+              <%= link_to forum_post.topic.title, forum_topic_path(forum_post.topic) %>
+            </td>
+            <td class="forum-post-excerpt">
+              <%= link_to truncate(forum_post.body, :length => 50), forum_post_path(forum_post) %>
+            </td>
+            <td><%= link_to_user forum_post.creator %></td>
+            <td><%= time_ago_in_words_tagged forum_post.created_at %></td>
+          </tr>
         <% end %>
       </tbody>
     </table>
