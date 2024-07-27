@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CurrentUser
   def self.scoped(user, ip_addr = "127.0.0.1")
     old_user = self.user

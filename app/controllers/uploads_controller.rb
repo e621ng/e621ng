@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadsController < ApplicationController
   before_action :member_only
   before_action :janitor_only, only: [:index, :show]

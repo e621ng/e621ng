@@ -11,4 +11,8 @@
   <%= subnav_link_to "Changes", post_versions_path %>
   <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
   <%= subnav_link_to "Help", help_page_path(id: "posts") %>
+  <% if CurrentUser.can_approve_posts? %>
+  <li>|</li>
+  <li><a href="#" id="janitor-toolbar-toggle">Approvals: Off</a></li>
+  <% end %>
 <% end %>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: [:create, :new]
@@ -21,6 +23,7 @@ class PostReplacementsController < ApplicationController
     check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
+    @post_replacement.notify_reupload
     if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end

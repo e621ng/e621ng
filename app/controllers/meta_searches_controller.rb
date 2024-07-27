@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MetaSearchesController < ApplicationController
   def tags
     @meta_search = MetaSearches::Tag.new(params)

@@ -34,9 +34,9 @@
 
         <%= f.input :avatar_id, as: :string, label: "Avatar Post ID" %>
 
-        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size, allow_color: true %>
 
-        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size, allow_color: true %>
 
         <%= f.input :time_zone, :include_blank => false %>
 

@@ -21,8 +21,12 @@
               <%= link_to "»", post_events_path(search: params[:search].merge(post_id: event.post_id)) %>
             </td>
             <td>
-              <%= event.action.capitalize.tr("_"," ") %>
-              <%= link_to "»", post_events_path(search: params[:search].merge(action: event.action)) %>
+              <% if event.action.nil? %>
+                Unknown
+              <% else %>
+                <%= event.action.capitalize.tr("_"," ") %>
+                <%= link_to "»", post_events_path(search: params[:search].merge(action: event.action)) %>
+              <% end %>
             </td>
             <td>
               <% if event.is_creator_visible?(CurrentUser.user) %>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostSet < ApplicationRecord
   array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
 
@@ -219,17 +221,6 @@ class PostSet < ApplicationRecord
         update(post_ids: post_ids - [post.id])
         post.remove_set!(self)
         post.save
-      end
-    end
-
-    def posts(options = {})
-      offset = options[:offset] || 0
-      limit = options[:limit] || Danbooru.config.posts_per_page
-      slice = post_ids.slice(offset, limit)
-      if slice && slice.any?
-        Post.where(id: slice).sort_by {|record| slice.index {|id| id == record.id}}
-      else
-        []
       end
     end
 

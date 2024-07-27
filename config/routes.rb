@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
 
@@ -22,6 +24,7 @@ Rails.application.routes.draw do
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
+    resources :destroyed_posts, only: %i[index show update]
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
@@ -75,7 +78,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets do
+  resources :tickets, except: %i[destroy] do
     member do
       post :claim
       post :unclaim
@@ -133,6 +136,7 @@ Rails.application.routes.draw do
   resources :dmails, :only => [:new, :create, :index, :show, :destroy] do
     member do
       put :mark_as_read
+      put :mark_as_unread
     end
     collection do
       put :mark_all_as_read
@@ -166,7 +170,7 @@ Rails.application.routes.draw do
   resources :forum_categories
   resources :help_pages, controller: "help", path: "help"
   resources :ip_bans
-  resources :upload_whitelists do
+  resources :upload_whitelists, except: %i[show] do
     collection do
       get :is_allowed
     end
@@ -188,7 +192,6 @@ Rails.application.routes.draw do
     end
   end
   resources :note_versions, :only => [:index]
-  resource :note_previews, :only => [:show]
   resources :pools do
     member do
       put :revert
@@ -286,6 +289,10 @@ Rails.application.routes.draw do
   resources :user_feedbacks do
     collection do
       get :search
+    end
+    member do
+      put :delete
+      put :undelete
     end
   end
   resources :user_name_change_requests

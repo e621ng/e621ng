@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserVote < ApplicationRecord
   class Error < Exception; end
 

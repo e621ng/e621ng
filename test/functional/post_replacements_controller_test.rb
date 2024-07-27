@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
   context "The post replacements controller" do
@@ -29,6 +31,34 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         end
 
         assert_equal @response.parsed_body["location"], post_path(@post)
+      end
+
+      context "with a previously destroyed post" do
+        setup do
+          @admin = create(:admin_user)
+          as(@admin) do
+            @replacement.destroy
+            @upload2 = UploadService.new(attributes_for(:png_upload).merge({ uploader: @user })).start!
+            @post2 = @upload2.post
+            @post2.expunge!
+          end
+        end
+
+        should "fail and create ticket" do
+          assert_difference({ "PostReplacement.count" => 0, "Ticket.count" => 1 }) do
+            file = fixture_file_upload("test.png")
+            post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
+            Rails.logger.debug PostReplacement.all.map(&:md5).join(", ")
+          end
+        end
+
+        should "fail and not create ticket if notify=false" do
+          DestroyedPost.find_by!(post_id: @post2.id).update_column(:notify, false)
+          assert_difference(%(Post.count Ticket.count), 0) do
+            file = fixture_file_upload("test.png")
+            post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
+          end
+        end
       end
     end
 

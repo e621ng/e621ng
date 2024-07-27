@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserDeletionJob < ApplicationJob
   queue_as :low_prio
 

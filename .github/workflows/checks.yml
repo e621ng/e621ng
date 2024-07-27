@@ -4,16 +4,18 @@ on:
   push:
     branches:
       - master
+      - build-*
   pull_request:
     branches:
       - master
+      - build-*
 
 permissions:
   contents: read
 
 jobs:
   docker-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Set up Docker Buildx
@@ -27,7 +29,7 @@ jobs:
           tags: e621
 
   rubocop:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: docker-build
 
     steps:
@@ -37,8 +39,19 @@ jobs:
       - name: Run Rubocop
         run: $DOCKER_RUN rubocop --format github
 
+  eslint:
+    runs-on: ubuntu-22.04
+    needs: docker-build
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/prepare-docker-image
+
+      - name: Run ESLint
+        run: $DOCKER_RUN linter
+
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: docker-build
 
     steps:

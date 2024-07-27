@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserNameValidator < ActiveModel::EachValidator
   def validate_each(rec, attr, value)
     name = value

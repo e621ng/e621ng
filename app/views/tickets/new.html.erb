@@ -5,7 +5,7 @@
       <% @found_item = true %>
       <% if @ticket.qtype.nil? %>
         <% @found_item = false %>
-        <div class='section' style='max-width:80em;'>
+        <div class="section">
           To submit a ticket about a problematic comment, click "Report" on the comment itself.<br/>
           To submit a ticket about a problematic forum post, click "Report" on the post itself.<br/>
           To submit a ticket about a problematic pool, click "Report" on the pool page itself.<br/>
@@ -16,12 +16,12 @@
         </div>
       <% else %>
         <% if @ticket.content %>
-          <div class='section' style='width:80em;'>
+          <div class="section">
             <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
           </div>
         <% else %>
           <% @found_item = false %>
-          <div class='section' style='width:80em;'>That <%= @ticket.model.name.underscore.tr("_", " ") %> does not exist.</div>
+          <div class="section">That <%= @ticket.model.name.underscore.tr("_", " ") %> does not exist.</div>
         <% end %>
       <% end %>
 
@@ -29,16 +29,11 @@
         <%= f.hidden_field :disp_id %>
         <%= f.hidden_field :qtype %>
 
-        <div class='section' style='max-width:80em;'>
-          <label for="ticket_reason">
-            <% if @ticket.qtype == "post" %>
-              Additional details.
-            <% else %>
-              Reason for complaint
-            <% end %>
-          </label><br/>
+        <div class="section">
+          <span class="ticket-warning">
+            <strong>Note:</strong> Abuse of this system will lead to disciplinary action
+          </span>
 
-          <p class='nomargin'>Note: Abuse of this system will lead to disciplinary action</p>
           <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
 
         </div>
@@ -48,7 +43,7 @@
   </div>
 </div>
 
-<% render partial: 'secondary_links' %>
+<% render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   New Ticket

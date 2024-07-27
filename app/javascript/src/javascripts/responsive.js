@@ -1,8 +1,8 @@
-$(function() {
-  $("#maintoggle").on("click.danbooru", function(e) {
+$(function () {
+  $("#maintoggle").on("click.danbooru", function (e) {
     e.preventDefault();
-    $('#nav').toggle();
-    $('#maintoggle-on').toggle();
-    $('#maintoggle-off').toggle();
+    $("#nav").toggle();
+    $("#maintoggle-on").toggle();
+    $("#maintoggle-off").toggle();
   });
 });

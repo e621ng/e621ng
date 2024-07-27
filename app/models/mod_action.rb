@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ModAction < ApplicationRecord
   belongs_to :creator, :class_name => "User"
   before_validation :initialize_creator, :on => :create
@@ -70,6 +72,8 @@ class ModAction < ApplicationRecord
       :user_feedback_create,
       :user_feedback_update,
       :user_feedback_delete,
+      :user_feedback_undelete,
+      :user_feedback_destroy,
       :wiki_page_rename,
       :wiki_page_delete,
       :wiki_page_lock,

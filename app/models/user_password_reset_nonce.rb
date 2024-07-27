@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserPasswordResetNonce < ApplicationRecord
   has_secure_token :key
   after_create :deliver_notice

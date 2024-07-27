@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RateLimiter
   def self.check_limit(key, max_attempts, lockout_time = 1.minute)
     return true if Cache.fetch("#{key}:lockout")

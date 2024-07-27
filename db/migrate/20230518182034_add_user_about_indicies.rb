@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddUserAboutIndicies < ActiveRecord::Migration[7.0]
   def up
     add_index :users, "(to_tsvector('english', profile_about))", using: :gin

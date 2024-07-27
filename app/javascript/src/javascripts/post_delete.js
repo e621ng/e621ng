@@ -1,6 +1,6 @@
 let PostDeletion = {};
 
-PostDeletion.init = function() {
+PostDeletion.init = function () {
   const input = $("#reason");
   let inputVal = input.val() + "";
 
@@ -37,7 +37,7 @@ PostDeletion.init = function() {
       const $button = $(element);
       $button.find("input[type=text]").on("input", () => {
         $button.trigger("e621:refresh");
-      })
+      });
     });
   buttons.trigger("e621:refresh");
 
@@ -49,11 +49,11 @@ PostDeletion.init = function() {
   $("#delreason-clear").on("click", () => {
     input.val("").trigger("input");
   });
-}
+};
 
-$(function() {
-  if($("div#c-confirm-delete").length)
+$(function () {
+  if ($("div#c-confirm-delete").length)
     Danbooru.PostDeletion.init();
 });
 
-export default PostDeletion
+export default PostDeletion;

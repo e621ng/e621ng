@@ -5,6 +5,7 @@
     <ul>
       <li><strong>Creator</strong> <%= link_to_user @user_feedback.creator %></li>
       <li><strong>Date</strong> <%= @user_feedback.created_at %></li>
+      <li><strong>Status</strong> <%= @user_feedback.is_deleted? ? "Deleted" : "Active" %></li>
       <li><strong>Category</strong> <%= @user_feedback.category %></li>
       <li><strong>Message</strong>
         <div class="dtext-container"><%= format_text @user_feedback.body %></div></li>

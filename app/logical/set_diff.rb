@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetDiff
   attr_reader :additions, :removals, :added, :removed, :obsolete_added, :obsolete_removed, :changed, :unchanged
 

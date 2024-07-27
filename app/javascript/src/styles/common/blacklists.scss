@@ -64,6 +64,32 @@
   }
 }
 
+
+// Quick Edit Form
+#blacklist-edit-dialog {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: min-content 1fr min-content;
+  gap: 0.5rem;
+
+  textarea {
+    grid-column: -1 / 1;
+  }
+  p {
+    margin-bottom: 0;
+    text-align: center;
+  }
+}
+
+// Settings
+#c-users #a-edit {
+  #user_blacklisted_tags {
+    min-height: 20em;
+    width: 100%;
+  }
+}
+
+
 // Completely hide the blacklisted posts on these pages only
 #c-posts #a-index, #c-popular, #c-favorites {
   .post-preview.blacklisted {
@@ -76,7 +102,7 @@
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
-    background: url("images/blacklisted-preview.png") !important;
+    background: url("blacklisted-preview.png") !important;
 
     @media screen and (max-width: 800px) {
       background-size: 100px !important;

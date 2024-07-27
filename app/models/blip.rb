@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Blip < ApplicationRecord
   include UserWarnable
   simple_versioning

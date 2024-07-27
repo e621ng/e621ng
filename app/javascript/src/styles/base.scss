@@ -19,6 +19,7 @@
 @import "common/forms.scss";
 @import "common/inline.scss";
 @import "common/jquery_ui_custom.scss";
+@import "common/link_decorator.scss";
 @import "common/main_layout.scss";
 @import "common/news.scss";
 @import "common/notices.scss";
@@ -38,6 +39,7 @@
 @import "specific/bans.scss";
 @import "specific/blips.scss";
 @import "specific/comments.scss";
+@import "specific/destroyed_posts.scss";
 @import "specific/dmails.scss";
 @import "specific/edit_history.scss";
 @import "specific/error.scss";
@@ -67,6 +69,7 @@
 @import "specific/tags.scss";
 @import "specific/takedowns.scss";
 @import "specific/terms_of_service.scss";
+@import "specific/tickets.scss";
 @import "specific/uploads.scss";
 @import "specific/user_deletions.scss";
 @import "specific/user_feedback.scss";

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequestsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: [:index, :show]

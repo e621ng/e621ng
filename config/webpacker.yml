@@ -11,7 +11,11 @@ default: &default
   # Additional paths webpack should look up modules
   # ['app/assets', 'engine/foo/app/assets']
   additional_paths:
-    - public
+    # Make the files available in css
+    - public/images
+    # Actually have webpacker add them to its digest so that assets:precompile works properly
+    # Modifying these files when only used with require.context did not pick up changes
+    - public/images/**/*
 
   # Reload manifest.json on all requests so we reload latest compiled packs
   cache_manifest: false

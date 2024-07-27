@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostEventSerializer < ActiveModel::Serializer
   def creator_id
     object.is_creator_visible?(CurrentUser.user) ? object.creator_id : nil

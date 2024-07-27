@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostVote < UserVote
   validate :validate_user_can_vote
 

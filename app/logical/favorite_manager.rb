@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class FavoriteManager
   ISOLATION = Rails.env.test? ? {} : { isolation: :repeatable_read }
 

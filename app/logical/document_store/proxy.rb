@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DocumentStore
   module Proxy
     def self.included(base)

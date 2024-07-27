@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class ArtistsControllerTest < ActionDispatch::IntegrationTest
   context "An artists controller" do
@@ -102,19 +104,14 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    should "delete an artist" do
-      @janitor = create(:janitor_user)
-      delete_auth artist_path(@artist.id), @janitor
-      assert_redirected_to(artist_path(@artist.id))
-      @artist.reload
-      assert_equal(false, @artist.is_active)
-    end
-
-    should "undelete an artist" do
-      @janitor = create(:janitor_user)
-      put_auth artist_path(@artist.id), @janitor, params: {artist: {is_active: true}}
-      assert_redirected_to(artist_path(@artist.id))
-      assert_equal(true, @artist.reload.is_active)
+    context "destroy action" do
+      should "work" do
+        assert_difference({ "Artist.count" => -1, "ModAction.count" => 1 }) do
+          delete_auth artist_path(@artist), @admin
+        end
+        assert_redirected_to(artists_path)
+        assert_raises(ActiveRecord::RecordNotFound) { @artist.reload }
+      end
     end
 
     context "reverting an artist" do

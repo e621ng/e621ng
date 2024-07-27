@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, :except => [:index, :show, :search]
@@ -18,9 +20,8 @@ class ForumPostsController < ApplicationController
   end
 
   def index
-    @query = ForumPost.permitted.active.search(search_params)
-    @query = ForumPost.permitted.search(search_params) if CurrentUser.is_moderator?
-    @forum_posts = @query.includes(:topic).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @query = ForumPost.visible(CurrentUser.user).search(search_params)
+    @forum_posts = @query.includes(:topic).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@forum_posts)
   end
 

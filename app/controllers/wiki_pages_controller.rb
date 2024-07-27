@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WikiPagesController < ApplicationController
   respond_to :html, :json, :js
   before_action :member_only, :except => [:index, :search, :show, :show_or_new]
@@ -13,7 +15,7 @@ class WikiPagesController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @wiki_page = WikiPage.find(params[:id])
     else
-      @wiki_page = WikiPage.find_by_title(params[:id])
+      @wiki_page = WikiPage.titled(params[:id])
       if @wiki_page.nil? && request.format.symbol == :html
         redirect_to show_or_new_wiki_pages_path(:title => params[:id])
         return
@@ -49,7 +51,7 @@ class WikiPagesController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @wiki_page = WikiPage.find(params[:id])
     else
-      @wiki_page = WikiPage.titled(params[:id]).first
+      @wiki_page = WikiPage.titled(params[:id])
     end
 
     if @wiki_page.present?
@@ -94,7 +96,7 @@ class WikiPagesController < ApplicationController
   end
 
   def show_or_new
-    @wiki_page = WikiPage.find_by_title(params[:title])
+    @wiki_page = WikiPage.titled(params[:title])
     if @wiki_page
       redirect_to wiki_page_path(@wiki_page)
     else

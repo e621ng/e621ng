@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequestImporter
   class Error < RuntimeError; end
   attr_accessor :text, :forum_id, :creator_id, :creator_ip_addr
@@ -57,10 +59,10 @@ class BulkUpdateRequestImporter
     tokens.map do |token|
       case token[0]
       when :create_alias
-        comment = "# duplicate of #{token[3]}" if token[3].present?
+        comment = "# #{token[3]}" if token[3].present?
         "alias #{token[1]} -> #{token[2]} #{comment}".strip
       when :create_implication
-        comment = "# duplicate of #{token[3]}" if token[3].present?
+        comment = "# #{token[3]}" if token[3].present?
         "implicate #{token[1]} -> #{token[2]} #{comment}".strip
       when :remove_alias
         comment = "# missing" if token[3] == false
@@ -86,10 +88,10 @@ class BulkUpdateRequestImporter
   def validate_alias(token)
     tag_alias = TagAlias.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
     if tag_alias.present? && tag_alias.has_transitives
-      return [nil, "alias ##{tag_alias.id}, has blocking transitive relationships, cannot be applied through BUR"]
+      return [nil, "duplicate of alias ##{tag_alias.id}; has blocking transitive relationships, cannot be applied through BUR"]
     end
-    return [nil, "alias ##{tag_alias.id}"] unless tag_alias.nil?
-    tag_alias = TagAlias.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
+    return [nil, "duplicate of alias ##{tag_alias.id}"] unless tag_alias.nil?
+    tag_alias = TagAlias.new(forum_topic_id: forum_id, status: "pending", antecedent_name: token[1], consequent_name: token[2])
     unless tag_alias.valid?
       return ["Error: #{tag_alias.errors.full_messages.join("; ")} (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})", nil]
     end
@@ -101,8 +103,8 @@ class BulkUpdateRequestImporter
 
   def validate_implication(token)
     tag_implication = TagImplication.duplicate_relevant.find_by(antecedent_name: token[1], consequent_name: token[2])
-    return [nil, "implication ##{tag_implication.id}"] unless tag_implication.nil?
-    tag_implication = TagImplication.new(:forum_topic_id => forum_id, :status => "pending", :antecedent_name => token[1], :consequent_name => token[2])
+    return [nil, "duplicate of implication ##{tag_implication.id}"] unless tag_implication.nil?
+    tag_implication = TagImplication.new(forum_topic_id: forum_id, status: "pending", antecedent_name: token[1], consequent_name: token[2])
     unless tag_implication.valid?
       return ["Error: #{tag_implication.errors.full_messages.join("; ")} (create implication #{tag_implication.antecedent_name} -> #{tag_implication.consequent_name})", nil]
     end
@@ -190,7 +192,7 @@ class BulkUpdateRequestImporter
 
     tag_alias.rename_artist
     raise Error, "Error: Alias would modify other aliases or implications through transitive relationships. (create alias #{tag_alias.antecedent_name} -> #{tag_alias.consequent_name})" if tag_alias.has_transitives
-    tag_alias.approve!(approver: approver, update_topic: false, deny_transitives: true)
+    tag_alias.approve!(approver: approver, update_topic: false)
   end
 
   def find_create_implication(token, approver)

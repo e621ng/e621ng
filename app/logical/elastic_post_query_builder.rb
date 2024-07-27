@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ElasticPostQueryBuilder < ElasticQueryBuilder
   LOCK_TYPE_TO_INDEX_FIELD = {
     rating: :rating_locked,
@@ -33,15 +35,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({term: {rating: "s"}})
     end
 
-    if q[:post_id]
-      relation = range_relation(q[:post_id], :id)
-      must.push(relation) if relation
-    end
-
-    if q[:post_id_must_not]
-      must_not.push({ term: { id: q[:post_id_must_not] } })
-    end
-
+    add_array_range_relation(:post_id, :id)
     add_array_range_relation(:mpixels, :mpixels)
     add_array_range_relation(:ratio, :aspect_ratio)
     add_array_range_relation(:width, :width)

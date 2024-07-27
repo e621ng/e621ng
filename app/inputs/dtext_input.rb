@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DtextInput < SimpleForm::Inputs::TextInput
   def input(wrapper_options = nil)
     input_html_options[:cols] = "80"
@@ -7,7 +9,7 @@ class DtextInput < SimpleForm::Inputs::TextInput
     end
 
     merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
-    @builder.template.render("dtext_input", textarea: super(merged_input_options), limit: @options[:limit])
+    @builder.template.render("dtext_input", textarea: super(merged_input_options), limit: @options[:limit], allow_color: @options.key?(:allow_color) ? @options[:allow_color] : CurrentUser.user.is_privileged?)
   end
 
   def input_html_classes

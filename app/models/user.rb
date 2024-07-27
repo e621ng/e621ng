@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   class Error < Exception ; end
   class PrivilegeError < Exception
@@ -19,44 +21,36 @@ class User < ApplicationRecord
     :approver,
   ]
 
-  # candidates for removal:
-  # - disable_cropped_thumbnails (enabled by 22)
-  # - has_saved_searches (removed in removal of saved searches)
-  # - no_feedback
-  # - show_avatars
-  # - blacklist_avatars
-  # - disable_mobile_gestures
-  # - disable_post_tooltips
-  BOOLEAN_ATTRIBUTES = %w(
-    show_avatars
-    blacklist_avatars
+  BOOLEAN_ATTRIBUTES = %w[
+    _show_avatars
+    _blacklist_avatars
     blacklist_users
     description_collapsed_initially
     hide_comments
     show_hidden_comments
     show_post_statistics
     is_banned
-    has_mail
+    _has_mail
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
     style_usernames
     enable_auto_complete
-    has_saved_searches
+    _has_saved_searches
     can_approve_posts
     can_upload_free
     disable_cropped_thumbnails
-    disable_mobile_gestures
+    _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
-    disable_post_tooltips
+    _disable_post_tooltips
     no_flagging
-    no_feedback
+    _no_feedback
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
     is_bd_staff
-  )
+  ].freeze
 
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
@@ -68,6 +62,7 @@ class User < ApplicationRecord
   validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
   validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
+  validates :email, length: { maximum: 100 }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   validates :name, user_name: true, on: :create
@@ -81,7 +76,6 @@ class User < ApplicationRecord
   validate :validate_ip_addr_is_not_banned, :on => :create
   validate :validate_sock_puppets, :on => :create, :if => -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
-  before_validation :set_per_page
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
@@ -102,7 +96,7 @@ class User < ApplicationRecord
   has_many :bans, -> { order("bans.id desc") }
   has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
   has_many :favorites, -> { order(id: :desc) }
-  has_many :feedback, class_name: "UserFeedback", dependent: :destroy
+  has_many :feedback, -> { active }, class_name: "UserFeedback", dependent: :destroy
   has_many :forum_posts, -> { order("forum_posts.created_at, forum_posts.id") }, foreign_key: "creator_id"
   has_many :forum_topic_visits
   has_many :note_versions, foreign_key: "updater_id"
@@ -329,14 +323,6 @@ class User < ApplicationRecord
       can_approve_posts?
     end
 
-    def set_per_page
-      if per_page.nil?
-        self.per_page = Danbooru.config.posts_per_page
-      end
-
-      return true
-    end
-
     def blank_out_nonexistent_avatars
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
@@ -390,15 +376,16 @@ class User < ApplicationRecord
 
     def is_blacklisting_user?(user)
       return false if blacklisted_tags.blank?
-      blta = blacklisted_tags.split("\n").map{|x| x.downcase}
-      blta.include?("user:#{user.name.downcase}") || blta.include?("uploaderid:#{user.id}")
+      bltags = blacklisted_tags.split("\n").map(&:downcase)
+      strings = %W[user:#{user.name.downcase} user:!#{user.id} userid:#{user.id}]
+      strings.any? { |str| bltags.include?(str) }
     end
   end
 
   module ForumMethods
     def has_forum_been_updated?
       return false unless is_member?
-      max_updated_at = ForumTopic.permitted.active.order(updated_at: :desc).first&.updated_at
+      max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
       return max_updated_at > last_forum_read_at
@@ -641,14 +628,25 @@ class User < ApplicationRecord
       ]
 
       if id == CurrentUser.user.id
-        list += BOOLEAN_ATTRIBUTES + [
+        boolean_attributes = %i[
+          blacklist_users description_collapsed_initially
+          hide_comments show_hidden_comments show_post_statistics
+          is_banned receive_email_notifications
+          enable_keyboard_navigation enable_privacy_mode
+          style_usernames enable_auto_complete
+          can_approve_posts can_upload_free
+          disable_cropped_thumbnails enable_safe_mode
+          disable_responsive_mode no_flagging disable_user_dmails
+          enable_compact_uploader replacements_beta
+        ]
+        list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
           :recent_tags, :comment_threshold, :default_image_size,
           :favorite_tags, :blacklisted_tags, :time_zone, :per_page,
           :custom_style, :favorite_count,
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
           :statement_timeout, :favorite_limit,
-          :tag_query_limit
+          :tag_query_limit, :has_mail?
         ]
       end
 
@@ -657,11 +655,11 @@ class User < ApplicationRecord
 
     # extra attributes returned for /users/:id.json but not for /users.json.
     def full_attributes
-      [
-        :wiki_page_version_count, :artist_version_count, :pool_version_count,
-        :forum_post_count, :comment_count,
-        :flag_count, :favorite_count, :positive_feedback_count,
-        :neutral_feedback_count, :negative_feedback_count, :upload_limit
+      %i[
+        wiki_page_version_count artist_version_count pool_version_count
+        forum_post_count comment_count flag_count favorite_count
+        positive_feedback_count neutral_feedback_count negative_feedback_count
+        upload_limit profile_about profile_artinfo
       ]
     end
   end
@@ -874,12 +872,8 @@ class User < ApplicationRecord
   extend SearchMethods
   extend ThrottleMethods
 
-  def dmail_count
-    if has_mail?
-      "(#{unread_dmail_count})"
-    else
-      ""
-    end
+  def has_mail?
+    unread_dmail_count > 0
   end
 
   def hide_favorites?

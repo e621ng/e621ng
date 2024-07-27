@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module UserWarnable
   extend ActiveSupport::Concern
 
   included do
-    enum warning_type: {
+    enum :warning_type, {
       warning: 1,
       record: 2,
       ban: 3,

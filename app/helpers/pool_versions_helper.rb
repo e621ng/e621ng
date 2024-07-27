@@ -1,19 +1,17 @@
+# frozen_string_literal: true
+
 module PoolVersionsHelper
-  def pool_version_diff(pool_version, previous = nil, options = {})
-    html = ""
+  def pool_version_posts_diff(pool_version)
+    changes = []
 
-    diff = pool_version.build_diff(previous)
+    pool_version.added_post_ids.each do |post_id|
+      changes << tag.ins(link_to(post_id, post_path(post_id)))
+    end
 
-    html << diff[:added_post_ids].map do |post_id|
-      '<ins><a href="/posts/' + post_id.to_s + '">' + post_id.to_s + '</a></ins>'
-    end.join(" ")
+    pool_version.removed_post_ids.each do |post_id|
+      changes << tag.del(link_to(post_id, post_path(post_id)))
+    end
 
-    html << " "
-
-    html << diff[:removed_post_ids].map do |post_id|
-      '<del><a href="/posts/' + post_id.to_s + '">' + post_id.to_s + '</a></del>'
-    end.join(" ")
-
-    return html.html_safe
+    safe_join(changes, " ")
   end
 end

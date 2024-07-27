@@ -1,3 +1,24 @@
+<div align="center">
+  <img src="public/images/github-logo.svg" width="150" height="150" align="left">
+  <div align="left">
+    <h3>E621</h3>
+    <a href="https://github.com/e621ng/e621ng/releases">
+      <img src="https://img.shields.io/github/v/release/e621ng/e621ng?label=version&style=flat-square" alt="Releases" />
+    </a><br />
+    <a href="https://github.com/e621ng/e621ng/issues">
+      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open issues&style=flat-square" alt="Issues" />
+    </a><br />
+    <a href="https://github.com/e621ng/e621ng/pulls">
+      <img src="https://img.shields.io/github/issues-pr/e621ng/e621ng?style=flat-square" alt="Pull Requests" />
+    </a><br />
+    <a href="https://github.com/e621ng/e621ng/commits/master/">
+      <img src="https://img.shields.io/github/check-runs/e621ng/e621ng/master?style=flat-square" alt="GitHub branch check runs" />
+    </a><br />
+  </div>
+</div>
+<br />
+
+
 ## Installation (Easy mode - For development environments)
 
 ### Prerequisites
@@ -17,11 +38,17 @@
 1. Copy the sample environment file with `cp .env.sample .env`.
 1. Run the following commands:
     ```
-    docker compose run --rm -e SEED_POST_COUNT=100 e621 /app/bin/setup
+    docker compose run --rm e621 /app/bin/setup
     docker compose up
     ```
     After running the commands once only `docker compose up` is needed to bring up the containers.
-1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `e621test` respectively.
+1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `qwerty` respectively.
+1. By default, the site will lack any content. For testing purposes, you can generate some using the following command:
+    ```
+    docker exec -it e621ng-e621-1 /app/bin/populate
+    ```
+    The command can be run multiple times to generate more content.  
+    Environmental variables are available to customize what kind of content is generated.
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
@@ -45,9 +72,9 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 #### <a id="development-tools"></a>Things to aid you during development
 
-`bin/rails tests` to execute the test suite.
+`docker compose run --rm tests` to execute the test suite.
 
-`bundle exec rubocop` to run the linter.
+`docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 

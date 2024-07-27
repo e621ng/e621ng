@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TimestampsNonNullable < ActiveRecord::Migration[7.0]
   def change
     ApplicationRecord.without_timeout do

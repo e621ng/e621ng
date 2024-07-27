@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserEmailChange
   attr_reader :user, :password, :new_email
 

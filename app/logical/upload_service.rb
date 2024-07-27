@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadService
   attr_reader :params, :post, :upload
 

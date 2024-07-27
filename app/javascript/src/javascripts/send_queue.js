@@ -1,12 +1,12 @@
 class CBQueue {
-  constructor(timer) {
+  constructor (timer) {
     this.timeout = timer || 1000;
     this.queue = [];
     this.id = null;
     this.running = true;
   }
 
-  tick() {
+  tick () {
     if (!this.running || !this.queue.length) {
       clearInterval(this.id);
       this.id = null;
@@ -15,14 +15,14 @@ class CBQueue {
     this.queue.shift()();
   }
 
-  add(cb) {
+  add (cb) {
     this.queue.push(cb);
     if (this.running) {
       this.start();
     }
   }
 
-  start() {
+  start () {
     let self = this;
     this.running = true;
     if (!this.id) {
@@ -33,7 +33,7 @@ class CBQueue {
     }
   }
 
-  stop() {
+  stop () {
     if (this.id) {
       clearInterval(this.id);
     }

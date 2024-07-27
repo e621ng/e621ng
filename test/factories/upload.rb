@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 
 FactoryBot.define do
@@ -19,6 +21,10 @@ FactoryBot.define do
 
     factory(:large_jpg_upload) do
       file { fixture_file_upload("test-large.jpg") }
+    end
+
+    factory(:png_upload) do
+      file { fixture_file_upload("test.png") }
     end
   end
 end

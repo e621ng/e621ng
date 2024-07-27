@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumPost < ApplicationRecord
   include UserWarnable
   simple_versioning
@@ -44,20 +46,23 @@ class ForumPost < ApplicationRecord
       where("forum_posts.creator_id = ?", user_id)
     end
 
-    def active
-      where("(forum_posts.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id)
+    def visible(user)
+      active(user).permitted(user)
     end
 
-    def permitted
-      q = joins(:topic)
-      q = q.where("(forum_topics.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id) unless CurrentUser.is_moderator?
+    def permitted(user)
+      q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
+      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
       q
+    end
+
+    def active(user)
+      return all if user.is_moderator?
+      where("forum_posts.is_hidden = FALSE OR forum_posts.creator_id = ?", user.id)
     end
 
     def search(params)
       q = super
-      q = q.permitted
-
       q = q.where_user(:creator_id, :creator, params)
 
       if params[:topic_id].present?
@@ -194,16 +199,8 @@ class ForumPost < ApplicationRecord
     self.is_hidden = false if is_hidden.nil?
   end
 
-  def creator_name
-    User.id_to_name(creator_id)
-  end
-
-  def updater_name
-    User.id_to_name(updater_id)
-  end
-
   def forum_topic_page
-    ((ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count) / Danbooru.config.posts_per_page.to_f).ceil
+    (ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count / Danbooru.config.records_per_page.to_f).ceil
   end
 
   def is_original_post?(original_post_id = nil)

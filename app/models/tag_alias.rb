@@ -1,13 +1,14 @@
+# frozen_string_literal: true
+
 class TagAlias < TagRelationship
   has_many :tag_rel_undos, as: :tag_rel
 
   after_save :create_mod_action
-  validates :antecedent_name, uniqueness: { conditions: -> { duplicate_relevant } }
-  validate :absence_of_transitive_relation
+  validates :antecedent_name, uniqueness: { conditions: -> { duplicate_relevant } }, unless: :is_deleted?
+  validate :absence_of_transitive_relation, unless: :is_deleted?
 
   module ApprovalMethods
-    def approve!(update_topic: true, approver: CurrentUser.user, deny_transitives: false)
-      raise ::ValueError.new("Alias would modify other aliases or implications through transitive relationships.") if deny_transitives && has_transitives
+    def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
         create_undo_information
@@ -127,8 +128,8 @@ class TagAlias < TagRelationship
       update_posts_locked_tags_undo
       update_blacklists_undo
       update_posts_undo
-      forum_updater.update(retirement_message, "UNDONE") if update_topic
       rename_artist_undo
+      forum_updater.update(retirement_message, "UNDONE") if update_topic
     end
     tag_rel_undos.update_all(applied: true)
   end
@@ -137,9 +138,7 @@ class TagAlias < TagRelationship
     Post.without_timeout do
       Post.where_ilike(:locked_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |post|
         fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: {consequent_name => antecedent_name})
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          post.update_column(:locked_tags, fixed_tags)
-        end
+        post.update_column(:locked_tags, fixed_tags)
       end
     end
   end
@@ -172,30 +171,24 @@ class TagAlias < TagRelationship
   def rename_artist_undo
     if consequent_tag.category == Tag.categories.artist
       if consequent_tag.artist.present? && antecedent_tag.artist.blank?
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          consequent_tag.artist.update!(name: antecedent_name)
-        end
+        consequent_tag.artist.update!(name: antecedent_name)
       end
     end
   end
 
   def process!(update_topic: true)
-    unless valid?
-      raise errors.full_messages.join("; ")
-    end
-
     tries = 0
 
     begin
       CurrentUser.scoped(approver) do
-        update(status: "processing")
+        update!(status: "processing")
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
         update_blacklists
         update_posts
-        forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         rename_artist
+        forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         update(status: 'active', post_count: consequent_tag.post_count)
         # TODO: Race condition with indexing jobs here.
         antecedent_tag.fix_post_count if antecedent_tag
@@ -211,10 +204,8 @@ class TagAlias < TagRelationship
 
       CurrentUser.scoped(approver) do
         forum_updater.update(failure_message(e), "FAILED") if update_topic
-        update(status: "error: #{e}")
+        update_columns(status: "error: #{e}")
       end
-
-      DanbooruLogger.log(e, tag_alias_id: id, antecedent_name: antecedent_name, consequent_name: consequent_name)
     end
   end
 
@@ -258,6 +249,7 @@ class TagAlias < TagRelationship
   end
 
   def ensure_category_consistency
+    return if consequent_tag.post_count > 10_000 # Don't change category of large established tags.
     return if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
     return if consequent_tag.category != Tag.categories.general # Don't change the already existing category of the target tag
     return if antecedent_tag.category == Tag.categories.general # Don't set the target tag to general
@@ -278,9 +270,7 @@ class TagAlias < TagRelationship
     Post.without_timeout do
       Post.where_ilike(:locked_tags, "*#{antecedent_name}*").find_each(batch_size: 50) do |post|
         fixed_tags = TagAlias.to_aliased_query(post.locked_tags)
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          post.update_column(:locked_tags, fixed_tags)
-        end
+        post.update_column(:locked_tags, fixed_tags)
       end
     end
   end
@@ -300,15 +290,13 @@ class TagAlias < TagRelationship
   def rename_artist
     if antecedent_tag.category == Tag.categories.artist
       if antecedent_tag.artist.present? && consequent_tag.artist.blank?
-        CurrentUser.scoped(creator, creator_ip_addr) do
-          antecedent_tag.artist.update!(name: consequent_name)
-        end
+        antecedent_tag.artist.update!(name: consequent_name)
       end
     end
   end
 
   def reject!(update_topic: true)
-    update_column(:status,  "deleted")
+    update(status: "deleted")
     forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
   end
 

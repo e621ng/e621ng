@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Dmail < ApplicationRecord
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
@@ -184,12 +186,13 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_read!
-    return if Danbooru.config.readonly_mode?
-
     update_column(:is_read, true)
-    owner.dmails.unread.count.tap do |unread_count|
-      owner.update(has_mail: (unread_count > 0), unread_dmail_count: unread_count)
-    end
+    owner.update(unread_dmail_count: owner.dmails.unread.count)
+  end
+
+  def mark_as_unread!
+    update_column(:is_read, false)
+    owner.update(unread_dmail_count: owner.dmails.unread.count)
   end
 
   def is_automated?
@@ -208,7 +211,7 @@ class Dmail < ApplicationRecord
 
   def update_recipient
     if owner_id != CurrentUser.user.id && !is_deleted? && !is_read?
-      to.update(has_mail: true, unread_dmail_count: to.dmails.unread.count)
+      to.update(unread_dmail_count: to.dmails.unread.count)
     end
   end
 

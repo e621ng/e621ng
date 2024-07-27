@@ -1,4 +1,4 @@
-<% if comment.visible_to?(CurrentUser.user) && comment.should_see?(CurrentUser.user) %>
+<% if comment.should_see?(CurrentUser.user) %>
   <article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
            data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
            data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"

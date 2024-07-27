@@ -1,21 +1,21 @@
-import Utility from './utility'
+import Utility from "./utility";
 
 let Shortcuts = {};
 Shortcuts.disabled = false;
 
-Shortcuts.initialize = function() {
+Shortcuts.initialize = function () {
   Shortcuts.keydown("s", "scroll_down", Shortcuts.nav_scroll_down);
   Shortcuts.keydown("w", "scroll_up", Shortcuts.nav_scroll_up);
   Shortcuts.initialize_data_shortcuts();
-}
+};
 
 // Bind keyboard shortcuts to links that have a `data-shortcut="..."` attribute. If multiple links have the
 // same shortcut, then only the first link will be triggered by the shortcut.
-Shortcuts.initialize_data_shortcuts = function() {
+Shortcuts.initialize_data_shortcuts = function () {
   $(document).off("keydown.danbooru.shortcut");
 
   $("[data-shortcut]").each((_i, element) => {
-    const $e = $(element)
+    const $e = $(element);
     const id = $e.attr("id");
     const keys = $e.attr("data-shortcut");
     const namespace = `shortcut.${id}`;
@@ -39,7 +39,7 @@ Shortcuts.initialize_data_shortcuts = function() {
   });
 };
 
-Shortcuts.keydown = function(keys, namespace, handler) {
+Shortcuts.keydown = function (keys, namespace, handler) {
   if (Utility.meta("enable-js-navigation") === "true") {
     $(document).off("keydown.danbooru." + namespace);
     $(document).on("keydown.danbooru." + namespace, null, keys, e => {
@@ -51,16 +51,16 @@ Shortcuts.keydown = function(keys, namespace, handler) {
   }
 };
 
-Shortcuts.nav_scroll_down = function() {
+Shortcuts.nav_scroll_down = function () {
   window.scrollBy(0, $(window).height() * 0.15);
-}
+};
 
-Shortcuts.nav_scroll_up = function() {
+Shortcuts.nav_scroll_up = function () {
   window.scrollBy(0, $(window).height() * -0.15);
-}
+};
 
-$(document).ready(function() {
+$(document).ready(function () {
   Shortcuts.initialize();
 });
 
-export default Shortcuts
+export default Shortcuts;
