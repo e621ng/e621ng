@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Ticket < ApplicationRecord
   belongs_to_creator
   user_status_counter :ticket_count
@@ -11,7 +13,8 @@ class Ticket < ApplicationRecord
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  enum status: %i[pending partial approved].index_with(&:to_s)
+  validates :response, length: { minimum: 2 }, on: :update
+  enum :status, %i[pending partial approved].index_with(&:to_s)
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
@@ -184,6 +187,7 @@ class Ticket < ApplicationRecord
     end
 
     def validate_creator_is_not_limited
+      return if creator == User.system
       allowed = creator.can_ticket_with_reason
       if allowed != true
         errors.add(:creator, User.throttle_reason(allowed))
@@ -327,6 +331,7 @@ class Ticket < ApplicationRecord
 
   module NotificationMethods
     def create_dmail
+      return if creator == User.system
       should_send = saved_change_to_status? || (send_update_dmail.to_s.truthy? && saved_change_to_response?)
       return unless should_send
 

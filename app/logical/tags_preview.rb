@@ -1,17 +1,19 @@
+# frozen_string_literal: true
+
 class TagsPreview
   def initialize(tags: nil)
-    @tags = TagQuery.scan(tags).map {|x| {a: x, type: 'tag'}}
+    @tags = TagQuery.scan(tags).map { |x| { a: x.downcase, type: "tag" } }
     aliases
     implications
     tag_types
   end
 
   def aliases
-    names = @tags.map{ |tag| tag[:a] }.reject {|y| y.blank?}
-    aliased = TagAlias.to_aliased_with_originals(names).reject {|k,v| k == v }
+    names = @tags.pluck(:a).compact_blank
+    aliased = TagAlias.to_aliased_with_originals(names).reject { |k, v| k == v }
     @tags.map! do |tag|
       if aliased[tag[:a]]
-        {a: tag[:a], b: aliased[tag[:a]], type: 'alias'}
+        { a: tag[:a], b: aliased[tag[:a]], type: "alias" }
       else
         tag
       end
@@ -19,10 +21,10 @@ class TagsPreview
   end
 
   def implications
-    names = @tags.map {|tag| tag[:b] || tag[:a] }
+    names = @tags.map { |tag| tag[:b] || tag[:a] }
     implications = TagImplication.descendants_with_originals(names)
     implications.each do |implication, descendants|
-      @tags += descendants.map { |descendant| {a: implication, b: descendant, type: 'implication'} }
+      @tags += descendants.map { |descendant| { a: implication, b: descendant, type: "implication" } }
     end
   end
 

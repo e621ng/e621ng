@@ -9,7 +9,7 @@ $hexagon-color-section-border:    $hexagon-color-background;
 
 body {
   // Theme-specific images
-  --image-background:             url("images/themes/hexagon/background.png");
+  --image-background:             url("themes/hexagon/background.png");
 
   // Layout Colors
   --color-background:             #{$hexagon-color-background}; // Main background (dark blue, large hexagons)

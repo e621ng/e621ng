@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EditHistory < ApplicationRecord
   self.table_name = 'edit_histories'
   belongs_to :versionable, polymorphic: true

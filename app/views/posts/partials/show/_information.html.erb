@@ -28,6 +28,9 @@
     Size: <span itemprop="width"><%= post.image_width %></span>x<span itemprop="height"><%= post.image_height %></span> (<%= number_to_human_size(post.file_size) %>)
   </li>
   <li>
+    Type: <%= post.file_ext.upcase %>
+  </li>
+  <li>
     Status:
     <% if post.is_pending? %>
       Pending

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class TicketsControllerTest < ActionDispatch::IntegrationTest
@@ -34,7 +36,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "send a new dmail if the status is changed" do
         assert_difference(-> { Dmail.count }, 2) do
-          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved" } }
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved", response: "abc" } }
         end
       end
 
@@ -45,6 +47,12 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
         assert_difference(-> { Dmail.count }, 2) do
           put_auth ticket_path(@ticket), @admin, params: { ticket: { response: "def", send_update_dmail: true } }
+        end
+      end
+
+      should "reject empty responses" do
+        assert_no_changes(-> { @ticket.reload.status }) do
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved", response: "" } }
         end
       end
     end

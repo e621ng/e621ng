@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 =begin
 
 Generalizes the hybrid storage manager to be more declarative in 

@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class CommentsControllerTest < ActionDispatch::IntegrationTest
   context "A comments controller" do
@@ -27,6 +29,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       should "render by comment" do
         get comments_path(group_by: "comment")
+        assert_response :success
+      end
+
+      should "render for the poster_id search parameter" do
+        get comments_path(group_by: "comment", search: { poster_id: 123 })
         assert_response :success
       end
     end

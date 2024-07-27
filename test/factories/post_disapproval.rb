@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:post_disapproval) do
     reason { %w[borderline_quality borderline_relevancy other].sample }

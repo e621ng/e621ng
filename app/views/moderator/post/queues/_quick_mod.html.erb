@@ -1,27 +1,56 @@
 <div class="quick-mod">
   <% if post.is_approvable? %>
-  <div>
+  <div class="quick-mod-group">
+    <%= tag.a "Approve",
+      id: "approve-post",
+      href: "#",
+      class: "approve-post-link button btn-neutral btn-important",
+      data: {
+        pid: post.id,
+        shortcut: "shift+o",
+      }
+    %>
+    |
     <% if post.presenter.has_sequential_navigation?(params) %>
-      <strong><%= tag.a "Approve And Prev", id: "approve-post-prev", href: "#", class: "approve-post-and-navigate-link button btn-neutral", "data-pid": post.id, 'data-location': show_seq_post_path(post, q: params[:q], seq: "prev"), "data-shortcut": "shift+q" %></strong>
-      |
-      <strong><%= tag.a "Approve And Next", id: "approve-post-next", href: "#", class: "approve-post-and-navigate-link button btn-neutral", "data-pid": post.id, 'data-location': show_seq_post_path(post, q: params[:q], seq: "next"), "data-shortcut": "shift+w" %></strong>
-      |
+      <%= tag.a "Approve And Prev",
+        id: "approve-post-prev",
+        href: "#",
+        class: "approve-post-and-navigate-link button btn-neutral",
+        data: {
+          pid: post.id,
+          location: show_seq_post_path(post, q: params[:q], seq: "prev"),
+          shortcut: "shift+q",
+        }
+      %>
+      &bull;
+      <%= tag.a "Approve And Next",
+        id: "approve-post-next",
+        href: "#",
+        class: "approve-post-and-navigate-link button btn-neutral",
+        data: {
+          pid: post.id,
+          location: show_seq_post_path(post, q: params[:q], seq: "next"),
+          shortcut: "shift+w",
+        }
+      %>
     <% end %>
-    <strong><%= tag.a "Approve", id: "approve-post" ,href: '#', class: 'approve-post-link button btn-neutral', 'data-pid': post.id, 'data-shortcut': "shift+o" %></strong>
   </div>
   <% end %>
-  <div>
-    <%= link_to "Human Only", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being human only", reason: "Irrelevant to site. (Human only)", post_id: post.id} %> |
-    <%= link_to "Artistic Standards", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "artistic standards", reason: "Does not meet minimum quality standards. (Artistic)", post_id: post.id} %> |
-    <%= link_to "Bad Photo/Scan", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being a photo/scan", reason: "Does not meet minimum quality standards. (Bad digitization of traditional media)", post_id: post.id} %> |
-    <%= link_to "Excessive Base", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being an  excessive base", reason: "Excessive same base image set.", post_id: post.id} %> |
-    <%= link_to "Advertisement", "#", class: "delete-with-reason-link button btn-neutral", data: {prompt: "being an annoying ad", reason: "Advertisement", post_id: post.id} %> |
+  <div class="quick-mod-group">
+    <%= link_to "Delete", confirm_delete_moderator_post_post_path(id: post.id), class: "button btn-neutral btn-important" %>
+    |
+    <%= link_to "Artistic", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "artistic standards", reason: "Does not meet minimum quality standards (Artistic)", post_id: post.id } %> &bull;
+    <%= link_to "Human", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being human only", reason: "Irrelevant to site (Human only)", post_id: post.id } %> &bull;
+    <%= link_to "Photo/Scan", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being a photo/scan", reason: "Does not meet minimum quality standards (Bad digitization of traditional media)", post_id: post.id } %> &bull;
+    <%= link_to "Bad Edit", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being a bad edit", reason: "Does not meet minimum quality standards (Trivial or low quality edit)", post_id: post.id } %> &bull;
+    <%= link_to "AI / Gen", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being AI generated", reason: "Irrelevant to site (AI assisted/generated)", post_id: post.id } %> &bull;
+    <%= link_to "Screencap", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being a screencap", reason: "Irrelevant to site (Screencap)", post_id: post.id } %> &bull;
+    <%= link_to "Advert", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being an advertisement", reason: "Advertisement", post_id: post.id } %>
 
-    <%= tag.a "Borderline Quality", href: '#', data: {pid: post.id, reason: "borderline_quality"}, class: "disapprove-post-link button btn-neutral" %> |
-    <%= tag.a "Borderline Relevancy", href: '#', data: {pid: post.id, reason: "borderline_relevancy"}, class: "disapprove-post-link button btn-neutral" %>
   </div>
-  <div>
-    <%= link_to "Detailed Deletion", confirm_delete_moderator_post_post_path(id: post.id), class: 'button btn-neutral' %> |
-    <%= link_to "Detailed Disapproval", "#", "data-post-id" => post.id, class: "detailed-rejection-link button btn-neutral" %>
+  <div class="quick-mod-group">
+    <%= link_to "Disapprove", "#", data: { post_id: post.id }, class: "detailed-rejection-link button btn-neutral btn-important" %> |
+    <%= tag.a "Borderline Quality", href: "#", data: { pid: post.id, reason: "borderline_quality" }, class: "disapprove-post-link button btn-neutral" %> &bull;
+    <%= tag.a "Borderline Relevancy", href: "#", data: { pid: post.id, reason: "borderline_relevancy" }, class: "disapprove-post-link button btn-neutral" %>
   </div>
 </div>

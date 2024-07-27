@@ -2,7 +2,7 @@
   <article class="forum-post comment-post-grid" id="forum_post_<%= forum_post.id %>"
            data-forum-post-id="<%= forum_post.id %>" data-creator="<%= forum_post.creator&.name.downcase %>"
            data-creator-id="<%= forum_post.creator_id %>"
-           data-is-deleted="<%= forum_post.id == original_forum_post_id ? @forum_topic.is_hidden? : forum_post.is_hidden? %>">
+           data-is-hidden="<%= forum_post.id == original_forum_post_id ? @forum_topic.is_hidden? : forum_post.is_hidden? %>">
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user forum_post.creator %></h4>
@@ -73,12 +73,10 @@
               <span><%= link_to_ip forum_post.creator_ip_addr %></span>
             </li>
           <% end %>
-          <% if forum_post.votable? %>
-            <ul class="votes" id="forum-post-votes-for-<%= forum_post.id %>">
-              <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
-            </ul>
-          <% end %>
         </menu>
+        <% if forum_post.votable? %>
+          <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
+        <% end %>
         <% if forum_post.editable_by?(CurrentUser.user) %>
           <% if forum_post.is_original_post?(original_forum_post_id) %>
             <%= render "forum_topics/form", :forum_topic => forum_post.topic %>

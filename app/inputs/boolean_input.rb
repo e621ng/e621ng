@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BooleanInput < SimpleForm::Inputs::BooleanInput
   # Fix styling because the input appears before the label
   def label_input(wrapper_options = nil)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class FileValidator
   attr_reader :record, :file_path
 

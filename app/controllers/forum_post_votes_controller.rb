@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumPostVotesController < ApplicationController
   respond_to :json
   before_action :member_only

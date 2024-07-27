@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
   include UserWarnable
@@ -36,17 +38,21 @@ class Comment < ApplicationRecord
 
     def hidden(user)
       if user.is_moderator?
-        where("score < ? and is_sticky = false", user.comment_threshold)
+        where("not(comments.score >= ? or comments.is_sticky = true)", user.comment_threshold)
+      elsif user.is_janitor?
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       else
-        where("(score < ? and is_sticky = false) or (is_hidden = true and creator_id != ?)", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       end
     end
 
     def visible(user)
       if user.is_moderator?
-        where("score >= ? or is_sticky = true", user.comment_threshold)
+        where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
+      elsif user.is_janitor?
+        where("(comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?)", user.comment_threshold, user.id)
       else
-        where("(score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?)", user.comment_threshold, user.id)
+        where("(comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?)", user.comment_threshold, user.id)
       end
     end
 
@@ -60,10 +66,6 @@ class Comment < ApplicationRecord
 
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query).order(id: :desc).limit(300))
-    end
-
-    def poster_id(user_id)
-      joins(:post).where("posts.uploader_id = ?", user_id)
     end
 
     def for_creator(user_id)
@@ -113,13 +115,11 @@ class Comment < ApplicationRecord
         end
       end
 
-      if params[:poster_id].present?
-        q = q.poster_id(params[:poster_id].to_i)
+      q.where_user(:"posts.uploader_id", :poster, params) do |condition, _ids|
+        condition = condition.joins(:post)
         # Force a better query plan by ordering by created_at
-        q = q.reorder("comments.created_at desc")
+        condition.reorder("comments.created_at desc")
       end
-
-      q
     end
   end
 
@@ -198,14 +198,14 @@ class Comment < ApplicationRecord
 
   def visible_to?(user)
     return true if user.is_moderator?
+    return true if user.is_janitor? && is_sticky?
     return true if is_hidden? == false
     creator_id == user.id # Can always see your own comments, even if hidden.
   end
 
   def should_see?(user)
-    return true if user.is_moderator?
-    return true unless is_hidden?
-    (creator_id == user.id) && user.show_hidden_comments?
+    return user.show_hidden_comments? if creator_id == user.id && is_hidden?
+    visible_to?(user)
   end
 
   def method_attributes

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
   belongs_to :post
@@ -16,28 +18,32 @@ class PostVersion < ApplicationRecord
       end
     end
 
+    def should(*args)
+      { bool: { should: args } }
+    end
+
+    def split_to_terms(field, input)
+      input.split(",").map(&:to_i).map { |x| { term: { field => x } } }
+    end
+
+    def tag_list(field, input, target)
+      if input.present?
+        target += TagQuery.scan(input.downcase).map { |x| { term: { field => x } } }
+      end
+      target
+    end
+
+    def to_rating(input)
+      input.to_s.downcase[0]
+    end
+
     def build_query(params)
       must = []
       must_not = []
-      def should(*args)
-        {bool: {should: args}}
-      end
-      def split_to_terms(field, input)
-        input.split(',').map(&:to_i).map {|x| {term: {field => x}}}
-      end
-      def tag_list(field, input, target)
-        if input.present?
-          target += TagQuery.scan(input).map { |x| { term: { field => x } } }
-        end
-        target
-      end
-      def to_rating(input)
-        input.to_s.downcase[0]
-      end
 
       if params[:updater_name].present?
         user_id = User.name_to_id(params[:updater_name])
-        must << {term: {updater_id: user_id}} if user_id
+        must << { term: { updater_id: user_id } } if user_id
       end
 
       if params[:updater_id].present?
@@ -49,11 +55,11 @@ class PostVersion < ApplicationRecord
       end
 
       if params[:start_id].present?
-        must << {range: {id: {gte: params[:start_id].to_i}}}
+        must << { range: { id: {gte: params[:start_id].to_i } } }
       end
 
       if params[:rating].present?
-        must << {term: {rating: to_rating(params[:rating])}}
+        must << { term: { rating: to_rating(params[:rating]) } }
       end
 
       if params[:rating_changed].present?
@@ -64,12 +70,12 @@ class PostVersion < ApplicationRecord
       end
 
       if params[:parent_id].present?
-        must << {term: {parent_id: params[:parent_id].to_i}}
+        must << { term: { parent_id: params[:parent_id].to_i } }
       end
 
       if params[:parent_id_changed].present?
-        must << {term: {parent_id: params[:parent_id_changed].to_i}}
-        must << {term: {parent_id_changed: true}}
+        must << { term: { parent_id: params[:parent_id_changed].to_i } }
+        must << { term: { parent_id_changed: true } }
       end
 
       must = tag_list(:tags, params[:tags], must)
@@ -80,18 +86,22 @@ class PostVersion < ApplicationRecord
       must = tag_list(:locked_tags_added, params[:locked_tags_added], must)
 
       if params[:reason].present?
-        must << {match: {reason: params[:reason]}}
+        must << { match: { reason: params[:reason] } }
       end
 
       if params[:description].present?
-        must << {match: {description: params[:description]}}
+        must << { match: { description: params[:description] } }
       end
 
       must = boolean_match(:description_changed, params[:description_changed], must)
       must = boolean_match(:source_changed, params[:source_changed], must)
 
-      if params[:exclude_uploads]&.truthy?
-        must_not << { term: { version: 1 } }
+      if params[:uploads].present?
+        if params[:uploads].downcase == "excluded"
+          must_not << { term: { version: 1 } }
+        elsif params[:uploads].downcase == "only"
+          must << { term: { version: 1 } }
+        end
       end
 
       if must.empty?

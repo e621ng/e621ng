@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tmpdir"
 
 class Upload < ApplicationRecord
@@ -176,8 +178,8 @@ class Upload < ApplicationRecord
     end
 
     if (destroyed_post = DestroyedPost.find_by(md5: md5))
-      errors.add(:base, "An unexpected errror occured")
-      DummyTicket.new(uploader, destroyed_post.post_id).notify
+      errors.add(:base, "That image had been deleted from our site, and cannot be re-uploaded")
+      destroyed_post.notify_reupload(uploader)
       return
     end
 

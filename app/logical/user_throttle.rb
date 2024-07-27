@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserThrottle
   def initialize(options, user)
     @prefix = options[:prefix] || "thtl:"

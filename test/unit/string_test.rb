@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class StringTest < ActiveSupport::TestCase
   context "String#to_escaped_for_sql_like" do

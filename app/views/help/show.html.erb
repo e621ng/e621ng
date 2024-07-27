@@ -1,9 +1,9 @@
 <div id="c-help">
   <div id="a-show">
-    <%= render partial: "sidebar" %>
+    <%= render "sidebar", help_pages: HelpPage.help_index %>
     <section id="content">
       <div style="margin-bottom: 1em;">
-        <h1><%= "Help: #{HelpPage.title(@help.name)}" %></h1>
+        <h1><%= "Help: #{@help.pretty_title}" %></h1>
         <div class="dtext-container">
           <%= format_text(WikiPage.find_by(title: @help.wiki_page).body, allow_color: true) %>
         </div>
@@ -15,5 +15,5 @@
 <%= render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Help: <%= HelpPage.title(@help.name) %>
+  Help: <%= @help.pretty_title %>
 <% end %>

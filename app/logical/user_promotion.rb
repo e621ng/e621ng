@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserPromotion
   attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta
 

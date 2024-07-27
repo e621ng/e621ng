@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Danbooru
   module Paginator
     module BaseExtension
@@ -15,6 +17,12 @@ module Danbooru
         when :sequential_after
           paginate_sequential_after
         end
+      end
+
+      # Only paginating posts should respect the per_page user setting
+      def paginate_posts(page, options = {})
+        options[:limit] ||= CurrentUser.user.per_page
+        paginate(page, options)
       end
 
       def total_pages
@@ -53,8 +61,8 @@ module Danbooru
       end
 
       def records_per_page
-        limit = @paginator_options.try(:[], :limit) || Danbooru.config.posts_per_page
-        [limit.to_i, 320].min
+        limit = @paginator_options.try(:[], :limit) || Danbooru.config.records_per_page
+        limit.to_i.clamp(0, 320)
       end
 
       # When paginating large tables, we want to avoid doing an expensive count query

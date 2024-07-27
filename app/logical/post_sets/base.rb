@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostSets
   class Base
     def tag_string

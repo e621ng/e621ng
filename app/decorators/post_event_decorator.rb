@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostEventDecorator < ApplicationDecorator
   def self.collection_decorator_class
     PaginatedDecorator
@@ -17,6 +19,8 @@ class PostEventDecorator < ApplicationDecorator
       "From: post ##{vals['child_id']}"
     when "replacement_promoted"
       "From: post ##{vals['source_post_id']}"
+    when "changed_bg_color"
+      "To: #{vals['bg_color'] || 'None'}"
     end
   end
 end

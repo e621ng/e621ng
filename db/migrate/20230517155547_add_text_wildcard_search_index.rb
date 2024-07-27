@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddTextWildcardSearchIndex < ActiveRecord::Migration[7.0]
   def up
     add_gin_index :blips, :body

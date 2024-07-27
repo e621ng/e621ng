@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SessionLoader
   class AuthenticationFailure < Exception ; end
 
@@ -23,7 +25,7 @@ class SessionLoader
       load_remember_token
     end
 
-    CurrentUser.user.unban! if CurrentUser.user.ban_expired? && !Danbooru.config.readonly_mode?
+    CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     if CurrentUser.user.is_blocked?
       recent_ban = CurrentUser.user.recent_ban
       ban_message = "Account is banned: forever"
@@ -33,8 +35,8 @@ class SessionLoader
       raise AuthenticationFailure.new(ban_message)
     end
     set_statement_timeout
-    update_last_logged_in_at unless Danbooru.config.readonly_mode?
-    update_last_ip_addr unless Danbooru.config.readonly_mode?
+    update_last_logged_in_at
+    update_last_ip_addr
     set_time_zone
     set_safe_mode
     refresh_old_remember_token

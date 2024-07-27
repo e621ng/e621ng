@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetUserTextDefaults < ActiveRecord::Migration[6.1]
   def up
     change_column :users, :profile_about, :text, default: ""

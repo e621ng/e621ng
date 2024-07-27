@@ -1,19 +1,18 @@
-<%-
-# votes
-# forum_post
-%>
+<%# locals: (votes:, forum_post:, votable: true) -%>
 
 <% own_vote = votes.find { |vote| vote.creator == CurrentUser.user } %>
 <% other_votes = votes.reject { |vote| vote.creator == CurrentUser.user } %>
 
-<% if own_vote %>
-  <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post %>
-<% end %>
+<ul class="forum-post-votes-list" id="forum-post-votes-for-<%= forum_post.id %>">
+  <% if own_vote %>
+    <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post, votable: votable %>
+  <% end %>
 
-<% other_votes.each do |vote| %>
-  <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post %>
-<% end %>
+  <% other_votes.each do |vote| %>
+    <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post, votable: false %>
+  <% end %>
 
-<% if forum_post.tag_change_request&.is_pending? && !own_vote %>
-  <%= render "forum_post_votes/add_vote", forum_post: forum_post %>
-<% end %>
+  <% if forum_post.tag_change_request&.is_pending? && !own_vote && votable %>
+    <%= render "forum_post_votes/add_vote", forum_post: forum_post %>
+  <% end %>
+</ul>

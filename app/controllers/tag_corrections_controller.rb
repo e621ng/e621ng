@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagCorrectionsController < ApplicationController
   respond_to :html, :json
   before_action :janitor_only, only: [:new, :create]

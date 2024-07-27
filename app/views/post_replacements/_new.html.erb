@@ -1,6 +1,6 @@
 <div class="replace-image-dialog-body">
   <div class="dtext-container">
-    <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page).first.try(&:body)) %>
+    <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page)&.body) %>
   </div>
 
   <div>

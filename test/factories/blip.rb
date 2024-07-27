@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:blip) do
     creator_ip_addr { "127.0.0.1" }

@@ -1,16 +1,21 @@
 <div id="c-pools">
   <div id="a-gallery">
-    <%= render partial: "search", locals: {path: gallery_pools_path} %>
+    <%= render partial: "search", locals: { path: gallery_pools_path } %>
 
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <h2>Pools</h2>
 
     <section>
-      <%= @post_set.presenter.post_previews_html(self) %>
-
-      <%= numbered_paginator(@pools) %>
+      <% if @pools.none? %>
+        <%= render "posts/blank" %>
+      <% else %>
+        <% @pools.each do |pool| %>
+          <%= PostPresenter.preview(pool.cover_post, inline: true, link_target: pool, pool: pool, show_deleted: true) %>
+        <% end %>
+      <% end %>
     </section>
+    <%= numbered_paginator(@pools) %>
   </div>
 </div>
 

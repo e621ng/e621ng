@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ArtistVersionsHelper
   def artist_versions_listing_type
     params.dig(:search, :artist_id).present? && CurrentUser.is_member? ? :revert : :standard
