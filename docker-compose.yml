@@ -180,6 +180,15 @@ services:
     profiles: 
       - rubocop
 
+  linter:
+    image: e621
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    entrypoint: yarn run lint
+    profiles: 
+      - linter
+
 volumes:
   post_data:
   iqdb_data:

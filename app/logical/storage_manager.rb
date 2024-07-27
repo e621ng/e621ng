@@ -97,7 +97,6 @@ class StorageManager
 
   def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
-    ip = CurrentUser.ip_addr
     time = (Time.now + 15.minute).to_i
     secret = secret
     hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')

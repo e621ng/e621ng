@@ -24,6 +24,7 @@ Rails.application.routes.draw do
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
+    resources :destroyed_posts, only: %i[index show update]
     resources :staff_notes, only: [:index]
     resources :danger_zone, only: [:index] do
       collection do
@@ -189,7 +190,6 @@ Rails.application.routes.draw do
     end
   end
   resources :note_versions, :only => [:index]
-  resource :note_previews, :only => [:show]
   resources :pools do
     member do
       put :revert
@@ -287,6 +287,10 @@ Rails.application.routes.draw do
   resources :user_feedbacks do
     collection do
       get :search
+    end
+    member do
+      put :delete
+      put :undelete
     end
   end
   resources :user_name_change_requests

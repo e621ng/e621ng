@@ -240,6 +240,14 @@ class TagImplicationTest < ActiveSupport::TestCase
       assert_match "error", ti.reload.status
     end
 
+    should "ignore tag count limits on approve" do
+      Danbooru.config.stubs(:max_tags_per_post).returns(5)
+      ti = create(:tag_implication, antecedent_name: "5", consequent_name: "6", status: "pending")
+      post = create(:post, tag_string: "1 2 3 4 5")
+      with_inline_jobs { ti.approve!(approver: @user) }
+      assert_equal("1 2 3 4 5 6", post.reload.tag_string)
+    end
+
     context "with an associated forum topic" do
       setup do
         @admin = create(:admin_user)

@@ -344,7 +344,6 @@ Layout/SpaceAfterComma:
     - 'app/indexes/post_index.rb'
     - 'app/logical/storage_manager.rb'
     - 'app/logical/storage_manager/local.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/presenters/post_presenter.rb'
     - 'app/serializers/post_serializer.rb'
     - 'app/views/admin/danger_zone/index.html.erb'
@@ -403,7 +402,6 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeBlockBraces:
   Exclude:
     - 'app/controllers/posts_controller.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post.rb'
     - 'app/models/tag_relationship.rb'
     - 'app/models/user.rb'
@@ -459,7 +457,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/logical/post_sets/base.rb'
     - 'app/logical/related_tag_calculator.rb'
     - 'app/logical/sources/alternates.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/artist.rb'
     - 'app/models/bulk_update_request.rb'
     - 'app/models/favorite.rb'
@@ -531,7 +528,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/logical/session_creator.rb'
     - 'app/logical/session_loader.rb'
     - 'app/logical/sources/strategies/pixiv_slim.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/logical/user_deletion.rb'
     - 'app/models/ban.rb'
     - 'app/models/bulk_update_request.rb'
@@ -617,7 +613,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'test/functional/maintenance/user/login_reminders_controller_test.rb'
     - 'test/functional/maintenance/user/password_resets_controller_test.rb'
     - 'test/functional/meta_searches_controller_test.rb'
-    - 'test/functional/news_updates_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'
     - 'test/functional/notes_controller_test.rb'
     - 'test/functional/pool_elements_controller_test.rb'
@@ -1093,7 +1088,6 @@ Rails/ActionOrder:
     - 'app/controllers/maintenance/user/password_resets_controller.rb'
     - 'app/controllers/mascots_controller.rb'
     - 'app/controllers/moderator/post/disapprovals_controller.rb'
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/pools_controller.rb'
     - 'app/controllers/post_flags_controller.rb'
     - 'app/controllers/post_replacements_controller.rb'
@@ -1168,7 +1162,6 @@ Rails/CompactBlank:
   Exclude:
     - 'app/controllers/posts_controller.rb'
     - 'app/logical/bulk_update_request_importer.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post_replacement.rb'
     - 'app/models/tag_alias.rb'
 
@@ -1307,12 +1300,12 @@ Rails/OutputSafety:
     - 'app/views/users/custom_style.css.erb'
     - 'app/views/users/edit.html.erb'
     - 'app/views/users/home.html.erb'
+    - 'app/views/upload_whitelists/_form.html.erb'
 
 # Offense count: 9
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Rails/Pluck:
   Exclude:
-    - 'app/logical/tags_preview.rb'
     - 'app/models/post.rb'
     - 'test/functional/forum_topics_controller_test.rb'
     - 'test/functional/post_events_controller_test.rb'
@@ -1629,7 +1622,6 @@ Style/HashSyntax:
     - 'app/controllers/maintenance/user/email_changes_controller.rb'
     - 'app/controllers/maintenance/user/email_notifications_controller.rb'
     - 'app/controllers/maintenance/user/password_resets_controller.rb'
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/note_previews_controller.rb'
     - 'app/controllers/notes_controller.rb'
     - 'app/controllers/pool_elements_controller.rb'
@@ -1808,7 +1800,6 @@ Style/HashSyntax:
     - 'test/functional/maintenance/user/dmail_filters_controller_test.rb'
     - 'test/functional/maintenance/user/login_reminders_controller_test.rb'
     - 'test/functional/maintenance/user/password_resets_controller_test.rb'
-    - 'test/functional/news_updates_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'
     - 'test/functional/notes_controller_test.rb'
     - 'test/functional/pool_elements_controller_test.rb'
@@ -2465,7 +2456,6 @@ Style/StringLiterals:
     - 'app/logical/session_loader.rb'
     - 'app/logical/storage_manager.rb'
     - 'app/logical/storage_manager/local.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/logical/upload_service/replacer.rb'
     - 'app/logical/user_deletion.rb'
     - 'app/logical/user_email_change.rb'
@@ -2652,12 +2642,10 @@ Style/SymbolArray:
 # AllowedMethods: define_method, mail, respond_to
 Style/SymbolProc:
   Exclude:
-    - 'app/controllers/news_updates_controller.rb'
     - 'app/controllers/pools_controller.rb'
     - 'app/controllers/posts_controller.rb'
     - 'app/logical/post_sets/base.rb'
     - 'app/logical/post_sets/post.rb'
-    - 'app/logical/tags_preview.rb'
     - 'app/models/artist_url.rb'
     - 'app/models/post.rb'
     - 'app/models/user.rb'

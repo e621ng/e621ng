@@ -2,30 +2,31 @@
   "name": "E621ng project development",
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
   "service": "dev-container",
-	"overrideCommand": true,
-	"workspaceFolder": "/app",
-	"features": {
+  "overrideCommand": true,
+  "workspaceFolder": "/app",
+  "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {}
-	},
-	// Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
-	"onCreateCommand": {
-		"remove-gitconfig": "rm ~/.gitconfig"
-	},
-	"postAttachCommand": {
-		"git-safe-dir": "git config --global --add safe.directory /app"
-	},
-	"postCreateCommand": {
-		"bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"Shopify.ruby-lsp",
-        "Vue.volar"
-			],
-			"settings": {
-				"terminal.integrated.defaultProfile.linux": "bash"
-			}
-		}
-	}
+  },
+  // Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
+  "onCreateCommand": {
+    "remove-gitconfig": "rm ~/.gitconfig"
+  },
+  "postAttachCommand": {
+    "git-safe-dir": "git config --global --add safe.directory /app"
+  },
+  "postCreateCommand": {
+    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "Vue.volar",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
 }
