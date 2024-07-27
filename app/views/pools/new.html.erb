@@ -6,7 +6,7 @@
 
     <%= custom_form_for(@pool) do |f| %>
       <%= f.input :name, :as => :string, :required => true %>
-      <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size %>
+      <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size, allow_color: false %>
       <%= f.input :post_ids_string, as: :text, label: "Posts" %>
       <%= f.input :category, :collection => ["series", "collection"], :include_blank => true, :selected => "", :required => true %>
       <%= f.input :is_active %>

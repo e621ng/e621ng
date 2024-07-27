@@ -22,7 +22,7 @@
   <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
-    
+
   <button @click="submit" :disabled="(showErrors && preventUpload) || submitting">
       {{ submitting ? "Uploading..." : "Upload" }}
   </button>
@@ -58,6 +58,14 @@ export default {
       submitting: false,
       submittedReason: undefined,
     };
+  },
+  mounted() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("additional_source"))
+      this.sources = [params.get("additional_source")];
+
+    if (params.has("reason"))
+      this.reason = params.get("reason");
   },
   computed: {
     preventUpload() {

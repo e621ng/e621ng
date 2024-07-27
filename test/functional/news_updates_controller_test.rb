@@ -34,7 +34,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
 
     context "update action" do
       should "work" do
-        put_auth news_update_path(@news_update), @admin, params: {:news_update => {:message => "zzz"}}
+        put_auth news_update_path(@news_update), @admin, params: { news_update: { message: "zzz" } }
         assert_redirected_to(news_updates_path)
       end
     end
@@ -42,7 +42,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "work" do
         assert_difference("NewsUpdate.count") do
-          post_auth news_updates_path, @admin, params: {:news_update => {:message => "zzz"}}
+          post_auth news_updates_path, @admin, params: { news_update: { message: "zzz" } }
         end
         assert_redirected_to(news_updates_path)
       end
