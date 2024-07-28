@@ -1,4 +1,4 @@
-import LS from "./local_storage";
+import LStorage from "./utility/storage";
 
 const Mascots = {
   current: 0,
@@ -18,18 +18,18 @@ function changeMascot () {
   const mascots = window.mascots;
 
   const availableMascotIds = Object.keys(mascots);
-  const currentMascotIndex = availableMascotIds.indexOf(Mascots.current);
+  const currentMascotIndex = availableMascotIds.indexOf(Mascots.current + "");
 
   Mascots.current = availableMascotIds[(currentMascotIndex + 1) % availableMascotIds.length];
   showMascot(mascots[Mascots.current]);
 
-  LS.put("mascot", Mascots.current);
+  LStorage.Site.Mascot = Mascots.current;
 }
 
 function initMascots () {
   $("#change-mascot").on("click", changeMascot);
   const mascots = window.mascots;
-  Mascots.current = LS.get("mascot");
+  Mascots.current = LStorage.Site.Mascot;
   if (!mascots[Mascots.current]) {
     const availableMascotIds = Object.keys(mascots);
     const mascotIndex = Math.floor(Math.random() * availableMascotIds.length);

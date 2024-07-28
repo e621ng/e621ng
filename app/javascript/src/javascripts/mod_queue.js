@@ -1,6 +1,6 @@
 import Utility from "./utility";
 import Post from "./posts";
-import LS from "./local_storage";
+import LStorage from "./utility/storage";
 
 let ModQueue = {};
 
@@ -21,8 +21,10 @@ ModQueue.detailed_rejection_dialog = function () {
 };
 
 $(function () {
+  if (!$("body").data("user-is-approver")) return;
+
   // Toolbar visibility
-  let toolbarVisible = LS.get("jtb") == "true";
+  let toolbarVisible = LStorage.Posts.JanitorToolbar;
   const toolbar = $("#pending-approval-notice");
   if (toolbarVisible) toolbar.addClass("enabled");
 
@@ -30,7 +32,7 @@ $(function () {
     .on("click", (event) => {
       event.preventDefault();
       toolbarVisible = !toolbarVisible;
-      LS.put("jtb", toolbarVisible);
+      LStorage.Posts.JanitorToolbar = toolbarVisible;
 
       toolbar.toggleClass("enabled");
       toolbarToggle.text(toolbarVisible ? "Approvals: On" : "Approvals: Off");

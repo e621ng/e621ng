@@ -1,12 +1,12 @@
 import Blacklist from "./blacklists";
-import LS from "./local_storage";
+import LStorage from "./utility/storage";
 
 const Thumbnails = {};
 
 Thumbnails.initialize = function () {
   const postsData = window.___deferred_posts || {};
   const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
-  const DAB = LS.get("dab") === "1";
+  const DAB = LStorage.get("dab") === "1";
 
   for (const post of posts) {
     const $post = $(post);
