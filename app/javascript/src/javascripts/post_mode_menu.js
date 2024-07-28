@@ -34,7 +34,7 @@ PostModeMenu.change_tag_script = function (e) {
     return;
   e.preventDefault();
 
-  const newScriptID = parseInt(e.key, 10);
+  const newScriptID = Number(e.key);
   console.log(newScriptID, LStorage.Posts.TagScript.ID);
   if (!newScriptID || newScriptID == LStorage.Posts.TagScript.ID)
     return;

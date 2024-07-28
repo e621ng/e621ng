@@ -23,7 +23,7 @@ StorageUtils.getProxy = function (key, type, fallback) {
   if (val === null) return fallback;
   switch (type) {
     case "number":
-      return parseInt(val, 10);
+      return Number(val);
     case "boolean":
       return val === "true";
     case "object":

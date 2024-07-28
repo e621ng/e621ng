@@ -50,7 +50,6 @@ LStorage.Posts = {
 
   /** @returns {number} ID of the user's selected set */
   Set: ["set", 0],
-
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 
@@ -58,7 +57,7 @@ LStorage.Posts.TagScript = {
   /** @returns {number} Current tag script ID */
   get ID () {
     if (!this._tagScriptID)
-      this._tagScriptID = parseInt(localStorage.getItem("current_tag_script_id") || "1", 10);
+      this._tagScriptID = Number(localStorage.getItem("current_tag_script_id") || "1");
     return this._tagScriptID;
   },
   set ID (value) {
