@@ -1,5 +1,4 @@
 import Utility from "./utility";
-import LS from "./local_storage";
 import Post from "./posts";
 import Favorite from "./favorites";
 import PostSet from "./post_sets";
@@ -7,6 +6,7 @@ import TagScript from "./tag_script";
 import { SendQueue } from "./send_queue";
 import Rails from "@rails/ujs";
 import Shortcuts from "./shortcuts";
+import LStorage from "./utility/storage";
 
 let PostModeMenu = {};
 
@@ -30,29 +30,23 @@ PostModeMenu.show_notice = function (i) {
 };
 
 PostModeMenu.change_tag_script = function (e) {
-  if ($("#mode-box-mode").val() === "tag-script") {
-    const old_tag_script_id = LS.get("current_tag_script_id") || "1";
+  if ($("#mode-box-mode").val() !== "tag-script")
+    return;
+  e.preventDefault();
 
-    const new_tag_script_id = parseInt(e.key, 10);
-    const new_tag_script = LS.get("tag-script-" + new_tag_script_id);
+  const newScriptID = Number(e.key);
+  console.log(newScriptID, LStorage.Posts.TagScript.ID);
+  if (!newScriptID || newScriptID == LStorage.Posts.TagScript.ID)
+    return;
 
-    $("#tag-script-field").val(new_tag_script);
-    LS.put("current_tag_script_id", new_tag_script_id);
-    if (old_tag_script_id !== new_tag_script_id) {
-      PostModeMenu.show_notice(new_tag_script_id);
-    }
-
-    e.preventDefault();
-  }
+  LStorage.Posts.TagScript.ID = newScriptID;
+  console.log("settings", LStorage.Posts.TagScript.ID, LStorage.Posts.TagScript.Content);
+  $("#tag-script-field").val(LStorage.Posts.TagScript.Content);
+  PostModeMenu.show_notice(newScriptID);
 };
 
 PostModeMenu.initialize_selector = function () {
-  if (!LS.get("mode")) {
-    LS.put("mode", "view");
-    $("#mode-box-mode").val("view");
-  } else {
-    $("#mode-box-mode").val(LS.get("mode"));
-  }
+  $("#mode-box-mode").val(LStorage.Posts.Mode);
 
   $("#mode-box-mode").on("change.danbooru", function () {
     PostModeMenu.change();
@@ -103,11 +97,9 @@ PostModeMenu.close_edit_form = function () {
 };
 
 PostModeMenu.initialize_tag_script_field = function () {
-  $("#tag-script-field").blur(function () {
+  $("#tag-script-field").on("blur", function () {
     const script = $(this).val();
-
-    const current_script_id = LS.get("current_tag_script_id");
-    LS.put("tag-script-" + current_script_id, script);
+    LStorage.Posts.TagScript.Content = script;
   });
 };
 
@@ -122,10 +114,10 @@ PostModeMenu.update_sets_menu = function () {
       $(window).trigger("danbooru:error", "Error getting sets list: " + data.message);
     }).done(function (data) {
       target.on("change", function (e) {
-        LS.put("set", e.target.value);
+        LStorage.Posts.Set = e.target.value;
       });
       target.empty();
-      const target_set = LS.get("set") || 0;
+      const target_set = LStorage.Posts.Set;
       ["Owned", "Maintained"].forEach(function (v) {
         let group = $("<optgroup>", {label: v});
         data[v].forEach(function (gi) {
@@ -144,21 +136,14 @@ PostModeMenu.change = function () {
     return;
   }
   $("#page").attr("data-mode-menu", s);
-  LS.put("mode", s, 1);
+  LStorage.Posts.Mode = s;
   $("#set-id").hide();
   $("#tag-script-field").hide();
   $("#quick-mode-reason").hide();
 
   if (s === "tag-script") {
-    let current_script_id = LS.get("current_tag_script_id");
-    if (!current_script_id) {
-      current_script_id = "1";
-      LS.put("current_tag_script_id", current_script_id);
-    }
-    const script = LS.get("tag-script-" + current_script_id);
-
-    $("#tag-script-field").val(script).show();
-    PostModeMenu.show_notice(current_script_id);
+    $("#tag-script-field").val(LStorage.Posts.TagScript.Content).show();
+    PostModeMenu.show_notice(LStorage.Posts.TagScript.ID);
   } else if (s === "add-to-set" || s === "remove-from-set") {
     PostModeMenu.update_sets_menu();
     $("#set-id").show();
@@ -220,8 +205,7 @@ PostModeMenu.click = function (e) {
   } else if (s === "remove-parent") {
     Post.update(post_id, {"post[parent_id]": ""});
   } else if (s === "tag-script") {
-    const current_script_id = LS.get("current_tag_script_id");
-    const tag_script = LS.get("tag-script-" + current_script_id);
+    const tag_script = LStorage.Posts.TagScript.Content;
     if (!tag_script) {
       e.preventDefault();
       return;
