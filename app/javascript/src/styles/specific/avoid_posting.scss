@@ -25,11 +25,11 @@
     td.dnp-artist {
       grid-area: artist;
 
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25em 0.5em;
-      span {
-        text-wrap: pretty;
+      .dnp-artist-names {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25em 0.5em;
+        span { text-wrap: pretty; }
       }
     }
     td.dnp-details {

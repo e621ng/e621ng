@@ -22,10 +22,12 @@
       <% @avoid_postings.each do |avoid_posting| %>
         <tr id="avoid-posting-<%= avoid_posting.id %>" data-artist="<%= avoid_posting.artist_name %>">
           <td class="dnp-artist">
-            <%= link_to avoid_posting.artist_name, show_or_new_artists_path(name: avoid_posting.artist_name) %>
-            <% if avoid_posting.other_names.present? %>
-              <span>(<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)</span>
-            <% end %>
+            <span class="dnp-artist-names">
+              <%= link_to avoid_posting.artist_name, show_or_new_artists_path(name: avoid_posting.artist_name) %>
+              <% if avoid_posting.other_names.present? %>
+                <span>(<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)</span>
+              <% end %>
+            </span>
           </td>
           <td class="dnp-details">
             <span class="avoid-posting-details"><%= format_text(avoid_posting.details, inline: true) %></span>
