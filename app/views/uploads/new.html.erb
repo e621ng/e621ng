@@ -13,7 +13,7 @@
   <div id="uploader"></div>
   <% if CurrentUser.upload_limit <= 5 || CurrentUser.post_upload_throttle <= 5 %>
     <% @limit_pieces = CurrentUser.upload_limit_pieces %>
-    <div id="post-uploads-remaining" class="box-section section<% if [CurrentUser.upload_limit, CurrentUser.post_upload_throttle].min <= 0 %> sect_red<% end %>" style="width:640px;">
+    <div id="post-uploads-remaining" class="box-section section<% if [CurrentUser.upload_limit, CurrentUser.post_upload_throttle].min <= 0 %> background-red<% end %>" style="width:640px;">
       <p>
         You currently have <span class="post-uploads-remaining-count"><%= CurrentUser.upload_limit %></span> upload<%= CurrentUser.upload_limit!=1?"s":"" %> remaining.
 
@@ -25,7 +25,7 @@
       See <%= link_to "here", upload_limit_users_path %> for more details.
     </div>
   <% elsif CurrentUser.post_upload_throttle <= 5 %>
-    <div id="post-uploads-remaining" class="section<% if CurrentUser.post_upload_throttle <= 0 %> sect_red<% end %>" style="width:640px;">
+    <div id="post-uploads-remaining" class="section<% if CurrentUser.post_upload_throttle <= 0 %> background-red<% end %>" style="width:640px;">
       You have <span class="post-uploads-remaining-count"><%= CurrentUser.post_upload_throttle %></span> uploads remaining this hour.
       See <%= link_to "here", upload_limit_users_path %> for more details.
     </div>

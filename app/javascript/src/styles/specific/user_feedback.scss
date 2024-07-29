@@ -1,30 +1,30 @@
 .user-feedback-positive {
-  color: $positive-record-color;
+  color: palette("text-green");
 }
 
 .user-feedback-neutral {
-  color: $neutral-record-color;
+  color: palette("text-grey");
 }
 
 .user-feedback-negative {
-  color: $negative-record-background;
+  color: palette("text-red");
 }
 
 div#c-user-feedbacks, div#c-moderator-dashboards .activity-container {
   .feedback-category-positive {
-    background: $positive-record-background;
-  }
-
-  .feedback-category-negative {
-    background: $negative-record-background;
+    background: palette("background-green");
   }
 
   .feedback-category-neutral {
-    background: $neutral-record-background;
+    background: palette("background-grey");
+  }
+
+  .feedback-category-negative {
+    background: palette("background-red");
   }
 
   tr.user-feedback[data-is-deleted="true"] {
-    background: #827428;
+    background: palette("background-yellow");
   }
 
   blockquote {

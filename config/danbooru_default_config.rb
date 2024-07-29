@@ -337,6 +337,14 @@ module Danbooru
       20_000
     end
 
+    def pool_post_limit(_user)
+      1_000
+    end
+
+    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
+      10_000
+    end
+
     def discord_site
     end
 
