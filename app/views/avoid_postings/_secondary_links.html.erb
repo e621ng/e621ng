@@ -11,7 +11,7 @@
       <% else %>
         <%= subnav_link_to "Undelete", undelete_avoid_posting_path(@avoid_posting), method: :put, data: { confirm: "Are you sure you want to undelete this avoid posting entry?" } %>
       <% end %>
-      <%= subnav_link_to "Destroy", avoid_posting_path(@avoid_posting), method: :delete, data: { confirm: "Are you sure you want to destroy this avoid posting entry?" } %>
+      <%= subnav_link_to "Destroy", avoid_posting_path(@avoid_posting), method: :delete, data: { confirm: "Are you sure you want to destroy this avoid posting entry? This will remove all related history, and cannot be undone." } %>
     <% end %>
     <%= subnav_link_to "History", avoid_posting_versions_path(search: { artist_name: @avoid_posting.artist_name }) %>
   <% else %>
