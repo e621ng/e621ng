@@ -4,6 +4,7 @@ class AvoidPostingsController < ApplicationController
   respond_to :html, :json
   before_action :can_edit_avoid_posting_entries_only, except: %i[index show]
   before_action :load_avoid_posting, only: %i[edit update destroy show delete undelete]
+  helper_method :search_params
 
   def index
     @avoid_postings = AvoidPosting.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])

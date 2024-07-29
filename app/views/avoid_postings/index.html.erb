@@ -9,8 +9,12 @@
       <tr>
         <th class="dnp-artist">Artist</th>
         <th class="dnp-details">Details</th>
-        <th class="dnp-status">Status</th>
-        <th class="dnp-creator">Creator</th>
+        <% if search_params.key?(:is_active) %>
+          <th class="dnp-status">Status</th>
+        <% end %>
+        <% if search_params.key?(:creator_id) || search_params.key?(:creator_name) %>
+          <th class="dnp-creator">Creator</th>
+        <% end %>
         <th class="dnp-links"></th>
       </tr>
       </thead>
@@ -32,10 +36,12 @@
               </span>
             <% end %>
           </td>
-          <td class="dnp-status">
-            <%= avoid_posting.status %>
-          </td>
-          <% if CurrentUser.is_staff? %>
+          <% if search_params.key?(:is_active) %>
+            <td class="dnp-status">
+              <%= avoid_posting.status %>
+            </td>
+          <% end %>
+          <% if search_params.key?(:creator_id) || search_params.key?(:creator_name) %>
             <td class="dnp-creator">
               <%= link_to_user avoid_posting.creator %>
             </td>
