@@ -20,7 +20,7 @@
       <% @avoid_posting_versions.each do |avoid_posting_version| %>
       <% previous = avoid_posting_version.previous %>
         <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
-          <td>
+          <td class="artist">
             <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
           </td>
           <td class="details">
@@ -42,10 +42,10 @@
               </span>
           <% end %>
           </td>
-          <td>
+          <td class="status">
             <%= avoid_posting_version.status %>
           </td>
-          <td>
+          <td class="updater">
             <%= link_to_user avoid_posting_version.updater %>
             <%= link_to "»", avoid_posting_versions_path(search: { updater_name: avoid_posting_version.updater_name }) %>
             <p>
@@ -56,7 +56,7 @@
             </p>
           </td>
           <% if CurrentUser.can_edit_avoid_posting_entries? %>
-            <td>
+            <td class="links">
               <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
             </td>
           <% end %>

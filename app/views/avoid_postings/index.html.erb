@@ -20,10 +20,10 @@
       <tbody>
       <% @avoid_postings.each do |avoid_posting| %>
         <tr id="avoid-posting-<%= avoid_posting.id %>" data-artist="<%= avoid_posting.artist_name %>">
-          <td>
+          <td class="view">
             <%= link_to "View", avoid_posting_path(avoid_posting) %>
           </td>
-          <td>
+          <td class="artist-name">
             <%= link_to avoid_posting.artist_name, show_or_new_artists_path(name: avoid_posting.artist_name) %>
             <% if avoid_posting.other_names.present? %>
               (<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)
@@ -38,7 +38,7 @@
               </span>
             <% end %>
           </td>
-          <td>
+          <td class="status">
             <%= avoid_posting.status %>
           </td>
           <% if CurrentUser.is_staff? %>
@@ -47,7 +47,7 @@
             </td>
           <% end %>
           <% if CurrentUser.can_edit_avoid_posting_entries? %>
-            <td>
+            <td class="links">
                 <%= link_to "Edit", edit_avoid_posting_path(avoid_posting) %>
                 | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting?" } %>
             </td>
