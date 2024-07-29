@@ -12,7 +12,7 @@
         <h2>This artist is on the <%= link_to "Avoid Posting", avoid_postings_path %> list.</h2>
         <% if @artist.avoid_posting.pretty_details.present? %>
           <div class="dtext-container">
-            <%= format_text(@artist.avoid_posting.pretty_details) %>
+            <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
           </div>
        <% end %>
         <p><%= link_to "Open Avoid Posting entry", avoid_posting_path(@artist.avoid_posting) %></p>
