@@ -29,23 +29,23 @@ class AvoidPostingsController < ApplicationController
 
   def update
     @avoid_posting.update(avoid_posting_params(:update))
-    flash[:notice] = @avoid_posting.valid? ? "Avoid posting updated" : @avoid_posting.errors.full_messages.join("; ")
+    flash[:notice] = @avoid_posting.valid? ? "Avoid posting entry updated" : @avoid_posting.errors.full_messages.join("; ")
     respond_with(@avoid_posting)
   end
 
   def destroy
     @avoid_posting.destroy
-    redirect_to artist_path(@avoid_posting.artist), notice: "Avoid posting destroyed"
+    redirect_to show_or_new_artists_path(name: @avoid_posting.artist_name), notice: "Avoid posting entry destroyed"
   end
 
   def delete
     @avoid_posting.update(is_active: false)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting deleted"
+    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry deleted"
   end
 
   def undelete
     @avoid_posting.update(is_active: true)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting undeleted"
+    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry undeleted"
   end
 
   private
