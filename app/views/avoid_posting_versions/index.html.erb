@@ -40,7 +40,7 @@
             <% if CurrentUser.is_staff? %>
               <span class="avoid-posting-staff-notes">
                 <% if previous.present? && previous.staff_notes != avoid_posting_version.staff_notes %>
-                <b>Staff Notes</b><br>
+                  <b>Staff Notes</b><br>
                   <% if avoid_posting_version.staff_notes.blank? %>
                     (cleared)
                   <% else %>
