@@ -1,5 +1,5 @@
 <template>
-  <div class="box-section sect_red source_warning" v-show="showErrors && sourceWarning">
+  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">
     A source must be provided or you must select that there is no available source.
   </div>
   <div v-if="!noSource">

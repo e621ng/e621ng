@@ -13,6 +13,7 @@ presets = {
   favorites: ENV.fetch("FAVORITES", 0).to_i,
   forums: ENV.fetch("FORUMS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
+  pools: ENV.fetch("POOLS", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -23,6 +24,7 @@ if presets.values.sum == 0
     favorites: 100,
     forums: 100,
     postvotes: 100,
+    pools: 100,
   }
 end
 
@@ -32,6 +34,7 @@ COMMENTS  = presets[:comments]
 FAVORITES = presets[:favorites]
 FORUMS    = presets[:forums]
 POSTVOTES = presets[:postvotes]
+POOLS     = presets[:pools]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "qwerty")
@@ -276,6 +279,27 @@ def populate_post_votes(number, users: [], posts: [])
   end
 end
 
+def populate_pools(number, posts: [])
+  return unless number > 0
+  puts "* Generating pools"
+
+  CurrentUser.user = User.find(1)
+  posts = Post.limit(number).order("random()") if posts.empty?
+
+  pool_obj = Pool.create do |pool|
+    pool.name = Faker::Lorem.sentence
+    pool.category = "collection"
+    pool.post_ids = posts.pluck(:id)
+  end
+  puts pool_obj
+
+  if pool_obj.errors.empty?
+    puts "  pool ##{pool_obj.id}"
+  else
+    puts "    error: #{pool_obj.errors.full_messages.join('; ')}"
+  end
+end
+
 puts "Populating the Database"
 CurrentUser.user = User.find(1)
 CurrentUser.ip_addr = "127.0.0.1"
@@ -288,3 +312,4 @@ populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
 populate_forums(FORUMS, users: users)
 populate_post_votes(POSTVOTES, users: users, posts: posts)
+populate_pools(POOLS, posts: posts)

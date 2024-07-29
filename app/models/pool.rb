@@ -188,8 +188,9 @@ class Pool < ApplicationRecord
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       return unless added.size > 0
-      if post_ids.size > 1_000
-        errors.add(:base, "Pools can have up to 1,000 posts each")
+      max = Danbooru.config.pool_post_limit(CurrentUser.user)
+    if post_ids.size > max
+        errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
         false
       else
         true
@@ -201,16 +202,17 @@ class Pool < ApplicationRecord
       return if post.id.nil?
       return if contains?(post.id)
 
-      with_lock do
-        reload
-        self.skip_sync = true
-        update(post_ids: post_ids + [post.id])
-        update_artists!
-        self.skip_sync = false
-        post.add_pool!(self)
-        post.save
-      end
+    with_lock do
+      reload
+      self.skip_sync = true
+      update(post_ids: post_ids + [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
+      update_artists!
+      self.skip_sync = false
+      post.add_pool!(self)
+      post.save
     end
+  end
 
     def add(id)
       return if id.nil?
@@ -223,16 +225,17 @@ class Pool < ApplicationRecord
       return unless contains?(post.id)
       return unless CurrentUser.user.can_remove_from_pools?
 
-      with_lock do
-        reload
-        self.skip_sync = true
-        update(post_ids: post_ids - [post.id])
-        update_artists!
-        self.skip_sync = false
-        post.remove_pool!(self)
-        post.save
-      end
+    with_lock do
+      reload
+      self.skip_sync = true
+      update(post_ids: post_ids - [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
+      update_artists!
+      self.skip_sync = false
+      post.remove_pool!(self)
+      post.save
     end
+  end
 
     def posts
       Post.joins("left join pools on posts.id = ANY(pools.post_ids)").where(pools: { id: id }).order(Arel.sql("array_position(pools.post_ids, posts.id)"))

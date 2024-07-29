@@ -1,9 +1,9 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
-import LS from "./local_storage";
 import Note from "./notes";
 import { SendQueue } from "./send_queue";
 import Shortcuts from "./shortcuts";
+import LStorage from "./utility/storage";
 
 let Post = {};
 
@@ -256,9 +256,7 @@ class E6Swipe extends ZingTouch.Swipe {
 }
 
 Post.initialize_gestures = function () {
-  if (LS.get("emg") !== "true") {
-    return;
-  }
+  if (!LStorage.Posts.Gestures) return;
   if (!(("ontouchstart" in window) || (navigator.maxTouchPoints > 0)))
     return;
   // Need activeElement to make sure that this doesn't go off during input.
@@ -424,15 +422,11 @@ Post.initialize_post_relationship_previews = function () {
   };
 
   const flip_saved = function () {
-    if (LS.get("show-relationship-previews") === "1")
-      LS.put("show-relationship-previews", "0");
-    else
-      LS.put("show-relationship-previews", "1");
+    LStorage.Posts.ShowPostChildren = !LStorage.Posts.ShowPostChildren;
   };
 
-  if (LS.get("show-relationship-previews") === "1") {
+  if (LStorage.Posts.ShowPostChildren)
     toggle();
-  }
 
   $("#has-children-relationship-preview-link").on("click.danbooru", function (e) {
     toggle();
@@ -757,9 +751,12 @@ Post.update = function (post_id, params) {
         Post.notice_update("dec");
         Post.update_data(data);
       },
-      error: function () {
+      error: function (data) {
         Post.notice_update("dec");
-        $(window).trigger("danbooru:error", "There was an error updating <a href=\"/posts/" + post_id + "\">post #" + post_id + "</a>");
+        const message = $
+          .map(data.responseJSON.errors, function (msg) { return msg; })
+          .join("; ");
+        $(window).trigger("danbooru:error", `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${message}`);
       },
     });
   });

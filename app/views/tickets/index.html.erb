@@ -33,7 +33,7 @@
               </td>
               <td>
               <% if ticket.claimant.nil? %>
-                <span class="redtext">Unclaimed</span>
+                <span class="text-error">Unclaimed</span>
               <% else %>
                 <%= link_to_user ticket.claimant %>
               <% end %>
@@ -41,12 +41,8 @@
             <% end %>
             <td><%= link_to ticket.type_title, ticket_path(ticket) %></td>
 
-            <% if !ticket.can_see_details?(CurrentUser.user) %>
-              <td><span style="cursor:help;" class="redtext" title="Due to privacy concerns, this information is confidential">Confidential</span></td>
-            <% else %>
-              <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
-                <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
-              <% end %>
+            <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
+              <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
             <% end %>
 
             <td class="<%= ticket.status %>-ticket"><%= pretty_ticket_status(ticket) %></td>

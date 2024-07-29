@@ -7,6 +7,7 @@ class HelpPage < ApplicationRecord
   validate :wiki_page_exists
   after_destroy :invalidate_cache
   after_save :invalidate_cache
+  belongs_to :wiki, class_name: "WikiPage", foreign_key: "wiki_page", primary_key: "title"
 
   def invalidate_cache
     Cache.delete("help_index")
@@ -14,7 +15,7 @@ class HelpPage < ApplicationRecord
   end
 
   def wiki_page_exists
-    errors.add(:wiki_page, "must exist") if WikiPage.find_by(title: wiki_page).blank?
+    errors.add(:wiki_page, "must exist") if wiki.blank?
   end
 
   def pretty_title

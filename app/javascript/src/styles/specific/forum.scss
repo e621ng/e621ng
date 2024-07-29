@@ -15,19 +15,19 @@ div.list-of-forum-posts {
     }
 
     &[data-is-hidden="true"] {
-      background-color: $forum-post-hidden-background;
+      background-color: $background-article-hidden;
     }
 
     .vote-score-up {
-      color: $forum-vote-up-color;
+      color: palette("text-green");
     }
 
     .vote-score-meh {
-      color: $forum-vote-meh-color;
+      color: palette("text-yellow");
     }
 
     .vote-score-down {
-      color: $forum-vote-down-color;
+      color: palette("text-red");
     }
 
     div.content-menu {
@@ -71,7 +71,7 @@ div#c-forum-topics {
 
   tr.forum-topic-row {
     &[data-topic-is-hidden="true"] {
-      background-color: $forum-topic-hidden-background;
+      background-color: $background-article-hidden;
     }
 
     td:last-child {
@@ -91,6 +91,6 @@ div#c-forum-topics {
     color: $forum-topic-except-color;
   }
   tr[data-is-hidden="true"], tr[data-topic-is-hidden="true"] {
-    background-color: $forum-topic-hidden-background;
+    background-color: $background-article-hidden;
   }
 }
