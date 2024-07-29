@@ -5,6 +5,7 @@ class AvoidPosting < ApplicationRecord
   belongs_to_updater
 
   has_many :versions, -> { order("avoid_posting_versions.id ASC") }, class_name: "AvoidPostingVersion", dependent: :destroy
+  before_validation :normalize_artist_name
   before_validation :validate_artist_rename_not_conflicting, if: :will_save_change_to_artist_name?
   after_create :log_create
   after_update :log_update
@@ -79,6 +80,10 @@ class AvoidPosting < ApplicationRecord
       return if artist.blank?
       return if Artist.where(name: artist_name).exists?
       artist.update(name: artist_name)
+    end
+
+    def normalize_artist_name
+      self.artist_name = Artist.normalize_name(artist_name)
     end
   end
 
