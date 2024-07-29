@@ -4,15 +4,15 @@
 
     <%= render "search" %>
 
-    <table class="striped autofit">
+    <table class="striped dnp-list">
       <thead>
       <tr>
-        <th>Artist</th>
-        <th width="60%">Details</th>
-        <th>Status</th>
-        <th>Updater</th>
+        <th class="dnp-artist">Artist</th>
+        <th class="dnp-details" width="60%">Details</th>
+        <th class="dnp-status">Status</th>
+        <th class="dnp-creator">Updater</th>
         <% if CurrentUser.can_edit_avoid_posting_entries? %>
-          <th></th>
+          <th class="dnp-links"></th>
         <% end %>
       </tr>
       </thead>
@@ -20,10 +20,10 @@
       <% @avoid_posting_versions.each do |avoid_posting_version| %>
       <% previous = avoid_posting_version.previous %>
         <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
-          <td class="artist">
+          <td class="dnp-artist">
             <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
           </td>
-          <td class="details">
+          <td class="dnp-details">
             <span class="avoid-posting-details">
               <% if previous.present? %>
                 <% if previous.details == avoid_posting_version.details %>
@@ -40,20 +40,22 @@
             <% if CurrentUser.is_staff? %>
               <span class="avoid-posting-staff-notes">
                 <% if previous.present? && previous.staff_notes != avoid_posting_version.staff_notes %>
-                  <b>Staff Notes</b><br>
+                  <b>Staff Notes</b>
+                  <span>
                   <% if avoid_posting_version.staff_notes.blank? %>
                     (cleared)
                   <% else %>
                     <%= avoid_posting_version.staff_notes %>
                   <% end %>
+                  </span>
               <% end %>
               </span>
           <% end %>
           </td>
-          <td class="status">
+          <td class="dnp-status">
             <%= avoid_posting_version.status %>
           </td>
-          <td class="updater">
+          <td class="dnp-creator">
             <%= link_to_user avoid_posting_version.updater %>
             <%= link_to "»", avoid_posting_versions_path(search: { updater_name: avoid_posting_version.updater_name }) %>
             <p>
@@ -64,7 +66,7 @@
             </p>
           </td>
           <% if CurrentUser.can_edit_avoid_posting_entries? %>
-            <td class="links">
+            <td class="dnp-links">
               <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
             </td>
           <% end %>

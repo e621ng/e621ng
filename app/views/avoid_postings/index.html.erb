@@ -4,54 +4,49 @@
 
     <%= render "search" %>
 
-    <table class="striped autofit">
+    <table class="striped dnp-list">
       <thead>
       <tr>
-        <th></th>
-        <th>Artist</th>
-        <th width="60%">Details</th>
-        <th>Status</th>
-        <th>Creator</th>
-        <% if CurrentUser.can_edit_avoid_posting_entries? %>
-          <th width="8%"></th>
-        <% end %>
+        <th class="dnp-artist">Artist</th>
+        <th class="dnp-details">Details</th>
+        <th class="dnp-status">Status</th>
+        <th class="dnp-creator">Creator</th>
+        <th class="dnp-links"></th>
       </tr>
       </thead>
       <tbody>
       <% @avoid_postings.each do |avoid_posting| %>
         <tr id="avoid-posting-<%= avoid_posting.id %>" data-artist="<%= avoid_posting.artist_name %>">
-          <td class="view">
-            <%= link_to "View", avoid_posting_path(avoid_posting) %>
-          </td>
-          <td class="artist-name">
+          <td class="dnp-artist">
             <%= link_to avoid_posting.artist_name, show_or_new_artists_path(name: avoid_posting.artist_name) %>
             <% if avoid_posting.other_names.present? %>
-              (<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)
+              <span>(<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)</span>
             <% end %>
           </td>
-          <td class="details">
+          <td class="dnp-details">
             <span class="avoid-posting-details"><%= format_text(avoid_posting.details, inline: true) %></span>
             <% if CurrentUser.is_staff? && avoid_posting.staff_notes.present? %>
               <span class="avoid-posting-staff-notes">
-                <b>Staff Notes</b><br>
-                <%= format_text(avoid_posting.staff_notes, inline: true) %>
+                <b>Staff Notes</b>
+                <span><%= format_text(avoid_posting.staff_notes, inline: true) %></span>
               </span>
             <% end %>
           </td>
-          <td class="status">
+          <td class="dnp-status">
             <%= avoid_posting.status %>
           </td>
           <% if CurrentUser.is_staff? %>
-            <td>
+            <td class="dnp-creator">
               <%= link_to_user avoid_posting.creator %>
             </td>
           <% end %>
-          <% if CurrentUser.can_edit_avoid_posting_entries? %>
-            <td class="links">
-                <%= link_to "Edit", edit_avoid_posting_path(avoid_posting) %>
-                | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting?" } %>
-            </td>
-          <% end %>
+          <td class="dnp-links">
+            <%= link_to "Show", avoid_posting_path(avoid_posting) %>
+            <% if CurrentUser.can_edit_avoid_posting_entries? %>
+              | <%= link_to "Edit", edit_avoid_posting_path(avoid_posting) %>
+              | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting?" } %>
+            <% end %>
+          </td>
         </tr>
       <% end %>
       </tbody>
