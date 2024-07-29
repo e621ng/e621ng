@@ -8,37 +8,40 @@
       <thead>
       <tr>
         <th>Artist</th>
-        <th>Details</th>
-        <% if CurrentUser.is_staff? %>
-          <th>Staff Notes</th>
-        <% end %>
+        <th width="60%">Details</th>
         <th>Status</th>
         <th>Updater</th>
-        <th></th>
+        <% if CurrentUser.can_edit_avoid_posting_entries? %>
+          <th></th>
+        <% end %>
       </tr>
       </thead>
       <tbody>
       <% @avoid_posting_versions.each do |avoid_posting_version| %>
+      <% previous = avoid_posting_version.previous %>
         <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
           <td>
             <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
           </td>
-          <td>
-            <% if avoid_posting_version.previous && avoid_posting_version.previous.details == avoid_posting_version.details %>
+          <td class="details">
+            <span class="avoid-posting-details">
+              <% if previous.present? && previous.details == avoid_posting_version.details %>
               (No Changes)
             <% else %>
               <%= avoid_posting_version.details %>
             <% end %>
-          </td>
-          <% if CurrentUser.is_staff? %>
-            <td>
-              <% if avoid_posting_version.previous && avoid_posting_version.previous.staff_notes == avoid_posting_version.staff_notes %>
+            </span>
+            <% if CurrentUser.is_staff? %>
+              <span class="avoid-posting-staff-notes">
+                <b>Staff Notes</b><br>
+                <% if previous.present? && previous.staff_notes == avoid_posting_version.staff_notes %>
                 (No Changes)
               <% else %>
                 <%= avoid_posting_version.staff_notes %>
               <% end %>
-            </td>
+              </span>
           <% end %>
+          </td>
           <td>
             <%= avoid_posting_version.status %>
           </td>
@@ -52,11 +55,11 @@
               <% end %>
             </p>
           </td>
-          <td>
-            <% if CurrentUser.can_edit_avoid_posting_entries? %>
+          <% if CurrentUser.can_edit_avoid_posting_entries? %>
+            <td>
               <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
-            <% end %>
-          </td>
+            </td>
+          <% end %>
         </tr>
       <% end %>
       </tbody>

@@ -18,3 +18,10 @@
     }
   }
 }
+
+#c-avoid-postings, #c-avoid-posting-versions {
+  td.details {
+    display: grid;
+    grid-gap: 0.5em;
+  }
+}
