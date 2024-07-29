@@ -130,6 +130,12 @@ class AvoidPosting < ApplicationRecord
     "#{artist_name} / #{other_names.join(' / ')}".tr("_", " ")
   end
 
+  def pretty_details
+    return details if details.present?
+    return "Only the artist is allowed to post." if linked_user_id.present?
+    ""
+  end
+
   include LogMethods
   include ApiMethods
   include ArtistMethods
