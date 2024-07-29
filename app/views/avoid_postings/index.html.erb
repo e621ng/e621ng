@@ -8,16 +8,13 @@
       <thead>
       <tr>
         <th></th>
-        <% if CurrentUser.is_staff? %>
-          <th>Creator</th>
-        <% end %>
-        <th>Status</th>
         <th>Artist</th>
         <th>Other Names</th>
         <th>Details</th>
         <% if CurrentUser.is_staff? %>
           <th>Staff Notes</th>
         <% end %>
+        <th>Status</th>
         <th></th>
       </tr>
       </thead>
@@ -26,14 +23,6 @@
         <tr id="avoid-posting-<%= avoid_posting.id %>" data-artist="<%= avoid_posting.artist_name %>">
           <td>
             <%= link_to "View", avoid_posting_path(avoid_posting) %>
-          </td>
-          <% if CurrentUser.is_staff? %>
-            <td>
-              <%= link_to_user avoid_posting.creator %>
-            </td>
-          <% end %>
-          <td>
-            <%= avoid_posting.status %>
           </td>
           <td>
             <%= link_to avoid_posting.artist_name, show_or_new_artists_path(name: avoid_posting.artist_name) %>
@@ -46,6 +35,14 @@
           <td><%= avoid_posting.details %></td>
           <% if CurrentUser.is_staff? %>
             <td><%= avoid_posting.staff_notes %></td>
+          <% end %>
+          <td>
+            <%= avoid_posting.status %>
+          </td>
+          <% if CurrentUser.is_staff? %>
+            <td>
+              <%= link_to_user avoid_posting.creator %>
+            </td>
           <% end %>
           <td>
             <% if CurrentUser.can_edit_avoid_posting_entries? %>

@@ -8,11 +8,11 @@
       <thead>
       <tr>
         <th>Artist</th>
-        <th>Status</th>
         <th>Details</th>
         <% if CurrentUser.is_staff? %>
           <th>Staff Notes</th>
         <% end %>
+        <th>Status</th>
         <th>Updater</th>
         <th></th>
       </tr>
@@ -22,9 +22,6 @@
         <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
           <td>
             <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
-          </td>
-          <td>
-            <%= avoid_posting_version.status %>
           </td>
           <td>
             <% if avoid_posting_version.previous && avoid_posting_version.previous.details == avoid_posting_version.details %>
@@ -42,6 +39,9 @@
               <% end %>
             </td>
           <% end %>
+          <td>
+            <%= avoid_posting_version.status %>
+          </td>
           <td>
             <%= link_to_user avoid_posting_version.updater %>
             <%= link_to "»", avoid_posting_versions_path(search: { updater_name: avoid_posting_version.updater_name }) %>
