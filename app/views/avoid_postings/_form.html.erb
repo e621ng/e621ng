@@ -1,5 +1,5 @@
 <%= custom_form_for(@avoid_posting) do |f| %>
-  <%= f.input :artist_name, as: :string, autocomplete: "tag" %>
+  <%= f.input :artist_name, as: :string, autocomplete: "artist" %>
   <% if !@avoid_posting.new_record? && @avoid_posting.artist.present? %>
     <%= f.input :rename_artist, label: "Rename artist?", as: :boolean, input_html: { checked: true } %>
   <% end %>
