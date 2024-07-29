@@ -109,10 +109,16 @@ class AvoidPosting < ApplicationRecord
       artist_keys = %i[artist_id any_name_matches any_other_name_matches]
       q = q.joins(:artist).merge(artist_search(params)) if artist_keys.any? { |key| params.key?(key) }
 
+      if params[:is_active].present?
+        q = q.active if params[:is_active].to_s.truthy?
+        q = q.deleted if params[:is_active].to_s.falsy?
+      else
+        q = q.active
+      end
+
       q = q.attribute_matches(:artist_name, params[:artist_name])
       q = q.attribute_matches(:details, params[:details])
       q = q.attribute_matches(:staff_notes, params[:staff_notes])
-      q = q.attribute_matches(:is_active, params[:is_active])
       q = q.where_user(:creator_id, :creator, params)
       q = q.where("creator_ip_addr <<= ?", params[:creator_ip_addr]) if params[:creator_ip_addr].present?
       q.apply_basic_order(params)
