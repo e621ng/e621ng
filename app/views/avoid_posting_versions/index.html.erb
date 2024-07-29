@@ -25,19 +25,27 @@
           </td>
           <td class="details">
             <span class="avoid-posting-details">
-              <% if previous.present? && previous.details == avoid_posting_version.details %>
-              (No Changes)
+              <% if previous.present? %>
+                <% if previous.details == avoid_posting_version.details %>
+                  (no changes)
+                <% elsif avoid_posting_version.details.blank? %>
+                  (cleared)
+                <% else %>
+              <%= avoid_posting_version.details %>
+                <% end %>
             <% else %>
               <%= avoid_posting_version.details %>
             <% end %>
             </span>
             <% if CurrentUser.is_staff? %>
               <span class="avoid-posting-staff-notes">
+                <% if previous.present? && previous.staff_notes != avoid_posting_version.staff_notes %>
                 <b>Staff Notes</b><br>
-                <% if previous.present? && previous.staff_notes == avoid_posting_version.staff_notes %>
-                (No Changes)
-              <% else %>
-                <%= avoid_posting_version.staff_notes %>
+                  <% if avoid_posting_version.staff_notes.blank? %>
+                    (cleared)
+                  <% else %>
+                    <%= avoid_posting_version.staff_notes %>
+                  <% end %>
               <% end %>
               </span>
           <% end %>
