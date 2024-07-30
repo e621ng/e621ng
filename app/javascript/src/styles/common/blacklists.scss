@@ -55,6 +55,17 @@
 
     .blacklist-filters {
       max-height: 0;
+      overflow: hidden;
+    }
+  }
+  &[collapsed="false"] {
+    .blacklist-filters {
+      // Hide scrollbars when unrolling
+      @keyframes hide-scroll {
+        from, to { overflow: hidden; } 
+      }
+      animation: hide-scroll 0.25s backwards;
+      overflow: hidden auto;
     }
   }
 
@@ -67,7 +78,6 @@
     margin: 0.25em 0;
 
     max-height: 50vh;
-    overflow: hidden auto;
     transition: max-height 0.25s ease-in-out;
 
     li {
