@@ -6,9 +6,10 @@ class AvoidPosting < ApplicationRecord
   belongs_to :artist
   has_many :versions, -> { order("avoid_posting_versions.id ASC") }, class_name: "AvoidPostingVersion", dependent: :destroy
   after_create :log_create
-  after_update :log_update
+  after_update :log_update, if: :saved_change_to_watched_attributes?
   after_destroy :log_destroy
-  after_save :create_version
+  after_create :create_version
+  after_update :create_version, if: :saved_change_to_watched_attributes?
   accepts_nested_attributes_for :artist
 
   scope :active, -> { where(is_active: true) }
@@ -17,6 +18,10 @@ class AvoidPosting < ApplicationRecord
   module LogMethods
     def log_create
       ModAction.log(:avoid_posting_create, { id: id, artist_name: artist_name })
+    end
+
+    def saved_change_to_watched_attributes?
+      saved_change_to_is_active? || saved_change_to_details? || saved_change_to_staff_notes?
     end
 
     def log_update
