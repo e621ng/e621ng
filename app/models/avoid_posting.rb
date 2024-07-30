@@ -5,6 +5,7 @@ class AvoidPosting < ApplicationRecord
   belongs_to_updater
   belongs_to :artist
   has_many :versions, -> { order("avoid_posting_versions.id ASC") }, class_name: "AvoidPostingVersion", dependent: :destroy
+  validates :artist_id, uniqueness: { message: "already has an avoid posting entry" }
   after_create :log_create
   after_create :create_version
   after_update :log_update, if: :saved_change_to_watched_attributes?
