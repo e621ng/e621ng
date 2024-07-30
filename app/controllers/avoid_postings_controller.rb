@@ -25,7 +25,7 @@ class AvoidPostingsController < ApplicationController
   end
 
   def create
-    @avoid_posting = AvoidPosting.create(avoid_posting_params
+    @avoid_posting = AvoidPosting.create(avoid_posting_params)
     respond_with(@avoid_posting)
   end
 
