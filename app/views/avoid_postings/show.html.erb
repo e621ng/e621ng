@@ -14,6 +14,12 @@
       <% if @avoid_posting.other_names.present? %>
         <li><strong>Other Names</strong> <%= link_to_artists(@avoid_posting.other_names) %></li>
       <% end %>
+      <% if @avoid_posting.group_name.present? %>
+        <li><strong>Group</strong> <%= link_to_artist(@avoid_posting.group_name) %></li>
+      <% end %>
+      <% if @avoid_posting.group_name.present? && @avoid_posting.artist.members.present? %>
+        <li><strong>Members</strong> <%= link_to_artists(@avoid_posting.artist.members.limit(25).map(&:name)) %></li>
+      <% end %>
       <% if @avoid_posting.details.present? %>
         <li>
           <strong>Details</strong>

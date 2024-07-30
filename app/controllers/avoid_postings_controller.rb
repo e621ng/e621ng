@@ -25,7 +25,12 @@ class AvoidPostingsController < ApplicationController
   end
 
   def create
-    @avoid_posting = AvoidPosting.create(avoid_posting_params)
+    apparams = avoid_posting_params
+    @avoid_posting = AvoidPosting.new(avoid_posting_params)
+    if apparams[:artist_attributes].present? && (artist = Artist.find_by(name: Artist.normalize_name(apparams[:artist_attributes][:name])))
+      @avoid_posting.artist = artist
+    end
+    @avoid_posting.save
     respond_with(@avoid_posting)
   end
 

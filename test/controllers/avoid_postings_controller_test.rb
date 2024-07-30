@@ -44,12 +44,25 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "create action" do
-      should "create an avoid posting entry" do
-        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
+      should "work and create artist" do
+        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count Artist.count], 1) do
           post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: "another_artist" } } }
         end
 
-        avoid_posting = AvoidPosting.find_by(artist: Artist.find_by(name: "another_artist"))
+        artist = Artist.find_by(name: "another_artist")
+        assert_not_nil(artist)
+        avoid_posting = AvoidPosting.find_by(artist: artist)
+        assert_not_nil(avoid_posting)
+        assert_redirected_to(avoid_posting_path(avoid_posting))
+      end
+
+      should "work with existing artist" do
+        @artist = create(:artist)
+        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
+          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: @artist.name } } }
+        end
+
+        avoid_posting = AvoidPosting.find_by(artist: @artist)
         assert_not_nil(avoid_posting)
         assert_redirected_to(avoid_posting_path(avoid_posting))
       end
