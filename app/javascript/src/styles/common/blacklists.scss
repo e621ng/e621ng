@@ -2,7 +2,7 @@
 #blacklist-edit-dialog {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: min-content 1fr min-content min-content;
+  grid-template-rows: min-content 1fr min-content;
   gap: 0.5rem;
 
   textarea {
@@ -171,7 +171,7 @@
 // Settings
 #c-users #a-edit {
   #user_blacklisted_tags {
-    min-height: 25em;
+    min-height: 20em;
     width: 100%;
   }
 }

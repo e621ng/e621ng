@@ -30,7 +30,7 @@ Blacklist.init_anonymous_blacklist = function () {
 Blacklist.init_blacklist_editor = function () {
   $("#blacklist-edit-dialog").dialog({
     autoOpen: false,
-    width: 400,
+    width: $(window).width() > 400 ? 400 : "auto",
     height: 400,
   });
 
