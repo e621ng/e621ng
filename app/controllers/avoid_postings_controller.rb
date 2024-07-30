@@ -25,10 +25,37 @@ class AvoidPostingsController < ApplicationController
   end
 
   def create
-    apparams = avoid_posting_params
     @avoid_posting = AvoidPosting.new(avoid_posting_params)
-    if apparams[:artist_attributes].present? && (artist = Artist.find_by(name: Artist.normalize_name(apparams[:artist_attributes][:name])))
+    artparams = avoid_posting_params.try(:[], :artist_attributes)
+    if artparams.present? && (artist = Artist.find_by(name: Artist.normalize_name(artparams[:name])))
       @avoid_posting.artist = artist
+      notices = []
+      if artist.other_names.present? && (artparams.key?(:other_names_string) || artparams.key?(:other_names))
+        on = artparams[:other_names_string].try(:split) || artparams[:other_names]
+        artparams.delete(:other_names_string)
+        artparams.delete(:other_names)
+        if on.present?
+          artparams[:other_names] = (artist.other_names + on).uniq
+          notices << "Artist already had other names, the provided names were merged into the existing names."
+        end
+      end
+      if artist.group_name.present? && artparams.key?(:group_name)
+        if artparams[:group_name].blank?
+          artparams.delete(:group_name)
+        else
+          notices << "Artist's original group name was replaced."
+        end
+      end
+      if artist.linked_user_id.present? && artparams.key?(:linked_user_id)
+        if artparams[:linked_user_id].present?
+          notices << "Artist is already linked to \"#{artist.linked_user.name}\":/users/#{artist.linked_user_id}, no change was made."
+        end
+        artparams.delete(:linked_user_id)
+      end
+      notices = notices.join("\n")
+      # Remove period from last notice
+      flash[:notice] = notices[0..-2] if notices.present?
+      artist.update(artparams)
     end
     @avoid_posting.save
     respond_with(@avoid_posting)
@@ -75,7 +102,7 @@ class AvoidPostingsController < ApplicationController
 
   def avoid_posting_params
     permitted_params = %i[details staff_notes is_active]
-    permitted_params += [artist_attributes: %i[id name other_names other_names_string group_name linked_user_id]]
+    permitted_params += [artist_attributes: [:id, :name, :other_names_string, :group_name, :linked_user_id, other_names: []]]
 
     params.fetch(:avoid_posting, {}).permit(permitted_params)
   end

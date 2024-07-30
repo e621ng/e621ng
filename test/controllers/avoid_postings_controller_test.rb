@@ -66,6 +66,47 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_not_nil(avoid_posting)
         assert_redirected_to(avoid_posting_path(avoid_posting))
       end
+
+      should "merge other_names if already set" do
+        @artist = create(:artist, other_names: %w[test1 test2])
+        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
+          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: @artist.name, other_names_string: "test2 test3" } } }
+        end
+
+        @artist.reload
+        avoid_posting = AvoidPosting.find_by(artist: @artist)
+        assert_not_nil(avoid_posting)
+        assert_equal(%w[test1 test2 test3], @artist.other_names)
+        assert_redirected_to(avoid_posting_path(avoid_posting))
+      end
+
+      should "reject linked_user_id if already set" do
+        @artist = create(:artist, linked_user: @bd_user)
+        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
+          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: @artist.name, linked_user_id: create(:user).id } } }
+        end
+
+        @artist.reload
+        avoid_posting = AvoidPosting.find_by(artist: @artist)
+        assert_not_nil(avoid_posting)
+        assert_equal(@bd_user, @artist.linked_user)
+        assert_redirected_to(avoid_posting_path(avoid_posting))
+      end
+
+      should "not override existing artist properties with empty fields" do
+        @artist = create(:artist, other_names: %w[test1 test2], group_name: "foobar", linked_user: @bd_user)
+        assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
+          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: @artist.name, other_names: [], other_names_string: "", group_name: "", linked_user_id: "" } } }
+        end
+
+        @artist.reload
+        avoid_posting = AvoidPosting.find_by(artist: @artist)
+        assert_not_nil(avoid_posting)
+        assert_equal(%w[test1 test2], @artist.other_names)
+        assert_equal("foobar", @artist.group_name)
+        assert_equal(@bd_user, @artist.linked_user)
+        assert_redirected_to(avoid_posting_path(avoid_posting))
+      end
     end
 
     context "update action" do
