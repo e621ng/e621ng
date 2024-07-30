@@ -8,8 +8,8 @@ module AvoidPostingHelper
       text += "h2. #{header} [##{anchor(header)}]\n"
       entries.each do |dnp|
         text += "* #{dnp.all_names}"
-        if dnp.details.present?
-          text += " - #{dnp.details}"
+        if dnp.pretty_details.present?
+          text += " - #{dnp.pretty_details}"
         end
         text += "\n"
       end
