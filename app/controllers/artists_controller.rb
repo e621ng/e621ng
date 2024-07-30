@@ -112,7 +112,6 @@ class ArtistsController < ApplicationController
     permitted_params = %i[name other_names other_names_string group_name url_string notes]
     permitted_params += %i[linked_user_id is_locked] if CurrentUser.is_janitor?
     permitted_params << :source if context == :new
-    permitted_params << :rename_dnp if context == :update && CurrentUser.can_edit_avoid_posting_entries?
 
     params.fetch(:artist, {}).permit(permitted_params)
   end

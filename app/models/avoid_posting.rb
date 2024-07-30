@@ -9,6 +9,7 @@ class AvoidPosting < ApplicationRecord
   after_update :log_update
   after_destroy :log_destroy
   after_save :create_version
+  accepts_nested_attributes_for :artist
 
   scope :active, -> { where(is_active: true) }
   scope :deleted, -> { where(is_active: false) }

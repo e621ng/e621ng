@@ -4,9 +4,6 @@
     <%= f.input :name, as: :string, autocomplete: "tag" %>
   <% elsif !@artist.dnp_restricted? && CurrentUser.user.is_janitor? %>
     <%= f.input :name, autocomplete: "tag", hint: "Change to rename this artist entry and its wiki page." %>
-    <% if @artist.is_dnp? %>
-      <%= f.input :rename_dnp, label: "Rename DNP", as: :boolean, input_html: { checked: true } %>
-    <% end %>
   <% else %>
     <p><%= @artist.name %></p>
     <% if @artist.dnp_restricted? %>

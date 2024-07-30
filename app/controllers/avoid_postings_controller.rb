@@ -69,6 +69,7 @@ class AvoidPostingsController < ApplicationController
 
   def avoid_posting_params(context = nil)
     permitted_params = %i[details staff_notes is_active]
+    permitted_params += [artist_attributes: %i[id name other_names other_names_string group_name]]
     permitted_params += %i[artist_name artist_id] if context == :create
 
     params.fetch(:avoid_posting, {}).permit(permitted_params)

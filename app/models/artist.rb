@@ -3,7 +3,7 @@
 class Artist < ApplicationRecord
   class RevertError < Exception ; end
 
-  attr_accessor :url_string_changed, :rename_dnp
+  attr_accessor :url_string_changed
   array_attribute :other_names
 
   belongs_to_creator

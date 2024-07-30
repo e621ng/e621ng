@@ -39,15 +39,26 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
       assert_not_nil(avoid_posting)
       assert_redirected_to(avoid_posting_path(avoid_posting))
     end
+    context "update action" do
+      should "work" do
+        assert_difference("ModAction.count", 1) do
+          put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { details: "test" } }
+        end
 
-    should "update an avoid posting entry" do
-      assert_difference("ModAction.count", 1) do
-        put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { details: "test" } }
+        assert_redirected_to(avoid_posting_path(@avoid_posting))
+        assert_equal("avoid_posting_update", ModAction.last.action)
+        assert_equal("test", @avoid_posting.reload.details)
       end
 
-      assert_redirected_to(avoid_posting_path(@avoid_posting))
-      assert_equal("avoid_posting_update", ModAction.last.action)
-      assert_equal("test", @avoid_posting.reload.details)
+      should "work with nested attributes" do
+        assert_difference("ModAction.count", 2) do
+          put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { artist_attributes: { id: @avoid_posting.artist.id, name: "foobar" } } }
+        end
+
+        assert_redirected_to(avoid_posting_path(@avoid_posting))
+        assert_equal(%w[artist_page_rename avoid_posting_update], ModAction.last(2).pluck(:action))
+        assert_equal("foobar", @avoid_posting.artist.reload.name)
+      end
     end
 
     should "delete an avoid posting entry" do
