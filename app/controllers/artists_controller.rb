@@ -101,8 +101,7 @@ class ArtistsController < ApplicationController
   end
 
   def ensure_can_edit(user)
-    return if user.is_janitor?
-    raise(User::PrivilegeError, "Artist is locked.") if @artist.is_locked?
+    raise(User::PrivilegeError, "Artist is locked.") unless @artist.editable_by?(user)
   end
 
   def artist_params(context = nil)

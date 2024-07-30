@@ -527,7 +527,8 @@ class Artist < ApplicationRecord
   end
 
   def editable_by?(user)
-    user.is_janitor?
+    return true if user.is_janitor?
+    !is_locked?
   end
 
   def user_not_limited
