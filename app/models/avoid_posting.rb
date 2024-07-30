@@ -6,10 +6,10 @@ class AvoidPosting < ApplicationRecord
   belongs_to :artist
   has_many :versions, -> { order("avoid_posting_versions.id ASC") }, class_name: "AvoidPostingVersion", dependent: :destroy
   after_create :log_create
-  after_update :log_update, if: :saved_change_to_watched_attributes?
-  after_destroy :log_destroy
   after_create :create_version
+  after_update :log_update, if: :saved_change_to_watched_attributes?
   after_update :create_version, if: :saved_change_to_watched_attributes?
+  after_destroy :log_destroy
   accepts_nested_attributes_for :artist
 
   scope :active, -> { where(is_active: true) }
