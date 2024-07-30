@@ -16,7 +16,7 @@ class AvoidPostingsController < ApplicationController
   end
 
   def new
-    @avoid_posting = AvoidPosting.new(avoid_posting_params)
+    @avoid_posting = AvoidPosting.new(avoid_posting_params(:create))
     respond_with(@artist)
   end
 
@@ -24,19 +24,19 @@ class AvoidPostingsController < ApplicationController
   end
 
   def create
-    @avoid_posting = AvoidPosting.create(avoid_posting_params)
+    @avoid_posting = AvoidPosting.create(avoid_posting_params(:create))
     respond_with(@avoid_posting)
   end
 
   def update
-    @avoid_posting.update(avoid_posting_params(:update))
+    @avoid_posting.update(avoid_posting_params)
     flash[:notice] = @avoid_posting.valid? ? "Avoid posting entry updated" : @avoid_posting.errors.full_messages.join("; ")
     respond_with(@avoid_posting)
   end
 
   def destroy
     @avoid_posting.destroy
-    redirect_to show_or_new_artists_path(name: @avoid_posting.artist_name), notice: "Avoid posting entry destroyed"
+    redirect_to artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed"
   end
 
   def delete
@@ -61,15 +61,15 @@ class AvoidPostingsController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[creator_name creator_id any_name_matches artist_name artist_id any_other_name_matches group_name details is_active]
+    permitted_params = %i[creator_name creator_id any_name_matches artist_id artist_name any_other_name_matches group_name details is_active]
     permitted_params += %i[staff_notes] if CurrentUser.is_staff?
     permitted_params += %i[creator_ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 
   def avoid_posting_params(context = nil)
-    permitted_params = %i[artist_name details staff_notes is_active]
-    permitted_params += %i[rename_artist] if context == :update
+    permitted_params = %i[details staff_notes is_active]
+    permitted_params += %i[artist_name artist_id] if context == :create
 
     params.fetch(:avoid_posting, {}).permit(permitted_params)
   end

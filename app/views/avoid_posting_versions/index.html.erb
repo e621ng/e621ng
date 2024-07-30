@@ -21,7 +21,7 @@
       <% previous = avoid_posting_version.previous %>
         <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
           <td class="dnp-artist">
-            <%= link_to avoid_posting_version.artist_name, show_or_new_artists_path(name: avoid_posting_version.artist_name) %>
+            <%= link_to avoid_posting_version.artist_name, artist_path(avoid_posting_version.artist) %>
           </td>
           <td class="dnp-details">
             <span class="avoid-posting-details">

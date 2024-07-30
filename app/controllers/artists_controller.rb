@@ -62,6 +62,9 @@ class ArtistsController < ApplicationController
   def destroy
     raise User::PrivilegeError unless @artist.deletable_by?(CurrentUser.user)
     @artist.destroy
+    Rails.logger.debug @artist.valid?
+    Rails.logger.debug @artist.errors.full_messages.join("; ")
+    Rails.logger.debug @artist.destroyed?
     respond_with(@artist) do |format|
       format.html do
         redirect_to(artists_path, notice: @artist.valid? ? "Artist deleted" : @artist.errors.full_messages.join("; "))

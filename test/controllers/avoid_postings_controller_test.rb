@@ -35,7 +35,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_name: "another_artist" } }
       end
 
-      avoid_posting = AvoidPosting.find_by(artist_name: "another_artist")
+      avoid_posting = AvoidPosting.find_by(artist: Artist.find_by(name: "another_artist"))
       assert_not_nil(avoid_posting)
       assert_redirected_to(avoid_posting_path(avoid_posting))
     end
@@ -48,40 +48,6 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to(avoid_posting_path(@avoid_posting))
       assert_equal("avoid_posting_update", ModAction.last.action)
       assert_equal("test", @avoid_posting.reload.details)
-    end
-
-    context "when renaming" do
-      should "rename artist" do
-        assert_difference("ModAction.count", 2) do
-          put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { artist_name: "another_artist", rename_artist: true } }
-        end
-
-        assert_redirected_to(avoid_posting_path(@avoid_posting))
-        assert_equal(%w[avoid_posting_update artist_page_rename], ModAction.last(2).map(&:action))
-        assert_equal("another_artist", @avoid_posting.reload.artist_name)
-        assert_equal("another_artist", @artist.reload.name)
-      end
-
-      should "not rename artist if new name already exists" do
-        name = @artist.name
-        new_artist = create(:artist)
-        put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { artist_name: new_artist.name, rename_artist: true } }
-
-        assert_equal(name, @avoid_posting.reload.artist_name)
-        assert_equal(name, @artist.reload.name)
-      end
-
-      should "not rename artist if rename_artist=false" do
-        name = @artist.name
-        assert_difference("ModAction.count", 1) do
-          put_auth avoid_posting_path(@avoid_posting), @bd_user, params: { avoid_posting: { artist_name: "another_artist", rename_artist: false } }
-        end
-
-        assert_redirected_to(avoid_posting_path(@avoid_posting))
-        assert_equal("avoid_posting_update", ModAction.last.action)
-        assert_equal("another_artist", @avoid_posting.reload.artist_name)
-        assert_equal(name, @artist.reload.name)
-      end
     end
 
     should "delete an avoid posting entry" do

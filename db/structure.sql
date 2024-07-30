@@ -210,7 +210,6 @@ CREATE TABLE public.avoid_posting_versions (
     id bigint NOT NULL,
     updater_id bigint NOT NULL,
     avoid_posting_id bigint NOT NULL,
-    artist_name character varying NOT NULL,
     updater_ip_addr inet NOT NULL,
     details character varying DEFAULT ''::character varying NOT NULL,
     staff_notes character varying DEFAULT ''::character varying NOT NULL,
@@ -246,7 +245,7 @@ CREATE TABLE public.avoid_postings (
     id bigint NOT NULL,
     creator_id bigint NOT NULL,
     updater_id bigint NOT NULL,
-    artist_name character varying NOT NULL,
+    artist_id bigint NOT NULL,
     creator_ip_addr inet NOT NULL,
     updater_ip_addr inet NOT NULL,
     details character varying DEFAULT ''::character varying NOT NULL,
@@ -3529,10 +3528,10 @@ CREATE INDEX index_avoid_posting_versions_on_updater_id ON public.avoid_posting_
 
 
 --
--- Name: index_avoid_postings_on_artist_name; Type: INDEX; Schema: public; Owner: -
+-- Name: index_avoid_postings_on_artist_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_avoid_postings_on_artist_name ON public.avoid_postings USING btree (artist_name);
+CREATE UNIQUE INDEX index_avoid_postings_on_artist_id ON public.avoid_postings USING btree (artist_id);
 
 
 --
@@ -4620,6 +4619,14 @@ ALTER TABLE ONLY public.mascots
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT fk_rails_a7668ef613 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: avoid_postings fk_rails_b2ebf2bc30; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.avoid_postings
+    ADD CONSTRAINT fk_rails_b2ebf2bc30 FOREIGN KEY (artist_id) REFERENCES public.artists(id);
 
 
 --
