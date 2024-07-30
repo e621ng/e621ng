@@ -1,6 +1,5 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "Listing", avoid_postings_path %>
-  <%= subnav_link_to "Static", avoid_posting_static_path %>
   <% if CurrentUser.can_edit_avoid_posting_entries? %>
     <%= subnav_link_to "New", new_avoid_posting_path %>
   <% end %>
@@ -18,4 +17,6 @@
   <% else %>
     <%= subnav_link_to "History", avoid_posting_versions_path %>
   <% end %>
+  <li>|</li>
+  <%= subnav_link_to "Static", avoid_posting_static_path %>
 <% end %>
