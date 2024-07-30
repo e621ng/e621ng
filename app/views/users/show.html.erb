@@ -4,11 +4,11 @@
       <%= render "statistics", :presenter => @presenter, :user => @user %>
       <%= render "admin/staff_notes/partials/for_user", user: @user %>
 
+      <div class="blacklist-section">
+        <%= render "posts/partials/common/inline_blacklist" %>
+      </div>
       <div class="bottom-section">
         <div class="posts-section">
-          <div class="blacklist">
-            <%= render "posts/partials/common/inline_blacklist" %>
-          </div>
           <div class="posts">
             <%= render "post_summary", presenter: @presenter, user: @user %>
           </div>

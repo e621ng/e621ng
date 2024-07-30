@@ -130,10 +130,11 @@
 .blacklist-ui.blacklist-inline {
   flex-flow: row;
   flex-wrap: wrap;
+  padding: 1em 0;
 
   .blacklist-header {
-    font-size: 1em;
     margin-left: 0;
+    font-size: 1em;
 
     &::before {
       display: none;
@@ -144,6 +145,8 @@
     flex-flow: row;
     gap: 0.75rem;
     margin: 0 0.75rem;
+    flex-wrap: wrap;
+    font-size: 1em;
 
     li {
       &::before {
