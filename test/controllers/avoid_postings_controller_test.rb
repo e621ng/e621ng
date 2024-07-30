@@ -10,8 +10,8 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
       CurrentUser.user = @user
 
       as(@bd_user) do
-        @artist = create(:artist)
-        @avoid_posting = AvoidPosting.create!(artist_name: @artist.name)
+        @avoid_posting = create(:avoid_posting)
+        @artist = @avoid_posting.artist
       end
     end
 
@@ -46,7 +46,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create an avoid posting entry" do
         assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
-          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_name: "another_artist" } }
+          post_auth avoid_postings_path, @bd_user, params: { avoid_posting: { artist_attributes: { name: "another_artist" } } }
         end
 
         avoid_posting = AvoidPosting.find_by(artist: Artist.find_by(name: "another_artist"))
