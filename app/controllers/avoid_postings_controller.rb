@@ -17,6 +17,7 @@ class AvoidPostingsController < ApplicationController
 
   def new
     @avoid_posting = AvoidPosting.new(avoid_posting_params(:create))
+    @avoid_posting.artist = Artist.new(avoid_posting_params(:create)[:artist_attributes])
     respond_with(@artist)
   end
 
@@ -69,8 +70,7 @@ class AvoidPostingsController < ApplicationController
 
   def avoid_posting_params(context = nil)
     permitted_params = %i[details staff_notes is_active]
-    permitted_params += [artist_attributes: %i[id name other_names other_names_string group_name]]
-    permitted_params += %i[artist_name artist_id] if context == :create
+    permitted_params += [artist_attributes: %i[id name other_names other_names_string group_name linked_user_id]]
 
     params.fetch(:avoid_posting, {}).permit(permitted_params)
   end

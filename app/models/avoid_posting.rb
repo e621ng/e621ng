@@ -10,6 +10,8 @@ class AvoidPosting < ApplicationRecord
   after_update :log_update, if: :saved_change_to_watched_attributes?
   after_update :create_version, if: :saved_change_to_watched_attributes?
   after_destroy :log_destroy
+  validates_associated :artist
+  validates_presence_of :artist
   accepts_nested_attributes_for :artist
 
   scope :active, -> { where(is_active: true) }
@@ -63,10 +65,6 @@ class AvoidPosting < ApplicationRecord
   module ArtistMethods
     delegate :group_name, :other_names, :other_names_string, :linked_user_id, :linked_user, :any_name_matches, to: :artist
     delegate :name, to: :artist, prefix: true, allow_nil: true
-
-    def artist_name=(value)
-      self.artist = Artist.find_or_create_by(name: Artist.normalize_name(value))
-    end
   end
 
   module ApiMethods
