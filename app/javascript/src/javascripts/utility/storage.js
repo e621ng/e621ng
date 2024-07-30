@@ -128,7 +128,7 @@ function patchBlacklistFunctions () {
     Set.prototype.add.apply(this, arguments);
     localStorage.setItem(
       "e6.blk.filters",
-      JSON.stringify([...LStorage.Blacklist._filterCache])
+      JSON.stringify([...LStorage.Blacklist._filterCache]),
     );
   };
   LStorage.Blacklist._filterCache.delete = function () {
@@ -138,7 +138,7 @@ function patchBlacklistFunctions () {
     else
       localStorage.setItem(
         "e6.blk.filters",
-        JSON.stringify([...LStorage.Blacklist._filterCache])
+        JSON.stringify([...LStorage.Blacklist._filterCache]),
       );
   };
   LStorage.Blacklist._filterCache.clear = function () {

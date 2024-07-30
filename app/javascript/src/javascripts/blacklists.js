@@ -55,7 +55,7 @@ Blacklist.init_blacklist_editor = function () {
           // Clear disabled filters, just in case
           LStorage.Blacklist.FilterState = new Set();
         })
-        .fail(function (data, status, xhr) {
+        .fail(function () {
           Utility.error("Failed to update blacklist");
         });
     }
@@ -78,12 +78,12 @@ Blacklist.init_blacklist_editor = function () {
 };
 
 /** Reveals the blacklisted post without disabling any filters */
-Blacklist.init_reveal_on_click = function() {
-  if(!$("#c-posts #a-show").length) return;
+Blacklist.init_reveal_on_click = function () {
+  if (!$("#c-posts #a-show").length) return;
   $("#image-container").on("click", (event) => {
     $(event.currentTarget).removeClass("blacklisted");
   });
-}
+};
 
 /** Import the blacklist from the meta tag */
 Blacklist.regenerate_filters = function () {
@@ -93,14 +93,14 @@ Blacklist.regenerate_filters = function () {
   let blacklistText;
   try {
     blacklistText = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     blacklistText = [];
   }
 
   for (let entry of blacklistText) {
     const line = Filter.create(entry);
-    if(line) Blacklist.filters[line.text] = line;
+    if (line) Blacklist.filters[line.text] = line;
   }
 
   // Clear any FilterState entries that don't have a matching filter
@@ -182,7 +182,7 @@ class BlacklistUI {
    * Should only be run on `.blacklist-ui` elements.
    * @param {JQuery<HTMLDivElement>} $element
    */
-  constructor($element) {
+  constructor ($element) {
     this.$element = $element;
     this.$counter = $element.find(".blacklisted-count");
 
@@ -228,7 +228,7 @@ class BlacklistUI {
    * Done automatically every time a filter gets turned on or off,
    * so all instances are in sync no matter what.
    */
-  rebuildFilters() {
+  rebuildFilters () {
     this.$container.html("");
 
     let activeFilters = 0,
@@ -249,10 +249,9 @@ class BlacklistUI {
 
       const link = $("<a>")
         .attr("href", "/posts?tags=" + encodeURIComponent(name))
-        .html(
-          name
-            .replace(/_/g, "&#8203;_") // Allow tags to linebreak on underscores
-            .replace(/ -/, " &#8209;") // Prevent linebreaking on negated tags
+        .html(name
+          .replace(/_/g, "&#8203;_") // Allow tags to linebreak on underscores
+          .replace(/ -/, " &#8209;"), // Prevent linebreaking on negated tags
         )
         .on("click", (event) => {
           event.preventDefault();
