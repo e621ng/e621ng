@@ -142,7 +142,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       setup do
         @bd_user = create(:bd_staff_user)
         CurrentUser.user = @bd_user
-        @avoid_posting = create(:avoid_posting, artist_name: @artist.name)
+        @avoid_posting = create(:avoid_posting, artist: @artist)
       end
 
       should "not allow destroying" do
