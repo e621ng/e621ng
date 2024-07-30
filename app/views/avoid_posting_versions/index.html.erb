@@ -11,9 +11,7 @@
         <th class="dnp-details" width="60%">Details</th>
         <th class="dnp-status">Status</th>
         <th class="dnp-creator">Updater</th>
-        <% if CurrentUser.can_edit_avoid_posting_entries? %>
-          <th class="dnp-links"></th>
-        <% end %>
+        <th class="dnp-links"></th>
       </tr>
       </thead>
       <tbody>
@@ -65,11 +63,12 @@
               <% end %>
             </p>
           </td>
-          <% if CurrentUser.can_edit_avoid_posting_entries? %>
             <td class="dnp-links">
-              <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
+              <%= link_to "Show", avoid_posting_path(avoid_posting_version.avoid_posting) %>
+              <% if CurrentUser.can_edit_avoid_posting_entries? %>
+                | <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
+              <% end %>
             </td>
-          <% end %>
         </tr>
       <% end %>
       </tbody>
