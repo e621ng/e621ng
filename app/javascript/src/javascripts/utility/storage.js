@@ -78,4 +78,74 @@ LStorage.Posts.TagScript = {
 };
 
 
+// Blacklist functionality
+LStorage.Blacklist = {
+  /** @returns {string} Blacklist contents for logged-out users */
+  AnonymousBlacklist: ["anonymous-blacklist", "[]"],
+
+  /** @returns {boolean} Whether the filter list is hidden or not */
+  Collapsed: ["e6.blk.collapsed", true],
+
+  /**
+   * List of disabled blacklist filters
+   * @returns {Set<string>}
+   */
+  get FilterState () {
+    console.log("getting");
+    if (!LStorage.Blacklist._filterCache) {
+      console.log("fetching");
+      try {
+        LStorage.Blacklist._filterCache = new Set(
+          JSON.parse(localStorage.getItem("e6.blk.filters") || "[]"),
+        );
+      } catch (e) {
+        console.error(e);
+        localStorage.removeItem("e6.blk.filters");
+        LStorage.Blacklist._filterCache = new Set();
+      }
+
+      patchBlacklistFunctions();
+    }
+    return LStorage.Blacklist._filterCache;
+  },
+  set FilterState (value) {
+    if (!value.size) {
+      localStorage.removeItem("e6.blk.filters");
+      LStorage.Blacklist._filterCache = new Set();
+      return;
+    }
+
+    LStorage.Blacklist._filterCache = value;
+    patchBlacklistFunctions();
+    localStorage.setItem("e6.blk.filters", JSON.stringify([...value]));
+  },
+  _filterCache: undefined,
+};
+StorageUtils.bootstrapSome(LStorage.Blacklist, ["AnonymousBlacklist", "Collapsed"]);
+
+function patchBlacklistFunctions () {
+  LStorage.Blacklist._filterCache.add = function () {
+    Set.prototype.add.apply(this, arguments);
+    localStorage.setItem(
+      "e6.blk.filters",
+      JSON.stringify([...LStorage.Blacklist._filterCache])
+    );
+  };
+  LStorage.Blacklist._filterCache.delete = function () {
+    Set.prototype.delete.apply(this, arguments);
+    if (LStorage.Blacklist._filterCache.size == 0)
+      localStorage.removeItem("e6.blk.filters");
+    else
+      localStorage.setItem(
+        "e6.blk.filters",
+        JSON.stringify([...LStorage.Blacklist._filterCache])
+      );
+  };
+  LStorage.Blacklist._filterCache.clear = function () {
+    Set.prototype.clear.apply(this, arguments);
+    localStorage.removeItem("e6.blk.filters");
+  };
+}
+
+
 export default LStorage;
