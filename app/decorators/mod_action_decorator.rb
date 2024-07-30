@@ -66,7 +66,7 @@ class ModActionDecorator < ApplicationDecorator
       "Unlinked #{user} from artist ##{vals['artist_page']}"
 
       ### Avoid Posting ###
-    when "avoid_posting_create", "avoid_posting_undelete"
+    when "avoid_posting_create"
       "Created avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
     when "avoid_posting_update"
       "Updated avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
@@ -74,6 +74,8 @@ class ModActionDecorator < ApplicationDecorator
       "Destroyed avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
     when "avoid_posting_delete"
       "Deleted avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+    when "avoid_posting_undelete"
+      "Undelete avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
 
       ### User ###
 
