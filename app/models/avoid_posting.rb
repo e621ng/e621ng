@@ -11,7 +11,6 @@ class AvoidPosting < ApplicationRecord
   after_update :create_version, if: :saved_change_to_watched_attributes?
   after_destroy :log_destroy
   validates_associated :artist
-  validates_presence_of :artist
   accepts_nested_attributes_for :artist
 
   scope :active, -> { where(is_active: true) }
