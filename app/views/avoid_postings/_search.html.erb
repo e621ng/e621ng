@@ -12,5 +12,5 @@
   <% if CurrentUser.is_staff? %>
     <%= f.input :staff_notes %>
   <% end %>
-  <%= f.input :is_active, label: "Active?", collection: [%w[Yes true], %w[No false]] %>
+  <%= f.input :is_active, label: "Active?", collection: [%w[Yes true], %w[No false], %w[Any any]] %>
 <% end %>
