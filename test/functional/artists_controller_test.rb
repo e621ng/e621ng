@@ -151,6 +151,14 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
+      # technical restriction
+      should "not allow destroying even if the dnp is inactive" do
+        @avoid_posting.update(is_active: false)
+        assert_no_difference("Artist.count") do
+          delete_auth artist_path(@artist), @bd_user
+        end
+      end
+
       should "not allow editing protected properties" do
         @janitor = create(:janitor_user)
         name = @artist.name

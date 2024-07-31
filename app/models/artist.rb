@@ -30,6 +30,7 @@ class Artist < ApplicationRecord
   has_one :tag_alias, foreign_key: "antecedent_name", primary_key: "name"
   has_one :tag, foreign_key: "name", primary_key: "name"
   has_one :avoid_posting, -> { active }
+  has_one :inactive_dnp, -> { deleted }, class_name: "AvoidPosting"
   belongs_to :linked_user, class_name: "User", optional: true
   attribute :notes, :string
 
@@ -506,6 +507,10 @@ class Artist < ApplicationRecord
       avoid_posting.present?
     end
 
+    def has_any_dnp?
+      is_dnp? || inactive_dnp.present?
+    end
+
     def dnp_restricted?
       is_dnp? && !CurrentUser.can_edit_avoid_posting_entries?
     end
@@ -522,8 +527,10 @@ class Artist < ApplicationRecord
   include LockMethods
   extend SearchMethods
 
+  # due to technical limitations (foreign keys), artists with any
+  # dnp entry (active or inactive) cannot be deleted
   def deletable_by?(user)
-    !is_dnp? && user.is_admin?
+    !has_any_dnp? && user.is_admin?
   end
 
   def editable_by?(user)

@@ -75,7 +75,7 @@ class ModActionDecorator < ApplicationDecorator
     when "avoid_posting_delete"
       "Deleted avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
     when "avoid_posting_undelete"
-      "Undelete avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Undeleted avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
 
       ### User ###
 
