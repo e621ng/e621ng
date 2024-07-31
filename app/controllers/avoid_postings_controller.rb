@@ -102,7 +102,7 @@ class AvoidPostingsController < ApplicationController
 
   def avoid_posting_params
     permitted_params = %i[details staff_notes is_active]
-    permitted_params += [artist_attributes: [:id, :name, :other_names_string, :group_name, :linked_user_id, other_names: []]]
+    permitted_params += [artist_attributes: [:id, :name, :other_names_string, :group_name, :linked_user_id, { other_names: [] }]]
 
     params.fetch(:avoid_posting, {}).permit(permitted_params)
   end

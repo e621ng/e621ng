@@ -49,7 +49,7 @@
   </div>
 <% end %>
 
-<% if post.is_pending? || post.is_flagged? && post.flags.any? %>
+<% if post.is_pending? || (post.is_flagged? && post.flags.any?) %>
   <%= render "posts/partials/show/avoid_posting", post: post %>
 <% end %>
 
