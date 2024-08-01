@@ -90,7 +90,6 @@ export default class Filter {
     if (this.tokens.length) {
       for (const token of this.tokens) {
         tokensMatch = token.test(post);
-        if (token.inverted) tokensMatch = !tokensMatch;
         if (!tokensMatch) break;
       }
     }
@@ -100,7 +99,6 @@ export default class Filter {
       let optionalTokensMatch = false;
       for (const token of this.optional) {
         optionalTokensMatch = token.test(post);
-        if (token.inverted) optionalTokensMatch = !optionalTokensMatch;
         if (optionalTokensMatch) break;
       }
 
@@ -126,32 +124,29 @@ class FilterToken {
   constructor (raw) {
     raw = raw.trim().toLowerCase();
 
-    // Optional
+    // Token prefixes
+    // TODO: This REQUIRES the tokens to be formatted properly.
+    // -~ format is not accepted. This may cause issues with the the quick blacklist.
+    // Regular blacklist edits do get fixed server-side.
     this.optional = raw.startsWith("~");
-    if (this.optional) raw = raw.substring(1);
+    if (this.optional) raw = raw.slice(1);
 
-    // Inverted
-    // This allows for both ~ and - to be present
-    // Not sure if that's something we want to maintain
     this.inverted = raw.startsWith("-");
-    if (this.inverted) raw = raw.substring(1);
+    if (this.inverted) raw = raw.slice(1);
 
     // Get filter type: tag, id, score, rating, etc.
     this.type = FilterUtils.getFilterType(raw);
-    if (this.type !== "tag") raw = raw.substring(this.type.length + 1);
+    if (this.type != "tag") raw = raw.slice(this.type.length + 1);
 
     // Get comparison methods: equals, smaller then, etc
     this.comparison = FilterUtils.getComparison(raw);
-    if (this.comparison !== "=" && this.comparison !== "..")
-      raw = raw.substring(this.comparison.length);
+    if (this.comparison != "=" && this.comparison != "..")
+      raw = raw.slice(this.comparison.length);
 
     // Convert data if necessary
     switch (this.type) {
       case "rating":
         this.value = FilterUtils.parseRating(raw);
-        break;
-      case "sound":
-        this.value = FilterUtils.parseYesNo(raw);
         break;
       case "filesize":
         this.value = FilterUtils.parseFilesize(raw);
@@ -167,6 +162,7 @@ class FilterToken {
    * @returns true if the filter token matches
    */
   test (post) {
-    return FilterUtils.FilterTests[this.type](this, post);
+    const val = FilterUtils.FilterTests[this.type](this, post);
+    return this.inverted ? !val : val;
   }
 }

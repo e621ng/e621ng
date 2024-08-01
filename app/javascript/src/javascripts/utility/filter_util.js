@@ -35,6 +35,9 @@ FilterUtils.FilterTests = {
   pool: (token, post) => post.pools.includes(parseInt(token.value) || 0),
 };
 
+/** Array of supported metatags. */
+const FilterTypes = Object.keys(FilterUtils.FilterTests);
+
 /**
  * Returns the filter type based on the metatag present in the input.
  * If none can be found, assumes that this is a regular tag instead.
@@ -42,9 +45,12 @@ FilterUtils.FilterTests = {
  * @returns
  */
 FilterUtils.getFilterType = (input) => {
-  input = input.toLowerCase();
-  for (const key of Object.keys(FilterUtils.FilterTests))
-    if (input.startsWith(key + ":")) return key;
+  input = input.split(":");
+  if (input.length == 1) return "tag";
+  input = input[0];
+
+  for (const key of FilterTypes)
+    if (input == key) return key;
   return "tag";
 };
 
@@ -69,8 +75,8 @@ const ComparisonTable = Object.entries({
  * @returns Normalized comparison string
  */
 FilterUtils.getComparison = (input) => {
-  if (/.+\.\..+/.test(input)) return "..";
-  for (const [key, comparison] of Object.entries(ComparisonTable))
+  if (input.indexOf("..") != -1) return "..";
+  for (const [key, comparison] of ComparisonTable)
     if (input.startsWith(key)) return comparison;
   return "=";
 };
@@ -144,11 +150,9 @@ FilterUtils.parseRating = (input) => {
  * @returns {number} Filesize, in bytes
  */
 FilterUtils.parseFilesize = function (input) {
-  if (!isNaN(Number(input))) return parseInt(input);
-
-  for (const [index, size] of [/\db$/, /\dkb$/, /\dmb$/].entries()) {
-    if (size.test(input)) return parseInt(input) * Math.pow(1024, index);
-  }
+  if (/^\d+b?$/.test(input)) return parseInt(input);
+  if (/^\d+mb$/.test(input)) return parseInt(input) * 1048576;
+  if (/^\d+kb$/.test(input)) return parseInt(input) * 1024;
   return 0;
 };
 
