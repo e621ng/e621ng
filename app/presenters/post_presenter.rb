@@ -105,31 +105,9 @@ class PostPresenter < Presenter
   end
 
   def self.data_attributes(post, include_post: false)
-    attributes = {
-        "data-id" => post.id,
-        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
-        "data-tags" => post.tag_string,
-        "data-rating" => post.rating,
-        "data-width" => post.image_width,
-        "data-height" => post.image_height,
-        "data-flags" => post.status_flags,
-        "data-score" => post.score,
-        "data-file-ext" => post.file_ext,
-        "data-uploader-id" => post.uploader_id,
-        "data-uploader" => post.uploader_name,
-        "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
-    }
-
-    if post.visible?
-      attributes["data-md5"] = post.md5
-      attributes["data-file-url"] = post.file_url
-      attributes["data-large-file-url"] = post.large_file_url
-      attributes["data-preview-file-url"] = post.preview_file_url
-    end
-
-    attributes["data-post"] = post_attribute_attribute(post).to_json if include_post
-
-    attributes
+    attributes = post.thumbnail_attributes
+    attributes[:post] = post_attribute_attribute(post).to_json if include_post
+    { data: attributes }
   end
 
   def self.post_attribute_attribute(post)

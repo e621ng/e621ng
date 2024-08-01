@@ -11,7 +11,7 @@
     <li>|</li>
     <%= subnav_link_to "Posts (#{@artist.tag.try(:post_count).to_i})", posts_path(tags: @artist.name) %>
     <%= subnav_link_to "Show", artist_path(@artist) %>
-    <% if CurrentUser.is_member? %>
+    <% if @artist.editable_by?(CurrentUser.user) %>
       <%= subnav_link_to "Edit", edit_artist_path(@artist), data: { shortcut: "e" } %>
     <% end %>
     <%= subnav_link_to "History", artist_versions_path(search: { artist_id: @artist.id }) %>

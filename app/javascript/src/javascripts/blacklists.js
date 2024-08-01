@@ -1,6 +1,6 @@
 import Utility from "./utility";
-import LS from "./local_storage";
 import Post from "./posts";
+import LStorage from "./utility/storage";
 
 let Blacklist = {};
 
@@ -15,7 +15,7 @@ Blacklist.entryGet = function (line) {
 };
 
 Blacklist.entriesAllSet = function (enabled) {
-  LS.put("dab", enabled ? "0" : "1");
+  LStorage.put("dab", enabled ? "0" : "1");
   for (const entry of Blacklist.entries) {
     entry.disabled = !enabled;
   }
@@ -124,7 +124,7 @@ Blacklist.postShow = function (post) {
 };
 
 Blacklist.sidebarUpdate = function () {
-  if (LS.get("dab") === "1") {
+  if (LStorage.get("dab") === "1") {
     $("#disable-all-blacklists").hide();
     $("#re-enable-all-blacklists").show();
   } else {
@@ -169,7 +169,7 @@ Blacklist.sidebarUpdate = function () {
 };
 
 Blacklist.initialize_disable_all_blacklists = function () {
-  if (LS.get("dab") === "1") {
+  if (LStorage.get("dab") === "1") {
     Blacklist.entriesAllSet(false);
   }
 
@@ -238,7 +238,7 @@ Blacklist.postMatch = function (post, entry) {
     uploader_id: $post.data("uploader-id"),
     user: $post.data("uploader").toString().toLowerCase(),
     flags: $post.data("flags"),
-    is_fav: $post.data("is-favorited"),
+    is_favorited: $post.data("is-favorited"),
   };
   return Blacklist.postMatchObject(post_data, entry);
 };
@@ -272,7 +272,7 @@ Blacklist.postMatchObject = function (post, entry) {
   tags.push(`user:${post.user}`);
   tags.push(`height:${post.height}`);
   tags.push(`width:${post.width}`);
-  if (post.is_fav)
+  if (post.is_favorited)
     tags.push("fav:me");
   $.each(post.flags.match(/\S+/g) || [], function (i, v) {
     tags.push(`status:${v}`);
@@ -296,7 +296,7 @@ Blacklist.initialize_anonymous_blacklist = function () {
     return;
   }
 
-  const anonBlacklist = LS.get("anonymous-blacklist");
+  const anonBlacklist = LStorage.get("anonymous-blacklist");
   if (anonBlacklist) {
     $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
   }
@@ -317,7 +317,7 @@ Blacklist.initialize_blacklist_editor = function () {
     const blacklist_content = $("#blacklist-edit").val();
     const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
     if ($(document.body).data("user-is-anonymous") === true) {
-      LS.put("anonymous-blacklist", blacklist_json);
+      LStorage.put("anonymous-blacklist", blacklist_json);
     } else {
       $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
         method: "PUT",
@@ -347,12 +347,12 @@ Blacklist.initialize_blacklist_editor = function () {
 };
 
 Blacklist.collapseGet = function () {
-  const lsValue = LS.get("bc") || "1";
+  const lsValue = LStorage.get("bc") || "1";
   return lsValue === "1";
 };
 
 Blacklist.collapseSet = function (collapsed) {
-  LS.put("bc", collapsed ? "1" : "0");
+  LStorage.put("bc", collapsed ? "1" : "0");
 };
 
 Blacklist.collapseUpdate = function () {

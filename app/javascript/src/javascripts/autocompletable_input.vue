@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import LS from "./local_storage";
+import LStorage from "./utility/storage";
 export default {
   props: ["listId", "addToList", "modelValue"],
   computed: {
@@ -26,14 +26,14 @@ export default {
   },
   methods: {
     currentEntries() {
-      return LS.getObject(`autocomplete-${this.listId}`) || [];
+      return LStorage.getObject(`autocomplete-${this.listId}`) || [];
     },
   },
   watch: {
     addToList(value) {
       const maxEntries = 50;
       const entries = new Set([value.trim(), ...this.currentEntries()]);
-      LS.putObject(`autocomplete-${this.listId}`, [...entries].slice(0, maxEntries));
+      LStorage.putObject(`autocomplete-${this.listId}`, [...entries].slice(0, maxEntries));
     }
   },
 }

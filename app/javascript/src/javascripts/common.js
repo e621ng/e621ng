@@ -1,6 +1,6 @@
 import Cookie from "./cookie";
-import LS from "./local_storage";
 import Utility from "./utility";
+import LStorage from "./utility/storage";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,12 +25,12 @@ function initSearch () {
 $(function () {
   $("#theme-switcher").change(function () {
     let theme = $(this).val();
-    LS.put("theme", theme);
+    LStorage.put("theme", theme);
     $("body").attr("data-th-main", theme);
   });
 
   {
-    let theme = LS.get("theme") || "hexagon";
+    let theme = LStorage.get("theme") || "hexagon";
     $("body").attr("data-th-main", theme);
     $("#theme-switcher").val(theme);
   }

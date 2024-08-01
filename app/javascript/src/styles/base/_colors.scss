@@ -1,16 +1,5 @@
 // Font
 $inverted-text-color: invert(#fff);
-$green-text-color: #3e9e49;
-$yellow-text-color: #e4e150;
-$red-text-color: #e45f5f;
-$grey-text-color: #959595;
-
-
-$section-green-background: #288233;
-$section-yellow-background: #828028;
-$section-red-background: #822828;
-$section-grey-background: #5d656e;
-$section-link-hover-color: white;
 
 // Main background colors
 $lighten-background-5: rgba(255,255,255,0.05);
@@ -21,9 +10,6 @@ $state-error-color: #e45f5f;
 
 // DText
 $dtext-code-background: rgba(255,255,255,0.2);
-
-// Blips
-$blip-hidden-background: $section-red-background;
 
 // Forms
 $form-focus-color: black;
@@ -37,11 +23,11 @@ $form-submit-button-background: #eee;
 $page-header-sign-in-link-color: #e00;
 
 // Post previews
-$preview-has-children-color: #0F0;
-$preview-has-parent-color: #CC0;
-$preview-deleted-color: #000;
-$preview-pending-color: #00F;
-$preview-flagged-color: #F00;
+$preview-has-children-color: palette("plain-green");
+$preview-has-parent-color: palette("plain-yellow");
+$preview-deleted-color: palette("plain-black");
+$preview-pending-color: palette("plain-blue");
+$preview-flagged-color: palette("plain-red");
 
 // Autocomplete
 $autocomplete-border: #C5C5C5;
@@ -88,7 +74,6 @@ $negative-record-color: $red-color;
 $neutral-record-color: $dark-grey-color;
 
 $comment-highlight-background: rgba(255,255,255,0.25);
-$comment-hidden-background: $section-red-background;
 $comment-vote-background: rgba(255, 255, 255, 0.2);
 
 // Keyboard shortcuts
@@ -111,8 +96,6 @@ $forum-vote-down-color: red;
 $forum-vote-meh-color: goldenrod;
 $forum-topic-new-color: red;
 $forum-topic-except-color: gray;
-$forum-topic-hidden-background: rgba(130,40,40,0.75);
-$forum-post-hidden-background: rgba(130,40,40,0.75);
 
 // IQDB lookup
 $iqdb-post-border: lightgrey;
@@ -142,12 +125,12 @@ $post-preview-highlight-background: rgba(0,0,0,0.1);
 $post-tag-low-count-color: red;
 
 // Post Mode
-$post-mode-edit: $section-yellow-background;
+$post-mode-edit: palette("background-yellow");
 $post-mode-tag-script: #4f114f;
 $post-mode-add-fav: #104e17;
 $post-mode-remove-fav: darken($post-mode-add-fav, 10%);
-$post-mode-vote-up: $section-green-background;
-$post-mode-vote-down: $section-red-background;
+$post-mode-vote-up: palette("background-green");
+$post-mode-vote-down: palette("background-red");
 $post-mode-add-pool: #104b57;
 $post-mode-lock-rating: #AA3;
 $post-mode-lock-note: #3AA;
