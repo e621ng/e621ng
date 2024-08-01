@@ -91,9 +91,7 @@ LStorage.Blacklist = {
    * @returns {Set<string>}
    */
   get FilterState () {
-    console.log("getting");
     if (!LStorage.Blacklist._filterCache) {
-      console.log("fetching");
       try {
         LStorage.Blacklist._filterCache = new Set(
           JSON.parse(localStorage.getItem("e6.blk.filters") || "[]"),
