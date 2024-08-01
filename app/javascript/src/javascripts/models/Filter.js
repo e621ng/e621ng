@@ -85,11 +85,13 @@ export default class Filter {
     const post = PostCache.fromThumbnail($post);
 
     // Check if the post matches the filter
-    let tokensMatch = false;
-    for (const token of this.tokens) {
-      tokensMatch = token.test(post);
-      if (token.inverted) tokensMatch = !tokensMatch;
-      if (!tokensMatch) break;
+    let tokensMatch = true;
+    if (this.tokens.length) {
+      for (const token of this.tokens) {
+        tokensMatch = token.test(post);
+        if (token.inverted) tokensMatch = !tokensMatch;
+        if (!tokensMatch) break;
+      }
     }
 
     // No need to check optional tokens if rest of don't match
