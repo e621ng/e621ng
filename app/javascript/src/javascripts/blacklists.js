@@ -45,19 +45,15 @@ Blacklist.init_blacklist_editor = function () {
       LStorage.Blacklist.AnonymousBlacklist = blacklist_json;
     } else {
       $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
+        method: "PUT",
         data: {
           "user[blacklisted_tags]": blacklist_content,
         },
-        method: "PUT",
-      })
-        .done(function () {
-          Utility.notice("Blacklist updated");
-          // Clear disabled filters, just in case
-          LStorage.Blacklist.FilterState = new Set();
-        })
-        .fail(function () {
-          Utility.error("Failed to update blacklist");
-        });
+      }).done(function () {
+        Utility.notice("Blacklist updated");
+      }).fail(function () {
+        Utility.error("Failed to update blacklist");
+      });
     }
 
     $("#blacklist-edit-dialog").dialog("close");
