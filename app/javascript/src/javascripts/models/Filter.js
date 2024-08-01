@@ -3,14 +3,14 @@ import LStorage from "../utility/storage";
 import PostCache from "./PostCache";
 
 /**
- * Represents an individual line in the blacklist.  
+ * Represents an individual line in the blacklist.
  * Contains one or more tokens, which are evaluated to
  * determine whether the post should be hidden.
  */
 export default class Filter {
 
   /**
-   * Constructor. Should not normally be used – refer to `Filter.create()` instead.  
+   * Constructor. Should not normally be used – refer to `Filter.create()` instead.
    * Keep in mind that the input needs to be cleaned up beforehand:
    * - No comments, inline or standalone
    * - No trailing or leading whitespace
@@ -18,7 +18,7 @@ export default class Filter {
    * - All lowercase
    * @param {string} text Blacklist line
    */
-  constructor(text) {
+  constructor (text) {
     this.text = text;
     this._enabled = !LStorage.Blacklist.FilterState.has(text);
     this.matchIDs = new Set();
@@ -35,7 +35,7 @@ export default class Filter {
   }
 
   /**
-   * Creates a new Filter based on the provided text.  
+   * Creates a new Filter based on the provided text.
    * Normalizes the text before passing it on to the constructor,
    * and discards any lines that are guaranteed to be invalid.
    * @param {string} text Blacklist line
@@ -71,7 +71,7 @@ export default class Filter {
    * @param {JQuery<HTMLElement>} $post Post to check
    * @returns True if the post matches the filter, false otherwise
    */
-  update($post) {
+  update ($post) {
     if ($post.length == 0) return false;
     else if (Array.isArray($post))
       $post = $post[0]; // Deferred posts return an array
@@ -120,7 +120,7 @@ class FilterToken {
    * Provided data should not contain spaces.
    * @param {string} raw Single filter word
    */
-  constructor(raw) {
+  constructor (raw) {
     raw = raw.trim().toLowerCase();
 
     // Optional
@@ -163,7 +163,7 @@ class FilterToken {
    * @param {any} post Post to test
    * @returns true if the filter token matches
    */
-  test(post) {
+  test (post) {
     return FilterUtils.FilterTests[this.type](this, post);
   }
 }

@@ -5,7 +5,7 @@
 export default class PostCache {
   static _cache = {};
 
-  static fromThumbnail($element) {
+  static fromThumbnail ($element) {
     const id = $element.data("id");
     if (this._cache[id]) return this._cache[id];
 
