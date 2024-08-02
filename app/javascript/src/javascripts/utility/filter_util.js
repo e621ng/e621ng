@@ -20,7 +20,7 @@ FilterUtils.FilterTests = {
 
   score: (token, post) => FilterUtils.compare(post.score, token),
   favcount: (token, post) => FilterUtils.compare(post.fav_count, token),
-  fav: (token, post) => post.is_favorited,
+  fav: (_token, post) => post.is_favorited,
 
   uploader: (token, post) => FilterUtils.FilterTests.user(token, post),
   user: (token, post) => {
