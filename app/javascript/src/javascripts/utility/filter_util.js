@@ -58,16 +58,14 @@ FilterUtils.getFilterType = (input) => {
  * Some people are incredibly strange and put comparisons backwards.
  * This makes sure that they get normalized regardless.
  */
-const ComparisonTable = Object.entries({
-  "<": "<",
-  ">": ">",
+const ComparisonTable = {
   "<=": "<=",
   ">=": ">=",
   "=<": "<=",
   "=>": ">=",
-  "=": "=",
-  "==": "=",
-});
+  "<": "<",
+  ">": ">",
+};
 
 /**
  * Normalize the comparison type
@@ -76,9 +74,33 @@ const ComparisonTable = Object.entries({
  */
 FilterUtils.getComparison = (input) => {
   if (input.indexOf("..") != -1) return "..";
-  for (const [key, comparison] of ComparisonTable)
-    if (input.startsWith(key)) return comparison;
-  return "=";
+  const val = input.match(/^[<>=]{1,2}/);
+  if (!val) return "=";
+  return ComparisonTable[val[0]] || "=";
+};
+
+/**
+ * Convert token value into the appropriate format.
+ * @param {string} value Token value
+ * @param {*} type Token type
+ * @returns Normalized token value
+ */
+FilterUtils.normalizeData = (value, type) => {
+  switch (type) {
+    case "tagcount":
+    case "id":
+    case "width":
+    case "height":
+    case "score":
+    case "favcout":
+    case "userid":
+      return parseInt(value);
+    case "rating":
+      return FilterUtils.parseRating(value);
+    case "filesize":
+      return FilterUtils.parseFilesize(value);
+  }
+  return value;
 };
 
 /**
@@ -90,27 +112,19 @@ FilterUtils.getComparison = (input) => {
 FilterUtils.compare = (a, token) => {
   switch (token.comparison) {
     case "=":
-      return a == parseFloat(token.value);
+      return a == token.value;
     case "<":
-      return a < parseFloat(token.value);
+      return a < token.value;
     case "<=":
-      return a <= parseFloat(token.value);
+      return a <= token.value;
     case ">":
-      return a > parseFloat(token.value);
+      return a > token.value;
     case ">=":
-      return a >= parseFloat(token.value);
-    case "..": {
-      const parts = token.value.split("..");
-      if (parts.length !== 2) return false;
-
-      const parsedParts = [];
-      for (const el of parts) parsedParts.push(parseFloat(el));
-
-      return a >= Math.min(...parsedParts) && a <= Math.max(...parsedParts);
-    }
-    default:
-      return false;
+      return a >= token.value;
+    case "..":
+      return a >= token.value[0] && a <= token.value[1];
   }
+  return false;
 };
 
 /**

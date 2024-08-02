@@ -143,17 +143,27 @@ class FilterToken {
     if (this.comparison != "=" && this.comparison != "..")
       raw = raw.slice(this.comparison.length);
 
-    // Convert data if necessary
-    switch (this.type) {
-      case "rating":
-        this.value = FilterUtils.parseRating(raw);
-        break;
-      case "filesize":
-        this.value = FilterUtils.parseFilesize(raw);
-        break;
-      default:
-        this.value = raw;
-    }
+    // Normalize the value and deal with the range syntax
+    if (this.comparison == "..") {
+      if (raw.startsWith("..")) {
+        this.comparison = "<=";
+        this.value = FilterUtils.normalizeData(raw.slice(2), this.type);
+      } else if (raw.endsWith("..")) {
+        this.comparison = ">=";
+        this.value = FilterUtils.normalizeData(raw.slice(0, -2), this.type);
+      } else {
+        let parts = raw.split("..");
+        if (parts.length != 2) {
+          this.comparison = "=";
+          this.value = NaN;
+        } else {
+          this.value = [
+            FilterUtils.normalizeData(parts[0], this.type),
+            FilterUtils.normalizeData(parts[1], this.type),
+          ];
+        }
+      }
+    } else this.value = FilterUtils.normalizeData(raw, this.type);
   }
 
   /**
