@@ -34,6 +34,7 @@ class Post < ApplicationRecord
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
+  after_commit :update_pool_artists
   after_commit :delete_files, :on => :destroy
   after_commit :remove_iqdb_async, :on => :destroy
   after_commit :update_iqdb_async, :on => :create
@@ -899,6 +900,27 @@ class Post < ApplicationRecord
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
     end
+
+    TagCategory::CATEGORIES.each do |name|
+      define_method("#{name}_tags") do
+        tags.select { |t| t.category == TagCategory::MAPPING.fetch(name) }
+      end
+
+      define_method("#{name}_tags_was") do
+        tags_was.select { |t| t.category == TagCategory::MAPPING.fetch(name) }
+      end
+    end
+
+    def update_pool_artists
+      return unless artist_tags != artist_tags_was
+      UpdatePoolArtistsJob.perform_later(id)
+    end
+
+    def update_pool_artists!
+      pools.each do |pool|
+        pool.update_artists!
+      end
+    end
   end
 
 
@@ -1648,7 +1670,7 @@ class Post < ApplicationRecord
 
     def has_artist_tag
       return if !new_record?
-      return if tags.any? { |t| t.category == Tag.categories.artist }
+      return if artist_tags.any?
 
       self.warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#catchange if you need help changing the category of an tag. Ask on the forum if you need naming help')
     end
@@ -1755,7 +1777,7 @@ class Post < ApplicationRecord
   end
 
   def uploader_linked_artists
-    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
+    linked_artists ||= artist_tags.filter_map(&:artist)
     linked_artists.select { |artist| artist.linked_user_id == uploader_id }
   end
 

@@ -342,4 +342,42 @@ class PoolTest < ActiveSupport::TestCase
       assert_nil(@pool.next_post_id(@p3.id))
     end
   end
+
+  context "Pool artists" do
+    setup do
+      @post = create(:post, tag_string: "artist:foo")
+      @pool = create(:pool)
+      @pool.add!(@post)
+    end
+
+    should "be correct" do
+      assert_same_elements(%w[foo], @pool.artist_names)
+    end
+
+    should "update when an artist is added/removed" do
+      with_inline_jobs { @post.update(tag_string_diff: "artist:bar") }
+      assert_same_elements(%w[foo bar], @pool.reload.artist_names)
+
+      with_inline_jobs { @post.update(tag_string_diff: "-foo") }
+      assert_same_elements(%w[bar], @pool.reload.artist_names)
+    end
+
+    should "update when a post is added/removed (via add!/remove!)" do
+      @post2 = create(:post, tag_string: "artist:baz")
+      @pool.add!(@post2)
+      assert_same_elements(%w[foo baz], @pool.artist_names)
+
+      @pool.remove!(@post)
+      assert_same_elements(%w[baz], @pool.artist_names)
+    end
+
+    should "update when a post is added/removed (via post_ids=)" do
+      @post2 = create(:post, tag_string: "artist:baz")
+      @pool.update(post_ids: [@post.id, @post2.id])
+      assert_same_elements(%w[foo baz], @pool.artist_names)
+
+      @pool.update(post_ids: [@post2.id])
+      assert_same_elements(%w[baz], @pool.artist_names)
+    end
+  end
 end

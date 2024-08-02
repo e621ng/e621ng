@@ -1161,7 +1161,8 @@ CREATE TABLE public.pools (
     post_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    category character varying DEFAULT 'series'::character varying NOT NULL
+    category character varying DEFAULT 'series'::character varying NOT NULL,
+    artist_names character varying[] DEFAULT '{}'::character varying[] NOT NULL
 );
 
 
@@ -4498,6 +4499,7 @@ ALTER TABLE ONLY public.favorites
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20240726175649'),
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),

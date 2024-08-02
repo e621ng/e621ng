@@ -1,6 +1,7 @@
 <%= form_search(path: request.path) do |f| %>
   <%= f.input :name_matches, label: "Name", autocomplete: "pool" %>
   <%= f.input :description_matches, label: "Description" %>
+  <%= f.input(:any_artist_name_matches, label: "Artist Name", autocomplete: "artist") %>
   <%= f.user :creator %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Inactive", "false"]], :include_blank => true %>
   <%= f.input :category, label: "Category", collection: [["Series", "series"], ["Collection", "collection"]], :include_blank => true %>

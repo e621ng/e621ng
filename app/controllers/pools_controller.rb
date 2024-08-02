@@ -82,4 +82,8 @@ class PoolsController < ApplicationController
     permitted_params = %i[name description category is_active post_ids post_ids_string]
     params.require(:pool).permit(*permitted_params, post_ids: [])
   end
+
+  def search_params
+    permit_search_params(%i[name_matches description_matches any_artist_name_like any_artist_name_matches creator_id creator_name category is_active])
+  end
 end
