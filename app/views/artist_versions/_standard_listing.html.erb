@@ -15,30 +15,27 @@
     <tbody>
       <% @artist_versions.each do |artist_version| %>
         <tr>
-          <% if artist_version.visible? %>
-            <td>
-              <%= link_to artist_version.name, artist_path(artist_version.artist_id) %>
-              <%= link_to "»", artist_versions_path(search: {artist_id: artist_version.artist_id}) %>
+          <td>
+            <%= link_to artist_version.name, artist_path(artist_version.artist_id) %>
+            <%= link_to "»", artist_versions_path(search: {artist_id: artist_version.artist_id}) %>
 
-              <% if !artist_version.is_active? %>
-                (deleted)
-              <% end %>
+            <% if !artist_version.is_active? %>
+              (deleted)
+            <% end %>
 
-              <% if artist_version.group_name.present? %>
-                <p>(group: <%= artist_version.group_name %>)</p>
-              <% end %>
-            </td>
-            <td><%= artist_version_other_names_diff(artist_version) %></td>
-          <% else %>
-            <td></td>
-            <td></td>
-          <% end %>
+            <% if artist_version.group_name.present? %>
+              <p>(group: <%= artist_version.group_name %>)</p>
+            <% end %>
+          </td>
+          <td><%= artist_version_other_names_diff(artist_version) %></td>
           <td class="col-expand">
-            <%= artist_version_urls_diff(artist_version) if artist_version.visible? %>
+            <%= artist_version_urls_diff(artist_version) %>
           </td>
           <td>
             <% if artist_version.notes_changed %>
-              <%= link_to "Note Changes", wiki_page_versions_path(search: {wiki_page_id: artist_version.artist.wiki_page})%>
+              <%= link_to "Note Changes", wiki_page_versions_path(
+                search: artist_version.artist.present? ? { wiki_page_id: artist_version.artist.wiki_page } : { title: artist_version.name }
+              )%>
             <% else %>
               (No Changes)
             <% end %>
