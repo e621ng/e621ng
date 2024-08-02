@@ -111,11 +111,12 @@ class BulkUpdateRequest < ApplicationRecord
     def create_forum_topic
       return if skip_forum
       if forum_topic_id
-        forum_post = forum_topic.posts.create(body: reason_with_link)
+        forum_post = forum_topic.posts.create(body: "Reason: #{reason}")
         update(forum_post_id: forum_post.id)
       else
-        forum_topic = ForumTopic.create(title: title, category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: {body: reason_with_link})
+        forum_topic = ForumTopic.create(title: title, category_id: Danbooru.config.alias_implication_forum_category, original_post_attributes: { body: "Reason: #{reason}" })
         update(forum_topic_id: forum_topic.id, forum_post_id: forum_topic.posts.first.id)
+        forum_topic.posts.first.update(tag_change_request: self)
       end
     end
 
@@ -186,10 +187,6 @@ class BulkUpdateRequest < ApplicationRecord
 
   def rejectable?(user)
     is_pending? && editable?(user)
-  end
-
-  def reason_with_link
-    "[bur:#{id}]\n\nReason: #{reason}"
   end
 
   def initialize_attributes

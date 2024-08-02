@@ -725,7 +725,9 @@ CREATE TABLE public.forum_posts (
     updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet,
     warning_type integer,
-    warning_user_id integer
+    warning_user_id integer,
+    tag_change_request_id bigint,
+    tag_change_request_type character varying
 );
 
 
@@ -4501,6 +4503,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),
+('20240119211758'),
 ('20240101042716'),
 ('20230531080817'),
 ('20230518182034'),

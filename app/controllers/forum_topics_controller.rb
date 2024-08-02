@@ -68,15 +68,21 @@ class ForumTopicsController < ApplicationController
   def hide
     check_privilege(@forum_topic)
     @forum_topic.hide!
-    @forum_topic.create_mod_action_for_hide
-    flash[:notice] = "Topic hidden"
-    respond_with(@forum_topic)
+    if @forum_topic.errors.any?
+      respond_with(@forum_topic) do |format|
+        format.html do
+          redirect_back(fallback_location: forum_topic_path(@forum_topic), notice: "Failed to hide topic: #{@forum_topic.errors.full_messages.join('; ')}")
+        end
+      end
+    else
+      flash[:notice] = "Topic hidden"
+      respond_with(@forum_topic)
+    end
   end
 
   def unhide
     check_privilege(@forum_topic)
     @forum_topic.unhide!
-    @forum_topic.create_mod_action_for_unhide
     flash[:notice] = "Topic unhidden"
     respond_with(@forum_topic)
   end

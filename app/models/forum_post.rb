@@ -13,6 +13,7 @@ class ForumPost < ApplicationRecord
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
+  belongs_to :tag_change_request, polymorphic: true, optional: true
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
@@ -23,6 +24,7 @@ class ForumPost < ApplicationRecord
   validate :topic_is_not_restricted, :on => :create
   validate :category_allows_replies, on: :create
   validate :validate_creator_is_not_limited, on: :create
+  validate :validate_not_aibur, if: :will_save_change_to_is_hidden?
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
@@ -87,14 +89,12 @@ class ForumPost < ApplicationRecord
 
   extend SearchMethods
 
-  def tag_change_request
-    bulk_update_request || tag_alias || tag_implication
+  def votable?
+    is_aibur?
   end
 
-  def votable?
-    TagAlias.where(forum_post_id: id).exists? ||
-      TagImplication.where(forum_post_id: id).exists? ||
-      BulkUpdateRequest.where(forum_post_id: id).exists?
+  def is_aibur?
+    tag_change_request.present?
   end
 
   def validate_topic_is_unlocked
@@ -116,6 +116,15 @@ class ForumPost < ApplicationRecord
       return false
     end
     true
+  end
+
+  def validate_not_aibur
+    return if CurrentUser.is_moderator? || !is_aibur?
+
+    if is_hidden?
+      errors.add(:post, "is for an alias, implication, or bulk update request. It cannot be hidden")
+      throw :abort
+    end
   end
 
   def topic_id_not_invalid
@@ -141,7 +150,7 @@ class ForumPost < ApplicationRecord
 
   def editable_by?(user)
     return true if user.is_admin?
-    return false if was_warned?
+    return false if was_warned? || (is_aibur? && !tag_change_request.is_pending?)
     creator_id == user.id && visible?(user)
   end
 
@@ -151,6 +160,7 @@ class ForumPost < ApplicationRecord
 
   def can_hide?(user)
     return true if user.is_moderator?
+    return false if is_aibur?
     return false if was_warned?
     user.id == creator_id
   end

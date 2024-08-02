@@ -24,11 +24,12 @@ class TagRelationshipRequest
       @tag_relationship.save
 
       unless skip_forum
-        @forum_topic = build_forum_topic(@tag_relationship.id)
+        @forum_topic = build_forum_topic
         @forum_topic.save
 
         @tag_relationship.forum_topic_id = @forum_topic.id
         @tag_relationship.forum_post_id = @forum_topic.posts.first.id
+        @forum_topic.posts.first.update(tag_change_request: @tag_relationship)
         @tag_relationship.save
       end
     end
@@ -43,11 +44,11 @@ class TagRelationshipRequest
     x
   end
 
-  def build_forum_topic(tag_relationship_id)
+  def build_forum_topic
     ForumTopic.new(
       title: self.class.topic_title(antecedent_name, consequent_name),
       original_post_attributes: {
-        body: self.class.command_string(antecedent_name, consequent_name, tag_relationship_id) + "\n\nReason: #{reason}"
+        body: "Reason: #{reason}"
       },
       category_id: Danbooru.config.alias_implication_forum_category
     )
@@ -63,7 +64,7 @@ class TagRelationshipRequest
 
   def validate_forum_topic
     return if skip_forum
-    ft = @forum_topic || build_forum_topic(nil)
+    ft = @forum_topic || build_forum_topic
     if ft.invalid?
       errors.add(:base, ft.errors.full_messages.join("; "))
     end
