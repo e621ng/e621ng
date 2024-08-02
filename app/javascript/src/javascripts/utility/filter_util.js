@@ -138,10 +138,10 @@ FilterUtils.tagsMatchesFilter = (post, filter) => {
 };
 
 /**
-   * Normalize the post rating
-   * @param {string} input Rating text
-   * @returns Rating letter
-   */
+ * Normalize the post rating
+ * @param {string} input Rating text
+ * @returns Rating letter
+ */
 FilterUtils.parseRating = (input) => {
   switch (input) {
     case "safe":
@@ -165,8 +165,8 @@ FilterUtils.parseRating = (input) => {
  */
 FilterUtils.parseFilesize = function (input) {
   if (/^\d+b?$/.test(input)) return parseInt(input);
-  if (/^\d+mb$/.test(input)) return parseInt(input) * 1048576;
   if (/^\d+kb$/.test(input)) return parseInt(input) * 1024;
+  if (/^\d+mb$/.test(input)) return parseInt(input) * 1048576;
   return 0;
 };
 
