@@ -2,12 +2,12 @@
 
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:unhide]
-  before_action :admin_only, only: [:destroy]
-  before_action :normalize_search, :only => :index
-  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
-  before_action :check_min_level, :only => [:show, :edit, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
+  before_action :member_only, except: %i[index show]
+  before_action :moderator_only, only: %i[unhide]
+  before_action :admin_only, only: %i[destroy]
+  before_action :normalize_search, only: %i[index]
+  before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe mute unmute]
+  before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe mute unmute]
   skip_before_action :api_check
 
   def new
@@ -91,17 +91,37 @@ class ForumTopicsController < ApplicationController
   end
 
   def subscribe
-    subscription = ForumSubscription.where(:forum_topic_id => @forum_topic.id, :user_id => CurrentUser.user.id).first
-    unless subscription
-      ForumSubscription.create(:forum_topic_id => @forum_topic.id, :user_id => CurrentUser.user.id, :last_read_at => @forum_topic.updated_at)
+    status = ForumTopicStatus.where(forum_topic_id: @forum_topic, user_id: CurrentUser.user.id).first
+    if status
+      status.update(subscription: true, subscription_last_read_at: @forum_topic.updated_at, mute: false)
+    else
+      ForumTopicStatus.create(forum_topic_id: @forum_topic.id, user_id: CurrentUser.user.id, subscription_last_read_at: @forum_topic.updated_at, subscription: true)
     end
     respond_with(@forum_topic)
   end
 
   def unsubscribe
-    subscription = ForumSubscription.where(:forum_topic_id => @forum_topic.id, :user_id => CurrentUser.user.id).first
-    if subscription
-      subscription.destroy
+    status = ForumTopicStatus.where(forum_topic_id: @forum_topic.id, user_id: CurrentUser.user.id, subscription: true).first
+    if status
+      status.destroy
+    end
+    respond_with(@forum_topic)
+  end
+
+  def mute
+    status = ForumTopicStatus.where(forum_topic_id: @forum_topic.id, user_id: CurrentUser.user.id).first
+    if status
+      status.update(mute: true, subscription: false, subscription_last_read_at: nil)
+    else
+      ForumTopicStatus.create(forum_topic_id: @forum_topic.id, user_id: CurrentUser.user.id, mute: true)
+    end
+    respond_with(@forum_topic)
+  end
+
+  def unmute
+    status = ForumTopicStatus.where(forum_topic_id: @forum_topic.id, user_id: CurrentUser.user.id, mute: true).first
+    if status
+      status.destroy
     end
     respond_with(@forum_topic)
   end

@@ -707,6 +707,7 @@ Lint/DuplicateMethods:
 Lint/EmptyBlock:
   Exclude:
     - 'test/factories/forum_subscription.rb'
+    - 'test/factories/forum_topic_status.rb'
     - 'test/factories/forum_topic_visit.rb'
     - 'test/factories/upload_whitelist.rb'
 
@@ -821,6 +822,7 @@ Lint/StructNewOverride:
 Lint/SuppressedException:
   Exclude:
     - 'app/models/forum_subscription.rb'
+    - 'app/models/forum_topic_status.rb'
     - 'app/models/tag.rb'
 
 # Offense count: 67

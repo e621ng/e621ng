@@ -783,6 +783,41 @@ ALTER SEQUENCE public.forum_subscriptions_id_seq OWNED BY public.forum_subscript
 
 
 --
+-- Name: forum_topic_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.forum_topic_statuses (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    forum_topic_id bigint NOT NULL,
+    subscription_last_read_at timestamp(6) without time zone,
+    subscription boolean DEFAULT false NOT NULL,
+    mute boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: forum_topic_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.forum_topic_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forum_topic_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.forum_topic_statuses_id_seq OWNED BY public.forum_topic_statuses.id;
+
+
+--
 -- Name: forum_topic_visits; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2521,6 +2556,13 @@ ALTER TABLE ONLY public.forum_subscriptions ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: forum_topic_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_topic_statuses ALTER COLUMN id SET DEFAULT nextval('public.forum_topic_statuses_id_seq'::regclass);
+
+
+--
 -- Name: forum_topic_visits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2966,6 +3008,14 @@ ALTER TABLE ONLY public.forum_posts
 
 ALTER TABLE ONLY public.forum_subscriptions
     ADD CONSTRAINT forum_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forum_topic_statuses forum_topic_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_topic_statuses
+    ADD CONSTRAINT forum_topic_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -3660,6 +3710,20 @@ CREATE INDEX index_forum_subscriptions_on_forum_topic_id ON public.forum_subscri
 --
 
 CREATE INDEX index_forum_subscriptions_on_user_id ON public.forum_subscriptions USING btree (user_id);
+
+
+--
+-- Name: index_forum_topic_statuses_on_forum_topic_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topic_statuses_on_forum_topic_id ON public.forum_topic_statuses USING btree (forum_topic_id);
+
+
+--
+-- Name: index_forum_topic_statuses_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topic_statuses_on_user_id ON public.forum_topic_statuses USING btree (user_id);
 
 
 --
@@ -4501,6 +4565,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),
+('20240124010241'),
 ('20240101042716'),
 ('20230531080817'),
 ('20230518182034'),

@@ -6,7 +6,7 @@ class ForumTopic < ApplicationRecord
   belongs_to :category, class_name: "ForumCategory", foreign_key: :category_id
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
-  has_many :subscriptions, :class_name => "ForumSubscription"
+  has_many :statuses, class_name: "ForumTopicStatus"
   before_validation :initialize_is_hidden, :on => :create
   validate :category_valid
   validates :title, :creator_id, presence: true
@@ -59,6 +59,10 @@ class ForumTopic < ApplicationRecord
       q
     end
 
+    def unmuted
+      left_outer_joins(:statuses).where("(forum_topic_statuses.mute = ? AND forum_topic_statuses.user_id = ?) OR forum_topic_statuses.id IS NULL", false, CurrentUser.id)
+    end
+
     def sticky_first
       order(is_sticky: :desc, updated_at: :desc)
     end
@@ -100,6 +104,8 @@ class ForumTopic < ApplicationRecord
     def read_by?(user = nil)
       user ||= CurrentUser.user
 
+      return true if user_mute(user)
+
       if user.last_forum_read_at && updated_at <= user.last_forum_read_at
         return true
       end
@@ -130,7 +136,13 @@ class ForumTopic < ApplicationRecord
 
   module SubscriptionMethods
     def user_subscription(user)
-      subscriptions.where(:user_id => user.id).first
+      statuses.where(user_id: user.id, subscription: true).first
+    end
+  end
+
+  module MuteMethods
+    def user_mute(user)
+      statuses.where(user_id: user.id, mute: true).first
     end
   end
 
@@ -138,6 +150,7 @@ class ForumTopic < ApplicationRecord
   include CategoryMethods
   include VisitMethods
   include SubscriptionMethods
+  include MuteMethods
 
   def editable_by?(user)
     (creator_id == user.id || user.is_moderator?) && visible?(user)

@@ -385,10 +385,10 @@ class User < ApplicationRecord
   module ForumMethods
     def has_forum_been_updated?
       return false unless is_member?
-      max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
+      max_updated_at = ForumTopic.visible(self).unmuted.order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
-      return max_updated_at > last_forum_read_at
+      max_updated_at > last_forum_read_at
     end
 
     def has_viewed_thread?(id, last_updated)

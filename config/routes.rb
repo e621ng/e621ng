@@ -159,6 +159,8 @@ Rails.application.routes.draw do
       post :unhide
       post :subscribe
       post :unsubscribe
+      put :mute
+      put :unmute
     end
     collection do
       post :mark_all_as_read
