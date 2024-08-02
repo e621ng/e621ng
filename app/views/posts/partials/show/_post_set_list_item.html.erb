@@ -1,33 +1,57 @@
 <%= tag.li(id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}") do -%>
   <% if !post_set.first_post?(post.id) && post_set.post_ids.first -%>
-    <%= link_to("« first", post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "first", title: "to first") %>
+    <%= link_to post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "nav-link first", title: "to first" do %>
+      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <span>First</span>
+    <% end %>
   <% else -%>
-    <span class="first">« first</span>
+    <span class="nav-link first">
+      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <span>First</span>
+    </span>
   <% end -%>
 
   <% post_set.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
-      <%= link_to "‹ prev", post_path(previous_post_id, post_set_id: post_set.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{post_set.page_number(previous_post_id)}" -%>
+      <%= link_to post_path(previous_post_id, post_set_id: post_set.id), rel: selected ? "prev" : nil, class: "nav-link prev", title: "to page #{post_set.page_number(previous_post_id)}" do %>
+        <%= tag.i(class: "fas fa-angle-left") %>
+        <span>Prev</span>
+      <% end %>
     <% else -%>
-      <span class="prev">‹ prev</span>
+      <span class="nav-link prev">
+        <%= tag.i(class: "fas fa-angle-left") %>
+        <span>Prev</span>
+      </span>
     <% end %>
   <% end -%>
 
-  <span class="set-name">
+  <span class="nav-name">
     <%= link_to("Set: #{post_set.name}", post_set_path(post_set), title: "page #{post_set.page_number(post.id)}/#{post_set.post_count}") -%>
   </span>
 
   <% post_set.next_post_id(post.id).tap do |next_post_id| -%>
     <% if next_post_id %>
-      <%= link_to("next ›", post_path(next_post_id, post_set_id: post_set.id), rel: selected ? "next" : nil, class: "next", title: "to page #{post_set.page_number(next_post_id)}") -%>
+      <%= link_to post_path(next_post_id, post_set_id: post_set.id), rel: selected ? "next" : nil, class: "nav-link next", title: "to page #{post_set.page_number(next_post_id)}" do %>
+        <span>Next</span>
+        <%= tag.i(class: "fas fa-angle-right") %>
+      <% end %>
     <% else -%>
-      <span class="next">next ›</span>
+      <span class="nav-link next">
+        <span>Next</span>
+        <%= tag.i(class: "fas fa-angle-right") %>
+      </span>
     <% end -%>
   <% end -%>
 
   <% if !post_set.last_post?(post.id) && post_set.post_ids.last -%>
-    <%= link_to("last »", post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "last", title: "to page #{post_set.post_count}") -%>
+    <%= link_to post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "nav-link last", title: "to page #{post_set.post_count}" do %>
+      <span>Last</span>
+      <%= tag.i(class: "fas fa-angle-double-right") %>
+    <% end %>
   <% else -%>
-    <span class="last">last »</span>
+    <span class="nav-link last">
+      <span>Last</span>
+      <%= tag.i(class: "fas fa-angle-double-right") %>
+    </span>
   <% end -%>
 <% end -%>
