@@ -49,6 +49,10 @@
   </div>
 <% end %>
 
+<% if post.is_pending? || (post.is_flagged? && post.flags.any?) %>
+  <%= render "posts/partials/show/avoid_posting", post: post %>
+<% end %>
+
 <% if post.replacements.pending.any? %>
   <div class="notice notice-flagged">
     <p>This post has <%= link_to "pending replacements.", post_replacements_path(search: {post_id: @post.id}) %></p>

@@ -24,7 +24,7 @@
 
     <%= f.input :edit_reason, label: "Edit Reason" %>
 
-    <% if @wiki_page.errors[:title].present?  %>
+    <% if CurrentUser.is_janitor? && @wiki_page.errors[:title]&.any? { |error| error.include?("Move the posts and update any wikis linking to this page first.") }  %>
       <%= f.input :skip_secondary_validations, as: :boolean, label: "Force rename", hint: "Ignore the renaming requirements" %>
     <% end %>
 

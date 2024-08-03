@@ -135,7 +135,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_moderator?
+    return true if from.is_janitor?
 
     allowed = CurrentUser.can_dmail_with_reason
     if allowed != true

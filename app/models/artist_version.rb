@@ -7,7 +7,6 @@ class ArtistVersion < ApplicationRecord
   belongs_to_updater
   user_status_counter :artist_edit_count, foreign_key: :updater_id
   belongs_to :artist
-  delegate :visible?, :to => :artist
 
   module SearchMethods
     def for_user(user_id)
