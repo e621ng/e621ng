@@ -4566,6 +4566,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: comment_votes fk_rails_0873e64a40; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_votes
+    ADD CONSTRAINT fk_rails_0873e64a40 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4614,6 +4622,14 @@ ALTER TABLE ONLY public.mascots
 
 
 --
+-- Name: comment_votes fk_rails_a0196e2ef9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_votes
+    ADD CONSTRAINT fk_rails_a0196e2ef9 FOREIGN KEY (comment_id) REFERENCES public.comments(id);
+
+
+--
 -- Name: favorites fk_rails_a7668ef613; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4627,6 +4643,14 @@ ALTER TABLE ONLY public.favorites
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT fk_rails_b2ebf2bc30 FOREIGN KEY (artist_id) REFERENCES public.artists(id);
+
+
+--
+-- Name: post_votes fk_rails_b550730fb8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_votes
+    ADD CONSTRAINT fk_rails_b550730fb8 FOREIGN KEY (post_id) REFERENCES public.posts(id);
 
 
 --
@@ -4670,12 +4694,21 @@ ALTER TABLE ONLY public.avoid_postings
 
 
 --
+-- Name: post_votes fk_rails_f3edc07390; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_votes
+    ADD CONSTRAINT fk_rails_f3edc07390 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20240803233733'),
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),
