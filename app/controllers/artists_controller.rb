@@ -54,7 +54,7 @@ class ArtistsController < ApplicationController
 
   def update
     ensure_can_edit(CurrentUser.user)
-    @artist.update(artist_params(:update))
+    @artist.update(artist_params)
     flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
     respond_with(@artist)
   end
