@@ -416,6 +416,10 @@ class Artist < ApplicationRecord
   end
 
   module SearchMethods
+    def named(name)
+      find_by(name: normalize_name(name))
+    end
+
     def any_other_name_matches(regex)
       where(id: Artist.from("unnest(other_names) AS other_name").where("other_name ~ ?", regex))
     end

@@ -1,33 +1,57 @@
 <%= tag.li(id: "nav-link-for-pool-#{pool.id}", class: "pool-category-#{pool.category} pool-selected-#{selected}") do -%>
   <% if !pool.first_post?(post.id) && pool.post_ids.first -%>
-    <%= link_to("« first", post_path(pool.post_ids.first, pool_id: pool.id), class: "first", title: "to page 1") %>
+    <%= link_to post_path(pool.post_ids.first, pool_id: pool.id), class: "nav-link first", title: "to page 1" do %>
+      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <span>First</span>
+    <% end %>
   <% else -%>
-    <span class="first">« first</span>
+    <span class="nav-link first">
+      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <span>First</span>
+    </span>
   <% end -%>
 
   <% pool.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
-      <%= link_to "‹ prev", post_path(previous_post_id, pool_id: pool.id), rel: selected ? "prev" : nil, class: "prev", title: "to page #{pool.page_number(previous_post_id)}" -%>
+      <%= link_to post_path(previous_post_id, pool_id: pool.id), rel: selected ? "prev" : nil, class: "nav-link prev", title: "to page #{pool.page_number(previous_post_id)}" do %>
+        <%= tag.i(class: "fas fa-angle-left") %>
+        <span>Prev</span>
+      <% end %>
     <% else -%>
-      <span class="prev">‹ prev</span>
+      <span class="nav-link prev">
+        <%= tag.i(class: "fas fa-angle-left") %>
+        <span>Prev</span>
+      </span>
     <% end %>
   <% end -%>
 
-  <span class="pool-name">
+  <span class="nav-name">
     <%= link_to("Pool: #{pool.pretty_name}", pool_path(pool), title: "page #{pool.page_number(post.id)}/#{pool.post_count}") -%>
   </span>
 
   <% pool.next_post_id(post.id).tap do |next_post_id| -%>
     <% if next_post_id %>
-      <%= link_to("next ›", post_path(next_post_id, pool_id: pool.id), rel: selected ? "next" : nil, class: "next", title: "to page #{pool.page_number(next_post_id)}") -%>
+      <%= link_to post_path(next_post_id, pool_id: pool.id), rel: selected ? "next" : nil, class: "nav-link next", title: "to page #{pool.page_number(next_post_id)}" do %>
+        <span>Next</span>
+        <%= tag.i(class: "fas fa-angle-right") %>
+      <% end %>
     <% else -%>
-      <span class="next">next ›</span>
+      <span class="nav-link next">
+        <span>Next</span>
+        <%= tag.i(class: "fas fa-angle-right") %>
+      </span>
     <% end -%>
   <% end -%>
 
   <% if !pool.last_post?(post.id) && pool.post_ids.last -%>
-    <%= link_to("last »", post_path(pool.post_ids.last, pool_id: pool.id), class: "last", title: "to page #{pool.post_count}") -%>
+    <%= link_to post_path(pool.post_ids.last, pool_id: pool.id), class: "nav-link last", title: "to page #{pool.post_count}" do %>
+      <span>Last</span>
+      <%= tag.i(class: "fas fa-angle-double-right") %>
+    <% end %>
   <% else -%>
-    <span class="last">last »</span>
+    <span class="nav-link last">
+      <span>Last</span>
+      <%= tag.i(class: "fas fa-angle-double-right") %>
+    </span>
   <% end -%>
 <% end -%>

@@ -20,12 +20,12 @@
   }
 
   body.resp {
-    div#c-posts {
-      div#a-show {
-        .pool-nav, .search-seq-nav, .set-nav {
-          li {
-            height: 2rem;
-          }
+    #c-posts #a-show {
+      .nav-block li {
+        padding: 0 0.5em;
+        
+        .first span, .last span {
+          display: none;
         }
       }
     }
