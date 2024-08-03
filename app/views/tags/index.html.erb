@@ -22,8 +22,9 @@
               <%= link_to(tag.name, posts_path(:tags => tag.name)) %>
             </td>
             <td>
+              <%= link_to "show", tag_path(tag) %>
               <% if tag.category_editable_by?(CurrentUser.user) %>
-                <%= link_to "edit", edit_tag_path(tag) %>
+                | <%= link_to "edit", edit_tag_path(tag) %>
               <% end %>
               | <%= link_to "history", tag_type_versions_path(search: {tag: tag.name}) %>
               <% if CurrentUser.is_janitor? %>

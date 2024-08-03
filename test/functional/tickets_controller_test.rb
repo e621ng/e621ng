@@ -82,6 +82,24 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "for an artist ticket" do
+      setup do
+        as @bad_actor do
+          @content = create(:artist, creator: @bad_actor)
+        end
+      end
+
+      should "allow reporting artists" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "artist")
+      end
+
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "artist")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+      end
+    end
+
     context "for a blip ticket" do
       setup do
         as @bad_actor do
@@ -229,6 +247,24 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_public: false)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
+      end
+    end
+
+    context "for a tag ticket" do
+      setup do
+        as @bad_actor do
+          @content = create(:tag)
+        end
+      end
+
+      should "allow reporting tags" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "tag")
+      end
+
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "tag")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 

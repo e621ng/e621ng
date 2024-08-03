@@ -1,0 +1,4 @@
+<% @tag = @ticket.content %>
+<h4>You are reporting the following tag:</h4>
+<div class="page"><%= link_to(@tag.name, @tag) %></div>
+<span class="date"><%= time_ago_in_words_tagged(@tag.created_at) %></span>

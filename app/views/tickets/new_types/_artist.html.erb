@@ -1,0 +1,4 @@
+<% @artist = @ticket.content %>
+<h4>You are reporting the following artist:</h4>
+<div class="page"><%= link_to(@artist.pretty_title, @artist) %></div>
+<span class="date"><%= time_ago_in_words_tagged(@artist.created_at) %></span>

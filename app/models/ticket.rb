@@ -28,6 +28,7 @@ class Ticket < ApplicationRecord
   #
   # |    Type    |      Can Create     |        Visible       |
   # |:----------:|:-------------------:|:--------------------:|
+  # |   Artist   |         Any         |  Janitor+ / Creator  |
   # |    Blip    |       Visible       |  Janitor+ / Creator  |
   # |   Comment  |       Visible       |  Janitor+ / Creator  |
   # |    Dmail   | Visible & Recipient | Moderator+ / Creator |
@@ -35,11 +36,26 @@ class Ticket < ApplicationRecord
   # |    Pool    |         Any         |  Janitor+ / Creator  |
   # |    Post    |         Any         |  Janitor+ / Creator  |
   # |  Post Set  |       Visible       |  Janitor+ / Creator  |
+  # |    Tag     |         Any         |  Janitor+ / Creator  |
   # |    User    |         Any         | Moderator+ / Creator |
   # |  Wiki Page |         Any         |  Janitor+ / Creator  |
   # |    Other   |         None        | Moderator+ / Creator |
 
   module TicketTypes
+    module Artist
+      def can_create_for?(_user)
+        true
+      end
+
+      def bot_target_name
+        content&.name
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+    end
+
     module Blip
       def can_create_for?(user)
         content&.visible_to?(user)
@@ -90,7 +106,7 @@ class Ticket < ApplicationRecord
     end
 
     module Pool
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -114,7 +130,7 @@ class Ticket < ApplicationRecord
         reason.split("\n")[0] || "Unknown Report Type"
       end
 
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -141,8 +157,22 @@ class Ticket < ApplicationRecord
       end
     end
 
+    module Tag
+      def can_create_for?(_user)
+        true
+      end
+
+      def bot_target_name
+        content&.name
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+    end
+
     module User
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -160,7 +190,7 @@ class Ticket < ApplicationRecord
         ::WikiPage
       end
 
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
