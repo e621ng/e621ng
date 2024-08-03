@@ -64,7 +64,7 @@ class ArtistsController < ApplicationController
     @artist.destroy
     respond_with(@artist) do |format|
       format.html do
-        redirect_to(artists_path, notice: "Artist deleted")
+        redirect_to(artists_path, notice: @artist.valid? ? "Artist deleted" : @artist.errors.full_messages.join("; "))
       end
     end
   end

@@ -210,7 +210,7 @@ div#c-posts {
     #image-extra-controls {
       justify-content: center;
     }
-    
+
     .fav-buttons,
     #image-download-link {
       .button > i {
@@ -325,6 +325,34 @@ div#c-posts {
       &.enabled {
         .notice-pending-status { display: none; }
         .notice-pending-toolbar { display: block; }
+      }
+    }
+
+    div#avoid-posting-notice {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+      padding: $padding-025 $padding-050;
+
+      background-color: themed("color-section");
+      border: 1px solid themed("color-foreground");
+
+      /*.artist-separator {
+        color: var(--color-text-muted);
+      }*/
+
+      ul {
+        list-style: disc;
+      }
+
+      li {
+        .artist, .separator, .details {
+          display: table-cell;
+        }
+
+        .separator {
+          color: var(--color-text-muted);
+          padding: 0 0.3rem;
+        }
       }
     }
 
@@ -535,7 +563,7 @@ body[data-user-can-approve-posts="true"] .notice {
   @media only screen and (min-width: 550px) {
     display: flex;
   }
-  
+
   // Overwrite some DText styles to make the header look better
   blockquote {
     border: 0;
@@ -546,25 +574,25 @@ body[data-user-can-approve-posts="true"] .notice {
 }
 
 .flag-dialog-body {
-  
+
   // Option label
   label {
     font-weight: normal;
     font-size: 1rem;
     cursor: pointer;
   }
-  
+
   // Option explanation
   div.styled-dtext {
     margin: 0.125rem 1.25rem;
     filter: brightness(85%);
   }
-  
+
   // Align label with the explanation
   input[type="radio"] {
     width: 1rem;
   }
-  
+
   // Post ID input
   form.simple_form div.input {
     margin: -0.5rem 0 0 1.25rem;
@@ -576,7 +604,7 @@ body[data-user-can-approve-posts="true"] .notice {
     &.post_flag_parent_id { display: flex }
     span.error { margin-left: 1rem; }
   }
-  
+
   hr { margin: 0.75rem 1.25rem; }
   h3 {
     margin: 0.5rem 1.25rem;

@@ -1,0 +1,16 @@
+<%= form_search(path: avoid_postings_path, always_display: true) do |f| %>
+  <%= f.user :creator %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :creator_ip_addr, label: "Creator IP Address" %>
+  <% end %>
+  <%= f.input :any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "artist" %>
+  <%= f.input :artist_name, label: "Artist Name", hide_unless_value: true %>
+  <%= f.input :artist_id, label: "Artist ID", hide_unless_value: true %>
+  <%= f.input :any_other_name_matches, label: "Other Names", hide_unless_value: true %>
+  <%= f.input :group_name, label: "Group Name", hide_unless_value: true %>
+  <%= f.input :details, label: "Details" %>
+  <% if CurrentUser.is_staff? %>
+    <%= f.input :staff_notes %>
+  <% end %>
+  <%= f.input :is_active, label: "Active?", collection: [%w[Yes true], %w[No false], %w[Any any]] %>
+<% end %>

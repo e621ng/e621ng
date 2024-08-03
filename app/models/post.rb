@@ -1754,9 +1754,12 @@ class Post < ApplicationRecord
     save
   end
 
+  def artist_tags
+    tags.select { |t| t.category == Tag.categories.artist }
+  end
+
   def uploader_linked_artists
-    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
-    linked_artists.select { |artist| artist.linked_user_id == uploader_id }
+    artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
   end
 
   def flaggable_for_guidelines?
@@ -1767,5 +1770,9 @@ class Post < ApplicationRecord
 
   def visible_comment_count(_user)
     comment_count
+  end
+
+  def avoid_posting_artists
+    AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
   end
 end
