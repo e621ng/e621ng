@@ -13,7 +13,7 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute,  "'#{value}' cannot begin with a dash ('-')")
     end
 
-    if !skips_validation
+    unless skips_validation
       case normalized
       when /\*/
         record.errors.add(attribute,  "'#{value}' cannot contain asterisks ('*')")
