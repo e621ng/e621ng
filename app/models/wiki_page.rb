@@ -7,6 +7,7 @@ class WikiPage < ApplicationRecord
   before_validation :normalize_other_names
   before_validation :normalize_parent
   after_save :create_version
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :title, uniqueness: { :case_sensitive => false }
   validates :title, presence: true
   validates :title, tag_name: true, if: :title_changed?
