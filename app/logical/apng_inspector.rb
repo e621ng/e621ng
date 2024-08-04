@@ -40,7 +40,7 @@ class ApngInspector
       chunkheader = +""
       while file.read(8, chunkheader)
         #ensure that first 8 bytes from chunk were read properly
-        if chunkheader == nil || chunkheader.length < 8
+        if chunkheader == nil || chunkheader.bytesize < 8
           return false
         end
 
