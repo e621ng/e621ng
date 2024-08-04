@@ -89,7 +89,7 @@ class AvoidPostingsController < ApplicationController
     if id =~ /\A\d+\z/
       @avoid_posting = AvoidPosting.find(id)
     else
-      @avoid_posting = AvoidPosting.find_by!(artist_name: id)
+      @avoid_posting = AvoidPosting.joins(:artist).find_by!("artists.name": id)
     end
   end
 
