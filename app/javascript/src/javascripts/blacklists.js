@@ -136,7 +136,7 @@ Blacklist.update_visibility = function () {
   // Tally up the new blacklisted posts
   for (const filter of Object.values(Blacklist.filters)) {
     if (!filter.enabled) continue;
-    newPosts = [...newPosts, ...filter.matchIDs];
+    newPosts = newPosts.concat(filter.matchIDs);
   }
 
   // Calculate diffs
@@ -149,6 +149,7 @@ Blacklist.update_visibility = function () {
   for (const ui of Blacklist.ui) ui.rebuildFilters();
 
   // Apply / remove classes
+  // TODO: Cache the post elements to avoid repeat lookups
   for (const postID of added)
     $(`.blacklistable[data-id="${postID}"]`).addClass("blacklisted");
   for (const postID of removed)
