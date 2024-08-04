@@ -121,8 +121,10 @@ Blacklist.init_blacklist_toggles = function () {
  * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
  */
 Blacklist.add_posts = function ($posts) {
+  console.time("Blacklist.add_posts");
   for (const filter of Object.values(Blacklist.filters))
     filter.update($posts);
+  console.timeEnd("Blacklist.add_posts");
 };
 
 /**
@@ -157,6 +159,7 @@ Blacklist.update_visibility = function () {
 };
 
 $(() => {
+  console.time("Blacklist.init");
   Blacklist.init_anonymous_blacklist();
   Blacklist.init_blacklist_editor();
   Blacklist.init_reveal_on_click();
@@ -167,6 +170,7 @@ $(() => {
   $("#blacklisted-hider").remove();
 
   Blacklist.init_blacklist_toggles();
+  console.timeEnd("Blacklist.init");
 });
 
 /**
