@@ -1,7 +1,7 @@
 <%= form_search(path: avoid_postings_path, always_display: true) do |f| %>
   <%= f.user :creator %>
   <% if CurrentUser.is_admin? %>
-    <%= f.input :creator_ip_addr, label: "Creator IP Address" %>
+    <%= f.input :ip_addr, label: "Creator IP Address" %>
   <% end %>
   <%= f.input :any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "artist" %>
   <%= f.input :artist_name, label: "Artist Name", hide_unless_value: true %>

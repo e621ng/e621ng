@@ -10,7 +10,7 @@ class AvoidPostingVersionsController < ApplicationController
 
   def search_params
     permitted_params = %i[updater_name updater_id any_name_matches artist_name artist_id any_other_name_matches group_name is_active]
-    permitted_params += %i[updater_ip_addr] if CurrentUser.is_admin?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 end

@@ -27,6 +27,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         get_auth avoid_posting_path(@avoid_posting), @user
         assert_response :success
       end
+
+      should "render (by name)" do
+        get_auth avoid_posting_path(id: @avoid_posting.artist_name), @user
+        assert_response :success
+      end
     end
 
     context "edit action" do

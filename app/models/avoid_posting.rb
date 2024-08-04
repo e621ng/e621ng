@@ -76,10 +76,6 @@ class AvoidPosting < ApplicationRecord
   end
 
   module SearchMethods
-    def for_artist(name)
-      active.find_by(artist_name: name)
-    end
-
     def artist_search(params)
       Artist.search(params.slice(:any_name_matches, :any_other_name_matches).merge({ id: params[:artist_id], name: params[:artist_name] }))
     end
@@ -99,7 +95,7 @@ class AvoidPosting < ApplicationRecord
       q = q.attribute_matches(:details, params[:details])
       q = q.attribute_matches(:staff_notes, params[:staff_notes])
       q = q.where_user(:creator_id, :creator, params)
-      q = q.where("creator_ip_addr <<= ?", params[:creator_ip_addr]) if params[:creator_ip_addr].present?
+      q = q.where("creator_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
       q.apply_basic_order(params)
     end
   end
