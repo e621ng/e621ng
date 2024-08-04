@@ -2,7 +2,6 @@
 
 class TagNameValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    skips_validation = record.is_a?(TagAlias) && record.antecedent_name == value
     normalized = Tag.normalize_name(value)
 
     # These should always be checked
@@ -13,7 +12,7 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute,  "'#{value}' cannot begin with a dash ('-')")
     end
 
-    unless skips_validation
+    unless options[:disable_secondary_validations]
       case normalized
       when /\*/
         record.errors.add(attribute,  "'#{value}' cannot contain asterisks ('*')")
