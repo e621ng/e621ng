@@ -469,6 +469,7 @@ Post.resize_notes = function () {
 
 Post.resize_video = function (post, target_size) {
   const $video = $("video#image");
+  if (!$video.length) return; // Caused by the video being deleted
   const videoTag = $video[0];
   videoTag.pause(); // Otherwise size changes won't take effect.
   const $notice = $("#image-resize-notice");
