@@ -38,7 +38,7 @@ class AvoidPostingVersion < ApplicationRecord
 
       q = q.attribute_matches(:is_active, params[:is_active])
       q = q.where_user(:updater_id, :updater, params)
-      q = q.where("updater_ip_addr <<= ?", params[:updater_ip_addr]) if params[:updater_ip_addr].present?
+      q = q.where("updater_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
       q.apply_basic_order(params)
     end
   end
