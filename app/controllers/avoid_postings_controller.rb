@@ -27,7 +27,7 @@ class AvoidPostingsController < ApplicationController
   def create
     @avoid_posting = AvoidPosting.new(avoid_posting_params)
     artparams = avoid_posting_params.try(:[], :artist_attributes)
-    if artparams.present? && (artist = Artist.find_by(name: Artist.normalize_name(artparams[:name])))
+    if artparams.present? && (artist = Artist.named(artparams[:name]))
       @avoid_posting.artist = artist
       notices = []
       if artist.other_names.present? && (artparams.key?(:other_names_string) || artparams.key?(:other_names))

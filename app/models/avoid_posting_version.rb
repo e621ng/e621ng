@@ -15,7 +15,7 @@ class AvoidPostingVersion < ApplicationRecord
   end
 
   def previous
-    AvoidPostingVersion.joins(:avoid_posting).where(id: ...id).order(id: :desc).first
+    AvoidPostingVersion.joins(:avoid_posting).where("id < ?", id).order(id: :desc).first
   end
 
   module ApiMethods

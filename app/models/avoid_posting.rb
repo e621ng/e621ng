@@ -76,10 +76,6 @@ class AvoidPosting < ApplicationRecord
   end
 
   module SearchMethods
-    def for_artist(name)
-      active.find_by(artist_name: name)
-    end
-
     def artist_search(params)
       Artist.search(params.slice(:any_name_matches, :any_other_name_matches).merge({ id: params[:artist_id], name: params[:artist_name] }))
     end

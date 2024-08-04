@@ -72,7 +72,7 @@ class StaticController < ApplicationController
   private
 
   def format_wiki_page(name)
-    wiki = WikiPage.find_by(title: name)
+    wiki = WikiPage.titled(name)
     return WikiPage.new(body: "Wiki page \"#{name}\" not found.") if wiki.blank?
     wiki
   end
