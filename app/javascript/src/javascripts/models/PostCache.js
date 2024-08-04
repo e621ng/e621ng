@@ -32,21 +32,21 @@ export default class PostCache {
       tags: tags,
       tagcount: tags.length,
 
-      id: data.id,
+      id: parseInt(data.id),
       flags: (data.flags || "").split(" "),
       rating: data.rating || "",
       file_ext: data.fileExt || "",
 
-      width: data.width || -1,
-      height: data.height || -1,
-      size: data.size || -1,
+      width: parseInt(data.width) || -1,
+      height: parseInt(data.height) || -1,
+      size: parseInt(data.size) || -1,
 
-      score: data.score || 0,
-      fav_count: data.favCount || 0,
+      score: parseInt(data.score) || 0,
+      fav_count: parseInt(data.favCount) || 0,
       is_favorited: !!data.isFavorited,
 
       uploader: (data.uploader || "").toLowerCase(),
-      uploader_id: data.uploaderId || -1,
+      uploader_id: parseInt(data.uploaderId) || -1,
 
       pools: pools,
     };

@@ -136,7 +136,7 @@ Blacklist.update_visibility = function () {
   // Tally up the new blacklisted posts
   for (const filter of Object.values(Blacklist.filters)) {
     if (!filter.enabled) continue;
-    newPosts = newPosts.concat(filter.matchIDs);
+    newPosts = newPosts.concat(Array.from(filter.matchIDs));
   }
 
   // Calculate diffs
