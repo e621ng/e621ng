@@ -2,7 +2,7 @@
   <span>
     <div v-if="!disableFileUpload">
       <div class="box-section background-red" v-if="fileTooLarge">
-        The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
+        The file you are trying to upload is too large. Maximum allowed is {{this.exceededFileSize / (1024*1024) }} MiB.<br>
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
       <label>File:
@@ -44,7 +44,9 @@ export default {
       },
       uploadURL: new URLSearchParams(window.location.search).get("upload_url") || "",
       fileTooLarge: false,
+      exceededFileSize: 0,
       maxFileSize: window.uploaderSettings.maxFileSize,
+      maxFileSizeMap: window.uploaderSettings.maxFileSizeMap,
       disableFileUpload: false,
       disableURLUpload: false,
     }
@@ -97,11 +99,11 @@ export default {
       ];
       for (const pattern of patterns) {
         if (pattern.test.test(url)) {
-          return pattern.reason; 
+          return pattern.reason;
         }
       }
       return "";
-    },  
+    },
     clearFileUpload() {
       if (!this.$refs["post_file"]?.files?.[0]) {
         return;
@@ -110,6 +112,7 @@ export default {
       this.disableURLUpload = false;
       this.disableFileUpload = false;
       this.fileTooLarge = false;
+      this.exceededFileSize = 0;
       this.setEmptyThumb();
       this.uploadValueChanged("");
 
@@ -147,7 +150,14 @@ export default {
     },
     updatePreviewFile() {
       const file = this.$refs["post_file"].files[0];
-      this.fileTooLarge = file.size > this.maxFileSize;
+      const maxFileSize = this.maxFileSizeMap[file.type.split("/")?.[1]] ?? this.maxFileSize;
+      if (file.size > maxFileSize) {
+        this.fileTooLarge = true;
+        this.exceededFileSize = maxFileSize;
+      } else {
+        this.fileTooLarge = false;
+        this.exceededFileSize = 0;
+      }
       const objectUrl = URL.createObjectURL(file);
       this.disableURLUpload = true;
       this.uploadValueChanged(file);
