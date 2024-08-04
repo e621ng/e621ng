@@ -1297,7 +1297,6 @@ Rails/OutputSafety:
     - 'app/views/static/home.html.erb'
     - 'app/views/tickets/new_types/_post.html.erb'
     - 'app/views/uploads/new.html.erb'
-    - 'app/views/post_replacements/_new.html.erb'
     - 'app/views/users/custom_style.css.erb'
     - 'app/views/users/edit.html.erb'
     - 'app/views/users/home.html.erb'
