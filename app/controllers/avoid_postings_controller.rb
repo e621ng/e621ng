@@ -69,17 +69,17 @@ class AvoidPostingsController < ApplicationController
 
   def destroy
     @avoid_posting.destroy
-    redirect_to artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed"
+    redirect_to(artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed")
   end
 
   def delete
     @avoid_posting.update(is_active: false)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry deleted"
+    redirect_back(fallback_location: avoid_posting_path(@avoid_posting), notice: "Avoid posting entry deleted")
   end
 
   def undelete
     @avoid_posting.update(is_active: true)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry undeleted"
+    redirect_back(fallback_location: avoid_posting_path(@avoid_posting), notice: "Avoid posting entry undeleted")
   end
 
   private
