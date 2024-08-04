@@ -181,9 +181,9 @@ PostModeMenu.click = function (e) {
   } else if (s === "vote-up") {
     Post.vote(post_id, 1, true);
   } else if (s === "add-to-set") {
-    PostSet.add_post($("#set-id").val(), post_id);
+    PostSet.add_post($("#set-id").val(), post_id, true);
   } else if (s === "remove-from-set") {
-    PostSet.remove_post($("#set-id").val(), post_id);
+    PostSet.remove_post($("#set-id").val(), post_id, true);
   } else if (s === "rating-q") {
     Post.update(post_id, {"post[rating]": "q"});
   } else if (s === "rating-s") {
