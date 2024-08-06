@@ -150,6 +150,10 @@ class PostsController < ApplicationController
         response_params.compact_blank!
         redirect_to post_path(post, response_params)
       end
+
+      format.json do
+        render json: post
+      end
     end
   end
 
