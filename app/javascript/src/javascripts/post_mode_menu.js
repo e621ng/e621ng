@@ -55,7 +55,7 @@ PostModeMenu.initialize_selector = function () {
 };
 
 PostModeMenu.initialize_preview_link = function () {
-  $(".post-preview a").on("click.danbooru", PostModeMenu.click);
+  $(".post-preview").on("click.danbooru", PostModeMenu.click);
 };
 
 PostModeMenu.initialize_edit_form = function () {
@@ -168,7 +168,7 @@ PostModeMenu.open_edit = function (post_id) {
 
 PostModeMenu.click = function (e) {
   var s = $("#mode-box-mode").val();
-  var post_id = $(e.target).closest("article").data("id");
+  var post_id = $(e.currentTarget).data("id");
 
   if (s === "add-fav") {
     Favorite.create(post_id);
@@ -181,9 +181,9 @@ PostModeMenu.click = function (e) {
   } else if (s === "vote-up") {
     Post.vote(post_id, 1, true);
   } else if (s === "add-to-set") {
-    PostSet.add_post($("#set-id").val(), post_id, true);
+    PostSet.add_post($("#set-id").val(), post_id);
   } else if (s === "remove-from-set") {
-    PostSet.remove_post($("#set-id").val(), post_id, true);
+    PostSet.remove_post($("#set-id").val(), post_id);
   } else if (s === "rating-q") {
     Post.update(post_id, {"post[rating]": "q"});
   } else if (s === "rating-s") {
