@@ -107,6 +107,7 @@ class UploadService
     end
 
     def rescale_notes(post)
+      return if post.is_note_locked?
       x_scale = post.image_width.to_f / post.image_width_before_last_save.to_f
       y_scale = post.image_height.to_f / post.image_height_before_last_save.to_f
 
