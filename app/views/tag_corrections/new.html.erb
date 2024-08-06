@@ -11,7 +11,8 @@
       </ul>
     </div>
 
-    <%= form_tag(tag_correction_path(:tag_id => @correction.tag.id)) do %>
+    <%= form_tag(tag_correction_path(tag_id: @correction.tag.id)) do %>
+      <%= hidden_field_tag "from_wiki", @from_wiki %>
       <%= submit_tag "Fix" %>
       <%= submit_tag "Cancel" %>
     <% end %>

@@ -3,6 +3,7 @@
     <h1>Tag: <%= link_to @tag.name, posts_path(:tags => @tag.name), :class => "tag-type-#{@tag.category}" %></h1>
 
     <%= custom_form_for(@tag) do |f| %>
+      <%= f.hidden_field(:from_wiki, value: @from_wiki) %>
       <% if @tag.is_locked? %>
         <p>This tag is category locked</p>
       <% else %>
