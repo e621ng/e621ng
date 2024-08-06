@@ -1,11 +1,12 @@
 import Blacklist from "./blacklists";
+import LStorage from "./utility/storage";
 
 const Thumbnails = {};
 
 Thumbnails.initialize = function () {
   const postsData = window.___deferred_posts || {};
   const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
-  const replacedPosts = [];
+  const DAB = LStorage.get("dab") === "1";
 
   for (const post of posts) {
     const $post = $(post);
@@ -46,13 +47,21 @@ Thumbnails.initialize = function () {
       })
       .appendTo(link);
 
-    $post.replaceWith(thumbnail);
-    replacedPosts.push(thumbnail);
-  }
+    // Disgusting implementation of the blacklist
+    if (!DAB) {
+      let blacklist_hit_count = 0;
+      for (const entry of Blacklist.entries) {
+        if (!Blacklist.postMatchObject(postData, entry))
+          continue;
+        entry.hits += 1;
+        blacklist_hit_count += 1;
+      }
 
-  if (replacedPosts.length > 0) {
-    Blacklist.add_posts(replacedPosts);
-    Blacklist.update_visibility();
+      if (blacklist_hit_count > 0)
+        thumbnail.addClass("blacklisted");
+    }
+
+    $post.replaceWith(thumbnail);
   }
 
   function clearPlaceholder (post) {
