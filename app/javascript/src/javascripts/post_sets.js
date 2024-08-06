@@ -15,7 +15,7 @@ const addPostCache = {};
  * @param {number} post_id Post ID
  * @param {boolean} silent Set to true to avoid sending an alert for every request
  */
-PostSet.add_post = function(set_id, post_id) {
+PostSet.add_post = function (set_id, post_id) {
   if (!set_id) {
     $(window).trigger("danbooru:error", "Error: No set specified");
     return;
@@ -77,7 +77,7 @@ const removePostCache = {};
  * @param {number} post_id Post ID
  * @param {boolean} silent Set to true to avoid sending an alert for every request
  */
-PostSet.remove_post = function(set_id, post_id) {
+PostSet.remove_post = function (set_id, post_id) {
   if (!set_id) {
     $(window).trigger("danbooru:error", "Error: No set specified");
     return;
