@@ -1,56 +1,129 @@
 import {SendQueue} from "./send_queue";
-import Post from "./posts";
 import LStorage from "./utility/storage";
 
 let PostSet = {};
 
 PostSet.dialog_setup = false;
 
-PostSet.add_post = function (set_id, post_id, silent = false) {
+let addPostTimeout = null;
+const addPostCache = {};
+
+/**
+ * Add the specified post to the set.
+ * Individual requests are grouped together to reduce the number of requests.
+ * @param {number} set_id Set ID
+ * @param {number} post_id Post ID
+ * @param {boolean} silent Set to true to avoid sending an alert for every request
+ */
+PostSet.add_post = function (set_id, post_id) {
   if (!set_id) {
     $(window).trigger("danbooru:error", "Error: No set specified");
     return;
   }
 
-  Post.notice_update("inc");
+  let cache = addPostCache[set_id];
+  if (!cache) {
+    cache = new Set();
+    addPostCache[set_id] = cache;
+  }
+  cache.add(post_id);
+  $(window).trigger("danbooru:notice", `Updating posts (${cache.size} pending)`);
+
+  // Queue up the request
+  if (addPostTimeout) window.clearTimeout(addPostTimeout);
+  addPostTimeout = window.setTimeout(() => {
+    for (const [setID, [...posts]] of Object.entries(addPostCache)) {
+      PostSet.add_many_posts(setID, posts);
+      delete addPostCache[setID];
+    }
+    addPostTimeout = null;
+  }, 1000);
+};
+
+/**
+ * Adds the specified posts to the set
+ * @param {number} set_id Set ID
+ * @param {number[]} posts Array of post IDs
+ */
+PostSet.add_many_posts = function (set_id, posts = []) {
+  if (!set_id) {
+    $(window).trigger("danbooru:error", "Error: No set specified");
+    return;
+  }
+
   SendQueue.add(function () {
     $.ajax({
       type: "POST",
       url: "/post_sets/" + set_id + "/add_posts.json",
-      data: {post_ids: [post_id]},
+      data: {post_ids: posts},
     }).fail(function (data) {
       console.log(data, data.responseJSON, data.responseJSON.error);
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      Post.notice_update("dec");
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function () {
-      Post.notice_update("dec");
-      if (silent) return;
-      $(window).trigger("danbooru:notice", "Added post to set");
+      $(window).trigger("danbooru:notice", `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });
   });
 };
 
-PostSet.remove_post = function (set_id, post_id, silent = false) {
+
+let removePostTimeout = null;
+const removePostCache = {};
+
+/**
+ * Remove the specified post from the set.
+ * Individual requests are grouped together to reduce the number of requests.
+ * @param {number} set_id Set ID
+ * @param {number} post_id Post ID
+ * @param {boolean} silent Set to true to avoid sending an alert for every request
+ */
+PostSet.remove_post = function (set_id, post_id) {
   if (!set_id) {
     $(window).trigger("danbooru:error", "Error: No set specified");
     return;
   }
 
-  Post.notice_update("inc");
+  let cache = removePostCache[set_id];
+  if (!cache) {
+    cache = new Set();
+    removePostCache[set_id] = cache;
+  }
+  cache.add(post_id);
+  $(window).trigger("danbooru:notice", `Updating posts (${cache.size} pending)`);
+
+  // Queue up the request
+  if (removePostTimeout) window.clearTimeout(removePostTimeout);
+  removePostTimeout = window.setTimeout(() => {
+    for (const [setID, posts] of Object.entries(removePostCache)) {
+      PostSet.remove_many_posts(setID, [...posts]);
+      delete removePostCache[setID];
+    }
+    removePostTimeout = null;
+  }, 1000);
+};
+
+/**
+ * Remove the specified posts from the set
+ * @param {number} set_id Set ID
+ * @param {number[]} posts Array of post IDs
+ */
+PostSet.remove_many_posts = function (set_id, posts = []) {
+  if (!set_id) {
+    $(window).trigger("danbooru:error", "Error: No set specified");
+    return;
+  }
+
   SendQueue.add(function () {
     $.ajax({
       type: "POST",
       url: "/post_sets/" + set_id + "/remove_posts.json",
-      data: {post_ids: [post_id]},
+      data: { post_ids: posts },
     }).fail(function (data) {
+      console.log(data, data.responseJSON, data.responseJSON.error);
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      Post.notice_update("dec");
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function () {
-      Post.notice_update("dec");
-      if (silent) return;
-      $(window).trigger("danbooru:notice", "Removed post from set");
+      $(window).trigger("danbooru:notice", `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });
   });
 };
@@ -69,7 +142,7 @@ PostSet.initialize_add_to_set_link = function () {
   $("#add-to-set-submit").on("click", function (e) {
     e.preventDefault();
     const post_id = $("#image-container").data("id");
-    PostSet.add_post($("#add-to-set-id").val(), post_id);
+    PostSet.add_many_posts($("#add-to-set-id").val(), [post_id]);
     $("#add-to-set-dialog").dialog("close");
   });
 };
