@@ -126,6 +126,19 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
       end
+
+      should "work even if the post is note locked" do
+        as(@user) do
+          create(:note, post: @post)
+          @post.update!(is_note_locked: true)
+        end
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_redirected_to post_path(@post)
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+      end
     end
 
     context "promote action" do
