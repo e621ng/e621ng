@@ -6,6 +6,7 @@ class Comment < ApplicationRecord
   simple_versioning
   belongs_to_creator
   belongs_to_updater
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validate :validate_post_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
   validate :post_not_comment_locked, on: :create
