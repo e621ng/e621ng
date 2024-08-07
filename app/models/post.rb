@@ -414,7 +414,7 @@ class Post < ApplicationRecord
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length() > 0 || added_tags.length() > 0
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
     end
 
     def tag_array
