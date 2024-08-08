@@ -13,6 +13,7 @@ class AvoidPosting < ApplicationRecord
   after_destroy :log_destroy
   validates_associated :artist
   accepts_nested_attributes_for :artist
+  after_commit :invalidate_cache
 
   scope :active, -> { where(is_active: true) }
   scope :deleted, -> { where(is_active: false) }
@@ -120,6 +121,10 @@ class AvoidPosting < ApplicationRecord
     return details if details.present?
     return "Only the artist is allowed to post." if linked_user_id.present?
     ""
+  end
+
+  def invalidate_cache
+    Cache.delete("avoid_posting_list")
   end
 
   include LogMethods
