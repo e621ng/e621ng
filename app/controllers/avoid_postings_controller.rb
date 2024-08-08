@@ -94,7 +94,7 @@ class AvoidPostingsController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[creator_name creator_id any_name_matches artist_id artist_name any_other_name_matches group_name details is_active]
+    permitted_params = %i[creator_name creator_id any_name_matches artist_id artist_name any_other_name_matches group_name details is_active order]
     permitted_params += %i[staff_notes] if CurrentUser.is_staff?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
