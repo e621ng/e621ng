@@ -336,7 +336,8 @@ class Post < ApplicationRecord
 
       diff = source_diff.gsub(/\r\n?/, "\n").gsub(/%0A/i, "\n").split(/(?:\r)?\n/)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1]}
+      to_remove = to_remove.map {|x| x[1..-1].delete_prefix('"').delete_suffix('"')}
+      to_add = to_add.map {|x| x.delete_prefix('"').delete_suffix('"')}
 
       current_sources = source_array
       current_sources += to_add
