@@ -67,15 +67,15 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Avoid Posting ###
     when "avoid_posting_create"
-      "Created avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Created \"avoid posting entry\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_update"
-      "Updated avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Updated \"avoid posting entry\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_destroy"
-      "Destroyed avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Destroyed \"avoid posting entry\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_delete"
-      "Deleted avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Deleted \"avoid posting entry\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_undelete"
-      "Undeleted avoid posting entry for artist \"#{vals['artist_name']}\":/artists/show_or_new?name=#{vals['artist_name']}"
+      "Undeleted \"avoid posting entry\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
 
       ### User ###
 
