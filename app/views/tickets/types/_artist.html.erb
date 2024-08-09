@@ -1,0 +1,6 @@
+<% if @ticket.content %>
+  <tr>
+    <td><span class="title">Reported Artist</span></td>
+    <td><%= link_to(@ticket.content.name, artist_path(id: @ticket.content.id)) %></td>
+  </tr>
+<% end %>
