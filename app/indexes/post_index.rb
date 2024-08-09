@@ -72,6 +72,7 @@ module PostIndex
           deleted: { type: "boolean" },
           has_children: { type: "boolean" },
           has_pending_replacements: { type: "boolean" },
+          artverified: { type: "boolean" },
         },
       },
     }
@@ -153,20 +154,24 @@ module PostIndex
             LEFT OUTER JOIN post_replacements2 pr ON p.id = pr.post_id AND pr.status = 'pending'
           WHERE p.id IN (#{post_ids})
         SQL
+        verified_artists_sql = <<-SQL.squish
+          SELECT name, linked_user_id FROM artists WHERE linked_user_id IS NOT NULL
+        SQL
 
         # Run queries
         conn = ApplicationRecord.connection
-        deletions      = conn.execute(deletion_sql)
-        deleter_ids    = deletions.values.map {|p,did,dr| [p,did]}.to_h
-        del_reasons    = deletions.values.map {|p,did,dr| [p,dr]}.to_h
-        comment_counts = conn.execute(comments_sql).values.to_h
-        pool_ids       = conn.execute(pools_sql).values.map(&array_parse).to_h
-        set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
-        fave_ids       = conn.execute(faves_sql).values.map(&array_parse).to_h
-        commenter_ids  = conn.execute(commenter_sql).values.map(&array_parse).to_h
-        noter_ids      = conn.execute(noter_sql).values.map(&array_parse).to_h
-        child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
-        notes          = Hash.new { |h,k| h[k] = [] }
+        deletions        = conn.execute(deletion_sql)
+        deleter_ids      = deletions.values.map {|p,did,dr| [p,did]}.to_h
+        del_reasons      = deletions.values.map {|p,did,dr| [p,dr]}.to_h
+        comment_counts   = conn.execute(comments_sql).values.to_h
+        pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
+        set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
+        fave_ids         = conn.execute(faves_sql).values.map(&array_parse).to_h
+        commenter_ids    = conn.execute(commenter_sql).values.map(&array_parse).to_h
+        noter_ids        = conn.execute(noter_sql).values.map(&array_parse).to_h
+        child_ids        = conn.execute(child_sql).values.map(&array_parse).to_h
+        verified_artists = conn.execute(verified_artists_sql).values.to_h
+        notes            = Hash.new { |h,k| h[k] = [] }
         conn.execute(note_sql).values.each { |p,b| notes[p] << b }
         pending_replacements = conn.execute(pending_replacements_sql).values.to_h
 
@@ -183,19 +188,20 @@ module PostIndex
         empty = []
         batch.map! do |p|
           index_options = {
-            comment_count: comment_counts[p.id] || 0,
-            pools:         pool_ids[p.id]       || empty,
-            sets:          set_ids[p.id]        || empty,
-            faves:         fave_ids[p.id]       || empty,
-            upvotes:       upvote_ids[p.id]     || empty,
-            downvotes:     downvote_ids[p.id]   || empty,
-            children:      child_ids[p.id]      || empty,
-            commenters:    commenter_ids[p.id]  || empty,
-            noters:        noter_ids[p.id]      || empty,
-            notes:         notes[p.id]          || empty,
-            deleter:       deleter_ids[p.id]    || empty,
-            del_reason:    del_reasons[p.id]    || empty,
-            has_pending_replacements: pending_replacements[p.id]
+            comment_count:            comment_counts[p.id] || 0,
+            pools:                    pool_ids[p.id]       || empty,
+            sets:                     set_ids[p.id]        || empty,
+            faves:                    fave_ids[p.id]       || empty,
+            upvotes:                  upvote_ids[p.id]     || empty,
+            downvotes:                downvote_ids[p.id]   || empty,
+            children:                 child_ids[p.id]      || empty,
+            commenters:               commenter_ids[p.id]  || empty,
+            noters:                   noter_ids[p.id]      || empty,
+            notes:                    notes[p.id]          || empty,
+            deleter:                  deleter_ids[p.id]    || empty,
+            del_reason:               del_reasons[p.id]    || empty,
+            has_pending_replacements: pending_replacements[p.id],
+            artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
 
           {
@@ -274,7 +280,8 @@ module PostIndex
       pending:        is_pending,
       deleted:        is_deleted,
       has_children:   has_children,
-      has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?
+      has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
+      artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
     }
   end
 end

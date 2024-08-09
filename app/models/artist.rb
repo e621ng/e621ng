@@ -22,6 +22,7 @@ class Artist < ApplicationRecord
   after_save :update_wiki
   after_save :propagate_locked, if: :should_propagate_locked
   after_save :clear_url_string_changed
+  after_save :update_posts_index, if: :saved_change_to_linked_user_id?
 
   has_many :members, class_name: "Artist", foreign_key: "group_name", primary_key: "name"
   has_many :urls, dependent: :destroy, class_name: "ArtistUrl", autosave: true
@@ -562,5 +563,9 @@ class Artist < ApplicationRecord
 
   def log_destroy
     ModAction.log(:artist_delete, { artist_id: id, artist_name: name })
+  end
+
+  def update_posts_index
+    Post.tag_match_system(name).each(&:update_index)
   end
 end
