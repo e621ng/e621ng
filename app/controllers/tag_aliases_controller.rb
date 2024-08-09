@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TagAliasesController < ApplicationController
-  before_action :admin_only, except: [:index, :show, :destroy]
+  before_action :admin_only, except: [:index, :show, :destroy, :update, :approve]
   respond_to :html, :json, :js
 
   def show
@@ -22,9 +22,10 @@ class TagAliasesController < ApplicationController
         update_params = update_params.except(:antecedent_name, :consequent_name)
       end
       @tag_alias.update(update_params)
+      respond_with(@tag_alias)
+    else
+      access_denied
     end
-
-    respond_with(@tag_alias)
   end
 
   def index
@@ -34,6 +35,7 @@ class TagAliasesController < ApplicationController
 
   def destroy
     @tag_alias = TagAlias.find(params[:id])
+
     if @tag_alias.deletable_by?(CurrentUser.user)
       @tag_alias.reject!
       respond_with(@tag_alias, :location => tag_aliases_path)
@@ -44,8 +46,13 @@ class TagAliasesController < ApplicationController
 
   def approve
     @tag_alias = TagAlias.find(params[:id])
-    @tag_alias.approve!(approver: CurrentUser.user)
-    respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
+
+    if @tag_alias.approvable_by?(CurrentUser.user)
+      @tag_alias.approve!(approver: CurrentUser.user)
+      respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
+    else
+      access_denied
+    end
   end
 
   private
