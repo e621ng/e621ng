@@ -1,0 +1,8 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Listing", edit_histories_path %>
+  <% if params[:action] == "diff" %>
+    <li>|</li>
+    <%= subnav_link_to "Back", edit_history_path(@thisversion.versionable_id, page: @thisversion.page, type: @thisversion.versionable_type, anchor: "edit-#{@thisversion.id}") %>
+    <%= subnav_link_to @thisversion.html_name.split[0...-1].join(" "), @thisversion.link(self) %>
+  <% end %>
+<% end %>

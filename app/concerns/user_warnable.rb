@@ -15,10 +15,12 @@ module UserWarnable
 
   def user_warned!(type, user)
     update(warning_type: type, warning_user_id: user.id)
+    save_version("mark_#{type}")
   end
 
   def remove_user_warning!
     update(warning_type: nil, warning_user_id: nil)
+    save_version("unmark")
   end
 
   def was_warned?
