@@ -42,6 +42,7 @@
     allowRatingLock: <%= CurrentUser.is_privileged?.to_json %>,
     allowUploadAsPending: <%= CurrentUser.can_upload_free?.to_json %>,
     maxFileSize: <%= Danbooru.config.max_file_size %>,
+    maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
   };
   Danbooru.Uploader.init();
 <% end -%>
