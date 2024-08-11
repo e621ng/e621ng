@@ -6,7 +6,11 @@
   &[link-enabled="true"] label.linkinput { border-radius: 6px; }
   &[file-enabled="true"][link-enabled="true"] {
     label.fileinput { border-radius: 6px 6px 0 0; }
-    label.linkinput { border-radius: 0 0 6px 6px; }
+    label.linkinput {
+      border-radius: 0 0 6px 6px;
+      flex-flow: column;
+      margin-top: -0.5em;
+    }
   }
 
   // Local file drag-and-drop
@@ -41,8 +45,15 @@
       text-wrap: wrap;  // Fix for the file name overflow
 
       &.title {
-        font-size: 1.25em;
-        font-weight: bold;
+        font-size: 1.3em;
+      }
+      &.subtitle {
+        color: var(--palette-text-grey);
+
+        u {
+          text-decoration: none;
+          border-bottom: 1px solid var(--palette-text-grey);
+        }
       }
     }
 
@@ -62,15 +73,21 @@
   // Remote file URL paste
   label.linkinput {
     display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+
     padding: 1em;
     background: var(--color-section-lighten-5);
 
     input[type="text"] {
+      font-family: monospace;
+      font-size: 1rem; // Match the upload page inputs
       text-align: center;
-      font-weight: bold;
       box-sizing: border-box;
-      width: 100%;
+      flex: 1;
     }
   }
 

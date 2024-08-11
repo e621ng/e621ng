@@ -27,13 +27,13 @@
         />
         <span class="title">
           <div v-if="uploader.dragging">Release to drop a file here</div>
-          <div v-else>Drop a file here</div>
+          <div v-else>Choose an image or video to upload</div>
         </span>
-        <span>
+        <span class="subtitle">
           <div v-if="disableURLUpload">
             {{ this.getFileURL().name }}
           </div>
-          <div v-else>Choose an image or video to upload</div>
+          <div v-else><u>Browse for file</u> or drag and drop</div>
         </span>
       </label>
       <button
@@ -49,10 +49,11 @@
         You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
       </div>
       <label class="linkinput">
+        <span class="linkinput-or">{{!disableFileUpload ? "OR" : "URL" }}</span>
         <input
           type="text"
           size="50"
-          placeholder="Paste image or URL"
+          placeholder="Paste image URL"
           v-model="uploadURL"
           :disabled="disableURLUpload"
         />
@@ -109,6 +110,8 @@ export default {
         this.fileTooLarge = false;
         this.uploadValueChanged(this.uploadURL);
         this.updatePreviewURL();
+        if(this.uploadURL.length === 0)
+          this.setEmptyThumb();
       }
     },
     invalidUploadValue() {
