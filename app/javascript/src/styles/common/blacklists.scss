@@ -65,7 +65,8 @@
         from, to { overflow: hidden; } 
       }
       animation: hide-scroll 0.25s backwards;
-      overflow: hidden auto;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
   }
 
