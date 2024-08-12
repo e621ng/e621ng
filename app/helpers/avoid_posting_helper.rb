@@ -2,20 +2,22 @@
 
 module AvoidPostingHelper
   def format_avoid_posting_list
-    avoid_postings = AvoidPosting.active.joins(:artist).order("artists.name ASC").group_by(&:header)
-    text = ""
-    avoid_postings.each do |header, entries|
-      text += "h2. #{header} [##{anchor(header)}]\n"
-      entries.each do |dnp|
-        text += "* #{dnp.all_names}"
-        if dnp.pretty_details.present?
-          text += " - #{dnp.pretty_details}"
+    Cache.fetch("avoid_posting_list", expires_in: 1.day) do
+      avoid_postings = AvoidPosting.active.joins(:artist).order("artists.name ASC").group_by(&:header)
+      text = ""
+      avoid_postings.each do |header, entries|
+        text += "h2. #{header} [##{anchor(header)}]\n"
+        entries.each do |dnp|
+          text += "* #{dnp.all_names}"
+          if dnp.pretty_details.present?
+            text += " - #{dnp.pretty_details}"
+          end
+          text += "\n"
         end
         text += "\n"
       end
-      text += "\n"
+      format_text(text)
     end
-    format_text(text)
   end
 
   private
