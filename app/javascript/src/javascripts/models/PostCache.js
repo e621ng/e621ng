@@ -43,7 +43,7 @@ export default class PostCache {
 
       score: parseInt(data.score) || 0,
       fav_count: parseInt(data.favCount) || 0,
-      is_favorited: !!data.isFavorited,
+      is_favorited: data.isFavorited === "true",
 
       uploader: (data.uploader || "").toLowerCase(),
       uploader_id: parseInt(data.uploaderId) || -1,
