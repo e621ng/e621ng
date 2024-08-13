@@ -59,7 +59,7 @@ Post.initialize_moderation = function () {
   });
   $(".move-flag-to-parent-link").on("click", e => {
     e.preventDefault();
-    const $e = $(e.target)
+    const $e = $(e.target);
     const post_id = $e.data("pid");
     const parent_id = $e.data("parent-id");
 
