@@ -80,11 +80,32 @@ LStorage.Posts.TagScript = {
 
 // Blacklist functionality
 LStorage.Blacklist = {
-  /** @returns {string} Blacklist contents for logged-out users */
-  AnonymousBlacklist: ["anonymous-blacklist", "[]"],
-
   /** @returns {boolean} Whether the filter list is hidden or not */
   Collapsed: ["e6.blk.collapsed", true],
+
+  /** @returns {string} Blacklist contents for logged-out users */
+  get AnonymousBlacklist () {
+    // Not cached
+    if (!LStorage.Blacklist._anonymousBlacklist) {
+      let value = localStorage.getItem("anonymous-blacklist");
+
+      // Not stored
+      if (!value) {
+        const meta = $("meta[name=blacklisted-tags]");
+        if (meta.length == 0) value = "[]"; // No default blacklist set
+        else value = meta.attr("content") || "[]";
+        localStorage.setItem("anonymous-blacklist", value); // Let's not do this again
+      }
+
+      LStorage.Blacklist._anonymousBlacklist = value;
+    }
+    return LStorage.Blacklist._anonymousBlacklist;
+  },
+  set AnonymousBlacklist (value) {
+    LStorage.Blacklist._anonymousBlacklist = value;
+    localStorage.setItem("anonymous-blacklist", value);
+  },
+  _anonymousBlacklist: undefined,
 
   /**
    * List of disabled blacklist filters
@@ -119,8 +140,13 @@ LStorage.Blacklist = {
   },
   _filterCache: undefined,
 };
-StorageUtils.bootstrapSome(LStorage.Blacklist, ["AnonymousBlacklist", "Collapsed"]);
+StorageUtils.bootstrapSome(LStorage.Blacklist, ["Collapsed"]);
 
+
+/**
+ * Patches the add, delete, and clear methods for the filter cache set.
+ * Otherwise, modifying the set with these methods would not update the local storage
+ */
 function patchBlacklistFunctions () {
   LStorage.Blacklist._filterCache.add = function () {
     Set.prototype.add.apply(this, arguments);
