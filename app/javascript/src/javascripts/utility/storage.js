@@ -77,5 +77,17 @@ LStorage.Posts.TagScript = {
   },
 };
 
+LStorage.Blocking = {
+  /** @returns {boolean} True if the user has disabled hiding blips */
+  DisableHideBlips: ["disable_hide_blips", false],
+  /** @returns {boolean} True if the user has disabled hiding comments */
+  DisableHideComments: ["disable_hide_comments", false],
+  /** @returns {boolean} True if the user has disabled hiding forum topics */
+  DisableHideForumTopics: ["disable_hide_forum_topics", false],
+  /** @returns {boolean} True if the user has disabled hiding forum posts */
+  DisableHideForumPosts: ["disable_hide_forum_posts", false],
+};
+StorageUtils.bootstrapMany(LStorage.Blocking);
+
 
 export default LStorage;

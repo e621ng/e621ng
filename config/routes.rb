@@ -286,6 +286,7 @@ Rails.application.routes.draw do
       post :view
     end
     resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
+    resources :blocks, only: %i[index new create edit update destroy], controller: "user_blocks"
 
     collection do
       get :home

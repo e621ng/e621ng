@@ -109,6 +109,7 @@ class User < ApplicationRecord
   has_many :post_votes
   has_many :staff_notes, -> { order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
+  has_many :blocks, class_name: "UserBlock"
 
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -129,6 +130,36 @@ class User < ApplicationRecord
 
     def ban_expired?
       is_banned? && recent_ban.try(:expired?)
+    end
+  end
+
+  module BlockMethods
+    def is_blocking?(target)
+      blocks.where(target: target).exists?
+    end
+
+    def block_for(target)
+      blocks.find_by(target: target)
+    end
+
+    def is_blocking_blips_from?(target)
+      is_blocking?(target) && block_for(target).hide_blips?
+    end
+
+    def is_blocking_comments_from?(target)
+      is_blocking?(target) && block_for(target).hide_comments?
+    end
+
+    def is_blocking_forum_topics_from?(target)
+      is_blocking?(target) && block_for(target).hide_forum_topics?
+    end
+
+    def is_blocking_forum_posts_from?(target)
+      is_blocking?(target) && block_for(target).hide_forum_posts?
+    end
+
+    def is_blocking_messages_from?(target)
+      is_blocking?(target) && block_for(target).disable_messages?
     end
   end
 
@@ -867,6 +898,7 @@ class User < ApplicationRecord
   end
 
   include BanMethods
+  include BlockMethods
   include NameMethods
   include PasswordMethods
   include AuthenticationMethods

@@ -105,14 +105,28 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       setup do
-        @user_2 = create(:user)
+        @user2 = create(:user)
       end
 
       should "create two messages, one for the sender and one for the recipient" do
         assert_difference("Dmail.count", 2) do
-          dmail_attribs = {:to_id => @user_2.id, :title => "abc", :body => "abc"}
+          dmail_attribs = {:to_id => @user2.id, :title => "abc", :body => "abc"}
           post_auth dmails_path, @user, params: {:dmail => dmail_attribs}
           assert_redirected_to dmail_path(Dmail.last)
+        end
+      end
+
+      should "be rejected if the recipient is blacklisting the sender" do
+        @user2.update_column(:blacklisted_tags, "userid:#{@user.id}")
+        assert_no_difference("Dmail.count") do
+          post_auth dmails_path, @user, params: { dmail: { to_id: @user2.id, title: "abc", body: "abc" } }
+        end
+      end
+
+      should "be rejected if the recipient is blocking the sender" do
+        create(:user_block, user: @user2, target: @user, disable_messages: true)
+        assert_no_difference("Dmail.count") do
+          post_auth dmails_path, @user, params: { dmail: { to_id: @user2.id, title: "abc", body: "abc" } }
         end
       end
     end
