@@ -1,4 +1,5 @@
 import Filter from "./models/Filter";
+import PostCache from "./models/PostCache";
 import Utility from "./utility";
 import LStorage from "./utility/storage";
 
@@ -121,6 +122,8 @@ Blacklist.init_blacklist_toggles = function () {
  * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
  */
 Blacklist.add_posts = function ($posts) {
+  PostCache.register($posts);
+
   for (const filter of Object.values(Blacklist.filters))
     filter.update($posts);
 };
@@ -151,13 +154,13 @@ Blacklist.update_visibility = function () {
   // Apply / remove classes
   // TODO: Cache the post elements to avoid repeat lookups
   for (const postID of added)
-    $(`.blacklistable[data-id="${postID}"]`)
-      .addClass("blacklisted")
-      .trigger("blk:hide");
+    PostCache.apply(postID, ($element) => {
+      $element.addClass("blacklisted").trigger("blk:hide");
+    });
   for (const postID of removed)
-    $(`.blacklistable[data-id="${postID}"]`)
-      .removeClass("blacklisted")
-      .trigger("blk:show");
+    PostCache.apply(postID, ($element) => {
+      $element.removeClass("blacklisted").trigger("blk:show");
+    });
 };
 
 $(() => {
