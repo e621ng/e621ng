@@ -92,13 +92,13 @@ class PostsDecorator < ApplicationDecorator
     end
 
     tooltip = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}"
-    if CurrentUser.is_janitor?
+    if CurrentUser.is_janitor? || post.uploader_linked_artists.any?
       tooltip += "\nUploader: #{post.uploader_name}"
-      if post.is_flagged? || post.is_deleted?
-        flag = post.flags.order(id: :desc).first
-        tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
-        tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
-      end
+    end
+    if CurrentUser.is_janitor? && (post.is_flagged? || post.is_deleted?)
+      flag = post.flags.order(id: :desc).first
+      tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
+      tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
     end
     tooltip += "\n\n#{post.tag_string}"
 
