@@ -85,6 +85,7 @@ export default class Filter {
     }
 
     const post = PostCache.fromThumbnail($post);
+    if (this.matchIDs.has(post.id)) return;
 
     // Check if the post matches the filter
     let tokensMatch = true;
