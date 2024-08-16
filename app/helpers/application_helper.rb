@@ -148,8 +148,8 @@ module ApplicationHelper
     post_id = user.avatar_id
     return "" unless post_id
     deferred_post_ids.add(post_id)
-    tag.div class: 'post-thumb placeholder', id: "tp-#{post_id}", 'data-id': post_id do
-      tag.img class: 'thumb-img placeholder', src: '/images/thumb-preview.png', height: 100, width: 100
+    tag.div class: "post-thumb placeholder", id: "tp-#{post_id}", data: { id: post_id } do
+      tag.img class: "thumb-img placeholder", src: "/images/thumb-preview.png", height: 150, width: 150
     end
   end
 
