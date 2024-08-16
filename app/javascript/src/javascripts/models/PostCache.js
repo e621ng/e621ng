@@ -5,6 +5,14 @@
 export default class PostCache {
   static _cache = {};
 
+  static _elements = {};
+
+
+  /**
+   * Add to cache based on the data-attributes of the specific thumbnail element
+   * @param {JQuery<HTMLElement>} $element Thumbnail element
+   * @returns Processed data
+   */
   static fromThumbnail ($element) {
     const id = $element.data("id");
     if (this._cache[id]) return this._cache[id];
@@ -53,5 +61,77 @@ export default class PostCache {
 
     this._cache[id] = value;
     return value;
+  }
+
+
+  /**
+   * Add to the cache based on the deferred post data
+   * @param {number} id Post ID
+   * @param {any} data Deferred post data
+   * @returns Processed data
+   */
+  static fromDeferredPosts (id, data) {
+
+    // Likely won't happen, but won't hurt to check
+    if (!id) return null;
+    if (this._cache[id]) return this._cache[id];
+
+    const tag_string = data.tags || "",
+      tags = tag_string.split(" ");
+
+    const value = {
+      tag_string: tag_string,
+      tags: tags,
+      tagcount: tags.length,
+
+      id: id,
+      flags: (data.flags || "").split(" "),
+      rating: data.rating || "",
+      file_ext: data.file_ext || "",
+
+      width: parseInt(data.width) || -1,
+      height: parseInt(data.height) || -1,
+      size: parseInt(data.size) || -1,
+
+      score: parseInt(data.score) || 0,
+      fav_count: parseInt(data.fav_count) || 0,
+      is_favorited: data.is_favorited === "true",
+
+      uploader: (data.uploader || "").toLowerCase(),
+      uploader_id: parseInt(data.uploader_id) || -1,
+
+      pools: data.pools,
+    };
+
+    this._cache[id] = value;
+    return value;
+  }
+
+
+  /**
+   * Save post thumbnails so that they can be referred to later
+   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $element Post elements
+   */
+  static register ($elements) {
+    for (let $post of $elements) {
+      $post = $($post);
+      $post.removeClass("blacklistable");
+      const postData = PostCache.fromThumbnail($post);
+
+      if (!this._elements[postData.id]) this._elements[postData.id] = [];
+      this._elements[postData.id].push($post);
+    }
+  }
+
+
+  /**
+   * Applies the provided function to all posts with the specified ID.
+   * Typically used to set the blacklisted class on thumbnails.
+   * @param {number} postID Post ID
+   * @param {($el: JQuery<HTMLElement>) => void} fn Function to apply to the posts
+   */
+  static apply (postID, fn) {
+    for (const one of this._elements[postID])
+      fn(one);
   }
 }

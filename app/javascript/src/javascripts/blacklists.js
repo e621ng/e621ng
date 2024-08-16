@@ -1,4 +1,5 @@
 import Filter from "./models/Filter";
+import PostCache from "./models/PostCache";
 import Utility from "./utility";
 import LStorage from "./utility/storage";
 
@@ -99,6 +100,36 @@ Blacklist.regenerate_filters = function () {
     if (line) Blacklist.filters[line.text] = line;
   }
 
+  // Comment blacklisting
+  if (Utility.meta("blacklist-users") === "true") {
+    // This is extraordinarily silly
+    // We need a proper user ignoring system
+    for (const filter of Object.values(Blacklist.filters)) {
+
+      // Only the first token is accepted
+      // If the user is trying something wackier, that's their fault
+      const token = filter.tokens[0];
+
+      switch (token.type) {
+        case "user": {
+          if (token.value.startsWith("!")) {
+            $(`article[data-creator-id="${token.value.slice(1)}"]`).hide();
+            continue;
+          }
+          // falls through
+        }
+        case "username": {
+          $(`article[data-creator="${token.value}"]`).hide();
+          continue;
+        }
+        case "userid": {
+          $(`article[data-creator-id="${token.value}"]`).hide();
+          continue;
+        }
+      }
+    }
+  }
+
   // Clear any FilterState entries that don't have a matching filter
   const keys = Object.keys(Blacklist.filters);
   for (const filterState of LStorage.Blacklist.FilterState) {
@@ -121,6 +152,8 @@ Blacklist.init_blacklist_toggles = function () {
  * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
  */
 Blacklist.add_posts = function ($posts) {
+  PostCache.register($posts);
+
   for (const filter of Object.values(Blacklist.filters))
     filter.update($posts);
 };
@@ -151,13 +184,13 @@ Blacklist.update_visibility = function () {
   // Apply / remove classes
   // TODO: Cache the post elements to avoid repeat lookups
   for (const postID of added)
-    $(`.blacklistable[data-id="${postID}"]`)
-      .addClass("blacklisted")
-      .trigger("blk:hide");
+    PostCache.apply(postID, ($element) => {
+      $element.addClass("blacklisted").trigger("blk:hide");
+    });
   for (const postID of removed)
-    $(`.blacklistable[data-id="${postID}"]`)
-      .removeClass("blacklisted")
-      .trigger("blk:show");
+    PostCache.apply(postID, ($element) => {
+      $element.removeClass("blacklisted").trigger("blk:show");
+    });
 };
 
 $(() => {
