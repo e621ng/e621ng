@@ -26,6 +26,8 @@ class UploadService
     def process!(penalize_current_uploader:)
       # Prevent trying to replace deleted posts
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
+      # Prevent replacing note locked posts, which will fail to rescale
+      raise ProcessingError, "Post is note locked" if post.notes.any? && post.is_note_locked?
 
       create_backup_replacement
       PostReplacement.transaction do
@@ -107,7 +109,8 @@ class UploadService
     end
 
     def rescale_notes(post)
-      return if post.is_note_locked?
+      return if post.notes.empty?
+      raise ProcessingError, "Post is note locked" if post.is_note_locked?
       x_scale = post.image_width.to_f / post.image_width_before_last_save.to_f
       y_scale = post.image_height.to_f / post.image_height_before_last_save.to_f
 
