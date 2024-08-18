@@ -100,41 +100,43 @@ Blacklist.regenerate_filters = function () {
     if (line) Blacklist.filters[line.text] = line;
   }
 
-  // Comment blacklisting
-  if (Utility.meta("blacklist-users") === "true") {
-    // This is extraordinarily silly
-    // We need a proper user ignoring system
-    for (const filter of Object.values(Blacklist.filters)) {
-
-      // Only the first token is accepted
-      // If the user is trying something wackier, that's their fault
-      const token = filter.tokens[0];
-
-      switch (token.type) {
-        case "user": {
-          if (token.value.startsWith("!")) {
-            $(`article[data-creator-id="${token.value.slice(1)}"]`).hide();
-            continue;
-          }
-          // falls through
-        }
-        case "username": {
-          $(`article[data-creator="${token.value}"]`).hide();
-          continue;
-        }
-        case "userid": {
-          $(`article[data-creator-id="${token.value}"]`).hide();
-          continue;
-        }
-      }
-    }
-  }
-
   // Clear any FilterState entries that don't have a matching filter
   const keys = Object.keys(Blacklist.filters);
   for (const filterState of LStorage.Blacklist.FilterState) {
     if (keys.includes(filterState)) continue;
     LStorage.Blacklist.FilterState.delete(filterState);
+  }
+};
+
+/** Hides all comments created by blacklisted users */
+Blacklist.init_comment_blacklist = function () {
+  if (Utility.meta("blacklist-users") !== "true") return;
+
+  // This is extraordinarily silly
+  // We need a proper user ignoring system
+  for (const filter of Object.values(Blacklist.filters)) {
+
+    // Only the first token is accepted
+    // If the user is trying something wackier, that's their fault
+    const token = filter.tokens[0];
+
+    switch (token.type) {
+      case "user": {
+        if (token.value.startsWith("!")) {
+          $(`article[data-creator-id="${token.value.slice(1)}"]`).hide();
+          continue;
+        }
+        // falls through
+      }
+      case "username": {
+        $(`article[data-creator="${token.value}"]`).hide();
+        continue;
+      }
+      case "userid": {
+        $(`article[data-creator-id="${token.value}"]`).hide();
+        continue;
+      }
+    }
   }
 };
 
@@ -203,6 +205,7 @@ $(() => {
   Blacklist.update_visibility();
   $("#blacklisted-hider").remove();
 
+  Blacklist.init_comment_blacklist();
   Blacklist.init_blacklist_toggles();
 
   // Pause videos when blacklisting
