@@ -118,6 +118,7 @@ Blacklist.init_comment_blacklist = function () {
 
     // Only the first token is accepted
     // If the user is trying something wackier, that's their fault
+    if (!filter.tokens.length) continue;
     const token = filter.tokens[0];
 
     switch (token.type) {
