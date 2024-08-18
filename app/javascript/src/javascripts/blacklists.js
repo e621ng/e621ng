@@ -62,7 +62,7 @@ Blacklist.init_blacklist_editor = function () {
 
     // Start from scratch
     Blacklist.regenerate_filters();
-    Blacklist.add_posts($(".blacklistable"));
+    Blacklist.add_posts(PostCache.sample());
     Blacklist.update_visibility();
   });
 

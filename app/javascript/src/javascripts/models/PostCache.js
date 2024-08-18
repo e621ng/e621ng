@@ -134,4 +134,15 @@ export default class PostCache {
     for (const one of this._elements[postID])
       fn(one);
   }
+
+  /**
+   * Returns an array containing one of every thumbnail elements
+   * @returns {JQuery<HTMLElement>[]} Array of thumbnails
+   */
+  static sample () {
+    const output = [];
+    for (const elements of Object.values(this._elements))
+      output.push(elements[0]);
+    return output;
+  }
 }
