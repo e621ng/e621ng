@@ -1,7 +1,7 @@
 /*** Quick Edit Form ***/
 #blacklist-edit-dialog {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: min-content 1fr min-content;
   gap: 0.5rem;
 
@@ -10,8 +10,15 @@
   }
   p {
     margin-bottom: 0;
-    text-align: center;
+    text-align: right;
+    text-wrap: nowrap;
   }
+  #blacklist-save,
+  #blacklist-cancel {
+    width: min-content;
+    height: 2em;
+  }
+  #blacklist-cancel { justify-self: end; }
 }
 
 /*** Sidebar Blacklist ***/

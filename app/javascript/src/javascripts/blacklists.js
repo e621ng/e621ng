@@ -29,10 +29,12 @@ Blacklist.init_anonymous_blacklist = function () {
 
 /** Set up the modal dialogue with the blacklist editor */
 Blacklist.init_blacklist_editor = function () {
+  let windowWidth = $(window).width(),
+    windowHeight = $(window).height();
   $("#blacklist-edit-dialog").dialog({
     autoOpen: false,
-    width: $(window).width() > 400 ? 400 : "auto",
-    height: 400,
+    width: windowWidth > 400 ? 400 : windowWidth,
+    height: windowHeight > 400 ? 400 : windowHeight,
   });
 
   $("#blacklist-cancel").on("click", function () {
