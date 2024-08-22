@@ -61,6 +61,7 @@ Thumbnails.initialize = function () {
 
   if (replacedPosts.length > 0) {
     Blacklist.add_posts(replacedPosts);
+    Blacklist.update_styles();
     Blacklist.update_visibility();
   }
 
