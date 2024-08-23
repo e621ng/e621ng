@@ -1,7 +1,7 @@
 <div class="posts-section">
 
 <% if presenter.has_uploads? %>
-  <div class="profile-sample collapsable profile-uploads">
+  <div class="profile-sample profile-uploads">
 
     <div class="profile-sample-header">
       <%= link_to "Uploads", posts_path(:tags => "user:#{user.name}"), class: "title" %>
@@ -13,7 +13,7 @@
       <%= link_to(sanitize("<b>#{user.own_post_replaced_count}</b> replaced"), post_replacements_path(search: { uploader_id_on_approve: user.id })) %>
       <%= link_to(sanitize("<b>#{user.post_replacement_rejected_count}</b> rejected"), post_replacements_path(search: { creator_id: user.id, status: "rejected" })) %>
       <span class="spacer"></span>
-      <%= link_to("Comments", comments_path(group_by: "comment", search: { poster_id: user.id })) %>
+      <%= link_to("Comments", comments_path(group_by: "comment", search: { poster_id: user.id }), class: "profile-comments-link") %>
     </div>
 
     <div class="profile-sample-posts">
