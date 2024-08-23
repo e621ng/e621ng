@@ -74,9 +74,7 @@ div#c-users {
 
 
     // Middle section: uploads and favorites
-    .blacklist-section {
-      .blacklist-ui { padding: 0; }
-    }
+    .blacklist-ui { padding: 0; }
 
     .posts-section {
       display: flex;
@@ -191,7 +189,7 @@ div#c-users {
     .about-section {
       display: flex;
       flex-flow: column;
-      gap: 0.5em;
+      gap: 1em;
 
       // Mobile
       @include window-larger-than(800px) {
