@@ -97,15 +97,15 @@ div#c-users {
       }
 
       .profile-sample-header a, .profile-sample-links a {
-        background-color: themed("color-section");
-        border-radius: 6px;
-        padding: 0.5em;
         display: block;
-        height: 100%;
         box-sizing: border-box;
-        align-content: space-between;
-        text-align: center;
         align-content: center;
+        text-align: center;
+
+        height: 100%;
+        padding: 0.5em;
+        border-radius: 6px;
+        background-color: themed("color-section");
 
         &:hover {
           background-color: themed("color-section-lighten-5");
