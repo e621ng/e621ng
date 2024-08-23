@@ -9,59 +9,51 @@
 
 div#c-users {
   div#a-show {
-    .profile-container {
-      width: 100%;
+
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
+
+    & > div {
+      max-width: 1600px;
+      box-sizing: border-box;
     }
 
-    .bottom-section {
-      display: flex;
-    }
-
+    // Top section: stats and whatnot
     .stats-section {
       display: flex;
-    }
+      flex-flow: column;
 
-    .posts-section {
-      .posts {
-        display: flex;
+      // Mobile
+      @include window-larger-than(800px) {
+        flex-flow: row;
       }
-    }
 
-    .profile-avatar {
-      margin-right: 2em;
-    }
-
-    .about-section {
-      flex-grow: 2;
-      display: flex;
-      .about-piece {
-        flex-grow: 1;
-        margin: 0 1em;
+      .profile-avatar .post-thumbnail {
+        margin: 0 1em 1em 0;
       }
-      div {
-        flex-basis: 50%;
-      }
-    }
 
-    .vertical-section {
-      display: flex;
-      flex-direction: column;
-    }
+      .profile-stats {
+        width: 100%;
+        padding: 0 0.5em;
+        box-sizing: border-box; // padding overflows the page otherwise
+        border-radius: $border-radius-full;
+        background: themed("color-section");
 
-    .profile-stats {
-      width: 100%;
-      border-radius: $border-radius-full;
-      padding-left: 0.5em;
-      background: themed("color-section");
-
-      abbr {
-        cursor: help;
+        abbr {
+          cursor: help;
+        }
       }
     }
 
     .user-statistics {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
+
+      // Mobile
+      @include window-larger-than(800px) {
+        grid-template-columns: 1fr 1fr;
+      }
 
       .column {
         display: grid;
@@ -73,6 +65,146 @@ div#c-users {
           font-weight: bold;
           text-align: right;
         }
+      }
+    }
+
+    .staff-notes-section {
+      details { margin-bottom: 0; }
+    }
+
+
+    // Middle section: uploads and favorites
+    .blacklist-section {
+      .blacklist-ui { padding: 0; }
+    }
+
+    .posts-section {
+      display: flex;
+      flex-flow: column;
+      gap: 1em;
+
+      .profile-sample {
+        display: grid;
+        grid-template: "p-header p-links"
+                       "p-posts p-posts";
+        grid-template-columns: auto 1fr;
+        gap: 0 0.5em;
+
+        // Entries with more than one button need this
+        // to properly collapse on mobile
+        &.collapsable {
+          grid-template: "p-header"
+                         "p-links"
+                         "p-posts";
+          grid-template-columns: 1fr;
+          gap: 0.5em 0.5em;
+
+          .profile-sample-header a {
+            border-radius: 6px;
+          }
+        }
+
+        // Desktop
+        @include window-larger-than(800px) {
+          &.collapsable {
+            grid-template: "p-header p-links"
+                          "p-posts p-posts";
+            grid-template-columns: auto 1fr;
+            gap: 0 0.5em;
+
+            .profile-sample-header a {
+              border-radius: 6px 6px 0 0;
+            }
+          }
+        }
+      }
+
+      .profile-sample-header a, .profile-sample-links a {
+        background-color: themed("color-section");
+        height: min-content;
+        border-radius: 6px;
+
+        &:hover {
+          background-color: themed("color-section-lighten-5");
+        }
+        &:focus, &:active {
+          outline: 0;
+          color: themed("color-link-active");
+        }
+      }
+
+      .profile-sample-header {
+        grid-area: p-header;
+        display: flex;
+
+        a {
+          padding: 0.5em 0.75em;
+          border-radius: 6px 6px 0 0;
+
+          font-size: 1.125em;
+          min-width: 5rem;  // Ensure that both labels are the same width
+          text-align: center;
+          font-weight: bold;
+        }
+      }
+
+      .profile-sample-links {
+        grid-area: p-links;
+        display: flex;
+        flex-wrap: wrap;
+        
+        gap: 0.5em;
+
+        a {
+          padding: 0.4em;
+        }
+      }
+
+      .profile-sample-posts {
+        grid-area: p-posts;
+        display: flex;
+        overflow: auto;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+
+        gap: 0.5em;
+        padding: 0.5em;
+
+        background: var(--color-section);
+        border-radius: 0 6px 6px 6px;
+
+        // Desktop
+        @include window-larger-than(800px) {
+          flex-wrap: nowrap;
+        }
+
+        article.post-preview {
+          flex: 0 0 150px;
+          margin: 0;
+          img { max-width: unset !important; }
+        }
+      }
+    }
+
+
+    // Bottom section: about me and commission info
+    .about-section {
+      display: flex;
+      flex-flow: column;
+      gap: 0.5em;
+
+      // Mobile
+      @include window-larger-than(800px) {
+        flex-flow: row;
+      }
+
+      .profile-about-entry {
+        flex-grow: 1;
+        flex-basis: 50%;
+
+        background-color: themed("color-section");
+        border-radius: 6px;
+        padding: 0.5em;
       }
     }
   }
@@ -106,41 +238,6 @@ div#c-users {
     p {
       font-size: 1.2em;
       line-height: 1.4em;
-    }
-  }
-}
-
-@media screen and (max-width: 800px) {
-  body.resp {
-    div#c-users {
-      div#a-show {
-        .stats-section {
-          flex-direction: column;
-        }
-        .bottom-section {
-          flex-direction: column;
-        }
-        .vertical-section {
-          flex-direction: row;
-          flex-wrap: wrap;
-        }
-        .posts-section {
-          order: 2;
-          .posts {
-            display: block;
-          }
-        }
-        .user-uploads {
-          order: 1;
-        }
-        .about-section {
-          flex-direction: column;
-        }
-        .about-piece {
-          margin: 0;
-          margin-bottom: $padding-050;
-        }
-      }
     }
   }
 }
