@@ -110,7 +110,7 @@ let Note = {
       );
 
       if (Utility.meta("current-user-name") !== "Anonymous") {
-        $note_box.on("dblclick.danbooru", function(e) {
+        $note_box.on("dblclick.danbooru", function (e) {
           if (e.target.tagName !== "A") {
             var note_id = $note_box.data("id");
             var note_body = Note.Body.find(note_id);
@@ -119,7 +119,7 @@ let Note = {
           e.stopPropagation();
         });
       } else {
-        $note_box.on("dblclick.danbooru", function(e) {
+        $note_box.on("dblclick.danbooru", function (e) {
           var note_id = $note_box.data("id");
           var note_body = Note.Body.find(note_id);
           if (note_body.tagName !== "A") {
