@@ -105,6 +105,7 @@ div#c-users {
         box-sizing: border-box;
         align-content: space-between;
         text-align: center;
+        align-content: center;
 
         &:hover {
           background-color: themed("color-section-lighten-5");
