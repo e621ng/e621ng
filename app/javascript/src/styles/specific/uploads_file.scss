@@ -85,6 +85,7 @@
     input[type="text"] {
       font-family: monospace;
       font-size: 1rem; // Match the upload page inputs
+      width: 100%; // Prevent overflow
       text-align: center;
       box-sizing: border-box;
       flex: 1;
