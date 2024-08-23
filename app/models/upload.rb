@@ -213,6 +213,7 @@ class Upload < ApplicationRecord
   end
 
   def fixup_source
+    self.source = "" if source.nil?
     if direct_url_parsed.present?
       canonical = Sources::Strategies.find(direct_url_parsed).canonical_url
       self.source += "\n#{canonical}" if canonical
