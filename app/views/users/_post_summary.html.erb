@@ -35,7 +35,7 @@
     <div class="profile-sample-links">
       <%= link_to(sanitize("<b>#{user.favorite_count}</b> total"), favorites_path(:user_id => user.id)) %>
       <% if user.enable_privacy_mode? || user.is_blocked? %>
-        <span>(hidden)</span>
+        <span>[hidden]</span>
       <% end %>
     </div>
 

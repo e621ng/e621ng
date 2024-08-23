@@ -137,6 +137,11 @@ div#c-users {
         gap: 0.5rem;
         text-align: center;
 
+        span {
+          padding: 0.5em;
+          color: themed("color-text-muted");
+        }
+
         .spacer { display: none; }
         .profile-comments-link {
           grid-row: 1 / 3;
