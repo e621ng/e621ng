@@ -138,7 +138,12 @@ class FilterToken {
 
     // Get filter type: tag, id, score, rating, etc.
     this.type = FilterUtils.getFilterType(raw);
-    if (this.type != "tag") raw = raw.slice(this.type.length + 1);
+    if (this.type !== "tag") raw = raw.slice(this.type.length + 1);
+    else if (raw.includes("*")) {
+      this.value = new RegExp(raw.replaceAll(/\*/g, ".*"));
+      this.type = "wildcard";
+      return;
+    }
 
     // Get comparison methods: equals, smaller then, etc
     this.comparison = FilterUtils.getComparison(raw);

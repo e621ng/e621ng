@@ -34,6 +34,9 @@ FilterUtils.FilterTests = {
   username: (token, post) => post.uploader === token.value,
 
   pool: (token, post) => post.pools.includes(parseInt(token.value) || 0),
+
+  // Not a supported metatag, type is assigned manually
+  wildcard: (token, post) => FilterUtils.wildcardTagMatchesFilter(post, token.value),
 };
 
 /** Array of supported metatags. */
@@ -88,6 +91,8 @@ FilterUtils.getComparison = (input) => {
  */
 FilterUtils.normalizeData = (value, type) => {
   switch (type) {
+    case "tag":
+      return value;
     case "tagcount":
     case "id":
     case "width":
@@ -136,6 +141,12 @@ FilterUtils.compare = (a, token) => {
  */
 FilterUtils.tagsMatchesFilter = (post, filter) => {
   return post.tags.indexOf(filter) >= 0;
+};
+
+FilterUtils.wildcardTagMatchesFilter = (post, filter) => {
+  for (const one of post.tags)
+    if (filter.test(one)) return true;
+  return false;
 };
 
 /**
