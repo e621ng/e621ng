@@ -1,24 +1,13 @@
-
-
 .box-section {
   background-color: themed("color-section");
   padding: $base-padding;
   margin-bottom: 1.5rem;
   border-radius: $border-radius-half;
-}
 
-.box-section.sect_green {
-  background-color: $section-green-background;
-}
-
-.box-section.sect_grey {
-  background-color: $section-grey-background;
-}
-
-.box-section.sect_red {
-  background-color: $section-red-background;
-}
-
-.box-section.sect_yellow {
-  background-color: $section-yellow-background;
+  // For some reason, link hover color was overriden in the original stylesheet.
+  &.background-green, &.background-grey, &.background-red, &.background-yellow {
+    a:hover {
+      color: themed("color-text");
+    }
+  }
 }

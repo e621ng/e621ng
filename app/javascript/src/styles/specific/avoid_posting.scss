@@ -1,0 +1,87 @@
+#c-static #a-avoid-posting {
+  margin-left: 0.25em;
+
+  #avoid-posting-list {
+    h2 {
+      margin-top: 1.25em;
+      font-size: 1.8em;
+      line-height: 1em;
+      margin-bottom: .25em;
+    }
+
+    ul {
+      margin-left: 1em;
+
+      li {
+        list-style-type: disc;
+      }
+    }
+  }
+}
+
+#c-avoid-postings #a-index, #c-avoid-posting-versions #a-index {
+
+  table.dnp-list {
+    td.dnp-artist {
+      grid-area: artist;
+
+      .dnp-artist-names {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25em 0.5em;
+        span { text-wrap: pretty; }
+      }
+    }
+    td.dnp-details {
+      grid-area: details;
+      width: 60%;
+
+      span.avoid-posting-staff-notes {
+        display: flex;
+        flex-flow: column;
+        margin-top: 0.5em;
+      }
+    }
+    td.dnp-creator {
+      grid-area: creator;
+      text-wrap: nowrap;
+    }
+    td.dnp-status {
+      grid-area: status;
+    }
+    td.dnp-links {
+      grid-area: links;
+      white-space: nowrap;
+    }
+  }
+
+  @media screen and (max-width: 800px) {
+    table.dnp-list {
+      thead {
+        display: block;
+        tr {
+          display: flex;
+          justify-content: space-around;
+          th.dnp-links { display: none; }
+        }
+      }
+      tbody {
+        display: block;
+        tr {
+          display: grid;
+          width: 100%;
+          grid-template-columns: 1fr min-content min-content;
+          grid-template-areas:
+            "artist status creator links"
+            "details details details details";
+          grid-column-gap: 1em;
+
+          td.dnp-details {
+            width: unset;
+            padding-top: 0;
+          }
+        }
+      }
+    }
+  }
+}

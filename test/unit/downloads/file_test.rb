@@ -88,6 +88,13 @@ module Downloads
           tempfile = download.download!
           assert_equal("abc", tempfile.read)
         end
+
+        should "raise for 404" do
+          stub_request(:get, "https://example.com").to_return(status: 404)
+          download = Downloads::File.new("https://example.com")
+          e = assert_raises(Downloads::File::Error) { download.download! }
+          assert_match("Not Found", e.message)
+        end
       end
 
       should "throw an exception when the file is larger than the maximum" do

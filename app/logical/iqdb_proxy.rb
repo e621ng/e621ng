@@ -15,9 +15,9 @@ module IqdbProxy
     endpoint.present?
   end
 
-  def make_request(path, request_type, params = {})
+  def make_request(path, request_type, body = nil)
     conn = Faraday.new(Danbooru.config.faraday_options)
-    conn.send(request_type, endpoint + path, params.to_json, { content_type: "application/json" })
+    conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
   rescue Faraday::Error
     raise Error, "This service is temporarily unavailable. Please try again later."
   end

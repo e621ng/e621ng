@@ -37,7 +37,8 @@
       <ul>
         <li><h1>Artists</h1></li>
         <li><%= link_to("Listing", artists_path) %></li>
-        <li><%= link_to("Avoid Posting", help_page_path(id: "avoid_posting")) %></li>
+        <li><%= link_to("Avoid Posting Entries", avoid_postings_path) %></li>
+        <li><%= link_to("Avoid Posting List", avoid_posting_static_path) %></li>
         <li><%= link_to("Changes", artist_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "artists")) %></li>
       </ul>
@@ -116,6 +117,7 @@
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
           <li><%= link_to("Alt list", alt_list_admin_users_path) %></li>
           <li><%= link_to("Stuck DNP tags", new_admin_stuck_dnp_path) %></li>
+          <li><%= link_to("Destroyed Posts", admin_destroyed_posts_path) %></li>
         <% end %>
         <li><%= link_to("Upload Whitelist", upload_whitelists_path) %></li>
         <li><%= link_to("Mod Actions", mod_actions_path) %></li>

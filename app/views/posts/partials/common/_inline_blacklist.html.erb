@@ -1,7 +1,12 @@
-<section id="blacklist-box" class="inline-blacklist">
-  <strong id="blacklist-collapse" class="hidden">Blacklisted<span id="blacklisted-count"></span>: </strong>
-  <ul id="blacklist-list" style="display: none;">
-  </ul>
-  <span id="disable-all-blacklists" style="display: none;"><span class="link">Disable all</span></span>
-  <span id="re-enable-all-blacklists" style="display: none;"><span class="link">Re-enable all</span></span>
+<section
+  class="blacklist-ui blacklist-inline"
+  filters="0"
+  collapsed="true"
+>
+  <div class="blacklist-header">Blacklisted <span class="blacklisted-count"></span></div>
+  <div class="blacklist-filters"></div>
+  <span class="blacklist-footer">
+    <a class="blacklist-toggle-all"></a>
+    <div class="blacklist-help"><%= link_to "(help)", help_page_path(id: "blacklist") %></div>
+  </span>
 </section>

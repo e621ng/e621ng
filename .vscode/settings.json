@@ -2,6 +2,22 @@
   "[ruby]": {
     "editor.formatOnSave": false
   },
+  "files.associations": {
+    "*.erb": "erb"
+  },
   // Trick ruby-lsp into not doing any updates
   "rubyLsp.bundleGemfile": "Gemfile",
+
+  "npm.packageManager": "yarn",
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [100],
+  "editor.formatOnSave": false,
+  
+  // Eslint shenanigans
+  "eslint.useFlatConfig": true,
+  "eslint.validate": [
+    "javascript"
+  ],
 }

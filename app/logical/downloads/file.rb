@@ -35,7 +35,7 @@ module Downloads
           file.write(chunk)
         end
       end
-      raise Error, "HTTP error code: #{res.code} #{res.message}" unless res.success?
+      raise Error, "HTTP error code: #{res.status} #{Rack::Utils::HTTP_STATUS_CODES[res.status]}" unless res.success?
 
       file.rewind
       file

@@ -34,7 +34,7 @@
                     </div>
                     <div class="col2">
                         <div>
-            <textarea class="tag-textarea" v-model="tagEntries.character" id="post_characters" rows="2"
+            <textarea class="tag-textarea" v-model="tagEntries.artist" id="post_artist" rows="2"
                       placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc." data-autocomplete="tag-edit"></textarea>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                                             v-for="check in checkboxes.pairing" @set="setCheck"
                                             :key="check.name"></image-checkbox>
                         </div>
-                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.sex" id="post_sexes"
+                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.character" id="post_character"
                                   placeholder="Ex: character_name solo_focus etc."
                                   data-autocomplete="tag-edit"></textarea>
                     </div>
@@ -84,7 +84,7 @@
                                             v-for="check in checkboxes.body" @set="setCheck"
                                             :key="check.name"></image-checkbox>
                         </div>
-                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.bodyType" id="post_bodyTypes"
+                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.species" id="post_species"
                                   placeholder="Ex: bear dragon hyena rat newt etc."
                                   data-autocomplete="tag-edit"></textarea>
                     </div>
@@ -99,7 +99,7 @@
                         </div>
                     </div>
                     <div class="col2">
-          <textarea class="tag-textarea" v-model="tagEntries.theme" id="post_themes" rows="2"
+          <textarea class="tag-textarea" v-model="tagEntries.content" id="post_content" rows="2"
                     data-autocomplete="tag-edit"
                     placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></textarea>
                     </div>
@@ -113,7 +113,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-if="showErrors && invalidRating">
+                    <div class="box-section background-red" v-if="showErrors && invalidRating">
                         You must select an appropriate rating for this image.
                     </div>
                     <div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="col2">
                   <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
-                    <div class="box-section sect_red" v-show="showErrors && notEnoughTags">
+                    <div class="box-section background-red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
@@ -203,7 +203,7 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Danbooru.config.post_descr_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe }) %>
+                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Danbooru.config.post_descr_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe, allow_color: true }) %>
                 </div>
             </div>
             <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
@@ -218,16 +218,16 @@
             <div class="flex-grid">
                 <div class="col"></div>
                 <div class="col2">
-                    <div class="box-section sect_red" v-show="preventUpload && showErrors">
+                    <div class="box-section background-red" v-show="preventUpload && showErrors">
                         Unmet requirements above prevent the submission of the post.
                     </div>
-                    <div class="box-section sect_green" v-show="submitting">
+                    <div class="box-section background-green" v-show="submitting">
                         Submitting your post, please wait.
                     </div>
-                    <div class="box-section sect_red" v-show="error">
+                    <div class="box-section background-red" v-show="error">
                         {{ error }}
                     </div>
-                    <div class="box-section sect_red" v-show="duplicateId">
+                    <div class="box-section background-red" v-show="duplicateId">
                         Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
                     </div>
                     <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">
@@ -343,11 +343,13 @@
           all: allChecks
         },
         tagEntries: {
-          character: '',
-          sex: '',
-          bodyType: '',
-          theme: '',
-          other: '',
+          // These had a bizarre naming pattern
+          // Old names are listed below VVV
+          artist: "",     // character: '',
+          character: "",  // sex: '',
+          species: "",    // bodyType: '',
+          content: "",    // theme: '',
+          other: "",      // other: '',
         },
 
         tagPreview: {
@@ -388,20 +390,44 @@
           self[field] = (params.get(key) === 'true');
         }
       };
+
+      // Import tags from query parameters
       const fillTags = function() {
-        if(!params.has('tags'))
-          return;
-        const tags = params.get('tags').split(' ');
-        for(const tag of tags) {
-          const trimTag = tag.trim();
-          if(!trimTag)
-            continue;
-          self.pushTag(trimTag, true);
+        const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
+        
+        if(params.has("tags"))
+          self.importTags(params.get("tags"), "other");
+
+        if(self.normalMode) {
+          for(const name of queryList) {
+            if(!params.has(name)) continue;
+            self.importTags(params.get(name), name.replace("tags-", ""));
+          }
+        } else {
+          // No other inputs in advanced mode, so we can avoid
+          // recalculating duplicates every time in importTags
+          const tags = [];
+          for(const name of queryList) {
+            if(!params.has(name)) continue;
+            tags.push(params.get(name));
+          }
+          if(tags.length > 0)
+            self.importTags(tags.join(" "), "other");
         }
       };
+
+      // Import the post rating from a query parameter
+      const fillRating = function() {
+        if(!params.has("rating")) return;
+        const rating = params.get("rating")[0].toLowerCase();
+        if(!/[sqe]/.test(rating)) return;
+        self.rating = rating;
+      };
+
       fillField('parentID', 'parent');
       fillField('description', 'description');
       fillTags();
+      fillRating();
       if(params.has('sources')) {
         self.sources = params.get('sources').split(',');
       }
@@ -493,6 +519,30 @@
         }
         this.tagEntries.other = tags.join(' ') + ' ';
       },
+
+      /**
+       * Used to import tags from the query parameters
+       * @param {string} tags Raw tag string
+       * @param {string} input Which of the tagEntries the tags should be added to
+       */
+      importTags(tags, input) {
+        this.tagPreview.show = false;
+        const tagsA = (tags + "").trim().split(" ").filter(n => n);
+
+        // Dedupe
+        let tagsB = this.normalMode ? [] : (this.tagEntries.other || "").trim().split(" ");
+        tagsA.forEach((tag) => {
+          if(tagsB.indexOf(tag) >= 0) return;
+          // In advanced mode, checkboxes are not available
+          if(this.normalMode && typeof this.checkboxes.all[tag] !== "undefined")
+            this.setCheck(tag, true);
+          tagsB.push(tag);
+        });
+
+        // Without a space at the end, vue panics
+        this.tagEntries[this.normalMode ? input : "other"] = tagsB.join(" ") + " ";
+      },
+
       previewFinalTags() {
         if (this.tagPreview.loading)
           return;
@@ -572,8 +622,8 @@
         const checked = Object.keys(this.checkboxes.selected).filter(function (x) {
           return self.checkboxes.selected[x] === true;
         });
-        return checked.concat([this.tagEntries.other, this.tagEntries.sex, this.tagEntries.bodyType,
-          this.tagEntries.theme, this.tagEntries.character]).join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
+        return checked.concat([this.tagEntries.other, this.tagEntries.artist, this.tagEntries.character,
+          this.tagEntries.species, this.tagEntries.content]).join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');

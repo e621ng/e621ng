@@ -6,6 +6,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
   context "The post replacements controller" do
     setup do
       @user = create(:moderator_user, can_approve_posts: true, created_at: 1.month.ago)
+      @regular_user = create(:member_user, replacements_beta: true, created_at: 1.month.ago)
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
@@ -21,8 +22,9 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           post_id: @post.id,
           post_replacement: {
             replacement_file: file,
-            reason: 'test replacement'
-          }
+            reason: "test replacement",
+            as_pending: true,
+          },
         }
 
         assert_difference(-> { @post.replacements.size }) do
@@ -31,6 +33,76 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         end
 
         assert_equal @response.parsed_body["location"], post_path(@post)
+      end
+
+      context "with as_pending false" do
+        should "immediately approve a replacement" do
+          file = fixture_file_upload("alpha.png")
+          params = {
+            format: :json,
+            post_id: @post.id,
+            post_replacement: {
+              replacement_file: file,
+              reason: "test replacement",
+              as_pending: false,
+            },
+          }
+
+          post_auth post_replacements_path, @user, params: params
+          @post.reload
+
+          # 200be2be97a465ecd2054a51522f65b5 is the md5 of alpha.png
+          assert_equal "200be2be97a465ecd2054a51522f65b5", @post.md5
+          assert_equal @response.parsed_body["location"], post_path(@post)
+        end
+
+        should "always upload as pending if user can't approve posts" do
+          file = fixture_file_upload("test.gif")
+          params = {
+            format: :json,
+            post_id: @post.id,
+            post_replacement: {
+              replacement_file: file,
+              reason: "test replacement",
+              as_pending: false,
+            },
+          }
+
+          post_auth post_replacements_path, @regular_user, params: params
+          @post.reload
+
+          # 1e2edf6bdbd971d8c3cc4da0f98f38ab is the md5 of test.gif
+          assert_not_equal "1e2edf6bdbd971d8c3cc4da0f98f38ab", @post.md5
+          assert_equal @response.parsed_body["location"], post_path(@post)
+        end
+      end
+
+      context "with a previously destroyed post" do
+        setup do
+          @admin = create(:admin_user)
+          as(@admin) do
+            @replacement.destroy
+            @upload2 = UploadService.new(attributes_for(:png_upload).merge({ uploader: @user })).start!
+            @post2 = @upload2.post
+            @post2.expunge!
+          end
+        end
+
+        should "fail and create ticket" do
+          assert_difference({ "PostReplacement.count" => 0, "Ticket.count" => 1 }) do
+            file = fixture_file_upload("test.png")
+            post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
+            Rails.logger.debug PostReplacement.all.map(&:md5).join(", ")
+          end
+        end
+
+        should "fail and not create ticket if notify=false" do
+          DestroyedPost.find_by!(post_id: @post2.id).update_column(:notify, false)
+          assert_difference(%(Post.count Ticket.count), 0) do
+            file = fixture_file_upload("test.png")
+            post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
+          end
+        end
       end
     end
 
@@ -76,7 +148,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         put_auth toggle_penalize_post_replacement_path(@replacement), @user
         assert_redirected_to post_replacement_path(@replacement)
         @replacement.reload
-        assert !@replacement.penalize_uploader_on_approve
+        assert_not @replacement.penalize_uploader_on_approve
       end
     end
 
@@ -89,7 +161,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "new action" do
       should "render" do
-        get_auth new_post_replacement_path, @user, params: {post_id: @post.id}
+        get_auth new_post_replacement_path, @user, params: { post_id: @post.id }
         assert_response :success
       end
     end

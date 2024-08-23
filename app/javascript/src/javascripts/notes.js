@@ -1,31 +1,31 @@
-import Utility from './utility'
+import Utility from "./utility";
 
 let Note = {
   Box: {
-    create: function(id) {
-      var $inner_border = $('<div/>');
+    create: function (id) {
+      var $inner_border = $("<div/>");
       $inner_border.addClass("note-box-inner-border");
       $inner_border.css({
         opacity: 0.5,
       });
 
-      var $note_box = $('<div/>');
+      var $note_box = $("<div/>");
       $note_box.addClass("note-box");
 
       $note_box.data("id", String(id));
       $note_box.attr("data-id", String(id));
       $note_box.draggable({
         containment: $("#image"),
-        stop: function(e, ui) {
+        stop: function () {
           Note.Box.update_data_attributes($note_box);
-        }
+        },
       });
       $note_box.resizable({
         containment: $("#image"),
         handles: "se, nw",
-        stop: function(e, ui) {
+        stop: function () {
           Note.Box.update_data_attributes($note_box);
-        }
+        },
       });
       $note_box.css({position: "absolute"});
       $note_box.append($inner_border);
@@ -34,9 +34,9 @@ let Note = {
       return $note_box;
     },
 
-    update_data_attributes: function($note_box) {
+    update_data_attributes: function ($note_box) {
       var $image = $("#image");
-      var $image_container = $("#image-container")
+      var $image_container = $("#image-container");
       var ratio = $image.width() / parseFloat($image_container.data("width"));
       var new_x = parseFloat($note_box.css("left"));
       var new_y = parseFloat($note_box.css("top"));
@@ -52,38 +52,38 @@ let Note = {
       $note_box.data("height", new_height);
     },
 
-    bind_events: function($note_box) {
+    bind_events: function ($note_box) {
       $note_box.on(
         "dragstart.danbooru resizestart.danbooru",
-        function(e) {
+        function (e) {
           var $note_box_inner = $(e.currentTarget);
           $note_box_inner.find(".note-box-inner-border").addClass("unsaved");
           Note.dragging = true;
           Note.clear_timeouts();
           Note.Body.hide_all();
           e.stopPropagation();
-        }
+        },
       );
 
       $note_box.on("resize.danbooru",
-        function(e) {
+        function (e) {
           var $note_box_inner = $(e.currentTarget);
           Note.Box.resize_inner_border($note_box_inner);
           e.stopPropagation();
-        }
+        },
       );
 
       $note_box.on(
         "dragstop.danbooru resizestop.danbooru",
-        function(e) {
+        function (e) {
           Note.dragging = false;
           e.stopPropagation();
-        }
+        },
       );
 
       $note_box.on(
         "mouseover.danbooru mouseout.danbooru",
-        function(e) {
+        function (e) {
           if (Note.dragging) {
             return;
           }
@@ -106,7 +106,7 @@ let Note = {
           }
 
           e.stopPropagation();
-        }
+        },
       );
 
       if (Utility.meta("current-user-name") !== "Anonymous") {
@@ -130,11 +130,11 @@ let Note = {
       }
     },
 
-    find: function(id) {
+    find: function (id) {
       return $("#note-container div.note-box[data-id=" + id + "]");
     },
 
-    show_highlighted: function($note_box) {
+    show_highlighted: function ($note_box) {
       var note_id = $note_box.data("id");
 
       Note.Body.show(note_id);
@@ -143,11 +143,11 @@ let Note = {
       $note_box[0].scrollIntoView(false);
     },
 
-    resize_inner_border: function($note_box) {
+    resize_inner_border: function ($note_box) {
       var $inner_border = $note_box.find("div.note-box-inner-border");
       $inner_border.css({
         height: $note_box.height() - 2,
-        width: $note_box.width() - 2
+        width: $note_box.width() - 2,
       });
 
       if ($inner_border.width() >= $note_box.width() - 2) {
@@ -159,48 +159,48 @@ let Note = {
       }
     },
 
-    scale: function($note_box) {
+    scale: function ($note_box) {
       var $image = $("#image");
-      var $image_container = $("#image-container")
+      var $image_container = $("#image-container");
       var ratio = $image.width() / parseFloat($image_container.data("width"));
       var MIN_SIZE = 5;
       $note_box.css({
         top: Math.ceil(parseFloat($note_box.data("y")) * ratio),
         left: Math.ceil(parseFloat($note_box.data("x")) * ratio),
         width: Math.max(MIN_SIZE, Math.ceil(parseFloat($note_box.data("width")) * ratio)),
-        height: Math.max(MIN_SIZE, Math.ceil(parseFloat($note_box.data("height")) * ratio))
+        height: Math.max(MIN_SIZE, Math.ceil(parseFloat($note_box.data("height")) * ratio)),
       });
       Note.Box.resize_inner_border($note_box);
     },
 
-    scale_all: function() {
+    scale_all: function () {
       var $container = $("#note-container");
       if ($container.length === 0) {
         return;
       }
       // Hide notes while rescaling, to prevent unnecessary reflowing
       $container.data("resizing", true);
-      $(".note-box").each(function(i, v) {
+      $(".note-box").each(function (i, v) {
         Note.Box.scale($(v));
       });
       $container.data("resizing", false);
     },
 
-    toggle_all: function() {
+    toggle_all: function () {
       var $note_container = $("#note-container");
-      var is_hidden = ($note_container.css('visibility') === 'hidden');
+      var is_hidden = ($note_container.css("visibility") === "hidden");
 
       if (is_hidden) {
-        $note_container.css('visibility', 'visible');
+        $note_container.css("visibility", "visible");
       } else {
-        $note_container.css('visibility', 'hidden');
+        $note_container.css("visibility", "hidden");
       }
-    }
+    },
   },
 
   Body: {
-    create: function(id) {
-      var $note_body = $('<div></div>');
+    create: function (id) {
+      var $note_body = $("<div></div>");
       $note_body.addClass("note-body");
       $note_body.data("id", String(id));
       $note_body.attr("data-id", String(id));
@@ -209,52 +209,54 @@ let Note = {
       return $note_body;
     },
 
-    initialize: function($note_body) {
+    initialize: function ($note_body) {
       var $note_box = Note.Box.find($note_body.data("id"));
       $note_body.css({
         top: $note_box.position().top + $note_box.height() + 5,
-        left: $note_box.position().left
+        left: $note_box.position().left,
       });
       Note.Body.bound_position($note_body);
     },
 
-    bound_position: function($note_body) {
+    bound_position: function ($note_body) {
       var $image = $("#image");
       var doc_width = $image.offset().left + $image.width();
 
       if ($note_body.offset().left + $note_body.width() > doc_width) {
         $note_body.css({
-          left: $note_body.position().left - 10 - ($note_body.offset().left + $note_body.width() - doc_width)
+          left: $note_body.position().left - 10 - ($note_body.offset().left + $note_body.width() - doc_width),
         });
       }
     },
 
-    show: function(id) {
+    show: function (id) {
       Note.Body.hide_all();
       Note.clear_timeouts();
       var $note_body = Note.Body.find(id);
-      if (!$note_body.data('resized')) {
+      if (!$note_body.data("resized")) {
         Note.Body.resize($note_body);
-        $note_body.data('resized', 'true');
+        $note_body.data("resized", "true");
       }
       $note_body.show();
       Note.Body.initialize($note_body);
     },
 
-    find: function(id) {
+    find: function (id) {
       return $("#note-container div.note-body[data-id=" + id + "]");
     },
 
-    hide: function(id) {
+    hide: function (id) {
       var $note_body = Note.Body.find(id);
-      Note.timeouts.push(setTimeout(function() {$note_body.hide();}, 350));
+      Note.timeouts.push(
+        setTimeout(() => { $note_body.hide(); }, 350),
+      );
     },
 
-    hide_all: function() {
+    hide_all: function () {
       $("#note-container div.note-body").hide();
     },
 
-    resize: function($note_body) {
+    resize: function ($note_body) {
       $note_body.css("min-width", "");
       var w = $note_body.width();
       var h = $note_body.height();
@@ -289,7 +291,7 @@ let Note = {
           x = (lo + hi) / 2;
           $note_body.css("min-width", x);
           if ($note_body.height() > h) {
-            lo = x
+            lo = x;
           } else {
             hi = x;
           }
@@ -300,31 +302,31 @@ let Note = {
       }
     },
 
-    set_text: function($note_body, $note_box, text) {
+    set_text: function ($note_body, $note_box, text) {
       Note.Body.display_text($note_body, text);
       Note.Body.resize($note_body);
       Note.Body.bound_position($note_body);
     },
 
-    display_text: function($note_body, text) {
+    display_text: function ($note_body, text) {
       $note_body.html(text);
     },
 
-    bind_events: function($note_body) {
-      $note_body.on("mouseover.danbooru", function(e) {
+    bind_events: function ($note_body) {
+      $note_body.on("mouseover.danbooru", function (e) {
         var $note_body_inner = $(e.currentTarget);
         Note.Body.show($note_body_inner.data("id"));
         e.stopPropagation();
       });
 
-      $note_body.on("mouseout.danbooru", function(e) {
+      $note_body.on("mouseout.danbooru", function (e) {
         var $note_body_inner = $(e.currentTarget);
         Note.Body.hide($note_body_inner.data("id"));
         e.stopPropagation();
       });
 
       if (Utility.meta("current-user-name") !== "Anonymous") {
-        $note_body.on("click.danbooru", function(e) {
+        $note_body.on("click.danbooru", function (e) {
           if (e.target.tagName !== "A") {
             var $note_body_inner = $(e.currentTarget);
             Note.Edit.show($note_body_inner);
@@ -332,18 +334,18 @@ let Note = {
           e.stopPropagation();
         });
       } else {
-        $note_body.on("click.danbooru", function(e) {
+        $note_body.on("click.danbooru", function (e) {
           if (e.target.tagName !== "A") {
             Utility.error("You must be logged in to edit notes");
           }
           e.stopPropagation();
         });
       }
-    }
+    },
   },
 
   Edit: {
-    show: function($note_body) {
+    show: function ($note_body) {
       var id = $note_body.data("id");
 
       if (Note.editing) {
@@ -353,7 +355,7 @@ let Note = {
       $(".note-box").resizable("disable");
       $(".note-box").draggable("disable");
 
-      let $textarea = $('<textarea></textarea>');
+      let $textarea = $("<textarea></textarea>");
       $textarea.css({
         width: "97%",
         height: "92%",
@@ -364,7 +366,7 @@ let Note = {
         $textarea.val($note_body.data("original-body"));
       }
 
-      let $dialog = $('<div></div>');
+      let $dialog = $("<div></div>");
       $dialog.append($textarea);
       $dialog.data("id", id);
       $dialog.dialog({
@@ -373,7 +375,7 @@ let Note = {
         position: {
           my: "right",
           at: "right-20",
-          of: window
+          of: window,
         },
         classes: {
           "ui-dialog": "note-edit-dialog",
@@ -384,15 +386,15 @@ let Note = {
           "Preview": Note.Edit.preview,
           "Cancel": Note.Edit.cancel,
           "Delete": Note.Edit.destroy,
-          "History": Note.Edit.history
-        }
+          "History": Note.Edit.history,
+        },
       });
-      $dialog.data("uiDialog")._title = function(title) {
+      $dialog.data("uiDialog")._title = function (title) {
         title.html(this.options.title); // Allow unescaped html in dialog title
-      }
-      $dialog.dialog("option", "title", 'Edit note #' + id + ' (<a href="/wiki_pages/e621:notes">view help</a>)');
+      };
+      $dialog.dialog("option", "title", "Edit note #" + id + " (<a href=\"/wiki_pages/e621:notes\">view help</a>)");
 
-      $dialog.on("dialogclose.danbooru", function() {
+      $dialog.on("dialogclose.danbooru", function () {
         Note.editing = false;
         $(".note-box").resizable("enable");
         $(".note-box").draggable("enable");
@@ -402,7 +404,7 @@ let Note = {
       Note.editing = true;
     },
 
-    parameterize_note: function($note_box, $note_body) {
+    parameterize_note: function ($note_box, $note_body) {
       var $image = $("#image");
       var $image_container = $("#image-container");
       var original_width = parseInt($image_container.data("width"));
@@ -415,8 +417,8 @@ let Note = {
           width: $note_box.width() / ratio,
           height: $note_box.height() / ratio,
           body: $note_body.data("original-body"),
-        }
-      }
+        },
+      };
 
       if ($note_box.data("id").match(/x/)) {
         hash.note.html_id = $note_box.data("id");
@@ -426,11 +428,11 @@ let Note = {
       return hash;
     },
 
-    error_handler: function(xhr, status, exception) {
+    error_handler: function (xhr) {
       Utility.error("Error: " + (xhr.responseJSON.reason || xhr.responseJSON.reasons.join("; ")));
     },
 
-    success_handler: function(data, status, xhr) {
+    success_handler: function (data) {
       var $note_box = null;
 
       if (data.html_id) { // new note
@@ -445,7 +447,7 @@ let Note = {
       }
     },
 
-    save: function() {
+    save: function () {
       var $this = $(this);
       var $textarea = $this.find("textarea");
       var id = $this.data("id");
@@ -454,7 +456,7 @@ let Note = {
       var text = $textarea.val();
       $note_body.data("original-body", text);
       Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", {body: text}).then(function(data) {
+      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function (data) {
         Note.Body.set_text($note_body, $note_box, data.html);
         Note.Box.resize_inner_border($note_box);
         $note_body.show();
@@ -467,19 +469,19 @@ let Note = {
           type: "PUT",
           data: Note.Edit.parameterize_note($note_box, $note_body),
           error: Note.Edit.error_handler,
-          success: Note.Edit.success_handler
+          success: Note.Edit.success_handler,
         });
       } else {
         $.ajax("/notes.json", {
           type: "POST",
           data: Note.Edit.parameterize_note($note_box, $note_body),
           error: Note.Edit.error_handler,
-          success: Note.Edit.success_handler
+          success: Note.Edit.success_handler,
         });
       }
     },
 
-    preview: function() {
+    preview: function () {
       var $this = $(this);
       var $textarea = $this.find("textarea");
       var id = $this.data("id");
@@ -488,20 +490,20 @@ let Note = {
       var $note_box = Note.Box.find(id);
       $note_box.find(".note-box-inner-border").addClass("unsaved");
       Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", {body: text}).then(function(data) {
+      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function (data) {
         Note.Body.set_text($note_body, $note_box, data.html);
         $note_body.show();
         $(window).trigger("e621:add_deferred_posts", data.posts);
       });
     },
 
-    cancel: function() {
+    cancel: function () {
       $(this).dialog("close");
     },
 
-    destroy: function() {
+    destroy: function () {
       if (!confirm("Do you really want to delete this note?")) {
-        return
+        return;
       }
 
       var $this = $(this);
@@ -510,29 +512,29 @@ let Note = {
       if (id.match(/\d/)) {
         $.ajax("/notes/" + id + ".json", {
           type: "DELETE",
-          success: function() {
+          success: function () {
             Note.Box.find(id).remove();
             Note.Body.find(id).remove();
             $this.dialog("close");
-          }
+          },
         });
       }
     },
 
-    history: function() {
+    history: function () {
       var $this = $(this);
       var id = $this.data("id");
       if (id.match(/\d/)) {
         window.location.href = "/note_versions?search[note_id]=" + id;
       }
       $(this).dialog("close");
-    }
+    },
   },
 
   TranslationMode: {
     active: false,
 
-    toggle: function(e) {
+    toggle: function (e) {
       if (Note.TranslationMode.active) {
         Note.TranslationMode.stop(e);
       } else {
@@ -540,7 +542,7 @@ let Note = {
       }
     },
 
-    start: function(e) {
+    start: function (e) {
       e.preventDefault();
 
       if (Utility.meta("current-user-id") === "") {
@@ -561,11 +563,11 @@ let Note = {
       $(document).on("mouseup.danbooru.note", Note.TranslationMode.Drag.stop);
       $("#mark-as-translated-section").show();
 
-      Utility.notice('Translation mode is on. Drag on the image to create notes. <a href="#">Turn translation mode off</a> (shortcut is <span class="key">n</span>).');
+      Utility.notice("Translation mode is on. Drag on the image to create notes. <a href=\"#\">Turn translation mode off</a> (shortcut is <span class=\"key\">n</span>).");
       $("#notice a:contains(Turn translation mode off)").on("click.danbooru", Note.TranslationMode.stop);
     },
 
-    stop: function(e) {
+    stop: function (e) {
       e.preventDefault();
 
       Note.TranslationMode.active = false;
@@ -578,7 +580,7 @@ let Note = {
       $("#mark-as-translated-section").hide();
     },
 
-    create_note: function(e, x, y, w, h) {
+    create_note: function (e, x, y, w, h) {
       var offset = $("#image").offset();
 
       if (w > 9 || h > 9) { /* minimum note size: 10px */
@@ -590,7 +592,7 @@ let Note = {
         Note.create(x - offset.left, y - offset.top, w, h);
       }
 
-      $("#note-container").css('visibility', 'visible');
+      $("#note-container").css("visibility", "visible");
       e.stopPropagation();
       e.preventDefault();
     },
@@ -658,12 +660,12 @@ let Note = {
             Note.TranslationMode.Drag.h = -Note.TranslationMode.Drag.dragDistanceY;
           }
 
-          $('#note-preview').css({
-            display: 'block',
+          $("#note-preview").css({
+            display: "block",
             left: (Note.TranslationMode.Drag.x + 1),
             top: (Note.TranslationMode.Drag.y + 1),
             width: (Note.TranslationMode.Drag.w - 3),
-            height: (Note.TranslationMode.Drag.h - 3)
+            height: (Note.TranslationMode.Drag.h - 3),
           });
         }
       },
@@ -678,7 +680,7 @@ let Note = {
         $(document).off("mousemove", Note.TranslationMode.Drag.drag);
 
         if (Note.TranslationMode.Drag.dragging) {
-          $('#note-preview').css({ display: 'none' });
+          $("#note-preview").css({ display: "none" });
           Note.TranslationMode.create_note(e, Note.TranslationMode.Drag.x, Note.TranslationMode.Drag.y, Note.TranslationMode.Drag.w - 1, Note.TranslationMode.Drag.h - 1);
           Note.TranslationMode.Drag.dragging = false; /* border of the note is pixel-perfect on the preview border */
         } else { /* no dragging -> toggle display of notes */
@@ -687,8 +689,8 @@ let Note = {
 
         Note.TranslationMode.Drag.dragStartX = 0;
         Note.TranslationMode.Drag.dragStartY = 0;
-      }
-    }
+      },
+    },
   },
 
   id: "x",
@@ -697,14 +699,14 @@ let Note = {
   timeouts: [],
   pending: {},
 
-  add: function(container, id, x, y, w, h, original_body, sanitized_body) {
+  add: function (container, id, x, y, w, h, original_body, sanitized_body) {
     var $note_box = Note.Box.create(id);
     var $note_body = Note.Body.create(id);
 
-    $note_box.data('x', x);
-    $note_box.data('y', y);
-    $note_box.data('width', w);
-    $note_box.data('height', h);
+    $note_box.data("x", x);
+    $note_box.data("y", y);
+    $note_box.data("width", w);
+    $note_box.data("height", h);
     container.appendChild($note_box[0]);
     container.appendChild($note_body[0]);
     $note_body.data("original-body", original_body);
@@ -712,14 +714,14 @@ let Note = {
     Note.Body.display_text($note_body, sanitized_body);
   },
 
-  create: function(x, y, w, h) {
+  create: function (x, y, w, h) {
     var $note_box = Note.Box.create(Note.id);
     var $note_body = Note.Body.create(Note.id);
     $note_box.css({
       top: y,
       left: x,
       width: w,
-      height: h
+      height: h,
     });
     Note.Box.update_data_attributes($note_box);
     $note_box.find(".note-box-inner-border").addClass("unsaved");
@@ -730,17 +732,17 @@ let Note = {
     Note.id += "x";
   },
 
-  clear_timeouts: function() {
-    $.each(Note.timeouts, function(i, v) {
+  clear_timeouts: function () {
+    $.each(Note.timeouts, function (i, v) {
       clearTimeout(v);
     });
 
     Note.timeouts = [];
   },
 
-  load_all: function() {
+  load_all: function () {
     var fragment = document.createDocumentFragment();
-    $.each($("#notes article"), function(i, article) {
+    $.each($("#notes article"), function (i, article) {
       var $article = $(article);
       Note.add(
         fragment,
@@ -750,13 +752,13 @@ let Note = {
         $article.data("width"),
         $article.data("height"),
         $article.data("body"),
-        $article.html()
+        $article.html(),
       );
     });
     $("#note-container").append(fragment);
   },
 
-  initialize_all: function() {
+  initialize_all: function () {
     if ($("#c-posts #a-show #image").length === 0 || $("video#image").length) {
       return;
     }
@@ -768,12 +770,12 @@ let Note = {
     $(document).on("hashchange.danbooru.note", this.initialize_highlight);
   },
 
-  initialize_shortcuts: function() {
+  initialize_shortcuts: function () {
     $("#translate").on("click.danbooru", Note.TranslationMode.toggle);
     $("#image").on("click.danbooru", Note.Box.toggle_all);
   },
 
-  initialize_highlight: function() {
+  initialize_highlight: function () {
     var matches = window.location.hash.match(/^#note-(\d+)$/);
 
     if (matches) {
@@ -781,10 +783,10 @@ let Note = {
       Note.Box.show_highlighted($note_box);
     }
   },
-}
+};
 
-$(function() {
+$(function () {
   Note.initialize_all();
 });
 
-export default Note
+export default Note;

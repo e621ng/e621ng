@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class TicketsController < ApplicationController
-  respond_to :html
-  before_action :member_only, except: [:index]
+  respond_to :html, :json, except: %i[create new]
+  before_action :member_only, except: %i[index]
   before_action :moderator_only, only: %i[update edit claim unclaim]
 
   def index
-    @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])
+    @tickets = Ticket.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@tickets)
   end
 
@@ -67,11 +67,10 @@ class TicketsController < ApplicationController
 
     if @ticket.claimant.nil?
       @ticket.claim!
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     end
     flash[:notice] = "Ticket already claimed"
-    redirect_to ticket_path(@ticket)
+    respond_with(@ticket)
   end
 
   def unclaim
@@ -79,20 +78,17 @@ class TicketsController < ApplicationController
 
     if @ticket.claimant.nil?
       flash[:notice] = "Ticket not claimed"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     elsif @ticket.claimant.id != CurrentUser.id
       flash[:notice] = "Ticket not claimed by you"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     elsif @ticket.approved?
       flash[:notice] = "Cannot unclaim approved ticket"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     end
     @ticket.unclaim!
     flash[:notice] = "Claim removed"
-    redirect_to ticket_path(@ticket)
+    respond_with(@ticket)
   end
 
   private
@@ -114,14 +110,10 @@ class TicketsController < ApplicationController
   end
 
   def check_new_permission(ticket)
-    unless ticket.can_create_for?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise(User::PrivilegeError) unless ticket.can_create_for?(CurrentUser.user)
   end
 
   def check_permission(ticket)
-    unless ticket.can_see_details?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise(User::PrivilegeError) unless ticket.can_view?(CurrentUser.user)
   end
 end

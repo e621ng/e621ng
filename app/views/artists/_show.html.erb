@@ -1,10 +1,27 @@
 <div id="c-artists">
   <div id="a-show">
-    <h1>Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %></h1>
+    <h1>
+      Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %>
+      <% if @artist.is_locked? %>
+        (locked)
+      <% end %>
+    </h1>
+
+    <% if @artist.is_dnp? %>
+      <div id="avoid-posting">
+        <h2>This artist is on the <%= link_to "Avoid Posting", avoid_posting_static_path %> list.</h2>
+        <% if @artist.avoid_posting.pretty_details.present? %>
+          <div class="dtext-container">
+            <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
+          </div>
+       <% end %>
+        <p><%= link_to "Open Avoid Posting entry", avoid_posting_path(@artist.avoid_posting) %></p>
+      </div>
+    <% end %>
 
     <% if @artist.notes.present? && @artist.visible? %>
       <div class="dtext-container">
-        <%= format_text(@artist.notes) %>
+        <%= format_text(@artist.notes, allow_color: true) %>
       </div>
 
       <p><%= link_to "View wiki page", @artist.wiki_page %></p>

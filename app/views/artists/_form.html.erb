@@ -2,22 +2,27 @@
   <% if @artist.new_record? %>
     <%# FIXME: Probably wrong type in the production database %>
     <%= f.input :name, as: :string, autocomplete: "tag" %>
-  <% elsif CurrentUser.user.is_janitor? %>
-    <%= f.input :name, autocomplete: "tag", hint: "Change to rename this artist entry and its wiki page" %>
+  <% elsif !@artist.dnp_restricted? && CurrentUser.user.is_janitor? %>
+    <%= f.input :name, autocomplete: "tag", hint: "Change to rename this artist entry and its wiki page." %>
   <% else %>
     <p><%= @artist.name %></p>
+    <% if @artist.dnp_restricted? %>
+      <p>Name, other names, and group name cannot be edited for artists on the <%= link_to "Avoid Posting", avoid_posting_static_path %> list.</p>
+    <% end %>
   <% end %>
   <% if CurrentUser.is_janitor? %>
     <%= f.input :linked_user_id, label: "Linked User ID" %>
     <%= f.input :is_locked, label: "Locked" %>
   <% end %>
-  <%= f.input :other_names_string, label: "Other names", hint: 'Separate names with spaces, not commas. Use underscores for spaces inside names. Limit 25.', input_html: { size: "80" } %>
-  <%= f.input :group_name %>
-  <%= f.input :url_string, :label => "URLs", as: :text, input_html: { size: "80x10", value: params.dig(:artist, :url_string) || @artist.urls.join("\n")}, hint: "You can prefix a URL with - to mark it as dead." %>
+  <% if @artist.new_record? || !@artist.dnp_restricted? %>
+    <%= f.input :other_names_string, label: "Other names", hint: 'Separate names with spaces, not commas. Use underscores for spaces inside names. Limit 25.', input_html: { size: "80" } %>
+    <%= f.input :group_name %>
+  <% end %>
+  <%= f.input :url_string, label: "URLs", as: :text, input_html: { size: "80x10", value: params.dig(:artist, :url_string) || @artist.urls.join("\n")}, hint: "You can prefix a URL with - to mark it as dead." %>
 
   <% if @artist.is_note_locked? %>
     <p>Artist is note locked. Notes cannot be edited.</p>
   <% end %>
-  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size, disabled: @artist.is_note_locked? %>
+  <%= f.input :notes, as: :dtext, limit: Danbooru.config.wiki_page_max_size, disabled: @artist.is_note_locked?, allow_color: true %>
   <%= f.button :submit, "Submit" %>
 <% end %>

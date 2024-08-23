@@ -6,33 +6,33 @@
 }
 
 .score-positive, span.score-positive {
-  color: themed("color-score-positive");
+  color: palette("text-green");
 
   a {
-    color: themed("color-score-positive");
+    color: palette("text-green");
   }
 }
 .score-negative, span.score-negative {
-  color: themed("color-score-negative");
+  color: palette("text-red");
 
   a {
-    color: themed("color-score-negative");
+    color: palette("text-red");
   }
 }
 .score-neutral, span.score-neutral {
-  color: themed("color-text-muted");
+  color: palette("text-grey");
 
   a {
-    color: themed("color-text-muted");
+    color: palette("text-grey");
   }
 }
 
 .post-rating-text-safe {
-  color: themed("color-rating-safe");
+  color: palette("text-green");
 }
 .post-rating-text-questionable {
-  color: themed("color-rating-questionable");
+  color: palette("text-yellow");
 }
 .post-rating-text-explicit {
-  color: themed("color-rating-explicit");
+  color: palette("text-red");
 }

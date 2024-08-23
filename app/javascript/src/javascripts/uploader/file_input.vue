@@ -1,24 +1,62 @@
 <template>
-  <span>
-    <div v-if="!disableFileUpload">
-      <div class="box-section sect_red" v-if="fileTooLarge">
-        The file you are trying to upload is too large. Maximum allowed is {{this.maxFileSize / (1024*1024) }} MiB.<br>
+  <span
+    class="uploader-file-input"
+    :file-enabled="!disableFileUpload"
+    :link-enabled="!disableURLUpload"
+  >
+    <div class="fileinput-wrapper" v-if="!disableFileUpload">
+      <div class="box-section background-red" v-if="fileTooLarge">
+        The file you are trying to upload is too large. Maximum allowed is {{this.exceededFileSize / (1024*1024) }} MiB.<br>
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
-      <label>File:
-        <input type="file" ref="post_file" @change="updatePreviewFile"
+      <label
+        class="fileinput"
+        for="file-input"
+        @dragover="fileDragover"
+        @dragleave="fileDragleave"
+        @drop="fileDrop"
+        :dragging="uploader.dragging"
+      >
+        <input
+          type="file"
+          ref="post_file"
+          id="file-input"
           accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
-          :disabled="disableFileUpload"/>
+          @change="updatePreviewFile"
+          :disabled="disableFileUpload"
+        />
+        <span class="title">
+          <div v-if="uploader.dragging">Release to drop a file here</div>
+          <div v-else>Choose an image or video to upload</div>
+        </span>
+        <span class="subtitle">
+          <div v-if="disableURLUpload">
+            {{ this.getFileURL().name }}
+          </div>
+          <div v-else><u>Browse for file</u> or drag and drop</div>
+        </span>
       </label>
-      <button @click.prevent="clearFileUpload" v-show="disableURLUpload">Clear</button>
+      <button
+        class="btn-clear"
+        @click.prevent="clearFileUpload"
+        v-show="disableURLUpload"
+      >Clear</button>
     </div>
-    <div v-if="!disableURLUpload">
-      <div class="box-section sect_red" v-if="badDirectURL">
+
+    <div class="linkinput-wrapper" v-if="!disableURLUpload">
+      <div class="box-section background-red" v-if="badDirectURL">
         The direct URL entered has the following problem: {{ directURLProblem }}<br>
         You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
       </div>
-      <label>{{!disableFileUpload ? "(or) " : "" }}URL:
-        <input type="text" size="50" v-model="uploadURL" :disabled="disableURLUpload"/>
+      <label class="linkinput">
+        <span class="linkinput-or">{{!disableFileUpload ? "OR" : "URL" }}</span>
+        <input
+          type="text"
+          size="50"
+          placeholder="Paste image URL"
+          v-model="uploadURL"
+          :disabled="disableURLUpload"
+        />
       </label>
       <div id="whitelist-warning" v-show="whitelist.visible"
             :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
@@ -42,9 +80,14 @@ export default {
         domain: "",
         oldDomain: "",
       },
+      uploader: {
+        dragging: false,
+      },
       uploadURL: new URLSearchParams(window.location.search).get("upload_url") || "",
       fileTooLarge: false,
+      exceededFileSize: 0,
       maxFileSize: window.uploaderSettings.maxFileSize,
+      maxFileSizeMap: window.uploaderSettings.maxFileSizeMap,
       disableFileUpload: false,
       disableURLUpload: false,
     }
@@ -67,6 +110,8 @@ export default {
         this.fileTooLarge = false;
         this.uploadValueChanged(this.uploadURL);
         this.updatePreviewURL();
+        if(this.uploadURL.length === 0)
+          this.setEmptyThumb();
       }
     },
     invalidUploadValue() {
@@ -74,6 +119,21 @@ export default {
     }
   },
   methods: {
+    fileDragover(event) {
+      event.preventDefault();
+      this.uploader.dragging = true;
+    },
+    fileDragleave(event) {
+      event.preventDefault();
+      this.uploader.dragging = false;
+    },
+    fileDrop(event) {
+      event.preventDefault();
+      this.uploader.dragging = false;
+
+      this.$refs.post_file.files = event.dataTransfer.files;
+      this.updatePreviewFile();
+    },
     whitelistWarning(allowed, domain, reason) {
       this.whitelist.allowed = allowed;
       this.whitelist.domain = domain;
@@ -97,11 +157,11 @@ export default {
       ];
       for (const pattern of patterns) {
         if (pattern.test.test(url)) {
-          return pattern.reason; 
+          return pattern.reason;
         }
       }
       return "";
-    },  
+    },
     clearFileUpload() {
       if (!this.$refs["post_file"]?.files?.[0]) {
         return;
@@ -110,6 +170,7 @@ export default {
       this.disableURLUpload = false;
       this.disableFileUpload = false;
       this.fileTooLarge = false;
+      this.exceededFileSize = 0;
       this.setEmptyThumb();
       this.uploadValueChanged("");
 
@@ -145,9 +206,19 @@ export default {
         this.setEmptyThumb();
       }
     },
+    getFileURL() {
+      return this.$refs["post_file"].files[0];
+    },
     updatePreviewFile() {
-      const file = this.$refs["post_file"].files[0];
-      this.fileTooLarge = file.size > this.maxFileSize;
+      const file = this.getFileURL();
+      const maxFileSize = this.maxFileSizeMap[file.type.split("/")?.[1]] ?? this.maxFileSize;
+      if (file.size > maxFileSize) {
+        this.fileTooLarge = true;
+        this.exceededFileSize = maxFileSize;
+      } else {
+        this.fileTooLarge = false;
+        this.exceededFileSize = 0;
+      }
       const objectUrl = URL.createObjectURL(file);
       this.disableURLUpload = true;
       this.uploadValueChanged(file);

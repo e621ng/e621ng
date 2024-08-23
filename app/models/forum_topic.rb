@@ -53,12 +53,10 @@ class ForumTopic < ApplicationRecord
   end
 
   module SearchMethods
-    def active
-      where("(forum_topics.is_hidden = false or forum_topics.creator_id = ?)", CurrentUser.id)
-    end
-
-    def permitted
-      joins(:category).where('forum_categories.can_view <= ?', CurrentUser.level)
+    def visible(user)
+      q = joins(:category).where("forum_categories.can_view <= ?", user.level)
+      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q
     end
 
     def sticky_first
@@ -71,7 +69,7 @@ class ForumTopic < ApplicationRecord
 
     def search(params)
       q = super
-      q = q.permitted
+      q = q.visible(CurrentUser.user)
 
       q = q.attribute_matches(:title, params[:title_matches])
 
@@ -119,7 +117,7 @@ class ForumTopic < ApplicationRecord
         ForumTopicVisit.create(:user_id => user.id, :forum_topic_id => id, :last_read_at => updated_at)
       end
 
-      has_unread_topics = ForumTopic.permitted.active.where("forum_topics.updated_at >= ?", user.last_forum_read_at)
+      has_unread_topics = ForumTopic.visible(user).where("forum_topics.updated_at >= ?", user.last_forum_read_at)
       .joins("left join forum_topic_visits on (forum_topic_visits.forum_topic_id = forum_topics.id and forum_topic_visits.user_id = #{user.id})")
       .where("(forum_topic_visits.id is null or forum_topic_visits.last_read_at < forum_topics.updated_at)")
       .exists?

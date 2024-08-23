@@ -6,6 +6,6 @@
   <% unless user_feedback.new_record? %>
     <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean %>
   <% end %>
-  <%= f.input :body, as: :dtext, limit: Danbooru.config.user_feedback_max_size %>
+  <%= f.input :body, as: :dtext, limit: Danbooru.config.user_feedback_max_size, allow_color: false %>
   <%= f.button :submit, "Submit" %>
 <% end %>

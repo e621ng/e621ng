@@ -1,0 +1,11 @@
+<%= custom_form_for(@avoid_posting) do |f| %>
+    <%= f.simple_fields_for(:artist) do |af| %>
+      <%= af.input :name, label: "Artist name", autocomplete: "artist", hint: params[:action] == "new" ? "An artist will be created if one does not exist." : "The artist will be renamed." %>
+      <%= af.input :other_names_string, label: "Other names", hint: "Separate names with spaces, not commas. Use underscores for spaces inside names. Limit 25.", input_html: { size: "80" } %>
+      <%= af.input :group_name %>
+      <%= af.input :linked_user_id, label: "Linked User ID" %>
+    <% end %>
+  <%= f.input :details, label: "Details", as: :dtext, hint: "Details shown to all users. Conditions should be listed here." %>
+  <%= f.input :staff_notes, label: "Staff Notes", as: :dtext, hint: "Notes shown only to staff members." %>
+  <%= f.button :submit, "Submit" %>
+<% end %>

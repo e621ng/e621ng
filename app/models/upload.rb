@@ -178,8 +178,8 @@ class Upload < ApplicationRecord
     end
 
     if (destroyed_post = DestroyedPost.find_by(md5: md5))
-      errors.add(:base, "An unexpected errror occured")
-      DummyTicket.new(uploader, destroyed_post.post_id).notify
+      errors.add(:base, "That image had been deleted from our site, and cannot be re-uploaded")
+      destroyed_post.notify_reupload(uploader)
       return
     end
 
@@ -213,6 +213,7 @@ class Upload < ApplicationRecord
   end
 
   def fixup_source
+    self.source = "" if source.nil?
     if direct_url_parsed.present?
       canonical = Sources::Strategies.find(direct_url_parsed).canonical_url
       self.source += "\n#{canonical}" if canonical

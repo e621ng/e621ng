@@ -2,17 +2,17 @@
 
 module PostThumbnailer
   extend self
-  def generate_resizes(file, height, width, type)
+  def generate_resizes(file, height, width, type, background_color: "000000")
     if type == :video
       video = FFMPEG::Movie.new(file.path)
       crop_file = generate_video_crop_for(video, Danbooru.config.small_image_width)
       preview_file = generate_video_preview_for(file.path, Danbooru.config.small_image_width)
       sample_file = generate_video_sample_for(file.path)
     elsif type == :image
-      preview_file = DanbooruImageResizer.resize(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 87)
-      crop_file = DanbooruImageResizer.crop(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 87)
+      preview_file = DanbooruImageResizer.resize(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 87, background_color: background_color)
+      crop_file = DanbooruImageResizer.crop(file, Danbooru.config.small_image_width, Danbooru.config.small_image_width, 87, background_color: background_color)
       if width > Danbooru.config.large_image_width
-        sample_file = DanbooruImageResizer.resize(file, Danbooru.config.large_image_width, height, 87)
+        sample_file = DanbooruImageResizer.resize(file, Danbooru.config.large_image_width, height, 87, background_color: background_color)
       end
     end
 

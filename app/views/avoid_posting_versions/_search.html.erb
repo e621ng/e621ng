@@ -1,0 +1,11 @@
+<%= form_search(path: avoid_posting_versions_path) do |f| %>
+  <%= f.user :updater %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :ip_addr, label: "Updater IP Address" %>
+  <% end %>
+  <%= f.input :any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "artist" %>
+  <%= f.input :artist_name, label: "Artist Name", hide_unless_value: true %>
+  <%= f.input :artist_id, label: "Artist ID", hide_unless_value: true %>
+  <%= f.input :any_other_name_matches, label: "Other Names", hide_unless_value: true %>
+  <%= f.input :is_active, label: "Active?", collection: [%w[Yes true], %w[No false], %w[Any any]] %>
+<% end %>
