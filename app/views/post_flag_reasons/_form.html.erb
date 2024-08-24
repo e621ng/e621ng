@@ -1,0 +1,7 @@
+<%= custom_form_for(@reason) do |f| %>
+  <%= f.input(:name, hint: "Used for internal things. Must be unique.") %>
+  <%= f.input(:reason, as: :dtext, hint: "Shown as the flag reason. Only inline dtext is allowed.", allow_color: false) %>
+  <%= f.input(:text, as: :dtext, hint: "Shown as a more detailed description under the reason.", allow_color: false) %>
+  <%= f.input(:parent, hint: "If a \"Parent #\" input should be present alongside the option.") %>
+  <%= f.button(:submit) %>
+<% end %>

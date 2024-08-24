@@ -327,6 +327,12 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_flag_reasons, except: %i[show] do
+    collection do
+      get :order
+      post :reorder
+    end
+  end
   resources :post_sets do
     collection do
       get :for_select

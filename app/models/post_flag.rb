@@ -5,7 +5,6 @@ class PostFlag < ApplicationRecord
   end
 
   COOLDOWN_PERIOD = 1.days
-  MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
 
   belongs_to_creator :class_name => "User"
   user_status_counter :post_flag_count
@@ -132,20 +131,21 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_reason
-    case reason_name
-    when 'deletion'
-      # You're probably looking at this line as you get this validation failure
-      errors.add(:reason, "is not one of the available choices") unless is_deletion
-    when 'inferior'
-      unless parent_post.present?
+    return if reason_name == "deletion" && is_deletion?
+    reason = PostFlagReason.cached.fetch(reason_name, nil)
+    if reason.blank?
+      errors.add(:reason, "is not one of the available choices")
+      return
+    end
+    if reason.parent?
+      if parent_post.blank?
         errors.add(:parent_id, "must exist")
         return false
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when 'uploading_guidelines'
-      errors.add(:reason, "cannot be used. The post is either not pending, or grandfathered") unless post.flaggable_for_guidelines?
-    else
-      errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
+    end
+    if reason_name == "uploading_guidelines" && !post.flaggable_for_guidelines?
+      errors.add(:reason, "cannot be used. The post is either not pending, or grandfathered")
     end
   end
 
@@ -168,7 +168,7 @@ class PostFlag < ApplicationRecord
       Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
-      self.reason = MAPPED_REASONS[reason_name]
+      self.reason = PostFlagReason.cached.fetch(reason_name, nil).try(:reason)
     end
   end
 

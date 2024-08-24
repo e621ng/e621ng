@@ -30,8 +30,9 @@ module ApplicationHelper
 
   def li_link_to(text, url, id_prefix: "", **options)
     klass = options.delete(:class)
+    li_options = options.delete(:li_options) || {}
     id = id_prefix + text.downcase.gsub(/[^a-z ]/, "").parameterize
-    tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
+    tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass, **li_options)
   end
 
   def dtext_ragel(text, **)

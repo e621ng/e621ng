@@ -1,0 +1,15 @@
+<div id="c-post-flag-reasons">
+  <div id="a-order">
+    <h1>Order Post Flag Reasons</h1>
+
+    <div id="sortable-reasons">
+      <%= render(partial: "table", locals: { reasons: @reasons, sort: true }) %>
+    </div>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Order Post Flag Reasons
+<% end %>
