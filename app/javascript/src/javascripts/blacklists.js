@@ -210,7 +210,6 @@ Blacklist.update_styles = function () {
   for (const filter of Object.values(Blacklist.filters))
     allPosts = allPosts.concat(Array.from(filter.matchIDs));
   Blacklist.matchedPosts = new Set(allPosts);
-  console.log("matched", Blacklist.matchedPosts);
 
   $(".filter-matches").removeClass("filter-matches");
   for (const postID of Blacklist.matchedPosts)
@@ -257,6 +256,9 @@ class BlacklistUI {
   constructor ($element) {
     this.$element = $element;
     this.$counter = $element.find(".blacklisted-count");
+
+    this.post = parseInt($element.attr("post"));
+    this.hasPost = !Number.isNaN(this.post);
 
     // Collapsable header
     $element
@@ -305,8 +307,12 @@ class BlacklistUI {
 
     let activeFilters = 0,
       inactiveFilters = 0;
+
     for (const [name, filter] of Object.entries(Blacklist.filters)) {
       if (filter.matchIDs.size == 0) continue;
+
+      if (this.hasPost && !filter.matchIDs.has(this.post))
+        continue;
 
       activeFilters++;
       if (!filter.enabled) inactiveFilters++;

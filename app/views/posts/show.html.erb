@@ -3,7 +3,7 @@
     <aside id="sidebar">
       <%= render "posts/partials/common/search", :path => posts_path, :tags => params[:q], :tags_dom_id => "tags" %>
 
-      <%= render "posts/partials/index/blacklist" %>
+      <%= render "posts/partials/index/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
         <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
@@ -204,6 +204,9 @@
       </menu>
 
       <% unless CurrentUser.hide_comments? %>
+        <% if @post.comments.visible(CurrentUser.user).size > 0 %>
+          <%= render "posts/partials/common/inline_blacklist" %>
+        <% end %>
         <section id="comments">
           <%= render "comments/partials/index/list", :comments => @post.comments.visible(CurrentUser.user), :post => @post, :show_header => false %>
         </section>
