@@ -204,7 +204,7 @@
       </menu>
 
       <% unless CurrentUser.hide_comments? %>
-        <% if @post.comments.visible(CurrentUser.user).size > 0 %>
+        <% unless @post.comments.visible(CurrentUser.user).empty? %>
           <%= render "posts/partials/common/inline_blacklist" %>
         <% end %>
         <section id="comments">
