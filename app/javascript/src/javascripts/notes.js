@@ -108,6 +108,26 @@ let Note = {
           e.stopPropagation();
         },
       );
+
+      if (Utility.meta("current-user-name") !== "Anonymous") {
+        $note_box.on("dblclick.danbooru", function (e) {
+          if (e.target.tagName !== "A") {
+            var note_id = $note_box.data("id");
+            var note_body = Note.Body.find(note_id);
+            Note.Edit.show(note_body);
+          }
+          e.stopPropagation();
+        });
+      } else {
+        $note_box.on("dblclick.danbooru", function (e) {
+          var note_id = $note_box.data("id");
+          var note_body = Note.Body.find(note_id);
+          if (note_body.tagName !== "A") {
+            Utility.error("You must be logged in to edit notes");
+          }
+          e.stopPropagation();
+        });
+      }
     },
 
     find: function (id) {
