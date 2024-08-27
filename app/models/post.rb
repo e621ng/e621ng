@@ -234,7 +234,7 @@ class Post < ApplicationRecord
 
     def regenerate_image_samples!
       file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
