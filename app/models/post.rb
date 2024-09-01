@@ -410,7 +410,11 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
+      if @removed_tags.nil?
+        @removed_tags = []
+      end
+
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
     end
 
     def tag_array
@@ -469,8 +473,6 @@ class Post < ApplicationRecord
     end
 
     def merge_old_changes
-      @removed_tags = []
-
       if old_tag_string
         # If someone else committed changes to this post before we did,
         # then try to merge the tag changes together.
@@ -503,7 +505,6 @@ class Post < ApplicationRecord
     end
 
     def apply_tag_diff
-      @removed_tags = []
       return unless tag_string_diff.present?
 
       current_tags = tag_array
@@ -1644,6 +1645,8 @@ class Post < ApplicationRecord
         unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
         self.warnings.add(:base, "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again")
       end
+
+      @removed_tags = []
     end
 
     def has_artist_tag
