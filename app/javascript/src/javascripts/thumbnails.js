@@ -1,12 +1,12 @@
 import Blacklist from "./blacklists";
-import LStorage from "./utility/storage";
+import PostCache from "./models/PostCache";
 
 const Thumbnails = {};
 
 Thumbnails.initialize = function () {
   const postsData = window.___deferred_posts || {};
   const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
-  const DAB = LStorage.get("dab") === "1";
+  const replacedPosts = [];
 
   for (const post of posts) {
     const $post = $(post);
@@ -25,10 +25,18 @@ Thumbnails.initialize = function () {
       return;
     }
 
+    // Add data to cache right away, instead of
+    // getting it from data-attributes later
+    PostCache.fromDeferredPosts(postID, postData);
+
     // Building the element
     const thumbnail = $("<div>")
-      .addClass("post-thumbnail blacklistable")
+      .addClass("post-thumbnail")
       .toggleClass("dtext", $post.hasClass("thumb-placeholder-link"));
+
+    if (Danbooru.Blacklist.hiddenPosts.has(postID))
+      thumbnail.addClass("blacklisted");
+
     for (const key in postData)
       thumbnail.attr("data-" + key.replace(/_/g, "-"), postData[key]);
 
@@ -47,21 +55,14 @@ Thumbnails.initialize = function () {
       })
       .appendTo(link);
 
-    // Disgusting implementation of the blacklist
-    if (!DAB) {
-      let blacklist_hit_count = 0;
-      for (const entry of Blacklist.entries) {
-        if (!Blacklist.postMatchObject(postData, entry))
-          continue;
-        entry.hits += 1;
-        blacklist_hit_count += 1;
-      }
-
-      if (blacklist_hit_count > 0)
-        thumbnail.addClass("blacklisted");
-    }
-
     $post.replaceWith(thumbnail);
+    replacedPosts.push(thumbnail);
+  }
+
+  if (replacedPosts.length > 0) {
+    Blacklist.add_posts(replacedPosts);
+    Blacklist.update_styles();
+    Blacklist.update_visibility();
   }
 
   function clearPlaceholder (post) {

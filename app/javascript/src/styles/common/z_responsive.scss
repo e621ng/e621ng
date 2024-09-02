@@ -86,8 +86,8 @@
     }
 
     div#page {
-      padding-left: 0;
-      padding-right: 0;
+      margin: 0 0.25rem;
+      padding: 0.5rem 0.25rem;
 
       > div /* div#c-$controller */
       {
@@ -313,10 +313,6 @@
       h1 {
         display: inline; //Needed for menu button
       }
-    }
-
-    div#page {
-      margin: 0;
     }
   }
 }

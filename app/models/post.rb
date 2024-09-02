@@ -234,7 +234,7 @@ class Post < ApplicationRecord
 
     def regenerate_image_samples!
       file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
@@ -410,7 +410,11 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
+      if @removed_tags.nil?
+        @removed_tags = []
+      end
+
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
     end
 
     def tag_array
@@ -469,8 +473,6 @@ class Post < ApplicationRecord
     end
 
     def merge_old_changes
-      @removed_tags = []
-
       if old_tag_string
         # If someone else committed changes to this post before we did,
         # then try to merge the tag changes together.
@@ -503,7 +505,6 @@ class Post < ApplicationRecord
     end
 
     def apply_tag_diff
-      @removed_tags = []
       return unless tag_string_diff.present?
 
       current_tags = tag_array
@@ -1644,6 +1645,8 @@ class Post < ApplicationRecord
         unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
         self.warnings.add(:base, "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again")
       end
+
+      @removed_tags = []
     end
 
     def has_artist_tag

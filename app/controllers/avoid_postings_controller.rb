@@ -27,7 +27,7 @@ class AvoidPostingsController < ApplicationController
   def create
     @avoid_posting = AvoidPosting.new(avoid_posting_params)
     artparams = avoid_posting_params.try(:[], :artist_attributes)
-    if artparams.present? && (artist = Artist.find_by(name: Artist.normalize_name(artparams[:name])))
+    if artparams.present? && (artist = Artist.named(artparams[:name]))
       @avoid_posting.artist = artist
       notices = []
       if artist.other_names.present? && (artparams.key?(:other_names_string) || artparams.key?(:other_names))
@@ -69,17 +69,17 @@ class AvoidPostingsController < ApplicationController
 
   def destroy
     @avoid_posting.destroy
-    redirect_to artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed"
+    redirect_to(artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed")
   end
 
   def delete
     @avoid_posting.update(is_active: false)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry deleted"
+    redirect_back(fallback_location: avoid_posting_path(@avoid_posting), notice: "Avoid posting entry deleted")
   end
 
   def undelete
     @avoid_posting.update(is_active: true)
-    redirect_to avoid_posting_path(@avoid_posting), notice: "Avoid posting entry undeleted"
+    redirect_back(fallback_location: avoid_posting_path(@avoid_posting), notice: "Avoid posting entry undeleted")
   end
 
   private
@@ -89,14 +89,14 @@ class AvoidPostingsController < ApplicationController
     if id =~ /\A\d+\z/
       @avoid_posting = AvoidPosting.find(id)
     else
-      @avoid_posting = AvoidPosting.find_by!(artist_name: id)
+      @avoid_posting = AvoidPosting.joins(:artist).find_by!("artists.name": id)
     end
   end
 
   def search_params
-    permitted_params = %i[creator_name creator_id any_name_matches artist_id artist_name any_other_name_matches group_name details is_active]
+    permitted_params = %i[creator_name creator_id any_name_matches artist_id artist_name any_other_name_matches group_name details is_active order]
     permitted_params += %i[staff_notes] if CurrentUser.is_staff?
-    permitted_params += %i[creator_ip_addr] if CurrentUser.is_admin?
+    permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
 

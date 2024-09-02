@@ -1,7 +1,7 @@
 <% content_for(:secondary_links) do %>
   <li><%= render "artists/quick_search" %></li>
   <%= subnav_link_to "Listing", artists_path %>
-  <%= subnav_link_to "Avoid Posting", avoid_postings_path %>
+  <%= subnav_link_to "Avoid Posting", avoid_posting_static_path %>
   <% if CurrentUser.is_member? %>
     <%= subnav_link_to "New", new_artist_path %>
   <% end %>

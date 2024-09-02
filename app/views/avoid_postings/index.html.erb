@@ -52,7 +52,11 @@
             <%= link_to "Show", avoid_posting_path(avoid_posting) %>
             <% if CurrentUser.can_edit_avoid_posting_entries? %>
               | <%= link_to "Edit", edit_avoid_posting_path(avoid_posting) %>
-              | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting?" } %>
+              <% if avoid_posting.is_active? %>
+                | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting entry?" } %>
+              <% else %>
+                | <%= link_to "Undelete", undelete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to undelete this avoid posting entry?" } %>
+              <% end %>
             <% end %>
           </td>
         </tr>

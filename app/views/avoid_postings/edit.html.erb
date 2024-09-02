@@ -1,6 +1,6 @@
 <div class="c-avoid-postings">
   <div class="a-edit">
-    <h1>Edit Avoid Posting for <%= link_to @avoid_posting.artist_name, avoid_posting_path(@avoid_posting), class: "tag-type-1" %></h1>
+    <h1>Edit Avoid Posting for <%= link_to @avoid_posting.artist_name, avoid_posting_path(@avoid_posting), class: "tag-type-#{Tag.categories.artist}" %></h1>
 
     <%= error_messages_for :avoid_posting %>
     <%= render "form" %>

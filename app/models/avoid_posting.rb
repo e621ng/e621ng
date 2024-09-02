@@ -13,6 +13,7 @@ class AvoidPosting < ApplicationRecord
   after_destroy :log_destroy
   validates_associated :artist
   accepts_nested_attributes_for :artist
+  after_commit :invalidate_cache
 
   scope :active, -> { where(is_active: true) }
   scope :deleted, -> { where(is_active: false) }
@@ -76,10 +77,6 @@ class AvoidPosting < ApplicationRecord
   end
 
   module SearchMethods
-    def for_artist(name)
-      active.find_by(artist_name: name)
-    end
-
     def artist_search(params)
       Artist.search(params.slice(:any_name_matches, :any_other_name_matches).merge({ id: params[:artist_id], name: params[:artist_name] }))
     end
@@ -99,8 +96,20 @@ class AvoidPosting < ApplicationRecord
       q = q.attribute_matches(:details, params[:details])
       q = q.attribute_matches(:staff_notes, params[:staff_notes])
       q = q.where_user(:creator_id, :creator, params)
-      q = q.where("creator_ip_addr <<= ?", params[:creator_ip_addr]) if params[:creator_ip_addr].present?
-      q.apply_basic_order(params)
+      q = q.where("creator_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
+      case params[:order]
+      when "artist_name", "artist_name_asc"
+        q = q.joins(:artist).order("artists.name ASC")
+      when "artist_name_desc"
+        q = q.joins(:artist).order("artists.name DESC")
+      when "created_at"
+        q = q.order("created_at DESC")
+      when "updated_at"
+        q = q.order("updated_at DESC")
+      else
+        q = q.apply_basic_order(params)
+      end
+      q
     end
   end
 
@@ -124,6 +133,10 @@ class AvoidPosting < ApplicationRecord
     return details if details.present?
     return "Only the artist is allowed to post." if linked_user_id.present?
     ""
+  end
+
+  def invalidate_cache
+    Cache.delete("avoid_posting_list")
   end
 
   include LogMethods

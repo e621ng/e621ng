@@ -15,10 +15,10 @@ class PostsDecorator < ApplicationDecorator
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == 's'
-    klass << "post-rating-questionable" if post.rating == 'q'
-    klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass << "post-rating-safe" if post.rating == "s"
+    klass << "post-rating-questionable" if post.rating == "q"
+    klass << "post-rating-explicit" if post.rating == "e"
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
@@ -92,13 +92,13 @@ class PostsDecorator < ApplicationDecorator
     end
 
     tooltip = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}"
-    if CurrentUser.is_janitor?
+    if CurrentUser.is_janitor? || post.uploader_linked_artists.any?
       tooltip += "\nUploader: #{post.uploader_name}"
-      if post.is_flagged? || post.is_deleted?
-        flag = post.flags.order(id: :desc).first
-        tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
-        tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
-      end
+    end
+    if CurrentUser.is_janitor? && (post.is_flagged? || post.is_deleted?)
+      flag = post.flags.order(id: :desc).first
+      tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
+      tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
     end
     tooltip += "\n\n#{post.tag_string}"
 

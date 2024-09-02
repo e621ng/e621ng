@@ -1,74 +1,7 @@
-
-
-#blacklist-box {
-  display: none;
-  margin-bottom: 1em;
-
-  .blacklist-help {
-    font-size: 0.85em;
-    font-weight: bold;
-  }
-
-  .blacklist-header {
-    display: flex;
-    justify-content: space-between;
-  }
-  #blacklist-collapse {
-    cursor: pointer;
-    &::before {
-      content: '▼ '
-    }
-    &.hidden::before {
-      content: '► ';
-    }
-  }
-
-  #blacklist-list {
-    a {
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      vertical-align: bottom;
-    }
-
-    a.entry-disabled {
-      text-decoration: line-through;
-    }
-  }
-
-  &.sidebar-blacklist ul li {
-    list-style-type: disc;
-    list-style-position: inside;
-
-    a {
-      max-width: 75%;
-    }
-  }
-
-  &.inline-blacklist {
-    margin-bottom: 1em;
-
-    #blacklist-list {
-      display: inline;
-
-      li {
-        display: inline;
-        margin-right: 1em;
-
-        a {
-          max-width: 25%;
-        }
-      }
-    }
-  }
-}
-
-
-// Quick Edit Form
+/*** Quick Edit Form ***/
 #blacklist-edit-dialog {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: min-content 1fr min-content;
   gap: 0.5rem;
 
@@ -77,9 +10,173 @@
   }
   p {
     margin-bottom: 0;
-    text-align: center;
+    text-align: right;
+    text-wrap: nowrap;
+  }
+  #blacklist-save,
+  #blacklist-cancel {
+    width: min-content;
+    height: 2em;
+  }
+  #blacklist-cancel { justify-self: end; }
+}
+
+/*** Sidebar Blacklist ***/
+.blacklist-ui {
+  display: flex;
+  flex-flow: column;
+
+  &[filters="0"] {
+    display: none;
+  }
+
+  // Header
+  .blacklist-header {
+    display: flex;
+
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-left: 1.3em;
+    position: relative;
+    cursor: pointer;
+
+    .blacklisted-count {
+      margin-left: 0.25em;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -1.2em;
+      border: 0.3em solid transparent;
+      border-color: transparent var(--color-text) var(--color-text) transparent;
+      transform: rotate(45deg);
+      bottom: 0.25em;
+      transition: 0.1s ease-in-out;
+    }
+  }
+  &[collapsed="true"] {
+    .blacklist-header::before {
+      transform: rotate(-45deg);
+    }
+
+    .blacklist-filters {
+      max-height: 0;
+      overflow: hidden;
+    }
+  }
+  &[collapsed="false"] {
+    .blacklist-filters {
+      // Hide scrollbars when unrolling
+      @keyframes hide-scroll {
+        from, to { overflow: hidden; } 
+      }
+      animation: hide-scroll 0.1s backwards;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
+  // Filters
+  .blacklist-filters {
+    display: flex;
+    flex-flow: column;
+    gap: 0.1rem;
+    margin: 0.25em 0;
+
+    max-height: 50vh;
+    transition: max-height 0.1s ease-in-out;
+
+    li {
+      display: flex;
+      cursor: pointer;
+
+      span {
+        color: var(--color-text-muted);
+        margin-left: 0.5em;
+      }
+
+      &::before {
+        content: "\2610"; // ☐
+        display: block;
+        width: 1em;
+        margin-right: 0.5em;
+      }
+
+      &[enabled="true"] {
+        &::before {
+          content: "\2611"; // ☑
+        }
+      }
+
+      &[enabled="false"] {
+        color: var(--color-text-muted);
+        a {
+          color: var(--color-text-muted);
+        }
+      }
+    }
+  }
+
+  // Footer
+  .blacklist-footer {
+    display: flex;
+
+    a.blacklist-toggle-all {
+      cursor: pointer;
+    }
+
+    .blacklist-help {
+      margin-left: auto;
+    }
   }
 }
+
+
+/*** Inline Blacklist ***/
+.blacklist-ui.blacklist-inline {
+  flex-flow: row;
+  flex-wrap: wrap;
+  padding: 1em 0;
+
+  .blacklist-header {
+    margin-left: 0;
+    font-size: 1em;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .blacklist-filters {
+    flex-flow: row;
+    gap: 0.75rem;
+    margin: 0 0.75rem;
+    flex-wrap: wrap;
+    font-size: 1em;
+
+    li {
+      &::before {
+        display: none; 
+      }
+    }
+  }
+  &[collapsed=true]{
+    .blacklist-filters {
+      display: none;
+    }
+    .blacklist-footer {
+      margin-left: 0.75rem;
+    }
+  }
+  
+  .blacklist-footer {
+    .blacklist-help {
+      display: none;
+    }
+  }
+}
+
 
 // Settings
 #c-users #a-edit {
@@ -91,14 +188,19 @@
 
 
 // Completely hide the blacklisted posts on these pages only
-#c-posts #a-index, #c-popular, #c-favorites {
+#c-posts #a-index,
+#c-popular,
+#c-favorites {
   .post-preview.blacklisted {
     display: none !important;
   }
 }
 
-#image-container.blacklisted, .post-thumbnail.blacklisted, .post-preview.blacklisted {
-  img, video {
+#image-container.blacklisted,
+.post-thumbnail.blacklisted,
+.post-preview.blacklisted {
+  img,
+  video {
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;

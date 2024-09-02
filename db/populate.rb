@@ -168,9 +168,9 @@ def populate_comments(number, users: [])
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   posts = Post.limit(DISTRIBUTION).order("random()")
 
-  number.times do |index|
-    post = posts[index % DISTRIBUTION]
-    CurrentUser.user = users[index % DISTRIBUTION]
+  number.times do
+    post = posts.sample
+    CurrentUser.user = users.sample
 
     comment_obj = Comment.create do |comment|
       comment.creator = CurrentUser.user

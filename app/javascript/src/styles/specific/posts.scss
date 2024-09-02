@@ -23,6 +23,9 @@ article.post-preview {
     font-size: 80%;
     margin-bottom: 0;
   }
+  &.filter-matches .desc {
+    background-color: var(--palette-background-red);
+  }
 
   .post-score>span {
     font-size: 0.8rem;
@@ -335,10 +338,6 @@ div#c-posts {
 
       background-color: themed("color-section");
       border: 1px solid themed("color-foreground");
-
-      /*.artist-separator {
-        color: var(--color-text-muted);
-      }*/
 
       ul {
         list-style: disc;

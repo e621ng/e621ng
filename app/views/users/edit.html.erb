@@ -44,7 +44,7 @@
 
         <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default." %>
 
-        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["Original", "original"], ["Fit (Horizonal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]], :include_blank => false %>
+        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["Original", "original"], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]], :include_blank => false %>
 
         <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (25..250), :include_blank => false %>
 

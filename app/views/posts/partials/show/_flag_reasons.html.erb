@@ -18,5 +18,8 @@
         <span class="resolved">RESOLVED</span>
       <% end %>
     </li>
+    <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
+      <% break %>
+    <% end %>
   <% end %>
 </ul>

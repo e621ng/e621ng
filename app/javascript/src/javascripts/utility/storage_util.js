@@ -13,6 +13,11 @@ StorageUtils.bootstrap = function (object, accessor, key, fallback) {
   });
 };
 
+StorageUtils.bootstrapSome = function (object, accessors = []) {
+  for (const one of accessors)
+    StorageUtils.bootstrap(object, one, object[one][0], object[one][1]);
+};
+
 StorageUtils.bootstrapMany = function (object) {
   for (const [accessor, params] of Object.entries(object))
     StorageUtils.bootstrap(object, accessor, params[0], params[1]);

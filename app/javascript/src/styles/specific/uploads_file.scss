@@ -1,0 +1,99 @@
+.uploader-file-input {
+  display: block;
+  max-width: 800px;
+
+  &[file-enabled="true"] label.fileinput { border-radius: 6px; }
+  &[link-enabled="true"] label.linkinput { border-radius: 6px; }
+  &[file-enabled="true"][link-enabled="true"] {
+    label.fileinput { border-radius: 6px 6px 0 0; }
+    label.linkinput {
+      border-radius: 0 0 6px 6px;
+      flex-flow: column;
+      margin-top: -0.5em;
+    }
+  }
+
+  // Local file drag-and-drop
+  label.fileinput {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    position: relative;
+    gap: 0.5em;
+    
+    padding: 1em;
+    font-weight: unset;
+
+    border-radius: 6px;
+    background: var(--color-section-lighten-10);
+    border: 2px dashed var(--color-section-lighten-10);
+
+    &[dragging="true"] {
+      border-color: #fff;
+    }
+
+    input[type="file"] {
+      opacity: 0;
+      position: absolute;
+      bottom: 0;
+      height: 0px;
+    }
+
+    & > span {
+      pointer-events: none;
+      text-align: center;
+      text-wrap: wrap;  // Fix for the file name overflow
+
+      &.title {
+        font-size: 1.3em;
+      }
+      &.subtitle {
+        color: var(--palette-text-grey);
+
+        u {
+          text-decoration: none;
+          border-bottom: 1px solid var(--palette-text-grey);
+        }
+      }
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  button.btn-clear {
+    display: block;
+    margin: 1em auto 0;
+    font-size: 1.1em;
+    width: 10em;
+  }
+
+
+  // Remote file URL paste
+  label.linkinput {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+
+    padding: 1em;
+    background: var(--color-section-lighten-5);
+
+    input[type="text"] {
+      font-family: monospace;
+      font-size: 1rem; // Match the upload page inputs
+      width: 100%; // Prevent overflow
+      text-align: center;
+      box-sizing: border-box;
+      flex: 1;
+    }
+  }
+
+  #whitelist-warning {
+    padding: 0.25em 1em;
+  }
+
+}

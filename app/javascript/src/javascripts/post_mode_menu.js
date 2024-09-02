@@ -55,7 +55,7 @@ PostModeMenu.initialize_selector = function () {
 };
 
 PostModeMenu.initialize_preview_link = function () {
-  $(".post-preview a").on("click.danbooru", PostModeMenu.click);
+  $(".post-preview").on("click.danbooru", PostModeMenu.click);
 };
 
 PostModeMenu.initialize_edit_form = function () {
@@ -168,7 +168,7 @@ PostModeMenu.open_edit = function (post_id) {
 
 PostModeMenu.click = function (e) {
   var s = $("#mode-box-mode").val();
-  var post_id = $(e.target).closest("article").data("id");
+  var post_id = $(e.currentTarget).data("id");
 
   if (s === "add-fav") {
     Favorite.create(post_id);
