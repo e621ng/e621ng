@@ -97,39 +97,17 @@ class PostPresenter < Presenter
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == 's'
-    klass << "post-rating-questionable" if post.rating == 'q'
-    klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass << "post-rating-safe" if post.rating == "s"
+    klass << "post-rating-questionable" if post.rating == "q"
+    klass << "post-rating-explicit" if post.rating == "e"
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
   def self.data_attributes(post, include_post: false)
-    attributes = {
-        "data-id" => post.id,
-        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
-        "data-tags" => post.tag_string,
-        "data-rating" => post.rating,
-        "data-width" => post.image_width,
-        "data-height" => post.image_height,
-        "data-flags" => post.status_flags,
-        "data-score" => post.score,
-        "data-file-ext" => post.file_ext,
-        "data-uploader-id" => post.uploader_id,
-        "data-uploader" => post.uploader_name,
-        "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
-    }
-
-    if post.visible?
-      attributes["data-md5"] = post.md5
-      attributes["data-file-url"] = post.file_url
-      attributes["data-large-file-url"] = post.large_file_url
-      attributes["data-preview-file-url"] = post.preview_file_url
-    end
-
-    attributes["data-post"] = post_attribute_attribute(post).to_json if include_post
-
-    attributes
+    attributes = post.thumbnail_attributes
+    attributes[:post] = post_attribute_attribute(post).to_json if include_post
+    { data: attributes }
   end
 
   def self.post_attribute_attribute(post)

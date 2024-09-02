@@ -3,7 +3,7 @@ div#c-blips {
     margin-bottom: $base-padding;
 
     &[data-is-deleted="true"] {
-      background-color: $blip-hidden-background;
+      background-color: $background-article-hidden;
     }
   }
 }

@@ -1,0 +1,32 @@
+$palette: (
+  "background-red": #76312e,
+  "background-yellow": #827428,
+  "background-green": #8529c9,
+  "background-grey": #60686f,
+
+  "background-red-d5": #{darken(#76312e, 5%)},
+  "background-yellow-d5": #{darken(#827428, 5%)},
+  "background-green-d5": #{darken(#8529c9, 5%)},
+  "background-grey-d5": #{darken(#60686f, 5%)},
+
+  "text-white": #ffffff,
+  "text-red": #FE6A64,
+  "text-yellow": #ffff00,
+  "text-green": #c16dff,
+  "text-grey": #aaaaaa,
+
+  // Just here for the post borders, nothing else
+  "plain-black": #000,
+  "plain-green": #0F0,
+  "plain-yellow": #c4c415,
+  "plain-blue": #00F,
+  "plain-red": #F00,
+);
+
+body[data-th-palette="trit"] {
+
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+
+}

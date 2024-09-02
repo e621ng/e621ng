@@ -3,7 +3,7 @@
     <aside id="sidebar">
       <%= render "posts/partials/common/search", :path => posts_path, :tags => params[:q], :tags_dom_id => "tags" %>
 
-      <%= render "posts/partials/index/blacklist" %>
+      <%= render "posts/partials/index/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
         <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
@@ -72,7 +72,7 @@
 
         <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
-        <%= tag.section(id: "image-container", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
+        <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/embedded", post: @post %>
@@ -194,6 +194,9 @@
         <li><a href="#image-and-nav">Image</a></li>
         <li><a href="#tag-list">Tags/Info</a></li>
       </ul>
+
+      <%= render "posts/partials/common/inline_blacklist" %>
+
       <menu id="post-sections">
         <% unless CurrentUser.hide_comments? %>
           <li class="active"><a href="#comments">Comments</a></li>

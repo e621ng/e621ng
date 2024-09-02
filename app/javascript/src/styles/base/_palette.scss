@@ -1,0 +1,43 @@
+// Base color palette.
+// These colors should not normally change between
+// themes, but could still be overriden if need be.
+
+// Palette definitions
+$palette: (
+  "background-red": #76312e,
+  "background-yellow": #827428,
+  "background-green": #227d2a,
+  "background-grey": #60686f,
+
+  "background-red-d5": #{darken(#76312e, 5%)},
+  "background-yellow-d5": #{darken(#827428, 5%)},
+  "background-green-d5": #{darken(#227d2a, 5%)},
+  "background-grey-d5": #{darken(#60686f, 5%)},
+
+  "text-white": #ffffff,
+  "text-red": #fe6a64,
+  "text-yellow": #ffd666,
+  "text-green": #4caf50,
+  "text-grey": #aaaaaa,
+
+  // Just here for the post borders, nothing else
+  "plain-black": #000,
+  "plain-green": #0F0,
+  "plain-yellow": #CC0,
+  "plain-blue": #00F,
+  "plain-red": #F00,
+);
+
+:root {
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+}
+
+// Helper function
+@function palette($key) {
+  @return var(--palette-#{$key});
+}
+
+// Element-specific
+$background-article-hidden: palette("background-red");

@@ -76,6 +76,16 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :avoid_postings, constraints: id_name_constraint do
+    member do
+      put :delete
+      put :undelete
+    end
+
+  end
+
+  resources :avoid_posting_versions, only: %i[index]
+
   resources :tickets, except: %i[destroy] do
     member do
       post :claim
@@ -448,6 +458,7 @@ Rails.application.routes.draw do
   post "/static/discord" => "static#discord", as: "discord_post"
   get "/static/toggle_mobile_mode" => "static#disable_mobile_mode", as: "disable_mobile_mode"
   get "/static/theme" => "static#theme", as: "theme"
+  get "/static/avoid_posting" => "static#avoid_posting", as: "avoid_posting_static"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
 
   root :to => "static#home"

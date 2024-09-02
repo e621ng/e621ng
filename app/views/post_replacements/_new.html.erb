@@ -16,6 +16,7 @@
 <%= javascript_tag nonce: true do -%>
   var uploaderSettings = {
     maxFileSize: <%= Danbooru.config.max_file_size %>,
+    maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
   };
   Danbooru.Replacer.init();
 <% end -%>

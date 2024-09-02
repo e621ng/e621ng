@@ -20,3 +20,12 @@
     }
   }
 } 
+
+.approved-ticket {
+  color: palette("text-green");
+  font-weight: bold;
+}
+.partial-ticket { 
+  color: palette("text-yellow");
+  font-weight: bold;
+}

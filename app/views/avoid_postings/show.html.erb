@@ -1,0 +1,46 @@
+<div id="c-avoid-postings">
+  <div id="a-index">
+    <h1>Avoid Posting: <%= link_to @avoid_posting.artist_name, show_or_new_artists_path(name: @avoid_posting.artist_name), class: "tag-type-#{Tag.categories.artist}" %><%= " (inactive)" unless @avoid_posting.is_active? %></h1>
+    <ul>
+      <li><strong>Status</strong> <%= @avoid_posting.status %></li>
+
+      <% if @avoid_posting.linked_user_id && @avoid_posting.linked_user %>
+        <li><strong>User</strong> <%= link_to_user(@avoid_posting.linked_user) %></li>
+      <% end %>
+      <li><strong>Created</strong> <%= compact_time @avoid_posting.created_at %> by <%= link_to_user(@avoid_posting.creator) %><% if CurrentUser.is_admin? %> (<%= link_to_ip @avoid_posting.creator_ip_addr %>)<% end %></li>
+      <% if @avoid_posting.updater.present? %>
+        <li><strong>Updated</strong> <%= compact_time @avoid_posting.updated_at %> by <%= link_to_user(@avoid_posting.updater) %><% if CurrentUser.is_admin? %> (<%= link_to_ip @avoid_posting.updater_ip_addr %>)<% end %></li>
+      <% end %>
+      <% if @avoid_posting.other_names.present? %>
+        <li><strong>Other Names</strong> <%= link_to_artists(@avoid_posting.other_names) %></li>
+      <% end %>
+      <% if @avoid_posting.group_name.present? %>
+        <li><strong>Group</strong> <%= link_to_artist(@avoid_posting.group_name) %></li>
+      <% end %>
+      <% if @avoid_posting.group_name.present? && @avoid_posting.artist.members.present? %>
+        <li><strong>Members</strong> <%= link_to_artists(@avoid_posting.artist.members.limit(25).map(&:name)) %></li>
+      <% end %>
+      <% if @avoid_posting.details.present? %>
+        <li>
+          <strong>Details</strong>
+          <div class="dtext-container">
+            <%= format_text(@avoid_posting.details) %>
+          </div>
+        </li>
+      <% end %>
+      <% if CurrentUser.is_staff? && @avoid_posting.staff_notes.present? %>
+        <li>
+          <strong>Staff Notes</strong>
+          <div class="dtext-container">
+            <%= format_text(@avoid_posting.staff_notes, inline: true) %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Avoid Posting for <%= @avoid_posting.artist_name %>
+<% end %>

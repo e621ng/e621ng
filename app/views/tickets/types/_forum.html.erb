@@ -1,13 +1,13 @@
 <% if @ticket.content %>
   <tr>
-    <td><span class='title'>Reported Forum Post</span></td>
+    <td><span class="title">Reported Forum Post</span></td>
     <td>
       <%= link_to("Post by #{@ticket.content.creator.name} in '#{@ticket.content.topic.title}'", forum_post_path(@ticket.content)) %>
     </td>
   </tr>
 <% else %>
   <tr>
-    <td><span class='title'>Reported Forum Post</span></td>
-    <td><span class='redtext'>Forum post has been deleted</span></td>
+    <td><span class="title">Reported Forum Post</span></td>
+    <td><span class="text-error">Forum post has been deleted</span></td>
   </tr>
 <% end %>

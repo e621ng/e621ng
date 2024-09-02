@@ -15,36 +15,15 @@ class PostsDecorator < ApplicationDecorator
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == 's'
-    klass << "post-rating-questionable" if post.rating == 'q'
-    klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass << "post-rating-safe" if post.rating == "s"
+    klass << "post-rating-questionable" if post.rating == "q"
+    klass << "post-rating-explicit" if post.rating == "e"
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
   def data_attributes
-    post = object
-    attributes = {
-        "data-id" => post.id,
-        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
-        "data-tags" => post.tag_string,
-        "data-rating" => post.rating,
-        "data-flags" => post.status_flags,
-        "data-uploader-id" => post.uploader_id,
-        "data-uploader" => post.uploader_name,
-        "data-file-ext" => post.file_ext,
-        "data-score" => post.score,
-        "data-fav-count" => post.fav_count,
-        "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
-    }
-
-    if post.visible?
-      attributes["data-file-url"] = post.file_url
-      attributes["data-large-file-url"] = post.large_file_url
-      attributes["data-preview-file-url"] = post.preview_file_url
-    end
-
-    attributes
+    { data: object.thumbnail_attributes }
   end
 
   def cropped_url(options)
@@ -113,13 +92,13 @@ class PostsDecorator < ApplicationDecorator
     end
 
     tooltip = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}"
-    if CurrentUser.is_janitor?
+    if CurrentUser.is_janitor? || post.uploader_linked_artists.any?
       tooltip += "\nUploader: #{post.uploader_name}"
-      if post.is_flagged? || post.is_deleted?
-        flag = post.flags.order(id: :desc).first
-        tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
-        tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
-      end
+    end
+    if CurrentUser.is_janitor? && (post.is_flagged? || post.is_deleted?)
+      flag = post.flags.order(id: :desc).first
+      tooltip += "\nFlag Reason: #{flag&.reason}" if post.is_flagged?
+      tooltip += "\nDel Reason: #{flag&.reason}" if post.is_deleted?
     end
     tooltip += "\n\n#{post.tag_string}"
 

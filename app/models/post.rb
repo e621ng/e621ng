@@ -234,7 +234,7 @@ class Post < ApplicationRecord
 
     def regenerate_image_samples!
       file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
+      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
@@ -410,7 +410,11 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
+      if @removed_tags.nil?
+        @removed_tags = []
+      end
+
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
     end
 
     def tag_array
@@ -469,8 +473,6 @@ class Post < ApplicationRecord
     end
 
     def merge_old_changes
-      @removed_tags = []
-
       if old_tag_string
         # If someone else committed changes to this post before we did,
         # then try to merge the tag changes together.
@@ -503,7 +505,6 @@ class Post < ApplicationRecord
     end
 
     def apply_tag_diff
-      @removed_tags = []
       return unless tag_string_diff.present?
 
       current_tags = tag_array
@@ -730,40 +731,76 @@ class Post < ApplicationRecord
       @post_metatags.each do |tag|
         case tag
         when /^-pool:(\d+)$/i
-          pool = Pool.find_by_id($1.to_i)
-          pool.remove!(self) if pool
+          pool = Pool.find_by(id: $1.to_i)
+          if pool
+            pool.remove!(self)
+            if pool.errors.any?
+              errors.add(:base, pool.errors.full_messages.join("; "))
+            end
+          end
 
         when /^-pool:(.+)$/i
-          pool = Pool.find_by_name($1)
-          pool.remove!(self) if pool
+          pool = Pool.find_by(name: $1)
+          if pool
+            pool.remove!(self)
+            if pool.errors.any?
+              errors.add(:base, pool.errors.full_messages.join("; "))
+            end
+          end
 
         when /^pool:(\d+)$/i
-          pool = Pool.find_by_id($1.to_i)
-          pool.add!(self) if pool
+          pool = Pool.find_by(id: $1.to_i)
+          if pool
+            pool.add!(self)
+            if pool.errors.any?
+              errors.add(:base, pool.errors.full_messages.join("; "))
+            end
+          end
 
-        when /^pool:(.+)$/i
-          pool = Pool.find_by_name($1)
-          pool.add!(self) if pool
-
-        when /^newpool:(.+)$/i
-          pool = Pool.find_by_name($1)
-          pool.add!(self) if pool
+        when /^(?:new)?pool:(.+)$/i
+          pool = Pool.find_by(name: $1)
+          if pool
+            pool.add!(self)
+            if pool.errors.any?
+              errors.add(:base, pool.errors.full_messages.join("; "))
+            end
+          end
 
         when /^set:(\d+)$/i
-          set = PostSet.find_by_id($1.to_i)
-          set.add!(self) if set&.can_edit_posts?(CurrentUser.user)
+          set = PostSet.find_by(id: $1.to_i)
+          if set&.can_edit_posts?(CurrentUser.user)
+            set.add!(self)
+            if set.errors.any?
+              errors.add(:base, set.errors.full_messages.join("; "))
+            end
+          end
 
         when /^-set:(\d+)$/i
-          set = PostSet.find_by_id($1.to_i)
-          set.remove!(self) if set&.can_edit_posts?(CurrentUser.user)
+          set = PostSet.find_by(id: $1.to_i)
+          if set&.can_edit_posts?(CurrentUser.user)
+            set.remove!(self)
+            if set.errors.any?
+              errors.add(:base, set.errors.full_messages.join("; "))
+            end
+          end
 
         when /^set:(.+)$/i
-          set = PostSet.find_by_shortname($1)
-          set.add!(self) if set&.can_edit_posts?(CurrentUser.user)
+          set = PostSet.find_by(shortname: $1)
+          if set&.can_edit_posts?(CurrentUser.user)
+            set.add!(self)
+            if set.errors.any?
+              errors.add(:base, set.errors.full_messages.join("; "))
+            end
+          end
 
         when /^-set:(.+)$/i
-          set = PostSet.find_by_shortname($1)
-          set.remove!(self) if set&.can_edit_posts?(CurrentUser.user)
+          set = PostSet.find_by(shortname: $1)
+          if set&.can_edit_posts?(CurrentUser.user)
+            set.remove!(self)
+            if set.errors.any?
+              errors.add(:base, set.errors.full_messages.join("; "))
+            end
+          end
 
         when /^child:none$/i
           children.each do |post|
@@ -1372,31 +1409,39 @@ class Post < ApplicationRecord
       list
     end
 
-    def minimal_attributes
-      preview_dims = preview_dimensions
-      hash = {
-          status: status,
-          flags: status_flags,
-          file_ext: file_ext,
-          id: id,
-          created_at: created_at,
-          rating: rating,
-          preview_width: preview_dims[1],
-          width: image_width,
-          preview_height: preview_dims[0],
-          height: image_height,
-          tags: tag_string,
-          score: score,
-          uploader_id: uploader_id,
-          uploader: uploader_name
+    def thumbnail_attributes
+      attributes = {
+        id: id,
+        flags: status_flags,
+        tags: tag_string,
+        rating: rating,
+        file_ext: file_ext,
+
+        width: image_width,
+        height: image_height,
+        size: file_size,
+
+        created_at: created_at,
+        uploader: uploader_name,
+        uploader_id: uploader_id,
+
+        score: score,
+        fav_count: fav_count,
+        is_favorited: favorited_by?(CurrentUser.user.id),
+
+        pools: pool_ids,
       }
 
       if visible?
-        hash[:md5] = md5
-        hash[:preview_url] = preview_file_url
-        hash[:cropped_url] = crop_file_url
+        attributes[:md5] = md5
+        attributes[:preview_url] = preview_file_url
+        attributes[:large_url] = large_file_url
+        attributes[:file_url] = file_url
+        attributes[:preview_width] = preview_dimensions[1]
+        attributes[:preview_height] = preview_dimensions[0]
       end
-      hash
+
+      attributes
     end
 
     def status
@@ -1600,6 +1645,8 @@ class Post < ApplicationRecord
         unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
         self.warnings.add(:base, "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again")
       end
+
+      @removed_tags = []
     end
 
     def has_artist_tag
@@ -1710,9 +1757,12 @@ class Post < ApplicationRecord
     save
   end
 
+  def artist_tags
+    tags.select { |t| t.category == Tag.categories.artist }
+  end
+
   def uploader_linked_artists
-    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
-    linked_artists.select { |artist| artist.linked_user_id == uploader_id }
+    artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
   end
 
   def flaggable_for_guidelines?
@@ -1723,5 +1773,9 @@ class Post < ApplicationRecord
 
   def visible_comment_count(_user)
     comment_count
+  end
+
+  def avoid_posting_artists
+    AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
   end
 end

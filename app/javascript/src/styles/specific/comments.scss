@@ -17,7 +17,7 @@ div.comments-for-post {
       }
 
       &[data-is-deleted="true"] {
-        background: $comment-hidden-background;
+        background: $background-article-hidden;
       }
 
       div.content {

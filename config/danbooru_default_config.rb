@@ -337,6 +337,14 @@ module Danbooru
       20_000
     end
 
+    def pool_post_limit(_user)
+      1_000
+    end
+
+    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
+      10_000
+    end
+
     def discord_site
     end
 
@@ -452,7 +460,7 @@ module Danbooru
         },
         {
           name: "dnp_artist",
-          reason: "The artist of this post is on the [[avoid_posting|avoid posting list]]",
+          reason: "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
           text: "Certain artists have requested that their work is not to be published on this site, and were granted [[avoid_posting|Do Not Post]] status.\nSometimes, that status comes with conditions; see [[conditional_dnp]] for more information",
         },
         {
@@ -519,7 +527,7 @@ module Danbooru
         "Traced artwork",
         "Traced artwork (post #%PARENT_ID%)",
         "Takedown #%OTHER_ID%",
-        "The artist of this post is on the [[avoid_posting|avoid posting list]]",
+        "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
         "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
       ]
