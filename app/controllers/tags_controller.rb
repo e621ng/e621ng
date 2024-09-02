@@ -41,10 +41,11 @@ class TagsController < ApplicationController
     @tag.update(tag_params)
     respond_with(@tag) do |format|
       format.html do
-        if @tag.from_wiki.to_s.truthy? && @tag.wiki_page.present?
-          return redirect_to(wiki_page_path(@tag.wiki_page), notice: "Tag updated")
+        if @tag.from_wiki.to_s.truthy?
+          return redirect_to(show_or_new_wiki_pages_path(title: WikiPage.normalize_name(@tag.name)), notice: "Tag updated")
+        else
+          redirect_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
         end
-        redirect_to(tag_path(@tag))
       end
     end
   end

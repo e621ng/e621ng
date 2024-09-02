@@ -21,7 +21,7 @@ class TagCorrectionsController < ApplicationController
     if params[:commit] == "Fix"
       @correction.fix!
       if params[:from_wiki].to_s.truthy? && @correction.tag.wiki_page.present?
-        return redirect_to(wiki_page_path(@correction.tag.wiki_page), notice: "Tag will be fixed in a few seconds")
+        return redirect_to(show_or_new_wiki_pages_path(WikiPage.normalize_name(@correction.tag.name)), notice: "Tag will be fixed in a few seconds")
       end
       redirect_to(tags_path(search: { name_matches: @correction.tag.name, hide_empty: "no"}), notice: "Tag will be fixed in a few seconds")
     else
