@@ -15,7 +15,7 @@
   </li>
   <% if CurrentUser.is_janitor? || post.uploader_linked_artists.any? %>
     <li>
-      Uploader: <%= link_to_user(post.uploader) %> <%= user_record_meta(post.uploader) %>
+      Uploader: <%= link_to_user(post.uploader) %> <%= user_record_meta(post.uploader) if CurrentUser.is_janitor? %>
       <% if post.uploader_linked_artists.any? %>
         <i class="uploader-is-artist fa-regular fa-circle-check" title="The uploader is linked to one of the artist tags"></i>
       <% end %>
