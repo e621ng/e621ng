@@ -16,6 +16,8 @@ class Tag < ApplicationRecord
 
   before_save :update_category, if: :category_changed?
 
+  attr_accessor :from_wiki
+
   class CategoryMapping
     TagCategory::REVERSE_MAPPING.each do |value, category|
       define_method(category) do

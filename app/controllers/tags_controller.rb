@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class TagsController < ApplicationController
-  before_action :member_only, :only => [:edit, :update, :preview]
+  before_action :member_only, only: %i[edit update preview]
   respond_to :html, :json
 
   def edit
+    @from_wiki = request.referer.try(:include?, "wiki_pages") || false
     @tag = Tag.find(params[:id])
     check_privilege(@tag)
     respond_with(@tag)
@@ -38,7 +39,15 @@ class TagsController < ApplicationController
     @tag = Tag.find(params[:id])
     check_privilege(@tag)
     @tag.update(tag_params)
-    respond_with(@tag)
+    respond_with(@tag) do |format|
+      format.html do
+        if @tag.from_wiki.to_s.truthy?
+          return redirect_to(show_or_new_wiki_pages_path(title: WikiPage.normalize_name(@tag.name)), notice: "Tag updated")
+        else
+          redirect_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
+        end
+      end
+    end
   end
 
   private
@@ -48,7 +57,7 @@ class TagsController < ApplicationController
   end
 
   def tag_params
-    permitted_params = [:category]
+    permitted_params = %i[category from_wiki]
     permitted_params << :is_locked if CurrentUser.is_admin?
 
     params.require(:tag).permit(permitted_params)

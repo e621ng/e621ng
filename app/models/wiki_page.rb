@@ -47,7 +47,7 @@ class WikiPage < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      find_by(title: title&.downcase&.tr(" ", "_"))
+      find_by(title: WikiPage.normalize_name(title))
     end
 
     def active
@@ -215,6 +215,10 @@ class WikiPage < ApplicationRecord
 
   def self.normalize_other_name(name)
     name.unicode_normalize(:nfkc).gsub(/[[:space:]]+/, " ").strip.tr(" ", "_")
+  end
+
+  def self.normalize_name(name)
+    name&.downcase&.tr(" ", "_")
   end
 
   def skip_secondary_validations=(value)
