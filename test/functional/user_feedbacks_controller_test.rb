@@ -195,7 +195,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       context "by a moderator" do
-        should "allow deleting feedbacks given to other users" do
+        should "allow undeleting feedbacks given to other users" do
           assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.active.count" => 1 }) do
             put_auth undelete_user_feedback_path(@user_feedback), @mod
           end
