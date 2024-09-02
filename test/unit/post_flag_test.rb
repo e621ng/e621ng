@@ -40,6 +40,7 @@ class PostFlagTest < ActiveSupport::TestCase
     end
 
     should "not be able to flag a non-pending post with the uploading_guidelines reason" do
+      as(create(:admin_user)) { create(:post_flag_reason, name: "uploading_guidelines") }
       error = assert_raises(ActiveRecord::RecordInvalid) do
         as(@bob) do
           @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines")

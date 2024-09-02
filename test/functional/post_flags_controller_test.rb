@@ -41,12 +41,13 @@ class PostFlagsControllerTest < ActionDispatch::IntegrationTest
       setup do
         as(@user) do
           @post = create(:post)
+          @reason = create(:post_flag_reason)
         end
       end
 
       should "create a new flag" do
         assert_difference("PostFlag.count", 1) do
-          post_auth post_flags_path, @user, params: { format: :json, post_flag: { post_id: @post.id, reason_name: "dnp_artist" } }
+          post_auth post_flags_path, @user, params: { format: :json, post_flag: { post_id: @post.id, reason_name: @reason.name } }
         end
       end
     end

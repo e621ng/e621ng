@@ -3,7 +3,7 @@
 FactoryBot.define do
   factory(:post_flag) do
     post
-    reason_name { "dnp_artist" }
+    reason_name { association(:post_flag_reason).name }
     is_resolved { false }
   end
 end
