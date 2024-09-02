@@ -4,7 +4,7 @@ div#search {
 
 div#page {
   overflow: visible;
-  padding: $padding-025;
+  padding: $padding-050 $padding-025;
 
   @include window-larger-than(800px) {
     border-radius: $border-radius-full;
@@ -94,7 +94,7 @@ footer#page-footer {
   grid-template-columns: 1fr 5em 1fr;
   align-items: center;
 
-  padding: $padding-025;
+  padding: $padding-050 $padding-025;
   margin-top: 1em;
   line-height: 1.75em;
   background-color: themed("color-foreground");
