@@ -3,10 +3,14 @@ div#search {
 }
 
 div#page {
-  border-radius: $border-radius-full;
   overflow: visible;
-  margin: 0 1rem;
-  padding: $padding-050;
+  padding: $padding-025;
+
+  @include window-larger-than(800px) {
+    border-radius: $border-radius-full;
+    margin: 0 1em;
+    padding: $padding-050;
+  }
 
   background-color: $hexagon-color-foreground;
   background-color: themed("color-foreground");
@@ -90,12 +94,16 @@ footer#page-footer {
   grid-template-columns: 1fr 5em 1fr;
   align-items: center;
 
-  margin: 1em;
-  margin-bottom: 0;
-  border-radius: $border-radius-full $border-radius-full 0 0;
-  padding: 0.75em 0 0.75em;
+  padding: $padding-025;
+  margin-top: 1em;
   line-height: 1.75em;
   background-color: themed("color-foreground");
+
+  @include window-larger-than(800px) {
+    border-radius: $border-radius-full $border-radius-full 0 0;
+    margin: 1em 1em 0 1em;
+    padding: $padding-050;
+  }
 
   .footer-logo {
     width: 5em;
