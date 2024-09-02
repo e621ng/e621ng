@@ -1,0 +1,11 @@
+@mixin window-larger-than($value) {
+  @media (min-width: $value) {
+    @content;
+  }
+}
+
+@mixin window-smaller-than($value) {
+  @media (max-width: $value) {
+    @content;
+  }
+}
