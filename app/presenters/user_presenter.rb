@@ -154,10 +154,10 @@ class UserPresenter
 
     total_class = (positive - negative) > 0 ? "user-feedback-positive" : "user-feedback-negative"
     total_class = "" if (positive - negative) == 0
-    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
-    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
-    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
-    deleted_html = %{<span class="user-feedback-deleted">#{deleted} Del</span>}.html_safe if deleted > 0
+    positive_html = %{<span class="user-feedback-positive">#{positive}</span>}.html_safe if positive > 0
+    neutral_html = %{<span class="user-feedback-neutral">#{neutral}</span>}.html_safe if neutral > 0
+    negative_html = %{<span class="user-feedback-negative">#{negative}</span>}.html_safe if negative > 0
+    deleted_html = %{<span class="user-feedback-deleted">#{deleted}</span>}.html_safe if deleted > 0
     list_html = "#{positive_html} #{neutral_html} #{negative_html} #{deleted_html}".strip
 
     %{<span class="#{total_class}">#{positive - negative}</span> (#{list_html})}.html_safe
