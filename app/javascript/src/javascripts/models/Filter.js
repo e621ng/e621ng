@@ -140,7 +140,7 @@ class FilterToken {
     this.type = FilterUtils.getFilterType(raw);
     if (this.type !== "tag") raw = raw.slice(this.type.length + 1);
     else if (raw.includes("*")) {
-      this.value = new RegExp(raw.replaceAll(/\*/g, ".*"));
+      this.value = new RegExp(raw.replace(/\*/g, ".*"));
       this.type = "wildcard";
       return;
     }
