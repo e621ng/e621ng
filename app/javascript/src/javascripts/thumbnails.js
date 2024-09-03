@@ -15,14 +15,14 @@ Thumbnails.initialize = function () {
     const postID = $post.data("id");
     if (!postID) {
       clearPlaceholder($post);
-      return;
+      continue;
     }
 
     // Data exists for this post
     const postData = postsData[postID];
     if (!postData) {
       clearPlaceholder($post);
-      return;
+      continue;
     }
 
     // Add data to cache right away, instead of
