@@ -86,8 +86,6 @@
     }
 
     div#page {
-      margin: 0 0.25rem;
-      padding: 0.5rem 0.25rem;
 
       > div /* div#c-$controller */
       {
@@ -320,9 +318,6 @@
 @media screen and (max-width: 660px) {
   body.resp {
     #c-forum-topics, #c-forum-posts {
-      #a-show {
-        padding: 1em 0.5em;
-      }
 
       .creator {
         display: none;
