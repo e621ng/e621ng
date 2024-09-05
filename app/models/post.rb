@@ -58,9 +58,6 @@ class Post < ApplicationRecord
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
                 :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
-  # FIXME: Remove this
-  alias_attribute :is_comment_locked, :is_comment_disabled
-
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
   IMAGE_TYPES = %i[original large preview crop]
@@ -1572,6 +1569,10 @@ class Post < ApplicationRecord
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
         PostEvent.add(id, CurrentUser.user, action)
       end
+      if saved_change_to_is_comment_disabled?
+        action = is_comment_disabled? ? :comment_disabled : :comment_enabled
+        PostEvent.add(id, CurrentUser.user, action)
+      end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
       end
@@ -1771,8 +1772,12 @@ class Post < ApplicationRecord
     false
   end
 
-  def visible_comment_count(_user)
-    comment_count
+  def visible_comment_count(user)
+    if user.is_moderator? || !is_comment_disabled?
+      comment_count
+    else
+      comments.visible(user).count
+    end
   end
 
   def avoid_posting_artists
