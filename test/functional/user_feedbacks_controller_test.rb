@@ -164,7 +164,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
 
       context "by a moderator" do
         should "allow deleting feedbacks given to other users" do
-          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.count" => -1 }) do
+          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.active.count" => -1 }) do
             put_auth delete_user_feedback_path(@user_feedback), @mod
           end
         end
@@ -174,7 +174,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
             @user_feedback = create(:user_feedback, user: @mod)
           end
 
-          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.count]) do
+          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.active.count]) do
             put_auth delete_user_feedback_path(@user_feedback), @mod
           end
         end
@@ -195,18 +195,18 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       context "by a moderator" do
-        should "allow deleting feedbacks given to other users" do
-          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.count" => 1 }) do
+        should "allow undeleting feedbacks given to other users" do
+          assert_difference({ "UserFeedback.count" => 0, "ModAction.count" => 1, "@user.feedback.active.count" => 1 }) do
             put_auth undelete_user_feedback_path(@user_feedback), @mod
           end
         end
 
-        should "not allow deleting feedbacks given to themselves" do
+        should "not allow undeleting feedbacks given to themselves" do
           as(@critic) do
             @user_feedback = create(:user_feedback, user: @mod)
           end
 
-          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.count]) do
+          assert_no_difference(%w[UserFeedback.count ModAction.count @mod.feedback.active.count]) do
             put_auth undelete_user_feedback_path(@user_feedback), @mod
           end
         end
