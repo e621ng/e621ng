@@ -8,7 +8,7 @@ class TagQuery
   ].freeze
 
   BOOLEAN_METATAGS = %w[
-    hassource hasdescription isparent ischild inpool pending_replacements
+    hassource hasdescription isparent ischild inpool pending_replacements artverified
   ].freeze
 
   NEGATABLE_METATAGS = %w[
