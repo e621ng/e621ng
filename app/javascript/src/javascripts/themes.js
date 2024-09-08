@@ -3,6 +3,19 @@ import LStorage from "./utility/storage";
 
 const Theme = {};
 
+Theme.Values = ["Main", "Extra", "Palette", "Navbar", "Gestures"];
+
+for (const one of Theme.Values) {
+  Object.defineProperty(Theme, one, {
+    get () { return LStorage.Theme[one]; },
+    set (value) {
+      // No value checking, we die like men
+      LStorage.Theme[one] = value;
+      $("body").attr("data-th-" + one.toLowerCase(), value);
+    },
+  });
+}
+
 Theme.initialize_selector = function () {
   if (!LStorage.isAvailable()) {
     // This is here purely because it was in the old code.
@@ -11,17 +24,12 @@ Theme.initialize_selector = function () {
     return false;
   }
 
-  console.log("init");
-
-  const $body = $(document.body);
-  for (const one of ["Main", "Extra", "Palette", "Navbar", "Gestures"]) {
-    const id = one.toLowerCase();
-    $("#theme_" + id)
+  for (const one of Theme.Values) {
+    $("#theme_" + one.toLowerCase())
       .val(LStorage.Theme[one] + "")
       .on("change", (event) => {
         const data = event.target.value;
-        LStorage.Theme[one] = data;
-        $body.attr("data-th-" + id, data);
+        Theme[one] = data;
       });
   }
 };
