@@ -256,7 +256,7 @@ class E6Swipe extends ZingTouch.Swipe {
 }
 
 Post.initialize_gestures = function () {
-  if (!LStorage.Posts.Gestures) return;
+  if (!LStorage.Theme.Gestures) return;
   if (!(("ontouchstart" in window) || (navigator.maxTouchPoints > 0)))
     return;
   // Need activeElement to make sure that this doesn't go off during input.
