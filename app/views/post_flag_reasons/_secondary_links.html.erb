@@ -1,0 +1,12 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to("Listing", post_flag_reasons_path) %>
+  <% if CurrentUser.is_admin? %>
+    <%= subnav_link_to("New", new_post_flag_reason_path) %>
+    <% if params[:action] == "order" %>
+      <%= subnav_link_to("Edit Order", "#", class: "edit-order-link") %>
+      <%= subnav_link_to("Save Order", "#", class: "save-order-link", li_options: { style: "display: none;" }) %>
+    <% else %>
+      <%= subnav_link_to("Change order", order_post_flag_reasons_path) %>
+    <% end %>
+  <% end %>
+<% end %>

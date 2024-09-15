@@ -447,7 +447,7 @@ class PostTest < ActiveSupport::TestCase
       end
 
       should "not allow new flags" do
-        flag = build(:post_flag, post: @post)
+        flag = build(:post_flag, post: @post, reason_name: create(:post_flag_reason).name)
         flag.validate
         assert_equal(["Post is locked and cannot be flagged"], flag.errors.full_messages)
       end

@@ -289,6 +289,16 @@ class ModActionDecorator < ApplicationDecorator
     when "deleted_flag_reason"
       "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
 
+      ### Post Flag Reasons ###
+    when "post_flag_reason_create"
+      "Created post flag reason ##{vals['post_flag_reason_id']} (#{vals['name']})"
+    when "post_flag_reason_update"
+      "Edited post flag reason ##{vals['post_flag_reason_id']} (#{vals['name']})"
+    when "post_flag_reason_delete"
+      "Destroyed post flag reason ##{vals['post_flag_reason_id']} (#{vals['name']})"
+    when "post_flag_reasons_reorder"
+      "Reordered #{vals['count']} post flag #{'reason'.pluralize(vals['count'])}"
+
       ### Post Report Reasons ###
 
     when "report_reason_create"

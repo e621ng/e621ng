@@ -1,0 +1,58 @@
+<%# locals: (reasons:, sort: false) -%>
+
+<table class="striped">
+  <thead>
+  <tr>
+    <% if sort %>
+      <th width="15%">Name</th>
+      <th width="80%">Reason/Text</th>
+    <% else %>
+      <th width="11%">Name</th>
+      <th width="17%">Creator/Updater</th>
+      <th width="65%">Reason/Text</th>
+      <% if CurrentUser.is_admin? %>
+        <th width="7%"></th>
+      <% end %>
+    <% end %>
+  </tr>
+  </thead>
+  <tbody>
+  <% reasons.each do |reason| %>
+    <tr id="reason-<%= reason.id %>" data-reason-id="<%= reason.id %>">
+      <td><%= reason.name %></td>
+      <% unless sort %>
+        <td>
+          <p>
+            Created by <%= link_to_user(reason.creator) %>
+            <% if CurrentUser.is_admin? %>
+              (<%= link_to_ip(reason.creator_ip_addr) %>)
+            <% end %>
+            at <%= compact_time(reason.created_at) %>
+          </p>
+          <p>
+            Updated by <%= link_to_user(reason.updater) %>
+            <% if CurrentUser.is_admin? %>
+              (<%= link_to_ip(reason.updater_ip_addr) %>)
+            <% end %>
+            at <%= compact_time(reason.updated_at) %>
+          </p>
+        </td>
+      <% end %>
+      <td>
+        <p>
+          <b>Reason</b> <%= reason.reason %>
+        </p>
+        <p>
+          <b>Text</b> <%= reason.text %>
+        </p>
+      </td>
+      <% if !sort && CurrentUser.is_admin? %>
+        <td>
+          <%= link_to("Edit", edit_post_flag_reason_path(reason)) %>
+          | <%= link_to("Delete", post_flag_reason_path(reason), method: :delete, data: { confirm: "Are you sure? This action cannot be undone." }) %>
+        </td>
+      <% end %>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
