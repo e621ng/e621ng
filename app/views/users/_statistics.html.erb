@@ -20,9 +20,6 @@
         <span>Posts</span>
         <span>
           <%= presenter.active_upload_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(tags: "user:#{user.name} order:random limit:300") %>]
-          <% end %>
           [<%= link_to "pending", posts_path(tags: "user:#{user.name} status:pending") %>]
           (<%= link_to "comments on", comments_path(group_by: :comment, search: {poster_id: user.id}) %>)
           <% if CurrentUser.is_moderator? %>
@@ -33,9 +30,6 @@
         <span>Deleted</span>
         <span>
           <%= presenter.deleted_upload_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
-          <% end %>
         </span>
 
         <span>Replaced</span>
@@ -50,9 +44,6 @@
         <span>Favorites</span>
         <span>
           <%= presenter.favorite_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "fav:#{user.name} order:random limit:300") %>]
-          <% end %>
         </span>
 
         <span>Forum Posts</span>
@@ -124,7 +115,7 @@
           <% end %>
         </span>
 
-        <span>Wiki Page Changes</span>
+        <span>Wiki Changes</span>
         <span><%= presenter.wiki_page_version_count(self) %></span>
 
         <span>Note Changes</span>
