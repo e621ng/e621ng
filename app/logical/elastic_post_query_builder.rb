@@ -7,7 +7,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
+  def initialize(query_string, user, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
+    @user = user
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
@@ -313,6 +314,28 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     else
       order.push({id: :desc})
+    end
+
+    if (@user == nil || !@user.is_approver?) && DangerZone.hide_pending_posts_for > 0
+      must.push({
+        bool: {
+          should: [
+            {
+              range: {
+                created_at: {
+                  lte: DangerZone.hide_pending_posts_for.hours.ago
+                }
+              }
+            },
+            {
+              term: {
+                pending: false
+              }
+            }
+          ],
+          minimum_should_match: 1
+        }
+      })
     end
   end
 end
