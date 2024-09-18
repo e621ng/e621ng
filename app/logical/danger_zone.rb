@@ -26,7 +26,7 @@ module DangerZone
   def self.hide_pending_posts_for
     Cache.redis.get("hide_pending_posts_for").to_f || 0
   rescue Redis::CannotConnectError
-    0
+    PostPruner::DELETION_WINDOW * 24
   end
 
   def self.hide_pending_posts_for=(duration)
