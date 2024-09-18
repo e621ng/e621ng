@@ -315,7 +315,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({id: :desc})
     end
 
-    if !CurrentUser.is_approver? && DangerZone.hide_pending_posts_for > 0
+    if !CurrentUser.user.is_staff? && DangerZone.hide_pending_posts_for > 0
       must.push({
         bool: {
           should: [

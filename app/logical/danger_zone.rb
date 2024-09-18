@@ -10,7 +10,7 @@ module DangerZone
       return true
     end
 
-    (!user.nil? && user.is_approver?) || !post.is_pending? || post.created_at.before?(hide_pending_posts_for.hours.ago)
+    user.is_staff? || !post.is_pending? || post.created_at.before?(hide_pending_posts_for.hours.ago)
   end
 
   def self.min_upload_level

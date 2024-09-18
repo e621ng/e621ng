@@ -10,6 +10,7 @@ class Admin::DangerZoneControllerTest < ActionDispatch::IntegrationTest
 
     teardown do
       DangerZone.min_upload_level = User::Levels::MEMBER
+      DangerZone.hide_pending_posts_for = 0
     end
 
     context "index action" do
