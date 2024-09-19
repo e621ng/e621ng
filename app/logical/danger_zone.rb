@@ -10,7 +10,7 @@ module DangerZone
       return true
     end
 
-    user.is_staff? || !post.is_pending? || post.created_at.before?(hide_pending_posts_for.hours.ago)
+    post.uploader_id == user.id || user.is_staff? || !post.is_pending? || post.created_at.before?(hide_pending_posts_for.hours.ago)
   end
 
   def self.min_upload_level
