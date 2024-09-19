@@ -331,11 +331,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         }
       ]
 
-      if !CurrentUser.user.id.nil?
+      unless CurrentUser.user.id.nil?
         should.push({
           term: {
-            uploader: CurrentUser.user.id
-          }
+            uploader: CurrentUser.user.id,
+          },
         })
       end
 
