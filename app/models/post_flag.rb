@@ -143,7 +143,7 @@ class PostFlag < ApplicationRecord
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
     when 'uploading_guidelines'
-      errors.add(:reason, "cannot be used. The post is either not pending, or grandfathered") unless post.flaggable_for_guidelines?
+      errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end
