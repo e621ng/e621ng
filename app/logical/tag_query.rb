@@ -337,10 +337,10 @@ class TagQuery
           id_or_invalid(user_id)
         end
 
-      when /[-]?(#{TagQuery::COUNT_METATAGS.join('|')})/
+      when /[-~]?(#{TagQuery::COUNT_METATAGS.join('|')})/
         q[:"#{$1.downcase}#{type == :must ? '' : "_#{type}"}"] = ParseValue.range(g2)
 
-      when /[-]?(#{TagQuery::BOOLEAN_METATAGS.join('|')})/
+      when /[-~]?(#{TagQuery::BOOLEAN_METATAGS.join('|')})/
         q[:"#{$1.downcase}#{type == :must ? '' : "_#{type}"}"] = parse_boolean(g2)
 
       else
