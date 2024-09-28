@@ -1994,6 +1994,8 @@ class PostTest < ActiveSupport::TestCase
       with_inline_jobs { create(:artist, name: "test", linked_user: @user) }
       assert_tag_match([], "artverified:false")
       assert_tag_match([post], "artverified:true")
+      assert_tag_match([], "-artverified:true")
+      assert_tag_match([post], "-artverified:false")
     end
 
     should "return posts for replacements" do
@@ -2021,6 +2023,8 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([], "-pending_replacements:false")
+      assert_tag_match([promoted_post, post4, post3, post2, post1], "-pending_replacements:true")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do
