@@ -14,10 +14,10 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
       CurrentUser.user = @user
     end
 
-    context "#create.json" do
+    context "create action" do
       should "create a vote" do
-        assert_difference(-> { CommentVote.count }, 1) do
-          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json}
+        assert_difference("CommentVote.count", 1) do
+          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
           assert_response :success
         end
       end
@@ -27,6 +27,40 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
         assert_difference(-> { CommentVote.count }, -1) do
           post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
           assert_response :success
+        end
+      end
+
+      should "prevent voting on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        assert_no_difference("CommentVote.count") do
+          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
+          assert_response 422
+        end
+      end
+
+      should "prevent unvoting on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        create(:comment_vote, comment: @comment, user: @user, score: -1)
+        assert_no_difference("CommentVote.count") do
+          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
+          assert_response 422
+        end
+      end
+
+      should "prevent voting on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        assert_no_difference("CommentVote.count") do
+          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
+          assert_response 422
+        end
+      end
+
+      should "prevent unvoting on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        create(:comment_vote, comment: @comment, user: @user, score: -1)
+        assert_no_difference("CommentVote.count") do
+          post_auth comment_votes_path(@comment), @user, params: { score: -1, format: :json }
+          assert_response 422
         end
       end
     end

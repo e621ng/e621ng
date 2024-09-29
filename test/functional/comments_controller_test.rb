@@ -108,6 +108,22 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(false, @comment.reload.do_not_bump_post)
         assert_equal(@post.id, @comment.post_id)
       end
+
+      should "not allow changing comments on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        body = @comment.body
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
+        assert_response(:forbidden)
+        assert_equal(body, @comment.reload.body)
+      end
+
+      should "not allow changing comments on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        body = @comment.body
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
+        assert_response(:forbidden)
+        assert_equal(body, @comment.reload.body)
+      end
     end
 
     context "new action" do
@@ -132,6 +148,24 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         end
         assert_redirected_to comments_path
       end
+
+      should "not allow commenting on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        assert_difference("Comment.count", 0) do
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
+          assert_redirected_to(post_path(@post))
+          assert_equal("Post has comments locked", flash[:notice])
+        end
+      end
+
+      should "not allow commenting on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        assert_difference("Comment.count", 0) do
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
+          assert_redirected_to(post_path(@post))
+          assert_equal("Post has comments disabled", flash[:notice])
+        end
+      end
     end
 
     context "hide action" do
@@ -139,6 +173,13 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         post_auth hide_comment_path(@comment.id), @user
         assert_equal(true, @comment.reload.is_hidden)
         assert_redirected_to @comment
+      end
+
+      should "not allow hiding comments on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        post_auth hide_comment_path(@comment.id), @user
+        assert_equal(false, @comment.reload.is_hidden)
+        assert_response(403)
       end
     end
 
