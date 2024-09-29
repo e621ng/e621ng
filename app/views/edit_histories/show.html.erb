@@ -1,32 +1,70 @@
 <div id="c-edit-history">
   <div id="a-show">
-    <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
+    <% if @edit_histories.empty? %>
+      <h1>Edits for <%= h params[:type] %> #<%= h params[:id] %></h1>
+    <% else %>
+      <%= @original.html_title(self) %>
+    <% end %>
 
     <div class="response-list" id="edit-history">
-      <% @edits.each_with_index do |edit, idx| %>
-        <div class="edit-item box-section">
-          <div class="author">
-            <h6><%= link_to_user edit.user %></h6>
-            <%= compact_time edit.created_at %>
-            <% if CurrentUser.is_admin? %>
-              <div><%= link_to_ip edit.ip_addr %></div>
-            <% end %>
-          </div>
-          <div class="content">
-            <div class="body">
-              <% if edit.version > 1 %>
-                <%= text_diff(@edits[idx-1].body, edit.body) %>
-              <% else %>
-                <div class="original"><%= edit.body %></div>
-              <% end %>
-            </div>
-          </div>
-        </div>
+      <%= form_tag(diff_edit_histories_path, method: :get) do %>
+        <table class="striped">
+          <thead>
+          <tr>
+            <th width="3%"></th>
+            <th width="2%"></th>
+            <th width="2%"></th>
+            <th></th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% @edit_histories.each_with_index do |edit, i| %>
+            <tr>
+              <td>
+                <% if edit.is_contentful? && (previous = edit.previous_contentful_edit(@content_edits)) %>
+                  <%= link_to "diff", diff_edit_histories_path(thisversion: edit.id, otherversion: previous.id) %>
+                <% else %>
+                  diff
+                <% end %>
+              </td>
+              <td>
+                <%= radio_button_tag "otherversion", edit.id, (i == 0), disabled: !edit.is_contentful?, title: "Other Version" %>
+              </td>
+              <td>
+                <%= radio_button_tag "thisversion", edit.id, (i == 1), disabled: !edit.is_contentful?, title: "This Version" %>
+              </td>
+              <td class="no-wrap">
+                <h6><%= link_to_user edit.user %></h6>
+                <% if CurrentUser.is_admin? %>
+                  <div><%= link_to_ip edit.ip_addr %></div>
+                <% end %>
+                <%= link_to time_ago_in_words_tagged(edit.created_at, compact: true), url_for(anchor: "edit-#{edit.id}") %>
+              </td>
+              <td>
+                <div class="edit-item edit-<%= edit.edit_type.tr("_", "-") %>" id="edit-<%= edit.id %>">
+                  <div class="content">
+                    <div class="body">
+                      <%= edit.text_content %>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+          </tbody>
+        </table>
+
+        <%= submit_tag "Diff", name: nil, disabled: @edit_histories.length == 1 %>
       <% end %>
+
+      <%= render "secondary_links" %>
     </div>
   </div>
 </div>
 
+<%= numbered_paginator(@edit_histories) %>
+
 <% content_for(:page_title) do %>
-  Edit History
+  Edit History for <%= @original.html_name %>
 <% end %>
