@@ -37,8 +37,10 @@ require.context("../../../public/images", true)
 export { default as Autocomplete } from '../src/javascripts/autocomplete.js.erb';
 export { default as Blacklist } from '../src/javascripts/blacklists.js';
 export { default as Blip } from '../src/javascripts/blips.js';
+export { default as Block } from '../src/javascripts/blocks.js';
 export { default as Comment } from '../src/javascripts/comments.js';
 export { default as DText } from '../src/javascripts/dtext.js';
+export { default as LStorage } from '../src/javascripts/utility/storage.js';
 export { default as Note } from '../src/javascripts/notes.js';
 export { default as Post } from '../src/javascripts/posts.js';
 export { default as PostDeletion } from "../src/javascripts/post_delete.js";

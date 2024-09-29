@@ -13,9 +13,18 @@
       <%= subnav_link_to "Settings", edit_user_path(CurrentUser.user) %>
       <%= subnav_link_to "Profile", user_path(CurrentUser.user) %>
       <%= subnav_link_to "Messages #{unread_dmails(CurrentUser.user)}", dmails_current_folder_path %>
+      <%= subnav_link_to "Blocked Users", user_blocks_path(CurrentUser.user) %>
     <% else %>
       <%= subnav_link_to "Send message", new_dmail_path(dmail: { to_id: @user.id }) %>
       <%= subnav_link_to "Report/Commend", new_ticket_path(disp_id: @user.id, qtype: "user") %>
+      <% if CurrentUser.user.is_blocking?(@user) %>
+        <%= subnav_link_to "Edit Block", edit_user_block_path(CurrentUser.user, CurrentUser.user.block_for(@user)) %>
+      <% else %>
+        <%= subnav_link_to "Block", new_user_block_path(CurrentUser.user, user_block: { target_id: @user.id }) %>
+      <% end %>
+      <% if CurrentUser.user.is_admin? %>
+        <%= subnav_link_to "Blocked Users", user_blocks_path(@user) %>
+      <% end %>
     <% end %>
 
     <% if CurrentUser.is_admin? %>

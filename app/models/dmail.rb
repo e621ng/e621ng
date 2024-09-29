@@ -169,7 +169,7 @@ class Dmail < ApplicationRecord
       errors.add(:to_name, "is not a valid recipient while blocking DMails from others. You may only message janitors and above")
       return false
     end
-    if to.is_blacklisting_user?(from)
+    if to.is_blacklisting_user?(from) || to.is_blocking_messages_from?(from)
       errors.add(:to_name, "does not wish to receive DMails from you")
       return false
     end
