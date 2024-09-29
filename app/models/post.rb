@@ -1767,9 +1767,7 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    return true if is_pending?
-    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
-    false
+    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
   end
 
   def visible_comment_count(_user)
