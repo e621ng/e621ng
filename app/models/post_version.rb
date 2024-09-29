@@ -85,6 +85,11 @@ class PostVersion < ApplicationRecord
       must = tag_list(:locked_tags_removed, params[:locked_tags_removed], must)
       must = tag_list(:locked_tags_added, params[:locked_tags_added], must)
 
+      if params[:updated_at].present?
+        updated = range_relation(ParseValue.range(params[:updated_at], :date), :updated_at)
+        must << updated if updated.present?
+      end
+
       if params[:reason].present?
         must << { match: { reason: params[:reason] } }
       end
@@ -114,6 +119,33 @@ class PostVersion < ApplicationRecord
         _source: false,
         timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
       }
+    end
+
+    def range_relation(arr, field)
+      return if arr.nil?
+      return if arr.size < 2
+      return if arr[1].nil?
+
+      case arr[0]
+      when :eq
+        if arr[1].is_a?(Time)
+          { range: { field => { gte: arr[1].beginning_of_day, lte: arr[1].end_of_day } } }
+        else
+          { term: { field => arr[1] } }
+        end
+      when :gt
+        { range: { field => { gt: arr[1] } } }
+      when :gte
+        { range: { field => { gte: arr[1] } } }
+      when :lt
+        { range: { field => { lt: arr[1] } } }
+      when :lte
+        { range: { field => { lte: arr[1] } } }
+      when :in
+        { terms: { field => arr[1] } }
+      when :between
+        { range: { field => { gte: arr[1], lte: arr[2] } } }
+      end
     end
 
     def boolean_match(attribute, value, must)
