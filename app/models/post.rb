@@ -679,7 +679,7 @@ class Post < ApplicationRecord
     end
 
     def apply_casesensitive_metatags(tags)
-      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:source):/i}
+      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:\+?source):/i}
       #Reuse the following metatags after the post has been saved
       casesensitive_metatags += tags.select {|x| x =~ /\A(?:newpool):/i}
       if casesensitive_metatags.length > 0
@@ -692,6 +692,12 @@ class Post < ApplicationRecord
 
         when /^source:(.*)$/i
           self.source = $1
+
+        when /^\+source:"(.*)"$/i
+          self.source = "#{self.source}\n#{$1}"
+
+        when /^\+source:(.*)$/i
+          self.source = "#{self.source}\n#{$1}"
 
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
