@@ -7,6 +7,7 @@ class Note < ApplicationRecord
   belongs_to :post
   belongs_to_creator
   has_many :versions, -> {order("note_versions.id ASC")}, :class_name => "NoteVersion", :dependent => :destroy
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :post_id, :creator_id, :x, :y, :width, :height, :body, presence: true
   validate :user_not_limited
   validate :post_must_exist
