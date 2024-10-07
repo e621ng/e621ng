@@ -15,7 +15,9 @@
       <title><%= post.presenter.humanized_essential_tag_string %></title>
       <link href="<%= post_url(post) %>" rel="alternate"/>
       <% if post.source =~ %r{\Ahttps?://} %>
-        <link href="<%= post.source %>" rel="related"/>
+        <% post.source.split("\n").each do |source| %>
+          <link href="<%= source %>" rel="related"/>
+        <% end %>
       <% end %>
       <id><%= post_url(post) %></id>
       <updated><%= post.created_at.gmtime.xmlschema %></updated>
