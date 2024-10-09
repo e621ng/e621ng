@@ -14,6 +14,9 @@
         <% unless post.pending_flag&.reason =~ /uploading_guidelines/ %>
            | <%= tag.a "Delete with given reason", href: '#', 'data-post-id': post.id, class: 'delete-with-reason-link button btn-neutral', 'data-reason': '', 'data-prompt': 'given reason' %>
         <% end %>
+        <% if !post.parent_id.nil? && post.pending_flag&.reason =~ %r{Inferior version/duplicate of post #\d+} %>
+           | <%= tag.a "Move flag to parent", href: '#', 'data-pid': post.id, 'data-parent-id': post.parent_id, class: 'move-flag-to-parent-link button btn-neutral' %>
+        <% end %>
       </div>
     <% end %>
   </div>

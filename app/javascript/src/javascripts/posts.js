@@ -57,6 +57,15 @@ Post.initialize_moderation = function () {
     Post.unflag($e.data("pid"), $e.data("type"));
     e.preventDefault();
   });
+  $(".move-flag-to-parent-link").on("click", e => {
+    e.preventDefault();
+    const $e = $(e.target);
+    const post_id = $e.data("pid");
+    const parent_id = $e.data("parent-id");
+
+    if (confirm("Move flag to parent?"))
+      Post.move_flag_to_parent(post_id, parent_id);
+  });
 };
 
 Post.initialize_collapse = function () {
@@ -806,7 +815,7 @@ Post.undelete = function (post_id, callback) {
   });
 };
 
-Post.unflag = function (post_id, approval, reload = true) {
+Post.unflag = function (post_id, approval, reload = true, callback = null) {
   Post.notice_update("inc");
   let modApproval = approval || "none";
   SendQueue.add(function () {
@@ -819,14 +828,48 @@ Post.unflag = function (post_id, approval, reload = true) {
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function () {
       $(window).trigger("danbooru:notice", "Unflagged post");
-      if (reload) {
-        location.reload();
-      }
+      if (callback) callback();
+      if (reload) location.reload();
     }).always(function () {
       Post.notice_update("dec");
     });
   });
 };
+
+Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
+  Post.notice_update("inc");
+  SendQueue.add(function () {
+    $.ajax({
+      type: "POST",
+      url: "/post_flags.json",
+      data: {
+        post_flag: {
+          post_id: parseInt(post_id),
+          reason_name,
+          parent_id,
+        },
+      },
+    }).fail(function (data) {
+      const message = data.responseJSON.message;
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function () {
+      $(window).trigger("danbooru:notice", "Flagged post");
+      if (callback) callback();
+      if (reload) location.reload();
+    }).always(function () {
+      Post.notice_update("dec");
+    });
+  });
+};
+
+Post.move_flag_to_parent = function (post_id, parent_id) {
+  Post.unflag(post_id, false, false, function () {
+    Post.flag(parent_id, "inferior", post_id, false, function () {
+      location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
+    });
+  });
+};
+
 
 Post.unapprove = function (post_id) {
   Post.notice_update("inc");
