@@ -696,7 +696,7 @@ class Post < ApplicationRecord
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
           if pool.nil?
-            pool = Pool.create(name: $1, description: "This pool was automatically generated")
+            pool = Pool.create(name: $1, description: "")
           end
         end
       end
