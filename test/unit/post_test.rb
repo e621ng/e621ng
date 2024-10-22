@@ -2394,7 +2394,6 @@ class PostTest < ActiveSupport::TestCase
           @post.update(tag_string_diff: "newpool:Test2_Pool")
         end
         @pool = Pool.last
-        puts Pool.all.map(&:name)
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
         assert_equal("Test2_Pool", @pool.name)
