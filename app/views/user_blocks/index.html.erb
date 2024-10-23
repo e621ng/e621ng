@@ -1,0 +1,42 @@
+<div id="c-users-blocks">
+  <div id="a-index">
+    <table class="striped">
+      <thead>
+      <tr>
+        <th>User</th>
+        <th>Hide Blips</th>
+        <th>Hide Comments</th>
+        <th>Hide Forum Topics</th>
+        <th>Hide Forum Posts</th>
+        <th>Disable Messages</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @blocks.each do |block| %>
+        <tr>
+          <td><%= link_to_user(block.target) %></td>
+          <td><%= block.hide_blips ? "Yes" : "No" %></td>
+          <td><%= block.hide_comments ? "Yes" : "No" %></td>
+          <td><%= block.hide_forum_topics ? "Yes" : "No" %></td>
+          <td><%= block.hide_forum_posts ? "Yes" : "No" %></td>
+          <td><%= block.disable_messages ? "Yes" : "No" %></td>
+          <td>
+            <% if CurrentUser.user == @user %>
+              <%= link_to "Edit", edit_user_block_path(@user, block) %> |
+              <%= link_to "Remove", user_block_path(@user, block), method: :delete %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@blocks) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Blocked Users List
+<% end %>

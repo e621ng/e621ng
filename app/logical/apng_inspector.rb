@@ -24,7 +24,7 @@ class ApngInspector
 
   #This function calls associated block for each PNG chunk
   #parameters passed are |chunk_name, chunk_length, file_descriptor|
-  #returns true if file is read succesfully from start to IEND,
+  #returns true if file is read successfully from start to IEND,
   #or if 100 000 chunks are read; returns false otherwise.
   def each_chunk
     iend_reached = false
