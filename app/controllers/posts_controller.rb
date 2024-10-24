@@ -174,7 +174,8 @@ class PostsController < ApplicationController
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
-    permitted_params += %i[is_status_locked is_comment_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

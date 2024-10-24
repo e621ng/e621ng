@@ -281,6 +281,18 @@ class CommentTest < ActiveSupport::TestCase
           assert_equal(["Post has comments locked"], comment.errors.full_messages)
         end
       end
+
+      context "on a comment disabled post" do
+        setup do
+          @post = create(:post, is_comment_disabled: true)
+        end
+
+        should "prevent new comments" do
+          comment = build(:comment, post: @post)
+          comment.save
+          assert_equal(["Post has comments disabled"], comment.errors.full_messages)
+        end
+      end
     end
 
     context "during validation" do

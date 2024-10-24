@@ -19,7 +19,7 @@
           </div>
         </div>
         <div class="comments">
-          <%= render "comments/partials/index/list", :post => post, :comments => post.comments.visible(CurrentUser.user).recent.reverse %>
+          <%= render "comments/partials/index/list", post: post, comments: post.comments.visible(CurrentUser.user).recent.reverse %>
         </div>
       </div>
     <% end %>
