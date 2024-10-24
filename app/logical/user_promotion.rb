@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta, :old_can_manage_aibur
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -17,6 +17,7 @@ class UserPromotion
     @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
     @old_replacements_beta = user.replacements_beta?
+    @old_can_manage_aibur = user.can_manage_aibur?
 
     user.level = new_level
 
@@ -34,6 +35,10 @@ class UserPromotion
 
     if options.key?(:replacements_beta)
       user.replacements_beta = options[:replacements_beta]
+    end
+
+    if options.key?(:can_manage_aibur)
+      user.can_manage_aibur = options[:can_manage_aibur]
     end
 
     create_mod_actions
@@ -62,6 +67,7 @@ class UserPromotion
     flag_check(added, removed, "can_upload_free", "unlimited upload slots")
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "replacements_beta", "replacements beta")
+    flag_check(added, removed, "can_manage_aibur", "manage AIBURs")
 
     if added.any? || removed.any?
       ModAction.log(:user_flags_change, { user_id: user.id, added: added, removed: removed })
@@ -75,5 +81,6 @@ class UserPromotion
   def validate
     raise User::PrivilegeError, "Can't demote BD staff" if user.is_bd_staff? && !promoter.is_bd_staff?
     raise User::PrivilegeError, "Only BD staff can promote to admin" if new_level.to_i >= User::Levels::ADMIN && !promoter.is_bd_staff?
+    raise User::PrivilegeError, "AIBUR permission can only be given to staff" if options[:can_manage_aibur] && new_level.to_i < User::Levels::JANITOR
   end
 end
