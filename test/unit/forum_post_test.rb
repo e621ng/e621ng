@@ -155,5 +155,82 @@ class ForumPostTest < ActiveSupport::TestCase
       subject { build(:forum_post) }
       should_not allow_value(" ").for(:body)
     end
+
+    context "when modified" do
+      setup do
+        @forum_post = create(:forum_post, topic_id: @topic.id)
+        original_body = @forum_post.body
+        @forum_post.class_eval do
+          after_save do
+            if @body_history.nil?
+              @body_history = [original_body]
+            end
+            @body_history.push(body)
+          end
+
+          define_method :body_history do
+            @body_history
+          end
+        end
+      end
+
+      instance_exec do
+        define_method :verify_history do |history, forum_post, edit_type, user = forum_post.creator_id|
+          throw "history is nil (#{forum_post.id}:#{edit_type}:#{user}:#{forum_post.creator_id})" if history.nil?
+          assert_equal(forum_post.body_history[history.version - 1], history.body, "history body did not match")
+          assert_equal(edit_type, history.edit_type, "history edit_type did not match")
+          assert_equal(user, history.user_id, "history user_id did not match")
+        end
+      end
+
+      should "create edit histories when body is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 3) do
+          @forum_post.update(body: "test")
+          as(@mod) { @forum_post.update(body: "test2") }
+
+          original, edit, edit2 = EditHistory.where(versionable_id: @forum_post.id).order(version: :asc)
+          verify_history(original, @forum_post, "original", @user.id)
+          verify_history(edit, @forum_post, "edit", @user.id)
+          verify_history(edit2, @forum_post, "edit", @mod.id)
+        end
+      end
+
+      should "create edit histories when hidden is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 3) do
+          @forum_post.hide!
+          as(@mod) { @forum_post.unhide! }
+
+          original, hide, unhide = EditHistory.where(versionable_id: @forum_post.id).order(version: :asc)
+          verify_history(original, @forum_post, "original")
+          verify_history(hide, @forum_post, "hide")
+          verify_history(unhide, @forum_post, "unhide", @mod.id)
+        end
+      end
+
+      should "create edit histories when warning is changed" do
+        @mod = create(:moderator_user)
+        assert_difference("EditHistory.count", 7) do
+          as(@mod) do
+            @forum_post.user_warned!("warning", @mod)
+            @forum_post.remove_user_warning!
+            @forum_post.user_warned!("record", @mod)
+            @forum_post.remove_user_warning!
+            @forum_post.user_warned!("ban", @mod)
+            @forum_post.remove_user_warning!
+
+            original, warn, unmark1, record, unmark2, ban, unmark3 = EditHistory.where(versionable_id: @forum_post.id).order(version: :asc)
+            verify_history(original, @forum_post, "original")
+            verify_history(warn, @forum_post, "mark_warning", @mod.id)
+            verify_history(unmark1, @forum_post, "unmark", @mod.id)
+            verify_history(record, @forum_post, "mark_record", @mod.id)
+            verify_history(unmark2, @forum_post, "unmark", @mod.id)
+            verify_history(ban, @forum_post, "mark_ban", @mod.id)
+            verify_history(unmark3, @forum_post, "unmark", @mod.id)
+          end
+        end
+      end
+    end
   end
 end

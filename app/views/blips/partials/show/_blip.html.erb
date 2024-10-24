@@ -6,7 +6,7 @@
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
         <%= blip.creator.level_string %>
         <% if blip.is_hidden? %>
-          (hidden)
+          <span<% if blip.hidden_at.present? %> title="<%= time_ago_in_words(blip.hidden_at) %> ago"<% end %>>(hidden)</span>
         <% end %>
       </div>
       <div class="avatar">
