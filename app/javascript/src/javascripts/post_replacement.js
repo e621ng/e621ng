@@ -35,7 +35,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
   }).done(function () {
     set_status($row, "approved");
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    Utility.error(`Failed to approve replacement: ${data.responseJSON.message}`);
     set_status($row, "replacement failed");
   });
 };
