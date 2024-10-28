@@ -170,14 +170,14 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "hide action" do
       should "mark comment as hidden" do
-        post_auth hide_comment_path(@comment.id), @user
+        post_auth hide_comment_path(@comment), @user
         assert_equal(true, @comment.reload.is_hidden)
         assert_redirected_to @comment
       end
 
       should "not allow hiding comments on comment disabled posts" do
         @post.update(is_comment_disabled: true)
-        post_auth hide_comment_path(@comment.id), @user
+        post_auth hide_comment_path(@comment), @user
         assert_equal(false, @comment.reload.is_hidden)
         assert_response(403)
       end
@@ -189,13 +189,13 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "mark comment as unhidden if mod" do
-        post_auth unhide_comment_path(@comment.id), @mod
+        post_auth unhide_comment_path(@comment), @mod
         assert_equal(false, @comment.reload.is_hidden)
         assert_redirected_to(@comment)
       end
 
       should "not mark comment as unhidden if not mod" do
-        post_auth unhide_comment_path(@comment.id), @user
+        post_auth unhide_comment_path(@comment), @user
         assert_equal(true, @comment.reload.is_hidden)
         assert_response :forbidden
       end
@@ -203,7 +203,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the comment" do
-        delete_auth comment_path(@comment.id), create(:admin_user)
+        delete_auth comment_path(@comment), create(:admin_user)
         assert_equal(0, Comment.where(id: @comment.id).count)
       end
     end

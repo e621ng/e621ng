@@ -195,7 +195,7 @@ class Comment < ApplicationRecord
 
   def can_hide?(user)
     return true if user.is_moderator?
-    return false if !visible_to?(user) || was_warned?
+    return false if !visible_to?(user) || was_warned? || post&.is_comment_disabled?
     user.id == creator_id
   end
 
