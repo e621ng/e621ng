@@ -199,8 +199,9 @@
 
     #posts #posts-container {
       width: 100%;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1vw;
       align-items: center;
       justify-content: space-evenly;
     }
@@ -211,7 +212,8 @@
       text-align: center;
       vertical-align: middle;
       display: inline-block;
-      width: 31vw;
+      width: 100%;
+      container-type: inline-size;
 
       a {
         margin: 0 auto;
@@ -219,7 +221,7 @@
 
       img {
         max-height: 150px;
-        max-width: 31vw;
+        max-width: 100cqw;
       }
 
       .desc {
@@ -229,13 +231,11 @@
 
     .user-disable-cropped-false {
       article.post-preview {
-        width: 31vw;
-
         img {
           height: auto;
           max-height: none;
           max-width: none;
-          width: 31vw;
+          width: 100cqw;
 
           &.has-cropped-false {
             object-fit: cover;
@@ -311,6 +311,13 @@
       h1 {
         display: inline; //Needed for menu button
       }
+    }
+  }
+}
+@media screen and (max-width: 800px) and (horizontal-viewport-segments: 2) {
+  body.resp {
+    #posts #posts-container {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 }

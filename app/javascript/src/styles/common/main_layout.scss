@@ -4,12 +4,13 @@ div#search {
 
 div#page {
   overflow: visible;
-  padding: $padding-050 $padding-025;
+  padding: $padding-050 $padding-025 themed("content-padding-bottom");
 
   @include window-larger-than(800px) {
     border-radius: $border-radius-full;
     margin: 0 1em;
-    padding: $padding-050;
+    padding-left: $padding-050;
+    padding-right: $padding-050;
   }
 
   background-color: $hexagon-color-foreground;
@@ -17,7 +18,6 @@ div#page {
   background-image: themed("image-foreground");
   background-position: themed("image-foreground-position");
   background-repeat: themed("image-foreground-repeat");
-  padding-bottom: themed("content-padding-bottom");
 
   // Fix failure to contain contents in bounding box.
   &:after {

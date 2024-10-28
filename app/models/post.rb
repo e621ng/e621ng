@@ -333,7 +333,8 @@ class Post < ApplicationRecord
 
       diff = source_diff.gsub(/\r\n?/, "\n").gsub(/%0A/i, "\n").split(/(?:\r)?\n/)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1]}
+      to_remove = to_remove.map {|x| x[1..-1].starts_with?('"') && x.ends_with?('"') ? x[1..-1].delete_prefix('"').delete_suffix('"') : x[1..-1]}
+      to_add = to_add.map {|x| x.starts_with?('"') && x.ends_with?('"') ? x.delete_prefix('"').delete_suffix('"') : x}
 
       current_sources = source_array
       current_sources += to_add
@@ -505,7 +506,7 @@ class Post < ApplicationRecord
       return unless tag_string_diff.present?
 
       current_tags = tag_array
-      diff = TagQuery.scan(tag_string_diff.downcase)
+      diff = TagQuery.scan(tag_string_diff)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -692,7 +693,7 @@ class Post < ApplicationRecord
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
           if pool.nil?
-            pool = Pool.create(:name => $1, :description => "This pool was automatically generated")
+            pool = Pool.create(name: $1, description: "")
           end
         end
       end
@@ -737,7 +738,7 @@ class Post < ApplicationRecord
           end
 
         when /^-pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.remove!(self)
             if pool.errors.any?
@@ -755,7 +756,7 @@ class Post < ApplicationRecord
           end
 
         when /^(?:new)?pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.add!(self)
             if pool.errors.any?
@@ -1767,9 +1768,7 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    return true if is_pending?
-    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
-    false
+    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
   end
 
   def visible_comment_count(user)

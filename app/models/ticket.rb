@@ -265,7 +265,11 @@ class Ticket < ApplicationRecord
         end
       end
 
-      q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      if params[:order].present?
+        q.apply_basic_order(params)
+      else
+        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      end
     end
   end
 

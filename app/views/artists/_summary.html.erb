@@ -17,7 +17,11 @@
     <li><strong>Domains</strong></li>
     <ul>
       <% artist.domains.each do |url, count| %>
-        <li><%= favicon_for_link("https://#{url}") %> <%= url %>: <%= count %></li>
+        <li>
+          <%= favicon_for_link("https://#{url}") %>
+          <%= link_to(url, posts_path(tags: "#{artist.name} source:*#{url}*")) %>:
+          <%= count %>
+        </li>
       <% end %>
     </ul>
   <% end %>
