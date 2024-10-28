@@ -79,6 +79,38 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         put_auth post_path(@post), @user, params: {:post => {:last_noted_at => 1.minute.ago}}
         assert_nil(@post.reload.last_noted_at)
       end
+
+      should "allow moderators to lock comments" do
+        assert_difference("PostEvent.count", 1) do
+          put_auth post_path(@post), create(:moderator_user), params: { post: { is_comment_locked: true } }
+        end
+        assert_equal(true, @post.reload.is_comment_locked?)
+        assert_equal("comment_locked", PostEvent.last.action)
+      end
+
+      should "allow moderators to unlock comments" do
+        @post.update_columns(is_comment_locked: true)
+        assert_difference("PostEvent.count", 1) do
+          put_auth post_path(@post), create(:moderator_user), params: { post: { is_comment_locked: false } }
+        end
+        assert_equal(false, @post.reload.is_comment_locked?)
+        assert_equal("comment_unlocked", PostEvent.last.action)
+      end
+
+      should "not allow moderators to disable comments" do
+        assert_no_difference("PostEvent.count") do
+          put_auth post_path(@post), create(:moderator_user), params: { post: { is_comment_disabled: true } }
+        end
+        assert_equal(false, @post.reload.is_comment_disabled?)
+      end
+
+      should "not allow moderators to enable comments" do
+        @post.update_columns(is_comment_disabled: true)
+        assert_no_difference("PostEvent.count") do
+          put_auth post_path(@post), create(:moderator_user), params: { post: { is_comment_disabled: false } }
+        end
+        assert_equal(true, @post.reload.is_comment_disabled?)
+      end
     end
 
     context "revert action" do

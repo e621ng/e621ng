@@ -1,28 +1,40 @@
 <div class="comments-for-post" data-post-id="<%= post.id %>">
+  <% if post.is_comment_disabled? %>
+    Comment section has been disabled.
+  <% end %>
   <% if post.is_comment_locked? %>
     Comment section has been locked.
   <% end %>
-  <div class="row notices">
-    <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > Comment::RECENT_COUNT) %>
+  <% if !CurrentUser.user.is_moderator? && post.is_comment_disabled? %>
+    <% comments = comments.stickied %>
+    <div class="list-of-comments">
+      <% if comments.any? %>
+        <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="row notices">
+      <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > Comment::RECENT_COUNT) %>
       <span id="threshold-comments-notice-for-<%= post.id %>">
         <%= link_to "Show all comments", comments_path(:post_id => post.id), 'data-pid': post.id, class: 'show-all-comments-for-post-link' %>
       </span>
-    <% end %>
-  </div>
-
-  <div class="list-of-comments">
-    <% if comments.empty? %>
-      <% if post.last_commented_at.present? %>
-        <p>There are no visible comments.</p>
-      <% else %>
-        <p>There are no comments.</p>
       <% end %>
-    <% else %>
-      <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
-    <% end %>
-  </div>
+    </div>
 
-  <% if post.is_comment_locked? && !CurrentUser.is_moderator? %>
+    <div class="list-of-comments">
+      <% if comments.empty? %>
+        <% if post.last_commented_at.present? %>
+          <p>There are no visible comments.</p>
+        <% else %>
+          <p>There are no comments.</p>
+        <% end %>
+      <% else %>
+        <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if (post.is_comment_locked? || post.is_comment_disabled?) && !CurrentUser.is_moderator? %>
   <% elsif CurrentUser.is_member? %>
     <div class="new-comment">
       <% if !CurrentUser.is_anonymous? && !CurrentUser.user.is_janitor? %>
