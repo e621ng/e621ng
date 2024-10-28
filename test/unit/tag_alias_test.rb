@@ -101,7 +101,8 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should "allow creator" do
-        assert_equal(true, @ta.deletable_by?(@user)) end
+        assert_equal(true, @ta.deletable_by?(@user))
+      end
 
       should "allow admins" do
         assert_equal(true, @ta.deletable_by?(@admin))
