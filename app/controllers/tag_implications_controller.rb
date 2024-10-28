@@ -30,31 +30,24 @@ class TagImplicationsController < ApplicationController
 
   def destroy
     @tag_implication = TagImplication.find(params[:id])
-    if @tag_implication.deletable_by?(CurrentUser.user)
-      @tag_implication.reject!
-      if @tag_implication.errors.any?
-        flash[:notice] = @tag_implication.errors.full_messages.join('; ')
+    return access_denied unless @tag_implication.deletable_by?(CurrentUser.user)
+    @tag_implication.reject!
+    respond_with(@tag_implication) do |format|
+      format.html do
+        flash[:notice] = @tag_implication.errors.any? ? @tag_implication.errors.full_messages.join("; ") : "Tag implication was deleted"
         redirect_to(tag_implications_path)
-        return
       end
-      respond_with(@tag_implication) do |format|
-        format.html do
-          flash[:notice] = "Tag implication was deleted"
-          redirect_to(tag_implications_path)
-        end
-      end
-    else
-      access_denied
     end
   end
 
   def approve
     @tag_implication = TagImplication.find(params[:id])
+    return access_denied unless @tag_implication.approvable_by?(CurrentUser.user)
     @tag_implication.approve!(approver: CurrentUser.user)
-    respond_with(@tag_implication, :location => tag_implication_path(@tag_implication))
+    respond_with(@tag_implication, location: tag_implication_path(@tag_implication))
   end
 
-private
+  private
 
   def tag_implication_params
     params.require(:tag_implication).permit(%i[antecedent_name consequent_name forum_topic_id])

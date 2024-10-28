@@ -75,7 +75,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def approvable_by?(user)
-    is_pending? && user.is_admin?
+    is_pending? && user.is_admin? && (user.is_bd_staff? || !(consequent_tag&.artist&.is_dnp? || antecedent_tag&.artist&.is_dnp?))
   end
 
   def deletable_by?(user)
