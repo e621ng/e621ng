@@ -194,7 +194,7 @@ class BulkUpdateRequest < ApplicationRecord
 
   def initialize_attributes
     self.user_id = CurrentUser.user.id unless self.user_id
-    self.user_ip_addr = Currentuser.ip_addr unless self.user_ip_addr
+    self.user_ip_addr = CurrentUser.ip_addr unless self.user_ip_addr
     self.status = "pending"
   end
 
