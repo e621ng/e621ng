@@ -1,0 +1,19 @@
+<div id="c-users-blocks">
+  <div id="a-edit">
+    <h2>Edit User Block</h2>
+
+    <%= custom_form_for(@block, url: user_block_path(@user, @block.id)) do |f| %>
+      <%= f.input(:hide_blips) %>
+      <%= f.input(:hide_comments) %>
+      <%= f.input(:hide_forum_topics) %>
+      <%= f.input(:hide_forum_posts) %>
+      <%= f.input(:disable_messages) %>
+      <%= f.button(:submit, "Update Block") %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Edit User Block
+<% end %>

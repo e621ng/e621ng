@@ -33,6 +33,7 @@
         <% end %>
         <% if @dmail.to_id == CurrentUser.id %>
           | <%= link_to "Mark as unread", mark_as_unread_dmail_path(@dmail), method: :put, data: { confirm: "Are you sure you want to mark this DMail as unread?" } %>
+          | <%= link_to "Block sender", new_user_block_path(@dmail.to, user_block: { target_id: @dmail.from_id }) %>
           | <%= link_to "Report", new_ticket_path(disp_id: @dmail.id, qtype: 'dmail') %>
         <% end %>
       </p>

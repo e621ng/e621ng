@@ -1,0 +1,6 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "List", user_blocks_path(@user) %>
+  <% if CurrentUser.user == @user %>
+    <%= subnav_link_to "New", new_user_block_path(@user) %>
+  <% end %>
+<% end %>

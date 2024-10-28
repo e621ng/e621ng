@@ -1,0 +1,20 @@
+<div id="c-users-blocks">
+  <div id="a-new">
+    <h2>Block User</h2>
+
+    <%= custom_form_for(@block) do |f| %>
+      <%= f.input(:target_name, label: "User") %>
+      <%= f.input(:hide_blips) %>
+      <%= f.input(:hide_comments) %>
+      <%= f.input(:hide_forum_topics) %>
+      <%= f.input(:hide_forum_posts) %>
+      <%= f.input(:disable_messages) %>
+      <%= f.button(:submit, "Block") %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Block User
+<% end %>
