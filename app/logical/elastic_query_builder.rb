@@ -25,12 +25,14 @@ class ElasticQueryBuilder
         should: should,
       },
     }
+
     query[:bool][:minimum_should_match] = 1 if should.any?
 
     if @function_score.present?
       @function_score[:query] = query
       query = { function_score: @function_score }
     end
+
     search_body = {
       query: query,
       sort: order,
@@ -115,5 +117,43 @@ class ElasticQueryBuilder
     elsif q[:"#{any_none_key}_should"] == "none"
       should.push(match_none({ exists: { field: index_field } }))
     end
+  end
+
+  def add_boolean_match(key, index_field)
+    return if q[key].blank?
+    if q[key].to_s.truthy?
+      must.push({ term: { index_field => true } })
+    elsif q[key].to_s.falsy?
+      must.push({ term: { index_field => false } })
+    else
+      raise ArgumentError, "value must be truthy or falsy"
+    end
+  end
+
+  def add_range_relation(key, index_field, type: :integer)
+    if q[key].present?
+      must.push(range_relation(ParseValue.range(q[key], type), index_field))
+    end
+  end
+
+  def add_text_match(key, index_field)
+    value = q[key]
+    return if value.blank?
+    must.push(match: { index_field => value })
+  end
+
+  def apply_basic_order(key: :order)
+    case q[key]
+    when "id_asc"
+      order.push({ id: { order: "asc" } })
+    when "id_desc"
+      order.push({ id: { order: "desc" } })
+    else
+      apply_default_order
+    end
+  end
+
+  def apply_default_order
+    order.push({ id: { order: "desc" } })
   end
 end
