@@ -6,9 +6,10 @@
     Comment section has been locked.
   <% end %>
   <% if !CurrentUser.user.is_moderator? && post.is_comment_disabled? %>
+    <% comments = comments.stickied %>
     <div class="list-of-comments">
       <% if comments.any? %>
-        <%= render partial: "comments/partials/show/comment", collection: comments.stickied, locals: { post: post } %>
+        <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
       <% end %>
     </div>
   <% else %>
