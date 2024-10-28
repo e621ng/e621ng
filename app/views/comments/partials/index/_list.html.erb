@@ -1,18 +1,17 @@
 <div class="comments-for-post" data-post-id="<%= post.id %>">
-  <% if !CurrentUser.user.is_moderator? && post.is_comment_disabled? %>
+  <% if post.is_comment_disabled? %>
     Comment section has been disabled.
+  <% end %>
+  <% if post.is_comment_locked? %>
+    Comment section has been locked.
+  <% end %>
+  <% if !CurrentUser.user.is_moderator? && post.is_comment_disabled? %>
     <div class="list-of-comments">
       <% if comments.any? %>
-        <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>
+        <%= render partial: "comments/partials/show/comment", collection: comments.stickied, locals: { post: post } %>
       <% end %>
     </div>
   <% else %>
-    <% if post.is_comment_disabled? %>
-      Comment section has been disabled.
-    <% end %>
-    <% if post.is_comment_locked? %>
-      Comment section has been locked.
-    <% end %>
     <div class="row notices">
       <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > Comment::RECENT_COUNT) %>
       <span id="threshold-comments-notice-for-<%= post.id %>">

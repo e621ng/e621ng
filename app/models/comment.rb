@@ -31,6 +31,10 @@ class Comment < ApplicationRecord
   belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
 
+  scope :deleted, -> { where(is_hidden: true) }
+  scope :undeleted, -> { where(is_hidden: false) }
+  scope :stickied, -> { where(is_sticky: true) }
+
   module SearchMethods
     def recent
       reorder("comments.id desc").limit(RECENT_COUNT)
@@ -49,7 +53,7 @@ class Comment < ApplicationRecord
     def visible(user)
       q = where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
       unless user.is_moderator?
-        q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false")
+        q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
         if user.is_janitor?
           q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
         else
@@ -57,14 +61,6 @@ class Comment < ApplicationRecord
         end
       end
       q
-    end
-
-    def deleted
-      where("comments.is_hidden = true")
-    end
-
-    def undeleted
-      where("comments.is_hidden = false")
     end
 
     def post_tags_match(query)
@@ -205,7 +201,7 @@ class Comment < ApplicationRecord
 
   def visible_to?(user)
     return true if user.is_moderator?
-    return false if !is_sticky? && post&.is_comment_disabled?
+    return false if !is_sticky? && (post&.is_comment_disabled? && creator_id != user.id)
     return true if user.is_janitor? && is_sticky?
     return true if is_hidden? == false
     creator_id == user.id # Can always see your own comments, even if hidden.
