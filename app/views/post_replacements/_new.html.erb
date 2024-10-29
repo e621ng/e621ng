@@ -10,6 +10,9 @@
     <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
   </div>
   <br>
+  
+  <%= render "posts/partials/show/avoid_posting", post: post %>
+  <br />
   <div id="replacement-uploader" class="simple_form"></div>
 </div>
 
