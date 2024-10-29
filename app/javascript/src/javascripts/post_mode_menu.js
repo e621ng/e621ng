@@ -101,6 +101,13 @@ PostModeMenu.initialize_tag_script_field = function () {
     const script = $(this).val();
     LStorage.Posts.TagScript.Content = script;
   });
+
+  $("#tag-script-all").on("click", PostModeMenu.tag_script_apply_all);
+};
+
+PostModeMenu.tag_script_apply_all = function (event) {
+  event.preventDefault();
+  $("article.post-preview").trigger("click");
 };
 
 PostModeMenu.update_sets_menu = function () {
@@ -138,10 +145,11 @@ PostModeMenu.change = function () {
   $("#page").attr("data-mode-menu", s);
   LStorage.Posts.Mode = s;
   $("#set-id").hide();
-  $("#tag-script-field").hide();
+  $("#tag-script-ui").hide();
   $("#quick-mode-reason").hide();
 
   if (s === "tag-script") {
+    $("#tag-script-ui").show();
     $("#tag-script-field").val(LStorage.Posts.TagScript.Content).show();
     PostModeMenu.show_notice(LStorage.Posts.TagScript.ID);
   } else if (s === "add-to-set" || s === "remove-from-set") {

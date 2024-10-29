@@ -28,3 +28,12 @@ $modes: (
 #page:not([data-mode-menu="view"]) article.post-preview img {
   pointer-events: none;
 }
+
+#tag-script-ui {
+  display: flex;
+  margin-top: 0.5em;
+  gap: 0.5em;
+
+  input { flex: 1; }
+  button { padding: 0 0.25em; }
+}
