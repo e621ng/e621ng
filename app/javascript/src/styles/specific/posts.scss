@@ -331,30 +331,6 @@ div#c-posts {
       }
     }
 
-    div#avoid-posting-notice {
-      font-size: 1.25rem;
-      line-height: 1.5rem;
-      padding: $padding-025 $padding-050;
-
-      background-color: themed("color-section");
-      border: 1px solid themed("color-foreground");
-
-      ul {
-        list-style: disc;
-      }
-
-      li {
-        .artist, .separator, .details {
-          display: table-cell;
-        }
-
-        .separator {
-          color: var(--color-text-muted);
-          padding: 0 0.3rem;
-        }
-      }
-    }
-
     div.quick-mod {
 
       .quick-mod-group {
@@ -449,6 +425,30 @@ div#c-posts {
       width: 70%;
       height: 4em;
       display: block;
+    }
+  }
+}
+
+div#avoid-posting-notice {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  padding: $padding-025 $padding-050;
+
+  background-color: themed("color-section");
+  border: 1px solid themed("color-foreground");
+
+  ul {
+    list-style: disc;
+  }
+
+  li {
+    .artist, .separator, .details {
+      display: table-cell;
+    }
+
+    .separator {
+      color: var(--color-text-muted);
+      padding: 0 0.3rem;
     }
   }
 }
