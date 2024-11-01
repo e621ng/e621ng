@@ -91,6 +91,8 @@ class ModAction < ApplicationRecord
     takedown_process: %i[takedown_id],
   }.freeze
 
+  KnownActionKeys = KnownActions.keys.freeze
+
   def self.search(params)
     q = super
 
