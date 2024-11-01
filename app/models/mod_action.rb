@@ -109,7 +109,8 @@ class ModAction < ApplicationRecord
     if CurrentUser.is_admin?
       original_values
     else
-      sanitized_values = original_values.slice(*KnownActions[action.to_sym].map(&:to_s))
+      valid_keys = KnownActions[action.to_sym]&.map(&:to_s) || []
+      sanitized_values = original_values.slice(*valid_keys)
 
       if %i[ip_ban_create ip_ban_delete].include?(action.to_sym)
         sanitized_values = sanitized_values.slice([])
