@@ -160,10 +160,10 @@ div#c-users {
         grid-area: p-posts;
         display: flex;
         overflow: auto;
-        justify-content: space-between;
+        justify-content: flex-start;
         flex-wrap: wrap;
 
-        gap: 0.5em;
+        gap: 1em;
         padding: 0.5em;
 
         background: var(--color-section);
@@ -176,7 +176,7 @@ div#c-users {
         }
 
         article.post-preview {
-          flex: 0 0 150px;
+          flex: 0 0 154px;
           margin: 0;
           img { max-width: unset !important; }
         }
