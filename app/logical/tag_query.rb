@@ -147,7 +147,7 @@ class TagQuery
   def parse_query(query, process_groups = false)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
-      return nil if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
+      next if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
         # thrown = nil
         group = nil
         # TODO: still needs to process the group to count tags; remove requirement
@@ -161,7 +161,7 @@ class TagQuery
         q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
         q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] << !process_groups ? token : group
         # raise thrown if thrown
-        return true
+        true
       end
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
