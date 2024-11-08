@@ -1,7 +1,21 @@
 # frozen_string_literal: true
 
 class TagQuery
-  class CountExceededError < StandardError; end
+  class CountExceededError < StandardError
+    def initialize(msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
+      super(msp)
+    end
+  end
+  class CountExceededWithDataError < CountExceededError
+  delegate :[], :include?, to: :@q
+  attr_reader :q, :resolve_aliases, :tag_count
+    def initialize(q:, resolve_aliases:, tag_count:, msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
+      @q = q
+      @resolve_aliases = resolve_aliases
+      @tag_count = tag_count
+      super(msg)
+    end
+  end
 
   COUNT_METATAGS = %w[
     comment_count
@@ -42,9 +56,9 @@ class TagQuery
   ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }
 
   delegate :[], :include?, to: :@q
-  attr_reader :q, :resolve_aliases
+  attr_reader :q, :resolve_aliases, :tag_count
 
-  def initialize(query, resolve_aliases: true, free_tags_count: 0)
+  def initialize(query, resolve_aliases: true, free_tags_count: 0, return_with_count_exceeded: false)
     @q = {
       tags: {
         must: [],
@@ -57,7 +71,11 @@ class TagQuery
 
     parse_query(query)
     if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
-      raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+      if return_with_count_exceeded
+        raise CountExceededWithDataError.new(q: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count), "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+      else
+        raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+      end
     end
   end
 
@@ -70,12 +88,18 @@ class TagQuery
 
   def self.scan(query)
     tagstr = query.to_s.unicode_normalize(:nfc).strip
-    quote_delimited = []
-    tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
-      quote_delimited << match
-      ""
+    # If this is a top-level group, ignore it.
+    if /\A\(\s+.*?\s+\)\z/.match?(tagstr)
+      tagstr = tagstr.delete_prefix('(').delete_suffix(')').strip
     end
-    quote_delimited + tagstr.split.uniq
+    matches = []
+    curr_match = nil
+    # This preserves quoted metatags and groups w/o altering order.
+    while curr_match = /\A([-~]?(?:\(\s.*?\s\)|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr)
+      tagstr = tagstr.delete_prefix(curr_match[0])
+      matches << curr_match[1]
+    end
+    matches
   end
 
   def self.has_metatag?(tags, *)
@@ -111,8 +135,25 @@ class TagQuery
     "~" => :should,
   }.freeze
 
+  # TODO: Short-circuit when max tags exceeded?
   def parse_query(query)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
+      # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
+      return nil if /\A\(\s+(.*?)\s+\)\z/.match(token) do |match|
+        # thrown = nil
+        group = nil
+        begin
+          group = TagQuery.new(match[1], free_tags_count: @tag_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
+        rescue CountExceededWithDataError => d
+          group = d
+          # thrown = d
+        end
+        @tag_count += group.tag_count
+        q[:groups] ||= []
+        q[:groups] << group
+        # raise thrown if thrown
+        return true
+      end
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
 
@@ -418,6 +459,7 @@ class TagQuery
     q[:tags][:must] = TagAlias.to_aliased(q[:tags][:must])
     q[:tags][:must_not] = TagAlias.to_aliased(q[:tags][:must_not])
     q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
+    q[:groups].each {|group| group.normalize_tags }
   end
 
   def parse_boolean(value)
