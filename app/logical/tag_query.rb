@@ -110,6 +110,22 @@ class TagQuery
     matches
   end
 
+  def self.scan_flyover(query)
+    tagstr = query.to_s.unicode_normalize(:nfc).strip
+    # If this is a top-level group, ignore it.
+    if /\A\(\s+.*?\s+\)\z/.match?(tagstr)
+      tagstr = tagstr.delete_prefix('(').delete_suffix(')').strip
+    end
+    matches = []
+    curr_match = nil
+    # This preserves quoted metatags and groups w/o altering order.
+    while curr_match = /\A([-~]?(?:(\(\s.*?\s\))|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr)
+      tagstr = tagstr.delete_prefix(curr_match[0])
+      matches << (curr_match[2] || "").length > 0 ? TagQuery.scan_flyover(curr_match[2]) : curr_match[1]
+    end
+    matches
+  end
+
   def self.has_metatag?(tags, *)
     fetch_metatag(tags, *).present?
   end
@@ -150,14 +166,18 @@ class TagQuery
       next if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
         # thrown = nil
         group = nil
-        # TODO: still needs to process the group to count tags; remove requirement
-        begin
-          group = TagQuery.new(match[2], free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
-        rescue CountExceededWithDataError => d
-          group = d
-          # thrown = d
+        t_count = nil
+        if process_groups
+          begin
+            group = TagQuery.new(match[2], free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
+          rescue CountExceededWithDataError => d
+            group = d
+            # thrown = d
+          end  
+            @tag_count += group.tag_count
+        else
+          @tag_count += TagQuery.scan_flyover(match[2]).length
         end
-        @tag_count += group.tag_count
         q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
         q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] << !process_groups ? token : group
         # raise thrown if thrown
