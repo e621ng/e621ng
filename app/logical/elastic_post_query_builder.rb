@@ -23,6 +23,12 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
+  def add_group_search_relation(groups)
+    must.concat(groups[:must].map { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
+    must_not.concat(groups[:must_not].map { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
+    should.concat(groups[:should].map { |x| { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
+  end
+
   def hide_deleted_posts?
     return false if @always_show_deleted
     return false if q[:status].in?(%w[deleted active any all])
@@ -174,6 +180,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags])
+    add_group_search_relation(q[:groups])
 
     case q[:order]
     when "id", "id_asc"
