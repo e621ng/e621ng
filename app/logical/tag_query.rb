@@ -65,6 +65,11 @@ class TagQuery
         must_not: [],
         should: [],
       },
+      groups: {
+        must: [],
+        must_not: [],
+        should: [],
+      },
     }
     @resolve_aliases = resolve_aliases
     @tag_count = 0
@@ -79,7 +84,8 @@ class TagQuery
       end
     end
   end
-
+  
+  # TODO: Handle groups (somehow)
   def self.normalize(query)
     tags = TagQuery.scan(query)
     tags = tags.map { |t| Tag.normalize_name(t) }
@@ -152,12 +158,8 @@ class TagQuery
           # thrown = d
         end
         @tag_count += group.tag_count
-        q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
-        if !process_groups
-          q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] << token
-        else
-          q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] << group
-        end
+        q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
+        q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] << !process_groups ? token : group
         # raise thrown if thrown
         return true
       end
