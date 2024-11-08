@@ -3,7 +3,7 @@
 class TagQuery
   class CountExceededError < StandardError
     def initialize(msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
-      super(msp)
+      super(msg)
     end
   end
   class CountExceededWithDataError < CountExceededError
@@ -58,7 +58,7 @@ class TagQuery
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 
-  def initialize(query, resolve_aliases: true, free_tags_count: 0, return_with_count_exceeded: false)
+  def initialize(query, resolve_aliases: true, free_tags_count: 0, return_with_count_exceeded: false, process_groups: false)
     @q = {
       tags: {
         must: [],
@@ -68,11 +68,12 @@ class TagQuery
     }
     @resolve_aliases = resolve_aliases
     @tag_count = 0
+    @free_tags_count = free_tags_count
 
-    parse_query(query)
+    parse_query(query, process_groups)
     if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
       if return_with_count_exceeded
-        raise CountExceededWithDataError.new(q: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count), "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+        raise CountExceededWithDataError.new(q: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
       else
         raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
       end
@@ -85,7 +86,8 @@ class TagQuery
     tags = TagAlias.to_aliased(tags)
     tags.sort.uniq.join(" ")
   end
-
+  
+  # TODO: Handle top-level group w/ ~/-?
   def self.scan(query)
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     # If this is a top-level group, ignore it.
@@ -136,21 +138,26 @@ class TagQuery
   }.freeze
 
   # TODO: Short-circuit when max tags exceeded?
-  def parse_query(query)
+  def parse_query(query, process_groups = false)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
-      return nil if /\A\(\s+(.*?)\s+\)\z/.match(token) do |match|
+      return nil if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
         # thrown = nil
         group = nil
+        # TODO: still needs to process the group to count tags; remove requirement
         begin
-          group = TagQuery.new(match[1], free_tags_count: @tag_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
+          group = TagQuery.new(match[2], free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
         rescue CountExceededWithDataError => d
           group = d
           # thrown = d
         end
         @tag_count += group.tag_count
-        q[:groups] ||= []
-        q[:groups] << group
+        q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
+        if !process_groups
+          q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] << token
+        else
+          q[METATAG_SEARCH_TYPE.fetch(match[1], :must)] << group
+        end
         # raise thrown if thrown
         return true
       end
@@ -459,7 +466,8 @@ class TagQuery
     q[:tags][:must] = TagAlias.to_aliased(q[:tags][:must])
     q[:tags][:must_not] = TagAlias.to_aliased(q[:tags][:must_not])
     q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
-    q[:groups].each {|group| group.normalize_tags }
+    # Happens automatically
+    # q[:groups].each {|group| group.normalize_tags }
   end
 
   def parse_boolean(value)
