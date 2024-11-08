@@ -3,8 +3,9 @@
 class PostQueryBuilder
   attr_accessor :query_string
 
-  def initialize(query_string)
+  def initialize(query_string, relation = nil)
     @query_string = query_string
+    @curr_relation = relation
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -21,6 +22,11 @@ class PostQueryBuilder
     relation
   end
 
+  def add_group_search_relation(groups, relation)
+    groups.each { |x| relation = PostQueryBuilder.new(x, relation).search }
+    relation
+  end
+
   def add_array_range_relation(relation, values, field)
     values&.each do |value|
       relation = relation.add_range_relation(value, field)
@@ -30,7 +36,7 @@ class PostQueryBuilder
 
   def search
     q = TagQuery.new(query_string)
-    relation = Post.all
+    relation = @curr_relation || Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
@@ -156,6 +162,7 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", rating)
     end
 
-    add_tag_string_search_relation(q[:tags], relation)
+    relation = add_tag_string_search_relation(q[:tags], relation)
+    add_group_search_relation(q[:groups], relation)
   end
 end
