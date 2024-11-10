@@ -61,5 +61,7 @@ class ElasticPostVersionQueryBuilder < ElasticQueryBuilder
         must.push({ term: { version: 1 } })
       end
     end
+
+    apply_basic_order
   end
 end
