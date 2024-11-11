@@ -1685,7 +1685,8 @@ CREATE TABLE public.posts (
     bg_color character varying,
     generated_samples character varying[],
     duration numeric,
-    is_comment_disabled boolean DEFAULT false NOT NULL
+    is_comment_disabled boolean DEFAULT false NOT NULL,
+    is_comment_locked boolean DEFAULT false NOT NULL
 );
 
 
@@ -4676,6 +4677,7 @@ ALTER TABLE ONLY public.avoid_postings
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20240905160626'),
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),

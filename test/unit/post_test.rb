@@ -2339,6 +2339,7 @@ class PostTest < ActiveSupport::TestCase
     context "pool:" do
       setup do
         @pool = create(:pool)
+        @pool2 = create(:pool, name: "Test_Pool")
         @post = create(:post)
       end
 
@@ -2365,6 +2366,12 @@ class PostTest < ActiveSupport::TestCase
           assert_equal("pool:#{@pool.id}", @post.pool_string)
         end
 
+        should "work with capital letters" do
+          @post.update(tag_string_diff: "pool:#{@pool2.name}")
+          assert_equal([@post.id], @pool2.reload.post_ids)
+          assert_equal("pool:#{@pool2.id}", @post.pool_string)
+        end
+
         should "gracefully fail if the pool is full" do
           Danbooru.config.stubs(:pool_post_limit).returns(0)
           @post.update(tag_string_diff: "pool:#{@pool.name}")
@@ -2387,6 +2394,17 @@ class PostTest < ActiveSupport::TestCase
         @pool = Pool.last
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
+        assert_equal("test", @pool.name)
+      end
+
+      should "work with capital letters" do
+        assert_difference("Pool.count", 1) do
+          @post.update(tag_string_diff: "newpool:Test2_Pool")
+        end
+        @pool = Pool.last
+        assert_equal([@post.id], @pool.reload.post_ids)
+        assert_equal("pool:#{@pool.id}", @post.pool_string)
+        assert_equal("Test2_Pool", @pool.name)
       end
     end
   end

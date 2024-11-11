@@ -1,4 +1,5 @@
 import {SendQueue} from "./send_queue";
+import Page from "./utility/page";
 import LStorage from "./utility/storage";
 
 let PostSet = {};
@@ -175,10 +176,22 @@ PostSet.update_sets_menu = function () {
   });
 };
 
+PostSet.initialize_remove_from_set_links = function () {
+  $("a.set-nav-remove-link").on("click", (event) => {
+    event.preventDefault();
+    const target = $(event.currentTarget);
+
+    const setID = target.data("setId");
+    const postID = target.data("postId");
+
+    PostSet.remove_post(setID, postID);
+  });
+};
+
 $(function () {
-  if ($("#c-posts").length && $("#a-show").length) {
-    PostSet.initialize_add_to_set_link();
-  }
+  if (!Page.matches("posts", "show")) return;
+  PostSet.initialize_add_to_set_link();
+  PostSet.initialize_remove_from_set_links();
 });
 
 export default PostSet;

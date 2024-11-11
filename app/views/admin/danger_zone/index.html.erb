@@ -7,6 +7,16 @@
       <%= f.input :min_level, collection: User.level_hash.select {|k,v| v >= User::Levels::MEMBER }.to_a, selected: DangerZone.min_upload_level %>
       <%= f.button :submit, value: "Submit" %>
     <% end %>
+    <h2>Pending Posts</h2>
+    <% if DangerZone.hide_pending_posts_for > 0 %>
+      Unapproved posts are currently only visible to staff for <b><%= DangerZone.hide_pending_posts_for %></b> hours.
+    <% else %>
+      Unapproved posts are currently not hidden.
+    <% end %>
+    <%= custom_form_for(:hide_pending_posts, url: hide_pending_posts_admin_danger_zone_index_path, method: :put) do |f| %>
+      <%= f.input :duration, as: :float, hint: "in hours", input_html: { value: DangerZone.hide_pending_posts_for } %>
+      <%= f.button :submit, value: "Submit" %>
+    <% end %>
   </div>
 </div>
 

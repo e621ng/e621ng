@@ -98,7 +98,7 @@ FilterUtils.normalizeData = (value, type) => {
     case "width":
     case "height":
     case "score":
-    case "favcout":
+    case "favcount":
     case "userid":
       return parseInt(value);
     case "rating":

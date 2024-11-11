@@ -170,7 +170,19 @@ class FilterToken {
           ];
         }
       }
-    } else this.value = FilterUtils.normalizeData(raw, this.type);
+    } else {
+      this.value = FilterUtils.normalizeData(raw, this.type);
+      if (this.comparison === "=" && this.type === "filesize") {
+        // If the comparison uses direct equality, mirror the fudging behavior of 
+        // the filesize search metatag by changing the comparison to a range of 
+        // the initial value -5% and +5%.
+        this.comparison = "..";
+        this.value = [
+          Math.trunc(this.value * 0.95),
+          Math.trunc(this.value * 1.05),
+        ];
+      }
+    }
   }
 
   /**

@@ -18,6 +18,7 @@ class Post < ApplicationRecord
   before_validation :fix_bg_color
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
+  normalizes :description, with: ->(desc) { desc.gsub("\r\n", "\n") }
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
@@ -57,9 +58,6 @@ class Post < ApplicationRecord
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
                 :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
-
-  # FIXME: Remove this
-  alias_attribute :is_comment_locked, :is_comment_disabled
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
@@ -509,7 +507,7 @@ class Post < ApplicationRecord
       return unless tag_string_diff.present?
 
       current_tags = tag_array
-      diff = TagQuery.scan(tag_string_diff.downcase)
+      diff = TagQuery.scan(tag_string_diff)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -696,7 +694,7 @@ class Post < ApplicationRecord
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
           if pool.nil?
-            pool = Pool.create(:name => $1, :description => "This pool was automatically generated")
+            pool = Pool.create(name: $1, description: "")
           end
         end
       end
@@ -741,7 +739,7 @@ class Post < ApplicationRecord
           end
 
         when /^-pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.remove!(self)
             if pool.errors.any?
@@ -759,7 +757,7 @@ class Post < ApplicationRecord
           end
 
         when /^(?:new)?pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.add!(self)
             if pool.errors.any?
@@ -1573,6 +1571,10 @@ class Post < ApplicationRecord
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
         PostEvent.add(id, CurrentUser.user, action)
       end
+      if saved_change_to_is_comment_disabled?
+        action = is_comment_disabled? ? :comment_disabled : :comment_enabled
+        PostEvent.add(id, CurrentUser.user, action)
+      end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
       end
@@ -1767,13 +1769,15 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    return true if is_pending?
-    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
-    false
+    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
   end
 
-  def visible_comment_count(_user)
-    comment_count
+  def visible_comment_count(user)
+    if user.is_moderator? || !is_comment_disabled?
+      comment_count
+    else
+      comments.visible(user).count
+    end
   end
 
   def avoid_posting_artists

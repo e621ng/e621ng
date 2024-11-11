@@ -26,6 +26,7 @@
   <% end -%>
 
   <span class="nav-name">
+    <a href="#" class="set-nav-remove-link" data-post-id="<%= post.id %>" data-set-id="<%= post_set.id %>" title="Remove from set"><i class="fas fa-times"></i></a>
     <%= link_to("Set: #{post_set.name}", post_set_path(post_set), title: "page #{post_set.page_number(post.id)}/#{post_set.post_count}") -%>
   </span>
 

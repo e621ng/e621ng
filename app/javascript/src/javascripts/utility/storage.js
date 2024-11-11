@@ -8,6 +8,8 @@ LStorage.get = function (name) {
 };
 LStorage.getObject = function (name) {
   const value = this.get(name);
+  if (!value) return null;
+
   try {
     return JSON.parse(value);
   } catch (error) {
