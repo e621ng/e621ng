@@ -18,6 +18,7 @@ class Post < ApplicationRecord
   before_validation :fix_bg_color
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
+  normalizes :description, with: ->(desc) { desc.gsub("\r\n", "\n") }
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
