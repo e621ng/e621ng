@@ -6,7 +6,7 @@
 article.post-preview {
   box-sizing: border-box;
   height: auto;
-  width: 154px;
+  width: fit-content;
   margin: 0 10px 10px 0;
   overflow: hidden;
   text-align: center;
@@ -156,11 +156,10 @@ body[data-user-can-approve-posts="true"] .post-preview {
 }
 
 #has-parent-relationship-preview, #has-children-relationship-preview {
-  overflow-x: auto;
-  white-space: nowrap;
+  flex-direction: row;
+  flex-wrap: wrap;
 
   article.post-preview {
-    width: auto;
     border: none;
     margin: 0;
     padding: 5px 5px 10px;
