@@ -212,8 +212,7 @@
       text-align: center;
       vertical-align: middle;
       display: inline-block;
-      width: 100%;
-      container-type: inline-size;
+      width: fit-content;
 
       a {
         margin: 0 auto;
@@ -234,7 +233,7 @@
         img {
           height: auto;
           max-height: none;
-          max-width: none;
+          max-width: fit-content;
           width: 100cqw;
 
           &.has-cropped-false {
