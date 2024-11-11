@@ -314,5 +314,37 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     else
       order.push({id: :desc})
     end
+
+    if !CurrentUser.user.is_staff? && DangerZone.hide_pending_posts_for > 0
+      should = [
+        {
+          range: {
+            created_at: {
+              lte: DangerZone.hide_pending_posts_for.hours.ago,
+            },
+          },
+        },
+        {
+          term: {
+            pending: false,
+          },
+        }
+      ]
+
+      unless CurrentUser.user.id.nil?
+        should.push({
+          term: {
+            uploader: CurrentUser.user.id,
+          },
+        })
+      end
+
+      must.push({
+        bool: {
+          should: should,
+          minimum_should_match: 1,
+        },
+      })
+    end
   end
 end

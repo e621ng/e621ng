@@ -26,6 +26,8 @@ class PostsController < ApplicationController
   def show
     @post = Post.find(params[:id])
 
+    raise User::PrivilegeError.new("Post unavailable") unless DangerZone.post_visible?(@post, CurrentUser.user)
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted, want_parent: false)
