@@ -8,7 +8,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   }.freeze
 
   def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
+    # puts "ElasticPostQueryBuilder.initialize: query_string: #{query_string}"
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
+    @resolve_aliases = resolve_aliases
+    @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
   end
@@ -18,15 +21,20 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def add_tag_string_search_relation(tags)
+    # puts "add_tag_string_search_relation input:"
+    # puts tags
     must.concat(tags[:must].map { |x| { term: { tags: x } } })
     must_not.concat(tags[:must_not].map { |x| { term: { tags: x } } })
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
   def add_group_search_relation(groups)
-    must.concat(groups[:must].map { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
-    must_not.concat(groups[:must_not].map { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
-    should.concat(groups[:should].map { |x| { |x| ElasticPostQueryBuilder.new(x).create_query_obj })
+    # puts "add_group_search_relation input:"
+    # puts groups
+    # puts "Tags Count: #{(@free_tags_count || 0) + @q.tag_count}"
+    must.concat(groups[:must].map { |x| ElasticPostQueryBuilder.new(x, resolve_aliases: @resolve_aliases, free_tags_count: (@free_tags_count || 0) + @q.tag_count, enable_safe_mode: @enable_safe_mode, always_show_deleted: @always_show_deleted).create_query_obj })
+    must_not.concat(groups[:must_not].map { |x| ElasticPostQueryBuilder.new(x, resolve_aliases: @resolve_aliases, free_tags_count: (@free_tags_count || 0) + @q.tag_count, enable_safe_mode: @enable_safe_mode, always_show_deleted: @always_show_deleted).create_query_obj })
+    should.concat(groups[:should].map { |x| ElasticPostQueryBuilder.new(x, resolve_aliases: @resolve_aliases, free_tags_count: (@free_tags_count || 0) + @q.tag_count, enable_safe_mode: @enable_safe_mode, always_show_deleted: @always_show_deleted).create_query_obj })
   end
 
   def hide_deleted_posts?

@@ -9,7 +9,7 @@ class TagQuery
   class CountExceededWithDataError < CountExceededError
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
-    def initialize(q:, resolve_aliases:, tag_count:, msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
+    def initialize(msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time", q:, resolve_aliases:, tag_count:)
       @q = q
       @resolve_aliases = resolve_aliases
       @tag_count = tag_count
@@ -84,7 +84,11 @@ class TagQuery
       end
     end
   end
-  
+
+  def total_tag_count()
+    @tag_count + @free_tags_count
+  end
+
   # TODO: Handle groups (somehow)
   def self.normalize(query)
     tags = TagQuery.scan(query)
@@ -94,7 +98,8 @@ class TagQuery
   end
   
   # TODO: Handle top-level group w/ ~/-?
-  def self.scan(query)
+  def self.scan(query, print = false)
+    # if print then puts "scan input: #{query}" end
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     # If this is a top-level group, ignore it.
     if /\A\(\s+.*?\s+\)\z/.match?(tagstr)
@@ -102,11 +107,14 @@ class TagQuery
     end
     matches = []
     curr_match = nil
+    # if print then puts "scan before segmenting: #{tagstr}" end
     # This preserves quoted metatags and groups w/o altering order.
-    while curr_match = /\A([-~]?(?:\(\s.*?\s\)|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr)
+    while (curr_match = /\A([-~]?(?:\(\s.*?\s\)|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr))
+      # if print then puts "scan segment: #{curr_match[0]}" end
       tagstr = tagstr.delete_prefix(curr_match[0])
       matches << curr_match[1]
     end
+    # if print then puts "scan output: #{matches}" end
     matches
   end
 
@@ -119,10 +127,14 @@ class TagQuery
     matches = []
     curr_match = nil
     # This preserves quoted metatags and groups w/o altering order.
-    while curr_match = /\A([-~]?(?:(\(\s.*?\s\))|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr)
+    while (curr_match = /\A([-~]?(?:(\(\s.*?\s\))|\w*?:".*?"|\S+))(?:\s*|\z)/.match(tagstr))
       tagstr = tagstr.delete_prefix(curr_match[0])
-      matches << (curr_match[2] || "").length > 0 ? TagQuery.scan_flyover(curr_match[2]) : curr_match[1]
+      # puts "Check in flyover"
+      # puts ((0 < (curr_match[2] || "").length) ? TagQuery.scan_flyover(curr_match[2]) : curr_match[1])
+      matches << ((0 < (curr_match[2] || "").length) ? TagQuery.scan_flyover(curr_match[2]) : curr_match[1])
+      # puts "flyover match step: #{matches}"
     end
+    # puts "flyover output: #{matches}"
     matches
   end
 
@@ -161,25 +173,27 @@ class TagQuery
 
   # TODO: Short-circuit when max tags exceeded?
   def parse_query(query, process_groups = false)
-    TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
+    TagQuery.scan(query, true).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
       next if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
+        # puts "parse_query group matched: #{match[0]}"
         # thrown = nil
         group = nil
-        t_count = nil
         if process_groups
           begin
             group = TagQuery.new(match[2], free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
-          rescue CountExceededWithDataError => d
-            group = d
-            # thrown = d
-          end  
-            @tag_count += group.tag_count
+          rescue CountExceededWithDataError => e
+            group = e
+            # thrown = e
+          end
+          @tag_count += group.tag_count
         else
           @tag_count += TagQuery.scan_flyover(match[2]).length
         end
+        # puts "parse_query group: #{!process_groups ? match[2] : group}"
         q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] ||= []
-        q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] << !process_groups ? token : group
+        q[:groups][METATAG_SEARCH_TYPE.fetch(match[1], :must)] << (!process_groups ? match[2] : group)
+        # puts "parse_query groups after: #{q[:groups]}"
         # raise thrown if thrown
         true
       end
@@ -422,6 +436,7 @@ class TagQuery
   end
 
   def add_tag(tag)
+    # puts "Adding tag #{tag}"
     tag = tag.downcase
     if tag.start_with?("-") && tag.length > 1
       if tag.include?("*")

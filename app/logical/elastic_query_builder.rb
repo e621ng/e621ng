@@ -36,7 +36,7 @@ class ElasticQueryBuilder
       @function_score[:query] = query
       query = { function_score: @function_score }
     end
-
+    # puts query
     search_body = {
       query: query,
       sort: order,
