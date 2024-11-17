@@ -1,6 +1,5 @@
 import { SendQueue } from "./send_queue";
 import Utility from "./utility";
-import PostVersion from "./post_versions";
 
 const NoteVersion = {};
 
