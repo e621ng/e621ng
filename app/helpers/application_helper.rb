@@ -117,7 +117,7 @@ module ApplicationHelper
   end
 
   def body_attributes(user = CurrentUser.user)
-    attributes = [:id, :name, :level, :level_string, :can_approve_posts?, :can_upload_free?, :per_page]
+    attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
     attributes += User::Roles.map { |role| :"is_#{role}?" }
 
     controller_param = params[:controller].parameterize.dasherize
@@ -125,12 +125,13 @@ module ApplicationHelper
 
     {
       lang: "en",
-      class: "c-#{controller_param} a-#{action_param} #{"resp" unless disable_mobile_mode?}",
+      class: "c-#{controller_param} a-#{action_param} #{'resp' unless disable_mobile_mode?}",
       data: {
         controller: controller_param,
         action: action_param,
-        **data_attributes_for(user, "user", attributes)
-      }
+        **data_attributes_for(user, "user", attributes),
+        disable_cropped_thumbnails: Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails?,
+      },
     }
   end
 
