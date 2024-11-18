@@ -9,15 +9,15 @@ class PostsDecorator < ApplicationDecorator
 
   def preview_class(options)
     post = object
-    klass = ["post-preview"]
-    klass << "post-status-pending" if post.is_pending?
-    klass << "post-status-flagged" if post.is_flagged?
-    klass << "post-status-deleted" if post.is_deleted?
-    klass << "post-status-has-parent" if post.parent_id
-    klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == "s"
-    klass << "post-rating-questionable" if post.rating == "q"
-    klass << "post-rating-explicit" if post.rating == "e"
+    klass = ["thumbnail"]
+    klass << "pending" if post.is_pending?
+    klass << "flagged" if post.is_flagged?
+    klass << "deleted" if post.is_deleted?
+    klass << "has-parent" if post.parent_id
+    klass << "has-children" if post.has_visible_children?
+    klass << "rating-safe" if post.rating == "s"
+    klass << "rating-questionable" if post.rating == "q"
+    klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
@@ -42,21 +42,21 @@ class PostsDecorator < ApplicationDecorator
     score > 0 ? 'score-positive' : 'score-negative'
   end
 
-  def stats_section(t)
+  def stats_section(template)
     post = object
     status_flags = []
-    status_flags << 'P' if post.parent_id
-    status_flags << 'C' if post.has_children?
-    status_flags << 'U' if post.is_pending?
-    status_flags << 'F' if post.is_flagged?
+    status_flags << "P" if post.parent_id
+    status_flags << "C" if post.has_children?
+    status_flags << "U" if post.is_pending?
+    status_flags << "F" if post.is_flagged?
 
     post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
-    score = t.tag.span("#{post_score_icon}#{post.score}", class: "post-score-score #{score_class(post.score)}")
-    favs = t.tag.span("♥#{post.fav_count}", class: "post-score-faves")
-    comments = t.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
-    rating =  t.tag.span(post.rating.upcase, class: "post-score-rating")
-    status = t.tag.span(status_flags.join(''), class: 'post-score-extras')
-    t.tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
+    score = template.tag.span("#{post_score_icon}#{post.score}", class: "score #{score_class(post.score)}")
+    favs = template.tag.span("♥#{post.fav_count}", class: "favorites")
+    comments = template.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: "comments"
+    rating = template.tag.span(post.rating.upcase, class: "rating")
+    # status = template.tag.span(status_flags.join, class: "extras")
+    template.tag.div score + favs + comments + rating, class: "desc"
   end
 
   def preview_html(t, options = {})
@@ -115,15 +115,9 @@ class PostsDecorator < ApplicationDecorator
                              post.preview_file_url
                            end
 
-    alt_text = post.tag_string
+    alt_text = "post ##{post.id}"
 
     has_cropped = post.has_cropped?
-
-    pool = options[:pool]
-
-    similarity = options[:similarity]&.round
-
-    size = options[:size] ? post.file_size : nil
 
     img_contents = t.link_to t.polymorphic_path(link_target, link_params) do
       t.tag.picture do
@@ -132,13 +126,7 @@ class PostsDecorator < ApplicationDecorator
         t.concat t.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
       end
     end
-    desc_contents = if options[:stats] || pool || similarity || size
-                      t.tag.div class: "desc" do
-                        stats_section(t) if options[:stats]
-                      end
-                    else
-                      "".html_safe
-                    end
+    desc_contents = options[:stats] ? stats_section(t) : "".html_safe
     t.tag.article(**article_attrs) do
       img_contents + desc_contents
     end

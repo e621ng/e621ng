@@ -18,14 +18,12 @@
     </aside>
 
     <section id="content">
-      <h1>Favorites</h1>
-
       <%= render "posts/partials/index/edit" %>
 
       <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-        <div id="posts-container">
+        <section class="posts-container">
           <%= @favorite_set.presenter.post_previews_html(self) %>
-        </div>
+        </section>
         <%= numbered_paginator(@favorite_set.posts) %>
       </div>
     </section>
