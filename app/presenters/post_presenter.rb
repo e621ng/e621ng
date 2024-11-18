@@ -22,8 +22,8 @@ class PostPresenter < Presenter
     locals = {}
 
     locals[:article_attrs] = {
-        "id" => "post_#{post.id}",
-        "class" => preview_class(post, **options).join(" ")
+      "id" => "post_#{post.id}",
+      "class" => preview_class(post, **options).join(" "),
     }.merge(data_attributes(post))
 
     locals[:link_target] = options[:link_target] || post
@@ -54,7 +54,7 @@ class PostPresenter < Presenter
                              post.preview_file_url
                            end
 
-    locals[:alt_text] = post.tag_string
+    locals[:alt_text] = "post ##{post.id}"
 
     locals[:has_cropped] = post.has_cropped?
 
@@ -91,15 +91,15 @@ class PostPresenter < Presenter
   end
 
   def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["post-preview"]
-    klass << "post-status-pending" if post.is_pending?
-    klass << "post-status-flagged" if post.is_flagged?
-    klass << "post-status-deleted" if post.is_deleted?
-    klass << "post-status-has-parent" if post.parent_id
-    klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == "s"
-    klass << "post-rating-questionable" if post.rating == "q"
-    klass << "post-rating-explicit" if post.rating == "e"
+    klass = ["thumbnail"]
+    klass << "pending" if post.is_pending?
+    klass << "flagged" if post.is_flagged?
+    klass << "deleted" if post.is_deleted?
+    klass << "has-parent" if post.parent_id
+    klass << "has-children" if post.has_visible_children?
+    klass << "rating-safe" if post.rating == "s"
+    klass << "rating-questionable" if post.rating == "q"
+    klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
