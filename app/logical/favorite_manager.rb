@@ -18,6 +18,7 @@ class FavoriteManager
         post.do_not_version_changes = true
         post.save
       end
+      VoteManager.vote!(user: CurrentUser.user, post: upvoted, score: 1)
     rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
