@@ -12,13 +12,13 @@ class FavoriteManager
             raise Favorite::Error, "You can only keep up to #{user.favorite_limit} favorites."
           end
         end
-
         Favorite.create(:user_id => user.id, :post_id => post.id)
         post.append_user_to_fav_string(user.id)
         post.do_not_version_changes = true
         post.save
       end
-      VoteManager.vote!(user: CurrentUser.user, post: upvoted, score: 1)
+      VoteManager.vote!(user: user, post: post, score: 1)
+      
     rescue ActiveRecord::SerializationFailure => e
       retries -= 1
       retry if retries > 0
