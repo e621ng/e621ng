@@ -1389,10 +1389,10 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should "not increment the post's score" do
+      should "increment the post's score" do
         @member = create(:user)
         FavoriteManager.add!(user: @user, post: @post)
-        assert_equal(0, @post.score)
+        assert_equal(1, @post.score)
       end
 
       should "update the fav strings on the post" do
