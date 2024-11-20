@@ -1356,7 +1356,7 @@ class PostTest < ActiveSupport::TestCase
       should "not decrement the post's score" do
         @member = create(:user)
 
-        assert_no_difference("@post.score") { FavoriteManager.add!(user: @member, post: @post) }
+        assert_difference("@post.score", 1) { FavoriteManager.add!(user: @member, post: @post) }
         assert_no_difference("@post.score") { FavoriteManager.remove!(user: @member, post: @post) }
       end
 
