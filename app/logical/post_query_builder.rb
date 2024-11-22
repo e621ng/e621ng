@@ -23,7 +23,21 @@ class PostQueryBuilder
   end
 
   def add_group_search_relation(groups, relation)
-    groups.each { |x| relation = PostQueryBuilder.new(x, relation).search }
+    return relation if groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    groups[:must].each { |x| relation = PostQueryBuilder.new(x, relation).search }
+    groups[:must_not].each { |x| relation = relation.merge(PostQueryBuilder.new(x, relation).search) }
+    if groups[:should].any?
+      valid = nil
+      groups[:should].each do |x|
+        if valid
+          valid.or(PostQueryBuilder.new(x, relation).search)
+        else
+          valid = PostQueryBuilder.new(x, relation).search
+        end
+      end
+      relation.merge(valid)
+    end
+    # groups.each { |x| relation = PostQueryBuilder.new(x, relation).search }
     relation
   end
 
@@ -36,7 +50,7 @@ class PostQueryBuilder
 
   def search
     q = TagQuery.new(query_string)
-    relation = @curr_relation || Post.all
+    relation = @curr_relation ||= Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")

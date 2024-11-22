@@ -12,23 +12,20 @@ class ElasticQueryBuilder
     @function_score = nil
     build
   end
-  
-  def create_query_obj()
-    {
+
+  def create_query_obj(return_nil_if_empty: true)
+    return if return_nil_if_empty && must.empty? && must_not.empty? && should.empty?
+    if must.empty?
+      must.push({ match_all: {} })
+    end
+
+    query = {
       bool: {
-        must: must.empty? ? must.map { |x| x }.push({ match_all: {} }) : must,
+        must: must,
         must_not: must_not,
         should: should,
       },
     }
-  end
-  
-  def search
-    # if must.empty?
-    #   must.push({ match_all: {} })
-    # end
-
-    query = create_query_obj()
 
     query[:bool][:minimum_should_match] = 1 if should.any?
 
@@ -36,7 +33,12 @@ class ElasticQueryBuilder
       @function_score[:query] = query
       query = { function_score: @function_score }
     end
-    # puts query
+    query
+  end
+
+  def search
+    query = create_query_obj(return_nil_if_empty: false)
+
     search_body = {
       query: query,
       sort: order,

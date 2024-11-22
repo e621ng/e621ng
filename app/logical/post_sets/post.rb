@@ -7,21 +7,41 @@ module PostSets
     def initialize(tags, page = 1, limit: nil, random: nil)
       super()
       tags ||= ""
-      @public_tag_array = TagQuery.scan(tags)
+      # @public_tag_array = TagQuery.scan(tags)
+      @public_tag_array = TagQuery.scan_search(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
       tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      @tag_array = TagQuery.scan(tags)
+      # @tag_array = TagQuery.scan(tags)
+      @tag_array = TagQuery.scan_search(tags)
       @page = page
       @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")
       @random = random.present?
     end
 
     def tag_string
-      @tag_string ||= tag_array.uniq.join(" ")
+      # @tag_string ||= tag_array.uniq.join(" ")
+      @tag_string ||= TagQuery.scan_recursive(
+        tag_array.uniq.join(" "),
+        strip_duplicates_at_level: true,
+        delimit_groups: true,
+        flatten: true,
+        strip_prefixes: false,
+        sort_at_level: false,
+        normalize_at_level: false,
+      ).join(" ")
     end
 
     def public_tag_string
-      @public_tag_string ||= public_tag_array.uniq.join(" ")
+      # @public_tag_string ||= public_tag_array.uniq.join(" ")
+      @public_tag_string ||= TagQuery.scan_recursive(
+        public_tag_array.uniq.join(" "),
+        strip_duplicates_at_level: true,
+        delimit_groups: true,
+        flatten: true,
+        strip_prefixes: false,
+        sort_at_level: false,
+        normalize_at_level: false,
+      ).join(" ")
     end
 
     def ad_tag_string
@@ -37,11 +57,13 @@ module PostSets
     end
 
     def hidden_posts
-      @hidden_posts ||= posts.select { |p| !p.visible? }
+      # @hidden_posts ||= posts.select { |p| !p.visible? }
+      @hidden_posts ||= posts.reject(&:visible?)
     end
 
     def login_blocked_posts
-      @login_blocked ||= posts.select { |p| p.loginblocked? }
+      # @login_blocked ||= posts.select { |p| p.loginblocked? }
+      @login_blocked_posts ||= posts.select(&:loginblocked?)
     end
 
     def safe_posts
