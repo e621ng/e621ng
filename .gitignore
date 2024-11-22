@@ -28,3 +28,5 @@ test/reports
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+
+2
