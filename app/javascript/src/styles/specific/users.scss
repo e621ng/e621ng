@@ -160,7 +160,7 @@ div#c-users {
         grid-area: p-posts;
         display: flex;
         overflow: auto;
-        justify-content: flex-start;
+        justify-content: center;
         flex-wrap: wrap;
 
         gap: 1em;
@@ -173,12 +173,7 @@ div#c-users {
         @include window-larger-than(800px) {
           flex-wrap: nowrap;
           border-top-left-radius: 0;
-        }
-
-        article.post-preview {
-          flex: 0 0 154px;
-          margin: 0;
-          img { max-width: unset !important; }
+          justify-content: flex-start;
         }
       }
     }

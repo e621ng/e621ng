@@ -29,6 +29,7 @@ Rails.application.routes.draw do
     resources :danger_zone, only: [:index] do
       collection do
         put :uploading_limits
+        put :hide_pending_posts
       end
     end
   end

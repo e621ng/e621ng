@@ -18,7 +18,7 @@
 
     <div class="profile-sample-posts">
       <% presenter.uploads.each do |post| %>
-        <%= PostPresenter.preview(post, :tags => "user:#{user.name}") %>
+        <%= post.preview_html(self, { tags: "user:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
       <% end %>
     </div>
 
@@ -41,7 +41,7 @@
 
     <div class="profile-sample-posts">
       <% presenter.favorites.each do |post| %>
-        <%= PostPresenter.preview(post, :tags => "fav:#{user.name}") %>
+        <%= post.preview_html(self, { tags: "fav:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
       <% end %>
     </div>
 

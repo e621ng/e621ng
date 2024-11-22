@@ -12,7 +12,7 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-      <div id="posts-container">
+      <section class="posts-container">
         <% if @posts.none? %>
           <%= render "posts/blank" %>
         <% else %>
