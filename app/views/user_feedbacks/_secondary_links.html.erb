@@ -10,4 +10,12 @@
   <% end %>
   <%= subnav_link_to "Listing", user_feedbacks_path %>
   <%= subnav_link_to "Search", search_user_feedbacks_path %>
+  <% if CurrentUser.is_moderator? %>
+    <li>|</li>
+    <% if @user_feedback %>
+      <%= subnav_link_to "Ban", new_ban_path(ban: { user_id: @user_feedback.user_id }) %>
+    <% elsif params[:search] && params[:search][:user_id] %>
+      <%= subnav_link_to "Ban", new_ban_path(ban: { user_id: params[:search][:user_id] }) %>
+    <% end %>
+  <% end %>
 <% end %>
