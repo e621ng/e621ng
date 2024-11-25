@@ -40,6 +40,14 @@ class UserVote < ApplicationRecord
   end
 
   module SearchMethods
+    def visible(user)
+      if user.is_moderator?
+        all
+      else
+        where(user_id: user.id)
+      end
+    end
+
     def search(params)
       q = super
 
