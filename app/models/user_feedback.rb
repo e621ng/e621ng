@@ -66,7 +66,7 @@ class UserFeedback < ApplicationRecord
     end
 
     def visible(user)
-      if user.is_moderator?
+      if user.is_staff?
         all
       else
         active
