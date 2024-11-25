@@ -14,10 +14,10 @@ module WikiPagesHelper
   end
 
   def wiki_page_post_previews(wiki_page)
-    tag.div(id: "wiki-page-posts") do
+    tag.section(id: "wiki-page-posts", class: "posts-container") do
       if Post.fast_count(wiki_page.title) > 0
         view_all_link = link_to("view all", posts_path(tags: wiki_page.title))
-        header = tag.h2("Posts (#{view_all_link})".html_safe)
+        header = tag.h2("Posts (#{view_all_link})".html_safe, class: "posts-container-header")
         header + wiki_page.post_set.presenter.post_previews_html(self)
       end
     end
