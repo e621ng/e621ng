@@ -1,0 +1,7 @@
+<% content_for(:secondary_links) do %>
+  <%= render "notes/secondary_links" %>
+  <% if params[:action] == "index" && CurrentUser.is_privileged? %>
+    | <%= subnav_link_to "Undo selected", "" %>
+    <%= subnav_link_to "Select All", "" %>
+  <% end %>
+<% end %>

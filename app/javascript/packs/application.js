@@ -40,6 +40,7 @@ export { default as Blip } from '../src/javascripts/blips.js';
 export { default as Comment } from '../src/javascripts/comments.js';
 export { default as DText } from '../src/javascripts/dtext.js';
 export { default as Note } from '../src/javascripts/notes.js';
+export { default as NoteVersion } from '../src/javascripts/note_versions.js';
 export { default as Post } from '../src/javascripts/posts.js';
 export { default as PostDeletion } from "../src/javascripts/post_delete.js";
 export { default as PostModeMenu } from '../src/javascripts/post_mode_menu.js';
