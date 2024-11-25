@@ -77,6 +77,11 @@ article.thumbnail {
   @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
     &[data-rating=#{$name}] .desc .rating { color: palette("text-#{$color}"); }
   }
+
+  // Post matches blacklist
+  &.filter-matches .desc {
+    background-color: var(--palette-background-red);
+  }
 }
 
 
