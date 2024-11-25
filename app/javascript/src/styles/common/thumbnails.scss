@@ -20,6 +20,10 @@ section.posts-container {
   @include window-larger-than($thumb-desktop-breakpoint) {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+
+  h2.posts-container-header {
+    grid-column: -1 / 1;
+  }
 }
 
 
