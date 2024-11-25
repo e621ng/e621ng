@@ -228,46 +228,79 @@ class ApplicationRecord < ActiveRecord::Base
   concerning :SimpleVersioningMethods do
     class_methods do
       def simple_versioning(options = {})
-        cattr_accessor :versioning_body_column, :versioning_ip_column, :versioning_user_column, :versioning_subject_column
+        cattr_accessor :versioning_body_column, :versioning_ip_column, :versioning_user_column, :versioning_subject_column, :versioning_is_hidden_column, :versioning_is_sticky_column
         self.versioning_body_column = options[:body_column] || "body"
         self.versioning_subject_column = options[:subject_column]
         self.versioning_ip_column = options[:ip_column] || "creator_ip_addr"
         self.versioning_user_column = options[:user_column] || "creator_id"
+        self.versioning_is_hidden_column = options[:is_hidden_column] || "is_hidden"
+        self.versioning_is_sticky_column = options[:is_sticky_column] || "is_sticky"
 
         class_eval do
-          has_many :versions, class_name: 'EditHistory', as: :versionable
-          after_update :save_version, if: :should_version_change
-
-          define_method :should_version_change do
-            if self.versioning_subject_column
-              return true if send "saved_change_to_#{self.versioning_subject_column}?"
-            end
-            send "saved_change_to_#{self.versioning_body_column}?"
+          has_many :versions, class_name: "EditHistory", as: :versionable
+          after_update :save_version, if: :should_create_edited_history
+          after_save(if: :should_create_hidden_history) do |rec|
+            type = rec.send("#{versioning_is_hidden_column}?") ? "hide" : "unhide"
+            save_version(type)
+          end
+          after_save(if: :should_create_stickied_history) do |rec|
+            type = rec.send("#{versioning_is_sticky_column}?") ? "stick" : "unstick"
+            save_version(type)
           end
 
-          define_method :save_version do
+          define_method :should_create_edited_history do
+            return true if versioning_subject_column && saved_change_to_attribute?(versioning_subject_column)
+            saved_change_to_attribute?(versioning_body_column)
+          end
+
+          define_method :should_create_hidden_history do
+            saved_change_to_attribute?(versioning_is_hidden_column)
+          end
+
+          define_method :should_create_stickied_history do
+            saved_change_to_attribute?(versioning_is_sticky_column)
+          end
+
+          define_method :save_original_version do
+            body = send("#{versioning_body_column}_before_last_save")
+            body = send(versioning_body_column) if body.nil?
+
+            subject = nil
+            if versioning_subject_column
+              subject = send("#{versioning_subject_column}_before_last_save")
+              subject = send(versioning_subject_column) if subject.nil?
+            end
+            new = EditHistory.new
+            new.versionable = self
+            new.version = 1
+            new.ip_addr = send(versioning_ip_column)
+            new.body = body
+            new.user_id = send(versioning_user_column)
+            new.subject = subject
+            new.created_at = created_at
+            new.save!
+          end
+
+          define_method :save_version do |edit_type = "edit"|
             EditHistory.transaction do
               our_next_version = next_version
               if our_next_version == 0
+                save_original_version
                 our_next_version += 1
-                new = EditHistory.new
-                new.versionable = self
-                new.version = 1
-                new.ip_addr = self.send self.versioning_ip_column
-                new.body = self.send "#{self.versioning_body_column}_before_last_save"
-                new.user_id = self.send self.versioning_user_column
-                new.subject = self.send "#{self.versioning_subject_column}_before_last_save" if self.versioning_subject_column
-                new.created_at = self.created_at
-                new.save
               end
+
+              body = send(versioning_body_column)
+              subject = versioning_subject_column ? send(versioning_subject_column) : nil
 
               version = EditHistory.new
               version.version = our_next_version + 1
               version.versionable = self
               version.ip_addr = CurrentUser.ip_addr
-              version.body = self.send self.versioning_body_column
+              version.body = body
+              version.subject = subject
               version.user_id = CurrentUser.id
-              version.save
+              version.edit_type = edit_type
+              version.save!
             end
           end
 

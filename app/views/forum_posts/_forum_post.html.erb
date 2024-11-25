@@ -8,7 +8,7 @@
         <h4 class="author-name"><%= link_to_user forum_post.creator %></h4>
         <%= forum_post.creator.level_string %>
         <% if forum_post.is_hidden? %>
-          (hidden)
+          <span<% if forum_post.hidden_at.present? %> title="<%= time_ago_in_words(forum_post.hidden_at) %> ago"<% end %>>(hidden)</span>
         <% end %>
       </div>
       <div class="avatar">

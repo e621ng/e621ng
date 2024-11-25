@@ -591,7 +591,8 @@ CREATE TABLE public.edit_histories (
     versionable_id integer NOT NULL,
     version integer NOT NULL,
     ip_addr inet NOT NULL,
-    user_id integer NOT NULL
+    user_id integer NOT NULL,
+    edit_type text DEFAULT 'original'::text NOT NULL
 );
 
 
@@ -4684,6 +4685,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240103002049'),
 ('20240103002040'),
 ('20240101042716'),
+('20230531081706'),
 ('20230531080817'),
 ('20230518182034'),
 ('20230517155547'),

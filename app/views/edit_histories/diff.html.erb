@@ -1,0 +1,15 @@
+<div id="c-edit-history">
+<div id="a-diff">
+  <%= @thisversion.html_title(self) %>
+  <p>Showing differences between <%= link_to compact_time(@otherversion.updated_at), edit_history_path(@otherversion.versionable_id, page: @otherversion.page, type: @otherversion.versionable_type, anchor: "edit-#{@otherversion.id}") %> (<%= link_to_user @otherversion.user %>) and <%= link_to compact_time(@thisversion.updated_at), edit_history_path(@thisversion.versionable_id, page: @thisversion.page, type: @thisversion.versionable_type, anchor: "edit-#{@thisversion.id}") %> (<%= link_to_user @thisversion.user %>)</p>
+
+  <div class="diff">
+    <%= text_diff(@otherversion.body, @thisversion.body) %>
+  </div>
+</div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Edit History Diff for <%= @thisversion.html_name %>
+<% end %>
