@@ -1358,7 +1358,7 @@ class Post < ApplicationRecord
         approvals.create(user: CurrentUser.user)
         PostEvent.add(id, CurrentUser.user, :relisted)
       end
-      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
   end
 
