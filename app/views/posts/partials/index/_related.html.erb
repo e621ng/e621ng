@@ -2,16 +2,17 @@
   <h1>Related</h1>
   <ul id="related-list">
     <% if discover_mode? %>
-      <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:rank") %></li>
-      <li id="secondary-links-posts-popular"><%= link_to "Popular", popular_index_path %></li>
+      <li id="secondary-links-posts-hot"><%= link_to("Hot", posts_path(tags: "order:rank")) %></li>
+      <li id="secondary-links-posts-popular"><%= link_to("Popular", popular_index_path) %></li>
     <% end %>
 
     <%if CurrentUser.is_approver? %>
-      <li><%= link_to "Deleted", posts_path(:tags => "#{params[:tags]} status:deleted"), :rel => "nofollow" %></li>
-      <li><%= link_to "Pending", posts_path(:tags => "#{params[:tags]} status:pending"), :rel => "nofollow" %></li>
-      <li><%= link_to "Flagged", posts_path(:tags => "#{params[:tags]} status:flagged"), :rel => "nofollow" %></li>
+      <li><%= link_to("Deleted", posts_path(tags: "#{params[:tags]} status:deleted"), rel: "nofollow") %></li>
+      <li><%= link_to("Pending", posts_path(tags: "#{params[:tags]} status:pending"), rel: "nofollow") %></li>
+      <li><%= link_to("Flagged", posts_path(tags: "#{params[:tags]} status:flagged"), rel: "nofollow") %></li>
+      <li><%= link_to("Unlisted", posts_path(tags: "#{params[:tags]} status:unlisted"), rel: "nofollow") %></li>
     <% end %>
 
-    <li><%= link_to "Random", random_posts_path(:tags => params[:tags]), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
+    <li><%= link_to("Random", random_posts_path(tags: params[:tags]), id: "random-post", rel: "nofollow", "data-shortcut": "r") %></li>
   </ul>
 </section>

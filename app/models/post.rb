@@ -307,7 +307,7 @@ class Post < ApplicationRecord
       # Prevent unapproving self approvals by someone else
       return false if approver.nil? && uploader != user
       # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
-      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+      !is_pending? && !is_deleted? && !is_unlisted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
     end
 
     def approve!(approver = CurrentUser.user)
@@ -1061,7 +1061,6 @@ class Post < ApplicationRecord
     def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
       tags += " rating:s" if enable_safe_mode
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
       tags = TagQuery.normalize(tags)
 
       cache_key = "pfc:#{tags}"
@@ -1255,7 +1254,8 @@ class Post < ApplicationRecord
           update(
             is_deleted: true,
             is_pending: false,
-            is_flagged: false
+            is_flagged: false,
+            is_unlisted: false,
           )
           decrement_tag_post_counts
           move_files_on_delete
@@ -1265,7 +1265,7 @@ class Post < ApplicationRecord
 
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
-      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1") unless is_unlisted_before_last_save
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
@@ -1294,7 +1294,7 @@ class Post < ApplicationRecord
         self.is_deleted = false
         self.is_pending = false
         self.approver_id = CurrentUser.id
-        flags.each { |x| x.resolve! }
+        flags.each(&:resolve!)
         increment_tag_post_counts
         save
         approvals.create(user: CurrentUser.user)
@@ -1310,6 +1310,55 @@ class Post < ApplicationRecord
 
     def pending_flag
       flags.unresolved.order(id: :desc).first
+    end
+  end
+
+  module UnlistMethods
+    def unlist!(options = {})
+      if is_status_locked? && !options.fetch(:force, false)
+        errors.add(:is_status_locked, "; cannot unlist post")
+        return
+      end
+
+      if is_unlisted?
+        errors.add(:base, "Post is already unlisted")
+        return
+      end
+
+      transaction do
+        self.is_deleted = false
+        self.is_pending = false
+        self.is_unlisted = true
+        decrement_tag_post_counts
+        save
+        PostEvent.add(id, CurrentUser.user, :unlisted)
+      end
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1") unless is_deleted_before_last_save
+    end
+
+    def relist!(options = {})
+      if is_status_locked? && !options.fetch(:force, false)
+        errors.add(:is_status_locked, "; cannot relist post")
+        return
+      end
+
+      unless is_unlisted?
+        errors.add(:base, "Post is not unlisted")
+        return
+      end
+
+      transaction do
+        self.is_deleted = false
+        self.is_pending = false
+        self.is_unlisted = false
+        self.approver_id = CurrentUser.id
+        flags.each(&:resolve!)
+        increment_tag_post_counts
+        save
+        approvals.create(user: CurrentUser.user)
+        PostEvent.add(id, CurrentUser.user, :relisted)
+      end
+      UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
     end
   end
 
@@ -1683,6 +1732,7 @@ class Post < ApplicationRecord
   extend CountMethods
   include ParentMethods
   include DeletionMethods
+  include UnlistMethods
   include VersionMethods
   include NoteMethods
   include ApiMethods

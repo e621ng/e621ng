@@ -4,7 +4,7 @@ require "test_helper"
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id))
+    assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id), query)
   end
 
   setup do
@@ -1746,22 +1746,22 @@ class PostTest < ActiveSupport::TestCase
       pending = create(:post, is_pending: true)
       flagged = create(:post, is_flagged: true)
       deleted = create(:post, is_deleted: true)
-      all = [deleted, flagged, pending]
+      unlisted = create(:post, is_unlisted: true)
+      all = [deleted, flagged, pending, unlisted]
 
       assert_tag_match([flagged, pending], "status:modqueue")
       assert_tag_match([pending], "status:pending")
       assert_tag_match([flagged], "status:flagged")
       assert_tag_match([deleted], "status:deleted")
+      assert_tag_match([unlisted], "status:unlisted")
       assert_tag_match([], "status:active")
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # TODO: These don't quite make sense, what should hide deleted posts and what shouldn't?
-      assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
-      assert_tag_match(all - [deleted, pending], "-status:pending")
-      assert_tag_match(all - [deleted, flagged], "-status:flagged")
-
-      assert_tag_match(all - [deleted], "-status:deleted")
+      assert_tag_match([deleted, unlisted], "-status:modqueue")
+      assert_tag_match([deleted, flagged, unlisted], "-status:pending")
+      assert_tag_match([deleted, pending, unlisted], "-status:flagged")
+      assert_tag_match([deleted, flagged, pending], "-status:unlisted")
       assert_tag_match(all, "-status:active")
     end
 

@@ -14,6 +14,7 @@ class StatsUpdater
     stats[:total_posts] = Post.maximum("id") || 0
     stats[:active_posts] = Post.tag_match("status:active").count_only
     stats[:deleted_posts] = Post.tag_match("status:deleted").count_only
+    stats[:unlisted_posts] = Post.tag_match("status:unlisted").count_only
     stats[:existing_posts] = stats[:active_posts] + stats[:deleted_posts]
     stats[:destroyed_posts] = stats[:total_posts] - stats[:existing_posts]
     stats[:total_votes] = PostVote.count

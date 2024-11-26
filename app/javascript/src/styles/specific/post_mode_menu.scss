@@ -17,6 +17,8 @@ $modes: (
   "delete": $post-mode-delete,
   "undelete": $post-mode-undelete,
   "unflag": $post-mode-unflag,
+  "unlist": $post-mode-delete,
+  "relist": $post-mode-undelete,
 );
 
 @each $mode, $color in $modes {

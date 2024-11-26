@@ -44,12 +44,14 @@ Rails.application.routes.draw do
     namespace :post do
       resource :approval, :only => [:create, :destroy]
       resources :disapprovals, :only => [:create, :index]
-      resources :posts, :only => [:delete, :undelete, :expunge, :confirm_delete] do
+      resources :posts do
         member do
           get :confirm_delete
           post :expunge
           post :delete
           post :undelete
+          post :unlist
+          post :relist
           get :confirm_move_favorites
           post :move_favorites
           get :confirm_ban
