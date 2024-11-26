@@ -55,7 +55,7 @@ PostModeMenu.initialize_selector = function () {
 };
 
 PostModeMenu.initialize_preview_link = function () {
-  $(".post-preview").on("click.danbooru", PostModeMenu.click);
+  $(".thumbnail").on("click.danbooru", PostModeMenu.click);
 };
 
 PostModeMenu.initialize_edit_form = function () {
@@ -107,7 +107,7 @@ PostModeMenu.initialize_tag_script_field = function () {
 
 PostModeMenu.tag_script_apply_all = function (event) {
   event.preventDefault();
-  $("article.post-preview").trigger("click");
+  $("article.thumbnail").trigger("click");
 };
 
 PostModeMenu.update_sets_menu = function () {

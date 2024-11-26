@@ -89,7 +89,7 @@
         <span>
           <%= presenter.feedbacks %>
           <%= link_to("List", user_feedbacks_path(search: { user_id: @user.id })) %>
-          <% if CurrentUser.is_moderator? && @user.feedback.count.zero? %>
+          <% if CurrentUser.is_moderator? && @user.feedback.active.count == 0 %>
             | <%= link_to("Create", new_user_feedback_path(user_feedback: { user_id: @user.id, category: "neutral" })) %>
           <% end %>
         </span>

@@ -191,14 +191,13 @@
 #c-posts #a-index,
 #c-popular,
 #c-favorites {
-  .post-preview.blacklisted {
+  .thumbnail.blacklisted {
     display: none !important;
   }
 }
 
 #image-container.blacklisted,
-.post-thumbnail.blacklisted,
-.post-preview.blacklisted {
+.post-thumbnail.blacklisted {
   img,
   video {
     height: 0px !important;
@@ -215,4 +214,15 @@
   #note-container {
     display: none;
   }
+}
+
+article.thumbnail.blacklisted {
+  width: 100%;
+  & > a {
+    height: 100%;
+    background-image: url("blacklisted-preview.png");
+    background-size: cover;
+    background-position: center;
+  }
+  img { display: none; }
 }
