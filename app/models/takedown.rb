@@ -104,7 +104,7 @@ class Takedown < ApplicationRecord
     end
 
     def add_posts_by_tags!(tag_string)
-      new_ids = Post.tag_match_system(tag_string).limit(1000).pluck(:id)
+      new_ids = Post.tag_match_system("#{tag_string} -status:deleted").limit(1000).pluck(:id)
       add_posts_by_ids!(new_ids.join(" "))
     end
 
