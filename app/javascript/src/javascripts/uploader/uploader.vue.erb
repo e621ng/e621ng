@@ -28,7 +28,7 @@
             <template v-if="normalMode">
                 <div class="flex-grid border-bottom">
                     <div class="col">
-                        <label class="section-label" for="names">Artists</label>
+                        <label class="section-label" for="names">Artists and Contributors</label>
                         <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
                         <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
@@ -394,7 +394,7 @@
       // Import tags from query parameters
       const fillTags = function() {
         const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
-        
+
         if(params.has("tags"))
           self.importTags(params.get("tags"), "other");
 

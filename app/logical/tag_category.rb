@@ -6,6 +6,9 @@ class TagCategory
     "gen" => 0,
     "artist" => 1,
     "art" => 1,
+    "contributor" => 2,
+    "contrib" => 2,
+    "cont" => 2,
     "copyright" => 3,
     "copy" => 3,
     "co" => 3,
@@ -25,6 +28,7 @@ class TagCategory
   CANONICAL_MAPPING = {
     "General" => 0,
     "Artist" => 1,
+    "Contributor" => 2,
     "Copyright" => 3,
     "Character" => 4,
     "Species" => 5,
@@ -36,6 +40,7 @@ class TagCategory
   REVERSE_MAPPING = {
     0 => "general",
     1 => "artist",
+    2 => "contributor",
     3 => "copyright",
     4 => "character",
     5 => "species",
@@ -47,6 +52,7 @@ class TagCategory
   SHORT_NAME_MAPPING = {
     "gen" => "general",
     "art" => "artist",
+    "cont" => "contributor",
     "copy" => "copyright",
     "char" => "character",
     "spec" => "species",
@@ -58,6 +64,7 @@ class TagCategory
   HEADER_MAPPING = {
     "general" => "General",
     "artist" => "Artists",
+    "contributor" => "Contributors",
     "copyright" => "Copyrights",
     "character" => "Characters",
     "species" => "Species",
@@ -69,6 +76,7 @@ class TagCategory
   ADMIN_ONLY_MAPPING = {
     "general" => false,
     "artist" => false,
+    "contributor" => false,
     "copyright" => false,
     "character" => false,
     "species" => false,
@@ -98,13 +106,13 @@ class TagCategory
     },
   }.freeze
 
-  CATEGORIES = %w[general species character copyright artist invalid lore meta].freeze
+  CATEGORIES = %w[general species character copyright artist contributor invalid lore meta].freeze
   CATEGORY_IDS = CANONICAL_MAPPING.values
 
   SHORT_NAME_LIST = SHORT_NAME_MAPPING.keys
   HUMANIZED_LIST = %w[character copyright artist].freeze
-  SPLIT_HEADER_LIST = %w[invalid artist copyright character species general meta lore].freeze
-  CATEGORIZED_LIST = %w[invalid artist copyright character species meta general lore].freeze
+  SPLIT_HEADER_LIST = %w[invalid artist contributor copyright character species general meta lore].freeze
+  CATEGORIZED_LIST = %w[invalid artist contributor copyright character species meta general lore].freeze
 
   SHORT_NAME_REGEX = SHORT_NAME_LIST.join("|").freeze
   ALL_NAMES_REGEX = MAPPING.keys.join("|").freeze
