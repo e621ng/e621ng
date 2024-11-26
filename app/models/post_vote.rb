@@ -35,6 +35,6 @@ class PostVote < UserVote
       q
     end
   end
-  
+
   extend SearchMethods
 end
