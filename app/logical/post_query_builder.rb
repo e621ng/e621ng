@@ -3,9 +3,10 @@
 class PostQueryBuilder
   attr_accessor :query_string
 
-  def initialize(query_string, relation = nil)
+  def initialize(query_string, relation = nil, **kwargs)
     @query_string = query_string
     @curr_relation = relation
+    @depth = kwargs.fetch(:depth, 1)
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -22,22 +23,24 @@ class PostQueryBuilder
     relation
   end
 
+  ##
+  # TODO: Test
   def add_group_search_relation(groups, relation)
-    return relation if groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
-    groups[:must].each { |x| relation = PostQueryBuilder.new(x, relation).search }
-    groups[:must_not].each { |x| relation = relation.merge(PostQueryBuilder.new(x, relation).search) }
+    return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    groups[:must].each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
+    groups[:must_not].each { |x| relation = relation.merge(PostQueryBuilder.new(x, relation, depth: @depth + 1).search) }
     if groups[:should].any?
       valid = nil
       groups[:should].each do |x|
         if valid
-          valid.or(PostQueryBuilder.new(x, relation).search)
+          valid.or(PostQueryBuilder.new(x, relation, depth: @depth + 1).search)
         else
-          valid = PostQueryBuilder.new(x, relation).search
+          valid = PostQueryBuilder.new(x, relation, depth: @depth + 1).search
         end
       end
       relation.merge(valid)
     end
-    # groups.each { |x| relation = PostQueryBuilder.new(x, relation).search }
+    # groups.each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
     relation
   end
 

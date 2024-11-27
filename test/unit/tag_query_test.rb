@@ -11,6 +11,8 @@ class TagQueryTest < ActiveSupport::TestCase
     # assert_equal(['test:"with spaces"', "aaa", "def"], TagQuery.scan('aaa test:"with spaces" def'))
   end
 
+  # TODO: Figure out tests for hoisting tags in scan_search
+
   should "scan a grouped query" do
     # Pull out top-level group
     assert_equal(%w[aaa bbb], TagQuery.scan_search("( aaa bbb )"))
@@ -336,7 +338,9 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal([[:lt, 3]], TagQuery.new("ID:<3")[:post_id])
     assert_equal([[:lte, 3]], TagQuery.new("ID:<=3")[:post_id])
     assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
-    # TODO: Add test case for groups
+    # Single top level group
+    assert_equal(["acb"], TagQuery.new("( a*b )")[:tags][:should])
+    # TODO: Add more test cases for groups
   end
 
   should "allow multiple types for a metatag in a single query" do
@@ -349,6 +353,21 @@ class TagQueryTest < ActiveSupport::TestCase
   should "fail for more than 40 tags" do
     assert_raise(TagQuery::CountExceededError) do
       TagQuery.new("rating:s width:10 height:10 user:bob #{[*'aa'..'zz'].join(' ')}")
+    end
+  end
+
+  should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+    # scan_recursive
+    assert_raise(TagQuery::DepthExceededError) do
+      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+    end
+    # Unpacking a search of a single group
+    assert_raise(TagQuery::DepthExceededError) do
+      TagQuery.new((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+    end
+    # Hoisting
+    assert_raise(TagQuery::DepthExceededError) do
+      TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
     end
   end
 

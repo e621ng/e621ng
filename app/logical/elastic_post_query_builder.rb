@@ -7,12 +7,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
-    super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
+  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:, **kwargs)
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = ElasticPostQueryBuilder.should_hide_deleted_posts?(query_string, always_show_deleted: always_show_deleted)
+    @depth = kwargs.fetch(:depth, 1)
+    super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
+    # super(query_string.is_a?(TagQuery) ? query_string : TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
   end
 
   def model_class
@@ -26,15 +28,16 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def add_group_search_relation(groups)
-    return if groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    return if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
     cb = ->(x) do
       ElasticPostQueryBuilder.new(
         x,
         resolve_aliases: @resolve_aliases,
-        free_tags_count: (@free_tags_count || 0) + @q.tag_count,
+        free_tags_count: @free_tags_count + @q.tag_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: @always_show_deleted,
-      ).create_query_obj
+        depth: @depth + 1,
+      ).create_query_obj(return_nil_if_empty: false)
     end
     must.concat(groups[:must].map(&cb).compact)
     must_not.concat(groups[:must_not].map(&cb).compact)
@@ -343,7 +346,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if !CurrentUser.user.is_staff? && DangerZone.hide_pending_posts_for > 0
-      should = [
+      # TODO: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
+      should.push(
         {
           range: {
             created_at: {
@@ -355,8 +359,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
           term: {
             pending: false,
           },
-        }
-      ]
+        },
+      )
 
       unless CurrentUser.user.id.nil?
         should.push({
