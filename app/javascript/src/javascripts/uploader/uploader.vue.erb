@@ -1,6 +1,6 @@
 <template>
-    <div class="flex-grid-outer">
-        <div class="col box-section" style="flex: 2 0 0;">
+    <div class="uploader-grid">
+        <div class="uploader-grid-left">
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
@@ -12,7 +12,6 @@
                     @invalidUploadValueChanged="invalidUploadValue = $event"></file-input>
                 </div>
             </div>
-            <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_sources">Sources</label>
@@ -143,7 +142,6 @@
                     </div>
                 </div>
                 <div class="col2">
-                  <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
                     <div class="box-section background-red" v-show="showErrors && notEnoughTags">
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
@@ -236,8 +234,12 @@
                 </div>
             </div>
         </div>
-        <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :data="previewData"></file-preview>
+        <div id="preview-sidebar" class="uploader-grid-right">
+            <file-preview
+              classes="in-sidebar"
+              :data="previewData"
+              @thumbnailDimensionsChanged="thumbnailDimensions = $event"
+            ></file-preview>
         </div>
     </div>
 </template>
@@ -330,6 +332,13 @@
         uploadValue: '',
         invalidUploadValue: false,
 
+        thumbnailDimensions: {
+          left: 0,
+          top: 0,
+          width: 150,
+          height: 150,
+        },
+
         sourceWarning: false,
         sources: [''],
         normalMode: !window.uploaderSettings.compactMode,
@@ -375,6 +384,11 @@
         error: '',
         duplicateId: 0,
       };
+    },
+    watch: {
+      thumbnailDimensions: function() {
+        // console.log("thumbnail dimensions changed", this.thumbnailDimensions);
+      }
     },
     mounted() {
       const self = this;
@@ -466,6 +480,10 @@
           data.append('upload[locked_rating]', this.ratingLocked);
         if (this.allowUploadAsPending)
           data.append('upload[as_pending]', this.uploadAsPending);
+
+        if (this.thumbnailDimensions.side < 150) this.thumbnailDimensions.side = 150;
+        data.append("upload[thumbnail]", this.thumbnailString);
+
         jQuery.ajax('/uploads.json', {
           contentType: false,
           processData: false,
@@ -481,6 +499,7 @@
           error(data) {
             self.submitting = false;
             const data2 = data.responseJSON;
+            console.log(data2);
             try {
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;
@@ -645,7 +664,10 @@
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;
-      }
+      },
+      thumbnailString() {
+        return this.thumbnailDimensions.left + "/" + this.thumbnailDimensions.top + "/" + this.thumbnailDimensions.side;
+      },
     }
   }
 </script>

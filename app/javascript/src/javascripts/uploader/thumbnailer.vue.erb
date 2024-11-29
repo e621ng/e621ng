@@ -1,0 +1,77 @@
+<template>
+  <div id="preview-sidebar" class="uploader-grid-right">
+    <file-preview
+      classes="in-sidebar"
+      :data="previewData"
+      @thumbnailDimensionsChanged="thumbnailDimensions = $event"
+    ></file-preview>
+  </div>
+
+  <div class="flex-grid">
+    <div class="col"></div>
+    <div class="col2">
+      <div class="box-section background-red" v-show="error">
+        {{ error }}
+      </div>
+      <button @click="submit" :disabled="submitting" accesskey="s">
+        {{ submitting ? "Saving" : "Save" }}
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+  import filePreview from './file_preview.vue';
+
+  export default {
+    components: {
+      "file-preview": filePreview,
+    },
+
+    data() {
+      return {
+        submitting: false,
+        error: "",
+
+        previewData: {
+          url: "",
+          isVideo: false,
+        },
+
+        thumbnailDimensions: {
+          left: 0,
+          top: 0,
+          width: 150,
+          height: 150,
+        },
+      };
+    },
+
+    watch: {
+      thumbnailDimensions: function() {
+        // console.log("thumbnail dimensions changed", this.thumbnailDimensions);
+      }
+    },
+
+    mounted() {
+      const self = this;
+
+      this.previewData = {
+        url: window.thumbnailerSettings.url,
+        isVideo: false,
+      }
+    },
+
+    methods: {
+      submit() {
+        this.submitting = true;
+      },
+    },
+
+    computed: {
+      thumbnailString() {
+        return this.thumbnailDimensions.left + "/" + this.thumbnailDimensions.top + "/" + this.thumbnailDimensions.side;
+      },
+    },
+  };
+</script>

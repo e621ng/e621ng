@@ -1783,4 +1783,8 @@ class Post < ApplicationRecord
   def avoid_posting_artists
     AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
   end
+
+  def can_edit_thumbnail?(user = CurrentUser)
+    user.is_staff? || self.uploader_id == user.id
+  end
 end

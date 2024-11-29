@@ -110,6 +110,12 @@ class PostsController < ApplicationController
     respond_with_post_after_update(@post)
   end
 
+  def update_thumbnail
+    @post = Post.find(params[:id])
+    raise User::PrivilegeError unless @post.can_edit_thumbnail?
+    respond_with(@post)
+  end
+
   private
 
   def tag_query

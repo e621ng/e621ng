@@ -1,5 +1,47 @@
-div#c-uploads {
-  div#a-new {
+div#c-uploads div#a-new {
+  .uploader-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: "uploader-right"
+                         "uploader-left";
+    gap: 1em;
+
+    @include window-larger-than(1200px) {
+      grid-template-columns: 2fr 1fr;
+      grid-template-areas: "uploader-left uploader-right";
+    }
+
+    .uploader-grid-left, .uploader-grid-right {
+      background: themed("color-section");
+      border-radius: 3px;
+    }
+
+    .uploader-grid-left {
+      grid-area: uploader-left;
+      padding: 0.25em;
+      @include window-larger-than(800px) {
+        padding: 1em;
+      }
+    }
+    .uploader-grid-right {
+      grid-area: uploader-right;
+      display: flex;
+    }
+  }
+
+  // LEFT COLUMN
+  // inputs
+  .uploader-grid-left {
+    .flex-grid {
+      display: flex;
+      padding: 10px 0;
+      flex-direction: column;
+      
+      @include window-larger-than(800px) {
+        flex-direction: row;
+      }
+    }
+
     .toggle-button {
       box-sizing: border-box;
       display: inline-block;
@@ -13,12 +55,51 @@ div#c-uploads {
       line-height: 1.5;
       border-radius: 0.25rem;
       margin: 0.25rem 0.5rem 0.25rem 0;
-    }
-    .toggle-button:last-child { margin-right: 0; }
 
-    .toggle-button.active {
-      background-color: themed("color-button-active");
+      &:last-child { margin-right: 0; }
+      &.active {
+        background-color: themed("color-button-active");
+      }
     }
+  }
+}
+
+// RIGHT COLUMN
+// preview and cropper
+.uploader-grid-right {
+  .preview-fail {
+    background-color: palette("background-yellow");
+    padding: 1em;
+    border-radius: 3px;
+  }
+
+  .upload-preview-container {
+    margin: 0 auto;
+    padding: 1em;
+    
+    &.disabled { display: none; }
+    .upload-preview-wrapper {
+      position: relative;
+      user-select: none;
+      .upload-preview-image {
+        max-width: 100%;
+        max-height: 75vh;
+      }
+    
+      canvas.upload-preview-cropper {
+        position: absolute;
+        top: 0;
+        left: 0;
+    
+        touch-action: none;
+      }
+    }
+  }
+}
+
+div#c-uploads {
+  div#a-new {
+
 
     .rating-e.active {
       background-color: themed("color-rating-explicit");
@@ -30,11 +111,6 @@ div#c-uploads {
       background-color: themed("color-rating-safe");
     }
 
-    .flex-grid-outer {
-      display: flex;
-      padding: 10px 0;
-    }
-
     .upload_preview_container.in-editor {
       display: none;
     }
@@ -42,15 +118,6 @@ div#c-uploads {
     .upload_preview_container.in-sidebar {
       position: sticky;
       top: 20px;
-    }
-
-    .upload_preview_img {
-      max-width: 100%;
-    }
-
-    .flex-grid {
-      display: flex;
-      padding: 10px 0;
     }
 
     .flex-wrap {
@@ -88,6 +155,7 @@ div#c-uploads {
       display: inline-block; /* Why were we even unsetting this? It breaks EVERYTHING. */
       font-size: 1rem;
       width: 100%;
+      box-sizing: border-box;
       resize: vertical;
     }
 
@@ -105,9 +173,11 @@ div#c-uploads {
       input {
         margin-bottom: 2px;
         width: 100%;
+        box-sizing: border-box;
       }
     }
 
+    /*
     @media only screen and (orientation: portrait), (max-width: 1100px) {
       #preview-sidebar {
         display: none;
@@ -149,6 +219,7 @@ div#c-uploads {
         max-width: 90%;
       }
     }
+    */
   }
   div#a-index {
     .post-info {

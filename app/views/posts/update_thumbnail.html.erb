@@ -1,0 +1,15 @@
+
+<div id="thumbnailer"></div>
+
+<%= javascript_tag nonce: true do -%>
+  var thumbnailerSettings = {
+    url: "<%= @post.file_url %>",
+  };
+  Danbooru.Thumbnailer.init();
+<% end -%>
+
+<% content_for(:page_title) do %>
+  #<%= @post.id %>
+<% end %>
+
+<%= render "posts/partials/common/secondary_links" %>
