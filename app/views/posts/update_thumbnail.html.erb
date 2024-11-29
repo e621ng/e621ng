@@ -4,6 +4,9 @@
 <%= javascript_tag nonce: true do -%>
   var thumbnailerSettings = {
     url: "<%= @post.file_url %>",
+    postID: <%= @post.id %>,
+    isVideo: <%= @post.file_ext === "webm" %>,
+    thumbnail: "<%= @post.thumbnail %>",
   };
   Danbooru.Thumbnailer.init();
 <% end -%>

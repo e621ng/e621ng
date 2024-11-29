@@ -37,6 +37,7 @@
           url: "",
           isVideo: false,
         },
+        postID: window.thumbnailerSettings.postID,
 
         thumbnailDimensions: {
           left: 0,
@@ -58,13 +59,56 @@
 
       this.previewData = {
         url: window.thumbnailerSettings.url,
-        isVideo: false,
+        isVideo: window.thumbnailerSettings.isVideo,
+        thumbnail: window.thumbnailerSettings.thumbnail,
       }
     },
 
     methods: {
       submit() {
+
+        // Prevent duplicate or invalid submissions
+        if (this.submitting) return;
         this.submitting = true;
+
+        // Build post data
+        const data = new FormData();
+        if (this.thumbnailDimensions.side < 150) this.thumbnailDimensions.side = 150;
+        data.append("post[thumbnail]", this.thumbnailString);
+
+        // Send data to the backend
+        $.ajax("/posts/" + this.postID + ".json", {
+          type: "PUT",
+          data: {
+            post: {
+              thumbnail: this.thumbnailString,
+            },
+          },
+          success(data) {
+            self.submitting = false;
+            Danbooru.notice("Thumbnail updated successfully");
+            location.href = "/posts/" + data.post.id;
+          },
+          error(data) {
+            self.submitting = false;
+            const data2 = data.responseJSON;
+            console.log(data2);
+            try {
+              if (data2 && data2.reason === 'duplicate') {
+                self.duplicateId = data2.post_id;
+              }
+              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1) {
+                self.error = data2.message;
+              } else if (data2 && data2.message) {
+                self.error = 'Error: ' + data2.message;
+              } else {
+                self.error = 'Error: ' + data2.reason;
+              }
+            } catch (e) {
+              self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
+            }
+          }
+        });
       },
     },
 

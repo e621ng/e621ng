@@ -1785,6 +1785,6 @@ class Post < ApplicationRecord
   end
 
   def can_edit_thumbnail?(user = CurrentUser)
-    user.is_staff? || self.uploader_id == user.id
+    user.is_staff? || uploader_id == user.id
   end
 end

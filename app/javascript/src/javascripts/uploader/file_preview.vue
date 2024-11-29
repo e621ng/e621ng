@@ -233,9 +233,22 @@ export default {
       this.canvas.width = subject.offsetWidth;
       this.canvas.height = subject.offsetHeight;
 
-      this.selector.top = 5;
-      this.selector.left = 5;
-      this.selector.side = Math.min(subject.offsetWidth, subject.offsetHeight) - 10;
+      // This is a really dumb way of importing existing
+      // thumbnail params into the thumbnailer UI
+      let params = [5, 5, Math.min(subject.offsetWidth, subject.offsetHeight) - 10];
+      if (this.data.thumbnail) {
+        const split = this.data.thumbnail.split("/");
+        if (split.length === 3) {
+          for (let i = 0; i < 3; i++)
+            split[i] = parseInt(split[i]) * this.canvasRatio;
+          if (!Number.isNaN(split[0]) && !Number.isNaN(split[1]) && !Number.isNaN(split[2]))
+            params = split;
+        }
+      }
+
+      this.selector.left = params[0];
+      this.selector.top = params[1];
+      this.selector.side = params[2];
 
       this.drawRectInCanvas();
     },

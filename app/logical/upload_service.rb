@@ -48,22 +48,23 @@ class UploadService
 
   def convert_to_post(upload)
     Post.new.tap do |p|
-      p.tag_string = upload.tag_string
-      p.locked_tags = upload.locked_tags
-      p.is_rating_locked = upload.locked_rating if upload.locked_rating.present?
-      p.description = upload.description.strip
-      p.md5 = upload.md5
-      p.file_ext = upload.file_ext
-      p.image_width = upload.image_width
-      p.image_height = upload.image_height
-      p.rating = upload.rating
-      p.source = upload.source
-      p.file_size = upload.file_size
-      p.uploader_id = upload.uploader_id
-      p.uploader_ip_addr = upload.uploader_ip_addr
-      p.parent_id = upload.parent_id
-      p.has_cropped = upload.is_image?
-      p.duration = upload.video_duration(upload.file.path)
+      p.tag_string        = upload.tag_string
+      p.locked_tags       = upload.locked_tags
+      p.is_rating_locked  = upload.locked_rating if upload.locked_rating.present?
+      p.description       = upload.description.strip
+      p.md5               = upload.md5
+      p.file_ext          = upload.file_ext
+      p.image_width       = upload.image_width
+      p.image_height      = upload.image_height
+      p.rating            = upload.rating
+      p.source            = upload.source
+      p.file_size         = upload.file_size
+      p.uploader_id       = upload.uploader_id
+      p.uploader_ip_addr  = upload.uploader_ip_addr
+      p.parent_id         = upload.parent_id
+      p.has_cropped       = upload.is_image?
+      p.duration          = upload.video_duration(upload.file.path)
+      p.thumbnail         = upload.thumbnail
 
       if !upload.uploader.can_upload_free? || (!upload.uploader.can_approve_posts? && p.avoid_posting_artists.any?) || upload.upload_as_pending?
         p.is_pending = true

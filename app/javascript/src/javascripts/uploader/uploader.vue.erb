@@ -457,33 +457,34 @@
         this.checkboxes.selected[tag] = value;
       },
       submit() {
+        const self = this;
         this.showErrors = true;
         this.error = '';
-        if (this.preventUpload || this.submitting)
-          return;
-        const self = this;
+
+        // Prevent duplicate or invalid submissions
+        if (this.preventUpload || this.submitting) return;
         this.submitting = true;
+
+        // Build upload data
         const data = new FormData();
-        if (typeof this.uploadValue === "string") {
+        if (typeof this.uploadValue === "string")
           data.append('upload[direct_url]', this.uploadValue);
-        } else {
-          data.append('upload[file]', this.uploadValue);
-        }
+        else data.append('upload[file]', this.uploadValue);
+
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
         data.append('upload[source]', this.sources.join('\n'));
         data.append('upload[description]', this.description);
         data.append('upload[parent_id]', this.parentID);
-        if (this.allowLockedTags)
-          data.append('upload[locked_tags]', this.lockedTags);
-        if (this.allowRatingLock)
-          data.append('upload[locked_rating]', this.ratingLocked);
-        if (this.allowUploadAsPending)
-          data.append('upload[as_pending]', this.uploadAsPending);
+
+        if (this.allowLockedTags) data.append('upload[locked_tags]', this.lockedTags);
+        if (this.allowRatingLock) data.append('upload[locked_rating]', this.ratingLocked);
+        if (this.allowUploadAsPending) data.append('upload[as_pending]', this.uploadAsPending);
 
         if (this.thumbnailDimensions.side < 150) this.thumbnailDimensions.side = 150;
         data.append("upload[thumbnail]", this.thumbnailString);
 
+        // Send data to the backend
         jQuery.ajax('/uploads.json', {
           contentType: false,
           processData: false,

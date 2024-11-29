@@ -137,7 +137,11 @@ class PostSerializer < ActiveModel::Serializer
     object.visible_comment_count(CurrentUser)
   end
 
+  def thumbnail
+    object.thumbnail.presence
+  end
+
   attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,
              :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :description,
-             :comment_count, :is_favorited, :has_notes, :duration
+             :comment_count, :is_favorited, :has_notes, :duration, :thumbnail
 end

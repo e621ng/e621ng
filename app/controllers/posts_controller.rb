@@ -58,6 +58,7 @@ class PostsController < ApplicationController
     pparams = post_params
     pparams.delete(:tag_string) if pparams[:tag_string_diff].present?
     pparams.delete(:source) if pparams[:source_diff].present?
+    pparams.delete(:thumbnail) unless @post.can_edit_thumbnail?
     @post.update(pparams)
     respond_with_post_after_update(@post)
   end
@@ -179,6 +180,7 @@ class PostsController < ApplicationController
       description old_description
       rating old_rating
       edit_reason
+      thumbnail
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
