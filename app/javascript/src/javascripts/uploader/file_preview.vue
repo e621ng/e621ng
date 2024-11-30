@@ -65,7 +65,8 @@ export default {
       width: 0,
       overDims: false,
 
-      minWidth: 256,
+      smallerDim: 0,
+      minSide: 256,
 
       /** Selector position information */
       selector: {
@@ -101,10 +102,16 @@ export default {
       return "";
     },
     thumbnail() {
+      // Edge case: sometimes, due to rounding the side value
+      // ends up being larger than the actual image dimensions,
+      // which will cause an error down the line
+      let side = Math.floor(this.selector.side / this.canvasRatio);
+      if (side > this.smallerDim) side = this.smallerDim;
+
       return {
         left: Math.floor(this.selector.left / this.canvasRatio),
         top: Math.floor(this.selector.top / this.canvasRatio),
-        side: Math.floor(this.selector.side / this.canvasRatio),
+        side: side,
       };
     },
     thumbnailDimensions() {
@@ -173,9 +180,13 @@ export default {
       this.failed = false;
       this.hasData = this.data.url !== "";
 
-      this.overDims = false;
       this.width = 0;
       this.height = 0;
+      this.overDims = false;
+
+      this.smallerDim = 0;
+      this.minSide = 0;
+
       this.thumbnailDimensionsChanged();
 
       // Reset the cropper
@@ -205,6 +216,9 @@ export default {
       this.height = target.naturalHeight || target.videoHeight;
       this.width = target.naturalWidth || target.videoWidth;
       this.overDims = (this.height > 15000 || this.width > 15000);
+      
+      this.smallerDim = this.width < this.height ? this.width : this.heigth;
+
       if (this.overDims) return;
       
       // console.log(2.1, "image valid");
@@ -228,8 +242,9 @@ export default {
       // console.log(3, "redrawing canvas");
       const subject = this.$refs.image || this.$refs.video;
 
-      // let oldThumbnail = this.thumbnail;
       this.canvasRatio = subject.offsetHeight / this.height;
+      this.minSide = Math.floor(this.smallerDim / this.canvasRatio / 3);
+
       this.canvas.width = subject.offsetWidth;
       this.canvas.height = subject.offsetHeight;
 
@@ -309,8 +324,8 @@ export default {
       }
       var boundingRect = this.canvas.getBoundingClientRect();
       this.mouse = {
-        x: clx - boundingRect.left,
-        y: cly - boundingRect.top
+        x: Math.floor(clx - boundingRect.left),
+        y: Math.floor(cly - boundingRect.top)
       };
     },
 
@@ -387,9 +402,9 @@ export default {
           break;
         }
         case 1: { // Top left
-          let newSide = this.selector.side + ((-diffX + -diffY) / 2);
-          if(newSide / this.canvasRatio < this.minWidth)
-            newSide = this.minWidth * this.canvasRatio;
+          let newSide = Math.floor(this.selector.side + ((-diffX + -diffY) / 2));
+          if(newSide / this.canvasRatio < this.minSide)
+            newSide = Math.floor(this.minSide * this.canvasRatio);
 
           this.selector.left = this.selector.left + this.selector.side - newSide;
           this.selector.top = this.selector.side + this.selector.top - newSide;
@@ -398,9 +413,9 @@ export default {
           break;
         }
         case 2: { // Top right
-          let newSide = this.selector.side + ((diffX + -diffY) / 2);
-          if(newSide / this.canvasRatio < this.minWidth)
-            newSide = this.minWidth * this.canvasRatio;
+          let newSide = Math.floor(this.selector.side + ((diffX + -diffY) / 2));
+          if(newSide / this.canvasRatio < this.minSide)
+            newSide = Math.floor(this.minSide * this.canvasRatio);
           
           this.selector.top = this.selector.side + this.selector.top - newSide;
           this.selector.side = newSide;
@@ -408,9 +423,9 @@ export default {
           break;
         }
         case 3: { // Bottom left
-          let newSide = this.selector.side + ((-diffX + diffY) / 2);
-          if(newSide / this.canvasRatio < this.minWidth)
-            newSide = this.minWidth * this.canvasRatio;
+          let newSide = Math.floor(this.selector.side + ((-diffX + diffY) / 2));
+          if(newSide / this.canvasRatio < this.minSide)
+            newSide = Math.floor(this.minSide * this.canvasRatio);
 
           this.selector.left = this.selector.left + this.selector.side - newSide;
           this.selector.side = newSide;
@@ -418,9 +433,9 @@ export default {
           break;
         }
         case 4: { // Bottom right
-          let newSide = this.selector.side + ((diffX + diffY) / 2);
+          let newSide = Math.floor(this.selector.side + ((diffX + diffY) / 2));
           if(newSide / this.canvasRatio < this.minWidth)
-            newSide = this.minWidth * this.canvasRatio;
+            newSide = Math.floor(this.minWidth * this.canvasRatio);
           
           this.selector.side = newSide;
 

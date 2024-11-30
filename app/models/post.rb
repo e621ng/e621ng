@@ -584,6 +584,36 @@ class Post < ApplicationRecord
       set_tag_string(normalized_tags.map(&:name).uniq.sort.join(" "))
     end
 
+    def normalize_thumbnail
+      side = [image_width, image_height].min
+
+      thumb_parts = thumbnail.split("/")
+      if thumb_parts.size != 3
+        self.thumbnail = "0/0/#{side}"
+        return
+      end
+
+      # integers only
+      thumb_parts[0] = thumb_parts[0].to_i
+      thumb_parts[1] = thumb_parts[0].to_i
+      thumb_parts[2] = thumb_parts[0].to_i
+
+      side_diff = side - thumb_parts[2]
+
+      if thumb_parts[0] < 0 ||          # basic sanity checking
+         thumb_parts[1] < 0 ||
+         thumb_parts[2] > side ||
+         thumb_parts[0] > side_diff ||  # thumbnail outside of image bounds
+         thumb_parts[1] > side_diff
+
+        thumb_parts[0] = 0
+        thumb_parts[1] = 0
+        thumb_parts[2] = side
+      end
+
+      self.thumbnail = "#{thumb_parts[0]}/#{thumb_parts[1]}/#{thumb_parts[2]}"
+    end
+
     # Prevent adding these without an implication
     def remove_dnp_tags(tags)
       locked = locked_tags || ""
