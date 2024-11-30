@@ -16,7 +16,7 @@ module PostThumbnailer
     g = bg_color[2..3].to_i(16)
     b = bg_color[4..5].to_i(16)
 
-    scale = (Danbooru.config.small_image_width.to_f / origin[:side]).round(2)
+    scale = (Danbooru.config.small_image_width.to_f / origin[:side])
 
     output_file = Tempfile.new
     source = Vips::Source.new_from_file(file.path)
