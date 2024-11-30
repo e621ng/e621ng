@@ -13,6 +13,7 @@ class Post < ApplicationRecord
   before_validation :apply_source_diff
   before_validation :apply_tag_diff, if: :should_process_tags?
   before_validation :normalize_tags, if: :should_process_tags?
+  before_validation :normalize_thumbnail
   before_validation :tag_count_not_insane, if: :should_process_tags?
   before_validation :strip_source
   before_validation :fix_bg_color
@@ -595,16 +596,13 @@ class Post < ApplicationRecord
 
       # integers only
       thumb_parts[0] = thumb_parts[0].to_i
-      thumb_parts[1] = thumb_parts[0].to_i
-      thumb_parts[2] = thumb_parts[0].to_i
-
-      side_diff = side - thumb_parts[2]
-
-      if thumb_parts[0] < 0 ||          # basic sanity checking
+      thumb_parts[1] = thumb_parts[1].to_i
+      thumb_parts[2] = thumb_parts[2].to_i
+      if thumb_parts[0] < 0 ||
          thumb_parts[1] < 0 ||
          thumb_parts[2] > side ||
-         thumb_parts[0] > side_diff ||  # thumbnail outside of image bounds
-         thumb_parts[1] > side_diff
+         thumb_parts[0] > image_width - thumb_parts[2] ||
+         thumb_parts[1] > image_height - thumb_parts[2] # thumbnail outside of image bounds
 
         thumb_parts[0] = 0
         thumb_parts[1] = 0
