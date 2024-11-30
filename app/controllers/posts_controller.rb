@@ -58,7 +58,6 @@ class PostsController < ApplicationController
     pparams = post_params
     pparams.delete(:tag_string) if pparams[:tag_string_diff].present?
     pparams.delete(:source) if pparams[:source_diff].present?
-    pparams.delete(:thumbnail) unless @post.can_edit_thumbnail?
     @post.update(pparams)
     respond_with_post_after_update(@post)
   end
@@ -114,6 +113,18 @@ class PostsController < ApplicationController
   def update_thumbnail
     @post = Post.find(params[:id])
     raise User::PrivilegeError unless @post.can_edit_thumbnail?
+    respond_with(@post)
+  end
+
+  def regenerate_thumbnails
+    @post = Post.find(params[:id])
+    raise User::PrivilegeError unless @post.can_edit_thumbnail?
+
+    pparams = params.require(:post).permit([:thumbnail])
+    @post.update(pparams)
+
+    @post.regenerate_thumbnail!
+
     respond_with(@post)
   end
 

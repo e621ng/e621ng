@@ -241,6 +241,7 @@ Rails.application.routes.draw do
       put :mark_as_translated
       get :comments, to: "comments#for_post"
       get :update_thumbnail
+      post :regenerate_thumbnails
     end
     get :similar, :to => "iqdb_queries#index"
   end

@@ -33,7 +33,27 @@ class UploadService
     end
 
     def generate_resizes(file, upload)
-      PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
+      puts upload.thumbnail
+      if upload.thumbnail.present?
+        thumb_params = upload.thumbnail.split("/")
+        if thumb_params.size != 3
+          thumb_params = [0, 0, [upload.image_width, upload.image_height].min]
+        end
+      else
+        thumb_params = [0, 0, [upload.image_width, upload.image_height].min]
+      end
+
+      PostThumbnailer.generate_resizes(file, {
+        width: upload.image_width,
+        height: upload.image_height,
+        origin: {
+          left: Integer(thumb_params[0]),
+          top: Integer(thumb_params[1]),
+          side: Integer(thumb_params[2]),
+        },
+        type: upload.is_video? ? :video : :image,
+      })
+      # PostThumbnailer.generate_resizes(file, upload.image_height, upload.image_width, upload.is_video? ? :video : :image)
     end
 
     def process_file(upload, file, original_post_id: nil)

@@ -77,8 +77,8 @@
         data.append("post[thumbnail]", this.thumbnailString);
 
         // Send data to the backend
-        $.ajax("/posts/" + this.postID + ".json", {
-          type: "PUT",
+        $.ajax("/posts/" + this.postID + "/regenerate_thumbnails.json", {
+          type: "POST",
           data: {
             post: {
               thumbnail: this.thumbnailString,
@@ -92,7 +92,7 @@
           error(data) {
             self.submitting = false;
             const data2 = data.responseJSON;
-            console.log(data2);
+            console.log("error", data2);
             try {
               if (data2 && data2.reason === 'duplicate') {
                 self.duplicateId = data2.post_id;

@@ -230,8 +230,22 @@ class Post < ApplicationRecord
       generate_video_samples(later: true)
     end
 
+    def regenerate_thumbnail!
+      file = self.file
+
+      origin_raw = thumbnail.split("/")
+      origin = {
+        left: origin_raw[0].to_i,
+        top: origin_raw[1].to_i,
+        side: origin_raw[2].to_i,
+      }
+
+      preview_file = ::PostThumbnailer.generate_image_preview(file, bg_color.presence || "000000", origin)
+      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
+    end
+
     def regenerate_image_samples!
-      file = self.file()
+      file = self.file
       preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
