@@ -217,7 +217,7 @@ export default {
       this.width = target.naturalWidth || target.videoWidth;
       this.overDims = (this.height > 15000 || this.width > 15000);
       
-      this.smallerDim = this.width < this.height ? this.width : this.heigth;
+      this.smallerDim = this.width < this.height ? this.width : this.height;
 
       if (this.overDims) return;
       
