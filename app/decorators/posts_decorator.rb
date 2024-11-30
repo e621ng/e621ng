@@ -121,8 +121,8 @@ class PostsDecorator < ApplicationDecorator
 
     img_contents = t.link_to t.polymorphic_path(link_target, link_params) do
       t.tag.picture do
-        t.concat t.tag.source media: "(max-width: 800px)", srcset: cropped_url
-        t.concat t.tag.source media: "(min-width: 800px)", srcset: preview_url
+        # t.concat t.tag.source media: "(max-width: 800px)", srcset: cropped_url
+        # t.concat t.tag.source media: "(min-width: 800px)", srcset: preview_url
         t.concat t.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
       end
     end

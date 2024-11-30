@@ -1,7 +1,7 @@
 // Thumbnail dimensions
-$thumb-image-size: 150px;
+$thumb-image-size: 256px;
 $thumb-border-width: 2px;
-$thumb-mobile-cols: 3;
+$thumb-mobile-cols: 2;
 $thumb-gap: 8px;
 
 
@@ -18,7 +18,7 @@ section.posts-container {
   gap: 0.5rem;
 
   @include window-larger-than($thumb-desktop-breakpoint) {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax($thumb-image-size, 1fr));
   }
 
   h2.posts-container-header {
