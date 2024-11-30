@@ -9,5 +9,7 @@ CurrentUser.as_system do
     side = [post.image_width, post.image_height].min
     post.thumbnail = "0/0/#{side}"
     post.save!
+
+    ThumbnailJob.perform_later(post.id)
   end
 end
