@@ -3,13 +3,20 @@
 module PostThumbnailer
   extend self
 
+  def generate_file_preview(file, is_video, bg_color = "000000", origin = { left: 0, top: 0, side: 150 })
+    if is_video
+      generate_video_preview(file, origin)
+    else
+      generate_image_preview(file, bg_color, origin)
+    end
+  end
+
   def generate_image_preview(file, bg_color = "000000", origin = { left: 0, top: 0, side: 150 })
     r = bg_color[0..1].to_i(16)
     g = bg_color[2..3].to_i(16)
     b = bg_color[4..5].to_i(16)
 
     scale = (Danbooru.config.small_image_width.to_f / origin[:side]).round(2)
-    puts ["\nSCALE", Danbooru.config.small_image_width, origin[:side], scale].join(" ")
 
     output_file = Tempfile.new
     source = Vips::Source.new_from_file(file.path)
@@ -18,7 +25,23 @@ module PostThumbnailer
                .resize(scale)
                .jpegsave(output_file.path, Q: 90, background: [r, g, b], strip: true, interlace: true, optimize_coding: true)
 
-    puts ["\nVIPS", origin[:left], origin[:top], origin[:side], origin[:side]].join(" ")
+    output_file
+  end
+
+  def generate_video_preview(file, origin = { left: 0, top: 0, side: 150 })
+    output_file = Tempfile.new(["video-preview", ".jpg"], binmode: true)
+    # -ss     seeking
+    # -y      overwrites output file without asking
+    # -i      input file URL
+    # -vf     creates filtergraph
+    # -frames stop writing after this many frames
+    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-ss", "1", "-y", "-i", file.path, "-vf", "crop=w=#{origin[:side]}:h=#{origin[:side]}:x=#{origin[:left]}:y=#{origin[:top]},scale=#{Danbooru.config.small_image_width.to_f}:-1", "-frames:v", "1", output_file.path)
+
+    unless status == 0
+      Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
+      Rails.logger.warn("[FFMPEG PREVIEW STDERR] #{stderr.chomp!}")
+      raise CorruptFileError, "could not generate thumbnail"
+    end
 
     output_file
   end

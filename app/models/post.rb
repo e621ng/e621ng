@@ -240,7 +240,7 @@ class Post < ApplicationRecord
         side: origin_raw[2].to_i,
       }
 
-      preview_file = ::PostThumbnailer.generate_image_preview(file, bg_color.presence || "000000", origin)
+      preview_file = ::PostThumbnailer.generate_file_preview(file, file_ext == "webm", bg_color.presence || "000000", origin)
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
     end
 
