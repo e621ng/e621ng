@@ -52,7 +52,6 @@ article.thumbnail {
     max-height: $thumb-image-size;
 
     border-radius: $border-radius-half $border-radius-half 0 0;
-    pointer-events: none;   // Should probably just fix the click events, huh
 
     // Mobile view
     width: 100%;
