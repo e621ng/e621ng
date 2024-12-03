@@ -165,12 +165,21 @@ class ApplicationController < ActionController::Base
 
   def set_current_user
     SessionLoader.new(request).load
+    session.send(:load!) unless session.send(:loaded?)
   end
 
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
+  end
+
+  def requires_reauthentication
+    return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_anonymous?
+    last_authenticated_at = session[:last_authenticated_at]
+    if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
+      redirect_to(confirm_password_session_path(url: request.fullpath))
+    end
   end
 
   def user_access_check(method)
