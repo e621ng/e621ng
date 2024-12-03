@@ -39,6 +39,12 @@
           <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post) %></li>
         <% end %>
 
+        <% if post.is_unlisted? %>
+         <li><%= tag.a("Relist", href: "#", class: "relist-post-link", "data-pid": post.id) %></li>
+        <% else %>
+         <li><%= tag.a("Unlist", href: "#", class: "unlist-post-link", "data-pid": post.id) %></li>
+        <% end %>
+
         <% if post.is_approvable? %>
           <li><%= tag.a "Approve", href: '#', class: 'approve-post-link', 'data-pid': post.id %></li>
         <% end %>

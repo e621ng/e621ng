@@ -23,7 +23,7 @@ module Moderator
         end
 
         context "delete action" do
-          should "render" do
+          should "work" do
             post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
             assert(@post.reload.is_deleted?)
           end
@@ -38,7 +38,7 @@ module Moderator
         end
 
         context "undelete action" do
-          should "render" do
+          should "work" do
             as(@user) do
               @post.delete! "test delete"
             end
@@ -51,12 +51,27 @@ module Moderator
           end
         end
 
+        context "unlist action" do
+          should "work" do
+            post_auth unlist_moderator_post_post_path(@post), @admin
+            assert(@post.reload.is_unlisted?)
+          end
+        end
+
+        context "relist action" do
+          should "work" do
+            as(@user) { @post.unlist! }
+            post_auth relist_moderator_post_post_path(@post), @admin
+            assert_not(@post.reload.is_unlisted?)
+          end
+        end
+
         context "move_favorites action" do
           setup do
             @admin = create(:admin_user)
           end
 
-          should "render" do
+          should "work" do
             as(@user) do
               @parent = create(:post)
               @child = create(:post, parent: @parent)

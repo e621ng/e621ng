@@ -5,7 +5,7 @@ module Moderator
     class PostsController < ApplicationController
       before_action :approver_only, except: %i[regenerate_thumbnails regenerate_videos]
       before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos]
-      before_action :admin_only, only: [:expunge]
+      before_action :admin_only, only: %i[expunge]
       skip_before_action :api_check
 
       respond_to :html, :json
@@ -30,6 +30,18 @@ module Moderator
       def undelete
         @post = ::Post.find(params[:id])
         @post.undelete!
+        respond_with(@post)
+      end
+
+      def unlist
+        @post = ::Post.find(params[:id])
+        @post.unlist!
+        respond_with(@post)
+      end
+
+      def relist
+        @post = ::Post.find(params[:id])
+        @post.relist!
         respond_with(@post)
       end
 

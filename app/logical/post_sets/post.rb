@@ -9,7 +9,6 @@ module PostSets
       tags ||= ""
       @public_tag_array = TagQuery.scan(tags)
       tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
       @tag_array = TagQuery.scan(tags)
       @page = page
       @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")

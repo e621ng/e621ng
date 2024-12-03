@@ -13,6 +13,7 @@ class PostsDecorator < ApplicationDecorator
     klass << "pending" if post.is_pending?
     klass << "flagged" if post.is_flagged?
     klass << "deleted" if post.is_deleted?
+    klass << "unlisted" if post.is_unlisted?
     klass << "has-parent" if post.parent_id
     klass << "has-children" if post.has_visible_children?
     klass << "rating-safe" if post.rating == "s"
@@ -49,6 +50,7 @@ class PostsDecorator < ApplicationDecorator
     status_flags << "C" if post.has_children?
     status_flags << "U" if post.is_pending?
     status_flags << "F" if post.is_flagged?
+    status_flags << "N" if post.is_unlisted?
 
     post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
     score = template.tag.span("#{post_score_icon}#{post.score}", class: "score #{score_class(post.score)}")

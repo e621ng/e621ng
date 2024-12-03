@@ -206,6 +206,10 @@ PostModeMenu.click = function (e) {
     Post.delete_with_reason(post_id, $("#quick-mode-reason").val(), false);
   } else if (s === "undelete") {
     Post.undelete(post_id);
+  } else if (s === "unlist") {
+    Post.unlist(post_id);
+  } else if (s === "relist") {
+    Post.relist(post_id);
   } else if (s === "unflag") {
     Post.unflag(post_id, "none", false);
   } else if (s === "approve") {

@@ -62,10 +62,12 @@ class PostQueryBuilder
       relation = relation.where("posts.is_flagged = TRUE")
     elsif q[:status] == "modqueue"
       relation = relation.where("posts.is_pending = TRUE OR posts.is_flagged = TRUE")
+    elsif q[:status] == "unlisted"
+      relation = relation.where("posts.is_unlisted = TRUE")
     elsif q[:status] == "deleted"
       relation = relation.where("posts.is_deleted = TRUE")
     elsif q[:status] == "active"
-      relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE")
+      relation = relation.where("posts.is_pending = FALSE AND posts.is_deleted = FALSE AND posts.is_flagged = FALSE AND posts.is_unlisted = FALSE")
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_must_not] == "pending"
@@ -76,8 +78,10 @@ class PostQueryBuilder
       relation = relation.where("posts.is_pending = FALSE AND posts.is_flagged = FALSE")
     elsif q[:status_must_not] == "deleted"
       relation = relation.where("posts.is_deleted = FALSE")
+    elsif q[:status_must_not] == "unlisted"
+      relation = relation.where("posts.is_unlisted = FALSE")
     elsif q[:status_must_not] == "active"
-      relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_flagged = TRUE")
+      relation = relation.where("posts.is_pending = TRUE OR posts.is_deleted = TRUE OR posts.is_flagged = TRUE OR posts.is_unlisted = TRUE")
     end
 
     q[:filetype]&.each do |filetype|

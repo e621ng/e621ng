@@ -25,8 +25,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
   def hide_deleted_posts?
     return false if @always_show_deleted
-    return false if q[:status].in?(%w[deleted active any all])
-    return false if q[:status_must_not].in?(%w[deleted active any all])
+    return false if q[:status].in?(%w[deleted active unlisted any all])
+    return false if q[:status_must_not].in?(%w[deleted active unlisted any all])
     true
   end
 
@@ -66,33 +66,41 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if q[:status] == "pending"
-      must.push({term: {pending: true}})
+      must.push({ term: { pending: true } })
     elsif q[:status] == "flagged"
-      must.push({term: {flagged: true}})
+      must.push({ term: { flagged: true } })
     elsif q[:status] == "modqueue"
       must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status] == "deleted"
-      must.push({term: {deleted: true}})
+      must.push({term: { deleted: true }})
+    elsif q[:status] == "unlisted"
+      must.push({term: { unlisted: true }})
     elsif q[:status] == "active"
-      must.concat([{term: {pending: false}},
-                   {term: {deleted: false}},
-                   {term: {flagged: false}}])
+      must.concat([{ term: { pending: false } },
+                   { term: { deleted: false } },
+                   { term: { flagged: false } },
+                   { term: { unlisted: false } }])
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_must_not] == "pending"
-      must_not.push({term: {pending: true}})
+      must_not.push({ term: { pending: true } })
     elsif q[:status_must_not] == "flagged"
-      must_not.push({term: {flagged: true}})
+      must_not.push({ term: { flagged: true } })
     elsif q[:status_must_not] == "modqueue"
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status_must_not] == "deleted"
-      must_not.push({term: {deleted: true}})
+      must_not.push({term: { deleted: true }})
+    elsif q[:status_must_not] == "unlisted"
+      must_not.push({term: { unlisted: true }})
     elsif q[:status_must_not] == "active"
-      must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
+      must.push(match_any({ term: { pending: true } },
+                          { term: { deleted: true } },
+                          { term: { flagged: true } },
+                          { term: { unlisted: true } }))
     end
 
     if hide_deleted_posts?
-      must.push({term: {deleted: false}})
+      must.concat([{ term: { deleted: false } }, { term: { unlisted: false } }])
     end
 
     add_array_relation(:uploader_ids, :uploader)

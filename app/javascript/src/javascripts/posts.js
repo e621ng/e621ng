@@ -360,6 +360,14 @@ Post.initialize_links = function () {
       location.reload();
     });
   });
+  $(".unlist-post-link").on("click", e => {
+    e.preventDefault();
+    Post.unlist($(e.target).data("pid"), true);
+  });
+  $(".relist-post-link").on("click", e => {
+    e.preventDefault();
+    Post.relist($(e.target).data("pid"), true);
+  });
   $(".approve-post-and-navigate-link").on("click", e => {
     e.preventDefault();
     const $target = $(e.target);
@@ -936,6 +944,50 @@ Post.approve = function (post_id, callback) {
       }
       if (callback) {
         callback();
+      }
+    }).always(function () {
+      Post.notice_update("dec");
+    });
+  });
+};
+
+Post.unlist = function (post_id, reload) {
+  Post.notice_update("inc");
+  SendQueue.add(function () {
+    $.ajax({
+      type: "POST",
+      url: `/moderator/post/posts/${post_id}/unlist.json`,
+    }).fail(function (data) {
+      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function () {
+      $(window).trigger("danbooru:notice", "Unlisted post.");
+      if (reload) {
+        location.reload();
+      } else {
+        $(`article#post_${post_id}`).attr("data-flags", "unlisted");
+      }
+    }).always(function () {
+      Post.notice_update("dec");
+    });
+  });
+};
+
+Post.relist = function (post_id, reload) {
+  Post.notice_update("inc");
+  SendQueue.add(function () {
+    $.ajax({
+      type: "POST",
+      url: `/moderator/post/posts/${post_id}/relist.json`,
+    }).fail(function (data) {
+      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function () {
+      $(window).trigger("danbooru:notice", "Relisted post.");
+      if (reload) {
+        location.reload();
+      } else {
+        $(`article#post_${post_id}`).attr("data-flags", "");
       }
     }).always(function () {
       Post.notice_update("dec");

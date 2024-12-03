@@ -279,6 +279,7 @@ module PostIndex
       flagged:        is_flagged,
       pending:        is_pending,
       deleted:        is_deleted,
+      unlisted:       is_unlisted,
       has_children:   has_children,
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
