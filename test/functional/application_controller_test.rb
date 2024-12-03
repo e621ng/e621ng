@@ -108,7 +108,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
           token = css_select("form input[name=authenticity_token]").first["value"]
 
           # login
-          post session_path, params: { authenticity_token: token, name: @user.name, password: "password" }
+          post session_path, params: { authenticity_token: token, session: { name: @user.name, password: "password" } }
           assert_redirected_to posts_path
 
           # try to submit a form with cookies but without the csrf token
@@ -124,7 +124,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
       should "succeed" do
         user = create(:user, password: "password")
 
-        post session_path, params: { name: user.name, password: "password" }
+        post session_path, params: { session: { name: user.name, password: "password" } }
         get edit_user_path(user)
 
         assert_response :success

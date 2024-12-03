@@ -258,7 +258,9 @@ Rails.application.routes.draw do
   end
   resource :related_tag, :only => [:show, :update]
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
-  resource :session, only: [:new, :create, :destroy]
+  resource :session, only: %i[new create destroy] do
+    get :confirm_password, on: :collection
+  end
   resources :stats, only: [:index]
   resources :tags, constraints: id_name_constraint do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
@@ -282,9 +284,7 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
-    resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do
-      post :view
-    end
+    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
     resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
 
     collection do
