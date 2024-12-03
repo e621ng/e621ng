@@ -5,9 +5,33 @@ require "test_helper"
 class PostVotesControllerTest < ActionDispatch::IntegrationTest
   context "The post vote controller" do
     setup do
-      @user = create(:privileged_user)
-      as(@user) do
-        @post = create(:post)
+      @user = create(:user, created_at: 2.weeks.ago)
+      CurrentUser.user = @user
+      @post = create(:post)
+      @admin = create(:admin_user)
+    end
+
+    context "index action" do
+      should "render" do
+        get_auth url_for(controller: "post_votes", action: "index", only_path: true), @admin
+        assert_response :success
+      end
+
+      context "members" do
+        should "render" do
+          get_auth url_for(controller: "post_votes", action: "index", only_path: true), @user
+          assert_response :success
+        end
+
+        should "only list own votes" do
+          create(:post_vote, post: @post, user: @user, score: -1)
+          create(:post_vote, post: @post, user: @admin, score: 1)
+
+          get_auth url_for(controller: "post_votes", action: "index", format: "json", only_path: true), @user
+          assert_response :success
+          assert_equal(1, response.parsed_body.length)
+          assert_equal(@user.id, response.parsed_body[0]["user_id"])
+        end
       end
     end
 

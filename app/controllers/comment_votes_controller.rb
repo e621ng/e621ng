@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 class CommentVotesController < ApplicationController
-  respond_to :json
-  respond_to :html, only: [:index]
+  respond_to :json, :html
   before_action :member_only
-  before_action :moderator_only, only: [:index, :lock]
-  before_action :admin_only, only: [:delete]
+  before_action :moderator_only, only: %i[lock]
+  before_action :admin_only, only: %i[delete]
   skip_before_action :api_check
 
   def create
@@ -15,7 +14,7 @@ class CommentVotesController < ApplicationController
       VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
     end
     @comment.reload
-    render json: {score: @comment.score, our_score: @comment_vote != :need_unvote ? @comment_vote.score : 0}
+    render json: { score: @comment.score, our_score: @comment_vote != :need_unvote ? @comment_vote.score : 0 }
   rescue UserVote::Error, ActiveRecord::RecordInvalid => x
     render_expected_error(422, x)
   end
@@ -28,7 +27,8 @@ class CommentVotesController < ApplicationController
   end
 
   def index
-    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+    @comment_votes = CommentVote.visible(CurrentUser.user).includes(:user, comment: %i[creator]).search(search_params).paginate(params[:page], limit: params[:limit])
+    respond_with(@comment_votes)
   end
 
   def lock
