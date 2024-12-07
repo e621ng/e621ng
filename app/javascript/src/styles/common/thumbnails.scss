@@ -20,6 +20,10 @@ section.posts-container {
   @include window-larger-than($thumb-desktop-breakpoint) {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+
+  h2.posts-container-header {
+    grid-column: -1 / 1;
+  }
 }
 
 
@@ -72,6 +76,11 @@ article.thumbnail {
   // Color the rating letters
   @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
     &[data-rating=#{$name}] .desc .rating { color: palette("text-#{$color}"); }
+  }
+
+  // Post matches blacklist
+  &.filter-matches .desc {
+    background-color: var(--palette-background-red);
   }
 }
 
