@@ -311,7 +311,7 @@ class TagQuery
     matches = []
     hoist_regex_stub = nil
     depth = 1
-    scan_tokens(tagstr, use_match_data: true, recurse: false, stop_at_group: true) do |m|
+    scan_tokens(tagstr, use_match_data: true, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
       # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
       if m.begin(:group) == 0 && m.end(:group) == tagstr.length
         return matches = scan_search(
@@ -361,73 +361,116 @@ class TagQuery
     matches.uniq
   end
 
+  private_class_method def self.handle_top_level(matches, prefix, strip_prefixes:, distribute_prefixes:, **kwargs)
+    if kwargs.fetch(:delimit_groups, true)
+      matches.insert(0, "#{strip_prefixes || distribute_prefixes ? '' : prefix}(") << ")"
+      kwargs.fetch(:flatten) ? matches : [matches]
+    elsif !(strip_prefixes || distribute_prefixes) && prefix.present?
+      # TODO: What should be done when not stripping modifiers & not delimiting groups?
+      # Either place the modifier alone outside the array or inside the array?
+      # This won't correctly reconstitute the original string without dedicated code.
+      # Currently places alone inside if flattening and outside otherwise
+      # If flattening and not delimiting, modifier application is unable to be determined,
+      # so remove entirely? Change options to force validity or split into 2 methods?
+      kwargs.fetch(:flatten) ? matches.insert(0, prefix) : [prefix, matches]
+    else
+      kwargs.fetch(:flatten) ? matches : [matches]
+    end
+  end
+
   ##
   # TODO: Add hoisted tag support
   # TODO: Convert from match_tokens_redux to using the regexp directly
-  # +strip_duplicates_at_level+: Removes any duplicate tags at the
+  # +strip_duplicates_at_level+: [false] Removes any duplicate tags at the
   # current level, and recursively do the same for each group.
   # +delimit_groups+: Surround groups w/ parentheses elements. Unless +strip_prefixes+ or
   # +distribute_prefixes+ are truthy, preserves prefix.
+  # +sort_at_level+: [false]
+  # +normalize_at_level+: [false]
+  # +delimit_groups+: [true]
+  # +error_on_depth_exceeded+: [false]
   def self.scan_recursive(
     query,
-    strip_duplicates_at_level: false,
-    delimit_groups: true,
+    # strip_duplicates_at_level: false,
+    # delimit_groups: true,
     flatten: true,
     strip_prefixes: false,
     # hoisted_metatags: nil,
-    sort_at_level: false,
-    normalize_at_level: false,
+    # sort_at_level: false,
+    # normalize_at_level: false,
     distribute_prefixes: nil,
-    error_on_depth_exceeded: false,
+    # error_on_depth_exceeded: false,
     # depth: 0,
     **kwargs
   )
-    depth = kwargs.fetch(:depth, 0) + 1
-    raise DepthExceededError if depth > TagQuery::DEPTH_LIMIT && error_on_depth_exceeded
+    depth = 1 + kwargs.fetch(:depth, 0)
+    kwargs[:depth] = depth
+    if depth > TagQuery::DEPTH_LIMIT
+      if kwargs.fetch(:error_on_depth_exceeded, false) # error_on_depth_exceeded
+        raise DepthExceededError
+      else
+        return handle_top_level(
+          [],
+          nil,
+          flatten: flatten,
+          strip_prefixes: strip_prefixes,
+          distribute_prefixes: distribute_prefixes,
+          **kwargs,
+        )
+      end
+    end
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     matches = []
     last_group_index = -1
     group_ranges = [] if flatten
     top = flatten ? [] : nil
     # hoist_regex_stub = nil
-    match_tokens_redux(tagstr, recurse: false, stop_at_group: true) do |m|
+    match_tokens_redux(tagstr, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
       distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
       if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tagstr.length
-        tagstr = m[:body]
+        # tagstr = m[:body]
         matches = if depth > TagQuery::DEPTH_LIMIT
                     []
                   else
                     TagQuery.scan_recursive(
-                      # m[:body][/\A\(\s+(.*)\s+\)\z/, 1],
                       m[:body][/\A\(\s+\)\z/] ? "" : m[:body][/\A\(\s+(.*)\s+\)\z/, 1],
                       # hoisted_metatags: hoisted_metatags,
-                      strip_duplicates_at_level: strip_duplicates_at_level,
-                      delimit_groups: delimit_groups,
+                      # strip_duplicates_at_level: strip_duplicates_at_level,
+                      # delimit_groups: delimit_groups,
                       flatten: flatten,
                       strip_prefixes: strip_prefixes,
-                      sort_at_level: sort_at_level,
-                      normalize_at_level: normalize_at_level,
+                      # sort_at_level: sort_at_level,
+                      # normalize_at_level: normalize_at_level,
                       distribute_prefixes: distribute_prefixes,
-                      depth: depth,
-                      error_on_depth_exceeded: error_on_depth_exceeded,
+                      # depth: depth,
+                      # error_on_depth_exceeded: error_on_depth_exceeded,
+                      **kwargs,
                     )
                   end
         distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
-        if delimit_groups
-          matches.insert(0, "#{strip_prefixes || distribute_prefixes ? '' : m[:prefix]}(") << ")"
-          return flatten ? matches : (matches = [matches])
-        elsif !(strip_prefixes || distribute_prefixes) && m[:prefix].present?
-          # TODO: What should be done when not stripping modifiers & not delimiting groups?
-          # Either place the modifier alone outside the array or inside the array?
-          # This won't correctly reconstitute the original string without dedicated code.
-          # Currently places alone inside if flattening and outside otherwise
-          # If flattening and not delimiting, modifier application is unable to be determined,
-          # so remove entirely? Change options to force validity or split into 2 methods?
-          return matches = flatten ? matches.insert(0, m[:prefix]) : [m[:prefix], matches]
-        else
-          return flatten ? matches : (matches = [matches])
-        end
+        # if kwargs.fetch(:delimit_groups, true)
+        #   matches.insert(0, "#{strip_prefixes || distribute_prefixes ? '' : m[:prefix]}(") << ")"
+        #   return flatten ? matches : (matches = [matches])
+        # elsif !(strip_prefixes || distribute_prefixes) && m[:prefix].present?
+        #   # TODO: What should be done when not stripping modifiers & not delimiting groups?
+        #   # Either place the modifier alone outside the array or inside the array?
+        #   # This won't correctly reconstitute the original string without dedicated code.
+        #   # Currently places alone inside if flattening and outside otherwise
+        #   # If flattening and not delimiting, modifier application is unable to be determined,
+        #   # so remove entirely? Change options to force validity or split into 2 methods?
+        #   return matches = flatten ? matches.insert(0, m[:prefix]) : [m[:prefix], matches]
+        # else
+        #   return flatten ? matches : (matches = [matches])
+        # end
+        return handle_top_level(
+          matches,
+          m[:prefix],
+          flatten: flatten,
+          strip_prefixes: strip_prefixes,
+          distribute_prefixes: distribute_prefixes,
+          **kwargs,
+        )
       elsif m[:group].present?
         distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
         value = TagQuery.scan_recursive(
@@ -435,30 +478,32 @@ class TagQuery
           # "#{resolve_distributed_tag(distribute_prefixes) || m[:prefix]}#{m[:body]}",
           m[0].strip,
           # hoisted_metatags: hoisted_metatags,
-          strip_duplicates_at_level: strip_duplicates_at_level,
-          delimit_groups: delimit_groups,
+          # strip_duplicates_at_level: strip_duplicates_at_level,
+          # delimit_groups: delimit_groups,
           flatten: flatten,
           strip_prefixes: strip_prefixes,
-          sort_at_level: sort_at_level,
-          normalize_at_level: normalize_at_level,
+          # sort_at_level: sort_at_level,
+          # normalize_at_level: normalize_at_level,
           distribute_prefixes: distribute_prefixes,
-          depth: depth - 1,
+          # depth: depth - 1,
+          # depth: depth,
+          **kwargs,
         )
         distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
         is_duplicate = false
         dup_check = ->(e) { e.empty? ? value.empty? : e.difference(value).blank? }
-        if strip_duplicates_at_level
+        if kwargs.fetch(:strip_duplicates_at_level, false) # strip_duplicates_at_level
           if flatten
             # matches.each_cons(value.length) { |e| is_duplicate = true if e == value }
-            matches.each_cons(value.length) { |e| is_duplicate = true if is_duplicate || dup_check.call(e) }
+            matches.each_cons(value.length) { |e| is_duplicate = true if is_duplicate || dup_check.call(e) } # rubocop:disable Metrics/BlockNesting
           else
             is_duplicate = matches.any?(&dup_check)
           end
         end
         unless is_duplicate
           # splat regardless of flattening to correctly de-nest value
-          if sort_at_level
-            group_ranges << ((last_group_index + 1)..(last_group_index + value.length)) if flatten
+          if kwargs.fetch(:sort_at_level, false) # sort_at_level
+            group_ranges << ((last_group_index + 1)..(last_group_index + value.length)) if flatten # rubocop:disable Metrics/BlockNesting
             matches.insert(last_group_index += value.length, *value)
           else
             matches.push(*value)
@@ -466,15 +511,16 @@ class TagQuery
         end
       else
         prefix = !strip_prefixes && (m[:prefix] || distribute_prefixes) ? resolve_distributed_tag(distribute_prefixes) || m[:prefix] : ""
-        value = prefix + (normalize_at_level ? normalize_single_tag(m[:body]) : m[:body])
-        unless strip_duplicates_at_level && (top || matches).include?(value)
+        value = prefix + (kwargs.fetch(:normalize_at_level, false) ? normalize_single_tag(m[:body]) : m[:body])
+        # unless strip_duplicates_at_level && (top || matches).include?(value)
+        unless kwargs.fetch(:strip_duplicates_at_level, false) && (top || matches).include?(value)
           matches << value
           top << value if flatten
         end
       end
       distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
     end
-    if sort_at_level
+    if kwargs.fetch(:sort_at_level, false) # sort_at_level
       if last_group_index >= 0
         pre = matches.slice!(0, last_group_index + 1)
         pre = flatten ? group_ranges.map { |e| pre.slice(e) }.sort!.flatten! : pre.sort

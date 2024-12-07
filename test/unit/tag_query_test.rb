@@ -357,9 +357,17 @@ class TagQueryTest < ActiveSupport::TestCase
   end
 
   should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-    # scan_recursive
+    # scan_recursive top level
     assert_raise(TagQuery::DepthExceededError) do
       TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+    end
+    # scan_recursive non-top level
+    assert_raise(TagQuery::DepthExceededError) do
+      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+    end
+    # scan_recursive mixed level
+    assert_raise(TagQuery::DepthExceededError) do
+      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
     end
     # Unpacking a search of a single group
     assert_raise(TagQuery::DepthExceededError) do

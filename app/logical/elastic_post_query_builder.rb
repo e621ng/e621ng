@@ -7,7 +7,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:, **kwargs)
+  def initialize( # rubocop:disable Metrics/ParameterLists
+    query_string,
+    resolve_aliases:,
+    free_tags_count:,
+    enable_safe_mode:,
+    always_show_deleted:,
+    **kwargs
+  )
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode

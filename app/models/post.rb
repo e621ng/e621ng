@@ -726,14 +726,14 @@ class Post < ApplicationRecord
           end
 
         when /^(-)?pool:(.+)$/i
-          pool = Pool.find_by_name($2) # rubocop:disable Rails/DynamicFindBy
+          pool = Pool.find_by_name($2)
           if pool
             pool.send($1.present? ? :remove! : :add!, self)
             errors.add(:base, pool.errors.full_messages.join("; ")) if pool.errors.any?
           end
 
         when /^newpool:(.+)$/i
-          pool = Pool.find_by_name($1) # rubocop:disable Rails/DynamicFindBy
+          pool = Pool.find_by_name($1)
           if pool
             pool.add!(self)
             errors.add(:base, pool.errors.full_messages.join("; ")) if pool.errors.any?
