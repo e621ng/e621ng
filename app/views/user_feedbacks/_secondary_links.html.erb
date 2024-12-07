@@ -2,12 +2,20 @@
   <% if CurrentUser.is_moderator? %>
     <% if @user_feedback %>
       <%= subnav_link_to "New", new_user_feedback_path(user_feedback: { user_id: @user_feedback.user_id }) %>
-    <% elsif params[:search] && params[:search][:user_id] %>
-      <%= subnav_link_to "New", new_user_feedback_path(user_feedback: { user_id: params[:search][:user_id] }) %>
+    <% elsif params.dig(:search, :user_id) %>
+      <%= subnav_link_to "New", new_user_feedback_path(user_feedback: { user_id: params.dig(:search, :user_id) }) %>
     <% else %>
       <%= subnav_link_to "New", new_user_feedback_path %>
     <% end %>
   <% end %>
   <%= subnav_link_to "Listing", user_feedbacks_path %>
   <%= subnav_link_to "Search", search_user_feedbacks_path %>
+  <% if CurrentUser.is_moderator? %>
+    <li>|</li>
+    <% if @user_feedback %>
+      <%= subnav_link_to "Ban", new_ban_path(ban: { user_id: @user_feedback.user_id }) %>
+    <% elsif params.dig(:search, :user_id) %>
+      <%= subnav_link_to "Ban", new_ban_path(ban: { user_id: params.dig(:search, :user_id) }) %>
+    <% end %>
+  <% end %>
 <% end %>
