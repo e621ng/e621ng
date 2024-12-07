@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class Post < ApplicationRecord
-  class RevertError < Exception ; end
-  class DeletionError < Exception ; end
-  class TimeoutError < Exception ; end
+  class RevertError < Exception; end
+  class DeletionError < Exception; end
+  class TimeoutError < Exception; end
 
   # Tags to copy when copying notes.
-  NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request]
+  NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -113,7 +113,7 @@ class Post < ApplicationRecord
     end
 
     def large_file_url
-      return file_url if !has_large?
+      return file_url unless has_large?
       storage_manager.file_url(self, :large)
     end
 
@@ -143,10 +143,10 @@ class Post < ApplicationRecord
     end
 
     def open_graph_video_url
-      if image_height > 720 && has_sample_size?('720p')
-        return scaled_url_ext('720p', 'mp4')
+      if image_height > 720 && has_sample_size?("720p")
+        return scaled_url_ext("720p", "mp4")
       end
-      file_url_ext('mp4')
+      file_url_ext("mp4")
     end
 
     def open_graph_image_url
@@ -170,8 +170,8 @@ class Post < ApplicationRecord
     end
 
     def file_url_ext_for(user, ext)
-      if user.default_image_size == "large" && is_video? && has_sample_size?('720p')
-        scaled_url_ext('720p', ext)
+      if user.default_image_size == "large" && is_video? && has_sample_size?("720p")
+        scaled_url_ext("720p", ext)
       else
         file_url_ext(ext)
       end
@@ -211,8 +211,8 @@ class Post < ApplicationRecord
 
     def scaled_sample_dimensions(box)
       ratio = [box[0] / image_width.to_f, box[1] / image_height.to_f].min
-      width = [([image_width * ratio, 2].max.ceil), box[0]].min & ~1
-      height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
+      width = [[image_width * ratio, 2].max.ceil, box[0]].min & ~1
+      height = [[image_height * ratio, 2].max.ceil, box[1]].min & ~1
       [width, height]
     end
 
@@ -311,7 +311,7 @@ class Post < ApplicationRecord
     end
 
     def approve!(approver = CurrentUser.user)
-      return if self.approver != nil
+      return unless self.approver.nil?
 
       if uploader == approver
         update(is_pending: false)
@@ -330,12 +330,12 @@ class Post < ApplicationRecord
     end
 
     def apply_source_diff
-      return unless source_diff.present?
+      return if source_diff.blank?
 
       diff = source_diff.gsub(/\r\n?/, "\n").gsub(/%0A/i, "\n").split(/(?:\r)?\n/)
-      to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1].starts_with?('"') && x.ends_with?('"') ? x[1..-1].delete_prefix('"').delete_suffix('"') : x[1..-1]}
-      to_add = to_add.map {|x| x.starts_with?('"') && x.ends_with?('"') ? x.delete_prefix('"').delete_suffix('"') : x}
+      to_remove, to_add = diff.partition { |x| x =~ /\A-/i }
+      to_remove = to_remove.map { |x| x[1..-1].starts_with?('"') && x.ends_with?('"') ? x[1..-1].delete_prefix('"').delete_suffix('"') : x[1..-1] }
+      to_add = to_add.map { |x| x.starts_with?('"') && x.ends_with?('"') ? x.delete_prefix('"').delete_suffix('"') : x }
 
       current_sources = source_array
       current_sources += to_add
@@ -375,7 +375,7 @@ class Post < ApplicationRecord
     end
 
     def copy_sources_to_parent
-      return unless parent_id.present?
+      return if parent_id.blank?
       parent.source += "\n#{self.source}"
     end
   end
@@ -413,7 +413,7 @@ class Post < ApplicationRecord
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || !added_tags.empty?
     end
 
     def tag_array
@@ -475,8 +475,8 @@ class Post < ApplicationRecord
       if old_tag_string
         # If someone else committed changes to this post before we did,
         # then try to merge the tag changes together.
-        current_tags = tag_array_was()
-        new_tags = tag_array()
+        current_tags = tag_array_was
+        new_tags = tag_array
         old_tags = TagQuery.scan(old_tag_string)
 
         kept_tags = current_tags & new_tags
@@ -504,12 +504,12 @@ class Post < ApplicationRecord
     end
 
     def apply_tag_diff
-      return unless tag_string_diff.present?
+      return if tag_string_diff.blank?
 
       current_tags = tag_array
       diff = TagQuery.scan(tag_string_diff)
-      to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1]}
+      to_remove, to_add = diff.partition { |x| x =~ /\A-/i }
+      to_remove = to_remove.map { |x| x[1..-1] }
       to_remove = TagAlias.to_aliased(to_remove)
       to_add = TagAlias.to_aliased(to_add)
       @removed_tags = to_remove
@@ -544,8 +544,8 @@ class Post < ApplicationRecord
         self.locked_tags = nil
       elsif locked_tags.present?
         locked = TagQuery.scan(locked_tags.downcase)
-        to_remove, to_add = locked.partition {|x| x =~ /\A-/i}
-        to_remove = to_remove.map {|x| x[1..-1]}
+        to_remove, to_add = locked.partition { |x| x =~ /\A-/i }
+        to_remove = to_remove.map { |x| x[1..-1] }
         to_remove = TagAlias.to_aliased(to_remove)
         @locked_to_remove = to_remove + to_remove.map { |tag_name| TagImplication.cached_descendants(tag_name) }.flatten
         @locked_to_add = TagAlias.to_aliased(to_add)
@@ -553,7 +553,7 @@ class Post < ApplicationRecord
 
       normalized_tags = TagQuery.scan(tag_string)
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
-      normalized_tags = normalized_tags.map {|tag| tag.downcase}
+      normalized_tags = normalized_tags.map(&:downcase)
       normalized_tags = filter_metatags(normalized_tags)
       normalized_tags = remove_negated_tags(normalized_tags)
       normalized_tags = remove_dnp_tags(normalized_tags)
@@ -575,24 +575,16 @@ class Post < ApplicationRecord
       locked = locked_tags || ""
       # Don't remove dnp tags here if they would be later added through locked tags
       # to prevent the warning message from appearing when they didn't actually get removed
-      if locked.exclude?("avoid_posting")
-        tags -= ["avoid_posting"]
-      end
-      if locked.exclude?("conditional_dnp")
-        tags -= ["conditional_dnp"]
-      end
+      tags -= ["avoid_posting"] if locked.exclude?("avoid_posting")
+      tags -= ["conditional_dnp"] if locked.exclude?("conditional_dnp")
       tags
     end
 
     def add_dnp_tags_to_locked(tags)
-      locked = TagQuery.scan((locked_tags || '').downcase)
-      if tags.include? 'avoid_posting'
-        locked << 'avoid_posting'
-      end
-      if tags.include? 'conditional_dnp'
-        locked << 'conditional_dnp'
-      end
-      self.locked_tags = locked.uniq.join(' ') if locked.size > 0
+      locked = locked_tags.present? ? TagQuery.scan(locked_tags.downcase) : []
+      locked << "avoid_posting" if tags.include? "avoid_posting"
+      locked << "conditional_dnp" if tags.include? "conditional_dnp"
+      self.locked_tags = locked.uniq.join(" ") unless locked.empty?
     end
 
     def apply_locked_tags(tags, to_add, to_remove)
@@ -600,7 +592,7 @@ class Post < ApplicationRecord
         overlap = tags & to_remove
         n = overlap.size
         if n > 0
-          self.warnings.add(:base,  "Forcefully removed #{n} locked #{n == 1 ? "tag" : "tags"}: #{overlap.join(", ")}")
+          self.warnings.add(:base, "Forcefully removed #{n} locked #{n == 1 ? 'tag' : 'tags'}: #{overlap.join(', ')}")
         end
         tags -= to_remove
       end
@@ -608,7 +600,7 @@ class Post < ApplicationRecord
         missing = to_add - tags
         n = missing.size
         if n > 0
-          self.warnings.add(:base, "Forcefully added #{n} locked #{n == 1 ? "tag" : "tags"}: #{missing.join(", ")}")
+          self.warnings.add(:base, "Forcefully added #{n} locked #{n == 1 ? 'tag' : 'tags'}: #{missing.join(', ')}")
         end
         tags += to_add
       end
@@ -616,24 +608,23 @@ class Post < ApplicationRecord
     end
 
     def remove_invalid_tags(tags)
-      tags = tags.reject do |tag|
-        if tag.errors.size > 0
+      tags.select do |tag|
+        unless tag.errors.empty?
           self.warnings.add(:base, "Can't add tag #{tag.name}: #{tag.errors.full_messages.join('; ')}")
         end
-        tag.errors.size > 0
+        tag.errors.empty?
       end
-      tags
     end
 
     def remove_negated_tags(tags)
-      @negated_tags, tags = tags.partition {|x| x =~ /\A-/i}
-      @negated_tags = @negated_tags.map {|x| x[1..-1]}
+      @negated_tags, tags = tags.partition { |x| x =~ /\A-/i }
+      @negated_tags = @negated_tags.map { |x| x[1..-1] }
       @negated_tags = TagAlias.to_aliased(@negated_tags)
-      return tags - @negated_tags
+      tags - @negated_tags
     end
 
     def add_automatic_tags(tags)
-      return tags if !Danbooru.config.enable_dimension_autotagging?
+      return tags unless Danbooru.config.enable_dimension_autotagging?
 
       tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image]
 
@@ -677,19 +668,17 @@ class Post < ApplicationRecord
     end
 
     def apply_casesensitive_metatags(tags)
-      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:source):/i}
-      #Reuse the following metatags after the post has been saved
-      casesensitive_metatags += tags.select {|x| x =~ /\A(?:newpool):/i}
-      if casesensitive_metatags.length > 0
+      casesensitive_metatags, tags = tags.partition { |x| x =~ /\A(?:source):/i }
+      # Reuse the following metatags after the post has been saved
+      casesensitive_metatags += tags.select { |x| x =~ /\A(?:newpool):/i }
+      unless casesensitive_metatags.empty?
         case casesensitive_metatags[-1]
         when /^source:none$/i
           self.source = ""
 
-        when /^source:"(.*)"$/i
-          self.source = $1
-
-        when /^source:(.*)$/i
-          self.source = $1
+        # when /^source:"(.*)"$/i || /^source:(.*)$/i
+        when /^source:(?:"(.*)"$|(.*)$)/i
+          self.source = $1 || $2
 
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
@@ -698,24 +687,24 @@ class Post < ApplicationRecord
           end
         end
       end
-      return tags
+      tags
     end
 
     def filter_metatags(tags)
       @bad_type_changes = []
-      @pre_metatags, tags = tags.partition {|x| x =~ /\A(?:rating|parent|-parent|-?locked):/i}
+      @pre_metatags, tags = tags.partition { |x| x =~ /\A(?:rating|parent|-parent|-?locked):/i }
       tags = apply_categorization_metatags(tags)
-      @post_metatags, tags = tags.partition {|x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i}
+      @post_metatags, tags = tags.partition { |x| x =~ /\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i }
       apply_pre_metatags
-      if @bad_type_changes.size > 0
-        bad_tags = @bad_type_changes.map {|x| "[[#{x}]]"}
+      unless @bad_type_changes.empty?
+        bad_tags = @bad_type_changes.map { |x| "[[#{x}]]" }
         self.warnings.add(:base, "Failed to update the tag category for the following tags: #{bad_tags.join(', ')}. You can not edit the tag category of existing tags using prefixes. Please review usage of the tags, and if you are sure that the tag categories should be changed, then you can change them using the \"Tags\":/tags section of the website")
       end
       tags
     end
 
     def apply_categorization_metatags(tags)
-      prefixed, unprefixed = tags.partition {|x| x =~ Tag.categories.regexp}
+      prefixed, unprefixed = tags.partition { |x| x =~ Tag.categories.regexp }
       prefixed = Tag.find_or_create_by_name_list(prefixed)
       prefixed.map! do |tag|
         @bad_type_changes << tag.name if tag.errors.include? :category
@@ -729,76 +718,32 @@ class Post < ApplicationRecord
 
       @post_metatags.each do |tag|
         case tag
-        when /^-pool:(\d+)$/i
-          pool = Pool.find_by(id: $1.to_i)
+        when /^(-)?pool:(\d+)$/i
+          pool = Pool.find_by(id: $2.to_i)
           if pool
-            pool.remove!(self)
-            if pool.errors.any?
-              errors.add(:base, pool.errors.full_messages.join("; "))
-            end
+            pool.send($1.present? ? :remove! : :add!, self)
+            errors.add(:base, pool.errors.full_messages.join("; ")) if pool.errors.any?
           end
 
-        when /^-pool:(.+)$/i
-          pool = Pool.find_by_name($1)
+        when /^(-)?pool:(.+)$/i
+          pool = Pool.find_by_name($2) # rubocop:disable Rails/DynamicFindBy
           if pool
-            pool.remove!(self)
-            if pool.errors.any?
-              errors.add(:base, pool.errors.full_messages.join("; "))
-            end
+            pool.send($1.present? ? :remove! : :add!, self)
+            errors.add(:base, pool.errors.full_messages.join("; ")) if pool.errors.any?
           end
 
-        when /^pool:(\d+)$/i
-          pool = Pool.find_by(id: $1.to_i)
+        when /^newpool:(.+)$/i
+          pool = Pool.find_by_name($1) # rubocop:disable Rails/DynamicFindBy
           if pool
             pool.add!(self)
-            if pool.errors.any?
-              errors.add(:base, pool.errors.full_messages.join("; "))
-            end
+            errors.add(:base, pool.errors.full_messages.join("; ")) if pool.errors.any?
           end
 
-        when /^(?:new)?pool:(.+)$/i
-          pool = Pool.find_by_name($1)
-          if pool
-            pool.add!(self)
-            if pool.errors.any?
-              errors.add(:base, pool.errors.full_messages.join("; "))
-            end
-          end
-
-        when /^set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
+        when /^(-)?set:(?:(\d+)|(.+))$/i
+          set = $2.present? ? PostSet.find_by(id: $2.to_i) : PostSet.find_by(shortname: $3)
           if set&.can_edit_posts?(CurrentUser.user)
-            set.add!(self)
-            if set.errors.any?
-              errors.add(:base, set.errors.full_messages.join("; "))
-            end
-          end
-
-        when /^-set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
-          if set&.can_edit_posts?(CurrentUser.user)
-            set.remove!(self)
-            if set.errors.any?
-              errors.add(:base, set.errors.full_messages.join("; "))
-            end
-          end
-
-        when /^set:(.+)$/i
-          set = PostSet.find_by(shortname: $1)
-          if set&.can_edit_posts?(CurrentUser.user)
-            set.add!(self)
-            if set.errors.any?
-              errors.add(:base, set.errors.full_messages.join("; "))
-            end
-          end
-
-        when /^-set:(.+)$/i
-          set = PostSet.find_by(shortname: $1)
-          if set&.can_edit_posts?(CurrentUser.user)
-            set.remove!(self)
-            if set.errors.any?
-              errors.add(:base, set.errors.full_messages.join("; "))
-            end
+            set.send($1.present? ? :remove! : :add!, self)
+            errors.add(:base, set.errors.full_messages.join("; ")) if set.errors.any?
           end
 
         when /^child:none$/i
@@ -958,7 +903,7 @@ class Post < ApplicationRecord
 
   module SetMethods
     def set_ids
-      pool_string.scan(/set\:(\d+)/).map {|set| set[0].to_i}
+      pool_string.scan(/set:(\d+)/).map { |set| set[0].to_i }
     end
 
     def post_sets
@@ -993,7 +938,7 @@ class Post < ApplicationRecord
             set.add([parent.id]) if parent_id.present? && set.transfer_on_delete
             set.save!
           rescue
-            #Ignore set errors due to things like set post count
+            # Ignore set errors due to things like set post count
           end
         end
       end
@@ -1053,7 +998,7 @@ class Post < ApplicationRecord
   module VoteMethods
     def own_vote(user = CurrentUser.user)
       return nil unless user
-      votes.where('user_id = ?', user.id).first
+      votes.where("user_id = ?", user.id).first
     end
   end
 
@@ -1109,14 +1054,14 @@ class Post < ApplicationRecord
     end
 
     def update_parent_on_destroy
-      parent.update_has_children_flag if parent
+      parent&.update_has_children_flag
     end
 
     def update_children_on_destroy
-      return unless children.present?
+      return if children.blank?
 
       eldest = children[0]
-      siblings = children[1..-1]
+      siblings = children[1..]
 
       eldest.update(parent_id: nil)
       Post.where(id: siblings).find_each {|p| p.update(parent_id: eldest.id)}
@@ -1150,7 +1095,7 @@ class Post < ApplicationRecord
       return true if has_active_children?
       return true if has_children? && CurrentUser.is_approver?
       return true if has_children? && is_deleted?
-      return false
+      false
     end
 
     def has_visible_children
@@ -1158,12 +1103,12 @@ class Post < ApplicationRecord
     end
 
     def inject_children(ids)
-      @children_ids = ids.map(&:id).join(' ')
+      @children_ids = ids.map(&:id).join(" ")
     end
 
     def children_ids
       if has_children?
-        @children_ids ||= children.map {|p| p.id}.join(' ')
+        @children_ids ||= children.map { |p| p.id }.join(" ")
       end
     end
   end
@@ -1171,24 +1116,24 @@ class Post < ApplicationRecord
   module DeletionMethods
     def backup_post_data_destroy(reason: "")
       post_data = {
-          id: id,
-          description: description,
-          md5: md5,
-          tags: tag_string,
-          height: image_height,
-          width: image_width,
-          file_size: file_size,
-          sources: source,
-          approver_id: approver_id,
-          locked_tags: locked_tags,
-          rating: rating,
-          parent_id: parent_id,
-          change_seq: change_seq,
-          is_deleted: is_deleted,
-          is_pending: is_pending,
-          duration: duration,
-          fav_count: fav_count,
-          comment_count: comment_count
+        id: id,
+        description: description,
+        md5: md5,
+        tags: tag_string,
+        height: image_height,
+        width: image_width,
+        file_size: file_size,
+        sources: source,
+        approver_id: approver_id,
+        locked_tags: locked_tags,
+        rating: rating,
+        parent_id: parent_id,
+        change_seq: change_seq,
+        is_deleted: is_deleted,
+        is_pending: is_pending,
+        duration: duration,
+        fav_count: fav_count,
+        comment_count: comment_count,
       }
       DestroyedPost.create!(post_id: id, post_data: post_data, md5: md5,
                             uploader_ip_addr: uploader_ip_addr, uploader_id: uploader_id,
@@ -1246,7 +1191,7 @@ class Post < ApplicationRecord
       force_flag = options.fetch(:force, false)
       Post.with_timeout(30_000) do
         transaction do
-          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true, force_flag: force_flag)
+          flag = flags.create(reason: reason, reason_name: "deletion", is_resolved: false, is_deletion: true, force_flag: force_flag)
 
           if flag.errors.any?
             raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
@@ -1255,7 +1200,7 @@ class Post < ApplicationRecord
           update(
             is_deleted: true,
             is_pending: false,
-            is_flagged: false
+            is_flagged: false,
           )
           decrement_tag_post_counts
           move_files_on_delete
@@ -1272,7 +1217,7 @@ class Post < ApplicationRecord
     end
 
     def reject_pending_replacements
-      replacements.where(status: 'pending').update_all(status: 'rejected')
+      replacements.where(status: "pending").update_all(status: "rejected")
     end
 
     def undelete!(options = {})
@@ -1285,7 +1230,7 @@ class Post < ApplicationRecord
         raise User::PrivilegeError, "You cannot undelete a post you uploaded"
       end
 
-      if !is_deleted
+      unless is_deleted
         errors.add(:base, "Post is not deleted")
         return
       end
@@ -1294,7 +1239,7 @@ class Post < ApplicationRecord
         self.is_deleted = false
         self.is_pending = false
         self.approver_id = CurrentUser.id
-        flags.each { |x| x.resolve! }
+        flags.each(&:resolve!)
         increment_tag_post_counts
         save
         approvals.create(user: CurrentUser.user)
