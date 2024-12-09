@@ -315,12 +315,12 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({id: :desc})
     end
 
-    if !CurrentUser.user.is_staff? && DangerZone.hide_pending_posts_for > 0
+    if !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       should = [
         {
           range: {
             created_at: {
-              lte: DangerZone.hide_pending_posts_for.hours.ago,
+              lte: Security::Lockdown.hide_pending_posts_for.hours.ago,
             },
           },
         },

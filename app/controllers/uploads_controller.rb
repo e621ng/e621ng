@@ -3,7 +3,7 @@
 class UploadsController < ApplicationController
   before_action :member_only
   before_action :janitor_only, only: [:index, :show]
-  before_action :ensure_uploads_enabled, only: [:new, :create]
+  before_action :ensure_uploads_enabled, only: %i[new create]
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
@@ -82,8 +82,6 @@ class UploadsController < ApplicationController
   end
 
   def ensure_uploads_enabled
-    if DangerZone.uploads_disabled?(CurrentUser.user)
-      access_denied "Uploads are disabled"
-    end
+    access_denied if Security::Lockdown.uploads_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
   end
 end
