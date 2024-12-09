@@ -3,8 +3,9 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index search show for_post]
-  before_action :moderator_only, only: [:unhide, :warning]
-  before_action :admin_only, only: [:destroy]
+  before_action :moderator_only, only: %i[unhide warning]
+  before_action :admin_only, only: %i[destroy]
+  before_action :ensure_lockdown_disabled, except: %i[index search show for_post]
   skip_before_action :api_check
 
   def index
@@ -139,5 +140,9 @@ private
     permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
 
     params.fetch(:comment, {}).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.comments_disabled? && !CurrentUser.is_staff?
   end
 end

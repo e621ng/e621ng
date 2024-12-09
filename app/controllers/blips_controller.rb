@@ -3,9 +3,10 @@
 class BlipsController < ApplicationController
   class BlipTooOld < Exception ; end
   respond_to :html, :json
-  before_action :member_only, only: [:create, :new, :update, :edit, :hide]
-  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :member_only, only: %i[create new update edit hide]
+  before_action :moderator_only, only: %i[unhide warning]
   before_action :admin_only, only: [:destroy]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
 
   rescue_from BlipTooOld, with: :blip_too_old
 
@@ -122,5 +123,9 @@ class BlipsController < ApplicationController
   def check_edit_privilege(blip)
     raise BlipTooOld if blip.created_at < 5.minutes.ago && !CurrentUser.is_admin?
     raise User::PrivilegeError unless blip.can_edit?(CurrentUser.user)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.blips_disabled? && !CurrentUser.is_staff?
   end
 end

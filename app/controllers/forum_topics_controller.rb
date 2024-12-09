@@ -2,12 +2,13 @@
 
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:unhide]
+  before_action :member_only, except: %i[index show]
+  before_action :moderator_only, only: [:unhide]
   before_action :admin_only, only: [:destroy]
-  before_action :normalize_search, :only => :index
-  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
-  before_action :check_min_level, :only => [:show, :edit, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
+  before_action :normalize_search, only: :index
+  before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe]
+  before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
   skip_before_action :api_check
 
   def new
@@ -142,5 +143,9 @@ private
     permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
 
     params.fetch(:forum_topic, {}).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.is_staff?
   end
 end

@@ -1,0 +1,23 @@
+.settings-section {
+  background-color: themed("color-section");
+  border-radius: $border-radius-half;
+  padding: 0.5em 0.75em;
+  margin-bottom: 0.5em;
+
+  .simple_form {
+    background-color: unset !important;
+    padding: 0 !important;
+  }
+}
+
+form.lockdown-form {
+  div.input {
+    display: flex;
+    gap: 0.75em;
+    margin-bottom: 0.25em;
+
+    input[type="checkbox"] {
+      order: -1;
+    }
+  }
+}
