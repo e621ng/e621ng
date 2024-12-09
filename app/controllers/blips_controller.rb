@@ -52,10 +52,10 @@ class BlipsController < ApplicationController
   def destroy
     @blip = Blip.find(params[:id])
     @blip.destroy
-    flash[:notice] = 'Blip deleted'
+    flash[:notice] = "Blip deleted"
     respond_with(@blip) do |format|
       format.html do
-        redirect_back(fallback_location: blip_path(id: @blip.response_to))
+        respond_with(@blip)
       end
     end
   end
