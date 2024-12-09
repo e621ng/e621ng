@@ -10,7 +10,7 @@ module Security
       end
 
       teardown do
-        Security::Lockdown.min_upload_level = User::Levels::MEMBER
+        Security::Lockdown.uploads_min_level = User::Levels::MEMBER
         Security::Lockdown.hide_pending_posts_for = 0
       end
 
@@ -23,14 +23,14 @@ module Security
 
       context "uploading limits action" do
         should "work" do
-          put_auth uploads_min_level_security_lockdown_index_path, @admin, params: { uploading_limits: { min_level: User::Levels::PRIVILEGED } }
-          assert_equal Security::Lockdown.min_upload_level, User::Levels::PRIVILEGED
+          put_auth uploads_min_level_security_lockdown_index_path, @admin, params: { uploads_min_level: { min_level: User::Levels::PRIVILEGED } }
+          assert_equal Security::Lockdown.uploads_min_level, User::Levels::PRIVILEGED
         end
       end
 
       context "hide pending posts action" do
         should "work" do
-          put_auth uploads_hide_pending_security_lockdown_index_path, @admin, params: { hide_pending_posts: { duration: 24 } }
+          put_auth uploads_hide_pending_security_lockdown_index_path, @admin, params: { uploads_hide_pending: { duration: 24 } }
           assert_equal Security::Lockdown.hide_pending_posts_for, 24
         end
       end
