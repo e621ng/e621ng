@@ -95,6 +95,16 @@ Rails.application.routes.draw do
 
   resources :avoid_posting_versions, only: %i[index]
 
+  resources :staff_notes, except: %i[destroy], :controller => "admin/staff_notes" do
+    collection do
+      get :search
+    end
+    member do
+      put :delete
+      put :undelete
+    end
+  end
+
   resources :tickets, except: %i[destroy] do
     member do
       post :claim
@@ -294,7 +304,6 @@ Rails.application.routes.draw do
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
     resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
-    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
 
     collection do
       get :home

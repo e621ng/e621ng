@@ -16,6 +16,10 @@ class ModAction < ApplicationRecord
     avoid_posting_delete: %i[id artist_name],
     avoid_posting_undelete: %i[id artist_name],
     avoid_posting_destroy: %i[id artist_name],
+    staff_note_create: %i[id user_id body],
+    staff_note_update: %i[id user_id body old_body],
+    staff_note_delete: %i[id user_id],
+    staff_note_undelete: %i[id user_id],
     blip_delete: %i[blip_id user_id],
     blip_hide: %i[blip_id user_id],
     blip_unhide: %i[blip_id user_id],
@@ -113,6 +117,10 @@ class ModAction < ApplicationRecord
     else
       valid_keys = KnownActions[action.to_sym]&.map(&:to_s) || []
       sanitized_values = original_values.slice(*valid_keys)
+
+      if %i[staff_note_create staff_note_update staff_note_delete staff_note_undelete].include?(action.to_sym) && !CurrentUser.is_moderator?
+        sanitized_values = sanitized_values.slice([])
+      end
 
       if %i[ip_ban_create ip_ban_delete].include?(action.to_sym)
         sanitized_values = sanitized_values.slice([])

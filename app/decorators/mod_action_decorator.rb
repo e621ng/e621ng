@@ -55,7 +55,7 @@ class ModActionDecorator < ApplicationDecorator
     when "artist_delete"
       "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
-      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} → \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"
       "Locked artist page artist ##{vals['artist_page']}"
     when "artist_page_unlock"
@@ -76,6 +76,40 @@ class ModActionDecorator < ApplicationDecorator
       "Deleted \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_undelete"
       "Undeleted \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+
+      ### Staff Note ###
+    when "staff_note_create"
+      msg = "Created "
+      if CurrentUser.is_moderator?
+        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
+      else
+        msg += "staff note"
+      end
+      msg
+    when "staff_note_update"
+      msg = "Updated "
+      if CurrentUser.is_moderator?
+        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
+      else
+        msg += "staff note"
+      end
+      msg
+    when "staff_note_delete"
+      msg = "Deleted "
+      if CurrentUser.is_moderator?
+        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
+      else
+        msg += "staff note"
+      end
+      msg
+    when "staff_note_undelete"
+      msg = "Undeleted "
+      if CurrentUser.is_moderator?
+        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
+      else
+        msg += "staff note"
+      end
+      msg
 
       ### User ###
 
@@ -276,7 +310,7 @@ class ModActionDecorator < ApplicationDecorator
       ### BURs ###
 
     when "mass_update"
-      "Mass updated [[#{vals['antecedent']}]] -> [[#{vals['consequent']}]]"
+      "Mass updated [[#{vals['antecedent']}]] → [[#{vals['consequent']}]]"
     when "nuke_tag"
       "Nuked tag [[#{vals['tag_name']}]]"
 
@@ -319,7 +353,7 @@ class ModActionDecorator < ApplicationDecorator
         "Edited whitelist entry"
       else
         if vals['old_pattern'] && vals['old_pattern'] != vals['pattern'] && CurrentUser.is_admin?
-          "Edited whitelist entry '#{vals['old_pattern']}' -> '#{vals['pattern']}'"
+          "Edited whitelist entry '#{vals['old_pattern']}' → '#{vals['pattern']}'"
         else
           "Edited whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
         end
