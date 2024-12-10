@@ -1,6 +1,8 @@
-<%= form_search path: admin_staff_notes_path, always_display: true do |f| %>
+<%= form_search path: staff_notes_path do |f| %>
   <%= f.user :creator %>
+  <%= f.user :updater %>
   <%= f.user :user %>
   <%= f.input :body_matches, label: "Body" %>
   <%= f.input :without_system_user, as: :boolean, label: "Hide automated?" %>
+  <%= f.input :include_deleted, as: :boolean, label: "Show deleted?" %>
 <% end %>
