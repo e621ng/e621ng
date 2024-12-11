@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SoftDeletableStaffNotes < ActiveRecord::Migration[7.1]
   def change
     add_column :staff_notes, :is_deleted, :boolean, null: false, default: false
