@@ -80,7 +80,7 @@ class ModActionDecorator < ApplicationDecorator
       ### Staff Note ###
     when "staff_note_create"
       msg = "Created "
-      if CurrentUser.is_moderator?
+      if CurrentUser.is_staff?
         msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
       else
         msg += "staff note"
@@ -88,7 +88,7 @@ class ModActionDecorator < ApplicationDecorator
       msg
     when "staff_note_update"
       msg = "Updated "
-      if CurrentUser.is_moderator?
+      if CurrentUser.is_staff?
         msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
       else
         msg += "staff note"
@@ -96,7 +96,7 @@ class ModActionDecorator < ApplicationDecorator
       msg
     when "staff_note_delete"
       msg = "Deleted "
-      if CurrentUser.is_moderator?
+      if CurrentUser.is_staff?
         msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
       else
         msg += "staff note"
@@ -104,7 +104,7 @@ class ModActionDecorator < ApplicationDecorator
       msg
     when "staff_note_undelete"
       msg = "Undeleted "
-      if CurrentUser.is_moderator?
+      if CurrentUser.is_staff?
         msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
       else
         msg += "staff note"
