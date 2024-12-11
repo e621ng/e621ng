@@ -1356,7 +1356,7 @@ class PostTest < ActiveSupport::TestCase
       should "not decrement the post's score" do
         @member = create(:user)
 
-        assert_no_difference("@post.score") { FavoriteManager.add!(user: @member, post: @post) }
+        assert_difference("@post.score", 1) { FavoriteManager.add!(user: @member, post: @post) }
         assert_no_difference("@post.score") { FavoriteManager.remove!(user: @member, post: @post) }
       end
 
@@ -1389,10 +1389,10 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should "not increment the post's score" do
+      should "increment the post's score" do
         @member = create(:user)
         FavoriteManager.add!(user: @user, post: @post)
-        assert_equal(0, @post.score)
+        assert_equal(1, @post.score)
       end
 
       should "update the fav strings on the post" do
