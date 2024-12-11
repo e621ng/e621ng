@@ -118,7 +118,7 @@ class ModAction < ApplicationRecord
       valid_keys = KnownActions[action.to_sym]&.map(&:to_s) || []
       sanitized_values = original_values.slice(*valid_keys)
 
-      if %i[staff_note_create staff_note_update staff_note_delete staff_note_undelete].include?(action.to_sym) && !CurrentUser.is_moderator?
+      if %i[staff_note_create staff_note_update staff_note_delete staff_note_undelete].include?(action.to_sym) && !CurrentUser.is_staff?
         sanitized_values = sanitized_values.slice([])
       end
 
