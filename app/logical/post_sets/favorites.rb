@@ -20,7 +20,7 @@ module PostSets
     end
 
     def posts
-      @post_count ||= ::Post.tag_match("fav:#{@user.name}", always_show_deleted: true).count_only
+      @post_count ||= ::Post.tag_match("fav:#{@user.name} status:any").count_only
       @posts ||= begin
         favs = ::Favorite.for_user(@user.id).includes(:post).order(created_at: :desc).paginate_posts(page, total_count: @post_count, limit: @limit)
         new_opts = { pagination_mode: :numbered, records_per_page: favs.records_per_page, total_count: @post_count, current_page: current_page }
@@ -29,10 +29,10 @@ module PostSets
     end
 
     def api_posts
-      output = posts
-      fill_children(output)
-      fill_tag_types(output)
-      output
+      _posts = posts
+      fill_children(_posts)
+      fill_tag_types(_posts)
+      _posts
     end
 
     def tag_array

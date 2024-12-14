@@ -4,17 +4,7 @@ require "test_helper"
 
 class PostTest < ActiveSupport::TestCase
   def assert_tag_match(posts, query)
-    expect = posts.map(&:id)
-    assert_equal(expect, Post.tag_match(query).pluck(:id))
-    # assert_equal(expect, Post.tag_match_sql(query).pluck(:id))
-  end
-
-  def assert_tag_match_open_search(posts, query)
     assert_equal(posts.map(&:id), Post.tag_match(query).pluck(:id))
-  end
-
-  def assert_tag_match_sql(posts, query)
-    # assert_equal(posts.map(&:id), Post.tag_match_sql(query).pluck(:id))
   end
 
   setup do
@@ -1582,8 +1572,7 @@ class PostTest < ActiveSupport::TestCase
       post2 = create(:post, tag_string: "aaab bbb")
       post3 = create(:post, tag_string: "bbb ccc")
 
-      assert_tag_match_open_search([post3, post1], "~aaa ~ccc")
-      assert_tag_match_sql([post1, post3], "~aaa ~ccc")
+      assert_tag_match([post3, post1], "~aaa ~ccc")
     end
 
     should "return posts for 1 tag with exclusion" do
@@ -1599,9 +1588,7 @@ class PostTest < ActiveSupport::TestCase
       post2 = create(:post, tag_string: "aaab bbb")
       post3 = create(:post, tag_string: "bbb ccc")
 
-      assert_tag_match_open_search([post2, post1], "a*")
-      # TODO: Implement?
-      # assert_tag_match_sql([post2, post1], "a*")
+      assert_tag_match([post2, post1], "a*")
     end
 
     should "return posts for 2 tags, one with a pattern" do
@@ -1609,9 +1596,7 @@ class PostTest < ActiveSupport::TestCase
       post2 = create(:post, tag_string: "aaab bbb")
       post3 = create(:post, tag_string: "bbb ccc")
 
-      assert_tag_match_open_search([post2], "a* bbb")
-      # TODO: Implement?
-      # assert_tag_match_sql([post2], "a* bbb")
+      assert_tag_match([post2], "a* bbb")
     end
 
     should "return posts for the id:<N> metatag" do
@@ -1681,15 +1666,10 @@ class PostTest < ActiveSupport::TestCase
       posts = users.map { |u| create(:post, approver: u) }
       posts << create(:post, approver: nil)
 
-      assert_tag_match_open_search([posts[0]], "approver:#{users[0].name}")
-      assert_tag_match_open_search([posts[2], posts[1]], "-approver:#{users[0].name}")
-      assert_tag_match_open_search([posts[1], posts[0]], "approver:any")
-      assert_tag_match_open_search([posts[2]], "approver:none")
-      # IDEA: Implement?
-      # assert_tag_match_sql([posts[0]], "approver:#{users[0].name}")
-      # assert_tag_match_sql([posts[2], posts[1]], "-approver:#{users[0].name}")
-      # assert_tag_match_sql([posts[1], posts[0]], "approver:any")
-      # assert_tag_match_sql([posts[2]], "approver:none")
+      assert_tag_match([posts[0]], "approver:#{users[0].name}")
+      assert_tag_match([posts[2], posts[1]], "-approver:#{users[0].name}")
+      assert_tag_match([posts[1], posts[0]], "approver:any")
+      assert_tag_match([posts[2]], "approver:none")
     end
 
     should "return posts for the commenter:<name> metatag" do
@@ -1699,8 +1679,6 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([posts[0]], "commenter:#{users[0].name}")
       assert_tag_match([posts[1]], "commenter:#{users[1].name}")
-      assert_tag_match([posts[0]], "-commenter:#{users[1].name}")
-      assert_tag_match([posts[1]], "-commenter:#{users[0].name}")
     end
 
     should "return posts for the commenter:<any|none> metatag" do
@@ -1710,8 +1688,6 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([posts[0]], "commenter:any")
       assert_tag_match([posts[1]], "commenter:none")
-      assert_tag_match([posts[1]], "-commenter:any")
-      assert_tag_match([posts[0]], "-commenter:none")
     end
 
     should "return posts for the noter:<name> metatag" do
@@ -1719,11 +1695,8 @@ class PostTest < ActiveSupport::TestCase
       posts = create_list(:post, 2)
       notes = users.zip(posts).map { |u, p| create(:note, creator: u, post: p) }
 
-      assert_tag_match_open_search([posts[0]], "noter:#{users[0].name}")
-      assert_tag_match_open_search([posts[1]], "noter:#{users[1].name}")
-      # TODO: Implement
-      # assert_tag_match_sql([posts[0]], "noter:#{users[0].name}")
-      # assert_tag_match_sql([posts[1]], "noter:#{users[1].name}")
+      assert_tag_match([posts[0]], "noter:#{users[0].name}")
+      assert_tag_match([posts[1]], "noter:#{users[1].name}")
     end
 
     should "return posts for the noter:<any|none> metatag" do
@@ -1824,17 +1797,11 @@ class PostTest < ActiveSupport::TestCase
       post2 = create(:post, source: "abcdefg")
       post3 = create(:post, source: "")
 
-      assert_tag_match_open_search([post2], "source:abcde")
-      assert_tag_match_open_search([post3, post1], "-source:abcde")
+      assert_tag_match([post2], "source:abcde")
+      assert_tag_match([post3, post1], "-source:abcde")
 
-      assert_tag_match_open_search([post3], "source:none")
-      assert_tag_match_open_search([post2, post1], "-source:none")
-      # IDEA: Implement?
-      # assert_tag_match_sql([post2], "source:abcde")
-      # assert_tag_match_sql([post3, post1], "-source:abcde")
-
-      # assert_tag_match_sql([post3], "source:none")
-      # assert_tag_match_sql([post2, post1], "-source:none")
+      assert_tag_match([post3], "source:none")
+      assert_tag_match([post2, post1], "-source:none")
     end
 
     # TODO: Known broken. Need to normalize source during search and before index to fix bug with index creation.
@@ -1893,11 +1860,8 @@ class PostTest < ActiveSupport::TestCase
         VoteManager.vote!(user: CurrentUser.user, post: upvoted, score: 1)
         VoteManager.vote!(user: CurrentUser.user, post: downvoted, score: -1)
 
-        assert_tag_match_open_search([upvoted],   "upvote:#{CurrentUser.name}")
-        assert_tag_match_open_search([downvoted], "downvote:#{CurrentUser.name}")
-        # TODO: Implement?
-        # assert_tag_match_sql([upvoted],   "upvote:#{CurrentUser.name}")
-        # assert_tag_match_sql([downvoted], "downvote:#{CurrentUser.name}")
+        assert_tag_match([upvoted],   "upvote:#{CurrentUser.name}")
+        assert_tag_match([downvoted], "downvote:#{CurrentUser.name}")
       end
     end
 
@@ -1924,81 +1888,44 @@ class PostTest < ActiveSupport::TestCase
 
       create(:note, post: posts.second)
 
-      assert_tag_match_open_search(posts.reverse, "order:id_desc")
-      # assert_tag_match_sql(posts.reverse, "order:id_desc")
-      assert_tag_match_open_search(posts.reverse, "order:score")
-      # assert_tag_match_sql(posts.reverse, "order:score")
-      assert_tag_match_open_search(posts.reverse, "order:favcount")
-      # assert_tag_match_sql(posts.reverse, "order:favcount")
-      assert_tag_match_open_search(posts.reverse, "order:change")
-      # assert_tag_match_sql(posts.reverse, "order:change")
-      assert_tag_match_open_search(posts.reverse, "order:comment")
-      # assert_tag_match_sql(posts.reverse, "order:comment")
-      assert_tag_match_open_search(posts.reverse, "order:comment_bumped")
-      # assert_tag_match_sql(posts.reverse, "order:comment_bumped")
-      assert_tag_match_open_search(posts.reverse, "order:note")
-      # assert_tag_match_sql(posts.reverse, "order:note")
-      assert_tag_match_open_search(posts.reverse, "order:mpixels")
-      # assert_tag_match_sql(posts.reverse, "order:mpixels")
-      assert_tag_match_open_search(posts.reverse, "order:portrait")
-      # assert_tag_match_sql(posts.reverse, "order:portrait")
-      assert_tag_match_open_search(posts.reverse, "order:filesize")
-      # assert_tag_match_sql(posts.reverse, "order:filesize")
-      assert_tag_match_open_search(posts.reverse, "order:tagcount")
-      # assert_tag_match_sql(posts.reverse, "order:tagcount")
-      assert_tag_match_open_search(posts.reverse, "order:gentags")
-      # assert_tag_match_sql(posts.reverse, "order:gentags")
-      assert_tag_match_open_search(posts.reverse, "order:arttags")
-      # assert_tag_match_sql(posts.reverse, "order:arttags")
-      assert_tag_match_open_search(posts.reverse, "order:chartags")
-      # assert_tag_match_sql(posts.reverse, "order:chartags")
-      assert_tag_match_open_search(posts.reverse, "order:copytags")
-      # assert_tag_match_sql(posts.reverse, "order:copytags")
-      assert_tag_match_open_search(posts.reverse, "order:rank")
-      # assert_tag_match_sql(posts.reverse, "order:rank")
-      assert_tag_match_open_search(posts.reverse, "order:note_count")
-      # assert_tag_match_sql(posts.reverse, "order:note_count")
-      assert_tag_match_open_search(posts.reverse, "order:note_count_desc")
-      # assert_tag_match_sql(posts.reverse, "order:note_count_desc")
-      assert_tag_match_open_search(posts.reverse, "order:notes")
-      # assert_tag_match_sql(posts.reverse, "order:notes")
-      assert_tag_match_open_search(posts.reverse, "order:notes_desc")
-      # assert_tag_match_sql(posts.reverse, "order:notes_desc")
+      assert_tag_match(posts.reverse, "order:id_desc")
+      assert_tag_match(posts.reverse, "order:score")
+      assert_tag_match(posts.reverse, "order:favcount")
+      assert_tag_match(posts.reverse, "order:change")
+      assert_tag_match(posts.reverse, "order:comment")
+      assert_tag_match(posts.reverse, "order:comment_bumped")
+      assert_tag_match(posts.reverse, "order:note")
+      assert_tag_match(posts.reverse, "order:mpixels")
+      assert_tag_match(posts.reverse, "order:portrait")
+      assert_tag_match(posts.reverse, "order:filesize")
+      assert_tag_match(posts.reverse, "order:tagcount")
+      assert_tag_match(posts.reverse, "order:gentags")
+      assert_tag_match(posts.reverse, "order:arttags")
+      assert_tag_match(posts.reverse, "order:chartags")
+      assert_tag_match(posts.reverse, "order:copytags")
+      assert_tag_match(posts.reverse, "order:rank")
+      assert_tag_match(posts.reverse, "order:note_count")
+      assert_tag_match(posts.reverse, "order:note_count_desc")
+      assert_tag_match(posts.reverse, "order:notes")
+      assert_tag_match(posts.reverse, "order:notes_desc")
 
-      assert_tag_match_open_search(posts, "order:id_asc")
-      # assert_tag_match_sql(posts, "order:id_asc")
-      assert_tag_match_open_search(posts, "order:score_asc")
-      # assert_tag_match_sql(posts, "order:score_asc")
-      assert_tag_match_open_search(posts, "order:favcount_asc")
-      # assert_tag_match_sql(posts, "order:favcount_asc")
-      assert_tag_match_open_search(posts, "order:change_asc")
-      # assert_tag_match_sql(posts, "order:change_asc")
-      assert_tag_match_open_search(posts, "order:comment_asc")
-      # assert_tag_match_sql(posts, "order:comment_asc")
-      assert_tag_match_open_search(posts, "order:comment_bumped_asc")
-      # assert_tag_match_sql(posts, "order:comment_bumped_asc")
-      assert_tag_match_open_search(posts, "order:note_asc")
-      # assert_tag_match_sql(posts, "order:note_asc")
-      assert_tag_match_open_search(posts, "order:mpixels_asc")
-      # assert_tag_match_sql(posts, "order:mpixels_asc")
-      assert_tag_match_open_search(posts, "order:landscape")
-      # assert_tag_match_sql(posts, "order:landscape")
-      assert_tag_match_open_search(posts, "order:filesize_asc")
-      # assert_tag_match_sql(posts, "order:filesize_asc")
-      assert_tag_match_open_search(posts, "order:tagcount_asc")
-      # assert_tag_match_sql(posts, "order:tagcount_asc")
-      assert_tag_match_open_search(posts, "order:gentags_asc")
-      # assert_tag_match_sql(posts, "order:gentags_asc")
-      assert_tag_match_open_search(posts, "order:arttags_asc")
-      # assert_tag_match_sql(posts, "order:arttags_asc")
-      assert_tag_match_open_search(posts, "order:chartags_asc")
-      # assert_tag_match_sql(posts, "order:chartags_asc")
-      assert_tag_match_open_search(posts, "order:copytags_asc")
-      # assert_tag_match_sql(posts, "order:copytags_asc")
-      assert_tag_match_open_search(posts, "order:note_count_asc")
-      # assert_tag_match_sql(posts, "order:note_count_asc")
-      assert_tag_match_open_search(posts, "order:notes_asc")
-      # assert_tag_match_sql(posts, "order:notes_asc")
+      assert_tag_match(posts, "order:id_asc")
+      assert_tag_match(posts, "order:score_asc")
+      assert_tag_match(posts, "order:favcount_asc")
+      assert_tag_match(posts, "order:change_asc")
+      assert_tag_match(posts, "order:comment_asc")
+      assert_tag_match(posts, "order:comment_bumped_asc")
+      assert_tag_match(posts, "order:note_asc")
+      assert_tag_match(posts, "order:mpixels_asc")
+      assert_tag_match(posts, "order:landscape")
+      assert_tag_match(posts, "order:filesize_asc")
+      assert_tag_match(posts, "order:tagcount_asc")
+      assert_tag_match(posts, "order:gentags_asc")
+      assert_tag_match(posts, "order:arttags_asc")
+      assert_tag_match(posts, "order:chartags_asc")
+      assert_tag_match(posts, "order:copytags_asc")
+      assert_tag_match(posts, "order:note_count_asc")
+      assert_tag_match(posts, "order:notes_asc")
     end
 
     should "return posts for order:comment_bumped" do
@@ -2012,17 +1939,13 @@ class PostTest < ActiveSupport::TestCase
         create(:comment, post: post3)
       end
 
-      assert_tag_match_open_search([post3, post1], "order:comment_bumped")
-      # assert_tag_match_sql([post3, post1], "order:comment_bumped")
-      assert_tag_match_open_search([post1, post3], "order:comment_bumped_asc")
-      # assert_tag_match_sql([post1, post3], "order:comment_bumped_asc")
+      assert_tag_match([post3, post1], "order:comment_bumped")
+      assert_tag_match([post1, post3], "order:comment_bumped_asc")
 
       create(:comment, post: post2)
 
-      assert_tag_match_open_search([post2, post3, post1], "order:comment_bumped")
-      # assert_tag_match_sql([post2, post3, post1], "order:comment_bumped")
-      assert_tag_match_open_search([post1, post3, post2], "order:comment_bumped_asc")
-      # assert_tag_match_sql([post1, post3, post2], "order:comment_bumped_asc")
+      assert_tag_match([post2, post3, post1], "order:comment_bumped")
+      assert_tag_match([post1, post3, post2], "order:comment_bumped_asc")
     end
 
     should "return posts for a filesize search" do
@@ -2096,11 +2019,8 @@ class PostTest < ActiveSupport::TestCase
       replacement4 = create(:webm_replacement, creator: @user, post: post4)
       replacement4.destroy!
 
-      assert_tag_match_open_search([], "pending_replacements:true")
-      assert_tag_match_open_search([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
-      # TODO: Implement?
-      # assert_tag_match_sql([], "pending_replacements:true")
-      # assert_tag_match_sql([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([], "pending_replacements:true")
+      assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do

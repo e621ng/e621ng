@@ -134,10 +134,6 @@ class Pool < ApplicationRecord
     name.gsub(/[_[:space:]]+/, "_").gsub(/\A_|_\z/, "")
   end
 
-  ##
-  # Finds entries by:
-  # 1. Matching ids (if given a numeric string)
-  # 2. The normalized lowercase name
   def self.find_by_name(name)
     if name =~ /\A\d+\z/
       where("pools.id = ?", name.to_i).first

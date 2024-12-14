@@ -82,6 +82,13 @@ class TagQuery
     order limit randseed
   ].freeze
 
+  ##
+  # The valid values for the status metatag.
+  # any == all, modqueue == (pending || flagged), active == (!pending && !flagged && !deleted)
+  STATUS_VALUES = %w[
+    all any pending flagged modqueue deleted active
+  ].freeze
+
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 
@@ -127,10 +134,6 @@ class TagQuery
         raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
       end
     end
-  end
-
-  def total_tag_count
-    @tag_count + @free_tags_count
   end
 
   def self.normalize(query)

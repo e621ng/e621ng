@@ -53,13 +53,11 @@ module PostSets
     end
 
     def hidden_posts
-      # @hidden_posts ||= posts.select { |p| !p.visible? }
-      @hidden_posts ||= posts.reject(&:visible?)
+      @hidden_posts ||= posts.select { |p| !p.visible? }
     end
 
     def login_blocked_posts
-      # @login_blocked ||= posts.select { |p| p.loginblocked? }
-      @login_blocked_posts ||= posts.select(&:loginblocked?)
+      @login_blocked ||= posts.select { |p| p.loginblocked? }
     end
 
     def safe_posts
