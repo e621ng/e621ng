@@ -352,13 +352,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ id: :desc })
     end
 
-    if !CurrentUser.user.is_staff? && DangerZone.hide_pending_posts_for > 0
+    if !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       # TODO: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
       should.push(
         {
           range: {
             created_at: {
-              lte: DangerZone.hide_pending_posts_for.hours.ago,
+              lte: Security::Lockdown.hide_pending_posts_for.hours.ago,
             },
           },
         },

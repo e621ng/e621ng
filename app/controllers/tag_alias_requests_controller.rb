@@ -2,6 +2,7 @@
 
 class TagAliasRequestsController < ApplicationController
   before_action :member_only
+  before_action :ensure_lockdown_disabled
 
   def new
   end
@@ -19,11 +20,15 @@ class TagAliasRequestsController < ApplicationController
     end
   end
 
-private
+  private
 
   def tar_params
-    permitted = %i{antecedent_name consequent_name reason}
+    permitted = %i[antecedent_name consequent_name reason]
     permitted += [:skip_forum] if CurrentUser.is_admin?
     params.require(:tag_alias_request).permit(permitted)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.aiburs_disabled? && !CurrentUser.is_staff?
   end
 end
