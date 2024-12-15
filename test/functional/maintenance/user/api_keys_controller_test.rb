@@ -7,7 +7,7 @@ module Maintenance
     class ApiKeysControllerTest < ActionDispatch::IntegrationTest
       context "An api keys controller" do
         setup do
-          @user = create(:privileged_user, :password => "password")
+          @user = create(:privileged_user, password: "6cQE!wbA")
           ApiKey.generate!(@user)
         end
 
@@ -21,7 +21,7 @@ module Maintenance
         context "#view" do
           context "with a correct password" do
             should "succeed" do
-              post_auth view_maintenance_user_api_key_path(user_id: @user.id), @user, params: {user: {password: "password"}}
+              post_auth view_maintenance_user_api_key_path(user_id: @user.id), @user, params: { user: { password: "6cQE!wbA" } }
               assert_response :success
             end
 
@@ -37,7 +37,7 @@ module Maintenance
             #     ApiKey.expects(:generate!)
 
             #     assert_difference("ApiKey.count", 1) do
-            #       post view_maintenance_user_api_key_path(user_id: @user.id), params: {user: {password: "password"}}
+            #       post view_maintenance_user_api_key_path(user_id: @user.id), params: { user: { password: "6cQE!wbA" } }
             #     end
 
             #     assert_not_nil(@user.reload.api_key)
@@ -46,7 +46,7 @@ module Maintenance
 
             should "not generate another API key if the user already has one" do
               assert_difference("ApiKey.count", 0) do
-                post_auth view_maintenance_user_api_key_path(user_id: @user.id), @user, params: {user: {password: "password"}}
+                post_auth view_maintenance_user_api_key_path(user_id: @user.id), @user, params: { user: { password: "6cQE!wbA" } }
               end
             end
           end
@@ -55,14 +55,14 @@ module Maintenance
         context "#update" do
           should "regenerate the API key" do
             old_key = @user.api_key
-            put_auth maintenance_user_api_key_path, @user, params: {user_id: @user.id, user: {password: "password"}}
+            put_auth maintenance_user_api_key_path, @user, params: {user_id: @user.id, user: { password: "6cQE!wbA" } }
             assert_not_equal(old_key.key, @user.reload.api_key.key)
           end
         end
 
         context "#destroy" do
           should "delete the API key" do
-            delete_auth maintenance_user_api_key_path, @user, params: {user_id: @user.id, user: {password: "password"}}
+            delete_auth maintenance_user_api_key_path, @user, params: {user_id: @user.id, user: { password: "6cQE!wbA" } }
             assert_nil(@user.reload.api_key)
           end
         end

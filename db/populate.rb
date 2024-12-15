@@ -37,7 +37,7 @@ POSTVOTES = presets[:postvotes]
 POOLS     = presets[:pools]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
-DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "qwerty")
+DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
 
 CurrentUser.user = User.system
 
