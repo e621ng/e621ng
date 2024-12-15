@@ -11,17 +11,27 @@ class TagQueryTest < ActiveSupport::TestCase
     # assert_equal(['test:"with spaces"', "aaa", "def"], TagQuery.scan('aaa test:"with spaces" def'))
   end
 
-  # TODO: Figure out tests for hoisting tags in scan_search
-
-  should "scan a grouped query" do
-    # Pull out top-level group
-    assert_equal(%w[aaa bbb], TagQuery.scan_search("( aaa bbb )"))
-    # Don't pull out top-level group w/ modifier
-    assert_equal(["-( aaa bbb )"], TagQuery.scan_search("-( aaa bbb )"))
-    assert_equal(["( aaa )", "-( bbb )"], TagQuery.scan_search("( aaa ) -( bbb )"))
-    assert_equal(["~( AAa -BBB* )", "-bbb*"], TagQuery.scan_search("~( AAa -BBB* ) -bbb*"))
-    # assert_equal(["~AAa", "-BBB*", "-bbb*"], TagQuery.scan_search("~AAa -BBB* -bbb*"))
-    assert_equal(["aaa", 'test:"with spaces"', "def"], TagQuery.scan_search('aaa test:"with spaces" def'))
+  context "While scanning for searching" do
+    should "behave identically to the non-search variant when no groups exist" do
+      assert_equal(%w[aaa bbb], TagQuery.scan_search("aaa bbb"))
+      assert_equal(%w[~AAa -BBB* -bbb*], TagQuery.scan_search("~AAa -BBB* -bbb*"))
+      # Order is now preserved
+      assert_equal(["aaa", 'test:"with spaces"', "def"], TagQuery.scan_search('aaa test:"with spaces" def'))
+      # assert_equal(['test:"with spaces"', "aaa", "def"], TagQuery.scan_search('aaa test:"with spaces" def'))
+    end
+    should "pull out top-level group w/o a modifier" do
+      assert_equal(%w[aaa bbb], TagQuery.scan_search("( aaa bbb )"))
+    end
+    should "not pull out top-level group w/ a modifier" do
+      assert_equal(["-( aaa bbb )"], TagQuery.scan_search("-( aaa bbb )"))
+    end
+    should "properly handle simple groups" do
+      assert_equal(["( aaa )", "-( bbb )"], TagQuery.scan_search("( aaa ) -( bbb )"))
+      assert_equal(["~( AAa -BBB* )", "-bbb*"], TagQuery.scan_search("~( AAa -BBB* ) -bbb*"))
+    end
+    should "hoist metatags" do
+      assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"))
+    end
   end
 
   should "scan a grouped query recursively" do
@@ -172,10 +182,6 @@ class TagQueryTest < ActiveSupport::TestCase
       TagQuery.scan_recursive('aaa test:"with spaces" def'),
     )
   end
-
-  # TODO: Figure out tests for normalizing tags in scan_recursive
-  # TODO: Figure out tests for sorting tags in scan_recursive
-  # TODO: Figure out tests for distributing prefixes in scan_recursive
 
   should "recursively scan and strip duplicates" do
     assert_equal(
@@ -356,29 +362,42 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
-  should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-    # scan_recursive top level
-    assert_raise(TagQuery::DepthExceededError) do
-      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-    # scan_recursive non-top level
-    assert_raise(TagQuery::DepthExceededError) do
-      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-    # scan_recursive mixed level
-    assert_raise(TagQuery::DepthExceededError) do
-      TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-    # Unpacking a search of a single group
-    assert_raise(TagQuery::DepthExceededError) do
-      TagQuery.new((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-    # Hoisting
-    assert_raise(TagQuery::DepthExceededError) do
-      TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
+  # TODO: Figure out tests for normalizing tags in scan_recursive
+  # TODO: Figure out tests for sorting tags in scan_recursive
+  # TODO: Figure out tests for distributing prefixes in scan_recursive
+
+  context "While recursively scanning" do
+    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      # top level
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
+      # non-top level
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
+      # mixed level query
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
     end
   end
 
+  context "While hoisting through the constructor" do
+    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
+      end
+    end
+  end
+
+  context "While unpacking a search of a single group through the constructor" do
+    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.new((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
+    end
+  end
   # TODO: Figure out tests for recurse_through_metatags
   # TODO: Figure out tests for normalize
 end

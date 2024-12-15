@@ -11,7 +11,12 @@ class TagQuery
     delegate :[], :include?, to: :@q
     attr_reader :q, :resolve_aliases, :tag_count
 
-    def initialize(msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time", query_obj:, resolve_aliases:, tag_count:)
+    def initialize(
+      msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
+      query_obj:,
+      resolve_aliases:,
+      tag_count:
+    )
       @q = query_obj
       @resolve_aliases = resolve_aliases
       @tag_count = tag_count
@@ -29,7 +34,12 @@ class TagQuery
     delegate :[], :include?, to: :@q
     attr_reader :q, :resolve_aliases, :tag_count
 
-    def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", query_obj:, resolve_aliases:, tag_count:)
+    def initialize(
+      msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time",
+      query_obj:,
+      resolve_aliases:,
+      tag_count:
+    )
       @q = query_obj
       @resolve_aliases = resolve_aliases
       @tag_count = tag_count
@@ -136,6 +146,19 @@ class TagQuery
     end
   end
 
+  ##
+  # Convert query into a consistent representation.
+  # * Converts to string
+  # * Unicode normalizes w/ nfc
+  # * Removes leading & trailing whitespace
+  # * For each token:
+  #   * Converts to lowercase
+  #   * Removes leading & trailing whitespace
+  #   * Converts interior whitespace to underscores
+  #   * Resolves tag aliases
+  # * Sorts
+  # * Removes duplicates
+  # * Joins into a unified string
   def self.normalize(query)
     tags = TagQuery.scan(query)
     tags = tags.map { |t| Tag.normalize_name(t) }
@@ -143,58 +166,56 @@ class TagQuery
     tags.sort.uniq.join(" ")
   end
 
-  def self.normalize_tag_array(tags, strip_duplicates: false, handle_prefixes: true)
-    modifiers = []
-    tags = tags.map do |t|
-      if handle_prefixes
-        m = /\A([-~]?).*\z/.match(t)
-        modifiers << m[1]
-      end
-      Tag.normalize_name(t)
-    end
-    tags = TagAlias.to_aliased(tags)
-    tags.map! { |t| "#{modifiers.slice!(0)}#{t}" } if handle_prefixes
-    (strip_duplicates ? tags.uniq : tags)
-  end
+  # def self.normalize_tag_array(tags, strip_duplicates: false, handle_prefixes: true)
+  #   modifiers = []
+  #   tags = tags.map do |t|
+  #     if handle_prefixes
+  #       m = /\A([-~]?).*\z/.match(t)
+  #       modifiers << m[1]
+  #     end
+  #     Tag.normalize_name(t)
+  #   end
+  #   tags = TagAlias.to_aliased(tags)
+  #   tags.map! { |t| "#{modifiers.slice!(0)}#{t}" } if handle_prefixes
+  #   (strip_duplicates ? tags.uniq : tags)
+  # end
 
   ##
-  # Convert query into a consistent representation.
+  # Convert query into a consistent representation while honoring grouping.
+  # Recursively:
   # * Converts to string
   # * Unicode normalizes w/ nfc
-  # * Converts to lowercase
   # * Removes leading & trailing whitespace
-  # * Converts interior whitespace to underscores
-  # * Resolves tag aliases
-  # query,
-  # sort: true
-  # strip_all_duplicates: false
-  # strip_duplicates_at_level: true
-  # strip_prefixes: true
-  def self.normalize_search(
-    query,
-    sort: true,
-    strip_all_duplicates: false,
-    strip_duplicates_at_level: true,
-    strip_prefixes: true
-  )
+  # * For each token:
+  #   * Converts to lowercase
+  #   * Removes leading & trailing whitespace
+  #   * Converts interior whitespace to underscores
+  #   * Resolves tag aliases
+  # * Sorts
+  # * Removes duplicates at that group's top level
+  # Then, if +flatten+, Joins into a unified string
+  def self.normalize_search(query, flatten: true)
     tags = scan_recursive(
       query,
-      strip_duplicates_at_level: strip_duplicates_at_level,
-      strip_prefixes: strip_prefixes,
-      sort_at_level: sort,
+      flatten: flatten,
+      strip_duplicates_at_level: true,
+      strip_prefixes: false,
+      sort_at_level: true,
       normalize_at_level: true,
     )
-    (strip_all_duplicates ? tags.uniq : tags).join(" ")
+    flatten ? tags.join(" ") : tags
   end
 
   def self.tokenize_regex
-    /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:"[^"]*"))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
+    # /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:"[^"]*"))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
+    /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
   end
 
   def self.match_tokens_redux(
     tagstr,
     recurse: false,
     stop_at_group: false,
+    and_then: nil,
     &block
   )
     tagstr = tagstr.to_s.unicode_normalize(:nfc).strip
@@ -205,22 +226,25 @@ class TagQuery
         r << (block_given? ? block.call(m) : m) if m[:group].blank? || stop_at_group
         if m[:group].present?
           r << if block_given?
-                 match_tokens_redux(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
+                 match_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
                else
-                 match_tokens_redux(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
+                 match_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
                end
         end
       end
     else
-      block_given? ? tagstr.scan(tokenize_regex) { |_| r << block.call(Regexp.last_match) } : tagstr.scan(tokenize_regex) { |_| r << Regexp.last_match }
+      tagstr.scan(tokenize_regex) { |_| r << (block_given? ? block.call(Regexp.last_match) : Regexp.last_match) }
     end
-    r
+    and_then.respond_to?(:call) ? and_then.call(r) : r
   end
 
+  ##
+  # Iterates through tokens, returning the tokens' string values.
   def self.scan_tokens_redux(
     tagstr,
     recurse: false,
     stop_at_group: false,
+    and_then: nil,
     &block
   )
     tagstr = tagstr.to_s.unicode_normalize(:nfc).strip
@@ -231,54 +255,58 @@ class TagQuery
         r << (block_given? ? block.call(m[:prefix] + m[:body]) : m[:prefix] + m[:body]) if m[:group].blank? || stop_at_group
         if m[:group].present?
           r << if block_given?
-                 scan_tokens_redux(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
+                 scan_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
                else
-                 scan_tokens_redux(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
+                 scan_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
                end
         end
       end
     else
-      # block_given? ? tagstr.scan(tokenize_regex) { |m| r << block.call(m[:prefix] + m[:body]) } : tagstr.scan(tokenize_regex) { |m| r << m }
-      block_given? ? tagstr.scan(tokenize_regex) { |m| r << block.call(m.strip) } : tagstr.scan(tokenize_regex) { |m| r << m.strip }
+      tagstr.scan(tokenize_regex) do |m|
+        m = m.is_a?(String) ? m.strip : Regexp.last_match[0].strip
+        r << block_given? ? block.call(m) : m
+      end
     end
-    r
+    and_then.respond_to?(:call) ? and_then.call(r) : r
   end
 
-  def self.scan_tokens(
-    tagstr,
-    use_match_data: true,
-    recurse: false,
-    stop_at_group: false,
-    &block
-  )
-    tagstr = tagstr.to_s.unicode_normalize(:nfc).strip
-    r = []
-    if recurse
-      tagstr.scan(tokenize_regex) do |match|
-        m = Regexp.last_match
-        if m[:group].blank? || stop_at_group
-          val = use_match_data ? m : match.strip
-          r << (block_given? ? block.call(val) : val)
-        end
-        if m[:group].present?
-          r << if block_given?
-                 scan_tokens(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, use_match_data: use_match_data, &block)
-               else
-                 scan_tokens(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, use_match_data: use_match_data)
-               end
-        end
-      end
-      r
-    elsif block_given?
-      tagstr.scan(tokenize_regex) { |m| r << block.call(use_match_data ? Regexp.last_match : m.strip) }
-      r
-    elsif use_match_data
-      tagstr.scan(tokenize_regex) { |_| r << Regexp.last_match }
-      r
-    else
-      tagstr.scan(tokenize_regex)
-    end
-  end
+  # ##
+  # # Iterates through tokens, returning the tokens' string values.
+  # def self.scan_tokens(
+  #   tagstr,
+  #   use_match_data: true,
+  #   recurse: false,
+  #   stop_at_group: false,
+  #   &block
+  # )
+  #   tagstr = tagstr.to_s.unicode_normalize(:nfc).strip
+  #   r = []
+  #   if recurse
+  #     tagstr.scan(tokenize_regex) do |match|
+  #       m = Regexp.last_match
+  #       if m[:group].blank? || stop_at_group
+  #         val = use_match_data ? m : match.strip
+  #         r << (block_given? ? block.call(val) : val)
+  #       end
+  #       if m[:group].present?
+  #         r << if block_given?
+  #                scan_tokens(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, use_match_data: use_match_data, &block)
+  #              else
+  #                scan_tokens(m[:group][/\A\(\s+(.*)\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, use_match_data: use_match_data)
+  #              end
+  #       end
+  #     end
+  #     r
+  #   elsif block_given?
+  #     tagstr.scan(tokenize_regex) { |m| r << block.call(use_match_data ? Regexp.last_match : m.strip) }
+  #     r
+  #   elsif use_match_data
+  #     tagstr.scan(tokenize_regex) { |_| r << Regexp.last_match }
+  #     r
+  #   else
+  #     tagstr.scan(tokenize_regex)
+  #   end
+  # end
 
   # HACK: Check if filtering quoted metatags and then searching for a group is faster (it likely is)
   def self.has_groups?(query)
@@ -295,8 +323,10 @@ class TagQuery
   end
 
   ##
+  # Scan variant that properly handles groups.
   # This will only pull the tags in +hoisted_metatags+ up to the top level
-  # preserve_whitespace: false
+  # hoisted_metatags=TagQuery::GLOBAL_METATAGS: the metatags to lift out of groups to the top level.
+  # error_on_depth_exceeded=false:
   # TODO: Test hoisting
   def self.scan_search(
     query,
@@ -305,16 +335,16 @@ class TagQuery
     **kwargs
   )
     depth_limit = TagQuery::DEPTH_LIMIT unless (depth_limit = kwargs.fetch(:depth_limit, nil)).is_a?(Numeric) && depth_limit <= TagQuery::DEPTH_LIMIT
-    if depth_limit < 0
-      return error_on_depth_exceeded ? (raise DepthExceededError) : []
-    end
+    return error_on_depth_exceeded ? (raise DepthExceededError) : [] if depth_limit < 0
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     # Quick exit if given an empty search or a single group w/ an empty search
     return [] if tagstr.empty? || tagstr[/\A[-~]?\(\s+\)\z/].present?
     matches = []
     hoist_regex_stub = nil
     depth = 1
-    scan_tokens(tagstr, use_match_data: true, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
+    # scan_opts = { use_match_data: true, recurse: false, stop_at_group: true }
+    scan_opts = { recurse: false, stop_at_group: true }
+    match_tokens_redux(tagstr, **scan_opts) do |m| # rubocop:disable Metrics/BlockLength
       # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
       if m.begin(:group) == 0 && m.end(:group) == tagstr.length
         return matches = scan_search(
@@ -325,26 +355,27 @@ class TagQuery
         )
         # This will change the tag order, putting the hoisted tags in front of the groups that previously contained them
       elsif m[:group].present? && hoisted_metatags.present? &&
-            m[:group][/#{hoist_regex_stub ||= [hoisted_metatags].inject(nil) { |prior, e| prior ? "#{prior}|#{e}" : e }}:\S+/]
+            m[:group][/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.inject(nil) { |p, e| p ? "#{p}|#{e}" : e }})"}:\S+/]
         cb = ->(sub_match) do
           # if there's a group w/ a hoisted tag,
           if sub_match[:group].present? && sub_match[:group][/#{hoist_regex_stub}:\S+/]
             raise DepthExceededError if (depth += 1) > depth_limit && error_on_depth_exceeded
-            g = sub_match[0].match(kwargs.fetch(:preserve_whitespace, false) ? /\(\s+(.+(?<!\s))\s+\)/ : /\(\s+(.*)\s+\)/)
-            r_out = depth > depth_limit ? "" : scan_tokens(g[1], use_match_data: true, recurse: false, stop_at_group: true, &cb).inject("") { |p, c| p + c }
+            next (depth -= 1 || true) && (sub_match[0].presence&.strip || "") unless (g = sub_match[0].match(/\(\s+(.+)\s+\)/))
+            r_out = depth > depth_limit ? "" : match_tokens_redux(g[1].strip, **scan_opts, &cb).inject("") { |p, c| "#{p} #{c}".strip }
             depth -= 1
-            (sub_match[0][0, g.begin(1)] + r_out + sub_match[0][g.end(1)..])
-          elsif (sub_match[:metatag].present? && sub_match[:metatag][/\A#{hoist_regex_stub}:"[^"]"\z/]) ||
-                (sub_match[:tag].present? && sub_match[:tag][/\A#{hoist_regex_stub}:\S+\z/])
+            "#{sub_match[0][0, g.begin(1)].strip} #{r_out.strip} #{sub_match[0][g.end(1)..].strip}"
+          # elsif (sub_match[:metatag].present? && sub_match[:metatag][/\A#{hoist_regex_stub}:"[^"]*"\z/]) ||
+          #       (sub_match[:tag].present? && sub_match[:tag][/\A#{hoist_regex_stub}:\S+\z/])
+          elsif (sub_match[:metatag].presence || sub_match[:tag].presence || "")[/\A#{hoist_regex_stub}:(?>"[^"]*"|\S+)\z/]
             matches << sub_match[0].strip
             ""
           else
-            sub_match[0]
+            sub_match[0].strip
           end
         end
-        matches << cb.call(m)
+        matches << ((outv = cb.call(m)).respond_to?(:flatten) ? outv.flatten : outv)
       else
-        matches << ((m[:prefix] || "") + m[:body])
+        matches << m[0].strip
       end
     end
     matches
@@ -383,129 +414,88 @@ class TagQuery
 
   ##
   # TODO: Add hoisted tag support
+  #
   # TODO: Convert from match_tokens_redux to using the regexp directly
+  #
   # +strip_duplicates_at_level+: [false] Removes any duplicate tags at the
   # current level, and recursively do the same for each group.
-  # +delimit_groups+: Surround groups w/ parentheses elements. Unless +strip_prefixes+ or
+  #
+  # +delimit_groups+: [true] Surround groups w/ parentheses elements. Unless +strip_prefixes+ or
   # +distribute_prefixes+ are truthy, preserves prefix.
+  #
   # +sort_at_level+: [false]
+  #
   # +normalize_at_level+: [false]
-  # +delimit_groups+: [true]
+  #
   # +error_on_depth_exceeded+: [false]
+  #
+  # Recursive Parameters (SHOULDN'T BE USED BY OUTSIDE METHODS)
+  #
+  # +depth+: [0]
   def self.scan_recursive(
     query,
-    # strip_duplicates_at_level: false,
-    # delimit_groups: true,
     flatten: true,
     strip_prefixes: false,
-    # hoisted_metatags: nil,
-    # sort_at_level: false,
-    # normalize_at_level: false,
     distribute_prefixes: nil,
-    # error_on_depth_exceeded: false,
-    # depth: 0,
     **kwargs
   )
-    depth = 1 + kwargs.fetch(:depth, 0)
-    kwargs[:depth] = depth
+    kwargs[:depth] = (depth = 1 + kwargs.fetch(:depth, 0))
     if depth > TagQuery::DEPTH_LIMIT
-      if kwargs.fetch(:error_on_depth_exceeded, false) # error_on_depth_exceeded
-        raise DepthExceededError
-      else
-        return handle_top_level(
-          [],
-          nil,
-          flatten: flatten,
-          strip_prefixes: strip_prefixes,
-          distribute_prefixes: distribute_prefixes,
-          **kwargs,
-        )
-      end
+      return raise DepthExceededError if kwargs.fetch(:error_on_depth_exceeded, false)
+      return handle_top_level(
+        [], nil,
+        flatten: flatten, strip_prefixes: strip_prefixes, distribute_prefixes: distribute_prefixes,
+        **kwargs
+      )
     end
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     matches = []
     last_group_index = -1
     group_ranges = [] if flatten
     top = flatten ? [] : nil
-    # hoist_regex_stub = nil
     match_tokens_redux(tagstr, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
       distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
       if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tagstr.length
-        # tagstr = m[:body]
         matches = if depth > TagQuery::DEPTH_LIMIT
                     []
                   else
                     TagQuery.scan_recursive(
                       m[:body][/\A\(\s+\)\z/] ? "" : m[:body][/\A\(\s+(.*)\s+\)\z/, 1],
-                      # hoisted_metatags: hoisted_metatags,
-                      # strip_duplicates_at_level: strip_duplicates_at_level,
-                      # delimit_groups: delimit_groups,
                       flatten: flatten,
                       strip_prefixes: strip_prefixes,
-                      # sort_at_level: sort_at_level,
-                      # normalize_at_level: normalize_at_level,
                       distribute_prefixes: distribute_prefixes,
-                      # depth: depth,
-                      # error_on_depth_exceeded: error_on_depth_exceeded,
                       **kwargs,
                     )
                   end
         distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
-        # if kwargs.fetch(:delimit_groups, true)
-        #   matches.insert(0, "#{strip_prefixes || distribute_prefixes ? '' : m[:prefix]}(") << ")"
-        #   return flatten ? matches : (matches = [matches])
-        # elsif !(strip_prefixes || distribute_prefixes) && m[:prefix].present?
-        #   # TODO: What should be done when not stripping modifiers & not delimiting groups?
-        #   # Either place the modifier alone outside the array or inside the array?
-        #   # This won't correctly reconstitute the original string without dedicated code.
-        #   # Currently places alone inside if flattening and outside otherwise
-        #   # If flattening and not delimiting, modifier application is unable to be determined,
-        #   # so remove entirely? Change options to force validity or split into 2 methods?
-        #   return matches = flatten ? matches.insert(0, m[:prefix]) : [m[:prefix], matches]
-        # else
-        #   return flatten ? matches : (matches = [matches])
-        # end
         return handle_top_level(
-          matches,
-          m[:prefix],
-          flatten: flatten,
-          strip_prefixes: strip_prefixes,
-          distribute_prefixes: distribute_prefixes,
-          **kwargs,
+          matches, m[:prefix],
+          flatten: flatten, strip_prefixes: strip_prefixes, distribute_prefixes: distribute_prefixes,
+          **kwargs
         )
       elsif m[:group].present?
         distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
         value = TagQuery.scan_recursive(
-          # m[0].strip,
-          # "#{resolve_distributed_tag(distribute_prefixes) || m[:prefix]}#{m[:body]}",
           m[0].strip,
-          # hoisted_metatags: hoisted_metatags,
-          # strip_duplicates_at_level: strip_duplicates_at_level,
-          # delimit_groups: delimit_groups,
           flatten: flatten,
           strip_prefixes: strip_prefixes,
-          # sort_at_level: sort_at_level,
-          # normalize_at_level: normalize_at_level,
           distribute_prefixes: distribute_prefixes,
-          # depth: depth - 1,
-          # depth: depth,
           **kwargs,
         )
         distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
         is_duplicate = false
         dup_check = ->(e) { e.empty? ? value.empty? : e.difference(value).blank? }
-        if kwargs.fetch(:strip_duplicates_at_level, false) # strip_duplicates_at_level
+        if kwargs.fetch(:strip_duplicates_at_level, false)
           if flatten
-            # matches.each_cons(value.length) { |e| is_duplicate = true if e == value }
-            matches.each_cons(value.length) { |e| is_duplicate = true if is_duplicate || dup_check.call(e) } # rubocop:disable Metrics/BlockNesting
+            matches.each_cons(value.length) { |e| break if (is_duplicate = dup_check.call(e)) } # rubocop:disable Metrics/BlockNesting
           else
             is_duplicate = matches.any?(&dup_check)
           end
         end
         unless is_duplicate
           # splat regardless of flattening to correctly de-nest value
-          if kwargs.fetch(:sort_at_level, false) # sort_at_level
+          if kwargs.fetch(:sort_at_level, false)
             group_ranges << ((last_group_index + 1)..(last_group_index + value.length)) if flatten # rubocop:disable Metrics/BlockNesting
             matches.insert(last_group_index += value.length, *value)
           else
@@ -515,7 +505,6 @@ class TagQuery
       else
         prefix = !strip_prefixes && (m[:prefix] || distribute_prefixes) ? resolve_distributed_tag(distribute_prefixes) || m[:prefix] : ""
         value = prefix + (kwargs.fetch(:normalize_at_level, false) ? normalize_single_tag(m[:body]) : m[:body])
-        # unless strip_duplicates_at_level && (top || matches).include?(value)
         unless kwargs.fetch(:strip_duplicates_at_level, false) && (top || matches).include?(value)
           matches << value
           top << value if flatten
@@ -523,15 +512,13 @@ class TagQuery
       end
       distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
     end
-    if kwargs.fetch(:sort_at_level, false) # sort_at_level
+    if kwargs.fetch(:sort_at_level, false)
       if last_group_index >= 0
         pre = matches.slice!(0, last_group_index + 1)
         pre = flatten ? group_ranges.map { |e| pre.slice(e) }.sort!.flatten! : pre.sort
       end
       matches.sort!
-      if last_group_index >= 0
-        matches.insert(0, *pre)
-      end
+      matches.insert(0, *pre) if last_group_index >= 0
     end
     matches
   end
