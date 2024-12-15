@@ -116,8 +116,8 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should "authenticate" do
-      assert(User.authenticate(@user.name, "password"), "Authentication should have succeeded")
-      assert(!User.authenticate(@user.name, "password2"), "Authentication should not have succeeded")
+      assert(User.authenticate(@user.name, "6cQE!wbA"), "Authentication should have succeeded")
+      assert_not(User.authenticate(@user.name, "password2"), "Authentication should not have succeeded")
     end
 
     should "normalize its level" do
@@ -209,8 +209,8 @@ class UserTest < ActiveSupport::TestCase
 
       should "fail if the confirmation does not match" do
         @user = create(:user)
-        @user.password = "zugzug6"
-        @user.password_confirmation = "zugzug5"
+        @user.password = "6cQE!wbA"
+        @user.password_confirmation = "7cQE!wbA"
         @user.save
         assert_equal(["Password confirmation doesn't match Password"], @user.errors.full_messages)
       end
@@ -220,7 +220,15 @@ class UserTest < ActiveSupport::TestCase
         @user.password = "x5"
         @user.password_confirmation = "x5"
         @user.save
-        assert_equal(["Password is too short (minimum is 6 characters)"], @user.errors.full_messages)
+        assert_equal(["Password is too short (minimum is 8 characters)", "Password is insecure"], @user.errors.full_messages)
+      end
+
+      should "not be insecure" do
+        @user = create(:user)
+        @user.password = "qwerty123"
+        @user.password_confirmation = "qwerty123"
+        @user.save
+        assert_equal(["Password is insecure: This is similar to a commonly used password"], @user.errors.full_messages)
       end
 
       # should "not change the password if the password and old password are blank" do

@@ -1,34 +1,30 @@
-<div id="c-users">
-  <div id="a-new">
+<div id="c-users"><div id="a-new">
+  <%= custom_form_for(@user, html: { id: "signup-form", class: "session_form" }) do |f| %>
     <h1>Sign Up</h1>
 
-    <p>An account is <strong>free</strong> and lets you keep favorites, upload artwork, and write comments.</p>
+    <%= f.input :name, label: "Username", as: :string %>
+    <%= f.input :email, :required => true, as: :email %>
+    <%= f.input :password %>
+    <%= f.input :password_confirmation %>
 
-    <div class="box-section background-red">
-      <p>Make sure to read the <a href="/wiki_pages/e621:rules">site rules</a> before continuing.</p>
-      <p>You must confirm your email address, so use something you can receive email with.</p>
-      <p>This site is open to web crawlers so whatever name you choose will be public!</p>
-      <p>This includes favorites, uploads, and comments. Almost everything is public. So don't choose a name you don't want to be associated with.</p>
-      <p>Accounts are prefilled with the same blacklist as guests have. You can access your blacklist in your account settings.</p>
-    </div>
+    <%= f.input :time_zone, include_blank: false %>
 
-    <div id="p3">
-      <%= custom_form_for(@user, html: {id: "signup-form"}) do |f| %>
-        <%= f.input :name, :as => :string %>
-        <%= f.input :email, :required => true, :as => :email %>
-        <%= f.input :password %>
-        <%= f.input :password_confirmation %>
-
-        <%= f.input :time_zone, :include_blank => false %>
-
-        <% if Danbooru.config.enable_recaptcha? %>
-          <%= recaptcha_tags theme: 'dark', nonce: content_security_policy_nonce %>
-        <% end %>
-        <%= f.submit "Sign up", :data => { :disable_with => "Signing up..." } %>
-      <% end %>
-    </div>
+    <% if Danbooru.config.enable_recaptcha? %>
+      <%= recaptcha_tags theme: "dark", nonce: content_security_policy_nonce %>
+    <% end %>
+    <%= f.submit "Sign up", :data => { :disable_with => "Signing up..." } %>
+  <% end %>
+  <section class="session_info">
+    <h3>
+      Already have an account? <%= link_to "Sign In.", new_session_path %>
+    </h3>
+    <p>Please, read the <a href="/wiki_pages/e621:rules">site rules</a> before making an account.</p>
+    <p>You must confirm your email address, so you should only use one that you have access to.</p>
+    <p>This site is open to web crawlers, meaning that almost everything is public.</p>
+    <p>This includes your account name, favorites, uploads, and comments. Do not choose a name you don't want to be associated with.</p>
+    <p>Accounts have the same blacklist as guests by default. You will be able to modify your blacklist in the account settings.</p>
   </div>
-</div>
+</div></div>
 
 <%= render "secondary_links" %>
 

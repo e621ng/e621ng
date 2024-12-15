@@ -21,7 +21,7 @@ module Maintenance
         context "#create" do
           context "with the correct password" do
             should "work" do
-              post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "password", email: "abc@ogres.net" } }
+              post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "6cQE!wbA", email: "abc@ogres.net" } }
               assert_redirected_to(home_users_path)
               @user.reload
               assert_equal("abc@ogres.net", @user.email)
@@ -37,7 +37,7 @@ module Maintenance
           end
 
           should "not work with an invalid email" do
-            post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "password", email: "" } }
+            post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "6cQE!wbA", email: "" } }
             @user.reload
             assert_not_equal("", @user.email)
             assert_match(/Email can't be blank/, flash[:notice])
@@ -45,7 +45,7 @@ module Maintenance
 
           should "work with a valid email when the users current email is invalid" do
             @user = create(:user, email: "")
-            post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "password", email: "abc@ogres.net" } }
+            post_auth maintenance_user_email_change_path, @user, params: { email_change: { password: "6cQE!wbA", email: "abc@ogres.net" } }
             @user.reload
             assert_equal("abc@ogres.net", @user.email)
           end

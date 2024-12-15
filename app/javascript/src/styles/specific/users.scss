@@ -223,13 +223,83 @@ div#c-users {
       color: themed("color-link-active");
     }
   }
+}
 
-  div#a-new {
-    max-width: 60em;
+// User signup and login
+#c-users #a-new,
+#c-sessions #a-new,
+#c-maintenance-user-password-resets #a-new,
+#c-maintenance-user-login-reminders #a-new {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(auto, 360px));
+  gap: 1em;
 
-    p {
-      font-size: 1.2em;
-      line-height: 1.4em;
+  margin-bottom: 1em;
+}
+
+.session_form {
+  box-sizing: border-box;
+  max-width: 360px;
+  margin: 0;
+
+  h1 {
+    margin-bottom: 0.5em;
+    text-align: center;
+  }
+
+  div.input {
+    input[type="text"], input[type="email"], input[type="password"], select {
+      width: 100%;
+      max-width: unset;
+      box-sizing: border-box;
     }
+  }
+}
+
+.session_info {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 360px;
+  padding: 0.5rem;
+  border-radius: 3px;
+  background-color: themed("color-section");
+
+  h3 { margin-bottom: 1em; }
+}
+
+// Password validation
+.password-input {
+  input[type="password"] {
+    border-radius: 3px 3px 0 0;
+  }
+
+  .password-strength {
+    width: 100%;
+    height: 0.25rem;
+    border-radius: 0 0 3px 3px;
+
+    background: white;
+    overflow: hidden;
+    margin: 0;
+
+    .password-progress {
+      background: linear-gradient(to right, palette("text-red") 0%, palette("text-yellow") 25%, palette("text-green") 100%);
+      background-size: 360px 100%;
+
+      height: 100%;
+      transition: width 1s ease-in-out;
+    }
+  }
+
+  .password-feedback {
+    display: flex;
+    flex-flow: column;
+    padding-left: 1em;
+    margin-top: 0.5em;
+
+    span { display: list-item; }
+    .password-warning { font-weight: bold; }
   }
 }
