@@ -21,7 +21,8 @@
     "vue": "^3.1.0",
     "vue-loader": "^17.4.2",
     "webpack": "^5.51.1",
-    "zingtouch": "^1.0.6"
+    "zingtouch": "^1.0.6",
+    "zxcvbn": "^4.4.2"
   },
   "version": "0.1.0",
   "devDependencies": {
