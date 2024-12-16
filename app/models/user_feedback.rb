@@ -5,6 +5,7 @@ class UserFeedback < ApplicationRecord
   belongs_to :user
   belongs_to_creator
   belongs_to_updater
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :body, :category, presence: true
   validates :category, inclusion: { in: %w[positive negative neutral] }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.user_feedback_max_size }
@@ -65,7 +66,7 @@ class UserFeedback < ApplicationRecord
     end
 
     def visible(user)
-      if user.is_moderator?
+      if user.is_staff?
         all
       else
         active

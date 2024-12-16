@@ -26,12 +26,21 @@ Rails.application.routes.draw do
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
     resources :staff_notes, only: [:index]
-    resources :danger_zone, only: [:index] do
+  end
+
+  namespace :security do
+    root to: "dashboard#index"
+    resource :dashboard, only: [:index]
+    resources :lockdown, only: [:index] do
       collection do
-        put :uploading_limits
+        put :panic
+        put :enact
+        put :uploads_min_level
+        put :uploads_hide_pending
       end
     end
   end
+
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, :only => [:show]

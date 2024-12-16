@@ -31,7 +31,12 @@
   </form>
   <select id="set-id" style="display: none; margin-top: 0.5em;"></select>
   <% if CurrentUser.is_privileged? %>
-    <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none; margin-top: 0.5em;"/>
-    <input id="quick-mode-reason" placeholder="Reason" style="display: none; margin-top: 0.5em;"/>
+    <span id="tag-script-ui" style="display: none;">
+      <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none;"/>
+      <% if CurrentUser.is_staff? %>
+        <button id="tag-script-all">All</button>
+      <% end %>
+    </span>
+    <input id="quick-mode-reason" placeholder="Reason" style="display: none;"/>
   <% end %>
 </section>

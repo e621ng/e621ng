@@ -1,23 +1,24 @@
-<div id="c-sessions">
-  <div id="a-new">
-    <section>
-      <h1>Sign in</h1>
-      <%= simple_form_for(:session, url: session_path) do |f| %>
-        <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
-        <%= f.input(:name, label: "Username") %>
-        <%= f.input(:password) %>
-        <%= f.input(:remember, as: :boolean, input_html: { checked: "checked" }) %>
-        <%= f.submit("Continue") %>
-      <% end %>
-    </section>
+<div id="c-sessions"><div id="a-new">
+  <%= simple_form_for(:session, url: session_path) do |f| %>
+    <h1>Sign in</h1>
+    <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+    <%= f.input(:name, label: "Username") %>
+    <%= f.input(:password) %>
+    <%= f.input(:remember, as: :boolean, input_html: { checked: "checked" }) %>
+    <%= f.submit("Continue") %>
+  <% end %>
 
-    <section class="box-section">
-      <h2><%= link_to("Don't have an account? Sign up here.", new_user_path) %></h2>
-      <h2><%= link_to("Reset Password", new_maintenance_user_password_reset_path) %></h2>
-      <h2><%= link_to("Login Reminder", new_maintenance_user_login_reminder_path) %></h2>
-    </section>
-  </div>
-</div>
+  <section class="session_info">
+    <h3>
+      Don't have an account?<br />
+      <%= link_to("Sign up here.", new_user_path) %>
+    </h3>
+    <br />
+
+    <h3><%= link_to("Reset Password", new_maintenance_user_password_reset_path) %></h3>
+    <h3><%= link_to("Login Reminder", new_maintenance_user_login_reminder_path) %></h3>
+  </section>
+</div></div>
 
 <% content_for(:page_title) do %>
  Sign in

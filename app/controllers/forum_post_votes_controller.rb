@@ -7,6 +7,7 @@ class ForumPostVotesController < ApplicationController
   before_action :validate_forum_post
   before_action :validate_no_vote_on_own_post, only: [:create]
   before_action :load_vote, only: [:destroy]
+  before_action :ensure_lockdown_disabled
 
   def create
     @forum_post_vote = @forum_post.votes.create(forum_post_vote_params)
@@ -45,5 +46,9 @@ private
 
   def forum_post_vote_params
     params.fetch(:forum_post_vote, {}).permit(:score)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
   end
 end

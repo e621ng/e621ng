@@ -1,21 +1,16 @@
 <div>
   <h4>Change post ownership</h4>
-  <%= form_tag(admin_reowner_path, :method => :post, :class => "simple_form") do %>
-    <div class="input">
-      <label>Old Owner</label>
-      <%= text_field :reowner, :old_owner, placeholder: 'Use ! in front of an id for an id.', size: 40 %>
-    </div>
-    <div class="input">
-      <label>New Owner</label>
-      <%= text_field :reowner, :new_owner, placeholder: 'Use ! in front of an id for an id.', size: 40 %>
-    </div>
-    <div class="input">
-      <label>Search Query</label>
-      <%= text_field :reowner, :search, size: 40 %>
-    </div>
-
-    <div class="input">
-      <%= submit_tag "Submit" %>
-    </div>
+  <p>
+    Limited to 300 posts at a time.
+  </p>
+  <%= custom_form_for(:reowner, url: admin_reowner_path) do |f| %>
+    <%= f.input(:old_owner, label: "Old Owner", placeholder: "Use ! in front of an id for an id.", input_html: { size: 40 }) %>
+    <%= f.input(:new_owner, label: "New Owner", placeholder: "Use ! in front of an id for an id.", input_html: { size: 40 }) %>
+    <%= f.input(:search, label: "Search Query", input_html: { size: 40 }) %>
+    <%= f.submit("Submit") %>
   <% end %>
 </div>
+
+<% content_for(:page_title) do %>
+  Post Reowner
+<% end %>

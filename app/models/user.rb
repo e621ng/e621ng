@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "zxcvbn"
+
 class User < ApplicationRecord
   class Error < Exception ; end
   class PrivilegeError < Exception
@@ -65,12 +67,14 @@ class User < ApplicationRecord
   validates :email, length: { maximum: 100 }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
+  normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { :in => %w(large fit fitv original) }
   validates :per_page, inclusion: { :in => 1..320 }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
-  validates :password, length: { :minimum => 6, :if => ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
+  validates :password, length: { minimum: 8, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
+  validate :password_is_secure, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? }
   validates :password, confirmation: true
   validates :password_confirmation, presence: { if: ->(rec) { rec.new_record? || rec.old_password.present? } }
   validate :validate_ip_addr_is_not_banned, :on => :create
@@ -225,6 +229,16 @@ class User < ApplicationRecord
 
     def upgrade_password(pass)
       self.update_columns(password_hash: '', bcrypt_password_hash: User.bcrypt(pass))
+    end
+
+    def password_is_secure
+      analysis = Zxcvbn.test(password, [name, email])
+      return unless analysis.score < 2
+      if analysis.feedback.warning
+        errors.add(:password, "is insecure: #{analysis.feedback.warning}")
+      else
+        errors.add(:password, "is insecure")
+      end
     end
   end
 

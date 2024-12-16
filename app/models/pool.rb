@@ -7,6 +7,7 @@ class Pool < ApplicationRecord
   array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
   belongs_to_creator
 
+  normalizes :description, with: ->(desc) { desc.gsub("\r\n", "\n") }
   validates :name, uniqueness: { case_sensitive: false, if: :name_changed? }
   validates :name, length: { minimum: 1, maximum: 250 }
   validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }

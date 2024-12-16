@@ -17,7 +17,7 @@ class UserFeedbacksController < ApplicationController
 
   def show
     @user_feedback = UserFeedback.find(params[:id])
-    raise(User::PrivilegeError) if !CurrentUser.user.is_moderator? && @user_feedback.is_deleted?
+    raise(User::PrivilegeError) if !CurrentUser.user.is_staff? && @user_feedback.is_deleted?
     respond_with(@user_feedback)
   end
 
@@ -88,12 +88,14 @@ class UserFeedbacksController < ApplicationController
   def user_feedback_params(context)
     permitted_params = %i[body category]
     permitted_params += %i[user_id user_name] if context == :create
-    permitted_params += [:send_update_dmail] if context == :update
+    permitted_params += %i[send_update_dmail] if context == :update
 
     params.fetch(:user_feedback, {}).permit(permitted_params)
   end
 
   def search_params
-    permit_search_params(%i[deleted body_matches user_id user_name creator_id creator_name category])
+    permitted_params = %i[body_matches user_id user_name creator_id creator_name category]
+    permitted_params += %i[deleted] if CurrentUser.is_staff?
+    permit_search_params(permitted_params)
   end
 end

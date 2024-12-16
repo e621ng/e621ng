@@ -10,6 +10,7 @@ class Ticket < ApplicationRecord
   before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
+  normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
@@ -265,7 +266,11 @@ class Ticket < ApplicationRecord
         end
       end
 
-      q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      if params[:order].present?
+        q.apply_basic_order(params)
+      else
+        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      end
     end
   end
 

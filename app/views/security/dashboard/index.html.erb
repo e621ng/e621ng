@@ -1,0 +1,53 @@
+<div id="c-security">
+  <div id="a-index">
+
+    <h1>Security</h1>
+
+    <section class="settings-section">
+      <h2>Lockdown</h2>
+      <%= custom_form_for(:panic, url: panic_security_lockdown_index_path, method: :put, html: { class: "lockdown-form" }) do |f| %>
+        <%= f.button :submit, value: "Enable Read-Only Mode" %>
+      <% end %>
+
+      <%= custom_form_for(:lockdown, url: enact_security_lockdown_index_path, method: :put, html: { class: "lockdown-form" }) do |f| %>
+        <%= f.input :uploads, as: :boolean, label: "Uploads", input_html: { checked: Security::Lockdown.uploads_disabled? ? "checked" : "" } %>
+        <%= f.input :pools, as: :boolean, label: "Pools", input_html: { checked: Security::Lockdown.pools_disabled? ? "checked" : "" } %>
+        <%= f.input :post_sets, as: :boolean, label: "Post Sets", input_html: { checked: Security::Lockdown.post_sets_disabled? ? "checked" : "" } %>
+        <br />
+        <%= f.input :comments, as: :boolean, label: "Comments", input_html: { checked: Security::Lockdown.comments_disabled? ? "checked" : "" } %>
+        <%= f.input :forums, as: :boolean, label: "Forums", input_html: { checked: Security::Lockdown.forums_disabled? ? "checked" : "" } %>
+        <%= f.input :blips, as: :boolean, label: "Blips", input_html: { checked: Security::Lockdown.blips_disabled? ? "checked" : "" } %>
+        <br />
+        <%= f.input :aiburs, as: :boolean, label: "AIBURs", input_html: { checked: Security::Lockdown.aiburs_disabled? ? "checked" : "" } %>
+        <%= f.input :favorites, as: :boolean, label: "Favorites", input_html: { checked: Security::Lockdown.favorites_disabled? ? "checked" : "" } %>
+        <%= f.input :votes, as: :boolean, label: "Votes", input_html: { checked: Security::Lockdown.votes_disabled? ? "checked" : "" } %>
+        <br />
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
+
+    <section class="settings-section">
+      <h2>Uploads</h2>
+      Uploads are currently permitted for <b><%= User.level_string(Security::Lockdown.uploads_min_level) %></b> and up.
+      <%= custom_form_for(:uploads_min_level, url: uploads_min_level_security_lockdown_index_path, method: :put) do |f| %>
+        <%= f.input :min_level, collection: User.level_hash.select { |_k, v| v >= User::Levels::MEMBER }.to_a, selected: Security::Lockdown.uploads_min_level %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+
+      <h2>Pending Posts</h2>
+      <% if Security::Lockdown.hide_pending_posts_for > 0 %>
+        Unapproved posts are currently only visible to staff for <b><%= Security::Lockdown.hide_pending_posts_for %></b> hours.
+      <% else %>
+        Unapproved posts are currently not hidden.
+      <% end %>
+      <%= custom_form_for(:uploads_hide_pending, url: uploads_hide_pending_security_lockdown_index_path, method: :put) do |f| %>
+        <%= f.input :duration, as: :float, hint: "in hours", input_html: { value: Security::Lockdown.hide_pending_posts_for } %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Security
+<% end %>

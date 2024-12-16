@@ -2,8 +2,9 @@
 
 class PoolsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show, :gallery]
-  before_action :janitor_only, :only => [:destroy]
+  before_action :member_only, except: %i[index show gallery]
+  before_action :janitor_only, only: %i[destroy]
+  before_action :ensure_lockdown_disabled, except: %i[index show gallery]
 
   def new
     @pool = Pool.new
@@ -81,5 +82,9 @@ class PoolsController < ApplicationController
   def pool_params
     permitted_params = %i[name description category is_active post_ids post_ids_string]
     params.require(:pool).permit(*permitted_params, post_ids: [])
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.pools_disabled? && !CurrentUser.is_staff?
   end
 end

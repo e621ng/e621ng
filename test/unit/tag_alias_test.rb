@@ -7,8 +7,8 @@ class TagAliasTest < ActiveSupport::TestCase
     setup do
       @admin = create(:admin_user)
 
-      user = create(:user, created_at: 1.month.ago)
-      CurrentUser.user = user
+      @user = create(:user, created_at: 1.month.ago)
+      CurrentUser.user = @user
     end
 
     context "on validation" do
@@ -57,6 +57,59 @@ class TagAliasTest < ActiveSupport::TestCase
 
       should "get the right count" do
         assert_equal(1, @alias.estimate_update_count)
+      end
+    end
+
+    context "#approvable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @bd = create(:bd_staff_user)
+        @ta = as(@user) { create(:tag_alias, status: "pending") }
+        @dnp = as(@bd) { create(:avoid_posting) }
+        @ta2 = as(@user) { create(:tag_alias, antecedent_name: @dnp.artist_name, consequent_name: "ccc", status: "pending") }
+        @ta3 = as(@user) { create(:tag_alias, antecedent_name: "ddd", consequent_name: @dnp.artist_name, status: "pending") }
+      end
+
+      should "not allow creator" do
+        assert_equal(false, @ta.approvable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ta.approvable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ta.approvable_by?(@mod))
+      end
+
+      should "not allow admins if antecedent/consequent is dnp" do
+        assert_equal(false, @ta2.approvable_by?(@admin))
+        assert_equal(false, @ta3.approvable_by?(@admin))
+      end
+
+      should "allow bd staff" do
+        assert_equal(true, @ta2.approvable_by?(@bd))
+        assert_equal(true, @ta3.approvable_by?(@bd))
+      end
+    end
+
+    context "#deletable_by?" do
+      setup do
+        @user = create(:user)
+        @mod = create(:moderator_user)
+        @ta = as(@user) { create(:tag_alias, status: "pending") }
+      end
+
+      should "allow creator" do
+        assert_equal(true, @ta.deletable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ta.deletable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ta.deletable_by?(@mod))
       end
     end
 

@@ -55,7 +55,9 @@
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
         <% if CurrentUser.is_admin? %>
-          <%= f.input :is_status_locked, label: "Status" %>
+        <%= f.input :is_status_locked, label: "Status" %>
+        <% end %>
+        <% if CurrentUser.is_moderator? %>
           <%= f.input :is_comment_locked, label: "Comments" %>
         <% end %>
       </fieldset>
@@ -72,6 +74,7 @@
       <fieldset class="limits">
         <%= f.input :hide_from_anonymous, as: :boolean, label: "Hide from Anon" %>
         <%= f.input :hide_from_search_engines, as: :boolean, label: "Hide from search engines" %>
+        <%= f.input :is_comment_disabled, label: "Hide comments" %>
       </fieldset>
     </div>
   <% end %>

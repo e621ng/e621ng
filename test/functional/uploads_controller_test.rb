@@ -43,11 +43,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       context "when uploads are disabled" do
         setup do
-          DangerZone.min_upload_level = User::Levels::PRIVILEGED
+          Security::Lockdown.uploads_min_level = User::Levels::PRIVILEGED
         end
 
         teardown do
-          DangerZone.min_upload_level = User::Levels::MEMBER
+          Security::Lockdown.uploads_min_level = User::Levels::MEMBER
         end
 
         should "prevent uploads" do
