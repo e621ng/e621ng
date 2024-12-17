@@ -135,7 +135,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_array_relation(:approver_ids, :approver, any_none_key: :approver)
     add_array_relation(:commenter_ids, :commenters, any_none_key: :commenter)
     add_array_relation(:noter_ids, :noters, any_none_key: :noter)
-    add_array_relation(:note_updater_ids, :noters) # Broken, index field missing
+    add_array_relation(:note_updater_ids, :noters) # FIXME: Broken, index field missing
     add_array_relation(:pool_ids, :pools, any_none_key: :pool)
     add_array_relation(:set_ids, :sets)
     add_array_relation(:fav_ids, :faves)
@@ -353,7 +353,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
-      # TODO: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
+      # NOTE: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
       should.push(
         {
           range: {
@@ -362,19 +362,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
             },
           },
         },
-        {
-          term: {
-            pending: false,
-          },
-        },
+        { term: { pending: false } },
       )
 
       unless CurrentUser.user.id.nil?
-        should.push({
-          term: {
-            uploader: CurrentUser.user.id,
-          },
-        })
+        should.push({ term: { uploader: CurrentUser.user.id } })
       end
 
       must.push({

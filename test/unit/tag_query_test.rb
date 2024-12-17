@@ -31,7 +31,15 @@ class TagQueryTest < ActiveSupport::TestCase
     end
     should "hoist metatags" do
       assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"))
+      assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
+      assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+      # assert_equal("50", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:limit])
     end
+  end
+
+  should "fetch nested metatag" do
+    assert_equal(50, TagQuery.fetch_metatag("( order:random aaa limit:50 ) -( bbb randseed:123 )", "limit").to_i)
+    assert_equal(50, TagQuery.fetch_metatag(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "limit").to_i)
   end
 
   should "scan a grouped query recursively" do

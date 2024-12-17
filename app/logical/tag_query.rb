@@ -572,11 +572,17 @@ class TagQuery
     fetch_metatag(tags, *, recurse: recurse).present?
   end
 
+  ##
+  # Pulls the values from the specified metatags (if they exist). Accepts strings and arrays.
   def self.fetch_metatag(tags, *metatags, recurse: true)
     return nil if tags.blank?
 
     # HACK: Improve & validate recurse_through_metatags and use that instead of hoisting through scan_search
-    tags = recurse ? scan_search(tags, hoisted_metatags: metatags) : scan(tags) if tags.is_a?(String)
+    if tags.is_a?(String)
+      tags = recurse ? scan_search(tags, hoisted_metatags: metatags) : scan(tags)
+    else
+      tags.map { |t| tags << scan_search(t, hoisted_metatags: metatags) if t.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/) }
+    end
     tags.find do |tag|
       metatag_name, value = tag.split(":", 2)
       return value if metatags.include?(metatag_name)

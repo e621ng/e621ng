@@ -2026,6 +2026,24 @@ class PostTest < ActiveSupport::TestCase
     should "not error for values beyond Integer.MAX_VALUE" do
       assert_tag_match([], "id:1234567890987654321")
     end
+
+    context "With Groups: " do
+      setup do
+        @post1 = create(:post, tag_string: "aaa")
+        @post2 = create(:post, tag_string: "aaa bbb")
+        @post3 = create(:post, tag_string: "bbb ccc")
+        @post4 = create(:post, tag_string: "ccc ddd")
+        @post5 = create(:post, tag_string: "aaa ddd")
+      end
+      should "return posts" do
+        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd )")
+      end
+      should "return posts for a grouped tag search with proper global metatag hoisting" do
+        assert_tag_match([@post1, @post3], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
+        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
+        # assert_tag_match([post3], "~( aaa -bbb ) ~ccc -( ddd limit:1 )")
+      end
+    end
   end
 
   context "Voting:" do
