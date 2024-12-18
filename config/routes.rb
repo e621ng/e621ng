@@ -25,7 +25,6 @@ Rails.application.routes.draw do
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-    resources :staff_notes, only: [:index]
   end
 
   namespace :security do
@@ -95,7 +94,7 @@ Rails.application.routes.draw do
 
   resources :avoid_posting_versions, only: %i[index]
 
-  resources :staff_notes, except: %i[destroy], :controller => "admin/staff_notes" do
+  resources :staff_notes, except: %i[destroy] do
     collection do
       get :search
     end
