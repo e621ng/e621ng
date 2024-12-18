@@ -3,8 +3,10 @@
 class PostQueryBuilder
   attr_accessor :query_string
 
-  def initialize(query_string)
+  def initialize(query_string, relation = nil, **kwargs)
     @query_string = query_string
+    @curr_relation = relation
+    @depth = kwargs.fetch(:depth, 1)
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -21,6 +23,27 @@ class PostQueryBuilder
     relation
   end
 
+  ##
+  # TODO: Test
+  def add_group_search_relation(groups, relation)
+    return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    groups[:must].each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
+    groups[:must_not].each { |x| relation = relation.merge(PostQueryBuilder.new(x, relation, depth: @depth + 1).search) }
+    if groups[:should].any?
+      valid = nil
+      groups[:should].each do |x|
+        if valid
+          valid.or(PostQueryBuilder.new(x, relation, depth: @depth + 1).search)
+        else
+          valid = PostQueryBuilder.new(x, relation, depth: @depth + 1).search
+        end
+      end
+      relation.merge(valid)
+    end
+    # groups.each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
+    relation
+  end
+
   def add_array_range_relation(relation, values, field)
     values&.each do |value|
       relation = relation.add_range_relation(value, field)
@@ -30,7 +53,7 @@ class PostQueryBuilder
 
   def search
     q = TagQuery.new(query_string)
-    relation = Post.all
+    relation = @curr_relation ||= Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
@@ -156,6 +179,7 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", rating)
     end
 
-    add_tag_string_search_relation(q[:tags], relation)
+    relation = add_tag_string_search_relation(q[:tags], relation)
+    add_group_search_relation(q[:groups], relation)
   end
 end

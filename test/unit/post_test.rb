@@ -1516,6 +1516,7 @@ class PostTest < ActiveSupport::TestCase
     end
   end
 
+  # TODO: Add tests for groups; adapt from tag_query_test?
   context "Searching:" do
     should "return posts for the age:<1minute tag" do
       post = create(:post)
@@ -1756,10 +1757,9 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # TODO: These don't quite make sense, what should hide deleted posts and what shouldn't?
-      assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
-      assert_tag_match(all - [deleted, pending], "-status:pending")
-      assert_tag_match(all - [deleted, flagged], "-status:flagged")
+      assert_tag_match(all - [flagged, pending], "-status:modqueue")
+      assert_tag_match(all - [pending], "-status:pending")
+      assert_tag_match(all - [flagged], "-status:flagged")
 
       assert_tag_match(all - [deleted], "-status:deleted")
       assert_tag_match(all, "-status:active")
@@ -2025,6 +2025,24 @@ class PostTest < ActiveSupport::TestCase
 
     should "not error for values beyond Integer.MAX_VALUE" do
       assert_tag_match([], "id:1234567890987654321")
+    end
+
+    context "With Groups: " do
+      setup do
+        @post1 = create(:post, tag_string: "aaa")
+        @post2 = create(:post, tag_string: "aaa bbb")
+        @post3 = create(:post, tag_string: "bbb ccc")
+        @post4 = create(:post, tag_string: "ccc ddd")
+        @post5 = create(:post, tag_string: "aaa ddd")
+      end
+      should "return posts" do
+        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd )")
+      end
+      should "return posts for a grouped tag search with proper global metatag hoisting" do
+        assert_tag_match([@post1, @post3], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
+        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
+        # assert_tag_match([post3], "~( aaa -bbb ) ~ccc -( ddd limit:1 )")
+      end
     end
   end
 
