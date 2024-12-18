@@ -1,0 +1,13 @@
+<div id="c-staff-notes">
+  <div id="a-show">
+    <h1>Staff Note For <%= link_to_user @staff_note.user %></h1>
+
+    <%= render "staff_notes/partials/staff_note", staff_note: @staff_note, show_receiver_name: true %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Staff Note - <%= @staff_note.user_name %>
+<% end %>

@@ -25,7 +25,6 @@ Rails.application.routes.draw do
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-    resources :staff_notes, only: [:index]
   end
 
   namespace :security do
@@ -94,6 +93,16 @@ Rails.application.routes.draw do
   end
 
   resources :avoid_posting_versions, only: %i[index]
+
+  resources :staff_notes, except: %i[destroy] do
+    collection do
+      get :search
+    end
+    member do
+      put :delete
+      put :undelete
+    end
+  end
 
   resources :tickets, except: %i[destroy] do
     member do
@@ -294,7 +303,6 @@ Rails.application.routes.draw do
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
     resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
-    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
 
     collection do
       get :home
