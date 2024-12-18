@@ -194,7 +194,7 @@ class TagQuery
     /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
   end
 
-  def self.match_tokens_redux(
+  def self.match_tokens(
     tagstr,
     recurse: false,
     stop_at_group: false,
@@ -209,9 +209,9 @@ class TagQuery
         r << (block_given? ? block.call(m) : m) if m[:group].blank? || stop_at_group
         if m[:group].present?
           r << if block_given?
-                 match_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
+                 match_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
                else
-                 match_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
+                 match_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
                end
         end
       end
@@ -223,7 +223,7 @@ class TagQuery
 
   ##
   # Iterates through tokens, returning the tokens' string values.
-  def self.scan_tokens_redux(
+  def self.scan_tokens(
     tagstr,
     recurse: false,
     stop_at_group: false,
@@ -238,9 +238,9 @@ class TagQuery
         r << (block_given? ? block.call(m[:prefix] + m[:body]) : m[:prefix] + m[:body]) if m[:group].blank? || stop_at_group
         if m[:group].present?
           r << if block_given?
-                 scan_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
+                 scan_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
                else
-                 scan_tokens_redux(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
+                 scan_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
                end
         end
       end
@@ -253,19 +253,19 @@ class TagQuery
     and_then.respond_to?(:call) ? and_then.call(r) : r
   end
 
-  # HACK: Check if filtering quoted metatags and then searching for a group is faster (it likely is)
-  def self.has_groups?(query)
-    tagstr = query.to_s.unicode_normalize(:nfc).strip
-    while (curr_match = /\A[-~]?(?:(?<mt>\w*:"[^"]*")|(?<group>\(\s.*?\s\))|\S+(?=\s|\z))(?:\z|\s*)/.match(tagstr))
-      return true if curr_match[:group].present?
-      tagstr = curr_match.post_match
-    end
-    false
-  end
+  # # HACK: Check if filtering quoted metatags and then searching for a group is faster (it likely is)
+  # def self.has_groups?(query)
+  #   tagstr = query.to_s.unicode_normalize(:nfc).strip
+  #   while (curr_match = /\A[-~]?(?:(?<mt>\w*:"[^"]*")|(?<group>\(\s.*?\s\))|\S+(?=\s|\z))(?:\z|\s*)/.match(tagstr))
+  #     return true if curr_match[:group].present?
+  #     tagstr = curr_match.post_match
+  #   end
+  #   false
+  # end
 
-  def self.might_have_groups?(query)
-    /\(\s.*?\s\)/.match?(query.to_s.unicode_normalize(:nfc).strip)
-  end
+  # def self.might_have_groups?(query)
+  #   /\(\s.*?\s\)/.match?(query.to_s.unicode_normalize(:nfc).strip)
+  # end
 
   ##
   # Scan variant that properly handles groups.
@@ -274,7 +274,6 @@ class TagQuery
   #
   # `hoisted_metatags`=`TagQuery::GLOBAL_METATAGS`: the metatags to lift out of groups to the top level.
   # `error_on_depth_exceeded`=`false`:
-  # TODO: Test hoisting
   def self.scan_search(
     query,
     hoisted_metatags: TagQuery::GLOBAL_METATAGS,
@@ -291,7 +290,7 @@ class TagQuery
     depth = 1
     # scan_opts = { use_match_data: true, recurse: false, stop_at_group: true }
     scan_opts = { recurse: false, stop_at_group: true }
-    match_tokens_redux(tagstr, **scan_opts) do |m| # rubocop:disable Metrics/BlockLength
+    match_tokens(tagstr, **scan_opts) do |m| # rubocop:disable Metrics/BlockLength
       # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
       if m.begin(:group) == 0 && m.end(:group) == tagstr.length
         return matches = scan_search(
@@ -308,7 +307,7 @@ class TagQuery
           if sub_match[:group].present? && sub_match[:group][/#{hoist_regex_stub}:\S+/]
             raise DepthExceededError if (depth += 1) > depth_limit && error_on_depth_exceeded
             next (depth -= 1 || true) && (sub_match[0].presence&.strip || "") unless (g = sub_match[0].match(/\(\s+(.+)\s+\)/))
-            r_out = depth > depth_limit ? "" : match_tokens_redux(g[1].strip, **scan_opts, &cb).inject("") { |p, c| "#{p} #{c}".strip }
+            r_out = depth > depth_limit ? "" : match_tokens(g[1].strip, **scan_opts, &cb).inject("") { |p, c| "#{p} #{c}".strip }
             depth -= 1
             "#{sub_match[0][0, g.begin(1)].strip} #{r_out.strip} #{sub_match[0][g.end(1)..].strip}"
           # elsif (sub_match[:metatag].present? && sub_match[:metatag][/\A#{hoist_regex_stub}:"[^"]*"\z/]) ||
@@ -362,7 +361,7 @@ class TagQuery
   ##
   # TODO: Add hoisted tag support
   #
-  # TODO: Convert from `match_tokens_redux` to using the regexp directly
+  # TODO: Convert from `match_tokens` to using the regexp directly
   #
   # `strip_duplicates_at_level`: [`false`] Removes any duplicate tags at the
   # current level, and recursively do the same for each group.
@@ -400,7 +399,7 @@ class TagQuery
     last_group_index = -1
     group_ranges = [] if flatten
     top = flatten ? [] : nil
-    match_tokens_redux(tagstr, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
+    match_tokens(tagstr, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
       distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
       if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tagstr.length
@@ -554,12 +553,32 @@ class TagQuery
     end
   end
 
-  def self.has_tag?(tag_array, *)
-    fetch_tags(tag_array, *).any?
+  ##
+  # TODO: Test recursion
+  def self.has_tag?(tag_array, *, recursive: true)
+    fetch_tags(tag_array, *, recursive: recursive).any?
   end
 
-  def self.fetch_tags(tag_array, *tags)
-    tags.select { |tag| tag_array.include?(tag) }
+  ##
+  # TODO: Test recursion
+  def self.fetch_tags(tag_array, *tags, recursive: true)
+    if recursive
+      tag_array.flat_map do |e|
+        if e.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/)
+          scan_recursive(
+            e,
+            strip_duplicates_at_level: true,
+            delimit_groups: false,
+            distribute_prefixes: false,
+            flatten: true,
+          ).select { |e2| tags.include?(e2) }
+        elsif tags.include?(e)
+          e
+        end
+      end.uniq # .compact
+    else
+      tags.select { |tag| tag_array.include?(tag) }
+    end
   end
 
   def self.ad_tag_string(tag_array)
