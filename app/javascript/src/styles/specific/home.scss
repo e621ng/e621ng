@@ -106,5 +106,23 @@ body.c-static.a-home {
     @include window-larger-than(480px) {
       margin: 0 0.5rem;
     }
+
+    .home-footer-links .separator {
+      display: inline-flex;
+      width: 4px;
+      position: relative;
+      margin: 0 0.25em;
+
+      &:before {
+        content: "";
+        width: 4px;
+        height: 4px;
+        background: var(--color-text);
+        border-radius: 2px;
+        position: absolute;
+        left: 0;
+        bottom: 0.25em;
+      }
+    }
   }
 }
