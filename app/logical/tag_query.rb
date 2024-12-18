@@ -580,8 +580,9 @@ class TagQuery
     # HACK: Improve & validate recurse_through_metatags and use that instead of hoisting through scan_search
     if tags.is_a?(String)
       tags = recurse ? scan_search(tags, hoisted_metatags: metatags) : scan(tags)
-    else
-      tags.map { |t| tags << scan_search(t, hoisted_metatags: metatags) if t.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/) }
+    elsif recurse
+      tags = tags.dup
+      tags.each { |t| tags << scan_search(t, hoisted_metatags: metatags) if t.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/) }
     end
     tags.find do |tag|
       metatag_name, value = tag.split(":", 2)
