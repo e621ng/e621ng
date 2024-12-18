@@ -38,7 +38,7 @@ def api_request(path)
 end
 
 def import_mascots
-  api_request("/mascots.json?limit=1").each do |mascot|
+  api_request("/mascots.json?limit=3").each do |mascot|
     puts mascot["url_path"]
     Mascot.create!(
       creator: CurrentUser.user,
@@ -48,7 +48,7 @@ def import_mascots
       artist_url: mascot["artist_url"],
       artist_name: mascot["artist_name"],
       available_on_string: Danbooru.config.app_name,
-      active: mascot["active"],
+      active: true,
     )
   end
 end

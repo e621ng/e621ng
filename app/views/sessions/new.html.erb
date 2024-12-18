@@ -1,38 +1,22 @@
 <div id="c-sessions"><div id="a-new">
-  <%= form_tag(session_path, :class => "simple_form session_form") do %>
+  <%= simple_form_for(:session, url: session_path, html: { class: "session_form" }) do |f| %>
     <h1>Sign in</h1>
-
-    <%= hidden_field_tag "url", params[:url] %>
-
-    <div class="input">
-      <label for="name">Username</label>
-      <%= text_field_tag :name %>
-    </div>
-
-    <div class="input">
-      <label for="password">Password</label>
-      <%= password_field_tag :password %>
-    </div>
-
-    <div class="input">
-      <%= check_box_tag :remember, "1", true %>
-      <label for="remember" id="remember-label">Remember</label>
-    </div>
-
-    <div class="input">
-      <%= submit_tag "Submit", :data => { :disable_with => "Signing in..." } %>
-    </div>
+    <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+    <%= f.input(:name, label: "Username") %>
+    <%= f.input(:password) %>
+    <%= f.input(:remember, as: :boolean, input_html: { checked: "checked" }) %>
+    <%= f.submit("Continue") %>
   <% end %>
 
   <section class="session_info">
     <h3>
       Don't have an account?<br />
-      <%= link_to "Sign up here.", new_user_path() %>
+      <%= link_to("Sign up here.", new_user_path) %>
     </h3>
     <br />
-    
-    <h3><%= link_to "Reset Password", new_maintenance_user_password_reset_path %></h2>
-    <h3><%= link_to "Login Reminder", new_maintenance_user_login_reminder_path %></h2>
+
+    <h3><%= link_to("Reset Password", new_maintenance_user_password_reset_path) %></h3>
+    <h3><%= link_to("Login Reminder", new_maintenance_user_login_reminder_path) %></h3>
   </section>
 </div></div>
 

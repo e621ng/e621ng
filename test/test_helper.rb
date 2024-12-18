@@ -95,7 +95,7 @@ end
 
 class ActionDispatch::IntegrationTest
   def method_authenticated(method_name, url, user, options)
-    post session_path, params: { name: user.name, password: user.password }
+    post session_path, params: { session: { name: user.name, password: user.password } }
     self.send(method_name, url, **options)
   end
 
