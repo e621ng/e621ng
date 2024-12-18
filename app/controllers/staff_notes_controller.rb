@@ -5,7 +5,6 @@ class StaffNotesController < ApplicationController
   before_action :load_staff_note, only: %i[show edit update delete undelete]
   before_action :check_edit_privilege, only: %i[update]
   before_action :check_delete_privilege, only: %i[delete undelete]
-  before_action :check_destroy_privilege, only: %i[destroy]
   respond_to :html
 
   def index
@@ -49,10 +48,6 @@ class StaffNotesController < ApplicationController
     redirect_back(fallback_location: staff_notes_path)
   end
 
-  def destroy
-    @staff_note.destroy
-  end
-
   def undelete
     @staff_note.update(is_deleted: false)
     redirect_back(fallback_location: staff_notes_path)
@@ -78,9 +73,5 @@ class StaffNotesController < ApplicationController
 
   def check_delete_privilege
     raise User::PrivilegeError unless @staff_note.can_delete?(CurrentUser.user)
-  end
-
-  def check_destroy_privilege
-    raise User::PrivilegeError unless @staff_note.can_destroy?(CurrentUser.user)
   end
 end
