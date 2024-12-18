@@ -33,7 +33,7 @@
     </div>
 
     <% if staff_note.can_edit?(CurrentUser.user) %>
-      <%= render "admin/staff_notes/partials/edit", staff_note: staff_note, hidden: true %>
+      <%= render "staff_notes/partials/edit", staff_note: staff_note, hidden: true %>
     <% end %>
   </div>
 </article>

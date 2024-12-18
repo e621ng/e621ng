@@ -1,7 +1,7 @@
 <div id="c-users">
   <div id="a-show">
     <%= render "statistics", :presenter => @presenter, :user => @user %>
-    <%= render "admin/staff_notes/partials/for_user", user: @user %>
+    <%= render "staff_notes/partials/for_user", user: @user %>
     <%= render "posts/partials/common/inline_blacklist" %>
     <%= render "post_summary", presenter: @presenter, user: @user %>
     <%= render "about", presenter: @presenter, user: @user %>

@@ -498,7 +498,7 @@ Layout/SpaceInsideBlockBraces:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceInsideHashLiteralBraces:
   Exclude:
-    - 'app/controllers/admin/staff_notes_controller.rb'
+    - 'app/controllers/staff_notes_controller.rb'
     - 'app/controllers/admin/users_controller.rb'
     - 'app/controllers/application_controller.rb'
     - 'app/controllers/comment_votes_controller.rb'
@@ -2416,7 +2416,7 @@ Style/StringLiterals:
   Exclude:
     - 'Gemfile'
     - 'Rakefile'
-    - 'app/controllers/admin/staff_notes_controller.rb'
+    - 'app/controllers/staff_notes_controller.rb'
     - 'app/controllers/blips_controller.rb'
     - 'app/controllers/comments_controller.rb'
     - 'app/controllers/edit_histories_controller.rb'
