@@ -33,13 +33,17 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"))
       assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
       assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
-      # assert_equal("50", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:limit])
     end
   end
 
   should "fetch nested metatag" do
-    assert_equal(50, TagQuery.fetch_metatag("( order:random aaa limit:50 ) -( bbb randseed:123 )", "limit").to_i)
-    assert_equal(50, TagQuery.fetch_metatag(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "limit").to_i)
+    assert_equal("50", TagQuery.fetch_metatag("( order:random aaa limit:50 ) -( bbb randseed:123 )", "limit"))
+    assert_equal("50", TagQuery.fetch_metatag(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "limit"))
+  end
+
+  should "fetch nested tags" do
+    assert_equal(["aaa"], TagQuery.fetch_tags(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "aaa"))
+    assert_equal(%w[aaa bbb], TagQuery.fetch_tags(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "aaa", "bbb"))
   end
 
   should "scan a grouped query recursively" do
@@ -184,7 +188,6 @@ class TagQueryTest < ActiveSupport::TestCase
       flatten: flatten,
       strip_prefixes: strip_prefixes,
     )
-    # assert_equal(["~AAa", "-BBB*", "-bbb*"], TagQuery.scan_recursive("~AAa -BBB* -bbb*"))
     assert_equal(
       ["aaa", 'test:"with spaces"', "def"],
       TagQuery.scan_recursive('aaa test:"with spaces" def'),
@@ -370,9 +373,25 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
-  # TODO: Figure out tests for normalizing tags in scan_recursive
   # TODO: Figure out tests for sorting tags in scan_recursive
   # TODO: Figure out tests for distributing prefixes in scan_recursive
+
+  context "While fetching tags" do
+    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      # top level
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.fetch_tags([(0..(TagQuery::DEPTH_LIMIT)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
+      end
+      # non-top level
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.fetch_tags(["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject("aaa") { |accumulator, _| "a ( #{accumulator} )" }} )"], "aaa", error_on_depth_exceeded: true)
+      end
+      # mixed level query
+      assert_raise(TagQuery::DepthExceededError) do
+        TagQuery.fetch_tags(["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject("aaa") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }} )"], "aaa",error_on_depth_exceeded: true)
+      end
+    end
+  end
 
   context "While recursively scanning" do
     should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
@@ -418,6 +437,4 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but match \"", "another:metatag"], TagQuery.recurse_through_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
     end
   end
-
-  # TODO: Figure out tests for normalize
 end

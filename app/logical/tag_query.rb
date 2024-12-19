@@ -253,20 +253,6 @@ class TagQuery
     and_then.respond_to?(:call) ? and_then.call(r) : r
   end
 
-  # # HACK: Check if filtering quoted metatags and then searching for a group is faster (it likely is)
-  # def self.has_groups?(query)
-  #   tagstr = query.to_s.unicode_normalize(:nfc).strip
-  #   while (curr_match = /\A[-~]?(?:(?<mt>\w*:"[^"]*")|(?<group>\(\s.*?\s\))|\S+(?=\s|\z))(?:\z|\s*)/.match(tagstr))
-  #     return true if curr_match[:group].present?
-  #     tagstr = curr_match.post_match
-  #   end
-  #   false
-  # end
-
-  # def self.might_have_groups?(query)
-  #   /\(\s.*?\s\)/.match?(query.to_s.unicode_normalize(:nfc).strip)
-  # end
-
   ##
   # Scan variant that properly handles groups.
   #
@@ -544,7 +530,6 @@ class TagQuery
     elsif recurse
       tags.join(" ")
       tags = recurse_through_metatags(tags.join(" "), *metatags)
-      # tags = tags.map { |t| t.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/) ? recurse_through_metatags(t, metatags: metatags) : t }
     end
     return nil unless tags
     tags.find do |tag|
@@ -553,15 +538,11 @@ class TagQuery
     end
   end
 
-  ##
-  # TODO: Test recursion
-  def self.has_tag?(tag_array, *, recursive: true)
-    fetch_tags(tag_array, *, recursive: recursive).any?
+  def self.has_tag?(tag_array, *, recursive: true, error_on_depth_exceeded: false)
+    fetch_tags(tag_array, *, recursive: recursive, error_on_depth_exceeded: error_on_depth_exceeded).any?
   end
 
-  ##
-  # TODO: Test recursion
-  def self.fetch_tags(tag_array, *tags, recursive: true)
+  def self.fetch_tags(tag_array, *tags, recursive: true, error_on_depth_exceeded: false)
     if recursive
       tag_array.flat_map do |e|
         if e.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/)
@@ -571,14 +552,15 @@ class TagQuery
             delimit_groups: false,
             distribute_prefixes: false,
             flatten: true,
+            error_on_depth_exceeded: error_on_depth_exceeded,
           ).select { |e2| tags.include?(e2) }
         elsif tags.include?(e)
           e
         end
-      end.uniq # .compact
+      end
     else
       tags.select { |tag| tag_array.include?(tag) }
-    end
+    end.uniq.compact
   end
 
   def self.ad_tag_string(tag_array)
@@ -598,7 +580,7 @@ class TagQuery
   end
 
   private_class_method def self.normalize_single_tag(tag)
-    TagAlias.active.where(antecedent_name: Tag.normalize_name(tag))&.first&.consequent_name || tag
+    TagAlias.active.where(antecedent_name: (tag = Tag.normalize_name(tag)))&.first&.consequent_name || tag
   end
 
   private
@@ -650,14 +632,14 @@ class TagQuery
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
 
+      # Remove quotes from description:"abc def"
+      g2 = g2.presence&.delete_prefix('"')&.delete_suffix('"')
+
       # Short-circuit when there is no metatag or the metatag has no value
       if g2.blank?
         add_tag(token)
         next
       end
-
-      # Remove quotes from description:"abc def"
-      g2 = g2.delete_prefix('"').delete_suffix('"')
 
       type = METATAG_SEARCH_TYPE.fetch(metatag_name[0], :must)
       case metatag_name.downcase
