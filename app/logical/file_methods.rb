@@ -81,7 +81,7 @@ module FileMethods
         "gif"
       when "image/png"
         "png"
-      when "video/webm"
+      when "video/webm", "audio/webm"
         "webm"
       else
         mime_type
