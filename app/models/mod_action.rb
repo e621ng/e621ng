@@ -97,8 +97,6 @@ class ModAction < ApplicationRecord
 
   ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete].freeze
 
-  scope :public, -> { where.not(action: ProtectedActionKeys) }
-
   KnownActionKeys = KnownActions.keys.freeze
 
   module SearchMethods
@@ -106,11 +104,11 @@ class ModAction < ApplicationRecord
       if user.is_staff?
         all
       else
-        public
+        where.not(action: ProtectedActionKeys)
       end
     end
 
-    def self.search(params)
+    def search(params)
       q = super
 
       q = q.where_user(:creator_id, :creator, params)
@@ -175,4 +173,6 @@ class ModAction < ApplicationRecord
   def initialize_creator
     self.creator_id = CurrentUser.id
   end
+
+  extend SearchMethods
 end
