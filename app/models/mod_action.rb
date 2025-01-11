@@ -95,18 +95,40 @@ class ModAction < ApplicationRecord
     takedown_process: %i[takedown_id],
   }.freeze
 
+  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete].freeze
+
+  scope :public, -> { where.not(action: ProtectedActionKeys) }
+
   KnownActionKeys = KnownActions.keys.freeze
 
-  def self.search(params)
-    q = super
-
-    q = q.where_user(:creator_id, :creator, params)
-
-    if params[:action].present?
-      q = q.where("action = ?", params[:action])
+  module SearchMethods
+    def visible(user)
+      if user.is_staff?
+        all
+      else
+        public
+      end
     end
 
-    q.apply_basic_order(params)
+    def self.search(params)
+      q = super
+
+      q = q.where_user(:creator_id, :creator, params)
+
+      if params[:action].present?
+        q = q.where("action = ?", params[:action])
+      end
+
+      q.apply_basic_order(params)
+    end
+  end
+
+  def can_view?(user)
+    if user.is_staff?
+      true
+    else
+      ProtectedActionKeys.exclude?(action)
+    end
   end
 
   def values
@@ -139,7 +161,7 @@ class ModAction < ApplicationRecord
   end
 
   def hidden_attributes
-    super + [:values]
+    super + %i[values values_old]
   end
 
   def method_attributes
