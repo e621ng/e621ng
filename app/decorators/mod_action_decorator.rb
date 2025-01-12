@@ -79,37 +79,13 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Staff Note ###
     when "staff_note_create"
-      msg = "Created "
-      if CurrentUser.is_staff?
-        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
-      else
-        msg += "staff note"
-      end
-      msg
+      "Created \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
     when "staff_note_update"
-      msg = "Updated "
-      if CurrentUser.is_staff?
-        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
-      else
-        msg += "staff note"
-      end
-      msg
+      "Updated \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
     when "staff_note_delete"
-      msg = "Deleted "
-      if CurrentUser.is_staff?
-        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
-      else
-        msg += "staff note"
-      end
-      msg
+      "Deleted \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
     when "staff_note_undelete"
-      msg = "Undeleted "
-      if CurrentUser.is_staff?
-        msg += "\"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
-      else
-        msg += "staff note"
-      end
-      msg
+      "Undeleted \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
 
       ### User ###
 
