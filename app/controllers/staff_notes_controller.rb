@@ -5,7 +5,7 @@ class StaffNotesController < ApplicationController
   before_action :load_staff_note, only: %i[show edit update delete undelete]
   before_action :check_edit_privilege, only: %i[update]
   before_action :check_delete_privilege, only: %i[delete undelete]
-  respond_to :html
+  respond_to :html, :json
 
   def index
     @user = User.find_by(id: params[:user_id])
