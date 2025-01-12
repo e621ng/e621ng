@@ -374,12 +374,16 @@ class TagQuery
     matches.uniq
   end
 
-  private_class_method def self.handle_top_level(matches, prefix, strip_prefixes:, distribute_prefixes:, **kwargs)
+  # * `matches` {`Array`}
+  # * `prefix` {`String`}
+  # * `strip_prefixes` {`boolean`}:
+  # * `delimit_groups` [`true`]
+  private_class_method def self.handle_top_level(matches, prefix, strip_prefixes:, **kwargs)
     if kwargs.fetch(:delimit_groups, true)
-      matches.insert(0, "#{strip_prefixes || distribute_prefixes ? '' : prefix}(") << ")"
+      matches.insert(0, "#{strip_prefixes ? '' : prefix.presence || ''}(") << ")"
       kwargs.fetch(:flatten) ? matches : [matches]
-    elsif !(strip_prefixes || distribute_prefixes) && prefix.present?
-      # TODO: What should be done when not stripping modifiers & not delimiting groups?
+    elsif !strip_prefixes && prefix.present?
+      # NOTE: What should be done when not stripping/distributing modifiers & not delimiting groups?
       # Either place the modifier alone outside the array or inside the array?
       # This won't correctly reconstitute the original string without dedicated code.
       # Currently places alone inside if flattening and outside otherwise
@@ -396,7 +400,9 @@ class TagQuery
   # * `query`: the string to scan. Will be converted to a string, normalized, and stripped.
   # * `flatten` [`true`]: Flatten sub-groups into 1 single-level array?
   # * `strip_prefixes` [`false`]
-  # * `distribute_prefixes` [`nil`]:
+  # * `distribute_prefixes` {`falsy | Array`} [`nil`]: If responds to `<<`, `slice!`, & `includes?`,
+  # will be used in recursive calls to store the prefix of the enclosing group; if falsy, prefixes
+  # will not be distributed.
   # * `strip_duplicates_at_level` [`false`]: Removes any duplicate tags at the current level, and
   # recursively do the same for each group.
   # * `delimit_groups` [`true`]: Surround groups w/ parentheses elements. Unless `strip_prefixes` or
@@ -404,6 +410,7 @@ class TagQuery
   # `sort_at_level` [`false`]
   # `normalize_at_level` [`false`]
   # `error_on_depth_exceeded` [`false`]
+  # `discard_group_prefix` [`nil`]
   #
   # #### Recursive Parameters (SHOULDN'T BE USED BY OUTSIDE METHODS)
   #
@@ -420,11 +427,10 @@ class TagQuery
   )
     kwargs[:depth] = (depth = 1 + kwargs.fetch(:depth, 0))
     if depth > TagQuery::DEPTH_LIMIT
-      return raise DepthExceededError if kwargs.fetch(:error_on_depth_exceeded, false)
+      return raise DepthExceededError if kwargs[:error_on_depth_exceeded]
       return handle_top_level(
-        [], nil,
-        flatten: flatten, strip_prefixes: strip_prefixes, distribute_prefixes: distribute_prefixes,
-        **kwargs
+        [], distribute_prefixes && !kwargs[:discard_group_prefix] ? distribute_prefixes.slice!(-1) : nil,
+        flatten: flatten, strip_prefixes: strip_prefixes, **kwargs
       )
     end
     tag_str = query.to_s.unicode_normalize(:nfc).strip
@@ -433,39 +439,32 @@ class TagQuery
     group_ranges = [] if flatten
     top = flatten ? [] : nil
     match_tokens(tag_str, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
-      distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
       if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tag_str.length
+        distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
         matches = if depth > TagQuery::DEPTH_LIMIT
                     []
                   else
                     TagQuery.scan_recursive(
                       m[:body][/\A\(\s+\)\z/] ? "" : m[:body][/\A\(\s+(.*)\s+\)\z/, 1],
-                      flatten: flatten,
-                      strip_prefixes: strip_prefixes,
-                      distribute_prefixes: distribute_prefixes,
-                      **kwargs,
+                      flatten: flatten, strip_prefixes: strip_prefixes,
+                      distribute_prefixes: distribute_prefixes, **kwargs
                     )
                   end
         distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
         return handle_top_level(
-          matches, m[:prefix],
+          matches, kwargs[:discard_group_prefix] ? "" : m[:prefix],
+          flatten: flatten, strip_prefixes: strip_prefixes, **kwargs
+        )
+      elsif m[:group].present?
+        value = TagQuery.scan_recursive(
+          m[0].strip,
           flatten: flatten, strip_prefixes: strip_prefixes, distribute_prefixes: distribute_prefixes,
           **kwargs
         )
-      elsif m[:group].present?
-        distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
-        value = TagQuery.scan_recursive(
-          m[0].strip,
-          flatten: flatten,
-          strip_prefixes: strip_prefixes,
-          distribute_prefixes: distribute_prefixes,
-          **kwargs,
-        )
-        distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
         is_duplicate = false
-        dup_check = ->(e) { e.empty? ? value.empty? : e.difference(value).blank? }
-        if kwargs.fetch(:strip_duplicates_at_level, false)
+        if kwargs[:strip_duplicates_at_level]
+          dup_check = ->(e) { e.empty? ? value.empty? : e.difference(value).blank? }
           if flatten
             matches.each_cons(value.length) { |e| break if (is_duplicate = dup_check.call(e)) } # rubocop:disable Metrics/BlockNesting
           else
@@ -474,7 +473,7 @@ class TagQuery
         end
         unless is_duplicate
           # splat regardless of flattening to correctly de-nest value
-          if kwargs.fetch(:sort_at_level, false)
+          if kwargs[:sort_at_level]
             group_ranges << ((last_group_index + 1)..(last_group_index + value.length)) if flatten # rubocop:disable Metrics/BlockNesting
             matches.insert(last_group_index += value.length, *value)
           else
@@ -482,16 +481,17 @@ class TagQuery
           end
         end
       else
-        prefix = !strip_prefixes && (m[:prefix] || distribute_prefixes) ? resolve_distributed_tag(distribute_prefixes) || m[:prefix] : ""
-        value = prefix + (kwargs.fetch(:normalize_at_level, false) ? normalize_single_tag(m[:body]) : m[:body])
-        unless kwargs.fetch(:strip_duplicates_at_level, false) && (top || matches).include?(value)
+        distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
+        prefix = strip_prefixes ? "" : resolve_distributed_tag(distribute_prefixes).presence || m[:prefix] || ""
+        value = prefix + (kwargs[:normalize_at_level] ? normalize_single_tag(m[:body]) : m[:body])
+        unless kwargs[:strip_duplicates_at_level] && (top || matches).include?(value)
           matches << value
-          top << value if flatten
+          top << value if top
         end
+        distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
       end
-      distribute_prefixes.slice!(-1) if distribute_prefixes && m[:prefix].present?
     end
-    if kwargs.fetch(:sort_at_level, false)
+    if kwargs[:sort_at_level]
       if last_group_index >= 0
         pre = matches.slice!(0, last_group_index + 1)
         pre = flatten ? group_ranges.map { |e| pre.slice(e) }.sort!.flatten! : pre.sort
@@ -503,7 +503,7 @@ class TagQuery
   end
 
   private_class_method def self.resolve_distributed_tag(distribution)
-    return distribution unless distribution
+    return "" if distribution.blank?
     distribution.include?("-") ? "-" : distribution[-1]
   end
 
@@ -528,7 +528,9 @@ class TagQuery
   #   if matched, the value generated by the block if given or an array of `contents`
   #   else, `initial_value`
   #
-  # NOTE: Due to the nature of the grouping syntax, special handling nested metatags in this method is unneccesary.
+  # Due to the nature of the grouping syntax, special handling for nested metatags in this method is
+  # unnecessary. If this changes to a (truly) recursive search implementation, a
+  # `TagQuery::DepthExceededError` must be raised when appropriate.
   def self.recurse_through_metatags(query, *metatags, initial_value: nil, &block)
     return initial_value if metatags.blank? || (query = query.to_s.unicode_normalize(:nfc).strip).blank?
     mts = metatags.inject(nil) { |p, e| (p ? "#{p}|#{e.to_s.strip}" : e.to_s.strip) if e.present? }
@@ -572,7 +574,7 @@ class TagQuery
   # `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   #
-  # `recurse` [true]: Search through groups?
+  # `recurse` [`true`]: Search through groups?
   #
   # Returns the first found instance of any `metatags` that is `present?`. Leading and trailing double
   # quotes will be removed (matching the behavior of `parse_query`). If none are found, returns nil.
@@ -646,19 +648,21 @@ class TagQuery
     ret_val
   end
 
-  def self.has_tag?(tag_array, *, recursive: true, error_on_depth_exceeded: false)
-    fetch_tags(tag_array, *, recursive: recursive, error_on_depth_exceeded: error_on_depth_exceeded).any?
+  def self.has_tag?(source_array, *, recurse: true, error_on_depth_exceeded: false)
+    fetch_tags(source_array, *, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded).any?
   end
 
-  def self.fetch_tags(tag_array, *tags_to_find, recursive: true, error_on_depth_exceeded: false)
-    if recursive
-      tag_array.flat_map do |e|
-        if e.to_s.strip.match(/\A[-~]?\(\s.*\s\)\z/)
+  def self.fetch_tags(source_array, *tags_to_find, recurse: true, error_on_depth_exceeded: false)
+    if recurse
+      source_array.flat_map do |e|
+        temp = (e.respond_to?(:join) ? e.join(" ") : e.to_s).strip
+        if temp.match(/\A[-~]?\(\s.*\s\)\z/)
           scan_recursive(
-            e,
+            temp,
             strip_duplicates_at_level: true,
             delimit_groups: false,
             distribute_prefixes: false,
+            strip_prefixes: false,
             flatten: true,
             error_on_depth_exceeded: error_on_depth_exceeded,
           ).select { |e2| tags_to_find.include?(e2) }
@@ -667,7 +671,7 @@ class TagQuery
         end
       end
     else
-      tags_to_find.select { |tag| tag_array.include?(tag) }
+      tags_to_find.select { |tag| source_array.include?(tag) }
     end.uniq.compact
   end
 
