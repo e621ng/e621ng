@@ -130,12 +130,6 @@
       }
     }
 
-    #maintoggle {
-      display: block;
-      font-weight: bold;
-      font-size: 2em;
-    }
-
     /* Make the quick search box in the navbar full width. */
     header#top menu form input {
       width: auto;
@@ -213,47 +207,6 @@
       a.search-tag {
         font-size: 24pt;
         font-weight: bold;
-      }
-    }
-
-    #nav {
-      font-size: 2em;
-      line-height: 2em;
-      display: none;
-    }
-
-    header#top {
-      input {
-        font-size: 18pt;
-      }
-
-      menu.main {
-        padding: 5px 10px;
-
-        .mobile-logo {
-          display: inline-block;
-          width: 1.5em;
-          box-sizing: border-box;
-
-          a {
-            display: inline-block;
-            padding: 6px 10px;
-
-            background-image: url("main-logo.png");
-            background-repeat: no-repeat;
-            background-size: contain;
-
-            // Gives the link height
-            &::after {
-              content: "Placeholder";
-              visibility: hidden;
-            }
-          }
-        }
-      }
-
-      menu.secondary.empty {
-        display: none;
       }
     }
 

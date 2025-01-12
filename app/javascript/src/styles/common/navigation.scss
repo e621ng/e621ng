@@ -1,0 +1,122 @@
+nav.navigation {
+  display: grid;
+  grid-template-areas: "logo icons";
+  grid-template-columns: min-content auto;
+  grid-template-rows: min-content auto min-content;
+
+  width: 100%; // otherwise narrow when fixed
+  z-index: 10; // otherwise post labels layered above
+
+  .nav-logo {
+    grid-area: logo;
+
+    height: 3rem;
+    width: 3rem;
+    margin: 0.5rem 1rem;
+
+    background-image: url("main-logo.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+  }
+
+  .nav-primary {
+    grid-area: primary;
+    display: none; // flex
+    flex-flow: column;
+
+    background-color: var(--color-section);
+    font-size: 1.5em;
+
+    li {
+      padding: 0;
+      a {
+        display: block;
+        border-bottom: 1px solid var(--color-foreground);
+        padding: 0.5em;
+      }
+    }
+  }
+
+  .nav-secondary {
+    grid-area: secondary;
+    display: none; // flex
+    flex-flow: column;
+
+    background-color: var(--color-foreground);
+    font-size: 1.35em;
+
+    li {
+      padding: 0;
+      a {
+        display: block;
+        border-bottom: 1px solid var(--color-section);
+        padding: 0.5em;
+      }
+
+      &.divider {
+        border-bottom: 1px solid var(--color-section);
+        height: 0.25em;
+      }
+    }
+  }
+
+  .nav-icons {
+    grid-area: icons;
+
+    display: flex;
+    flex-flow: row-reverse;
+    align-items: center;
+    margin: 0.5rem 1rem;
+
+    font-size: 1.75rem;
+  }
+
+  .nav-tools {
+    grid-area: tools;
+
+    display: none; // grid
+    grid-template-areas:
+      "login  login   " 
+      "themes settings";
+    grid-template-rows: min-content;
+
+    padding: 1rem;
+    gap: 1rem;
+
+    background-color: var(--color-section);
+    border-top: 1px solid var(--color-foreground);
+
+    a {
+      background: var(--color-section-lighten-5);
+      padding: 1rem;
+      text-align: center;
+      border-radius: 6px;
+
+      @each $item in ( "login", "themes", "settings" ) {
+        &.nav-tools-#{$item} { grid-area: #{$item}; }
+      }
+    }
+  }
+
+
+  // Mobile toggle
+  &.toggled {
+    grid-template-areas:
+      "logo    icons    " 
+      "primary secondary"
+      "tools   tools    ";
+    grid-template-columns: 1fr 1fr;
+    position: fixed;
+    height: 100vh;
+
+    background-color: var(--color-background);
+
+    .nav-primary, .nav-secondary {
+      display: flex;
+    }
+    .nav-tools {
+      display: grid;
+    }
+  }
+}

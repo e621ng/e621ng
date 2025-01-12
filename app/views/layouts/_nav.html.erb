@@ -1,0 +1,28 @@
+<nav class="navigation">
+  <a href="/" class="nav-logo"></a>
+
+  <menu class="nav-primary">
+    <%= render "layouts/main_links" %>
+  </menu>
+
+  <menu class="nav-secondary <%= "empty" unless content_for(:secondary_links) %>">
+    <% if content_for(:secondary_links) %>
+      <%= yield :secondary_links %>
+    <% else %>
+      <%= subnav_link_to "Height Placeholder", "" %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-icons">
+    <a href="" id="nav-toggle">
+      <i class="fas fa-bars"></i>
+    </a>
+  </menu>
+
+  <menu class="nav-tools">
+    <a href="" class="nav-tools-login">Log In</a>
+    <a href="" class="nav-tools-themes">Themes</a>
+    <a href="" class="nav-tools-settings">Settings</a>
+  </menu>
+
+</nav>

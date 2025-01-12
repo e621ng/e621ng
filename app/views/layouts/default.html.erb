@@ -6,26 +6,7 @@
 <%= tag.body(**body_attributes(CurrentUser.user)) do %>
   <%= render "layouts/theme_include" %>
 
-  <header id="top">
-    <div id="maintoggle">
-      <a href="#"><i id="maintoggle-on" class="fa-solid fa-bars"></i></a>
-      <a href="#"><i id="maintoggle-off" class="fa-solid fa-xmark" style="display: none;"></i></a>
-    </div>
-
-    <nav id="nav">
-      <a href="/" class="logo"></a>
-      <menu class="main">
-        <%= render "layouts/main_links" %>
-      </menu>
-      <menu class="secondary <%= "empty" unless content_for(:secondary_links) %>">
-        <% if content_for(:secondary_links) %>
-          <%= yield :secondary_links %>
-        <% else %>
-          <%= subnav_link_to "Height Placeholder", "" %>
-        <% end %>
-      </menu>
-    </nav>
-  </header>
+  <%= render "layouts/nav" %>
 
   <div id="page">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
