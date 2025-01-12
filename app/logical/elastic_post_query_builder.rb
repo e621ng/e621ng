@@ -18,7 +18,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
-    @always_show_deleted = ElasticPostQueryBuilder.should_hide_deleted_posts?(query_string, always_show_deleted: always_show_deleted)
+    @always_show_deleted = always_show_deleted # || !ElasticPostQueryBuilder.should_hide_deleted_posts?(query_string)
     @depth = kwargs.fetch(:depth, 1)
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
     # super(query_string.is_a?(TagQuery) ? query_string : TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
@@ -34,40 +34,56 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
+  ##
+  # Adds the grouped subsearches to the query.
+  #
+  # NOTE: Has the hidden side-effect of updating `always_show_deleted` with each subsearches'
+  # `hide_deleted_posts?` at each step in the chain.
   def add_group_search_relation(groups)
     return if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    # asd_result = @always_show_deleted
     cb = ->(x) do
-      ElasticPostQueryBuilder.new(
+      temp = ElasticPostQueryBuilder.new(
         x,
         resolve_aliases: @resolve_aliases,
         free_tags_count: @free_tags_count + @q.tag_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: @always_show_deleted,
         depth: @depth + 1,
-      ).create_query_obj(return_nil_if_empty: false)
+      )
+      # asd_result ||= !temp.q.hide_deleted_posts? # (use_param: false)
+      @always_show_deleted ||= !temp.hide_deleted_posts? # (use_param: false)
+      temp.create_query_obj(return_nil_if_empty: false)
     end
     must.concat(groups[:must].map(&cb).compact)
     must_not.concat(groups[:must_not].map(&cb).compact)
     should.concat(groups[:should].map(&cb).compact)
+    # @always_show_deleted ||= asd_result
   end
 
-  def self.should_hide_deleted_posts?(query, always_show_deleted: nil)
+  def self.should_hide_deleted_posts?(query, always_show_deleted: false)
     return false if always_show_deleted
-    return false if TagQuery.has_metatag?(query, *%w[deleted active any all])
+    TagQuery.fetch_metatags(query, *%w[status -status], recurse: true) do |_tag, val|
+      return false if val.in?(TagQuery::OVERRIDE_DELETED_FILTER)
+    end
+    # return false if TagQuery.has_metatag?(query, "status", recurse: true) || TagQuery.fetch_metatag(query, "-status", recurse: true)
     true
   end
 
   def hide_deleted_posts?
-    return false if @always_show_deleted
-    return false if q[:status].in?(%w[deleted active any all])
-    return false if q[:status_must_not].in?(%w[deleted active any all])
-    true
+    # use_param ? q.hide_deleted_posts?(always_show_deleted: @always_show_deleted) : q.hide_deleted_posts?
+    q.hide_deleted_posts?(always_show_deleted: @always_show_deleted)
+    # if @always_show_deleted ||
+    #    q[:status]&.in?(TagQuery::OVERRIDE_DELETED_FILTER) ||
+    #    q[:status_must_not]&.in?(TagQuery::OVERRIDE_DELETED_FILTER)
+    #   false
+    # else
+    #   true
+    # end
   end
 
   def build
-    if @enable_safe_mode
-      must.push({ term: { rating: "s" } })
-    end
+    must.push({ term: { rating: "s" } }) if @enable_safe_mode
 
     add_array_range_relation(:post_id, :id)
     add_array_range_relation(:mpixels, :mpixels)
@@ -125,10 +141,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must_not.push({ term: { deleted: true } })
     elsif q[:status_must_not] == "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
-    end
-
-    if hide_deleted_posts?
-      must.push({ term: { deleted: false } })
     end
 
     add_array_relation(:uploader_ids, :uploader)
@@ -210,7 +222,15 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags])
+
+    # Update always_show_deleted
+    @always_show_deleted ||= !hide_deleted_posts?
+
+    # Use the updated value in groups
     add_group_search_relation(q[:groups])
+
+    # The groups updated our value; now optionally hide deleted
+    must.push({ term: { deleted: false } }) unless @always_show_deleted # if hide_deleted_posts?
 
     case q[:order]
     when "id", "id_asc"
@@ -352,7 +372,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ id: :desc })
     end
 
-    if !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
+    if !CurrentUser.user&.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       # NOTE: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
       should.push(
         {
@@ -365,7 +385,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         { term: { pending: false } },
       )
 
-      unless CurrentUser.user.id.nil?
+      unless CurrentUser.user&.id.nil?
         should.push({ term: { uploader: CurrentUser.user.id } })
       end
 
