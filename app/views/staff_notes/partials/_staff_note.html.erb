@@ -5,7 +5,7 @@
       <%= staff_note.creator.level_string %>
     </div>
     <div class="post-time">
-      <%= link_to time_ago_in_words_tagged(staff_note.created_at), staff_notes_path(user_id: staff_note.user_id, anchor: "staff-note-#{staff_note.id}") %>
+      <%= link_to time_ago_in_words_tagged(staff_note.created_at), staff_notes_path(search: { user_id: staff_note.user_id }, anchor: "staff-note-#{staff_note.id}") %>
     </div>
   </div>
   <div class="content">
