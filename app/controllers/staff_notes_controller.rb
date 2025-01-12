@@ -56,7 +56,7 @@ class StaffNotesController < ApplicationController
   private
 
   def search_params
-    permit_search_params(%i[creator_id creator_name user_id user_name resolved body_matches without_system_user include_deleted])
+    permit_search_params(%i[creator_id creator_name updater_id updater_name user_id user_name body_matches without_system_user include_deleted])
   end
 
   def staff_note_params
