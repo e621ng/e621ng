@@ -75,7 +75,7 @@ class StaffNote < ApplicationRecord
 
   def can_delete?(user)
     return false unless user.is_staff?
-    return true if creator_id == user.id || user.is_admin
+    return true if creator_id == user.id || user.is_admin?
     user_id != user.id
   end
 end
