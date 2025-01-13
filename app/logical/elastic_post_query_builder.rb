@@ -315,7 +315,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({id: :desc})
     end
 
-    if !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
+    if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       should = [
         {
           range: {
