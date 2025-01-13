@@ -2,11 +2,11 @@
   <div id="a-new">
     <h1>New Staff Note for <%= link_to_user(@user) %></h1>
 
-    <%= render "admin/staff_notes/partials/new", staff_note: @staff_note, user: @user %>
+    <%= render "staff_notes/partials/new", staff_note: @staff_note, user: @user %>
   </div>
 </div>
 
-<%= render "users/secondary_links" %>
+<%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
   New Staff Note

@@ -1,0 +1,6 @@
+<%= error_messages_for :staff_note %>
+
+<%= custom_form_for(staff_note, html: { style: ("display: none;" if local_assigns[:hidden]) }, url: staff_note_path(staff_note, user_id: staff_note.user_id), method: :patch) do |f| %>
+  <%= f.input :body, as: :dtext, label: false %>
+  <%= f.button :submit, "Submit" %>
+<% end %>
