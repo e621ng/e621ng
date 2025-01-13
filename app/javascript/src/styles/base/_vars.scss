@@ -25,18 +25,22 @@ $base_font_family: Verdana, sans-serif;
 $box-shadow-size: 2px 2px 5px;
 
 @mixin preview-type-badge($text) {
-  background-color: themed("color-section");
-  border: 1px solid themed("color-text-white");
-  color: themed("color-text");
-  z-index: 5;
   position: absolute;
+  z-index: 5;
   left: 0;
   top: 0.5rem;
-  text-align: center;
-  border-radius: $border-radius-full;
-  padding: 3px 5px;
+  padding: 2px 4px;
+
+  background-color: themed("color-section");
+  color: themed("color-text");
   font-size: 60%;
   font-weight: bold;
+  text-align: center;
+
+  border-radius: 0 $border-radius-half $border-radius-half 0;
+  border: 1px solid themed("color-text-muted");
+  border-left: 0;
+  
   content: $text;
 }
 

@@ -47,6 +47,7 @@ export { default as PostReplacement } from '../src/javascripts/post_replacement.
 export { default as PostVersions } from '../src/javascripts/post_versions.js';
 export { default as Replacer } from '../src/javascripts/replacer.js';
 export { default as Shortcuts } from '../src/javascripts/shortcuts.js';
+export { default as StaffNote } from '../src/javascripts/staff_notes.js';
 export { default as Utility } from '../src/javascripts/utility.js';
 export { default as TagRelationships } from '../src/javascripts/tag_relationships.js';
 export { default as Takedown } from '../src/javascripts/takedowns.js';

@@ -1,11 +1,15 @@
 .staff-note-list {
-  .staff-note {
-    margin-bottom: $padding-050;
-  }
-
   // This is getting overwritten through DText styling on user profiles,
   // because the whole list is wrapped in a collapsable section.
   h4.author-name {
     font-size: $h4-size;
+  }
+}
+
+.staff-note {
+  margin-bottom: $padding-050;
+
+  &[data-is-deleted="true"] {
+    background: $background-article-hidden;
   }
 }

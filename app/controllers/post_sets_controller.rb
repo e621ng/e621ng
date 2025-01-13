@@ -2,7 +2,8 @@
 
 class PostSetsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, except: [:index, :show]
+  before_action :member_only, except: %i[index show]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def index
     if !params[:post_id].blank?
@@ -160,5 +161,9 @@ class PostSetsController < ApplicationController
     permitted_params = %i[name shortname creator_id creator_name order]
     permitted_params += %i[is_public] if CurrentUser.is_moderator?
     permit_search_params permitted_params
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.post_sets_disabled? && !CurrentUser.is_staff?
   end
 end

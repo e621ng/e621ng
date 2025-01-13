@@ -42,7 +42,7 @@
     docker compose up
     ```
     After running the commands once only `docker compose up` is needed to bring up the containers.
-1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `qwerty` respectively.
+1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `hexerade` respectively.
 1. By default, the site will lack any content. For testing purposes, you can generate some using the following command:
     ```
     docker exec -it e621ng-e621-1 /app/bin/populate

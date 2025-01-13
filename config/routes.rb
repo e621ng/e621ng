@@ -25,14 +25,21 @@ Rails.application.routes.draw do
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-    resources :staff_notes, only: [:index]
-    resources :danger_zone, only: [:index] do
+  end
+
+  namespace :security do
+    root to: "dashboard#index"
+    resource :dashboard, only: [:index]
+    resources :lockdown, only: [:index] do
       collection do
-        put :uploading_limits
-        put :hide_pending_posts
+        put :panic
+        put :enact
+        put :uploads_min_level
+        put :uploads_hide_pending
       end
     end
   end
+
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, :only => [:show]
@@ -86,6 +93,16 @@ Rails.application.routes.draw do
   end
 
   resources :avoid_posting_versions, only: %i[index]
+
+  resources :staff_notes, except: %i[destroy] do
+    collection do
+      get :search
+    end
+    member do
+      put :delete
+      put :undelete
+    end
+  end
 
   resources :tickets, except: %i[destroy] do
     member do
@@ -259,7 +276,9 @@ Rails.application.routes.draw do
   end
   resource :related_tag, :only => [:show, :update]
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
-  resource :session, only: [:new, :create, :destroy]
+  resource :session, only: %i[new create destroy] do
+    get :confirm_password, on: :collection
+  end
   resources :stats, only: [:index]
   resources :tags, constraints: id_name_constraint do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
@@ -283,10 +302,7 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
-    resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do
-      post :view
-    end
-    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
+    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     collection do
       get :home

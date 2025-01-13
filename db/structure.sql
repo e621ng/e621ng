@@ -1686,7 +1686,8 @@ CREATE TABLE public.posts (
     generated_samples character varying[],
     duration numeric,
     is_comment_disabled boolean DEFAULT false NOT NULL,
-    is_comment_locked boolean DEFAULT false NOT NULL
+    is_comment_locked boolean DEFAULT false NOT NULL,
+    tag_count_contributor integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1782,7 +1783,8 @@ CREATE TABLE public.staff_notes (
     user_id bigint NOT NULL,
     creator_id integer NOT NULL,
     body character varying,
-    resolved boolean DEFAULT false NOT NULL
+    is_deleted boolean DEFAULT false NOT NULL,
+    updater_id bigint NOT NULL
 );
 
 
@@ -4230,6 +4232,13 @@ CREATE INDEX index_staff_notes_on_creator_id ON public.staff_notes USING btree (
 
 
 --
+-- Name: index_staff_notes_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_notes_on_updater_id ON public.staff_notes USING btree (updater_id);
+
+
+--
 -- Name: index_staff_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4671,16 +4680,26 @@ ALTER TABLE ONLY public.avoid_postings
 
 
 --
+-- Name: staff_notes fk_rails_eaa7223eea; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_notes
+    ADD CONSTRAINT fk_rails_eaa7223eea FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20241114055212'),
 ('20240905160626'),
 ('20240726170041'),
 ('20240709134926'),
 ('20240706061122'),
+('20240205174652'),
 ('20240103002049'),
 ('20240103002040'),
 ('20240101042716'),

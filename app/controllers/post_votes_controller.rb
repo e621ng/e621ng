@@ -2,8 +2,9 @@
 
 class PostVotesController < ApplicationController
   before_action :member_only
-  before_action :moderator_only, only: [:index, :lock]
+  before_action :moderator_only, only: %i[index lock]
   before_action :admin_only, only: [:delete]
+  before_action :ensure_lockdown_disabled
   skip_before_action :api_check
 
   def create
@@ -50,5 +51,9 @@ class PostVotesController < ApplicationController
     permitted_params = %i[post_id user_name user_id post_creator_id post_creator_name timeframe score]
     permitted_params += %i[user_ip_addr duplicates_only order] if CurrentUser.is_admin?
     permit_search_params permitted_params
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
   end
 end

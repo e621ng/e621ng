@@ -197,52 +197,6 @@
       padding: 0;
     }
 
-    #posts #posts-container {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1vw;
-      align-items: center;
-      justify-content: space-evenly;
-    }
-
-    article.post-preview {
-      float: none;
-      margin: 0 0 10px 0;
-      text-align: center;
-      vertical-align: middle;
-      display: inline-block;
-      width: fit-content;
-
-      a {
-        margin: 0 auto;
-      }
-
-      img {
-        max-height: 150px;
-        max-width: 100cqw;
-      }
-
-      .desc {
-        font-size: 100%;
-      }
-    }
-
-    .user-disable-cropped-false {
-      article.post-preview {
-        img {
-          height: auto;
-          max-height: none;
-          max-width: fit-content;
-          width: 100cqw;
-
-          &.has-cropped-false {
-            object-fit: cover;
-          }
-        }
-      }
-    }
-
     div#options {
       margin-top: 10px;
       font-size: 24pt;
@@ -310,13 +264,6 @@
       h1 {
         display: inline; //Needed for menu button
       }
-    }
-  }
-}
-@media screen and (max-width: 800px) and (horizontal-viewport-segments: 2) {
-  body.resp {
-    #posts #posts-container {
-      grid-template-columns: repeat(4, 1fr);
     }
   }
 }

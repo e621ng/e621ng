@@ -3,6 +3,7 @@
 class PostsController < ApplicationController
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
   respond_to :html, :json
 
   def index
@@ -26,7 +27,7 @@ class PostsController < ApplicationController
   def show
     @post = Post.find(params[:id])
 
-    raise User::PrivilegeError.new("Post unavailable") unless DangerZone.post_visible?(@post, CurrentUser.user)
+    raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
@@ -162,6 +163,10 @@ class PostsController < ApplicationController
   def ensure_can_edit(post)
     can_edit = CurrentUser.can_post_edit_with_reason
     raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.uploads_disabled? && !CurrentUser.is_staff?
   end
 
   def post_params

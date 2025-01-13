@@ -14,6 +14,6 @@
   <% if CurrentUser.is_staff? %>
     <%= f.input :staff_notes, label: "Staff Notes" %>
   <% end %>
-  <%= f.input :is_active, label: "Active?", collection: [%w[Yes true], %w[No false], %w[Any any]] %>
+  <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :order, collection: [["Artist Name", "artist_name"], %w[Created created_at], %w[Updated updated_at]], include_blank: true %>
 <% end %>

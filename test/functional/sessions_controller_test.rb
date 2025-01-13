@@ -15,7 +15,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
       should "create a new session" do
         user = create(:user)
 
-        post session_path, params: { name: user.name, password: "password" }
+        post session_path, params: { session: { name: user.name, password: "6cQE!wbA" } }
         user.reload
 
         assert_redirected_to(posts_path)
@@ -33,8 +33,8 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "fail when provided an invalid password" do
-        user = create(:user, password: "xxxxxx", password_confirmation: "xxxxxx")
-        post session_path, params: { name: user.name, password: "yyy" }
+        user = create(:user, password: "6cQE!wbA", password_confirmation: "6cQE!wbA")
+        post session_path, params: { session: { name: user.name, password: "yyy" } }
 
         assert_nil(session[:user_id])
         assert_equal("Username/Password was incorrect", flash[:notice])
@@ -45,7 +45,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
       should "clear the session" do
         user = create(:user)
 
-        post session_path, params: { name: user.name, password: "password" }
+        post session_path, params: { session: { name: user.name, password: "6cQE!wbA" } }
         assert_not_nil(session[:user_id])
 
         delete_auth(session_path, user)
