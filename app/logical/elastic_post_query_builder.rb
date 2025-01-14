@@ -372,7 +372,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ id: :desc })
     end
 
-    if !CurrentUser.user&.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
+    if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       # NOTE: Formerly overwrote the value of should instead of pushing values onto should. Was this the intended behavior?
       should.push(
         {

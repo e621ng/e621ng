@@ -7,12 +7,12 @@
     <% end %>
     <%= render "search" %>
 
-    <%= render "admin/staff_notes/partials/list_of_notes", staff_notes: @notes, show_receiver_name: @user.blank? %>
+    <%= render "staff_notes/partials/list_of_notes", staff_notes: @notes, show_receiver_name: @user.blank? %>
     <%= numbered_paginator(@notes) %>
   </div>
 </div>
 
-<%= render "users/secondary_links" %>
+<%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
   <%= @user ? "#{@user.name} - Staff Notes" : "Staff Notes" %>

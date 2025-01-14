@@ -16,6 +16,10 @@ class ModAction < ApplicationRecord
     avoid_posting_delete: %i[id artist_name],
     avoid_posting_undelete: %i[id artist_name],
     avoid_posting_destroy: %i[id artist_name],
+    staff_note_create: %i[id user_id body],
+    staff_note_update: %i[id user_id body old_body],
+    staff_note_delete: %i[id user_id],
+    staff_note_undelete: %i[id user_id],
     blip_delete: %i[blip_id user_id],
     blip_hide: %i[blip_id user_id],
     blip_unhide: %i[blip_id user_id],
@@ -91,18 +95,38 @@ class ModAction < ApplicationRecord
     takedown_process: %i[takedown_id],
   }.freeze
 
+  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete].freeze
+
   KnownActionKeys = KnownActions.keys.freeze
 
-  def self.search(params)
-    q = super
-
-    q = q.where_user(:creator_id, :creator, params)
-
-    if params[:action].present?
-      q = q.where("action = ?", params[:action])
+  module SearchMethods
+    def visible(user)
+      if user.is_staff?
+        all
+      else
+        where.not(action: ProtectedActionKeys)
+      end
     end
 
-    q.apply_basic_order(params)
+    def search(params)
+      q = super
+
+      q = q.where_user(:creator_id, :creator, params)
+
+      if params[:action].present?
+        q = q.where("action = ?", params[:action])
+      end
+
+      q.apply_basic_order(params)
+    end
+  end
+
+  def can_view?(user)
+    if user.is_staff?
+      true
+    else
+      ProtectedActionKeys.exclude?(action)
+    end
   end
 
   def values
@@ -131,7 +155,7 @@ class ModAction < ApplicationRecord
   end
 
   def hidden_attributes
-    super + [:values]
+    super + %i[values values_old]
   end
 
   def method_attributes
@@ -145,4 +169,6 @@ class ModAction < ApplicationRecord
   def initialize_creator
     self.creator_id = CurrentUser.id
   end
+
+  extend SearchMethods
 end
