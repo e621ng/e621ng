@@ -1757,9 +1757,10 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      assert_tag_match(all - [flagged, pending], "-status:modqueue")
-      assert_tag_match(all - [pending], "-status:pending")
-      assert_tag_match(all - [flagged], "-status:flagged")
+      # Inconsistency is due to automatic injection of "-status:deleted"
+      assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
+      assert_tag_match(all - [deleted, pending], "-status:pending")
+      assert_tag_match(all - [deleted, flagged], "-status:flagged")
 
       assert_tag_match(all - [deleted], "-status:deleted")
       assert_tag_match(all, "-status:active")

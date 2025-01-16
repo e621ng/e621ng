@@ -143,8 +143,8 @@ class TagQuery
   # The values for the status metatag that will override the automatic hiding of deleted posts from
   # search results. Other tags do also alter this behavior; specifically, a `deletedby` or `delreason`
   # metatag adds an implicit `status:any` metatag.
-  # OVERRIDE_DELETED_FILTER = %w[deleted active any all].freeze
-  OVERRIDE_DELETED_FILTER = STATUS_VALUES
+  OVERRIDE_DELETED_FILTER = %w[deleted active any all].freeze
+  # OVERRIDE_DELETED_FILTER = STATUS_VALUES
 
   # Guesses whether the default behavior to hide deleted posts should be overridden.
   #
@@ -172,15 +172,28 @@ class TagQuery
 
   # Whether the default behavior to hide deleted posts should be overridden.
   #
-  # `always_show_deleted` [`false`]: The override value. Corresponds to
+  # * `always_show_deleted` [`false`]: The override value. Corresponds to
   # `ElasticPostQueryBuilder.always_show_deleted`.
+  # * `recurse` [`false`]: Should groups be accounted for, or just this level?
   #
-  # Returns false if `always_show_deleted` or `q[:status]`/`q[:status_must_not]` contains a value in
-  # `TagQuery::OVERRIDE_DELETED_FILTER`; true otherwise.
-  def hide_deleted_posts?(always_show_deleted: false)
+  # Returns true unless
+  # * `always_show_deleted`,
+  # * `q[:status]`/`q[:status_must_not]` contains a value in `TagQuery::OVERRIDE_DELETED_FILTER`,
+  # * One of the following is non-nil:
+  #   * `q[:deleter]`
+  #   * `q[:deleter_must_not]`
+  #   * `q[:deleter_should]`
+  #   * `q[:delreason]`
+  #   * `q[:delreason_must_not]`
+  #   * `q[:delreason_should]`, or
+  # * If `recurse`, any of the subsearches in `q[:groups]` return false from `TagQuery.should_hide_deleted_posts?`
+  def hide_deleted_posts?(always_show_deleted: false, recurse: false)
     if always_show_deleted ||
        q[:status]&.in?(OVERRIDE_DELETED_FILTER) ||
-       q[:status_must_not]&.in?(OVERRIDE_DELETED_FILTER)
+       q[:status_must_not]&.in?(OVERRIDE_DELETED_FILTER) ||
+       !q[:deleter].nil? || !q[:deleter_must_not].nil? || !q[:deleter_should].nil? ||
+       !q[:delreason].nil? || !q[:delreason_must_not].nil? || !q[:delreason_should].nil? ||
+       (recurse && (q[:group][:must] + q[:group][:must_not] + q[:group][:should]).any? { |e| !TagQuery.should_hide_deleted_posts?(e) })
       false
     else
       true
@@ -231,10 +244,8 @@ class TagQuery
     flatten ? tags.join(" ") : tags
   end
 
-  def self.tokenize_regex
-    # /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:"[^"]*"))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
-    /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
-  end
+  TOKENIZE_REGEX = /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
+  # TOKENIZE_REGEX = /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:"[^"]*"))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
 
   def self.match_tokens(
     tag_str,
@@ -246,7 +257,7 @@ class TagQuery
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
     r = []
     if recurse
-      tag_str.scan(tokenize_regex) do |_|
+      tag_str.scan(TOKENIZE_REGEX) do |_|
         m = Regexp.last_match
         r << (block_given? ? yield(m) : m) if m[:group].blank? || stop_at_group
         if m[:group].present?
@@ -258,7 +269,7 @@ class TagQuery
         end
       end
     else
-      tag_str.scan(tokenize_regex) do |_|
+      tag_str.scan(TOKENIZE_REGEX) do |_|
         unless !stop_at_group && Regexp.last_match[:group]
           r << if block_given?
                  yield(Regexp.last_match)
@@ -282,7 +293,7 @@ class TagQuery
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
     r = []
     if recurse
-      tag_str.scan(tokenize_regex) do |_|
+      tag_str.scan(TOKENIZE_REGEX) do |_|
         m = Regexp.last_match
         r << (block_given? ? block.call(m[:prefix] + m[:body]) : m[:prefix] + m[:body]) if m[:group].blank? || stop_at_group
         if m[:group].present?
@@ -294,7 +305,7 @@ class TagQuery
         end
       end
     else
-      tag_str.scan(tokenize_regex) do |m|
+      tag_str.scan(TOKENIZE_REGEX) do |m|
         m = m.is_a?(String) ? m.strip : Regexp.last_match[0].strip
         r << block_given? ? block.call(m) : m
       end
