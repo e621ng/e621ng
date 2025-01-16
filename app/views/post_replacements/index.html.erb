@@ -78,7 +78,11 @@
             </td>
             <td>
               <dt>Image Info</dt>
-              <dd>
+              <dd> Replacement:
+                <%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %>
+                (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %>)
+              </dd>
+              <dd> Current:
                 <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
                 (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>)
               </dd>
@@ -94,6 +98,8 @@
             <td>
               <dt>Created at</dt>
               <%= compact_time post_replacement.created_at %>
+              <dt>Updated at</dt>
+              <%= compact_time post_replacement.updated_at %>
               <dt>Reason</dt>
               <dd class="replacement-reason"><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
             </td>
