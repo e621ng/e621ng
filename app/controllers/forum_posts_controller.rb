@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 class ForumPostsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show, :search]
-  before_action :moderator_only, only: [:unhide, :warning]
+  before_action :member_only, except: %i[index show search]
+  before_action :moderator_only, only: %i[unhide warning]
   before_action :admin_only, only: [:destroy]
-  before_action :load_post, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :warning]
-  before_action :check_min_level, :only => [:edit, :show, :update, :destroy, :hide, :unhide]
+  before_action :load_post, only: %i[edit show update destroy hide unhide warning]
+  before_action :check_min_level, only: %i[edit show update destroy hide unhide]
+  before_action :ensure_lockdown_disabled, except: %i[index show search]
   skip_before_action :api_check
 
   def new
@@ -18,9 +21,8 @@ class ForumPostsController < ApplicationController
   end
 
   def index
-    @query = ForumPost.permitted.active.search(search_params)
-    @query = ForumPost.permitted.search(search_params) if CurrentUser.is_moderator?
-    @forum_posts = @query.includes(:topic).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @query = ForumPost.visible(CurrentUser.user).search(search_params)
+    @forum_posts = @query.includes(:topic).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@forum_posts)
   end
 
@@ -107,5 +109,9 @@ class ForumPostsController < ApplicationController
     permitted_params += [:topic_id] if context == :create
 
     params.fetch(:forum_post, {}).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.is_staff?
   end
 end

@@ -1,0 +1,84 @@
+<div id="c-avoid-posting-versions">
+  <div id="a-index">
+    <h1>Avoid Posting Versions</h1>
+
+    <%= render "search" %>
+
+    <table class="striped dnp-list">
+      <thead>
+      <tr>
+        <th class="dnp-artist">Artist</th>
+        <th class="dnp-details" width="60%">Details</th>
+        <th class="dnp-status">Status</th>
+        <th class="dnp-creator">Updater</th>
+        <th class="dnp-links"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @avoid_posting_versions.each do |avoid_posting_version| %>
+      <% previous = avoid_posting_version.previous %>
+        <tr id="avoid-posting-version-<%= avoid_posting_version.id %>" data-artist="<%= avoid_posting_version.artist_name %>">
+          <td class="dnp-artist">
+            <%= link_to avoid_posting_version.artist_name, artist_path(avoid_posting_version.artist) %>
+          </td>
+          <td class="dnp-details">
+            <span class="avoid-posting-details">
+              <% if previous.present? %>
+                <% if previous.details == avoid_posting_version.details %>
+                  (no changes)
+                <% elsif avoid_posting_version.details.blank? %>
+                  (cleared)
+                <% else %>
+              <%= avoid_posting_version.details %>
+                <% end %>
+            <% else %>
+              <%= avoid_posting_version.details %>
+            <% end %>
+            </span>
+            <% if CurrentUser.is_staff? %>
+              <span class="avoid-posting-staff-notes">
+                <% if previous.present? && previous.staff_notes != avoid_posting_version.staff_notes %>
+                  <b>Staff Notes</b>
+                  <span>
+                  <% if avoid_posting_version.staff_notes.blank? %>
+                    (cleared)
+                  <% else %>
+                    <%= avoid_posting_version.staff_notes %>
+                  <% end %>
+                  </span>
+              <% end %>
+              </span>
+          <% end %>
+          </td>
+          <td class="dnp-status">
+            <%= avoid_posting_version.status %>
+          </td>
+          <td class="dnp-creator">
+            <%= link_to_user avoid_posting_version.updater %>
+            <%= link_to "»", avoid_posting_versions_path(search: { updater_name: avoid_posting_version.updater_name }) %>
+            <p>
+              <%= compact_time(avoid_posting_version.updated_at) %>
+              <% if CurrentUser.is_admin? %>
+                (<%= link_to_ip avoid_posting_version.updater_ip_addr %>)
+              <% end %>
+            </p>
+          </td>
+            <td class="dnp-links">
+              <%= link_to "Show", avoid_posting_path(avoid_posting_version.avoid_posting) %>
+              <% if CurrentUser.can_edit_avoid_posting_entries? %>
+                | <%= link_to "Edit", edit_avoid_posting_path(avoid_posting_version.avoid_posting) %>
+              <% end %>
+            </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@avoid_posting_versions) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Avoid Posting Versions
+<% end %>

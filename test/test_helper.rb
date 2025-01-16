@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ENV["RAILS_ENV"] ||= "test"
 ENV["MT_NO_EXPECTATIONS"] = "true"
 require_relative "../config/environment"
@@ -93,7 +95,7 @@ end
 
 class ActionDispatch::IntegrationTest
   def method_authenticated(method_name, url, user, options)
-    post session_path, params: { name: user.name, password: user.password }
+    post session_path, params: { session: { name: user.name, password: user.password } }
     self.send(method_name, url, **options)
   end
 
@@ -111,6 +113,15 @@ class ActionDispatch::IntegrationTest
 
   def delete_auth(url, user, options = {})
     method_authenticated(:delete, url, user, options)
+  end
+end
+
+module ActionView
+  class TestCase
+    # Stub webpacker method so these tests don't compile assets
+    def asset_pack_path(name, **_options)
+      name
+    end
   end
 end
 

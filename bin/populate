@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+
+system('RAILS_ENV=development DANBOORU_DISABLE_THROTTLES=true bin/rails runner db/populate.rb', exception: true)

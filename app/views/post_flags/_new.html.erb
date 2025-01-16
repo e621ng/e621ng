@@ -6,7 +6,7 @@
   
   
   <div class="dtext-container">
-    <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page).first.try(&:body)) %>
+    <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page)&.body) %>
   </div>
 </div>
 

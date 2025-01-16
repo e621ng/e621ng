@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Pixiv
 #
 # * https://i.pximg.net/img-original/img/2014/10/03/18/10/20/46324488_p0.png
@@ -59,7 +61,7 @@ module Sources
       end
 
       def headers
-        { "Referer" => "https://www.pixiv.net"}
+        { referer: "https://www.pixiv.net" }
       end
     end
   end

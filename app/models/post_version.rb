@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
   belongs_to :post
@@ -16,103 +18,8 @@ class PostVersion < ApplicationRecord
       end
     end
 
-    def build_query(params)
-      must = []
-      must_not = []
-      def should(*args)
-        {bool: {should: args}}
-      end
-      def split_to_terms(field, input)
-        input.split(',').map(&:to_i).map {|x| {term: {field => x}}}
-      end
-      def tag_list(field, input, target)
-        if input.present?
-          target += TagQuery.scan(input).map { |x| { term: { field => x } } }
-        end
-        target
-      end
-      def to_rating(input)
-        input.to_s.downcase[0]
-      end
-
-      if params[:updater_name].present?
-        user_id = User.name_to_id(params[:updater_name])
-        must << {term: {updater_id: user_id}} if user_id
-      end
-
-      if params[:updater_id].present?
-        must << should(*split_to_terms(:updater_id, params[:updater_id]))
-      end
-
-      if params[:post_id].present?
-        must << should(*split_to_terms(:post_id, params[:post_id]))
-      end
-
-      if params[:start_id].present?
-        must << {range: {id: {gte: params[:start_id].to_i}}}
-      end
-
-      if params[:rating].present?
-        must << {term: {rating: to_rating(params[:rating])}}
-      end
-
-      if params[:rating_changed].present?
-        if params[:rating_changed] != "any"
-          must << { term: { rating: to_rating(params[:rating_changed]) } }
-        end
-        must << { term: { rating_changed: true } }
-      end
-
-      if params[:parent_id].present?
-        must << {term: {parent_id: params[:parent_id].to_i}}
-      end
-
-      if params[:parent_id_changed].present?
-        must << {term: {parent_id: params[:parent_id_changed].to_i}}
-        must << {term: {parent_id_changed: true}}
-      end
-
-      must = tag_list(:tags, params[:tags], must)
-      must = tag_list(:tags_removed, params[:tags_removed], must)
-      must = tag_list(:tags_added, params[:tags_added], must)
-      must = tag_list(:locked_tags, params[:locked_tags], must)
-      must = tag_list(:locked_tags_removed, params[:locked_tags_removed], must)
-      must = tag_list(:locked_tags_added, params[:locked_tags_added], must)
-
-      if params[:reason].present?
-        must << {match: {reason: params[:reason]}}
-      end
-
-      if params[:description].present?
-        must << {match: {description: params[:description]}}
-      end
-
-      must = boolean_match(:description_changed, params[:description_changed], must)
-      must = boolean_match(:source_changed, params[:source_changed], must)
-
-      if params[:exclude_uploads]&.truthy?
-        must_not << { term: { version: 1 } }
-      end
-
-      if must.empty?
-        must.push({ match_all: {} })
-      end
-
-      {
-        query: { bool: { must: must, must_not: must_not } },
-        sort: { id: :desc },
-        _source: false,
-        timeout: "#{CurrentUser.user.try(:statement_timeout) || 3_000}ms"
-      }
-    end
-
-    def boolean_match(attribute, value, must)
-      if value&.truthy?
-        must << { term: { attribute => true } }
-      elsif value&.falsy?
-        must << { term: { attribute => false } }
-      end
-      must
+    def search(params)
+      ElasticPostVersionQueryBuilder.new(params).search
     end
   end
 

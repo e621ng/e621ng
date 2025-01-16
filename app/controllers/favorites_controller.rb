@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class FavoritesController < ApplicationController
   before_action :member_only, except: [:index]
+  before_action :ensure_lockdown_disabled, except: %i[index]
   respond_to :html, :json
   skip_before_action :api_check
 
@@ -14,7 +17,7 @@ class FavoritesController < ApplicationController
         raise Favorite::HiddenError
       end
 
-      @favorite_set = PostSets::Favorites.new(@user, params[:page], params[:limit])
+      @favorite_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       respond_with(@favorite_set.posts) do |fmt|
         fmt.json do
           render json: @favorite_set.api_posts, root: 'posts'
@@ -41,5 +44,9 @@ class FavoritesController < ApplicationController
     respond_with(@post)
   rescue Favorite::Error => x
     render_expected_error(422, x.message)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
   end
 end

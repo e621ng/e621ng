@@ -10,7 +10,9 @@
       <h1 id="wiki-page-title"><%= @wiki_page.pretty_title %></h1>
     <% end %>
 
-    <%= f.input :body, as: :dtext, limit: Danbooru.config.wiki_page_max_size %>
+    <%= f.input :body, as: :dtext, limit: Danbooru.config.wiki_page_max_size, allow_color: true %>
+
+    <%= f.input :parent, label: "Redirects to", autocomplete: "wiki-page", input_html: { disabled: !CurrentUser.is_privileged? } %>
 
     <% if CurrentUser.is_janitor? && @wiki_page.is_deleted? %>
       <%= f.input :is_deleted, :label => "Deleted", :hint => "Uncheck to restore this wiki page" %>
@@ -22,7 +24,7 @@
 
     <%= f.input :edit_reason, label: "Edit Reason" %>
 
-    <% if @wiki_page.errors[:title].present?  %>
+    <% if CurrentUser.is_janitor? && @wiki_page.errors[:title]&.any? { |error| error.include?("Move the posts and update any wikis linking to this page first.") }  %>
       <%= f.input :skip_secondary_validations, as: :boolean, label: "Force rename", hint: "Ignore the renaming requirements" %>
     <% end %>
 

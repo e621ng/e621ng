@@ -1,4 +1,4 @@
-require "tasks/newrelic" if defined?(NewRelic)
+# frozen_string_literal: true
 
 namespace :maintenance do
   desc "Run daily maintenance jobs"

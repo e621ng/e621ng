@@ -1,0 +1,23 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Listing", avoid_postings_path %>
+  <% if CurrentUser.can_edit_avoid_posting_entries? %>
+    <%= subnav_link_to "New", new_avoid_posting_path %>
+  <% end %>
+  <% if params[:action] == "show" %>
+    <% if CurrentUser.can_edit_avoid_posting_entries? %>
+      <%= subnav_link_to "Edit", edit_avoid_posting_path(@avoid_posting) %>
+      <% if @avoid_posting.is_active? %>
+        <%= subnav_link_to "Delete", delete_avoid_posting_path(@avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting entry?" } %>
+      <% else %>
+        <%= subnav_link_to "Undelete", undelete_avoid_posting_path(@avoid_posting), method: :put, data: { confirm: "Are you sure you want to undelete this avoid posting entry?" } %>
+      <% end %>
+      <%= subnav_link_to "Destroy", avoid_posting_path(@avoid_posting), method: :delete, data: { confirm: "Are you sure you want to destroy this avoid posting entry? This will remove all related history, and cannot be undone." } %>
+    <% end %>
+    <%= subnav_link_to "Implications", tag_implications_path(search: { antecedent_name: @avoid_posting.artist_name }) %>
+    <%= subnav_link_to "History", avoid_posting_versions_path(search: { artist_name: @avoid_posting.artist_name }) %>
+  <% else %>
+    <%= subnav_link_to "History", avoid_posting_versions_path %>
+  <% end %>
+  <li>|</li>
+  <%= subnav_link_to "Static", avoid_posting_static_path %>
+<% end %>

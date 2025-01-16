@@ -1,4 +1,4 @@
-<% unless ENV["IGNORE_RUBOCOP_TODO"] %>
+<% unless $PROGRAM_NAME.end_with?("ruby-lsp") %>
 inherit_from: .rubocop_todo.yml
 <% end %>
 
@@ -85,8 +85,11 @@ Rails/InverseOf:
 
 Rails/Output:
   Exclude:
+    - db/populate.rb
     - db/seeds.rb
     - db/fixes/*.rb
+  Include:
+    - test/**/*.rb
 
 Rails/ReversibleMigration:
   Enabled: false
@@ -118,9 +121,6 @@ Style/EmptyMethod:
 Style/FloatDivision:
   Enabled: false
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
 Style/GuardClause:
   Enabled: false
 
@@ -132,6 +132,9 @@ Style/IfUnlessModifier:
 
 Style/Lambda:
   EnforcedStyle: literal
+
+Style/MapIntoArray:
+  Enabled: false
 
 Style/NumericPredicate:
   EnforcedStyle: comparison

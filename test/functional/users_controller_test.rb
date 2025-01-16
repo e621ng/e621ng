@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   context "The users controller" do
@@ -74,10 +76,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a user" do
         assert_difference(-> { User.count }, 1) do
-          post users_path, params: { user: { name: "xxx", password: "xxxxx1", password_confirmation: "xxxxx1" } }
+          post users_path, params: { user: { name: "xxx", password: "nePD.3L4", password_confirmation: "nePD.3L4" } }
         end
         created_user = User.find(session[:user_id])
         assert_equal("xxx", created_user.name)
+        assert_equal(Danbooru.config.records_per_page, created_user.per_page)
         assert_not_nil(created_user.last_ip_addr)
       end
 

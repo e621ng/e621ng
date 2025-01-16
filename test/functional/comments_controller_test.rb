@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class CommentsControllerTest < ActionDispatch::IntegrationTest
   context "A comments controller" do
@@ -27,6 +29,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
       should "render by comment" do
         get comments_path(group_by: "comment")
+        assert_response :success
+      end
+
+      should "render for the poster_id search parameter" do
+        get comments_path(group_by: "comment", search: { poster_id: 123 })
         assert_response :success
       end
     end
@@ -101,6 +108,22 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(false, @comment.reload.do_not_bump_post)
         assert_equal(@post.id, @comment.post_id)
       end
+
+      should "not allow changing comments on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        body = @comment.body
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
+        assert_response(:forbidden)
+        assert_equal(body, @comment.reload.body)
+      end
+
+      should "not allow changing comments on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        body = @comment.body
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
+        assert_response(:forbidden)
+        assert_equal(body, @comment.reload.body)
+      end
     end
 
     context "new action" do
@@ -125,13 +148,38 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         end
         assert_redirected_to comments_path
       end
+
+      should "not allow commenting on comment locked posts" do
+        @post.update(is_comment_locked: true)
+        assert_difference("Comment.count", 0) do
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
+          assert_redirected_to(post_path(@post))
+          assert_equal("Post has comments locked", flash[:notice])
+        end
+      end
+
+      should "not allow commenting on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        assert_difference("Comment.count", 0) do
+          post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }
+          assert_redirected_to(post_path(@post))
+          assert_equal("Post has comments disabled", flash[:notice])
+        end
+      end
     end
 
     context "hide action" do
       should "mark comment as hidden" do
-        post_auth hide_comment_path(@comment.id), @user
+        post_auth hide_comment_path(@comment), @user
         assert_equal(true, @comment.reload.is_hidden)
         assert_redirected_to @comment
+      end
+
+      should "not allow hiding comments on comment disabled posts" do
+        @post.update(is_comment_disabled: true)
+        post_auth hide_comment_path(@comment), @user
+        assert_equal(false, @comment.reload.is_hidden)
+        assert_response(403)
       end
     end
 
@@ -141,13 +189,13 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "mark comment as unhidden if mod" do
-        post_auth unhide_comment_path(@comment.id), @mod
+        post_auth unhide_comment_path(@comment), @mod
         assert_equal(false, @comment.reload.is_hidden)
         assert_redirected_to(@comment)
       end
 
       should "not mark comment as unhidden if not mod" do
-        post_auth unhide_comment_path(@comment.id), @user
+        post_auth unhide_comment_path(@comment), @user
         assert_equal(true, @comment.reload.is_hidden)
         assert_response :forbidden
       end
@@ -155,7 +203,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     context "destroy action" do
       should "destroy the comment" do
-        delete_auth comment_path(@comment.id), create(:admin_user)
+        delete_auth comment_path(@comment), create(:admin_user)
         assert_equal(0, Comment.where(id: @comment.id).count)
       end
     end

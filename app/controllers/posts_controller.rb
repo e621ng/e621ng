@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 class PostsController < ApplicationController
-  before_action :member_only, :except => [:show, :show_seq, :index, :home, :random]
+  before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
   respond_to :html, :json
 
   def index
@@ -10,7 +13,7 @@ class PostsController < ApplicationController
         format.html { redirect_to(@post) }
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], params[:limit], random: params[:random])
+      @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |format|
         format.json do
@@ -23,6 +26,8 @@ class PostsController < ApplicationController
 
   def show
     @post = Post.find(params[:id])
+
+    raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
@@ -138,16 +143,19 @@ class PostsController < ApplicationController
 
         if post.errors.any?
           @message = post.errors.full_messages.join("; ")
-          render :template => "static/error", :status => 500
-        else
-          response_params = {:q => params[:tags_query], :pool_id => params[:pool_id], post_set_id: params[:post_set_id]}
-          response_params.reject!{|key, value| value.blank?}
-          redirect_to post_path(post, response_params)
+          if flash[:notice].present?
+            flash[:notice] += "\n\n" + @message
+          else
+            flash[:notice] = @message
+          end
         end
+        response_params = { q: params[:tags_query], pool_id: params[:pool_id], post_set_id: params[:post_set_id] }
+        response_params.compact_blank!
+        redirect_to post_path(post, response_params)
       end
 
       format.json do
-        render :json => post
+        render json: post
       end
     end
   end
@@ -155,6 +163,10 @@ class PostsController < ApplicationController
   def ensure_can_edit(post)
     can_edit = CurrentUser.can_post_edit_with_reason
     raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.uploads_disabled? && !CurrentUser.is_staff?
   end
 
   def post_params
@@ -169,12 +181,9 @@ class PostsController < ApplicationController
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
-    permitted_params += %i[is_status_locked is_comment_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
-  end
-
-  def allowed_readonly_actions
-    super + %w[random show_seq]
   end
 end

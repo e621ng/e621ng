@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StatsUpdater
   def self.run!
     stats = {}
@@ -41,7 +43,7 @@ class StatsUpdater
 
     stats[:total_users] = User.count
     Danbooru.config.levels.each do |name, level|
-      stats["#{name.downcase}_users".to_sym] = User.where(level: level).count
+      stats[:"#{name.downcase}_users"] = User.where(level: level).count
     end
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
     stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
@@ -74,7 +76,7 @@ class StatsUpdater
 
     stats[:total_tags] = Tag.count
     TagCategory::CATEGORIES.each do |cat|
-      stats["#{cat}_tags".to_sym] = Tag.where(category: TagCategory::MAPPING[cat]).count
+      stats[:"#{cat}_tags"] = Tag.where(category: TagCategory::MAPPING[cat]).count
     end
 
     Cache.redis.set("e6stats", stats.to_json)

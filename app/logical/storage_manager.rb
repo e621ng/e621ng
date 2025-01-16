@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StorageManager
   class Error < StandardError; end
 
@@ -66,7 +68,7 @@ class StorageManager
       delete(file_path(md5, file_ext, type, false))
       delete(file_path(md5, file_ext, type, true))
     end
-    Danbooru.config.video_rescales.each do |k,v|
+    Danbooru.config.video_rescales.each_key do |k|
       ['mp4','webm'].each do |ext|
         delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
         delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))
@@ -95,7 +97,6 @@ class StorageManager
 
   def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
-    ip = CurrentUser.ip_addr
     time = (Time.now + 15.minute).to_i
     secret = secret
     hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')

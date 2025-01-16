@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
 
@@ -22,13 +24,22 @@ Rails.application.routes.draw do
     resources :exceptions, only: [:index, :show]
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
-    resources :staff_notes, only: [:index]
-    resources :danger_zone, only: [:index] do
+    resources :destroyed_posts, only: %i[index show update]
+  end
+
+  namespace :security do
+    root to: "dashboard#index"
+    resource :dashboard, only: [:index]
+    resources :lockdown, only: [:index] do
       collection do
-        put :uploading_limits
+        put :panic
+        put :enact
+        put :uploads_min_level
+        put :uploads_hide_pending
       end
     end
   end
+
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, :only => [:show]
@@ -73,7 +84,27 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets do
+  resources :avoid_postings, constraints: id_name_constraint do
+    member do
+      put :delete
+      put :undelete
+    end
+
+  end
+
+  resources :avoid_posting_versions, only: %i[index]
+
+  resources :staff_notes, except: %i[destroy] do
+    collection do
+      get :search
+    end
+    member do
+      put :delete
+      put :undelete
+    end
+  end
+
+  resources :tickets, except: %i[destroy] do
     member do
       post :claim
       post :unclaim
@@ -129,8 +160,12 @@ Rails.application.routes.draw do
     end
   end
   resources :dmails, :only => [:new, :create, :index, :show, :destroy] do
+    member do
+      put :mark_as_read
+      put :mark_as_unread
+    end
     collection do
-      post :mark_all_as_read
+      put :mark_all_as_read
     end
   end
   resource :dtext_preview, :only => [:create]
@@ -161,7 +196,7 @@ Rails.application.routes.draw do
   resources :forum_categories
   resources :help_pages, controller: "help", path: "help"
   resources :ip_bans
-  resources :upload_whitelists do
+  resources :upload_whitelists, except: %i[show] do
     collection do
       get :is_allowed
     end
@@ -183,7 +218,6 @@ Rails.application.routes.draw do
     end
   end
   resources :note_versions, :only => [:index]
-  resource :note_previews, :only => [:show]
   resources :pools do
     member do
       put :revert
@@ -242,7 +276,9 @@ Rails.application.routes.draw do
   end
   resource :related_tag, :only => [:show, :update]
   match "related_tag/bulk", to: "related_tags#bulk", via: [:get, :post]
-  resource :session, only: [:new, :create, :destroy]
+  resource :session, only: %i[new create destroy] do
+    get :confirm_password, on: :collection
+  end
   resources :stats, only: [:index]
   resources :tags, constraints: id_name_constraint do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
@@ -266,10 +302,7 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
-    resource :api_key, :only => [:show, :view, :update, :destroy], :controller => "maintenance/user/api_keys" do
-      post :view
-    end
-    resources :staff_notes, only: [:index, :new, :create], controller: "admin/staff_notes"
+    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     collection do
       get :home
@@ -281,6 +314,10 @@ Rails.application.routes.draw do
   resources :user_feedbacks do
     collection do
       get :search
+    end
+    member do
+      put :delete
+      put :undelete
     end
   end
   resources :user_name_change_requests
@@ -438,6 +475,7 @@ Rails.application.routes.draw do
   post "/static/discord" => "static#discord", as: "discord_post"
   get "/static/toggle_mobile_mode" => "static#disable_mobile_mode", as: "disable_mobile_mode"
   get "/static/theme" => "static#theme", as: "theme"
+  get "/static/avoid_posting" => "static#avoid_posting", as: "avoid_posting_static"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
 
   root :to => "static#home"

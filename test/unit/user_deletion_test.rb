@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class UserDeletionTest < ActiveSupport::TestCase
@@ -20,7 +22,7 @@ class UserDeletionTest < ActiveSupport::TestCase
       setup do
         @user = create(:admin_user)
         CurrentUser.user = @user
-        @deletion = UserDeletion.new(@user, "password")
+        @deletion = UserDeletion.new(@user, "6cQE!wbA")
       end
 
       should "fail" do
@@ -41,7 +43,7 @@ class UserDeletionTest < ActiveSupport::TestCase
 
       @user.update(email: "ted@danbooru.com")
 
-      @deletion = UserDeletion.new(@user, "password")
+      @deletion = UserDeletion.new(@user, "6cQE!wbA")
       with_inline_jobs { @deletion.delete! }
       @user.reload
     end
@@ -56,7 +58,7 @@ class UserDeletionTest < ActiveSupport::TestCase
 
     should "reset the password" do
       assert_raises(BCrypt::Errors::InvalidHash) do
-        User.authenticate(@user.name, "password")
+        User.authenticate(@user.name, "6cQE!wbA")
       end
     end
 

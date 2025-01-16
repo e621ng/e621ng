@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 class TicketsController < ApplicationController
-  respond_to :html
-  before_action :member_only, except: [:index]
-  before_action :moderator_only, only: [:update, :edit, :destroy, :claim, :unclaim]
+  respond_to :html, :json, except: %i[create new]
+  before_action :member_only, except: %i[index]
+  before_action :moderator_only, only: %i[update edit claim unclaim]
 
   def index
-    @tickets = Ticket.search(search_params).paginate(params[:page], limit: params[:limit])
+    @tickets = Ticket.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@tickets)
   end
 
@@ -34,13 +36,14 @@ class TicketsController < ApplicationController
 
   def update
     @ticket = Ticket.find(params[:id])
+    if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
+      flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
+      redirect_to ticket_path(@ticket, force_claim: "true")
+      return
+    end
+
+    ticket_params = update_ticket_params
     @ticket.transaction do
-      if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
-        flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
-        redirect_to ticket_path(@ticket, force_claim: 'true')
-        return
-      end
-      ticket_params = update_ticket_params
       if @ticket.warnable? && ticket_params[:record_type].present?
         @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
       end
@@ -48,9 +51,12 @@ class TicketsController < ApplicationController
       @ticket.handler_id = CurrentUser.id
       @ticket.claimant_id = CurrentUser.id
       @ticket.update(ticket_params)
-      @ticket.push_pubsub("update")
+    end
+
+    if @ticket.valid?
       not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
+      @ticket.push_pubsub("update")
     end
 
     respond_with(@ticket)
@@ -61,11 +67,10 @@ class TicketsController < ApplicationController
 
     if @ticket.claimant.nil?
       @ticket.claim!
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     end
     flash[:notice] = "Ticket already claimed"
-    redirect_to ticket_path(@ticket)
+    respond_with(@ticket)
   end
 
   def unclaim
@@ -73,20 +78,17 @@ class TicketsController < ApplicationController
 
     if @ticket.claimant.nil?
       flash[:notice] = "Ticket not claimed"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     elsif @ticket.claimant.id != CurrentUser.id
       flash[:notice] = "Ticket not claimed by you"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     elsif @ticket.approved?
       flash[:notice] = "Cannot unclaim approved ticket"
-      redirect_to ticket_path(@ticket)
-      return
+      return respond_with(@ticket)
     end
     @ticket.unclaim!
     flash[:notice] = "Claim removed"
-    redirect_to ticket_path(@ticket)
+    respond_with(@ticket)
   end
 
   private
@@ -108,14 +110,10 @@ class TicketsController < ApplicationController
   end
 
   def check_new_permission(ticket)
-    unless ticket.can_create_for?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise(User::PrivilegeError) unless ticket.can_create_for?(CurrentUser.user)
   end
 
   def check_permission(ticket)
-    unless ticket.can_see_details?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise(User::PrivilegeError) unless ticket.can_view?(CurrentUser.user)
   end
 end

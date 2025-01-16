@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 module Maintenance
   module_function
 
   def daily
-    return if Danbooru.config.readonly_mode?
-
     ignoring_exceptions { PostPruner.new.prune! }
     ignoring_exceptions { Upload.where('created_at < ?', 1.week.ago).delete_all }
     ignoring_exceptions { ForumSubscription.process_all! }
@@ -12,7 +12,9 @@ module Maintenance
     ignoring_exceptions { Ban.prune! }
     ignoring_exceptions { UserPasswordResetNonce.prune! }
     ignoring_exceptions { StatsUpdater.run! }
-    ignoring_exceptions { JanitorReportGenerator.run! }
+    ignoring_exceptions { DiscordReport::JanitorStats.new.run! }
+    ignoring_exceptions { DiscordReport::ModeratorStats.new.run! }
+    ignoring_exceptions { DiscordReport::AiburStats.new.run! }
   end
 
   def ignoring_exceptions(&block)

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 class PostEvent < ApplicationRecord
   belongs_to :creator, class_name: "User"
-  enum action: {
+  enum :action, {
     deleted: 0,
     undeleted: 1,
     approved: 2,
@@ -17,15 +19,20 @@ class PostEvent < ApplicationRecord
     note_unlocked: 13,
     comment_locked: 18,
     comment_unlocked: 19,
+    comment_disabled: 22,
+    comment_enabled: 23,
     replacement_accepted: 14,
     replacement_rejected: 15,
     replacement_promoted: 20,
     replacement_deleted: 16,
     expunged: 17,
+    changed_bg_color: 21,
   }
-  MOD_ONLY_ACTIONS = [
+  MOD_ONLY_SEARCH_ACTIONS = [
     actions[:comment_locked],
     actions[:comment_unlocked],
+    actions[:comment_disabled],
+    actions[:comment_enabled],
   ].freeze
 
   def self.add(post_id, creator, action, data = {})
@@ -44,11 +51,8 @@ class PostEvent < ApplicationRecord
   def self.search(params)
     q = super
 
-    unless CurrentUser.is_moderator?
-      q = q.where.not(action: MOD_ONLY_ACTIONS)
-    end
     if params[:post_id].present?
-      q = q.where("post_id = ?", params[:post_id].to_i)
+      q = q.where(post_id: params[:post_id])
     end
 
     q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
@@ -59,9 +63,18 @@ class PostEvent < ApplicationRecord
     end
 
     if params[:action].present?
-      q = q.where('action = ?', actions[params[:action]])
+      if !CurrentUser.user.is_moderator? && MOD_ONLY_SEARCH_ACTIONS.include?(actions[params[:action]])
+        raise(User::PrivilegeError)
+      end
+      q = q.where(action: actions[params[:action]])
     end
 
     q.apply_basic_order(params)
+  end
+
+  def self.search_options_for(user)
+    options = actions.keys
+    return options if user.is_moderator?
+    options.reject { |action| MOD_ONLY_SEARCH_ACTIONS.any?(actions[action]) }
   end
 end

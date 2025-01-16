@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class HelpPagesAddDefaultValues < ActiveRecord::Migration[7.0]
   def change
     change_column_null :help_pages, :related, false

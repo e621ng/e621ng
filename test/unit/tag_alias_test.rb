@@ -1,12 +1,14 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagAliasTest < ActiveSupport::TestCase
   context "A tag alias" do
     setup do
       @admin = create(:admin_user)
 
-      user = create(:user, created_at: 1.month.ago)
-      CurrentUser.user = user
+      @user = create(:user, created_at: 1.month.ago)
+      CurrentUser.user = @user
     end
 
     context "on validation" do
@@ -55,6 +57,59 @@ class TagAliasTest < ActiveSupport::TestCase
 
       should "get the right count" do
         assert_equal(1, @alias.estimate_update_count)
+      end
+    end
+
+    context "#approvable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @bd = create(:bd_staff_user)
+        @ta = as(@user) { create(:tag_alias, status: "pending") }
+        @dnp = as(@bd) { create(:avoid_posting) }
+        @ta2 = as(@user) { create(:tag_alias, antecedent_name: @dnp.artist_name, consequent_name: "ccc", status: "pending") }
+        @ta3 = as(@user) { create(:tag_alias, antecedent_name: "ddd", consequent_name: @dnp.artist_name, status: "pending") }
+      end
+
+      should "not allow creator" do
+        assert_equal(false, @ta.approvable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ta.approvable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ta.approvable_by?(@mod))
+      end
+
+      should "not allow admins if antecedent/consequent is dnp" do
+        assert_equal(false, @ta2.approvable_by?(@admin))
+        assert_equal(false, @ta3.approvable_by?(@admin))
+      end
+
+      should "allow bd staff" do
+        assert_equal(true, @ta2.approvable_by?(@bd))
+        assert_equal(true, @ta3.approvable_by?(@bd))
+      end
+    end
+
+    context "#deletable_by?" do
+      setup do
+        @user = create(:user)
+        @mod = create(:moderator_user)
+        @ta = as(@user) { create(:tag_alias, status: "pending") }
+      end
+
+      should "allow creator" do
+        assert_equal(true, @ta.deletable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ta.deletable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ta.deletable_by?(@mod))
       end
     end
 
@@ -127,7 +182,7 @@ class TagAliasTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb", category: 3)
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal(3, tag2.reload.category)
     end
@@ -145,9 +200,57 @@ class TagAliasTest < ActiveSupport::TestCase
       tag1 = create(:tag, name: "aaa", category: 1)
       tag2 = create(:tag, name: "bbb", category: 3, is_locked: true)
       ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
-      ta.approve!(approver: @admin)
+      with_inline_jobs { ta.approve!(approver: @admin) }
 
       assert_equal(3, tag2.reload.category)
+    end
+
+    should "not fail if an artist with the same name is locked" do
+      ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      artist = as(@admin) { create(:artist, name: "aaa", is_locked: true) }
+      artist.tag.update(category: Tag.categories.artist)
+
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_equal("active", ta.reload.status)
+      assert_equal("bbb", artist.reload.name)
+    end
+
+    should "error on approve if its not valid anymore" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @admin)
+      ta.save(validate: false)
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_match "error", ta.reload.status
+    end
+
+    should "allow rejecting if an active duplicate exists" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @admin)
+      ta.save(validate: false)
+      ta.reject!
+
+      assert_equal "deleted", ta.reload.status
+    end
+
+    should "allow rejecting if an active transitive exists" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ta = build(:tag_alias, antecedent_name: "bbb", consequent_name: "aaa", status: "pending", creator: @admin)
+      ta.save(validate: false)
+      ta.reject!
+
+      assert_equal "deleted", ta.reload.status
+    end
+
+    should "update locked tags on approve" do
+      ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
+      post1 = create(:post, locked_tags: "aaa foo")
+      post2 = create(:post, locked_tags: "-aaa foo")
+      with_inline_jobs { ta.approve!(approver: @admin) }
+
+      assert_equal("bbb foo", post1.reload.locked_tags)
+      assert_equal("-bbb foo", post2.reload.locked_tags)
     end
 
     context "with an associated forum topic" do

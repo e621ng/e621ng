@@ -34,9 +34,9 @@
 
         <%= f.input :avatar_id, as: :string, label: "Avatar Post ID" %>
 
-        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size, allow_color: true %>
 
-        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size %>
+        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size, allow_color: true %>
 
         <%= f.input :time_zone, :include_blank => false %>
 
@@ -44,7 +44,7 @@
 
         <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default." %>
 
-        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["Original", "original"], ["Fit (Horizonal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]], :include_blank => false %>
+        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["Original", "original"], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]], :include_blank => false %>
 
         <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (25..250), :include_blank => false %>
 
@@ -67,7 +67,7 @@
                     hint: "Enables auto-completion on most tag and user entry fields." %>
 
         <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-        hint: "Makes a cursory effort to prevent showing your favorites to others users. Has not been well tested." %>
+        hint: "Prevent showing your favorites to others users (except staff)." %>
 
         <%= f.input :show_post_statistics, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
         hint: "Show post statistics below posts on search pages." %>

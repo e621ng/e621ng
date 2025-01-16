@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class ApplicationControllerTest < ActionDispatch::IntegrationTest
@@ -34,7 +36,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
     context "on api authentication" do
       setup do
-        @user = create(:user, password: "password")
+        @user = create(:user, password: "6cQE!wbA")
         @api_key = ApiKey.generate!(@user)
 
         ActionController::Base.allow_forgery_protection = true
@@ -106,7 +108,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
           token = css_select("form input[name=authenticity_token]").first["value"]
 
           # login
-          post session_path, params: { authenticity_token: token, name: @user.name, password: "password" }
+          post session_path, params: { authenticity_token: token, session: { name: @user.name, password: "6cQE!wbA" } }
           assert_redirected_to posts_path
 
           # try to submit a form with cookies but without the csrf token
@@ -120,9 +122,9 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
     context "on session cookie authentication" do
       should "succeed" do
-        user = create(:user, password: "password")
+        user = create(:user, password: "6cQE!wbA")
 
-        post session_path, params: { name: user.name, password: "password" }
+        post session_path, params: { session: { name: user.name, password: "6cQE!wbA" } }
         get edit_user_path(user)
 
         assert_response :success
@@ -139,6 +141,23 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
         assert_response 429
         assert_equal("s", post.reload.rating)
+      end
+    end
+
+    context "when the user has an invalid username" do
+      setup do
+        @user = build(:user, name: "12345")
+        @user.save(validate: false)
+      end
+
+      should "redirect for html requests" do
+        get_auth posts_path, @user, params: { format: :html }
+        assert_redirected_to new_user_name_change_request_path
+      end
+
+      should "not redirect for json requests" do
+        get_auth posts_path, @user, params: { format: :json }
+        assert_response :success
       end
     end
   end

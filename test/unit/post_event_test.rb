@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PostEventTest < ActiveSupport::TestCase
   setup do
@@ -87,6 +89,11 @@ class PostEventTest < ActiveSupport::TestCase
 
       assert_post_events_created(@admin, :note_unlocked) do
         @post.is_note_locked = false
+        @post.save
+      end
+
+      assert_post_events_created(@janitor, :changed_bg_color) do
+        @post.bg_color = "FFFFFF"
         @post.save
       end
 

@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
   context "Admin::UsersController" do
@@ -74,6 +76,22 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
           put_auth admin_user_path(@user1), @admin, params: { user: { email: "abc@e621.net" } }
           @user1.reload
           assert_equal("abc@e621.net", @user1.email)
+        end
+      end
+
+      context "when updating the verification of emails" do
+        should "allow setting to true" do
+          user = create(:user, email_verification_key: "1")
+          put_auth admin_user_path(user), @admin, params: { user: { verified: "true" } }
+
+          assert_predicate user.reload, :is_verified?
+        end
+
+        should "allow setting to false" do
+          user = create(:user)
+          put_auth admin_user_path(user), @admin, params: { user: { verified: "false" } }
+
+          assert_not_predicate user.reload, :is_verified?
         end
       end
     end

@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 class BulkUpdateRequestsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, except: [:index, :show]
+  before_action :member_only, except: %i[index show]
   before_action :admin_only, only: [:approve]
-  before_action :load_bulk_update_request, except: [:new, :create, :index]
+  before_action :load_bulk_update_request, except: %i[new create index]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def new
     @bulk_update_request = BulkUpdateRequest.new
@@ -71,5 +74,9 @@ class BulkUpdateRequestsController < ApplicationController
     permitted_params += %i[forum_topic_id forum_post_id] if context == :update && CurrentUser.is_admin?
 
     params.require(:bulk_update_request).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.aiburs_disabled? && !CurrentUser.is_staff?
   end
 end

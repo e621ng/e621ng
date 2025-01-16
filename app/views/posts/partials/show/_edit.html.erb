@@ -26,7 +26,7 @@
 
     <div id="tag-string-editor"></div>
 
-    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: (post.locked_tags || ""), spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
 
   <% if post.is_rating_locked? %>
@@ -42,7 +42,7 @@
   <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
 
   <div class="input">
-    <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size %>
+    <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size, allow_color: true %>
   </div>
 
   <% if CurrentUser.is_privileged? %>
@@ -55,7 +55,9 @@
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
         <% if CurrentUser.is_admin? %>
-          <%= f.input :is_status_locked, label: "Status" %>
+        <%= f.input :is_status_locked, label: "Status" %>
+        <% end %>
+        <% if CurrentUser.is_moderator? %>
           <%= f.input :is_comment_locked, label: "Comments" %>
         <% end %>
       </fieldset>
@@ -72,6 +74,7 @@
       <fieldset class="limits">
         <%= f.input :hide_from_anonymous, as: :boolean, label: "Hide from Anon" %>
         <%= f.input :hide_from_search_engines, as: :boolean, label: "Hide from search engines" %>
+        <%= f.input :is_comment_disabled, label: "Hide comments" %>
       </fieldset>
     </div>
   <% end %>

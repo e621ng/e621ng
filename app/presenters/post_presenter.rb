@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 class PostPresenter < Presenter
   attr_reader :pool
   delegate :post_show_sidebar_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
 
   def self.preview(post, options = {})
     if post.nil?
-      return "<em>none</em>".html_safe
+      return ""
     end
 
     if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
@@ -20,8 +22,8 @@ class PostPresenter < Presenter
     locals = {}
 
     locals[:article_attrs] = {
-        "id" => "post_#{post.id}",
-        "class" => preview_class(post, **options).join(" ")
+      "id" => "post_#{post.id}",
+      "class" => preview_class(post, **options).join(" "),
     }.merge(data_attributes(post))
 
     locals[:link_target] = options[:link_target] || post
@@ -52,7 +54,7 @@ class PostPresenter < Presenter
                              post.preview_file_url
                            end
 
-    locals[:alt_text] = post.tag_string
+    locals[:alt_text] = "post ##{post.id}"
 
     locals[:has_cropped] = post.has_cropped?
 
@@ -89,45 +91,23 @@ class PostPresenter < Presenter
   end
 
   def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["post-preview"]
-    klass << "post-status-pending" if post.is_pending?
-    klass << "post-status-flagged" if post.is_flagged?
-    klass << "post-status-deleted" if post.is_deleted?
-    klass << "post-status-has-parent" if post.parent_id
-    klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == 's'
-    klass << "post-rating-questionable" if post.rating == 'q'
-    klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass = ["thumbnail"]
+    klass << "pending" if post.is_pending?
+    klass << "flagged" if post.is_flagged?
+    klass << "deleted" if post.is_deleted?
+    klass << "has-parent" if post.parent_id
+    klass << "has-children" if post.has_visible_children?
+    klass << "rating-safe" if post.rating == "s"
+    klass << "rating-questionable" if post.rating == "q"
+    klass << "rating-explicit" if post.rating == "e"
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
   def self.data_attributes(post, include_post: false)
-    attributes = {
-        "data-id" => post.id,
-        "data-has-sound" => post.has_tag?("video_with_sound", "flash_with_sound"),
-        "data-tags" => post.tag_string,
-        "data-rating" => post.rating,
-        "data-width" => post.image_width,
-        "data-height" => post.image_height,
-        "data-flags" => post.status_flags,
-        "data-score" => post.score,
-        "data-file-ext" => post.file_ext,
-        "data-uploader-id" => post.uploader_id,
-        "data-uploader" => post.uploader_name,
-        "data-is-favorited" => post.favorited_by?(CurrentUser.user.id)
-    }
-
-    if post.visible?
-      attributes["data-md5"] = post.md5
-      attributes["data-file-url"] = post.file_url
-      attributes["data-large-file-url"] = post.large_file_url
-      attributes["data-preview-file-url"] = post.preview_file_url
-    end
-
-    attributes["data-post"] = post_attribute_attribute(post).to_json if include_post
-
-    attributes
+    attributes = post.thumbnail_attributes
+    attributes[:post] = post_attribute_attribute(post).to_json if include_post
+    { data: attributes }
   end
 
   def self.post_attribute_attribute(post)

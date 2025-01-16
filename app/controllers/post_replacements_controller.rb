@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: [:create, :new]
@@ -21,9 +23,23 @@ class PostReplacementsController < ApplicationController
     check_allow_create
     @post = Post.find(params[:post_id])
     @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
+    @post_replacement.notify_reupload
     if @post_replacement.errors.none?
       flash[:notice] = "Post replacement submitted"
     end
+
+    if CurrentUser.can_approve_posts? && !@post_replacement.upload_as_pending?
+      if @post_replacement.errors.any?
+        respond_to do |format|
+          format.json do
+            return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+          end
+        end
+      end
+
+      @post_replacement.approve!(penalize_current_uploader: CurrentUser.id != @post.uploader_id)
+    end
+
     respond_to do |format|
       format.json do
         return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 if @post_replacement.errors.any?
@@ -89,12 +105,10 @@ class PostReplacementsController < ApplicationController
   end
 
   def create_params
-    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source)
+    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending)
   end
 
   def ensure_uploads_enabled
-    if DangerZone.uploads_disabled?(CurrentUser.user)
-      access_denied "Uploads are disabled"
-    end
+    access_denied if Security::Lockdown.uploads_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
   end
 end

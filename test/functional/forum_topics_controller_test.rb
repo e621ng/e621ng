@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
   context "The forum topics controller" do
@@ -28,6 +30,26 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         get_auth forum_topic_path(@forum_topic), @user, params: {format: :json}
         @user.reload
         assert_nil(@user.last_forum_read_at)
+      end
+
+      should "have the correct page number" do
+        Danbooru.config.stubs(:records_per_page).returns(2)
+        assert_equal(1, @forum_topic.last_page)
+        as(@user) { @forum_posts = create_list(:forum_post, 3, topic: @forum_topic) }
+        assert_equal(2, @forum_topic.last_page)
+
+        get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
+        assert_select "#forum_post_#{@forum_posts.second.id}"
+        assert_select "#forum_post_#{@forum_posts.third.id}"
+        assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
+
+        as(@mod) { @forum_posts.first.hide! }
+        get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
+        assert_select "#forum_post_#{@forum_posts.second.id}"
+        assert_select "#forum_post_#{@forum_posts.third.id}"
+        assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
+        assert_equal(2, @forum_topic.last_page)
       end
     end
 
@@ -101,6 +123,13 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
 
         forum_topic = ForumTopic.last
         assert_redirected_to(forum_topic_path(forum_topic))
+      end
+
+      should "fail with expected error if invalid category_id is provided" do
+        post_auth forum_topics_path, @user, params: { forum_topic: { title: "bababa", category_id: 0, original_post_attributes: { body: "xaxaxa" } }, format: :json }
+
+        assert_response :unprocessable_entity
+        assert_includes(@response.parsed_body.dig("errors", "category"), "is invalid")
       end
     end
 

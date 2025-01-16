@@ -1,6 +1,6 @@
 <div class="replace-image-dialog-body">
   <div class="dtext-container">
-    <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page).first.try(&:body)) %>
+    <%= format_text(WikiPage.titled(Danbooru.config.replacement_notice_wiki_page)&.body) %>
   </div>
 
   <div>
@@ -10,12 +10,16 @@
     <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
   </div>
   <br>
+  
+  <%= render "posts/partials/show/avoid_posting", post: post %>
+  <br />
   <div id="replacement-uploader" class="simple_form"></div>
 </div>
 
 <%= javascript_tag nonce: true do -%>
   var uploaderSettings = {
     maxFileSize: <%= Danbooru.config.max_file_size %>,
+    maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
   };
   Danbooru.Replacer.init();
 <% end -%>

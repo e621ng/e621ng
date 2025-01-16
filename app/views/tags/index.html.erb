@@ -17,7 +17,7 @@
               <% if tag.category == Tag.categories.artist %>
                 <%= link_to("?",  show_or_new_artists_path(:name => tag.name)) %>
               <% else %>
-                <%= link_to("?", show_or_new_wiki_pages_path(:title => tag.name)) %>
+                <%= link_to_wiki_or_new("?", tag.name) %>
               <% end %>
               <%= link_to(tag.name, posts_path(:tags => tag.name)) %>
             </td>

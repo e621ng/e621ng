@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::Base
   class APIThrottled < Exception; end
-  class ReadOnlyException < Exception; end
   class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
@@ -9,7 +10,7 @@ class ApplicationController < ActionController::Base
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
-  before_action :enforce_readonly
+  before_action :check_valid_username
   after_action :reset_current_user
   layout "default"
 
@@ -28,6 +29,14 @@ class ApplicationController < ActionController::Base
   def enable_cors
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Authorization"
+  end
+
+  def check_valid_username
+    return if params[:controller] == "user_name_change_requests"
+
+    if request.format.html? && CurrentUser.user.name_error
+      redirect_to new_user_name_change_request_path
+    end
   end
 
   protected
@@ -82,8 +91,6 @@ class ApplicationController < ActionController::Base
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
     when ActionController::ParameterMissing
-      render_expected_error(400, exception.message)
-    when ReadOnlyException
       render_expected_error(400, exception.message)
     when BCrypt::Errors::InvalidHash
       render_expected_error(400, "You must reset your password.")
@@ -158,12 +165,21 @@ class ApplicationController < ActionController::Base
 
   def set_current_user
     SessionLoader.new(request).load
+    session.send(:load!) unless session.send(:loaded?)
   end
 
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
+  end
+
+  def requires_reauthentication
+    return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_anonymous?
+    last_authenticated_at = session[:last_authenticated_at]
+    if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
+      redirect_to(confirm_password_session_path(url: request.fullpath))
+    end
   end
 
   def user_access_check(method)
@@ -178,7 +194,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff can_view_staff_notes can_handle_takedowns].each do |role|
+  %i[is_bd_staff can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end
@@ -219,14 +235,5 @@ class ApplicationController < ActionController::Base
 
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit([:id, :created_at, :updated_at] + permitted_params)
-  end
-
-  def enforce_readonly
-    return unless Danbooru.config.readonly_mode?
-    raise ReadOnlyException.new "The site is in readonly mode" unless allowed_readonly_actions.include? action_name
-  end
-
-  def allowed_readonly_actions
-    %w[index show search]
   end
 end

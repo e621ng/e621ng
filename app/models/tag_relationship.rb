@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TagRelationship < ApplicationRecord
   self.abstract_class = true
 
@@ -73,11 +75,11 @@ class TagRelationship < ApplicationRecord
   end
 
   def approvable_by?(user)
-    is_pending? && user.is_admin?
+    is_pending? && user.is_admin? && (user.is_bd_staff? || !(consequent_tag&.artist&.is_dnp? || antecedent_tag&.artist&.is_dnp?))
   end
 
   def deletable_by?(user)
-    user.is_admin? || (is_pending? && creator.id == user.id)
+    (user.is_admin? && !is_deleted?) || (is_pending? && creator.id == user.id)
   end
 
   def editable_by?(user)

@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class PoolsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show, :gallery]
-  before_action :janitor_only, :only => [:destroy]
+  before_action :member_only, except: %i[index show gallery]
+  before_action :janitor_only, only: %i[destroy]
+  before_action :ensure_lockdown_disabled, except: %i[index show gallery]
 
   def new
     @pool = Pool.new
@@ -24,16 +27,16 @@ class PoolsController < ApplicationController
   end
 
   def gallery
-    params[:limit] ||= CurrentUser.user.per_page
-
-    @pools = Pool.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
-    @post_set = PostSets::PoolGallery.new(@pools)
+    @pools = Pool.search(search_params).paginate_posts(params[:page], limit: params[:limit], search_count: params[:search])
   end
 
   def show
     @pool = Pool.find(params[:id])
-    @post_set = PostSets::Pool.new(@pool, params[:page])
-    respond_with(@pool)
+    respond_with(@pool) do |format|
+      format.html do
+        @posts = @pool.posts.paginate_posts(params[:page], limit: params[:limit], total_count: @pool.post_ids.count)
+      end
+    end
   end
 
   def create
@@ -81,7 +84,7 @@ class PoolsController < ApplicationController
     params.require(:pool).permit(*permitted_params, post_ids: [])
   end
 
-  def allowed_readonly_actions
-    super + ["gallery"]
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.pools_disabled? && !CurrentUser.is_staff?
   end
 end

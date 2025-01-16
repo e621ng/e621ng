@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DocumentStore
   module Model
     def self.included(klass)

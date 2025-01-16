@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PostFlagTest < ActiveSupport::TestCase
   context "In all cases" do
@@ -37,15 +39,14 @@ class PostFlagTest < ActiveSupport::TestCase
       assert_match(/Post is deleted/, error.message)
     end
 
-    should "not be able to flag a non-pending post with the uploading_guidelines reason" do
+    should "not be able to flag grandfathered posts with the uploading_guidelines reason" do
       error = assert_raises(ActiveRecord::RecordInvalid) do
         as(@bob) do
-          @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines")
+          @post_flag = create(:post_flag, post: create(:post, tag_string: "grandfathered_content"), reason_name: "uploading_guidelines")
         end
       end
-      assert_match(/not pending/, error.message)
+      assert_match(/grandfathered/, error.message)
 
-      @post = create(:post, is_pending: true)
       as(@bob) do
         @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines")
       end

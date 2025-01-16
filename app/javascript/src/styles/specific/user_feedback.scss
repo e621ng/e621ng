@@ -1,31 +1,44 @@
-
-
 .user-feedback-positive {
-  color: $positive-record-color;
+  color: palette("text-green");
 }
 
 .user-feedback-neutral {
-  color: $neutral-record-color;
+  color: palette("text-grey");
 }
 
 .user-feedback-negative {
-  color: $negative-record-background;
+  color: palette("text-red");
+}
+
+.user-feedback-deleted {
+  color: palette("text-yellow");
 }
 
 div#c-user-feedbacks, div#c-moderator-dashboards .activity-container {
   .feedback-category-positive {
-    background: $positive-record-background;
-  }
-
-  .feedback-category-negative {
-    background: $negative-record-background;
+    background: palette("background-green");
   }
 
   .feedback-category-neutral {
-    background: $neutral-record-background;
+    background: palette("background-grey");
+  }
+
+  .feedback-category-negative {
+    background: palette("background-red");
+  }
+
+  tr.user-feedback[data-is-deleted="true"] {
+    background: palette("background-yellow");
   }
 
   blockquote {
     padding: 0.5em;
+  }
+
+  .show-all-user-feedbacks-link {
+    font-size: 1.5em;
+    width: 100%;
+    text-align: center;
+    padding: 0.5em 0;
   }
 }

@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PoolsControllerTest < ActionDispatch::IntegrationTest
   context "The pools controller" do
@@ -112,6 +114,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_not_equal(@pool.name, @pool2.name)
         assert_response :missing
       end
+    end
+
+    should "render the order action" do
+      get_auth edit_pool_order_path(@pool), @user
+      assert_response :success
     end
   end
 end

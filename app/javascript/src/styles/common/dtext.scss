@@ -5,6 +5,12 @@
 }
 
 .styled-dtext {
+  font-size: 1rem;
+
+  @include window-larger-than(800px) {
+    font-size: 0.9rem;
+  }
+
   div.spoiler, details, pre, blockquote, ul {
     margin-bottom: 0.75em;
   }
@@ -65,7 +71,6 @@
   pre {
     font-family: monospace;
     white-space: pre-wrap;
-    font-size: 1.2em;
   }
 
   .inline-code {

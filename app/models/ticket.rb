@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Ticket < ApplicationRecord
   belongs_to_creator
   user_status_counter :ticket_count
@@ -8,10 +10,12 @@ class Ticket < ApplicationRecord
   before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
+  normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  enum status: %i[pending partial approved].index_with(&:to_s)
+  validates :response, length: { minimum: 2 }, on: :update
+  enum :status, %i[pending partial approved].index_with(&:to_s)
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
@@ -21,38 +25,56 @@ class Ticket < ApplicationRecord
 
   attr_accessor :record_type, :send_update_dmail
 
-=begin
-    Permission truth table.
-    Type            | Field         | Access
-    -----------------------------------------
-    Any             | Username      | Admin+ / Current User
-    Name Change     | Old Nme       | Any
-    Any             | Created At    | Any
-    Any             | Updated At    | Any
-    Any             | Claimed By    | Admin+
-    Any             | Status        | Any
-    Any             | IP Address    | Admin+
-    User Complaint  | Reported User | Admin+ / Current User
-    Dmail           | Details       | Admin+ / Current User
-    Comment         | Comment Link  | Any
-    Comment         | Comment Author| Any
-    Forum           | Forum Post    | Forum Visibility / Any
-    Wiki            | Wiki Page     | Any
-    Blip            | Blip          | Any
-    Pool            | Pool          | Any
-    Set             | Set           | Any
-    Other           | Any           | N/A(No details shown)
-    Name Change     | Desired Name  | Any
-    DMail           | Reason        | Admin+ / Current User
-    User Complaint  | Reason        | Admin+ / Current User
-    Any             | Reason        | Any
-    DMail           | Response      | Admin+ / Current User
-    User Complaint  | Response      | Admin+ / Current User
-    Any             | Response      | Any
-    Any             | Handled By    | Any
-=end
+  # Permissions Table
+  #
+  # |    Type    |      Can Create     |        Visible       |
+  # |:----------:|:-------------------:|:--------------------:|
+  # |    Blip    |       Visible       |  Janitor+ / Creator  |
+  # |   Comment  |       Visible       |  Janitor+ / Creator  |
+  # |    Dmail   | Visible & Recipient | Moderator+ / Creator |
+  # | Forum Post |       Visible       |  Janitor+ / Creator  |
+  # |    Pool    |         Any         |  Janitor+ / Creator  |
+  # |    Post    |         Any         |  Janitor+ / Creator  |
+  # |  Post Set  |       Visible       |  Janitor+ / Creator  |
+  # |    User    |         Any         | Moderator+ / Creator |
+  # |  Wiki Page |         Any         |  Janitor+ / Creator  |
+  # |    Other   |         None        | Moderator+ / Creator |
 
   module TicketTypes
+    module Blip
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def can_view?(user)
+        (content&.visible_to?(user) && user.is_janitor?) || (user.id == creator_id)
+      end
+    end
+
+    module Comment
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def can_view?(user)
+        (content&.visible_to?(user) && user.is_janitor?) || (user.id == creator_id)
+      end
+    end
+
+    module Dmail
+      def can_create_for?(user)
+        content&.visible_to?(user) && content.to_id == user.id
+      end
+
+      def can_view?(user)
+        user.is_moderator? || (user.id == creator_id)
+      end
+
+      def bot_target_name
+        content&.from&.name
+      end
+    end
+
     module Forum
       # FIXME: Remove this by renaming the qtype value to the correct one
       def model
@@ -63,46 +85,8 @@ class Ticket < ApplicationRecord
         content.visible?(user)
       end
 
-      def can_see_details?(user)
-        if content
-          content.visible?(user) || (user.id == creator_id)
-        else
-          true
-        end
-      end
-    end
-
-    module Comment
-      def can_create_for?(user)
-        content&.visible_to?(user)
-      end
-    end
-
-    module Dmail
-      def can_create_for?(user)
-        content&.visible_to?(user) && content.to_id == user.id
-      end
-
-      def can_see_details?(user)
-        user.is_moderator? || (user.id == creator_id)
-      end
-
-      def bot_target_name
-        content&.from&.name
-      end
-    end
-
-    module Wiki
-      def model
-        ::WikiPage
-      end
-
-      def can_create_for?(user)
-        true
-      end
-
-      def bot_target_name
-        content&.title
+      def can_view?(user)
+        (content&.visible?(user) && user.is_janitor?) || (user.id == creator_id)
       end
     end
 
@@ -114,15 +98,9 @@ class Ticket < ApplicationRecord
       def bot_target_name
         content&.name
       end
-    end
 
-    module Set
-      def model
-        ::PostSet
-      end
-
-      def can_create_for?(user)
-        content&.can_view?(user)
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
       end
     end
 
@@ -144,11 +122,23 @@ class Ticket < ApplicationRecord
       def bot_target_name
         content&.uploader&.name
       end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
     end
 
-    module Blip
+    module Set
+      def model
+        ::PostSet
+      end
+
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.can_view?(user)
+      end
+
+      def can_view?(user)
+        (content&.can_view?(user) && user.is_janitor?) || (user.id == creator_id)
       end
     end
 
@@ -157,12 +147,30 @@ class Ticket < ApplicationRecord
         true
       end
 
-      def can_see_details?(user)
+      def can_view?(user)
         user.is_moderator? || user.id == creator_id
       end
 
       def bot_target_name
         content&.name
+      end
+    end
+
+    module Wiki
+      def model
+        ::WikiPage
+      end
+
+      def can_create_for?(user)
+        true
+      end
+
+      def bot_target_name
+        content&.title
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
       end
     end
   end
@@ -172,7 +180,6 @@ class Ticket < ApplicationRecord
       hidden = []
       hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
-      hidden += %i[disp_id reason] unless can_see_details?(CurrentUser)
       super + hidden
     end
   end
@@ -184,6 +191,7 @@ class Ticket < ApplicationRecord
     end
 
     def validate_creator_is_not_limited
+      return if creator == User.system
       allowed = creator.can_ticket_with_reason
       if allowed != true
         errors.add(:creator, User.throttle_reason(allowed))
@@ -222,6 +230,16 @@ class Ticket < ApplicationRecord
       where(status: %w[pending partial])
     end
 
+    def visible(user)
+      if user.is_moderator?
+        all
+      elsif user.is_janitor?
+        for_creator(user.id).or(where.not(qtype: %w[Dmail User]))
+      else
+        for_creator(user.id)
+      end
+    end
+
     def search(params)
       q = super.includes(:creator).includes(:claimant)
 
@@ -248,7 +266,11 @@ class Ticket < ApplicationRecord
         end
       end
 
-      q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      if params[:order].present?
+        q.apply_basic_order(params)
+      else
+        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      end
     end
   end
 
@@ -271,8 +293,8 @@ class Ticket < ApplicationRecord
     content&.creator&.name
   end
 
-  def can_see_details?(user)
-    true
+  def can_view?(user)
+    user.is_janitor?
   end
 
   def can_see_reporter?(user)
@@ -327,6 +349,7 @@ class Ticket < ApplicationRecord
 
   module NotificationMethods
     def create_dmail
+      return if creator == User.system
       should_send = saved_change_to_status? || (send_update_dmail.to_s.truthy? && saved_change_to_response?)
       return unless should_send
 

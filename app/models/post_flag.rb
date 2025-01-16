@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostFlag < ApplicationRecord
   class Error < Exception;
   end
@@ -141,7 +143,7 @@ class PostFlag < ApplicationRecord
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
     when 'uploading_guidelines'
-      errors.add(:reason, "cannot be used. The post is either not pending, or grandfathered") unless post.flaggable_for_guidelines?
+      errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end
@@ -163,7 +165,7 @@ class PostFlag < ApplicationRecord
       # Update parent flags on parent post
       parent_post.update_has_children_flag
       # Update parent flags on old parent post, if it exists
-      Post.find(old_parent_id).update_has_children_flag if (old_parent_id && parent_post.id != old_parent_id)
+      Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
       self.reason = MAPPED_REASONS[reason_name]

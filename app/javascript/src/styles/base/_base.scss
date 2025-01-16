@@ -100,15 +100,3 @@ table tfoot {
   font-style: italic;
   font-size: 80%;
 }
-
-.greentext, .greentext a, .approved-ticket { color: $green-text-color !important; font-weight:bold; }
-.greytext, .greytext a { color: $grey-text-color !important; font-weight:bold; }
-.yellowtext, .yellowtext a, .partial-ticket { color: $yellow-text-color !important; font-weight:bold; }
-.redtext, .redtext a { color: $red-text-color !important; font-weight:bold; }
-
-
-.sect_green { background-color: $section-green-background; /* green */ }
-.sect_red { background-color: $section-red-background; /* red */ }
-.sect_yellow { background-color: $section-yellow-background; /* yellow */ }
-.sect_grey { background-color: $section-grey-background; /* yellow */ }
-.sect_green a:hover, .sect_red a:hover, .sect_yellow a:hover { color: $section-link-hover-color; }

@@ -5,6 +5,14 @@
     <% if @thispage.visible? %>
       <p>Showing differences between <%= compact_time @thispage.updated_at %> (<%= link_to_user @thispage.updater %>) and <%= compact_time @otherpage.updated_at %> (<%= link_to_user @otherpage.updater %>)</p>
 
+      <% if @thispage.parent != @otherpage.parent %>
+        <div class="wiki-redirect-history">
+          Page redirect changed
+          from <%= @thispage.parent.blank? ? "none" : link_to(@thispage.parent, show_or_new_wiki_pages_path(title: @thispage.parent)) %>
+          to <%= @otherpage.parent.blank? ? "none" : link_to(@otherpage.parent, show_or_new_wiki_pages_path(title: @otherpage.parent)) %>.
+        </div>
+      <% end %>
+
       <div>
         <%= text_diff(@thispage.body, @otherpage.body) %>
       </div>

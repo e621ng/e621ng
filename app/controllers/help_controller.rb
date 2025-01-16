@@ -1,33 +1,30 @@
+# frozen_string_literal: true
+
 class HelpController < ApplicationController
   respond_to :html, :json
   helper :wiki_pages
-  before_action :admin_only, only: [:new, :create, :edit,
-                                    :update, :destroy]
+  before_action :admin_only, except: %i[index show]
 
   def show
     if params[:id] =~ /\A\d+\Z/
       @help = HelpPage.find(params[:id])
     else
-      @help = HelpPage.find_by(name: HelpPage.normalize_name(params[:id]))
+      @help = HelpPage.find_by(name: params[:id])
     end
     respond_with(@help) do |format|
       format.html do
         if @help.blank?
           redirect_to help_pages_path
-        else
-          @related = @help.related.split(", ")
         end
-      end
-      format.json do
-        raise ActiveRecord::RecordNotFound if @help.blank?
-        render json: @help
       end
     end
   end
 
   def index
     @help_pages = HelpPage.help_index
-    respond_with(@help_pages)
+    respond_with(@help_pages) do |format|
+      format.json { render json: @help_pages.to_json }
+    end
   end
 
   def new
@@ -42,27 +39,20 @@ class HelpController < ApplicationController
 
   def create
     @help = HelpPage.create(help_params)
-    if @help.valid?
-      flash[:notice] = 'Help page created'
-      ModAction.log(:help_create, {name: @help.name, wiki_page: @help.wiki_page})
-    end
+    flash[:notice] = "Help page created" if @help.valid?
     respond_with(@help)
   end
 
   def update
     @help = HelpPage.find(params[:id])
     @help.update(help_params)
-    if @help.valid?
-      flash[:notice] = "Help entry updated"
-      ModAction.log(:help_update,{name: @help.name, wiki_page: @help.wiki_page})
-    end
+    flash[:notice] = "Help entry updated" if @help.valid?
     respond_with(@help)
   end
 
   def destroy
     @help = HelpPage.find(params[:id])
     @help.destroy
-    ModAction.log(:help_delete, {name: @help.name, wiki_page: @help.wiki_page})
     respond_with(@help)
   end
 

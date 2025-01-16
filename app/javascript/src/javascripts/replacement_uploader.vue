@@ -19,10 +19,16 @@
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>
 
-  <div class="sect_red error_message" v-if="showErrors && errorMessage !== undefined">
+  <div class="input" v-if="canApprove">
+    <label class="section-label"><input type="checkbox" id="as_pending" v-model="uploadAsPending"/>
+      Upload as pending
+    </label>
+  </div>
+
+  <div class="background-red error_message" v-if="showErrors && errorMessage !== undefined">
     {{ errorMessage }}
   </div>
-    
+
   <button @click="submit" :disabled="(showErrors && preventUpload) || submitting">
       {{ submitting ? "Uploading..." : "Upload" }}
   </button>
@@ -35,6 +41,7 @@ import autocompletableInput from "./autocompletable_input.vue";
 import filePreview from "./uploader/file_preview.vue";
 import fileInput from "./uploader/file_input.vue";
 import sources from "./uploader/sources.vue";
+import Utility from "./utility";
 
 export default {
   components: {
@@ -57,7 +64,17 @@ export default {
       sourceWarning: false,
       submitting: false,
       submittedReason: undefined,
+      canApprove: Utility.meta("current-user-can-approve-posts") === "true",
+      uploadAsPending: false,
     };
+  },
+  mounted() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("additional_source"))
+      this.sources = [params.get("additional_source")];
+
+    if (params.has("reason"))
+      this.reason = params.get("reason");
   },
   computed: {
     preventUpload() {
@@ -79,6 +96,7 @@ export default {
       }
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
+      formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
       this.submittedReason = this.reason;
 

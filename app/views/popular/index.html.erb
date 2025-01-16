@@ -7,9 +7,9 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-      <div id="posts-container">
+      <section class="posts-container">
         <%= @post_set.presenter.post_previews_html(self, show_cropped: true) %>
-      </div>
+      </section>
     </div>
   </div>
 </div>

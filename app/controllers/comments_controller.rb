@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index search show for_post]
-  before_action :moderator_only, only: [:unhide, :warning]
-  before_action :admin_only, only: [:destroy]
+  before_action :moderator_only, only: %i[unhide warning]
+  before_action :admin_only, only: %i[destroy]
+  before_action :ensure_lockdown_disabled, except: %i[index search show for_post]
   skip_before_action :api_check
 
   def index
@@ -45,7 +48,7 @@ class CommentsController < ApplicationController
     flash[:notice] = @comment.valid? ? "Comment posted" : @comment.errors.full_messages.join("; ")
     respond_with(@comment) do |format|
       format.html do
-        redirect_back fallback_location: (@comment.post || comments_path)
+        redirect_back fallback_location: @comment.post || comments_path
       end
     end
   end
@@ -105,8 +108,7 @@ private
   end
 
   def index_by_comment
-    @comments = Comment
-    @comments = @comments.undeleted unless CurrentUser.is_moderator?
+    @comments = Comment.visible(CurrentUser.user)
     @comments = @comments.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     respond_with(@comments)
@@ -125,7 +127,7 @@ private
   end
 
   def search_params
-    permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id post_note_updater_name post_note_updater_id poster_id is_sticky do_not_bump_post order]
+    permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id post_note_updater_name post_note_updater_id poster_id poster_name is_sticky do_not_bump_post order]
     permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
@@ -134,8 +136,13 @@ private
   def comment_params(context)
     permitted_params = %i[body]
     permitted_params += %i[do_not_bump_post post_id] if context == :create
-    permitted_params += %i[is_sticky is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[is_sticky] if CurrentUser.is_janitor?
+    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
 
     params.fetch(:comment, {}).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.comments_disabled? && !CurrentUser.is_staff?
   end
 end

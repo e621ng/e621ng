@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
@@ -5,6 +7,10 @@ class ApplicationRecord < ActiveRecord::Base
     class_methods do
       def paginate(page, options = {})
         extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
+      end
+
+      def paginate_posts(page, options = {})
+        extending(Danbooru::Paginator::ActiveRecordExtension).paginate_posts(page, options)
       end
 
       def qualified_column_for(attr)
@@ -208,11 +214,10 @@ class ApplicationRecord < ActiveRecord::Base
         connection.execute("SET STATEMENT_TIMEOUT = #{CurrentUser.user.try(:statement_timeout) || 3_000}") unless Rails.env == "test"
       end
 
-      def with_timeout(n, default_value = nil, new_relic_params = {})
+      def with_timeout(n, default_value = nil)
         connection.execute("SET STATEMENT_TIMEOUT = #{n}") unless Rails.env == "test"
         yield
-      rescue ::ActiveRecord::StatementInvalid => x
-        DanbooruLogger.log(x, expected: true)
+      rescue ::ActiveRecord::StatementInvalid
         return default_value
       ensure
         connection.execute("SET STATEMENT_TIMEOUT = #{CurrentUser.user.try(:statement_timeout) || 3_000}") unless Rails.env == "test"
@@ -278,7 +283,7 @@ class ApplicationRecord < ActiveRecord::Base
     class_methods do
       def user_status_counter(counter_name, options = {})
         class_eval do
-          belongs_to :user_status, **{foreign_key: :creator_id, primary_key: :user_id, counter_cache: counter_name}.merge(options)
+          belongs_to :user_status, foreign_key: :creator_id, primary_key: :user_id, counter_cache: counter_name, **options
         end
       end
 
@@ -334,9 +339,9 @@ class ApplicationRecord < ActiveRecord::Base
 
         define_method "#{name}=" do |value|
           if value.respond_to?(:to_str)
-            super value.to_str.scan(parse).flatten.map(&cast)
+            super(value.to_str.scan(parse).flatten.map(&cast))
           elsif value.respond_to?(:to_a)
-            super value.to_a
+            super(value.to_a)
           else
             raise ArgumentError, "#{name} must be a String or an Array"
           end

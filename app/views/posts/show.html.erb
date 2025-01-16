@@ -3,7 +3,7 @@
     <aside id="sidebar">
       <%= render "posts/partials/common/search", :path => posts_path, :tags => params[:q], :tags_dom_id => "tags" %>
 
-      <%= render "posts/partials/index/blacklist" %>
+      <%= render "posts/partials/index/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
         <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
@@ -32,24 +32,22 @@
 
       <% end %>
 
-      <% if @post.visible? %>
-        <section id="post-related-images">
-          <h1>Related</h1>
-          <ul>
-            <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
-            <% if Danbooru.config.iqdb_server.present? && @post.has_preview? %>
-              <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
-            <% end %>
-            <% if @post.is_image? %>
-              <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
-              <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">Reverse SauceNAO Search</a></li>
-              <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Reverse Derpibooru Search</a></li>
-              <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url %>">Reverse Kheina Search</a></li>
-            <% end %>
-            <li><a rel="nofollow" href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny MD5 Search</a></li>
-          </ul>
-        </section>
-      <% end %>
+      <section id="post-related-images">
+        <h1>Related</h1>
+        <ul>
+          <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
+          <% if IqdbProxy.enabled? && @post.has_preview? %>
+            <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
+          <% end %>
+          <% if @post.visible? && @post.is_image? %>
+            <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
+            <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">Reverse SauceNAO Search</a></li>
+            <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Reverse Derpibooru Search</a></li>
+            <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url %>">Reverse Kheina Search</a></li>
+          <% end %>
+          <li><a rel="nofollow" href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny MD5 Search</a></li>
+        </ul>
+      </section>
 
     </aside>
 
@@ -74,7 +72,7 @@
 
         <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
-        <%= tag.section(id: "image-container", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
+        <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/embedded", post: @post %>
@@ -94,36 +92,45 @@
         <% end %>
       </div>
 
-      <section id="image-extra-controls" style="display: flex;">
+      <section id="image-extra-controls">
 
         <% if CurrentUser.is_member? %>
           <div class="image-vote-buttons">
             <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
           </div>
           <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag "+Favorite", id: 'add-fav-button', class: "button btn-success", 'data-pid': @post.id %>
-            <%= button_tag "-Favorite", id: 'remove-fav-button', class: "button btn-danger", 'data-pid': @post.id %>
+            <%= button_tag id: "add-fav-button", class: "button btn-success", "data-pid": @post.id do %>
+              <%= tag.i(class: "fa-regular fa-star") %>
+              <span>Favorite</span>
+            <% end %>
+            <%= button_tag id: "remove-fav-button", class: "button btn-danger", "data-pid": @post.id do %>
+              <%= tag.i(class: "fa-solid fa-star") %>
+              <span>Unfavorite</span>
+            <% end %>
           <% end %>
         <% end %>
         <% if @post.visible? %>
           <div id="image-download-link">
-            <%= link_to "Download", @post.file_url, class: "button btn-warn" %>
+            <%= link_to @post.file_url, class: "button btn-warn" do %>
+              <%= tag.i(class: "fa-solid fa-right-to-bracket fa-rotate-90") %>
+              <span>Download</span>
+            <% end %>
           </div>
         <% end %>
         <% if !@post.force_original_size? %>
           <div>
-            | <select id="image-resize-selector" class="button btn-neutral">
-                <option value="original">Original</option>
-                <option value="fit">Fit (Horizontal)</option>
-                <option value="fitv">Fit (Vertical)</option>
-                <% if !@post.is_video? %>
-                  <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
-                <% end %>
-                <% Danbooru.config.video_rescales.keys.each do |size| %>
-                  <% next unless @post.has_sample_size?(size) %>
-                  <option value="<%= size %>">Sample (<%= size %>)</option>
-                <% end %>
-              </select>
+            <select id="image-resize-selector" class="button btn-neutral">
+              <option value="original">Original</option>
+              <option value="fit">Fit (Horizontal)</option>
+              <option value="fitv">Fit (Vertical)</option>
+              <% if !@post.is_video? %>
+                <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
+              <% end %>
+              <% Danbooru.config.video_rescales.keys.each do |size| %>
+                <% next unless @post.has_sample_size?(size) %>
+                <option value="<%= size %>">Sample (<%= size %>)</option>
+              <% end %>
+          </select>
           </div>
         <% end %>
       </section>
@@ -187,6 +194,9 @@
         <li><a href="#image-and-nav">Image</a></li>
         <li><a href="#tag-list">Tags/Info</a></li>
       </ul>
+
+      <%= render "posts/partials/common/inline_blacklist" %>
+
       <menu id="post-sections">
         <% unless CurrentUser.hide_comments? %>
           <li class="active"><a href="#comments">Comments</a></li>

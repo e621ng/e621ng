@@ -14,20 +14,20 @@ div.list-of-forum-posts {
       background-color: $forum-post-highlight-background;
     }
 
-    &[data-is-deleted="true"] {
-      background-color: $forum-post-hidden-background;
+    &[data-is-hidden="true"] {
+      background-color: $background-article-hidden;
     }
 
     .vote-score-up {
-      color: $forum-vote-up-color;
+      color: palette("text-green");
     }
 
     .vote-score-meh {
-      color: $forum-vote-meh-color;
+      color: palette("text-yellow");
     }
 
     .vote-score-down {
-      color: $forum-vote-down-color;
+      color: palette("text-red");
     }
 
     div.content-menu {
@@ -38,15 +38,23 @@ div.list-of-forum-posts {
       menu {
         margin-top: 0.5em;
 
-        ul.votes {
-          margin: 0.5em 0;
-        }
-
         li {
           margin-right: 1em;
         }
       }
+
+      .forum-post-votes-list {
+        margin-top: 0.5em;
+        margin-left: 0.2em;
+      }
     }
+  }
+}
+
+.forum-post-votes-list {
+  li {
+    display: inline;
+    margin-right: 1em;
   }
 }
 
@@ -62,8 +70,8 @@ div#c-forum-topics {
   }
 
   tr.forum-topic-row {
-    &[data-is-deleted="true"] {
-      background-color: $forum-topic-hidden-background;
+    &[data-topic-is-hidden="true"] {
+      background-color: $background-article-hidden;
     }
 
     td:last-child {
@@ -77,12 +85,12 @@ div#c-forum-topics {
 }
 
 #c-forum-posts #a-index {
-  tr[data-topic-is-deleted="true"] .forum-post-topic-title::after,
-  tr[data-is-deleted="true"] .forum-post-excerpt::after {
-    content: " (deleted)";
+  tr[data-topic-is-hidden="true"] .forum-post-topic-title::after,
+  tr[data-is-hidden="true"] .forum-post-excerpt::after {
+    content: " (hidden)";
     color: $forum-topic-except-color;
   }
-  tr[data-is-deleted="true"], tr[data-topic-is-deleted="true"] {
-    background-color: $forum-topic-hidden-background;
+  tr[data-is-hidden="true"], tr[data-topic-is-hidden="true"] {
+    background-color: $background-article-hidden;
   }
 }

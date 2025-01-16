@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
   include UserWarnable
   simple_versioning
   belongs_to_creator
   belongs_to_updater
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validate :validate_post_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
   validate :post_not_comment_locked, on: :create
@@ -26,7 +29,12 @@ class Comment < ApplicationRecord
 
   user_status_counter :comment_count
   belongs_to :post, counter_cache: :comment_count
+  belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
+
+  scope :deleted, -> { where(is_hidden: true) }
+  scope :undeleted, -> { where(is_hidden: false) }
+  scope :stickied, -> { where(is_sticky: true) }
 
   module SearchMethods
     def recent
@@ -35,34 +43,29 @@ class Comment < ApplicationRecord
 
     def hidden(user)
       if user.is_moderator?
-        where("score < ? and is_sticky = false", user.comment_threshold)
+        where("not(comments.score >= ? or comments.is_sticky = true)", user.comment_threshold)
+      elsif user.is_janitor?
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       else
-        where("(score < ? and is_sticky = false) or (is_hidden = true and creator_id != ?)", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       end
     end
 
     def visible(user)
-      if user.is_moderator?
-        where("score >= ? or is_sticky = true", user.comment_threshold)
-      else
-        where("(score >= ? or is_sticky = true) and (is_hidden = false or creator_id = ?)", user.comment_threshold, user.id)
+      q = where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
+      unless user.is_moderator?
+        q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
+        if user.is_janitor?
+          q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
+        else
+          q = q.where("comments.is_hidden = false or comments.creator_id = ?", user.id)
+        end
       end
-    end
-
-    def deleted
-      where("comments.is_hidden = true")
-    end
-
-    def undeleted
-      where("comments.is_hidden = false")
+      q
     end
 
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query).order(id: :desc).limit(300))
-    end
-
-    def poster_id(user_id)
-      joins(:post).where("posts.uploader_id = ?", user_id)
     end
 
     def for_creator(user_id)
@@ -112,13 +115,11 @@ class Comment < ApplicationRecord
         end
       end
 
-      if params[:poster_id].present?
-        q = q.poster_id(params[:poster_id].to_i)
+      q.where_user(:"posts.uploader_id", :poster, params) do |condition, _ids|
+        condition = condition.joins(:post)
         # Force a better query plan by ordering by created_at
-        q = q.reorder("comments.created_at desc")
+        condition.reorder("comments.created_at desc")
       end
-
-      q
     end
   end
 
@@ -138,7 +139,11 @@ class Comment < ApplicationRecord
   end
 
   def post_not_comment_locked
-    errors.add(:base, "Post has comments locked") if !CurrentUser.is_moderator? && Post.find_by(id: post_id)&.is_comment_locked?
+    return if CurrentUser.is_moderator?
+    post = Post.find_by(id: post_id)
+    return if post.blank?
+    errors.add(:base, "Post has comments locked") if post.is_comment_locked?
+    errors.add(:base, "Post has comments disabled") if post.is_comment_disabled?
   end
 
   def update_last_commented_at_on_create
@@ -178,33 +183,34 @@ class Comment < ApplicationRecord
 
   def can_reply?(user)
     return false if is_sticky?
-    return false if post.is_comment_locked? && !user.is_moderator?
+    return false if (post.is_comment_locked? || post.is_comment_disabled?) && !user.is_moderator?
     true
   end
 
   def editable_by?(user)
     return true if user.is_admin?
-    return false if post.is_comment_locked? && !user.is_moderator?
+    return false if (post.is_comment_locked? || post.is_comment_disabled?) && !user.is_moderator?
     return false if was_warned?
     creator_id == user.id
   end
 
   def can_hide?(user)
     return true if user.is_moderator?
-    return false if was_warned?
+    return false if !visible_to?(user) || was_warned? || post&.is_comment_disabled?
     user.id == creator_id
   end
 
   def visible_to?(user)
     return true if user.is_moderator?
+    return false if !is_sticky? && (post&.is_comment_disabled? && creator_id != user.id)
+    return true if user.is_janitor? && is_sticky?
     return true if is_hidden? == false
     creator_id == user.id # Can always see your own comments, even if hidden.
   end
 
   def should_see?(user)
-    return true if user.is_moderator?
-    return true unless is_hidden?
-    (creator_id == user.id) && user.show_hidden_comments?
+    return user.show_hidden_comments? if creator_id == user.id && is_hidden?
+    visible_to?(user)
   end
 
   def method_attributes

@@ -20,6 +20,9 @@
 <% if CurrentUser.user.blacklisted_tags.present? %>
   <meta name="blacklisted-tags" content="<%= CurrentUser.user.blacklisted_tags.split(/(?:\r|\n)+/).to_json %>">
   <meta name="blacklist-users" content="<%= CurrentUser.blacklist_users? %>">
+<% else %>
+  <meta name="blacklisted-tags" content="[]">
+  <meta name="blacklist-users" content="false">
 <% end %>
 <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
 <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
@@ -60,13 +63,13 @@
 </script>
 
 <style id="blacklisted-hider">
-  .post-preview, #image-container, #c-comments .post, .post-thumbnail {
+  .thumbnail, #image-container, #c-comments .post, .post-thumbnail {
     visibility: hidden !important;
   }
 </style>
 <noscript>
   <style>
-    .post-preview, #image-container, #c-comments .post, .post-thumbnail {
+    .thumbnail, #image-container, #c-comments .post, .post-thumbnail {
       visibility: visible !important;
     }
   </style>

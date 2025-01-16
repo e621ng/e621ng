@@ -6,3 +6,5 @@
 <div class="dtext-container">
   <%= format_text(@forum.body) %>
 </div>
+
+<%= render "tickets/partials/create_notice", message: @forum %>

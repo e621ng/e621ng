@@ -20,9 +20,6 @@
         <span>Posts</span>
         <span>
           <%= presenter.active_upload_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(tags: "user:#{user.name} order:random limit:300") %>]
-          <% end %>
           [<%= link_to "pending", posts_path(tags: "user:#{user.name} status:pending") %>]
           (<%= link_to "comments on", comments_path(group_by: :comment, search: {poster_id: user.id}) %>)
           <% if CurrentUser.is_moderator? %>
@@ -33,9 +30,6 @@
         <span>Deleted</span>
         <span>
           <%= presenter.deleted_upload_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "user:#{user.name} order:random limit:300 status:deleted") %>]
-          <% end %>
         </span>
 
         <span>Replaced</span>
@@ -50,9 +44,6 @@
         <span>Favorites</span>
         <span>
           <%= presenter.favorite_count(self) %>
-          <% if CurrentUser.is_moderator? %>
-            [<%= link_to "sample", posts_path(:tags => "fav:#{user.name} order:random limit:300") %>]
-          <% end %>
         </span>
 
         <span>Forum Posts</span>
@@ -98,7 +89,7 @@
         <span>
           <%= presenter.feedbacks %>
           <%= link_to("List", user_feedbacks_path(search: { user_id: @user.id })) %>
-          <% if CurrentUser.is_moderator? && @user.feedback.count.zero? %>
+          <% if CurrentUser.is_moderator? && @user.feedback.active.count == 0 %>
             | <%= link_to("Create", new_user_feedback_path(user_feedback: { user_id: @user.id, category: "neutral" })) %>
           <% end %>
         </span>
@@ -124,7 +115,7 @@
           <% end %>
         </span>
 
-        <span>Wiki Page Changes</span>
+        <span>Wiki Changes</span>
         <span><%= presenter.wiki_page_version_count(self) %></span>
 
         <span>Note Changes</span>
@@ -157,12 +148,6 @@
           <span>
             <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
             (<%= link_to "help", help_page_path(id: "api") %>)
-          </span>
-
-          <span>API Limits</span>
-          <span>
-            <%= CurrentUser.user.remaining_api_limit %>
-            / <%= CurrentUser.user.api_burst_limit %> <span class="hint">(may not be up to date)</span>
           </span>
         <% end %>
       </div>

@@ -1,11 +1,13 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagImplicationTest < ActiveSupport::TestCase
   context "A tag implication" do
     setup do
-      user = create(:admin_user)
-      CurrentUser.user = user
-      @user = create(:user)
+      @admin = create(:admin_user)
+      CurrentUser.user = @admin
+      @user = create(:user, created_at: 1.month.ago)
     end
 
     context "on validation" do
@@ -52,6 +54,58 @@ class TagImplicationTest < ActiveSupport::TestCase
 
       should "get the right count" do
         assert_equal(1, @implication.estimate_update_count)
+      end
+    end
+
+    context "#approvable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @bd = create(:bd_staff_user)
+        @ti = as(@user) { create(:tag_implication, status: "pending") }
+        @dnp = as(@bd) { create(:avoid_posting) }
+        @ti2 = as(@user) { create(:tag_implication, antecedent_name: @dnp.artist_name, consequent_name: "ccc", status: "pending") }
+        @ti3 = as(@user) { create(:tag_implication, antecedent_name: "ddd", consequent_name: @dnp.artist_name, status: "pending") }
+      end
+
+      should "not allow creator" do
+        assert_equal(false, @ti.approvable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ti.approvable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ti.approvable_by?(@mod))
+      end
+
+      should "not allow admins if antecedent/consequent is dnp" do
+        assert_equal(false, @ti2.approvable_by?(@admin))
+        assert_equal(false, @ti3.approvable_by?(@admin))
+      end
+
+      should "allow bd staff" do
+        assert_equal(true, @ti2.approvable_by?(@bd))
+        assert_equal(true, @ti3.approvable_by?(@bd))
+      end
+    end
+
+    context "#deletable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @ti = as(@user) { create(:tag_implication, status: "pending") }
+      end
+
+      should "allow creator" do
+        assert_equal(true, @ti.deletable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ti.deletable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ti.deletable_by?(@mod))
       end
     end
 
@@ -117,6 +171,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       assert(ti.invalid?)
       assert_includes(ti.errors[:base], "Antecedent tag must not be aliased to another tag")
       assert_includes(ti.errors[:base], "Consequent tag must not be aliased to another tag")
+    end
+
+    should "allow rejecting if active aliases exist" do
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending", creator: @user)
+      ti.save(validate: false)
+
+      ti.reject!
+      assert_equal("deleted", ti.reload.status)
     end
 
     should "calculate all its descendants" do
@@ -218,6 +281,23 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       assert_equal("aaa bbb ccc xxx yyy", p1.reload.tag_string)
+    end
+
+    should "error on approve if its not valid anymore" do
+      create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
+      ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @user)
+      ti.save(validate: false)
+      with_inline_jobs { ti.approve!(approver: @user) }
+
+      assert_match "error", ti.reload.status
+    end
+
+    should "ignore tag count limits on approve" do
+      Danbooru.config.stubs(:max_tags_per_post).returns(5)
+      ti = create(:tag_implication, antecedent_name: "5", consequent_name: "6", status: "pending")
+      post = create(:post, tag_string: "1 2 3 4 5")
+      with_inline_jobs { ti.approve!(approver: @user) }
+      assert_equal("1 2 3 4 5 6", post.reload.tag_string)
     end
 
     context "with an associated forum topic" do

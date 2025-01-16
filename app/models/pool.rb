@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Pool < ApplicationRecord
   class RevertError < Exception;
   end
@@ -5,6 +7,7 @@ class Pool < ApplicationRecord
   array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
   belongs_to_creator
 
+  normalizes :description, with: ->(desc) { desc.gsub("\r\n", "\n") }
   validates :name, uniqueness: { case_sensitive: false, if: :name_changed? }
   validates :name, length: { minimum: 1, maximum: 250 }
   validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
@@ -145,14 +148,6 @@ class Pool < ApplicationRecord
     PoolVersion.where("pool_id = ?", id).order("id asc")
   end
 
-  def is_series?
-    category == "series"
-  end
-
-  def is_collection?
-    category == "collection"
-  end
-
   def normalize_name
     self.name = Pool.normalize_name(name)
   end
@@ -166,7 +161,7 @@ class Pool < ApplicationRecord
   end
 
   def normalize_post_ids
-    self.post_ids = post_ids.uniq if is_collection?
+    self.post_ids = post_ids.uniq
   end
 
   def revert_to!(version)
@@ -200,8 +195,9 @@ class Pool < ApplicationRecord
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
     return unless added.size > 0
-    if post_ids.size > 1_000
-      errors.add(:base, "Pools can have up to 1,000 posts each")
+    max = Danbooru.config.pool_post_limit(CurrentUser.user)
+    if post_ids.size > max
+      errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
       false
     else
       true
@@ -217,6 +213,7 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids + [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
       self.skip_sync = false
       post.add_pool!(self)
       post.save
@@ -238,24 +235,15 @@ class Pool < ApplicationRecord
       reload
       self.skip_sync = true
       update(post_ids: post_ids - [post.id])
+      raise(ActiveRecord::Rollback) unless valid?
       self.skip_sync = false
       post.remove_pool!(self)
       post.save
     end
   end
 
-  def posts(options = {})
-    offset = options[:offset] || 0
-    limit = options[:limit] || Danbooru.config.posts_per_page
-    slice = post_ids.slice(offset, limit)
-    if slice && slice.any?
-      # This hack is here to work around posts that are not found but present in the pool id list.
-      # Previously there was an N+1 post lookup loop.
-      posts = Hash[Post.where(id: slice).map {|p| [p.id, p]}]
-      slice.map {|id| posts[id]}.compact
-    else
-      []
-    end
+  def posts
+    Post.joins("left join pools on posts.id = ANY(pools.post_ids)").where(pools: { id: id }).order(Arel.sql("array_position(pools.post_ids, posts.id)"))
   end
 
   def synchronize
@@ -318,8 +306,8 @@ class Pool < ApplicationRecord
     post_ids[n]
   end
 
-  def cover_post_id
-    post_ids.first
+  def cover_post
+    Post.find_by(id: post_ids.first)
   end
 
   def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)

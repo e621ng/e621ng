@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 class Dmail < ApplicationRecord
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :title, :body, presence: { on: :create }
   validates :title, length: { minimum: 1, maximum: 250 }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.dmail_max_size }
@@ -77,12 +80,6 @@ class Dmail < ApplicationRecord
     end
   end
 
-  module ApiMethods
-    def method_attributes
-      super + [:key]
-    end
-  end
-
   module SearchMethods
     def sent_by_id(user_id)
       where("dmails.from_id = ? AND dmails.owner_id != ?", user_id, user_id)
@@ -133,14 +130,13 @@ class Dmail < ApplicationRecord
 
   include AddressMethods
   include FactoryMethods
-  include ApiMethods
   extend SearchMethods
 
   def user_not_limited
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_moderator?
+    return true if from.is_janitor?
 
     allowed = CurrentUser.can_dmail_with_reason
     if allowed != true
@@ -191,12 +187,13 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_read!
-    return if Danbooru.config.readonly_mode?
-
     update_column(:is_read, true)
-    owner.dmails.unread.count.tap do |unread_count|
-      owner.update(has_mail: (unread_count > 0), unread_dmail_count: unread_count)
-    end
+    owner.update(unread_dmail_count: owner.dmails.unread.count)
+  end
+
+  def mark_as_unread!
+    update_column(:is_read, false)
+    owner.update(unread_dmail_count: owner.dmails.unread.count)
   end
 
   def is_automated?
@@ -215,7 +212,7 @@ class Dmail < ApplicationRecord
 
   def update_recipient
     if owner_id != CurrentUser.user.id && !is_deleted? && !is_read?
-      to.update(has_mail: true, unread_dmail_count: to.dmails.unread.count)
+      to.update(unread_dmail_count: to.dmails.unread.count)
     end
   end
 

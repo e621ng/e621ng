@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FormSearchHelper
   def form_search(path:, always_display: false, hideable: request.path.split("/")[2] != "search", method: :get, &)
     # dedicated search routes like /comments/search should always show

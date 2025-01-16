@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Danbooru
   module Extensions
     module String

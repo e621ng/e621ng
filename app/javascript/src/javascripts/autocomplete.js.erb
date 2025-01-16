@@ -279,7 +279,7 @@ Autocomplete.render_item = function(list, item) {
   if (item.type === "tag") {
     $link.addClass("tag-type-" + item.category);
   } else if (item.type === "user") {
-    var level_class = "user-" + item.level.replaceAll(" ", "-").toLowerCase();
+    var level_class = "user-" + item.level.replace(/ /g, "-").toLowerCase();
     $link.addClass(level_class);
     if (Utility.meta("style-usernames") === "true") {
       $link.addClass("with-style");
@@ -364,10 +364,10 @@ Autocomplete.static_metatags = {
     "any", "none"
   ],
   filetype: [
-    "jpg", "png", "gif", "swf", "webm", "mp4"
+    "jpg", "png", "gif", "swf", "webm"
   ],
   type: [
-    "jpg", "png", "gif", "swf", "webm", "mp4"
+    "jpg", "png", "gif", "swf", "webm"
   ],
 }
 
@@ -432,7 +432,6 @@ Autocomplete.artist_source = function(term, resp) {
     url: "/artists.json",
     data: {
       "search[name]": term.trim().replace(/\s+/g, "_") + "*",
-      "search[is_active]": true,
       "search[order]": "post_count",
       "limit": 10,
       "expiry": 7

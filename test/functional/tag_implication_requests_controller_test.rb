@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class TagImplicationRequestsControllerTest < ActionDispatch::IntegrationTest
   context "The tag implication request controller" do

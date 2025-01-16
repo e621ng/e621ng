@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UploadService
   class Replacer
     attr_reader :post, :replacement

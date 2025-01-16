@@ -1,18 +1,24 @@
+# frozen_string_literal: true
+
 class StaticController < ApplicationController
   def privacy
-    @page = WikiPage.find_by(title: "e621:privacy_policy")
+    @page = format_wiki_page("e621:privacy_policy")
   end
 
   def terms_of_service
-    @page = WikiPage.find_by(title: "e621:terms_of_service")
+    @page = format_wiki_page("e621:terms_of_service")
   end
 
   def contact
-    @page = WikiPage.find_by(title: "e621:contact")
+    @page = format_wiki_page("e621:contact")
   end
 
   def takedown
-    @page = WikiPage.find_by(title: "e621:takedown")
+    @page = format_wiki_page("e621:takedown")
+  end
+
+  def avoid_posting
+    @page = format_wiki_page("e621:avoid_posting_notice")
   end
 
   def not_found
@@ -33,7 +39,7 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_member? && !Danbooru.config.readonly_mode?
+    if CurrentUser.is_member?
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
@@ -63,6 +69,11 @@ class StaticController < ApplicationController
     end
   end
 
-  def enforce_readonly
+  private
+
+  def format_wiki_page(name)
+    wiki = WikiPage.titled(name)
+    return WikiPage.new(body: "Wiki page \"#{name}\" not found.") if wiki.blank?
+    wiki
   end
 end

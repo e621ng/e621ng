@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForumPost < ApplicationRecord
   include UserWarnable
   simple_versioning
@@ -6,6 +8,7 @@ class ForumPost < ApplicationRecord
   belongs_to_updater
   user_status_counter :forum_post_count
   belongs_to :topic, :class_name => "ForumTopic"
+  belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, class_name: "ForumPostVote"
   has_one :tag_alias
   has_one :tag_implication
@@ -13,6 +16,7 @@ class ForumPost < ApplicationRecord
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :body, :creator_id, presence: true
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validate :validate_topic_is_unlocked
@@ -22,14 +26,14 @@ class ForumPost < ApplicationRecord
   validate :validate_creator_is_not_limited, on: :create
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
-  after_update(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
-    ModAction.log(:forum_post_update, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+  after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
+    ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_update(:if => ->(rec) {rec.saved_change_to_is_hidden?}) do |rec|
-    ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+  after_update(:if => ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
+    ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_destroy(:if => ->(rec) {rec.updater_id != rec.creator_id}) do |rec|
-    ModAction.log(:forum_post_delete, {forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id})
+  after_destroy do |rec|
+    ModAction.log(:forum_post_delete, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
 
   attr_accessor :bypass_limits
@@ -43,20 +47,23 @@ class ForumPost < ApplicationRecord
       where("forum_posts.creator_id = ?", user_id)
     end
 
-    def active
-      where("(forum_posts.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id)
+    def visible(user)
+      active(user).permitted(user)
     end
 
-    def permitted
-      q = joins(:topic)
-      q = q.where("(forum_topics.is_hidden = false or forum_posts.creator_id = ?)", CurrentUser.id) unless CurrentUser.is_moderator?
+    def permitted(user)
+      q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
+      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
       q
+    end
+
+    def active(user)
+      return all if user.is_moderator?
+      where("forum_posts.is_hidden = FALSE OR forum_posts.creator_id = ?", user.id)
     end
 
     def search(params)
       q = super
-      q = q.permitted
-
       q = q.where_user(:creator_id, :creator, params)
 
       if params[:topic_id].present?
@@ -193,16 +200,8 @@ class ForumPost < ApplicationRecord
     self.is_hidden = false if is_hidden.nil?
   end
 
-  def creator_name
-    User.id_to_name(creator_id)
-  end
-
-  def updater_name
-    User.id_to_name(updater_id)
-  end
-
   def forum_topic_page
-    ((ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count) / Danbooru.config.posts_per_page.to_f).ceil
+    (ForumPost.where("topic_id = ? and created_at <= ?", topic_id, created_at).count / Danbooru.config.records_per_page.to_f).ceil
   end
 
   def is_original_post?(original_post_id = nil)

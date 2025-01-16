@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Tag < ApplicationRecord
   has_one :wiki_page, :foreign_key => "title", :primary_key => "name"
   has_one :artist, :foreign_key => "name", :primary_key => "name"
@@ -13,6 +15,8 @@ class Tag < ApplicationRecord
   validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
+
+  attr_accessor :from_wiki
 
   class CategoryMapping
     TagCategory::REVERSE_MAPPING.each do |value, category|
@@ -115,7 +119,7 @@ class Tag < ApplicationRecord
     end
 
     def update_category_post_counts!
-      Post.with_timeout(30_000, nil, {:tags => name}) do
+      Post.with_timeout(30_000, nil) do
         Post.sql_raw_tag_match(name).find_each do |post|
           post.set_tag_counts(disable_cache: false)
           args = TagCategory::CATEGORIES.to_h { |x| ["tag_count_#{x}", post.send("tag_count_#{x}")] }.update("tag_count" => post.tag_count)

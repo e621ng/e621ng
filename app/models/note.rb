@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Note < ApplicationRecord
   class RevertError < Exception ; end
 
@@ -5,6 +7,7 @@ class Note < ApplicationRecord
   belongs_to :post
   belongs_to_creator
   has_many :versions, -> {order("note_versions.id ASC")}, :class_name => "NoteVersion", :dependent => :destroy
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :post_id, :creator_id, :x, :y, :width, :height, :body, presence: true
   validate :user_not_limited
   validate :post_must_exist
@@ -174,7 +177,7 @@ class Note < ApplicationRecord
 
   def self.undo_changes_by_user(vandal_id)
     transaction do
-      note_ids = NoteVersion.where(:updater_id => vandal_id).select("note_id").distinct.map(&:note_id)
+      note_ids = NoteVersion.where(updater_id: vandal_id).distinct.pluck(:note_id)
       NoteVersion.where(["updater_id = ?", vandal_id]).delete_all
       note_ids.each do |note_id|
         note = Note.find(note_id)

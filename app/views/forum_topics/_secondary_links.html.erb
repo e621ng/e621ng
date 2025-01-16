@@ -29,12 +29,12 @@
           <%= subnav_link_to "Hide", hide_forum_topic_path(@forum_topic), method: :post, data: { confirm: "Are you sure you want to hide this forum topic?" } %>
         <% end %>
         <% if @forum_topic.is_locked? %>
-          <%= subnav_link_to "Unlock", forum_topic_path(@forum_topic, forum_topic: { is_locked: false }), method: :put %>
+          <%= subnav_link_to "Unlock", forum_topic_path(@forum_topic, forum_topic: { is_locked: false }), method: :put, data: { confirm: "Are you sure you want to unlock this forum topic?" } %>
         <% else %>
           <%= subnav_link_to "Lock", forum_topic_path(@forum_topic, forum_topic: { is_locked: true }), method: :put, data: { confirm: "Are you sure you want to lock this forum topic?" } %>
         <% end %>
         <% if @forum_topic.is_sticky? %>
-          <%= subnav_link_to "Unsticky", forum_topic_path(@forum_topic, forum_topic: { is_sticky: false }), method: :put %>
+          <%= subnav_link_to "Unsticky", forum_topic_path(@forum_topic, forum_topic: { is_sticky: false }), method: :put, data: { confirm: "Are you sure you want to unsticky this forum topic?" } %>
         <% else %>
           <%= subnav_link_to "Sticky", forum_topic_path(@forum_topic, forum_topic: { is_sticky: true }), method: :put, data: { confirm: "Are you sure you want to sticky this forum topic?" } %>
         <% end %>

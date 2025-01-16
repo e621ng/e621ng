@@ -28,6 +28,7 @@ module PostIndex
 
           tag_count_general: { type: "integer" },
           tag_count_artist: { type: "integer" },
+          tag_count_contributor: { type: "integer" },
           tag_count_character: { type: "integer" },
           tag_count_copyright: { type: "integer" },
           tag_count_meta: { type: "integer" },
@@ -72,6 +73,7 @@ module PostIndex
           deleted: { type: "boolean" },
           has_children: { type: "boolean" },
           has_pending_replacements: { type: "boolean" },
+          artverified: { type: "boolean" },
         },
       },
     }
@@ -138,7 +140,7 @@ module PostIndex
         SQL
         note_sql = <<-SQL
           SELECT post_id, body FROM notes
-          WHERE post_id IN (#{post_ids})
+          WHERE post_id IN (#{post_ids}) AND is_active = true
         SQL
         deletion_sql = <<-SQL
           SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason FROM
@@ -153,20 +155,24 @@ module PostIndex
             LEFT OUTER JOIN post_replacements2 pr ON p.id = pr.post_id AND pr.status = 'pending'
           WHERE p.id IN (#{post_ids})
         SQL
+        verified_artists_sql = <<-SQL.squish
+          SELECT name, linked_user_id FROM artists WHERE linked_user_id IS NOT NULL
+        SQL
 
         # Run queries
         conn = ApplicationRecord.connection
-        deletions      = conn.execute(deletion_sql)
-        deleter_ids    = deletions.values.map {|p,did,dr| [p,did]}.to_h
-        del_reasons    = deletions.values.map {|p,did,dr| [p,dr]}.to_h
-        comment_counts = conn.execute(comments_sql).values.to_h
-        pool_ids       = conn.execute(pools_sql).values.map(&array_parse).to_h
-        set_ids        = conn.execute(sets_sql).values.map(&array_parse).to_h
-        fave_ids       = conn.execute(faves_sql).values.map(&array_parse).to_h
-        commenter_ids  = conn.execute(commenter_sql).values.map(&array_parse).to_h
-        noter_ids      = conn.execute(noter_sql).values.map(&array_parse).to_h
-        child_ids      = conn.execute(child_sql).values.map(&array_parse).to_h
-        notes          = Hash.new { |h,k| h[k] = [] }
+        deletions        = conn.execute(deletion_sql)
+        deleter_ids      = deletions.values.map {|p,did,dr| [p,did]}.to_h
+        del_reasons      = deletions.values.map {|p,did,dr| [p,dr]}.to_h
+        comment_counts   = conn.execute(comments_sql).values.to_h
+        pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
+        set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
+        fave_ids         = conn.execute(faves_sql).values.map(&array_parse).to_h
+        commenter_ids    = conn.execute(commenter_sql).values.map(&array_parse).to_h
+        noter_ids        = conn.execute(noter_sql).values.map(&array_parse).to_h
+        child_ids        = conn.execute(child_sql).values.map(&array_parse).to_h
+        verified_artists = conn.execute(verified_artists_sql).values.to_h
+        notes            = Hash.new { |h,k| h[k] = [] }
         conn.execute(note_sql).values.each { |p,b| notes[p] << b }
         pending_replacements = conn.execute(pending_replacements_sql).values.to_h
 
@@ -183,19 +189,20 @@ module PostIndex
         empty = []
         batch.map! do |p|
           index_options = {
-            comment_count: comment_counts[p.id] || 0,
-            pools:         pool_ids[p.id]       || empty,
-            sets:          set_ids[p.id]        || empty,
-            faves:         fave_ids[p.id]       || empty,
-            upvotes:       upvote_ids[p.id]     || empty,
-            downvotes:     downvote_ids[p.id]   || empty,
-            children:      child_ids[p.id]      || empty,
-            commenters:    commenter_ids[p.id]  || empty,
-            noters:        noter_ids[p.id]      || empty,
-            notes:         notes[p.id]          || empty,
-            deleter:       deleter_ids[p.id]    || empty,
-            del_reason:    del_reasons[p.id]    || empty,
-            has_pending_replacements: pending_replacements[p.id]
+            comment_count:            comment_counts[p.id] || 0,
+            pools:                    pool_ids[p.id]       || empty,
+            sets:                     set_ids[p.id]        || empty,
+            faves:                    fave_ids[p.id]       || empty,
+            upvotes:                  upvote_ids[p.id]     || empty,
+            downvotes:                downvote_ids[p.id]   || empty,
+            children:                 child_ids[p.id]      || empty,
+            commenters:               commenter_ids[p.id]  || empty,
+            noters:                   noter_ids[p.id]      || empty,
+            notes:                    notes[p.id]          || empty,
+            deleter:                  deleter_ids[p.id]    || empty,
+            del_reason:               del_reasons[p.id]    || empty,
+            has_pending_replacements: pending_replacements[p.id],
+            artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
 
           {
@@ -229,36 +236,37 @@ module PostIndex
       tag_count:         tag_count,
       change_seq:        change_seq,
 
-      tag_count_general:   tag_count_general,
-      tag_count_artist:    tag_count_artist,
-      tag_count_character: tag_count_character,
-      tag_count_copyright: tag_count_copyright,
-      tag_count_meta:      tag_count_meta,
-      tag_count_species:   tag_count_species,
-      tag_count_invalid:   tag_count_invalid,
-      tag_count_lore:      tag_count_lore,
-      comment_count:       options[:comment_count] || comment_count,
+      tag_count_general:     tag_count_general,
+      tag_count_artist:      tag_count_artist,
+      tag_count_contributor: tag_count_contributor,
+      tag_count_character:   tag_count_character,
+      tag_count_copyright:   tag_count_copyright,
+      tag_count_meta:        tag_count_meta,
+      tag_count_species:     tag_count_species,
+      tag_count_invalid:     tag_count_invalid,
+      tag_count_lore:        tag_count_lore,
 
-      file_size:    file_size,
-      parent:       parent_id,
-      pools:        options[:pools]      || ::Pool.where("post_ids @> '{?}'", id).pluck(:id),
-      sets:         options[:sets]       || ::PostSet.where("post_ids @> '{?}'", id).pluck(:id),
-      commenters:   options[:commenters] || ::Comment.undeleted.where(post_id: id).pluck(:creator_id),
-      noters:       options[:noters]     || ::Note.active.where(post_id: id).pluck(:creator_id),
-      faves:        options[:faves]      || ::Favorite.where(post_id: id).pluck(:user_id),
-      upvotes:      options[:upvotes]    || ::PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
-      downvotes:    options[:downvotes]  || ::PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
-      children:     options[:children]   || ::Post.where(parent_id: id).pluck(:id),
-      notes:        options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
-      uploader:     uploader_id,
-      approver:     approver_id,
-      deleter:      options[:deleter]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
-      del_reason:   options[:del_reason] || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
-      width:        image_width,
-      height:       image_height,
-      mpixels:      image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
-      aspect_ratio: image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
-      duration:     duration,
+      comment_count: options[:comment_count] || comment_count,
+      file_size:     file_size,
+      parent:        parent_id,
+      pools:         options[:pools]      || ::Pool.where("? = ANY(post_ids)", id).pluck(:id),
+      sets:          options[:sets]       || ::PostSet.where("? = ANY(post_ids)", id).pluck(:id),
+      commenters:    options[:commenters] || ::Comment.undeleted.where(post_id: id).pluck(:creator_id),
+      noters:        options[:noters]     || ::Note.active.where(post_id: id).pluck(:creator_id),
+      faves:         options[:faves]      || ::Favorite.where(post_id: id).pluck(:user_id),
+      upvotes:       options[:upvotes]    || ::PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
+      downvotes:     options[:downvotes]  || ::PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
+      children:      options[:children]   || ::Post.where(parent_id: id).pluck(:id),
+      notes:         options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
+      uploader:      uploader_id,
+      approver:      approver_id,
+      deleter:       options[:deleter]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
+      del_reason:    options[:del_reason] || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
+      width:         image_width,
+      height:        image_height,
+      mpixels:       image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
+      aspect_ratio:  image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
+      duration:      duration,
 
       tags:        tag_string.split(" "),
       md5:         md5,
@@ -274,7 +282,8 @@ module PostIndex
       pending:        is_pending,
       deleted:        is_deleted,
       has_children:   has_children,
-      has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?
+      has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
+      artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
     }
   end
 end

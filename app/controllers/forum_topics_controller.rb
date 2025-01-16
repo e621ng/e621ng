@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, :except => [:index, :show]
-  before_action :moderator_only, :only => [:unhide]
+  before_action :member_only, except: %i[index show]
+  before_action :moderator_only, only: [:unhide]
   before_action :admin_only, only: [:destroy]
-  before_action :normalize_search, :only => :index
-  before_action :load_topic, :only => [:edit, :show, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
-  before_action :check_min_level, :only => [:show, :edit, :update, :destroy, :hide, :unhide, :subscribe, :unsubscribe]
+  before_action :normalize_search, only: :index
+  before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe]
+  before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
   skip_before_action :api_check
 
   def new
@@ -23,9 +26,8 @@ class ForumTopicsController < ApplicationController
     params[:search] ||= {}
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
-    @query = ForumTopic.permitted.active.search(search_params)
-    @query = ForumTopic.permitted.search(search_params) if CurrentUser.is_moderator?
-    @forum_topics = @query.paginate(params[:page], :limit => per_page, :search_count => params[:search])
+    @query = ForumTopic.visible(CurrentUser.user).search(search_params)
+    @forum_topics = @query.paginate(params[:page], limit: per_page, search_count: params[:search])
 
     respond_with(@forum_topics) do |format|
       format.html do
@@ -38,10 +40,10 @@ class ForumTopicsController < ApplicationController
   end
 
   def show
-    if request.format == Mime::Type.lookup("text/html") && !Danbooru.config.readonly_mode?
+    if request.format == Mime::Type.lookup("text/html")
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
-    @forum_posts = ForumPost.includes(topic: [:category]).search(:topic_id => @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
+    @forum_posts = ForumPost.permitted(CurrentUser.user).includes(topic: [:category]).search(topic_id: @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
     @original_forum_post_id = @forum_topic.original_post.id
     respond_with(@forum_topic)
   end
@@ -83,7 +85,10 @@ class ForumTopicsController < ApplicationController
   def mark_all_as_read
     CurrentUser.user.update_attribute(:last_forum_read_at, Time.now)
     ForumTopicVisit.prune!(CurrentUser.user)
-    redirect_to forum_topics_path, :notice => "All topics marked as read"
+    respond_to do |format|
+      format.html { redirect_to forum_topics_path, notice: "All topics marked as read" }
+      format.json
+    end
   end
 
   def subscribe
@@ -138,5 +143,9 @@ private
     permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
 
     params.fetch(:forum_topic, {}).permit(permitted_params)
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.is_staff?
   end
 end

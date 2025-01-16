@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ElasticPostQueryBuilder < ElasticQueryBuilder
   LOCK_TYPE_TO_INDEX_FIELD = {
     rating: :rating_locked,
@@ -33,15 +35,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({term: {rating: "s"}})
     end
 
-    if q[:post_id]
-      relation = range_relation(q[:post_id], :id)
-      must.push(relation) if relation
-    end
-
-    if q[:post_id_must_not]
-      must_not.push({ term: { id: q[:post_id_must_not] } })
-    end
-
+    add_array_range_relation(:post_id, :id)
     add_array_range_relation(:mpixels, :mpixels)
     add_array_range_relation(:ratio, :aspect_ratio)
     add_array_range_relation(:width, :width)
@@ -175,6 +169,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({term: {has_pending_replacements: q[:pending_replacements]}})
     end
 
+    if q.include?(:artverified)
+      must.push({ term: { artverified: q[:artverified] } })
+    end
+
     add_tag_string_search_relation(q[:tags])
 
     case q[:order]
@@ -268,7 +266,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join("|")})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc|desc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])
@@ -315,6 +313,38 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     else
       order.push({id: :desc})
+    end
+
+    if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
+      should = [
+        {
+          range: {
+            created_at: {
+              lte: Security::Lockdown.hide_pending_posts_for.hours.ago,
+            },
+          },
+        },
+        {
+          term: {
+            pending: false,
+          },
+        }
+      ]
+
+      unless CurrentUser.user.id.nil?
+        should.push({
+          term: {
+            uploader: CurrentUser.user.id,
+          },
+        })
+      end
+
+      must.push({
+        bool: {
+          should: should,
+          minimum_should_match: 1,
+        },
+      })
     end
   end
 end

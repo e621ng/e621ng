@@ -1,381 +1,354 @@
-import Utility from './utility'
-import LS from './local_storage'
-import Post from './posts';
+import Filter from "./models/Filter";
+import PostCache from "./models/PostCache";
+import Utility from "./utility";
+import LStorage from "./utility/storage";
 
 let Blacklist = {};
 
-Blacklist.post_count = 0;
+Blacklist.isAnonymous = false;
+Blacklist.filters = {};
 
-Blacklist.entries = [];
+Blacklist.hiddenPosts = new Set();
+Blacklist.matchedPosts = new Set();
 
-Blacklist.entryGet = function (line) {
-  return $.grep(Blacklist.entries, function (e, i) {
-    return e.tags === line;
-  })[0];
-};
+Blacklist.ui = [];
 
-Blacklist.entriesAllSet = function (enabled) {
-  LS.put("dab", enabled ? "0" : "1");
-  for (const entry of Blacklist.entries) {
-    entry.disabled = !enabled;
+/** Import the anonymous blacklist from the LocalStorage */
+Blacklist.init_anonymous_blacklist = function () {
+  let metaTag = $("meta[name=blacklisted-tags]");
+  if (metaTag.length == 0)
+    metaTag = $("<meta>")
+      .attr({
+        name: "blacklisted-tags",
+        content: "[]",
+      })
+      .appendTo("head");
+
+  if ($("body").data("user-is-anonymous")) {
+    Blacklist.isAnonymous = true;
+    metaTag.attr("content", LStorage.Blacklist.AnonymousBlacklist);
   }
 };
 
-Blacklist.lineToggle = function (line) {
-  const entry = Blacklist.entryGet(line);
-  if (!entry)
-    return;
-  entry.disabled = !entry.disabled;
-};
-
-Blacklist.lineSet = function (line, enabled) {
-  const entry = Blacklist.entryGet(line);
-  if (!entry)
-    return;
-  entry.disabled = !enabled;
-};
-
-Blacklist.entryParse = function (string) {
-  const fixInsanity = function(input) {
-    switch(input) {
-      case '=>':
-        return '>=';
-      case '=<':
-        return '<=';
-      case '=':
-        return '==';
-      case '':
-        return '==';
-      default:
-        return input;
-    }
-  };
-  const entry = {
-    "tags": string,
-    "require": [],
-    "exclude": [],
-    "optional": [],
-    "disabled": false,
-    "hits": 0,
-    "score_comparison": null,
-    "username": false,
-    "user_id": 0
-  };
-  const matches = string.match(/\S+/g) || [];
-  for (const tag of matches) {
-    if (tag.charAt(0) === '-') {
-      entry.exclude.push(tag.slice(1));
-    } else if (tag.charAt(0) === '~') {
-      entry.optional.push(tag.slice(1));
-    } else if (tag.match(/^score:[<=>]{0,2}-?\d+/)) {
-      const score = tag.match(/^score:([<=>]{0,2})(-?\d+)/);
-      entry.score_comparison = [fixInsanity(score[1]), parseInt(score[2], 10)];
-    } else {
-      entry.require.push(tag);
-    }
-  }
-  // Use negative lookahead so it doesn't match user:!123 here
-  const user_matches = string.match(/user:(?!!)([\S]+)/) || [];
-  if (user_matches.length === 2) {
-    entry.username = user_matches[1];
-  }
-  // Allow both userid:123 and user:!123
-  const userid_matches = string.match(/user(?:id)?:!?(\d+)/) || [];
-  if (userid_matches.length === 2) {
-    entry.user_id = parseInt(userid_matches[1], 10);
-  }
-  return entry;
-};
-
-Blacklist.entriesParse = function () {
-  Blacklist.entries = [];
-  let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
-  entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
-  entries = entries.filter(e => e.trim() !== "");
-
-  for (const tags of entries) {
-    const entry = Blacklist.entryParse(tags);
-    Blacklist.entries.push(entry);
-  }
-};
-
-Blacklist.domEntryToggle = function (e) {
-  e.preventDefault();
-  const tags = $(e.target).text();
-  Blacklist.lineToggle(tags);
-  Blacklist.apply();
-};
-
-Blacklist.postHide = function (post) {
-  const $post = $(post);
-  $post.addClass("blacklisted");
-
-  const $video = $post.find("video").get(0);
-  if ($video) {
-    $video.pause();
-    $video.currentTime = 0;
-  }
-};
-
-Blacklist.postShow = function (post) {
-  const $post = $(post);
-  $post.removeClass("blacklisted");
-  Post.resize_notes();
-};
-
-Blacklist.sidebarUpdate = function () {
-  if (LS.get("dab") === "1") {
-    $("#disable-all-blacklists").hide();
-    $("#re-enable-all-blacklists").show();
-  } else {
-    $("#disable-all-blacklists").show();
-    $("#re-enable-all-blacklists").hide();
-  }
-  $("#blacklist-list").html("");
-  if (Blacklist.post_count <= 0) {
-    $("#blacklist-box").hide();
-    return;
-  }
-  for (const entry of this.entries) {
-    if (entry.hits === 0) {
-      continue;
-    }
-
-    const item = $("<li/>");
-    const link = $("<a/>");
-    const count = $("<span/>");
-
-    link.text(entry.tags);
-    link.addClass("blacklist-toggle-link");
-    if (entry.disabled) {
-      link.addClass("entry-disabled");
-    }
-    link.attr("href", `/posts?tags=${encodeURIComponent(entry.tags)}`);
-    link.attr("title", entry.tags);
-    link.attr("rel", "nofollow");
-    link.on("click.danbooru", Blacklist.domEntryToggle);
-    count.html(entry.hits);
-    count.addClass("post-count");
-    item.append(link);
-    item.append(" ");
-    item.append(count);
-
-    $("#blacklist-list").append(item);
-  }
-  $("#blacklisted-count").text(`(${Blacklist.post_count})`);
-
-
-  $("#blacklist-box").show();
-}
-
-Blacklist.initialize_disable_all_blacklists = function () {
-  if (LS.get("dab") === "1") {
-    Blacklist.entriesAllSet(false);
-  }
-
-  $("#disable-all-blacklists").on("click.danbooru", function (e) {
-    e.preventDefault();
-    Blacklist.entriesAllSet(false);
-    Blacklist.apply();
+/** Set up the modal dialogue with the blacklist editor */
+Blacklist.init_blacklist_editor = function () {
+  let windowWidth = $(window).width(),
+    windowHeight = $(window).height();
+  $("#blacklist-edit-dialog").dialog({
+    autoOpen: false,
+    width: windowWidth > 400 ? 400 : windowWidth,
+    height: windowHeight > 400 ? 400 : windowHeight,
   });
 
-  $("#re-enable-all-blacklists").on("click.danbooru", function (e) {
-    e.preventDefault();
-    Blacklist.entriesAllSet(true);
-    Blacklist.apply();
-  });
-}
-
-Blacklist.apply = function () {
-  Blacklist.post_count = 0;
-  for (const entry of this.entries) {
-    entry.hits = 0;
-  }
-
-  for (const post of this.posts()) {
-    let post_count = 0;
-    for (const entry of Blacklist.entries) {
-      if (Blacklist.postMatch(post, entry)) {
-        entry.hits += 1;
-        if (!entry.disabled)
-          post_count += 1;
-        Blacklist.post_count += 1;
-      }
-    }
-    const $post = $(post);
-    if (post_count > 0) {
-      Blacklist.postHide($post);
-    } else {
-      Blacklist.postShow($post);
-    }
-  }
-
-  if (Utility.meta("blacklist-users") === "true") {
-    for (const entry of this.entries.filter(x => x.username !== false)) {
-      $(`article[data-creator="${entry.username}"]`).hide();
-    }
-    for (const entry of this.entries.filter(x => x.user_id !== 0)) {
-      $(`article[data-creator-id="${entry.user_id}"]`).hide();
-    }
-  }
-
-  Blacklist.sidebarUpdate();
-}
-
-Blacklist.posts = function () {
-  return $(".post-preview, #image-container, #c-comments .post, .post-thumbnail");
-}
-
-Blacklist.postMatch = function (post, entry) {
-  const $post = $(post);
-  if ($post.hasClass('post-no-blacklist'))
-    return false;
-  let post_data = {
-    id: $post.data('id'),
-    score: parseInt($post.data('score'), 10),
-    tags: $post.data('tags'),
-    rating: $post.data('rating'),
-    uploader_id: $post.data('uploader-id'),
-    user: $post.data('uploader').toString().toLowerCase(),
-    flags: $post.data('flags'),
-    is_fav: $post.data('is-favorited')
-  };
-  return Blacklist.postMatchObject(post_data, entry);
-};
-
-Blacklist.postMatchObject = function (post, entry) {
-  const rangeComparator = function (comparison, target) {
-    // Bad comparison, post matches score.
-    if (!Array.isArray(comparison) || typeof target === 'undefined' || comparison.length !== 2)
-      return true;
-    switch (comparison[0]) {
-      case '<':
-        return target < comparison[1];
-      case '<=':
-        return target <= comparison[1];
-      case '==':
-        return target == comparison[1];
-      case '>=':
-        return target >= comparison[1];
-      case '>':
-        return target > comparison[1];
-      default:
-        return true;
-    }
-  };
-  const score_test = rangeComparator(entry.score_comparison, post.score);
-  const tags = post.tags.match(/\S+/g) || [];
-  tags.push(`id:${post.id}`);
-  tags.push(`rating:${post.rating}`);
-  tags.push(`userid:${post.uploader_id}`);
-  tags.push(`user:!${post.uploader_id}`);
-  tags.push(`user:${post.user}`);
-  tags.push(`height:${post.height}`);
-  tags.push(`width:${post.width}`);
-  if(post.is_fav)
-    tags.push('fav:me');
-  $.each(post.flags.match(/\S+/g) || [], function (i, v) {
-    tags.push(`status:${v}`);
+  $("#blacklist-cancel").on("click", function () {
+    $("#blacklist-edit-dialog").dialog("close");
   });
 
-  return (Utility.is_subset(tags, entry.require) && score_test)
-    && (!entry.optional.length || Utility.intersect(tags, entry.optional).length)
-    && !Utility.intersect(tags, entry.exclude).length;
-}
-
-Blacklist.initialize_all = function () {
-  Blacklist.entriesParse();
-
-  Blacklist.initialize_disable_all_blacklists();
-  Blacklist.apply();
-  $("#blacklisted-hider").remove();
-}
-
-Blacklist.initialize_anonymous_blacklist = function () {
-  if ($(document.body).data('user-is-anonymous') !== true) {
-    return;
-  }
-
-  const anonBlacklist = LS.get('anonymous-blacklist');
-  if (anonBlacklist) {
-    $("meta[name=blacklisted-tags]").attr("content", anonBlacklist);
-  }
-}
-
-Blacklist.initialize_blacklist_editor = function () {
-  $("#blacklist-edit-dialog").dialog({ autoOpen: false });
-
-  $("#blacklist-cancel").on('click', function () {
-    $("#blacklist-edit-dialog").dialog('close');
-  });
-
-  $("#blacklist-save").on('click', function () {
+  $("#blacklist-save").on("click", function () {
     const blacklist_content = $("#blacklist-edit").val();
     const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
-    if($(document.body).data('user-is-anonymous') === true) {
-      LS.put('anonymous-blacklist', blacklist_json);
+    if (Blacklist.isAnonymous) {
+      LStorage.Blacklist.AnonymousBlacklist = blacklist_json;
     } else {
       $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
         method: "PUT",
         data: {
-          "user[blacklisted_tags]": blacklist_content
-        }
+          "user[blacklisted_tags]": blacklist_content,
+        },
       }).done(function () {
         Utility.notice("Blacklist updated");
-      }).fail(function (data, status, xhr) {
+      }).fail(function () {
         Utility.error("Failed to update blacklist");
       });
     }
 
-    $("#blacklist-edit-dialog").dialog('close');
+    $("#blacklist-edit-dialog").dialog("close");
     $("meta[name=blacklisted-tags]").attr("content", blacklist_json);
-    Blacklist.initialize_all();
+
+    // Start from scratch
+    Blacklist.regenerate_filters();
+    Blacklist.add_posts(PostCache.sample());
+    Blacklist.update_visibility();
   });
 
-  $("#blacklist-edit-link").on('click', function (event) {
+  $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
     let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
-    entries = entries.map(e => e.replace(/(rating:[qes])\w+/ig, "$1").toLowerCase());
-    entries = entries.filter(e => e.trim() !== "");
-    $("#blacklist-edit").val(entries.join('\n'));
-    $("#blacklist-edit-dialog").dialog('open');
+    $("#blacklist-edit").val(entries.join("\n"));
+    $("#blacklist-edit-dialog").dialog("open");
   });
 };
 
-Blacklist.collapseGet = function () {
-  const lsValue = LS.get('bc') || '1';
-  return lsValue === '1';
+/** Reveals the blacklisted post without disabling any filters */
+Blacklist.init_reveal_on_click = function () {
+  if (!$("#c-posts #a-show").length) return;
+  $("#image-container").on("click", (event) => {
+    $(event.currentTarget).removeClass("blacklisted");
+  });
 };
 
-Blacklist.collapseSet = function (collapsed) {
-  LS.put('bc', collapsed ? "1" : "0");
-};
+/** Import the blacklist from the meta tag */
+Blacklist.regenerate_filters = function () {
+  Blacklist.filters = {};
 
-Blacklist.collapseUpdate = function () {
-  if (Blacklist.collapseGet()) {
-    $('#blacklist-list').hide();
-    $('#blacklist-collapse').addClass('hidden');
-  } else {
-    $('#blacklist-list').show();
-    $('#blacklist-collapse').removeClass('hidden');
+  // Attempt to create filters from text
+  let blacklistText;
+  try {
+    blacklistText = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
+  } catch (error) {
+    console.error(error);
+    blacklistText = [];
+  }
+
+  for (let entry of blacklistText) {
+    const line = Filter.create(entry);
+    if (line) Blacklist.filters[line.text] = line;
+  }
+
+  // Clear any FilterState entries that don't have a matching filter
+  const keys = Object.keys(Blacklist.filters);
+  for (const filterState of LStorage.Blacklist.FilterState) {
+    if (keys.includes(filterState)) continue;
+    LStorage.Blacklist.FilterState.delete(filterState);
   }
 };
 
-Blacklist.initialize_collapse = function () {
-  $("#blacklist-collapse").on('click', function (e) {
-    e.preventDefault();
-    const current = Blacklist.collapseGet();
-    Blacklist.collapseSet(!current);
-    Blacklist.collapseUpdate();
-  });
-  Blacklist.collapseUpdate();
+/** Hides all comments created by blacklisted users */
+Blacklist.init_comment_blacklist = function () {
+  if (Utility.meta("blacklist-users") !== "true") return;
+
+  // This is extraordinarily silly
+  // We need a proper user ignoring system
+  for (const filter of Object.values(Blacklist.filters)) {
+
+    // Only the first token is accepted
+    // If the user is trying something wackier, that's their fault
+    if (!filter.tokens.length) continue;
+    const token = filter.tokens[0];
+
+    switch (token.type) {
+      case "user": {
+        if (token.value.startsWith("!")) {
+          $(`article[data-creator-id="${token.value.slice(1)}"]`).hide();
+          continue;
+        }
+        // falls through
+      }
+      case "username": {
+        $(`article[data-creator="${token.value}"]`).hide();
+        continue;
+      }
+      case "userid": {
+        $(`article[data-creator-id="${token.value}"]`).hide();
+        continue;
+      }
+    }
+  }
 };
 
-$(document).ready(function () {
-  Blacklist.initialize_collapse();
-  Blacklist.initialize_anonymous_blacklist();
-  Blacklist.initialize_blacklist_editor();
-  Blacklist.initialize_all();
+/** Build the sidebar and inline blacklist toggles */
+Blacklist.init_blacklist_toggles = function () {
+  if (Blacklist.ui.length) return;
+
+  $(".blacklist-ui").each((index, element) => {
+    Blacklist.ui.push(new BlacklistUI($(element)));
+  });
+};
+
+/**
+ * Register posts in the system, and calculate which filters apply to them
+ * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
+ */
+Blacklist.add_posts = function ($posts) {
+  PostCache.register($posts);
+
+  for (const filter of Object.values(Blacklist.filters))
+    filter.update($posts);
+};
+
+/**
+ * Recalculate hidden posts based on the current filters.
+ * Also applies or removed `blacklist` class wherever necessary.
+ */
+Blacklist.update_visibility = function () {
+  let oldPosts = [...this.hiddenPosts],
+    newPosts = [];
+
+  // Tally up the new blacklisted posts
+  for (const filter of Object.values(Blacklist.filters)) {
+    if (!filter.enabled) continue;
+    newPosts = newPosts.concat(Array.from(filter.matchIDs));
+  }
+
+  // Calculate diffs
+  // TODO I feel like this could be optimized.
+  this.hiddenPosts = new Set(newPosts.filter(n => n));
+  let added = [...this.hiddenPosts].filter((n) => !oldPosts.includes(n)),
+    removed = oldPosts.filter((n) => !this.hiddenPosts.has(n));
+
+  // Update the UI
+  for (const ui of Blacklist.ui) ui.rebuildFilters();
+
+  // Apply / remove classes
+  // TODO: Cache the post elements to avoid repeat lookups
+  for (const postID of added)
+    PostCache.apply(postID, ($element) => {
+      $element.addClass("blacklisted").trigger("blk:hide");
+    });
+  for (const postID of removed)
+    PostCache.apply(postID, ($element) => {
+      $element.removeClass("blacklisted").trigger("blk:show");
+    });
+};
+
+/**
+ * Adds a `filter-matches` class to any thumbnails that match any of the filters,
+ * including disabled ones. Only needs to run after new posts get added to the page.
+ */
+Blacklist.update_styles = function () {
+  let allPosts = [];
+  for (const filter of Object.values(Blacklist.filters))
+    allPosts = allPosts.concat(Array.from(filter.matchIDs));
+  Blacklist.matchedPosts = new Set(allPosts);
+
+  $(".filter-matches").removeClass("filter-matches");
+  for (const postID of Blacklist.matchedPosts)
+    PostCache.apply(postID, ($element) => {
+      $element.addClass("filter-matches");
+    });
+};
+
+$(() => {
+  Blacklist.init_anonymous_blacklist();
+  Blacklist.init_blacklist_editor();
+  Blacklist.init_reveal_on_click();
+
+  Blacklist.regenerate_filters();
+  Blacklist.add_posts($(".blacklistable"));
+  Blacklist.update_styles();
+  Blacklist.update_visibility();
+  $("#blacklisted-hider").remove();
+
+  Blacklist.init_comment_blacklist();
+  Blacklist.init_blacklist_toggles();
+
+  // Pause videos when blacklisting
+  // This seems extraordinarily uncommon, so it's here
+  // just for feature parity with the old blacklist.
+  if ($("#c-posts #a-show").length > 0) return;
+  let container = $("#image-container[data-file-ext='webm']").on("blk:hide", () => {
+    const video = container.find("video");
+    if (!video.length) return;
+    video[0].pause();
+  });
 });
 
-export default Blacklist
+/**
+ * Represents the list of toggles for the blacklist filters.
+ * Could be either in a sidebar or inline formats.
+ */
+class BlacklistUI {
+  /**
+   * Constructor.
+   * Should only be run on `.blacklist-ui` elements.
+   * @param {JQuery<HTMLDivElement>} $element
+   */
+  constructor ($element) {
+    this.$element = $element;
+    this.$counter = $element.find(".blacklisted-count");
+
+    this.post = parseInt($element.attr("post"));
+    this.hasPost = !Number.isNaN(this.post);
+
+    // Collapsable header
+    $element
+      .attr("collapsed", LStorage.Blacklist.Collapsed)
+      .find(".blacklist-header")
+      .on("click", () => {
+        const newState = this.$element.attr("collapsed") !== "true";
+        this.$element.attr("collapsed", newState);
+        LStorage.Blacklist.Collapsed = newState;
+      });
+
+    // Toggle All switch
+    this.$toggle = $element
+      .find(".blacklist-toggle-all")
+      .text("Disable All Filters")
+      .on("click", () => {
+        if (this.$toggle.attr("is-enabling") == "true") {
+          for (const filter of Object.values(Blacklist.filters))
+            filter._enabled = true;
+          LStorage.Blacklist.FilterState.clear();
+        } else {
+          const filterList = new Set();
+          for (const filter of Object.values(Blacklist.filters)) {
+            filter._enabled = false;
+            filterList.add(filter.text);
+          }
+          LStorage.Blacklist.FilterState = filterList;
+        }
+
+        for (const element of Blacklist.ui) element.rebuildFilters();
+        Blacklist.update_visibility();
+      });
+
+    // Filters
+    this.$container = $($element.find(".blacklist-filters"));
+    this.rebuildFilters();
+  }
+
+  /**
+   * Deletes and re-creates the filter list.
+   * Done automatically every time a filter gets turned on or off,
+   * so all instances are in sync no matter what.
+   */
+  rebuildFilters () {
+    this.$container.html("");
+
+    let activeFilters = 0,
+      inactiveFilters = 0;
+    for (const [name, filter] of Object.entries(Blacklist.filters)) {
+      if (filter.matchIDs.size == 0) continue;
+
+      // Special case for the posts/show page sidebar
+      if (this.hasPost && !filter.matchIDs.has(this.post))
+        continue;
+
+      activeFilters++;
+      if (!filter.enabled) inactiveFilters++;
+
+      const entry = $("<li>")
+        .attr("enabled", filter.enabled)
+        .on("click", () => {
+          // Actual toggling done elsewhere
+          filter.enabled = !filter.enabled;
+        })
+        .appendTo(this.$container);
+
+      const link = $("<a>")
+        .attr("href", "/posts?tags=" + encodeURIComponent(name))
+        .html(name
+          .replace(/_/g, "&#8203;_") // Allow tags to linebreak on underscores
+          .replace(/ -/, " &#8209;"), // Prevent linebreaking on negated tags
+        )
+        .on("click", (event) => {
+          event.preventDefault();
+          // Link is disabled, but could still be right-clicked
+        })
+        .appendTo(entry);
+
+      $("<span>").text(filter.matchIDs.size).appendTo(link);
+    }
+
+    // Update the total blacklist size
+    this.$element.attr("filters", activeFilters);
+    this.$counter.text("(" + Blacklist.hiddenPosts.size + ")");
+
+    // Change the toggle state accordingly
+    this.$toggle
+      .text(inactiveFilters ? "Enable All Filters" : "Disable All Filters")
+      .attr("is-enabling", inactiveFilters > 0);
+  }
+}
+
+export default Blacklist;

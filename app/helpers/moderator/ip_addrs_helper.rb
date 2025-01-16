@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Moderator
   module IpAddrsHelper
     def link_to_ip_search(type, ip_addr, count)

@@ -1,0 +1,74 @@
+<div id="c-avoid-postings">
+  <div id="a-index">
+    <h1>Avoid Postings</h1>
+
+    <%= render "search" %>
+
+    <table class="striped dnp-list">
+      <thead>
+      <tr>
+        <th class="dnp-artist">Artist</th>
+        <th class="dnp-details">Details</th>
+        <% if search_params.key?(:is_active) %>
+          <th class="dnp-status">Status</th>
+        <% end %>
+        <% if search_params.key?(:creator_id) || search_params.key?(:creator_name) %>
+          <th class="dnp-creator">Creator</th>
+        <% end %>
+        <th class="dnp-links"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @avoid_postings.each do |avoid_posting| %>
+        <tr id="avoid-posting-<%= avoid_posting.id %>" data-artist="<%= avoid_posting.artist_name %>">
+          <td class="dnp-artist">
+            <span class="dnp-artist-names">
+              <%= link_to avoid_posting.artist_name, artist_path(avoid_posting.artist) %>
+              <% if avoid_posting.other_names.present? %>
+                <span>(<%= link_to_artists(avoid_posting.other_names, hide_new_notice: true) %>)</span>
+              <% end %>
+            </span>
+          </td>
+          <td class="dnp-details">
+            <span class="avoid-posting-details"><%= format_text(avoid_posting.details, inline: true) %></span>
+            <% if CurrentUser.is_staff? && avoid_posting.staff_notes.present? %>
+              <span class="avoid-posting-staff-notes">
+                <b>Staff Notes</b>
+                <span><%= format_text(avoid_posting.staff_notes, inline: true) %></span>
+              </span>
+            <% end %>
+          </td>
+          <% if search_params.key?(:is_active) %>
+            <td class="dnp-status">
+              <%= avoid_posting.status %>
+            </td>
+          <% end %>
+          <% if search_params.key?(:creator_id) || search_params.key?(:creator_name) %>
+            <td class="dnp-creator">
+              <%= link_to_user avoid_posting.creator %>
+            </td>
+          <% end %>
+          <td class="dnp-links">
+            <%= link_to "Show", avoid_posting_path(avoid_posting) %>
+            <% if CurrentUser.can_edit_avoid_posting_entries? %>
+              | <%= link_to "Edit", edit_avoid_posting_path(avoid_posting) %>
+              <% if avoid_posting.is_active? %>
+                | <%= link_to "Delete", delete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to delete this avoid posting entry?" } %>
+              <% else %>
+                | <%= link_to "Undelete", undelete_avoid_posting_path(avoid_posting), method: :put, data: { confirm: "Are you sure you want to undelete this avoid posting entry?" } %>
+              <% end %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@avoid_postings) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+<% content_for(:page_title) do %>
+  Avoid Postings
+<% end %>

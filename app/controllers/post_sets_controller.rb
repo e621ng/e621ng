@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 class PostSetsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, except: [:index, :show]
+  before_action :member_only, except: %i[index show]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def index
     if !params[:post_id].blank?
@@ -66,6 +69,7 @@ class PostSetsController < ApplicationController
 
   def maintainers
     @post_set = PostSet.find(params[:id])
+    check_view_access(@post_set)
   end
 
   def post_list
@@ -86,7 +90,7 @@ class PostSetsController < ApplicationController
   def destroy
     @post_set = PostSet.find(params[:id])
     check_settings_edit_access(@post_set)
-    if @post_set.creator != CurrentUser.user 
+    if @post_set.creator != CurrentUser.user
       ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
     end
     @post_set.destroy
@@ -108,7 +112,7 @@ class PostSetsController < ApplicationController
   def add_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.add(params[:post_ids].map(&:to_i))
+    @post_set.add(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
   end
@@ -116,7 +120,7 @@ class PostSetsController < ApplicationController
   def remove_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.remove(params[:post_ids].map(&:to_i))
+    @post_set.remove(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
   end
@@ -149,9 +153,17 @@ class PostSetsController < ApplicationController
     params.require(:post_set).permit([:post_ids_string])
   end
 
+  def add_remove_posts_params
+    params.extract!(:post_ids).permit(post_ids: []).require(:post_ids)
+  end
+
   def search_params
     permitted_params = %i[name shortname creator_id creator_name order]
     permitted_params += %i[is_public] if CurrentUser.is_moderator?
     permit_search_params permitted_params
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.post_sets_disabled? && !CurrentUser.is_staff?
   end
 end

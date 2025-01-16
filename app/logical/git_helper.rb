@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module GitHelper
   def self.init
     if Rails.root.join("REVISION").exist?
@@ -5,7 +7,7 @@ module GitHelper
     elsif system("type git > /dev/null && git rev-parse --show-toplevel > /dev/null")
       @hash = `git rev-parse HEAD`.strip
     else
-      @hash = nil
+      @hash = ""
     end
   end
 

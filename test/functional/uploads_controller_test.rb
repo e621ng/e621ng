@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class UploadsControllerTest < ActionDispatch::IntegrationTest
@@ -41,11 +43,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       context "when uploads are disabled" do
         setup do
-          DangerZone.min_upload_level = User::Levels::PRIVILEGED
+          Security::Lockdown.uploads_min_level = User::Levels::PRIVILEGED
         end
 
         teardown do
-          DangerZone.min_upload_level = User::Levels::MEMBER
+          Security::Lockdown.uploads_min_level = User::Levels::MEMBER
         end
 
         should "prevent uploads" do
@@ -107,6 +109,30 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("Upload.count", 1) do
           file = fixture_file_upload("test.jpg")
           post_auth uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" } }
+        end
+      end
+
+      context "with a previously destroyed post" do
+        setup do
+          @admin = create(:admin_user)
+          @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
+          @post = @upload.post
+          as(@admin) { @post.expunge! }
+        end
+
+        should "fail and create ticket" do
+          assert_difference({ "Post.count" => 0, "Ticket.count" => 1 }) do
+            file = fixture_file_upload("test.jpg")
+            post_auth uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" } }
+          end
+        end
+
+        should "fail and not create ticket if notify=false" do
+          DestroyedPost.find_by!(post_id: @post.id).update_column(:notify, false)
+          assert_difference(%(Post.count Ticket.count), 0) do
+            file = fixture_file_upload("test.jpg")
+            post_auth uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" } }
+          end
         end
       end
     end

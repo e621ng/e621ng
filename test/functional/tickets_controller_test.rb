@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class TicketsControllerTest < ActionDispatch::IntegrationTest
@@ -17,11 +19,36 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def assert_ticket_view_permissions(users, ticket)
+    users.each do |user, allow_view|
+      get_auth ticket_path(ticket), user
+      if allow_view
+        assert_response :success
+      else
+        assert_response :forbidden
+      end
+    end
+  end
+
+  def assert_ticket_json(users, ticket)
+    users.each do |user, hash|
+      get_auth ticket_path(ticket), user, params: { format: :json }
+      hash.each do |key, value|
+        if value.nil?
+          assert_nil(@response.parsed_body[key])
+        else
+          assert_equal(value, @response.parsed_body[key])
+        end
+      end
+    end
+  end
+
   context "The tickets controller" do
     setup do
       @admin = create(:admin_user)
       @bystander = create(:user)
       @reporter = create(:user)
+      @janitor = create(:janitor_user)
       @bad_actor = create(:user, created_at: 2.weeks.ago)
     end
 
@@ -34,7 +61,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "send a new dmail if the status is changed" do
         assert_difference(-> { Dmail.count }, 2) do
-          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved" } }
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved", response: "abc" } }
         end
       end
 
@@ -47,38 +74,33 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
           put_auth ticket_path(@ticket), @admin, params: { ticket: { response: "def", send_update_dmail: true } }
         end
       end
+
+      should "reject empty responses" do
+        assert_no_changes(-> { @ticket.reload.status }) do
+          put_auth ticket_path(@ticket), @admin, params: { ticket: { status: "approved", response: "" } }
+        end
+      end
     end
 
-    context "for a forum ticket" do
+    context "for a blip ticket" do
       setup do
         as @bad_actor do
-          @content = create(:forum_topic, creator: @bad_actor).original_post
+          @content = create(:blip, creator: @bad_actor)
         end
       end
 
-      should "restrict reporting" do
-        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "forum")
+      should "disallow reporting blips you can't see" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "blip")
         @content.update_columns(is_hidden: true)
-        assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "forum")
+        assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "blip")
       end
 
       should "restrict access" do
-        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "forum")
-        get_auth ticket_path(@ticket), @admin
-        assert_response :success
-        get_auth ticket_path(@ticket), @reporter
-        assert_response :success
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
-
-        @content.topic.update_columns(is_hidden: true)
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :forbidden
-
-        @content.topic.update_columns(is_hidden: false)
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "blip")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_hidden: true)
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :forbidden
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end
 
@@ -95,51 +117,52 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "comment")
       end
 
-      should "not restrict access" do
+      should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "comment")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_hidden: true)
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end
 
     context "for a dmail ticket" do
       setup do
         as @bad_actor do
-          @content = create(:dmail, from: @bad_actor, to: @bystander, owner: @bystander)
+          @content = create(:dmail, from: @bad_actor, to: @reporter, owner: @reporter)
         end
       end
 
-      should "disallow reporting dmails you did not recieve" do
-        assert_ticket_create_permissions([[@bystander, true], [@admin, false], [@bad_actor, false]], qtype: "dmail")
+      should "disallow reporting dmails you did not receive" do
+        assert_ticket_create_permissions([[@reporter, true], [@admin, false], [@bad_actor, false]], qtype: "dmail")
       end
 
       should "restrict access" do
-        @ticket = create(:ticket, creator: @bystander, content: @content, qtype: "dmail")
-        get_auth ticket_path(@ticket), @admin
-        assert_response :success
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
-        get_auth ticket_path(@ticket), @bad_actor
-        assert_response :forbidden
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "dmail")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 
-    context "for a wiki page ticket" do
+    context "for a forum post ticket" do
       setup do
         as @bad_actor do
-          @content = create(:wiki_page, creator: @bad_actor)
+          @content = create(:forum_topic, creator: @bad_actor).original_post
         end
       end
 
-      should "allow reporting wiki pages" do
-        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "wiki")
+      should "restrict reporting" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "forum")
+        @content.update_columns(is_hidden: true)
+        assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "forum")
       end
 
-      should "not restrict access" do
-        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "wiki")
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "forum")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        @content.topic.update_columns(is_hidden: true)
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end
 
@@ -154,10 +177,36 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "pool")
       end
 
-      should "not restrict access" do
+      should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "pool")
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+      end
+    end
+
+    context "for a post ticket" do
+      setup do
+        as @bad_actor do
+          @content = create(:post, uploader: @bad_actor)
+        end
+      end
+
+      should "require a post reason" do
+        assert_no_difference(-> { Ticket.count }) do
+          post_auth tickets_path, @bystander, params: { ticket: { qtype: "post", reason: "test" } }
+        end
+      end
+
+      should "allow reports" do
+        create(:post_report_reason, reason: "test")
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "post", report_reason: "test")
+      end
+
+      should "restrict access" do
+        create(:post_report_reason, reason: "test")
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "post", report_reason: "test")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 
@@ -176,59 +225,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "not restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "set")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_public: false)
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end
 
-    context "for post tickets" do
-      setup do
-        as @bad_actor do
-          @content = create(:post, uploader: @bad_actor)
-        end
-      end
-
-      should "require a post reason" do
-        assert_no_difference(-> { Ticket.count }) do
-          post_auth tickets_path, @bystander, params: { ticket: { qtype: "post", reason: "test" } }
-        end
-      end
-
-      should "allow reports" do
-        create(:post_report_reason, reason: "test")
-        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "post", report_reason: "test")
-      end
-
-      should "not restrict access" do
-        create(:post_report_reason, reason: "test")
-        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "post", report_reason: "test")
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
-      end
-    end
-
-    context "for blip tickets" do
-      setup do
-        as @bad_actor do
-          @content = create(:blip, creator: @bad_actor)
-        end
-      end
-
-      should "dissallow reporting blips you can't see" do
-        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "blip")
-        @content.update_columns(is_hidden: true)
-        assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "blip")
-      end
-
-      should "not restrict access" do
-        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "blip")
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :success
-      end
-    end
-
-    context "for user tickets" do
+    context "for a user ticket" do
       setup do
         @content = create(:user)
       end
@@ -239,12 +243,26 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "user")
-        get_auth ticket_path(@ticket), @reporter
-        assert_response :success
-        get_auth ticket_path(@ticket), @admin
-        assert_response :success
-        get_auth ticket_path(@ticket), @bystander
-        assert_response :forbidden
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
+      end
+    end
+
+    context "for a wiki page ticket" do
+      setup do
+        as @bad_actor do
+          @content = create(:wiki_page, creator: @bad_actor)
+        end
+      end
+
+      should "allow reporting wiki pages" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "wiki")
+      end
+
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "wiki")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
   end

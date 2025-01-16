@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserNameChangeRequestsController < ApplicationController
   before_action :member_only, only: [:new, :create, :show]
   before_action :moderator_only, only: :index
@@ -33,7 +35,7 @@ class UserNameChangeRequestsController < ApplicationController
   private
 
   def check_privileges!(change_request)
-    return if CurrentUser.is_admin?
+    return if CurrentUser.is_moderator?
     raise User::PrivilegeError if change_request.user_id != CurrentUser.user.id
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RemoveTestparser < ActiveRecord::Migration[7.0]
   def up
     execute "DROP TRIGGER trigger_posts_on_tag_index_update ON posts"

@@ -9,7 +9,7 @@ $hexagon-color-section-border:    $hexagon-color-background;
 
 body {
   // Theme-specific images
-  --image-background:             url("images/themes/hexagon/background.png");
+  --image-background:             url("themes/hexagon/background.png");
 
   // Layout Colors
   --color-background:             #{$hexagon-color-background}; // Main background (dark blue, large hexagons)
@@ -82,6 +82,9 @@ body {
 
   --color-tag-artist:             #f2ac08;
   --color-tag-artist-alt:         #fbd67f;
+
+  --color-tag-contributor:        #c0c0c0;
+  --color-tag-contributor-alt:    #71706e;
 
   --color-tag-copyright:          #d0d;
   --color-tag-copyright-alt:      #ff5eff;

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RelatedTagQuery
   include ActiveModel::Serializers::JSON
 
@@ -53,6 +55,6 @@ class RelatedTagQuery
   end
 
   def wiki_page
-    WikiPage.titled(query).first
+    WikiPage.titled(query)
   end
 end

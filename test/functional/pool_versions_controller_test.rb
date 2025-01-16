@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
   context "The pool versions controller" do

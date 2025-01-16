@@ -1,27 +1,48 @@
+# frozen_string_literal: true
+
 class UserFeedback < ApplicationRecord
   self.table_name = "user_feedback"
   belongs_to :user
   belongs_to_creator
+  belongs_to_updater
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :body, :category, presence: true
   validates :category, inclusion: { in: %w[positive negative neutral] }
   validates :body, length: { minimum: 1, maximum: Danbooru.config.user_feedback_max_size }
   validate :creator_is_moderator, on: :create
   validate :user_is_not_creator
+  after_create :log_create
+  after_update :log_update
+  after_destroy :log_destroy
   after_save :create_dmail
-  after_create do |rec|
-    ModAction.log(:user_feedback_create, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
-  end
-  after_update do |rec|
-    ModAction.log(:user_feedback_update, { user_id: rec.user_id, reason: rec.body, reason_was: rec.body_before_last_save, type: rec.category, type_was: rec.category_before_last_save, record_id: rec.id })
-  end
-  after_destroy do |rec|
-    ModAction.log(:user_feedback_delete, { user_id: rec.user_id, reason: rec.body, type: rec.category, record_id: rec.id })
-    deletion_user = "\"#{CurrentUser.name}\":/users/#{CurrentUser.id}"
-    creator_user = "\"#{creator.name}\":/users/#{creator.id}"
-    StaffNote.create(body: "#{deletion_user} deleted #{rec.category} feedback, created #{created_at.to_date} by #{creator_user}: #{rec.body}", user_id: rec.user_id, creator: User.system)
-  end
 
   attr_accessor :send_update_dmail
+
+  scope :active, -> { where(is_deleted: false) }
+  scope :deleted, -> { where(is_deleted: true) }
+
+  module LogMethods
+    def log_create
+      ModAction.log(:user_feedback_create, { user_id: user_id, reason: body, type: category, record_id: id })
+    end
+
+    def log_update
+      details = { user_id: user_id, reason: body, reason_was: body_before_last_save, type: category, type_was: category_before_last_save, record_id: id }
+      if saved_change_to_is_deleted?
+        action = is_deleted? ? :user_feedback_delete : :user_feedback_undelete
+        ModAction.log(action, details)
+        return unless saved_change_to_category? || saved_change_to_body?
+      end
+      ModAction.log(:user_feedback_update, details)
+    end
+
+    def log_destroy
+      ModAction.log(:user_feedback_destroy, { user_id: user_id, reason: body, type: category, record_id: id })
+      deletion_user = "\"#{CurrentUser.name}\":/users/#{CurrentUser.id}"
+      creator_user = "\"#{creator.name}\":/users/#{creator.id}"
+      StaffNote.create(body: "#{deletion_user} deleted #{category} feedback, created #{created_at.to_date} by #{creator_user}: #{body}", user_id: user_id, creator: User.system)
+    end
+  end
 
   module SearchMethods
     def positive
@@ -44,11 +65,22 @@ class UserFeedback < ApplicationRecord
       order(created_at: :desc)
     end
 
+    def visible(user)
+      if user.is_staff?
+        all
+      else
+        active
+      end
+    end
+
     def search(params)
       q = super
 
-      q = q.attribute_matches(:body, params[:body_matches])
+      deleted = (params[:deleted].presence || "excluded").downcase
+      q = q.active if deleted == "excluded"
+      q = q.deleted if deleted == "only"
 
+      q = q.attribute_matches(:body, params[:body_matches])
       q = q.where_user(:user_id, :user, params)
       q = q.where_user(:creator_id, :creator, params)
 
@@ -60,6 +92,7 @@ class UserFeedback < ApplicationRecord
     end
   end
 
+  include LogMethods
   extend SearchMethods
 
   def user_name
@@ -75,7 +108,7 @@ class UserFeedback < ApplicationRecord
     return unless should_send
 
     action = saved_change_to_id? ? "created" : "updated"
-    body = %(#{creator_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
+    body = %(#{updater_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
     Dmail.create_automated(to_id: user_id, title: "Your user record has been updated", body: body)
   end
 
@@ -89,5 +122,13 @@ class UserFeedback < ApplicationRecord
 
   def editable_by?(editor)
     editor.is_moderator? && editor != user
+  end
+
+  def deletable_by?(deleter)
+    editable_by?(deleter)
+  end
+
+  def destroyable_by?(destroyer)
+    deletable_by?(destroyer) && (destroyer.is_admin? || destroyer == creator)
   end
 end

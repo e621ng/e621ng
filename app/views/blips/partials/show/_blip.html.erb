@@ -23,12 +23,8 @@
       <div class="body dtext-container">
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
-      <% if blip.was_warned? %>
-        <div class="user-warning">
-          <hr>
-          <em><%= blip.warning_type_string %></em>
-        </div>
-      <% end %>
+      <%= render "application/update_notice", record: blip %>
+      <%= render "application/warned_notice", record: blip %>
       <div class="content-menu">
         <menu>
           <% if CurrentUser.is_member? %>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PostsHelper
   def discover_mode?
     params[:tags] =~ /order:rank/
@@ -20,7 +22,7 @@ module PostsHelper
   def post_source_tag(source)
     # Only allow http:// and https:// links. Disallow javascript: links.
     if source =~ %r{\Ahttps?://}i
-      source_link = link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
+      source_link = decorated_link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
 
       if CurrentUser.is_janitor?
         source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
@@ -35,7 +37,7 @@ module PostsHelper
   end
 
   def has_parent_message(post, parent_post_set)
-    html = ""
+    html = +""
 
     html << "Parent: "
     html << link_to("post ##{post.parent_id}", post_path(id: post.parent_id))
@@ -56,7 +58,7 @@ module PostsHelper
   end
 
   def has_children_message(post, children_post_set)
-    html = ""
+    html = +""
 
     html << "Children: "
     text = children_post_set.children.count == 1 ? "1 child" : "#{children_post_set.children.count} children"
@@ -85,18 +87,18 @@ module PostsHelper
 
   def post_stats_section(post)
     status_flags = []
-    status_flags << 'P' if post.parent_id
-    status_flags << 'C' if post.has_active_children?
-    status_flags << 'U' if post.is_pending?
-    status_flags << 'F' if post.is_flagged?
+    status_flags << "P" if post.parent_id
+    status_flags << "C" if post.has_active_children?
+    status_flags << "U" if post.is_pending?
+    status_flags << "F" if post.is_flagged?
 
     post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
-    score = tag.span("#{post_score_icon}#{post.score}", class: "post-score-score #{score_class(post.score)}")
-    favs = tag.span("♥#{post.fav_count}", class: "post-score-faves")
-    comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
-    rating =  tag.span(post.rating.upcase, class: "post-score-rating")
-    status = tag.span(status_flags.join(''), class: 'post-score-extras')
-    tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
+    score = tag.span("#{post_score_icon}#{post.score}", class: "score #{score_class(post.score)}")
+    favs = tag.span("♥#{post.fav_count}", class: "favorites")
+    comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: "comments"
+    rating = tag.span(post.rating.upcase, class: "rating")
+    # status = tag.span(status_flags.join, class: "extras")
+    tag.div score + favs + comments + rating, class: "desc"
   end
 
   def user_record_meta(user)
@@ -104,12 +106,13 @@ module PostsHelper
     neutral = user.neutral_feedback_count
     negative = user.negative_feedback_count
 
-    return "" unless positive > 0 || neutral > 0 || negative > 0
-    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
-    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
-    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
+    return "" if (positive + neutral + negative) == 0
+    positive_html = %{<span class="user-feedback-positive">#{positive}</span>}.html_safe if positive > 0
+    neutral_html = %{<span class="user-feedback-neutral">#{neutral}</span>}.html_safe if neutral > 0
+    negative_html = %{<span class="user-feedback-negative">#{negative}</span>}.html_safe if negative > 0
+    list_html = "#{positive_html} #{neutral_html} #{negative_html}".strip
 
-    link_to(%{(#{positive_html} #{neutral_html} #{negative_html})}.html_safe,  user_feedbacks_path(:search => {:user_id => user.id}))
+    link_to(%{(#{list_html})}.html_safe,  user_feedbacks_path(search: { user_id: user.id}))
   end
 
   private

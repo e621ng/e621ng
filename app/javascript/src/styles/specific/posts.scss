@@ -3,161 +3,15 @@
   width: 15em; // Match width to that of the
 }
 
-article.post-preview {
-  box-sizing: border-box;
-  height: auto;
-  width: 154px;
-  margin: 0 10px 10px 0;
-  overflow: hidden;
-  text-align: center;
-  display: inline-block;
-  position: relative;
-  vertical-align: text-top;
-
-  a {
-    display: inline-block;
-  }
-
-  .desc {
-    background-color: themed("color-section-lighten-5");
-    font-size: 80%;
-    margin-bottom: 0;
-  }
-
-  .post-score>span {
-    font-size: 0.8rem;
-    margin-left: 0.5em;
-  }
-
-  &.post-rating-explicit .post-score-rating {
-    color: $post-rating-explicit-color;
-  }
-
-  &.post-rating-safe .post-score-rating {
-    color: $post-rating-safe-color;
-  }
-
-  &.post-rating-questionable .post-score-rating {
-    color: $post-rating-questionable-color;
-  }
-
-  img {
-    box-sizing: border-box;
-    margin: auto;
-    max-height: 10rem; // Roughly 160px with 16pt font size
-    max-width: 10rem;
-    border-radius: $border-radius-half $border-radius-half 0 0;
-  }
-
-  &[data-tags~=animated] > a:before {
-    @include  preview-type-badge('ANIM');
-  }
-
-  &[data-file-ext=webm] > a:before {
-    @include preview-type-badge('WEBM');
-  }
-}
-
 #edit-dialog textarea {
   margin-bottom: 0.25em;
 }
 
-.post-preview {
-  &.post-status-has-children img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color;
-  }
-
-  &.post-status-has-parent img {
-    border: 2px solid transparent;
-    border-color: $preview-has-parent-color;
-  }
-
-  &.post-status-has-children.post-status-has-parent img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-has-parent-color $preview-has-parent-color $preview-has-children-color;
-  }
-
-
-  &.post-status-deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-deleted-color;
-  }
-
-  &.post-status-has-children.post-status-deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-children-color;
-  }
-
-  &.post-status-has-parent.post-status-deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-parent-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
-  }
-
-  &.post-status-has-children.post-status-has-parent.post-status-deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
-  }
-
-
-  &.post-status-pending img,
-  &.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-pending-color;
-  }
-
-  &.post-status-has-children.post-status-pending img,
-  &.post-status-has-children.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-children-color;
-  }
-
-  &.post-status-has-parent.post-status-pending img,
-  &.post-status-has-parent.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-parent-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
-  }
-
-  &.post-status-has-children.post-status-has-parent.post-status-pending img,
-  &.post-status-has-children.post-status-has-parent.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-pending-color $preview-pending-color $preview-has-parent-color;
-  }
-}
-
-/* Flagged posts have red borders for approvers. */
-body[data-user-can-approve-posts="true"] .post-preview {
-  &.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-flagged-color;
-  }
-
-  &.post-status-has-children.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-children-color;
-  }
-
-  &.post-status-has-parent.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-parent-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
-  }
-
-  &.post-status-has-children.post-status-has-parent.post-status-flagged img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
-  }
-}
-
-.post-preview.current-post {
-  background-color: $post-preview-highlight-background;
-}
-
 #has-parent-relationship-preview, #has-children-relationship-preview {
-  overflow-x: auto;
-  white-space: nowrap;
+  flex-direction: row;
+  flex-wrap: wrap;
 
-  article.post-preview {
-    width: auto;
+  article.thumbnail {
     border: none;
     margin: 0;
     padding: 5px 5px 10px;
@@ -186,10 +40,6 @@ div#c-posts {
   .fav-buttons {
     font-size: 14pt;
 
-    i {
-      margin-right: 0.1em;
-    }
-
     button.ui-button {
       padding: 0.25em 0.75em;
     }
@@ -201,6 +51,29 @@ div#c-posts {
 
   .fav-buttons-false #remove-fav-button {
     display: none;
+  }
+
+  .fav-buttons,
+  #image-download-link {
+    .button > i {
+      display: none;
+    }
+  }
+
+  @media only screen and (max-width: 500px) {
+    #image-extra-controls {
+      justify-content: center;
+    }
+
+    .fav-buttons,
+    #image-download-link {
+      .button > i {
+        display: inline-block;
+      }
+      .button > span {
+        display: none;
+      }
+    }
   }
 
   div.parent-children {
@@ -246,7 +119,10 @@ div#c-posts {
   }
 
   div.nav-notice {
-    padding: 0.5em;
+    display: flex;
+    flex-flow: column;
+    gap: 0.125rem;
+
     margin-bottom: $padding-050;
     background-color: themed('color-section');
     position: relative;
@@ -298,16 +174,29 @@ div#c-posts {
       margin: 1em 0;
     }
 
-    span.quick-mod {
-      float: right;
+    #pending-approval-notice {
+      .notice-pending-toolbar { display: none; }
+      &.enabled {
+        .notice-pending-status { display: none; }
+        .notice-pending-toolbar { display: block; }
+      }
     }
 
-    .pool-name, .search-name, .set-name {
-      word-wrap: break-word;
-      flex-grow: 2;
-      text-align: center;
-      max-width: 65%;
-      padding: 0 1rem;
+    div.quick-mod {
+
+      .quick-mod-group {
+        display: flex;
+        color: var(--color-text-muted);
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 0.25em 0;
+
+        a { text-wrap: nowrap; }
+      }
+
+      .btn-important {
+        font-weight: 700;
+      }
     }
 
     textarea {
@@ -341,23 +230,31 @@ div#c-posts {
       }
     }
 
-    .search-seq-nav + .pool-nav, .search-seq-nav + .set-nav, .pool-nav + .set-nav {
-      margin-top: 0.5em;
-    }
-
-    .pool-nav, .search-seq-nav, .set-nav {
+    .nav-block {
       background: themed("color-section");
+
       li {
         display: flex;
-        height: 1.25rem;
         align-items: center;
         justify-content: space-between;
+        gap: 0.5em;
 
-        .first, .prev {
+        .nav-link {
           flex-shrink: 2;
+          padding: 0.5em
         }
-        .next, .last {
-          flex-shrink: 2;
+        a.nav-link:hover {
+          background: themed("color-section-lighten-5");
+        }
+        span.nav-name {
+          flex-grow: 2;
+          text-align: center;
+
+          // Prevent the contents from overflowing
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          width: 0;
         }
       }
     }
@@ -383,10 +280,35 @@ div#c-posts {
   }
 }
 
+div#avoid-posting-notice {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  padding: $padding-025 $padding-050;
+
+  background-color: themed("color-section");
+  border: 1px solid themed("color-foreground");
+
+  ul {
+    list-style: disc;
+  }
+
+  li {
+    .artist, .separator, .details {
+      display: table-cell;
+    }
+
+    .separator {
+      color: var(--color-text-muted);
+      padding: 0 0.3rem;
+    }
+  }
+}
+
 div#c-post-versions, div#c-artist-versions {
   div#a-index {
     a {
-      word-wrap: break-word
+      word-wrap: break-word;
+      word-break: keep-all;
     }
   }
 }
@@ -402,11 +324,7 @@ div#c-popular {
   }
 
   .period {
-    margin: 0 5em;
-
-    &:first-child {
-      margin-left: 0;
-    }
+    margin: 0 4.75em;
   }
 }
 
@@ -432,12 +350,9 @@ textarea[data-autocomplete="tag-edit"] {
 
 section#image-extra-controls {
   display: flex;
-  align-items: center;
-  div {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-right: 0.5em;
-  }
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0.5em 0;
 }
 
 section#tag-list {
@@ -498,7 +413,7 @@ body[data-user-can-approve-posts="true"] .notice {
   @media only screen and (min-width: 550px) {
     display: flex;
   }
-  
+
   // Overwrite some DText styles to make the header look better
   blockquote {
     border: 0;
@@ -509,25 +424,25 @@ body[data-user-can-approve-posts="true"] .notice {
 }
 
 .flag-dialog-body {
-  
+
   // Option label
   label {
     font-weight: normal;
     font-size: 1rem;
     cursor: pointer;
   }
-  
+
   // Option explanation
   div.styled-dtext {
     margin: 0.125rem 1.25rem;
     filter: brightness(85%);
   }
-  
+
   // Align label with the explanation
   input[type="radio"] {
     width: 1rem;
   }
-  
+
   // Post ID input
   form.simple_form div.input {
     margin: -0.5rem 0 0 1.25rem;
@@ -539,7 +454,7 @@ body[data-user-can-approve-posts="true"] .notice {
     &.post_flag_parent_id { display: flex }
     span.error { margin-left: 1rem; }
   }
-  
+
   hr { margin: 0.75rem 1.25rem; }
   h3 {
     margin: 0.5rem 1.25rem;

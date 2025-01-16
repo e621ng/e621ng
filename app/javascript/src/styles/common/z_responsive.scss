@@ -20,12 +20,12 @@
   }
 
   body.resp {
-    div#c-posts {
-      div#a-show {
-        .pool-nav, .search-seq-nav, .set-nav {
-          li {
-            height: 2rem;
-          }
+    #c-posts #a-show {
+      .nav-block li {
+        padding: 0 0.5em;
+        
+        .first span, .last span {
+          display: none;
         }
       }
     }
@@ -86,8 +86,6 @@
     }
 
     div#page {
-      padding-left: 0;
-      padding-right: 0;
 
       > div /* div#c-$controller */
       {
@@ -141,10 +139,6 @@
     /* Make the quick search box in the navbar full width. */
     header#top menu form input {
       width: auto;
-    }
-
-    h1 {
-      display: none;
     }
 
     form {
@@ -203,53 +197,6 @@
       padding: 0;
     }
 
-    #posts #posts-container {
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-evenly;
-    }
-
-    article.post-preview {
-      float: none;
-      margin: 0 0 10px 0;
-      text-align: center;
-      vertical-align: middle;
-      display: inline-block;
-      width: 31vw;
-
-      a {
-        margin: 0 auto;
-      }
-
-      img {
-        max-height: 150px;
-        max-width: 31vw;
-      }
-
-      .desc {
-        font-size: 100%;
-      }
-    }
-
-    .user-disable-cropped-false {
-      article.post-preview {
-        width: 31vw;
-
-        img {
-          height: auto;
-          max-height: none;
-          max-width: none;
-          width: 31vw;
-
-          &.has-cropped-false {
-            object-fit: cover;
-          }
-        }
-      }
-    }
-
     div#options {
       margin-top: 10px;
       font-size: 24pt;
@@ -292,7 +239,7 @@
             display: inline-block;
             padding: 6px 10px;
 
-            background-image: url("images/main-logo.png");
+            background-image: url("main-logo.png");
             background-repeat: no-repeat;
             background-size: contain;
 
@@ -310,17 +257,6 @@
       }
     }
 
-    h1 {
-      display: block;
-      font-size: 2em;
-      margin: 1em 0 0 0;
-    }
-
-    h2 {
-      font-size: 0.825em;
-      margin: 1em 0 0 0;
-    }
-
     header {
       text-align: center;
       line-height: 2em;
@@ -329,19 +265,12 @@
         display: inline; //Needed for menu button
       }
     }
-
-    div#page {
-      margin: 0;
-    }
   }
 }
 
 @media screen and (max-width: 660px) {
   body.resp {
     #c-forum-topics, #c-forum-posts {
-      #a-show {
-        padding: 1em 0.5em;
-      }
 
       .creator {
         display: none;

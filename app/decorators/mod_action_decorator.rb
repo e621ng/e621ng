@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ModActionDecorator < ApplicationDecorator
   def self.collection_decorator_class
     PaginatedDecorator
@@ -50,8 +52,10 @@ class ModActionDecorator < ApplicationDecorator
       "Unclaimed ticket ##{vals['ticket_id']}"
 
       ### Artist ###
+    when "artist_delete"
+      "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
-      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} -> \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} → \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
     when "artist_page_lock"
       "Locked artist page artist ##{vals['artist_page']}"
     when "artist_page_unlock"
@@ -60,6 +64,28 @@ class ModActionDecorator < ApplicationDecorator
       "Linked #{user} to artist ##{vals['artist_page']}"
     when "artist_user_unlinked"
       "Unlinked #{user} from artist ##{vals['artist_page']}"
+
+      ### Avoid Posting ###
+    when "avoid_posting_create"
+      "Created \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+    when "avoid_posting_update"
+      "Updated \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+    when "avoid_posting_destroy"
+      "Destroyed \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+    when "avoid_posting_delete"
+      "Deleted \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+    when "avoid_posting_undelete"
+      "Undeleted \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
+
+      ### Staff Note ###
+    when "staff_note_create"
+      "Created \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
+    when "staff_note_update"
+      "Updated \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
+    when "staff_note_delete"
+      "Deleted \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
+    when "staff_note_undelete"
+      "Undeleted \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}"
 
       ### User ###
 
@@ -73,6 +99,18 @@ class ModActionDecorator < ApplicationDecorator
       else
         "Banned #{user}"
       end
+    when "user_ban_update"
+      text = "Updated ban ##{vals['ban_id']} for #{user}"
+      if vals["expires_at"] != vals["expires_at_was"]
+        format_expires_at = ->(timestamp) { timestamp.nil? ? "never" : DateTime.parse(timestamp).strftime("%Y-%m-%d %H:%M") }
+        expires_at = format_expires_at.call(vals["expires_at"])
+        expires_at_was = format_expires_at.call(vals["expires_at_was"])
+        text += "\nChanged expiration from #{expires_at_was} to #{expires_at}"
+      end
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason: [section=Old]#{vals['reason_was']}[/section] [section=New]#{vals['reason']}[/section]"
+      end
+      text
     when "user_unban"
       "Unbanned #{user}"
 
@@ -114,6 +152,10 @@ class ModActionDecorator < ApplicationDecorator
       end
     when "user_feedback_delete"
       "Deleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_undelete"
+      "Undeleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+    when "user_feedback_destroy"
+      "Destroyed #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
       ### Legacy User Record ###
     when "created_positive_record"
       "Created positive record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
@@ -244,7 +286,7 @@ class ModActionDecorator < ApplicationDecorator
       ### BURs ###
 
     when "mass_update"
-      "Mass updated [[#{vals['antecedent']}]] -> [[#{vals['consequent']}]]"
+      "Mass updated [[#{vals['antecedent']}]] → [[#{vals['consequent']}]]"
     when "nuke_tag"
       "Nuked tag [[#{vals['tag_name']}]]"
 
@@ -287,7 +329,7 @@ class ModActionDecorator < ApplicationDecorator
         "Edited whitelist entry"
       else
         if vals['old_pattern'] && vals['old_pattern'] != vals['pattern'] && CurrentUser.is_admin?
-          "Edited whitelist entry '#{vals['old_pattern']}' -> '#{vals['pattern']}'"
+          "Edited whitelist entry '#{vals['old_pattern']}' → '#{vals['pattern']}'"
         else
           "Edited whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
         end
@@ -303,11 +345,11 @@ class ModActionDecorator < ApplicationDecorator
       ### Help ###
 
     when "help_create"
-      "Created help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Created help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
     when "help_update"
-      "Edited help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Edited help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
     when "help_delete"
-      "Deleted help entry \"#{vals['name']}\":/help/#{HelpPage.normalize_name(vals['name'])} ([[#{vals['wiki_page']}]])"
+      "Deleted help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
 
       ### Wiki ###
     when "wiki_page_delete"

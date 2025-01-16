@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
   # Show uses POST because it needs a file parameter. This would be GET otherwise.
@@ -48,6 +50,6 @@ class IqdbQueriesController < ApplicationController
   end
 
   def validate_enabled
-    raise FeatureUnavailable if Danbooru.config.iqdb_server.blank?
+    raise FeatureUnavailable unless IqdbProxy.enabled?
   end
 end
