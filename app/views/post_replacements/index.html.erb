@@ -24,11 +24,16 @@
           <tr id="replacement-<%= post_replacement.id %>" class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
             <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
             <td><%= replacement_thumbnail(post_replacement) %></td>
-            <!--SECTION: info A-->
             <td>
               <dt>Sequence</dt>
               <dd>
-                <%sequence = @post_replacements.where(post_id: post_replacement.post.id).ids.reverse.index(post_replacement.id)%>
+              <% if post_replacement.status == 'original' %>
+                <% sequence = 0 %>
+              <% else %>
+                <% sequence = 1 + @post_replacements.where(post_id: post_replacement.post.id).where.not(status: 'original').ids.reverse.index(post_replacement.id)%>
+              <% end %> 
+
+               
 
                 <%=post_replacement.post_id%>:<%=sequence%>
               </dd>
@@ -52,7 +57,12 @@
               </dd>
             </td>
             <td>
-              <dt>Creator</dt>
+              <dt>Version Uploader</dt>
+              <dd>
+                <%= link_to_user post_replacement.creator %>
+              </dd>
+              <% if post_replacement.status != 'original'%>
+              <dt>Previous Uploader</dt>
               <dd>
                 <%= link_to_user post_replacement.uploader_on_approve %>
                 <% if CurrentUser.can_approve_posts? %>
@@ -62,6 +72,7 @@
                   <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id} %><br>
                 <% end %>
               </dd>
+              <% end %>  
               <dt>Sources</dt>
               <dd>
                 <% if post_replacement.source.present? %>
@@ -80,11 +91,14 @@
               <dt>Image Info</dt>
               <dd> Replacement:
                 <%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %>
-                (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %>)
-              </dd>
-              <dd> Current:
-                <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
-                (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %>)
+                (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.is_video? %>, 
+                <%= post_replacement.post.duration %>s<% end -%>) <!--Replacements do not have duration-->
+                <p>
+                Current:
+                <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> 
+                <%= post_replacement.post.file_ext %>
+                (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
+                <%= post_replacement.post.duration %>s<% end -%>)
               </dd>
               <dd>
               </dd>
