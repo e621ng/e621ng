@@ -1,9 +1,13 @@
 <nav class="navigation">
-  <a href="/" class="nav-logo"></a>
+  <menu class="nav-logo">
+    <a href="/" class="nav-logo-link"></a>
+  </menu>
 
   <menu class="nav-primary">
     <%= render "layouts/main_links" %>
   </menu>
+
+  <menu class="nav-offset"></menu>
 
   <menu class="nav-secondary <%= "empty" unless content_for(:secondary_links) %>">
     <% if content_for(:secondary_links) %>
@@ -13,16 +17,29 @@
     <% end %>
   </menu>
 
-  <menu class="nav-icons">
+  <menu class="nav-controls">
     <a href="" id="nav-toggle">
       <i class="fas fa-bars"></i>
     </a>
   </menu>
 
   <menu class="nav-tools">
-    <a href="" class="nav-tools-login">Log In</a>
-    <a href="" class="nav-tools-themes">Themes</a>
-    <a href="" class="nav-tools-settings">Settings</a>
+    <%= decorated_nav_link_to("Theme", "fas fa-swatchbook", theme_path, class: "nav-tools-themes") %>
+    <%= decorated_nav_link_to("Settings", "fas fa-cog", edit_user_path(CurrentUser.user), class: "nav-tools-settings") %>
+    <% if CurrentUser.is_anonymous? %>
+      <%= decorated_nav_link_to("Sign in", "", new_session_path, class: "nav-tools-login") %>
+    <% else %>
+      <%= decorated_nav_link_to("Account #{unread_dmails(CurrentUser.user)}", "far fa-user-circle", home_users_path, class: "nav-tools-login") %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-help">
+    <% if !CurrentUser.is_anonymous? %>
+      <%= nav_link_to("Discord", discord_get_path, class: "nav-help-discord") %>
+    <% end %>
+    <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
+    <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
+    <%= nav_link_to("Site Map", site_map_path, class: "nav-help-map") %>
   </menu>
 
 </nav>

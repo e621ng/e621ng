@@ -1,25 +1,55 @@
 nav.navigation {
   display: grid;
-  grid-template-areas: "logo icons";
+  grid-template-areas: "logo logo controls";
   grid-template-columns: min-content auto;
-  grid-template-rows: min-content auto min-content;
+  grid-template-rows: min-content auto min-content min-content;
 
   width: 100%; // otherwise narrow when fixed
   z-index: 10; // otherwise post labels layered above
 
+  pointer-events: none; // allow clicking through offset
+  & > menu { pointer-events: auto; }
+
+  /* Top bar, always visible */
   .nav-logo {
     grid-area: logo;
 
-    height: 3rem;
-    width: 3rem;
-    margin: 0.5rem 1rem;
+    a.nav-logo-link {
+      display: flex;
 
-    background-image: url("main-logo.png");
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position-y: center;
+      height: 3rem;
+      width: 3rem;
+      margin: 0.5rem 1rem;
+  
+      background-image: url("main-logo.png");
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position-y: center;
+    }
   }
 
+  .nav-controls {
+    grid-area: controls;
+
+    display: flex;
+    flex-flow: row-reverse;
+    align-items: center;
+
+    font-size: 1.75rem;
+
+    & > a {
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  /* Prevent toggled menus from being too wide */
+  .nav-offset {
+    grid-area: offset;
+    pointer-events: none;
+    display: none; // flex
+  }
+
+  /* Toggled menus, hidden by default */
   .nav-primary {
     grid-area: primary;
     display: none; // flex
@@ -34,6 +64,12 @@ nav.navigation {
         display: block;
         border-bottom: 1px solid var(--color-foreground);
         padding: 0.5em;
+
+        i {
+          width: 1.5rem;
+          color: var(--color-link-active);
+          text-align: center;
+        }
       }
     }
   }
@@ -61,24 +97,13 @@ nav.navigation {
     }
   }
 
-  .nav-icons {
-    grid-area: icons;
-
-    display: flex;
-    flex-flow: row-reverse;
-    align-items: center;
-    margin: 0.5rem 1rem;
-
-    font-size: 1.75rem;
-  }
-
   .nav-tools {
     grid-area: tools;
 
     display: none; // grid
     grid-template-areas:
-      "login  login   " 
-      "themes settings";
+      "themes settings"
+      "login  login   ";
     grid-template-rows: min-content;
 
     padding: 1rem;
@@ -87,36 +112,145 @@ nav.navigation {
     background-color: var(--color-section);
     border-top: 1px solid var(--color-foreground);
 
-    a {
-      background: var(--color-section-lighten-5);
-      padding: 1rem;
-      text-align: center;
-      border-radius: 6px;
-
+    li {
       @each $item in ( "login", "themes", "settings" ) {
         &.nav-tools-#{$item} { grid-area: #{$item}; }
+      }
+
+      & > a {
+        display: block;
+
+        background: var(--color-section-lighten-5);
+        border-radius: 6px;
+  
+        font-size: 125%;
+        padding: 0.5rem 1rem;
+        text-align: center;
+  
+        i { color: var(--color-link-active); }
       }
     }
   }
 
+  .nav-help {
+    grid-area: help;
 
-  // Mobile toggle
-  &.toggled {
+    display: none; // grid
     grid-template-areas:
-      "logo    icons    " 
-      "primary secondary"
-      "tools   tools    ";
-    grid-template-columns: 1fr 1fr;
+      "discord discord discord"
+      "wiki help map";
+    grid-template-rows: min-content;
+
+    padding: 1rem;
+    gap: 1rem;
+
+    background: var(--color-section);
+
+    li {
+
+      @each $item in ( "discord", "wiki", "help", "map" ) {
+        &.nav-help-#{$item} { grid-area: #{$item}; }
+      }
+
+      & > a {
+        display: block;
+
+        background: var(--color-section-darken-5);
+        border-radius: 6px;
+        
+        font-size: 125%;
+        padding: 0.5rem 1rem;
+        text-align: center;
+
+        i { color: var(--color-link-active); }
+      }
+    }
+  }
+}
+
+
+// Mobile toggle
+body.nav-toggled {
+  padding-top: 4rem;
+
+  // Not needed on desktop
+  @include window-larger-than(800px) { padding-top: 0; }
+
+  nav.navigation {
+    grid-template-areas:
+      "logo    logo    controls" 
+      "offset  primary secondary "
+      "offset  tools   tools     "
+      "offset  help    help      ";
+    grid-template-columns: auto minmax(auto, 180px) minmax(auto, 180px);
     position: fixed;
-    height: 100vh;
+    top: 0;
+    max-height: 100vh;
 
-    background-color: var(--color-background);
+    .nav-logo, .nav-controls {
+      background-color: var(--color-background);
+    }
 
-    .nav-primary, .nav-secondary {
+    .nav-primary, .nav-secondary, .nav-offset {
       display: flex;
     }
-    .nav-tools {
+    .nav-tools, .nav-help {
       display: grid;
+    }
+  }
+}
+
+
+// Desktop
+nav.navigation {
+  @include window-larger-than(800px) {
+    grid-template-areas:
+      "logo primary   help      tools    "
+      "logo secondary secondary secondary"
+    ;
+    grid-template-columns: min-content auto min-content min-content min-content;
+
+    padding: 0 1em 1em;
+    box-sizing: border-box;
+
+    .nav-offset, .nav-controls { display: none; }
+
+    .nav-primary {
+      display: flex;
+      flex-flow: row;
+
+      background: unset;
+      font-size: unset;
+
+      li a {
+        border-bottom: 0;
+        i { display: none; }
+      }
+    }
+
+    .nav-secondary {
+      display: flex;
+      flex-flow: row;
+
+      font-size: unset;
+    }
+
+    .nav-tools, .nav-help {
+      display: flex;
+
+      padding: 0;
+      background: unset;
+      border: none;
+
+      li a {
+        background: unset;
+        font-size: unset;
+        padding: 0.5em;
+        text-align: unset;
+        white-space: nowrap;
+
+        i { display: none; }
+      }
     }
   }
 }
