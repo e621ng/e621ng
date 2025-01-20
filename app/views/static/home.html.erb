@@ -1,150 +1,56 @@
-<style type="text/css">
-  body,div,h1,h2,h3,h4,h5,h6,p,ul,li,dd,dt {
-    font-family:verdana,sans-serif;
-    margin:0;
-    padding:0;
-  }
+<div id="c-static"><div id="a-home">
+  <%= javascript_tag nonce: true do -%>
+    var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
+  <% end -%>
 
-  body {
-    background-color: #012e56;
-    background-attachment:fixed;
-    background-position:50% 0%;
-    background-repeat:no-repeat;
-  }
+  <section class="home-section">
+    <%= form_tag(posts_path, method: "get", class: "home-search") do %>
+      <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
+      <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %>
+    <% end %>
 
-  #page {
-    background: none !important;
-  }
-
-  #links > a {
-    padding: 0.25rem 0.25rem;
-  }
-  #links {
-    margin-bottom: 0.25rem;
-  }
-
-  div#a-home {
-    text-align: center;
-    position:absolute;
-    top:28em;
-    left:0;
-    right:0;
-  }
-
-  .mascotbox {
-    z-index: 1;
-    overflow: hidden;
-    position: relative;
-
-    background-repeat:no-repeat;
-    background-attachment:fixed;
-    background-position:50% 0;
-    margin: 10px auto;
-    padding: 2px 0;
-    width: 480px;
-    max-width: 98vw;
-    border-radius: 5px;
-    box-shadow: 0 0 5px #000;
-    text-shadow: 0 0 2px black, 0 0 6px black;
-  }
-
-  .mascotbox:before {
-    z-index: -1;
-    content: "";
-    position: absolute;
-    width: 200vw;
-    height: 200vh;
-    top: -100px;
-    left: -100px;
-
-    background-image: inherit;
-    background-color: inherit;
-    background-repeat: inherit;
-    background-attachment: inherit;
-    background-position: inherit;
-    filter: blur(8px);
-  }
-
-  #searchbox {
-    padding-bottom:5px;
-  }
-
-  .news-excerpt {
-    padding: 5px 1em 0 1em;
-  }
-
-  #searchbox3, #news-excerpt-box .previous-news-link {
-    font-size: 80%;
-  }
-
-  @media only screen and (max-height: 600px) {
-    div#a-home {
-      top: 25vh;
-    }
-  }
-</style>
-
-<div id="c-static">
-  <div id="a-home">
-    <%= javascript_tag nonce: true do -%>
-      var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
-    <% end -%>
-
-    <div id="searchbox" class='mascotbox'>
-      <div id="static-index">
-        <h1 style="font-size: 4em;"><%= link_to(Danbooru.config.app_name, "/") %></h1>
-        <div id="links">
-          <% if !CurrentUser.is_anonymous? %>
-            <%= link_to "Account", home_users_path, title: "User home" %>
-          <% else %>
-            <%= link_to "Login/Signup", new_session_path, title: "Login or sign up" %>
-          <% end %>
-          <%= link_to "Posts", posts_path, title: "A paginated list of every post" %>
-          <%= link_to "Comments", comments_path, title: "A paginated list of every comment" %>
-          <%= link_to "Tags", tags_path, title: "A paginated list of every tag" %>
-          <%= link_to "Wiki", wiki_pages_path(title: 'help:home'), title: "Wiki" %>
-          <%= link_to "Forum", forum_topics_path, title: "Forum" %>
-          <%= link_to "»", site_map_path, title: "A site map" %>
-        </div>
-        <div>
-          <%= form_tag(posts_path, method: "get") do %>
-            <div>
-              <%= text_field_tag "tags", "", size: 30, autofocus: "autofocus", 'data-autocomplete': 'tag-query' %><br>
-              <input type="submit" value="Search">
-              <input type="button" value="Change Mascot" id="change-mascot">
-            </div>
-          <% end %>
-        </div>
-      </div>
-      <div id='mascot_artist'></div>
+    <div class="home-buttons">
+      <a href="/posts">
+        <i class="fas fa-splotch"></i>
+        Latest
+      </a>
+      <a href="/popular">
+        <i class="fas fa-fire-alt"></i>
+        Popular
+      </a>
     </div>
+  </section>
 
-    <div id='searchbox2' class='mascotbox'>
+  <% if news_update = NewsUpdate.recent %>
+    <section class="home-section">
+      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
+      <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
+    </section>
+  <% end %>
+
+  <section class="home-footer-top">
+    <div id="mascot-artist">Mascot by</div>
+    <a href="#" id="mascot-swap">Swap Mascot</a>
+  </section>
+  <section class="home-footer-bottom">
+    <div class="home-footer-counter">
       <% Post.fast_count.to_s.each_char do |x| %>
         <%= image_tag("counter/#{x}.png") %>
       <% end %>
     </div>
-
-    <% if news_update = NewsUpdate.recent %>
-      <div id="news-excerpt-box" class="mascotbox">
-        <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
-        <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
-      </div>
-    <% end %>
-
-    <div id='searchbox3' class='mascotbox'>
-      <p>
-        Serving <%= number_with_delimiter Post.fast_count %> posts<br/>
-        <%= link_to "Takedown Policy and Process", takedown_static_path, title: "Takedown Information" %>
-        | <%= link_to "Contact Us", contact_path, title: "Contact Us" %>
-        | <%= link_to "Advertising", help_page_path(id: "advertising"), title: "Advertising with Us" %>
-        | <%= link_to "Terms of Service", terms_of_service_path, title: "Terms of Service" %>
-        | <%= link_to "Privacy", privacy_policy_path, title: "Privacy Policy" %>
-      </p>
+    <div class="home-footer-links">
+      <%= link_to "Takedowns", takedown_static_path %>
+      <span class="separator"></span>
+      <%= link_to "Contact Us", contact_path %>
+      <span class="separator"></span>
+      <%= link_to "Advertising", help_page_path(id: "advertising") %>
+      <br />
+      <%= link_to "Terms of Service", terms_of_service_path %>
+      <span class="separator"></span>
+      <%= link_to "Privacy", privacy_policy_path %>
     </div>
-
-  </div>
-</div>
+  </section>
+</div></div>
 
 <% content_for(:html_header) do -%>
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
