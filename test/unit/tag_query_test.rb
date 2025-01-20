@@ -48,16 +48,25 @@ class TagQueryTest < ActiveSupport::TestCase
     should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
       # top level
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.fetch_tags([(0..(TagQuery::DEPTH_LIMIT)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
+        TagQuery.fetch_tags([(0..(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
       end
       # non-top level
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.fetch_tags(["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject('aaa') { |accumulator, _| "a ( #{accumulator} )" }} )"], "aaa", recurse: true, error_on_depth_exceeded: true)
+        TagQuery.fetch_tags(["a", (0..(TagQuery::DEPTH_LIMIT - 1)).inject('aaa') { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
       end
       # mixed level query
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.fetch_tags(["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject('aaa') { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }} )"], "aaa", recurse: true, error_on_depth_exceeded: true)
+        TagQuery.fetch_tags(["a", (0..(TagQuery::DEPTH_LIMIT - 1)).inject('aaa') { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
       end
+    end
+
+    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      # top level
+      TagQuery.fetch_tags([(0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
+      # non-top level
+      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject('aaa') { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+      # mixed level query
+      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject('aaa') { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
     end
 
     should "fetch when shallowly nested" do
@@ -72,21 +81,21 @@ class TagQueryTest < ActiveSupport::TestCase
     #   # top level
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
-    #       [(0..(TagQuery::DEPTH_LIMIT)).inject("bbb:aaa") { |accumulator, _| "( #{accumulator} )" }],
+    #       [(0..(TagQuery::DEPTH_LIMIT - 1)).inject("bbb:aaa") { |accumulator, _| "( #{accumulator} )" }],
     #       "bbb", recurse: true
     #     )
     #   end
     #   # non-top level
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
-    #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject('bbb:aaa') { |accumulator, _| "a ( #{accumulator} )" }} )"],
+    #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('bbb:aaa') { |accumulator, _| "a ( #{accumulator} )" }} )"],
     #       "bbb", recurse: true
     #     )
     #   end
     #   # mixed level query
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
-    #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT)).inject('bbb:aaa') { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }} )"],
+    #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('bbb:aaa') { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }} )"],
     #       "bbb", recurse: true
     #     )
     #   end
@@ -400,32 +409,47 @@ class TagQueryTest < ActiveSupport::TestCase
     should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
       # top level
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
       end
       # non-top level
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
       end
       # mixed level query
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+        TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
       end
+    end
+    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      # top level
+      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+      # non-top level
+      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+      # mixed level query
+      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
     end
   end
 
   context "While hoisting through the constructor" do
     should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
+        TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
       end
+    end
+    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
     end
   end
 
   context "While unpacking a search of a single group through the constructor" do
     should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
       assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new((0..(TagQuery::DEPTH_LIMIT)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        TagQuery.new((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
       end
+    end
+    
+    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+      TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
     end
   end
 

@@ -100,13 +100,13 @@ class TagQuery
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 
-  # `query`:
-  # resolve_aliases: Defaults to `true`.
-  # free_tags_count: Defaults to `0`.
-  # return_with_count_exceeded: Defaults to `false`.
-  # process_groups: Defaults to `false`.
-  # error_on_depth_exceeded: Defaults to `true`.
-  # depth: defaults to `1`
+  # * `query`
+  # * `resolve_aliases` [`true`]
+  # * `free_tags_count` [`0`]
+  # * `return_with_count_exceeded` [`false`]
+  # * `error_on_depth_exceeded` [`true`]
+  # * `process_groups` [`false`]
+  # * `depth` [`1`]
   def initialize(
     query,
     resolve_aliases: true,
@@ -141,10 +141,9 @@ class TagQuery
   end
 
   # The values for the status metatag that will override the automatic hiding of deleted posts from
-  # search results. Other tags do also alter this behavior; specifically, a `deletedby` or `delreason`
-  # metatag adds an implicit `status:any` metatag.
+  # search results. Other tags do also alter this behavior; specifically, a `deletedby` or
+  # `delreason` metatag adds an implicit `status:any` metatag.
   OVERRIDE_DELETED_FILTER = %w[deleted active any all].freeze
-  # OVERRIDE_DELETED_FILTER = STATUS_VALUES
 
   # Guesses whether the default behavior to hide deleted posts should be overridden.
   #
@@ -244,42 +243,65 @@ class TagQuery
     flatten ? tags.join(" ") : tags
   end
 
-  TOKENIZE_REGEX = /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
-  # TOKENIZE_REGEX = /\G(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:"[^"]*"))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
+  # Properly tokenizes search strings, handling groups & quoted metatags properly.
+  # ## Groups:
+  # * `prefix`: -/~, if present
+  # * `body`: the tag w/o the leading `prefix` and the trailing whitespace
+  # * `metatag`: if present, the metatag, quoted & unquoted
+  # * `group`: if present, the group, enclosed w/ `(\s+` & `\s)`
+  # * `tag`: if the prior 2 weren't present, the following consecutive non-whitespace characters
+  #
+  # Group 0 contains leading whitespace + `prefix` + `body` + trailing whitespace
+  #
+  # Constructed with the expectation that prior matches will be excluded from the input. The
+  # following example will continually output `some `.
+  # ```
+  # query = "some query"
+  # while (m = query.match(TagQuery::TOKENIZE_REGEX)) do
+  #   puts m[0]
+  # end
+  # ```
+  # This following example will behave as expected.
+  # ```
+  # query = "some query"
+  # while (m = query.match(TagQuery::TOKENIZE_REGEX)) do
+  #   puts m[0]
+  # end
+  # ```
+  TOKENIZE_REGEX = /\G(?>\s*)(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
 
+  # Iterates through tokens, returning each tokens' `MatchData`.
   def self.match_tokens(
     tag_str,
     recurse: false,
     stop_at_group: false,
     and_then: nil,
+    **kwargs,
     &
   )
+    depth = kwargs.fetch(:depth, 0)
+    if depth >= DEPTH_LIMIT
+      raise DepthExceededError if kwargs[:error_on_depth_exceeded]
+      return and_then.respond_to?(:call) ? and_then.call([]) : []
+    end
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
-    r = []
+    results = []
     if recurse
       tag_str.scan(TOKENIZE_REGEX) do |_|
         m = Regexp.last_match
-        r << (block_given? ? yield(m) : m) if m[:group].blank? || stop_at_group
-        if m[:group].present?
-          r << if block_given?
-                 match_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &)
-               else
-                 match_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
-               end
+        results << (block_given? ? yield(m) : m) if m[:group].blank? || stop_at_group
+        if (m = m[:group].presence&.match(/\A\(\s+(.*(?<!\s))\s+\)\z/)&.match(1)&.presence)
+          results << match_tokens(m, recurse: recurse, stop_at_group: stop_at_group, depth: depth + 1, **kwargs, &)
         end
       end
     else
       tag_str.scan(TOKENIZE_REGEX) do |_|
         unless !stop_at_group && Regexp.last_match[:group]
-          r << if block_given?
-                 yield(Regexp.last_match)
-               else
-                 Regexp.last_match
-               end
+          results << (block_given? ? yield(Regexp.last_match) : Regexp.last_match)
         end
       end
     end
-    and_then.respond_to?(:call) ? and_then.call(r) : r
+    and_then.respond_to?(:call) ? and_then.call(results) : results
   end
 
   # Iterates through tokens, returning the tokens' string values.
@@ -288,29 +310,31 @@ class TagQuery
     recurse: false,
     stop_at_group: false,
     and_then: nil,
-    &block
+    **kwargs,
+    &
   )
+    depth = kwargs.fetch(:depth, 0)
+    if depth >= DEPTH_LIMIT
+      raise DepthExceededError if kwargs[:error_on_depth_exceeded]
+      return and_then.respond_to?(:call) ? and_then.call([]) : []
+    end
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
-    r = []
+    results = []
     if recurse
       tag_str.scan(TOKENIZE_REGEX) do |_|
         m = Regexp.last_match
-        r << (block_given? ? block.call(m[:prefix] + m[:body]) : m[:prefix] + m[:body]) if m[:group].blank? || stop_at_group
-        if m[:group].present?
-          r << if block_given?
-                 scan_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group, &block)
-               else
-                 scan_tokens(m[:group][/\A\(\s+(.*(?<!\s))\s+\)\z/, 1], recurse: recurse, stop_at_group: stop_at_group)
-               end
+        results << (block_given? ? yield(m[0].strip) : m[0].strip) if m[:group].blank? || stop_at_group
+        if (m = m[:group].presence&.match(/\A\(\s+(.*(?<!\s))\s+\)\z/)&.match(1)&.presence)
+          results << scan_tokens(m, recurse: recurse, stop_at_group: stop_at_group, depth: depth + 1, **kwargs, &)
         end
       end
     else
       tag_str.scan(TOKENIZE_REGEX) do |m|
         m = m.is_a?(String) ? m.strip : Regexp.last_match[0].strip
-        r << block_given? ? block.call(m) : m
+        results << block_given? ? yield(m) : m
       end
     end
-    and_then.respond_to?(:call) ? and_then.call(r) : r
+    and_then.respond_to?(:call) ? and_then.call(results) : results
   end
 
   # Scan variant that properly handles groups.
@@ -326,16 +350,15 @@ class TagQuery
     **kwargs
   )
     depth_limit = TagQuery::DEPTH_LIMIT unless (depth_limit = kwargs.fetch(:depth_limit, nil)).is_a?(Numeric) && depth_limit <= TagQuery::DEPTH_LIMIT
-    return error_on_depth_exceeded ? (raise DepthExceededError) : [] if depth_limit < 0
+    depth = 0 unless (depth = kwargs.fetch(:depth, 0)).is_a?(Numeric) && depth >= 0
+    return error_on_depth_exceeded ? (raise DepthExceededError) : [] if depth_limit <= depth
     tag_str = query.to_s.unicode_normalize(:nfc).strip
     # Quick exit if given an empty search or a single group w/ an empty search
     return [] if tag_str.empty? || tag_str[/\A[-~]?\(\s+\)\z/].present?
     matches = []
     hoist_regex_stub = nil
-    depth = 1
-    # scan_opts = { use_match_data: true, recurse: false, stop_at_group: true }
-    scan_opts = { recurse: false, stop_at_group: true }
-    match_tokens(tag_str, **scan_opts) do |m| # rubocop:disable Metrics/BlockLength
+    scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded }
+    match_tokens(tag_str, **scan_opts) do |m|
       # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
       if m.begin(:group) == 0 && m.end(:group) == tag_str.length
         return matches = scan_search(
@@ -344,25 +367,21 @@ class TagQuery
           depth_limit: depth_limit -= 1,
           error_on_depth_exceeded: error_on_depth_exceeded,
         )
-        # This will change the tag order, putting the hoisted tags in front of the groups that previously contained them
-      elsif m[:group].present? && hoisted_metatags.present? &&
-            m[:group][/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.inject(nil) { |p, e| p ? "#{p}|#{e}" : e }})"}:\S+/]
+      # This will change the tag order, putting the hoisted tags in front of the groups that previously contained them
+      elsif hoisted_metatags.present? && m[:group]&.match(/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.join('|')})"}:\S+/)
         cb = ->(sub_match) do
           # if there's a group w/ a hoisted tag,
-          if sub_match[:group].present? && sub_match[:group][/#{hoist_regex_stub}:\S+/]
-            raise DepthExceededError if (depth += 1) > depth_limit && error_on_depth_exceeded
-            next (depth -= 1 || true) && (sub_match[0].presence&.strip || "") unless (g = sub_match[0].match(/\(\s+(.+)\s+\)/))
-            r_out = depth > depth_limit ? "" : match_tokens(g[1].strip, **scan_opts, &cb).inject("") { |p, c| "#{p} #{c}".strip }
+          if sub_match[:group].presence&.match(/#{hoist_regex_stub}:\S+/)
+            raise DepthExceededError if (depth + 1) >= depth_limit && error_on_depth_exceeded
+            next sub_match[0].presence&.strip || "" unless (g = sub_match[0].match(/\(\s+(.+)\s+\)/))
+            r_out = (depth += 1) >= depth_limit ? "" : match_tokens(g[1].strip, **scan_opts, &cb).join(" ")
             depth -= 1
-            "#{sub_match[0][0, g.begin(1)].strip} #{r_out.strip} #{sub_match[0][g.end(1)..].strip}"
-          # elsif (sub_match[:metatag].present? && sub_match[:metatag][/\A#{hoist_regex_stub}:"[^"]*"\z/]) ||
-          #       (sub_match[:tag].present? && sub_match[:tag][/\A#{hoist_regex_stub}:\S+\z/])
+            next "#{sub_match[0][0, g.begin(1)].strip} #{r_out.strip} #{sub_match[0][g.end(1)..].strip}"
           elsif (sub_match[:metatag].presence || sub_match[:tag].presence || "")[/\A#{hoist_regex_stub}:(?>"[^"]*"|\S+)\z/]
             matches << sub_match[0].strip
-            ""
-          else
-            sub_match[0].strip
+            next ""
           end
+          sub_match[0].strip
         end
         matches << ((out_v = cb.call(m)).respond_to?(:flatten) ? out_v.flatten : out_v)
       else
@@ -372,7 +391,6 @@ class TagQuery
     matches
   end
 
-  # TODO: If elastic_post_version_query_builder should allow the grouped syntax, modify `elastic_post_version_query_builder.rb:44` to enable
   def self.scan(query)
     tag_str = query.to_s.unicode_normalize(:nfc).strip
     matches = []
@@ -436,8 +454,8 @@ class TagQuery
     distribute_prefixes: nil,
     **kwargs
   )
-    kwargs[:depth] = (depth = 1 + kwargs.fetch(:depth, 0))
-    if depth > TagQuery::DEPTH_LIMIT
+    kwargs[:depth] = (depth = 1 + kwargs.fetch(:depth, -1))
+    if depth >= TagQuery::DEPTH_LIMIT
       return raise DepthExceededError if kwargs[:error_on_depth_exceeded]
       return handle_top_level(
         [], distribute_prefixes && !kwargs[:discard_group_prefix] ? distribute_prefixes.slice!(-1) : nil,
@@ -453,7 +471,7 @@ class TagQuery
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
       if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tag_str.length
         distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
-        matches = if depth > TagQuery::DEPTH_LIMIT
+        matches = if depth >= TagQuery::DEPTH_LIMIT
                     []
                   else
                     TagQuery.scan_recursive(
@@ -468,11 +486,13 @@ class TagQuery
           flatten: flatten, strip_prefixes: strip_prefixes, **kwargs
         )
       elsif m[:group].present?
+        kwargs[:depth] -= 1
         value = TagQuery.scan_recursive(
           m[0].strip,
           flatten: flatten, strip_prefixes: strip_prefixes, distribute_prefixes: distribute_prefixes,
           **kwargs
         )
+        kwargs[:depth] += 1
         is_duplicate = false
         if kwargs[:strip_duplicates_at_level]
           dup_check = ->(e) { e.empty? ? value.empty? : e.difference(value).blank? }
@@ -708,52 +728,74 @@ class TagQuery
 
   private
 
-  METATAG_SEARCH_TYPE = {
+  METATAG_SEARCH_TYPE = Hash.new(:must).merge({
+    nil => :must,
+    "" => :must,
     "-" => :must_not,
     "~" => :should,
-  }.freeze
+  }).freeze
 
   # The maximum number of nested groups allowed before either cutting off processing or triggering a
   # `TagQuery::DepthExceededError`.
   DEPTH_LIMIT = 10
 
-  # TODO: Short-circuit when max tags exceeded?
-  # `query`:
-  # `process_groups`: `false`
-  # `error_on_depth_exceeded`: `false`
-  def parse_query(query, process_groups: false, error_on_depth_exceeded: false, depth: 1, **)
-    TagQuery.scan_search(query, error_on_depth_exceeded: error_on_depth_exceeded, depth_limit: TagQuery::DEPTH_LIMIT - depth + 1).each do |token| # rubocop:disable Metrics/BlockLength
+  # Used for quickly profiling optimizations, tweaking desired behavior, etc.
+  # * `COUNT_TAGS_WITH_SCAN_RECURSIVE`: Use `TagQuery.scan_recursive` to increment `@tag_count` in `parse_query`?
+  # * `STOP_ON_TAG_COUNT_EXCEEDED`: Short-circuit immediately when max tags exceeded?
+  SETTINGS = {
+    COUNT_TAGS_WITH_SCAN_RECURSIVE: false,
+    STOP_ON_TAG_COUNT_EXCEEDED: true,
+  }.freeze
+
+  # * `query`
+  # * `process_groups` [`false`]: Recursively handle groups?
+  # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
+  def parse_query(query, process_groups: false, error_on_depth_exceeded: false, depth: 0, **kwargs)
+    TagQuery.scan_search(query, error_on_depth_exceeded: error_on_depth_exceeded, depth_limit: TagQuery::DEPTH_LIMIT - depth).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
-      next if /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token) do |match|
+      if (match = /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token))
         group = match[2]
-        if process_groups
-          # thrown = nil
-          begin
-            group = TagQuery.new(match[2], free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
-          rescue CountExceededWithDataError => e
-            group = e
-            # thrown = e
+        @tag_count += if process_groups
+                        begin
+                          group = TagQuery.new(group, free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
+                        rescue CountExceededWithDataError, DepthExceededWithDataError => e
+                          group = e
+                          # thrown = e
+                        end
+                        group.tag_count
+                      elsif SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
+                        TagQuery.scan_recursive(
+                          group,
+                          flatten: true, delimit_groups: false, strip_prefixes: true, depth: depth + 1,
+                          strip_duplicates_at_level: false, error_on_depth_exceeded: true
+                        ).length
+                      else
+                        delta = 0
+                        cb = ->(_) { delta += 1 }
+                        TagQuery.scan_tokens(group, recurse: true, stop_at_group: false, error_on_depth_exceeded: true, depth: depth + 1, &cb)
+                        delta
+                      end
+        if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > Danbooru.config.tag_query_limit - @free_tags_count
+          if kwargs[:return_with_count_exceeded]
+            raise CountExceededWithDataError.new(query_obj: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
+          else
+            raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
           end
-          @tag_count += group.tag_count
-        else
-          @tag_count += TagQuery.scan_recursive(
-            match[2],
-            flatten: true,
-            delimit_groups: false,
-            strip_prefixes: true,
-            strip_duplicates_at_level: false,
-            # IDEA: silently truncate overly nested groups
-            # Would require all recursive tokenizers to account for it
-            error_on_depth_exceeded: true,
-          ).length
         end
-        search_type = METATAG_SEARCH_TYPE.fetch(match[1], :must)
+        search_type = METATAG_SEARCH_TYPE[match[1]]
         q[:groups][search_type] ||= []
         q[:groups][search_type] << group
         # raise thrown if thrown
-        true
+        next
       end
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
+      if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > Danbooru.config.tag_query_limit - @free_tags_count
+        if kwargs[:return_with_count_exceeded]
+          raise CountExceededWithDataError.new(query_obj: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
+        else
+          raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
+        end
+      end
       metatag_name, g2 = token.split(":", 2)
 
       # Remove quotes from description:"abc def"
