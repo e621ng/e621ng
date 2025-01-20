@@ -326,3 +326,10 @@ nav.navigation, body.nav-toggled nav.navigation {
     }
   }
 }
+
+// Tweak for the secondary menu on desktop
+body.c-static.a-home {
+  @include window-larger-than(800px) {
+    menu.nav-secondary { background: transparent; }
+  }
+}
