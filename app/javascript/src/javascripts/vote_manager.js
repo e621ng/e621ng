@@ -49,6 +49,8 @@ class VoteManager {
   lockVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
+    if (!confirm(`Are you sure that you want to lock ${votes.length} votes?`)) return;
+
     $.ajax({
       url: `/${this._type}_votes/lock.json`,
       method: "post",
@@ -63,6 +65,8 @@ class VoteManager {
   deleteVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
+    if (!confirm(`Are you sure that you want to delete ${votes.length} votes?`)) return;
+
     $.ajax({
       url: `/${this._type}_votes/delete.json`,
       method: "post",
