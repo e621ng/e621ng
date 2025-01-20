@@ -10,11 +10,7 @@
   <menu class="nav-offset"></menu>
 
   <menu class="nav-secondary <%= "empty" unless content_for(:secondary_links) %>">
-    <% if content_for(:secondary_links) %>
-      <%= yield :secondary_links %>
-    <% else %>
-      <%= subnav_link_to "Height Placeholder", "" %>
-    <% end %>
+    <%= yield :secondary_links %>
   </menu>
 
   <menu class="nav-controls">
