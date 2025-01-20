@@ -1,23 +1,7 @@
-<%= nav_link_to("", "/", class: "mobile-logo") %>
-<% if CurrentUser.is_anonymous? %>
-  <%= nav_link_to("Sign in", new_session_path) %>
-<% else %>
-  <%= nav_link_to("Account #{unread_dmails(CurrentUser.user)}", home_users_path) %>
-<% end %>
-<%= nav_link_to("Posts", posts_path) %>
-<%= nav_link_to("Comments", comments_path(group_by: "post")) %>
-<%= nav_link_to("Artists", artists_path) %>
-<%= nav_link_to("Tags", tags_path) %>
-<%= nav_link_to("Blips", blips_path) %>
-<%= nav_link_to("Pools", gallery_pools_path) %>
-<%= nav_link_to("Sets", post_sets_path) %>
-<%= nav_link_to("Wiki", wiki_pages_path(title: "help:home")) %>
-<%= nav_link_to("Forum", forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "forum-updated" : nil)) %>
-<% if CurrentUser.is_moderator? %>
-  <%= nav_link_to("Dashboard", moderator_dashboard_path) %>
-<% end %>
-<% if !CurrentUser.is_anonymous? %>
-  <%= nav_link_to("Discord", discord_get_path) %>
-<% end %>
-<%= nav_link_to("Help", help_pages_path) %>
-<%= nav_link_to("More »", site_map_path) %>
+<%= decorated_nav_link_to("Posts", "fas fa-images", posts_path) %>
+<%= decorated_nav_link_to("Pools", "fas fa-book", gallery_pools_path) %>
+<%= decorated_nav_link_to("Sets", "fas fa-clone", post_sets_path) %>
+<%= decorated_nav_link_to("Tags", "fas fa-tags", tags_path) %>
+<%= decorated_nav_link_to("Blips", "fas fa-bullhorn", blips_path) %>
+<%= decorated_nav_link_to("Comments", "fas fa-comment-alt", comments_path(group_by: "post")) %>
+<%= decorated_nav_link_to("Forum", "fas fa-chalkboard", forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "forum-updated" : nil)) %>

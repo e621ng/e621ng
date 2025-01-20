@@ -7,7 +7,7 @@
     <%= subnav_link_to "Invites", post_set_maintainers_path %>
   <% end %>
   <% if @post_set&.id %>
-    <li>|</li>
+    <li class="divider"></li>
     <%= subnav_link_to "Posts", posts_path(tags: "set:#{@post_set.shortname}") %>
     <%= subnav_link_to "Maintainers", maintainers_post_set_path(@post_set) %>
 

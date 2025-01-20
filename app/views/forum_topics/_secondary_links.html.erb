@@ -13,7 +13,7 @@
   <%= subnav_link_to "Search", search_forum_posts_path %>
   <%= subnav_link_to "Help", help_page_path(id: "forum") %>
   <% if CurrentUser.is_member? && @forum_topic && !@forum_topic.new_record? %>
-    <li>|</li>
+    <li class="divider"></li>
     <%= subnav_link_to "Reply", new_forum_post_path(forum_post: { topic_id: @forum_topic.id }) %>
     <% if @forum_topic.user_subscription(CurrentUser.user) %>
       <%= subnav_link_to "Unsubscribe", unsubscribe_forum_topic_path(@forum_topic), method: :post %>
