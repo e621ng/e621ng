@@ -3,18 +3,33 @@ import LStorage from "./utility/storage";
 let NewsUpdate = {};
 
 NewsUpdate.initialize = function () {
-  if (!$("#news").length) {
-    return;
-  }
+  if (!$("#news").length) return;
   const key = parseInt($("#news").data("id"), 10);
 
-  $("#news").on("click", function () {
-    $("#news").toggleClass("open");
+  // Toggle news section open and closed
+  let newsOpen = false;
+  $("#news-header, #news-show").on("click", (event) => {
+    event.preventDefault();
+    console.log("click");
+
+    newsOpen = !newsOpen;
+    $("#news").toggleClass("open", newsOpen);
+    $("#news-show").text(newsOpen ? "Hide" : "Show");
+
+    return false; // Prevent triggering both elements at once
   });
-  $("#news-closebutton").on("click", function () {
+
+  // Dismiss the news section
+  $("#news-dismiss").on("click", (event) => {
+    event.preventDefault();
+
     $("#news").hide();
     LStorage.Site.NewsID = key;
+
+    return false;
   });
+
+  // Show if there are new news updates
   if (LStorage.Site.NewsID < key) {
     $("#news").show();
   }
