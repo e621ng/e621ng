@@ -27,7 +27,7 @@ module ApplicationHelper
       link_to(url, id: "#{id}-link", **options) do
         concat tag.i(class: icon)
         concat " "
-        concat text
+        concat tag.span(text)
       end
     end
   end

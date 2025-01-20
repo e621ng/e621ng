@@ -10,6 +10,7 @@ nav.navigation {
   pointer-events: none; // allow clicking through offset
   & > menu { pointer-events: auto; }
 
+
   /* Top bar, always visible */
   .nav-logo {
     grid-area: logo;
@@ -19,7 +20,7 @@ nav.navigation {
 
       height: 3rem;
       width: 3rem;
-      margin: 0.5rem 1rem;
+      margin: 0.5rem;
   
       background-image: url("main-logo.png");
       background-repeat: no-repeat;
@@ -34,11 +35,23 @@ nav.navigation {
     display: flex;
     flex-flow: row-reverse;
     align-items: center;
+    gap: 0.5em;
 
-    font-size: 1.75rem;
+    font-size: 1.15rem;
+    padding-right: 0.5em;
 
     & > a {
-      padding: 0.5rem 1rem;
+      display: flex;
+      gap: 0.25em;
+
+      padding: 0.25rem 0.5rem;
+      background: var(--color-foreground);
+      border-radius: 6px;
+
+      & > i {
+        font-size: 1.5rem;
+        color: var(--color-link-active);
+      }
     }
   }
 
@@ -71,6 +84,8 @@ nav.navigation {
           text-align: center;
         }
       }
+
+      &.current a { background-color: var(--color-foreground); }
     }
   }
 
@@ -101,9 +116,7 @@ nav.navigation {
     grid-area: tools;
 
     display: none; // grid
-    grid-template-areas:
-      "themes settings"
-      "login  login   ";
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: min-content;
 
     padding: 1rem;
@@ -113,9 +126,9 @@ nav.navigation {
     border-top: 1px solid var(--color-foreground);
 
     li {
-      @each $item in ( "login", "themes", "settings" ) {
-        &.nav-tools-#{$item} { grid-area: #{$item}; }
-      }
+      padding: 0;
+
+      &.nav-tools-login { grid-column: 1 / -1; }
 
       & > a {
         display: block;
@@ -130,15 +143,17 @@ nav.navigation {
         i { color: var(--color-link-active); }
       }
     }
+
+    &.anonymous li.nav-tools-themes {
+      grid-column: 1 / -1;
+    }
   }
 
   .nav-help {
     grid-area: help;
 
     display: none; // grid
-    grid-template-areas:
-      "discord discord discord"
-      "wiki help map";
+    grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: min-content;
 
     padding: 1rem;
@@ -147,10 +162,9 @@ nav.navigation {
     background: var(--color-section);
 
     li {
+      padding: 0;
 
-      @each $item in ( "discord", "wiki", "help", "map" ) {
-        &.nav-help-#{$item} { grid-area: #{$item}; }
-      }
+      &.nav-help-discord { grid-column: 1 / -1; }
 
       & > a {
         display: block;
@@ -173,9 +187,6 @@ nav.navigation {
 body.nav-toggled {
   padding-top: 4rem;
 
-  // Not needed on desktop
-  @include window-larger-than(800px) { padding-top: 0; }
-
   nav.navigation {
     grid-template-areas:
       "logo    logo    controls" 
@@ -185,7 +196,12 @@ body.nav-toggled {
     grid-template-columns: auto minmax(auto, 180px) minmax(auto, 180px);
     position: fixed;
     top: 0;
-    max-height: 100vh;
+    height: 100vh;
+    max-height: 800px;
+    max-width: 100vw; // prevent bug when page overflows viewport
+
+    // Allow scrolling when the menu is too long
+    overflow-y: scroll;
 
     .nav-logo, .nav-controls {
       background-color: var(--color-background);
@@ -202,16 +218,22 @@ body.nav-toggled {
 
 
 // Desktop
-nav.navigation {
+nav.navigation, body.nav-toggled nav.navigation {
   @include window-larger-than(800px) {
     grid-template-areas:
       "logo primary   help      tools    "
       "logo secondary secondary secondary"
     ;
-    grid-template-columns: min-content auto min-content min-content min-content;
+    grid-template-columns: min-content min-content 1fr min-content;
+    grid-template-rows: 1fr 1fr;
 
     padding: 0 1em 1em;
     box-sizing: border-box;
+    height: unset;
+
+    .nav-logo {
+      a.nav-logo-link { margin: 0.5em 0.25em 0 0; }
+    }
 
     .nav-offset, .nav-controls { display: none; }
 
@@ -220,19 +242,47 @@ nav.navigation {
       flex-flow: row;
 
       background: unset;
-      font-size: unset;
+      font-size: 1.05em;
+      padding: 0 0.25em;
 
-      li a {
-        border-bottom: 0;
-        i { display: none; }
+      li {
+        display: flex;
+
+        a {
+          align-content: center;
+
+          border-bottom: 0;
+          padding: 0 0.75em;
+          i { display: none; }
+        }
       }
     }
 
     .nav-secondary {
       display: flex;
       flex-flow: row;
+      align-items: center;
 
-      font-size: unset;
+      padding: 0 0.25em;
+      font-size: 1.05em;
+      border-radius: 6px;
+
+      // Silly fix for too many links
+      overflow: hidden;
+
+      li {
+        a {
+          border-bottom: 0;
+          padding: 0 0.75em;
+          white-space: nowrap;
+        }
+
+        &.divider {
+          display: flex;
+          align-items: center;
+          &::after { content: "|"; }
+        }
+      }
     }
 
     .nav-tools, .nav-help {
@@ -241,14 +291,34 @@ nav.navigation {
       padding: 0;
       background: unset;
       border: none;
+      gap: 0;
 
+      li {
+        display: flex;
+
+        a {
+          align-content: center;
+
+          background: unset;
+          font-size: 1.05em;
+          padding: 0 0.75em;
+          text-align: unset;
+          white-space: nowrap;
+          border-radius: 0;
+        }
+      }
+    }
+
+    .nav-tools {
       li a {
-        background: unset;
-        font-size: unset;
-        padding: 0.5em;
-        text-align: unset;
-        white-space: nowrap;
-
+        span { display: none; }
+        i { color: var(--color-link); }
+        &:hover i { color: var(--color-link-hover); }
+      }
+    }
+    .nav-help {
+      li.current a {
+        background-color: var(--color-foreground);
         i { display: none; }
       }
     }

@@ -9,7 +9,7 @@
   <%= subnav_link_to "Cheatsheet", help_page_path(id: "cheatsheet") %>
   <%= subnav_link_to "Help", help_page_path(id: "tags") %>
   <% if @tag %>
-    <li>|</li>
+    <li class="divider"></li>
     <%= subnav_link_to "Posts (#{@tag.post_count})", posts_path(tags: @tag.name) %>
     <%= subnav_link_to "Wiki Page", show_or_new_wiki_pages_path(title: @tag.name) %>
     <%= subnav_link_to "Edit", edit_tag_path(@tag) %>
