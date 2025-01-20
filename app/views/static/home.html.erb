@@ -4,7 +4,7 @@
   <% end -%>
 
   <section class="home-section">
-    <%= form_tag( posts_path, method: "get", class: "home-search" ) do %>
+    <%= form_tag(posts_path, method: "get", class: "home-search") do %>
       <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
       <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %>
     <% end %>
