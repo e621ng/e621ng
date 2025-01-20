@@ -156,4 +156,32 @@ class ElasticQueryBuilder
   def apply_default_order
     order.push({ id: { order: "desc" } })
   end
+
+  def add_boolean_exists_relation(key, index_field)
+    if q.include?(key)
+      (q[key] ? must : must_not).push({ term: { exists: { field: index_field } } })
+    end
+
+    if q.include?(:"#{key}_must_not")
+      (q[:"#{key}_must_not"] ? must_not : must).push({ term: { exists: { field: index_field } } })
+    end
+
+    if q.include?(:"#{key}_should")
+      should.push({ bool: { must: [{ exists: { field: index_field } }] } })
+    end
+  end
+
+  def add_boolean_relation(key, index_field)
+    if q.include?(key)
+      must.push({ term: { index_field => q[key] } })
+    end
+
+    if q.include?(:"#{key}_must_not")
+      must_not.push({ term: { index_field => q[:"#{key}_must_not"] } })
+    end
+
+    if q.include?(:"#{key}_should")
+      should.push({ term: { index_field => q[:"#{key}_should"] } })
+    end
+  end
 end

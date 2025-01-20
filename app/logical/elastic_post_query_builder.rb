@@ -145,33 +145,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
     end
 
-    if q.include?(:hassource)
-      (q[:hassource] ? must : must_not).push({exists: {field: :source}})
-    end
-
-    if q.include?(:hasdescription)
-      (q[:hasdescription] ? must : must_not).push({exists: {field: :description}})
-    end
-
-    if q.include?(:ischild)
-      (q[:ischild] ? must : must_not).push({exists: {field: :parent}})
-    end
-
-    if q.include?(:isparent)
-      must.push({term: {has_children: q[:isparent]}})
-    end
-
-    if q.include?(:inpool)
-      (q[:inpool] ? must : must_not).push({exists: {field: :pools}})
-    end
-
-    if q.include?(:pending_replacements)
-      must.push({term: {has_pending_replacements: q[:pending_replacements]}})
-    end
-
-    if q.include?(:artverified)
-      must.push({ term: { artverified: q[:artverified] } })
-    end
+    add_boolean_exists_relation(:hassource, :source)
+    add_boolean_exists_relation(:hasdescription, :description)
+    add_boolean_exists_relation(:ischild, :parent)
+    add_boolean_exists_relation(:isparent, :children)
+    add_boolean_exists_relation(:inpool, :pools)
+    add_boolean_relation(:pending_replacements, :has_pending_replacements)
+    add_boolean_relation(:artverified, :artverified)
 
     add_tag_string_search_relation(q[:tags])
 
