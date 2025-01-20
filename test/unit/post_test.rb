@@ -2042,7 +2042,6 @@ class PostTest < ActiveSupport::TestCase
       should "return posts for a grouped tag search with proper global metatag hoisting" do
         assert_tag_match([@post1, @post3], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
         assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
-        # assert_tag_match([post3], "~( aaa -bbb ) ~ccc -( ddd limit:1 )")
       end
     end
   end

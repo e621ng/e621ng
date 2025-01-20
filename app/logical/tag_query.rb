@@ -161,11 +161,9 @@ class TagQuery
     return false if always_show_deleted
     fetch_metatags(
       query,
-      # *%w[status -status],
       *%w[status -status delreason -delreason ~delreason deletedby -deletedby ~deletedby],
       recurse: true,
     ) { |tag, val| return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER) }
-    # return false if TagQuery.has_metatag?(query, "status", recurse: true) || TagQuery.fetch_metatag(query, "-status", recurse: true)
     true
   end
 
@@ -252,22 +250,6 @@ class TagQuery
   # * `tag`: if the prior 2 weren't present, the following consecutive non-whitespace characters
   #
   # Group 0 contains leading whitespace + `prefix` + `body` + trailing whitespace
-  #
-  # Constructed with the expectation that prior matches will be excluded from the input. The
-  # following example will continually output `some `.
-  # ```
-  # query = "some query"
-  # while (m = query.match(TagQuery::TOKENIZE_REGEX)) do
-  #   puts m[0]
-  # end
-  # ```
-  # This following example will behave as expected.
-  # ```
-  # query = "some query"
-  # while (m = query.match(TagQuery::TOKENIZE_REGEX)) do
-  #   puts m[0]
-  # end
-  # ```
   TOKENIZE_REGEX = /\G(?>\s*)(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
 
   # Iterates through tokens, returning each tokens' `MatchData`.
@@ -444,9 +426,6 @@ class TagQuery
   # #### Recursive Parameters (SHOULDN'T BE USED BY OUTSIDE METHODS)
   #
   # * `depth` [0]: Tracks recursive depth to prevent exceeding `TagQuery::DEPTH_LIMIT`
-  #
-  # TODO: Add hoisted tag support
-  # TODO: Convert from `match_tokens` to using the regexp directly
   def self.scan_recursive(
     query,
     flatten: true,
@@ -760,7 +739,6 @@ class TagQuery
                           group = TagQuery.new(group, free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
                         rescue CountExceededWithDataError, DepthExceededWithDataError => e
                           group = e
-                          # thrown = e
                         end
                         group.tag_count
                       elsif SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
@@ -785,7 +763,6 @@ class TagQuery
         search_type = METATAG_SEARCH_TYPE[match[1]]
         q[:groups][search_type] ||= []
         q[:groups][search_type] << group
-        # raise thrown if thrown
         next
       end
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)

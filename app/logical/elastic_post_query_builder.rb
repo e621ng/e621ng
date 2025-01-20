@@ -26,7 +26,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @query_always_show_deleted = !ElasticPostQueryBuilder.should_hide_deleted_posts?(query_string) if GLOBAL_DELETED_FILTER
     @depth = kwargs.fetch(:depth, 1)
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
-    # super(query_string.is_a?(TagQuery) ? query_string : TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
   end
 
   def model_class
@@ -70,15 +69,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def hide_deleted_posts?
-    # use_param ? q.hide_deleted_posts?(always_show_deleted: @always_show_deleted) : q.hide_deleted_posts?
     q.hide_deleted_posts?(always_show_deleted: @always_show_deleted)
-    # if @always_show_deleted ||
-    #    q[:status]&.in?(TagQuery::OVERRIDE_DELETED_FILTER) ||
-    #    q[:status_must_not]&.in?(TagQuery::OVERRIDE_DELETED_FILTER)
-    #   false
-    # else
-    #   true
-    # end
   end
 
   def build
@@ -233,7 +224,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_group_search_relation(q[:groups])
 
     # The groups updated our value; now optionally hide deleted
-    must.push({ term: { deleted: false } }) unless @always_show_deleted # if hide_deleted_posts?
+    must.push({ term: { deleted: false } }) unless @always_show_deleted
 
     case q[:order]
     when "id", "id_asc"

@@ -23,7 +23,6 @@ class PostQueryBuilder
     relation
   end
 
-  ##
   # TODO: Test
   def add_group_search_relation(groups, relation)
     return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)

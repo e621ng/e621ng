@@ -149,11 +149,9 @@ module ParseValue
     [:between, start, stop]
   end
 
-  ##
   # A symbol denoting the interval method used in +time_string+ when the input doesn't contain one.
   DEFAULT_TIME_UNIT = :days
 
-  ##
   # If no unit can be found, will default to DEFAULT_TIME_UNIT.
   # If this behavior is changed, update the corresponding test in test/unit/post_test.rb
   # (context "Searching:", should "return posts for the age:<n> metatag")
