@@ -226,7 +226,7 @@ nav.navigation, body.nav-toggled nav.navigation {
       "logo primary   help      tools    "
       "logo secondary secondary secondary"
     ;
-    grid-template-columns: min-content min-content 1fr min-content;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
     grid-template-rows: 1fr 1fr;
 
     padding: 0 1em 1em;
@@ -319,6 +319,8 @@ nav.navigation, body.nav-toggled nav.navigation {
       }
     }
     .nav-help {
+      overflow: hidden;
+
       li.current a {
         background-color: themed("color-foreground");
         i { display: none; }
