@@ -233,6 +233,8 @@ nav.navigation, body.nav-toggled nav.navigation {
     box-sizing: border-box;
     height: unset;
 
+    overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
+
     .nav-logo {
       a.nav-logo-link { margin: 0.5em 0.25em 0 0; }
     }
