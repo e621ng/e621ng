@@ -15,6 +15,8 @@ nav.navigation {
   .nav-logo {
     grid-area: logo;
 
+    background-color: themed("color-background");
+
     a.nav-logo-link {
       display: flex;
 
@@ -39,6 +41,7 @@ nav.navigation {
 
     font-size: 1.15rem;
     padding-right: 0.5em;
+    background-color: themed("color-background");
 
     & > a {
       display: flex;
@@ -185,6 +188,13 @@ nav.navigation {
 }
 
 
+// Sticky header
+body[data-th-sheader="true"] nav.navigation {
+  position: sticky;
+  top: 0;
+}
+
+
 // Mobile toggle
 body.nav-toggled {
   padding-top: 4rem;
@@ -204,10 +214,6 @@ body.nav-toggled {
 
     // Allow scrolling when the menu is too long
     overflow-y: scroll;
-
-    .nav-logo, .nav-controls {
-      background-color: themed("color-background");
-    }
 
     .nav-primary, .nav-secondary, .nav-offset {
       display: flex;
@@ -229,9 +235,11 @@ nav.navigation, body.nav-toggled nav.navigation {
     grid-template-columns: min-content min-content 1fr min-content;
     grid-template-rows: 1fr 1fr;
 
-    padding: 0 1em 1em;
+    padding: 0 1em 0.5em;
     box-sizing: border-box;
     height: unset;
+
+    background: var(--color-background);
 
     .nav-logo {
       a.nav-logo-link { margin: 0.5em 0.25em 0 0; }
