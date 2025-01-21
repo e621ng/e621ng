@@ -3,6 +3,7 @@
 class CommentVote < UserVote
   validate :validate_user_can_vote
   validate :validate_comment_can_be_voted
+  belongs_to :comment, optional: true # null issues
 
   def self.for_comments_and_user(comment_ids, user_id)
     return {} unless user_id
@@ -30,4 +31,22 @@ class CommentVote < UserVote
       errors.add :base, "You cannot vote on sticky comments"
     end
   end
+
+  module SearchMethods
+    def post_tags_match(query)
+      joins(:comment).where("comments.post_id": Post.tag_match_sql(query))
+    end
+
+    def search(params)
+      q = super
+
+      if allow_complex_params?(params) && params[:post_tags_match].present?
+        q = q.post_tags_match(params[:post_tags_match])
+      end
+
+      q
+    end
+  end
+
+  extend SearchMethods
 end
