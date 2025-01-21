@@ -41,7 +41,7 @@ Favorite.create = function (post_id) {
     }).done(function () {
       Post.notice_update("dec");
       Favorite.after_action(post_id, 1);
-      Utility.notice("Favorite added");
+      Utility.notice("Favorite added and upvoted");
     }).fail(function (data) {
       Utility.error("Error: " + data.responseJSON.message);
     });
