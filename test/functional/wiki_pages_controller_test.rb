@@ -111,6 +111,54 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           post_auth wiki_pages_path, @user, params: {:wiki_page => {:title => "abc", :body => "abc"}}
         end
       end
+
+      context "with prefix" do
+        should "work" do
+          assert_difference(%w[WikiPage.count Tag.count], 1) do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "character:abc", body: "abc" } }
+          end
+          @wiki = WikiPage.last
+          assert_equal("abc", @wiki.title)
+          assert_equal(Tag.categories.character, @wiki.category_id)
+        end
+
+        should "not work for disallowed prefixes" do
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "lore:abc", body: "abc" } }
+          end
+        end
+
+        should "not work for tags over the threshold" do
+          @tag = create(:tag, post_count: 500)
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "character:#{@tag.name}", body: "abc" } }
+          end
+        end
+      end
+
+      context "with category_id" do
+        should "work" do
+          assert_difference(%w[WikiPage.count Tag.count], 1) do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc", category_id: Tag.categories.character } }
+          end
+          @wiki = WikiPage.last
+          assert_equal("abc", @wiki.title)
+          assert_equal(Tag.categories.character, @wiki.category_id)
+        end
+
+        should "not work for disallowed categories" do
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc", category_id: Tag.categories.lore } }
+          end
+        end
+
+        should "not work for tags over the threshold" do
+          @tag = create(:tag, post_count: 500)
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: @tag.name, body: "abc", category_id: Tag.categories.character } }
+          end
+        end
+      end
     end
 
     context "update action" do
@@ -140,6 +188,27 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       should "not allow non-Builders to delete wiki pages" do
         put_auth wiki_page_path(@wiki_page), @user, params: {wiki_page: { is_deleted: true }}
         assert_equal(false, @wiki_page.reload.is_deleted?)
+      end
+
+      context "with category_id" do
+        should "work" do
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.character } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.character, @wiki_page.category_id)
+        end
+
+        should "not work for disallowed categories" do
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.lore } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.general, @wiki_page.category_id)
+        end
+
+        should "not work for tags over the threshold" do
+          @tag.update_column(:post_count, 500)
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.character } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.general, @wiki_page.category_id)
+        end
       end
     end
 

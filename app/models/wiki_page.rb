@@ -21,6 +21,7 @@ class WikiPage < ApplicationRecord
 
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
+  before_save :update_tag_category, if: :category_id_changed?
   before_save :log_changes
   after_save :update_help_page, if: :saved_change_to_title?
 
@@ -32,6 +33,7 @@ class WikiPage < ApplicationRecord
   has_one :artist, foreign_key: "name", primary_key: "title"
   has_many :versions, -> { order("wiki_page_versions.id ASC") }, class_name: "WikiPageVersion", dependent: :destroy
   has_one :help_page, foreign_key: "wiki_page", primary_key: "title"
+  attribute :category_id, :integer
 
   def log_destroy
     ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})
@@ -140,9 +142,65 @@ class WikiPage < ApplicationRecord
     end
   end
 
+  module TagCategoryMethods
+    def category_id
+      return @category_id if instance_variable_defined?(:@category_id)
+      @category_id = Tag.category_for!(title)
+    end
+
+    def category_id=(value)
+      return if value.blank? || value.to_i == category_id
+      category_id_will_change!
+      @category_id = value.to_i
+    end
+
+    def reload(options = nil)
+      reset_category_id!
+      super
+    end
+
+    def category_id_changed?
+      attribute_changed?("category_id")
+    end
+
+    def category_id_will_change!
+      attribute_will_change!("category_id")
+    end
+
+    def reset_category_id!
+      remove_instance_variable(:@category_id) if instance_variable_defined?(:@category_id)
+    end
+
+    def category_editable?
+      return true if tag.blank?
+      tag.category_editable_by?(CurrentUser.user)
+    end
+
+    def update_tag_category
+      tag = Tag.find_or_create_by_name(title)
+      return if @category_id.blank? || tag.category == @category_id
+      unless tag.category_editable_by?(CurrentUser.user)
+        # we reset here so they can continue creating/editing without the field being disabled
+        # and locked to a value they can't use
+        reset_category_id!
+        errors.add(:category_id, "Cannot be changed")
+        throw(:abort)
+      end
+      tag.category = @category_id
+      tag.save
+      if tag.invalid?
+        errors.add(:category_id, tag.errors.full_messages.join(", "))
+        throw(:abort)
+      end
+      association(:tag).reload
+      reset_category_id!
+    end
+  end
+
   extend SearchMethods
   include ApiMethods
   include HelpPageMethods
+  include TagCategoryMethods
 
   def user_not_limited
     allowed = CurrentUser.can_wiki_edit_with_reason
@@ -203,7 +261,13 @@ class WikiPage < ApplicationRecord
   end
 
   def normalize_title
-    self.title = title.downcase.tr(" ", "_")
+    title = self.title.downcase.tr(" ", "_")
+    if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
+      @category_id = Tag.categories.value_for($1)
+      category_id_will_change!
+      title = $2
+    end
+    self.title = title
   end
 
   def normalize_other_names
@@ -226,16 +290,12 @@ class WikiPage < ApplicationRecord
     @skip_secondary_validations = value.to_s.truthy?
   end
 
-  def category_id
-    Tag.category_for(title)
-  end
-
   def pretty_title
     title&.tr("_", " ") || ''
   end
 
   def pretty_title_with_category
-    return pretty_title if category_id == 0
+    return pretty_title if category_id.blank? || category_id == 0
     "#{Tag.category_for_value(category_id)}: #{pretty_title}"
   end
 
