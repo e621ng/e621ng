@@ -4,6 +4,7 @@ class NoteVersion < ApplicationRecord
   user_status_counter :note_count, foreign_key: :updater_id
   belongs_to_updater
   scope :for_user, ->(user_id) {where("updater_id = ?", user_id)}
+  belongs_to :note
 
   def self.search(params)
     q = super
@@ -30,5 +31,26 @@ class NoteVersion < ApplicationRecord
 
   def previous
     NoteVersion.where("note_id = ? and updated_at < ?", note_id, updated_at).order("updated_at desc").first
+  end
+
+  def undo
+    if version == 1
+      note.is_active = false
+      return
+    end
+
+    previous = self.previous
+    note.x = previous.x
+    note.y = previous.y
+    note.post_id = previous.post_id
+    note.body = previous.body
+    note.width = previous.width
+    note.height = previous.height
+    note.is_active = previous.is_active
+  end
+
+  def undo!
+    undo
+    note.save!
   end
 end
