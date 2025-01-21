@@ -312,10 +312,15 @@ nav.navigation, body.nav-toggled nav.navigation {
     }
 
     .nav-tools {
-      li a {
-        span { display: none; }
-        i { color: themed("color-link"); }
-        &:hover i { color: themed("color-link-hover"); }
+      li {
+        a {
+          i { color: themed("color-link"); }
+          &:hover i { color: themed("color-link-hover"); }
+        }
+
+        &.nav-tools-themes, &.nav-tools-settings {
+          a span { display: none; }
+        }
       }
     }
     .nav-help {
