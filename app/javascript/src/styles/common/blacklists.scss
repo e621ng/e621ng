@@ -219,7 +219,8 @@
 article.thumbnail.blacklisted {
   width: 100%;
   & > a {
-    height: 100%;
+    width: 150px;
+    height: 150px;
     background-image: url("blacklisted-preview.png");
     background-size: cover;
     background-position: center;
