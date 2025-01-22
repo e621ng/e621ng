@@ -2,7 +2,14 @@ div#search {
   margin-bottom: 1em;
 }
 
+body {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
 div#page {
+  flex: 1;
   overflow: visible;
   padding: $padding-050 $padding-025 themed("content-padding-bottom");
 
