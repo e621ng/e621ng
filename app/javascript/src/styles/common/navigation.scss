@@ -18,11 +18,11 @@ nav.navigation {
     a.nav-logo-link {
       display: flex;
 
-      height: 3rem;
-      width: 3rem;
-      margin: 0.5rem;
+      height: 3.25rem;
+      width: 3.25rem;
+      margin: 0.25rem;
   
-      background-image: url("main-logo.png");
+      background-image: url("main-logo.svg");
       background-repeat: no-repeat;
       background-size: contain;
       background-position-y: center;
@@ -226,15 +226,17 @@ nav.navigation, body.nav-toggled nav.navigation {
       "logo primary   help      tools    "
       "logo secondary secondary secondary"
     ;
-    grid-template-columns: min-content min-content 1fr min-content;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
+    grid-template-rows: 1.75em 1.75em;
 
     padding: 0 1em 1em;
     box-sizing: border-box;
     height: unset;
 
+    overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
+
     .nav-logo {
-      a.nav-logo-link { margin: 0.5em 0.25em 0 0; }
+      a.nav-logo-link { margin: 0.25rem 0.5rem 0 0; }
     }
 
     .nav-offset, .nav-controls { display: none; }
@@ -312,13 +314,20 @@ nav.navigation, body.nav-toggled nav.navigation {
     }
 
     .nav-tools {
-      li a {
-        span { display: none; }
-        i { color: themed("color-link"); }
-        &:hover i { color: themed("color-link-hover"); }
+      li {
+        a {
+          i { color: themed("color-link"); }
+          &:hover i { color: themed("color-link-hover"); }
+        }
+
+        &.nav-tools-themes, &.nav-tools-settings {
+          a span { display: none; }
+        }
       }
     }
     .nav-help {
+      overflow: hidden;
+
       li.current a {
         background-color: themed("color-foreground");
         i { display: none; }
