@@ -18,11 +18,11 @@ nav.navigation {
     a.nav-logo-link {
       display: flex;
 
-      height: 3rem;
-      width: 3rem;
-      margin: 0.5rem;
+      height: 3.25rem;
+      width: 3.25rem;
+      margin: 0.25rem;
   
-      background-image: url("main-logo.png");
+      background-image: url("main-logo.svg");
       background-repeat: no-repeat;
       background-size: contain;
       background-position-y: center;
@@ -227,7 +227,7 @@ nav.navigation, body.nav-toggled nav.navigation {
       "logo secondary secondary secondary"
     ;
     grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1.75em 1.75em;
 
     padding: 0 1em 1em;
     box-sizing: border-box;
@@ -236,7 +236,7 @@ nav.navigation, body.nav-toggled nav.navigation {
     overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo {
-      a.nav-logo-link { margin: 0.5em 0.25em 0 0; }
+      a.nav-logo-link { margin: 0.25rem 0.5rem 0 0; }
     }
 
     .nav-offset, .nav-controls { display: none; }
