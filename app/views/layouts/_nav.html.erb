@@ -1,0 +1,52 @@
+<nav class="navigation">
+  <menu class="nav-logo">
+    <a href="/" class="nav-logo-link"></a>
+  </menu>
+
+  <menu class="nav-primary">
+    <%= render "layouts/main_links" %>
+  </menu>
+
+  <menu class="nav-offset"></menu>
+
+  <menu class="nav-secondary <%= "empty" unless content_for(:secondary_links) %>">
+    <%= yield :secondary_links %>
+  </menu>
+
+  <menu class="nav-controls">
+    <a href="" id="nav-toggle">
+      <i class="fas fa-bars"></i>
+    </a>
+    <% if CurrentUser.is_anonymous? %>
+      <%= link_to(new_session_path, class: "nav-tools-login") do %>
+        <i class="fas fa-sign-in-alt"></i>
+        Sign in
+      <% end %>
+    <% else %>
+      <%= link_to(user_path(CurrentUser.user), class: "nav-tools-login") do %>
+        <i class="far fa-user-circle"></i>
+        Profile
+      <% end %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-tools <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
+    <%= decorated_nav_link_to("Themes", "fas fa-swatchbook", theme_path, class: "nav-tools-themes") %>
+    <% if CurrentUser.is_anonymous? %>
+      <%= decorated_nav_link_to("Sign in", "fas fa-sign-in-alt", new_session_path, class: "nav-tools-login") %>
+    <% else %>
+      <%= decorated_nav_link_to("Settings", "fas fa-cog", edit_user_path(CurrentUser.user), class: "nav-tools-settings") %>
+      <%= decorated_nav_link_to("Account #{unread_dmails(CurrentUser.user)}", "far fa-user-circle", user_path(CurrentUser.user), class: "nav-tools-login") %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-help <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
+    <% if !CurrentUser.is_anonymous? %>
+      <%= nav_link_to("Discord", discord_get_path, class: "nav-help-discord") %>
+    <% end %>
+    <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
+    <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
+    <%= nav_link_to("More", site_map_path, class: "nav-help-map") %>
+  </menu>
+
+</nav>

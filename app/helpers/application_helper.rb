@@ -14,6 +14,24 @@ module ApplicationHelper
     render "diff_list", diff: diff
   end
 
+  def decorated_nav_link_to(text, icon, url, **options)
+    klass = options.delete(:class)
+
+    if nav_link_match(params[:controller], url)
+      klass = "#{klass} current"
+    end
+
+    id = "nav-#{text.downcase.gsub(/[^a-z ]/, '').parameterize}"
+
+    tag.li(id: id, class: klass) do
+      link_to(url, id: "#{id}-link", **options) do
+        concat tag.i(class: icon)
+        concat " "
+        concat tag.span(text)
+      end
+    end
+  end
+
   def nav_link_to(text, url, **options)
     klass = options.delete(:class)
 

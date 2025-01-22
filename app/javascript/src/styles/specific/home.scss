@@ -1,0 +1,128 @@
+body.c-static.a-home {
+  background: #012e57 no-repeat center 0;
+  background-color: var(--bg-color);
+  background-image: var(--bg-image);
+
+  #page {
+    background: none;
+    margin: 50vh auto 0;
+    max-width: 480px;
+    padding: 0;
+  }
+
+
+  // Common
+  .home-section {
+    // Frosted glass effect
+    background-color: rgba(15, 15, 15, 0.35);
+    backdrop-filter: blur(8px);
+
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+  }
+
+
+  // Search
+  .home-search {
+    display: flex;
+    margin-bottom: 1rem;
+
+    input[type="text"] {
+      flex: 1;
+      border: 0;
+      border-radius: 3px 0 0 3px;
+      padding: 0.5rem;
+      font-size: 1rem;
+
+      &:focus {
+        background: #ffc;
+        & + button[type="submit"] {
+          background: #ffc;
+        }
+      }
+    }
+
+    button[type="submit"] {
+      background: white;
+      border-radius: 0 3px 3px 0;
+      padding: 0 0.5em;
+      font-size: 1rem;
+    }
+  }
+
+  .home-buttons {
+    display: flex;
+    gap: 0.5rem;
+
+    a {
+      flex: 1;
+      text-align: center;
+      background: #25477b;
+      padding: 0.5rem;
+      border-radius: 3px;
+      &:hover { background: #2b538e; }
+
+      i { color: var(--color-link-active); }
+    }
+  }
+
+
+  // Footer
+  .home-footer-top {
+    background-color: rgba(15, 15, 15, 0.35);
+    backdrop-filter: blur(8px);
+    margin: 3rem 0 0;
+    padding: 1rem;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-radius: 0.5rem 0.5rem 0 0;
+
+    @include window-larger-than(480px) {
+      margin: 3rem 0.5rem 0;
+    }
+
+    a#mascot-swap {
+      background: #25477b;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3px;
+      &:hover { background: #2b538e; }
+    }
+  }
+
+  .home-footer-bottom {
+    background: #1f3c67;
+    text-align: center;
+
+    margin: 0;
+    padding: 0.5rem;
+
+    border-radius: 0 0 0.5rem 0.5rem;
+
+    @include window-larger-than(480px) {
+      margin: 0 0.5rem;
+    }
+
+    .home-footer-links .separator {
+      display: inline-flex;
+      width: 4px;
+      position: relative;
+      margin: 0 0.25em;
+
+      &:before {
+        content: "";
+        width: 4px;
+        height: 4px;
+        background: var(--color-text);
+        border-radius: 2px;
+        position: absolute;
+        left: 0;
+        bottom: 0.25em;
+      }
+    }
+  }
+}

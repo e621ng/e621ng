@@ -9,7 +9,7 @@ class StaffNotesController < ApplicationController
 
   def index
     @user = User.find_by(id: params[:user_id])
-    @notes = StaffNote.search(search_params.merge({ user_id: params[:user_id] })).includes(:user, :creator).paginate(params[:page], limit: params[:limit])
+    @notes = StaffNote.search(search_params).includes(:user, :creator).paginate(params[:page], limit: params[:limit])
     respond_with(@notes)
   end
 

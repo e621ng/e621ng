@@ -1,0 +1,353 @@
+nav.navigation {
+  display: grid;
+  grid-template-areas: "logo logo controls";
+  grid-template-columns: min-content auto;
+  grid-template-rows: min-content auto min-content min-content;
+
+  width: 100%; // otherwise narrow when fixed
+  z-index: 10; // otherwise post labels layered above
+
+  pointer-events: none; // allow clicking through offset
+  & > menu { pointer-events: auto; }
+
+
+  /* Top bar, always visible */
+  .nav-logo {
+    grid-area: logo;
+
+    background-color: themed("color-background");
+
+    a.nav-logo-link {
+      display: flex;
+
+      height: 3.25rem;
+      width: 3.25rem;
+      margin: 0.25rem;
+  
+      background-image: url("main-logo.svg");
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position-y: center;
+    }
+  }
+
+  .nav-controls {
+    grid-area: controls;
+
+    display: flex;
+    flex-flow: row-reverse;
+    align-items: center;
+    gap: 0.5em;
+
+    font-size: 1.15rem;
+    padding-right: 0.5em;
+    background-color: themed("color-background");
+
+    & > a {
+      display: flex;
+      gap: 0.25em;
+
+      padding: 0.25rem 0.5rem;
+      background: themed("color-foreground");
+      border-radius: 6px;
+
+      & > i {
+        font-size: 1.5rem;
+        color: themed("color-link-active");
+      }
+    }
+  }
+
+  /* Prevent toggled menus from being too wide */
+  .nav-offset {
+    grid-area: offset;
+    pointer-events: none;
+    display: none; // flex
+  }
+
+  /* Toggled menus, hidden by default */
+  .nav-primary {
+    grid-area: primary;
+    display: none; // flex
+    flex-flow: column;
+
+    background-color: themed("color-section");
+    font-size: 1.5em;
+
+    li {
+      padding: 0;
+      a {
+        display: block;
+        border-bottom: 1px solid themed("color-foreground");
+        padding: 0.5em;
+
+        i {
+          width: 1.5rem;
+          color: themed("color-link-active");
+          text-align: center;
+        }
+      }
+
+      &.current a { background-color: themed("color-foreground"); }
+    }
+  }
+
+  .nav-secondary {
+    grid-area: secondary;
+    display: none; // flex
+    flex-flow: column;
+
+    background-color: themed("color-foreground");
+    font-size: 1.35em;
+
+    li {
+      padding: 0;
+      a {
+        display: block;
+        border-bottom: 1px solid themed("color-section");
+        padding: 0.5em;
+      }
+
+      &.divider {
+        border-bottom: 1px solid themed("color-section");
+        height: 0.25em;
+      }
+
+      form input[type="text"] { width: 100%; }
+    }
+  }
+
+  .nav-tools {
+    grid-area: tools;
+
+    display: none; // grid
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content;
+
+    padding: 1rem;
+    gap: 1rem;
+
+    background-color: themed("color-section");
+    border-top: 1px solid themed("color-foreground");
+
+    li {
+      padding: 0;
+
+      &.nav-tools-login { grid-column: 1 / -1; }
+
+      & > a {
+        display: block;
+
+        background: themed("color-section-lighten-5");
+        border-radius: 6px;
+  
+        font-size: 125%;
+        padding: 0.5rem 1rem;
+        text-align: center;
+  
+        i { color: themed("color-link-active"); }
+      }
+    }
+
+    &.anonymous li.nav-tools-themes {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .nav-help {
+    grid-area: help;
+
+    display: none; // grid
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: min-content;
+
+    padding: 1rem;
+    gap: 1rem;
+
+    background: themed("color-section");
+
+    li {
+      padding: 0;
+
+      &.nav-help-discord { grid-column: 1 / -1; }
+
+      & > a {
+        display: block;
+
+        background: themed("color-section-darken-5");
+        border-radius: 6px;
+        
+        font-size: 125%;
+        padding: 0.5rem 1rem;
+        text-align: center;
+
+        i { color: themed("color-link-active"); }
+      }
+    }
+  }
+}
+
+
+// Sticky header
+body[data-th-sheader="true"] nav.navigation {
+  position: sticky;
+  top: 0;
+}
+
+
+// Mobile toggle
+body.nav-toggled {
+  padding-top: 4rem;
+
+  nav.navigation {
+    grid-template-areas:
+      "logo    logo    controls" 
+      "offset  primary secondary "
+      "offset  tools   tools     "
+      "offset  help    help      ";
+    grid-template-columns: auto minmax(auto, 180px) minmax(auto, 180px);
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    max-height: 800px;
+    max-width: 100vw; // prevent bug when page overflows viewport
+
+    // Allow scrolling when the menu is too long
+    overflow-y: scroll;
+
+    .nav-primary, .nav-secondary, .nav-offset {
+      display: flex;
+    }
+    .nav-tools, .nav-help {
+      display: grid;
+    }
+  }
+}
+
+
+// Desktop
+nav.navigation, body.nav-toggled nav.navigation {
+  @include window-larger-than(800px) {
+    grid-template-areas:
+      "logo primary   help      tools    "
+      "logo secondary secondary secondary"
+    ;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
+    grid-template-rows: 1.75em 1.75em;
+
+    padding: 0 1em 0.5em;
+    box-sizing: border-box;
+    height: unset;
+
+    background: var(--color-background);
+    overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
+
+    .nav-logo {
+      a.nav-logo-link { margin: 0.25rem 0.5rem 0 0; }
+    }
+
+    .nav-offset, .nav-controls { display: none; }
+
+    .nav-primary {
+      display: flex;
+      flex-flow: row;
+
+      background: unset;
+      font-size: 1.05em;
+      padding: 0 0.25em;
+
+      li {
+        display: flex;
+
+        a {
+          align-content: center;
+
+          border-bottom: 0;
+          padding: 0 0.75em;
+          i { display: none; }
+        }
+      }
+    }
+
+    .nav-secondary {
+      display: flex;
+      flex-flow: row;
+      align-items: center;
+
+      padding: 0 0.25em;
+      font-size: 1.05em;
+      border-radius: 6px;
+
+      // Silly fix for too many links
+      overflow: hidden;
+
+      li {
+        a {
+          border-bottom: 0;
+          padding: 0 0.75em;
+          white-space: nowrap;
+        }
+
+        &.divider {
+          display: flex;
+          align-items: center;
+          &::after { content: "|"; }
+        }
+      }
+    }
+
+    .nav-tools, .nav-help {
+      display: flex;
+
+      padding: 0;
+      background: unset;
+      border: none;
+      gap: 0;
+
+      li {
+        display: flex;
+
+        a {
+          align-content: center;
+
+          background: unset;
+          font-size: 1.05em;
+          padding: 0 0.75em;
+          text-align: unset;
+          white-space: nowrap;
+          border-radius: 0;
+        }
+      }
+    }
+
+    .nav-tools {
+      li {
+        a {
+          i { color: themed("color-link"); }
+          &:hover i { color: themed("color-link-hover"); }
+        }
+
+        &.nav-tools-themes, &.nav-tools-settings {
+          a span { display: none; }
+        }
+      }
+    }
+    .nav-help {
+      overflow: hidden;
+
+      li.current a {
+        background-color: themed("color-foreground");
+        i { display: none; }
+      }
+    }
+  }
+}
+
+// Tweak for the secondary menu on desktop
+body.c-static.a-home {
+  @include window-larger-than(800px) {
+    nav.navigation, menu.nav-logo, menu.nav-secondary {
+      background: unset;
+    }
+  }
+}

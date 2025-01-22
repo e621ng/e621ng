@@ -15,7 +15,7 @@
 
     <% if (related_array = @help.related_array).any? %>
       <% help_pages = HelpPage.help_index %>
-      <li>|</li>
+      <li class="divider"></li>
       <% related_array.each do |related| %>
         <li><%= subnav_link_to HelpPage.pretty_related_title(related, help_pages), help_page_path(related) %></li>
       <% end %>
