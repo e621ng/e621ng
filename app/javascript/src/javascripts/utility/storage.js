@@ -62,6 +62,9 @@ LStorage.Theme = {
 
   /** @returns {boolean} True if the mobile gestures should be enabled */
   Gestures: ["emg", false],
+
+  /** @returns {boolean} True if the sticky header is enabled */
+  StickyHeader: ["theme-sheader", false],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 

@@ -3,7 +3,7 @@ import LStorage from "./utility/storage";
 
 const Theme = {};
 
-Theme.Values = ["Main", "Extra", "Palette", "Navbar", "Gestures"];
+Theme.Values = ["Main", "Extra", "StickyHeader", "Palette", "Navbar", "Gestures"];
 
 for (const one of Theme.Values) {
   Object.defineProperty(Theme, one, {
