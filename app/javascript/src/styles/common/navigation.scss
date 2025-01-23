@@ -113,7 +113,10 @@ nav.navigation {
         height: 0.25em;
       }
 
-      form input[type="text"] { width: 100%; }
+      form input[type="text"] {
+        width: 100%;
+        box-sizing: border-box;
+      }
     }
   }
 
@@ -303,10 +306,7 @@ nav.navigation, body.nav-toggled nav.navigation {
           display: flex;
           align-items: center;
 
-          input {
-            box-sizing: border-box;
-            min-width: 10em;
-          }
+          input[type="text"] { min-width: 10em; }
         }
       }
     }
