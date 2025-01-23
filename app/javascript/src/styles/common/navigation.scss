@@ -233,7 +233,7 @@ nav.navigation, body.nav-toggled nav.navigation {
       "logo secondary secondary secondary"
     ;
     grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
-    grid-template-rows: 1.75em 1.75em;
+    grid-template-rows: 1.75em 2em;
 
     padding: 0 1em 0.5em;
     box-sizing: border-box;
@@ -272,7 +272,6 @@ nav.navigation, body.nav-toggled nav.navigation {
     .nav-secondary {
       display: flex;
       flex-flow: row;
-      align-items: center;
 
       padding: 0 0.25em;
       font-size: 1.05em;
@@ -282,7 +281,11 @@ nav.navigation, body.nav-toggled nav.navigation {
       overflow: hidden;
 
       li {
+        display: flex;
+
         a {
+          align-content: center;
+
           border-bottom: 0;
           padding: 0 0.75em;
           white-space: nowrap;
@@ -291,7 +294,16 @@ nav.navigation, body.nav-toggled nav.navigation {
         &.divider {
           display: flex;
           align-items: center;
+          height: 100%;
+
           &::after { content: "|"; }
+        }
+
+        form {
+          display: flex;
+          align-items: center;
+
+          input { box-sizing: border-box; }
         }
       }
     }
