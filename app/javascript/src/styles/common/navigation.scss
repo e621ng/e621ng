@@ -224,6 +224,9 @@ body.nav-toggled {
     .nav-tools, .nav-help {
       display: grid;
     }
+    .nav-primary, .nav-tools, .nav-help {
+      box-shadow: -1px 0 5px -1px var(--color-background);
+    }
   }
 }
 
@@ -355,6 +358,8 @@ nav.navigation, body.nav-toggled nav.navigation {
         i { display: none; }
       }
     }
+
+    .nav-primary, .nav-tools, .nav-help { box-shadow: unset; }
   }
 }
 
