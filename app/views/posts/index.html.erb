@@ -12,7 +12,7 @@
       <%= render "posts/partials/index/blacklist" %>
 
       <section id="tag-box">
-        <h1>Tags</h1>
+        <h3>Tags</h3>
         <!-- TODO: Lock off these extra items? -->
         <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
       </section>

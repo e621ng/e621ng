@@ -32,14 +32,18 @@
   .sidebar {
     grid-area: sidebar;
 
-    h1 {
-      // TODO Just replace them with h3
-      font-size: $h3-size;
-    }
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
 
     // Mode selection
     #mode-box-mode, #mode-box #set-id {
       width: 100%;
+
+      // Match the searchbox
+      padding: 0.5em;
+      font-family: Verdana, sans-serif;
+      font-size: 1.05em;
     }
   }
 }

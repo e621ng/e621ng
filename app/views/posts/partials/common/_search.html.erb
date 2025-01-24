@@ -9,10 +9,7 @@
       <%= hidden_field_tag :random, params[:random] %>
     <% end %>
 
-    <%= text_area_tag("tags", tags, autofocus: "autofocus", placeholder: "Search posts by tag", rows: 1, data: { shortcut: "q", autocomplete: "tag-query" }) %>
-    <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") do %>
-      <%= tag.i(class: "fa-solid fa-magnifying-glass") %>
-      <%= tag.span("Search") %>
-    <% end %>
+    <%= text_area_tag("tags", tags, placeholder: "Search posts by tag", rows: 1, data: { shortcut: "q", autocomplete: "tag-query" }) %>
+    <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit", title: "Search") %>
   <% end %>
 </section>
