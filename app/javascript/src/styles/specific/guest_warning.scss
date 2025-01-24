@@ -4,11 +4,11 @@
   top: 0;
   height: 100vh;
   width: 100vw;
-  z-index: 10;
+  z-index: 500;
   background-color: themed("color-background");
 
   .guest-warning-dialog {
-    z-index: 100;
+    z-index: 500;
     position: relative;
     top: 20vh;
     margin-left: auto;
