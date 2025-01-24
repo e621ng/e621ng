@@ -959,10 +959,16 @@ class TagQuery
         # Do nothing. The controller takes care of it.
 
       when "status"
-        q[:status] = g2 if (g2.downcase! || g2).in?(STATUS_VALUES)
+        if (g2.downcase! || g2).in?(STATUS_VALUES)
+          q[:status] = g2
+          q[:status_must_not] = nil
+        end
 
       when "-status"
-        q[:status_must_not] = g2 if (g2.downcase! || g2).in?(STATUS_VALUES)
+        if (g2.downcase! || g2).in?(STATUS_VALUES)
+          q[:status_must_not] = g2
+          q[:status] = nil
+        end
 
       when "filetype", "-filetype", "~filetype", "type", "-type", "~type"
         add_to_query(type, :filetype) { g2.downcase }

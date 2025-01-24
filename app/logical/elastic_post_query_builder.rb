@@ -110,32 +110,29 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push(match_any(*(q[:md5].map { |m| { term: { md5: m } } })))
     end
 
-    case q[:status]
-    when "pending"
+    if q[:status] == "pending"
       must.push({term: {pending: true}})
-    when "flagged"
+    elsif q[:status] == "flagged"
       must.push({term: {flagged: true}})
-    when "modqueue"
+    elsif q[:status] == "modqueue"
       must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
-    when "deleted"
+    elsif q[:status] == "deleted"
       must.push({term: {deleted: true}})
-    when "active"
+    elsif q[:status] == "active"
       must.concat([{term: {pending: false}},
                    {term: {deleted: false}},
                    {term: {flagged: false}}])
-    when "all", "any"
+    elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
-    end
-    case q[:status_must_not]
-    when "pending"
+    elsif q[:status_must_not] == "pending"
       must_not.push({term: {pending: true}})
-    when "flagged"
+    elsif q[:status_must_not] == "flagged"
       must_not.push({term: {flagged: true}})
-    when "modqueue"
+    elsif q[:status_must_not] == "modqueue"
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
-    when "deleted"
+    elsif q[:status_must_not] == "deleted"
       must_not.push({term: {deleted: true}})
-    when "active"
+    elsif q[:status_must_not] == "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
     end
 
