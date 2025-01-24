@@ -109,27 +109,6 @@
       position: relative;
     }
 
-    #page-footer {
-      display: revert;
-      text-align: center;
-
-      .left {
-        padding-right: revert;
-      }
-    
-      .right {
-        padding-left: revert;
-      }
-
-      .right::before {
-        content: "–";
-      }
-
-      .logo-container {
-        display: none;
-      }
-    }
-
     /* Make the quick search box in the navbar full width. */
     header#top menu form input {
       width: auto;
