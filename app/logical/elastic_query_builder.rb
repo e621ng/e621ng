@@ -13,7 +13,8 @@ class ElasticQueryBuilder
     build
   end
 
-  def search
+  def create_query_obj(return_nil_if_empty: true)
+    return if return_nil_if_empty && must.empty? && must_not.empty? && should.empty?
     if must.empty?
       must.push({ match_all: {} })
     end
@@ -32,6 +33,11 @@ class ElasticQueryBuilder
       @function_score[:query] = query
       query = { function_score: @function_score }
     end
+    query
+  end
+
+  def search
+    query = create_query_obj(return_nil_if_empty: false)
 
     search_body = {
       query: query,

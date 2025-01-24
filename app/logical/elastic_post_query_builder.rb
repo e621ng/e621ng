@@ -7,10 +7,30 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, resolve_aliases:, free_tags_count:, enable_safe_mode:, always_show_deleted:)
-    super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count))
+  # Used to determine if a grouped search that wouldn't automatically filter out deleted searches
+  # will force other grouped searches to not automatically filter out deleted searches. (i.e. if the
+  # `-status:deleted` filter is toggled off globally or only on descendants & ancestors).
+  GLOBAL_DELETED_FILTER = true
+
+  ERROR_ON_DEPTH_EXCEEDED = true
+
+  def initialize( # rubocop:disable Metrics/ParameterLists
+    query_string,
+    resolve_aliases:,
+    free_tags_count:,
+    enable_safe_mode:,
+    always_show_deleted:,
+    **kwargs
+  )
+    @resolve_aliases = resolve_aliases
+    @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
+    @query_always_show_deleted = !TagQuery.should_hide_deleted_posts?(query_string, at_any_level: GLOBAL_DELETED_FILTER)
+    @depth = kwargs.fetch(:depth, 0)
+    @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ElasticPostQueryBuilder::ERROR_ON_DEPTH_EXCEEDED)
+    raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
+    super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
   end
 
   def model_class
@@ -23,11 +43,36 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
+  ##
+  # Adds the grouped subsearches to the query.
+  #
+  # NOTE: Has the hidden side-effect of updating `always_show_deleted` with each subsearches'
+  # `hide_deleted_posts?` at each step in the chain.
+  def add_group_search_relation(groups)
+    raise TagQuery::DepthExceededError if (@depth + 1) >= TagQuery::DEPTH_LIMIT && @error_on_depth_exceeded
+    return if (@depth + 1) >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    asd_cache = @always_show_deleted
+    cb = ->(x) do
+      temp = ElasticPostQueryBuilder.new(
+        x,
+        resolve_aliases: @resolve_aliases,
+        free_tags_count: @free_tags_count + @q.tag_count,
+        enable_safe_mode: @enable_safe_mode,
+        always_show_deleted: asd_cache,
+        error_on_depth_exceeded: @error_on_depth_exceeded,
+        depth: @depth + 1,
+      )
+      @always_show_deleted ||= !temp.hide_deleted_posts? unless GLOBAL_DELETED_FILTER
+      temp.create_query_obj(return_nil_if_empty: false)
+    end
+    must.concat(groups[:must].map(&cb).compact)
+    must_not.concat(groups[:must_not].map(&cb).compact)
+    should.concat(groups[:should].map(&cb).compact)
+  end
+
   def hide_deleted_posts?
-    return false if @always_show_deleted
-    return false if q[:status].in?(%w[deleted active any all])
-    return false if q[:status_must_not].in?(%w[deleted active any all])
-    true
+    return false if @always_show_deleted || @query_always_show_deleted
+    q.hide_deleted_posts?
   end
 
   def build
@@ -89,10 +134,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must_not.push({term: {deleted: true}})
     elsif q[:status_must_not] == "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
-    end
-
-    if hide_deleted_posts?
-      must.push({term: {deleted: false}})
     end
 
     add_array_relation(:uploader_ids, :uploader)
@@ -174,6 +215,15 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags])
+
+    # Update always_show_deleted
+    @always_show_deleted ||= @query_always_show_deleted
+
+    # Use the updated value in groups
+    add_group_search_relation(q[:groups])
+
+    # The groups updated our value; now optionally hide deleted
+    must.push({ term: { deleted: false } }) unless @always_show_deleted
 
     case q[:order]
     when "id", "id_asc"
