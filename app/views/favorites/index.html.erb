@@ -1,7 +1,7 @@
 <div id="c-favorites">
   <div id="a-index">
     <aside id="sidebar">
-      <%= render "posts/partials/common/search", :path => posts_path, :tags => "fav:#{@user.name} ", :tags_dom_id => "tags" %>
+      <%= render "posts/partials/common/search", title: "Favorites", :tags => "fav:#{@user.name} " %>
       <div style="color:darkorange;margin-bottom:0.5rem;">*Searching favorites does not preserve the order they were added in.<br/></div>
       <% if CurrentUser.is_member? %>
         <%= render "posts/partials/index/mode_menu" %>

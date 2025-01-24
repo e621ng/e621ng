@@ -1,7 +1,7 @@
 <div id="c-posts">
   <div id="a-show">
     <aside id="sidebar">
-      <%= render "posts/partials/common/search", :path => posts_path, :tags => params[:q], :tags_dom_id => "tags" %>
+      <%= render "posts/partials/common/search", title: "Posts", :tags => params[:q] %>
 
       <%= render "posts/partials/index/blacklist", post_id: @post.id %>
 
