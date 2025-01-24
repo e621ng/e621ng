@@ -36,54 +36,7 @@
     grid-template-areas:
       "search  content" 
       "sidebar content";
-    grid-template-columns: min-content 1fr;
+    grid-template-columns: 15rem 1fr;
     grid-template-rows: min-content 1fr;
-  }
-}
-
-
-// Searchbar
-
-
-.post-search {
-  display: flex;
-  flex-wrap: wrap;
-
-  .post-search-title { flex: 1; }
-  .post-search-help { font-size: 90%; }
-
-  form.post-search-form {
-    display: flex;
-    width: 100%;
-
-    input[type="text"] {
-
-      // Remove old styles from z_responsive
-      vertical-align: unset;
-      border: unset;
-      width: unset;
-      max-width: unset;
-
-      flex: 1;
-      font-size: 1rem;
-      padding: 0.5rem;
-
-      border-radius: 3px 0 0 3px;
-
-      &:focus, &:focus + button[type="submit"] { background: #FFC; }
-    }
-
-    button[type="submit"] {
-
-      // Remove old styles from z_responsive
-      font-size: unset;
-      max-width: unset;
-
-      font-size: 1rem;
-      padding: 0.5rem;
-
-      border-radius: 0 3px 3px 0;
-      background: white;
-    }
   }
 }
