@@ -11,6 +11,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   # will force other grouped searches to not automatically filter out deleted searches.
   GLOBAL_DELETED_FILTER = true
 
+  ERROR_ON_DEPTH_EXCEEDED = true
+
   def initialize( # rubocop:disable Metrics/ParameterLists
     query_string,
     resolve_aliases:,
@@ -23,8 +25,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
-    @query_always_show_deleted = !ElasticPostQueryBuilder.should_hide_deleted_posts?(query_string) if GLOBAL_DELETED_FILTER
-    @depth = kwargs.fetch(:depth, 1)
+    @query_always_show_deleted = !TagQuery.should_hide_deleted_posts?(query_string, at_any_level: GLOBAL_DELETED_FILTER)
+    @depth = kwargs.fetch(:depth, 0)
+    @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ElasticPostQueryBuilder::ERROR_ON_DEPTH_EXCEEDED)
+    raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
   end
 
@@ -44,7 +48,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   # NOTE: Has the hidden side-effect of updating `always_show_deleted` with each subsearches'
   # `hide_deleted_posts?` at each step in the chain.
   def add_group_search_relation(groups)
-    return if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    raise TagQuery::DepthExceededError if (@depth + 1) >= TagQuery::DEPTH_LIMIT && @error_on_depth_exceeded
+    return if (@depth + 1) >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
     asd_cache = @always_show_deleted
     cb = ->(x) do
       temp = ElasticPostQueryBuilder.new(
@@ -53,6 +58,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         free_tags_count: @free_tags_count + @q.tag_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: asd_cache,
+        error_on_depth_exceeded: @error_on_depth_exceeded,
         depth: @depth + 1,
       )
       @always_show_deleted ||= !temp.hide_deleted_posts? unless GLOBAL_DELETED_FILTER
@@ -69,6 +75,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def hide_deleted_posts?
+    return false if @query_always_show_deleted
     q.hide_deleted_posts?(always_show_deleted: @always_show_deleted)
   end
 
@@ -107,29 +114,32 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push(match_any(*(q[:md5].map { |m| { term: { md5: m } } })))
     end
 
-    if q[:status] == "pending"
+    case q[:status]
+    when "pending"
       must.push({term: {pending: true}})
-    elsif q[:status] == "flagged"
+    when "flagged"
       must.push({term: {flagged: true}})
-    elsif q[:status] == "modqueue"
+    when "modqueue"
       must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
-    elsif q[:status] == "deleted"
+    when "deleted"
       must.push({term: {deleted: true}})
-    elsif q[:status] == "active"
+    when "active"
       must.concat([{term: {pending: false}},
                    {term: {deleted: false}},
                    {term: {flagged: false}}])
-    elsif q[:status] == "all" || q[:status] == "any"
+    when "all", "any"
       # do nothing
-    elsif q[:status_must_not] == "pending"
+    end
+    case q[:status_must_not]
+    when "pending"
       must_not.push({term: {pending: true}})
-    elsif q[:status_must_not] == "flagged"
+    when "flagged"
       must_not.push({term: {flagged: true}})
-    elsif q[:status_must_not] == "modqueue"
+    when "modqueue"
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
-    elsif q[:status_must_not] == "deleted"
+    when "deleted"
       must_not.push({term: {deleted: true}})
-    elsif q[:status_must_not] == "active"
+    when "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
     end
 
@@ -214,11 +224,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_tag_string_search_relation(q[:tags])
 
     # Update always_show_deleted
-    @always_show_deleted ||= if GLOBAL_DELETED_FILTER
-                               @query_always_show_deleted
-                             else
-                               !hide_deleted_posts?
-                             end
+    @always_show_deleted ||= @query_always_show_deleted
 
     # Use the updated value in groups
     add_group_search_relation(q[:groups])

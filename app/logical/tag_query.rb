@@ -91,12 +91,6 @@ class TagQuery
     order limit randseed
   ].freeze
 
-  # The valid values for the status metatag.
-  # any == all, modqueue == (pending || flagged), active == (!pending && !flagged && !deleted)
-  STATUS_VALUES = %w[
-    all any pending flagged modqueue deleted active
-  ].freeze
-
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 
@@ -140,30 +134,54 @@ class TagQuery
     end
   end
 
-  # The values for the status metatag that will override the automatic hiding of deleted posts from
-  # search results. Other tags do also alter this behavior; specifically, a `deletedby` or
-  # `delreason` metatag adds an implicit `status:any` metatag.
-  OVERRIDE_DELETED_FILTER = %w[deleted active any all].freeze
+  # The valid values for the `status` metatag.
+  # * `any`/`all`: Posts in any of the following states
+  # * `pending`: not yet approved
+  # * `flagged`
+  # * `deleted`
+  # * `modqueue`: Either `pending` or `flagged`
+  # * `active`: Not `pending`, `flagged`, nor `deleted`
+  STATUS_VALUES = %w[all any pending flagged modqueue deleted active].freeze
+
+  # The values for the `status` metatag that will override the automatic hiding of deleted posts
+  # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
+  # `delreason` metatag will add an implicit `status:any` metatag.
+  OVERRIDE_DELETED_FILTER_STATUS_VALUES = %w[deleted active any all].freeze
+
+  # The metatags that can override the automatic hiding of deleted posts from search results. Note
+  # that the `status` metatag alone ***does not*** override filtering; it must also have a value
+  # present in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`.
+  OVERRIDE_DELETED_FILTER_METATAGS = %w[
+    status
+    -status
+    delreason
+    -delreason
+    ~delreason
+    deletedby
+    -deletedby
+    ~deletedby
+  ].freeze
 
   # Guesses whether the default behavior to hide deleted posts should be overridden.
   #
-  # If there are any metatags at any level that imply deleted posts shouldn't be hidden (even if
+  # If there are any metatags at the specified level that imply deleted posts shouldn't be hidden (even if
   # overridden elsewhere), this will return false.
   #
-  # `query` {String|String[]}:
-  #
-  # `always_show_deleted` [`false`]: The override value. Corresponds to
+  # * `query` {String|String[]}:
+  # * `always_show_deleted` [`false`]: The override value. Corresponds to
   # `ElasticPostQueryBuilder.always_show_deleted`.
+  # * `at_any_level` [`true`]: Should values inside groups be accounted for?
   #
-  # Returns false if `always_show_deleted` or `query` contains `status`/`-status` metatags w/ a
-  # value in `TagQuery::OVERRIDE_DELETED_FILTER`; true otherwise.
-  def self.should_hide_deleted_posts?(query, always_show_deleted: false)
+  # Returns false if `always_show_deleted` or `query` contains either a `delreason`/`deletedby`
+  # metatgs or a `status` metatag w/ a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES` at
+  # the specified depth; true otherwise.
+  def self.should_hide_deleted_posts?(query, always_show_deleted: false, at_any_level: true)
     return false if always_show_deleted
     fetch_metatags(
       query,
-      *%w[status -status delreason -delreason ~delreason deletedby -deletedby ~deletedby],
-      recurse: true,
-    ) { |tag, val| return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER) }
+      *OVERRIDE_DELETED_FILTER_METATAGS,
+      recurse: at_any_level,
+    ) { |tag, val| return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) }
     true
   end
 
@@ -175,7 +193,7 @@ class TagQuery
   #
   # Returns true unless
   # * `always_show_deleted`,
-  # * `q[:status]`/`q[:status_must_not]` contains a value in `TagQuery::OVERRIDE_DELETED_FILTER`,
+  # * `q[:status]`/`q[:status_must_not]` contains a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`,
   # * One of the following is non-nil:
   #   * `q[:deleter]`
   #   * `q[:deleter_must_not]`
@@ -186,8 +204,8 @@ class TagQuery
   # * If `recurse`, any of the subsearches in `q[:groups]` return false from `TagQuery.should_hide_deleted_posts?`
   def hide_deleted_posts?(always_show_deleted: false, recurse: false)
     if always_show_deleted ||
-       q[:status]&.in?(OVERRIDE_DELETED_FILTER) ||
-       q[:status_must_not]&.in?(OVERRIDE_DELETED_FILTER) ||
+       q[:status]&.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) ||
+       q[:status_must_not]&.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) ||
        !q[:deleter].nil? || !q[:deleter_must_not].nil? || !q[:deleter_should].nil? ||
        !q[:delreason].nil? || !q[:delreason_must_not].nil? || !q[:delreason_should].nil? ||
        (recurse && (q[:group][:must] + q[:group][:must_not] + q[:group][:should]).any? { |e| !TagQuery.should_hide_deleted_posts?(e) })

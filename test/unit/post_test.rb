@@ -1758,6 +1758,10 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:all")
 
       # Inconsistency is due to automatic injection of "-status:deleted"
+      assert_tag_match(all - [flagged, pending], "-status:modqueue status:any")
+      assert_tag_match(all - [pending], "-status:pending status:any")
+      assert_tag_match(all - [flagged], "-status:flagged status:any")
+
       assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
       assert_tag_match(all - [deleted, pending], "-status:pending")
       assert_tag_match(all - [deleted, flagged], "-status:flagged")
@@ -2030,18 +2034,63 @@ class PostTest < ActiveSupport::TestCase
 
     context "With Groups: " do
       setup do
-        @post1 = create(:post, tag_string: "aaa")
-        @post2 = create(:post, tag_string: "aaa bbb")
-        @post3 = create(:post, tag_string: "bbb ccc")
-        @post4 = create(:post, tag_string: "ccc ddd")
-        @post5 = create(:post, tag_string: "aaa ddd")
+        @post1_a = create(:post, tag_string: "a_a aaa")
+        @post2_a = create(:post, tag_string: "aaa bbb")
+        @post3_a = create(:post, tag_string: "bbb ccc")
+        @post4_a = create(:post, tag_string: "ccc ddd")
+        @post5_a = create(:post, tag_string: "aaa ddd")
+        @post1_d = create(:post, tag_string: "a_a aaa", is_deleted: true)
+        @post2_d = create(:post, tag_string: "aaa bbb", is_deleted: true)
+        @post3_d = create(:post, tag_string: "bbb ccc", is_deleted: true)
+        @post4_d = create(:post, tag_string: "ccc ddd", is_deleted: true)
+        @post5_d = create(:post, tag_string: "aaa ddd", is_deleted: true)
+        @post1_f = create(:post, tag_string: "a_a aaa", is_flagged: true, is_deleted: true)
+        @post2_f = create(:post, tag_string: "aaa bbb", is_flagged: true)
+        @post3_f = create(:post, tag_string: "bbb ccc", is_flagged: true)
+        @post4_f = create(:post, tag_string: "ccc ddd", is_flagged: true)
+        @post5_f = create(:post, tag_string: "aaa ddd", is_flagged: true)
+        @post1_p = create(:post, tag_string: "a_a aaa", is_pending: true, is_deleted: true)
+        @post2_p = create(:post, tag_string: "aaa bbb", is_pending: true)
+        @post3_p = create(:post, tag_string: "bbb ccc", is_pending: true)
+        @post4_p = create(:post, tag_string: "ccc ddd", is_pending: true)
+        @post5_p = create(:post, tag_string: "aaa ddd", is_pending: true)
       end
       should "return posts" do
-        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd )")
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) -status:deleted")
+      end
+      # TODO: Add nested groups
+      should "return posts with proper status:deleted handling" do
+        # Auto Added - no interference
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd )")
+        # Auto Added - status:flagged
+        assert_tag_match([@post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:flagged")
+        # Auto Added - status:pending
+        assert_tag_match([@post3_p], "~( aaa -bbb ) ~ccc -( ddd ) status:pending")
+        # Auto Added - status:modqueue
+        assert_tag_match([@post3_p, @post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:modqueue")
+        # Removed - top level, active
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) -status:active")
+        # Removed - top level, deleted
+        assert_tag_match([@post1_p, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) status:deleted")
+        # Removed - top level, any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) status:any")
+        # NESTED
+        # Added - flagged
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:flagged ) ~ccc -( ddd )")
+        # Added - pending
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:pending ) ~ccc -( ddd )")
+        # Added - modqueue
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:modqueue ) ~ccc -( ddd )")
+        # Removed - active
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # Removed - deleted
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb status:deleted ) ~ccc -( ddd )")
+        # Removed - any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb status:any ) ~ccc -( ddd )")
       end
       should "return posts for a grouped tag search with proper global metatag hoisting" do
-        assert_tag_match([@post1, @post3], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
-        assert_tag_match([@post3, @post1], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
+        assert_tag_match([@post1_a, @post3_a, @post3_f, @post3_p], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
       end
     end
   end
