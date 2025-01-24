@@ -1,4 +1,4 @@
-.post-gallery {
+.post-index {
   display: grid;
 
   grid-template-areas:
@@ -9,6 +9,7 @@
   grid-template-rows: min-content 1fr min-content;
   gap: 1rem;
 
+  // 1. Searchbox
   .search {
     grid-area: search;
 
@@ -16,22 +17,36 @@
       font-size: $h3-size;
     }
   }
-  .sidebar {
-    grid-area: sidebar;
-    display:  none;
 
-    h1 {
-      font-size: $h3-size;
-    }
-  }
+  // 2. Content
   .content {
     grid-area: content;
+
+    // Quick tag edit
+    #edit-dialog textarea {
+      margin-bottom: 0.25em;
+    }
+  }
+
+  // 3. Sidebar
+  .sidebar {
+    grid-area: sidebar;
+
+    h1 {
+      // TODO Just replace them with h3
+      font-size: $h3-size;
+    }
+
+    // Mode selection
+    #mode-box-mode, #mode-box #set-id {
+      width: 100%;
+    }
   }
 }
 
 
 // Desktop
-.post-gallery {
+.post-index {
   @include window-larger-than(800px) {
     grid-template-areas:
       "search  content" 
