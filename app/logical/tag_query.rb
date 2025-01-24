@@ -663,7 +663,7 @@ class TagQuery
       # IDEA: Check if checking and only sifting through grouped tags is substantively faster than sifting through all of them
       tags = recurse_through_metatags(tags.join(" "), *metatags)
     end
-    return {} unless tags
+    return {} unless tags.presence
     ret_val = {}
     tags.each do |tag|
       metatag_name, value = tag.split(":", 2)

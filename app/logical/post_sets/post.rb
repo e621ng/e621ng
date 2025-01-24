@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 module PostSets
+  # `initialize(tags, page = 1, limit: nil, random: nil)`:
+  # * `tags`
+  # * `page` [`1`]
+  # * `limit` [`nil`]
+  # * `random` [`nil`]
   class Post < PostSets::Base
     attr_reader :tag_array, :public_tag_array, :page, :limit, :random, :post_count
 

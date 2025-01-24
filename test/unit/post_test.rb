@@ -1516,7 +1516,6 @@ class PostTest < ActiveSupport::TestCase
     end
   end
 
-  # TODO: Add tests for groups; adapt from tag_query_test?
   context "Searching:" do
     should "return posts for the age:<1minute tag" do
       post = create(:post)
@@ -1757,10 +1756,11 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # Inconsistency is due to automatic injection of "-status:deleted"
-      assert_tag_match(all - [flagged, pending], "-status:modqueue status:any")
-      assert_tag_match(all - [pending], "-status:pending status:any")
-      assert_tag_match(all - [flagged], "-status:flagged status:any")
+      # Percieved inconsistency is due to automatic injection of "-status:deleted" in
+      # ElasticPostQueryBuilder; adding `status:any` disables this.
+      assert_tag_match(all - [flagged, pending], "status:any -status:modqueue")
+      assert_tag_match(all - [pending], "status:any -status:pending")
+      assert_tag_match(all - [flagged], "status:any -status:flagged")
 
       assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
       assert_tag_match(all - [deleted, pending], "-status:pending")
@@ -2058,21 +2058,20 @@ class PostTest < ActiveSupport::TestCase
       should "return posts" do
         assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) -status:deleted")
       end
-      # TODO: Add nested groups
       should "return posts with proper status:deleted handling" do
-        # Auto Added - no interference
+        # Added - no interference
         assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd )")
-        # Auto Added - status:flagged
+        # Added - flagged
         assert_tag_match([@post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:flagged")
-        # Auto Added - status:pending
+        # Added - pending
         assert_tag_match([@post3_p], "~( aaa -bbb ) ~ccc -( ddd ) status:pending")
-        # Auto Added - status:modqueue
+        # Added - modqueue
         assert_tag_match([@post3_p, @post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:modqueue")
-        # Removed - top level, active
+        # Removed - active
         assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) -status:active")
-        # Removed - top level, deleted
+        # Removed - deleted
         assert_tag_match([@post1_p, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) status:deleted")
-        # Removed - top level, any
+        # Removed - any
         assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) status:any")
         # NESTED
         # Added - flagged

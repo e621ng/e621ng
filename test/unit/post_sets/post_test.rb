@@ -73,8 +73,8 @@ module PostSets
           assert_nil(set.limit)
         end
         should "take the limit from a nested group" do
-          set = PostSets::Post.new("~( aaa -bbb ) ~ccc -( ddd limit:1 )", 1)
-          assert_equal("1", set.limit)
+          set = PostSets::Post.new("~( aaa -bbb ) ~ccc -( ddd limit:333 )", 1)
+          assert_equal("333", set.limit)
         end
       end
     end

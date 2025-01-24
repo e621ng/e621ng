@@ -8,7 +8,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   }.freeze
 
   # Used to determine if a grouped search that wouldn't automatically filter out deleted searches
-  # will force other grouped searches to not automatically filter out deleted searches.
+  # will force other grouped searches to not automatically filter out deleted searches. (i.e. if the
+  # `-status:deleted` filter is toggled off globally or only on descendants & ancestors).
   GLOBAL_DELETED_FILTER = true
 
   ERROR_ON_DEPTH_EXCEEDED = true
@@ -69,14 +70,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(groups[:should].map(&cb).compact)
   end
 
-  def self.should_hide_deleted_posts?(query, always_show_deleted: false)
-    return false if always_show_deleted
-    TagQuery.should_hide_deleted_posts?(query)
-  end
-
   def hide_deleted_posts?
-    return false if @query_always_show_deleted
-    q.hide_deleted_posts?(always_show_deleted: @always_show_deleted)
+    return false if @always_show_deleted || @query_always_show_deleted
+    q.hide_deleted_posts?
   end
 
   def build
