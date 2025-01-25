@@ -3,7 +3,7 @@
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Favorites", :tags => "fav:#{@user.name} " %>
-      <div style="color:darkorange;margin-bottom:0.5rem;">Searching favorites does not preserve the order they were added in.<br/></div>
+      <div style="color: darkorange;">Searching favorites does not preserve the order in which they were added.<br/></div>
     </div>
 
     <div class="sidebar">
@@ -30,16 +30,6 @@
       <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
       <%= render "posts/partials/index/edit" %>
       <%= render "posts/partials/index/posts", :post_set => @post_set %>
-
-      <hr />
-
-
-      <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-        <section class="posts-container">
-          <%= @post_set.presenter.post_previews_html(self) %>
-        </section>
-        <%= numbered_paginator(@post_set.posts) %>
-      </div>
     </div>
 
   </div>
