@@ -13,11 +13,12 @@ module PostSets
       super()
       tags ||= ""
       @public_tag_array = TagQuery.scan_search(tags)
-      tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, *%w[status -status delreason -delreason ~delreason deletedby -deletedby ~deletedby], recurse: true)
-      @tag_array = TagQuery.scan_search(tags)
+      @tag_array = @public_tag_array.dup
+      @tag_array << "rating:s" if CurrentUser.safe_mode?
+      @tag_array << "-status:deleted" if TagQuery.should_hide_deleted_posts?(tags, at_any_level: true)
       @page = page
-      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")
+      # limit should have been hoisted by scan_search
+      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit", recurse: false)
       @random = random.present?
     end
 
