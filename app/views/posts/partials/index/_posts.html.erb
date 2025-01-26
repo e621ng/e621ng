@@ -1,4 +1,12 @@
-<div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
+<div id="posts" class="post-index-gallery user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
+  <% if @wiki_text.present? %>
+    <section class="wiki-excerpt hidden">
+      <h3><%= @wiki_page.pretty_title %></h3>
+      <a href="" class="wiki-excerpt-toggle" role="button"></a>
+      <%= format_text(@wiki_text, allow_color: true, max_thumbs: 0) %>
+      <a href="<%= wiki_page_path(@wiki_page) %>" class="wiki-excerpt-readmore"><span>Read More</span></a>
+    </section>
+  <% end %>
   <section class="posts-container">
     <% if @posts.empty? %>
       <%= render "posts/blank" %>

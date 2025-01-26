@@ -15,9 +15,22 @@ class PostsController < ApplicationController
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
+
+      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      if @query.length == 1
+        @wiki_page = WikiPage.titled(@query[0])
+        @wiki_text = @wiki_page.present? ? @wiki_page.body : ""
+        if @wiki_text.present?
+          @wiki_text = @wiki_text
+                       .gsub(/thumb #\d+ ?/, "")
+                       .strip
+                       .truncate(512)
+        end
+      end
+
       respond_with(@posts) do |format|
         format.json do
-          render json: @post_set.api_posts, root: 'posts'
+          render json: @post_set.api_posts, root: "posts"
         end
         format.atom
       end
