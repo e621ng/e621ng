@@ -61,6 +61,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         always_show_deleted: asd_cache,
         error_on_depth_exceeded: @error_on_depth_exceeded,
         depth: @depth + 1,
+        hoisted_metatags: nil,
       )
       @always_show_deleted ||= !temp.hide_deleted_posts? unless GLOBAL_DELETED_FILTER
       temp.create_query_obj(return_nil_if_empty: false)

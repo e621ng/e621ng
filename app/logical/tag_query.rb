@@ -748,7 +748,7 @@ class TagQuery
   # * `process_groups` [`false`]: Recursively handle groups?
   # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
   def parse_query(query, process_groups: false, error_on_depth_exceeded: false, depth: 0, **kwargs)
-    TagQuery.scan_search(query, error_on_depth_exceeded: error_on_depth_exceeded, depth_limit: TagQuery::DEPTH_LIMIT - depth).each do |token| # rubocop:disable Metrics/BlockLength
+    TagQuery.scan_search(query, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth, **kwargs).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
       if (match = /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token))
         group = match[2]
