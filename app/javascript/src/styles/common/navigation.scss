@@ -172,19 +172,28 @@ nav.navigation {
     li {
       padding: 0;
 
-      &.nav-help-discord { grid-column: 1 / -1; }
+      &.nav-help-discord,
+      &.nav-help-subscribestar {
+        grid-column: 1 / -1;
+      }
 
       & > a {
-        display: block;
+        display: flex;
 
         background: themed("color-section-darken-5");
         border-radius: 6px;
         
         font-size: 125%;
         padding: 0.5rem 1rem;
-        text-align: center;
 
-        i { color: themed("color-link-active"); }
+        justify-content: center;
+        align-items: center;
+        gap: 0.25em;
+
+        img {
+          height: 1.25em;
+          margin: -0.5em 0;
+        }
       }
     }
   }
@@ -351,11 +360,10 @@ nav.navigation, body.nav-toggled nav.navigation {
       }
     }
     .nav-help {
-      overflow: hidden;
+      li a img { display: none; }
 
       li.current a {
         background-color: themed("color-foreground");
-        i { display: none; }
       }
     }
 
