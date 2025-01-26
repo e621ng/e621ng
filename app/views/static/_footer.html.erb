@@ -16,5 +16,6 @@
       <%= link_to "Keyboard Shortcuts", keyboard_shortcuts_path %>
     <% end %>
     <%= link_to disable_mobile_mode? ? "Mobile mode: OFF": "Mobile mode: ON", disable_mobile_mode_path, :rel => "nofollow" %>
+    <%= link_to "##{GitHelper.short_hash}", GitHelper.commit_url(GitHelper.hash) %>
   </span>
 </footer>

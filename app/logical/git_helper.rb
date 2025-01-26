@@ -11,6 +11,10 @@ module GitHelper
     end
   end
 
+  def self.hash
+    @hash
+  end
+
   def self.short_hash
     @hash[0..8]
   end
