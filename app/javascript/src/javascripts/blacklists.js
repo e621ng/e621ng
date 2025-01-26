@@ -1,6 +1,7 @@
 import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
 import Utility from "./utility";
+import Page from "./utility/page";
 import LStorage from "./utility/storage";
 
 let Blacklist = {};
@@ -235,7 +236,7 @@ $(() => {
   // Pause videos when blacklisting
   // This seems extraordinarily uncommon, so it's here
   // just for feature parity with the old blacklist.
-  if ($("#c-posts #a-show").length > 0) return;
+  if (!Page.matches("posts", "show")) return;
   let container = $("#image-container[data-file-ext='webm']").on("blk:hide", () => {
     const video = container.find("video");
     if (!video.length) return;
