@@ -38,9 +38,6 @@ class UserFeedback < ApplicationRecord
 
     def log_destroy
       ModAction.log(:user_feedback_destroy, { user_id: user_id, reason: body, type: category, record_id: id })
-      deletion_user = "\"#{CurrentUser.name}\":/users/#{CurrentUser.id}"
-      creator_user = "\"#{creator.name}\":/users/#{creator.id}"
-      StaffNote.create(body: "#{deletion_user} deleted #{category} feedback, created #{created_at.to_date} by #{creator_user}: #{body}", user_id: user_id, creator: User.system)
     end
   end
 
