@@ -863,6 +863,7 @@ class Post < ApplicationRecord
       end
     end
 
+    # Only called by `StuckDnpController`
     def fetch_tags(*tags_to_find, recurse: false, error_on_depth_exceeded: false)
       if recurse
         TagQuery.fetch_tags(tags_to_find, *tag_array, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)

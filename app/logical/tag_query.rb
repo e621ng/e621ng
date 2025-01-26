@@ -98,9 +98,9 @@ class TagQuery
   # * `resolve_aliases` [`true`]
   # * `free_tags_count` [`0`]
   # * `return_with_count_exceeded` [`false`]
-  # * `error_on_depth_exceeded` [`true`]
+  # * `error_on_depth_exceeded` [`false`]
   # * `process_groups` [`false`]
-  # * `depth` [`1`]
+  # * `depth` [`0`]
   def initialize(
     query,
     resolve_aliases: true,
@@ -248,7 +248,7 @@ class TagQuery
   # * Removes duplicates at that group's top level
   # Then, if `flatten`, Joins into a unified string
   def self.normalize_search(query, flatten: true)
-    tags = scan_recursive(
+    tags = TagQuery.scan_recursive(
       query,
       flatten: flatten,
       strip_duplicates_at_level: true,
@@ -677,7 +677,7 @@ class TagQuery
   end
 
   def self.has_tag?(source_array, *, recurse: true, error_on_depth_exceeded: false)
-    fetch_tags(source_array, *, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded).any?
+    TagQuery.fetch_tags(source_array, *, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded).any?
   end
 
   def self.fetch_tags(source_array, *tags_to_find, recurse: true, error_on_depth_exceeded: false)
@@ -685,7 +685,7 @@ class TagQuery
       source_array.flat_map do |e|
         temp = (e.respond_to?(:join) ? e.join(" ") : e.to_s).strip
         if temp.match(/\A[-~]?\(\s.*\s\)\z/)
-          scan_recursive(
+          TagQuery.scan_recursive(
             temp,
             strip_duplicates_at_level: true,
             delimit_groups: false,
@@ -705,7 +705,7 @@ class TagQuery
 
   def self.ad_tag_string(tag_array)
     if (i = tag_array.index { |v| v == "(" }) && i < (tag_array.index { |v| v == ")" } || -1)
-      tag_array = scan_recursive(
+      tag_array = TagQuery.scan_recursive(
         tag_array.join(" "),
         strip_duplicates_at_level: false,
         delimit_groups: false,
@@ -716,7 +716,7 @@ class TagQuery
         normalize_at_level: false,
       )
     end
-    fetch_tags(tag_array, *Danbooru.config.ads_keyword_tags).join(" ")
+    TagQuery.fetch_tags(tag_array, *Danbooru.config.ads_keyword_tags).join(" ")
   end
 
   private_class_method def self.normalize_single_tag(tag)

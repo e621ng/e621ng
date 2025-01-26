@@ -43,7 +43,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
-  ##
   # Adds the grouped subsearches to the query.
   #
   # NOTE: Has the hidden side-effect of updating `always_show_deleted` with each subsearches'
