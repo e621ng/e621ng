@@ -243,18 +243,18 @@ class TagQuery
   #   * Converts to lowercase
   #   * Removes leading & trailing whitespace
   #   * Converts interior whitespace to underscores
-  #   * Resolves tag aliases
+  #   * Resolves tag aliases (if `normalize_tags`)
   # * Sorts
   # * Removes duplicates at that group's top level
   # Then, if `flatten`, Joins into a unified string
-  def self.normalize_search(query, flatten: true)
+  def self.normalize_search(query, normalize_tags: true, flatten: true)
     tags = TagQuery.scan_recursive(
       query,
       flatten: flatten,
       strip_duplicates_at_level: true,
       strip_prefixes: false,
       sort_at_level: true,
-      normalize_at_level: true,
+      normalize_at_level: normalize_tags,
     )
     flatten ? tags.join(" ") : tags
   end
