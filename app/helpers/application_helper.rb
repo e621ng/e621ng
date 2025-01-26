@@ -8,7 +8,6 @@ module ApplicationHelper
     cookies[:nmm].present?
   end
 
-
   def diff_list_html(new, old, latest)
     diff = SetDiff.new(new, old, latest)
     render "diff_list", diff: diff
@@ -26,6 +25,24 @@ module ApplicationHelper
     tag.li(id: id, class: klass) do
       link_to(url, id: "#{id}-link", **options) do
         concat tag.i(class: icon)
+        concat " "
+        concat tag.span(text)
+      end
+    end
+  end
+
+  def custom_image_nav_link_to(text, image, url, **options)
+    klass = options.delete(:class)
+
+    if nav_link_match(params[:controller], url)
+      klass = "#{klass} current"
+    end
+
+    id = "nav-#{text.downcase.gsub(/[^a-z ]/, '').parameterize}"
+
+    tag.li(id: id, class: klass) do
+      link_to(url, id: "#{id}-link", **options) do
+        concat image_pack_tag(image)
         concat " "
         concat tag.span(text)
       end

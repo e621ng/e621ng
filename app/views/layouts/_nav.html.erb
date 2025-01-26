@@ -42,8 +42,9 @@
 
   <menu class="nav-help <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
     <% if !CurrentUser.is_anonymous? %>
-      <%= nav_link_to("Discord", discord_get_path, class: "nav-help-discord") %>
+      <%= custom_image_nav_link_to("Discord", "discord.com.png", discord_get_path, class: "nav-help-discord") %>
     <% end %>
+    <%= custom_image_nav_link_to("Subscribestar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar") %>
     <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
     <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
     <%= nav_link_to("More", site_map_path, class: "nav-help-map") %>
