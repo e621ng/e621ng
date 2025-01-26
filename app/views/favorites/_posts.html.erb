@@ -4,7 +4,7 @@
       <%= render "posts/blank" %>
     <% else %>
       <% @posts.each do |post| %>
-        <%= post.preview_html(self, {tags: @post_set.public_tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
+        <%= post.preview_html(self, { tags: @post_set.public_tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
       <% end %>
     <% end %>
   </section>
@@ -15,7 +15,7 @@
         <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "e621", "https://e621.net/" %> or disable safe mode to view (<%= link_to "learn more", help_page_path(id: "user_settings") %>).<br>
       <% end %>
       <% if post_set.login_blocked_posts.present? %>
-        <%= post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: 'global_blacklist') %>
+        <%= post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: "global_blacklist") %>
       <% end %>
     </div>
   <% end %>
