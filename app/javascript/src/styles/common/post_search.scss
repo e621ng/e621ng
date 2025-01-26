@@ -1,0 +1,55 @@
+// Searchbar
+.post-search {
+  display: flex;
+  flex-wrap: wrap;
+
+  .post-search-title { flex: 1; }
+  .post-search-help { font-size: 90%; }
+
+  form.post-search-form {
+    display: flex;
+    width: 100%;
+
+    textarea {
+
+      // Override default texarea styles
+      font-family: Verdana, sans-serif;
+      font-size: 1.05em;
+
+      // Remove old styles from z_responsive
+      vertical-align: unset;
+      border: unset;
+      width: unset;
+      max-width: unset;
+
+      // Override style from posts.scss
+      margin-bottom: 0 !important;
+
+      // Disable manual resizing
+      resize: none;
+
+      flex: 1;
+      padding: 0.5em;
+
+      border-radius: 3px 0 0 3px;
+      box-sizing: border-box;
+
+      &:focus, &:focus + button[type="submit"] { background: #FFC; }
+    }
+
+    button[type="submit"] {
+
+      // Remove old styles from z_responsive
+      font-size: unset;
+      max-width: unset;
+
+      font-size: 1em;
+      padding: 0.5em;
+
+      border-radius: 0 3px 3px 0;
+      background: white;
+
+      span { display: none; }
+    }
+  }
+}

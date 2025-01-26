@@ -1,46 +1,33 @@
-<div id="c-posts">
-  <div id="a-index">
-    <aside id="sidebar">
-      <%= render "posts/partials/common/search", :path => posts_path, :tags => params[:tags], :tags_dom_id => "tags" %>
+<div id="c-posts"><div id="a-index">
+  <div class="post-index">
 
+    <div class="search">
+      <%= render "posts/partials/common/search", title: "Posts", tags: params[:tags] %>
+    </div>
+
+    <div class="sidebar">
       <% if CurrentUser.is_member? %>
         <%= render "posts/partials/index/mode_menu" %>
       <% end %>
-
       <%= render "posts/partials/index/blacklist" %>
 
       <section id="tag-box">
-        <h1>Tags</h1>
+        <h3>Tags</h3>
         <!-- TODO: Lock off these extra items? -->
         <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
       </section>
 
       <%= render "posts/partials/index/related" %>
-    </aside>
+    </div>
 
-    <section id="content">
+    <div class="content">
       <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
-
-      <!-- TODO: Fix tag array with forced -status:deleted -->
-
-      <div class="mobile-search">
-        <%= link_to "(search help)", help_page_path(id: "cheatsheet"), class: 'search-help' %>
-        <div class="search-form">
-          <%= form_tag(posts_path, :method => "get") do %>
-            <% if params[:random] %>
-              <%= hidden_field_tag :random, params[:random] %>
-            <% end %>
-            <div class="search-input"><%= text_field_tag("tags", params[:tags], :id => "mobile-search-input", :"data-autocomplete" => "tag-query") %></div>
-            <div class="search-button"><%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %></div>
-          <% end %>
-        </div>
-      </div>
-
       <%= render "posts/partials/index/edit" %>
       <%= render "posts/partials/index/posts", :post_set => @post_set %>
-    </section>
+    </div>
+
   </div>
-</div>
+</div></div>
 
 
 <%= render "posts/partials/common/secondary_links" %>
