@@ -67,22 +67,6 @@
       }
     }
 
-    div#page aside#sidebar {
-      padding: 5px;
-
-      input#tags {
-        width: 80%;
-      }
-
-      button[type=submit] {
-        font-size: 1.2em;
-        background-color: #EEE;
-        height: 42px;
-        padding: 2px 10px;
-        border: 1px solid rgb(197, 197, 197);
-      }
-    }
-
     div#page {
 
       > div /* div#c-$controller */
