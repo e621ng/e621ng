@@ -19,25 +19,28 @@ PostSearch.initialize_input = function ($form) {
 
   // Adjust the number of rows based on input length
   $textarea
-    .on("input", () => {
-      $textarea.css("height", 0);
-      $textarea.css("height", element.scrollHeight + "px");
-    })
+    .on("input", recalculateInputHeight)
     .on("keypress", function (event) {
       if (event.which !== 13 || event.shiftKey) return;
       event.preventDefault();
       $textarea.closest("form").submit();
     });
 
+  $(window).on("resize", recalculateInputHeight);
+
   // Reset default height
-  $textarea.trigger("input");
+  recalculateInputHeight();
+
+  function recalculateInputHeight () {
+    $textarea.css("height", 0);
+    $textarea.css("height", element.scrollHeight + "px");
+  }
 };
 
 PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
   if (visible)
     $preview.removeClass("hidden");
-  console.log("init", visible);
 
   $($preview.find("a.wiki-excerpt-toggle")).on("click", (event) => {
     event.preventDefault();
@@ -45,7 +48,6 @@ PostSearch.initialize_wiki_preview = function ($preview) {
     visible = !visible;
     $preview.toggleClass("hidden", !visible);
     LStorage.Posts.WikiExcerpt = visible;
-    console.log("state", visible);
 
     return false;
   });
