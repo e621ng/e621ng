@@ -28,8 +28,20 @@ module PostSets
       end
     end
 
+    def has_explicit?
+      !CurrentUser.safe_mode?
+    end
+
     def hidden_posts
       @hidden_posts ||= posts.reject(&:visible?)
+    end
+
+    def login_blocked_posts
+      @login_blocked_posts ||= posts.select(&:loginblocked?)
+    end
+
+    def safe_posts
+      @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
     end
 
     def api_posts
