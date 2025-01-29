@@ -348,6 +348,12 @@ nav.navigation, body.nav-toggled nav.navigation {
     }
 
     .nav-tools {
+
+      // Otherwise help gets layered above it
+      // When the viewport is narrow (but not mobile)
+      z-index: 1;
+      background: var(--color-background);
+
       li {
         a {
           i { color: themed("color-link"); }
