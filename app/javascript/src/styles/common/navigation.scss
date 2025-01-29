@@ -20,6 +20,9 @@ nav.navigation {
     a.nav-logo-link {
       display: flex;
 
+      // Height: 3.75rem
+      // - padding  0.25 * 2 = 0.5
+      // - image               3.25
       height: 3.25rem;
       width: 3.25rem;
       margin: 0.25rem;
@@ -42,6 +45,12 @@ nav.navigation {
     font-size: 1.15rem;
     padding-right: 0.5em;
     background-color: themed("color-background");
+
+    //   Height: 3.75rem
+    // - wrapper padding  0.875 * 2 = 1.75
+    // - link padding     0.25  * 2 = 0.5
+    // - font size                    1.5
+    padding: 0.875rem;
 
     & > a {
       display: flex;
@@ -123,6 +132,11 @@ nav.navigation {
       form input[type="text"] {
         width: 100%;
         box-sizing: border-box;
+
+        // Reduced font size to make the search
+        // box less claustrophobic
+        font-size: 1em;
+        padding: 0.25em 0.5em;
       }
     }
   }
@@ -220,7 +234,7 @@ body[data-th-sheader="true"] nav.navigation {
 
 // Mobile toggle
 body.nav-toggled {
-  padding-top: 4rem;
+  padding-top: 3.75rem;
 
   nav.navigation {
     grid-template-areas:
