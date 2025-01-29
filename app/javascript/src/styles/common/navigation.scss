@@ -103,6 +103,10 @@ nav.navigation {
     background-color: themed("color-foreground");
     font-size: 1.35em;
 
+    // Prevent the tools / help buttons from being pushed
+    // way too low on pages with a lot of secondary links
+    overflow: scroll;
+
     li {
       padding: 0;
       a {
