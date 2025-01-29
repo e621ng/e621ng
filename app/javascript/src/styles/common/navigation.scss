@@ -81,6 +81,9 @@ nav.navigation {
         border-bottom: 1px solid themed("color-foreground");
         padding: 0.5em;
 
+        // "Comments" is usually the longest and might wrap
+        white-space: nowrap;
+
         i {
           width: 1.5rem;
           color: themed("color-link-active");
