@@ -31,7 +31,7 @@ PostSearch.initialize_input = function ($form) {
   // Reset default height
   recalculateInputHeight();
 
-  function recalculateInputHeight() {
+  function recalculateInputHeight () {
     $textarea.css("height", 0);
     $textarea.css("height", element.scrollHeight + "px");
   }
