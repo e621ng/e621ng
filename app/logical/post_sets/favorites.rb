@@ -37,7 +37,7 @@ module PostSets
     end
 
     def login_blocked_posts
-      @login_blocked ||= posts.select { |p| p.loginblocked? }
+      @login_blocked_posts ||= posts.select(&:loginblocked?)
     end
 
     def safe_posts
