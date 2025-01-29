@@ -195,6 +195,10 @@ nav.navigation {
           margin: -0.5em 0;
         }
       }
+
+      // Hack to put the wiki/help links before discord/sstar on mobile
+      // but still have "more" at the end on desktop
+      &#nav-more { grid-row: 1; }
     }
   }
 }
