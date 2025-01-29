@@ -1,33 +1,55 @@
 .guest-warning {
   position: fixed;
-  left: 0;
   top: 0;
-  height: 100vh;
-  width: 100vw;
-  z-index: 500;
-  background-color: themed("color-background");
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: center;
+
+  background: themed("color-background");
 
   .guest-warning-dialog {
-    z-index: 500;
-    position: relative;
-    top: 20vh;
-    margin-left: auto;
-    margin-right: auto;
-    height: 40vh;
-    width: 40vw;
-    overflow-x: scroll;
-    background-color: themed("color-section");
+    margin: 20vh 0.5em 0;
+
+    height: min-content;
+    max-width: 360px;
 
     .dialog-header {
-      padding: $padding-050 $base-padding;
-      background-color: themed("color-section-lighten-5");
-      border-bottom: 1px solid themed("color-background");
+      padding: 0 0.5em;
+      margin-bottom: 0.5em;
     }
+
     .dialog-content {
-      padding: $padding-050 $base-padding;
+      background: var(--color-foreground);
+      padding: 2em 1em 1em;
+      border-radius: 3px 3px 0 0;
+
+      p:last-child { margin-bottom: 0; }
     }
+
     .dialog-footer {
-      padding: $padding-050 $base-padding;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+
+      background: var(--color-foreground);
+      padding: 1em 1em 2em;
+      border-radius: 0 0 3px 3px;
+
+      button {
+        background: var(--color-section-lighten-5);
+        color: var(--color-link);
+        padding: 0.5em 1em;
+        border-radius: 3px;
+
+        &:hover {
+          background: var(--color-section-lighten-10);
+          color: var(--color-link-hover);
+        }
+      }
     }
   }
 }
