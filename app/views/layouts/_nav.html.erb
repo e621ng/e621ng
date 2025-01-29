@@ -7,7 +7,8 @@
     <%= render "layouts/main_links" %>
   </menu>
 
-  <menu class="nav-offset"></menu>
+  <menu class="nav-offset-left"></menu>
+  <menu class="nav-offset-bottom"></menu>
 
   <menu class="nav-secondary <%= "empty" unless content_for(:secondary_links) %>">
     <%= yield :secondary_links %>

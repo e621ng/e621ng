@@ -1,8 +1,8 @@
 const Navigation = {};
 
 Navigation.init = function () {
-  const wrapper = $("body");
-  $("#nav-toggle").on("click", (event) => {
+  const wrapper = $("html");
+  $("#nav-toggle, .nav-offset-left, .nav-offset-bottom").on("click", (event) => {
     event.preventDefault();
 
     wrapper.toggleClass("nav-toggled");
