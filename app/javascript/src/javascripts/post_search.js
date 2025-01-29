@@ -37,7 +37,6 @@ PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
   if (visible)
     $preview.removeClass("hidden");
-  console.log("init", visible);
 
   $($preview.find("a.wiki-excerpt-toggle")).on("click", (event) => {
     event.preventDefault();
@@ -45,7 +44,6 @@ PostSearch.initialize_wiki_preview = function ($preview) {
     visible = !visible;
     $preview.toggleClass("hidden", !visible);
     LStorage.Posts.WikiExcerpt = visible;
-    console.log("state", visible);
 
     return false;
   });
