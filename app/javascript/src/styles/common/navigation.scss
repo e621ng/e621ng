@@ -188,6 +188,8 @@ nav.navigation {
         font-size: 125%;
         padding: 0.5rem 1rem;
         text-align: center;
+
+        white-space: nowrap;
   
         i { color: themed("color-link-active"); }
       }
