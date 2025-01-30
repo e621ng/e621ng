@@ -3,6 +3,12 @@ body.c-static.a-home {
   background-color: var(--bg-color);
   background-image: var(--bg-image);
 
+  background-position-y: 3.75rem;
+
+  @include window-larger-than(800px) {
+    background-position-y: unset;
+  }
+
   #page {
     background: none;
     margin: 25rem auto 0;
