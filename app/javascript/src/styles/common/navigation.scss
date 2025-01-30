@@ -413,10 +413,6 @@ nav.navigation, html.nav-toggled nav.navigation {
       z-index: 1;
       background: var(--color-background);
 
-      // At small resolutions, overflow can
-      // cause scrollbars to appear
-      overflow: hidden;
-
       li {
         a {
           i { color: themed("color-link"); }
@@ -427,12 +423,32 @@ nav.navigation, html.nav-toggled nav.navigation {
           a span { display: none; }
         }
       }
+
+      #nav-themes, #nav-settings { display: none; }
+      @include window-larger-than(875px) {
+        #nav-themes, #nav-settings { display: flex; }
+      }
+      
+      #nav-account span { display: none; }
+      @include window-larger-than(930px) {
+        #nav-account span { display: unset; }
+      }
     }
     .nav-help {
+
+      // At small resolutions, overflow can
+      // cause scrollbars to appear
+      overflow: hidden;
+
       li a img { display: none; }
 
       li.current a {
         background-color: themed("color-foreground");
+      }
+
+      #nav-discord, #nav-subscribestar { display: none; }
+      @include window-larger-than(1150px) {
+        #nav-discord, #nav-subscribestar { display: flex; }
       }
     }
 
