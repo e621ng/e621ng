@@ -329,10 +329,9 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li {
         display: flex;
+        align-items: center;
 
         a {
-          align-content: center;
-
           border-bottom: 0;
           padding: 0 0.75em;
           i { display: none; }
@@ -358,10 +357,9 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li {
         display: flex;
+        align-items: center;
 
         a {
-          align-content: center;
-
           border-bottom: 0;
           padding: 0 0.75em;
           white-space: nowrap;
@@ -394,10 +392,9 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li {
         display: flex;
+        align-items: center;
 
         a {
-          align-content: center;
-
           background: unset;
           font-size: 1.05em;
           padding: 0 0.75em;
