@@ -57,6 +57,8 @@ nav.navigation {
       background: themed("color-foreground");
       border-radius: 6px;
 
+      white-space: nowrap;
+
       & > i {
         font-size: 1.5rem;
         color: themed("color-link-active");
