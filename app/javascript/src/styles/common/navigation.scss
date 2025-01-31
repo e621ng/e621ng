@@ -462,14 +462,23 @@ nav.navigation, html.nav-toggled nav.navigation {
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
   @include window-larger-than(800px) {
+
     nav.navigation {
+
+      // Center and align the navbar
       grid-template-columns: repeat(4, min-content);
       justify-content: center;
+
+      // Remove padding to prevent a scrollbar
+      // at low desktop resolutions
+      padding: 0 0 0.5em;
 
       #nav-subscribestar, #nav-discord, #nav-themes, #nav-settings {
         display: none;
       }
     }
+
+    // Match the background colors
     nav.navigation, menu.nav-logo, menu.nav-secondary {
       background: unset;
     }
