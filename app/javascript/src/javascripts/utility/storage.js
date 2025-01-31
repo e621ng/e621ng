@@ -65,6 +65,9 @@ LStorage.Theme = {
 
   /** @returns {boolean} True if the sticky header is enabled */
   StickyHeader: ["theme-sheader", false],
+
+  /** @returns {boolean} True if the forum notification dot is enabled */
+  ForumNotif: ["theme-forumnotif", false],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 

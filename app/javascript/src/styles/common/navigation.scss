@@ -104,22 +104,6 @@ nav.navigation {
       }
 
       &.current a { background-color: themed("color-foreground"); }
-      &.forum-updated {
-        position: relative;
-
-        &::after {
-          content: "";
-          width: 6px;
-          height: 6px;
-          border-radius: 3px;
-
-          background: var(--palette-text-red);
-
-          position: absolute;
-          right: 0.2em;
-          top: 1em;
-        }
-      }
     }
   }
 
@@ -255,6 +239,28 @@ body[data-th-sheader="true"] nav.navigation {
 }
 
 
+// Forum notification
+body[data-th-forumnotif="true"] nav.navigation .nav-primary li.forum-updated {
+  position: relative;
+
+  &::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+
+    background: var(--palette-text-red);
+
+    position: absolute;
+    right: 0.2em;
+    top: 1em;
+  
+    @include window-larger-than(800px) {
+      top: 0.2em;
+    }
+  }
+}
+
 // Mobile toggle
 html.nav-toggled {
 
@@ -332,10 +338,6 @@ nav.navigation, html.nav-toggled nav.navigation {
           border-bottom: 0;
           padding: 0 0.75em;
           i { display: none; }
-        }
-
-        &.forum-updated::after {
-          top: 0.2em;
         }
       }
     }
