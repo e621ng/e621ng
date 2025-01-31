@@ -7,49 +7,13 @@ class TagQuery
     end
   end
 
-  class CountExceededWithDataError < CountExceededError
-    delegate :[], :include?, to: :@q
-    attr_reader :q, :resolve_aliases, :tag_count
-
-    def initialize(
-      msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
-      query_obj:,
-      resolve_aliases:,
-      tag_count:
-    )
-      @q = query_obj
-      @resolve_aliases = resolve_aliases
-      @tag_count = tag_count
-      super(msg)
-    end
-  end
-
   class DepthExceededError < StandardError
     def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time")
       super(msg)
     end
   end
 
-  class DepthExceededWithDataError < DepthExceededError
-    delegate :[], :include?, to: :@q
-    attr_reader :q, :resolve_aliases, :tag_count
-
-    def initialize(
-      msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time",
-      query_obj:,
-      resolve_aliases:,
-      tag_count:
-    )
-      @q = query_obj
-      @resolve_aliases = resolve_aliases
-      @tag_count = tag_count
-      super(msg)
-    end
-  end
-
-  COUNT_METATAGS = %w[
-    comment_count
-  ].freeze
+  COUNT_METATAGS = %w[comment_count].freeze
 
   BOOLEAN_METATAGS = %w[
     hassource hasdescription isparent ischild inpool pending_replacements artverified
@@ -62,6 +26,15 @@ class TagQuery
     commenter comm noter noteupdater
   ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" }).freeze
 
+  # OPTIMIZE: Check what's best
+  # Should avoid additional array allocations
+  # METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
+  #   NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
+  # ).freeze
+  # Should guarentee at most 1 resize
+  # METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].push(
+  #   *NEGATABLE_METATAGS, *COUNT_METATAGS, *BOOLEAN_METATAGS
+  # ).freeze
   METATAGS = (%w[
     md5 order limit child randseed ratinglocked notelocked statuslocked
   ] + NEGATABLE_METATAGS + COUNT_METATAGS + BOOLEAN_METATAGS).freeze
@@ -86,9 +59,21 @@ class TagQuery
   ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
-  # Therefore, these should be pulled out of groups
-  GLOBAL_METATAGS = %w[
-    order limit randseed
+  # Therefore, these should be pulled out of groups and placed on the top level of searches.
+  GLOBAL_METATAGS = %w[order limit randseed].freeze
+
+  # The values for the `status` metatag that will override the automatic hiding of deleted posts
+  # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
+  # `delreason` metatag.
+  OVERRIDE_DELETED_FILTER_STATUS_VALUES = %w[deleted active any all].freeze
+
+  # The metatags that can override the automatic hiding of deleted posts from search results. Note
+  # that the `status` metatag alone ***does not*** override filtering; it must also have a value
+  # present in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`.
+  OVERRIDE_DELETED_FILTER_METATAGS = %w[
+    status -status
+    delreason -delreason ~delreason
+    deletedby -deletedby ~deletedby
   ].freeze
 
   delegate :[], :include?, to: :@q
@@ -97,17 +82,9 @@ class TagQuery
   # * `query`
   # * `resolve_aliases` [`true`]
   # * `free_tags_count` [`0`]
-  # * `return_with_count_exceeded` [`false`]
   # * `error_on_depth_exceeded` [`false`]
-  # * `process_groups` [`false`]
   # * `depth` [`0`]
-  def initialize(
-    query,
-    resolve_aliases: true,
-    free_tags_count: 0,
-    return_with_count_exceeded: false,
-    **
-  )
+  def initialize(query, resolve_aliases: true, free_tags_count: 0, **)
     @q = {
       tags: {
         must: [],
@@ -125,42 +102,8 @@ class TagQuery
     @free_tags_count = free_tags_count
 
     parse_query(query, **)
-    if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
-      if return_with_count_exceeded
-        raise CountExceededWithDataError.new(query_obj: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
-      else
-        raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
-      end
-    end
+    raise CountExceededError if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
   end
-
-  # The valid values for the `status` metatag.
-  # * `any`/`all`: Posts in any of the following states
-  # * `pending`: not yet approved
-  # * `flagged`
-  # * `deleted`
-  # * `modqueue`: Either `pending` or `flagged`
-  # * `active`: Not `pending`, `flagged`, nor `deleted`
-  STATUS_VALUES = %w[all any pending flagged modqueue deleted active].freeze
-
-  # The values for the `status` metatag that will override the automatic hiding of deleted posts
-  # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
-  # `delreason` metatag will add an implicit `status:any` metatag.
-  OVERRIDE_DELETED_FILTER_STATUS_VALUES = %w[deleted active any all].freeze
-
-  # The metatags that can override the automatic hiding of deleted posts from search results. Note
-  # that the `status` metatag alone ***does not*** override filtering; it must also have a value
-  # present in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`.
-  OVERRIDE_DELETED_FILTER_METATAGS = %w[
-    status
-    -status
-    delreason
-    -delreason
-    ~delreason
-    deletedby
-    -deletedby
-    ~deletedby
-  ].freeze
 
   # Guesses whether the default behavior to hide deleted posts should be overridden.
   #
@@ -177,11 +120,10 @@ class TagQuery
   # the specified depth; true otherwise.
   def self.should_hide_deleted_posts?(query, always_show_deleted: false, at_any_level: true)
     return false if always_show_deleted
-    fetch_metatags(
-      query,
-      *OVERRIDE_DELETED_FILTER_METATAGS,
-      recurse: at_any_level,
-    ) { |tag, val| return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) }
+    return query.hide_deleted_posts?(at_any_level: at_any_level) if query.is_a?(TagQuery)
+    TagQuery.fetch_metatags(query, *OVERRIDE_DELETED_FILTER_METATAGS, recurse: at_any_level) do |tag, val|
+      return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
+    end
     true
   end
 
@@ -202,13 +144,9 @@ class TagQuery
   #   * `q[:delreason_must_not]`
   #   * `q[:delreason_should]`, or
   # * If `recurse`, any of the subsearches in `q[:groups]` return false from `TagQuery.should_hide_deleted_posts?`
-  def hide_deleted_posts?(always_show_deleted: false, recurse: false)
-    if always_show_deleted ||
-       q[:status]&.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) ||
-       q[:status_must_not]&.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES) ||
-       !q[:deleter].nil? || !q[:deleter_must_not].nil? || !q[:deleter_should].nil? ||
-       !q[:delreason].nil? || !q[:delreason_must_not].nil? || !q[:delreason_should].nil? ||
-       (recurse && (q[:group][:must] + q[:group][:must_not] + q[:group][:should]).any? { |e| !TagQuery.should_hide_deleted_posts?(e) })
+  def hide_deleted_posts?(always_show_deleted: false, at_any_level: false)
+    if always_show_deleted || q[:show_deleted] ||
+       (at_any_level && (q[:groups][:must] + q[:groups][:must_not] + q[:groups][:should]).any? { |e| e.is_a?(TagQuery) ? e.hide_deleted_posts?(at_any_level: true) : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) })
       false
     else
       true
@@ -263,22 +201,22 @@ class TagQuery
   # ## Groups:
   # * `prefix`: -/~, if present
   # * `body`: the tag w/o the leading `prefix` and the trailing whitespace
-  # * `metatag`: if present, the metatag, quoted & unquoted
-  # * `group`: if present, the group, enclosed w/ `(\s+` & `\s)`
-  # * `tag`: if the prior 2 weren't present, the following consecutive non-whitespace characters
+  #   * `metatag`: if present, the metatag, quoted & unquoted
+  #   * `group`: if present, the group, enclosed w/ `(\s+` & `\s)`
+  #     * If this is not empty, `metatag` & `tag` may contain matches from inside this group. On;y
+  # assume a (meta)tag on the top level was matched if this is `nil`.
+  #   * `tag`: if the prior 2 weren't present, the following consecutive non-whitespace characters
   #
-  # Group 0 contains leading whitespace + `prefix` + `body` + trailing whitespace
+  # The full match contains leading whitespace + `prefix` + `body` + trailing whitespace
+  #
+  # If there is a match, one of `metatag`, `group`, or `tag` must be non-nil
+  #
+  # If `metatag`, `group`, or `tag` is non-nil, it must be non-blank.
   TOKENIZE_REGEX = /\G(?>\s*)(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
 
-  # Iterates through tokens, returning each tokens' `MatchData`.
-  def self.match_tokens(
-    tag_str,
-    recurse: false,
-    stop_at_group: false,
-    and_then: nil,
-    **kwargs,
-    &
-  )
+  # Iterates through tokens, returning each tokens' `MatchData` in accordance with
+  # `TagQuery::TOKENIZE_REGEX`.
+  def self.match_tokens(tag_str, recurse: false, stop_at_group: false, and_then: nil, **kwargs, &)
     depth = kwargs.fetch(:depth, 0)
     if depth >= DEPTH_LIMIT
       raise DepthExceededError if kwargs[:error_on_depth_exceeded]
@@ -286,12 +224,15 @@ class TagQuery
     end
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
     results = []
+    # OPTIMIZE: Candidate for early exit
+    # return and_then.respond_to?(:call) ? and_then.call(results) : results if tag_str.blank?
+
     if recurse
       tag_str.scan(TOKENIZE_REGEX) do |_|
         m = Regexp.last_match
-        results << (block_given? ? yield(m) : m) if m[:group].blank? || stop_at_group
-        if (m = m[:group].presence&.match(/\A\(\s+(.*(?<!\s))\s+\)\z/)&.match(1)&.presence)
-          results << match_tokens(m, recurse: recurse, stop_at_group: stop_at_group, depth: depth + 1, **kwargs, &)
+        results << (block_given? ? yield(m) : m) if m[:group] || stop_at_group
+        if (m = m[:group]&.match(/\A\((?>\s+)(.+)(?<=\s)\)\z/)&.match(1)&.rstrip)
+          results.push(*TagQuery.match_tokens(m, **kwargs, recurse: recurse, stop_at_group: stop_at_group, depth: depth + 1, &))
         end
       end
     else
@@ -304,45 +245,13 @@ class TagQuery
     and_then.respond_to?(:call) ? and_then.call(results) : results
   end
 
-  # Iterates through tokens, returning the tokens' string values.
-  def self.scan_tokens(
-    tag_str,
-    recurse: false,
-    stop_at_group: false,
-    and_then: nil,
-    **kwargs,
-    &
-  )
-    depth = kwargs.fetch(:depth, 0)
-    if depth >= DEPTH_LIMIT
-      raise DepthExceededError if kwargs[:error_on_depth_exceeded]
-      return and_then.respond_to?(:call) ? and_then.call([]) : []
-    end
-    tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
-    results = []
-    if recurse
-      tag_str.scan(TOKENIZE_REGEX) do |_|
-        m = Regexp.last_match
-        results << (block_given? ? yield(m[0].strip) : m[0].strip) if m[:group].blank? || stop_at_group
-        if (m = m[:group].presence&.match(/\A\(\s+(.*(?<!\s))\s+\)\z/)&.match(1)&.presence)
-          results << scan_tokens(m, recurse: recurse, stop_at_group: stop_at_group, depth: depth + 1, **kwargs, &)
-        end
-      end
-    else
-      tag_str.scan(TOKENIZE_REGEX) do |m|
-        m = m.is_a?(String) ? m.strip : Regexp.last_match[0].strip
-        results << block_given? ? yield(m) : m
-      end
-    end
-    and_then.respond_to?(:call) ? and_then.call(results) : results
-  end
-
   # Scan variant that properly handles groups.
   #
   # This will only pull the tags in `hoisted_metatags` up to the top level
   #
-  # `hoisted_metatags`=`TagQuery::GLOBAL_METATAGS`: the metatags to lift out of groups to the top level.
-  # `error_on_depth_exceeded`=`false`:
+  # * `hoisted_metatags`=`TagQuery::GLOBAL_METATAGS`: the metatags to lift out of groups to the top level.
+  # * `error_on_depth_exceeded`=`false`:
+  # * `filter_empty_groups`=`true`:
   def self.scan_search(
     query,
     hoisted_metatags: TagQuery::GLOBAL_METATAGS,
@@ -350,47 +259,59 @@ class TagQuery
     **kwargs
   )
     depth_limit = TagQuery::DEPTH_LIMIT unless (depth_limit = kwargs.fetch(:depth_limit, nil)).is_a?(Numeric) && depth_limit <= TagQuery::DEPTH_LIMIT
-    depth = 0 unless (depth = kwargs.fetch(:depth, 0)).is_a?(Numeric) && depth >= 0
-    return error_on_depth_exceeded ? (raise DepthExceededError) : [] if depth_limit <= depth
+    depth = 0 unless (depth = kwargs.fetch(:depth, nil)).is_a?(Numeric) && depth >= 0
+    return (error_on_depth_exceeded ? (raise DepthExceededError) : []) if depth_limit <= depth
     tag_str = query.to_s.unicode_normalize(:nfc).strip
-    # Quick exit if given an empty search or a single group w/ an empty search
-    return [] if tag_str.empty? || tag_str[/\A[-~]?\(\s+\)\z/].present?
+    # Quick exit if given a blank search or a single group w/ an empty search
+    return [] if tag_str.blank? || /\A[-~]?\(\s+\)\z/.match?(tag_str)
+    # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
+    if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A\(\s+([^)]+)\s+\)\z/, 1]).present?
+      return scan_search(
+        top,
+        **kwargs,
+        hoisted_metatags: hoisted_metatags,
+        depth_limit: depth_limit -= 1,
+        error_on_depth_exceeded: error_on_depth_exceeded,
+      )
+    end
     matches = []
-    hoist_regex_stub = nil
-    scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded }
-    match_tokens(tag_str, **scan_opts) do |m|
+    scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded }.freeze
+    TagQuery.match_tokens(tag_str, **scan_opts) do |m|
       # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
-      if m.begin(:group) == 0 && m.end(:group) == tag_str.length
-        return matches = scan_search(
-          tag_str = m[:group][/\A\(\s+(.*)\s+\)\z/, 1],
-          hoisted_metatags: hoisted_metatags,
-          depth_limit: depth_limit -= 1,
-          error_on_depth_exceeded: error_on_depth_exceeded,
-        )
+      if m.begin(:group) == 0 && m.end(:group) == tag_str.length && (top = m[:group][/\A\(\s+(.+)\s+\)\z/, 1]).present?
+        return scan_search(top, **kwargs,
+          hoisted_metatags: hoisted_metatags, depth_limit: depth_limit -= 1,
+          error_on_depth_exceeded: error_on_depth_exceeded)
+      end
+      # If it's not a group, move on with this value.
+      next matches << m[0].strip if m[:group].blank?
+      # If it's an empty group and we filter those, skip this value.
+      next if kwargs.fetch(:filter_empty_groups, true) && m[:group]&.match(/\A\(\s+\)\z/)
       # This will change the tag order, putting the hoisted tags in front of the groups that previously contained them
-      elsif hoisted_metatags.present? && m[:group]&.match(/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.join('|')})"}:\S+/)
+      if hoisted_metatags.present? && m[:group]&.match(/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.join('|')})"}:\S+/)
         cb = ->(sub_match) do
           # if there's a group w/ a hoisted tag,
-          if sub_match[:group].presence&.match(/#{hoist_regex_stub}:\S+/)
+          if sub_match[:group]&.match(/#{hoist_regex_stub}:\S+/)
             raise DepthExceededError if (depth + 1) >= depth_limit && error_on_depth_exceeded
             next sub_match[0].presence&.strip || "" unless (g = sub_match[0].match(/\(\s+(.+)\s+\)/))
-            r_out = (depth += 1) >= depth_limit ? "" : match_tokens(g[1].strip, **scan_opts, &cb).join(" ")
+            r_out = (depth += 1) >= depth_limit ? "" : TagQuery.match_tokens(g[1].strip, **scan_opts, &cb).compact.join(" ")
             depth -= 1
             next "#{sub_match[0][0, g.begin(1)].strip} #{r_out.strip} #{sub_match[0][g.end(1)..].strip}"
-          elsif (sub_match[:metatag].presence || sub_match[:tag].presence || "")[/\A#{hoist_regex_stub}:(?>"[^"]*"|\S+)\z/]
+          elsif (sub_match[:metatag].presence || "")[/\A#{hoist_regex_stub}:\S+/]
             matches << sub_match[0].strip
-            next ""
+            next nil
           end
           sub_match[0].strip
         end
-        matches << ((out_v = cb.call(m)).respond_to?(:flatten) ? out_v.flatten : out_v)
-      else
-        matches << m[0].strip
+        next (out_v = cb.call(m)).is_a?(Array) ? matches.push(*out_v.compact) : matches << out_v
+        # next matches << ((out_v = cb.call(m)).respond_to?(:flatten) ? out_v.flatten.compact : out_v)
       end
+      matches << m[0].strip
     end
     matches
   end
 
+  # Legacy scan variant (doesn't account for grouping, doesn't preserve quoted metatag ordering)
   def self.scan(query)
     tag_str = query.to_s.unicode_normalize(:nfc).strip
     matches = []
@@ -460,13 +381,16 @@ class TagQuery
       )
     end
     tag_str = query.to_s.unicode_normalize(:nfc).strip
+    # OPTIMIZE: Candidate for early exit
+    # return [] if tag_str.blank?
+
     matches = []
     last_group_index = -1
     group_ranges = [] if flatten
     top = flatten ? [] : nil
-    match_tokens(tag_str, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
+    TagQuery.match_tokens(tag_str, recurse: false, stop_at_group: true) do |m| # rubocop:disable Metrics/BlockLength
       # If this query is composed of 1 top-level group (with or without modifiers), handle that here
-      if (m.begin(:group) == 0 || m.begin(:group) == 1) && m.end(:group) == tag_str.length
+      if m.end(:group) == tag_str.length && m.begin(:group) <= 1
         distribute_prefixes << m[:prefix] if distribute_prefixes && m[:prefix].present?
         matches = if depth >= TagQuery::DEPTH_LIMIT
                     []
@@ -726,8 +650,6 @@ class TagQuery
   private
 
   METATAG_SEARCH_TYPE = Hash.new(:must).merge({
-    nil => :must,
-    "" => :must,
     "-" => :must_not,
     "~" => :should,
   }).freeze
@@ -737,60 +659,79 @@ class TagQuery
   DEPTH_LIMIT = 10
 
   # Used for quickly profiling optimizations, tweaking desired behavior, etc.
-  # * `COUNT_TAGS_WITH_SCAN_RECURSIVE`: Use `TagQuery.scan_recursive` to increment `@tag_count` in `parse_query`?
+  # * `COUNT_TAGS_WITH_SCAN_RECURSIVE`: Use `TagQuery.scan_recursive` to increment `@tag_count` in
+  # `parse_query`?
   # * `STOP_ON_TAG_COUNT_EXCEEDED`: Short-circuit immediately when max tags exceeded?
+  # * `EARLY_SCAN_SEARCH_CHECK`: Check for a top level query before using the more expensive
+  # tokenizer?
+  #   * Better if query contains no closing parenthesis aside from the group delimiter, worse
+  # otherwise.
+  # * `CHECK_GROUP_TAGS_AND_DEPTH`: Count tags in group & group depth at each step, or allow these
+  # checks to occur as groups are recursively processed?
+  #   * true: always check
+  #   * false: always count as part of the recursive process
+  #   * anything else: count at the root
   SETTINGS = {
     COUNT_TAGS_WITH_SCAN_RECURSIVE: false,
     STOP_ON_TAG_COUNT_EXCEEDED: true,
+    EARLY_SCAN_SEARCH_CHECK: false,
+    CHECK_GROUP_TAGS_AND_DEPTH: true,
   }.freeze
+
+  def pq_check_group_tags(depth)
+    SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] == true || (SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false && depth <= 0)
+  end
+
+  def pq_count_tags(group, depth, tag_query_limit)
+    if SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
+      TagQuery.scan_recursive(
+        group,
+        flatten: true, delimit_groups: false, strip_prefixes: true, depth: depth + 1,
+        strip_duplicates_at_level: false, error_on_depth_exceeded: true
+      ).length
+    else
+      delta = 0
+      cb = ->(_) {
+        if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && delta + 1 + @tag_count > tag_query_limit
+          raise CountExceededError
+        else
+          delta += 1
+        end
+      }
+      TagQuery.match_tokens(group, recurse: true, stop_at_group: false, error_on_depth_exceeded: true, depth: depth + 1, &cb)
+      delta
+    end
+  end
 
   # * `query`
   # * `process_groups` [`false`]: Recursively handle groups?
   # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
-  def parse_query(query, process_groups: false, error_on_depth_exceeded: false, depth: 0, **kwargs)
-    TagQuery.scan_search(query, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth, **kwargs).each do |token| # rubocop:disable Metrics/BlockLength
-      # If there's a group, recurse, correctly increment tag_count, then stop processing this token.
-      if (match = /\A([-~]?)\(\s+(.*?)\s+\)\z/.match(token))
+  def parse_query(query, error_on_depth_exceeded: false, depth: 0, **kwargs)
+    tag_query_limit = Danbooru.config.tag_query_limit - @free_tags_count if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && (kwargs[:process_groups] || pq_check_group_tags(depth))
+    TagQuery.scan_search(query, **kwargs, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth).each do |token| # rubocop:disable Metrics/BlockLength
+      # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
+      if (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
         group = match[2]
-        @tag_count += if process_groups
-                        begin
-                          group = TagQuery.new(group, free_tags_count: @tag_count + @free_tags_count, resolve_aliases: @resolve_aliases, return_with_count_exceeded: true)
-                        rescue CountExceededWithDataError, DepthExceededWithDataError => e
-                          group = e
-                        end
-                        group.tag_count
-                      elsif SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
-                        TagQuery.scan_recursive(
+        @tag_count += if kwargs[:process_groups]
+                        (group = TagQuery.new(
                           group,
-                          flatten: true, delimit_groups: false, strip_prefixes: true, depth: depth + 1,
-                          strip_duplicates_at_level: false, error_on_depth_exceeded: true
-                        ).length
+                          free_tags_count: @tag_count + @free_tags_count,
+                          resolve_aliases: @resolve_aliases, return_with_count_exceeded: true,
+                          hoisted_metatags: nil, depth: depth + 1
+                        )).tag_count
+                      elsif pq_check_group_tags(depth)
+                        pq_count_tags(group, depth, tag_query_limit)
                       else
-                        delta = 0
-                        cb = ->(_) { delta += 1 }
-                        TagQuery.scan_tokens(group, recurse: true, stop_at_group: false, error_on_depth_exceeded: true, depth: depth + 1, &cb)
-                        delta
+                        0
                       end
-        if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > Danbooru.config.tag_query_limit - @free_tags_count
-          if kwargs[:return_with_count_exceeded]
-            raise CountExceededWithDataError.new(query_obj: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
-          else
-            raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
-          end
-        end
+        raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
         search_type = METATAG_SEARCH_TYPE[match[1]]
         q[:groups][search_type] ||= []
         q[:groups][search_type] << group
         next
       end
       @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
-      if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > Danbooru.config.tag_query_limit - @free_tags_count
-        if kwargs[:return_with_count_exceeded]
-          raise CountExceededWithDataError.new(query_obj: @q, resolve_aliases: @resolve_aliases, tag_count: @tag_count)
-        else
-          raise CountExceededError, "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time"
-        end
-      end
+      raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
       metatag_name, g2 = token.split(":", 2)
 
       # Remove quotes from description:"abc def"
@@ -802,7 +743,7 @@ class TagQuery
         next
       end
 
-      type = METATAG_SEARCH_TYPE.fetch(metatag_name[0], :must)
+      type = METATAG_SEARCH_TYPE[metatag_name[0]]
       case metatag_name.downcase
       when "user", "-user", "~user"
         add_to_query(type, :uploader_ids) do
@@ -925,9 +866,7 @@ class TagQuery
         add_to_query(type, :change_seq) { ParseValue.range(g2) }
 
       when "source", "-source", "~source"
-        add_to_query(type, :sources, any_none_key: :source, value: g2, wildcard: true) do
-          "#{g2}*"
-        end
+        add_to_query(type, :sources, any_none_key: :source, value: g2, wildcard: true) { "#{g2}*" }
 
       when "date", "-date", "~date"
         add_to_query(type, :date) { ParseValue.date_range(g2) }
@@ -942,9 +881,7 @@ class TagQuery
         add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { ParseValue.range(g2) }
 
       when "parent", "-parent", "~parent"
-        add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) do
-          g2.to_i
-        end
+        add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) { g2.to_i }
 
       when "child"
         q[:child] = g2.downcase
@@ -1108,7 +1045,6 @@ class TagQuery
   end
 
   def id_or_invalid(val)
-    return -1 if val.blank?
-    val
+    val.presence || -1
   end
 end
