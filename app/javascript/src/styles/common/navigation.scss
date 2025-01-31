@@ -458,6 +458,14 @@ nav.navigation, html.nav-toggled nav.navigation {
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
   @include window-larger-than(800px) {
+    nav.navigation {
+      grid-template-columns: repeat(4, min-content);
+      justify-content: center;
+
+      #nav-subscribestar, #nav-discord, #nav-themes, #nav-settings {
+        display: none;
+      }
+    }
     nav.navigation, menu.nav-logo, menu.nav-secondary {
       background: unset;
     }
