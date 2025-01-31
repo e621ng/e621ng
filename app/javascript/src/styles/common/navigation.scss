@@ -136,7 +136,7 @@ nav.navigation {
 
     // Prevent the tools / help buttons from being pushed
     // way too low on pages with a lot of secondary links
-    overflow: scroll;
+    overflow-y: scroll;
 
     li {
       padding: 0;
