@@ -328,10 +328,11 @@ nav.navigation, html.nav-toggled nav.navigation {
       padding: 0 0.25em;
 
       li {
-        display: flex;
-        align-items: center;
-
         a {
+          display: flex;
+          align-items: center;
+          height: 100%;
+
           border-bottom: 0;
           padding: 0 0.75em;
           i { display: none; }
@@ -356,10 +357,11 @@ nav.navigation, html.nav-toggled nav.navigation {
       overflow: hidden;
 
       li {
-        display: flex;
-        align-items: center;
-
         a {
+          display: flex;
+          align-items: center;
+          height: 100%;
+
           border-bottom: 0;
           padding: 0 0.75em;
           white-space: nowrap;
@@ -391,10 +393,12 @@ nav.navigation, html.nav-toggled nav.navigation {
       gap: 0;
 
       li {
-        display: flex;
-        align-items: center;
-
         a {
+          display: flex;
+          align-items: center;
+          height: 100%;
+          gap: 0.25em;
+
           background: unset;
           font-size: 1.05em;
           padding: 0 0.75em;
