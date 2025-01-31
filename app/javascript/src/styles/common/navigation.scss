@@ -57,6 +57,8 @@ nav.navigation {
       background: themed("color-foreground");
       border-radius: 6px;
 
+      white-space: nowrap;
+
       & > i {
         font-size: 1.5rem;
         color: themed("color-link-active");
@@ -134,7 +136,7 @@ nav.navigation {
 
     // Prevent the tools / help buttons from being pushed
     // way too low on pages with a lot of secondary links
-    overflow: scroll;
+    overflow-y: scroll;
 
     li {
       padding: 0;
@@ -188,6 +190,8 @@ nav.navigation {
         font-size: 125%;
         padding: 0.5rem 1rem;
         text-align: center;
+
+        white-space: nowrap;
   
         i { color: themed("color-link-active"); }
       }
@@ -324,10 +328,10 @@ nav.navigation, html.nav-toggled nav.navigation {
       padding: 0 0.25em;
 
       li {
-        display: flex;
-
         a {
-          align-content: center;
+          display: flex;
+          align-items: center;
+          height: 100%;
 
           border-bottom: 0;
           padding: 0 0.75em;
@@ -353,10 +357,10 @@ nav.navigation, html.nav-toggled nav.navigation {
       overflow: hidden;
 
       li {
-        display: flex;
-
         a {
-          align-content: center;
+          display: flex;
+          align-items: center;
+          height: 100%;
 
           border-bottom: 0;
           padding: 0 0.75em;
@@ -389,10 +393,11 @@ nav.navigation, html.nav-toggled nav.navigation {
       gap: 0;
 
       li {
-        display: flex;
-
         a {
-          align-content: center;
+          display: flex;
+          align-items: center;
+          height: 100%;
+          gap: 0.25em;
 
           background: unset;
           font-size: 1.05em;
@@ -421,12 +426,32 @@ nav.navigation, html.nav-toggled nav.navigation {
           a span { display: none; }
         }
       }
+
+      #nav-themes, #nav-settings { display: none; }
+      @include window-larger-than(875px) {
+        #nav-themes, #nav-settings { display: flex; }
+      }
+      
+      #nav-account span { display: none; }
+      @include window-larger-than(930px) {
+        #nav-account span { display: unset; }
+      }
     }
     .nav-help {
+
+      // At small resolutions, overflow can
+      // cause scrollbars to appear
+      overflow: hidden;
+
       li a img { display: none; }
 
       li.current a {
         background-color: themed("color-foreground");
+      }
+
+      #nav-discord, #nav-subscribestar { display: none; }
+      @include window-larger-than(1150px) {
+        #nav-discord, #nav-subscribestar { display: flex; }
       }
     }
 
@@ -437,11 +462,43 @@ nav.navigation, html.nav-toggled nav.navigation {
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
   @include window-larger-than(800px) {
+
+    nav.navigation {
+
+      // Center and align the navbar
+      grid-template-columns: repeat(4, min-content);
+      justify-content: center;
+
+      // Remove padding to prevent a scrollbar
+      // at low desktop resolutions
+      padding: 0 0 0.5em;
+
+      #nav-subscribestar, #nav-discord, #nav-themes, #nav-settings {
+        display: none;
+      }
+    }
+
+    // Match the background colors
     nav.navigation, menu.nav-logo, menu.nav-secondary {
       background: unset;
     }
     menu.nav-tools {
       background: var(--bg-color);
+    }
+  }
+
+  @include window-smaller-than(800px) {
+    // Only show the primary navbar on mobile
+    // since the secondary is empty anyways
+    nav.navigation {
+      grid-template-areas:
+        "logo    logo    controls" 
+        "offleft primary primary " 
+        "offleft tools   tools   " 
+        "offleft help    help    " 
+        "offleft offbott offbott ";
+
+      .nav-secondary { display: none; }
     }
   }
 }
