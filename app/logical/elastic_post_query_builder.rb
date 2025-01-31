@@ -22,14 +22,15 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     always_show_deleted:,
     **kwargs
   )
+    @depth = kwargs.fetch(:depth, 0)
+    # If it got this far, failing silently didn't work; force error
+    raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
-    @query_always_show_deleted = !TagQuery.should_hide_deleted_posts?(query_string, at_any_level: GLOBAL_DELETED_FILTER)
-    @depth = kwargs.fetch(:depth, 0)
+    @always_show_deleted ||= !TagQuery.should_hide_deleted_posts?(query_string, at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ElasticPostQueryBuilder::ERROR_ON_DEPTH_EXCEEDED)
-    raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
     super(TagQuery.new(query_string, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
   end
 
@@ -62,6 +63,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         depth: @depth + 1,
         hoisted_metatags: nil,
       )
+      # @always_show_deleted ||= temp.q[:show_deleted] unless GLOBAL_DELETED_FILTER
       @always_show_deleted ||= !temp.hide_deleted_posts? unless GLOBAL_DELETED_FILTER
       temp.create_query_obj(return_nil_if_empty: false)
     end
@@ -71,8 +73,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def hide_deleted_posts?
-    return false if @always_show_deleted || @query_always_show_deleted
-    q.hide_deleted_posts?
+    return false if @always_show_deleted
+    # q.hide_deleted_posts?
+    !q[:show_deleted]
   end
 
   def build
@@ -217,13 +220,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_tag_string_search_relation(q[:tags])
 
     # Update always_show_deleted
-    @always_show_deleted ||= @query_always_show_deleted
+    @always_show_deleted ||= !hide_deleted_posts? unless GLOBAL_DELETED_FILTER
 
     # Use the updated value in groups
     add_group_search_relation(q[:groups])
 
     # The groups updated our value; now optionally hide deleted
-    must.push({ term: { deleted: false } }) unless @always_show_deleted
+    # must.push({ term: { deleted: false } }) unless @always_show_deleted
+    must.push({ term: { deleted: false } }) if hide_deleted_posts?
 
     case q[:order]
     when "id", "id_asc"

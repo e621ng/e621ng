@@ -959,16 +959,14 @@ class TagQuery
         # Do nothing. The controller takes care of it.
 
       when "status"
-        if (g2.downcase! || g2).in?(STATUS_VALUES)
-          q[:status] = g2
-          q[:status_must_not] = nil
-        end
+        q[:status] = g2.downcase
+        q[:status_must_not] = nil
+        q[:show_deleted] ||= q[:status].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
       when "-status"
-        if (g2.downcase! || g2).in?(STATUS_VALUES)
-          q[:status_must_not] = g2
-          q[:status] = nil
-        end
+        q[:status_must_not] = g2.downcase
+        q[:status] = nil
+        q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
       when "filetype", "-filetype", "~filetype", "type", "-type", "~type"
         add_to_query(type, :filetype) { g2.downcase }
@@ -980,11 +978,13 @@ class TagQuery
         add_to_query(type, :note) { g2 }
 
       when "delreason", "-delreason", "~delreason"
-        q[:status] ||= "any"
+        q[:status] ||= "any" unless q[:status_must_not]
+        q[:show_deleted] ||= true
         add_to_query(type, :delreason, wildcard: true) { g2 }
 
       when "deletedby", "-deletedby", "~deletedby"
-        q[:status] ||= "any"
+        q[:status] ||= "any" unless q[:status_must_not]
+        q[:show_deleted] ||= true
         add_to_query(type, :deleter) do
           user_id = User.name_or_id_to_id(g2)
           id_or_invalid(user_id)
