@@ -74,7 +74,7 @@ module PaginationHelper
 
     html = "".html_safe
     if page == "..."
-      html << tag.li(class: "more") { tag.i(class: "fa-solid fa-ellipsis") }
+      html << tag.li(class: "more") { link_to(tag.i(class: "fa-solid fa-ellipsis"), nav_params_for(0)) }
     elsif page == records.current_page
       html << tag.li(class: "current-page") { tag.span(page) }
     else
