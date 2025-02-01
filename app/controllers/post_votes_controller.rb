@@ -48,7 +48,7 @@ class PostVotesController < ApplicationController
   private
 
   def search_params
-    permitted_params = %i[post_id user_name user_id post_creator_id post_creator_name timeframe score]
+    permitted_params = %i[post_id user_name user_id post_creator_id post_creator_name timeframe score post_tags_match]
     permitted_params += %i[user_ip_addr duplicates_only order] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end

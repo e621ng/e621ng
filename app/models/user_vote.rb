@@ -49,9 +49,7 @@ class UserVote < ApplicationRecord
 
       q = q.where_user(:user_id, :user, params)
 
-      allow_complex_params = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
-
-      if allow_complex_params
+      if allow_complex_params?(params)
         q = q.where_user({ model_type => :"#{model_creator_column}_id" }, :"#{model_type}_creator", params) do |q, _user_ids|
           q.joins(model_type)
         end
@@ -74,12 +72,18 @@ class UserVote < ApplicationRecord
         end
       end
 
-      if params[:order] == "ip_addr" && allow_complex_params
+      if params[:order] == "ip_addr" && allow_complex_params?(params)
         q = q.order(:user_ip_addr)
       else
         q = q.apply_basic_order(params)
       end
       q
+    end
+
+    protected
+
+    def allow_complex_params?(params)
+      (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
     end
   end
 
