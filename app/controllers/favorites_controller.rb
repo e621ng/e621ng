@@ -8,7 +8,7 @@ class FavoritesController < ApplicationController
 
   def index
     if params[:tags]
-      redirect_to(posts_path(:tags => params[:tags]))
+      redirect_to(posts_path(tags: params[:tags]))
     else
       user_id = params[:user_id] || CurrentUser.user.id
       @user = User.find(user_id)
@@ -17,10 +17,11 @@ class FavoritesController < ApplicationController
         raise Favorite::HiddenError
       end
 
-      @favorite_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
-      respond_with(@favorite_set.posts) do |fmt|
+      @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
+      @posts = PostsDecorator.decorate_collection(@post_set.posts)
+      respond_with(@posts) do |fmt|
         fmt.json do
-          render json: @favorite_set.api_posts, root: 'posts'
+          render json: @post_set.api_posts, root: "posts"
         end
       end
     end

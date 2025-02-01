@@ -1,0 +1,149 @@
+.post-index {
+  display: grid;
+
+  grid-template-areas:
+    "search " 
+    "content" 
+    "sidebar";
+  grid-template-columns: 1fr;
+  grid-template-rows: min-content 1fr min-content;
+  gap: 1em;
+
+  // 1. Searchbox
+  .search {
+    grid-area: search;
+
+    h1 {
+      font-size: $h3-size;
+    }
+  }
+
+  // 2. Content
+  .content {
+    grid-area: content;
+
+    // Quick tag edit
+    #edit-dialog textarea {
+      margin-bottom: 0.25em;
+    }
+
+    // Actual content area:
+    // posts and pagination
+    .post-index-gallery {
+      display: flex;
+      flex-flow: column;
+      gap: 1em;
+
+      .wiki-excerpt {
+        display: flex;
+        flex-flow: column;
+        position: relative;
+        padding: 1em 1em 0;
+        gap: 0.5em;
+
+        background: var(--color-section);
+        max-width: 60em;
+
+        .wiki-excerpt-toggle {
+          position: absolute;
+          top: 0;
+          right: 0;
+          padding: 1em;
+          outline: none;
+
+          transition: transform 0.25s;
+
+          &::after {
+            @include font-awesome-icon;
+            content: unicode("f0d8");
+          }
+        }
+
+        .styled-dtext {
+          background: linear-gradient(to top, var(--color-section), var(--color-text));
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          max-height: 10em;
+          overflow: hidden;
+
+          transition: max-height 0.25s;
+
+          // Disable links
+          pointer-events: none;
+          cursor: unset;
+
+          a {
+            color: unset;
+            text-decoration: underline;
+            &::after { content: none; }
+          }
+        }
+
+        .wiki-excerpt-readmore {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3em;
+
+          // Makes the button appear in the middle of the animation
+          transition: visibility 0s 0.125s;
+
+          span {
+            padding: 0.5em 1em;
+            background: var(--color-section);
+            border-radius: 6px;
+          }
+        }
+
+        &.hidden{
+          .wiki-excerpt-toggle { transform: rotate(-90deg); }
+          .styled-dtext {
+            max-height: 0;
+          }
+          .wiki-excerpt-readmore { visibility: hidden; }
+        }
+      }
+
+      .paginator {
+        padding: 1em 0;
+      }
+    }
+  }
+
+  // 3. Sidebar
+  .sidebar {
+    grid-area: sidebar;
+
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
+
+    // Mode selection
+    #mode-box-mode, #mode-box #set-id {
+      width: 100%;
+
+      // Match the searchbox
+      padding: 0.5em;
+      font-family: Verdana, sans-serif;
+      font-size: 1.05em;
+    }
+  }
+}
+
+
+// Desktop
+.post-index {
+  @include window-larger-than(800px) {
+    grid-template-areas:
+      "search  content" 
+      "sidebar content";
+    grid-template-columns: 15em 1fr;
+    grid-template-rows: min-content 1fr;
+  }
+}

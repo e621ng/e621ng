@@ -107,7 +107,9 @@ PostModeMenu.initialize_tag_script_field = function () {
 
 PostModeMenu.tag_script_apply_all = function (event) {
   event.preventDefault();
-  $("article.thumbnail").trigger("click");
+  const posts = $("article.thumbnail");
+  if (!confirm(`Apply the tag script to ${posts.length} posts?`)) return;
+  posts.trigger("click");
 };
 
 PostModeMenu.update_sets_menu = function () {

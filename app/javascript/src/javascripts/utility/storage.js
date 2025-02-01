@@ -65,6 +65,9 @@ LStorage.Theme = {
 
   /** @returns {boolean} True if the sticky header is enabled */
   StickyHeader: ["theme-sheader", false],
+
+  /** @returns {boolean} True if the forum notification dot is enabled */
+  ForumNotif: ["theme-forumnotif", false],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 
@@ -82,6 +85,9 @@ LStorage.Posts = {
 
   /** @returns {number} ID of the user's selected set */
   Set: ["set", 0],
+
+  /** @returns {boolean} True if the wiki excerpt should be visible */
+  WikiExcerpt: ["e6.posts.wiki", true],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 
