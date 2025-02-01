@@ -217,7 +217,9 @@ Rails.application.routes.draw do
       put :revert
     end
   end
-  resources :note_versions, :only => [:index]
+  resources :note_versions, only: %i[index] do
+    put :undo, on: :member
+  end
   resources :pools do
     member do
       put :revert
