@@ -12,7 +12,13 @@
         <td><%= data_title %></td>
         <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
         <% if data_total_key %>
-          <td class="stats-pct"><%= (@stats[data_or_stats_key].to_f / @stats[data_total_key] * 100).round %>%</td>
+          <td class="stats-pct">
+            <% if @stats[data_total_key] > 0 %>
+              <%= (@stats[data_or_stats_key].to_f / @stats[data_total_key] * 100).round %>%
+            <% else %>
+              0%
+            <% end %>
+          </td>
         <% else %>
           <td></td>
         <% end %>
