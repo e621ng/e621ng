@@ -126,6 +126,39 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
       end
+
+      context "for a note locked post" do
+        setup do
+          @original_md5 = @post.md5
+        end
+
+        should "fail if the post has any notes" do
+          as(@user) do
+            @note = create(:note, post: @post)
+            @post.update!(is_note_locked: true)
+          end
+          assert_no_difference("PostReplacement.count") do
+            put_auth approve_post_replacement_path(@replacement), @user, params: { format: :json }
+            assert_response :bad_request
+          end
+          @replacement.reload
+          @post.reload
+          assert_equal @original_md5, @post.md5
+          assert_equal @replacement.status, "pending"
+        end
+
+        should "succeed if the post has no notes" do
+          as(@user) { @post.update!(is_note_locked: true) }
+          assert_difference("PostReplacement.count", 1) do
+            put_auth approve_post_replacement_path(@replacement), @user, params: { format: :json }
+            assert_response :success
+          end
+          @replacement.reload
+          @post.reload
+          assert_equal @replacement.md5, @post.md5
+          assert_equal @replacement.status, "approved"
+        end
+      end
     end
 
     context "promote action" do
