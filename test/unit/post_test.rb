@@ -2081,7 +2081,11 @@ class PostTest < ActiveSupport::TestCase
         # Added - modqueue
         assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:modqueue ) ~ccc -( ddd )")
         # Removed - active
+        # if ElasticPostQueryBuilder::GLOBAL_DELETED_FILTER
         assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # else
+        #   assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # end
         # Removed - deleted
         assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb status:deleted ) ~ccc -( ddd )")
         # Removed - any

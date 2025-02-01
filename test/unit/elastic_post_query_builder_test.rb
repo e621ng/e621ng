@@ -10,6 +10,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert(ElasticPostQueryBuilder.new("aaa bbb", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa bbb status:deleted", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa bbb deletedby:someone", **p).hide_deleted_posts?)
+      # Don't overwrite
       assert_not(ElasticPostQueryBuilder.new("aaa bbb delreason:something status:pending", **p).hide_deleted_posts?)
       assert(ElasticPostQueryBuilder.new("( aaa bbb )", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa ( bbb status:any )", **p).hide_deleted_posts?)

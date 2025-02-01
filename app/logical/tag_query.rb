@@ -91,11 +91,13 @@ class TagQuery
         must_not: [],
         should: [],
       },
+      # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.)
       groups: {
         must: [],
         must_not: [],
         should: [],
       },
+      show_deleted: false,
     }
     @resolve_aliases = resolve_aliases
     @tag_count = 0
@@ -131,23 +133,30 @@ class TagQuery
   #
   # * `always_show_deleted` [`false`]: The override value. Corresponds to
   # `ElasticPostQueryBuilder.always_show_deleted`.
-  # * `recurse` [`false`]: Should groups be accounted for, or just this level?
+  # * `at_any_level` [`false`]: Should groups be accounted for, or just this level?
   #
   # Returns true unless
   # * `always_show_deleted`,
   # * `q[:status]`/`q[:status_must_not]` contains a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`,
   # * One of the following is non-nil:
-  #   * `q[:deleter]`
-  #   * `q[:deleter_must_not]`
-  #   * `q[:deleter_should]`
-  #   * `q[:delreason]`
-  #   * `q[:delreason_must_not]`
-  #   * `q[:delreason_should]`, or
-  # * If `recurse`, any of the subsearches in `q[:groups]` return false from `TagQuery.should_hide_deleted_posts?`
+  #   * `q[:deleter]`/`q[:deleter_must_not]`/`q[:deleter_should]`
+  #   * `q[:delreason]`/`q[:delreason_must_not]`/`q[:delreason_should]`, or
+  # * If `at_any_level`,
+  #   * `q[:children_show_deleted]` is `true` or
+  #   * any of the subsearches in `q[:groups]` return false from
+  # `TagQuery.should_hide_deleted_posts?`
+  #     * This is overriden to return `true` if the subsearches in `q[:groups]` are type `TagQuery`,
+  # as preprocessed queries should have had their resultant value elevated to this level during
+  # `process_groups`.
   def hide_deleted_posts?(always_show_deleted: false, at_any_level: false)
-    if always_show_deleted || q[:show_deleted] ||
-       (at_any_level && (q[:groups][:must] + q[:groups][:must_not] + q[:groups][:should]).any? { |e| e.is_a?(TagQuery) ? e.hide_deleted_posts?(at_any_level: true) : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) })
+    if always_show_deleted || q[:show_deleted]
       false
+    elsif at_any_level
+      if q[:children_show_deleted].nil? && (q[:groups][:must] + q[:groups][:must_not] + q[:groups][:should]).any? { |e| e.is_a?(TagQuery) ? (raise "q[:children_show_deleted] shouldn't be nil.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
+        false
+      else
+        !q[:children_show_deleted]
+      end
     else
       true
     end
@@ -725,6 +734,7 @@ class TagQuery
                         0
                       end
         raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
+        q[:children_show_deleted] = group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
         search_type = METATAG_SEARCH_TYPE[match[1]]
         q[:groups][search_type] ||= []
         q[:groups][search_type] << group
