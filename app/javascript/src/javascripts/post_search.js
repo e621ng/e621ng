@@ -39,14 +39,16 @@ PostSearch.initialize_input = function ($form) {
 
 PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
-  if (visible)
-    $preview.removeClass("hidden");
+  if (visible) $preview.addClass("open");
+  window.setTimeout(() => { // Disable the rollout on first load
+    $preview.removeClass("loading");
+  }, 250);
 
-  $($preview.find("a.wiki-excerpt-toggle")).on("click", (event) => {
+  $($preview.find("h3.wiki-excerpt-toggle")).on("click", (event) => {
     event.preventDefault();
 
     visible = !visible;
-    $preview.toggleClass("hidden", !visible);
+    $preview.toggleClass("open", visible);
     LStorage.Posts.WikiExcerpt = visible;
 
     return false;
