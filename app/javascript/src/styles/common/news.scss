@@ -17,6 +17,8 @@ div#page div#news {
 
   &.open {
     max-height: none;
+
+    #news-body { pointer-events: unset; }
   }
 
   #news-header {
@@ -26,26 +28,27 @@ div#page div#news {
     cursor: pointer;
     width: 100%;
     text-align: center;
-    padding: 0.5rem 0.5rem 0;
+    padding: 0.5rem;
   }
 
   #news-body {
     display: block;
     box-sizing: border-box;
 
-    margin-top: 5px;
     max-width: 800px;
     padding: 0 0.5rem 0.5rem;
+
+    pointer-events: none;
   }
 
   #news-dismiss {
     position: absolute;
-    right: 0.5rem;
-    top: 0.25rem;
+    right: 0;
+    top: 0;
+    padding: 0.25rem 1rem;
 
     cursor: pointer;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: bold;
-    color: white;
   }
 }
