@@ -1985,6 +1985,10 @@ class PostTest < ActiveSupport::TestCase
       post = create(:post, tag_string: artist.name, uploader: @user)
       assert_tag_match([], "artverified:false")
       assert_tag_match([post], "artverified:true")
+      assert_tag_match([], "~artverified:false")
+      assert_tag_match([post], "~artverified:true")
+      assert_tag_match([], "-artverified:true")
+      assert_tag_match([post], "-artverified:false")
     end
 
     should "return posts for verified artists after update" do
@@ -2021,6 +2025,10 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([], "-pending_replacements:false")
+      assert_tag_match([promoted_post, post4, post3, post2, post1], "-pending_replacements:true")
+      assert_tag_match([], "~pending_replacements:true")
+      assert_tag_match([promoted_post, post4, post3, post2, post1], "~pending_replacements:false")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do
