@@ -21,7 +21,7 @@ module GitHelper
   end
 
   def self.version
-    @tag || @hash
+    @tag.empty? ? @short_hash : @tag
   end
 
   def self.short_hash
@@ -36,8 +36,8 @@ module GitHelper
     "#{Danbooru.config.source_code_url}/releases/tag/#{tag_name}"
   end
 
-  def self.version_url(name)
-    return release_url(name) if @hash
-    commit_url(name)
+  def self.version_url
+    return release_url(@hash) if @hash
+    commit_url(@tag)
   end
 end

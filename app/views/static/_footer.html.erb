@@ -16,7 +16,7 @@
         <% if GitHelper.version.empty? %>
           v. unknown
         <% else %>
-          v. <%= link_to GitHelper.version, GitHelper.version_url(GitHelper.version) %>
+          v. <%= link_to GitHelper.version, GitHelper.version_url %>
         <% end %>
       </span>
       <%= link_to "Themes / Gestures", theme_path %>
@@ -24,7 +24,6 @@
         <%= link_to "Keyboard Shortcuts", keyboard_shortcuts_path %>
       <% end %>
       <%= link_to disable_mobile_mode? ? "Mobile mode: OFF": "Mobile mode: ON", disable_mobile_mode_path, :rel => "nofollow" %>
-      
     </span>
   </div>
 </footer>
