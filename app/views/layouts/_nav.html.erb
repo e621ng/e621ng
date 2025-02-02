@@ -19,12 +19,16 @@
       <span><i class="fas fa-bars"></i></span>
     </a>
     <% if CurrentUser.is_anonymous? %>
-      <%= link_to(new_session_path, class: "nav-controls-login") do %>
-        <span>
-          <i class="fas fa-sign-in-alt"></i>
-          Sign in
+      <a href="<%= new_session_path %>" class="simple-avatar nav-controls-profile collapse-2">
+        <span class="simple-avatar-button sign-in">
+          <span class="simple-avatar-name">
+            Sign In
+          </span>
+          <span class="simple-avatar-image">
+            <i class="fas fa-sign-in-alt"></i>
+          </span>
         </span>
-      <% end %>
+      </a>
     <% else %>
       <%= simple_avatar(CurrentUser.user, named: true, class: "nav-controls-profile collapse-2") %>
     <% end %>
@@ -32,9 +36,7 @@
 
   <menu class="nav-tools desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
     <%= decorated_nav_link_to("Themes", "fas fa-swatchbook", theme_path, class: "nav-tools-themes") %>
-    <% if CurrentUser.is_anonymous? %>
-      <%= decorated_nav_link_to("Sign in", "fas fa-sign-in-alt", new_session_path, class: "nav-tools-login") %>
-    <% else %>
+    <% unless CurrentUser.is_anonymous? %>
       <%= decorated_nav_link_to("Settings", "fas fa-cog", edit_user_path(CurrentUser.user), class: "nav-tools-settings") %>
     <% end %>
   </menu>
@@ -42,7 +44,7 @@
   <menu class="nav-help desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
     <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
     <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
-    <% if !CurrentUser.is_anonymous? %>
+    <% unless CurrentUser.is_anonymous? %>
       <%= custom_image_nav_link_to("Discord", "discord.com.png", discord_get_path, class: "nav-help-discord collapse-1") %>
     <% end %>
     <%= custom_image_nav_link_to("SubscribeStar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") %>
