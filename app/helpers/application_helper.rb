@@ -189,6 +189,21 @@ module ApplicationHelper
     end
   end
 
+  def simple_avatar(user, **options)
+    return "" if user.nil?
+    post_id = user.avatar_id
+    deferred_post_ids.add(post_id) if post_id
+
+    klass = options.delete(:class)
+    named = options.delete(:named)
+    tag.a href: user_path(user), class: "simple-avatar #{klass}", data: { id: post_id, name: user.name } do
+      tag.span(class: "simple-avatar-button") do
+        concat tag.span(user.name, class: "simple-avatar-name") if named
+        concat tag.span(class: "simple-avatar-image", data: { name: user.name[0].capitalize })
+      end
+    end
+  end
+
   def unread_dmails(user)
     if user.has_mail?
       "(#{user.unread_dmail_count})"
