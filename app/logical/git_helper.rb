@@ -21,7 +21,7 @@ module GitHelper
   end
 
   def self.version
-    @tag.empty? ? @short_hash : @tag
+    @tag.presence || @short_hash
   end
 
   def self.short_hash
@@ -37,7 +37,7 @@ module GitHelper
   end
 
   def self.version_url
-    return release_url(@hash) if @hash
+    return release_url(@hash) if @hash.present?
     commit_url(@tag)
   end
 end
