@@ -21,7 +21,7 @@ module GitHelper
   end
 
   def self.version
-    @tag.presence || @short_hash
+    @tag.presence || short_hash
   end
 
   def self.short_hash
