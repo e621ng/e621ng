@@ -10,7 +10,7 @@ CurrentUser.as_system do
            # On July 24, 2024, we deployed the ability to soft-delete feedback records.
            # We only care about restoring destroyed feedbacks that were destroyed before this date.
            # Any entries after this are "real" destructions, that do not need to be restored.
-           # .where("created_at < ?", CUTOFF_DATE = Date.new(2024, 8, 1))
+           .where("created_at < ?", CUTOFF_DATE = Date.new(2024, 8, 1))
            .find_in_batches(batch_size: 10_000) do |batch|
     feedback_data = batch.map do |mod_action|
       record_id = mod_action.values["record_id"].to_i
