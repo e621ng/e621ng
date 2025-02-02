@@ -37,7 +37,7 @@ module GitHelper
   end
 
   def self.version_url
-    return release_url(@hash) if @hash.present?
-    commit_url(@tag)
+    return release_url(@tag) if @tag.present?
+    commit_url(@hash)
   end
 end
