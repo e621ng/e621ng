@@ -351,6 +351,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
     padding: 0 1rem 0.5rem;
     box-sizing: border-box;
+    height: unset;
 
     background: var(--color-background);
     overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
