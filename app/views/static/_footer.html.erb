@@ -13,7 +13,7 @@
     <span class="footer-right">
       <span class="footer-running">Running e621ng</span>
       <span class="footer-version">
-        v. <%= link_to "#{GitHelper.tag}", GitHelper.release_url(GitHelper.tag) %>
+        v. <%= link_to GitHelper.tag, GitHelper.release_url(GitHelper.tag) %>
       </span>
       <%= link_to "Themes / Gestures", theme_path %>
       <% if CurrentUser.user.enable_keyboard_navigation %>
