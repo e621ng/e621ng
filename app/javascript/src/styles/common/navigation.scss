@@ -101,7 +101,7 @@ nav.navigation {
     
           box-sizing: border-box;
           border-radius: 0.25rem;
-          background: var(--color-section);
+          background: themed("color-section");
 
           img {
             width: 2.5rem;
@@ -290,7 +290,7 @@ body[data-th-forumnotif="true"] nav.navigation .nav-primary li.forum-updated {
     height: 6px;
     border-radius: 3px;
 
-    background: var(--palette-text-red);
+    background: palette("text-red");
 
     position: absolute;
     right: 0.2rem;
@@ -334,7 +334,7 @@ html.nav-toggled {
       display: grid;
     }
     .nav-primary, .nav-tools, .nav-help {
-      box-shadow: -3px 3px 5px -1px var(--color-background);
+      box-shadow: -3px 3px 5px -1px themed("color-background");
     }
   }
 }
@@ -353,7 +353,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     box-sizing: border-box;
     height: unset;
 
-    background: var(--color-background);
+    background: themed("color-background");
     overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo a.nav-logo-link {
@@ -498,6 +498,7 @@ nav.navigation, html.nav-toggled nav.navigation {
           .simple-avatar-image {
             height: 3rem;
             width: 3rem;
+            background: themed("color-foreground");
 
             img {
               width: 2.75rem;
