@@ -218,8 +218,6 @@ nav.navigation {
   .nav-tools, .nav-help {
     grid-template-rows: min-content;
     font-size: 1.1rem;
-
-    padding: 1rem;
     gap: 1rem;
 
     background-color: themed("color-section");
@@ -236,6 +234,7 @@ nav.navigation {
   .nav-tools {
     grid-template-columns: 1fr 1fr;
     border-top: 1px solid themed("color-foreground");
+    padding: 1rem 1rem 0.5rem;
 
     li {
       a { background: themed("color-section-lighten-5"); }
@@ -249,6 +248,7 @@ nav.navigation {
 
   .nav-help {
     grid-template-columns: 1fr 1fr 1fr;
+    padding: 0.5rem 1rem 1rem;
 
     li {
       a { background: themed("color-section-darken-5"); }
