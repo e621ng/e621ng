@@ -526,11 +526,12 @@ nav.navigation, html.nav-toggled nav.navigation {
 
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
-  @include window-larger-than(80rem) {
+  @include window-larger-than(50rem) {
 
     nav.navigation {
 
       // Center and align the navbar
+      grid-template-areas: "logo primary help controls";
       grid-template-columns: repeat(4, min-content);
       justify-content: center;
 
@@ -538,9 +539,7 @@ body.c-static.a-home {
       // at low desktop resolutions
       padding: 0 0 0.5rem;
 
-      #nav-subscribestar, #nav-discord, #nav-themes, #nav-settings {
-        display: none;
-      }
+      #nav-subscribestar, #nav-discord, .nav-secondary, .nav-tools { display: none; }
     }
 
     // Match the background colors
@@ -550,9 +549,19 @@ body.c-static.a-home {
     menu.nav-tools {
       background: var(--bg-color);
     }
+    menu.nav-controls {
+      position: static;
+      height: unset;
+      padding: 0;
+      .simple-avatar-button {
+        height: unset;
+        align-items: center;
+        .simple-avatar-image { display: none; }
+      }
+    }
   }
 
-  @include window-smaller-than(800px) {
+  @include window-smaller-than(50rem) {
     // Only show the primary navbar on mobile
     // since the secondary is empty anyways
     nav.navigation {
