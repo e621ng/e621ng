@@ -4,21 +4,26 @@
   <% end -%>
 
   <section class="home-section">
-    <%= form_tag(posts_path, method: "get", class: "home-search") do %>
-      <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
-      <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %>
-    <% end %>
+    <%= form_tag(posts_path, method: "get", id: "home-search-form") do %>
 
-    <div class="home-buttons">
-      <a href="/posts">
-        <i class="fas fa-splotch"></i>
-        Latest
-      </a>
-      <a href="/popular">
-        <i class="fas fa-fire-alt"></i>
-        Popular
-      </a>
-    </div>
+      <!-- Primary Searchbar -->
+      <div class="home-search">
+        <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
+        <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %>
+      </div>
+
+      <!-- Secondary search buttons -->
+      <div class="home-buttons">
+        <a href="<%= posts_path %>" tags="">
+          <i class="fas fa-splotch"></i>
+          <span>Latest</span>
+        </a>
+        <a href="<%= posts_path(tags: "order:rank") %>" tags="order:rank">
+          <i class="fas fa-fire-alt"></i>
+          <span>Popular</span>
+        </a>
+      </div>
+    <% end %>
   </section>
 
   <% if news_update = NewsUpdate.recent %>
