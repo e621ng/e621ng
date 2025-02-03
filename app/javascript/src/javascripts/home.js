@@ -6,17 +6,14 @@ Home.init = function () {
 
   const $form = $("#home-search-form");
   const $tags = $("#tags");
-  console.log("init");
 
   let isEmpty = !$tags.val();
   let wasEmpty = isEmpty;
   if (isEmpty) $form.addClass("empty");
-  console.log("input", isEmpty, wasEmpty);
 
   $tags.on("input", () => {
     wasEmpty = isEmpty;
     isEmpty = !$tags.val();
-    console.log("input", isEmpty, wasEmpty);
 
     if (isEmpty && !wasEmpty) $form.addClass("empty");
     else if (!isEmpty && wasEmpty) $form.removeClass("empty");
