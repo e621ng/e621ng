@@ -93,7 +93,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "delete a feedback" do
-        assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 2 }) do
+        assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
           delete_auth user_feedback_path(@user_feedback), @critic
         end
       end
@@ -101,7 +101,7 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       context "by a moderator" do
         should "allow destroying feedbacks they created" do
           as(@mod) { @user_feedback = create(:user_feedback, user: @user) }
-          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 2 }) do
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
             delete_auth user_feedback_path(@user_feedback), @mod
           end
         end
@@ -126,13 +126,13 @@ class UserFeedbacksControllerTest < ActionDispatch::IntegrationTest
       context "by an admin" do
         should "allow destroying feedbacks they created" do
           as(@admin) { @user_feedback = create(:user_feedback, user: @user) }
-          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 2 }) do
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
             delete_auth user_feedback_path(@user_feedback), @admin
           end
         end
 
         should "allow destroying feedbacks they did not create" do
-          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 2 }) do
+          assert_difference({ "UserFeedback.count" => -1, "ModAction.count" => 1 }) do
             delete_auth user_feedback_path(@user_feedback, format: :json), @admin
           end
         end
