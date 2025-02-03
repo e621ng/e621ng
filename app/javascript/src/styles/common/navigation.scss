@@ -6,6 +6,7 @@ nav.navigation {
 
   width: 100%; // otherwise narrow when fixed
   z-index: 20; // otherwise post labels layered above
+  position: relative;
 
 
   /* Top bar, always visible */
@@ -13,16 +14,18 @@ nav.navigation {
     grid-area: logo;
 
     background-color: themed("color-background");
+    height: 3.75rem;
 
     a.nav-logo-link {
       display: flex;
+      box-sizing: border-box;
 
       // Height: 3.75rem
-      // - padding  0.25 * 2 = 0.5
-      // - image               3.25
-      height: 3.25rem;
-      width: 3.25rem;
-      margin: 0.25rem;
+      // - padding  0.125 * 2 = 0.25
+      // - image                3.5
+      height: 3.5rem;
+      width: 4rem;
+      margin: 0.125rem;
   
       background-image: url("main-logo.svg");
       background-repeat: no-repeat;
@@ -37,148 +40,205 @@ nav.navigation {
     display: flex;
     flex-flow: row-reverse;
     align-items: center;
-    gap: 0.5em;
 
     font-size: 1.15rem;
-    padding-right: 0.5em;
     background-color: themed("color-background");
+    padding-right: 0.25rem;
+    height: 3.75rem;
 
     //   Height: 3.75rem
-    // - wrapper padding  0.875 * 2 = 1.75
-    // - link padding     0.25  * 2 = 0.5
-    // - font size                    1.5
-    padding: 0.875rem;
-
+    // - link padding     0.625  * 2 = 1.25
+    // - internal size                 2.5
     & > a {
       display: flex;
-      gap: 0.25em;
+      padding: 0.625rem 0.5rem;
 
-      padding: 0.25rem 0.5rem;
-      background: themed("color-foreground");
-      border-radius: 6px;
+      & > span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        gap: 0.5rem;
+        
+        height: 2.5rem;
+        min-width: 2.5rem;
+        line-height: 1.5rem;
+        padding: 0 0.5rem;
 
-      white-space: nowrap;
-
-      & > i {
-        font-size: 1.5rem;
+        background: themed("color-foreground");
         color: themed("color-link-active");
+        border-radius: 0.25rem;
+        white-space: nowrap;
+
+        i { font-size: 1.5rem; }
+      }
+
+      &:hover > span, &:active > span { background: themed("color-section"); }
+      &:focus { outline: none; }
+    }
+
+    a.simple-avatar {
+      .simple-avatar-button {
+        padding: 0;
+        gap: 0;
+
+        .simple-avatar-name {
+          padding: 0.5rem;
+
+          @include window-smaller-than(32rem) {
+            display: none;
+          }
+        }
+
+        .simple-avatar-image {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+
+          width: 2.5rem;
+          height: 2.5rem;
+    
+          box-sizing: border-box;
+          border-radius: 0.25rem;
+          background: themed("color-section");
+
+          img {
+            width: 2.5rem;
+            height: 2.5rem;
+
+            border-radius: 0.25rem;
+            object-fit: cover;
+
+            z-index: 1; // above the letter
+          }
+
+          &::before {
+            content: attr(data-name);
+            position: absolute;
+            font-size: 1.5rem;
+          }
+        }
       }
     }
   }
 
-  /* Prevent toggled menus from being too wide */
-  .nav-offset-left {
-    grid-area: offleft;
-    display: none; // flex
-    background: #00000050;
-  }
-
-  .nav-offset-bottom {
-    grid-area: offbott;
-    display: none; // flex
-    background: #00000050;
+  /* Offset elements on the left and bottom */
+  // Needed to track clicks outside the menu area
+  @each $name in ("left", "bott") {
+    .nav-offset-#{$name} {
+      grid-area: off#{$name};
+      display: none; // flex
+      background: #00000050;
+    }
   }
 
   /* Toggled menus, hidden by default */
-  .nav-primary {
-    grid-area: primary;
-    display: none; // flex
-    flex-flow: column;
+  // Naming areas
+  @each $name in (primary, secondary, tools, help) {
+    .nav-#{$name} {
+      grid-area: $name;
+      display: none;
 
-    background-color: themed("color-section");
-    font-size: 1.5em;
+      li {
+        padding: 0;
 
-    li {
-      padding: 0;
-      a {
-        display: block;
-        border-bottom: 1px solid themed("color-foreground");
-        padding: 0.5em;
+        & > a {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
 
-        // "Comments" is usually the longest and might wrap
-        white-space: nowrap;
+          white-space: nowrap;
 
-        i {
-          width: 1.5rem;
-          color: themed("color-link-active");
-          text-align: center;
+          i {
+            width: 1.5rem;
+            color: themed("color-link-active");
+            text-align: center;
+          }
         }
       }
-
-      &.current a { background-color: themed("color-foreground"); }
     }
   }
 
-  .nav-secondary {
-    grid-area: secondary;
-    display: none; // flex
+  // Common top
+  .nav-primary, .nav-secondary {
     flex-flow: column;
-
-    background-color: themed("color-foreground");
-    font-size: 1.35em;
-    height: 440px;
 
     // Prevent the tools / help buttons from being pushed
     // way too low on pages with a lot of secondary links
+    height: 422px;
     overflow-y: scroll;
 
+    li a {
+      justify-content: start;
+    }
+  }
+
+  .nav-primary {
+    background-color: themed("color-section");
+    font-size: 1.25rem;
+
+    li > a {
+      border-bottom: 1px solid themed("color-foreground");
+      line-height: 1.25rem;
+      padding: 1rem 0.5rem;
+    }
+    li.current a { background-color: themed("color-foreground"); }
+  }
+
+  .nav-secondary {
+    background-color: themed("color-foreground");
+    font-size: 1.2rem;
+
     li {
-      padding: 0;
-      a {
-        display: block;
+      & > a {
         border-bottom: 1px solid themed("color-section");
-        padding: 0.5em;
+        line-height: 1.2rem;
+        padding: 0.7rem;
+
+        white-space: wrap; // forum menus are long
       }
 
       &.divider {
         border-bottom: 1px solid themed("color-section");
-        height: 0.25em;
+        height: 0.25rem;
       }
 
       form input[type="text"] {
         width: 100%;
         box-sizing: border-box;
 
-        // Reduced font size to make the search
-        // box less claustrophobic
-        font-size: 1em;
-        padding: 0.25em 0.5em;
+        font-size: 1.25rem;
+        padding: 0.5rem 0.5rem;
       }
     }
   }
 
-  .nav-tools {
-    grid-area: tools;
-
-    display: none; // grid
-    grid-template-columns: 1fr 1fr;
+  // Common bottom
+  .nav-tools, .nav-help {
     grid-template-rows: min-content;
-
-    padding: 1rem;
+    font-size: 1.1rem;
     gap: 1rem;
 
     background-color: themed("color-section");
+
+    li > a {
+      justify-content: center;
+      border-radius: 0.25rem;
+
+      padding: 0.7rem 1rem;
+      line-height: 1.1rem;
+    }
+  }
+
+  .nav-tools {
+    grid-template-columns: 1fr 1fr;
     border-top: 1px solid themed("color-foreground");
+    padding: 1rem 1rem 0.5rem;
 
     li {
-      padding: 0;
-
+      a { background: themed("color-section-lighten-5"); }
       &.nav-tools-login { grid-column: 1 / -1; }
-
-      & > a {
-        display: block;
-
-        background: themed("color-section-lighten-5");
-        border-radius: 6px;
-  
-        font-size: 125%;
-        padding: 0.5rem 1rem;
-        text-align: center;
-
-        white-space: nowrap;
-  
-        i { color: themed("color-link-active"); }
-      }
     }
 
     &.anonymous li.nav-tools-themes {
@@ -187,42 +247,19 @@ nav.navigation {
   }
 
   .nav-help {
-    grid-area: help;
-
-    display: none; // grid
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: min-content;
-
-    padding: 1rem;
-    gap: 1rem;
-
-    background: themed("color-section");
+    padding: 0.5rem 1rem 1rem;
 
     li {
-      padding: 0;
-
+      a { background: themed("color-section-darken-5"); }
       &.nav-help-discord,
       &.nav-help-subscribestar {
         grid-column: 1 / -1;
       }
 
-      & > a {
-        display: flex;
-
-        background: themed("color-section-darken-5");
-        border-radius: 6px;
-        
-        font-size: 125%;
-        padding: 0.5rem 1rem;
-
-        justify-content: center;
-        align-items: center;
-        gap: 0.25em;
-
-        img {
-          height: 1.25em;
-          margin: -0.5em 0;
-        }
+      & > a img {
+        height: 1.5rem;
+        margin: -0.2rem 0;
       }
 
       // Hack to put the wiki/help links before discord/sstar on mobile
@@ -253,17 +290,18 @@ body[data-th-forumnotif="true"] nav.navigation .nav-primary li.forum-updated {
     height: 6px;
     border-radius: 3px;
 
-    background: var(--palette-text-red);
+    background: palette("text-red");
 
     position: absolute;
-    right: 0.2em;
-    top: 1em;
+    right: 0.2rem;
+    top: 1.25rem;
   
     @include window-larger-than(800px) {
-      top: 0.2em;
+      top: 0.2rem;
     }
   }
 }
+
 
 // Mobile toggle
 html.nav-toggled {
@@ -289,14 +327,14 @@ html.nav-toggled {
     // Allow scrolling when the menu is too long
     overflow-y: scroll;
 
-    .nav-primary, .nav-secondary, .nav-offset-left, .nav-offset-bottom {
+    .nav-primary, .nav-secondary, .nav-offset-left, .nav-offset-bott {
       display: flex;
     }
     .nav-tools, .nav-help {
       display: grid;
     }
     .nav-primary, .nav-tools, .nav-help {
-      box-shadow: -1px 0 5px -1px var(--color-background);
+      box-shadow: -3px 3px 5px -1px themed("color-background");
     }
   }
 }
@@ -304,70 +342,68 @@ html.nav-toggled {
 
 // Desktop
 nav.navigation, html.nav-toggled nav.navigation {
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     grid-template-areas:
-      "logo primary   help      tools    "
-      "logo secondary secondary secondary"
-    ;
-    grid-template-columns: min-content min-content minmax(0, 1fr) min-content;
-    grid-template-rows: 1.75em 2em;
+      "logo primary   help      help  controls" 
+      "logo secondary secondary tools controls";
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
+    grid-template-rows: 1.5rem 1.75rem;
 
-    padding: 0 1em 0.5em;
+    padding: 0 1rem 0.5rem;
     box-sizing: border-box;
     height: unset;
 
-    background: var(--color-background);
+    background: themed("color-background");
     overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
 
-    .nav-logo {
-      a.nav-logo-link { margin: 0.25rem 0.5rem 0 0; }
+    .nav-logo a.nav-logo-link {
+      height: 3.25rem;
+      width: 3.25rem;
+      margin: 0.25rem 0.5rem 0 0;
     }
 
-    .nav-offset-left, .nav-offset-bottom, .nav-controls { display: none; }
+    .mobile { display: none; }
 
-    .nav-primary {
+    // All link ribbons
+    .desktop {
       display: flex;
       flex-flow: row;
 
+      font-size: 0.875rem;
+      box-shadow: unset;
+
+      li a {
+        display: flex;
+        align-items: center;
+        height: 100%;
+
+        padding: 0 0.625rem;
+        white-space: nowrap;
+      }
+    }
+
+    .nav-primary {
       background: unset;
-      font-size: 1.05em;
-      padding: 0 0.25em;
+      height: unset;
+      padding-left: 0.25rem;
 
-      li {
-        a {
-          display: flex;
-          align-items: center;
-          height: 100%;
-
-          border-bottom: 0;
-          padding: 0 0.75em;
-          i { display: none; }
-        }
+      li a {
+        border-bottom: 0;
+        i { display: none; }
       }
     }
 
     .nav-secondary {
-      display: flex;
-      flex-flow: row;
       height: unset;
 
-      padding: 0 0.25em;
-      font-size: 1.05em;
-      border-radius: 6px;
+      padding: 0 0.25rem;
+      border-radius: 0.25rem 0 0 0.25rem;
 
-      // Silly fix for too many links
-      overflow: hidden;
+      overflow: hidden; // Silly fix for too many links
+      z-index: 1; // above the avatar
 
       li {
-        a {
-          display: flex;
-          align-items: center;
-          height: 100%;
-
-          border-bottom: 0;
-          padding: 0 0.75em;
-          white-space: nowrap;
-        }
+        a { border-bottom: 0; }
 
         &.divider {
           display: flex;
@@ -377,49 +413,40 @@ nav.navigation, html.nav-toggled nav.navigation {
           &::after { content: "|"; }
         }
 
-        form {
-          display: flex;
-          align-items: center;
-
-          input[type="text"] { min-width: 10em; }
+        form input[type="text"] {
+          width: 12rem;
+          padding: 0.25rem 0.5rem;
+          font-size: 1rem;
+          border-radius: 0.25rem;
         }
       }
     }
 
     .nav-tools, .nav-help {
-      display: flex;
-
       padding: 0;
       background: unset;
       border: none;
       gap: 0;
 
-      li {
-        a {
-          display: flex;
-          align-items: center;
-          height: 100%;
-          gap: 0.25em;
+      li a {
+        gap: 0.25rem;
 
-          background: unset;
-          font-size: 1.05em;
-          padding: 0 0.75em;
-          text-align: unset;
-          white-space: nowrap;
-          border-radius: 0;
-        }
+        background: unset;
+        text-align: unset;
+        border-radius: 0;
       }
     }
 
     .nav-tools {
-
-      // Otherwise help gets layered above it
-      // When the viewport is narrow (but not mobile)
+      background: themed("color-foreground");
       z-index: 1;
-      background: var(--color-background);
+      border-radius: 0 0.25rem 0.25rem 0;
+      margin-right: 0.25rem;
 
       li {
         a {
+          padding: 0 0.5rem;
+
           i { color: themed("color-link"); }
           &:hover i { color: themed("color-link-hover"); }
         }
@@ -428,17 +455,8 @@ nav.navigation, html.nav-toggled nav.navigation {
           a span { display: none; }
         }
       }
-
-      #nav-themes, #nav-settings { display: none; }
-      @include window-larger-than(875px) {
-        #nav-themes, #nav-settings { display: flex; }
-      }
-      
-      #nav-account span { display: none; }
-      @include window-larger-than(930px) {
-        #nav-account span { display: unset; }
-      }
     }
+
     .nav-help {
 
       // At small resolutions, overflow can
@@ -446,50 +464,104 @@ nav.navigation, html.nav-toggled nav.navigation {
       overflow: hidden;
 
       li a img { display: none; }
-
       li.current a {
         background-color: themed("color-foreground");
       }
+    }
 
-      #nav-discord, #nav-subscribestar { display: none; }
-      @include window-larger-than(1150px) {
-        #nav-discord, #nav-subscribestar { display: flex; }
+    .nav-controls {
+      position: absolute;
+      right: 0;
+      top: 0;
+
+      height: 3.25rem;
+      box-sizing: border-box;
+      padding: 0.25rem 0 0;
+
+      #nav-toggle { display: none; }
+
+      a.simple-avatar {
+        padding: 0;
+        height: 100%;
+
+        .simple-avatar-button {
+          background: none;
+          color: inherit;
+          align-items: start;
+          font-size: 0.875rem;
+          line-height: 0.875rem;
+
+          .simple-avatar-name {
+            padding: 0 0.5rem;
+          }
+  
+          .simple-avatar-image {
+            height: 3rem;
+            width: 3rem;
+            background: themed("color-foreground");
+
+            img {
+              width: 2.75rem;
+              height: 2.75rem;
+            }
+          }
+        }
       }
     }
 
-    .nav-primary, .nav-tools, .nav-help { box-shadow: unset; }
+    // Icon collapse
+    // Stage 1: discord and subscribestar buttons
+    .collapse-1 { display: none; }
+    @include window-larger-than(77rem) {
+      .collapse-1 { display: flex; }
+    }
+    
+    // Stage 2: account label
+    .collapse-2 .simple-avatar-name { display: none; }
+    @include window-larger-than(65rem) {
+      .collapse-2 .simple-avatar-name { display: unset; }
+    }
   }
 }
 
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
 
     nav.navigation {
 
       // Center and align the navbar
+      grid-template-areas: "logo primary help controls";
       grid-template-columns: repeat(4, min-content);
       justify-content: center;
 
       // Remove padding to prevent a scrollbar
       // at low desktop resolutions
-      padding: 0 0 0.5em;
+      padding: 0 0 0.5rem;
 
-      #nav-subscribestar, #nav-discord, #nav-themes, #nav-settings {
-        display: none;
-      }
+      #nav-subscribestar, #nav-discord, .nav-secondary, .nav-tools { display: none; }
     }
 
     // Match the background colors
-    nav.navigation, menu.nav-logo, menu.nav-secondary {
+    nav.navigation, menu.nav-logo, menu.nav-secondary, menu.nav-controls {
       background: unset;
     }
     menu.nav-tools {
       background: var(--bg-color);
     }
+    menu.nav-controls {
+      position: static;
+      height: unset;
+      padding: 0;
+      .simple-avatar-button {
+        height: unset;
+        align-items: center;
+        .simple-avatar-image { display: none; }
+      }
+    }
   }
 
-  @include window-smaller-than(800px) {
+  @include window-smaller-than(50rem) {
     // Only show the primary navbar on mobile
     // since the secondary is empty anyways
     nav.navigation {
