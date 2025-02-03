@@ -10,8 +10,11 @@
   <% if CurrentUser.is_anonymous? %>
     <%= render "static/guest_warning" %>
   <% end %>
+
   <div id="page">
     <%= yield :layout %>
   </div>
+
+  <%= render "static/deferred_posts" %>
 <% end %>
 </html>
