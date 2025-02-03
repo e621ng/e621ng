@@ -33,9 +33,7 @@
   <% if CurrentUser.is_privileged? %>
     <span id="tag-script-ui" style="display: none;">
       <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none;"/>
-      <% if CurrentUser.is_staff? %>
-        <button id="tag-script-all">All</button>
-      <% end %>
+      <button id="tag-script-all">All</button>
     </span>
     <input id="quick-mode-reason" placeholder="Reason" style="display: none;"/>
   <% end %>
