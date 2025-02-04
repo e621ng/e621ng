@@ -1,73 +1,84 @@
-footer#page-footer {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 0.5rem 0;
-
-  padding: 0.5rem 0 1rem;
-  margin: 1rem 0 0;
-
+footer.footer-wrapper {
   background: var(--color-foreground);
+  margin-top: 1rem;
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: min-content min-content;
+    grid-template-areas:
+      "logo .    "
+      "left right";
+    justify-items: center;
+    gap: 0.5rem 0;
+
+    width: min-content;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  .footer-logo {
+    grid-area: logo;
+    width: 100%;
+    text-align: right;
+
+    img {
+      width: 5rem;
+      height: auto;
+
+      // Aligning the logo with the line below
+      margin-right: -3.25rem;
+
+      background: themed("color-background") themed("image-background");
+      border-radius: 50%;
+      padding: 0.5rem;
+    }
+  }
 
   .footer-left, .footer-right {
     display: flex;
     flex-flow: column;
-    gap: 0.25em;
-    padding: 0 0.5rem;
-
-    font-size: 1.25em;
-
-    a, span {
-      line-height: 1.25em;
-    }
+    box-sizing: border-box;
+    width: 100%;
+    gap: 0.25rem;
+  
+    font-size: 1rem;
+  
+    a, span { white-space: nowrap; }
+    span { line-height: 1.25em; }
   }
+
   .footer-left {
-    align-items: end;
-    border-right: 1px solid var(--color-section);
+    grid-area: left;
+    padding-right: 1rem;
+
+    text-align: right;
+    border-right: 1px solid var(--color-section-lighten-5);
   }
-
-  .footer-logo {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    text-align: center;
-
-    img {
-      width: 5rem;
-      height: 5rem;
-    }
+  .footer-right {
+    grid-area: right;
+    padding-left: 1rem;
   }
 }
 
 
-// Desktop
-footer#page-footer {
-  @include window-larger-than(800px) {
-    grid-template-columns: 1fr min-content 1fr;
-
-    .footer-left, .footer-right {
-      font-size: unset;
-      flex-flow: row;
-      align-items: center;
-      border: 0;
-      gap: 0;
-
-      a:not(:last-child)::after {
-        content: "";
-        width: 4px;
-        height: 4px;
-        background: white;
-        display: inline-block;
-        border-radius: 2px;
-        margin: 0.125rem 0.5rem;
-      }
-
-      span.footer-running { display: none; }
+// Desktop-ish
+footer.footer-wrapper {
+  @include window-larger-than(450px) {
+    .footer-grid {
+      grid-template-areas: "logo left right";
+      padding: 1rem 0;
     }
 
-    .footer-left { justify-content: right; }
-
     .footer-logo {
-      grid-column: unset;
-      grid-row: unset;
+      display: flex;
+      align-items: center;
+      padding-right: 2rem;
+      box-sizing: border-box;
+
+      img {
+        width: 6rem;
+        margin-right: unset;
+      }
     }
   }
 }

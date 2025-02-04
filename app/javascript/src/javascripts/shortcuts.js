@@ -28,6 +28,7 @@ Shortcuts.initialize_data_shortcuts = function () {
 
     Shortcuts.keydown(keys, namespace, event => {
       const e = $(`[data-shortcut="${keys}"]`).get(0);
+      if ($e.data("disabled")) return;
       if ($e.is("input, textarea")) {
         $e.trigger("focus").selectEnd();
       } else {

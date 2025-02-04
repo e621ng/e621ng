@@ -1,35 +1,101 @@
+.paginator {
+  display: flex;
+  flex-wrap: wrap;
 
+  justify-content: space-evenly;
+  background-color: themed("color-foreground");
+  border-radius: 0.25rem;
 
-div.paginator {
-  display: block;
-  padding: 2em 0 1em 0;
-  text-align: center;
-  clear: both;
+  width: max-content;
+  margin: 0 auto;
 
-  menu {
+  & > a, & > span {
     display: flex;
+    box-sizing: border-box;
     justify-content: center;
+    align-items: center;
+    min-width: 2.15rem;
+  
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.75rem 0.3rem; // otherwise large page numbers wrap
+
+    border-radius: 0.25rem;
+
+    &:hover {
+      background: themed("color-section");
+    }
   }
 
-  li {
-    a {
-      margin: 0 0.25em;
-      padding: 0.25em 0.75em;
+  & > a[data-disabled="true"] {
+    color: var(--color-text);
+    pointer-events: none;
+  }
+
+  // Ordering
+  // Oh boy
+  .page {
+    order: 20;
+    &.lg { display: none; }
+    &.current { cursor: default; }
+  }
+  .prev {
+    order: 1;
+    margin-right: auto;
+  }
+  .spacer {
+    order: 20;
+    padding: 0;
+
+    &:last-child { display: none; }
+    svg {
+      height: 1rem;
+      transform: rotate(90deg);
+    }
+  }
+  .next {
+    order: 9;
+    margin-left: auto;
+  }
+  .break {
+    order: 10;
+    width: 100%;
+  }
+
+
+  // Tablet
+  @include window-larger-than(35rem) {
+    justify-content: center;
+    gap: 0.125rem;
+
+    a, span {
+      order: 0 !important;
+      min-width: 2.25rem;
+      font-size: 0.9rem;
     }
 
-    a:hover {
-      background: $paginator-hover-background;
-      color: $paginator-hover-color;
+    .break { display: none; }
+    .spacer {
+      padding: inherit;
+      svg { transform: unset; }
     }
 
-    &.more {
-      color: $paginator-more-color;
+    .prev { margin-right: 1rem; }
+    .next { margin-left: 1rem; }
+  }
+
+  @include window-larger-than(50rem) {
+    a, span {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.95rem;
     }
 
-    span {
-      margin: 0 0.25em;
-      padding: 0.25em 0.75em;
-      font-weight: bold;
+    .prev, .next {
+      span { display: none; }
     }
+  }
+
+  @include window-larger-than(65rem) {
+    a.page.lg { display: flex; }
   }
 }

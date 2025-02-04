@@ -8,6 +8,23 @@ Thumbnails.initialize = function () {
   const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
   const replacedPosts = [];
 
+  // Avatar special case
+  for (const post of $(".simple-avatar")) {
+    const $post = $(post);
+
+    const postID = $post.data("id");
+    if (!postID) continue;
+
+    const postData = postsData[postID];
+    if (!postData || !postData["preview_url"]) continue;
+
+    $("<img>")
+      .attr("src", postData["preview_url"])
+      .appendTo($post.find("span.simple-avatar-image"));
+    continue;
+  }
+
+  // Reset of the deferred posts
   for (const post of posts) {
     const $post = $(post);
 

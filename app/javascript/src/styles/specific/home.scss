@@ -75,6 +75,10 @@ body.c-static.a-home {
     }
   }
 
+  #home-search-form:not(.empty) .home-buttons a span::before {
+    content: "Search ";
+  }
+
 
   // Footer
   .home-footer-top {

@@ -10,7 +10,6 @@ NewsUpdate.initialize = function () {
   let newsOpen = false;
   $("#news-header, #news-show").on("click", (event) => {
     event.preventDefault();
-    console.log("click");
 
     newsOpen = !newsOpen;
     $("#news").toggleClass("open", newsOpen);
