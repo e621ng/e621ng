@@ -6,6 +6,9 @@
   background-color: themed("color-foreground");
   border-radius: 0.25rem;
 
+  width: max-content;
+  margin: 0 auto;
+
   & > a, & > span {
     display: flex;
     box-sizing: border-box;
