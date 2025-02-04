@@ -35,12 +35,10 @@ PostModeMenu.change_tag_script = function (e) {
   e.preventDefault();
 
   const newScriptID = Number(e.key);
-  console.log(newScriptID, LStorage.Posts.TagScript.ID);
   if (!newScriptID || newScriptID == LStorage.Posts.TagScript.ID)
     return;
 
   LStorage.Posts.TagScript.ID = newScriptID;
-  console.log("settings", LStorage.Posts.TagScript.ID, LStorage.Posts.TagScript.Content);
   $("#tag-script-field").val(LStorage.Posts.TagScript.Content);
   PostModeMenu.show_notice(newScriptID);
 };
