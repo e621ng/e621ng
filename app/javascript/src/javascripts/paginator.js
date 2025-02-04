@@ -12,7 +12,7 @@ Paginator.init_fasttravel = function (button) {
 };
 
 $(() => {
-  for (const one of $(".paginator li.more a").get())
+  for (const one of $(".paginator a.spacer").get())
     Paginator.init_fasttravel($(one));
 });
 
