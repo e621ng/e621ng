@@ -1,3 +1,8 @@
+body.c-posts.a-index #page {
+  background: none;
+  padding: 0;
+}
+
 .post-index {
   display: grid;
 
@@ -7,11 +12,15 @@
     "sidebar";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
-  gap: 1em;
 
   // 1. Searchbox
   .search {
     grid-area: search;
+
+    padding: 0.5rem 0.25rem;
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
 
     h1 {
       font-size: $h3-size;
@@ -22,9 +31,17 @@
   .content {
     grid-area: content;
 
+    // Imported from #page
+    padding: 0.5rem 0.25rem themed("content-padding-bottom");
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+
     // Quick tag edit
     #edit-dialog textarea {
-      margin-bottom: 0.25em;
+      margin-bottom: 0.25rem;
     }
 
     // Actual content area:
@@ -32,7 +49,7 @@
     .post-index-gallery {
       display: flex;
       flex-flow: column;
-      gap: 1em;
+      gap: 1rem;
     }
   }
 
@@ -43,6 +60,11 @@
     display: flex;
     flex-flow: column;
     gap: 1em;
+
+    padding: 0.5rem 0.25rem;
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     // Mode selection
     #mode-box-mode, #mode-box #set-id {
@@ -59,12 +81,30 @@
 
 // Desktop
 .post-index {
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     grid-template-areas:
       "search  content" 
       "sidebar content";
-    grid-template-columns: 15em 1fr;
+    grid-template-columns: 14rem 1fr;
     grid-template-rows: min-content 1fr;
+
+    .search {
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+      margin-top: 0.25rem;
+      border-top-left-radius: 0.25rem;
+      padding: 0.5rem;
+    }
+
+    .sidebar {
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+      margin-bottom: 0.25rem;
+      border-bottom-left-radius: 0.25rem;
+      padding: 0.5rem
+    }
+
+    .content {
+      border-radius: 0.25rem;
+    }
   }
 }
 
@@ -76,12 +116,13 @@
   flex-flow: column;
   position: relative;
 
-  background: var(--color-section);
+  background: themed("color-section");
+  border-radius: 0.25rem;
 
   // header
   h3 {
     cursor: pointer;
-    padding: 0.5em 1em 0.5em 1.5em;
+    padding: 0.5rem 1rem 0.5rem 1.5rem;
 
     &::after {
       @include font-awesome-icon;
@@ -92,21 +133,21 @@
       position: absolute;
       top: 0;
       left: 0;
-      padding: 0.5em;
+      padding: 0.5rem;
     }
   }
 
   // body
   .styled-dtext {
-    background: linear-gradient(to top, var(--color-section), var(--color-text));
+    background: linear-gradient(to top, themed("color-section"), themed("color-text"));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 
-    max-height: 0em;
+    max-height: 0rem;
     max-width: 50rem;
     overflow: hidden;
-    padding: 0 0.5em;
+    padding: 0 0.5rem;
 
     transition: max-height 0.25s;
 
@@ -134,7 +175,7 @@
     left: 0;
     right: 0;
 
-    height: 3em;
+    height: 3rem;
     max-width: 50rem;
     box-sizing: border-box;
 
@@ -143,16 +184,16 @@
     visibility: hidden;
 
     span {
-      padding: 0.5em 1em;
-      background: var(--color-section);
-      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      background: themed("color-section");
+      border-radius: 0.25rem;
     }
   }
 
   &.open{
     .wiki-excerpt-toggle::after { transform: rotate(90deg); }
     .styled-dtext {
-      max-height: 10em;
+      max-height: 10rem;
     }
     .wiki-excerpt-readmore { visibility: visible; }
   }
