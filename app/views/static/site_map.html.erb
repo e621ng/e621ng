@@ -2,7 +2,7 @@
   <div id="a-site-map">
     <section>
       <ul>
-        <li><h1>Posts</h1></li>
+        <li><h3>Posts</h3></li>
         <li><%= link_to("Listing", posts_path) %></li>
         <li><%= link_to("Upload", new_upload_path) %></li>
         <% if CurrentUser.is_janitor? %>
@@ -17,7 +17,7 @@
         <li><%= link_to("Help", help_page_path(id: "posts")) %></li>
       </ul>
       <ul>
-        <li><h1>Post Events</h1></li>
+        <li><h3>Post Events</h3></li>
         <li><%= link_to("Listing", post_events_path) %></li>
         <li><%= link_to("Tag Changes", post_versions_path) %></li>
         <li><%= link_to("Approvals", post_approvals_path) %></li>
@@ -25,7 +25,7 @@
         <li><%= link_to("Replacements", post_replacements_path) %></li>
       </ul>
       <ul>
-        <li><h1>Tools</h1></li>
+        <li><h3>Tools</h3></li>
         <li><%= link_to("News Updates", news_updates_path) %></li>
         <li><%= link_to("Mascots", mascots_path) %></li>
         <li><%= link_to("Source Code", Danbooru.config.source_code_url) %></li>
@@ -35,7 +35,7 @@
         <li><%= link_to("DB Export", "/db_export/") %></li>
       </ul>
       <ul>
-        <li><h1>Artists</h1></li>
+        <li><h3>Artists</h3></li>
         <li><%= link_to("Listing", artists_path) %></li>
         <li><%= link_to("Avoid Posting Entries", avoid_postings_path) %></li>
         <li><%= link_to("Avoid Posting List", avoid_posting_static_path) %></li>
@@ -45,7 +45,7 @@
     </section>
     <section>
       <ul>
-        <li><h1>Tags</h1></li>
+        <li><h3>Tags</h3></li>
         <li><%= link_to("Listing", tags_path) %></li>
         <li><%= link_to("Aliases", tag_aliases_path) %></li>
         <li><%= link_to("Implications", tag_implications_path) %></li>
@@ -53,13 +53,13 @@
         <li><%= link_to("Help", help_page_path(id: "tags")) %></li>
       </ul>
       <ul>
-        <li><h1>Notes</h1></li>
+        <li><h3>Notes</h3></li>
         <li><%= link_to("Listing", notes_path) %></li>
         <li><%= link_to("Changes", note_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "notes")) %></li>
       </ul>
       <ul>
-        <li><h1>Pools</h1></li>
+        <li><h3>Pools</h3></li>
         <li><%= link_to("Listing", gallery_pools_path) %></li>
         <li><%= link_to("Changes", pool_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "pools")) %></li>
@@ -67,30 +67,30 @@
     </section>
     <section>
       <ul>
-        <li><h1>Comments</h1></li>
+        <li><h3>Comments</h3></li>
         <li><%= link_to("Listing", comments_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "comments")) %></li>
       </ul>
       <ul>
-        <li><h1>Forum</h1></li>
+        <li><h3>Forum</h3></li>
         <li><%= link_to("Listing", forum_topics_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "forum")) %></li>
       </ul>
       <ul>
-        <li><h1>Wiki</h1></li>
+        <li><h3>Wiki</h3></li>
         <li><%= link_to("Listing", wiki_pages_path) %></li>
         <li><%= link_to("Changes", wiki_page_versions_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "wiki")) %></li>
       </ul>
       <ul>
-        <li><h1>Blips</h1></li>
+        <li><h3>Blips</h3></li>
         <li><%= link_to("Listing", blips_path) %></li>
         <li><%= link_to("Help", help_page_path(id: "blips")) %></li>
       </ul>
     </section>
     <section>
       <ul>
-        <li><h1>Users</h1></li>
+        <li><h3>Users</h3></li>
         <li><%= link_to("Listing", users_path) %></li>
         <li><%= link_to("Bans", bans_path) %></li>
         <% if CurrentUser.is_anonymous? %>
@@ -105,7 +105,7 @@
         <li><%= link_to("Help", help_page_path(id: "accounts")) %></li>
       </ul>
       <ul>
-        <li><h1>Admin</h1></li>
+        <li><h3>Admin</h3></li>
         <% if CurrentUser.is_moderator? %>
           <li><%= link_to("Mod Dashboard", moderator_dashboard_path) %></li>
         <% end %>
