@@ -66,6 +66,7 @@ footer.footer-wrapper {
   @include window-larger-than(450px) {
     .footer-grid {
       grid-template-areas: "logo left right";
+      padding: 1rem 0;
     }
 
     .footer-logo {
