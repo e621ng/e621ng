@@ -8,6 +8,7 @@
 
   width: max-content;
   margin: 0 auto;
+  max-width: calc(100vw - 1rem);
 
   & > a, & > span {
     display: flex;
