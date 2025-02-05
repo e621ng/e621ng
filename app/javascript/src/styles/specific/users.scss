@@ -249,8 +249,9 @@ div#c-users {
 
   div.input {
     input[type="text"], input[type="email"], input[type="password"], select {
-      width: 100%;
-      max-width: unset;
+      // z_responsive is the absolute worst
+      width: 100% !important;
+      max-width: unset !important;
       box-sizing: border-box;
     }
   }

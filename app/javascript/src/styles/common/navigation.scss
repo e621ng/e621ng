@@ -119,6 +119,12 @@ nav.navigation {
             font-size: 1.5rem;
           }
         }
+
+        @include window-smaller-than(32rem) {
+          &.sign-in .simple-avatar-image {
+            background: themed("color-foreground");
+          }
+        }
       }
     }
   }
