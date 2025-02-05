@@ -16,6 +16,9 @@ CurrentUser.as_system do
       record_id = mod_action.values["record_id"].to_i
       destroyed_feedback_ids << record_id
 
+      # old mod actions do not contain the necessary information. we skip them.
+      next if mod_action.values["type"].nil? || mod_action.values["reason"].nil?
+
       {
         id: record_id,
         user_id: mod_action.values["user_id"].to_i,
