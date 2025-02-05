@@ -1,8 +1,8 @@
-<%= decorated_nav_link_to("Artists", "fas fa-brush", artists_path) %>
-<%= decorated_nav_link_to("Posts", "fas fa-images", posts_path) %>
-<%= decorated_nav_link_to("Pools", "fas fa-book", gallery_pools_path) %>
-<%= decorated_nav_link_to("Sets", "fas fa-clone", post_sets_path) %>
-<%= decorated_nav_link_to("Tags", "fas fa-tags", tags_path) %>
-<%= decorated_nav_link_to("Blips", "fas fa-bullhorn", blips_path) %>
-<%= decorated_nav_link_to("Comments", "fas fa-comment-alt", comments_path(group_by: "post")) %>
-<%= decorated_nav_link_to("Forum", "fas fa-chalkboard", forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "forum-updated" : nil)) %>
+<%= decorated_nav_link_to("Artists", :brush, artists_path) %>
+<%= decorated_nav_link_to("Posts", :images, posts_path) %>
+<%= decorated_nav_link_to("Pools", :library, gallery_pools_path) %>
+<%= decorated_nav_link_to("Sets", :group, post_sets_path) %>
+<%= decorated_nav_link_to("Tags", :tags, tags_path) %>
+<%= decorated_nav_link_to("Blips", :megaphone, blips_path) %>
+<%= decorated_nav_link_to("Comments", :message_square, comments_path(group_by: "post")) %>
+<%= decorated_nav_link_to("Forum", :lectern, forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "forum-updated" : nil)) %>
