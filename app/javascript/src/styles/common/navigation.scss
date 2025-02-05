@@ -389,6 +389,7 @@ nav.navigation, html.nav-toggled nav.navigation {
       background: unset;
       height: unset;
       padding-left: 0.25rem;
+      overflow-y: unset;
 
       li a {
         border-bottom: 0;
@@ -401,6 +402,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       padding: 0 0.25rem;
       border-radius: 0.25rem 0 0 0.25rem;
+      overflow-y: unset;
 
       overflow: hidden; // Silly fix for too many links
       z-index: 1; // above the avatar
