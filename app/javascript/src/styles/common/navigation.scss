@@ -69,8 +69,6 @@ nav.navigation {
         color: themed("color-link-active");
         border-radius: 0.25rem;
         white-space: nowrap;
-
-        i { font-size: 1.5rem; }
       }
 
       &:hover > span, &:active > span { background: themed("color-section"); }
