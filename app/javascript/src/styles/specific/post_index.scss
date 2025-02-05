@@ -1,3 +1,22 @@
+body.c-posts.a-index, body.c-favorites.a-index {
+  #page {
+    // Override the theme to instead
+    // project it upon the content area
+    background: none;
+    padding: 0;
+  }
+
+  // Exhibit A
+  // Makes the content area take up the
+  // full height of the page. Yes, really.
+  #page, #c-posts, #c-favorites, #a-index {
+    // I hate both this and myself
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+  }
+}
+
 .post-index {
   display: grid;
 
@@ -7,24 +26,46 @@
     "sidebar";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
-  gap: 1em;
+
+  flex: 1; // See Exhibit A
 
   // 1. Searchbox
   .search {
     grid-area: search;
 
+    padding: 0.5rem 0.25rem;
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
     h1 {
       font-size: $h3-size;
+    }
+
+    .search-controls {
+      display: none;
+      flex-flow: column;
     }
   }
 
   // 2. Content
   .content {
+    display: flex; // See Exhibit A
+    flex-flow: column;
+
     grid-area: content;
+
+    // Imported from #page
+    padding: 0.5rem 0.25rem themed("content-padding-bottom");
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
 
     // Quick tag edit
     #edit-dialog textarea {
-      margin-bottom: 0.25em;
+      margin-bottom: 0.25rem;
     }
 
     // Actual content area:
@@ -32,7 +73,14 @@
     .post-index-gallery {
       display: flex;
       flex-flow: column;
-      gap: 1em;
+      gap: 1rem;
+
+      flex: 1; // See Exhibit A
+
+      .posts-container {
+        flex: 1; // See Exhibit A
+        grid-auto-rows: min-content;
+      }
     }
   }
 
@@ -43,6 +91,11 @@
     display: flex;
     flex-flow: column;
     gap: 1em;
+
+    padding: 0.5rem 0.25rem;
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     // Mode selection
     #mode-box-mode, #mode-box #set-id {
@@ -59,12 +112,76 @@
 
 // Desktop
 .post-index {
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     grid-template-areas:
       "search  content" 
       "sidebar content";
-    grid-template-columns: 15em 1fr;
+    grid-template-columns: 14rem 1fr;
     grid-template-rows: min-content 1fr;
+
+    .search {
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+      margin-top: 0.25rem;
+      border-top-left-radius: 0.25rem;
+      padding: 0.5rem;
+
+      .search-controls {
+        display: flex;
+        margin-top: 0.5rem;
+      }
+    }
+
+    .sidebar {
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+      margin-bottom: 0.25rem;
+      border-bottom-left-radius: 0.25rem;
+      padding: 0.5rem
+    }
+
+    .content {
+      border-radius: 0.25rem;
+    }
+  }
+}
+
+
+// Fullscreen
+body.c-posts.a-index[data-st-fullscreen="true"] {
+  // Desktop-only, for obvious reasons
+  @include window-larger-than(50rem) {
+    .post-index {
+      grid-template-areas:
+        "search " 
+        "content";
+      grid-template-columns: 1fr;
+
+      .search {
+        display: flex;
+
+        border-radius: 0.25rem 0.25rem 0 0;
+        box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
+        .post-search {
+          flex: 1;
+        }
+
+        .search-controls {
+          display: flex;
+          justify-content: right;
+          align-self: end;
+          margin: 0 0 0 0.5rem;
+
+          .st-button.w100 {
+            width: unset;
+            span { display: none; }
+          }
+        }
+      }
+      .sidebar { display: none; }
+      .content {
+        border-radius: 0 0 0.25rem 0.25rem;
+      }
+    }
   }
 }
 
@@ -76,12 +193,13 @@
   flex-flow: column;
   position: relative;
 
-  background: var(--color-section);
+  background: themed("color-section");
+  border-radius: 0.25rem;
 
   // header
   h3 {
     cursor: pointer;
-    padding: 0.5em 1em 0.5em 1.5em;
+    padding: 0.5rem 1rem 0.5rem 1.5rem;
 
     &::after {
       @include font-awesome-icon;
@@ -92,21 +210,21 @@
       position: absolute;
       top: 0;
       left: 0;
-      padding: 0.5em;
+      padding: 0.5rem;
     }
   }
 
   // body
   .styled-dtext {
-    background: linear-gradient(to top, var(--color-section), var(--color-text));
+    background: linear-gradient(to top, themed("color-section"), themed("color-text"));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 
-    max-height: 0em;
+    max-height: 0rem;
     max-width: 50rem;
     overflow: hidden;
-    padding: 0 0.5em;
+    padding: 0 0.5rem;
 
     transition: max-height 0.25s;
 
@@ -134,7 +252,7 @@
     left: 0;
     right: 0;
 
-    height: 3em;
+    height: 3rem;
     max-width: 50rem;
     box-sizing: border-box;
 
@@ -143,16 +261,16 @@
     visibility: hidden;
 
     span {
-      padding: 0.5em 1em;
-      background: var(--color-section);
-      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      background: themed("color-section");
+      border-radius: 0.25rem;
     }
   }
 
   &.open{
     .wiki-excerpt-toggle::after { transform: rotate(90deg); }
     .styled-dtext {
-      max-height: 10em;
+      max-height: 10rem;
     }
     .wiki-excerpt-readmore { visibility: visible; }
   }

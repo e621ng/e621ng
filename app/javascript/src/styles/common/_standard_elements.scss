@@ -1,0 +1,59 @@
+// Standard button
+// Could be applied to either a button or a link
+// Semi-expected to have an icon
+.st-button {
+  $button-font-size: st-value(100);
+  $button-background: themed("color-section-lighten-5");
+  $button-background-hover: themed("color-section-lighten-10");
+  $button-text-color: themed("color-text");
+
+  display: flex;
+  gap: st-value(100) / 4;
+  border-radius: radius(025);
+
+  // Button final size
+  // Font           1rem
+  // Padding  2 * 0.5rem
+  font-size: st-value(100);
+  line-height: st-value(100);
+  padding: st-value(100) / 2;
+  height: st-value(100) * 2;
+
+  // TODO What if button is on a light background
+  background: $button-background;
+  color: $button-text-color;
+  &:hover { background: $button-background-hover; }
+
+  & > svg {
+    // Icon should be slightly larger than text,
+    // with padding to fill the entire button height
+    height: st-value(100) * 1.5;      // 1.5rem
+    width: st-value(100) * 1.5;       // 1.5rem
+    margin: -#{st-value(100) / 2} 0;  // 0.5rem
+    padding: st-value(100) / 4;       // 0.25rem
+
+    border-radius: radius(025);
+  }
+  & > span {
+    text-align: left;
+
+    // Do not overflow text
+    overflow: hidden;
+    flex: 1;
+  }
+
+  // Full width button
+  &.w100 { width: 100%; }
+
+  &.stealth {
+    background: none;
+    padding: (st-value(100) / 2) 0;
+
+    svg { background: $button-background; }
+    span { color: themed("color-link"); }
+    &:hover {
+      svg { background: $button-background-hover; }
+      span { color: themed("color-link-hover"); }
+    }
+  }
+}

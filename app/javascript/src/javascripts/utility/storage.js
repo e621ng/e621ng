@@ -88,6 +88,9 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if the wiki excerpt should be visible */
   WikiExcerpt: ["e6.posts.wiki", true],
+
+  /** @returns {boolean} True if the search should be displayed in fullscreen */
+  Fullscreen: ["e6.posts.fusk", false],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 
