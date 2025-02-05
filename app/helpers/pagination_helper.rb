@@ -7,8 +7,8 @@ module PaginationHelper
 
       html = "".html_safe
 
-      html << paginator_prev(records, disabled: records.is_first_page?)
-      html << paginator_next(records, disabled: records.is_last_page?)
+      html << paginator_prev(nav_params_for("a#{records[0].id}"), disabled: records.is_first_page?)
+      html << paginator_next(nav_params_for("b#{records[-1].id}"), disabled: records.is_last_page?)
 
       html
     end
@@ -23,7 +23,7 @@ module PaginationHelper
       html = "".html_safe
 
       # Previous
-      html << paginator_prev(records, disabled: records.current_page < 2)
+      html << paginator_prev(nav_params_for(records.current_page - 1), disabled: records.current_page < 2)
 
       # Break
       html << tag.div(class: "break")
@@ -34,7 +34,7 @@ module PaginationHelper
       end
 
       # Next
-      html << paginator_next(records, disabled: records.current_page >= records.total_pages)
+      html << paginator_next(nav_params_for(records.current_page + 1), disabled: records.current_page >= records.total_pages)
 
       html
     end
@@ -42,7 +42,7 @@ module PaginationHelper
 
   private
 
-  def paginator_prev(records, disabled: false)
+  def paginator_prev(link, disabled: false)
     html = "".html_safe
 
     if disabled
@@ -51,7 +51,7 @@ module PaginationHelper
         concat tag.span("Prev")
       end
     else
-      html << link_to(nav_params_for("a#{records[0].id}"), class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left" }) do
+      html << link_to(link, class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left" }) do
         concat svg_icon(:chevron_left)
         concat tag.span("Prev")
       end
@@ -60,7 +60,7 @@ module PaginationHelper
     html
   end
 
-  def paginator_next(records, disabled: false)
+  def paginator_next(link, disabled: false)
     html = "".html_safe
 
     if disabled
@@ -69,7 +69,7 @@ module PaginationHelper
         concat svg_icon(:chevron_right)
       end
     else
-      html << link_to(nav_params_for("a#{records[0].id}"), class: "next", id: "paginator-prev", rel: "next", data: { shortcut: "a left" }) do
+      html << link_to(link, class: "next", id: "paginator-prev", rel: "next", data: { shortcut: "a left" }) do
         concat tag.span("Next")
         concat svg_icon(:chevron_right)
       end
