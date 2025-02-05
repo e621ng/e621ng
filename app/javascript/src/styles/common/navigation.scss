@@ -69,8 +69,6 @@ nav.navigation {
         color: themed("color-link-active");
         border-radius: 0.25rem;
         white-space: nowrap;
-
-        i { font-size: 1.5rem; }
       }
 
       &:hover > span, &:active > span { background: themed("color-section"); }
@@ -119,6 +117,12 @@ nav.navigation {
             font-size: 1.5rem;
           }
         }
+
+        @include window-smaller-than(32rem) {
+          &.sign-in .simple-avatar-image {
+            background: themed("color-foreground");
+          }
+        }
       }
     }
   }
@@ -150,10 +154,9 @@ nav.navigation {
 
           white-space: nowrap;
 
-          i {
-            width: 1.5rem;
+          svg {
+            margin: -0.25rem 0;
             color: themed("color-link-active");
-            text-align: center;
           }
         }
       }
@@ -389,7 +392,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li a {
         border-bottom: 0;
-        i { display: none; }
+        svg { display: none; }
       }
     }
 
@@ -447,8 +450,12 @@ nav.navigation, html.nav-toggled nav.navigation {
         a {
           padding: 0 0.5rem;
 
-          i { color: themed("color-link"); }
-          &:hover i { color: themed("color-link-hover"); }
+          svg {
+            color: themed("color-link");
+            height: 1.25rem;
+            width: 1.25rem;
+          }
+          &:hover svg { color: themed("color-link-hover"); }
         }
 
         &.nav-tools-themes, &.nav-tools-settings {

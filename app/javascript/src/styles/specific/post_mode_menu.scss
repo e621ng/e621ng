@@ -20,7 +20,7 @@ $modes: (
 );
 
 @each $mode, $color in $modes {
-  #page[data-mode-menu="#{$mode}"] {
+  #page[data-mode-menu="#{$mode}"] .content {
     background-color: $color;
   }
 }

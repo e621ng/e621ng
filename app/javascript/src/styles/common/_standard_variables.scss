@@ -1,0 +1,21 @@
+@use "sass:map";
+
+// Standard variables for typography and UI elements
+
+$st-values: (
+  000: 0rem,
+  025: 0.25rem,
+  050: 0.50rem,
+  075: 0.75rem,
+  100: 1rem,
+);
+
+@function st-value($name) {
+  @return map-get($map: $st-values, $key: $name);
+}
+
+@function padding($value) { @return st-value(($value)); }
+@mixin st-padding($value) { padding: padding(($value)); }
+
+@function radius($value) { @return st-value($value); }
+@mixin st-radius($value) { border-radius: radius($value); }

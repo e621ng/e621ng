@@ -1,19 +1,23 @@
 <%= javascript_tag nonce: true do -%>
 (function() {
   try {
-    var theme = localStorage.getItem('theme') || 'hexagon';
-    var extra = localStorage.getItem('theme-extra') || 'hexagon';
-    var sheader = localStorage.getItem('theme-sheader') || false;
-    var forumnotif = localStorage.getItem('theme-forumnotif') || false;
-    var palette = localStorage.getItem('theme-palette') || 'default';
-    var nav = localStorage.getItem('theme-nav') || 'top';
+    const values = {
+      // Theme
+      "th-main": localStorage.getItem("theme") || "hexagon",
+      "th-extra": localStorage.getItem("theme-extra") || "hexagon",
+      "th-sheader": localStorage.getItem("theme-sheader") || false,
+      "th-forumnotif": localStorage.getItem("theme-forumnotif") || false,
+      "th-palette": localStorage.getItem("theme-palette") || "default",
+      "th-nav": localStorage.getItem("theme-nav") || "top",
+
+      // Settings
+      "st-fullscreen": localStorage.getItem("e6.posts.fusk") || false,
+    };
+
     var b = document.body;
-    b.setAttribute('data-th-main', theme);
-    b.setAttribute('data-th-extra', extra);
-    b.setAttribute('data-th-sheader', sheader);
-    b.setAttribute('data-th-forumnotif', forumnotif);
-    b.setAttribute('data-th-palette', palette);
-    b.setAttribute('data-th-nav', nav);
+    for (const [name, value] of Object.entries(values)) {
+      b.setAttribute("data-" + name, value);
+    }
   } catch(e) {}
 })();
 <% end -%>
