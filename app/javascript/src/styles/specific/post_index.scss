@@ -41,6 +41,11 @@ body.c-posts.a-index, body.c-favorites.a-index {
     h1 {
       font-size: $h3-size;
     }
+
+    .search-controls {
+      display: none;
+      flex-flow: column;
+    }
   }
 
   // 2. Content
@@ -119,6 +124,11 @@ body.c-posts.a-index, body.c-favorites.a-index {
       margin-top: 0.25rem;
       border-top-left-radius: 0.25rem;
       padding: 0.5rem;
+
+      .search-controls {
+        display: flex;
+        margin-top: 0.5rem;
+      }
     }
 
     .sidebar {
@@ -130,6 +140,47 @@ body.c-posts.a-index, body.c-favorites.a-index {
 
     .content {
       border-radius: 0.25rem;
+    }
+  }
+}
+
+
+// Fullscreen
+body.c-posts.a-index[data-st-fullscreen="true"] {
+  // Desktop-only, for obvious reasons
+  @include window-larger-than(50rem) {
+    .post-index {
+      grid-template-areas:
+        "search " 
+        "content";
+      grid-template-columns: 1fr;
+
+      .search {
+        display: flex;
+
+        border-radius: 0.25rem 0.25rem 0 0;
+        box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
+        .post-search {
+          flex: 1;
+        }
+
+        .search-controls {
+          display: flex;
+          justify-content: right;
+          align-self: end;
+          margin: 0 0 0 0.5rem;
+
+          .st-button.w100 {
+            width: unset;
+            span { display: none; }
+          }
+        }
+      }
+      .sidebar { display: none; }
+      .content {
+        border-radius: 0 0 0.25rem 0.25rem;
+      }
     }
   }
 }

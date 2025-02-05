@@ -1,4 +1,5 @@
 import LStorage from "./utility/storage";
+import Page from "./utility/page";
 
 const PostSearch = {};
 
@@ -10,6 +11,8 @@ PostSearch.init = function () {
   $(".wiki-excerpt").each((index, element) => {
     PostSearch.initialize_wiki_preview($(element));
   });
+
+  PostSearch.initialize_controls();
 };
 
 PostSearch.initialize_input = function ($form) {
@@ -55,7 +58,19 @@ PostSearch.initialize_wiki_preview = function ($preview) {
   });
 };
 
+PostSearch.initialize_controls = function () {
+  let fullscreen = LStorage.Posts.Fullscreen;
+  $("#search-fullscreen").on("click", () => {
+    fullscreen = !fullscreen;
+    $("body").attr("data-st-fullscreen", fullscreen);
+    LStorage.Posts.Fullscreen = fullscreen;
+  });
+};
+
 $(() => {
+  if (!Page.matches("posts", "index") && !Page.matches("favorites"))
+    return;
+
   PostSearch.init();
 });
 
