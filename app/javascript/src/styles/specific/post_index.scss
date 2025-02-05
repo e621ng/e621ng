@@ -1,6 +1,20 @@
-body.c-posts.a-index #page {
-  background: none;
-  padding: 0;
+body.c-posts.a-index, body.c-favorites.a-index {
+  #page {
+    // Override the theme to instead
+    // project it upon the content area
+    background: none;
+    padding: 0;
+  }
+
+  // Exhibit A
+  // Makes the content area take up the
+  // full height of the page. Yes, really.
+  #page, #c-posts, #c-favorites, #a-index {
+    // I hate both this and myself
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+  }
 }
 
 .post-index {
@@ -12,6 +26,8 @@ body.c-posts.a-index #page {
     "sidebar";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
+
+  flex: 1; // See Exhibit A
 
   // 1. Searchbox
   .search {
@@ -29,6 +45,9 @@ body.c-posts.a-index #page {
 
   // 2. Content
   .content {
+    display: flex; // See Exhibit A
+    flex-flow: column;
+
     grid-area: content;
 
     // Imported from #page
@@ -50,6 +69,13 @@ body.c-posts.a-index #page {
       display: flex;
       flex-flow: column;
       gap: 1rem;
+
+      flex: 1; // See Exhibit A
+
+      .posts-container {
+        flex: 1; // See Exhibit A
+        grid-auto-rows: min-content;
+      }
     }
   }
 
