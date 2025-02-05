@@ -24,7 +24,7 @@ module ApplicationHelper
 
     tag.li(id: id, class: klass) do
       link_to(url, id: "#{id}-link", **options) do
-        concat tag.i(class: icon)
+        concat svg_icon(icon)
         concat " "
         concat tag.span(text)
       end
