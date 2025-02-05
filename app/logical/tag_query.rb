@@ -223,6 +223,17 @@ class TagQuery
   # If `metatag`, `group`, or `tag` is non-nil, it must be non-blank.
   TOKENIZE_REGEX = /\G(?>\s*)(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<group>(?>(?>\(\s+)(?>(?!(?<=\s)\))(?>[-~]?\g<metatag>|[-~]?\g<group>|(?>[^\s)]+|(?<!\s)\))*)(?>\s*)|(?=(?<=\s)\)))+(?<=\s)\)))|(?<tag>\S+))(?>\s*)/
 
+  # OPTIMIZE: Profile variants
+  def self.has_groups?(tag_str)
+    return tag_str.q[:groups].blank? || (tag_str.q[:groups][:must].blank? && tag_str.q[:groups][:must_not].blank? && tag_str.q[:groups][:should].blank?) if tag_str.is_a?(TagQuery)
+    # Remove quoted metatags immediately?
+    # tag_str.gsub!(/\s*[-~]?\w*?:".+?"/, "")
+    tag_str.gsub!(/\s*[-~]?\w*?:"[^"]+"/, "")
+    return false unless tag_str.presence&.include?("( ") && tag_str.include?(" )")
+    # /(?>(\A|\s)[-~]?\(\s+).+\s\)/.match?(tag_str)
+    /(?>(\A|\s)[-~]?\(\s+)(?>[^\s)]+|(?<!\s)\)+|\s+(?!\)))+\s\)/.match?(tag_str)
+  end
+
   # Iterates through tokens, returning each tokens' `MatchData` in accordance with
   # `TagQuery::TOKENIZE_REGEX`.
   def self.match_tokens(tag_str, recurse: false, stop_at_group: false, and_then: nil, **kwargs, &)
@@ -273,10 +284,18 @@ class TagQuery
     tag_str = query.to_s.unicode_normalize(:nfc).strip
     # Quick exit if given a blank search or a single group w/ an empty search
     return [] if tag_str.blank? || /\A[-~]?\(\s+\)\z/.match?(tag_str)
+    # Quick and dirty optimization: If it can't contain any groups, use a simpler tokenizer.
+    # OPTIMIZE: Profile variants
+    # return TagQuery.scan(tag_str) unless /(?>(\A|\s)[-~]?\(\s+).+\s\)/.match?(tag_str)
+    return TagQuery.scan(tag_str) unless /(?>(\A|\s)[-~]?\(\s+)(?>[^\s)]+|(?<!\s)\)+|\s+(?!\)))+\s\)/.match?(tag_str)
     # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
-    if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A\(\s+([^)]+)\s+\)\z/, 1]).present?
+    # OPTIMIZE: Profile variants
+    # if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|(?>\s+)(?!\)))+)\s+\)\z/, 1]).present?
+    #   return scan_search(
+    #     top,
+    if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|\s+(?!\)))+)\s+\)\z/, 1]).present?
       return scan_search(
-        top,
+        top.rstrip,
         **kwargs,
         hoisted_metatags: hoisted_metatags,
         depth_limit: depth_limit -= 1,
@@ -286,12 +305,12 @@ class TagQuery
     matches = []
     scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded }.freeze
     TagQuery.match_tokens(tag_str, **scan_opts) do |m|
-      # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
-      if m.begin(:group) == 0 && m.end(:group) == tag_str.length && (top = m[:group][/\A\(\s+(.+)\s+\)\z/, 1]).present?
-        return scan_search(top, **kwargs,
-          hoisted_metatags: hoisted_metatags, depth_limit: depth_limit -= 1,
-          error_on_depth_exceeded: error_on_depth_exceeded)
-      end
+      # # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
+      # if m.begin(:group) == 0 && m.end(:group) == tag_str.length && (top = m[:group][/\A\(\s+(.+)\s+\)\z/, 1]).present?
+      #   return scan_search(top, **kwargs,
+      #     hoisted_metatags: hoisted_metatags, depth_limit: depth_limit -= 1,
+      #     error_on_depth_exceeded: error_on_depth_exceeded)
+      # end
       # If it's not a group, move on with this value.
       next matches << m[0].strip if m[:group].blank?
       # If it's an empty group and we filter those, skip this value.
@@ -313,24 +332,45 @@ class TagQuery
           sub_match[0].strip
         end
         next (out_v = cb.call(m)).is_a?(Array) ? matches.push(*out_v.compact) : matches << out_v
-        # next matches << ((out_v = cb.call(m)).respond_to?(:flatten) ? out_v.flatten.compact : out_v)
       end
       matches << m[0].strip
     end
     matches
   end
 
+  # Doesn't account for grouping, but DOES preserve quoted metatag ordering
+  #
+  # OPTIMIZE: Profile variants (including scan_legacy)
+  def self.scan(query, **)
+    out = []
+    query.to_s.unicode_normalize(:nfc).strip.presence
+         &.scan(/\G(?>\s*)(?<prefix>[-~])?(?<body>(?<metatag>(?>\w*:(?>"[^"]*"|\S*)))|(?<tag>\S+))(?>\s*)/) { |_| out << "#{$1}#{$2}" }
+    out.uniq
+  end
+
+  # Doesn't account for grouping, but DOES preserve quoted metatag ordering
+  # def self.scan1(query)
+  #   tag_str = query.to_s.unicode_normalize(:nfc).strip
+  #   matches = []
+  #   # while (m = tag_str.match(/[-~]?\w*?:".*?"/))
+  #   while (m = tag_str.match(/[-~]?\w*?:"[^"]*"/))
+  #     if m.begin(0) >= 0 then matches.push(*tag_str.slice!(0, m.end(0))[0, m.begin(0)].split) end
+  #     matches << m[0]
+  #     ""
+  #   end
+  #   matches.push(*tag_str.split) if tag_str.present?
+  #   matches.uniq
+  # end
+
   # Legacy scan variant (doesn't account for grouping, doesn't preserve quoted metatag ordering)
-  def self.scan(query)
-    tag_str = query.to_s.unicode_normalize(:nfc).strip
-    matches = []
-    while (m = tag_str.match(/[-~]?\w*?:".*?"/))
-      if m.begin(0) >= 0 then matches.push(*tag_str.slice!(0, m.end(0))[0, m.begin(0)].split) end
-      matches << m[0]
+  def self.scan_legacy(query)
+    tagstr = query.to_s.unicode_normalize(:nfc).strip
+    quote_delimited = []
+    tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
+      quote_delimited << match
       ""
     end
-    matches.push(*tag_str.split) if tag_str.present?
-    matches.uniq
+    quote_delimited + tagstr.split.uniq
   end
 
   # * `matches` {`Array`}
@@ -683,7 +723,7 @@ class TagQuery
   SETTINGS = {
     COUNT_TAGS_WITH_SCAN_RECURSIVE: false,
     STOP_ON_TAG_COUNT_EXCEEDED: true,
-    EARLY_SCAN_SEARCH_CHECK: false,
+    EARLY_SCAN_SEARCH_CHECK: true,
     CHECK_GROUP_TAGS_AND_DEPTH: true,
   }.freeze
 
@@ -717,9 +757,10 @@ class TagQuery
   # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
   def parse_query(query, error_on_depth_exceeded: false, depth: 0, **kwargs)
     tag_query_limit = Danbooru.config.tag_query_limit - @free_tags_count if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && (kwargs[:process_groups] || pq_check_group_tags(depth))
+    can_have_groups = TagQuery.has_groups?(query.to_s.unicode_normalize(:nfc))
     TagQuery.scan_search(query, **kwargs, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth).each do |token| # rubocop:disable Metrics/BlockLength
       # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
-      if (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
+      if can_have_groups && (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
         group = match[2]
         @tag_count += if kwargs[:process_groups]
                         (group = TagQuery.new(
@@ -734,8 +775,10 @@ class TagQuery
                         0
                       end
         raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
+        next if group.blank?
         q[:children_show_deleted] = group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
         search_type = METATAG_SEARCH_TYPE[match[1]]
+        q[:groups] ||= {}
         q[:groups][search_type] ||= []
         q[:groups][search_type] << group
         next

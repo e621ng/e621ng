@@ -86,9 +86,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       @always_show_deleted ||= !temp.innate_hide_deleted_posts? unless GLOBAL_DELETED_FILTER
       temp.create_query_obj(return_nil_if_empty: false)
     end
-    must.concat(groups[:must].map(&cb).compact)
-    must_not.concat(groups[:must_not].map(&cb).compact)
-    should.concat(groups[:should].map(&cb).compact)
+    must.concat(groups[:must].map(&cb).compact) if groups[:must].present?
+    must_not.concat(groups[:must_not].map(&cb).compact) if groups[:must_not].present?
+    should.concat(groups[:should].map(&cb).compact) if groups[:should].present?
   end
 
   def hide_deleted_posts?(at_any_level: !GLOBAL_DELETED_FILTER)
