@@ -3,18 +3,6 @@ import Page from "./utility/page";
 
 const PostSearch = {};
 
-PostSearch.init = function () {
-  $(".post-search").each((index, element) => {
-    PostSearch.initialize_input($(element));
-  });
-
-  $(".wiki-excerpt").each((index, element) => {
-    PostSearch.initialize_wiki_preview($(element));
-  });
-
-  PostSearch.initialize_controls();
-};
-
 PostSearch.initialize_input = function ($form) {
   const $textarea = $form.find("textarea[name='tags']").first();
   if (!$textarea.length) return;
@@ -68,10 +56,19 @@ PostSearch.initialize_controls = function () {
 };
 
 $(() => {
+
+  $(".post-search").each((index, element) => {
+    PostSearch.initialize_input($(element));
+  });
+
   if (!Page.matches("posts", "index") && !Page.matches("favorites"))
     return;
 
-  PostSearch.init();
+  $(".wiki-excerpt").each((index, element) => {
+    PostSearch.initialize_wiki_preview($(element));
+  });
+
+  PostSearch.initialize_controls();
 });
 
 export default PostSearch;
