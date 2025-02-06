@@ -1,12 +1,12 @@
 .theme-form {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.5em 1em;
+  gap: 0.5rem 1rem;
 
   @include window-larger-than(30rem) {
     grid-template-columns: min-content auto;
     max-width: 30rem;
-    gap: 1em;
+    gap: 1rem;
     
     h3, br, p.theme-info { grid-column: 1 / -1; }
     label { text-align: right; }
@@ -16,4 +16,14 @@
   h3, br, p.theme-info { text-align: center; }
   h3 { margin-top: 0.5em; }
   .hint { max-width: unset; }
+}
+
+.theme-variable-form {
+  display: grid;
+  grid-template-columns: auto min-content min-content;
+  gap: 0.5rem 1rem;
+  max-width: 30rem;
+
+  h3 { grid-column: 1 / -1;}
+  label, span { align-content: center}
 }

@@ -86,8 +86,8 @@ LStorage.Posts = {
   /** @returns {number} ID of the user's selected set */
   Set: ["set", 0],
 
-  /** @returns {boolean} True if the wiki excerpt should be visible */
-  WikiExcerpt: ["e6.posts.wiki", true],
+  /** @returns {number} 0: collapsed / 1: visible / 2: permanently hidden */
+  WikiExcerpt: ["e6.posts.wiki", 1],
 
   /** @returns {boolean} True if the search should be displayed in fullscreen */
   Fullscreen: ["e6.posts.fusk", false],

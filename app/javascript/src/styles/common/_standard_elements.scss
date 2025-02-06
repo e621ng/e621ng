@@ -7,6 +7,9 @@
   $button-background-hover: themed("color-section-lighten-10");
   $button-text-color: themed("color-text");
 
+  $button-stealth-color: themed("color-link");
+  $button-stealth-color-hover: themed("color-link-hover");
+
   display: flex;
   gap: st-value(100) / 4;
   border-radius: radius(025);
@@ -50,10 +53,14 @@
     padding: (st-value(100) / 2) 0;
 
     svg { background: $button-background; }
-    span { color: themed("color-link"); }
+    span { color: $button-stealth-color; }
     &:hover {
       svg { background: $button-background-hover; }
-      span { color: themed("color-link-hover"); }
+      span { color: $button-stealth-color-hover; }
     }
+  }
+
+  &.icon {
+    padding: (st-value(100) / 2) 0;
   }
 }
