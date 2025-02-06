@@ -225,6 +225,7 @@ body.c-posts.a-index[data-st-fullscreen="true"] {
     background-clip: text;
     color: transparent;
 
+    min-height: 0rem;
     max-height: 0rem;
     max-width: 50rem;
     overflow: hidden;
@@ -275,6 +276,7 @@ body.c-posts.a-index[data-st-fullscreen="true"] {
     .wiki-excerpt-toggle svg { transform: rotate(90deg); }
     .styled-dtext {
       max-height: 10rem;
+      min-height: 2rem;
     }
     .wiki-excerpt-readmore { visibility: visible; }
   }
