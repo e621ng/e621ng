@@ -48,7 +48,7 @@ Theme.initialize_buttons = function () {
     LStorage.Posts.WikiExcerpt = 1;
     $("#wiki-excerpt-value").text(LStorage.Posts.WikiExcerpt);
   });
-}
+};
 
 $(() => {
   if (!Page.matches("static", "theme")) return;
