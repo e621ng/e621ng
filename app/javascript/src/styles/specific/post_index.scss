@@ -196,22 +196,26 @@ body.c-posts.a-index[data-st-fullscreen="true"] {
   background: themed("color-section");
   border-radius: 0.25rem;
 
+  &.hidden { display: none; }
+
   // header
   h3 {
+    display: flex;
+    align-items: center;
+
+    font-size: 1rem;
+    padding: 0.5rem;
+
     cursor: pointer;
-    padding: 0.5rem 1rem 0.5rem 1.5rem;
 
-    &::after {
-      @include font-awesome-icon;
-      content: unicode("f0da");
-
+    & > svg {
       transition: transform 0.25s;
 
-      position: absolute;
-      top: 0;
-      left: 0;
-      padding: 0.5rem;
+      height: 1.5rem;
+      width: 1.5rem;
     }
+
+    .wiki-excerpt-dismiss { margin-left: auto; }
   }
 
   // body
@@ -221,6 +225,7 @@ body.c-posts.a-index[data-st-fullscreen="true"] {
     background-clip: text;
     color: transparent;
 
+    min-height: 0rem;
     max-height: 0rem;
     max-width: 50rem;
     overflow: hidden;
@@ -268,9 +273,10 @@ body.c-posts.a-index[data-st-fullscreen="true"] {
   }
 
   &.open{
-    .wiki-excerpt-toggle::after { transform: rotate(90deg); }
+    .wiki-excerpt-toggle svg { transform: rotate(90deg); }
     .styled-dtext {
       max-height: 10rem;
+      min-height: 2rem;
     }
     .wiki-excerpt-readmore { visibility: visible; }
   }

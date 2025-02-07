@@ -75,6 +75,26 @@
   
 </div>
 
+
+<div class="simple_form theme-variable-form">
+  <h3>Variables</h3>
+
+  <label for="mascot-reset">Mascot</label>
+  <span id="mascot-value"></span>
+  <button class="st-button" id="mascot-reset">
+    <%= svg_icon(:reset) %>
+    Reset 
+  </button>
+
+  <label for="wiki-excerpt-reset">Wiki Excerpt</label>
+  <span id="wiki-excerpt-value"></span>
+  <button class="st-button" id="wiki-excerpt-reset">
+    <%= svg_icon(:reset) %>
+    Reset 
+  </button>
+
+</div>
+
 <% content_for(:page_title) do %>
   Themes
 <% end %>
