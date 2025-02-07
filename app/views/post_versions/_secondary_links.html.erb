@@ -4,10 +4,12 @@
   <%= subnav_link_to "Changes", post_versions_path %>
   <%= subnav_link_to "Help", help_page_path(id: "posts") %>
   <% if params[:action] == "index" && CurrentUser.is_privileged? %>
-    | <%= subnav_link_to "Undo selected", "" %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Undo selected", "" %>
     <%= subnav_link_to "Select All", "" %>
     <% if CurrentUser.is_moderator? %>
-    | <%= subnav_link_to "Apply Tag Script To Selected", "" %>
+      <li class="divider"></li>
+      <%= subnav_link_to "Apply Tag Script To Selected", "" %>
     <% end %>
   <% end %>
 <% end %>
