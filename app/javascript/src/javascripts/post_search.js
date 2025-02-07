@@ -30,16 +30,9 @@ PostSearch.initialize_input = function ($form) {
 
 PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
-  switch (visible) {
-    case 1: {
-      $preview.addClass("open");
-      break;
-    }
-    case 2: {
-      $preview.addClass("hidden");
-      break;
-    }
-  }
+  if (visible == 2) return; // hidden
+  if (visible == 1) $preview.addClass("open");
+  $preview.removeClass("hidden");
 
   window.setTimeout(() => { // Disable the rollout on first load
     $preview.removeClass("loading");
