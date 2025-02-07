@@ -34,9 +34,26 @@ Theme.initialize_selector = function () {
   }
 };
 
+Theme.initialize_buttons = function () {
+  if (!LStorage.isAvailable()) return;
+
+  $("#mascot-value").text(LStorage.Site.Mascot);
+  $("#mascot-reset").on("click", () => {
+    LStorage.Site.Mascot = 0;
+    $("#mascot-value").text(LStorage.Site.Mascot);
+  });
+
+  $("#wiki-excerpt-value").text(LStorage.Posts.WikiExcerpt);
+  $("#wiki-excerpt-reset").on("click", () => {
+    LStorage.Posts.WikiExcerpt = 1;
+    $("#wiki-excerpt-value").text(LStorage.Posts.WikiExcerpt);
+  });
+};
+
 $(() => {
-  if (Page.matches("static", "theme"))
-    Theme.initialize_selector();
+  if (!Page.matches("static", "theme")) return;
+  Theme.initialize_selector();
+  Theme.initialize_buttons();
 });
 
 export default Theme;

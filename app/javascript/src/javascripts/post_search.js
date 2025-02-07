@@ -39,17 +39,38 @@ PostSearch.initialize_input = function ($form) {
 
 PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
-  if (visible) $preview.addClass("open");
+  switch (visible) {
+    case 1: {
+      $preview.addClass("open");
+      break;
+    }
+    case 2: {
+      $preview.addClass("hidden");
+      break;
+    }
+  }
+
   window.setTimeout(() => { // Disable the rollout on first load
     $preview.removeClass("loading");
   }, 250);
 
+  // Toggle the excerpt box open / closed
   $($preview.find("h3.wiki-excerpt-toggle")).on("click", (event) => {
     event.preventDefault();
 
     visible = !visible;
     $preview.toggleClass("open", visible);
-    LStorage.Posts.WikiExcerpt = visible;
+    LStorage.Posts.WikiExcerpt = Number(visible);
+
+    return false;
+  });
+
+  // Hide the excerpt box entirely
+  $preview.find("button.wiki-excerpt-dismiss").on("click", (event) => {
+    event.preventDefault();
+
+    $preview.addClass("hidden");
+    LStorage.Posts.WikiExcerpt = 2;
 
     return false;
   });
