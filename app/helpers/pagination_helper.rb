@@ -2,7 +2,7 @@
 
 module PaginationHelper
   def sequential_paginator(records)
-    tag.div(class: "paginator sequential") do
+    tag.nav(class: "pagination sequential", aria: { label: "Pagination" }) do
       return "" if records.try(:none?)
 
       html = "".html_safe
@@ -19,7 +19,7 @@ module PaginationHelper
       return sequential_paginator(records)
     end
 
-    tag.div(class: "paginator numbered", data: { total: [records.total_pages, records.max_numbered_pages].min, current: records.current_page }) do
+    tag.nav(class: "pagination numbered", aria: { label: "Pagination" }, data: { total: [records.total_pages, records.max_numbered_pages].min, current: records.current_page }) do
       html = "".html_safe
 
       # Previous
@@ -109,7 +109,7 @@ module PaginationHelper
     if page == 0
       html << link_to(svg_icon(:ellipsis), nav_params_for(0), class: "spacer")
     elsif page == records.current_page
-      html << tag.span(page, class: "page current")
+      html << tag.span(page, class: "page current", aria: { current: "page" })
     else
       html << link_to(page, nav_params_for(page), class: "page #{klass}")
     end
