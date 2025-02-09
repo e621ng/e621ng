@@ -91,12 +91,6 @@ class TagQuery
         must_not: [],
         should: [],
       },
-      # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.)
-      # groups: {
-      #   must: [],
-      #   must_not: [],
-      #   should: [],
-      # },
       show_deleted: false,
     }
     @resolve_aliases = resolve_aliases
@@ -271,11 +265,11 @@ class TagQuery
 
   # Scan variant that properly handles groups.
   #
-  # This will only pull the tags in `hoisted_metatags` up to the top level
-  #
-  # * `hoisted_metatags`=`TagQuery::GLOBAL_METATAGS`: the metatags to lift out of groups to the top level.
-  # * `error_on_depth_exceeded`=`false`:
-  # * `filter_empty_groups`=`true`:
+  # * `query`
+  # * `hoisted_metatags` [`TagQuery::GLOBAL_METATAGS`]: the metatags to lift out of groups to the
+  # top level.
+  # * `error_on_depth_exceeded` [`false`]
+  # * `filter_empty_groups` [`true`]
   def self.scan_search(
     query,
     hoisted_metatags: TagQuery::GLOBAL_METATAGS,
@@ -309,12 +303,6 @@ class TagQuery
     matches = []
     scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded }.freeze
     TagQuery.match_tokens(tag_str, **scan_opts) do |m|
-      # # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
-      # if m.begin(:group) == 0 && m.end(:group) == tag_str.length && (top = m[:group][/\A\(\s+(.+)\s+\)\z/, 1]).present?
-      #   return scan_search(top, **kwargs,
-      #     hoisted_metatags: hoisted_metatags, depth_limit: depth_limit -= 1,
-      #     error_on_depth_exceeded: error_on_depth_exceeded)
-      # end
       # If it's not a group, move on with this value.
       next matches << m[0].strip if m[:group].blank?
       # If it's an empty group and we filter those, skip this value.
@@ -823,6 +811,7 @@ class TagQuery
         raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
         next if group.blank?
         q[:children_show_deleted] = group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
+        # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.)
         search_type = METATAG_SEARCH_TYPE[match[1]]
         q[:groups] ||= {}
         q[:groups][search_type] ||= []

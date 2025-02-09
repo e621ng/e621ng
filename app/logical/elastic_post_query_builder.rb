@@ -239,7 +239,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_tag_string_search_relation(q[:tags])
 
     # Update always_show_deleted
-    # @always_show_deleted ||= !innate_hide_deleted_posts? unless GLOBAL_DELETED_FILTER
     @always_show_deleted ||= q[:show_deleted] unless GLOBAL_DELETED_FILTER
 
     # Use the updated value in groups
@@ -391,34 +390,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       should = [
-        {
-          range: {
-            created_at: {
-              lte: Security::Lockdown.hide_pending_posts_for.hours.ago,
-            },
-          },
-        },
-        {
-          term: {
-            pending: false,
-          },
-        }
+        { range: { created_at: { lte: Security::Lockdown.hide_pending_posts_for.hours.ago } } },
+        { term: { pending: false } },
       ]
 
-      unless CurrentUser.user.id.nil?
-        should.push({
-          term: {
-            uploader: CurrentUser.user.id,
-          },
-        })
-      end
+      should.push({ term: { uploader: CurrentUser.user.id } }) unless CurrentUser.user.id.nil?
 
-      must.push({
-        bool: {
-          should: should,
-          minimum_should_match: 1,
-        },
-      })
+      must.push({ bool: { should: should, minimum_should_match: 1 } })
     end
   end
 end
