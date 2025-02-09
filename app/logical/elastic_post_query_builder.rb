@@ -25,19 +25,16 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @depth = kwargs.fetch(:depth, 0)
     # If it got this far, failing silently didn't work; force error
     raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
+    unless query.is_a?(TagQuery)
+      query = TagQuery.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs)
+    end
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
-    if GLOBAL_DELETED_FILTER && @depth <= 0
-      @always_show_deleted ||= if query.is_a?(TagQuery)
-                                 !query.hide_deleted_posts?(at_any_level: true)
-                               else
-                                 !TagQuery.should_hide_deleted_posts?(query, at_any_level: true)
-                               end
-    end
-    @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ElasticPostQueryBuilder::ERROR_ON_DEPTH_EXCEEDED)
-    super(query.is_a?(TagQuery) ? query : TagQuery.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs))
+    @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
+    @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
+    super(query)
   end
 
   def model_class
