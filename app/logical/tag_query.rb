@@ -92,11 +92,11 @@ class TagQuery
         should: [],
       },
       # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.)
-      groups: {
-        must: [],
-        must_not: [],
-        should: [],
-      },
+      # groups: {
+      #   must: [],
+      #   must_not: [],
+      #   should: [],
+      # },
       show_deleted: false,
     }
     @resolve_aliases = resolve_aliases
@@ -123,7 +123,7 @@ class TagQuery
   def self.should_hide_deleted_posts?(query, always_show_deleted: false, at_any_level: true)
     return false if always_show_deleted
     return query.hide_deleted_posts?(at_any_level: at_any_level) if query.is_a?(TagQuery)
-    TagQuery.fetch_metatags(query, *OVERRIDE_DELETED_FILTER_METATAGS, recurse: at_any_level) do |tag, val|
+    TagQuery.fetch_metatags(query, *OVERRIDE_DELETED_FILTER_METATAGS, at_any_level: at_any_level) do |tag, val|
       return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
     end
     true
@@ -152,7 +152,9 @@ class TagQuery
     if always_show_deleted || q[:show_deleted]
       false
     elsif at_any_level
-      if q[:children_show_deleted].nil? && (q[:groups][:must] + q[:groups][:must_not] + q[:groups][:should]).any? { |e| e.is_a?(TagQuery) ? (raise "q[:children_show_deleted] shouldn't be nil.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
+      if q[:children_show_deleted].nil? &&
+         q[:groups].present? &&
+         [*(q[:groups][:must] || []), *(q[:groups][:must_not] || []), *(q[:groups][:should] || [])].any? { |e| e.is_a?(TagQuery) ? (raise "q[:children_show_deleted] shouldn't be nil.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
         false
       else
         !q[:children_show_deleted]
@@ -564,8 +566,8 @@ class TagQuery
     initial_value
   end
 
-  def self.has_metatag?(tags, *, recurse: true)
-    fetch_metatag(tags, *, recurse: recurse).present?
+  def self.has_metatag?(tags, *, at_any_level: true)
+    fetch_metatag(tags, *, at_any_level: at_any_level).present?
   end
 
   # Pulls the value from the first of the specified metatags found.
@@ -575,17 +577,20 @@ class TagQuery
   # `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   #
-  # `recurse` [`true`]: Search through groups?
+  # `at_any_level` [`true`]: Search through groups?
   #
   # Returns the first found instance of any `metatags` that is `present?`. Leading and trailing double
   # quotes will be removed (matching the behavior of `parse_query`). If none are found, returns nil.
-  def self.fetch_metatag(tags, *metatags, recurse: true)
+  #
+  # NOTE: For metatags that overwrite their value if repeated (e.g. `status`), this is innaccurate.
+  # If this is a concern, use `TagQuery.fetch_metatags`.
+  def self.fetch_metatag(tags, *metatags, at_any_level: true)
     return nil if tags.blank?
 
     # OPTIMIZE: Pass block to `recurse_through_metatags` calls to return early when found
     if tags.is_a?(String)
-      tags = recurse ? recurse_through_metatags(tags, *metatags) : scan(tags)
-    elsif recurse
+      tags = at_any_level ? recurse_through_metatags(tags, *metatags) : scan(tags)
+    elsif at_any_level
       # IDEA: Check if checking and only sifting through grouped tags is substantively faster than sifting through all of them
       tags = recurse_through_metatags(tags.join(" "), *metatags)
     end
@@ -599,9 +604,9 @@ class TagQuery
     end
   end
 
-  def self.has_metatags?(tags, *metatags, recurse: true)
-    r = fetch_metatags(tags, *metatags, recurse: recurse)
-    r.present && metatags.all? { |mt| r.key?(mt) }
+  def self.has_metatags?(tags, *metatags, at_any_level: true, has_all: true)
+    r = fetch_metatags(tags, *metatags, at_any_level: at_any_level)
+    r.present && metatags.send(has_all ? :all? : :any?) { |mt| r.key?(mt) }
   end
 
   # Pulls the values from the specified metatags.
@@ -609,7 +614,7 @@ class TagQuery
   # * `tags`: The content to search through. Accepts strings and arrays.
   # * `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
-  # * `recurse` [true]: Search through groups?
+  # * `at_any_level` [true]: Search through groups?
   #
   # #### Block:
   #
@@ -626,13 +631,13 @@ class TagQuery
   # instances that are `present?`. Leading and trailing double quotes will be removed (matching the
   # behavior of `parse_query`). If none are found for a metatag, that key won't be included in the
   # hash.
-  def self.fetch_metatags(tags, *metatags, recurse: true)
+  def self.fetch_metatags(tags, *metatags, at_any_level: true)
     return {} if tags.blank?
 
     # OPTIMIZE: Pass block to `recurse_through_metatags` calls to return early when found
     if tags.is_a?(String)
-      tags = recurse ? recurse_through_metatags(tags, *metatags) : scan(tags)
-    elsif recurse
+      tags = at_any_level ? recurse_through_metatags(tags, *metatags) : scan(tags)
+    elsif at_any_level
       # IDEA: Check if checking and only sifting through grouped tags is substantively faster than sifting through all of them
       tags = recurse_through_metatags(tags.join(" "), *metatags)
     end

@@ -81,21 +81,21 @@ class TagQueryTest < ActiveSupport::TestCase
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
     #       [(0..(TagQuery::DEPTH_LIMIT - 1)).inject("bbb:aaa") { |accumulator, _| "( #{accumulator} )" }],
-    #       "bbb", recurse: true
+    #       "bbb", at_any_level: true
     #     )
     #   end
     #   # non-top level
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
     #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('bbb:aaa') { |accumulator, _| "a ( #{accumulator} )" }} )"],
-    #       "bbb", recurse: true
+    #       "bbb", at_any_level: true
     #     )
     #   end
     #   # mixed level query
     #   assert_raise(TagQuery::DepthExceededError) do
     #     TagQuery.fetch_metatag(
     #       ["a", "( #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('bbb:aaa') { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }} )"],
-    #       "bbb", recurse: true
+    #       "bbb", at_any_level: true
     #     )
     #   end
     # end
@@ -105,21 +105,21 @@ class TagQueryTest < ActiveSupport::TestCase
         "50",
         TagQuery.fetch_metatag(
           "( order:random aaa limit:50 ) -( bbb randseed:123 )",
-          "limit", recurse: true
+          "limit", at_any_level: true
         ),
       )
       assert_equal(
         "50",
         TagQuery.fetch_metatag(
           TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"),
-          "limit", recurse: true
+          "limit", at_any_level: true
         ),
       )
       assert_equal(
         "tag",
         TagQuery.fetch_metatag(
           TagQuery.scan_search("( order:random aaa meta:tag ) -( bbb randseed:123 )"),
-          "meta", recurse: true
+          "meta", at_any_level: true
         ),
       )
     end

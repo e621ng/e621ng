@@ -18,7 +18,7 @@ module PostSets
       @tag_array << "-status:deleted" if TagQuery.should_hide_deleted_posts?(tags, at_any_level: true)
       @page = page
       # limit should have been hoisted by scan_search
-      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit", recurse: false)
+      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit", at_any_level: false)
       @random = random.present?
     end
 
@@ -71,7 +71,7 @@ module PostSets
     end
 
     def is_random?
-      random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
+      random || (TagQuery.fetch_metatag(tag_array, "order", at_any_level: false) == "random" && !TagQuery.has_metatag?(tag_array, "randseed", at_any_level: false))
     end
 
     def posts
