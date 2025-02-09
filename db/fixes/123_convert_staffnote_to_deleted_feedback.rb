@@ -8,23 +8,26 @@ destroyed_feedback_ids = []
 CurrentUser.as_system do
   ModAction.where(action: "user_feedback_destroy")
            # On July 24, 2024, we deployed the ability to soft-delete feedback records.
-           # We only care about restoring destroyed feedbacks that were destroyed before this date.
-           # Any entries after this are "real" destructions, that do not need to be restored.
+           # We only restore feedback that was destroyed before this date.
+           # Any entries after this are intentional destructions that do not need to be restored.
            .where("created_at < ?", CUTOFF_DATE = Date.new(2024, 8, 1))
            .find_in_batches(batch_size: 10_000) do |batch|
-    feedback_data = batch.map do |mod_action|
-      record_id = mod_action.values["record_id"].to_i
+    feedback_data = batch.filter_map do |mod_action|
+      record_id = mod_action.values["record_id"]
+      category = mod_action.values["type"]
+      body = mod_action.values["reason"]
+
+      # Old mod actions do not contain the necessary information. Skip them.
+      next if record_id.nil? || category.nil? || body.nil?
+
       destroyed_feedback_ids << record_id
 
-      # old mod actions do not contain the necessary information. we skip them.
-      next if mod_action.values["type"].nil? || mod_action.values["reason"].nil?
-
       {
-        id: record_id,
+        id: record_id.to_i,
         user_id: mod_action.values["user_id"].to_i,
         creator_id: User.system.id, # placeholder
-        category: mod_action.values["type"],
-        body: mod_action.values["reason"]&.strip,
+        category: category,
+        body: body.strip,
         created_at: Date.new(1970, 1, 1), # placeholder
         updated_at: mod_action.created_at,
         updater_id: mod_action.creator_id,
