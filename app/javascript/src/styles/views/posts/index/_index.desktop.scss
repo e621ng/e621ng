@@ -1,0 +1,32 @@
+// Desktop-only
+// Rollout at 50rem
+.post-index {
+  grid-template-areas:
+    "search  content" 
+    "sidebar content";
+  grid-template-columns: 14rem 1fr;
+  grid-template-rows: min-content 1fr;
+
+  .search {
+    box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+    margin-top: 0.25rem;
+    border-top-left-radius: 0.25rem;
+    padding: 0.5rem;
+
+    .search-controls {
+      display: flex;
+      margin-top: 0.5rem;
+    }
+  }
+
+  .sidebar {
+    box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+    margin-bottom: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+    padding: 0.5rem
+  }
+
+  .content {
+    border-radius: 0.25rem;
+  }
+}

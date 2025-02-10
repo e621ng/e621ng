@@ -1,0 +1,15 @@
+// Main themes
+@import "index/index";
+@include window-larger-than(50rem) {
+  @import "index/index.desktop";
+}
+
+// Features
+@import "index/partials/mode_menu";
+@import "index/partials/wiki_excerpt";
+
+@include window-larger-than(50rem) {
+  @include with-setting("fullscreen", "true") {
+    @import "index/partials/fullscreen";
+  }
+}
