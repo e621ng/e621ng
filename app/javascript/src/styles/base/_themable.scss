@@ -19,3 +19,15 @@
 @function themed($key) {
   @return var(--#{$key});
 }
+
+@mixin with-theme($key, $value) {
+  body[data-th-#{$key}="#{$value}"] {
+    @content;
+  }
+}
+
+@mixin with-setting($key, $value) {
+  body[data-st-#{$key}="#{$value}"] {
+    @content;
+  }
+}

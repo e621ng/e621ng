@@ -42,6 +42,8 @@
 @import "common/user_styles.scss";
 @import "common/voting.scss";
 
+@import "views/posts/posts";
+
 @import "specific/admin_dashboards.scss";
 @import "specific/api_keys.scss";
 @import "specific/artists.scss";
@@ -68,8 +70,6 @@
 @import "specific/popular.scss";
 @import "specific/post_delete.scss";
 @import "specific/post_flags.scss";
-@import "specific/post_index.scss";
-@import "specific/post_mode_menu.scss";
 @import "specific/posts.scss";
 @import "specific/post_replacements.scss";
 @import "specific/post_versions.scss";
