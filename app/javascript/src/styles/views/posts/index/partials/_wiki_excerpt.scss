@@ -53,6 +53,10 @@
       &::after { content: none; }
     }
 
+    // Quote visual bug
+    blockquote { background: unset; }
+
+    // Remove offset caused by paragraphs
     p:last-child { margin-bottom: 0; }
   }
 
