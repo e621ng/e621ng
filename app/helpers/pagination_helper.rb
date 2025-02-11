@@ -64,12 +64,12 @@ module PaginationHelper
     html = "".html_safe
 
     if disabled
-      html << tag.span(class: "next", id: "paginator-next", data: { shortcut: "a left" }) do
+      html << tag.span(class: "next", id: "paginator-next", data: { shortcut: "d right" }) do
         concat tag.span("Next")
         concat svg_icon(:chevron_right)
       end
     else
-      html << link_to(link, class: "next", id: "paginator-prev", rel: "next", data: { shortcut: "a left" }) do
+      html << link_to(link, class: "next", id: "paginator-next", rel: "next", data: { shortcut: "d right" }) do
         concat tag.span("Next")
         concat svg_icon(:chevron_right)
       end
