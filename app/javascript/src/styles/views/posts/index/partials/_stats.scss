@@ -1,0 +1,13 @@
+.posts-index-stats {
+  display: flex;
+  justify-content: end;
+
+  margin: -0.5rem 0rem 0.25rem;
+
+  font-size: 0.75rem;
+  line-height: 0.75rem;
+  color: #fffa;
+  font-family: monospace;
+
+  & > span { cursor: help; }
+}

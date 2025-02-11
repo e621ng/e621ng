@@ -1,6 +1,29 @@
 # frozen_string_literal: true
 
 module PaginationHelper
+  def approximate_count(records)
+    return "" if records.pagination_mode != :numbered
+
+    if records.total_pages > records.max_numbered_pages
+      pages = records.max_numbered_pages
+      schar = "over "
+      count = pages * records.records_per_page
+      title = "Over #{count} results found.\nActual result count may be much larger."
+    else
+      pages = records.total_pages
+      schar = "~"
+      count = pages * records.records_per_page
+      title = "Approximately #{count} results found.\nActual result count may differ."
+    end
+
+    tag.span(class: "approximate-count", title: title, data: { count: count, pages: pages, per: records.max_numbered_pages }) do
+      concat schar
+      concat number_to_human(count, precision: 2, format: "%n%u", units: { thousand: "k" })
+      concat " "
+      concat "result".pluralize(count)
+    end
+  end
+
   def sequential_paginator(records)
     tag.nav(class: "pagination sequential", aria: { label: "Pagination" }) do
       return "" if records.try(:none?)
