@@ -196,7 +196,7 @@ module ApplicationHelper
 
     klass = options.delete(:class)
     named = options.delete(:named)
-    tag.a href: user_path(user), class: "simple-avatar #{klass}", data: { id: post_id, name: user.name } do
+    tag.a href: user_path(user), class: "simple-avatar placeholder #{klass}", data: { id: post_id, name: user.name } do
       tag.span(class: "simple-avatar-button") do
         concat tag.span(user.pretty_name, class: "simple-avatar-name") if named
         concat tag.span(class: "simple-avatar-image", data: { name: user.name[0].capitalize })
