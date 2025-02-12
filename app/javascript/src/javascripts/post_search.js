@@ -71,7 +71,7 @@ PostSearch.initialize_controls = function () {
   let stickySearch = LStorage.Posts.StickySearch;
   $("#search-sticky").on("click", () => {
     stickySearch = !stickySearch;
-    $("body").attr("data-st-stickysearch", stickySearch);
+    $("body").attr("data-st-ssearch", stickySearch);
     LStorage.Posts.StickySearch = stickySearch;
   });
 };
