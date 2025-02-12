@@ -1,0 +1,16 @@
+.post-index .search {
+  position: sticky;
+  top: 0;
+
+  // on top of thumbnail labels
+  z-index: 11;
+
+  #search-sticky {
+    background: themed("color-button-active");
+    color: black;
+  }
+}
+
+&[data-th-sheader="true"] {
+  .post-index .search { top: 3.75rem; }
+}

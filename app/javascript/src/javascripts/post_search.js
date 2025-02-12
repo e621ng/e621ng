@@ -67,6 +67,13 @@ PostSearch.initialize_controls = function () {
     $("body").attr("data-st-fullscreen", fullscreen);
     LStorage.Posts.Fullscreen = fullscreen;
   });
+
+  let stickySearch = LStorage.Posts.StickySearch;
+  $("#search-sticky").on("click", () => {
+    stickySearch = !stickySearch;
+    $("body").attr("data-st-stickysearch", stickySearch);
+    LStorage.Posts.StickySearch = stickySearch;
+  });
 };
 
 $(() => {
