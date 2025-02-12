@@ -16,6 +16,7 @@
 
     flex-wrap: wrap;
     justify-content: right;
+    z-index: 11; // above posts and labels
 
     .post-search { width: 100%; }
 
@@ -27,5 +28,6 @@
   .sidebar { display: none; }
   .content {
     border-radius: 0 0 0.25rem 0.25rem;
+    .posts-index-stats { margin-right: 5rem; }
   }
 }
