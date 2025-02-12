@@ -13,7 +13,7 @@
   @include with-setting("fullscreen", "true") {
     @import "index/partials/fullscreen";
   }
-  @include with-setting("stickysearch", "true") {
+  @include with-setting("ssearch", "true") {
     @import "index/partials/sticky";
   }
 }
