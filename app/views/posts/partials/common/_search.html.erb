@@ -10,6 +10,6 @@
     <% end %>
 
     <%= text_area_tag("tags", tags, placeholder: "Search posts by tag", rows: 1, data: { shortcut: "q", autocomplete: "tag-query" }) %>
-    <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit", title: "Search") %>
+    <%= tag.button(svg_icon(:search), type: "submit", title: "Search") %>
   <% end %>
 </section>
