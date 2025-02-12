@@ -10,18 +10,18 @@
     display: flex;
     border-radius: 0.25rem 0.25rem 0 0;
     box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
-    .post-search {
-      flex: 1;
-    }
-    .search-controls {
-      display: flex;
-      justify-content: right;
-      align-self: end;
-      margin: 0 0 0 0.5rem;
-      .st-button.w100 {
-        width: unset;
-        span { display: none; }
-      }
+
+    margin: 0.25rem 0 0;
+    padding: 0.5rem;
+
+    flex-wrap: wrap;
+    justify-content: right;
+
+    .post-search { width: 100%; }
+
+    #search-fullscreen {
+      background: themed("color-button-active");
+      color: black;
     }
   }
   .sidebar { display: none; }
