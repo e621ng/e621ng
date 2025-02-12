@@ -99,6 +99,9 @@ body.c-posts.a-index, body.c-favorites.a-index {
     background-color: themed("color-foreground");
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
+    // By popular demand
+    font-size: 150%;
+
     // Mode selection
     #mode-box-mode, #mode-box #set-id {
       width: 100%;
