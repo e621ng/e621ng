@@ -91,6 +91,9 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if the search should be displayed in fullscreen */
   Fullscreen: ["e6.posts.fusk", false],
+
+  /** @returns {boolean} True if the search should be displayed in fullscreen */
+  StickySearch: ["e6.posts.stickysearch", false],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

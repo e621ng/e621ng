@@ -44,10 +44,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
       font-size: $h3-size;
     }
 
-    .search-controls {
-      display: none;
-      flex-flow: column;
-    }
+    .search-controls { display: none; }
   }
 
   // 2. Content

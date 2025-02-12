@@ -7,9 +7,13 @@
 // Features
 @import "index/partials/mode_menu";
 @import "index/partials/wiki_excerpt";
+@import "index/partials/stats";
 
 @include window-larger-than(50rem) {
   @include with-setting("fullscreen", "true") {
     @import "index/partials/fullscreen";
+  }
+  @include with-setting("stickysearch", "true") {
+    @import "index/partials/sticky";
   }
 }

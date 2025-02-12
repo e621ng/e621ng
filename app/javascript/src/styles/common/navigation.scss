@@ -5,7 +5,7 @@ nav.navigation {
   grid-template-rows: min-content min-content min-content min-content auto;
 
   width: 100%; // otherwise narrow when fixed
-  z-index: 20; // otherwise post labels layered above
+  z-index: 200; // above post labels and notes
   position: relative;
 
 

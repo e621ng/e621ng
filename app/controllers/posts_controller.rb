@@ -19,6 +19,12 @@ class PostsController < ApplicationController
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
+
+        # redirect?
+        if @wiki_page.present? && @wiki_page.parent.present?
+          @wiki_page = WikiPage.titled(@wiki_page.parent)
+        end
+
         @wiki_text = @wiki_page.present? ? @wiki_page.body : ""
         if @wiki_text.present?
           @wiki_text = @wiki_text

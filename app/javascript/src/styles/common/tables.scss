@@ -92,8 +92,6 @@ table.search {
 }
 
 table.aligned-vertical {
-  @extend .search;
-
   tr {
     height: 1.75em;
   }
