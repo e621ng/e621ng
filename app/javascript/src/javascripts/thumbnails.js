@@ -9,8 +9,9 @@ Thumbnails.initialize = function () {
   const replacedPosts = [];
 
   // Avatar special case
-  for (const post of $(".simple-avatar")) {
+  for (const post of $(".simple-avatar.placeholder")) {
     const $post = $(post);
+    $post.removeClass("placeholder");
 
     const postID = $post.data("id");
     if (!postID) continue;
