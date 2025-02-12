@@ -9,7 +9,7 @@
       <!-- Primary Searchbar -->
       <div class="home-search">
         <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
-        <%= tag.button(tag.i(class: "fa-solid fa-magnifying-glass"), type: "submit") %>
+        <%= tag.button(svg_icon(:search), type: "submit") %>
       </div>
 
       <!-- Secondary search buttons -->
