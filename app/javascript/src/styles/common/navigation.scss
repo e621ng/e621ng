@@ -187,6 +187,8 @@ nav.navigation {
       padding: 1rem 0.5rem;
     }
     li.current a { background-color: themed("color-foreground"); }
+
+    li.nav-hidden { display: none; }
   }
 
   .nav-secondary {
