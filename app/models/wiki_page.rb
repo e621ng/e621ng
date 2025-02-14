@@ -336,8 +336,4 @@ class WikiPage < ApplicationRecord
       end
     end.map {|x| x.downcase.tr(" ", "_").to_s}.uniq
   end
-
-  def visible?
-    true
-  end
 end
