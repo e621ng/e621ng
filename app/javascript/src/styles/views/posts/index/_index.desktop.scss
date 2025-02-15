@@ -4,14 +4,12 @@
   grid-template-areas:
     "search  content" 
     "sidebar content";
-  grid-template-columns: 14rem 1fr;
+  grid-template-columns: 15rem 1fr;
   grid-template-rows: min-content 1fr;
 
   .search {
     box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
-    margin-top: 0.25rem;
-    border-top-left-radius: 0.25rem;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 
     // Align the controls properly
     position: relative;
@@ -23,7 +21,7 @@
 
       position: absolute;
       bottom: -1.633rem;
-      right: 0.25rem;
+      right: 0.5rem;
 
       padding: 0.25rem;
       gap: 0.5rem;
@@ -47,14 +45,13 @@
 
   .sidebar {
     box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
-    margin-bottom: 0.25rem;
-    border-bottom-left-radius: 0.25rem;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 
     font-size: 100%;
   }
 
   .content {
-    border-radius: 0.25rem;
+    border-radius: 0 0.25rem 0.25rem 0;
+    padding: 0.5rem 0.75rem themed("content-padding-bottom");
   }
 }
