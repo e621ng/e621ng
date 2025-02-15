@@ -855,12 +855,21 @@ class Post < ApplicationRecord
       end
     end
 
-    def has_tag?(*)
-      TagQuery.has_tag?(tag_array, *)
+    def has_tag?(*tags_to_find, recurse: false, error_on_depth_exceeded: false)
+      if recurse
+        TagQuery.has_tag?(tags_to_find, *tag_array, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      else
+        TagQuery.has_tag?(tag_array, *tags_to_find, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      end
     end
 
-    def fetch_tags(*)
-      TagQuery.fetch_tags(tag_array, *)
+    # Only called by `StuckDnpController`
+    def fetch_tags(*tags_to_find, recurse: false, error_on_depth_exceeded: false)
+      if recurse
+        TagQuery.fetch_tags(tags_to_find, *tag_array, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      else
+        TagQuery.fetch_tags(tag_array, *tags_to_find, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      end
     end
 
     def ad_tag_string
