@@ -57,6 +57,9 @@ LStorage.Theme = {
   /** @returns {string} Colorblind-friendly palette (default / deut / trit) */
   Palette: ["theme-palette", "default"],
 
+  /** @returns {string} Font family (verdana / leto / lexend / dyslexic ) */
+  Font: ["theme-font", "Verdana"],
+
   /** @returns {string} Position of the navbar on the post page (top / bottom / both / none) */
   Navbar: ["theme-nav", "top"],
 
