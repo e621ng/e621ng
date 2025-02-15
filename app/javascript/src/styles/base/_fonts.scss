@@ -1,0 +1,161 @@
+// Picker
+body {
+  &[data-th-font="Lato"] { font-family: "Lato", $base_font_family; }
+  &[data-th-font="Lexend"] { font-family: "Lexend", $base_font_family; }
+  &[data-th-font="Monospace"] { font-family: monospace, monospace; }
+  &[data-th-font="OpenDyslexic"] { font-family: "OpenDyslexic", $base_font_family; }
+  &[data-th-font="OpenSans"] { font-family: "OpenSans", $base_font_family; }
+  &[data-th-font="ComicSans"] { font-family: "Comic Sans MS", "Comic Sans", cursive; }
+}
+
+/** Font Definitions **/
+// Lato
+@font-face {
+  font-family: "Lato";
+  src: url("/public/fonts/Lato/Lato-Regular.woff2") format("woff2"),
+       url("/public/fonts/Lato/Lato-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("/public/fonts/Lato/Lato-Bold.woff2") format("woff2"),
+       url("/public/fonts/Lato/Lato-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("/public/fonts/Lato/Lato-Italic.woff2") format("woff2"),
+       url("/public/fonts/Lato/Lato-Italic.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("/public/fonts/Lato/Lato-BoldItalic.woff2") format("woff2"),
+       url("/public/fonts/Lato/Lato-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+
+// Lexend
+@font-face {
+  font-family: "Lexend";
+  src: url("/public/fonts/Lexend/Lexend-Regular.woff2") format("woff2"),
+       url("/public/fonts/Lexend/Lexend-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lexend";
+  src: url("/public/fonts/Lexend/Lexend-Bold.woff2") format("woff2"),
+       url("/public/fonts/Lexend/Lexend-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lexend";
+  src: url("/public/fonts/Lexend/Lexend-Italic.woff2") format("woff2"),
+       url("/public/fonts/Lexend/Lexend-Italic.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lexend";
+  src: url("/public/fonts/Lexend/Lexend-BoldItalic.woff2") format("woff2"),
+       url("/public/fonts/Lexend/Lexend-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+
+// OpenDyslexic
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/public/fonts/OpenDyslexic/OpenDyslexic-Regular.woff2") format("woff2"),
+       url("/public/fonts/OpenDyslexic/OpenDyslexic-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/public/fonts/OpenDyslexic/OpenDyslexic-Bold.woff2") format("woff2"),
+       url("/public/fonts/OpenDyslexic/OpenDyslexic-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/public/fonts/OpenDyslexic/OpenDyslexic-Italic.woff2") format("woff2"),
+       url("/public/fonts/OpenDyslexic/OpenDyslexic-Italic.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/public/fonts/OpenDyslexic/OpenDyslexic-BoldItalic.woff2") format("woff2"),
+       url("/public/fonts/OpenDyslexic/OpenDyslexic-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+
+// OpenSans
+@font-face {
+  font-family: "OpenSans";
+  src: url("/public/fonts/OpenSans/OpenSans-Regular.woff2") format("woff2"),
+       url("/public/fonts/OpenSans/OpenSans-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenSans";
+  src: url("/public/fonts/OpenSans/OpenSans-Bold.woff2") format("woff2"),
+       url("/public/fonts/OpenSans/OpenSans-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenSans";
+  src: url("/public/fonts/OpenSans/OpenSans-Italic.woff2") format("woff2"),
+       url("/public/fonts/OpenSans/OpenSans-Italic.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenSans";
+  src: url("/public/fonts/OpenSans/OpenSans-BoldItalic.woff2") format("woff2"),
+       url("/public/fonts/OpenSans/OpenSans-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
