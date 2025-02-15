@@ -1,14 +1,21 @@
 # frozen_string_literal: true
 
 class WikiPage < ApplicationRecord
-  class RevertError < Exception ; end
+  class RevertError < Exception; end
 
   before_validation :normalize_title
   before_validation :normalize_other_names
   before_validation :normalize_parent
+  before_save :update_tag, if: :tag_changed?
+  before_save :log_changes
+  before_destroy :validate_not_used_as_help_page
+  before_destroy :log_destroy
   after_save :create_version
+  after_save :update_help_page, if: :saved_change_to_title?
+
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
-  validates :title, uniqueness: { :case_sensitive => false }
+
+  validates :title, uniqueness: { case_sensitive: false }
   validates :title, presence: true
   validates :title, tag_name: true, if: :title_changed?
   validates :body, presence: { unless: -> { is_deleted? || other_names.present? || parent.present? } }
@@ -19,13 +26,8 @@ class WikiPage < ApplicationRecord
   validate :validate_redirect
   validate :validate_not_locked
 
-  before_destroy :validate_not_used_as_help_page
-  before_destroy :log_destroy
-  before_save :update_tag_category, if: :category_id_changed?
-  before_save :log_changes
-  after_save :update_help_page, if: :saved_change_to_title?
-
   attr_accessor :skip_secondary_validations, :edit_reason
+
   array_attribute :other_names
   belongs_to_creator
   belongs_to_updater
@@ -33,19 +35,18 @@ class WikiPage < ApplicationRecord
   has_one :artist, foreign_key: "name", primary_key: "title"
   has_many :versions, -> { order("wiki_page_versions.id ASC") }, class_name: "WikiPageVersion", dependent: :destroy
   has_one :help_page, foreign_key: "wiki_page", primary_key: "title"
-  attribute :category_id, :integer
-
-  def log_destroy
-    ModAction.log(:wiki_page_delete, {wiki_page: title, wiki_page_id: id})
-  end
 
   def log_changes
     if title_changed? && !new_record?
-      ModAction.log(:wiki_page_rename, {new_title: title, old_title: title_was})
+      ModAction.log(:wiki_page_rename, { new_title: title, old_title: title_was })
     end
     if is_locked_changed?
-      ModAction.log(is_locked ? :wiki_page_lock : :wiki_page_unlock, {wiki_page: title})
+      ModAction.log(is_locked ? :wiki_page_lock : :wiki_page_unlock, { wiki_page: title })
     end
+  end
+
+  def log_destroy
+    ModAction.log(:wiki_page_delete, { wiki_page: title, wiki_page_id: id })
   end
 
   module SearchMethods
@@ -125,7 +126,7 @@ class WikiPage < ApplicationRecord
 
   module ApiMethods
     def method_attributes
-      super + [:creator_name, :category_id]
+      super + %i[creator_name category_id]
     end
   end
 
@@ -142,10 +143,14 @@ class WikiPage < ApplicationRecord
     end
   end
 
-  module TagCategoryMethods
+  module TagMethods
+    def tag
+      @tag ||= super
+    end
+
     def category_id
       return @category_id if instance_variable_defined?(:@category_id)
-      @category_id = Tag.category_for!(title)
+      @category_id = tag&.category
     end
 
     def category_id=(value)
@@ -154,9 +159,15 @@ class WikiPage < ApplicationRecord
       @category_id = value.to_i
     end
 
-    def reload(options = nil)
-      reset_category_id!
-      super
+    def category_is_locked
+      return @category_is_locked if instance_variable_defined?(:@category_is_locked)
+      @category_is_locked = tag&.is_locked || false
+    end
+
+    def category_is_locked=(value)
+      return if value == category_is_locked
+      category_is_locked_will_change!
+      @category_is_locked = value
     end
 
     def category_id_changed?
@@ -167,40 +178,45 @@ class WikiPage < ApplicationRecord
       attribute_will_change!("category_id")
     end
 
-    def reset_category_id!
+    def category_is_locked_changed?
+      attribute_changed?("category_is_locked")
+    end
+
+    def category_is_locked_will_change!
+      attribute_will_change!("category_is_locked")
+    end
+
+    def tag_update_map
+      {}.tap do |updates|
+        updates[:category] = @category_id if category_id_changed?
+        updates[:is_locked] = @category_is_locked if category_is_locked_changed?
+      end
+    end
+
+    def tag_changed?
+      tag_update_map.present?
+    end
+
+    def update_tag
+      updates = tag_update_map
+      return if updates.empty?
+
+      @tag = Tag.find_or_create_by_name(title)
+      @tag.update(updates)
+
+      reload_tag_attributes
+    end
+
+    def reload_tag_attributes
       remove_instance_variable(:@category_id) if instance_variable_defined?(:@category_id)
-    end
-
-    def category_editable?
-      return true if tag.blank?
-      tag.category_editable_by?(CurrentUser.user)
-    end
-
-    def update_tag_category
-      tag = Tag.find_or_create_by_name(title)
-      return if @category_id.blank? || tag.category == @category_id
-      unless tag.category_editable_by?(CurrentUser.user)
-        # we reset here so they can continue creating/editing without the field being disabled
-        # and locked to a value they can't use
-        reset_category_id!
-        errors.add(:category_id, "Cannot be changed")
-        throw(:abort)
-      end
-      tag.category = @category_id
-      tag.save
-      if tag.invalid?
-        errors.add(:category_id, tag.errors.full_messages.join(", "))
-        throw(:abort)
-      end
-      association(:tag).reload
-      reset_category_id!
+      remove_instance_variable(:@category_is_locked) if instance_variable_defined?(:@category_is_locked)
     end
   end
 
   extend SearchMethods
   include ApiMethods
   include HelpPageMethods
-  include TagCategoryMethods
+  include TagMethods
 
   def user_not_limited
     allowed = CurrentUser.can_wiki_edit_with_reason
@@ -214,7 +230,7 @@ class WikiPage < ApplicationRecord
   def validate_not_locked
     if is_locked? && !CurrentUser.is_janitor?
       errors.add(:is_locked, "and cannot be updated")
-      return false
+      false
     end
   end
 
@@ -263,8 +279,7 @@ class WikiPage < ApplicationRecord
   def normalize_title
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
-      @category_id = Tag.categories.value_for($1)
-      category_id_will_change!
+      self.category_id = Tag.categories.value_for($1)
       title = $2
     end
     self.title = title
@@ -291,7 +306,7 @@ class WikiPage < ApplicationRecord
   end
 
   def pretty_title
-    title&.tr("_", " ") || ''
+    title&.tr("_", " ") || ""
   end
 
   def pretty_title_with_category
@@ -334,6 +349,6 @@ class WikiPage < ApplicationRecord
       else
         match
       end
-    end.map {|x| x.downcase.tr(" ", "_").to_s}.uniq
+    end.map { |x| x.downcase.tr(" ", "_").to_s }.uniq
   end
 end
