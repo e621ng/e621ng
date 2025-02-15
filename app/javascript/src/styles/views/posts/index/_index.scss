@@ -2,7 +2,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   #page {
     // Override the theme to instead
     // project it upon the content area
-    background: none;
+    background: var(--color-foreground);
     padding: 0;
   }
 
@@ -36,8 +36,6 @@ body.c-posts.a-index, body.c-favorites.a-index {
     grid-area: search;
 
     padding: 0.5rem 0.25rem;
-    background-color: #152f56;
-    background-color: themed("color-foreground");
     box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
 
     h1 {
@@ -92,8 +90,6 @@ body.c-posts.a-index, body.c-favorites.a-index {
     gap: 1em;
 
     padding: 0.5rem 0.25rem;
-    background-color: #152f56;
-    background-color: themed("color-foreground");
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     // By popular demand

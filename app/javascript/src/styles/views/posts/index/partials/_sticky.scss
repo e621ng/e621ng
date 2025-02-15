@@ -2,6 +2,9 @@
   position: sticky;
   top: 0;
 
+  background: themed("color-foreground");
+  border-radius: 0.25rem;
+
   // on top of thumbnail labels
   z-index: 11;
 
