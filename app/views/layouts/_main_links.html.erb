@@ -1,3 +1,8 @@
+<% if CurrentUser.is_anonymous? %>
+  <%= decorated_nav_link_to("Log In", :log_in, new_session_path, class: "nav-hidden") %>
+<% else %>
+  <%= decorated_nav_link_to("Profile", :user, user_path(CurrentUser.user), class: "nav-hidden") %>
+<% end %>
 <%= decorated_nav_link_to("Artists", :brush, artists_path) %>
 <%= decorated_nav_link_to("Posts", :images, posts_path) %>
 <%= decorated_nav_link_to("Pools", :library, gallery_pools_path) %>
