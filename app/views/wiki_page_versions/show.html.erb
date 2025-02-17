@@ -10,11 +10,7 @@
       <% end %>
 
       <div id="wiki-page-body" class="dtext dtext-container">
-        <% if @wiki_page_version.visible? %>
-          <%= format_text(@wiki_page_version.body) %>
-        <% else %>
-          <p>The artist has requested removal of this page.</p>
-        <% end %>
+        <%= format_text(@wiki_page_version.body) %>
       </div>
     </section>
   </div>
