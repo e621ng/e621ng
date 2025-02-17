@@ -16,6 +16,10 @@
 
     <% if @wiki_page.tag.present? %>
       <%= subnav_link_to "Posts (#{@wiki_page.tag.post_count})", posts_path(tags: @wiki_page.title) %>
+
+      <% if CurrentUser.is_janitor?%>
+        <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
+      <% end %>
     <% end %>
 
     <% if @wiki_page.persisted? %>
@@ -32,11 +36,9 @@
       <% if CurrentUser.is_member? %>
         <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, qtype: "wiki") %>
       <% end %>
-
-      <% if CurrentUser.is_janitor? && @wiki_page.tag.present? %>
-        <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
-      <% end %>
     <% end %>
+
+
   <% elsif @wiki_page_version %>
     <li class="divider"></li>
 
