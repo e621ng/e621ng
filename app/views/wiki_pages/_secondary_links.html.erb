@@ -33,7 +33,7 @@
         <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, qtype: "wiki") %>
       <% end %>
 
-      <% if CurrentUser.is_janitor? %>
+      <% if CurrentUser.is_janitor? && @wiki_page.tag.present? %>
         <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
       <% end %>
     <% end %>

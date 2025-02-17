@@ -199,10 +199,9 @@ class WikiPage < ApplicationRecord
 
     def update_tag
       updates = tag_update_map
-      return if updates.empty?
-
       @tag = Tag.find_or_create_by_name(title)
 
+      return if updates.empty?
       unless @tag.category_editable_by?(CurrentUser.user)
         reload_tag_attributes
         errors.add(:category_id, "Cannot be changed")
