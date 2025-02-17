@@ -6,8 +6,8 @@ class WikiPage < ApplicationRecord
   before_validation :normalize_title
   before_validation :normalize_other_names
   before_validation :normalize_parent
-  before_save :update_tag, if: :tag_changed?
   before_save :log_changes
+  before_save :update_tag, if: :tag_changed?
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   after_save :create_version
@@ -202,7 +202,20 @@ class WikiPage < ApplicationRecord
       return if updates.empty?
 
       @tag = Tag.find_or_create_by_name(title)
+
+      unless @tag.category_editable_by?(CurrentUser.user)
+        reload_tag_attributes
+        errors.add(:category_id, "Cannot be changed")
+        throw(:abort)
+      end
+
       @tag.update(updates)
+      @tag.save
+
+      if @tag.invalid?
+        errors.add(:category_id, @tag.errors.full_messages.join(", "))
+        throw(:abort)
+      end
 
       reload_tag_attributes
     end
