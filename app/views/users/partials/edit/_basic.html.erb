@@ -1,0 +1,155 @@
+<% tab_name = "basic" %>
+
+<!-- Account -->
+<tab-group name="account">Account</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="account" class="buttony" search="update change user profile account name username">
+  <tab-head>Username</tab-head>
+  <tab-body>
+    <input type="text" value="<%= CurrentUser.user.pretty_name %>" disabled><%= link_to "Edit", new_user_name_change_request_path, class: "st-button" %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="account" class="buttony" search="update change user profile account email e-mail address">
+  <tab-head>Email</tab-head>
+  <tab-body>
+    <input type="text" value="<%= CurrentUser.user.email.presence || "blank" %>" disabled><%= link_to "Edit", new_maintenance_user_email_change_path, class: "st-button" %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
+  <tab-head></tab-head>
+  <tab-body>
+    <%= link_to "Change password", edit_user_password_path(user_id: @user.id), class: "st-button" %>
+    <%= link_to "Delete account", maintenance_user_deletion_path, class: "st-button danger" %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="account" search="user account timezone">
+  <tab-head>Time Zone</tab-head>
+  <tab-body>
+    <%= form.input_field :time_zone,
+      label: false,
+      include_blank: false
+    %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="account" class="inline" search="user account email notify notifications">
+  <tab-head>Email Notifications</tab-head>
+  <tab-body>
+    <%= form.input_field :receive_email_notifications, as: :boolean, class: "st-toggle" %>
+    <%= form.label :receive_email_notifications, "!", class: "st-toggle" %>
+  </tab-body>
+</tab-entry>
+
+
+<!-- General -->
+
+
+<!-- Profile -->
+<tab-group name="profile">Profile</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="profile" search="update change user avatar profile image pfp">
+  <tab-head><%= form.label :avatar_id, "Avatar Post ID" %></tab-head>
+  <tab-body>
+    <%= form.input_field :avatar_id, as: :string, label: false %>
+  </tab-body>
+  <tab-hint>
+    The image with this ID will be set as your avatar.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile about me">
+  <tab-head><%= form.label :profile_about, "About Me" %></tab-head>
+  <tab-body>
+    <%= form.input_field :profile_about,
+      as: :dtext,
+      label: false,
+      rows: 8,
+      limit: Danbooru.config.user_about_max_size,
+      allow_color: true
+    %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile commission info">
+  <tab-head><%= form.label :profile_artinfo, "Commission Info" %></tab-head>
+  <tab-body>
+    <%= form.input_field :profile_artinfo,
+      as: :dtext,
+      label: false,
+      rows: 8,
+      limit: Danbooru.config.user_about_max_size,
+      allow_color: true
+    %>
+  </tab-body>
+</tab-entry>
+
+
+<!-- Posts -->
+<tab-group name="posts">Posts</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="posts" search="default images width fit horizontal vertical sample large original display show scale posts">
+  <tab-head><%= form.label :default_image_size, "Default image width" %></tab-head>
+  <tab-body>
+    <%= form.input_field :default_image_size,
+      label: false,
+      collection: [["Original", "original"], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]],
+      include_blank: false
+    %>
+  </tab-body>
+  <tab-hint>
+    Show original image size, scaled to fit, scaled to fit vertically, or show resized 850 pixel sample version.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" search="posts number page display show">
+  <tab-head><%= form.label :per_page, "Posts per page" %></tab-head>
+  <tab-body>
+    <%= form.input_field :per_page, label: false, as: :select, collection: (25..250).step(25), include_blank: false %>
+  </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" search="comments score rating upvotes downvotes display show hide">
+  <tab-head><%= form.label :comment_threshold %></tab-head>
+  <tab-body>
+    <%= form.input_field :comment_threshold, label: false %>
+  </tab-body>
+  <tab-hint>
+    Comments below this score will be hidden by default.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display hidden">
+  <tab-head><%= form.label :hide_comments %></tab-head>
+  <tab-body>
+    <%= form.input_field :hide_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :hide_comments, "!", class: "st-toggle" %>
+  </tab-body>
+  <tab-hint>
+    Do not show the comments section on post pages.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display own hidden">
+  <tab-head><%= form.label :show_hidden_comments, "Show own hidden comments" %></tab-head>
+  <tab-body>
+    <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :show_hidden_comments, "!", class: "st-toggle" %>
+  </tab-body>
+  <tab-hint>
+    Show your hidden comments on comment pages.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts display show hide mode explicit questionable safe rated rating">
+  <tab-head><%= form.label :enable_safe_mode, "Safe mode" %></tab-head>
+  <tab-body>
+    <%= form.input_field :enable_safe_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_safe_mode, "!", class: "st-toggle" %>
+  </tab-body>
+  <tab-hint>
+    Only show images rated safe.
+  </tab-hint>
+</tab-entry>
