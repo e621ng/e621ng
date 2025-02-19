@@ -1,0 +1,27 @@
+<%
+  tab_name = "blacklist"
+%>
+
+<!-- Accessibility -->
+<tab-group name="blacklisting">Blacklist</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="blacklisting" class="bigtext" search="posts blacklisted filtered tags blocked">
+  <tab-head>Blacklisted Tags</tab-head>
+  <tab-body>
+    <%= form.input_field :blacklisted_tags, label: false, autocomplete: "tag-query", rows: 8 %>
+  </tab-body>
+  <tab-hint>
+    Put any tag combinations you never want to see here. Each combination should go on a separate line. <a href='/help/blacklist'>View help.</a>
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="blacklisting" class="inline" search="posts blacklisted filter users comments blips forum">
+  <tab-head>Blacklist Users</tab-head>
+  <tab-body>
+    <%= form.input_field :blacklist_users, as: :boolean, class: "st-toggle" %>
+    <label for="user_blacklist_users" class="st-toggle"></label>
+  </tab-body>
+  <tab-hint>
+    Hide comments, blips and forum posts from users that have been blacklisted, in addition to posts.
+  </tab-hint>
+</tab-entry>

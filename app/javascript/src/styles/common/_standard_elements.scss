@@ -21,11 +21,12 @@
   line-height: st-value(100);
   padding: st-value(100) / 2;
   height: st-value(100) * 2;
+  box-sizing: border-box;
 
   // TODO What if button is on a light background
   background: $button-background;
   color: $button-text-color;
-  &:hover { background: $button-background-hover; }
+  &:hover, &:active { background: $button-background-hover; }
 
   & > svg {
     // Icon should be slightly larger than text,
@@ -63,4 +64,48 @@
   &.icon {
     padding: (st-value(100) / 2) 0;
   }
+}
+
+
+// Colored buttons
+.st-button.danger {
+  background: palette("background-red");
+  &:hover, &:active {
+    background: palette("background-red-d5")
+  }
+}
+
+
+
+// Toggle switch
+label.st-toggle {
+  display: flex;
+  width: 2.5rem;
+  height: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  background: var(--color-foreground);
+  border-radius: 0.75rem;
+  cursor: pointer;
+
+  box-shadow: inset 0 0 0.25rem var(--color-background);
+
+  &::after {
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+
+    background: var(--color-text-muted);
+    border-radius: 0.75rem;
+    transition: left 100ms;
+  }
+}
+input[type="checkbox"].st-toggle { display: none; }
+input[type="checkbox"].st-toggle:checked + label.st-toggle {
+  background: var(--color-section-lighten-10);
+  &::after { left: 1.25rem; }
 }
