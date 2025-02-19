@@ -20,7 +20,10 @@ body.c-users.a-edit {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
 
-    .st-button { white-space: nowrap; }
+    .st-button {
+      white-space: nowrap;
+      justify-content: center;
+    }
   }
 
   tab-submit {
@@ -118,6 +121,8 @@ tabs-content {
       grid-area: head;
       margin-left: 0.25em;
       font-size: 0.85rem;
+
+      label { font-weight: normal; }
     }
 
     tab-body {
@@ -153,6 +158,7 @@ tabs-content {
       grid-template-columns: 1fr 4rem;
 
       input[type="text"] { border-radius: 0.25rem 0 0 0.25rem !important; }
+      input[disabled] { cursor: not-allowed; }
       a.st-button {
         border-radius: 0 0.25rem 0.25rem 0 !important;
         justify-content: center;
