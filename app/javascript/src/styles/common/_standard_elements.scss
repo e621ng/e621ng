@@ -81,29 +81,29 @@
 label.st-toggle {
   display: flex;
   width: 2.5rem;
-  height: 1.5rem;
+  height: 0.75rem;
   box-sizing: border-box;
   position: relative;
 
   background-color: themed("color-foreground");
-  transition: background-color 500ms;
+  // transition: background-color 200ms;
   border-radius: 0.25rem;
   cursor: pointer;
   font-size: 0;
 
-  box-shadow: inset 0 0 0.25rem themed("color-background");
+  box-shadow: inset 0 0 0.25rem #00000060;
 
   &::after {
     content: "";
     width: 1rem;
     height: 1rem;
     position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
+    top: -0.125rem;
+    left: 0rem;
 
-    background: themed("color-text-muted");
+    background: themed("color-link");
     border-radius: 0.25rem;
-    transition: left 100ms;
+    transition: left 100ms, background-color 200ms;
   }
 }
 input[type="checkbox"][disabled].st-toggle + label.st-toggle {
@@ -112,6 +112,10 @@ input[type="checkbox"][disabled].st-toggle + label.st-toggle {
 }
 input[type="checkbox"].st-toggle { display: none; }
 input[type="checkbox"].st-toggle:checked + label.st-toggle {
-  background-color: palette("background-green-d5");
-  &::after { left: 1.25rem; }
+  // background-color: palette("background-green-d5");
+  &::after {
+    content: "";
+    left: 1.5rem;
+    background: themed("color-link-active");
+  }
 }
