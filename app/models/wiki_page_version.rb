@@ -6,7 +6,6 @@ class WikiPageVersion < ApplicationRecord
   belongs_to_updater
   user_status_counter :wiki_edit_count, foreign_key: :updater_id
   belongs_to :artist, optional: true
-  delegate :visible?, to: :wiki_page
 
   module SearchMethods
     def for_user(user_id)

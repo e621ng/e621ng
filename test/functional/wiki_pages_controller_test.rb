@@ -12,8 +12,8 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context "index action" do
       setup do
         as(@user) do
-          @wiki_page_abc = create(:wiki_page, :title => "abc")
-          @wiki_page_def = create(:wiki_page, :title => "def")
+          @wiki_page_abc = create(:wiki_page, title: "abc")
+          @wiki_page_def = create(:wiki_page, title: "def")
         end
       end
 
@@ -23,12 +23,12 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "list all wiki_pages (with search)" do
-        get wiki_pages_path, params: {:search => {:title => "abc"}}
+        get wiki_pages_path, params: { search: { title: "abc" } }
         assert_redirected_to(wiki_page_path(@wiki_page_abc))
       end
 
       should "list wiki_pages without tags with order=post_count" do
-        get wiki_pages_path, params: {:search => {:title => "abc", :order => "post_count"}}
+        get wiki_pages_path, params: { search: { title: "abc", order: "post_count" } }
         assert_redirected_to(wiki_page_path(@wiki_page_abc))
       end
     end
@@ -46,7 +46,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "render for a title" do
-        get wiki_page_path(:id => @wiki_page.title)
+        get wiki_page_path(id: @wiki_page.title)
         assert_response :success
       end
 
@@ -64,7 +64,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         as(@user) do
           @wiki_page.update(title: "-aaa")
         end
-        get wiki_page_path(:id => @wiki_page.id)
+        get wiki_page_path(id: @wiki_page.id)
         assert_response :success
       end
     end
@@ -89,7 +89,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
     context "new action" do
       should "render" do
-        get_auth new_wiki_page_path, @mod, params: { wiki_page: { title: "test" }}
+        get_auth new_wiki_page_path, @mod, params: { wiki_page: { title: "test" } }
         assert_response :success
       end
     end
@@ -108,7 +108,55 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context "create action" do
       should "create a wiki_page" do
         assert_difference("WikiPage.count", 1) do
-          post_auth wiki_pages_path, @user, params: {:wiki_page => {:title => "abc", :body => "abc"}}
+          post_auth wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc" } }
+        end
+      end
+
+      context "with prefix" do
+        should "work" do
+          assert_difference(%w[WikiPage.count Tag.count], 1) do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "character:abc", body: "abc" } }
+          end
+          @wiki = WikiPage.last
+          assert_equal("abc", @wiki.title)
+          assert_equal(Tag.categories.character, @wiki.category_id)
+        end
+
+        should "not work for disallowed prefixes" do
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "lore:abc", body: "abc" } }
+          end
+        end
+
+        should "not work for tags over the threshold" do
+          @tag = create(:tag, post_count: 500)
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "character:#{@tag.name}", body: "abc" } }
+          end
+        end
+      end
+
+      context "with category_id" do
+        should "work" do
+          assert_difference(%w[WikiPage.count Tag.count], 1) do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc", category_id: Tag.categories.character } }
+          end
+          @wiki = WikiPage.last
+          assert_equal("abc", @wiki.title)
+          assert_equal(Tag.categories.character, @wiki.category_id)
+        end
+
+        should "not work for disallowed categories" do
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc", category_id: Tag.categories.lore } }
+          end
+        end
+
+        should "not work for tags over the threshold" do
+          @tag = create(:tag, post_count: 500)
+          assert_no_difference("WikiPage.count") do
+            post_auth wiki_pages_path, @user, params: { wiki_page: { title: @tag.name, body: "abc", category_id: Tag.categories.character } }
+          end
         end
       end
     end
@@ -122,24 +170,45 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "update a wiki_page" do
-        put_auth wiki_page_path(@wiki_page), @user, params: {:wiki_page => {:body => "xyz"}}
+        put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { body: "xyz" } }
         @wiki_page.reload
         assert_equal("xyz", @wiki_page.body)
       end
 
       should "not rename a wiki page with a non-empty tag" do
-        put_auth wiki_page_path(@wiki_page), @user, params: {:wiki_page => {:title => "bar"}}
+        put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { title: "bar"}}
         assert_equal("foo", @wiki_page.reload.title)
       end
 
       should "rename a wiki page with a non-empty tag if secondary validations are skipped" do
-        put_auth wiki_page_path(@wiki_page), @mod, params: {:wiki_page => {:title => "bar", :skip_secondary_validations => "1"}}
+        put_auth wiki_page_path(@wiki_page), @mod, params: { wiki_page: { title: "bar", skip_secondary_validations: "1" } }
         assert_equal("bar", @wiki_page.reload.title)
       end
 
       should "not allow non-Builders to delete wiki pages" do
         put_auth wiki_page_path(@wiki_page), @user, params: {wiki_page: { is_deleted: true }}
         assert_equal(false, @wiki_page.reload.is_deleted?)
+      end
+
+      context "with category_id" do
+        should "work" do
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.character } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.character, @wiki_page.category_id)
+        end
+
+        should "not work for disallowed categories" do
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.lore } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.general, @wiki_page.category_id)
+        end
+
+        should "not work for tags over the threshold" do
+          @tag.update_column(:post_count, 500)
+          put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.character } }
+          @wiki_page.reload
+          assert_equal(Tag.categories.general, @wiki_page.category_id)
+        end
       end
     end
 
@@ -172,7 +241,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       should "revert to a previous version" do
         version = @wiki_page.versions.first
         assert_equal("1", version.body)
-        put_auth revert_wiki_page_path(@wiki_page), @user, params: {:version_id => version.id}
+        put_auth revert_wiki_page_path(@wiki_page), @user, params: { version_id: version.id }
         @wiki_page.reload
         assert_equal("1", @wiki_page.body)
       end
@@ -182,7 +251,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           @wiki_page_2 = create(:wiki_page)
         end
 
-        put_auth revert_wiki_page_path(@wiki_page), @user, params: { :version_id => @wiki_page_2.versions.first.id }
+        put_auth revert_wiki_page_path(@wiki_page), @user, params: { version_id: @wiki_page_2.versions.first.id }
         @wiki_page.reload
 
         assert_not_equal(@wiki_page.body, @wiki_page_2.body)
