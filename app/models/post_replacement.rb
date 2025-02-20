@@ -128,6 +128,7 @@ class PostReplacement < ApplicationRecord
       width, height = calculate_dimensions(replacement_file.path)
       self.image_width = width
       self.image_height = height
+      # self.duration = video_duration(replacement_file.path)
     end
 
     def set_file_name
@@ -271,7 +272,13 @@ class PostReplacement < ApplicationRecord
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
 
-        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 ELSE 1 END ASC, id DESC"))
+        q.order(Arel.sql("CASE status
+          WHEN 'pending'  THEN 0
+          WHEN 'approved' THEN 1
+          WHEN 'original' THEN 2
+          WHEN 'rejected' THEN 3
+          ELSE 4
+          END ASC, id DESC"))
       end
 
       def pending
