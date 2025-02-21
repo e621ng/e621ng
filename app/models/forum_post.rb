@@ -26,6 +26,7 @@ class ForumPost < ApplicationRecord
   validate :validate_creator_is_not_limited, on: :create
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
+  # after_save :update_vote_score
   after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
     ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
@@ -96,6 +97,11 @@ class ForumPost < ApplicationRecord
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
       BulkUpdateRequest.where(forum_post_id: id).exists?
+  end
+
+  def vote_score_calculation
+    return 0.0 unless votable? && votes.count > 0
+    ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
   end
 
   def validate_topic_is_unlocked
@@ -218,5 +224,9 @@ class ForumPost < ApplicationRecord
     end
 
     true
+  end
+
+  def update_vote_score
+    update_column(:vote_score, vote_score)
   end
 end

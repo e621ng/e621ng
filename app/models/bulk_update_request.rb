@@ -66,6 +66,10 @@ class BulkUpdateRequest < ApplicationRecord
         q = q.order(updated_at: :desc)
       when "updated_at_asc"
         q = q.order(updated_at: :asc)
+      when "score_desc"
+        q = q.joins(:forum_post).order("forum_posts.vote_score DESC")
+      when "score_asc"
+        q = q.joins(:forum_post).order("forum_posts.vote_score ASC")
       else
         q = q.apply_basic_order(params)
       end

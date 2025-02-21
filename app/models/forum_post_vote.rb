@@ -10,6 +10,7 @@ class ForumPostVote < ApplicationRecord
   scope :down, -> {where(score: -1)}
   scope :by, ->(user_id) {where(creator_id: user_id)}
   scope :excluding_user, ->(user_id) {where("creator_id <> ?", user_id)}
+  after_save :update_vote_score
 
   def creator_name
     if association(:creator).loaded?
@@ -63,5 +64,11 @@ class ForumPostVote < ApplicationRecord
     else
       raise
     end
+  end
+
+  private
+
+  def update_vote_score
+    forum_post.update_vote_score
   end
 end
