@@ -1,4 +1,4 @@
-.paginator {
+nav.pagination {
   display: flex;
   flex-wrap: wrap;
 
@@ -8,6 +8,7 @@
 
   width: max-content;
   margin: 0 auto;
+  max-width: calc(100vw - 1rem);
 
   & > a, & > span {
     display: flex;
@@ -27,9 +28,8 @@
     }
   }
 
-  & > a[data-disabled="true"] {
-    color: var(--color-text);
-    pointer-events: none;
+  span.prev, span.next {
+    cursor: default;
   }
 
   // Ordering
@@ -98,4 +98,11 @@
   @include window-larger-than(65rem) {
     a.page.lg { display: flex; }
   }
+}
+
+
+// Sequential paginator
+nav.pagination.sequential {
+  gap: 5rem;
+  a span { display: block; }
 }

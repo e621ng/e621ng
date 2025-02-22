@@ -1,23 +1,37 @@
 # frozen_string_literal: true
 
 module PaginationHelper
+  def approximate_count(records)
+    return "" if records.pagination_mode != :numbered
+
+    if records.total_pages > records.max_numbered_pages
+      pages = records.max_numbered_pages
+      schar = "over "
+      count = pages * records.records_per_page
+      title = "Over #{count} results found.\nActual result count may be much larger."
+    else
+      pages = records.total_pages
+      schar = "~"
+      count = pages * records.records_per_page
+      title = "Approximately #{count} results found.\nActual result count may differ."
+    end
+
+    tag.span(class: "approximate-count", title: title, data: { count: count, pages: pages, per: records.max_numbered_pages }) do
+      concat schar
+      concat number_to_human(count, precision: 2, format: "%n%u", units: { thousand: "k" })
+      concat " "
+      concat "result".pluralize(count)
+    end
+  end
+
   def sequential_paginator(records)
-    tag.div(class: "paginator") do
+    tag.nav(class: "pagination sequential", aria: { label: "Pagination" }) do
       return "" if records.try(:none?)
 
       html = "".html_safe
 
-      # Previous
-      html << link_to(records.is_first_page? ? "#" : nav_params_for("a#{records[0].id}"), class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left", disabled: records.is_first_page? }) do
-        concat svg_icon(:chevron_left)
-        concat tag.span("Prev")
-      end
-
-      # Next
-      html << link_to(records.is_last_page? ? "#" : nav_params_for("b#{records[-1].id}"), class: "next", id: "paginator-next", rel: "next", data: { shortcut: "d right", disabled: records.is_last_page? }) do
-        concat tag.span("Next")
-        concat svg_icon(:chevron_right)
-      end
+      html << paginator_prev(nav_params_for("a#{records[0].id}"), disabled: records.is_first_page?)
+      html << paginator_next(nav_params_for("b#{records[-1].id}"), disabled: records.is_last_page?)
 
       html
     end
@@ -28,15 +42,11 @@ module PaginationHelper
       return sequential_paginator(records)
     end
 
-    tag.div(class: "paginator", data: { total: [records.total_pages, records.max_numbered_pages].min, current: records.current_page }) do
+    tag.nav(class: "pagination numbered", aria: { label: "Pagination" }, data: { total: [records.total_pages, records.max_numbered_pages].min, current: records.current_page }) do
       html = "".html_safe
 
       # Previous
-      has_prev = records.current_page < 2
-      html << link_to(has_prev ? "#" : nav_params_for(records.current_page - 1), class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left", disabled: has_prev }) do
-        concat svg_icon(:chevron_left)
-        concat tag.span("Prev")
-      end
+      html << paginator_prev(nav_params_for(records.current_page - 1), disabled: records.current_page < 2)
 
       # Break
       html << tag.div(class: "break")
@@ -47,17 +57,49 @@ module PaginationHelper
       end
 
       # Next
-      has_next = records.current_page >= records.total_pages
-      html << link_to(has_next ? "#" : nav_params_for(records.current_page + 1), class: "next", id: "paginator-next", rel: "next", data: { shortcut: "d right", disabled: has_next }) do
-        concat tag.span("Next")
-        concat svg_icon(:chevron_right)
-      end
+      html << paginator_next(nav_params_for(records.current_page + 1), disabled: records.current_page >= records.total_pages)
 
       html
     end
   end
 
   private
+
+  def paginator_prev(link, disabled: false)
+    html = "".html_safe
+
+    if disabled
+      html << tag.span(class: "prev", id: "paginator-prev", data: { shortcut: "a left" }) do
+        concat svg_icon(:chevron_left)
+        concat tag.span("Prev")
+      end
+    else
+      html << link_to(link, class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left" }) do
+        concat svg_icon(:chevron_left)
+        concat tag.span("Prev")
+      end
+    end
+
+    html
+  end
+
+  def paginator_next(link, disabled: false)
+    html = "".html_safe
+
+    if disabled
+      html << tag.span(class: "next", id: "paginator-next", data: { shortcut: "d right" }) do
+        concat tag.span("Next")
+        concat svg_icon(:chevron_right)
+      end
+    else
+      html << link_to(link, class: "next", id: "paginator-next", rel: "next", data: { shortcut: "d right" }) do
+        concat tag.span("Next")
+        concat svg_icon(:chevron_right)
+      end
+    end
+
+    html
+  end
 
   def paginator_pages(records)
     small_window = 2
@@ -90,7 +132,7 @@ module PaginationHelper
     if page == 0
       html << link_to(svg_icon(:ellipsis), nav_params_for(0), class: "spacer")
     elsif page == records.current_page
-      html << tag.span(page, class: "page current")
+      html << tag.span(page, class: "page current", aria: { current: "page" })
     else
       html << link_to(page, nav_params_for(page), class: "page #{klass}")
     end

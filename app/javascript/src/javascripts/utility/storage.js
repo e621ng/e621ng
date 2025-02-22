@@ -57,6 +57,9 @@ LStorage.Theme = {
   /** @returns {string} Colorblind-friendly palette (default / deut / trit) */
   Palette: ["theme-palette", "default"],
 
+  /** @returns {string} Font family (verdana / leto / lexend / dyslexic ) */
+  Font: ["theme-font", "Verdana"],
+
   /** @returns {string} Position of the navbar on the post page (top / bottom / both / none) */
   Navbar: ["theme-nav", "top"],
 
@@ -86,11 +89,14 @@ LStorage.Posts = {
   /** @returns {number} ID of the user's selected set */
   Set: ["set", 0],
 
-  /** @returns {boolean} True if the wiki excerpt should be visible */
-  WikiExcerpt: ["e6.posts.wiki", true],
+  /** @returns {number} 0: collapsed / 1: visible / 2: permanently hidden */
+  WikiExcerpt: ["e6.posts.wiki", 1],
 
   /** @returns {boolean} True if the search should be displayed in fullscreen */
   Fullscreen: ["e6.posts.fusk", false],
+
+  /** @returns {boolean} True if the search should be displayed in fullscreen */
+  StickySearch: ["e6.posts.ssearch", false],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

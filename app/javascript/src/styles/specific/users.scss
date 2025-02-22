@@ -200,29 +200,6 @@ div#c-users {
       }
     }
   }
-
-  div#a-edit {
-    h1 {
-      margin: 0.5em 0;
-    }
-
-    h2 {
-      margin: 0.5em 0;
-    }
-
-    div.input {
-      margin-bottom: 2em;
-    }
-
-    div.input span.hint {
-      display: block;
-      max-width: 70%;
-    }
-
-    .active {
-      color: themed("color-link-active");
-    }
-  }
 }
 
 // User signup and login

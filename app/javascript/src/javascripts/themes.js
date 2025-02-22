@@ -3,17 +3,23 @@ import LStorage from "./utility/storage";
 
 const Theme = {};
 
-Theme.Values = ["Main", "Extra", "StickyHeader", "ForumNotif", "Palette", "Navbar", "Gestures"];
+Theme.Values = {
+  "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "ForumNotif"],
+  "Posts": ["WikiExcerpt", "StickySearch"],
+};
 
-for (const one of Theme.Values) {
-  Object.defineProperty(Theme, one, {
-    get () { return LStorage.Theme[one]; },
-    set (value) {
-      // No value checking, we die like men
-      LStorage.Theme[one] = value;
-      $("body").attr("data-th-" + one.toLowerCase(), value);
-    },
-  });
+for (const [label, settings] of Object.entries(Theme.Values)) {
+  for (const one of settings) {
+    Object.defineProperty(Theme, one, {
+      get () { return LStorage.Theme[one]; },
+      set (value) {
+        // This has the unintended side effect of setting
+        // attribute values that don't exist on the body.
+        LStorage[label][one] = value;
+        $("body").attr("data-th-" + one.toLowerCase(), value);
+      },
+    });
+  }
 }
 
 Theme.initialize_selector = function () {
@@ -24,19 +30,32 @@ Theme.initialize_selector = function () {
     return false;
   }
 
-  for (const one of Theme.Values) {
-    $("#theme_" + one.toLowerCase())
-      .val(LStorage.Theme[one] + "")
-      .on("change", (event) => {
-        const data = event.target.value;
-        Theme[one] = data;
-      });
+  for (const [label, settings] of Object.entries(Theme.Values)) {
+    for (const one of settings)
+      $(`#${label}_${one}`)
+        .val(LStorage[label][one] + "")
+        .on("change", (event) => {
+          const data = event.target.value;
+          console.log("change", one, data);
+          Theme[one] = data;
+        });
   }
 };
 
+Theme.initialize_buttons = function () {
+  if (!LStorage.isAvailable()) return;
+
+  $("#mascot-value").text(LStorage.Site.Mascot);
+  $("#mascot-reset").on("click", () => {
+    LStorage.Site.Mascot = 0;
+    $("#mascot-value").text(LStorage.Site.Mascot);
+  });
+};
+
 $(() => {
-  if (Page.matches("static", "theme"))
-    Theme.initialize_selector();
+  if (!Page.matches("static", "theme")) return;
+  Theme.initialize_selector();
+  Theme.initialize_buttons();
 });
 
 export default Theme;

@@ -40,7 +40,7 @@
             <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
           <% end %>
           <% if @post.visible? && @post.is_image? %>
-            <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
+            <li><a rel="nofollow" href="https://lens.google.com/uploadbyurl?url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
             <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">Reverse SauceNAO Search</a></li>
             <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Reverse Derpibooru Search</a></li>
             <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url %>">Reverse Kheina Search</a></li>

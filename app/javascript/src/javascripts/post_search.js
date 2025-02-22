@@ -3,18 +3,6 @@ import Page from "./utility/page";
 
 const PostSearch = {};
 
-PostSearch.init = function () {
-  $(".post-search").each((index, element) => {
-    PostSearch.initialize_input($(element));
-  });
-
-  $(".wiki-excerpt").each((index, element) => {
-    PostSearch.initialize_wiki_preview($(element));
-  });
-
-  PostSearch.initialize_controls();
-};
-
 PostSearch.initialize_input = function ($form) {
   const $textarea = $form.find("textarea[name='tags']").first();
   if (!$textarea.length) return;
@@ -42,17 +30,31 @@ PostSearch.initialize_input = function ($form) {
 
 PostSearch.initialize_wiki_preview = function ($preview) {
   let visible = LStorage.Posts.WikiExcerpt;
-  if (visible) $preview.addClass("open");
+  if (visible == 2) return; // hidden
+  if (visible == 1) $preview.addClass("open");
+  $preview.removeClass("hidden");
+
   window.setTimeout(() => { // Disable the rollout on first load
     $preview.removeClass("loading");
   }, 250);
 
+  // Toggle the excerpt box open / closed
   $($preview.find("h3.wiki-excerpt-toggle")).on("click", (event) => {
     event.preventDefault();
 
     visible = !visible;
     $preview.toggleClass("open", visible);
-    LStorage.Posts.WikiExcerpt = visible;
+    LStorage.Posts.WikiExcerpt = Number(visible);
+
+    return false;
+  });
+
+  // Hide the excerpt box entirely
+  $preview.find("button.wiki-excerpt-dismiss").on("click", (event) => {
+    event.preventDefault();
+
+    $preview.addClass("hidden");
+    LStorage.Posts.WikiExcerpt = 2;
 
     return false;
   });
@@ -65,13 +67,29 @@ PostSearch.initialize_controls = function () {
     $("body").attr("data-st-fullscreen", fullscreen);
     LStorage.Posts.Fullscreen = fullscreen;
   });
+
+  let stickySearch = LStorage.Posts.StickySearch;
+  $("#search-sticky").on("click", () => {
+    stickySearch = !stickySearch;
+    $("body").attr("data-st-ssearch", stickySearch);
+    LStorage.Posts.StickySearch = stickySearch;
+  });
 };
 
 $(() => {
+
+  $(".post-search").each((index, element) => {
+    PostSearch.initialize_input($(element));
+  });
+
   if (!Page.matches("posts", "index") && !Page.matches("favorites"))
     return;
 
-  PostSearch.init();
+  $(".wiki-excerpt").each((index, element) => {
+    PostSearch.initialize_wiki_preview($(element));
+  });
+
+  PostSearch.initialize_controls();
 });
 
 export default PostSearch;

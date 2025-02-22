@@ -1,0 +1,199 @@
+body.c-users.a-edit {
+
+  form.simple_form {
+    background: unset;
+    padding: unset;
+    margin: unset;
+
+    input[type="text"], input[type="number"], textarea, select {
+      width: 100%;
+      max-width: unset;
+      box-sizing: border-box;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      padding: 0.25rem;
+    }
+  }
+
+  #settings-account-buttons tab-body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+
+    .st-button {
+      white-space: nowrap;
+      justify-content: center;
+    }
+  }
+
+  tab-submit {
+    input[type="submit"] {
+      background: themed("color-tag-artist");
+      font-size: 1.25rem;
+      padding: 0.25rem 1rem;
+      margin: 0.5rem;
+      border-radius: 0.25rem;
+
+      &:hover, &:active { background: themed("color-tag-artist-alt"); }
+    }
+  }
+}
+
+
+
+
+// Tabs section
+tabs-menu {
+  margin-top: 0.5rem;
+  display: flex;
+  width: 100%;
+  max-width: 50rem;
+  flex-wrap: wrap;
+
+  // TODO Smooth drag when overflowing
+  overflow: auto;
+
+  & > button {
+    background: unset;
+    color: themed("color-link");
+    padding: 0.5rem 1rem;
+    border-bottom: 2px solid themed("color-section");
+    font-size: 1rem;
+    line-height: 1rem;
+
+    &.active {
+      background: themed("color-section");
+      border-radius: 0.25rem 0.25rem 0 0;
+      &:first-child {
+        border-bottom-left-radius: 0.25rem;
+      }
+    }
+  }
+
+  span.spacer {
+    flex: 1;
+    border-bottom: 2px solid themed("color-section");
+  }
+
+  input[name="search"] {
+    border-radius: 0 0 0.25rem 0.25rem;
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+
+// Tabs structure
+tabs-content {
+  display: flex;
+  flex-flow: column;
+  max-width: 50rem;
+
+  tab-group {
+    display: none;
+    &.active { display: flex; }
+
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem;
+    margin: 0.5rem 0 0;
+
+    background: themed("color-section-lighten-5");
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+
+  tab-entry {
+    display: none;
+    &.active { display: grid; }
+    grid-template-areas: "head" "body" "hint";
+    grid-template-columns: 1fr;
+
+    align-items: center;
+    gap: 0.25rem;
+
+    background: themed("color-section");
+    padding: 0.5rem;
+    
+    tab-head {
+      grid-area: head;
+      margin-left: 0.25em;
+      font-size: 0.85rem;
+
+      label { font-weight: normal; }
+    }
+
+    tab-body {
+      grid-area: body;
+    }
+
+    tab-hint {
+      grid-area: hint;
+
+      font-size: 90%;
+      color: themed("color-text-muted");
+    }
+
+    &.inline {
+      grid-template-areas: "head body" "hint hint";
+      grid-template-columns: 2fr 1fr;
+
+      tab-body { justify-self: end; }
+    }
+
+    &.blocky {
+      grid-template-areas: "body";
+      grid-template-columns: 1fr;
+    }
+
+    &.bigtext {
+      grid-template-columns: 1fr;
+      grid-template-areas: "head" "body" "hint";
+    }
+
+    &.buttony tab-body {
+      display: grid;
+      grid-template-columns: 1fr 4rem;
+
+      input[type="text"] { border-radius: 0.25rem 0 0 0.25rem !important; }
+      input[disabled] { cursor: not-allowed; }
+      a.st-button {
+        border-radius: 0 0.25rem 0.25rem 0 !important;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+tab-submit {
+  position: sticky;
+  bottom: 0;
+
+  background: themed("color-section");
+  border-radius: 0.25rem;
+  width: min-content;
+  margin-top: 0.5rem;
+}
+
+@include window-larger-than(50rem) {
+  tabs-menu {
+    input[name="search"] {
+      width: unset;
+      border-radius: 0.25rem 0.25rem 0.25rem 0;
+      border-bottom: 2px solid themed("color-section");
+    }
+  }
+
+  tabs-content {
+    tab-entry {
+      grid-template-areas: "head body" ". hint";
+      grid-template-columns: 1fr 1fr;
+      &.inline {
+        grid-template-areas: "head hint body";
+        grid-template-columns: 8fr 7fr 1fr;
+      }
+    }
+  }
+}

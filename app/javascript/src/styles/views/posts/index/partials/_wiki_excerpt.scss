@@ -1,0 +1,101 @@
+.wiki-excerpt {
+  display: flex;
+  flex-flow: column;
+  position: relative;
+
+  background: themed("color-section");
+  border-radius: 0.25rem;
+
+  &.hidden { display: none; }
+
+  // header
+  h3 {
+    display: flex;
+    align-items: center;
+
+    font-size: 1rem;
+    padding: 0.5rem;
+
+    cursor: pointer;
+
+    & > svg {
+      transition: transform 0.25s;
+
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+
+    .wiki-excerpt-dismiss { margin-left: auto; }
+  }
+
+  // body
+  .styled-dtext {
+    background: linear-gradient(to top, themed("color-section"), themed("color-text"));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+    min-height: 0rem;
+    max-height: 0rem;
+    max-width: 50rem;
+    overflow: hidden;
+    padding: 0 0.5rem;
+
+    transition: max-height 0.25s;
+
+    // Disable links
+    pointer-events: none;
+    cursor: unset;
+
+    a {
+      color: unset;
+      text-decoration: underline;
+      &::after { content: none; }
+    }
+
+    // Quote visual bug
+    blockquote { background: unset; }
+
+    // Remove offset caused by paragraphs
+    p:last-child { margin-bottom: 0; }
+  }
+
+  // wiki link
+  .wiki-excerpt-readmore {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    height: 3rem;
+    max-width: 50rem;
+    box-sizing: border-box;
+
+    // Makes the button appear in the middle of the animation
+    transition: visibility 0s 0.125s;
+    visibility: hidden;
+
+    span {
+      padding: 0.5rem 1rem;
+      background: themed("color-section");
+      border-radius: 0.25rem;
+    }
+  }
+
+  &.open{
+    .wiki-excerpt-toggle svg { transform: rotate(90deg); }
+    .styled-dtext {
+      max-height: 10rem;
+      min-height: 2rem;
+    }
+    .wiki-excerpt-readmore { visibility: visible; }
+  }
+
+  &.loading {
+    h3::after, .styled-dtext { transition: none; }
+  }
+}

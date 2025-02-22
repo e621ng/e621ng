@@ -5,7 +5,7 @@ nav.navigation {
   grid-template-rows: min-content min-content min-content min-content auto;
 
   width: 100%; // otherwise narrow when fixed
-  z-index: 20; // otherwise post labels layered above
+  z-index: 200; // above post labels and notes
   position: relative;
 
 
@@ -187,6 +187,8 @@ nav.navigation {
       padding: 1rem 0.5rem;
     }
     li.current a { background-color: themed("color-foreground"); }
+
+    li.nav-hidden { display: none; }
   }
 
   .nav-secondary {
@@ -389,6 +391,7 @@ nav.navigation, html.nav-toggled nav.navigation {
       background: unset;
       height: unset;
       padding-left: 0.25rem;
+      overflow-y: unset;
 
       li a {
         border-bottom: 0;
@@ -401,6 +404,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       padding: 0 0.25rem;
       border-radius: 0.25rem 0 0 0.25rem;
+      overflow-y: unset;
 
       overflow: hidden; // Silly fix for too many links
       z-index: 1; // above the avatar

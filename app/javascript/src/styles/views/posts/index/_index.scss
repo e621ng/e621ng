@@ -1,0 +1,108 @@
+body.c-posts.a-index, body.c-favorites.a-index {
+  #page {
+    // Override the theme to instead
+    // project it upon the content area
+    background: var(--color-foreground);
+    padding: 0;
+  }
+
+  // Exhibit A
+  // Makes the content area take up the
+  // full height of the page. Yes, really.
+  #page, #c-posts, #c-favorites, #a-index {
+    // I hate both this and myself
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+  }
+}
+
+
+// Post gallery
+.post-index {
+  display: grid;
+
+  grid-template-areas:
+    "search " 
+    "content" 
+    "sidebar";
+  grid-template-columns: 1fr;
+  grid-template-rows: min-content 1fr min-content;
+
+  flex: 1; // See Exhibit A
+
+  // 1. Searchbox
+  .search {
+    grid-area: search;
+
+    padding: 0.5rem 0.25rem;
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
+    h1 {
+      font-size: $h3-size;
+    }
+
+    .search-controls { display: none; }
+  }
+
+  // 2. Content
+  .content {
+    display: flex; // See Exhibit A
+    flex-flow: column;
+
+    grid-area: content;
+
+    // Imported from #page
+    padding: 0.5rem 0.25rem themed("content-padding-bottom");
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+
+    // Quick tag edit
+    #edit-dialog textarea {
+      margin-bottom: 0.25rem;
+    }
+
+    // Actual content area:
+    // posts and pagination
+    .post-index-gallery {
+      display: flex;
+      flex-flow: column;
+      gap: 1rem;
+
+      flex: 1; // See Exhibit A
+
+      .posts-container {
+        flex: 1; // See Exhibit A
+        grid-auto-rows: min-content;
+      }
+    }
+  }
+
+  // 3. Sidebar
+  .sidebar {
+    grid-area: sidebar;
+
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
+
+    padding: 0.5rem 0.25rem;
+    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
+
+    // By popular demand
+    font-size: 150%;
+
+    // Mode selection
+    #mode-box-mode, #mode-box #set-id {
+      width: 100%;
+
+      // Match the searchbox
+      padding: 0.5em;
+      font-family: $base_font_family;
+      font-size: 1.05em;
+    }
+  }
+}

@@ -3,6 +3,6 @@
   <%= f.input :url_matches, label: "URL", as: :string %>
   <%= f.user :creator %>
   <%= f.input :has_tag, label: "Has tag?", collection: [["Yes", true], ["No", false]], include_blank: true %>
-  <%= f.input :is_linked, label: "Linked Only", as: :boolean %>
+  <%= f.input :is_linked, label: "Linked?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <%= f.input :order, collection: [["Recently created", "created_at"], ["Last updated", "updated_at"], ["Name", "name"], ["Post count", "post_count"]] %>
 <% end %>
