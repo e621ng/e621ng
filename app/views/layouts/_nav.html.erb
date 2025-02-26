@@ -20,11 +20,11 @@
     </a>
     <% if CurrentUser.is_anonymous? %>
       <a href="<%= new_session_path %>" class="simple-avatar nav-controls-profile collapse-2">
-        <span class="simple-avatar-button sign-in">
-          <span class="simple-avatar-name">
+        <span class="avatar-button sign-in">
+          <span class="avatar-name">
             Sign In
           </span>
-          <span class="simple-avatar-image">
+          <span class="avatar-image">
             <%= svg_icon(:log_in) %>
           </span>
         </span>

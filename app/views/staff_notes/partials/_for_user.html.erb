@@ -1,15 +1,12 @@
 <% if CurrentUser.can_view_staff_notes? %>
-  <div class="staff-notes-section styled-dtext">
-    <details>
-      <summary>Staff Notes (<%= user.staff_notes.count %>)</summary>
-      <div>
-        <h4><%= link_to "Staff Notes", staff_notes_path(search: { user_id: user.id }) %></h4>
-        <%= render "staff_notes/partials/list_of_notes", staff_notes: user.staff_notes.limit(15), show_receiver_name: false %>
-        <div class="new-staff-note">
-          <p><%= link_to "Create »", new_staff_note_path(search: { user_id: user.id }), class: "expand-new-staff-note" %></p>
-          <%= render "staff_notes/partials/new", user: user, staff_note: StaffNote.new(user_id: user.id), hidden: true %>
-        </div>
-      </div>
-    </details>
+<div class="profile-section hidden" name="StaffNotes">
+  <div class="profile-section-header">Staff Notes (<%= user.staff_notes.count %>)</div>
+  <div class="profile-section-body styled-dtext">
+    <%= render "staff_notes/partials/list_of_notes", staff_notes: user.staff_notes.limit(15), show_receiver_name: false %>
+    <div class="new-staff-note">
+      <p><%= link_to "Create »", new_staff_note_path(search: { user_id: user.id }), class: "expand-new-staff-note" %></p>
+      <%= render "staff_notes/partials/new", user: user, staff_note: StaffNote.new(user_id: user.id), hidden: true %>
+    </div>
   </div>
+</div>
 <% end %>

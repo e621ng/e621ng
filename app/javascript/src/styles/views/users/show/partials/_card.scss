@@ -1,0 +1,87 @@
+.profile-card {
+  display: grid;
+  grid-template-columns: min-content auto;
+  gap: 1rem;
+
+  // Info block
+  .profile-info {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .profile-name {
+    display: flex;
+    flex-flow: row;
+    gap: 0.5rem;
+    align-items: center;
+
+    a {
+      color: themed("color-text");
+      font-size: 1.25rem;
+    }
+  }
+
+  .profile-joined {
+    font-size: 0.75rem;
+    color: themed("color-text-muted");
+    margin-top: -0.25rem;
+  }
+}
+
+.profile-quickie {
+  display: flex;
+  gap: 0.5rem;
+
+  margin-top: 1rem;
+
+  .entry {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+  }
+
+  .entry > a {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    grid-template-areas:
+      "icon header" 
+      "icon title ";
+    column-gap: 0.25rem;
+    align-items: center;
+
+    width: 7rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+
+    @include st-radius;
+    background: themed("color-section");
+
+    &:hover { background: themed("color-section-lighten-5"); }
+
+    .entry-icon {
+      grid-area: icon;
+      height: 1.5rem;
+      width: 1.5rem;
+      color: themed("color-link-active");
+    }
+    .entry-header {
+      grid-area: header;
+      font-size: 1.1rem;
+      line-height: 1.1rem;
+      white-space: nowrap;
+    }
+    .entry-title {
+      grid-area: title;
+      font-size: 0.9rem;
+      line-height: 0.9rem;
+      white-space: nowrap;
+    }
+  }
+
+  .entry-extra {
+    a, a:visited { color: themed("color-text-muted"); }
+    a:hover, a:active { color: themed("color-link-active"); }
+  }
+}

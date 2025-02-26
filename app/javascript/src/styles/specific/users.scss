@@ -15,7 +15,7 @@ div#c-users {
     gap: 1em;
 
     & > div {
-      max-width: 1600px;
+      max-width: 100rem;
       box-sizing: border-box;
     }
 
@@ -76,107 +76,7 @@ div#c-users {
     // Middle section: uploads and favorites
     .blacklist-ui { padding: 0; }
 
-    .posts-section {
-      display: flex;
-      flex-flow: column;
-      gap: 1em;
 
-      .profile-sample {
-        display: grid;
-        grid-template: "p-header"
-                       "p-links"
-                       "p-posts";
-        gap: 0.5em 0;
-
-        @include window-larger-than(800px) {
-          grid-template: "p-header p-links"
-                         "p-posts p-posts";
-          grid-template-columns: 12em 1fr;
-          gap: 0 0.5em;
-        }
-      }
-
-      .profile-sample-header a, .profile-sample-links a {
-        display: block;
-        box-sizing: border-box;
-        align-content: center;
-        text-align: center;
-
-        height: 100%;
-        padding: 0.5em;
-        border-radius: 6px;
-        background-color: themed("color-section");
-
-        &:hover {
-          background-color: themed("color-section-lighten-5");
-        }
-        &:focus, &:active {
-          outline: 0;
-          color: themed("color-link-active");
-        }
-      }
-
-      .profile-sample-header {
-        grid-area: p-header;
-        display: flex;
-
-        a {
-          font-size: 1.25em;
-          font-weight: bold;
-          width: 100%;
-        }
-
-        @include window-larger-than(800px) {
-          a { border-radius: 6px 6px 0 0; }
-        }
-      }
-
-      .profile-sample-links {
-        grid-area: p-links;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
-        text-align: center;
-
-        span {
-          padding: 0.5em;
-          color: themed("color-text-muted");
-        }
-
-        .spacer { display: none; }
-        .profile-comments-link {
-          grid-row: 1 / 3;
-          grid-column: 3;
-        }
-
-        @include window-larger-than(800px) {
-          display: flex;
-          a { height: min-content; }
-          .spacer { display: block; }
-        }
-      }
-
-      .profile-sample-posts {
-        grid-area: p-posts;
-        display: flex;
-        overflow: auto;
-        justify-content: center;
-        flex-wrap: wrap;
-
-        gap: 1em;
-        padding: 0.5em;
-
-        background: var(--color-section);
-        border-radius: 6px;
-
-        // Desktop
-        @include window-larger-than(800px) {
-          flex-wrap: nowrap;
-          border-top-left-radius: 0;
-          justify-content: flex-start;
-        }
-      }
-    }
 
 
     // Bottom section: about me and commission info

@@ -190,6 +190,17 @@ LStorage.Blacklist = {
 StorageUtils.bootstrapSome(LStorage.Blacklist, ["Collapsed"]);
 
 
+// Users page config
+LStorage.Users = {
+  /** @returns {boolean} True to show staff stats, false to hide them */
+  StaffStats: ["e6.users.staffstats", false],
+
+  /** @returns {boolean} True to show user stats, false to hide them */
+  StaffNotes: ["e6.users.staffnotes", false],
+};
+StorageUtils.bootstrapMany(LStorage.Users);
+
+
 /**
  * Patches the add, delete, and clear methods for the filter cache set.
  * Otherwise, modifying the set with these methods would not update the local storage

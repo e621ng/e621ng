@@ -1,0 +1,20 @@
+<div class="profile-card">
+  <div class="profile-avatar">
+    <%= profile_avatar(@user) %>
+  </div>
+  <div class="profile-info">
+    <span class="profile-name">
+      <%= link_to_user(@user) %>
+      <%= user_feedback_badge(@user) %>
+    </span>
+    <span class="profile-joined">
+      Joined <%= compact_date @user.created_at %>
+    </span>
+    <span class="profile-rank">
+      <%= user_level_badge(@user) %>
+      <% unless @user.is_verified? %>
+        <span class="level-badge level-unactivated">UNACTIVATED</span>
+      <% end %>
+    </span>
+  </div>
+</div>

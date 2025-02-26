@@ -21,17 +21,13 @@
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
-        <% if wiki_content.visible? %>
-          <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>
+        <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>
 
-          <% if wiki_content.artist %>
-            <p><%= link_to "View artist", wiki_content.artist %></p>
-          <% end %>
-
-          <%= wiki_page_alias_and_implication_list(wiki_content) %>
-        <% else %>
-          <p>This artist has requested removal of their information.</p>
+        <% if wiki_content.artist %>
+          <p><%= link_to "View artist", wiki_content.artist %></p>
         <% end %>
+
+        <%= wiki_page_alias_and_implication_list(wiki_content) %>
       </div>
 
         <%= wiki_page_post_previews(wiki_content) %>

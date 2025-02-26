@@ -1,0 +1,35 @@
+.profile-section {
+  background: themed("color-section");
+
+  .profile-section-header {
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+
+    &::before {
+      content: "⮟";
+      display: inline-flex;
+      transition: transform 200ms;
+      margin-right: 0.25rem;
+    }
+  }
+
+  .profile-section-body {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0 0 radius() radius();
+    overflow: hidden;
+  }
+
+  // Collapsed
+  &.hidden {
+    .profile-section-header::before {
+      transform: rotate(-90deg);
+    }
+
+    .profile-section-body {
+      padding: 0 0.5rem;
+      height: 0;
+    }
+  }
+}

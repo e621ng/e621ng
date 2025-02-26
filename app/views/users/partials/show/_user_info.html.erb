@@ -1,0 +1,129 @@
+<tab-entry tab="stats" class="profile-user-info">
+
+  <div class="profile-line">
+    <h4><%= svg_icon(:message_square) %> Comments</h4>
+    <span class="profile-line-number">
+      <%= presenter.comment_count(self) %>
+    </span>
+    <span class="profile-line-extra">
+      <%= link_to "[mentions]", comments_path(group_by: :comment, search: { body_matches: user.name }) %>
+    </span>
+  </div>
+
+  <div class="profile-line">
+    <h4><%= svg_icon(:lectern) %> Forum posts</h4>
+    <span class="profile-line-number">
+      <%= presenter.forum_post_count(self) %>
+    </span>
+    <span class="profile-line-extra">
+      <%= link_to "[mentions]", forum_posts_path(search: { body_matches: user.name }) %>
+    </span>
+  </div>
+
+  <% if user.can_approve_posts? || Post.where(approver: user).exists? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:stamp) %> Approvals</h4>
+      <span class="profile-line-number">
+        <%= presenter.approval_count(self) %>
+      </span>
+    </div>
+  <% end %>
+
+  <div class="profile-line">
+    <h4><%= svg_icon(:upload) %> Upload Limit</h4>
+    <span class="profile-line-number">
+      <% if CurrentUser.user.id == user.id  %>
+        <%= link_to presenter.upload_limit_short, upload_limit_users_path %>
+      <% else %>
+        <%= link_to presenter.upload_limit_short, wiki_page_path(id: "upload_limit") %>
+      <% end %>
+    </span>
+    <span class="profile-line-extra">
+      Max number of unapproved posts at a time.
+    </span>
+  </div>
+
+  <div class="profile-line">
+    <h4><%= svg_icon(:replace) %> Changes</h4>
+    <span class="profile-line-extra profile-line-show">
+
+      <% if user.post_update_count != 0 %>
+        <a href="<%= post_versions_path(lr: user.id, search: { updater_id: user.id }) %>" class="entry">
+          <h5><%= user.post_update_count %></h5>
+          <span>Post</span>
+        </a>
+      <% end %>
+
+      <% if user.pool_version_count != 0 %>
+        <a href="<%= pool_versions_path(search: { updater_id: user.id }) %>" class="entry">
+          <h5><%= user.pool_version_count %></h5>
+          <span>Pool</span>
+        </a>
+      <% end %>
+
+      <% if user.artist_version_count != 0 %>
+        <a href="<%= artist_versions_path(search: { updater_id: user.id }) %>" class="entry">
+          <h5><%= user.artist_version_count %></h5>
+          <span>Artist</span>
+        </a>
+      <% end %>
+
+      <% if user.wiki_page_version_count != 0 %>
+        <a href="<%= wiki_page_versions_path(search: { updater_id: user.id }) %>" class="entry">
+          <h5><%= user.wiki_page_version_count %></h5>
+          <span>Wiki</span>
+        </a>
+      <% end %>
+
+      <% if user.note_version_count != 0 %>
+        <a href="<%= note_versions_path(search: { updater_id: user.id }) %>" class="entry">
+          <h5><%= user.note_version_count %></h5>
+          <span>Note</span>
+        </a>
+      <% end %>
+
+    </span>
+  </div>
+
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_approver? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:flag_left) %> Flags</h4>
+      <span class="profile-line-number"><%= presenter.flag_count(self) %></span>
+    </div>
+  <% end %>
+
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:ticket) %> Tickets</h4>
+      <span class="profile-line-number"><%= presenter.ticket_count(self) %></span>
+      <% if CurrentUser.is_moderator? %>
+        <span class="profile-line-extra">
+          [<%= link_to "pending", tickets_path(search: { creator_id: user.id, status: "pending" }) %>]
+          [<%= link_to "accused", tickets_path(search: { accused_id: user.id }) %>]
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if CurrentUser.user.id == user.id %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:key_square) %> API Key</h4>
+      <span class="profile-line-number">
+        <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
+      </span>
+      <span class="profile-line-extra">
+        (<%= link_to "help", help_page_path(id: "api") %>)
+      </span>
+    </div>
+  <% end %>
+
+  <% permissions = presenter.permissions %>
+  <% unless permissions.empty? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:power) %> Permissions</h4>
+      <span class="profile-line-extra">
+        <%= permissions %>
+      </span>
+    </div>
+  <% end %>
+</tab-entry>

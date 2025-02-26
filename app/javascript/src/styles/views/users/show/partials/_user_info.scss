@@ -1,0 +1,71 @@
+.profile-user-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(auto-fit, minmax(min-content, 5rem));
+  background: themed("color-section");
+  @include st-radius;
+
+  @include window-larger-than(38rem) { grid-template-columns: 1fr 1fr; }
+  @include window-larger-than(50rem) { grid-template-columns: 1fr; }
+
+  .profile-line {
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    padding: 1rem 0.5rem;
+    border-bottom: 2px solid themed("color-foreground");
+
+    h4 {
+      // Not necessary, but it aligns
+      // with the -extra line better
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
+
+      svg {
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+      }
+    }
+
+    &-number {
+      white-space: nowrap;
+    }
+
+    &-extra {
+      grid-column: 1 / -1;
+      font-size: 90%;
+      color: themed("color-text-muted");
+
+      margin-left: 1.25em;
+    }
+
+    // Stats display section
+    &-show {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 2rem;
+      margin-top: 0.5rem;
+
+      .entry {
+        text-align: center;
+        width: 5rem;
+        & > span { color: themed("color-text-muted"); }
+      }
+    }
+
+    // Dot-separated, less important
+    &-list {
+      display: flex;
+      gap: 0.25em;
+
+      a:not(:last-child)::after {
+        content: "•";
+        margin-left: 0.25rem;
+        color: themed("color-text-muted");
+      }
+    }
+
+    &:last-child { border-bottom: none; }
+  }
+}
