@@ -80,8 +80,12 @@ class Tag < ApplicationRecord
 
       def category_for(tag_name)
         Cache.fetch("tc:#{tag_name}") do
-          Tag.where(name: tag_name).pick(:category).to_i
+          category_for!(tag_name).to_i
         end
+      end
+
+      def category_for!(tag_name)
+        Tag.where(name: tag_name).pick(:category)
       end
 
       def categories_for(tag_names, disable_cache: false)
