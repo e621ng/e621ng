@@ -6,7 +6,7 @@
       <%= presenter.comment_count(self) %>
     </span>
     <span class="profile-line-extra">
-      <%= link_to "[mentions]", comments_path(group_by: :comment, search:{ body_matches: user.name }) %>
+      <%= link_to "[mentions]", comments_path(group_by: :comment, search: { body_matches: user.name }) %>
     </span>
   </div>
 
@@ -117,10 +117,8 @@
     </div>
   <% end %>
 
-  <%
-    permissions = presenter.permissions
-    if permissions.length > 0
-  %>
+  <% permissions = presenter.permissions %>
+  <% unless permissions.empty? %>
     <div class="profile-line">
       <h4><%= svg_icon(:power) %> Permissions</h4>
       <span class="profile-line-extra">

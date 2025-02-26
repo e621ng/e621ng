@@ -15,10 +15,8 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <!-- Central panel -->
-    <%
-      has_about = @user.profile_about.present?
-      has_artinfo = @user.profile_artinfo.present?
-    %>
+    <% has_about = @user.profile_about.present? %>
+    <% has_artinfo = @user.profile_artinfo.present? %>
     <tabs-menu
       id="profile-tabs"
       data-has-about="<%= has_about %>"
