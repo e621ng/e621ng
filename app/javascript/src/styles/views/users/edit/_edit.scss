@@ -106,8 +106,9 @@ tabs-content {
   }
 
   tab-entry {
-    display: none;
-    &.active { display: grid; }
+    display: none !important;
+    &.active { display: grid !important; }
+    &.flex.active { display: flex !important; }
     grid-template-areas: "head" "body" "hint";
     grid-template-columns: 1fr;
 

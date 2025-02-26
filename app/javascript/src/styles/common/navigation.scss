@@ -76,11 +76,11 @@ nav.navigation {
     }
 
     a.simple-avatar {
-      .simple-avatar-button {
+      .avatar-button {
         padding: 0;
         gap: 0;
 
-        .simple-avatar-name {
+        .avatar-name {
           padding: 0.5rem;
 
           @include window-smaller-than(32rem) {
@@ -88,7 +88,7 @@ nav.navigation {
           }
         }
 
-        .simple-avatar-image {
+        .avatar-image {
           display: flex;
           justify-content: center;
           align-items: center;
@@ -119,7 +119,7 @@ nav.navigation {
         }
 
         @include window-smaller-than(32rem) {
-          &.sign-in .simple-avatar-image {
+          &.sign-in .avatar-image {
             background: themed("color-foreground");
           }
         }
@@ -495,18 +495,18 @@ nav.navigation, html.nav-toggled nav.navigation {
         padding: 0;
         height: 100%;
 
-        .simple-avatar-button {
+        .avatar-button {
           background: none;
           color: inherit;
           align-items: start;
           font-size: 0.875rem;
           line-height: 0.875rem;
 
-          .simple-avatar-name {
+          .avatar-name {
             padding: 0 0.5rem;
           }
   
-          .simple-avatar-image {
+          .avatar-image {
             height: 3rem;
             width: 3rem;
             background: themed("color-foreground");
@@ -528,9 +528,9 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
     
     // Stage 2: account label
-    .collapse-2 .simple-avatar-name { display: none; }
+    .collapse-2 .avatar-name { display: none; }
     @include window-larger-than(65rem) {
-      .collapse-2 .simple-avatar-name { display: unset; }
+      .collapse-2 .avatar-name { display: unset; }
     }
   }
 }
@@ -564,10 +564,10 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
-      .simple-avatar-button {
+      .avatar-button {
         height: unset;
         align-items: center;
-        .simple-avatar-image { display: none; }
+        .avatar-image { display: none; }
       }
     }
   }

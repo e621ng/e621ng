@@ -9,7 +9,7 @@ Thumbnails.initialize = function () {
   const replacedPosts = [];
 
   // Avatar special case
-  for (const post of $(".simple-avatar.placeholder")) {
+  for (const post of $(".simple-avatar.placeholder, .profile-avatar.placeholder")) {
     const $post = $(post);
     $post.removeClass("placeholder");
 
@@ -21,7 +21,11 @@ Thumbnails.initialize = function () {
 
     $("<img>")
       .attr("src", postData["preview_url"])
-      .appendTo($post.find("span.simple-avatar-image"));
+      .appendTo($post.find("span.avatar-image"));
+
+    if ($post.hasClass("profile-avatar"))
+      $post.attr("href", "/posts/" + postID);
+
     continue;
   }
 

@@ -1,0 +1,17 @@
+<% if has_about %>
+  <tab-entry tab="about" class="profile-about-section flex">
+    <tab-head>About</tab-head>
+    <tab-body class="content dtext-container">
+      <%= format_text(user.profile_about, allow_color: true) %>
+    </tab-body>
+  </tab-entry>
+<% end %>
+
+<% if has_artinfo %>
+  <tab-entry tab="artinfo" class="profile-artinfo-section flex">
+    <tab-head>Artist Information</tab-head>
+    <tab-body class="content dtext-container">
+      <%= format_text(user.profile_artinfo, allow_color: true) %>
+    </tab-body>
+  </tab-entry>
+<% end %>

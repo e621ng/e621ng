@@ -53,6 +53,11 @@ class UserPresenter
     = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
+  def upload_limit_short
+    return "none" if user.can_upload_free?
+    "#{user.upload_limit} / #{user.upload_limit_max}"
+  end
+
   def uploads
     posts = Post.tag_match("user:#{user.name}").limit(8)
     PostsDecorator.decorate_collection(posts)
