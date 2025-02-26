@@ -17,5 +17,5 @@ $st-values: (
 @function padding($value) { @return st-value(($value)); }
 @mixin st-padding($value) { padding: padding(($value)); }
 
-@function radius($value) { @return st-value($value); }
-@mixin st-radius($value) { border-radius: radius($value); }
+@function radius($value: 025) { @return st-value($value); }
+@mixin st-radius($value: 025) { border-radius: radius($value); }

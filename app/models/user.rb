@@ -574,6 +574,11 @@ class User < ApplicationRecord
       base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
     end
 
+    def upload_limit_max
+      pieces = upload_limit_pieces
+      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+    end
+
     def upload_limit_pieces
       @upload_limit_pieces ||= begin
         deleted_count = Post.deleted.for_user(id).count
@@ -737,6 +742,28 @@ class User < ApplicationRecord
 
     def ticket_count
       user_status.ticket_count
+    end
+
+    def feedback_pieces
+      @feedback_pieces ||= begin
+        count = {
+          deleted: 0,
+          negative: 0,
+          neutral: 0,
+          positive: 0,
+        }
+
+        feedback.each do |one|
+          if one.is_deleted
+            count[:deleted] += 1
+            next
+          end
+
+          count[one.category.to_sym] += 1
+        end
+
+        count
+      end
     end
 
     def positive_feedback_count

@@ -4,7 +4,7 @@
   <div class="profile-sample profile-uploads">
 
     <div class="profile-sample-header">
-      <%= link_to "Uploads", posts_path(:tags => "user:#{user.name}"), class: "title" %>
+      <%= link_to "Uploads", posts_path(tags: "user:#{user.name}"), class: "title" %>
     </div>
 
     <div class="profile-sample-links">
@@ -29,11 +29,11 @@
   <div class="profile-sample profile-favorites">
 
     <div class="profile-sample-header">
-      <%= link_to "Favorites", favorites_path(:user_id => user.id), class: "title" %>
+      <%= link_to "Favorites", favorites_path(user_id: user.id), class: "title" %>
     </div>
 
     <div class="profile-sample-links">
-      <%= link_to(sanitize("<b>#{user.favorite_count}</b> total"), favorites_path(:user_id => user.id)) %>
+      <%= link_to(sanitize("<b>#{user.favorite_count}</b> total"), favorites_path(user_id: user.id)) %>
       <% if user.enable_privacy_mode? || user.is_blocked? %>
         <span>[hidden]</span>
       <% end %>

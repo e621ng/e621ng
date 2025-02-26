@@ -1,10 +1,41 @@
 <div id="c-users">
   <div id="a-show">
-    <%= render "statistics", :presenter => @presenter, :user => @user %>
-    <%= render "staff_notes/partials/for_user", user: @user %>
+
+    <!-- Header -->
+    <%= render "/users/partials/show/card", :presenter => @presenter, :user => @user %>
+    <%= render "/users/partials/show/ban_banner", :presenter => @presenter, :user => @user %>
+
+    <% if CurrentUser.is_staff? %>
+      <!-- Staff Info -->
+      <%= render "/users/partials/show/staff_info", :presenter => @presenter, :user => @user %>
+      <%= render "staff_notes/partials/for_user", user: @user %>
+    <% end %>
+
+    <!-- Blacklist -->
     <%= render "posts/partials/common/inline_blacklist" %>
-    <%= render "post_summary", presenter: @presenter, user: @user %>
-    <%= render "about", presenter: @presenter, user: @user %>
+
+    <!-- Central panel -->
+    <% has_about = @user.profile_about.present? %>
+    <% has_artinfo = @user.profile_artinfo.present? %>
+    <tabs-menu
+      id="profile-tabs"
+      data-has-about="<%= has_about %>"
+      data-has-artinfo="<%= has_artinfo %>"
+    >
+      <% if has_about %>
+        <button role="tab" name="about">About</button>
+      <% end %>
+      <% if has_artinfo %>
+        <button role="tab" name="artinfo">Commission Info</button>
+      <% end %>
+      <button role="tab" name="stats">Stats</button>
+    </tabs-menu>
+
+    <tabs-content for="profile-tabs">
+      <%= render "/users/partials/show/user_info", :presenter => @presenter, :user => @user %>
+      <%= render "/users/partials/show/about", presenter: @presenter, user: @user, has_about: has_about, has_artinfo: has_artinfo %>
+      <%= render "/users/partials/show/post_summary", presenter: @presenter, user: @user %>
+    </tabs-content>
   </div>
 </div>
 

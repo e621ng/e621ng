@@ -1,0 +1,34 @@
+<div class="profile-section hidden" name="StaffStats">
+  <div class="profile-section-header">Staff Info</div>
+  <div class="profile-section-body profile-staff-info">
+    <% if presenter.previous_names(self).present? %>
+      <h4 class="block">Previous Names</h4>
+      <span class="block"><%= presenter.previous_names(self) %> -> <%= user.name %></span>
+    <% end %>
+
+    <% if CurrentUser.is_admin? %>
+      <h4>Email</h4>
+      <span>
+        <%= user.email %>
+        <%= email_domain_search(user.email) %>
+      </span>
+
+      <h4>Last IP</h4>
+      <span><%= link_to_ip(user.last_ip_addr) %></span>
+    <% end %>
+
+    <% if CurrentUser.is_moderator? %>
+      <h4>Votes</h4>
+      <span>
+        <%= link_to "Posts", action: "index", controller: "post_votes", search: { user_name: user.name } %>
+        | <%= link_to "Comments", action: "index", controller: "comment_votes", search: { user_name: user.name } %>
+      </span>
+    <% end %>
+
+    <h4>Pending</h4>
+    <span>
+      <%= link_to "Posts", posts_path(tags: "user:#{user.name} status:pending") %>
+      | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name }) %>
+    </span>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+$hex-size: 1.25rem;
+
+.user-record {
+  display: flex;
+
+  height: $hex-size * 0.6;    // 0.75rem
+  width: $hex-size;           // 1.25rem
+  margin: ($hex-size / 5) 0;  // 0.25rem 0
+
+  justify-content: center;
+  align-items: center;
+  font-size: ($hex-size / 5 * 4) * 0.9;
+  svg { width: ($hex-size / 5 * 4) * 0.9; }
+
+  background: palette("plain-black");
+  color: white;
+
+  // Place corners under the text
+  position: relative;
+  z-index: 1;
+
+  &::before, &::after {
+    content: "";
+
+    position: absolute;
+    right: 0;
+    left: 0;
+  
+    border-left: ($hex-size / 2) solid transparent;
+    border-right: ($hex-size / 2) solid transparent;
+  
+    z-index: -1;
+  }
+
+  &::before {
+    top: -($hex-size / 5);
+    border-bottom: ($hex-size / 5) solid palette("plain-black");
+  }
+
+  &::after {
+    bottom: -($hex-size / 5);
+    border-top: ($hex-size / 5) solid palette("plain-black");
+  }
+
+
+  // Variations
+  &.deleted {
+    background: palette("background-yellow");
+    &::before { border-bottom-color: palette("background-yellow"); }
+    &::after { border-top-color: palette("background-yellow"); }
+  }
+
+  &.negative {
+    background: palette("background-red");
+    &::before { border-bottom-color: palette("background-red"); }
+    &::after { border-top-color: palette("background-red"); }
+  }
+
+  &.neutral {
+    background: palette("background-grey");
+    &::before { border-bottom-color: palette("background-grey"); }
+    &::after { border-top-color: palette("background-grey"); }
+  }
+
+  &.positive {
+    background: palette("background-green");
+    &::before { border-bottom-color: palette("background-green"); }
+    &::after { border-top-color: palette("background-green"); }
+  }
+}
+
+
+.user-records-list {
+  display: flex;
+  flex-flow: row;
+  gap: 0.25rem;
+
+  &:hover .user-record {
+    &.deleted {
+      background: palette("background-yellow-d5");
+      &::before { border-bottom-color: palette("background-yellow-d5"); }
+      &::after { border-top-color: palette("background-yellow-d5"); }
+    }
+
+    &.negative {
+      background: palette("background-red-d5");
+      &::before { border-bottom-color: palette("background-red-d5"); }
+      &::after { border-top-color: palette("background-red-d5"); }
+    }
+  
+    &.neutral {
+      background: palette("background-grey-d5");
+      &::before { border-bottom-color: palette("background-grey-d5"); }
+      &::after { border-top-color: palette("background-grey-d5"); }
+    }
+  
+    &.positive {
+      background: palette("background-green-d5");
+      &::before { border-bottom-color: palette("background-green-d5"); }
+      &::after { border-top-color: palette("background-green-d5"); }
+    }
+  }
+}
