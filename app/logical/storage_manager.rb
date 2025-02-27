@@ -3,17 +3,22 @@
 class StorageManager
   class Error < StandardError; end
 
-  DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
-  IMAGE_TYPES = %i[preview large crop original]
+  DEFAULT_BASE_DIR = "#{Rails.root}/public/data".freeze
+  IMAGE_TYPES = %i[preview large crop original].freeze
   MASCOT_PREFIX = "mascots"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
-  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
-                 large_image_prefix: Danbooru.config.large_image_prefix,
-                 protected_prefix: Danbooru.config.protected_path_prefix,
-                 replacement_prefix: Danbooru.config.replacement_path_prefix)
-    @base_url = base_url.chomp("/")
+  def initialize( # rubocop:disable Metrics/ParameterLists
+    base_url: default_base_url,
+    base_path: default_base_path,
+    base_dir: DEFAULT_BASE_DIR,
+    hierarchical: false,
+    large_image_prefix: Danbooru.config.large_image_prefix,
+    protected_prefix: Danbooru.config.protected_path_prefix,
+    replacement_prefix: Danbooru.config.replacement_path_prefix
+  )
+    @base_url = base_url.delete_suffix("/")
     @base_dir = base_dir
     @base_path = base_path
     @protected_prefix = protected_prefix
@@ -69,13 +74,13 @@ class StorageManager
       delete(file_path(md5, file_ext, type, true))
     end
     Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
+      %w[mp4 webm].each do |ext|
         delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
         delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))
       end
     end
-    delete(file_path(md5, 'mp4', :original, false))
-    delete(file_path(md5, 'mp4', :original, true))
+    delete(file_path(md5, "mp4", :original, false))
+    delete(file_path(md5, "mp4", :original, true))
   end
 
   def delete_replacement(replacement)
@@ -97,9 +102,9 @@ class StorageManager
 
   def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
-    time = (Time.now + 15.minute).to_i
+    time = (Time.now + 15.minutes).to_i
     secret = secret
-    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')
+    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/", "-_").gsub("==", "")
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 

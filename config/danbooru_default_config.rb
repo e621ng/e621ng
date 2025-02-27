@@ -53,7 +53,9 @@ module Danbooru
 
     # Stripped of any special characters.
     def safe_app_name
-      app_name.gsub(/[^a-zA-Z0-9_-]/, "_")
+      # app_name.gsub(/[^a-zA-Z0-9_-]/, "_")
+      # App name is already safe; if that changes, uncomment above
+      app_name
     end
 
     # The default name to use for anyone who isn't logged in.
@@ -63,14 +65,14 @@ module Danbooru
 
     def levels
       {
-          "Anonymous" => 0,
-          "Blocked" => 10,
-          "Member" => 20,
-          "Privileged" => 30,
-          "Former Staff" => 34,
-          "Janitor" => 35,
-          "Moderator" => 40,
-          "Admin" => 50
+        "Anonymous" => 0,
+        "Blocked" => 10,
+        "Member" => 20,
+        "Privileged" => 30,
+        "Former Staff" => 34,
+        "Janitor" => 35,
+        "Moderator" => 40,
+        "Admin" => 50,
       }
     end
 
@@ -147,7 +149,7 @@ module Danbooru
 
     # List of memcached servers
     def memcached_servers
-      %w(127.0.0.1:11211)
+      %w[127.0.0.1:11211]
     end
 
     def alias_implication_forum_category
@@ -359,10 +361,10 @@ module Danbooru
 
     def max_file_sizes
       {
-        'jpg' => 100.megabytes,
-        'png' => 100.megabytes,
-        'gif' => 20.megabytes,
-        'webm' => 100.megabytes
+        "jpg" => 100.megabytes,
+        "png" => 100.megabytes,
+        "gif" => 20.megabytes,
+        "webm" => 100.megabytes,
       }
     end
 
@@ -372,26 +374,27 @@ module Danbooru
 
     # Measured in seconds
     def max_video_duration
-      3600
+      3_600
     end
 
     # Maximum resolution (width * height) of an upload. Default: 441 megapixels (21000x21000 pixels).
     def max_image_resolution
-      15000 * 15000
+      # 15_000 * 15_000
+      225_000_000
     end
 
     # Maximum width of an upload.
     def max_image_width
-      15000
+      15_000
     end
 
     # Maximum height of an upload.
     def max_image_height
-      15000
+      15_000
     end
 
     def max_tags_per_post
-      2000
+      2_000
     end
 
     # Permanently redirect all HTTP requests to HTTPS.
@@ -563,11 +566,7 @@ module Danbooru
 
     def can_user_see_post?(user, post)
       return false if post.is_deleted? && !user.is_janitor?
-      if is_user_restricted?(user) && is_post_restricted?(post)
-        false
-      else
-        true
-      end
+      !(is_user_restricted?(user) && is_post_restricted?(post))
     end
 
     def user_needs_login_for_post?(post)
@@ -575,7 +574,7 @@ module Danbooru
     end
 
     def select_posts_visible_to_user(user, posts)
-      posts.select {|x| can_user_see_post?(user, x)}
+      posts.select { |x| can_user_see_post?(user, x) }
     end
 
     def enable_dimension_autotagging?
@@ -607,15 +606,15 @@ module Danbooru
     end
 
     def mailgun_api_key
-      ''
+      ""
     end
 
     def mailgun_domain
-      ''
+      ""
     end
 
     def mail_from_addr
-      'noreply@localhost'
+      "noreply@localhost"
     end
 
     # disable this for tests
@@ -662,17 +661,17 @@ module Danbooru
     end
 
     def ads_zone_desktop
-      {zone: nil, revive_id: nil, checksum: nil}
+      { zone: nil, revive_id: nil, checksum: nil }
     end
 
     def ads_zone_mobile
-      {zone: nil, revive_id: nil, checksum: nil}
+      { zone: nil, revive_id: nil, checksum: nil }
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
-      {'720p' => [1280, 720], '480p' => [640, 480]}
+      { "720p" => [1280, 720], "480p" => [640, 480] }
     end
 
     def image_rescales
@@ -702,14 +701,11 @@ module Danbooru
     end
 
     def env_to_boolean(method, var)
-      is_boolean = method.to_s.end_with? "?"
-      return true if is_boolean && var.truthy?
-      return false if is_boolean && var.falsy?
-      var
+      method.to_s.end_with?("?") ? var.to_bool_or_self : var
     end
 
     def method_missing(method, *)
-      var = ENV["DANBOORU_#{method.to_s.upcase.chomp("?")}"]
+      var = ENV["DANBOORU_#{method.to_s.upcase.delete_suffix("?")}"]
 
       if var.present?
         env_to_boolean(method, var)

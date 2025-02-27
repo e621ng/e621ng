@@ -818,8 +818,10 @@ class TagQuery
         q[:groups][search_type] << group
         next
       end
-      @tag_count += 1 unless Danbooru.config.is_unlimited_tag?(token)
-      raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
+      unless Danbooru.config.is_unlimited_tag?(token)
+        @tag_count += 1
+        raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
+      end
       metatag_name, g2 = token.split(":", 2)
 
       # Remove quotes from description:"abc def"
@@ -834,44 +836,25 @@ class TagQuery
       type = METATAG_SEARCH_TYPE[metatag_name[0]]
       case metatag_name.downcase
       when "user", "-user", "~user"
-        add_to_query(type, :uploader_ids) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :uploader_ids) { user_id_or_invalid(g2) }
 
       when "user_id", "-user_id", "~user_id"
-        add_to_query(type, :uploader_ids) do
-          g2.to_i
-        end
+        add_to_query(type, :uploader_ids) { g2.to_i }
 
       when "approver", "-approver", "~approver"
-        add_to_query(type, :approver_ids, any_none_key: :approver, value: g2) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :approver_ids, any_none_key: :approver, value: g2) { user_id_or_invalid(g2) }
 
       when "commenter", "-commenter", "~commenter", "comm", "-comm", "~comm"
-        add_to_query(type, :commenter_ids, any_none_key: :commenter, value: g2) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :commenter_ids, any_none_key: :commenter, value: g2) { user_id_or_invalid(g2) }
 
       when "noter", "-noter", "~noter"
-        add_to_query(type, :noter_ids, any_none_key: :noter, value: g2) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :noter_ids, any_none_key: :noter, value: g2) { user_id_or_invalid(g2) }
 
       when "noteupdater", "-noteupdater", "~noteupdater"
-        add_to_query(type, :note_updater_ids) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :note_updater_ids) { user_id_or_invalid(g2) }
 
       when "pool", "-pool", "~pool"
-        add_to_query(type, :pool_ids, any_none_key: :pool, value: g2) do
-          Pool.name_to_id(g2)
-        end
+        add_to_query(type, :pool_ids, any_none_key: :pool, value: g2) { Pool.name_to_id(g2) }
 
       when "set", "-set", "~set"
         add_to_query(type, :set_ids) do
@@ -879,9 +862,7 @@ class TagQuery
           post_set = PostSet.find_by(id: post_set_id)
 
           next 0 unless post_set
-          unless post_set.can_view?(CurrentUser.user)
-            raise User::PrivilegeError
-          end
+          raise User::PrivilegeError unless post_set.can_view?(CurrentUser.user)
 
           post_set_id
         end
@@ -891,9 +872,7 @@ class TagQuery
           favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
 
           next 0 unless favuser
-          if favuser.hide_favorites?
-            raise Favorite::HiddenError
-          end
+          raise Favorite::HiddenError if favuser.hide_favorites?
 
           favuser.id
         end
@@ -1010,40 +989,16 @@ class TagQuery
       when "deletedby", "-deletedby", "~deletedby"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
-        add_to_query(type, :deleter) do
-          user_id = User.name_or_id_to_id(g2)
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :deleter) { user_id_or_invalid(g2) }
 
       when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
-        add_to_query(type, :upvote) do
-          if CurrentUser.is_moderator?
-            user_id = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            user_id = CurrentUser.id
-          end
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :upvote) { conditional_user_id_or_invalid(g2) }
 
       when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
-        add_to_query(type, :downvote) do
-          if CurrentUser.is_moderator?
-            user_id = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            user_id = CurrentUser.id
-          end
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :downvote) { conditional_user_id_or_invalid(g2) }
 
       when "voted", "-voted", "~voted"
-        add_to_query(type, :voted) do
-          if CurrentUser.is_moderator?
-            user_id = User.name_or_id_to_id(g2)
-          elsif CurrentUser.is_member?
-            user_id = CurrentUser.id
-          end
-          id_or_invalid(user_id)
-        end
+        add_to_query(type, :voted) { conditional_user_id_or_invalid(g2) }
 
       when *COUNT_METATAGS
         q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
@@ -1060,22 +1015,28 @@ class TagQuery
   end
 
   def add_tag(tag)
+    # If it's a single character modifier, add it and exit.
+    if ["-", "~"].include?(tag)
+      q[:tags][:must] << tag
+      return
+    end
     tag = tag.downcase
-    if tag.start_with?("-") && tag.length > 1
+    case tag[0]
+    when "-"
       if tag.include?("*")
         q[:tags][:must_not] += pull_wildcard_tags(tag.delete_prefix("-"))
       else
         q[:tags][:must_not] << tag.delete_prefix("-")
       end
-
-    elsif tag[0] == "~" && tag.length > 1
+      return
+    when "~"
       q[:tags][:should] << tag.delete_prefix("~")
-
-    elsif tag.include?("*")
+      return
+    end
+    if tag.include?("*")
       q[:tags][:should] += pull_wildcard_tags(tag)
-
     else
-      q[:tags][:must] << tag.downcase
+      q[:tags][:must] << tag
     end
   end
 
@@ -1132,7 +1093,15 @@ class TagQuery
     value&.downcase == "true"
   end
 
-  def id_or_invalid(val)
-    val.presence || -1
+  def user_id_or_invalid(val)
+    User.name_or_id_to_id(val).presence || -1
+  end
+
+  def conditional_user_id_or_invalid(val)
+    if CurrentUser.is_moderator?
+      User.name_or_id_to_id(val).presence
+    elsif CurrentUser.is_member?
+      CurrentUser.id.presence
+    end || -1
   end
 end
