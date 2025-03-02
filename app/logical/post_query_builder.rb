@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
+# Used to build and launch SQL searches.
+#
+# Exclusively used directly by `Post.tag_match_sql`.
+# Used for comment, note, and post approval, disapproval, flag, & upload searches; NOT the main post
+# search, which uses `ElasticPostQueryBuilder`.
 class PostQueryBuilder
-  attr_accessor :query_string
-
   def initialize(query_string, relation = nil, **kwargs)
-    @query_string = query_string
+    @query = query_string
     @curr_relation = relation
-    @depth = kwargs.fetch(:depth, 1)
+    @depth = kwargs.fetch(:depth, 0)
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -39,7 +42,6 @@ class PostQueryBuilder
       end
       relation.merge(valid)
     end
-    # groups.each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
     relation
   end
 
@@ -51,7 +53,11 @@ class PostQueryBuilder
   end
 
   def search
-    q = TagQuery.new(query_string)
+    if @query.is_a?(TagQuery)
+      q = @query
+    else
+      q = TagQuery.new(@query) # q = TagQuery.new(@query, can_have_groups: false)
+    end
     relation = @curr_relation ||= Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")

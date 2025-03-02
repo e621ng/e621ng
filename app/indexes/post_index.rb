@@ -97,7 +97,7 @@ module PostIndex
         [pid, array[1..-2].split(",")]
       end
 
-      relation.find_in_batches do |batch| # rubocop:disable Metrics/BlockLength
+      relation.find_in_batches do |batch|
         post_ids = batch.map(&:id).join(",")
 
         comments_sql = <<-SQL
@@ -162,8 +162,8 @@ module PostIndex
         # Run queries
         conn = ApplicationRecord.connection
         deletions        = conn.execute(deletion_sql)
-        deleter_ids      = deletions.values.map { |p, did, _dr| [p, did] }.to_h
-        del_reasons      = deletions.values.map { |p, _did, dr| [p, dr] }.to_h
+        deleter_ids      = deletions.values.map {|p,did,dr| [p,did]}.to_h
+        del_reasons      = deletions.values.map {|p,did,dr| [p,dr]}.to_h
         comment_counts   = conn.execute(comments_sql).values.to_h
         pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
@@ -172,8 +172,8 @@ module PostIndex
         noter_ids        = conn.execute(noter_sql).values.map(&array_parse).to_h
         child_ids        = conn.execute(child_sql).values.map(&array_parse).to_h
         verified_artists = conn.execute(verified_artists_sql).values.to_h
-        notes            = Hash.new { |h, k| h[k] = [] }
-        conn.execute(note_sql).values.each { |p, b| notes[p] << b }
+        notes            = Hash.new { |h,k| h[k] = [] }
+        conn.execute(note_sql).values.each { |p,b| notes[p] << b }
         pending_replacements = conn.execute(pending_replacements_sql).values.to_h
 
         # Special handling for votes to do it with one query
@@ -183,12 +183,11 @@ module PostIndex
           [pid.to_i, uids.zip(scores)]
         end
 
-        upvote_ids   = vote_ids.map { |pid, user| [pid, user.reject { |_uid, s| s <= 0 }.map { |uid, _| uid }] }.to_h
-        downvote_ids = vote_ids.map { |pid, user| [pid, user.reject { |_uid, s| s >= 0 }.map { |uid, _| uid }] }.to_h
+        upvote_ids   = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s <= 0 }.map {|uid, _| uid}] }.to_h
+        downvote_ids = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s >= 0 }.map {|uid, _| uid}] }.to_h
 
         empty = []
         batch.map! do |p|
-          # rubocop:disable Layout/HashAlignment
           index_options = {
             comment_count:            comment_counts[p.id] || 0,
             pools:                    pool_ids[p.id]       || empty,
@@ -205,26 +204,24 @@ module PostIndex
             has_pending_replacements: pending_replacements[p.id],
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
-          # rubocop:enable Layout/HashAlignment
 
           {
             index: {
-              _id: p.id,
+              _id:  p.id,
               data: p.as_indexed_json(index_options),
-            },
+            }
           }
         end
 
         client.bulk({
           index: index_name,
-          body: batch,
+          body:  batch,
         })
       end
     end
   end
 
   def as_indexed_json(options = {})
-    # rubocop:disable Layout/HashAlignment
     {
       created_at:        created_at,
       updated_at:        updated_at,
@@ -276,7 +273,7 @@ module PostIndex
       rating:      rating,
       file_ext:    file_ext,
       source:      source_array,
-      description: description.presence,
+      description: description.present? ? description : nil,
 
       rating_locked:  is_rating_locked,
       note_locked:    is_note_locked,
@@ -288,6 +285,5 @@ module PostIndex
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
     }
-    # rubocop:enable Layout/HashAlignment
   end
 end

@@ -26,7 +26,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     # If it got this far, failing silently didn't work; force error
     raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
     unless query.is_a?(TagQuery)
-      query = TagQuery.new(query, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count, **kwargs)
+      query = TagQuery.new(
+        query,
+        resolve_aliases: resolve_aliases,
+        free_tags_count: free_tags_count,
+        **kwargs,
+        can_have_groups: true,
+      )
     end
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
@@ -97,7 +103,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
   end
 
   def build
-    must.push({ term: { rating: "s" } }) if @enable_safe_mode
+    if @enable_safe_mode
+      must.push({term: {rating: "s"}})
+    end
 
     add_array_range_relation(:post_id, :id)
     add_array_range_relation(:mpixels, :mpixels)
@@ -247,10 +255,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     case q[:order]
     when "id", "id_asc"
-      order.push({ id: :asc })
+      order.push({id: :asc})
 
     when "id_desc"
-      order.push({ id: :desc })
+      order.push({id: :desc})
 
     when "change", "change_desc"
       order.push({change_seq: :desc})
@@ -379,21 +387,42 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         }
       end
 
-      order.push({_score: :desc })
+      order.push({_score: :desc})
 
     else
-      order.push({ id: :desc })
+      order.push({id: :desc})
     end
 
     if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
       should = [
-        { range: { created_at: { lte: Security::Lockdown.hide_pending_posts_for.hours.ago } } },
-        { term: { pending: false } },
+        {
+          range: {
+            created_at: {
+              lte: Security::Lockdown.hide_pending_posts_for.hours.ago,
+            },
+          },
+        },
+        {
+          term: {
+            pending: false,
+          },
+        }
       ]
 
-      should.push({ term: { uploader: CurrentUser.user.id } }) unless CurrentUser.user.id.nil?
+      unless CurrentUser.user.id.nil?
+        should.push({
+          term: {
+            uploader: CurrentUser.user.id,
+          },
+        })
+      end
 
-      must.push({ bool: { should: should, minimum_should_match: 1 } })
+      must.push({
+        bool: {
+          should: should,
+          minimum_should_match: 1,
+        },
+      })
     end
   end
 end

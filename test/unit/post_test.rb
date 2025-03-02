@@ -690,6 +690,7 @@ class PostTest < ActiveSupport::TestCase
       # end
 
       context "tagged with a metatag" do
+
         context "for typing a tag" do
           setup do
             @post = create(:post, tag_string: "char:hoge")
@@ -1880,9 +1881,9 @@ class PostTest < ActiveSupport::TestCase
           fav_count: n,
           file_size: 1.megabyte * n,
           # posts[0] is portrait, posts[1] is landscape. posts[1].mpixels > posts[0].mpixels.
-          image_height: 100 * n * n,
-          image_width: 100 * (3 - n) * n,
-          tag_string: tags[n - 1],
+          image_height: 100*n*n,
+          image_width: 100*(3-n)*n,
+          tag_string: tags[n-1],
         )
 
         create(:comment, post: p, do_not_bump_post: false)

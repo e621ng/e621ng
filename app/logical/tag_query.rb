@@ -13,7 +13,9 @@ class TagQuery
     end
   end
 
-  COUNT_METATAGS = %w[comment_count].freeze
+  COUNT_METATAGS = %w[
+    comment_count
+  ].freeze
 
   BOOLEAN_METATAGS = %w[
     hassource hasdescription isparent ischild inpool pending_replacements artverified
@@ -791,8 +793,12 @@ class TagQuery
   # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
   def parse_query(query, error_on_depth_exceeded: false, depth: 0, **kwargs)
     tag_query_limit = Danbooru.config.tag_query_limit - @free_tags_count if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && (kwargs[:process_groups] || pq_check_group_tags(depth))
-    can_have_groups = TagQuery.has_groups?(query.to_s.unicode_normalize(:nfc))
-    TagQuery.scan_search(query, **kwargs, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth).each do |token| # rubocop:disable Metrics/BlockLength
+    can_have_groups = kwargs.fetch(:can_have_groups, true) && TagQuery.has_groups?(query.to_s.unicode_normalize(:nfc))
+    if can_have_groups # rubocop:disable Metrics/BlockLength
+      TagQuery.scan_search(query, **kwargs, error_on_depth_exceeded: error_on_depth_exceeded, depth: depth)
+    else
+      TagQuery.scan(query)
+    end.each do |token|
       # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
       if can_have_groups && (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
         group = match[2]
