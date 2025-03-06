@@ -5,28 +5,32 @@ body.c-static.a-home {
 
   background-position-y: 3.75rem;
 
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     background-position-y: unset;
   }
 
   #page {
     background: none;
-    margin: 25rem auto 0;
+    margin: 20rem auto 0;
     width: 100%;
     max-width: 480px;
     padding: 0;
+  
+    @include window-larger-than(50rem) {
+      margin-top: 25rem;
+    }
   }
 
 
   // Common
   .home-section {
     // Frosted glass effect
-    background-color: rgba(15, 15, 15, 0.35);
+    background-color: rgba(15, 15, 15, 0.5);
     backdrop-filter: blur(8px);
 
     padding: 1rem;
     margin: 0.5rem;
-    border-radius: 0.25rem;
+    @include st-radius;
     text-align: center;
   }
 
@@ -39,7 +43,7 @@ body.c-static.a-home {
     input[type="text"] {
       flex: 1;
       border: 0;
-      border-radius: 0.25rem 0 0 0.25rem;
+      @include st-radius-left;
       padding: 0.5rem;
       font-size: 1rem;
 
@@ -53,7 +57,7 @@ body.c-static.a-home {
 
     button[type="submit"] {
       background: white;
-      border-radius: 0 0.25rem 0.25rem 0;
+      @include st-radius-right;
       padding: 0 0.5rem;
 
       svg {
@@ -87,7 +91,7 @@ body.c-static.a-home {
 
   // Footer
   .home-footer-top {
-    background-color: rgba(15, 15, 15, 0.35);
+    background-color: rgba(15, 15, 15, 0.5);
     backdrop-filter: blur(8px);
     margin: 3rem 0 0;
     padding: 1rem;
@@ -97,7 +101,7 @@ body.c-static.a-home {
     justify-content: space-between;
     align-items: center;
 
-    border-radius: 0.25rem 0.25rem 0 0;
+    @include st-radius-top;
 
     @include window-larger-than(480px) {
       margin: 0.5rem 0.5rem 0;
@@ -118,10 +122,20 @@ body.c-static.a-home {
     margin: 0;
     padding: 0.5rem;
 
-    border-radius: 0 0 0.25rem 0.25rem;
+    @include st-radius-bottom;
 
     @include window-larger-than(480px) {
       margin: 0 0.5rem;
+    }
+
+    .home-footer-counter img {
+      height: 4rem;
+    }
+
+    .home-footer-links {
+      margin-top: 0.5rem;
+      line-height: 1.5rem;
+      font-size: 0.85rem;
     }
 
     .home-footer-links .separator {

@@ -46,6 +46,7 @@
 @import "views/application/application";
 @import "views/posts/posts";
 @import "views/users/users";
+@import "views/static/static";
 
 @import "specific/admin_dashboards.scss";
 @import "specific/api_keys.scss";
@@ -61,7 +62,6 @@
 @import "specific/favorites.scss";
 @import "specific/forum.scss";
 @import "specific/guest_warning.scss";
-@import "specific/home.scss";
 @import "specific/iqdb_queries.scss";
 @import "specific/keyboard_shortcuts.scss";
 @import "specific/lockdown.scss";

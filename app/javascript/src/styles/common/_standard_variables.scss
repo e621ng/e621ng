@@ -19,3 +19,8 @@ $st-values: (
 
 @function radius($value: 025) { @return st-value($value); }
 @mixin st-radius($value: 025) { border-radius: radius($value); }
+
+@mixin st-radius-top($value: 025) { border-radius: radius($value) radius($value) 0 0; }
+@mixin st-radius-bottom($value: 025) { border-radius: 0 0 radius($value) radius($value); }
+@mixin st-radius-left($value: 025) { border-radius: radius($value) 0 0 radius($value); }
+@mixin st-radius-right($value: 025) { border-radius: 0 radius($value) radius($value) 0; }
