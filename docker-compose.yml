@@ -1,5 +1,3 @@
-version: "3"
-
 x-environment: &common-env
   DANBOORU_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-3000}
   DANBOORU_REDIS_URL: redis://redis
