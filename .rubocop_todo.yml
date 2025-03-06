@@ -2368,6 +2368,7 @@ Style/StringConcatenation:
     - 'app/models/tag_implication.rb'
     - 'app/views/moderator/post/posts/confirm_delete.html.erb'
     - 'app/views/posts/show.html.erb'
+    - 'config/environment.rb'
     - 'test/unit/bulk_update_importer_importer_test.rb'
     - 'test/unit/bulk_update_request_test.rb'
 
