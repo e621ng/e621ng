@@ -16,7 +16,7 @@ class StateChecker
     ENV["SESSION_SECRET_KEY"] || File.read(session_secret_key_path)
   end
 
-private
+  private
 
   def secret_token_path
     File.expand_path("~/.danbooru/secret_token")
