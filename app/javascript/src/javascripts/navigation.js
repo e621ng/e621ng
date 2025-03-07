@@ -1,3 +1,5 @@
+import Page from "./utility/page";
+
 const Navigation = {};
 
 Navigation.init = function () {
@@ -11,6 +13,7 @@ Navigation.init = function () {
     simpleMenu.addClass("hidden");
   });
 
+  if (Page.matches("static", "home")) return;
   $(".simple-avatar").on("click", (event) => {
     event.preventDefault();
 
