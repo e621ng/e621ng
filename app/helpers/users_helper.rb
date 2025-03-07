@@ -18,7 +18,7 @@ module UsersHelper
     deferred_post_ids.add(post_id) if post_id
 
     klass = options.delete(:class)
-  
+
     render "/application/simple_avatar", user: user, post_id: post_id, klass: klass
   end
 

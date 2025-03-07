@@ -29,7 +29,7 @@
   <a href="<%= favorites_path %>">
     <%= svg_icon(:heart) %> Favorites
   </a>
-  <a href="<%= post_sets_path(search: {creator_id: CurrentUser.id}) %>">
+  <a href="<%= post_sets_path(search: { creator_id: CurrentUser.id }) %>">
     <%= svg_icon(:group) %> Sets
   </a>
   <hr />
