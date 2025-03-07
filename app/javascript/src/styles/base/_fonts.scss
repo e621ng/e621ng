@@ -159,3 +159,41 @@ body {
   font-style: italic;
   font-display: swap;
 }
+
+
+// Roboto
+@font-face {
+  font-family: "Roboto";
+  src: url("/public/fonts/Roboto/Roboto-Regular.woff2") format("woff2"),
+       url("/public/fonts/Roboto/Roboto-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("/public/fonts/Roboto/Roboto-Bold.woff2") format("woff2"),
+       url("/public/fonts/Roboto/Roboto-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OpenSans";
+  src: url("/public/fonts/Roboto/Roboto-Italic.woff2") format("woff2"),
+       url("/public/fonts/Roboto/Roboto-Italic.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("/public/fonts/Roboto/Roboto-BoldItalic.woff2") format("woff2"),
+       url("/public/fonts/Roboto/Roboto-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}

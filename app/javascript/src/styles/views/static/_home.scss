@@ -42,10 +42,17 @@ body.c-static.a-home {
 
     input[type="text"] {
       flex: 1;
+
+      display: flex;
+      padding: 0.5rem;
       border: 0;
       @include st-radius-left;
-      padding: 0.5rem;
+
+      background: white;
+      color: black;
       font-size: 1rem;
+      line-height: 1.25rem;
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
 
       &:focus {
         background: #ffc;
@@ -74,13 +81,28 @@ body.c-static.a-home {
 
     a {
       flex: 1;
-      text-align: center;
+
+      display: flex;
+      justify-content: center;
+      gap: 0.25rem;
+
       background: #25477b;
+      font-size: 0.9rem;
+      line-height: 1rem;
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
+      font-weight: bold;
+      color: white;
+
       padding: 0.5rem;
-      border-radius: 3px;
+      @include st-radius;
+      
       &:hover { background: #2b538e; }
 
-      i { color: var(--color-link-active); }
+      svg {
+        height: 1.25rem;
+        margin: -0.125rem 0;
+        color: #e8c446;
+      }
     }
   }
 
@@ -108,9 +130,20 @@ body.c-static.a-home {
     }
 
     a#mascot-swap {
+
+      display: flex;
+      justify-content: center;
+      gap: 0.25rem;
+
       background: #25477b;
+      font-size: 0.85rem;
+      line-height: 1rem;
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
+      color: white;
+
       padding: 0.25rem 0.5rem;
-      border-radius: 3px;
+      @include st-radius;
+      
       &:hover { background: #2b538e; }
     }
   }

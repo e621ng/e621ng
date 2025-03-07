@@ -15,11 +15,11 @@
       <!-- Secondary search buttons -->
       <div class="home-buttons">
         <a href="<%= posts_path %>" tags="">
-          <i class="fas fa-splotch"></i>
+          <%= svg_icon(:sparkles) %>
           <span>Latest</span>
         </a>
         <a href="<%= posts_path(tags: "order:rank") %>" tags="order:rank">
-          <i class="fas fa-fire-alt"></i>
+          <%= svg_icon(:flame) %>
           <span>Popular</span>
         </a>
       </div>
@@ -35,7 +35,9 @@
 
   <section class="home-footer-top">
     <div id="mascot-artist">Mascot by</div>
-    <a href="#" id="mascot-swap">Swap Mascot</a>
+    <a href="#" id="mascot-swap">
+      <span>Swap Mascot</span>
+    </a>
   </section>
   <section class="home-footer-bottom">
     <div class="home-footer-counter">
