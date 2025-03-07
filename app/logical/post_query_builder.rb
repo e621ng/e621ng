@@ -6,9 +6,8 @@
 # Used for comment, note, and post approval, disapproval, flag, & upload searches; NOT the main post
 # search, which uses `ElasticPostQueryBuilder`.
 class PostQueryBuilder
-  def initialize(query_string, relation = nil, **kwargs)
+  def initialize(query_string, **kwargs)
     @query = query_string
-    @curr_relation = relation
     @depth = kwargs.fetch(:depth, 0)
   end
 
@@ -26,22 +25,31 @@ class PostQueryBuilder
     relation
   end
 
-  # TODO: Test
+  # TODO: Make through unit test
   def add_group_search_relation(groups, relation)
     return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
-    groups[:must].each { |x| relation = PostQueryBuilder.new(x, relation, depth: @depth + 1).search }
-    groups[:must_not].each { |x| relation = relation.merge(PostQueryBuilder.new(x, relation, depth: @depth + 1).search) }
-    if groups[:should].any?
+    if groups[:must].present?
+      groups[:must].each { |x| relation = relation.and(PostQueryBuilder.new(x, depth: @depth + 1).search) }
+    end
+    if groups[:must_not].present?
+      groups[:must_not].each do |x|
+        temp = PostQueryBuilder.new(x, depth: @depth + 1).search.invert_where
+        temp = relation.and(temp)
+        relation = temp
+      end
+    end
+    if groups[:should].present?
       valid = nil
       groups[:should].each do |x|
         if valid
-          valid.or(PostQueryBuilder.new(x, relation, depth: @depth + 1).search)
+          valid = valid.or(PostQueryBuilder.new(x, depth: @depth + 1).search)
         else
-          valid = PostQueryBuilder.new(x, relation, depth: @depth + 1).search
+          valid = PostQueryBuilder.new(x, depth: @depth + 1).search
         end
       end
-      relation.merge(valid)
+      relation = relation.and(valid)
     end
+
     relation
   end
 
@@ -52,13 +60,15 @@ class PostQueryBuilder
     relation
   end
 
+  CAN_HAVE_GROUPS = true
+
   def search
     if @query.is_a?(TagQuery)
       q = @query
     else
-      q = TagQuery.new(@query) # q = TagQuery.new(@query, can_have_groups: false)
+      q = TagQuery.new(@query, can_have_groups: CAN_HAVE_GROUPS)
     end
-    relation = @curr_relation ||= Post.all
+    relation = Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
@@ -185,6 +195,8 @@ class PostQueryBuilder
     end
 
     relation = add_tag_string_search_relation(q[:tags], relation)
-    add_group_search_relation(q[:groups], relation)
+    relation = add_group_search_relation(q[:groups], relation) if CAN_HAVE_GROUPS
+
+    relation
   end
 end

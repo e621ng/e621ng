@@ -149,23 +149,23 @@ module ParseValue
     [:between, start, stop]
   end
 
-  # A symbol denoting the interval method used in +time_string+ when the input doesn't contain one.
+  # A symbol denoting the interval method used in `time_string` when the input doesn't contain one.
   DEFAULT_TIME_UNIT = :days
 
-  # If no unit can be found, will default to DEFAULT_TIME_UNIT.
-  # If this behavior is changed, update the corresponding test in test/unit/post_test.rb
-  # (context "Searching:", should "return posts for the age:<n> metatag")
+  # If no unit can be found, will default to `DEFAULT_TIME_UNIT`.
+  # If this behavior is changed, update the corresponding test in `test/unit/post_test.rb`
+  # (context "Searching:", should "return posts for the age:<n> metatag").
   #
-  # If no size can be found, returns nil
+  # If no size can be found, returns nil.
   def time_string(target)
-    match = target.match(/\A(\d+)(?:_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)(_?ago)?)?\z/i)
+    match = /\A(\d+)(?>_?(s(>?econds?)?|mi(>?nutes?)?|h(>?ours?)?|d(>?ays?)?|w(>?eeks?)?|mo(>?nths?)?|y(>?ears?)?)(?>_?ago)?)?\z/i.match(target)
 
     return nil unless match
 
     size = match[1].to_i.clamp(MIN_INT, MAX_INT)
     unit = match[2]&.downcase
 
-    return size.send(DEFAULT_TIME_UNIT).ago unless unit
+    return size.send(DEFAULT_TIME_UNIT).ago if unit.blank?
 
     if unit.start_with?("s")
       size.seconds.ago
