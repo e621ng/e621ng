@@ -467,7 +467,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 // Anonymous desktop tweak
 body[data-user-is-anonymous="true"] nav.navigation {
   @include window-larger-than(50rem) {
-    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.5rem;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
   }
 }
 
@@ -500,11 +500,7 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
-      .avatar-button {
-        height: unset;
-        align-items: center;
-        .avatar-image { display: none; }
-      }
+      .avatar-image, .login-image, .avatar-more { display: none; }
     }
   }
 

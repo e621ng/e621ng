@@ -231,6 +231,7 @@ nav.navigation .simple-login {
       height: 3rem;
       width: 3rem;
       margin-top: 0.25rem;
+      color: inherit;
       @include st-radius;
 
       background: themed("color-foreground");
