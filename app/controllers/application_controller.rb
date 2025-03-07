@@ -29,6 +29,7 @@ class ApplicationController < ActionController::Base
   def enable_cors
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
+    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
   end
 
   def check_valid_username
