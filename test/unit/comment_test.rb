@@ -179,7 +179,7 @@ class CommentTest < ActiveSupport::TestCase
         p3 = create(:post, tag_string: "eee")
         c1 = create(:comment, post_id: p1.id, body: "comment body text")
         c2 = create(:comment, post_id: p2.id, body: "comment body text")
-        c3 = create(:comment, post_id: p3.id, body: "comment body text")
+        c3 = create(:comment, post_id: p3.id, body: "comment body text") # rubocop:disable Lint/UselessAssignment
 
         matches = Comment.search(post_tags_match: "aaa")
         assert_equal(2, matches.count)
@@ -194,7 +194,7 @@ class CommentTest < ActiveSupport::TestCase
         p3 = create(:post, tag_string: "eee")
         c1 = create(:comment, post_id: p1.id, body: "comment body text")
         c2 = create(:comment, post_id: p2.id, body: "comment body text")
-        c3 = create(:comment, post_id: p3.id, body: "comment body text")
+        c3 = create(:comment, post_id: p3.id, body: "comment body text") # rubocop:disable Lint/UselessAssignment
 
         matches = Comment.search(post_tags_match: "~( aaa bbb ) ~( ddd -( ~ccc ~eee ) )")
         assert(matches.is_a?(ActiveRecord::Relation), "Return value isn't a ActiveRecord::Relation. #{matches}")
