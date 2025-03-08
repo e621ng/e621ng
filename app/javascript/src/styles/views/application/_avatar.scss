@@ -39,3 +39,206 @@
     }
   }
 }
+
+
+nav.navigation .simple-avatar {
+
+  .avatar-name {
+    display: none;
+    @include st-radius-left;
+  }
+
+  .avatar-image {
+    padding: 0;
+    border-radius: 0;
+    @include st-radius-left;
+    overflow: hidden;
+    position: relative;
+
+    img {
+      width: 2.5rem;
+      height: 2.5rem;
+      object-fit: cover;
+      position: absolute;
+    }
+
+    &::before {
+      content: attr(data-name);
+      color: themed("color-background");
+      font-weight: bold;
+      font-size: 2.25rem;
+    }
+  }
+
+  .avatar-more {
+    @include st-radius-right;
+    padding: 0;
+    min-width: unset;
+    position: relative;
+
+    svg { width: 1rem; }
+  }
+
+
+  // DMail notification
+  &[data-has-mail="true"] .avatar-more::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: 0.125rem 0.25rem;
+
+    background: palette("text-red");
+    box-shadow: -1px -1px 3px themed("color-section");
+    border-radius: 50%;
+  }
+
+
+  // Tablet
+  @include window-larger-than(34rem) {
+    .avatar-name { display: flex; }
+    .avatar-image { border-radius: 0; }
+  }
+
+  // Desktop
+  @include window-larger-than(50rem) {
+    .avatar-name {
+      background: none;
+      color: inherit;
+
+      height: 1.5rem;
+      line-height: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    .avatar-image {
+      height: 3rem;
+      width: 3rem;
+      margin-top: 0.25rem;
+      @include st-radius-left;
+
+      img {
+        height: 3rem;
+        width: 3rem;
+      }
+    }
+
+    &:hover, &:active {
+      .avatar-name { background: none; }
+    }
+
+    .avatar-more {
+      height: 3rem;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+nav.navigation .simple-avatar-menu {
+  position: absolute;
+  top: 3.5rem;
+  right: 0.75rem;
+
+  display: flex;
+  flex-flow: column;
+
+  box-sizing: border-box;
+  min-width: 10rem;
+  padding: 0.25rem 0;
+
+  background: themed("color-section");
+  box-shadow: 0px 2px 4px -1px themed("color-background");
+  @include st-radius;
+
+  &.hidden { display: none; }
+
+  a {
+    display: flex;
+    gap: 0.5rem;
+
+    position: relative;
+    padding: 0.5rem 0.5rem;
+    box-sizing: border-box;
+    align-items: center;
+
+    &:hover { background: themed("color-section-darken-5"); }
+
+    svg {
+      height: 1.5rem;
+      margin: -0.25rem 0;
+    }
+  }
+
+  hr {
+    width: 90%;
+    color: themed("color-section-lighten-10");
+  }
+
+
+  // DMail notification
+  &[data-has-mail="true"] .simple-avatar-dmails::before {
+    content: "";
+    position: absolute;
+    right: 0.25rem;
+
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: 0.125rem 0.25rem;
+
+    background: palette("text-red");
+    box-shadow: -1px -1px 3px themed("color-section");
+    border-radius: 50%;
+  }
+
+  
+  // Desktop
+  @include window-larger-than(50rem) {
+    right: 0;
+  }
+}
+
+
+nav.navigation .simple-login {
+
+  .login-name {
+    @include st-radius-left;
+  }
+
+  .login-image {
+    @include st-radius-right;
+    background: themed("color-section");
+  }
+
+  // Desktop
+  @include window-larger-than(50rem) {
+    .login-name {
+      background: none;
+      color: inherit;
+
+      height: 1.5rem;
+      line-height: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    &:hover, &:active {
+      .login-name { background: none; }
+    }
+
+    .login-image {
+      height: 3rem;
+      width: 3rem;
+      margin-top: 0.25rem;
+      color: inherit;
+      @include st-radius;
+
+      background: themed("color-foreground");
+    }
+
+    &:hover .login-image {
+      background: themed("color-section");
+    }
+  }
+}

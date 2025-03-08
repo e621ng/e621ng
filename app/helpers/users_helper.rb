@@ -18,13 +18,8 @@ module UsersHelper
     deferred_post_ids.add(post_id) if post_id
 
     klass = options.delete(:class)
-    named = options.delete(:named)
-    tag.a href: user_path(user), class: "simple-avatar placeholder #{klass}", data: { id: post_id, name: user.name } do
-      tag.span(class: "avatar-button") do
-        concat tag.span(user.pretty_name, class: "avatar-name") if named
-        concat tag.span(class: "avatar-image", data: { name: user.name[0].capitalize })
-      end
-    end
+
+    render "/application/simple_avatar", user: user, post_id: post_id, klass: klass
   end
 
   def profile_avatar(user, **options)

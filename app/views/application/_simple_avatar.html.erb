@@ -1,0 +1,40 @@
+<% has_mail = CurrentUser.has_mail? && CurrentUser.dmails.unread.first.present? %>
+<a
+  href="<%= user_path(user) %>"
+  class="simple-avatar placeholder <%= klass.nil? ? "" : klass %>"
+  data-id="<%= post_id %>"
+  data-name="<%= user.name %>"
+  data-has-mail="<%= has_mail %>"
+>
+  <span class="avatar-name"><%= user.pretty_name %></span>
+  <span class="avatar-image" data-name="<%= user.name[0].capitalize %>"></span>
+  <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
+</a>
+
+<span
+  class="simple-avatar-menu hidden"
+  data-has-mail="<%= has_mail %>"
+>
+  <a href="<%= user_path(user) %>">
+    <%= svg_icon(:user) %> Profile
+  </a>
+  <a href="<%= dmails_path %>" class="simple-avatar-dmails">
+    <%= svg_icon(:message_square) %> Messages
+  </a>
+  <hr />
+
+  <a href="<%= posts_path(tags: "user:#{user.name}") %>">
+    <%= svg_icon(:images) %> Uploads
+  </a>
+  <a href="<%= favorites_path %>">
+    <%= svg_icon(:heart) %> Favorites
+  </a>
+  <a href="<%= post_sets_path(search: { creator_id: CurrentUser.id }) %>">
+    <%= svg_icon(:group) %> Sets
+  </a>
+  <hr />
+
+  <a href="<%= session_path %>" data-method="delete">
+    <%= svg_icon(:log_out) %> Sign Out
+  </a>
+</span>

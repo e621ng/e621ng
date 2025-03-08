@@ -16,17 +16,18 @@
 
   <menu class="nav-controls desktop">
     <a role="button" href="" id="nav-toggle" class="nav-controls-toggle">
-      <span><%= svg_icon(:hamburger) %></span>
+      <span>
+        <%= svg_icon(:hamburger, class: "off") %>
+        <%= svg_icon(:times, class: "on") %>
+      </span>
     </a>
     <% if CurrentUser.is_anonymous? %>
-      <a href="<%= new_session_path %>" class="simple-avatar nav-controls-profile collapse-2">
-        <span class="avatar-button sign-in">
-          <span class="avatar-name">
-            Sign In
-          </span>
-          <span class="avatar-image">
-            <%= svg_icon(:log_in) %>
-          </span>
+      <a href="<%= new_session_path %>" class="simple-login nav-controls-profile collapse-2">
+        <span class="login-name">
+          Sign In
+        </span>
+        <span class="login-image">
+          <%= svg_icon(:log_in) %>
         </span>
       </a>
     <% else %>

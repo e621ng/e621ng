@@ -75,56 +75,7 @@ nav.navigation {
       &:focus { outline: none; }
     }
 
-    a.simple-avatar {
-      .avatar-button {
-        padding: 0;
-        gap: 0;
-
-        .avatar-name {
-          padding: 0.5rem;
-
-          @include window-smaller-than(32rem) {
-            display: none;
-          }
-        }
-
-        .avatar-image {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-
-          width: 2.5rem;
-          height: 2.5rem;
-    
-          box-sizing: border-box;
-          border-radius: 0.25rem;
-          background: themed("color-section");
-
-          img {
-            width: 2.5rem;
-            height: 2.5rem;
-
-            border-radius: 0.25rem;
-            object-fit: cover;
-
-            z-index: 1; // above the letter
-          }
-
-          &::before {
-            content: attr(data-name);
-            position: absolute;
-            font-size: 1.5rem;
-          }
-        }
-
-        @include window-smaller-than(32rem) {
-          &.sign-in .avatar-image {
-            background: themed("color-foreground");
-          }
-        }
-      }
-    }
+    #nav-toggle .on { display: none; }
   }
 
   /* Offset elements on the left and bottom */
@@ -342,6 +293,11 @@ html.nav-toggled {
       box-shadow: -3px 3px 5px -1px themed("color-background");
     }
   }
+
+  .nav-controls #nav-toggle {
+    .on { display: block; }
+    .off { display: none; }
+  }
 }
 
 
@@ -351,7 +307,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     grid-template-areas:
       "logo primary   help      help  controls" 
       "logo secondary secondary tools controls";
-    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 4.25rem;
     grid-template-rows: 1.5rem 1.75rem;
 
     padding: 0 1rem 0.5rem;
@@ -359,7 +315,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     height: unset;
 
     background: themed("color-background");
-    overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
+    overflow-y: unset; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo a.nav-logo-link {
       height: 3.25rem;
@@ -487,37 +443,10 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       height: 3.25rem;
       box-sizing: border-box;
-      padding: 0.25rem 0 0;
+      padding: 0;
 
       #nav-toggle { display: none; }
-
-      a.simple-avatar {
-        padding: 0;
-        height: 100%;
-
-        .avatar-button {
-          background: none;
-          color: inherit;
-          align-items: start;
-          font-size: 0.875rem;
-          line-height: 0.875rem;
-
-          .avatar-name {
-            padding: 0 0.5rem;
-          }
-  
-          .avatar-image {
-            height: 3rem;
-            width: 3rem;
-            background: themed("color-foreground");
-
-            img {
-              width: 2.75rem;
-              height: 2.75rem;
-            }
-          }
-        }
-      }
+      a { padding: 0; }
     }
 
     // Icon collapse
@@ -532,6 +461,13 @@ nav.navigation, html.nav-toggled nav.navigation {
     @include window-larger-than(65rem) {
       .collapse-2 .avatar-name { display: unset; }
     }
+  }
+}
+
+// Anonymous desktop tweak
+body[data-user-is-anonymous="true"] nav.navigation {
+  @include window-larger-than(50rem) {
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
   }
 }
 
@@ -564,11 +500,7 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
-      .avatar-button {
-        height: unset;
-        align-items: center;
-        .avatar-image { display: none; }
-      }
+      .avatar-image, .login-image, .avatar-more { display: none; }
     }
   }
 

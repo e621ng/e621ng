@@ -123,7 +123,8 @@ private
   end
 
   def set_time_zone
-    Time.zone = CurrentUser.user.time_zone
+    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] || CurrentUser.user.time_zone
+    Time.zone = time_zone
   end
 
   def set_safe_mode

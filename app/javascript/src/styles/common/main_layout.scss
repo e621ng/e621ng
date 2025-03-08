@@ -15,7 +15,7 @@ div#page {
 
   @include window-larger-than(800px) {
     border-radius: $border-radius-full;
-    margin: 0.5em 1em 0;
+    margin: 0.5rem 1rem 0;
     padding-left: $padding-050;
     padding-right: $padding-050;
   }
