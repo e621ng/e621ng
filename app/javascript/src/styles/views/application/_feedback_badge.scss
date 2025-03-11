@@ -7,7 +7,7 @@ $hex-size: 1.25rem;
   height: 1.25rem;
   width: 1.25rem;
 
-  filter: drop-shadow(1px 1px 2px #00000070);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.4));
 
   // Variations
   &.deleted path { fill: palette("background-yellow"); }
