@@ -6,13 +6,45 @@ tabs-menu, tabs-content {
   display: none;
 }
 
-.profile-about-section, .profile-artinfo-section {
+.profile-readmore {
   flex-flow: column;
   align-items: start;
 
   tab-head {
     font-weight: bold;
     font-size: 1rem;
+  }
+
+  .content {
+    position: relative;
+    max-height: 25rem;
+    &.expanded { max-height: unset; }
+    @include window-larger-than(50rem) { max-height: unset; }
+
+    .content-readmore {
+      display: none;
+      justify-content: center;
+      box-sizing: border-box;
+
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      line-height: 1rem;
+
+      background: themed("color-section-lighten-10");
+      color: themed("color-text");
+
+      &:hover {
+        background: themed("color-section-lighten-5");
+      }
+    }
+
+    &.expandable {
+      padding-bottom: 2rem;
+      .content-readmore { display: flex; }
+    }
   }
 }
 
