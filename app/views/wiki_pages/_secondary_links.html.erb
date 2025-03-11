@@ -41,7 +41,7 @@
         <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, qtype: "wiki") %>
       <% end %>
     <% else %>
-      <%= subnav_link_to "Edit", new_wiki_page_path(:wiki_page => {:title => params[:title]}) %>
+      <%= subnav_link_to "Edit", new_wiki_page_path(wiki_page: { title: params[:title] }) %>
     <% end %>
 
 

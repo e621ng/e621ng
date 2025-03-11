@@ -24,7 +24,7 @@
         <% if wiki_content.body.present? %>
           <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>  
         <% else %>
-          <p>This wiki is empty. <%= link_to "Click here to add details", new_wiki_page_path(:wiki_page => {:title => params[:title]}) %>.</p>
+          <p>This wiki is empty. <%= link_to "Click here to add details", new_wiki_page_path({ wiki_page: { title: params[:title] } }) %>.</p>
         <% end %>
 
         <% if wiki_content.artist %>
