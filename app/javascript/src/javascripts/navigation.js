@@ -1,5 +1,3 @@
-import Page from "./utility/page";
-
 const Navigation = {};
 
 Navigation.init = function () {
