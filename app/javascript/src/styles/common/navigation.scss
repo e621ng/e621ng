@@ -474,13 +474,17 @@ body[data-user-is-anonymous="true"] nav.navigation {
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
   @include window-larger-than(50rem) {
-
     nav.navigation {
 
       // Center and align the navbar
       grid-template-areas: "logo primary help controls";
       grid-template-columns: repeat(4, min-content);
       justify-content: center;
+
+      // Center AGAIN to get the dropdown
+      // to be where it's supposed to be
+      width: min-content;
+      margin: 0 auto;
 
       // Remove padding to prevent a scrollbar
       // at low desktop resolutions
@@ -501,6 +505,7 @@ body.c-static.a-home {
       height: unset;
       padding: 0;
       .avatar-image, .login-image, .avatar-more { display: none; }
+      .simple-avatar-menu { top: 2rem; }
     }
   }
 
