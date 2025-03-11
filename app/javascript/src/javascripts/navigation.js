@@ -6,6 +6,7 @@ Navigation.init = function () {
   const wrapper = $("html");
   const simpleMenu = $(".simple-avatar-menu");
 
+  // Mobile-only nav menu
   $("#nav-toggle, .nav-offset-left, .nav-offset-bott").on("click", (event) => {
     event.preventDefault();
 
@@ -13,16 +14,30 @@ Navigation.init = function () {
     simpleMenu.addClass("hidden");
   });
 
+
+  // Profile menu, both desktop and mobile
+  // Not available on the landing page
   if (Page.matches("static", "home")) return;
+  let avatarMenuOpen = false;
+
+  // regular click
   $(".simple-avatar").on("click", (event) => {
     event.preventDefault();
 
+    avatarMenuOpen = !avatarMenuOpen;
     simpleMenu.toggleClass("hidden");
     wrapper.removeClass("nav-toggled");
   });
-  $(".simple-avatar").on("dblclick", function () {
-    // Silly approach, but it's 11pm and I don't care
-    window.location = this.href;
+
+  // click outside the menu
+  $(window).on("mouseup", (event) => {
+    if (!avatarMenuOpen) return;
+
+    const target = $(event.target);
+    if (target.closest(".nav-controls").length > 0) return;
+
+    simpleMenu.addClass("hidden");
+    avatarMenuOpen = false;
   });
 };
 
