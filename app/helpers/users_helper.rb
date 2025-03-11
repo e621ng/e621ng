@@ -46,7 +46,8 @@ module UsersHelper
     feedbacks = user.feedback_pieces
     deleted = CurrentUser.user.is_staff? ? feedbacks[:deleted] : 0
     active = feedbacks[:positive] + feedbacks[:neutral] + feedbacks[:negative]
+    total = active + deleted
 
-    render "/application/feedback_badge", user: user, positive: feedbacks[:positive], neutral: feedbacks[:neutral], negative: feedbacks[:negative], deleted: deleted, active: active
+    render "/application/feedback_badge", user: user, positive: feedbacks[:positive], neutral: feedbacks[:neutral], negative: feedbacks[:negative], deleted: deleted, active: active, total: total
   end
 end

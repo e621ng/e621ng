@@ -72,4 +72,24 @@ module IconHelper
       raw(PATHS[name]) # rubocop:disable Rails/OutputSafety
     end
   end
+
+  def svg_badge(number, klass)
+    "" unless (number.is_a? Integer) || number == "+"
+
+    tag.svg(
+      "xmlns": "http://www.w3.org/2000/svg",
+      "width": 20,
+      "height": 20,
+      "viewbox": "0 0 24 24",
+      "fill": "currentColor",
+      "stroke": "white",
+      "stroke-width": 0,
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "class": "user-record #{klass}",
+    ) do
+      concat tag.path(d: "M23 16.8V7.2a2.4 2.4 0 0 0-1.2-2L13.2.2a2.4 2.4 0 0 0-2.4 0L2.2 5.1A2.4 2.4 0 0 0 1 7.2v9.6a2.4 2.4 0 0 0 1.2 2l8.6 4.9a2.4 2.4 0 0 0 2.4 0l8.6-4.8a2.4 2.4 0 0 0 1.2-2.1Z", fill: "red")
+      concat tag.text(number, "x": "50%", "y": "55%", "dominant-baseline": "middle", "text-anchor": "middle", "font-size": "20px", "font-family": "monospace", "font-weight": "bold")
+    end
+  end
 end
