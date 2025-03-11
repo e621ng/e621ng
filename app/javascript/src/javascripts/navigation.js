@@ -16,8 +16,6 @@ Navigation.init = function () {
 
 
   // Profile menu, both desktop and mobile
-  // Not available on the landing page
-  if (Page.matches("static", "home")) return;
   let avatarMenuOpen = false;
 
   // regular click
