@@ -85,7 +85,7 @@
     </span>
   </div>
 
-  <% if CurrentUser.user.id == user.id || CurrentUser.is_approver? %>
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_staff? %>
     <div class="profile-line">
       <h4><%= svg_icon(:flag_left) %> Flags</h4>
       <span class="profile-line-number"><%= presenter.flag_count(self) %></span>
