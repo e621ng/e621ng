@@ -1,4 +1,5 @@
 import LStorage from "./utility/storage";
+import Page from "./utility/page";
 
 const Users = {};
 
@@ -19,7 +20,26 @@ Users.init_section = function ($wrapper) {
   });
 };
 
+Users.init_readmore = function (wrapper) {
+  if (wrapper.clientHeight >= wrapper.scrollHeight) return;
+  const $wrapper = $(wrapper).addClass("expandable");
+
+  let expanded = false;
+  const button = $wrapper.find(".content-readmore").on("click", () => {
+    expanded = !expanded;
+    $wrapper.toggleClass("expanded", expanded);
+    button.text(expanded ? "Show Less" : "Show More");
+  });
+};
+
 $(() => {
+  if (!Page.matches("users", "show")) return;
+
+  // Show-all on about sections
+  for (const one of $(".profile-readmore .content"))
+    Users.init_readmore(one);
+
+  // Staff-only sections
   for (const one of $((".profile-section")))
-    Users.init_section($((one)));
+    Users.init_section($(one));
 });
