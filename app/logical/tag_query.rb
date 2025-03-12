@@ -706,10 +706,10 @@ class TagQuery
         elsif tags_to_find.include?(e)
           e
         end
-      end
+      end.compact
     else
       tags_to_find.select { |tag| source_array.include?(tag) }
-    end.uniq.compact
+    end.uniq
   end
 
   def self.ad_tag_string(tag_array)
