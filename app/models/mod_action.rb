@@ -64,7 +64,7 @@ class ModAction < ApplicationRecord
     tag_implication_update: { implication_id: :integer, implication_desc: :string, change_desc: :string },
     ticket_claim: { ticket_id: :integer },
     ticket_unclaim: { ticket_id: :integer },
-    ticket_update: { ticket_id: :integer },
+    ticket_update: { ticket_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },
     upload_whitelist_create: { pattern: :string, note: :string, hidden: :boolean },
     upload_whitelist_update: { pattern: :string, note: :string, old_pattern: :string, hidden: :boolean },
     upload_whitelist_delete: { pattern: :string, note: :string, hidden: :boolean },
@@ -202,6 +202,10 @@ class ModAction < ApplicationRecord
         else
           sanitized_values = sanitized_values.slice("hidden", "note")
         end
+      end
+
+      if !CurrentUser.is_moderator? && %i[ticket_update].include?(action.to_sym)
+        sanitized_values = sanitized_values.slice("ticket_id")
       end
 
       sanitized_values
