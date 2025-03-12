@@ -1,4 +1,11 @@
 <%= form_search(path: mod_actions_path) do |f| %>
   <%= f.user :creator %>
-  <%= f.input :action, label: "Action", collection: ModAction::KnownActionKeys.reject { |k| !CurrentUser.is_staff? && ModAction::ProtectedActionKeys.include?(k.to_s) }.map { |k| [k.to_s.capitalize.tr("_", " "), k.to_s] }, include_blank: true %>
+  <%= f.input :action, label: "Action",
+    collection: ModAction.available_action_keys.map { |k| [k.to_s.capitalize.tr("_", " "), k.to_s] },
+    include_blank: true %>
+
+  <script type="application/json" id="mod-action-fields-data">
+    <%= raw ModAction::KnownActions.slice(*ModAction.available_action_keys)
+      .transform_values(&:keys).to_json %>
+  </script>
 <% end %>
