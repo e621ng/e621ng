@@ -1,15 +1,10 @@
 const ModAction = {
   init () {
     const actionSelect = document.getElementById("search_action");
-    const fieldsDataElement = document.getElementById("mod-action-fields-data");
     const formElement = document.querySelector("#searchform > form");
-
-    if (!actionSelect || !fieldsDataElement || !formElement) {
-      return;
-    }
-
-    const knownActions = JSON.parse(fieldsDataElement.textContent);
     const urlParams = new URLSearchParams(window.location.search);
+
+    if (!actionSelect || !formElement) return;
 
     function createField (name) {
       const wrapper = document.createElement("div");
@@ -17,7 +12,7 @@ const ModAction = {
       wrapper.dataset.dynamicField = "true";
 
       const label = document.createElement("label");
-      label.textContent = name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      label.textContent = name.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       label.setAttribute("for", `search_${name}`);
 
       const input = document.createElement("input");
@@ -35,11 +30,13 @@ const ModAction = {
     }
 
     function updateFields () {
-      formElement.querySelectorAll("[data-dynamic-field]").forEach((el) => el.remove());
+      formElement.querySelectorAll("[data-dynamic-field]").forEach(el => el.remove());
 
-      const selectedAction = actionSelect.value;
-      if (knownActions[selectedAction]) {
-        knownActions[selectedAction].forEach((key) => {
+      const selectedOption = actionSelect.selectedOptions[0];
+      const fieldsData = selectedOption.dataset.fields;
+
+      if (fieldsData) {
+        fieldsData.split(",").forEach((key) => {
           const field = createField(key);
           actionSelect.parentElement.insertAdjacentElement("afterend", field);
         });
@@ -51,8 +48,6 @@ const ModAction = {
   },
 };
 
-$(document).ready(function () {
-  ModAction.init();
-});
+$(document).ready(() => ModAction.init());
 
 export default ModAction;
