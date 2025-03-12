@@ -193,9 +193,15 @@ class ModAction < ApplicationRecord
       sanitized_values = original_values.slice(*valid_keys)
 
       if %i[ip_ban_create ip_ban_delete].include?(action.to_sym)
-        sanitized_values = {}
-      elsif %i[upload_whitelist_create upload_whitelist_update upload_whitelist_delete].include?(action.to_sym)
-        sanitized_values = sanitized_values.slice("hidden", "note") if sanitized_values["hidden"]
+        sanitized_values = sanitized_values.slice([])
+      end
+
+      if %i[upload_whitelist_create upload_whitelist_update upload_whitelist_delete].include?(action.to_sym)
+        if sanitized_values["hidden"]
+          sanitized_values = sanitized_values.slice("hidden")
+        else
+          sanitized_values = sanitized_values.slice("hidden", "note")
+        end
       end
 
       sanitized_values
