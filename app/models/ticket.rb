@@ -332,17 +332,17 @@ class Ticket < ApplicationRecord
   module ClaimMethods
     def claim!(user = CurrentUser)
       transaction do
-        ModAction.log(:ticket_claim, {ticket_id: id})
+        ModAction.log(:ticket_claim, { ticket_id: id })
         update_attribute(:claimant_id, user.id)
-        push_pubsub('claim')
+        push_pubsub("claim")
       end
     end
 
     def unclaim!(user = CurrentUser)
       transaction do
-        ModAction.log(:ticket_unclaim, {ticket_id: id})
+        ModAction.log(:ticket_unclaim, { ticket_id: id })
         update_attribute(:claimant_id, nil)
-        push_pubsub('unclaim')
+        push_pubsub("unclaim")
       end
     end
   end
@@ -371,7 +371,7 @@ class Ticket < ApplicationRecord
     def log_update
       return unless saved_change_to_response? || saved_change_to_status?
 
-      ModAction.log(:ticket_update, { ticket_id: id })
+      ModAction.log(:ticket_update, { ticket_id: id, status: status, response: response, status_was: status_before_last_save, response_was: response_before_last_save })
     end
   end
 
