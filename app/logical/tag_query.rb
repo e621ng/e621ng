@@ -211,12 +211,14 @@ class TagQuery
 
   # Properly tokenizes search strings, handling groups & quoted metatags properly.
   # ## Groups:
+  # * `token`: the full match w/o any surrounding whitespace
   # * `prefix`: -/~, if present
   # * `body`: the tag w/o the leading `prefix` and the trailing whitespace
   #   * `metatag`: if present, the metatag, quoted & unquoted
   #   * `group`: if present, the group, enclosed w/ `(\s+` & `\s)`
   #     * If this is not empty, `metatag` & `tag` may contain matches from inside this group. Only
   # assume a (meta)tag on the top level was matched if this is `nil`.
+  #     * `subquery`: the grouped text w/o surrounding whitespace
   #   * `tag`: if the prior 2 weren't present, the following consecutive non-whitespace characters
   #
   # The full match contains leading whitespace + `prefix` + `body` + trailing whitespace
@@ -229,29 +231,29 @@ class TagQuery
   # [forced advancing zero-length matches](https://www.regular-expressions.info/zerolength.html) to
   # work. If Ruby's regex engine stops supporting this in a future update, updating to that version
   # may cause properly formatted group queries to fail.
-  TOKENIZE_REGEX = /\G(?>\s*) # Match any leading whitespace to help with \G
+  TOKENIZE_REGEX = /\G(?>\s*)(?<token> # Match any leading whitespace to help with \G
   (?<prefix>[-~])?
   (?<body>
-    (?<metatag>(?>\w*:(?>"[^"]*"|\S*)))| # "# Match a metatag (quoted or not)
+    (?<metatag>(?>\w*:(?>"[^\"]*"|\S*))(?=\s|\z))| # Match a metatag (quoted or not)
     (?<group>(?> # Match a single group atomically by:
-      (?>\(\s+) # 1. atomically matching an open parenthesis & at least 1 whitespace character
-      (?> # Greedily find one of the following 2 options
-        (?!(?<=\s)\)) # 2. Skip this option if a closing parenthesis that's preceeded by whitespace is next
+      (?>\(\s+) # 1. atomically matching a `(` & at least 1 whitespace character
+      (?<subquery>(?> # Greedily find one of the following 2 options
+        (?!(?<=\s)\)|(?>\s+)\)) # 2. Skip this option if a `)` that's preceeded by whitespace is next
         (?> # 3. Matching one of the following 3 options once:
           [-~]?\g<metatag>| # 3A. a metatag (to avoid misinterperting quoted input as groups)
           [-~]?\g<group>| # 3B. a group (to balence parentheses)
           (?> # 3C. Atomically match either
-            [^\s)]+| # 1 or more non-whitespace, non-closing-parenthesis characters greedily, or
-            (?<!\s)\) # If not preceeded by whitespace, a closing parenthesis
+            [^\s)]+| # 1 or more non-whitespace, non-`)` characters greedily, or
+            (?<!\s)\)+ # If not preceeded by whitespace, 1 or more `)`
           )* # 0 or more times greedily
         )
-        (?>\s*)| # 4. Atomically match all contiguous whitespace (if present). Or;
-        (?=(?<=\s)\)) # 5. Succeed if the prior char was whitespace and the next is a closing parenthesis. Backtracks the parenthesis. Takes advantage of special handling of zero-length matches.
-      )+ # If step 5 succeeds, the zero-length match will force the engine to stop trying to match this group.
-      (?<=\s)\) # Check if preceeded by whitespace and match the closing parenthesis.
-    ))|
+        (?>(?>\s+)(?!\)))?| # 4. Atomically match all contiguous whitespace (if present). Or;
+        (?=(?<=\s)\)|(?>\s+)\)) # 5. Succeed if the prior char was whitespace and the next is a closing parenthesis. Backtracks the parenthesis. Takes advantage of special handling of zero-length matches.
+      )+) # If step 5 succeeds, the zero-length match will force the engine to stop trying to match this group.
+      (?>\s*)(?<=\s)\) # Check if preceeded by whitespace and match the closing parenthesis.
+    )(?=\s|\z))|
     (?<tag>\S+) # Match non-whitespace characters (tags)
-  )(?>\s*)/x # Match any trailing whitespace to help with \G
+  ))(?>\s*)/x # Match any trailing whitespace to help with \G
 
   # A group existence checker
   #
