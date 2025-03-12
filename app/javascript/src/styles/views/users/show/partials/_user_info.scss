@@ -11,7 +11,7 @@
   .profile-line {
     display: grid;
     grid-template-columns: 1fr min-content;
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
     border-bottom: 2px solid themed("color-foreground");
 
     h4 {
@@ -30,6 +30,17 @@
 
     &-number {
       white-space: nowrap;
+
+      a {
+        display: flex;
+        font-weight: bold;
+        
+        // Give the clicking area a bit more space on mobile
+        // Also position it above the -extra section
+        padding: 1rem;
+        margin: -1rem 0;
+        position: relative;
+      }
     }
 
     &-extra {
