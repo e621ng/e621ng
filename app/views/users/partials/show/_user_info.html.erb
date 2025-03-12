@@ -105,18 +105,6 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.user.id == user.id %>
-    <div class="profile-line">
-      <h4><%= svg_icon(:key_square) %> API Key</h4>
-      <span class="profile-line-number">
-        <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
-      </span>
-      <span class="profile-line-extra">
-        (<%= link_to "help", help_page_path(id: "api") %>)
-      </span>
-    </div>
-  <% end %>
-
   <% permissions = presenter.permissions %>
   <% unless permissions.empty? %>
     <div class="profile-line">
