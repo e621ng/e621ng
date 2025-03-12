@@ -3,18 +3,28 @@
 <!-- Account -->
 <tab-group name="account">Account</tab-group>
 
-<tab-entry tab="<%= tab_name %>" group="account" class="buttony" search="update change user profile account name username">
+<tab-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account name username">
   <tab-head>Username</tab-head>
   <tab-body>
     <input type="text" value="<%= CurrentUser.user.pretty_name %>" disabled><%= link_to "Edit", new_user_name_change_request_path, class: "st-button" %>
   </tab-body>
 </tab-entry>
 
-<tab-entry tab="<%= tab_name %>" group="account" class="buttony" search="update change user profile account email e-mail address">
+<tab-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account email e-mail address">
   <tab-head>Email</tab-head>
   <tab-body>
     <input type="text" value="<%= CurrentUser.user.email.presence || "blank" %>" disabled><%= link_to "Edit", new_maintenance_user_email_change_path, class: "st-button" %>
   </tab-body>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="account" class="with-button" search="update change user profile account api key access">
+  <tab-head>API Key</tab-head>
+  <tab-body>
+    <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user), class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    Do not give your API key to third-party apps you do not trust.
+  </tab-hint>
 </tab-entry>
 
 <tab-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
