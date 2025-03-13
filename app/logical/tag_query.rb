@@ -210,6 +210,7 @@ class TagQuery
   end
 
   # Properly tokenizes search strings, handling groups & quoted metatags properly.
+  # ### [Live Demo](https://regex101.com/r/KfFYz4)
   # ## Groups:
   # * `token`: the full match w/o any surrounding whitespace
   # * `prefix`: -/~, if present
@@ -227,14 +228,13 @@ class TagQuery
   #
   # If `metatag`, `group`, or `tag` is non-nil, it must be non-blank.
   #
-  # NOTE: Abuses
-  # [forced advancing zero-length matches](https://www.regular-expressions.info/zerolength.html) to
-  # work. If Ruby's regex engine stops supporting this in a future update, updating to that version
-  # may cause properly formatted group queries to fail.
+  # NOTE: Abuses [zero-length match handling](https://www.regular-expressions.info/zerolength.html)
+  # to work. If Ruby's regex engine adjusts how this is handled in a future update, updating to that
+  # version may cause properly formatted group queries to fail.
   TOKENIZE_REGEX = /\G(?>\s*)(?<token> # Match any leading whitespace to help with \G
   (?<prefix>[-~])?
   (?<body>
-    (?<metatag>(?>\w*:(?>"[^\"]*"|\S*))(?=\s|\z))| # Match a metatag (quoted or not)
+    (?<metatag>(?>\w*:(?>"[^\"]*"(?=\s|\z)|\S*)))| # Match a metatag (quoted or not)
     (?<group>(?> # Match a single group atomically by:
       (?>\(\s+) # 1. atomically matching a `(` & at least 1 whitespace character
       (?<subquery>(?> # Greedily find one of the following 2 options
@@ -348,14 +348,10 @@ class TagQuery
     # Quick exit if given a blank search or a single group w/ an empty search
     return [] if tag_str.blank? || /\A[-~]?\(\s+\)\z/.match?(tag_str)
     # Quick and dirty optimization: If it can't contain any groups, use a simpler tokenizer.
-    # OPTIMIZE: Profile variants
     return TagQuery.scan(tag_str) unless HAS_GROUP_REGEX.match?(tag_str)
     # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
-    # OPTIMIZE: Profile variants
-    # if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|(?>\s+)(?!\)))+)\s+\)\z/, 1]).present?
-    #   return scan_search(
-    #     top,
-    if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|\s+(?!\)))+)\s+\)\z/, 1]).present?
+    # TODO: Check if regex catches nested groups & quoted metatag groups
+    if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && (top = tag_str[/\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|(?>\s+)(?!\)))+)\s+\)\z/, 1]).present?
       return scan_search(
         top.rstrip,
         **kwargs,
@@ -373,26 +369,26 @@ class TagQuery
       # iterations += 1
       # If it's not a group, move on with this value.
       if m[:group].blank?
-        matches << m[0].strip unless matches.include?(m[0].strip)
+        matches << m[:token] unless matches.include?(m[:token])
         next
       end
       # If it's an empty group and we filter those, skip this value.
-      next if kwargs.fetch(:filter_empty_groups, true) && m[:group]&.match?(/\A\(\s+\)\z/)
+      next if kwargs.fetch(:filter_empty_groups, true) && m[:subquery].blank?
       # This will change the tag order, putting the hoisted tags in front of the groups that previously contained them
-      if hoisted_metatags.present? && m[:group]&.match(/#{hoist_regex_stub ||= "(?>#{hoisted_metatags.join('|')})"}:\S+/)
+      if hoisted_metatags.present? && m[:subquery]&.match(/(?<=\A|\s)#{hoist_regex_stub ||= "(?>#{hoisted_metatags.join('|')})"}:\S+/)
         cb = ->(sub_match) do
           # if there's a group w/ a hoisted tag,
-          if sub_match[:group]&.match(/#{hoist_regex_stub}:\S+/)
+          if sub_match[:subquery]&.match?(/(?<=\A|\s)#{hoist_regex_stub}:\S*/)
             raise DepthExceededError if (depth + 1) >= depth_limit && error_on_depth_exceeded
-            next sub_match[0].presence&.strip || nil unless (g = sub_match[0].match(/\((?>\s+)(.+)\s+\)/))
-            r_out = (depth += 1) >= depth_limit ? " " : "#{TagQuery.match_tokens(g[1].rstrip, **scan_opts, depth: depth, &cb).compact.uniq.join(' ')} "
+            next kwargs.fetch(:filter_empty_groups, true) ? sub_match[:token] : nil if sub_match[:subquery].blank? # rubocop:disable Metrics/BlockNesting
+            r_out = (depth += 1) >= depth_limit ? " " : "#{TagQuery.match_tokens(sub_match[:subquery], **scan_opts, depth: depth, &cb).compact.uniq.join(' ')} "
             depth -= 1
-            next "#{sub_match[0][0, g.begin(1)].strip} #{r_out}#{sub_match[0][g.end(1)..].strip}"
-          elsif (sub_match[:metatag].presence || "")[/\A#{hoist_regex_stub}:\S+/]
-            matches << sub_match[0].strip
+            next "#{sub_match[:prefix]}( #{r_out})"
+          elsif (sub_match[:metatag].presence || "")[/\A#{hoist_regex_stub}:\S*/]
+            matches << sub_match[:token]
             next nil
           end
-          sub_match[0].strip
+          sub_match[:token]
         end
         next (out_v = cb.call(m)).is_a?(Array) ? matches.push(*out_v.compact.uniq) : matches << out_v
       end
@@ -459,6 +455,7 @@ class TagQuery
 
   # Scans the given string and processes any groups within recursively.
   #
+  # ### Parameters
   # * `query`: the string to scan. Will be converted to a string, normalized, and stripped.
   # * `flatten` [`true`]: Flatten sub-groups into 1 single-level array?
   # * `strip_prefixes` [`false`]
@@ -469,13 +466,12 @@ class TagQuery
   # recursively do the same for each group.
   # * `delimit_groups` [`true`]: Surround groups w/ parentheses elements. Unless `strip_prefixes` or
   # `distribute_prefixes` are truthy, preserves prefix.
-  # `sort_at_level` [`false`]
-  # `normalize_at_level` [`false`]
-  # `error_on_depth_exceeded` [`false`]
-  # `discard_group_prefix` [`nil`]
+  # * `sort_at_level` [`false`]
+  # * `normalize_at_level` [`false`]: Call `TagQuery.normalize_single_tag` on each tag token?
+  # * `error_on_depth_exceeded` [`false`]
+  # * `discard_group_prefix` [`nil`]
   #
   # #### Recursive Parameters (SHOULDN'T BE USED BY OUTSIDE METHODS)
-  #
   # * `depth` [0]: Tracks recursive depth to prevent exceeding `TagQuery::DEPTH_LIMIT`
   def self.scan_recursive(
     query,
@@ -574,26 +570,28 @@ class TagQuery
   # Searches through the given `query` & finds instances of the given `metatags` in the order they
   # appear in the search.
   #
+  # ### Parameters
   # * `query` { `String` }
-  # * `metatags` { `String`s }
+  # * `metatags` { `String`s | :any }: The metatags to search for.
   # * `initial_value` [`nil`]: The starting value passed to block and returned if no matches are
   # found.
-  # * `prepend_prefix` [`false`]: Input has the prefix attached (e.g. `-status` instead of `status`)?
+  # * `prepend_prefix` [`false`]: Match the tags w/ any prefix (e.g. `-status` instead of `status`)?
+  # Defaults to only matching the explicitly specified prefix-metatag combinations.
   #
   # #### Block:
-  #
   # * `pre`: the unmatched text between the start/last match and the current match
-  # * `contents`: the entire matched metatag, including its name
+  # * `contents`: the entire matched metatag, including its name & leading/trailing double quotes
   # * `post`: the remaining text to test
   # * `tag`: the matched tag name (e.g. `order`, `status`)
   # * `current_value`: the last value output from this block or, if this is the first time
   # the block was called, `initial_value`.
   # * `value`: the value of this metatag. If quoted, quotes have been removed.
+  # * `prefix`: if `prepend_prefix`, the matched prefix.
   #
   # Return the new accumulated value.
   #
-  # #### Returns
-  #   * if matched, the value generated by the block if given or an array of `contents`
+  # ### Returns
+  #   * if matched, the final value generated by the block (if given) or an array of `contents`
   #   * else, `initial_value`
   #
   # Due to the nature of the grouping syntax, special handling for nested metatags in this method is
@@ -601,15 +599,19 @@ class TagQuery
   # `TagQuery::DepthExceededError` must be raised when appropriate.
   def self.scan_metatags(query, *metatags, initial_value: nil, prepend_prefix: false, &)
     return initial_value if metatags.blank? || (query = query.to_s.unicode_normalize(:nfc).strip).blank?
-    prefix = "([-~]?)" unless prepend_prefix
-    mts = metatags.inject(nil) { |p, e| (p ? "#{p}|#{e.to_s.strip}" : e.to_s.strip) if e.present? }
+    prefix = "([-~]?)" if prepend_prefix
+    if [metatags].include?(:any)
+      mts = "(?>\\w+)"
+    else
+      mts = metatags.inject(nil) { |p, e| (p ? "#{p}|#{e.to_s.strip}" : e.to_s.strip) if e.present? }
+    end
     last_index = 0
     on_success = ->(curr_match) do
       if block_given?
         kwargs_hash = if prepend_prefix
-                        { tag: curr_match[1], value: curr_match[2] }
-                      else
                         { prefix: curr_match[1], tag: curr_match[2], value: curr_match[3] }
+                      else
+                        { tag: curr_match[1], value: curr_match[2] }
                       end
         initial_value = yield(
           pre: query[0...(last_index + curr_match.begin(0))],
@@ -623,23 +625,47 @@ class TagQuery
       end
       last_index += curr_match.end(0)
     end
+    # # For each quoted metatag, match all the non-quoted queried metatags between the end of the last
+    # # quoted metatag and the start of this one, then check and process this quoted metatag.
+    # # while (quoted_m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))(?>[-~]?\w*:"[^"]*"(?=\s|\z))/)) # This will cause rubocop to error https://github.com/rubocop/rubocop/releases/tag/v1.69.2 https://github.com/rubocop/rubocop/issues/13511
+    # while (quoted_m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))(?:[-~]?\w*:"[^"]*"(?=\s|\z))/i))
+    #   while (m = query[last_index...quoted_m.begin(0)].presence&.match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"?(\S*)/i))
+    #     on_success.call(m)
+    #   end
+    #   # Check if the quoted metatag matches the searched queries (also fixes match offsets for callback).
+    #   if (m = query[last_index...quoted_m.end(0)].match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"([^"]*)"/i))
+    #     on_success.call(m)
+    #   else # Manually update last_index since callback didn't do it.
+    #     last_index = quoted_m.end(0)
+    #   end
+    # end
+    # # This catches all metatags following the last quoted metatag, or all the metatags if there are
+    # # no quoted metatags.
+    # while (m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"?(\S*)/i))
+    #   on_success.call(m)
+    # end
+
     # For each quoted metatag, match all the non-quoted queried metatags between the end of the last
     # quoted metatag and the start of this one, then check and process this quoted metatag.
-    while (quoted_m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))[-~]?\w*:"[^"]*"/))
-      while (m = query[last_index...quoted_m.begin(0)].presence&.match(/(?:\A|(?<=\s))#{prefix}(#{mts}):(\S*)/))
+    #
+    # If there's no (more) quoted metatags, then just search each metatag between the last index and the end.
+    loop do
+      # update rubocop https://github.com/rubocop/rubocop/releases/tag/v1.69.2 https://github.com/rubocop/rubocop/issues/13511
+      # quoted_m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))(?>[-~]?\w*:"[^"]*"(?=\s|\z))/)
+      quoted_m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))(?:[-~]?\w*:"[^"]*"(?=\s|\z))/i)
+      while (m = query[last_index...(quoted_m&.begin(0) || query.length)].presence&.match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"?(\S*)/i))
         on_success.call(m)
       end
-      # Check if the quoted metatag matches the searched queries (also fixes match offsets for callback).
-      if (m = query[last_index...quoted_m.end(0)].match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"([^"]*)"/))
-        on_success.call(m)
-      else # Manually update last_index since callback didn't do it.
-        last_index = quoted_m.end(0)
+      if quoted_m
+        # Check if the quoted metatag matches the searched queries (also fixes match offsets for callback).
+        if (m = query[last_index...quoted_m.end(0)].match(/(?:\A|(?<=\s))#{prefix}(#{mts}):"([^"]*)"/i))
+          on_success.call(m)
+        else # Manually update last_index since callback didn't do it.
+          last_index = quoted_m.end(0)
+        end
+      else
+        break
       end
-    end
-    # This catches all metatags following the last quoted metatag, or all the metatags if there are
-    # no quoted metatags.
-    while (m = query[last_index...query.length].presence&.match(/(?:\A|(?<=\s))#{prefix}(#{mts}):(\S*)/))
-      on_success.call(m)
     end
     initial_value
   end
@@ -650,16 +676,20 @@ class TagQuery
 
   # Pulls the value from the first of the specified metatags found.
   #
+  # ### Parameters
   # * `tags`: The content to search through. Accepts strings and arrays.
   # * `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   # * `at_any_level` [`true`]: Search through groups?
-  # * `prepend_prefix` [`false`]: Input has the prefix attached (e.g. `-status` instead of `status`)?
+  # * `prepend_prefix` [`false`]: Match the tags w/ any prefix (e.g. `-status` instead of `status`)?
+  # Defaults to only matching the explicitly specified prefix-metatag combinations.
   #
-  # Returns the first found instance of any `metatags` that is `present?`. Leading and trailing double
-  # quotes will be removed (matching the behavior of `parse_query`). If none are found, returns nil.
+  # ### Returns
+  # The first instance of `metatags` that is `present?` after leading and trailing double quotes are
+  # removed (matching the behavior of `parse_query`). If none are found, returns `nil`.
   #
-  # NOTE: For metatags that overwrite their value if repeated (e.g. `status`), this is innaccurate.
+  # NOTE: For metatags that overwrite their value if repeated (e.g. `status`), this is not
+  # representative of the final functional value.
   # If this is a concern, use `TagQuery.fetch_metatags`.
   def self.fetch_metatag(tags, *metatags, at_any_level: true, prepend_prefix: false)
     return nil if tags.blank?
@@ -669,7 +699,13 @@ class TagQuery
         scan_metatags(tags, *metatags, prepend_prefix: prepend_prefix) { |**kwargs| return kwargs[:value] if kwargs[:value].present? }
         return
       else
-        tags = scan(tags)
+        tags = scan(tags).find do |tag|
+          metatag_name, value = tag.split(":", 2)
+          if metatags.include?(metatag_name)
+            value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String) # rubocop:disable Metrics/BlockNesting
+            return value if value.present? # rubocop:disable Metrics/BlockNesting
+          end
+        end
       end
     elsif at_any_level
       # OPTIMIZE: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
@@ -693,14 +729,15 @@ class TagQuery
 
   # Pulls the values from the specified metatags.
   #
+  # ### Parameters
   # * `tags`: The content to search through. Accepts strings and arrays.
   # * `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   # * `at_any_level` [true]: Search through groups?
-  # * `prepend_prefix` [`false`]: Input has the prefix attached (e.g. `-status` instead of `status`)?
+  # * `prepend_prefix` [`false`]: Match the tags w/ any prefix (e.g. `-status` instead of `status`)?
+  # Defaults to only matching the explicitly specified prefix-metatag combinations.
   #
-  # #### Block:
-  #
+  # #### Block
   # Called every time a metatag is matched to a non-`blank?` value.
   #
   # * `metatag`: the metatag that was matched.
@@ -709,7 +746,7 @@ class TagQuery
   #
   # Yields the value to be added to the result for this match.
   #
-  # #### Returns:
+  # ### Returns
   # A hash with `metatags` as the keys & an array of either the output of block or the found
   # instances that are `present?`. Leading and trailing double quotes will be removed (matching the
   # behavior of `parse_query`). If none are found for a metatag, that key won't be included in the
@@ -862,12 +899,16 @@ class TagQuery
     end
   end
 
+  # ### Parameters
   # * `query`
   # * `process_groups` [`false`]: Recursively handle groups?
   # * `error_on_depth_exceeded` [`false`]: Fail silently on depth exceeded?
   # * `can_have_groups` [`true`]: Are groups enabled for this search?
   #   * Used to optimize searches that cannot contain groups by using a simpler scanner and skipping
   # group parsing. Passing this in also disables group processing.
+  #
+  # ### Notes
+  # * Quoted metatags aren't distinguished from non-quoted metatags nor standard tags in `TagQuery.parse_query`; to ensure consistency, even malformed metatags must have leading and trailing double quotes removed.
   def parse_query(query, depth: 0, **kwargs)
     tag_query_limit = Danbooru.config.tag_query_limit - @free_tags_count if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && (kwargs[:process_groups] || pq_check_group_tags?(depth))
     can_have_groups = kwargs.fetch(:can_have_groups, true) && TagQuery.has_groups?(query.to_s.unicode_normalize(:nfc))
@@ -907,14 +948,23 @@ class TagQuery
       end
       metatag_name, g2 = token.split(":", 2)
 
-      # Remove quotes from description:"abc def"
-      g2 = g2.presence&.delete_prefix('"')&.delete_suffix('"')
-
       # Short-circuit when there is no metatag or the metatag has no value
-      if g2.blank?
+      if g2.blank? || !/\A(?>[-~]?\w*)\z/.match?(metatag_name)
         add_tag(token)
         next
       end
+
+      # Remove quotes from description:"abc def"
+      g2 = g2.delete_prefix('"').delete_suffix('"')
+
+      # The following prevents empty/whitespace-only values after quote removal; the above allows
+      # # Short-circuit when the metatag name has invalid characters in it, there is no metatag, or
+      # # the metatag has no value. Remove quotes from description:"abc def".
+      # if !/\A(?>[-~]?\w*)\z/.match?(metatag_name) ||
+      #    (g2 = g2.presence&.delete_prefix('"')&.delete_suffix('"')).blank?
+      #   add_tag(token)
+      #   next
+      # end
 
       type = METATAG_SEARCH_TYPE[metatag_name[0]]
       case metatag_name.downcase

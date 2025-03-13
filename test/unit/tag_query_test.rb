@@ -74,6 +74,7 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
+  # TODO: Add tests for prepend_prefix
   context "While fetching metatags" do
     # This should be enabled if the implementation of `TagQuery.fetch_metatag` changes to be recursive.
     # should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
@@ -452,21 +453,34 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
+  RESPECT_ALL_QUOTED_METATAGS = false
   # TODO: Add tests for block variables
+  # TODO: Add tests for prepend_prefix
+  # TODO: Add tests for non-spaced group when RESPECT_ALL_QUOTED_METATAGS is true
   context "While recursively searching metatags" do
     should "find top-level instances of specified metatags" do
       assert_equal(["metatags:50", "another:metatag"], TagQuery.scan_metatags("some tags and metatags:50 and another:metatag and a failed:match", "metatags", "another"))
     end
-    should "not find false positives in quoted metatags & handle a tag w/o a space after a quoted metatag" do
-      assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but match \"another:metatag then a failed:match", "metatags", "another", "matching"))
+    should "not find false positives in quoted metatags" do
+      assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "metatags", "another", "matching"))
     end
-    should "find top-level instances of a quoted metatag & handle a tag w/o a space after a quoted metatag" do
-      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but match \"", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
+    should "find top-level instances of a quoted metatag" do
+      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
     end
     should "find all metatags" do
       assert_equal(["metatags:50", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and metatags:50 and another:metatag and a failed:match", "\\w+"))
-      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but match \"another:metatag then a failed:match", "\\w+"))
-      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but match \"another:metatag then a failed:match", "\\w+"))
+      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "\\w+"))
+    end
+    should "#{RESPECT_ALL_QUOTED_METATAGS ? '' : 'not '}respect quoted metatags not followed by either whitespace or the end of input" do
+      if RESPECT_ALL_QUOTED_METATAGS
+        assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "\\w+"))
+        assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
+        assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching"))
+      else
+        assert_equal(["matching:metatag", "quoted_metatag:\"don't", "metatags:this", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "\\w+"))
+        assert_equal(["matching:metatag", "quoted_metatag:\"don't", "metatags:this"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
+        assert_equal(["matching:metatag", "metatags:this"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"do match metatags:this but don't match \"another:metatag then a failed:match", "metatags", "another", "matching"))
+      end
     end
   end
 

@@ -17,10 +17,12 @@ class ElasticQueryBuilder
   end
 
   # Constructs the `query` field of the hash sent to `model_class.document_store.search` to perform a search using opensearch. Can be used as a recursive subquery.
-  # #### Parameters:
-  # * `return_nil_if_empty` [`true`]
+  # ### Parameters
+  # * `return_nil_if_empty` [`true`]: If all are empty, return `nil` or return a properly
+  # constructed empty query hash?
   #
-  # #### Side-effects:
+  # ### Side-effects
+  # If `return_nil_if_empty` is true, and
   # * if `must.empty?`, must will have `{ match_all: {} }` pushed onto it.
   # * if `@function_score.present?`, `@function_score[:query]` will be overwritten.
   def create_query_obj(return_nil_if_empty: true)
