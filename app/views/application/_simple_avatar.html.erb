@@ -23,16 +23,24 @@
   </a>
   <hr />
 
+
+  <% if user.post_upload_count > 0 %>
   <a href="<%= posts_path(tags: "user:#{user.name}") %>">
     <%= svg_icon(:images) %> Uploads
   </a>
+  <% end %>
+
+  <% if user.favorite_count > 0 %>
   <a href="<%= favorites_path %>">
     <%= svg_icon(:heart) %> Favorites
   </a>
+  <% end %>
+
   <a href="<%= post_sets_path(search: { creator_id: CurrentUser.id }) %>">
     <%= svg_icon(:group) %> Sets
   </a>
   <hr />
+
 
   <a href="<%= session_path %>" data-method="delete">
     <%= svg_icon(:log_out) %> Sign Out

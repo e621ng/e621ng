@@ -21,7 +21,11 @@
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
-        <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>
+        <% if wiki_content.body.present? %>
+          <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>  
+        <% else %>
+          <p>This wiki page is empty. <%= link_to "Click here to add details", edit_wiki_page_path(@wiki_page) %>.</p>
+        <% end %>
 
         <% if wiki_content.artist %>
           <p><%= link_to "View artist", wiki_content.artist %></p>

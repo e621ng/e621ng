@@ -85,7 +85,7 @@
     </span>
   </div>
 
-  <% if CurrentUser.user.id == user.id || CurrentUser.is_approver? %>
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_staff? %>
     <div class="profile-line">
       <h4><%= svg_icon(:flag_left) %> Flags</h4>
       <span class="profile-line-number"><%= presenter.flag_count(self) %></span>
@@ -102,18 +102,6 @@
           [<%= link_to "accused", tickets_path(search: { accused_id: user.id }) %>]
         </span>
       <% end %>
-    </div>
-  <% end %>
-
-  <% if CurrentUser.user.id == user.id %>
-    <div class="profile-line">
-      <h4><%= svg_icon(:key_square) %> API Key</h4>
-      <span class="profile-line-number">
-        <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user) %>
-      </span>
-      <span class="profile-line-extra">
-        (<%= link_to "help", help_page_path(id: "api") %>)
-      </span>
     </div>
   <% end %>
 

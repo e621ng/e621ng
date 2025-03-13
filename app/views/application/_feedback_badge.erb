@@ -1,27 +1,18 @@
-<a
-  href="<%= user_feedbacks_path(search: { user_id: user.id }) %>"
-  class="user-records-list"
-  data-negative="<%= negative %>"
-  data-neutral="<%= negative %>"
-  data-positive="<%= neutral %>"
-  data-total="<%= positive - negative %>"
->
-  <% if deleted > 0 %>
-    <span class="user-record deleted"><%= deleted %></span>
-  <% end %>
-
-  <% if negative > 0 %>
-    <span class="user-record negative"><%= negative %></span>
-  <% end %>
-
-  <% if neutral > 0 %>
-    <span class="user-record neutral"><%= neutral %></span>
-  <% end %>
-
-  <% if positive > 0 %>
-    <span class="user-record positive"><%= positive %></span>
-  <% end %>
-</a>
+<% if total > 0 %>
+  <a
+    href="<%= user_feedbacks_path(search: { user_id: user.id }) %>"
+    class="user-records-list"
+    data-negative="<%= negative %>"
+    data-neutral="<%= negative %>"
+    data-positive="<%= neutral %>"
+    data-total="<%= positive - negative %>"
+  >
+    <%= svg_badge(deleted, "deleted") if deleted > 0 %>
+    <%= svg_badge(negative, "negative") if negative > 0 %>
+    <%= svg_badge(neutral, "neutral") if neutral > 0 %>
+    <%= svg_badge(positive, "positive") if positive > 0 %>
+  </a>
+<% end %>
 
 <% if CurrentUser.is_moderator? && CurrentUser.user != user && active == 0 %>
   <a
@@ -29,6 +20,6 @@
     class="user-records-list"
     title="New Feedback"
   >
-    <span class="user-record neutral"><%= svg_icon(:plus) %></span>
+    <%= svg_badge("+", "neutral") %>
   </a>
 <% end %>

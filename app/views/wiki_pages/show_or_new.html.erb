@@ -7,7 +7,7 @@
         <%= link_to @wiki_page.pretty_title_with_category, posts_path(:tags => @wiki_page.title), :class => "tag-type-#{@wiki_page.category_id}" %>
       </h1>
       <div id="wiki-page-body" class="dtext-container">
-        <p>This wiki page does not exist. <%= link_to "Create new wiki page", new_wiki_page_path(:wiki_page => {:title => params[:title]}) %>.</p>
+        <p>This wiki page is empty. <%= link_to "Click here to add details", new_wiki_page_path(wiki_page: { title: params[:title] }) %>.</p>
       </div>
 
       <% if @wiki_page.tag&.category == Tag.categories.artist %>
