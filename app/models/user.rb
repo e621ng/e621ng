@@ -23,6 +23,8 @@ class User < ApplicationRecord
     :approver,
   ]
 
+  # unintended consequences
+  # * _has_mail -> forum_notification_dot
   BOOLEAN_ATTRIBUTES = %w[
     _show_avatars
     _blacklist_avatars
@@ -32,7 +34,7 @@ class User < ApplicationRecord
     show_hidden_comments
     show_post_statistics
     is_banned
-    _has_mail
+    forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
@@ -402,7 +404,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_member?
+      return false unless is_member? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -664,7 +666,7 @@ class User < ApplicationRecord
           can_approve_posts can_upload_free
           disable_cropped_thumbnails enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
-          enable_compact_uploader replacements_beta
+          enable_compact_uploader replacements_beta forum_notification_dot
         ]
         list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
