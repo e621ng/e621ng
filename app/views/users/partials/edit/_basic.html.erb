@@ -45,7 +45,11 @@
   </tab-body>
 </tab-entry>
 
-<tab-entry tab="<%= tab_name %>" group="account" class="inline" search="user account email notify notifications">
+
+<!-- Notifications -->
+<tab-group name="notifications">Notifications</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account email notify notifications">
   <tab-head>Email Notifications</tab-head>
   <tab-body>
     <%= form.input_field :receive_email_notifications, as: :boolean, class: "st-toggle" %>
@@ -53,8 +57,13 @@
   </tab-body>
 </tab-entry>
 
-
-<!-- General -->
+<tab-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account forum activity dot bubble toggle notify notification">
+  <tab-head>Forum Activity Dot</tab-head>
+  <tab-body>
+    <%= form.input_field :forum_notification_dot, as: :boolean, class: "st-toggle" %>
+    <%= form.label :forum_notification_dot, "!", class: "st-toggle" %>
+  </tab-body>
+</tab-entry>
 
 
 <!-- Profile -->

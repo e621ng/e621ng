@@ -127,6 +127,7 @@ class UsersController < ApplicationController
       enable_auto_complete
       disable_cropped_thumbnails
       enable_safe_mode disable_responsive_mode
+      forum_notification_dot
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
