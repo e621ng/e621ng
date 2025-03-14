@@ -32,25 +32,6 @@ class TagSetPresenter < Presenter
     html.html_safe
   end
 
-  def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
-    html = +""
-
-    TagCategory::SPLIT_HEADER_LIST.each do |category|
-      typetags = tags_for_category(category)
-
-      if typetags.any?
-        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory::HEADER_MAPPING[category]}</h2>}
-        html << %{<ul class="#{category}-tag-list">}
-        typetags.each do |tag|
-          html << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name))
-        end
-        html << "</ul>"
-      end
-    end
-
-    html.html_safe
-  end
-
   # compact (horizontal) list, as seen in the /comments index.
   def inline_tag_list_html(link_type = :tag)
     html = TagCategory::CATEGORIZED_LIST.map do |category|
