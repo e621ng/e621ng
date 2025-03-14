@@ -1760,12 +1760,24 @@ class Post < ApplicationRecord
     save
   end
 
+  def categorized_tags
+    return @categorized_tags if @categorized_tags
+
+    tag_data ||= Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+    ordered = tag_array.map do |name|
+      tag_data[name] || Tag.new(name: name).freeze
+    end
+
+    @categorized_tags ||= ordered.group_by(&:category_name)
+  end
+
   def artist_tags
-    tags.select { |t| t.category == Tag.categories.artist }
+    categorized_tags[TagCategory::REVERSE_MAPPING[Tag.categories.artist]] || []
   end
 
   def uploader_linked_artists
-    artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
+    tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
+    @uploader_linked_artists ||= tags.map(&:name)
   end
 
   def flaggable_for_guidelines?

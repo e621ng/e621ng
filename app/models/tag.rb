@@ -119,7 +119,7 @@ class Tag < ApplicationRecord
     end
 
     def category_name
-      TagCategory::REVERSE_MAPPING[category].capitalize
+      @category_name ||= TagCategory::REVERSE_MAPPING[category]
     end
 
     def update_category_post_counts!
