@@ -531,4 +531,64 @@ class TagQueryTest < ActiveSupport::TestCase
       assert(TagQuery.new("aaa ( bbb ( aaa delreason:something ) status:pending )").hide_deleted_posts?)
     end
   end
+
+  # TODO: Figure out all potential edge cases
+  # should_eventually "quickly & correctly identify if query contains groups" do
+  #   # Just a group
+  #   # Just a prefixed group
+  #   # a group preceded by normal tags
+  #   # a group succeeded by normal tags
+  #   # a group preceded & succeeded by normal tags
+  #   # a prefixed group preceded by normal tags
+  #   # a prefixed group succeeded by normal tags
+  #   # a prefixed group preceded & succeeded by normal tags
+  #   # a group preceded by metatags
+  #   # a group succeeded by metatags
+  #   # a group preceded & succeeded by metatags
+  #   # a prefixed group preceded by metatags
+  #   # a prefixed group succeeded by metatags
+  #   # a prefixed group preceded & succeeded by metatags
+  #   # a group preceded by prefixed metatags
+  #   # a group succeeded by prefixed metatags
+  #   # a group preceded & succeeded by prefixed metatags
+  #   # a prefixed group preceded by prefixed metatags
+  #   # a prefixed group succeeded by prefixed metatags
+  #   # a prefixed group preceded & succeeded by prefixed metatags
+  #   # a group preceded by quoted metatags
+  #   # a group succeeded by quoted metatags
+  #   # a group preceded & succeeded by quoted metatags
+  #   # a prefixed group preceded by quoted metatags
+  #   # a prefixed group succeeded by quoted metatags
+  #   # a prefixed group preceded & succeeded by quoted metatags
+  #   # a group preceded by quoted prefixed metatags
+  #   # a group succeeded by quoted prefixed metatags
+  #   # a group preceded & succeeded by quoted prefixed metatags
+  #   # a prefixed group preceded by quoted prefixed metatags
+  #   # a prefixed group succeeded by quoted prefixed metatags
+  #   # a prefixed group preceded & succeeded by quoted prefixed metatags
+  #   # a false group with start by quoted metatags
+  #   # a false group end by quoted metatags
+  #   # a false false group with start & end by quoted metatags
+  #   # a false prefixed group with start by quoted metatags
+  #   # a false prefixed group end by quoted metatags
+  #   # a false false prefixed group with start & end by quoted metatags
+  #   # a false group with start by quoted prefixed metatags
+  #   # a false group end by quoted prefixed metatags
+  #   # a false false group with start & end by quoted prefixed metatags
+  #   # a false prefixed group with start by quoted prefixed metatags
+  #   # a false prefixed group end by quoted prefixed metatags
+  #   # a false false prefixed group with start & end by quoted prefixed metatags
+  #   # a false group with start by quoted metatags w/ accompanying true group delimiters
+  #   # a false group end by quoted metatags w/ accompanying true group delimiters
+  #   # a false false group with start & end by quoted metatags w/ accompanying true group delimiters
+  #   # a false prefixed group with start by quoted metatags w/ accompanying true group delimiters
+  #   # a false prefixed group end by quoted metatags w/ accompanying true group delimiters
+  #   # a false false prefixed group with start & end by quoted metatags w/ accompanying true group delimiters
+  #   # a false group with start by quoted prefixed metatags w/ accompanying true group delimiters
+  #   # a false group end by quoted prefixed metatags w/ accompanying true group delimiters
+  #   # a false false group with start & end by quoted prefixed metatags w/ accompanying true group delimiters
+  #   # a false prefixed group with start by quoted prefixed metatags w/ accompanying true group delimiters
+  #   # a false prefixed group end by quoted prefixed metatags w/ accompanying true group delimiters
+  #   # a false false prefixed group with start & end by quoted prefixed metatags w/ accompanying true group delimiters
+  # end
 end
