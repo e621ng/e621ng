@@ -1,0 +1,14 @@
+section#tag-list {
+  word-break: break-word;
+
+  .tag-list-header {
+    cursor: pointer;
+    &.hidden-category::before {
+      content: "► ";
+    }
+  }
+
+  ul {
+    margin-bottom: $padding-025;
+  }
+}
