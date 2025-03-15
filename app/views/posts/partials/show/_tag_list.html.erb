@@ -25,7 +25,7 @@
         >
           <%= tag.name.tr("_", " ") %>
           <% if post.uploader_linked_artists.include?(tag.name) %>
-            <i title="Uploaded by the artist" class="highlight fa-regular fa-circle-check"></i>
+            <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
           <% end %>
         </a>
 
