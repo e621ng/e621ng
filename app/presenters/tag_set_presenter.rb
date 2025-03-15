@@ -32,25 +32,6 @@ class TagSetPresenter < Presenter
     html.html_safe
   end
 
-  def post_show_sidebar_tag_list_html(current_query: "", highlighted_tags:)
-    html = +""
-
-    TagCategory::SPLIT_HEADER_LIST.each do |category|
-      typetags = tags_for_category(category)
-
-      if typetags.any?
-        html << %{<h2 class="#{category}-tag-list-header tag-list-header" data-category="#{category}">#{TagCategory::HEADER_MAPPING[category]}</h2>}
-        html << %{<ul class="#{category}-tag-list">}
-        typetags.each do |tag|
-          html << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name))
-        end
-        html << "</ul>"
-      end
-    end
-
-    html.html_safe
-  end
-
   # compact (horizontal) list, as seen in the /comments index.
   def inline_tag_list_html(link_type = :tag)
     html = TagCategory::CATEGORIZED_LIST.map do |category|
@@ -66,40 +47,6 @@ class TagSetPresenter < Presenter
     TagCategory::CATEGORIZED_LIST.map do |category|
       tags_for_category(category).map(&:name).join(" ")
     end.compact_blank.join(" \n")
-  end
-
-  def humanized_essential_tag_string(category_list: TagCategory::HUMANIZED_LIST, default: "")
-    return @_humanized if @_cached[:humanized]
-    strings = category_list.map do |category|
-      mapping = TagCategory::HUMANIZED_MAPPING[category]
-      max_tags = mapping["slice"]
-      regexmap = mapping["regexmap"]
-      formatstr = mapping["formatstr"]
-      excluded_tags = mapping["exclusion"]
-
-      type_tags = tags_for_category(category).map(&:name) - excluded_tags
-      next if type_tags.empty?
-
-      if max_tags > 0 && type_tags.length > max_tags
-        type_tags = type_tags.sort_by {|x| -x.size}.take(max_tags) + ["etc"]
-      end
-
-      if regexmap != //
-        type_tags = type_tags.map { |tag| tag.match(regexmap)[1] }
-      end
-
-      if category == "copyright" && tags_for_category("character").blank?
-        type_tags.to_sentence
-      else
-        formatstr % type_tags.to_sentence
-      end
-    end
-
-    strings = strings.compact.join(" ").tr("_", " ")
-    output = strings.blank? ? default : strings
-    @_humanized = output
-    @_cached[:humanized] = true
-    output
   end
 
   private

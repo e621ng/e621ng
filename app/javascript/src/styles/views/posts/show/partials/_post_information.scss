@@ -1,0 +1,10 @@
+#post-information {
+
+  .user-feedback-list {
+    word-break: break-all;
+    span { margin: 0.125rem; }
+  
+    &::before { content: "("; }
+    &::after { content: ")"; }
+  }
+}

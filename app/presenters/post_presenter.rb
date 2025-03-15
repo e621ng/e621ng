@@ -2,7 +2,7 @@
 
 class PostPresenter < Presenter
   attr_reader :pool
-  delegate :post_show_sidebar_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
+  delegate :inline_tag_list_html, to: :tag_set_presenter
 
   def self.preview(post, options = {})
     if post.nil?
@@ -225,7 +225,33 @@ class PostPresenter < Presenter
   end
 
   def humanized_essential_tag_string
-    @humanized_essential_tag_string ||= tag_set_presenter.humanized_essential_tag_string(default: "##{@post.id}")
+    strings = TagCategory::HUMANIZED_LIST.map do |category|
+      mapping = TagCategory::HUMANIZED_MAPPING[category]
+      max_tags = mapping["slice"]
+      regexmap = mapping["regexmap"]
+      formatstr = mapping["formatstr"]
+      excluded_tags = mapping["exclusion"]
+
+      type_tags = @post.tags_for_category(category).map(&:name) - excluded_tags
+      next if type_tags.empty?
+
+      if max_tags > 0 && type_tags.length > max_tags
+        type_tags = type_tags.sort_by { |x| -x.size }.take(max_tags) + ["etc"]
+      end
+
+      if regexmap != //
+        type_tags = type_tags.map { |tag| tag.match(regexmap)[1] }
+      end
+
+      if category == "copyright" && @post.tags_for_category("character").blank?
+        type_tags.to_sentence
+      else
+        formatstr % type_tags.to_sentence
+      end
+    end
+
+    strings = strings.compact.join(" ").tr("_", " ")
+    @humanized_essential_tag_string ||= strings.presence || "##{@post.id}"
   end
 
   def filename_for_download
@@ -246,5 +272,11 @@ class PostPresenter < Presenter
     return "original" if @post.force_original_size?
     return "fit" if user.default_image_size == "large" && !@post.allow_sample_resize?
     user.default_image_size
+  end
+
+  def categorized_tag_list_text
+    TagCategory::CATEGORIZED_LIST.map do |category|
+      @post.tags_for_category(category).map(&:name).join(" ")
+    end.compact_blank.join(" \n")
   end
 end

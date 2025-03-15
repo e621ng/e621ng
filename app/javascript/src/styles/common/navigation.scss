@@ -237,7 +237,7 @@ body[data-th-sheader="true"] nav.navigation {
 
 
 // Forum notification
-body[data-th-forumnotif="true"] nav.navigation .nav-primary li.forum-updated {
+nav.navigation .nav-primary li.notification {
   position: relative;
 
   &::after {

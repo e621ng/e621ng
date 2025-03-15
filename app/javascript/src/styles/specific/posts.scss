@@ -350,21 +350,6 @@ section#image-extra-controls {
   margin: 0.5em 0;
 }
 
-section#tag-list {
-  word-break: break-word;
-}
-
-#tag-list > ul {
-  margin-bottom: $padding-025;
-}
-
-.tag-list-header {
-  cursor: pointer;
-  &.hidden-category::before {
-    content: "► ";
-  }
-}
-
 .image-vote-buttons {
   .post-score {
     padding: 0 $padding-050;
