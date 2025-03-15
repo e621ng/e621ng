@@ -18,6 +18,7 @@ table.striped {
 
         &.full-width-link {
           padding: 0;
+          word-break: break-word;
 
           > a {
             width: 100%;
