@@ -746,6 +746,9 @@ class User < ApplicationRecord
       user_status.ticket_count
     end
 
+    ## !DB
+    # UserFeedback entries for the user.
+    # Preferable to using individual methods below, since these are almost always displayed together.
     def feedback_pieces
       @feedback_pieces ||= begin
         count = {
@@ -753,6 +756,8 @@ class User < ApplicationRecord
           negative: 0,
           neutral: 0,
           positive: 0,
+
+          active: 0,
         }
 
         feedback.each do |one|
@@ -764,24 +769,26 @@ class User < ApplicationRecord
           count[one.category.to_sym] += 1
         end
 
+        count[:active] = count[:negative] + count[:neutral] + count[:positive]
+
         count
       end
     end
 
     def positive_feedback_count
-      feedback.active.positive.count
+      feedback_pieces[:positive]
     end
 
     def neutral_feedback_count
-      feedback.active.neutral.count
+      feedback_pieces[:neutral]
     end
 
     def negative_feedback_count
-      feedback.active.negative.count
+      feedback_pieces[:negative]
     end
 
     def deleted_feedback_count
-      feedback.deleted.count
+      feedback_pieces[:deleted]
     end
 
     def post_replacement_rejected_count
@@ -966,5 +973,12 @@ class User < ApplicationRecord
     elsif name =~ /\A[0-9]+\z/
       "cannot consist of numbers only"
     end
+  end
+
+  def reload(options = nil)
+    super
+    @upload_limit_pieces = nil
+    @feedback_pieces = nil
+    self
   end
 end
