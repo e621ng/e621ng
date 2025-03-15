@@ -49,40 +49,6 @@ class TagSetPresenter < Presenter
     end.compact_blank.join(" \n")
   end
 
-  def humanized_essential_tag_string(category_list: TagCategory::HUMANIZED_LIST, default: "")
-    return @_humanized if @_cached[:humanized]
-    strings = category_list.map do |category|
-      mapping = TagCategory::HUMANIZED_MAPPING[category]
-      max_tags = mapping["slice"]
-      regexmap = mapping["regexmap"]
-      formatstr = mapping["formatstr"]
-      excluded_tags = mapping["exclusion"]
-
-      type_tags = tags_for_category(category).map(&:name) - excluded_tags
-      next if type_tags.empty?
-
-      if max_tags > 0 && type_tags.length > max_tags
-        type_tags = type_tags.sort_by {|x| -x.size}.take(max_tags) + ["etc"]
-      end
-
-      if regexmap != //
-        type_tags = type_tags.map { |tag| tag.match(regexmap)[1] }
-      end
-
-      if category == "copyright" && tags_for_category("character").blank?
-        type_tags.to_sentence
-      else
-        formatstr % type_tags.to_sentence
-      end
-    end
-
-    strings = strings.compact.join(" ").tr("_", " ")
-    output = strings.blank? ? default : strings
-    @_humanized = output
-    @_cached[:humanized] = true
-    output
-  end
-
   private
 
   def tags
