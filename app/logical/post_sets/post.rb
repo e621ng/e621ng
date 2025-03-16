@@ -75,5 +75,16 @@ module PostSets
     def presenter
       @presenter ||= ::PostSetPresenters::Post.new(self)
     end
+
+    def related_tags
+      @related_tags ||= begin
+        tag_array = RelatedTagCalculator.calculate_from_posts_to_array(posts).map(&:first)
+        tag_data = Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+
+        tag_array.map do |name|
+          tag_data[name] || Tag.new(name: name).freeze
+        end
+      end
+    end
   end
 end

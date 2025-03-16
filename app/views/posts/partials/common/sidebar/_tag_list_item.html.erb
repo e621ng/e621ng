@@ -1,0 +1,38 @@
+<li class="category-<%= tag.category %>">
+  <a
+    class="wiki-link"
+    rel="nofollow"
+    href="<%= (tag.category == Tag.categories.artist ? "/artists/show_or_new?name=" : "/wiki_pages/show_or_new?title=") + tag.name %>"
+  >?</a>
+
+  <% if query.present? %>
+    <a rel="nofollow" href="/posts?tags=#{u(current_query)}+#{u(name)}" class="search-inc-tag">+</a>
+    <a rel="nofollow" href="/posts?tags=#{u(current_query)}+-#{u(name)}" class="search-exl-tag">–</a>
+  <% end %>
+
+  <a
+    rel="nofollow"
+    class="search-tag"
+    <%= "itemprop=author" if tag.category == Tag.categories.artist %>
+    href="<%= posts_path(tags: tag.name) %>"
+  >
+    <%= tag.name.tr("_", " ") %>
+    <% if post.present? && post.uploader_linked_artists.include?(tag.name) %>
+      <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
+    <% end %>
+  </a>
+
+  <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
+  <% post_count = tag.post_count %>
+  <% if post_count > 1_000 %>
+    <% post_count = tag.post_count > 10_000 ? "#{post_count / 1_000}k" : format("%.1fk", (tag.post_count / 1_000.0)) %>
+  <% end %>
+
+  <span
+    data-count='#{count}'
+    class="color-muted post-count<%= is_underused_tag ? " low-post-count" : "" %>"
+    <% if is_underused_tag %>
+      title="New general tag detected. Check the spelling or populate it now."
+    <% end %>
+  ><%= post_count %></span>
+</li>
