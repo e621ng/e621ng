@@ -1,4 +1,4 @@
-<details id="description" <%= 'open' unless CurrentUser.description_collapsed_initially? %>>
+<details id="description" <%= "open" unless CurrentUser.description_collapsed_initially? %>>
   <summary>Description</summary>
   <div>
     <%= format_text(@post.description, max_thumbs: 0) %>

@@ -1,17 +1,17 @@
 <% unless CurrentUser.user.is_janitor? %>
   <div style="margin-bottom: 1em;">
-    <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(:id => "e621:tags") %>.</p>
+    <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
   </div>
 <% end %>
 
-<%= custom_form_for(post, :html => { id: "form" }) do |f| %>
+<%= custom_form_for(post, html: { id: "form" }) do |f| %>
   <%= hidden_field_tag :tags_query, params[:q] %>
   <%= hidden_field_tag :pool_id, params[:pool_id] %>
   <%= hidden_field_tag :post_set_id, params[:post_set_id] %>
-  <%= f.hidden_field :old_tag_string, :value => post.tag_string %>
-  <%= f.hidden_field :old_parent_id, :value => post.parent_id %>
-  <%= f.hidden_field :old_source, :value => post.source %>
-  <%= f.hidden_field :old_rating, :value => post.rating %>
+  <%= f.hidden_field :old_tag_string, value: post.tag_string %>
+  <%= f.hidden_field :old_parent_id, value: post.parent_id %>
+  <%= f.hidden_field :old_source, value: post.source %>
+  <%= f.hidden_field :old_rating, value: post.rating %>
 
   <div class="input" id="tags-container">
     <div class="header">

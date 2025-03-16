@@ -1,6 +1,6 @@
 <% content_for(:nav_links_section) do %>
   <% if post.presenter.has_sequential_navigation?(params) %>
-    <%= render "posts/partials/show/content/nav_links/search_seq", :post => post %>
+    <%= render "posts/partials/show/content/nav_links/search_seq", post: post %>
   <% end %>
 
   <% if post.has_active_pools? %>
