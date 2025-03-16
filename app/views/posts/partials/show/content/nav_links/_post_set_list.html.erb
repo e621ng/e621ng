@@ -1,0 +1,7 @@
+<div class="nav-block set-nav">
+  <ul>
+    <% post_sets.each do |set| %>
+      <%= render "posts/partials/show/content/nav_links/post_set_list_item", post_set: set, post: post, selected: is_post_set_selected?(set) %>
+    <% end %>
+  </ul>
+</div>

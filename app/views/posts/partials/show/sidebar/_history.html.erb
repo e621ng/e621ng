@@ -1,0 +1,6 @@
+<ul>
+  <li><%= link_to "Tags/Desc", post_versions_path(search: { post_id: @post.id }) %></li>
+  <li><%= link_to "Notes", note_versions_path(search: { post_id: @post.id }) %></li>
+  <li><%= link_to "Events", post_events_path(search: { post_id: @post.id }) %></li>
+  <li><%= link_to "Replacements", post_replacements_path(search: { post_id: @post.id }) %></li>
+</ul>
