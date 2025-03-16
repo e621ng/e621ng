@@ -2,7 +2,7 @@
   <% typetags = post.categorized_tags[category_name] %>
   <% next unless typetags %>
 
-  <h2 class="<%= category_name %>-tag-list-header tag-list-header" data-category="<%= category_name %>"><%= TagCategory::HEADER_MAPPING[category_name] %></h2>
+  <h5 class="<%= category_name %>-tag-list-header tag-list-header" data-category="<%= category_name %>"><%= TagCategory::HEADER_MAPPING[category_name] %></h5>
   <ul class="<%= category_name %>-tag-list">
     <% typetags.each do |tag| %>
       <li class="category-<%= tag.category %>">

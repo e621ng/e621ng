@@ -1,4 +1,17 @@
 body.c-posts.a-show {
+  #page {
+    // Override the theme to instead
+    // project it upon the content area
+    background: themed("color-foreground");
+    padding: 0;
+  }
+
+  #page, #c-posts, #a-show {
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+  }
+
   @import "partials/post_information";
   @import "partials/tag_list";
 }

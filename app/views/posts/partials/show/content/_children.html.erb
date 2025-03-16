@@ -1,0 +1,13 @@
+<% if @post.parent_id && @post.parent_exists? %>
+  <div class="notice notice-child">
+    <%= has_parent_message(@post, @parent_post_set) %>
+    <div id="has-parent-relationship-preview" style="display: none;"><%= @parent_post_set.presenter.post_previews_html(self) %></div>
+  </div>
+<% end %>
+
+<% if @post.has_visible_children? %>
+  <div class="notice notice-parent">
+    <%= has_children_message(@post, @children_post_set) %>
+    <div id="has-children-relationship-preview" style="display: none;"><%= @children_post_set.presenter.post_previews_html(self) %></div>
+  </div>
+<% end %>
