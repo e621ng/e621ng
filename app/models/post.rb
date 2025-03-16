@@ -905,14 +905,14 @@ class Post < ApplicationRecord
     # List of post tags, grouped by their category.
     # Sends a db request to look up the tag data.
     def categorized_tags
-      return @categorized_tags if @categorized_tags
+      @categorized_tags ||= begin
+        tag_data = Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+        ordered = tag_array.map do |name|
+          tag_data[name] || Tag.new(name: name).freeze
+        end
 
-      tag_data ||= Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
-      ordered = tag_array.map do |name|
-        tag_data[name] || Tag.new(name: name).freeze
+        ordered.group_by(&:category_name)
       end
-
-      @categorized_tags ||= ordered.group_by(&:category_name)
     end
 
     ##
