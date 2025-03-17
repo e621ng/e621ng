@@ -478,7 +478,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/views/post_events/_search.html.erb'
     - 'config/application.rb'
     - 'config/routes.rb'
-    - 'test/factories/tag.rb'
     - 'test/factories/user.rb'
     - 'test/functional/forum_topics_controller_test.rb'
     - 'test/unit/post_replacement_test.rb'

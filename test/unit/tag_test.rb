@@ -38,12 +38,16 @@ class TagTest < ActiveSupport::TestCase
       assert_nothing_raised {Tag.categories}
     end
 
-    should "have convenience methods for the four main categories" do
+    should "have convenience methods for all categories" do
       assert_equal(0, Tag.categories.general)
       assert_equal(1, Tag.categories.artist)
+      assert_equal(2, Tag.categories.contributor)
       assert_equal(3, Tag.categories.copyright)
       assert_equal(4, Tag.categories.character)
+      assert_equal(5, Tag.categories.species)
+      assert_equal(6, Tag.categories.invalid)
       assert_equal(7, Tag.categories.meta)
+      assert_equal(8, Tag.categories.lore)
     end
 
     should "have a regular expression for matching category names and shortcuts" do
