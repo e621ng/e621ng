@@ -89,16 +89,23 @@ export default class User {
 
   /** @returns {number} User level ID */
   static get level () { return this._get().level; }
-  
+
   /** @returns {number} User level */
   static get levelString () { return this._get().levelString; }
-  
+
   /** @returns {number} Maximum comment score before it is filtered out */
   static get commentThreshold () { return this._get().commentThreshold; }
 
+  /** @returns {{tags: string[], users: boolean}} Blacklist data */
   static get blacklist () { return this._get().blacklist; }
+
+  /** @returns {object} */
   static get posts () { return this._get().posts; }
+
+  /** @returns {object} */
   static get can () { return this._get().can; }
+
+  /** @returns {object} */
   static get is () { return this._get().is; }
 
   static async addBlacklistedTag(tag) {
@@ -126,7 +133,7 @@ export default class User {
           reject("Unable to authorize request");
           return;
         }
-  
+
         // TODO user anon
         $.ajax(`/users/${this.id}.json`, {
           method: "PUT",
@@ -134,15 +141,15 @@ export default class User {
             "user[blacklisted_tags]": this.blacklist.tags.join("\n"),
           },
         })
-        .done(() => { resolve(); })
-        .fail((error) => { reject(error); });
+          .done(() => { resolve(); })
+          .fail((error) => { reject(error); });
       }
     }).then(
       () => {
         // Reload the dialog editor box
         $("#blacklist-edit-dialog").dialog("close");
         $("meta[name=blacklisted-tags]").attr("content", JSON.stringify(this.blacklist.tags));
-        
+
         // Rebuild the filters
         Blacklist.regenerate_filters();
         Blacklist.add_posts(PostCache.sample());
