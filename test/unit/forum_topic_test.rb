@@ -110,7 +110,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       should "create a matching forum post" do
         assert_difference(["ForumTopic.count", "ForumPost.count"], 1) do
           @topic = create(:forum_topic, title: "abc", original_post_attributes: { body: "abc" })
-       end
+        end
       end
     end
 
@@ -120,8 +120,8 @@ class ForumTopicTest < ActiveSupport::TestCase
     end
 
     should "be searchable by category id" do
-      assert_equal(0, ForumTopic.search(:category_id => 0).count)
-      assert_equal(1, ForumTopic.search(:category_id => Danbooru.config.alias_implication_forum_category).count)
+      assert_equal(0, ForumTopic.search(category_id: 0).count)
+      assert_equal(1, ForumTopic.search(category_id: Danbooru.config.alias_implication_forum_category).count)
     end
 
     should "initialize its creator" do
@@ -135,7 +135,7 @@ class ForumTopicTest < ActiveSupport::TestCase
       end
 
       should "record its updater" do
-        @topic.update(:title => "abc")
+        @topic.update(title: "abc")
         assert_equal(@second_user.id, @topic.updater_id)
       end
     end

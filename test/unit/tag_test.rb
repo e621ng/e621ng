@@ -26,7 +26,7 @@ class TagTest < ActiveSupport::TestCase
     should "fetch for multiple tags" do
       create(:artist_tag, name: "aaa")
       create(:copyright_tag, name: "bbb")
-      categories = Tag.categories_for(%w(aaa bbb ccc))
+      categories = Tag.categories_for(%w[aaa bbb ccc])
       assert_equal(Tag.categories.artist, categories["aaa"])
       assert_equal(Tag.categories.copyright, categories["bbb"])
       assert_nil(categories["ccc"])
@@ -35,7 +35,7 @@ class TagTest < ActiveSupport::TestCase
 
   context "A tag category mapping" do
     should "exist" do
-      assert_nothing_raised {Tag.categories}
+      assert_nothing_raised { Tag.categories }
     end
 
     should "have convenience methods for all categories" do
@@ -140,7 +140,7 @@ class TagTest < ActiveSupport::TestCase
       assert_equal(1, post.tag_count_general)
       assert_equal(0, post.tag_count_character)
 
-      tag = Tag.find_by_normalized_name('test')
+      tag = Tag.find_by_normalized_name("test")
       with_inline_jobs { tag.update_attribute(:category, 4) }
       assert_equal tag.errors.full_messages, []
       post.reload

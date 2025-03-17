@@ -39,14 +39,6 @@ Layout/BeginEndAlignment:
   Exclude:
     - 'app/models/post_flag.rb'
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyleAlignWith.
-# SupportedStylesAlignWith: either, start_of_block, start_of_line
-Layout/BlockAlignment:
-  Exclude:
-    - 'test/unit/forum_topic_test.rb'
-
 # Offense count: 14
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, IndentOneStep, IndentationWidth.
@@ -279,7 +271,6 @@ Layout/IndentationWidth:
     - 'app/models/bulk_update_request.rb'
     - 'app/models/tag_implication.rb'
     - 'app/models/user.rb'
-    - 'test/unit/forum_topic_test.rb'
 
 # Offense count: 27
 # This cop supports safe autocorrection (--autocorrect).
@@ -357,12 +348,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/logical/storage_manager.rb'
     - 'app/models/artist.rb'
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-Layout/SpaceAroundKeyword:
-  Exclude:
-    - 'test/functional/comments_controller_test.rb'
-
 # Offense count: 38
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowForAlignment, EnforcedStyleForExponentOperator, EnforcedStyleForRationalLiterals.
@@ -385,9 +370,7 @@ Layout/SpaceAroundOperators:
     - 'app/views/static/_footer.html.erb'
     - 'app/views/takedowns/show.html.erb'
     - 'app/views/uploads/new.html.erb'
-    - 'test/unit/post_replacement_test.rb'
     - 'test/unit/post_test.rb'
-    - 'test/unit/related_tag_calculator_test.rb'
 
 # Offense count: 38
 # This cop supports safe autocorrection (--autocorrect).
@@ -401,7 +384,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/tag_relationship.rb'
     - 'app/models/user.rb'
     - 'app/views/moderator/ip_addrs/_ip_listing.html.erb'
-    - 'test/unit/post_replacement_test.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
@@ -478,11 +460,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/views/post_events/_search.html.erb'
     - 'config/application.rb'
     - 'config/routes.rb'
-    - 'test/factories/user.rb'
-    - 'test/functional/forum_topics_controller_test.rb'
-    - 'test/unit/post_replacement_test.rb'
-    - 'test/unit/tag_test.rb'
-    - 'test/unit/user_test.rb'
 
 # Offense count: 810
 # This cop supports safe autocorrection (--autocorrect).
@@ -585,7 +562,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/views/users/index.html.erb'
     - 'app/views/users/new.html.erb'
     - 'app/views/wiki_pages/show_or_new.html.erb'
-    - 'test/factories/mod_action.rb'
     - 'test/functional/artists_controller_test.rb'
     - 'test/functional/bans_controller_test.rb'
     - 'test/functional/bulk_update_requests_controller_test.rb'
@@ -687,14 +663,6 @@ Lint/DuplicateMethods:
   Exclude:
     - 'app/models/bulk_update_request.rb'
     - 'app/models/wiki_page.rb'
-
-# Offense count: 3
-# Configuration parameters: AllowComments, AllowEmptyLambdas.
-Lint/EmptyBlock:
-  Exclude:
-    - 'test/factories/forum_subscription.rb'
-    - 'test/factories/forum_topic_visit.rb'
-    - 'test/factories/upload_whitelist.rb'
 
 # Offense count: 4
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -865,8 +833,6 @@ Lint/UnusedBlockArgument:
     - 'config/initializers/content_security_policy.rb'
     - 'config/routes.rb'
     - 'config/unicorn/production.rb'
-    - 'test/factories/ban.rb'
-    - 'test/factories/bulk_update_request.rb'
     - 'test/unit/storage_manager_test.rb'
 
 # Offense count: 20
@@ -965,7 +931,6 @@ Naming/AccessorMethodName:
 Naming/BlockForwarding:
   Exclude:
     - 'app/logical/maintenance.rb'
-    - 'test/unit/post_event_test.rb'
 
 # Offense count: 1
 Naming/ConstantName:
@@ -1751,7 +1716,6 @@ Style/HashSyntax:
     - 'app/views/wiki_pages/show_or_new.html.erb'
     - 'config/initializers/secret_token.rb'
     - 'config/routes.rb'
-    - 'test/factories/mod_action.rb'
     - 'test/functional/dmails_controller_test.rb'
     - 'test/functional/favorites_controller_test.rb'
     - 'test/functional/forum_posts_controller_test.rb'
@@ -2475,8 +2439,6 @@ Style/StringLiterals:
     - 'db/fixes/105_modaction_to_postevents.rb'
     - 'db/fixes/106_note_ranges.rb'
     - 'db/fixes/107_remove_name_change_tickets.rb'
-    - 'test/factories/mod_action.rb'
-    - 'test/factories/upload.rb'
     - 'test/functional/post_replacements_controller_test.rb'
     - 'test/models/upload_service_test.rb'
     - 'test/unit/apng_inspector_test.rb'
@@ -2565,7 +2527,6 @@ Style/SymbolArray:
     - 'app/views/takedowns/_editor.html.erb'
     - 'config/initializers/filter_parameter_logging.rb'
     - 'config/routes.rb'
-    - 'test/factories/user.rb'
     - 'test/unit/post_event_test.rb'
     - 'test/unit/storage_manager_test.rb'
 
@@ -2584,7 +2545,6 @@ Style/SymbolProc:
     - 'app/models/user.rb'
     - 'app/views/comments/_index_by_post.html.erb'
     - 'db/fixes/100_new_iqdb_import.rb'
-    - 'test/factories/post.rb'
 
 # Offense count: 23
 # This cop supports safe autocorrection (--autocorrect).

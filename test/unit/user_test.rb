@@ -36,8 +36,8 @@ class UserTest < ActiveSupport::TestCase
     should "not validate if the originating ip address is banned" do
       assert_raises ActiveRecord::RecordInvalid do
         as(User.anonymous, "1.2.3.4") do
-          create(:ip_ban, ip_addr: '1.2.3.4')
-          create(:user, last_ip_addr: '1.2.3.4')
+          create(:ip_ban, ip_addr: "1.2.3.4")
+          create(:user, last_ip_addr: "1.2.3.4")
         end
       end
     end
@@ -111,7 +111,7 @@ class UserTest < ActiveSupport::TestCase
       @user = create(:user)
       @user.mark_unverified!
       assert(!@user.is_verified?)
-      assert_nothing_raised {@user.mark_verified!}
+      assert_nothing_raised { @user.mark_verified! }
       assert(@user.is_verified?)
     end
 
@@ -303,8 +303,8 @@ class UserTest < ActiveSupport::TestCase
         user3 = create(:user, name: "bar123baz")
 
         assert_equal([user2.id, user1.id], User.search(name_matches: "foo*").map(&:id))
-        assert_equal([user2.id], User.search(name_matches: "foo\*bar").map(&:id))
-        assert_equal([user3.id], User.search(name_matches: "bar\*baz").map(&:id))
+        assert_equal([user2.id], User.search(name_matches: "foo*bar").map(&:id))
+        assert_equal([user3.id], User.search(name_matches: "bar*baz").map(&:id))
       end
     end
 

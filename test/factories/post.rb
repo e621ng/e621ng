@@ -2,9 +2,7 @@
 
 FactoryBot.define do
   factory(:post) do
-    sequence :md5 do |n|
-      n.to_s
-    end
+    sequence :md5, &:to_s
     uploader { create(:user, created_at: 2.weeks.ago) }
     uploader_ip_addr { "127.0.0.1" }
     tag_string { "tag1 tag2" }
