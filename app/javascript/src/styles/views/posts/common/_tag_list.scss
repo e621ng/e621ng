@@ -1,0 +1,85 @@
+h5.tag-list-header {
+  font-size: 1.25rem;
+  cursor: pointer;
+
+  &.hidden-category::before {
+    content: "► ";
+  }
+}
+
+ul.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.25rem;
+  margin: 0.25rem 0;
+
+  font-size: 1.1rem;
+
+  li {
+    display: flex;
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      padding: 0.125rem 0.5rem 0.125rem 0.5rem;
+      color: palette("plain-black");
+    }
+
+    @each $tag-category, $tag-category-name in $tag-categories {
+      &.tag-#{$tag-category-name} {
+        a, a:link, a:visited { background: themed("color-tag-#{$tag-category-name}"); }
+        a:hover { background: themed("color-tag-#{$tag-category-name}-alt"); }
+      }
+    }
+  }
+
+  // 1 wiki: desktop
+  .tag-list-wiki {
+    display: none; // flex
+    align-self: flex-start;
+    padding-right: 0.5rem;
+  }
+
+  // 2 tag: both
+  .tag-list-search {
+    @include st-radius;
+    
+    svg {
+      color: palette("plain-black");
+      .check { color: themed("color-section"); }
+    }
+  }
+
+  // 3 count: both
+  .tag-list-count {
+    font-size: 0.75em;
+    border-left: 1px solid themed("color-section");
+    padding-left: 0.5rem;
+  }
+
+  // 4 actions: desktop
+  .tag-list-actions {
+    display: none; // flex
+    align-self: flex-start;
+
+    margin-left: auto;
+    padding-left: 0.5rem;
+
+    button {
+      display: none; // flex
+      background: unset;
+      padding: 0;
+
+      vertical-align: middle;
+      color: themed("color-link");
+      &:hover, &:active { color: themed("color-link-hover"); }
+
+      svg {
+        height: 1rem;
+        width: 1rem;
+      }
+    }
+  }
+}

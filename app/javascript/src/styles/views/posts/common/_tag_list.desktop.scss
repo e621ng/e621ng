@@ -1,0 +1,68 @@
+h5.tag-list-header {
+  font-size: 0.85rem;
+}
+
+ul.tag-list {
+  font-size: 0.85rem;
+  line-height: 1rem;
+
+  flex-flow: column;
+  margin: 0 -0.5rem 0.25rem 0;
+  gap: 0;
+
+  li {
+    gap: 0;
+    padding-right: 1rem;
+
+    a {
+      display: block;
+      padding: 0;
+      line-height: 1rem;
+    }
+
+    @each $tag-category, $tag-category-name in $tag-categories {
+      &.tag-#{$tag-category-name} {
+        a, a:link, a:visited {
+          background: unset;
+          color: themed("color-tag-#{$tag-category-name}");
+        }
+        a:hover {
+          background: unset;
+          color: themed("color-tag-#{$tag-category-name}-alt");
+        }
+      }
+    }
+
+    .tag-list-wiki { display: flex; }
+  
+    .tag-list-search {
+      border-radius: 0;
+  
+      svg {
+        color: themed("color-tag-artist");
+        .check { color: themed("color-text"); }
+      }
+    }
+  
+    .tag-list-count {
+      padding: unset;
+      margin: unset;
+      color: themed("color-text-muted");
+      font-size: 0.85em;
+    }
+
+    .tag-list-actions { display: flex; }
+
+    &:hover, &.blacklisted {
+      padding-right: 0;
+      .tag-list-quick-blacklist { display: flex; }
+    }
+    &.blacklisted {
+      .tag-list-quick-blacklist svg {
+        color: themed("color-text-muted");
+        &:hover { color: themed("color-link-hover"); }
+        .line { color: transparent; }
+      }
+    }
+  }
+}

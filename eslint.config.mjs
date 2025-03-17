@@ -43,7 +43,7 @@ export default [
       "line-comment-position": "off",
       "linebreak-style": "error",
       "lines-around-comment": "off",
-      "lines-between-class-members": "warn",
+      "lines-between-class-members": ["warn", { exceptAfterSingleLine: "never" }],
       // "max-len": ["warn", { code: 100, tabWidth: 2, ignoreComments: true }], // Might get annoying, see https://eslint.style/rules/js/max-len
       "max-statements-per-line": "warn",
       "multiline-comment-style": "off",
