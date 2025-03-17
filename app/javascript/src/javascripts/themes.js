@@ -36,7 +36,6 @@ Theme.initialize_selector = function () {
         .val(LStorage[label][one] + "")
         .on("change", (event) => {
           const data = event.target.value;
-          console.log("change", one, data);
           Theme[one] = data;
         });
   }
