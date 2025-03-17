@@ -14,7 +14,6 @@
 
       <% if @post_set.related_tags.any? %>
         <section id="tag-box">
-          <h3>Tags</h3>
           <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: params[:tags] } %>
         </section>
       <% end %>

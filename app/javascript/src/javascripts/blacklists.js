@@ -1,5 +1,6 @@
 import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
+import User from "./models/User";
 import Utility from "./utility";
 import Page from "./utility/page";
 import LStorage from "./utility/storage";
@@ -47,29 +48,9 @@ Blacklist.init_blacklist_editor = function () {
 
   $("#blacklist-save").on("click", function () {
     const blacklist_content = $("#blacklist-edit").val();
-    const blacklist_json = JSON.stringify(blacklist_content.split(/\n\r?/));
-    if (Blacklist.isAnonymous) {
-      LStorage.Blacklist.AnonymousBlacklist = blacklist_json;
-    } else {
-      $.ajax("/users/" + Utility.meta("current-user-id") + ".json", {
-        method: "PUT",
-        data: {
-          "user[blacklisted_tags]": blacklist_content,
-        },
-      }).done(function () {
-        Utility.notice("Blacklist updated");
-      }).fail(function () {
-        Utility.error("Failed to update blacklist");
-      });
-    }
-
-    $("#blacklist-edit-dialog").dialog("close");
-    $("meta[name=blacklisted-tags]").attr("content", blacklist_json);
-
-    // Start from scratch
-    Blacklist.regenerate_filters();
-    Blacklist.add_posts(PostCache.sample());
-    Blacklist.update_visibility();
+    const blacklist_json = blacklist_content.split(/\n\r?/);
+    User.blacklist.tags = blacklist_json;
+    User.saveBlacklist();
   });
 
   $("#blacklist-edit-link").on("click", function (event) {
@@ -93,15 +74,7 @@ Blacklist.regenerate_filters = function () {
   Blacklist.filters = {};
 
   // Attempt to create filters from text
-  let blacklistText;
-  try {
-    blacklistText = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
-  } catch (error) {
-    console.error(error);
-    blacklistText = [];
-  }
-
-  for (let entry of blacklistText) {
+  for (let entry of User.blacklist.tags) {
     const line = Filter.create(entry);
     if (line) Blacklist.filters[line.text] = line;
   }
@@ -153,6 +126,28 @@ Blacklist.init_blacklist_toggles = function () {
 
   $(".blacklist-ui").each((index, element) => {
     Blacklist.ui.push(new BlacklistUI($(element)));
+  });
+};
+
+Blacklist.init_quick_blacklist = function () {
+  for (const one of User.blacklist.tags) {
+    if (one.includes(" ")) continue;
+    console.log("one", one);
+    $(`li.tag-list-item[data-name='${one}`).addClass("blacklisted");
+  }
+
+  $(".tag-list-actions button").on("click", (event) => {
+    const target = $(event.currentTarget);
+    const tag = target.data("tag");
+    if (!tag) return;
+
+    if (User.blacklist.tags.includes(tag)) {
+      User.removeBlacklistedTag(tag);
+      target.parents(".tag-list-item").removeClass("blacklisted");
+    } else {
+      User.addBlacklistedTag(tag);
+      target.parents(".tag-list-item").addClass("blacklisted");
+    }
   });
 };
 
@@ -232,6 +227,7 @@ $(() => {
 
   Blacklist.init_comment_blacklist();
   Blacklist.init_blacklist_toggles();
+  Blacklist.init_quick_blacklist();
 
   // Pause videos when blacklisting
   // This seems extraordinarily uncommon, so it's here

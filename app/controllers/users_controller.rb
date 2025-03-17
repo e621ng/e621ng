@@ -95,8 +95,6 @@ class UsersController < ApplicationController
     @user.update(user_params(:update))
     if @user.errors.any?
       flash[:notice] = @user.errors.full_messages.join("; ")
-    else
-      flash[:notice] = "Settings updated"
     end
     respond_with(@user) do |format|
       format.html { redirect_back fallback_location: edit_user_path(@user) }
