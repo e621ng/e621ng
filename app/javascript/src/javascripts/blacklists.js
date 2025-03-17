@@ -8,6 +8,7 @@ import LStorage from "./utility/storage";
 let Blacklist = {};
 
 Blacklist.isAnonymous = false;
+Blacklist.isPostsShow = false;
 Blacklist.filters = {};
 
 Blacklist.hiddenPosts = new Set();
@@ -66,6 +67,9 @@ Blacklist.init_reveal_on_click = function () {
   if (!$("#c-posts #a-show").length) return;
   $("#image-container").on("click", (event) => {
     $(event.currentTarget).removeClass("blacklisted");
+
+    $("#note-container").css("visibility", "visible");
+    Danbooru.Note.Box.scale_all();
   });
 };
 
@@ -194,6 +198,17 @@ Blacklist.update_visibility = function () {
     PostCache.apply(postID, ($element) => {
       $element.removeClass("blacklisted").trigger("blk:show");
     });
+
+  // Toggle notes on the posts#show page
+  if (!Blacklist.isPostsShow) return;
+
+  const container = $("#image-container");
+  if (container.hasClass("blacklisted")) {
+    $("#note-container").css("visibility", "hidden");
+  } else {
+    $("#note-container").css("visibility", "visible");
+    Danbooru.Note.Box.scale_all();
+  }
 };
 
 /**
@@ -214,6 +229,8 @@ Blacklist.update_styles = function () {
 };
 
 $(() => {
+  Blacklist.isPostsShow = $("#image-container").length > 0;
+
   Blacklist.init_anonymous_blacklist();
   Blacklist.init_blacklist_editor();
   Blacklist.init_reveal_on_click();
