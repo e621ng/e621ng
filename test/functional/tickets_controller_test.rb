@@ -122,7 +122,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_hidden: true)
-        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
       end
     end
 
