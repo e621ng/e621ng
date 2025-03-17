@@ -1,10 +1,25 @@
+#c-users #a-show,
+#c-users #a-upload-limit {
+  display: flex;
+  flex-flow: column;
+  gap: 0.75rem;
+
+  & > div {
+    max-width: 100rem;
+    box-sizing: border-box;
+  }
+
+  .blacklist-ui { padding: 0; }
+}
+
 body.c-users.a-show {
 
   @import "partials/about";
   @import "partials/ban_banner";
-  @import "partials/card";
   @import "partials/post_summary";
   @import "partials/profile_section";
   @import "partials/staff_info";
   @import "partials/user_info";
 }
+
+@import "partials/card";

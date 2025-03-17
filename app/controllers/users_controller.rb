@@ -41,12 +41,11 @@ class UsersController < ApplicationController
   end
 
   def upload_limit
-    @presenter = UserPresenter.new(CurrentUser.user)
-    pieces = CurrentUser.upload_limit_pieces
-    @approved_count = pieces[:approved]
-    @deleted_count = pieces[:deleted]
-    @pending_count = pieces[:pending]
-    respond_with(CurrentUser.user)
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @presenter = UserPresenter.new(@user)
+
+    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"#{name}\" not found.")
+    respond_with(@user, methods: @user.full_attributes)
   end
 
   def show

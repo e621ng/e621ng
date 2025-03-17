@@ -304,10 +304,13 @@ Rails.application.routes.draw do
     resource :password, :only => [:edit], :controller => "maintenance/user/passwords"
     resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
+    member do
+      get :upload_limit
+    end
+
     collection do
       get :home
       get :search
-      get :upload_limit
       get :custom_style
     end
   end

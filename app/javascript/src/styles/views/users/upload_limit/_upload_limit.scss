@@ -1,0 +1,56 @@
+body.c-users.a-upload-limit {
+
+  .profile-container {
+    background: themed("color-section");
+    @include st-radius;
+    padding: 0.5rem;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .upload-limit-formula {
+    margin-bottom: 1em;
+    display: block;
+    font-size: 1rem;
+    background: var(--color-foreground);
+    width: max-content;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+
+    abbr {
+      padding: 0.5rem;
+      background: var(--color-section-lighten-5);
+      border-radius: 0.25rem;
+      line-height: 1rem;
+      text-decoration: none;
+      display: inline-flex;
+      min-width: 1rem;
+      justify-content: center;
+      cursor: pointer;
+    }
+  }
+
+  .upload-limit-explanation {
+    display: grid;
+    grid-template-columns: min-content auto;
+    gap: 1rem 0.5rem;
+
+    .ul-num {
+      padding: 0.5rem;
+      background: var(--color-section-lighten-5);
+      border-radius: 0.25rem;
+      line-height: 1rem;
+      text-decoration: none;
+      display: inline-flex;
+      min-width: 1rem;
+      justify-content: center;
+    }
+
+    .ul-exp {
+      align-items: center;
+    }
+  }
+
+}

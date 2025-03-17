@@ -17,10 +17,11 @@
     gap: 0.5rem;
     align-items: center;
 
-    a {
+    a, a:link {
       color: themed("color-text");
       font-size: 1.25rem;
     }
+    a:hover, a:active { color: themed("color-link-hover"); }
   }
 
   .profile-joined {
