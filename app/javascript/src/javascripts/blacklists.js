@@ -132,7 +132,6 @@ Blacklist.init_blacklist_toggles = function () {
 Blacklist.init_quick_blacklist = function () {
   for (const one of User.blacklist.tags) {
     if (one.includes(" ")) continue;
-    console.log("one", one);
     $(`li.tag-list-item[data-name='${one}`).addClass("blacklisted");
   }
 

@@ -1,3 +1,5 @@
+@use "sass:math";
+
 // Standard button
 // Could be applied to either a button or a link
 // Semi-expected to have an icon
@@ -11,7 +13,7 @@
   $button-stealth-color-hover: themed("color-link-hover");
 
   display: flex;
-  gap: st-value(100) / 4;
+  gap: math.div(st-value(100), 4);
   border-radius: radius(025);
 
   // Button final size
@@ -19,7 +21,7 @@
   // Padding  2 * 0.5rem
   font-size: st-value(100);
   line-height: st-value(100);
-  padding: st-value(100) / 2;
+  padding: math.div(st-value(100), 2);
   height: st-value(100) * 2;
   box-sizing: border-box;
 
@@ -33,8 +35,8 @@
     // with padding to fill the entire button height
     height: st-value(100) * 1.5;      // 1.5rem
     width: st-value(100) * 1.5;       // 1.5rem
-    margin: -#{st-value(100) / 2} 0;  // 0.5rem
-    padding: st-value(100) / 4;       // 0.25rem
+    margin: -#{math.div(st-value(100), 2)} 0;  // 0.5rem
+    padding: math.div(st-value(100), 4);       // 0.25rem
 
     border-radius: radius(025);
   }
@@ -51,7 +53,7 @@
 
   &.stealth {
     background: none;
-    padding: (st-value(100) / 2) 0;
+    padding: math.div(st-value(100), 2) 0;
 
     svg { background: $button-background; }
     span { color: $button-stealth-color; }
@@ -62,7 +64,7 @@
   }
 
   &.icon {
-    padding: (st-value(100) / 2) 0;
+    padding: math.div(st-value(100), 2) 0;
   }
 }
 
