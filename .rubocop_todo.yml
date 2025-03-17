@@ -465,7 +465,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/tag_alias.rb'
     - 'app/models/tag_relationship.rb'
     - 'app/models/takedown.rb'
-    - 'app/models/ticket.rb'
     - 'app/models/user.rb'
     - 'app/models/wiki_page.rb'
     - 'app/presenters/tag_set_presenter.rb'
@@ -533,7 +532,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/post_version.rb'
     - 'app/models/tag_alias.rb'
     - 'app/models/tag_implication.rb'
-    - 'app/models/ticket.rb'
     - 'app/models/upload_whitelist.rb'
     - 'app/models/user.rb'
     - 'app/models/wiki_page.rb'
@@ -883,7 +881,6 @@ Lint/UnusedMethodArgument:
     - 'app/logical/storage_manager.rb'
     - 'app/models/application_record.rb'
     - 'app/models/post.rb'
-    - 'app/models/ticket.rb'
     - 'app/presenters/post_presenter.rb'
     - 'app/presenters/user_presenter.rb'
 
@@ -999,7 +996,6 @@ Naming/MethodParameterName:
     - 'app/models/bulk_update_request.rb'
     - 'app/models/tag.rb'
     - 'app/models/tag_relationship.rb'
-    - 'app/models/ticket.rb'
     - 'app/presenters/presenter.rb'
 
 # Offense count: 11
@@ -1102,7 +1098,6 @@ Rails/ActiveRecordCallbacksOrder:
     - 'app/models/news_update.rb'
     - 'app/models/pool.rb'
     - 'app/models/post_set.rb'
-    - 'app/models/ticket.rb'
     - 'app/models/user.rb'
     - 'app/models/wiki_page.rb'
 
@@ -1444,7 +1439,6 @@ Style/BarePercentLiterals:
 Style/BlockComments:
   Exclude:
     - 'app/logical/storage_manager/match.rb'
-    - 'app/models/ticket.rb'
     - 'app/presenters/tag_set_presenter.rb'
 
 # Offense count: 1
@@ -2426,7 +2420,6 @@ Style/StringLiterals:
     - 'app/models/post_set_maintainer.rb'
     - 'app/models/tag_alias.rb'
     - 'app/models/takedown.rb'
-    - 'app/models/ticket.rb'
     - 'app/models/upload_whitelist.rb'
     - 'app/models/user.rb'
     - 'app/models/wiki_page.rb'
@@ -2652,7 +2645,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/post.rb'
     - 'app/models/post_replacement.rb'
     - 'app/models/post_version.rb'
-    - 'app/models/ticket.rb'
     - 'app/models/user.rb'
     - 'app/presenters/post_presenter.rb'
     - 'app/serializers/post_serializer.rb'
