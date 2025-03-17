@@ -4,7 +4,7 @@
   <% is_current_user = @user.id == CurrentUser.id %>
 
   <!-- Header -->
-  <%= render "/users/partials/show/card", :presenter => @presenter, :user => @user %>
+  <%= render "/users/partials/show/card", presenter: @presenter, user: @user %>
 
   <!-- Wiki -->
   <div class="profile-container dtext-container">
@@ -20,35 +20,54 @@
       <p><%= is_current_user ? "You" : link_to_user(@user) %> can currently upload <strong><%= @user.upload_limit %></strong> posts.<br />This limit is based on the following formula:</p>
 
       <span class="upload-limit-formula">
-        <%= @presenter.upload_limit(self) %>
+        <span class="upl-element"><abbr class="upl-base" title="Base Upload Limit"><%= @user.base_upload_limit %></abbr></span>
+
+        <span class="upl-math"><%= svg_icon(:plus) %></span>
+        <span class="upl-element"><abbr class="upl-approved" title="Approved Posts"><%= pieces[:approved] %></abbr> / 10</span>
+
+        <span class="upl-math"><%= svg_icon(:minus) %></span>
+        <span class="upl-element">
+          <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements\n#<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload limit">
+            <%= pieces[:deleted] %></abbr> / 4
+        </span>
+
+        <span class="upl-math"><%= svg_icon(:minus) %></span>
+        <span class="upl-element">
+          <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
+        </span>
+
+        <span class="upl-math"><%= svg_icon(:equals) %></span>
+        <span class="upl-element">
+          <abbr class="upl-total" title="User Upload Limit Remaining"><%= @user.upload_limit %></abbr>
+        </span>
       </span>
 
       <div class="upload-limit-explanation">
-        <div class="ul-num"><%= @user.base_upload_limit %></div>
+        <abbr title="Base Upload Limit" class="ul-num upl-base"><%= @user.base_upload_limit %></abbr>
         <div class="ul-exp">
           <h5>Base Limit</h5>
           <span>Default number of posts that someone with a new account could upload.</span>
         </div>
 
-        <div class="ul-num"><%= pieces[:approved] %></div>
+        <abbr title="Approved Posts" class="ul-num upl-approved"><%= pieces[:approved] %></abbr>
         <div class="ul-exp">
           <h5>Approved</h5>
           <span>Uploaded posts that had been reviewed by a staff member.</span>
         </div>
         
-        <div class="ul-num"><%= pieces[:deleted] %></div>
+        <abbr title="Deleted or Replaced Posts, Rejected Replacements" class="ul-num upl-deleted"><%= pieces[:deleted] %></abbr>
         <div class="ul-exp">
           <h5>Deleted / Replaced / Rejected</h5>
           <span>Uploads that had been rejected, one way or another.</span>
         </div>
         
-        <div class="ul-num"><%= pieces[:pending] %></div>
+        <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
         <div class="ul-exp">
           <h5>Pending / Flagged</h5>
           <span>Posts that are currently awaiting review.</span>
         </div>
         
-        <div class="ul-num"><%= @user.upload_limit %></div>
+        <abbr title="User Upload Limit Remaining" class="ul-num upl-total"><%= @user.upload_limit %></abbr>
         <div class="ul-exp">
           <h5>Upload Limit</h5>
           <span>Remaining number of posts that can be uploaded.</span>

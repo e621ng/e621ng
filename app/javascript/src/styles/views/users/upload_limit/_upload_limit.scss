@@ -11,24 +11,22 @@ body.c-users.a-upload-limit {
   }
 
   .upload-limit-formula {
-    margin-bottom: 1em;
-    display: block;
-    font-size: 1rem;
-    background: var(--color-foreground);
-    width: max-content;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 
-    abbr {
+    font-size: 1rem;
+    line-height: 1rem;
+    margin-bottom: 1em;
+
+    .upl-element {
+      display: flex;
+      align-items: center;
       padding: 0.5rem;
-      background: var(--color-section-lighten-5);
-      border-radius: 0.25rem;
-      line-height: 1rem;
-      text-decoration: none;
-      display: inline-flex;
-      min-width: 1rem;
-      justify-content: center;
-      cursor: pointer;
+      gap: 0.5rem;
+      @include st-radius;
+
+      background: themed("color-foreground");
     }
   }
 
@@ -36,21 +34,28 @@ body.c-users.a-upload-limit {
     display: grid;
     grid-template-columns: min-content auto;
     gap: 1rem 0.5rem;
+    margin-left: 0.5rem;
 
-    .ul-num {
-      padding: 0.5rem;
-      background: var(--color-section-lighten-5);
-      border-radius: 0.25rem;
-      line-height: 1rem;
-      text-decoration: none;
-      display: inline-flex;
-      min-width: 1rem;
-      justify-content: center;
-    }
+    .ul-exp { align-items: center; }
+  }
 
-    .ul-exp {
-      align-items: center;
-    }
+  .upload-limit-formula abbr, .upload-limit-explanation abbr {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 1rem;
+
+    text-decoration: none;
+    line-height: 1rem;
+    padding: 0.5rem;
+    @include st-radius;
+
+    cursor: pointer;
+
+    &.upl-base { background: palette("background-grey"); }
+    &.upl-approved { background: palette("background-green"); }
+    &.upl-deleted { background: palette("background-red"); }
+    &.upl-pending { background: palette("background-yellow"); }
+    &.upl-total { background: themed("color-section-lighten-5"); }
   }
 
 }
