@@ -51,38 +51,3 @@
 
   h3 { margin-bottom: 1em; }
 }
-
-// Password validation
-.password-input {
-  input[type="password"] {
-    border-radius: 3px 3px 0 0;
-  }
-
-  .password-strength {
-    width: 100%;
-    height: 0.25rem;
-    border-radius: 0 0 3px 3px;
-
-    background: white;
-    overflow: hidden;
-    margin: 0;
-
-    .password-progress {
-      background: linear-gradient(to right, palette("text-red") 0%, palette("text-yellow") 25%, palette("text-green") 100%);
-      background-size: 360px 100%;
-
-      height: 100%;
-      transition: width 1s ease-in-out;
-    }
-  }
-
-  .password-feedback {
-    display: flex;
-    flex-flow: column;
-    padding-left: 1em;
-    margin-top: 0.5em;
-
-    span { display: list-item; }
-    .password-warning { font-weight: bold; }
-  }
-}
