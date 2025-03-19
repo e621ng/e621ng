@@ -22,12 +22,12 @@
         <% end %>
       </p>
       You have <span class="post-uploads-remaining-count"><%= CurrentUser.post_upload_throttle %></span> uploads remaining this hour.
-      See <%= link_to "here", upload_limit_users_path %> for more details.
+      See <%= link_to "here", upload_limit_user_path(CurrentUser) %> for more details.
     </div>
   <% elsif CurrentUser.post_upload_throttle <= 5 %>
     <div id="post-uploads-remaining" class="section<% if CurrentUser.post_upload_throttle <= 0 %> background-red<% end %>" style="width:640px;">
       You have <span class="post-uploads-remaining-count"><%= CurrentUser.post_upload_throttle %></span> uploads remaining this hour.
-      See <%= link_to "here", upload_limit_users_path %> for more details.
+      See <%= link_to "here", upload_limit_user_path(CurrentUser) %> for more details.
     </div>
   <% end %>
 </div>
