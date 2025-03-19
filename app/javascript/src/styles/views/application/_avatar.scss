@@ -155,6 +155,16 @@ nav.navigation .simple-avatar-menu {
 
   &.hidden { display: none; }
 
+  h4 {
+    margin: 0.25rem 2.5rem;
+    color: themed("color-text-muted");
+    cursor: default;
+
+    font-size: 0.9rem;
+    line-height: 1rem;
+    font-weight: normal;
+  }
+
   a {
     display: flex;
     gap: 0.5rem;
@@ -163,6 +173,9 @@ nav.navigation .simple-avatar-menu {
     padding: 0.5rem 0.5rem;
     box-sizing: border-box;
     align-items: center;
+
+    font-size: 0.9rem;
+    line-height: 1rem;
 
     &:hover { background: themed("color-section-darken-5"); }
 
