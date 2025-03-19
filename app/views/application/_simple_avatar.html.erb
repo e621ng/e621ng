@@ -41,6 +41,23 @@
   </a>
   <hr />
 
+  <% if user.comment_count > 0 || user.forum_post_count > 0 %>
+    <h4>Mentions</h4>
+
+    <% if user.comment_count > 0 %>
+      <a href="<%= comments_path(group_by: :comment, search: { body_matches: user.name }) %>">
+        <%= svg_icon(:message_square) %> Comments
+      </a>
+    <% end %>
+
+    <% if user.forum_post_count > 0 %>
+      <a href="<%= forum_posts_path(search: { body_matches: user.name }) %>">
+        <%= svg_icon(:lectern) %> Forums
+      </a>
+    <% end %>
+    <hr />
+  <% end %>
+
 
   <a href="<%= session_path %>" data-method="delete">
     <%= svg_icon(:log_out) %> Sign Out
