@@ -64,7 +64,7 @@ class ModAction < ApplicationRecord
     tag_implication_update: %i[implication_id implication_desc change_desc],
     ticket_claim: %i[ticket_id],
     ticket_unclaim: %i[ticket_id],
-    ticket_update: %i[ticket_id],
+    ticket_update: %i[ticket_id status response status_was response_was],
     upload_whitelist_create: %i[pattern note hidden],
     upload_whitelist_update: %i[pattern note old_pattern hidden],
     upload_whitelist_delete: %i[pattern note hidden],
@@ -148,6 +148,10 @@ class ModAction < ApplicationRecord
         else
           sanitized_values = sanitized_values.slice("hidden", "note")
         end
+      end
+
+      if !CurrentUser.is_moderator? && %i[ticket_update].include?(action.to_sym)
+        sanitized_values = sanitized_values.slice("ticket_id")
       end
 
       sanitized_values
