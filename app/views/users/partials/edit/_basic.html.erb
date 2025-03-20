@@ -50,7 +50,7 @@
 <tab-group name="notifications">Notifications</tab-group>
 
 <tab-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account email notify notifications">
-  <tab-head>Email Notifications</tab-head>
+  <tab-head><%= form.label :receive_email_notifications, label: "Email Notifications" %></tab-head>
   <tab-body>
     <%= form.input_field :receive_email_notifications, as: :boolean, class: "st-toggle" %>
     <%= form.label :receive_email_notifications, "!", class: "st-toggle" %>
@@ -58,10 +58,10 @@
 </tab-entry>
 
 <tab-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account forum activity dot bubble toggle notify notification">
-  <tab-head>Forum Activity Dot</tab-head>
+  <tab-head><%= form.label :forum_notification_dot, label: "Forum Activity Dot" %></tab-head>
   <tab-body>
     <%= form.input_field :forum_notification_dot, as: :boolean, class: "st-toggle" %>
-    <%= form.label :forum_notification_dot, "!", class: "st-toggle" %>
+    <%= form.label :forum_notification_dot, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
 </tab-entry>
 
@@ -144,7 +144,7 @@
   <tab-head><%= form.label :hide_comments %></tab-head>
   <tab-body>
     <%= form.input_field :hide_comments, as: :boolean, class: "st-toggle" %>
-    <%= form.label :hide_comments, "!", class: "st-toggle" %>
+    <%= form.label :hide_comments, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Do not show the comments section on post pages.
@@ -155,7 +155,7 @@
   <tab-head><%= form.label :show_hidden_comments, "Show own hidden comments" %></tab-head>
   <tab-body>
     <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
-    <%= form.label :show_hidden_comments, "!", class: "st-toggle" %>
+    <%= form.label :show_hidden_comments, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Show your hidden comments on comment pages.
@@ -166,7 +166,7 @@
   <tab-head><%= form.label :enable_safe_mode, "Safe mode" %></tab-head>
   <tab-body>
     <%= form.input_field :enable_safe_mode, as: :boolean, class: "st-toggle" %>
-    <%= form.label :enable_safe_mode, "!", class: "st-toggle" %>
+    <%= form.label :enable_safe_mode, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Only show images rated safe.
