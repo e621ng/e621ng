@@ -3,8 +3,8 @@
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
-  before_action :logged_in_only, only: [:edit, :upload_limit, :update]
-  before_action :member_only, only: [:custom_style, :upload_limit]
+  before_action :logged_in_only, only: %i[edit upload_limit update]
+  before_action :member_only, only: %i[custom_style]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -44,7 +44,7 @@ class UsersController < ApplicationController
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @presenter = UserPresenter.new(@user)
 
-    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"#{name}\" not found.")
+    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"e621:upload_limit\" not found.")
     respond_with(@user, methods: @user.full_attributes)
   end
 
