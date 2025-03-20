@@ -31,6 +31,7 @@
     <%= yield :layout %>
   </div>
 
+  <%= render "static/fursona_check" %>
   <% if CurrentUser.is_anonymous? %>
     <%= render "static/guest_warning" %>
   <% end %>

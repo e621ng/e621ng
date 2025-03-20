@@ -7,6 +7,7 @@
   <%= render "layouts/theme_include" %>
   <%= render "layouts/nav" %>
 
+  <%= render "static/fursona_check" %>
   <% if CurrentUser.is_anonymous? %>
     <%= render "static/guest_warning" %>
   <% end %>
