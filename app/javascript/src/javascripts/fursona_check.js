@@ -184,7 +184,7 @@ const FursonaCheck = {
 
     $submitBtn.on("click", function () {
       const link = document.createElement("a");
-      link.download = "fursona-verification.png";
+      link.download = Danbooru.User.name + "-fursona-verification.png";
       link.href = canvas.toDataURL();
       link.click();
 
