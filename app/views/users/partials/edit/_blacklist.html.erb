@@ -17,7 +17,7 @@
   <tab-head>Blacklist Users</tab-head>
   <tab-body>
     <%= form.input_field :blacklist_users, as: :boolean, class: "st-toggle" %>
-    <%= form.label :blacklist_users, "!", class: "st-toggle" %>
+    <%= form.label :blacklist_users, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Hide comments, blips and forum posts from users that have been blacklisted, in addition to posts.
