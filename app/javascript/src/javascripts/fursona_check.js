@@ -3,6 +3,7 @@ import Cookie from "./cookie";
 const FursonaCheck = {
   init () {
     const $container = $(".fursona-check");
+    const $startBtn = $("#start-drawing");
     const $submitBtn = $("#submit-fursona");
     const $colorPicker = $(".color-picker");
     const $brushPicker = $(".brush-picker");
@@ -173,6 +174,12 @@ const FursonaCheck = {
       }
 
       drawLine(x, y);
+    });
+
+    $startBtn.on("click", function () {
+      $startBtn.hide();
+      $drawingArea.show();
+      $submitBtn.show();
     });
 
     $submitBtn.on("click", function () {
