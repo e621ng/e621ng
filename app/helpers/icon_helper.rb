@@ -75,9 +75,9 @@ module IconHelper
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
       "class": klass,
-      "title": title,
     ) do
-      raw(PATHS[name]) # rubocop:disable Rails/OutputSafety
+      concat tag.title(title) if title.present?
+      concat raw(PATHS[name]) # rubocop:disable Rails/OutputSafety
     end
   end
 
