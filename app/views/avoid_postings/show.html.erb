@@ -20,11 +20,11 @@
       <% if @avoid_posting.group_name.present? && @avoid_posting.artist.members.present? %>
         <li><strong>Members</strong> <%= link_to_artists(@avoid_posting.artist.members.limit(25).map(&:name)) %></li>
       <% end %>
-      <% if @avoid_posting.details.present? %>
+      <% if @avoid_posting.details.present? || @avoid_posting.linked_user_id.present? %>
         <li>
           <strong>Details</strong>
           <div class="dtext-container">
-            <%= format_text(@avoid_posting.details) %>
+            <%= format_text(@avoid_posting.pretty_details) %>
           </div>
         </li>
       <% end %>

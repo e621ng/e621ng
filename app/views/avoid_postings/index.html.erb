@@ -30,7 +30,7 @@
             </span>
           </td>
           <td class="dnp-details">
-            <span class="avoid-posting-details"><%= format_text(avoid_posting.details, inline: true) %></span>
+            <span class="avoid-posting-details"><%= format_text(avoid_posting.pretty_details, inline: true) %></span>
             <% if CurrentUser.is_staff? && avoid_posting.staff_notes.present? %>
               <span class="avoid-posting-staff-notes">
                 <b>Staff Notes</b>
