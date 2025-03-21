@@ -10,36 +10,97 @@ class TagQueryTest < ActiveSupport::TestCase
       # Order is now preserved
       assert_equal(["aaa", 'test:"with spaces"', "def"], TagQuery.scan('aaa test:"with spaces" def'))
     end
+
     should "not strip out valid characters when scanning" do
-      assert_equal(%w[aaa bbb], TagQuery.scan("aaa bbb"))
       assert_equal(%w[favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%], TagQuery.scan("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
   end
 
-  context "While scanning for searching" do
-    should "behave identically to the non-search variant when no groups exist" do
+  context "While using light scanning" do
+    should "scan a query" do
+      assert_equal(%w[aaa bbb], TagQuery.scan_light("aaa bbb"))
+      assert_equal(%w[~AAa -BBB* -bbb*], TagQuery.scan_light("~AAa -BBB* -bbb*"))
+      assert_equal(['test:"with spaces"', TagQuery::END_OF_METATAGS_TOKEN, "aaa", "def"], TagQuery.scan_light('aaa test:"with spaces" def'))
+      assert_equal(['test:"with spaces"', "aaa", "def"], TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false))
+    end
+
+    should "not strip out valid characters when scanning" do
+      assert_equal(%w[favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%], TagQuery.scan_light("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
+    end
+  end
+
+  context "While scan_searching" do
+    should "behave identically to the simple variant when no groups exist" do
       # scan a query
       assert_equal(TagQuery.scan("aaa bbb"), TagQuery.scan_search("aaa bbb"))
       assert_equal(TagQuery.scan("~AAa -BBB* -bbb*"), TagQuery.scan_search("~AAa -BBB* -bbb*"))
       assert_equal(TagQuery.scan('aaa test:"with spaces" def'), TagQuery.scan_search('aaa test:"with spaces" def'))
       # not strip out valid characters when scanning
-      assert_equal(%w[aaa bbb], TagQuery.scan_search("aaa bbb"))
-      assert_equal(%w[favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%], TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
+      assert_equal(TagQuery.scan("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"), TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
-    should "pull out a lone top-level group without a modifier" do
-      assert_equal(%w[aaa bbb], TagQuery.scan_search("( aaa bbb )"))
+
+    should "behave similarly to the light variant when no groups exist" do
+      # scan a query
+      assert_equal(TagQuery.scan_light("aaa bbb"), TagQuery.scan_search("aaa bbb"))
+      assert_equal(TagQuery.scan_light("~AAa -BBB* -bbb*"), TagQuery.scan_search("~AAa -BBB* -bbb*"))
+      assert_not_equal(TagQuery.scan_light('aaa test:"with spaces" def'), TagQuery.scan_search('aaa test:"with spaces" def'))
+      assert_equal([], TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false) - TagQuery.scan_search('aaa test:"with spaces" def'), "scan_light #{TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false)} - scan_search #{TagQuery.scan_search('aaa test:"with spaces" def')} should be empty")
+      # not strip out valid characters when scanning
+      assert_equal(TagQuery.scan_light("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"), TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
-    should "not pull out a lone top-level group with a modifier" do
-      assert_equal(["-( aaa bbb )"], TagQuery.scan_search("-( aaa bbb )"))
+
+    context "a query w/o nested groups" do
+      should "pull out a lone top-level group without a modifier" do
+        assert_equal(%w[aaa bbb], TagQuery.scan_search("( aaa bbb )"))
+      end
+
+      should "not pull out a lone top-level group with a modifier" do
+        assert_equal(["-( aaa bbb )"], TagQuery.scan_search("-( aaa bbb )"))
+      end
+
+      should "properly handle simple groups" do
+        assert_equal(["( aaa )", "-( bbb )"], TagQuery.scan_search("( aaa ) -( bbb )"))
+        assert_equal(["~( AAa -BBB* )", "-bbb*"], TagQuery.scan_search("~( AAa -BBB* ) -bbb*"))
+      end
+
+      should "hoist metatags" do
+        assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"))
+        assert_equal(["order:random", "limit:50", "randseed:123", "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true, delim_metatags: false))
+        assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true))
+        assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
+        assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+      end
     end
-    should "properly handle simple groups" do
-      assert_equal(["( aaa )", "-( bbb )"], TagQuery.scan_search("( aaa ) -( bbb )"))
-      assert_equal(["~( AAa -BBB* )", "-bbb*"], TagQuery.scan_search("~( AAa -BBB* ) -bbb*"))
-    end
-    should "hoist metatags" do
-      assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"))
-      assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
-      assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+
+    context "a query with nested groups" do
+      # should "not pull out a lone top-level group without a modifier but with an interior group" do
+      #   assert_equal("( ( aaa bbb ) )", TagQuery.scan_search("( ( aaa bbb ) )"))
+      should "pull out a lone top-level group without a modifier but with an interior group" do
+        assert_equal(%w[aaa bbb], TagQuery.scan_search("( ( aaa bbb ) )"))
+      end
+
+      should "not pull out a lone top-level group with a modifier and an interior group" do
+        assert_equal(["-( ( aaa bbb ) )"], TagQuery.scan_search("-( ( aaa bbb ) )"))
+      end
+
+      should "properly handle simple groups" do
+        assert_equal(["( ( aaa ) )", "-( ( bbb ) )"], TagQuery.scan_search("( ( aaa ) ) -( ( bbb ) )"))
+        assert_equal(["~( AAa -BBB* )", "-bbb*"], TagQuery.scan_search("( ~( AAa -BBB* ) -bbb* )"))
+      end
+
+      should "hoist metatags" do
+        input_str = "( ( order:random ) aaa limit:50 ) -( bbb -( randseed:123 ) )"
+        assert_equal(["order:random", "limit:50", "( (  ) aaa )", "randseed:123", "-( bbb -(  ) )"], TagQuery.scan_search(input_str, filter_empty_groups: false))
+        assert_equal(["order:random", "limit:50", "( aaa )", "randseed:123", "-( bbb )"], TagQuery.scan_search(input_str))
+        assert_equal(["order:random", "limit:50", "randseed:123", "( aaa )", "-( bbb )"], TagQuery.scan_search(input_str, segregate_metatags: true, delim_metatags: false))
+        assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( aaa )", "-( bbb )"], TagQuery.scan_search(input_str, segregate_metatags: true))
+        assert_equal(["order:random", "limit:50", "randseed:123", "( (  ) aaa )", "-( bbb -(  ) )"], TagQuery.scan_search(input_str, filter_empty_groups: false, segregate_metatags: true, delim_metatags: false))
+        assert_equal(["order:random", "limit:50", "randseed:123", "( aaa )", "-( bbb )"], TagQuery.scan_search(input_str, segregate_metatags: true, delim_metatags: false))
+        assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( (  ) aaa )", "-( bbb -(  ) )"], TagQuery.scan_search(input_str, filter_empty_groups: false, segregate_metatags: true))
+        assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( aaa )", "-( bbb )"], TagQuery.scan_search(input_str, segregate_metatags: true))
+        assert_equal("random", TagQuery.new(input_str)[:order])
+        assert_equal(123, TagQuery.new(input_str)[:random_seed])
+      end
     end
   end
 
@@ -72,6 +133,12 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(["aaa"], TagQuery.fetch_tags(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "aaa", recurse: true))
       assert_equal(%w[aaa bbb], TagQuery.fetch_tags(TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"), "aaa", "bbb", recurse: true))
     end
+
+    should "fetch when deeply nested" do
+      input_str = "( -( order:random ( aaa ) ) limit:50 ) -( ~( bbb ) randseed:123 )"
+      assert_equal(["aaa"], TagQuery.fetch_tags(TagQuery.scan_search(input_str), "aaa", recurse: true))
+      assert_equal(%w[aaa bbb], TagQuery.fetch_tags(TagQuery.scan_search(input_str), "aaa", "bbb", recurse: true))
+    end
   end
 
   # TODO: Add tests for prepend_prefix
@@ -102,26 +169,48 @@ class TagQueryTest < ActiveSupport::TestCase
     # end
 
     should "fetch when shallowly nested" do
+      input_str = "( order:random aaa meta:tag ) -( bbb randseed:123 )"
       assert_equal(
-        "50",
-        TagQuery.fetch_metatag(
-          "( order:random aaa limit:50 ) -( bbb randseed:123 )",
-          "limit", at_any_level: true
-        ),
+        "123",
+        TagQuery.fetch_metatag(input_str, "randseed", at_any_level: true),
       )
+      # Check a array w/ group strings
       assert_equal(
-        "50",
-        TagQuery.fetch_metatag(
-          TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )"),
-          "limit", at_any_level: true
-        ),
+        "123",
+        TagQuery.fetch_metatag(TagQuery.scan_search(input_str), "randseed", at_any_level: true),
       )
+      # ORDER
       assert_equal(
         "tag",
-        TagQuery.fetch_metatag(
-          TagQuery.scan_search("( order:random aaa meta:tag ) -( bbb randseed:123 )"),
-          "meta", at_any_level: true
-        ),
+        TagQuery.fetch_metatag(input_str, "meta", "randseed", at_any_level: true),
+      )
+      # Check a array w/ group strings
+      assert_equal(
+        "tag",
+        TagQuery.fetch_metatag(TagQuery.scan_search(input_str), "meta", "randseed", at_any_level: true),
+      )
+    end
+
+    should "fetch when deeply nested" do
+      input_str = "( order:random -( aaa ~( meta:tag ) ) ) -( bbb -( randseed:123 ) )"
+      assert_equal(
+        "123",
+        TagQuery.fetch_metatag(input_str, "randseed", at_any_level: true),
+      )
+      # Check a array w/ group strings
+      assert_equal(
+        "123",
+        TagQuery.fetch_metatag(TagQuery.scan_search(input_str), "randseed", at_any_level: true),
+      )
+      # ORDER
+      assert_equal(
+        "tag",
+        TagQuery.fetch_metatag(input_str, "meta", "randseed", at_any_level: true),
+      )
+      # Check a array w/ group strings
+      assert_equal(
+        "tag",
+        TagQuery.fetch_metatag(TagQuery.scan_search(input_str), "meta", "randseed", at_any_level: true),
       )
     end
   end
@@ -139,6 +228,7 @@ class TagQueryTest < ActiveSupport::TestCase
         error_on_depth_exceeded: false,
       }
     end
+
     should "behave identically to the other variants when no groups exist using default options" do
       # scan a query
       assert_equal(TagQuery.scan("aaa bbb"), TagQuery.scan_recursive("aaa bbb"))
@@ -148,9 +238,11 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(TagQuery.scan("aaa bbb"), TagQuery.scan_recursive("aaa bbb"))
       assert_equal(TagQuery.scan("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"), TagQuery.scan_recursive("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
+
     should "behave identically to non-recursive variant with a single top-level group with no modifier when not delimiting groups" do
       assert_equal(TagQuery.scan_search("( aaa bbb )"), TagQuery.scan_recursive("( aaa bbb )", delimit_groups: false))
     end
+
     should "properly handle the base case" do
       assert_equal(["(", "aaa", "bbb", ")"], TagQuery.scan_recursive("( aaa bbb )"))
       assert_equal(
@@ -162,6 +254,7 @@ class TagQueryTest < ActiveSupport::TestCase
         **@kwargs,
       )
     end
+
     context "& flattening" do
       should "properly strip prefixes" do
         assert_equal(
@@ -175,6 +268,7 @@ class TagQueryTest < ActiveSupport::TestCase
           strip_prefixes: true,
         )
       end
+
       should "properly preserve prefixes" do
         assert_equal(
           ["-(", "~aaa", "-bbb", ")"],
@@ -195,6 +289,7 @@ class TagQueryTest < ActiveSupport::TestCase
           delimit_groups: false,
         )
       end
+
       should "properly remove parentheses" do
         assert_equal(
           ["aaa", "-", "bbb"],
@@ -208,6 +303,7 @@ class TagQueryTest < ActiveSupport::TestCase
         )
       end
     end
+
     context "& not flattening" do
       should "work properly" do
         assert_equal(
@@ -231,6 +327,7 @@ class TagQueryTest < ActiveSupport::TestCase
           flatten: false,
         )
       end
+
       should "properly strip prefixes" do
         assert_equal(
           [["(", "aaa", ")"], ["(", "bbb", ")"]],
@@ -272,10 +369,12 @@ class TagQueryTest < ActiveSupport::TestCase
         )
       end
     end
+
     context "& stripping duplicates" do
       setup do
         @kwargs[:strip_duplicates_at_level] = true
       end
+
       should "work on the same level of nesting" do
         assert_equal(
           ["aaa", "-bbb"],
@@ -314,6 +413,7 @@ class TagQueryTest < ActiveSupport::TestCase
           strip_prefixes: true,
         )
       end
+
       should "work across multiple levels of nesting" do
         assert_equal(
           ["aaa", "(", "aaa", "bbb", ")"],
@@ -461,25 +561,36 @@ class TagQueryTest < ActiveSupport::TestCase
     should "find top-level instances of specified metatags" do
       assert_equal(["metatags:50", "another:metatag"], TagQuery.scan_metatags("some tags and metatags:50 and another:metatag and a failed:match", "metatags", "another"))
     end
+
     should "not find false positives in quoted metatags" do
       assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "metatags", "another", "matching"))
     end
+
     should "find top-level instances of a quoted metatag" do
       assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
     end
+
     should "find all metatags" do
       assert_equal(["metatags:50", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and metatags:50 and another:metatag and a failed:match", "\\w+"))
-      assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \" another:metatag then a failed:match", "\\w+"))
+      assert_equal(["metatags:50", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and metatags:50 and another:metatag and a failed:match", :any))
+      assert_equal(["matching:metatag", 'quoted_metatag:"don\'t match metatags:this but do match "', "another:metatag", "failed:match"], TagQuery.scan_metatags('some tags and a matching:metatag and a quoted_metatag:"don\'t match metatags:this but do match " another:metatag then a failed:match', "\\w+"))
+      assert_equal(["matching:metatag", 'quoted_metatag:"don\'t match metatags:this but do match "', "another:metatag", "failed:match"], TagQuery.scan_metatags('some tags and a matching:metatag and a quoted_metatag:"don\'t match metatags:this but do match " another:metatag then a failed:match', :any))
     end
+
     should "#{RESPECT_ALL_QUOTED_METATAGS ? '' : 'not '}respect quoted metatags not followed by either whitespace or the end of input" do
+      input_str = 'some tags and a matching:metatag and a quoted_metatag:"don\'t match metatags:this but do match "another:metatag then a failed:match'
       if RESPECT_ALL_QUOTED_METATAGS
-        assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "\\w+"))
-        assert_equal(["matching:metatag", "quoted_metatag:\"don't match metatags:this but do match \"", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
-        assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching"))
+        assert_equal(["matching:metatag", 'quoted_metatag:"don\'t match metatags:this but do match "', "another:metatag", "failed:match"], TagQuery.scan_metatags(input_str, :any))
+        assert_equal(["matching:metatag", 'quoted_metatag:"don\'t match metatags:this but do match "', "another:metatag"], TagQuery.scan_metatags(input_str, "metatags", "another", "matching", "quoted_metatag"))
+        assert_equal(["matching:metatag", "another:metatag"], TagQuery.scan_metatags(input_str, "metatags", "another", "matching"))
       else
-        assert_equal(["matching:metatag", "quoted_metatag:\"don't", "metatags:this", "failed:match"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "\\w+"))
-        assert_equal(["matching:metatag", "quoted_metatag:\"don't", "metatags:this"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"don't match metatags:this but do match \"another:metatag then a failed:match", "metatags", "another", "matching", "quoted_metatag"))
-        assert_equal(["matching:metatag", "metatags:this"], TagQuery.scan_metatags("some tags and a matching:metatag and a quoted_metatag:\"do match metatags:this but don't match \"another:metatag then a failed:match", "metatags", "another", "matching"))
+        assert_equal(["matching:metatag", 'quoted_metatag:"don\'t', "metatags:this", "failed:match"], TagQuery.scan_metatags(input_str, :any))
+        assert_equal(["matching:metatag", "quoted_metatag:\"don't", "metatags:this"], TagQuery.scan_metatags(input_str, "metatags", "another", "matching", "quoted_metatag"))
+        input_str = 'some tags and a matching:metatag and a quoted_metatag:"do match metatags:this but don\'t match "another:metatag then a failed:match'
+        assert_equal(["matching:metatag", "metatags:this"], TagQuery.scan_metatags(input_str, "metatags", "another", "matching"))
+        # Don't match metatags w/ non-word characters
+        assert_equal(["matching:metatag", "metatags:this"], TagQuery.scan_metatags(input_str, "metatags", "another", "matching"))
+        assert_equal(["matching:metatag", 'quoted_metatag:"do', "metatags:this", "failed:match"], TagQuery.scan_metatags(input_str, :any))
       end
     end
   end
@@ -502,8 +613,9 @@ class TagQueryTest < ActiveSupport::TestCase
         assert(TagQuery.should_hide_deleted_posts?("aaa ( bbb ( aaa ) status:pending )"))
         assert(TagQuery.should_hide_deleted_posts?("aaa ( bbb status:modqueue )"))
       end
+
       should "work with an array" do
-        kwargs = { hoisted_metatags: nil }
+        kwargs = { hoisted_metatags: nil }.freeze
         assert(TagQuery.should_hide_deleted_posts?(TagQuery.scan_search("aaa bbb", **kwargs)))
         assert_not(TagQuery.should_hide_deleted_posts?(TagQuery.scan_search("aaa bbb status:deleted", **kwargs)))
         assert_not(TagQuery.should_hide_deleted_posts?(TagQuery.scan_search("aaa bbb deletedby:someone", **kwargs)))
@@ -518,6 +630,7 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_not(TagQuery.should_hide_deleted_posts?(TagQuery.scan_search("aaa ( bbb ( aaa delreason:something ) status:pending )", **kwargs)))
       end
     end
+
     should "work after parsing" do
       assert(TagQuery.new("aaa bbb").hide_deleted_posts?)
       assert_not(TagQuery.new("aaa bbb status:deleted").hide_deleted_posts?)
