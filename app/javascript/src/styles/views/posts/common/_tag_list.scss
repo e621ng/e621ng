@@ -42,6 +42,13 @@ ul.tag-list {
     padding-right: 0.5rem;
   }
 
+  // 1.5 inc: desktop
+  .tag-list-inc {
+    display: none; // flex
+    align-self: flex-start;
+    padding-right: 0.25rem;
+  }
+
   // 2 tag: both
   .tag-list-search {
     @include st-radius;
