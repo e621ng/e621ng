@@ -14,7 +14,12 @@
           <div class="dtext-container">
             <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
           </div>
-       <% end %>
+        <% end %>
+        <% if CurrentUser.is_staff? && @artist.avoid_posting.staff_notes.present? %>
+          <div class="dtext-container">
+            <b>Note:</b> <%= format_text(@artist.avoid_posting.staff_notes, inline: true) %>
+          </div>
+        <% end %>
         <p><%= link_to "Open Avoid Posting entry", avoid_posting_path(@artist.avoid_posting) %></p>
       </div>
     <% end %>

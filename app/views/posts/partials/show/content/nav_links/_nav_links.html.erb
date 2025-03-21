@@ -1,0 +1,13 @@
+<% content_for(:nav_links_section) do %>
+  <% if post.presenter.has_sequential_navigation?(params) %>
+    <%= render "posts/partials/show/content/nav_links/search_seq", post: post %>
+  <% end %>
+
+  <% if post.has_active_pools? %>
+    <%= render "posts/partials/show/content/nav_links/pool_list", post: post, pools: post.pools.selected_first(params[:pool_id]).limit(5) %>
+  <% end %>
+
+  <% if CurrentUser.is_member? && post.post_sets.owned.any? %>
+    <%= render "posts/partials/show/content/nav_links/post_set_list", post: post, post_sets: post.post_sets.owned.selected_first(params[:post_set_id]).limit(5) %>
+  <% end %>
+<% end %>

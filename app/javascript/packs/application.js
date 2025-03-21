@@ -35,6 +35,7 @@ importAll(require.context('../src/javascripts', true, /\.js(\.erb)?$/));
 require.context("../../../public/images", true)
 
 export { default as LStorage } from "../src/javascripts/utility/storage.js";
+export { default as User } from "../src/javascripts/models/User.js";
 
 export { default as Autocomplete } from '../src/javascripts/autocomplete.js.erb';
 export { default as Blacklist } from '../src/javascripts/blacklists.js';

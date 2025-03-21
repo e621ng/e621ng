@@ -201,9 +201,8 @@ class Comment < ApplicationRecord
   end
 
   def visible_to?(user)
-    return true if user.is_moderator?
+    return true if user.is_staff?
     return false if !is_sticky? && (post&.is_comment_disabled? && creator_id != user.id)
-    return true if user.is_janitor? && is_sticky?
     return true if is_hidden? == false
     creator_id == user.id # Can always see your own comments, even if hidden.
   end

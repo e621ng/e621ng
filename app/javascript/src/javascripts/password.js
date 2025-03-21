@@ -20,6 +20,7 @@ Password.bootstrap_input = function ($password, $inputs = []) {
 
   const hint = $("<div>")
     .addClass("password-feedback")
+    .attr("count", 0)
     .insertAfter($password);
   const display = $("<div>")
     .addClass("password-strength")
@@ -41,12 +42,14 @@ Password.bootstrap_input = function ($password, $inputs = []) {
     const analysis = zxcvbn($password.val() + "", extraData);
 
     progress.css("width", ((analysis.score * 25) + 10) + "%");
-    hint.html("");
-    if (analysis.feedback.warning)
+    hint.html("").attr("count", analysis.feedback.suggestions.length);
+    if (analysis.feedback.warning) {
+      hint.attr("count", analysis.feedback.suggestions.length + 1);
       $("<span>")
         .text(analysis.feedback.warning)
         .addClass("password-warning")
         .appendTo(hint);
+    }
     for (const one of analysis.feedback.suggestions)
       $("<span>")
         .text(one)

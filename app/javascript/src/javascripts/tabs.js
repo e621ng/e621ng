@@ -60,11 +60,11 @@ class Tabs {
       this.$menu.find(`button[name="${queryParams.get("tab")}"]`).trigger("click", [ true ]);
       input.val("");
     } else if (queryParams.get("find")) {
-      input.val(queryParams.get("find"), [ true ]);
-      input.trigger("input");
+      input.val(queryParams.get("find"));
+      input.trigger("input", [ true ]);
     } else {
       // Just open the first tab
-      this.$menu.find("button").first().click();
+      this.$menu.find("button").first().trigger("click", [ true ]);
       input.val("");
     }
   }

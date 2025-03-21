@@ -131,7 +131,7 @@ class AvoidPosting < ApplicationRecord
 
   def pretty_details
     return details if details.present?
-    return "Only the artist is allowed to post." if linked_user_id.present?
+    return "Only the \"artist\":/users/#{linked_user_id} is allowed to post." if linked_user_id.present?
     ""
   end
 

@@ -1,0 +1,9 @@
+<% TagCategory::SPLIT_HEADER_LIST.each do |category_name| %>
+  <% typetags = post.categorized_tags[category_name] %>
+  <% next unless typetags %>
+
+  <h5 class="tag-list-header <%= category_name %>-tag-list-header" data-category="<%= category_name %>"><%= TagCategory::HEADER_MAPPING[category_name] %></h5>
+  <ul class="tag-list <%= category_name %>-tag-list">
+    <%= render partial: "/posts/partials/common/sidebar/tag_list_item", collection: typetags, as: :tag, locals: { post: post, tag: tag, query: query } %>
+  </ul>
+<% end %>

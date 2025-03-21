@@ -32,11 +32,7 @@
   <div class="profile-line">
     <h4><%= svg_icon(:upload) %> Upload Limit</h4>
     <span class="profile-line-number">
-      <% if CurrentUser.user.id == user.id  %>
-        <%= link_to presenter.upload_limit_short, upload_limit_users_path %>
-      <% else %>
-        <%= link_to presenter.upload_limit_short, wiki_page_path(id: "upload_limit") %>
-      <% end %>
+      <%= link_to presenter.upload_limit_short, upload_limit_user_path(user) %>
     </span>
     <span class="profile-line-extra">
       Max number of unapproved posts at a time.

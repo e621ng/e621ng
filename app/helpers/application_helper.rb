@@ -15,6 +15,7 @@ module ApplicationHelper
 
   def decorated_nav_link_to(text, icon, url, **options)
     klass = options.delete(:class)
+    title = options.delete(:title)
 
     if nav_link_match(params[:controller], url)
       klass = "#{klass} current"
@@ -22,7 +23,7 @@ module ApplicationHelper
 
     id = "nav-#{text.downcase.gsub(/[^a-z ]/, '').parameterize}"
 
-    tag.li(id: id, class: klass) do
+    tag.li(id: id, class: klass, title: title) do
       link_to(url, id: "#{id}-link", **options) do
         concat svg_icon(icon)
         concat " "

@@ -12,11 +12,11 @@
       <% end %>
       <%= render "posts/partials/index/blacklist" %>
 
-      <section id="tag-box">
-        <h3>Tags</h3>
-        <!-- TODO: Lock off these extra items? -->
-        <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
-      </section>
+      <% if @post_set.related_tags.any? %>
+        <section id="tag-box">
+          <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: params[:tags] } %>
+        </section>
+      <% end %>
 
       <%= render "posts/partials/index/related" %>
     </div>
