@@ -11,8 +11,8 @@
   >?</a>
 
   <% if query.present? %>
-    <a rel="nofollow" href="/posts?tags=#{u(current_query)}+#{u(name)}" class="search-inc-tag">+</a>
-    <a rel="nofollow" href="/posts?tags=#{u(current_query)}+-#{u(name)}" class="search-exl-tag">–</a>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+<%=u tag.name %>" class="tag-list-inc">+</a>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%=u tag.name %>" class="tag-list-inc">–</a>
   <% end %>
 
   <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
