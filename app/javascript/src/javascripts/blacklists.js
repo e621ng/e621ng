@@ -27,7 +27,7 @@ Blacklist.init_anonymous_blacklist = function () {
       })
       .appendTo("head");
 
-  if ($("body").data("user-is-anonymous")) {
+  if (User.is.anonymous) {
     Blacklist.isAnonymous = true;
     metaTag.attr("content", LStorage.Blacklist.AnonymousBlacklist);
   }
@@ -52,6 +52,13 @@ Blacklist.init_blacklist_editor = function () {
     const blacklist_json = blacklist_content.split(/\n\r?/);
     User.blacklist.tags = blacklist_json;
     User.saveBlacklist();
+
+    // Regenerate sidebar toggles
+    $("li.tag-list-item.blacklisted").removeClass("blacklisted");
+    for (const one of User.blacklist.tags) {
+      if (one.includes(" ") || !Blacklist.tag_list_cache[one]) continue;
+      Blacklist.tag_list_cache[one].addClass("blacklisted");
+    }
   });
 
   $("#blacklist-edit-link").on("click", function (event) {
@@ -133,10 +140,15 @@ Blacklist.init_blacklist_toggles = function () {
   });
 };
 
+Blacklist.tag_list_cache = {};
 Blacklist.init_quick_blacklist = function () {
+  Blacklist.tag_list_cache = {};
+  for (const entry of $("li.tag-list-item"))
+    Blacklist.tag_list_cache[decodeURIComponent(entry.dataset.name)] = $(entry);
+
   for (const one of User.blacklist.tags) {
-    if (one.includes(" ")) continue;
-    $(`li.tag-list-item[data-name='${one}`).addClass("blacklisted");
+    if (one.includes(" ") || !Blacklist.tag_list_cache[one]) continue;
+    Blacklist.tag_list_cache[one].addClass("blacklisted");
   }
 
   $(".tag-list-actions button").on("click", (event) => {

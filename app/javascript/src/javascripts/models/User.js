@@ -5,6 +5,7 @@ import PostCache from "./PostCache"
 export default class User {
 
   static _userData = null;
+
   static _authToken = null;
 
   static _init () {
@@ -108,21 +109,21 @@ export default class User {
   /** @returns {object} */
   static get is () { return this._get().is; }
 
-  static async addBlacklistedTag(tag) {
+  static async addBlacklistedTag (tag) {
     if (this.blacklist.tags.includes(tag)) return;
     this.blacklist.tags.push(tag);
 
     return this.saveBlacklist();
   }
 
-  static async removeBlacklistedTag(tag) {
+  static async removeBlacklistedTag (tag) {
     if (!this.blacklist.tags.includes(tag)) return;
     this.blacklist.tags = this.blacklist.tags.filter(n => n !== tag);
 
     return this.saveBlacklist();
   }
 
-  static async saveBlacklist() {
+  static async saveBlacklist () {
     return new Promise((resolve, reject) => {
       if (this.is.anonymous) {
         LStorage.Blacklist.AnonymousBlacklist = JSON.stringify(this.blacklist.tags);
