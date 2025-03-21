@@ -1354,7 +1354,7 @@ class TagQuery
     SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] == true || (SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false && depth <= 0)
   end
 
-  def pq_count_tags(group, depth, tag_query_limit)
+  def pq_count_tags(group, depth)
     if SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
       TagQuery.scan_recursive(
         group,
@@ -1403,37 +1403,37 @@ class TagQuery
       # metatags were moved to the front. The first metatag to fail this is discarded
       # if out_of_metatags ||= /\A[-~]?\w+:(?>"[^"]+"|\S+)\z/.match?(token)
       if out_of_metatags
-        # Only metatags can be unlimited in `Danbooru.config.is_unlimited_tag?`, so don't bother checking.
-        increment_tag_count 1 # unless Danbooru.config.is_unlimited_tag?(token)
-        add_tag(token)
+        # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
+        if can_have_groups && (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
+          group = match[2]
+          increment_tag_count(if kwargs[:process_groups]
+                                (group = TagQuery.new(
+                                  group,
+                                  **kwargs,
+                                  free_tags_count: @tag_count + @free_tags_count,
+                                  resolve_aliases: @resolve_aliases, return_with_count_exceeded: true,
+                                  hoisted_metatags: nil, depth: depth + 1
+                                )).tag_count
+                              elsif pq_check_group_tags?(depth)
+                                pq_count_tags(group, depth)
+                              else
+                                0
+                              end)
+          # raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
+          next if group.blank?
+          q[:children_show_deleted] = group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
+          # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.) to better reuse pre-existing logic
+          search_type = METATAG_SEARCH_TYPE[match[1]]
+          q[:groups] ||= {}
+          q[:groups][search_type] ||= []
+          q[:groups][search_type] << group
+        else
+          # Only metatags can be unlimited in `Danbooru.config.is_unlimited_tag?`, so don't bother checking.
+          increment_tag_count 1 # unless Danbooru.config.is_unlimited_tag?(token)
+          add_tag(token)
+        end
         next
       elsif (out_of_metatags = (token == TagQuery::END_OF_METATAGS_TOKEN))
-        next
-      end
-      # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
-      if can_have_groups && (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
-        group = match[2]
-        increment_tag_count(if kwargs[:process_groups]
-                              (group = TagQuery.new(
-                                group,
-                                **kwargs,
-                                free_tags_count: @tag_count + @free_tags_count,
-                                resolve_aliases: @resolve_aliases, return_with_count_exceeded: true,
-                                hoisted_metatags: nil, depth: depth + 1
-                              )).tag_count
-                            elsif pq_check_group_tags?(depth)
-                              pq_count_tags(group, depth)
-                            else
-                              0
-                            end)
-        # raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
-        next if group.blank?
-        q[:children_show_deleted] = group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
-        # TODO: Convert to style in `add_to_query` (:groups_must, :groups_must_not, etc.) to better reuse pre-existing logic
-        search_type = METATAG_SEARCH_TYPE[match[1]]
-        q[:groups] ||= {}
-        q[:groups][search_type] ||= []
-        q[:groups][search_type] << group
         next
       end
       increment_tag_count 1 unless Danbooru.config.is_unlimited_tag?(token)
@@ -1502,9 +1502,8 @@ class TagQuery
       when "locked", "-locked", "~locked"
         add_to_query(type, :locked) do
           case g2.downcase
-          when "rating" then :rating
-          when "note", "notes" then :note
-          when "status" then :status
+          when "rating", "note", "status" then g2.to_sym
+          when "notes" then :note
           end
         end
 
@@ -1565,8 +1564,7 @@ class TagQuery
         q[:status] = nil
         q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
-      when "filetype", "-filetype", "~filetype", "type", "-type", "~type"
-        add_to_query(type, :filetype) { g2.downcase }
+      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype) { g2.downcase }
 
       when "description", "-description", "~description" then add_to_query(type, :description) { g2 }
 
