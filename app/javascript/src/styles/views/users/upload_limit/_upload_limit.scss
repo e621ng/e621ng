@@ -1,0 +1,61 @@
+body.c-users.a-upload-limit {
+
+  .profile-container {
+    background: themed("color-section");
+    @include st-radius;
+    padding: 0.5rem;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .upload-limit-formula {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    font-size: 1rem;
+    line-height: 1rem;
+    margin-bottom: 1em;
+
+    .upl-element {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      gap: 0.5rem;
+      @include st-radius;
+
+      background: themed("color-foreground");
+    }
+  }
+
+  .upload-limit-explanation {
+    display: grid;
+    grid-template-columns: min-content auto;
+    gap: 1rem 0.5rem;
+    margin-left: 0.5rem;
+
+    .ul-exp { align-items: center; }
+  }
+
+  .upload-limit-formula abbr, .upload-limit-explanation abbr {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 1rem;
+
+    text-decoration: none;
+    line-height: 1rem;
+    padding: 0.5rem;
+    @include st-radius;
+
+    cursor: pointer;
+
+    &.upl-base { background: palette("background-grey"); }
+    &.upl-approved { background: palette("background-green"); }
+    &.upl-deleted { background: palette("background-red"); }
+    &.upl-pending { background: palette("background-yellow"); }
+    &.upl-total { background: themed("color-section-lighten-5"); }
+  }
+
+}

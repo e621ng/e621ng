@@ -7,7 +7,7 @@ class AvoidPostingsController < ApplicationController
   helper_method :search_params
 
   def index
-    @avoid_postings = AvoidPosting.search(search_params).paginate(params[:page], limit: params[:limit])
+    @avoid_postings = AvoidPosting.includes(:artist).search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@avoid_postings)
   end
 

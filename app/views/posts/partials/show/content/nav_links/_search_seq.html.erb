@@ -9,7 +9,7 @@
         <% if params[:q].nil? %>
           Search: (none)
         <% else %>
-          <%= link_to("Search: #{params[:q]}", posts_path(:tags => params[:q])) %>
+          <%= link_to("Search: #{params[:q]}", posts_path(tags: params[:q])) %>
         <% end %>
       </span>
       <%= link_to show_seq_post_path(post, q: params[:q], seq: "next"), rel: "next nofollow", class: "nav-link next" do %>

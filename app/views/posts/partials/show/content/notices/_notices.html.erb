@@ -2,20 +2,20 @@
   <div class="notice notice-flagged">
     <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(title: "howto:flag") %>): </p>
 
-    <%= render "posts/partials/show/flag_reasons", post: post %>
+    <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
 
     <% if CurrentUser.can_approve_posts? %>
       <div>
-        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: 'button btn-neutral' %>
-         | <%= tag.a "Unflag", href: '#', 'data-pid': post.id, 'data-type': 'none', class: 'unflag-post-link button btn-neutral' %>
+        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: "button btn-neutral" %>
+         | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
         <% if post.is_approvable? %>
-           | <%= tag.a "Unflag+approve", href: '#', 'data-pid': post.id, 'data-type': 'approve', class: 'unflag-post-link button btn-neutral' %>
+           | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
         <% end %>
         <% unless post.pending_flag&.reason =~ /uploading_guidelines/ %>
-           | <%= tag.a "Delete with given reason", href: '#', 'data-post-id': post.id, class: 'delete-with-reason-link button btn-neutral', 'data-reason': '', 'data-prompt': 'given reason' %>
+           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "prompt": "given reason" } %>
         <% end %>
         <% if !post.parent_id.nil? && post.pending_flag&.reason =~ %r{Inferior version/duplicate of post #\d+} %>
-           | <%= tag.a "Move flag to parent", href: '#', 'data-pid': post.id, 'data-parent-id': post.parent_id, class: 'move-flag-to-parent-link button btn-neutral' %>
+           | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id } %>
         <% end %>
       </div>
     <% end %>
@@ -26,7 +26,7 @@
   <div class="notice notice-deleted">
     <% if post.flags.any? %>
       <p>This post was deleted or flagged for the following reasons: </p>
-      <%= render "posts/partials/show/flag_reasons", post: post %>
+      <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
     <% else %>
       <p>This post was deleted</p>
     <% end %>
@@ -53,11 +53,11 @@
 <% end %>
 
 <% if post.is_pending? || (post.is_flagged? && post.flags.any?) %>
-  <%= render "posts/partials/show/avoid_posting", post: post %>
+  <%= render "posts/partials/show/content/notices/avoid_posting", post: post %>
 <% end %>
 
 <% if post.replacements.pending.any? %>
   <div class="notice notice-flagged">
-    <p>This post has <%= link_to "pending replacements.", post_replacements_path(search: {post_id: @post.id}) %></p>
+    <p>This post has <%= link_to "pending replacements.", post_replacements_path(search: { post_id: @post.id }) %></p>
   </div>
 <% end %>

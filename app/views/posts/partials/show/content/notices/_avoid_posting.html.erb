@@ -13,7 +13,7 @@
               <span class="artist">
               <%= link_to dnp.artist_name, avoid_posting_path(dnp) %>
                 <% if dnp.artist.try(:linked_user_id) == post.uploader_id %>
-                  <i class="uploader-is-artist fa-regular fa-circle-check" title="The uploader is linked to this artist."></i>
+                  <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to this artist.") %>
                 <% end %>
               </span>
               <span class="separator">-</span>

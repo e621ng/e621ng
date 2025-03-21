@@ -1,0 +1,4 @@
+<h5 class="tag-list-header">Tags</h5>
+<ul class="tag-list">
+  <%= render partial: "/posts/partials/common/sidebar/tag_list_item", collection: @post_set.related_tags, as: :tag, locals: { post: nil, tag: tag, query: query } %>
+</ul>

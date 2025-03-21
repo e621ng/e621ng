@@ -7,7 +7,7 @@
   <tab-head>Enable Keyboard Shortcuts</tab-head>
   <tab-body>
     <%= form.input_field :enable_keyboard_navigation, as: :boolean, class: "st-toggle" %>
-    <%= form.label :enable_keyboard_navigation, "!", class: "st-toggle" %>
+    <%= form.label :enable_keyboard_navigation, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     The full list of shortcuts is available <%= link_to "here", keyboard_shortcuts_path %>.
@@ -18,7 +18,7 @@
   <tab-head>Enable Auto Complete</tab-head>
   <tab-body>
     <%= form.input_field :enable_auto_complete, as: :boolean, class: "st-toggle" %>
-    <%= form.label :enable_auto_complete, "!", class: "st-toggle" %>
+    <%= form.label :enable_auto_complete, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Tag and user name suggestions.
@@ -29,7 +29,7 @@
   <tab-head>Colored Usernames</tab-head>
   <tab-body>
     <%= form.input_field :style_usernames, as: :boolean, class: "st-toggle" %>
-    <%= form.label :style_usernames, "!", class: "st-toggle" %>
+    <%= form.label :style_usernames, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Color names depending on the user's level.
@@ -44,7 +44,7 @@
   <tab-head>Hide Favorites</tab-head>
   <tab-body>
     <%= form.input_field :enable_privacy_mode, as: :boolean, class: "st-toggle" %>
-    <%= form.label :enable_privacy_mode, "!", class: "st-toggle" %>
+    <%= form.label :enable_privacy_mode, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Prevent your favorites from being publicly visible.
@@ -55,7 +55,7 @@
   <tab-head>Disable DMails</tab-head>
   <tab-body>
     <%= form.input_field :disable_user_dmails, as: :boolean, class: "st-toggle", disabled: CurrentUser.is_staff? %>
-    <%= form.label :disable_user_dmails, "!", class: "st-toggle" %>
+    <%= form.label :disable_user_dmails, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Prevent other users from sending you DMails.
@@ -84,7 +84,7 @@
   <tab-head>Show Statistics</tab-head>
   <tab-body>
     <%= form.input_field :show_post_statistics, as: :boolean, class: "st-toggle" %>
-    <%= form.label :show_post_statistics, "!", class: "st-toggle" %>
+    <%= form.label :show_post_statistics, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Show post stats below posts on search pages.
@@ -95,7 +95,7 @@
   <tab-head>Collapse Descriptions</tab-head>
   <tab-body>
     <%= form.input_field :description_collapsed_initially, as: :boolean, class: "st-toggle" %>
-    <%= form.label :description_collapsed_initially, "!", class: "st-toggle" %>
+    <%= form.label :description_collapsed_initially, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Do not expand post descriptions on page load.
@@ -117,7 +117,7 @@
   <tab-head>Compact Uploader</tab-head>
   <tab-body>
     <%= form.input_field :enable_compact_uploader, as: :boolean, class: "st-toggle" %>
-    <%= form.label :enable_compact_uploader, "!", class: "st-toggle" %>
+    <%= form.label :enable_compact_uploader, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     A more compact and less guided post uploader.
@@ -133,7 +133,7 @@
   <tab-head>Disable Responsive Mode</tab-head>
   <tab-body>
     <%= form.input_field :disable_responsive_mode, as: :boolean, class: "st-toggle" %>
-    <%= form.label :disable_responsive_mode, "!", class: "st-toggle" %>
+    <%= form.label :disable_responsive_mode, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     Disable alternative layout for mobile and tablet.
@@ -144,7 +144,7 @@
   <tab-head>Disable Cropped Thumbnails</tab-head>
   <tab-body>
     <%= form.input_field :disable_cropped_thumbnails, as: :boolean, class: "st-toggle" %>
-    <%= form.label :disable_cropped_thumbnails, "!", class: "st-toggle" %>
+    <%= form.label :disable_cropped_thumbnails, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
     No effect on the desktop site.

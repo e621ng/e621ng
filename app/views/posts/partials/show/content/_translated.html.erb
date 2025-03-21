@@ -1,0 +1,20 @@
+<%= form_tag(mark_as_translated_post_path(@post), class: "simple_form", method: :put) do |f| %>
+  <%= hidden_field_tag :tags_query, params[:q] %>
+  <%= hidden_field_tag :pool_id, params[:pool_id] %>
+
+<fieldset>
+  <label for="post_translation_check">
+    <%= check_box "post", "translation_check", checked: @post.has_tag?("translation_check") %>
+    Check translation
+  </label>
+
+  <label for="post_partially_translated">
+    <%= check_box "post", "partially_translated", checked: @post.has_tag?("partially_translated") %>
+    Partially translated
+  </label>
+</fieldset>
+
+  <div class="input">
+    <%= submit_tag "Mark as translated" %>
+  </div>
+<% end %>
