@@ -774,15 +774,12 @@ class TagQuery
   # * `force_delim_metatags` [`nil`]
   # #### Recursive Parameters
   # * `depth` [`0`]: must be `>= 0`
-  # * `depth_limit` [`TagQuery::DEPTH_LIMIT`]: must be `<= TagQuery::DEPTH_LIMIT`
   #
   # TODO: * `max_tokens_to_process` [`Danbooru.config.tag_query_limit * 2`]
   #
   # TODO: * `separate_groups` [`nil`]: place groups at the end of the return value to optimize `parse_query`?
   #
   # TODO: * `error_on_count_exceeded` [`false`]
-  #
-  # TODO: Remove `depth_limit`, replicate effect through `depth`.
   #
   # TODO: * `free_tags_count` [`false`]
   def self.scan_search(
@@ -791,9 +788,8 @@ class TagQuery
     error_on_depth_exceeded: false,
     **kwargs
   )
-    depth_limit = TagQuery::DEPTH_LIMIT unless (depth_limit = kwargs.fetch(:depth_limit, nil)).is_a?(Numeric) && depth_limit <= TagQuery::DEPTH_LIMIT
     depth = 0 unless (depth = kwargs.fetch(:depth, nil)).is_a?(Numeric) && depth >= 0
-    return (error_on_depth_exceeded ? (raise DepthExceededError) : []) if depth_limit <= depth
+    return (error_on_depth_exceeded ? (raise DepthExceededError) : []) if depth >= TagQuery::DEPTH_LIMIT
     tag_str = kwargs[:preformatted_query] ? query : query.to_s.unicode_normalize(:nfc).strip
     # Quick exit if given a blank search or a single group w/ an empty search
     return [] if tag_str.blank? || /\A[-~]?\(\s+\)\z/.match?(tag_str)
@@ -807,7 +803,7 @@ class TagQuery
           top.rstrip,
           **kwargs,
           hoisted_metatags: hoisted_metatags,
-          depth_limit: depth_limit - 1,
+          depth: depth + 1,
           error_on_depth_exceeded: error_on_depth_exceeded,
         )
       end
@@ -816,7 +812,7 @@ class TagQuery
           top[:subquery],
           **kwargs,
           hoisted_metatags: hoisted_metatags,
-          depth_limit: depth_limit - 1,
+          depth: depth + 1,
           error_on_depth_exceeded: error_on_depth_exceeded,
         )
       end
@@ -845,7 +841,7 @@ class TagQuery
         cb = ->(sub_match) do
           # if there's a group w/ a hoisted tag,
           if sub_match[:subquery]&.match?(/(?<=\s|\A)#{hoist_regex_stub}:\S+/)
-            next error_on_depth_exceeded ? (raise DepthExceededError) : nil if (depth + 1) >= depth_limit # rubocop:disable Metrics/BlockNesting
+            next error_on_depth_exceeded ? (raise DepthExceededError) : nil if (depth + 1) >= TagQuery::DEPTH_LIMIT # rubocop:disable Metrics/BlockNesting
             next kwargs.fetch(:filter_empty_groups, true) ? sub_match[:token] : nil if sub_match[:subquery].blank? # rubocop:disable Metrics/BlockNesting
             r_out = "#{TagQuery.match_tokens(sub_match[:subquery], **scan_opts, depth: depth += 1, &cb).uniq.join(' ')} "
             depth -= 1
