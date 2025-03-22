@@ -226,7 +226,7 @@ module Danbooru
 
     # Pools created in the last hour
     def pool_limit
-      2
+      5
     end
 
     # Pools created or edited in the last hour
