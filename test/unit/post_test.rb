@@ -1756,7 +1756,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # Percieved inconsistency is due to automatic injection of "-status:deleted" in
+      # Perceived inconsistency is due to automatic injection of "-status:deleted" in
       # ElasticPostQueryBuilder; adding `status:any` disables this.
       assert_tag_match(all - [flagged, pending], "status:any -status:modqueue")
       assert_tag_match(all - [pending], "status:any -status:pending")

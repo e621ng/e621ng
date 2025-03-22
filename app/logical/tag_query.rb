@@ -762,6 +762,7 @@ class TagQuery
   REGEX_PLAIN_TOP_LEVEL_GROUP = /\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|\)+(?!\s|\z)|(?>\s+)(?!\)))+)\s+\)\z/
   # Scan variant that properly handles groups.
   #
+  # ### Parameters
   # * `query`
   # * `hoisted_metatags` [`TagQuery::GLOBAL_METATAGS`]: the metatags to lift out of groups to the
   # top level.
@@ -771,12 +772,17 @@ class TagQuery
   # * `delim_metatags` [`true`]
   # * `segregate_metatags` [`nil`]
   # * `force_delim_metatags` [`nil`]
+  # #### Recursive Parameters
+  # * `depth` [`0`]: must be `>= 0`
+  # * `depth_limit` [`TagQuery::DEPTH_LIMIT`]: must be `<= TagQuery::DEPTH_LIMIT`
   #
   # TODO: * `max_tokens_to_process` [`Danbooru.config.tag_query_limit * 2`]
   #
   # TODO: * `separate_groups` [`nil`]: place groups at the end of the return value to optimize `parse_query`?
   #
   # TODO: * `error_on_count_exceeded` [`false`]
+  #
+  # TODO: Remove `depth_limit`, replicate effect through `depth`.
   #
   # TODO: * `free_tags_count` [`false`]
   def self.scan_search(
@@ -816,6 +822,9 @@ class TagQuery
       end
     end
     matches = []
+    # If segregating, create a separate array to store metatags. Otherwise, make this the same as
+    # the non-metatag array; this will mean metatags will be placed in order as usual even w/o a
+    # guard clause.
     mts = kwargs[:segregate_metatags] ? [] : matches
     scan_opts = { recurse: false, stop_at_group: true, error_on_depth_exceeded: error_on_depth_exceeded, compact: true }.freeze
     # TODO: Check if uniq is too slow as is
@@ -851,14 +860,11 @@ class TagQuery
       end
       matches << m[:token]
     end
-    if kwargs[:segregate_metatags]
-      if matches.present? || kwargs[:force_delim_metatags]
-        (kwargs.fetch(:delim_metatags, true) ? mts << END_OF_METATAGS_TOKEN : mts).concat(matches)
-      else
-        mts
-      end
-    else
-      matches
+    # If segregating metatags & there either are metatags or we're adding the delimiter regardless...
+    if kwargs[:segregate_metatags] && (matches.present? || kwargs[:force_delim_metatags])
+      (kwargs.fetch(:delim_metatags, true) ? mts << END_OF_METATAGS_TOKEN : mts).concat(matches)
+    else # Remember, if `!kwargs[:segregate_metatags]`, this is the same as `matches`, and if not, there is different, but `matches` is empty and we aren't adding the delimiter unless there are non-metatags.
+      mts
     end
   end
 
@@ -908,6 +914,8 @@ class TagQuery
     if tagstr.present?
       mts << END_OF_METATAGS_TOKEN if kwargs.fetch(:delim_metatags, true) && (!mts.empty? || kwargs[:force_delim_metatags])
       mts.concat(tagstr.split.uniq)
+    elsif kwargs.fetch(:delim_metatags, true)
+      mts << END_OF_METATAGS_TOKEN
     else
       mts
     end
@@ -1400,7 +1408,7 @@ class TagQuery
     else
       TagQuery.scan_light(query, preformatted_query: true, ensure_delimiting_whitespace: true, compact: true, force_delim_metatags: true)
     end.each do |token|
-      # metatags were moved to the front. The first metatag to fail this is discarded
+      # If we're past the starting run of metatags
       # if out_of_metatags ||= /\A[-~]?\w+:(?>"[^"]+"|\S+)\z/.match?(token)
       if out_of_metatags
         # If there's a non-empty group, correctly increment tag_count, then stop processing/recursively process this token.
@@ -1433,6 +1441,7 @@ class TagQuery
           add_tag(token)
         end
         next
+      # Metatags were moved to the front. The first metatag to fail this is discarded.
       elsif (out_of_metatags = (token == TagQuery::END_OF_METATAGS_TOKEN))
         next
       end
