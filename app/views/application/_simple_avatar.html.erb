@@ -28,6 +28,12 @@
   <a href="<%= posts_path(tags: "user:#{user.name}") %>">
     <%= svg_icon(:images) %> Uploads
   </a>
+  <a href="<%= comments_path(group_by: "comment", search: { poster_id: user.id }) %>" class="secondary">
+    <%= svg_icon(:corner_down_right) %> Responses
+  </a>
+  <a href="<%= posts_path(tags: "user:#{user.name} status:pending") %>" class="secondary">
+    <%= svg_icon(:clock_fading) %> Pending
+  </a>
   <% end %>
 
   <% if user.favorite_count > 0 %>

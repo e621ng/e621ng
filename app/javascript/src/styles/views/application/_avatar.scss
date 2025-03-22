@@ -183,6 +183,14 @@ nav.navigation .simple-avatar-menu {
       height: 1.5rem;
       margin: -0.25rem 0;
     }
+
+    &.secondary {
+      padding-left: 1rem;
+      svg {
+        color: themed("color-text-muted");
+        height: 1.25rem;
+      }
+    }
   }
 
   hr {
