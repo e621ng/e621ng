@@ -1102,6 +1102,13 @@ class TagQuery
   # Due to the nature of the grouping syntax, special handling for nested metatags in this method is
   # unnecessary. If this changes to a (truly) recursive search implementation, a
   # `TagQuery::DepthExceededError` must be raised when appropriate.
+  #
+  # NOTE: This method currently does *not* effectively guard against bad input in `metatags`.
+  # If an invalid metatag name (e.g. one that contains non-word characters) is passed as input
+  # (especially if `prepend_prefix` is falsy), and query contains a *non-quoted* instance of it,
+  # that will be matched, even though it will not be processed as a valid metatag in `parse_query`.
+  # Since it is highly unlikely such an invalid metatag will be present, guarding against this was
+  # deemed unnecessary.
   def self.scan_metatags(query, *metatags, initial_value: nil, prepend_prefix: false, &)
     return initial_value if metatags.blank? || (query = query.to_s.unicode_normalize(:nfc).strip).blank?
     prefix = "([-~]?)" if prepend_prefix
@@ -1586,12 +1593,12 @@ class TagQuery
         add_to_query(type, :deleter) { user_id_or_invalid(g2) }
 
       when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
-        add_to_query(type, :upvote) { conditional_user_id_or_invalid(g2) }
+        add_to_query(type, :upvote) { privileged_user_id_or_invalid(g2) }
 
       when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
-        add_to_query(type, :downvote) { conditional_user_id_or_invalid(g2) }
+        add_to_query(type, :downvote) { privileged_user_id_or_invalid(g2) }
 
-      when "voted", "-voted", "~voted" then add_to_query(type, :voted) { conditional_user_id_or_invalid(g2) }
+      when "voted", "-voted", "~voted" then add_to_query(type, :voted) { privileged_user_id_or_invalid(g2) }
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
@@ -1669,9 +1676,11 @@ class TagQuery
   end
 
   def pull_wildcard_tags(tag)
-    matches = Tag.name_matches(tag).limit(tag_query_limit).order("post_count DESC").pluck(:name)
-    matches = ["~~not_found~~"] if matches.empty?
-    matches
+    Tag.name_matches(tag)
+       .limit(tag_query_limit) # .limit(Danbooru.config.tag_query_limit)
+       .order("post_count DESC")
+       .pluck(:name)
+       .presence? || ["~~not_found~~"]
   end
 
   def normalize_tags
@@ -1688,7 +1697,7 @@ class TagQuery
     User.name_or_id_to_id(val).presence || -1
   end
 
-  def conditional_user_id_or_invalid(val)
+  def privileged_user_id_or_invalid(val)
     if CurrentUser.is_moderator?
       User.name_or_id_to_id(val).presence
     elsif CurrentUser.is_member?
