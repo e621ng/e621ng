@@ -49,7 +49,7 @@ body.c-users.a-upload-limit {
     padding: 0.5rem;
     @include st-radius;
 
-    cursor: pointer;
+    cursor: help;
 
     &.upl-base { background: palette("background-grey"); }
     &.upl-approved { background: palette("background-green"); }

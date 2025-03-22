@@ -38,7 +38,7 @@
 
         <span class="upl-math"><%= svg_icon(:equals) %></span>
         <span class="upl-element">
-          <abbr class="upl-total" title="User Upload Limit Remaining"><%= @user.upload_limit %></abbr>
+          <abbr class="upl-total" title="Remaining Upload Limit"><%= @user.upload_limit %></abbr>
         </span>
       </span>
 
@@ -46,7 +46,13 @@
         <abbr title="Base Upload Limit" class="ul-num upl-base"><%= @user.base_upload_limit %></abbr>
         <div class="ul-exp">
           <h5>Base Limit</h5>
-          <span>Default number of posts that someone with a new account could upload.</span>
+          <span>
+            <% if @user.base_upload_limit == 10 %>
+              Default number of posts that someone with a new account could upload.
+            <% else %>
+              Base number of uploads, manually adjusted by a staff member.
+            <% end %>
+          </span>
         </div>
 
         <abbr title="Approved Posts" class="ul-num upl-approved"><%= pieces[:approved] %></abbr>
@@ -67,7 +73,7 @@
           <span>Posts that are currently awaiting review.</span>
         </div>
         
-        <abbr title="User Upload Limit Remaining" class="ul-num upl-total"><%= @user.upload_limit %></abbr>
+        <abbr title="Remaining Upload Limit " class="ul-num upl-total"><%= @user.upload_limit %></abbr>
         <div class="ul-exp">
           <h5>Upload Limit</h5>
           <span>Remaining number of posts that can be uploaded.</span>
