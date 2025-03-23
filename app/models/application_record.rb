@@ -298,7 +298,11 @@ class ApplicationRecord < ActiveRecord::Base
           end
 
           define_method :creator_name do
-            User.id_to_name(creator_id)
+            if association(:creator).loaded?
+              creator.name
+            else
+              User.id_to_name(creator_id)
+            end
           end
         end
       end
@@ -312,7 +316,11 @@ class ApplicationRecord < ActiveRecord::Base
           end
 
           define_method :updater_name do
-            User.id_to_name(updater_id)
+            if association(:updater).loaded?
+              updater.name
+            else
+              User.id_to_name(creator_id)
+            end
           end
         end
       end

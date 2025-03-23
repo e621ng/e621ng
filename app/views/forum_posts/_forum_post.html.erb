@@ -74,7 +74,9 @@
             </li>
           <% end %>
         </menu>
-        <% if forum_post.votable? %>
+        <% if @votable_posts.present? %>
+          <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post if @votable_posts.include? forum_post.id %>
+        <% elsif forum_post.votable? %>
           <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>
         <% end %>
         <% if forum_post.editable_by?(CurrentUser.user) %>
