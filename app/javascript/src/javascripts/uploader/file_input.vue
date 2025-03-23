@@ -21,7 +21,7 @@
           type="file"
           ref="post_file"
           id="file-input"
-          accept="image/png,image/apng,image/jpeg,image/gif,video/webm,.png,.apng,.jpg,.jpeg,.gif,.webm"
+          accept="image/png,image/apng,image/jpeg,image/gif,video/webm,video/mp4,.png,.apng,.jpg,.jpeg,.gif,.webm,.mp4"
           @change="updatePreviewFile"
           :disabled="disableFileUpload"
         />
@@ -222,7 +222,10 @@ export default {
       const objectUrl = URL.createObjectURL(file);
       this.disableURLUpload = true;
       this.uploadValueChanged(file);
-      this.previewChanged(objectUrl, file.type === "video/webm");
+      this.previewChanged(
+        objectUrl, 
+        ["video/webm", "video/mp4"].includes(file.type),
+      );
     },
     uploadValueChanged(value) {
       this.$emit("uploadValueChanged", value);
