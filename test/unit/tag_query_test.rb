@@ -812,33 +812,6 @@ class TagQueryTest < ActiveSupport::TestCase
             end
           end
         end
-        # should "parse vote metatags correctly" do
-        #   # Users can see their own votes
-        #   assert_equal(@val_u, TagQuery.new("upvote:#{@u_name}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@u_id}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:#{@u_name}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@u_id}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("voted:#{@u_name}")[MAPPING[:voted]])
-        #   assert_equal(@val_u, TagQuery.new("voted:!#{@u_id}")[MAPPING[:voted]])
-
-        #   # Normal users can't see other user's votes
-        #   assert_equal(@val_u, TagQuery.new("upvote:#{@a_name}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@a_id}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:#{@a_name}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@a_id}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("voted:#{@a_name}")[MAPPING[:voted]])
-        #   assert_equal(@val_u, TagQuery.new("voted:!#{@a_id}")[MAPPING[:voted]])
-
-        #   # Moderators & higher can see other user's votes
-        #   CurrentUser.user = @admin_user
-        #   assert_equal(@val_a, TagQuery.new("upvote:#{@a_name}")[MAPPING[:upvote]]) # Check user change worked
-        #   assert_equal(@val_u, TagQuery.new("upvote:#{@u_name}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@u_id}")[MAPPING[:upvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:#{@u_name}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@u_id}")[MAPPING[:downvote]])
-        #   assert_equal(@val_u, TagQuery.new("voted:#{@u_name}")[MAPPING[:voted]])
-        #   assert_equal(@val_u, TagQuery.new("voted:!#{@u_id}")[MAPPING[:voted]])
-        # end
 
         should "parse 'set' metatags correctly" do
           # Users can see public sets
@@ -899,14 +872,7 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
 
-    # should "correctly handle valid metatags" do
-    #   user = create(:user)
-    #   Danbooru.config.expects(:is_unlimited_tag?).with(anything).times(3).returns(false)
-    #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
-    #   assert_equal()
-    # end
-
-    # should "correctly handle valid metatags" do
+    # should "correctly handle valid quoted metatags" do
     #   user = create(:user)
     #   Danbooru.config.expects(:is_unlimited_tag?).with(anything).times(3).returns(false)
     #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
@@ -914,6 +880,7 @@ class TagQueryTest < ActiveSupport::TestCase
     # end
   end
 
+  # TODO: expand to all valid candidates
   should "allow multiple types for a metatag in a single query" do
     query = TagQuery.new("id:1 -id:2 ~id:3 id:4 -id:5 ~id:6")
     assert_equal([[:eq, 1], [:eq, 4]], query[:post_id])
