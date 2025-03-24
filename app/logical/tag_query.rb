@@ -13,6 +13,12 @@ class TagQuery
     end
   end
 
+  class InvalidTagError < StandardError
+    def initialize(msg = "Invalid tag in query")
+      super(msg)
+    end
+  end
+
   COUNT_METATAGS = %w[
     comment_count
   ].freeze
@@ -101,7 +107,22 @@ class TagQuery
     @tag_count = 0
     @free_tags_count = free_tags_count
 
-    parse_query(query, **)
+    if SETTINGS[:CHECK_TAG_VALIDITY] && SETTINGS[:CATCH_INVALID_TAG]
+      begin
+        parse_query(query, **)
+      rescue InvalidTagError
+        @q = {
+          tags: {
+            must: [],
+            must_not: [],
+            should: [],
+          },
+          show_deleted: false,
+        }
+      end
+    else
+      parse_query(query, **)
+    end
     # raise CountExceededError if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
   end
 
@@ -1354,11 +1375,22 @@ class TagQuery
   #   * true: always check
   #   * false: always count as part of the recursive process
   #   * anything else: count at the root
+  # * `CHECK_TAG_VALIDITY`: don't add invalid tags (as detected by
+  # `TagQuery::REGEX_VALID_TAG_CHECK` or a tag w/ `*` starting w/ `~`) to query? If true, the
+  # following flag take effect:
+  #   * `ERROR_ON_INVALID_TAG`: Stop search if tag is invalid?
+  #   * `CATCH_INVALID_TAG`: If true & `TagQuery::SETTINGS[:ERROR_ON_INVALID_TAG]` is true, will only
+  # error out if the invalid tag would cause this level of results to return nothing (i.e. if the
+  # invalid tag isn't prefixed by `-` or `~`) and won't let that error propagate; essentially eagerly
+  # halts execution of this level of searching.
   SETTINGS = {
     COUNT_TAGS_WITH_SCAN_RECURSIVE: false,
     STOP_ON_TAG_COUNT_EXCEEDED: true,
     EARLY_SCAN_SEARCH_CHECK: true,
     CHECK_GROUP_TAGS_AND_DEPTH: true,
+    CHECK_TAG_VALIDITY: true,
+    ERROR_ON_INVALID_TAG: true,
+    CATCH_INVALID_TAG: true,
   }.freeze
 
   def pq_check_group_tags?(depth)
@@ -1612,11 +1644,33 @@ class TagQuery
     normalize_tags if resolve_aliases
   end
 
+  # Checks if a standard tag is:
+  # * Optionally preceded by a `-`/`~`
+  # * Contains none of the following invalid characters:
+  #   * `-`
+  #   * `~`
+  #   * `\\`
+  #   * `,`
+  #   * `#`
+  #   * `$`
+  #   * `%`
+  #   * (Eventually) Non-printable characters [:graph:]
+  # * Is at least 1 character long
+  #
+  # Allows `*` for wildcard matching.
+  #
+  # Doesn't restrict length to 100 as in `../models/tag.rb` to prevent conflict w/ wildcards.
+  #
+  # Follows rules in `../logical/tag_name_validator.rb`.
+  REGEX_VALID_TAG_CHECK = /\A(?>[-~]?)(?>[^\-\\~\,\#\$\%]+)\z/
+
   def add_tag(tag)
-    # If it's a single character modifier, add it and exit.
-    if ["-", "~"].include?(tag)
-      q[:tags][:must] << tag
-      return
+    # If it's not a facially valid tag, exit. Stops prior behavior of searching for tags comprised
+    # entirely of invalid characters (which would always be false but, if preceded by `~` or `-`,
+    # wouldn't end the search).
+    if SETTINGS[:CHECK_TAG_VALIDITY] && !REGEX_VALID_TAG_CHECK.match?(tag)
+      return if !SETTINGS[:ERROR_ON_INVALID_TAG] || (SETTINGS[:CATCH_INVALID_TAG] && tag.start_with?("-", "~"))
+      raise InvalidTagError, "\"#{tag}\": Invalid tag in query".freeze
     end
     tag = tag.downcase
     case tag[0]
@@ -1626,15 +1680,18 @@ class TagQuery
       else
         q[:tags][:must_not] << tag.delete_prefix("-")
       end
-      return
     when "~"
+      if SETTINGS[:CHECK_TAG_VALIDITY] && tag.include?("*")
+        return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
+        raise InvalidTagError, "\"#{tag}\": Invalid tag in query".freeze
+      end
       q[:tags][:should] << tag.delete_prefix("~")
-      return
-    end
-    if tag.include?("*")
-      q[:tags][:should] += pull_wildcard_tags(tag)
     else
-      q[:tags][:must] << tag
+      if tag.include?("*")
+        q[:tags][:should] += pull_wildcard_tags(tag)
+      else
+        q[:tags][:must] << tag
+      end
     end
   end
 
