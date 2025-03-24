@@ -16,7 +16,7 @@
       label: "Tag Category", 
       collection: TagCategory::CANONICAL_MAPPING.to_a, 
       include_blank: true, 
-      disabled: @wiki_page.category_is_locked && !CurrentUser.is_admin? %>
+      disabled: !@wiki_page.category_editable_by? %>
 
     <% if CurrentUser.is_admin? %>
       <%= f.input :category_is_locked, label: "Lock Category", as: :boolean %>

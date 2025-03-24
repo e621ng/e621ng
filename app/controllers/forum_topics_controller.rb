@@ -43,7 +43,23 @@ class ForumTopicsController < ApplicationController
     if request.format == Mime::Type.lookup("text/html")
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
-    @forum_posts = ForumPost.permitted(CurrentUser.user).includes(topic: [:category]).search(topic_id: @forum_topic.id).reorder("forum_posts.id").paginate(params[:page])
+    @forum_posts = ForumPost.permitted(CurrentUser.user)
+                            .includes(topic: [:category])
+                            .includes(:creator)
+                            .includes(:updater)
+                            .search(topic_id: @forum_topic.id)
+                            .reorder("forum_posts.id")
+                            .paginate(params[:page])
+
+    # Determine which posts are associated with AIBURs
+    ids = @forum_posts.map(&:id).flatten
+
+    @votable_posts = [
+      TagAlias.where(forum_post_id: ids).pluck(:forum_post_id),
+      TagImplication.where(forum_post_id: ids).pluck(:forum_post_id),
+      BulkUpdateRequest.where(forum_post_id: ids).pluck(:forum_post_id),
+    ].flatten
+
     @original_forum_post_id = @forum_topic.original_post.id
     respond_with(@forum_topic)
   end

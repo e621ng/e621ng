@@ -147,6 +147,10 @@ class WikiPage < ApplicationRecord
       @tag ||= super
     end
 
+    def tag=(value)
+      @tag = value
+    end
+
     def category_id
       return @category_id if instance_variable_defined?(:@category_id)
       @category_id = tag&.category
@@ -196,22 +200,24 @@ class WikiPage < ApplicationRecord
       tag_update_map.present?
     end
 
+    def category_editable_by?(user = CurrentUser.user)
+      tag.blank? || tag.category_editable_by?(user)
+    end
+
     def update_tag
       updates = tag_update_map
-      @tag = Tag.find_or_create_by_name(title)
+      self.tag = Tag.find_or_create_by_name(title)
 
       return if updates.empty?
-      unless @tag.category_editable_by?(CurrentUser.user)
-        reload_tag_attributes
+      unless category_editable_by?
         errors.add(:category_id, "Cannot be changed")
+        reload_tag_attributes
         throw(:abort)
       end
 
-      @tag.update(updates)
-      @tag.save
-
-      if @tag.invalid?
-        errors.add(:category_id, @tag.errors.full_messages.join(", "))
+      unless tag.update(updates)
+        errors.add(:category_id, tag.errors.full_messages.join(", "))
+        reload_tag_attributes
         throw(:abort)
       end
 
@@ -221,6 +227,7 @@ class WikiPage < ApplicationRecord
     def reload_tag_attributes
       remove_instance_variable(:@category_id) if instance_variable_defined?(:@category_id)
       remove_instance_variable(:@category_is_locked) if instance_variable_defined?(:@category_is_locked)
+      remove_instance_variable(:@tag) if instance_variable_defined?(:@tag)
     end
   end
 
