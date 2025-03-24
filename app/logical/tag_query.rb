@@ -134,6 +134,10 @@ class TagQuery
     tag_query_limit - @tag_count
   end
 
+  # Increases the tag count by the given `value`, and (conditionally) checks if the new count
+  # exceeds the `tag_query_limit`, throwing a `TagQuery::CountExceededError` if so.
+  #
+  # Only performs the check if `SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED]` is true.
   def increment_tag_count(value)
     @tag_count += value
     raise CountExceededError if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && @tag_count > tag_query_limit
@@ -931,7 +935,7 @@ class TagQuery
     if tagstr.present?
       mts << END_OF_METATAGS_TOKEN if kwargs.fetch(:delim_metatags, true) && (!mts.empty? || kwargs[:force_delim_metatags])
       mts.concat(tagstr.split.uniq)
-    elsif kwargs.fetch(:delim_metatags, true)
+    elsif kwargs.fetch(:delim_metatags, true) && kwargs[:force_delim_metatags]
       mts << END_OF_METATAGS_TOKEN
     else
       mts
@@ -1434,14 +1438,18 @@ class TagQuery
   #
   # ### Notes
   # * Quoted metatags aren't distinguished from non-quoted metatags nor standard tags in `TagQuery.parse_query`; to ensure consistency, even malformed metatags must have leading and trailing double quotes removed.
+  #
+  # IDEA: Put metatags at end of results instead of beginning (faster if exceeds `tag_query_limit`)
+  # IDEA: Sort groups like metatags
   def parse_query(query, depth: 0, **kwargs)
     return if (query = query.to_s.unicode_normalize(:nfc).strip.freeze).blank?
     can_have_groups = kwargs.fetch(:can_have_groups, true) && (!kwargs[:has_groups_impl] || TagQuery.send(kwargs[:has_groups_impl], query)) # TagQuery.has_groups?(query)
     out_of_metatags = false
+    params = { preformatted_query: true, ensure_delimiting_whitespace: true, compact: true, force_delim_metatags: true, segregate_metatags: true, delim_metatags: true }.freeze
     if can_have_groups # rubocop:disable Metrics/BlockLength
-      TagQuery.scan_search(query, **kwargs, depth: depth, preformatted_query: true, segregate_metatags: true, compact: true, force_delim_metatags: true)
+      TagQuery.scan_search(query, **kwargs, depth: depth, **params)
     else
-      TagQuery.scan_light(query, preformatted_query: true, ensure_delimiting_whitespace: true, compact: true, force_delim_metatags: true)
+      TagQuery.scan_light(query, **params)
     end.each do |token|
       # If we're past the starting run of metatags
       # if out_of_metatags ||= /\A[-~]?\w+:(?>"[^"]+"|\S+)\z/.match?(token)
@@ -1480,6 +1488,7 @@ class TagQuery
       elsif (out_of_metatags = (token == TagQuery::END_OF_METATAGS_TOKEN))
         next
       end
+      # IDEA: Place after quote removal to have `status:deleted` & `status:"deleted"` both be unlimited
       increment_tag_count 1 unless Danbooru.config.is_unlimited_tag?(token)
 
       # If it got here, it must be a potentially valid metatag w/o an empty body (before quote removal), so don't check.
@@ -1488,42 +1497,39 @@ class TagQuery
       # Remove quotes from description:"abc def"
       g2 = g2.delete_prefix('"').delete_suffix('"')
 
-      # The following prevents empty/whitespace-only values after quote removal; the above allows
-      # # Short-circuit when the metatag name has invalid characters in it, there is no metatag, or
-      # # the metatag has no value. Remove quotes from description:"abc def".
-      # if !/\A(?>[-~]?\w*)\z/.match?(metatag_name) ||
-      #    (g2 = g2.presence&.delete_prefix('"')&.delete_suffix('"')).blank?
-      #   add_tag(token)
-      #   next
-      # end
-
       type = METATAG_SEARCH_TYPE[metatag_name[0]]
+      # IDEA: Use a jump table instead
       case metatag_name.downcase
-      when "user", "-user", "~user" then add_to_query(type, :uploader_ids) { user_id_or_invalid(g2) }
+      when "user", "-user", "~user" then add_to_query(type, :uploader_ids, user_id_or_invalid(g2))
 
-      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids) { g2.to_i }
+      # NOTE: This doesn't match the behavior of `User.name_or_id_to_id`, as that ensures an integral, whereas this will convert leading digits of a non-numeric string.
+      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids, g2.to_i)
 
       when "approver", "-approver", "~approver"
-        add_to_query(type, :approver_ids, any_none_key: :approver, value: g2) { user_id_or_invalid(g2) }
+        add_to_query(type, :approver_ids, g2, any_none_key: :approver) { user_id_or_invalid(g2) }
 
       when "commenter", "-commenter", "~commenter", "comm", "-comm", "~comm"
-        add_to_query(type, :commenter_ids, any_none_key: :commenter, value: g2) { user_id_or_invalid(g2) }
+        add_to_query(type, :commenter_ids, g2, any_none_key: :commenter) { user_id_or_invalid(g2) }
 
       when "noter", "-noter", "~noter"
-        add_to_query(type, :noter_ids, any_none_key: :noter, value: g2) { user_id_or_invalid(g2) }
+        add_to_query(type, :noter_ids, g2, any_none_key: :noter) { user_id_or_invalid(g2) }
 
       when "noteupdater", "-noteupdater", "~noteupdater"
-        add_to_query(type, :note_updater_ids) { user_id_or_invalid(g2) }
+        add_to_query(type, :note_updater_ids, user_id_or_invalid(g2))
 
+      # IDEA: Check which is faster, `inpool:true` & `inpool:false` or `pool:any`/`-pool:none` & `pool:none`/`-pool:any`, and map 1 to the other.
+      # They resolve down to the same thing in `ElasticQueryBuilder`/`ElasticPostQueryBuilder`
+      # (`must`(`_not`)`.push({ exists: { field: :pools } })`), & `PostQueryBuilder` ~~formerly~~
+      # only checked `q[:pool]`, and only for any/none
       when "pool", "-pool", "~pool"
-        add_to_query(type, :pool_ids, any_none_key: :pool, value: g2) { Pool.name_to_id(g2) }
+        add_to_query(type, :pool_ids, g2, any_none_key: :pool) { Pool.name_to_id(g2) }
 
       when "set", "-set", "~set"
         add_to_query(type, :set_ids) do
           post_set_id = PostSet.name_to_id(g2)
           post_set = PostSet.find_by(id: post_set_id)
 
-          next 0 unless post_set
+          next -1 unless post_set # next 0 unless post_set
           raise User::PrivilegeError unless post_set.can_view?(CurrentUser.user)
 
           post_set_id
@@ -1533,7 +1539,7 @@ class TagQuery
         add_to_query(type, :fav_ids) do
           favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
 
-          next 0 unless favuser
+          next -1 unless favuser # next 0 unless favuser
           raise Favorite::HiddenError if favuser.hide_favorites?
 
           favuser.id
@@ -1546,48 +1552,49 @@ class TagQuery
       when "locked", "-locked", "~locked"
         add_to_query(type, :locked) do
           case g2.downcase
-          when "rating", "note", "status" then g2.to_sym
-          when "notes" then :note
+          when "rating" then :rating
+          when "note", "notes" then :note
+          when "status" then :status
           end
         end
 
-      when "ratinglocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :rating }
-      when "notelocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :note }
-      when "statuslocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :status }
+      when "ratinglocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked, :rating)
+      when "notelocked"   then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked, :note)
+      when "statuslocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked, :status)
 
-      when "id", "-id", "~id" then add_to_query(type, :post_id) { ParseValue.range(g2) }
+      when "id", "-id", "~id" then add_to_query(type, :post_id, ParseValue.range(g2))
 
-      when "width", "-width", "~width" then add_to_query(type, :width) { ParseValue.range(g2) }
+      when "width", "-width", "~width" then add_to_query(type, :width, ParseValue.range(g2))
 
-      when "height", "-height", "~height" then add_to_query(type, :height) { ParseValue.range(g2) }
+      when "height", "-height", "~height" then add_to_query(type, :height, ParseValue.range(g2))
 
-      when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels) { ParseValue.range_fudged(g2, :float) }
+      when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels, ParseValue.range_fudged(g2, :float))
 
-      when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio) { ParseValue.range(g2, :ratio) }
+      when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio, ParseValue.range(g2, :ratio))
 
-      when "duration", "-duration", "~duration" then add_to_query(type, :duration) { ParseValue.range(g2, :float) }
+      when "duration", "-duration", "~duration" then add_to_query(type, :duration, ParseValue.range(g2, :float))
 
-      when "score", "-score", "~score" then add_to_query(type, :score) { ParseValue.range(g2) }
+      when "score", "-score", "~score" then add_to_query(type, :score, ParseValue.range(g2))
 
-      when "favcount", "-favcount", "~favcount" then add_to_query(type, :fav_count) { ParseValue.range(g2) }
+      when "favcount", "-favcount", "~favcount" then add_to_query(type, :fav_count, ParseValue.range(g2))
 
-      when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize) { ParseValue.range_fudged(g2, :filesize) }
+      when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize, ParseValue.range_fudged(g2, :filesize))
 
-      when "change", "-change", "~change" then add_to_query(type, :change_seq) { ParseValue.range(g2) }
+      when "change", "-change", "~change" then add_to_query(type, :change_seq, ParseValue.range(g2))
 
       when "source", "-source", "~source"
-        add_to_query(type, :sources, any_none_key: :source, value: g2, wildcard: true) { "#{g2}*" }
+        add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { "#{g2}*" }
 
-      when "date", "-date", "~date" then add_to_query(type, :date) { ParseValue.date_range(g2) }
+      when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
 
-      when "age", "-age", "~age" then add_to_query(type, :age) { ParseValue.invert_range(ParseValue.range(g2, :age)) }
+      when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
 
-      when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count) { ParseValue.range(g2) }
+      when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count, ParseValue.range(g2))
 
       when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
-        add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count") { ParseValue.range(g2) }
+        add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count", ParseValue.range(g2))
 
-      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) { g2.to_i }
+      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
 
       when "child" then q[:child] = g2.downcase
 
@@ -1608,29 +1615,29 @@ class TagQuery
         q[:status] = nil
         q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
-      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype) { g2.downcase }
+      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
 
-      when "description", "-description", "~description" then add_to_query(type, :description) { g2 }
+      when "description", "-description", "~description" then add_to_query(type, :description, g2)
 
-      when "note", "-note", "~note" then add_to_query(type, :note) { g2 }
+      when "note", "-note", "~note" then add_to_query(type, :note, g2)
 
       when "delreason", "-delreason", "~delreason"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
-        add_to_query(type, :delreason, wildcard: true) { g2 }
+        add_to_query(type, :delreason, g2, wildcard: true)
 
       when "deletedby", "-deletedby", "~deletedby"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
-        add_to_query(type, :deleter) { user_id_or_invalid(g2) }
+        add_to_query(type, :deleter, user_id_or_invalid(g2))
 
       when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
-        add_to_query(type, :upvote) { privileged_user_id_or_invalid(g2) }
+        add_to_query(type, :upvote, privileged_user_id_or_invalid(g2))
 
       when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
-        add_to_query(type, :downvote) { privileged_user_id_or_invalid(g2) }
+        add_to_query(type, :downvote, privileged_user_id_or_invalid(g2))
 
-      when "voted", "-voted", "~voted" then add_to_query(type, :voted) { privileged_user_id_or_invalid(g2) }
+      when "voted", "-voted", "~voted" then add_to_query(type, :voted, privileged_user_id_or_invalid(g2))
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
@@ -1695,40 +1702,42 @@ class TagQuery
     end
   end
 
-  def add_to_query(type, key, any_none_key: nil, value: nil, wildcard: false, &)
+  # Add the specified metatag to the query object.
+  #
+  # ### Parameters
+  # * `type`
+  # * `key`
+  # * `value` [`nil`]: The value to assign. Is overwritten by the output of the block (if given)
+  # unless `any_none_key` is truthy & `value` is `none` or `any`, case insensitive.
+  # * `any_none_key` [`nil`]:
+  # * `wildcard` [`false`]:
+  # #### Block
+  # Returns the value of the metatag.
+  def add_to_query(type, key, value = nil, any_none_key: nil, wildcard: false, &)
     if any_none_key && (value.downcase == "none" || value.downcase == "any")
       add_any_none_to_query(type, value.downcase, any_none_key)
       return
     end
 
-    value = yield
+    value = yield if block_given?
     value = value.squeeze("*") if wildcard # Collapse runs of wildcards for efficiency
 
-    case type
-    when :must
-      q[key] ||= []
-      q[key] << value
-    when :must_not
-      q[:"#{key}_must_not"] ||= []
-      q[:"#{key}_must_not"] << value
-    when :should
-      q[:"#{key}_should"] ||= []
-      q[:"#{key}_should"] << value
-    end
+    key = case type
+          when :must then key
+          when :must_not then :"#{key}_must_not"
+          when :should then :"#{key}_should"
+          else
+            return
+          end
+    q[key] ||= []
+    q[key] << value
   end
 
   def add_any_none_to_query(type, value, key)
     case type
-    when :must
-      q[key] = value
-    when :must_not
-      if value == "none"
-        q[key] = "any"
-      else
-        q[key] = "none"
-      end
-    when :should
-      q[:"#{key}_should"] = value
+    when :must then q[key] = value
+    when :must_not then q[key] = value == "none" ? "any" : "none"
+    when :should then q[:"#{key}_should"] = value
     end
   end
 
@@ -1737,7 +1746,7 @@ class TagQuery
        .limit(Danbooru.config.tag_query_limit) # .limit(tag_query_limit)
        .order("post_count DESC")
        .pluck(:name)
-       .presence? || ["~~not_found~~"]
+       .presence || ["~~not_found~~"]
   end
 
   def normalize_tags
@@ -1746,6 +1755,7 @@ class TagQuery
     q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
   end
 
+  # TODO: Benchmark `value&.casecmp("true") == 0`, `value&.downcase == "true"`, & `value&.casecmp("true").zero`
   def parse_boolean(value)
     value&.downcase == "true"
   end

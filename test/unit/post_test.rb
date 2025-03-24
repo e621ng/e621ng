@@ -1964,10 +1964,11 @@ class PostTest < ActiveSupport::TestCase
     should "not count free tags against the user's search limit" do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 
-      # Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").once.returns(true)
-      # Danbooru.config.expects(:is_unlimited_tag?).with(anything).twice.returns(false)
-      assert_tag_match([post1], "aaa bbb rating:s #{(0...38).to_a.map { |x| "-#{x}" }.join(' ')}")
-      assert_raise(TagQuery::CountExceededError) { Post.tag_match("aaa bbb rating:s #{(0...38).to_a.map { |x| "-#{x}" }.join(' ')} one_too_many") }
+      Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").twice.returns(true)
+      Danbooru.config.expects(:is_unlimited_tag?).with(anything).never.returns(false)
+      query = "aaa bbb rating:s #{(1..38).to_a.map { |x| "-#{x}" }.join(' ')}"
+      assert_tag_match([post1], query)
+      assert_raise(TagQuery::CountExceededError) { Post.tag_match("#{query} one_too_many") }
     end
 
     should "succeed for exclusive tag searches with no other tag" do

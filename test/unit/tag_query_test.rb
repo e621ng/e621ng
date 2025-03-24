@@ -34,7 +34,7 @@ class TagQueryTest < ActiveSupport::TestCase
       # scan a query
       assert_equal(TagQuery.scan("aaa bbb"), TagQuery.scan_search("aaa bbb"))
       assert_equal(TagQuery.scan("~AAa -BBB* -bbb*"), TagQuery.scan_search("~AAa -BBB* -bbb*"))
-      assert_equal(TagQuery.scan('aaa test:"with spaces" def'), TagQuery.scan_search('aaa test:"with spaces" def'))
+      assert_equal(TagQuery.scan('aaa test:"with spaces" def'), TagQuery.scan_search('aaa test:"with spaces" def', delim_metatags: false))
       # not strip out valid characters when scanning
       assert_equal(TagQuery.scan("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"), TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
     end
@@ -43,10 +43,16 @@ class TagQueryTest < ActiveSupport::TestCase
       # scan a query
       assert_equal(TagQuery.scan_light("aaa bbb"), TagQuery.scan_search("aaa bbb"))
       assert_equal(TagQuery.scan_light("~AAa -BBB* -bbb*"), TagQuery.scan_search("~AAa -BBB* -bbb*"))
-      assert_not_equal(TagQuery.scan_light('aaa test:"with spaces" def'), TagQuery.scan_search('aaa test:"with spaces" def'))
-      assert_equal([], TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false) - TagQuery.scan_search('aaa test:"with spaces" def'), "scan_light #{TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false)} - scan_search #{TagQuery.scan_search('aaa test:"with spaces" def')} should be empty")
+      sl = TagQuery.scan_light('aaa test:"with spaces" def')
+      ss = TagQuery.scan_search('aaa test:"with spaces" def')
+      assert_not_equal(sl, ss)
+      sl = TagQuery.scan_light('aaa test:"with spaces" def', delim_metatags: false)
+      ss = TagQuery.scan_search('aaa test:"with spaces" def')
+      assert_equal([], sl - ss, "scan_light #{sl} - scan_search #{ss} should be empty")
       # not strip out valid characters when scanning
-      assert_equal(TagQuery.scan_light("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"), TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%"))
+      sl = TagQuery.scan_light("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%")
+      ss = TagQuery.scan_search("favgroup:yondemasu_yo,_azazel-san. pool:ichigo_100%")
+      assert_equal(sl, ss)
     end
 
     context "a query w/o nested groups" do
@@ -472,21 +478,440 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
   end
+  # when "user", "-user", "~user" then add_to_query(type, :uploader_ids) { user_id_or_invalid(g2) }
+  # when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids) { g2.to_i }
+  # when "approver", "-approver", "~approver"
+  # when "commenter", "-commenter", "~commenter", "comm", "-comm", "~comm"
+  # when "noter", "-noter", "~noter"
+  # when "noteupdater", "-noteupdater", "~noteupdater"
+  # when "pool", "-pool", "~pool"
+  # when "set", "-set", "~set"
+  # when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
+  # when "md5" then q[:md5] = g2.downcase.split(",")[0..99]
+  # when "rating", "-rating", "~rating" then add_to_query(type, :rating) { g2[0]&.downcase || "miss" }
+  # when "locked", "-locked", "~locked"
+  # when "ratinglocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :rating }
+  # when "notelocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :note }
+  # when "statuslocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :status }
+  # when "id", "-id", "~id" then add_to_query(type, :post_id) { ParseValue.range(g2) }
+  # when "width", "-width", "~width" then add_to_query(type, :width) { ParseValue.range(g2) }
+  # when "height", "-height", "~height" then add_to_query(type, :height) { ParseValue.range(g2) }
+  # when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels) { ParseValue.range_fudged(g2, :float) }
+  # when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio) { ParseValue.range(g2, :ratio) }
+  # when "duration", "-duration", "~duration" then add_to_query(type, :duration) { ParseValue.range(g2, :float) }
+  # when "score", "-score", "~score" then add_to_query(type, :score) { ParseValue.range(g2) }
+  # when "favcount", "-favcount", "~favcount" then add_to_query(type, :fav_count) { ParseValue.range(g2) }
+  # when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize) { ParseValue.range_fudged(g2, :filesize) }
+  # when "change", "-change", "~change" then add_to_query(type, :change_seq) { ParseValue.range(g2) }
+  # when "source", "-source", "~source"
+  # when "date", "-date", "~date" then add_to_query(type, :date) { ParseValue.date_range(g2) }
+  # when "age", "-age", "~age" then add_to_query(type, :age) { ParseValue.invert_range(ParseValue.range(g2, :age)) }
+  # when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count) { ParseValue.range(g2) }
+  # when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
+  # when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) { g2.to_i }
+  # when "child" then q[:child] = g2.downcase
+  # when "randseed" then q[:random_seed] = g2.to_i
+  # when "order" then q[:order] = g2.downcase
+  # when "limit"
+  # when "status"
+  # when "-status"
+  # when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype) { g2.downcase }
+  # when "description", "-description", "~description" then add_to_query(type, :description) { g2 }
+  # when "note", "-note", "~note" then add_to_query(type, :note) { g2 }
+  # when "delreason", "-delreason", "~delreason"
+  MAPPING = {
+    user: :uploader_ids,
+    user_id: :uploader_ids,
+    approver: :approver_ids,
+    commenter: :commenter_ids,
+    comm: :commenter_ids,
+    noter: :noter_ids,
+    noteupdater: :note_updater_ids,
+    pool: :pool_ids,
+    set: :set_ids,
+    fav: :fav_ids,
+    favoritedby: :fav_ids,
+    md5: :md5,
+    rating: :rating,
+    locked: :locked,
+    ratinglocked: :locked,
+    notelocked: :locked,
+    statuslocked: :locked,
+    id: :post_id,
+    width: :width,
+    height: :height,
+    mpixels: :mpixels,
+    ratio: :ratio,
+    duration: :duration,
+    score: :score,
+    favcount: :fav_count,
+    filesize: :filesize,
+    change: :change_seq,
+    source: :sources,
+    date: :date,
+    tagcount: :post_tag_count,
 
-  should "parse a query" do
-    create(:tag, name: "acb")
-    assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
-    assert_equal([[:between, 1, 2]], TagQuery.new("id:1..2")[:post_id])
-    assert_equal([[:gt, 2]], TagQuery.new("id:>2")[:post_id])
-    assert_equal([[:gte, 2]], TagQuery.new("id:>=2")[:post_id])
-    assert_equal([[:lt, 3]], TagQuery.new("id:<3")[:post_id])
-    assert_equal([[:lte, 3]], TagQuery.new("id:<=3")[:post_id])
-    assert_equal([[:lt, 3]], TagQuery.new("ID:<3")[:post_id])
-    assert_equal([[:lte, 3]], TagQuery.new("ID:<=3")[:post_id])
-    assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
-    # Single top level group
-    assert_equal(["acb"], TagQuery.new("( a*b )")[:tags][:should])
-    # TODO: Add more test cases for groups
+    parent: :parent_ids,
+    child: :child,
+    randseed: :random_seed,
+    order: :order,
+    status: :status,
+    filetype: :filetype,
+    type: :filetype,
+    description: :description,
+    note: :note,
+    delreason: :delreason,
+    deletedby: :deleter,
+    upvote: :upvote,
+    votedup: :upvote,
+    downvote: :downvote,
+    voteddown: :downvote,
+    voted: :voted,
+
+  }.freeze
+  ANY_KEY_MAPPING = {
+    approver: :approver,
+    commenter: :commenter,
+    comm: :commenter,
+    noter: :noter,
+    pool: :pool,
+    source: :source,
+    parent: :parent,
+  }.freeze
+  FAV_SET_FAIL_VAL = -1
+  # TODO: Add more test cases for group parsing
+  # TODO: Add more test cases for metatag parsing
+  context "Parsing a query:" do
+    should "correctly handle up to 40 standard tags" do
+      expected_result = {
+        tags: {
+          must: [],
+          must_not: [],
+          should: [],
+        },
+        show_deleted: false,
+      }
+      query = [*"a"..."u"].concat([*"a"..."u"].map { |e| "#{e}#{e}" }).each_with_index.map do |e, i|
+        case i % 3
+        when 0
+          expected_result[:tags][:must] << e
+          e
+        when 1
+          expected_result[:tags][:must_not] << e
+          "-#{e}"
+        when 2
+          expected_result[:tags][:should] << e
+          " ~#{e}"
+        end
+      end.join(" ")
+      assert_equal(expected_result.freeze, TagQuery.new(query).q)
+    end
+
+    # TODO: Test invalid tag filtering when `TagQuery::SETTINGS[CHECK_TAG_VALIDITY]`, `TagQuery::SETTINGS[ERROR_ON_INVALID_TAG]`, & `TagQuery::SETTINGS[CATCH_INVALID_TAG]`align.
+    # rubocop:disable Style/MultilineIfModifier
+    should_eventually "not accept invalid standard tags" do
+      # rubocop:enable Style/MultilineIfModifier
+      # expected_result = {
+      #   must: [],
+      #   must_not: [],
+      #   should: [],
+      #   show_deleted: false,
+      # }
+      # query = ""
+      # [*"a"..."u"].concat([*"a"..."u"].map { |e| "#{e}#{e}" }).each_with_index do |e, i|
+      #   case i % 3
+      #   when 0
+      #     expected_result[:must] << e
+      #     query += e
+      #   when 1
+      #     expected_result[:must_not] << e
+      #     query += "-#{e}"
+      #   when 2
+      #     expected_result[:should] << e
+      #     query += "~#{e}"
+      #   end
+      # end
+      # assert_equal(expected_result, TagQuery.new(query).q)
+    end if TagQuery::SETTINGS[:CHECK_TAG_VALIDITY]
+
+    should "correctly handle wildcards" do
+      create(:tag, name: "acb") # So `TagQuery.pull_wildcard_tags` works
+      assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
+      assert_equal(["acb"], TagQuery.new("-a*b")[:tags][:must_not])
+      # Single top level group
+      assert_equal(["acb"], TagQuery.new("( a*b )")[:tags][:should])
+    end
+
+    context "W/ metatags:" do
+      should "match w/ case insensitivity" do
+        %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
+      end
+
+      # true -> true, everything else -> false
+      should "parse boolean metatags correctly" do
+        TagQuery::BOOLEAN_METATAGS.each do |e|
+          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:1")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:0")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:y")[e.downcase.to_sym])
+          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym])
+        end
+      end
+
+      # * Limited to 100 comma-separated entries
+      should "parse md5 tags correctly" do
+        assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
+        arr = [*"aa".."zz"].freeze
+        assert_equal(arr[0..99], TagQuery.new("md5:#{arr.join(',')}")[:md5])
+      end
+
+      should "correctly handle valid any/none values" do
+        ANY_KEY_MAPPING.each_key do |e|
+          assert_equal("any", TagQuery.new("#{e}:any")[ANY_KEY_MAPPING[e]])
+          assert_equal("none", TagQuery.new("#{e}:none")[ANY_KEY_MAPPING[e]])
+          assert_not_equal("diff", TagQuery.new("#{e}:diff")[ANY_KEY_MAPPING[e]])
+        end
+      end
+
+      # `deletedby` & `delreason` also change `status` & `show_deleted` to deactivate deleted filtering
+      should "correctly handle side-effects on deleted filtering" do
+        %w[deletedby delreason].each do |x|
+          ["#{x}:value", "#{x}:!404"].each do |y|
+            result = TagQuery.new(y)
+            assert_equal(true, result[:show_deleted])
+            assert_equal("any", result[:status])
+            assert_nil(result[:status_must_not])
+            assert_not(result.hide_deleted_posts?)
+            ["status:active #{y}", "#{y} status:active"].each do |z|
+              result = TagQuery.new(z)
+              assert_equal(true, result[:show_deleted])
+              assert_equal("active", result[:status])
+              assert_nil(result[:status_must_not])
+              assert_not(result.hide_deleted_posts?)
+            end
+            ["-status:modqueue #{y}", "#{y} -status:modqueue"].each do |z|
+              result = TagQuery.new(z)
+              assert_equal(true, result[:show_deleted])
+              assert_equal("modqueue", result[:status_must_not])
+              assert_nil(result[:status])
+              assert_not(result.hide_deleted_posts?)
+            end
+          end
+        end
+      end
+
+      context "User-dependent:" do
+        setup do
+          @u_id = 101
+          @a_id = 123
+          @u_name = "#{@a_id}the_current_user".freeze
+          @a_name = "#{@u_id}admin".freeze
+          @user = create(:user, name: @u_name, enable_privacy_mode: true, id: @u_id, created_at: 4.days.ago)
+          CurrentUser.user = @user
+          # TODO: Change name to reflect role
+          @admin_user = create(:moderator_user, name: @a_name, id: @a_id, created_at: 4.days.ago)
+          @val_u = [@u_id].freeze
+          @val_a = [@a_id].freeze
+          @val_b = [-1].freeze
+        end
+
+        should "parse them correctly" do
+          hash_u = { val: @val_u, id: @u_id, u_name: @u_name }.freeze
+          hash_a = { val: @val_a, id: @a_id, u_name: @a_name }.freeze
+          check_tags_on_users = ->(tags, users, bad_id = 404, bad_name = "nonexistent", label: "") do
+            tags.each do |e|
+              s = e.is_a?(Symbol) ? e : e.to_sym
+              users.each do |u|
+                # Doesn't validate id if using `!`
+                # assert_equal(u.fetch(:id_failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+                assert_equal(u.fetch(:failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+                assert_equal(u.fetch(:failure_val, [-1]), TagQuery.new("#{e}:#{bad_name}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+
+                assert_equal(u[:val], TagQuery.new("#{e}:#{u[:u_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+                assert_equal(u[:val], TagQuery.new("#{e}:!#{u[:id]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+
+                # If leading w/ - but not entirely - a valid integral, will check user names
+                assert_equal(u.fetch(:bang_val, [-1]), TagQuery.new("#{e}:!#{u[:u_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") unless u[:no_bang]
+
+                # Can see other's values for this field?
+                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:#{u[:o_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") if u[:o_name]
+                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:!#{u[:o_id]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") if u[:o_id]
+              end
+            end
+          end
+
+          check_tags_on_users.call(
+            %w[user approver commenter noter noteupdater deletedby].freeze,
+            [
+              hash_u.merge({ o_name: @a_name, o_id: @a_id, o_val: @val_a, bang_val: [-1].freeze }).freeze,
+              hash_a.merge({ o_name: @u_name, o_id: @u_id, o_val: @val_u, bang_val: @val_b }).freeze,
+            ].freeze,
+            label: "Through check on standard tags",
+          )
+
+          check_tags_on_users.call(
+            %w[upvote downvote voted votedup voteddown].freeze,
+            [
+              hash_u.merge({ failure_val: [@u_id].freeze, bang_val: [@u_id].freeze }).freeze,
+              # hash_a.merge({ failure_val: [@a_id].freeze, bang_val: @val_b }).freeze,
+            ].freeze,
+            label: "Basic check on voting tags",
+          )
+
+          check_tags_on_users.call(
+            %w[fav favoritedby].freeze,
+            [hash_u.merge({ no_bang: true, failure_val: [FAV_SET_FAIL_VAL] }).freeze].freeze,
+            FAV_SET_FAIL_VAL,
+            label: "Basic-er check on fav tag",
+          )
+
+          check_tags_on_users.call(
+            %w[set].freeze,
+            [hash_u.merge({ no_bang: true, failure_val: [FAV_SET_FAIL_VAL].freeze, val: [FAV_SET_FAIL_VAL].freeze }).freeze].freeze,
+            FAV_SET_FAIL_VAL,
+            label: "Basic-est check on set tag",
+          )
+
+          assert_equal(@val_u, TagQuery.new("user_id:#{@u_id}")[MAPPING[:user_id]])
+          assert_equal(@val_a, TagQuery.new("user_id:#{@a_id}")[MAPPING[:user_id]])
+
+          # NOTE: User id handling will partially convert strings leading w/ valid numbers (e.g. `user_id:123string` -> `123`).
+          # Unintentional as it may be, this ensures that behavior remains consistent.
+          assert_equal(@val_a, TagQuery.new("user_id:#{@u_name}")[MAPPING[:user_id]])
+          assert_equal(@val_u, TagQuery.new("user_id:#{@a_name}")[MAPPING[:user_id]])
+        end
+
+        context "Votes:" do
+          setup do
+            @tags = %i[upvote downvote voted votedup voteddown].freeze
+          end
+
+          should "let users can see their own votes" do
+            @tags.each do |x|
+              assert_equal(@val_u, TagQuery.new("#{x}:#{@u_name}")[MAPPING[x]])
+              assert_equal(@val_u, TagQuery.new("#{x}:!#{@u_id}")[MAPPING[x]])
+            end
+          end
+
+          should "not let normal users see other user's votes" do
+            @tags.each do |x|
+              assert_equal(@val_u, TagQuery.new("#{x}:#{@a_name}")[MAPPING[x]])
+              assert_equal(@val_u, TagQuery.new("#{x}:!#{@a_id}")[MAPPING[x]])
+            end
+          end
+
+          should "let moderators & higher see other user's votes" do
+            CurrentUser.user = @admin_user
+            # Check user change worked
+            assert_equal(@val_a, TagQuery.new("upvote:#{@a_name}")[MAPPING[:upvote]])
+            @tags.each do |x|
+              assert_equal(@val_u, TagQuery.new("#{x}:#{@u_name}")[MAPPING[x]])
+              assert_equal(@val_u, TagQuery.new("#{x}:!#{@u_id}")[MAPPING[x]])
+            end
+          end
+        end
+        # should "parse vote metatags correctly" do
+        #   # Users can see their own votes
+        #   assert_equal(@val_u, TagQuery.new("upvote:#{@u_name}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@u_id}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:#{@u_name}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@u_id}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("voted:#{@u_name}")[MAPPING[:voted]])
+        #   assert_equal(@val_u, TagQuery.new("voted:!#{@u_id}")[MAPPING[:voted]])
+
+        #   # Normal users can't see other user's votes
+        #   assert_equal(@val_u, TagQuery.new("upvote:#{@a_name}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@a_id}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:#{@a_name}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@a_id}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("voted:#{@a_name}")[MAPPING[:voted]])
+        #   assert_equal(@val_u, TagQuery.new("voted:!#{@a_id}")[MAPPING[:voted]])
+
+        #   # Moderators & higher can see other user's votes
+        #   CurrentUser.user = @admin_user
+        #   assert_equal(@val_a, TagQuery.new("upvote:#{@a_name}")[MAPPING[:upvote]]) # Check user change worked
+        #   assert_equal(@val_u, TagQuery.new("upvote:#{@u_name}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("upvote:!#{@u_id}")[MAPPING[:upvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:#{@u_name}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("downvote:!#{@u_id}")[MAPPING[:downvote]])
+        #   assert_equal(@val_u, TagQuery.new("voted:#{@u_name}")[MAPPING[:voted]])
+        #   assert_equal(@val_u, TagQuery.new("voted:!#{@u_id}")[MAPPING[:voted]])
+        # end
+
+        should "parse 'set' metatags correctly" do
+          # Users can see public sets
+          pub_set = create(:post_set, is_public: true, creator: @admin_user)
+          assert_equal([pub_set.id], TagQuery.new("set:#{pub_set.id}")[MAPPING[:set]])
+          assert_equal([pub_set.id], TagQuery.new("set:#{pub_set.shortname}")[MAPPING[:set]])
+
+          # Users can see their own sets
+          u_set = create(:post_set, creator: @user, is_public: false)
+          assert_equal([u_set.id], TagQuery.new("set:#{u_set.id}")[MAPPING[:set]])
+          assert_equal([u_set.id], TagQuery.new("set:#{u_set.shortname}")[MAPPING[:set]])
+
+          # Normal users can't see other user's private sets
+          a_set = create(:post_set, creator: @admin_user, is_public: false)
+          # assert_equal([-1], TagQuery.new("set:#{a_set.id}")[MAPPING[:set]])
+          # assert_equal([-1], TagQuery.new("set:#{a_set.shortname}")[MAPPING[:set]])
+          assert_raises(User::PrivilegeError) { TagQuery.new("set:#{a_set.id}")[MAPPING[:set]] }
+          assert_raises(User::PrivilegeError) { TagQuery.new("set:#{a_set.shortname}")[MAPPING[:set]] }
+
+          # Moderators & higher can see other user's private sets
+          CurrentUser.user = @admin_user
+          assert_equal([u_set.id], TagQuery.new("set:#{u_set.id}")[MAPPING[:set]])
+          assert_equal([u_set.id], TagQuery.new("set:#{u_set.shortname}")[MAPPING[:set]])
+        end
+
+        should "parse fav/favoritedby metatags correctly" do
+          %i[fav favoritedby].each do |x|
+            # Users can see public favs
+            assert_equal(@val_a, TagQuery.new("#{x}:#{@a_name}")[MAPPING[x]])
+            assert_equal(@val_a, TagQuery.new("#{x}:!#{@a_id}")[MAPPING[x]])
+
+            # Users can see their own favs
+            assert_equal(@val_u, TagQuery.new("#{x}:#{@u_name}")[MAPPING[x]])
+            assert_equal(@val_u, TagQuery.new("#{x}:!#{@u_id}")[MAPPING[x]])
+
+            # Normal users can't see other user's private favs
+            @admin_user.update(enable_privacy_mode: true)
+            assert_raises(Favorite::HiddenError) { TagQuery.new("#{x}:#{@a_name}") }
+            @admin_user.update(enable_privacy_mode: false)
+
+            # Moderators & higher can see other user's private favs
+            CurrentUser.user = @admin_user
+            assert_equal(@val_u, TagQuery.new("#{x}:#{@u_name}")[MAPPING[x]])
+            CurrentUser.user = @user
+          end
+        end
+      end
+
+      context "using range" do
+        should "parse them correctly" do
+          # TODO: Add COUNT_METATAGS & others
+          assert_equal([[:between, 1, 2]], TagQuery.new("id:1..2")[:post_id])
+          assert_equal([[:gt, 2]], TagQuery.new("id:>2")[:post_id])
+          assert_equal([[:gte, 2]], TagQuery.new("id:>=2")[:post_id])
+          assert_equal([[:lt, 3]], TagQuery.new("id:<3")[:post_id])
+          assert_equal([[:lte, 3]], TagQuery.new("id:<=3")[:post_id])
+        end
+      end
+    end
+
+    # should "correctly handle valid metatags" do
+    #   user = create(:user)
+    #   Danbooru.config.expects(:is_unlimited_tag?).with(anything).times(3).returns(false)
+    #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
+    #   assert_equal()
+    # end
+
+    # should "correctly handle valid metatags" do
+    #   user = create(:user)
+    #   Danbooru.config.expects(:is_unlimited_tag?).with(anything).times(3).returns(false)
+    #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
+    #   assert_equal()
+    # end
   end
 
   should "allow multiple types for a metatag in a single query" do
@@ -520,6 +945,7 @@ class TagQueryTest < ActiveSupport::TestCase
         TagQuery.scan_recursive((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
       end
     end
+
     should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
       # top level
       TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)

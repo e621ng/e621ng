@@ -126,9 +126,9 @@ class PostQueryBuilder
       relation = relation.where.not("posts.file_ext": filetype)
     end
 
-    if q[:pool] == "none"
+    if q[:pool] == "none" || q[:inpool_must_not] || (q[:inpool] == false)
       relation = relation.where("posts.pool_string = ''")
-    elsif q[:pool] == "any"
+    elsif q[:pool] == "any" || q[:inpool] || (q[:inpool_must_not] == false)
       relation = relation.where("posts.pool_string != ''")
     end
 
