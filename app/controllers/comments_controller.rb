@@ -16,17 +16,24 @@ class CommentsController < ApplicationController
     end
   end
 
+  def show
+    @comment = Comment.find(params[:id])
+    check_visible(@comment)
+    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
+    respond_with(@comment)
+  end
+
   def search
   end
 
   def for_post
     @post = Post.find(params[:id])
-    @comments = @post.comments
+    @comments = @post.comments.includes(:creator, :updater)
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
-    comment_html = render_to_string partial: 'comments/partials/show/comment', collection: @comments, locals: { post: @post }, formats: [:html]
+    comment_html = render_to_string partial: "comments/partials/show/comment", collection: @comments, locals: { post: @post }, formats: [:html]
     respond_with do |format|
       format.json do
-        render json: {html: comment_html, posts: deferred_posts}
+        render json: { html: comment_html, posts: deferred_posts }
       end
     end
   end
@@ -36,11 +43,10 @@ class CommentsController < ApplicationController
     respond_with(@comment)
   end
 
-  def update
+  def edit
     @comment = Comment.find(params[:id])
     check_editable(@comment)
-    @comment.update(comment_params(:update))
-    respond_with(@comment, :location => post_path(@comment.post_id))
+    respond_with(@comment)
   end
 
   def create
@@ -53,17 +59,11 @@ class CommentsController < ApplicationController
     end
   end
 
-  def edit
+  def update
     @comment = Comment.find(params[:id])
     check_editable(@comment)
-    respond_with(@comment)
-  end
-
-  def show
-    @comment = Comment.find(params[:id])
-    check_visible(@comment)
-    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
-    respond_with(@comment)
+    @comment.update(comment_params(:update))
+    respond_with(@comment, location: post_path(@comment.post_id))
   end
 
   def destroy
@@ -88,7 +88,7 @@ class CommentsController < ApplicationController
 
   def warning
     @comment = Comment.find(params[:id])
-    if params[:record_type] == 'unmark'
+    if params[:record_type] == "unmark"
       @comment.remove_user_warning!
     else
       @comment.user_warned!(params[:record_type], CurrentUser.user)
@@ -98,18 +98,20 @@ class CommentsController < ApplicationController
     render json: { html: html, posts: deferred_posts }
   end
 
-private
+  private
+
   def index_by_post
     tags = params[:tags] || ""
-    @posts = Post.tag_match(tags + " order:comment_bumped").paginate(params[:page], :limit => 5, :search_count => params[:search])
-    comment_ids = @posts.flat_map {|post| post.comments.visible(CurrentUser.user).recent.reverse.map(&:id)} if CurrentUser.id
-    @comment_votes = CommentVote.for_comments_and_user(comment_ids || [], CurrentUser.id)
+    @posts = Post.includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
+
+    @comments = @posts.to_h { |post| [post.id, post.comments.includes(:creator, :updater).recent.reverse] }
+    @comment_votes = CommentVote.for_comments_and_user(CurrentUser.id ? @comments.values.flatten.map(&:id) : [], CurrentUser.id)
     respond_with(@posts)
   end
 
   def index_by_comment
     @comments = Comment.visible(CurrentUser.user)
-    @comments = @comments.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @comments = @comments.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     respond_with(@comments)
   end

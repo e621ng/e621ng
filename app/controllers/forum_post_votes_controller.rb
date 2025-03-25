@@ -11,7 +11,7 @@ class ForumPostVotesController < ApplicationController
 
   def create
     @forum_post_vote = @forum_post.votes.create(forum_post_vote_params)
-    raise User::PrivilegeError.new(@forum_post_vote.errors.full_messages.join('; ')) if @forum_post_vote.errors.size > 0
+    raise User::PrivilegeError, @forum_post_vote.errors.full_messages.join("; ") unless @forum_post_vote.errors.empty?
     respond_with(@forum_post_vote) do |fmt|
       fmt.json { render json: @forum_post_vote, code: 201 }
     end
@@ -24,11 +24,11 @@ class ForumPostVotesController < ApplicationController
     end
   end
 
-private
+  private
 
   def load_vote
     @forum_post_vote = @forum_post.votes.where(creator_id: CurrentUser.id).first
-    raise ActiveRecord::RecordNotFound.new if @forum_post_vote.nil?
+    raise ActiveRecord::RecordNotFound if @forum_post_vote.nil?
   end
 
   def load_forum_post
@@ -36,8 +36,8 @@ private
   end
 
   def validate_forum_post
-    raise User::PrivilegeError.new unless @forum_post.visible?(CurrentUser.user)
-    raise User::PrivilegeError.new unless @forum_post.votable?
+    raise User::PrivilegeError unless @forum_post.visible?(CurrentUser.user)
+    raise User::PrivilegeError unless @forum_post.votable?
   end
 
   def validate_no_vote_on_own_post
