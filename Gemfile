@@ -48,7 +48,6 @@ end
 group :development, :test do
   gem "listen"
   gem "puma"
-  gem "benchmark-ips", ">= 2.14", require: false
 end
 
 group :development do

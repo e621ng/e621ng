@@ -100,7 +100,6 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     benchmark (0.4.0)
-    benchmark-ips (2.14.0)
     better_html (2.1.1)
       actionview (>= 6.0)
       activesupport (>= 6.0)
@@ -393,7 +392,6 @@ DEPENDENCIES
   active_model_serializers (~> 0.10.0)
   addressable
   bcrypt
-  benchmark-ips (>= 2.14)
   bootsnap
   dalli
   datadog
