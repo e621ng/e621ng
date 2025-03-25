@@ -61,7 +61,6 @@ module Danbooru
 
       # taken from kaminari (https://github.com/amatsuda/kaminari)
       def real_count
-        puts "REAL_COUNT"
         c = except(:offset, :limit, :order)
         c = c.reorder(nil)
         c = c.count
