@@ -72,12 +72,15 @@ Blacklist.init_blacklist_editor = function () {
 /** Reveals the blacklisted post without disabling any filters */
 Blacklist.init_reveal_on_click = function () {
   if (!$("#c-posts #a-show").length) return;
-  $("#image-container").on("click", (event) => {
-    $(event.currentTarget).removeClass("blacklisted");
+  const container = $("#image-container")
+    .off("click.blacklist")
+    .on("click.blacklist", () => {
+      if (!container.hasClass("blacklisted")) return;
+      container.removeClass("blacklisted");
 
-    $("#note-container").css("visibility", "visible");
-    Danbooru.Note.Box.scale_all();
-  });
+      $("#note-container").css("visibility", "visible");
+      Danbooru.Note.Box.scale_all();
+    });
 };
 
 /** Import the blacklist from the meta tag */
