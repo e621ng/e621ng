@@ -34,7 +34,6 @@ class SessionLoader
       end
       raise AuthenticationFailure.new(ban_message)
     end
-    set_statement_timeout
     update_last_logged_in_at
     update_last_ip_addr
     set_time_zone
@@ -51,12 +50,7 @@ class SessionLoader
     cookies.encrypted[:remember].present?
   end
 
-private
-
-  def set_statement_timeout
-    timeout = CurrentUser.user.statement_timeout
-    ActiveRecord::Base.connection.execute("set statement_timeout = #{timeout}")
-  end
+  private
 
   def load_remember_token
     begin

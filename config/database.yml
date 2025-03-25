@@ -2,6 +2,8 @@ default: &default
   adapter: postgresql
   timeout: 5000
   username: e621
+  variables:
+    statement_timeout: 3000
 
 development:
   <<: *default
