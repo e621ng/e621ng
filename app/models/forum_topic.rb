@@ -193,4 +193,8 @@ class ForumTopic < ApplicationRecord
       original_post.update_columns(:updater_id => CurrentUser.id, :updated_at => Time.now)
     end
   end
+
+  def method_attributes
+    super + %i[creator_name updater_name]
+  end
 end

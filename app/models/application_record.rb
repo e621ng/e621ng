@@ -298,11 +298,8 @@ class ApplicationRecord < ActiveRecord::Base
           end
 
           define_method :creator_name do
-            if association(:creator).loaded?
-              creator.name
-            else
-              User.id_to_name(creator_id)
-            end
+            return creator&.name || Danbooru.config.default_guest_name if association(:creator).loaded?
+            User.id_to_name(creator_id)
           end
         end
       end
@@ -316,11 +313,8 @@ class ApplicationRecord < ActiveRecord::Base
           end
 
           define_method :updater_name do
-            if association(:updater).loaded?
-              updater.name
-            else
-              User.id_to_name(creator_id)
-            end
+            return updater&.name || Danbooru.config.default_guest_name if association(:updater).loaded?
+            User.id_to_name(creator_id)
           end
         end
       end
