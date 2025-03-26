@@ -50,7 +50,7 @@ class Post < ApplicationRecord
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
-  has_many :comments, dependent: :destroy
+  has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
   has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
