@@ -130,6 +130,8 @@ class ModActionDecorator < ApplicationDecorator
       "Changed profile text of #{user}"
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
+    when "user_uploads_toggle"
+      "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
       "Changed name of #{user}"
 
