@@ -14,10 +14,11 @@ class FavoritesController < ApplicationController
       @user = User.find(user_id)
 
       if @user.hide_favorites?
-        raise Favorite::HiddenError
+        @post_set = PostSets::Post.new("limit:0")
+      else
+        @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       end
 
-      @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
       respond_with(@posts) do |fmt|
         fmt.json do
