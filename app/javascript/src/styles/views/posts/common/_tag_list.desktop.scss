@@ -13,39 +13,13 @@ ul.tag-list {
   li {
     gap: 0;
     padding-right: 1rem;
+    border: 0;
+    width: unset;
 
     a {
       display: block;
       padding: 0;
       line-height: 1rem;
-    }
-
-    @each $tag-category, $tag-category-name in $tag-categories {
-      &.tag-#{$tag-category-name} {
-        a, a:link, a:visited {
-          background: unset;
-          color: themed("color-tag-#{$tag-category-name}");
-        }
-        a:hover {
-          background: unset;
-          color: themed("color-tag-#{$tag-category-name}-alt");
-        }
-      }
-    }
-
-    .tag-list-wiki { display: flex; }
-
-    .tag-list-inc {
-      display: flex;
-    }
-  
-    .tag-list-search {
-      border-radius: 0;
-  
-      svg {
-        color: themed("color-tag-artist");
-        .check { color: themed("color-text"); }
-      }
     }
   
     .tag-list-count {
@@ -53,6 +27,7 @@ ul.tag-list {
       margin: unset;
       color: themed("color-text-muted");
       font-size: 0.85em;
+      border: 0;
     }
 
     .tag-list-actions { display: flex; }
