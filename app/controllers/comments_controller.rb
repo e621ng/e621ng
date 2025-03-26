@@ -113,6 +113,12 @@ class CommentsController < ApplicationController
     @comments = Comment.visible(CurrentUser.user)
     @comments = @comments.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+
+    if CurrentUser.is_staff?
+      ids = @comments&.map(&:id)
+      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+    end
+
     respond_with(@comments)
   end
 

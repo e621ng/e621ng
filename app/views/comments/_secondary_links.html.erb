@@ -3,4 +3,8 @@
   <%= subnav_link_to "Listing", comments_path(group_by: "post") %>
   <%= subnav_link_to "Search", search_comments_path %>
   <%= subnav_link_to "Help", help_page_path(id: "comments") %>
+  <% if @latest.present? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Latest", @latest %>
+  <% end %>
 <% end %>
