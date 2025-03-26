@@ -1,11 +1,24 @@
 # frozen_string_literal: true
 
 class PostVotesController < ApplicationController
+  respond_to :json
+  respond_to :html, only: [:index]
   before_action :member_only
   before_action :moderator_only, only: %i[index lock]
   before_action :admin_only, only: [:delete]
   before_action :ensure_lockdown_disabled
   skip_before_action :api_check
+
+  def index
+    @post_votes = PostVote.includes(:user).search(search_params).paginate(params[:page], limit: 100)
+
+    if CurrentUser.is_staff?
+      ids = @post_votes&.map(&:id)
+      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+    end
+
+    respond_with(@post_votes)
+  end
 
   def create
     @post = Post.find(params[:post_id])
@@ -13,20 +26,16 @@ class PostVotesController < ApplicationController
     if @post_vote == :need_unvote && !params[:no_unvote].to_s.truthy?
       VoteManager.unvote!(post: @post, user: CurrentUser.user)
     end
-    render json: {score: @post.score, up: @post.up_score, down: @post.down_score, our_score: @post_vote != :need_unvote ? @post_vote.score : 0}
-  rescue UserVote::Error, ActiveRecord::RecordInvalid => x
-    render_expected_error(422, x)
+    render json: { score: @post.score, up: @post.up_score, down: @post.down_score, our_score: @post_vote == :need_unvote ? 0 : @post_vote.score }
+  rescue UserVote::Error, ActiveRecord::RecordInvalid => e
+    render_expected_error(422, e)
   end
 
   def destroy
     @post = Post.find(params[:post_id])
     VoteManager.unvote!(post: @post, user: CurrentUser.user)
-  rescue UserVote::Error => x
-    render_expected_error(422, x)
-  end
-
-  def index
-    @post_votes = PostVote.includes(:user).search(search_params).paginate(params[:page], limit: 100)
+  rescue UserVote::Error => e
+    render_expected_error(422, e)
   end
 
   def lock

@@ -12,4 +12,8 @@
       <%= subnav_link_to "Apply Tag Script To Selected", "" %>
     <% end %>
   <% end %>
+  <% if @latest.present? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Latest", @latest %>
+  <% end %>
 <% end %>
