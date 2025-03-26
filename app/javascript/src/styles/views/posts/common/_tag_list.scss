@@ -9,6 +9,7 @@ h5.tag-list-header {
 
 ul.tag-list {
   display: flex;
+  flex-flow: column;
   flex-wrap: wrap;
   gap: 0.5rem 0.25rem;
   margin: 0.25rem 0;
@@ -17,6 +18,10 @@ ul.tag-list {
 
   li {
     display: flex;
+    width: fit-content;
+    border: 0.125rem solid themed("color-section-lighten-5");
+    border-left-width: 0.25rem;
+    @include st-radius;
 
     a {
       display: flex;
@@ -24,38 +29,39 @@ ul.tag-list {
       gap: 0.5rem;
 
       padding: 0.125rem 0.5rem 0.125rem 0.5rem;
-      color: palette("plain-black");
     }
 
     @each $tag-category, $tag-category-name in $tag-categories {
       &.tag-#{$tag-category-name} {
-        a, a:link, a:visited { background: themed("color-tag-#{$tag-category-name}"); }
-        a:hover { background: themed("color-tag-#{$tag-category-name}-alt"); }
+        border-left-color: themed("color-tag-#{$tag-category-name}");
+        &:hover { border-left-color: themed("color-tag-#{$tag-category-name}-alt"); }
+
+        a, a:link { color: themed("color-tag-#{$tag-category-name}"); }
+        a:hover, a:active { color: themed("color-tag-#{$tag-category-name}-alt"); }
       }
     }
   }
 
   // 1 wiki: desktop
   .tag-list-wiki {
-    display: none; // flex
+    display: flex;
     align-self: flex-start;
     padding-right: 0.5rem;
   }
 
   // 1.5 inc: desktop
   .tag-list-inc {
-    display: none; // flex
+    display: flex;
     align-self: flex-start;
     padding-right: 0.25rem;
   }
 
   // 2 tag: both
   .tag-list-search {
-    @include st-radius;
     
     svg {
-      color: palette("plain-black");
-      .check { color: themed("color-section"); }
+      color: palette("color-tag-artist");
+      .check { color: themed("color-text"); }
     }
   }
 
