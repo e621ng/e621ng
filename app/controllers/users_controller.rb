@@ -5,6 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit upload_limit update]
   before_action :member_only, only: %i[custom_style]
+  before_action :janitor_only, only: %i[toggle_uploads]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -46,6 +47,15 @@ class UsersController < ApplicationController
 
     @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"e621:upload_limit\" not found.")
     respond_with(@user, methods: @user.full_attributes)
+  end
+
+  def toggle_uploads
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.no_uploading = !@user.no_uploading
+    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+    @user.save
+
+    redirect_to user_path(@user)
   end
 
   def show

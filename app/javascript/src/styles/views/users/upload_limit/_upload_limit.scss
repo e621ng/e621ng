@@ -10,6 +10,12 @@ body.c-users.a-upload-limit {
     }
   }
 
+  .profile-notice {
+    background: palette("background-red");
+    @include st-radius;
+    @include st-padding;
+  }
+
   .upload-limit-formula {
     display: flex;
     align-items: center;

@@ -30,5 +30,14 @@
       <%= link_to "Posts", posts_path(tags: "user:#{user.name} status:pending") %>
       | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name }) %>
     </span>
+
+    <h4>Uploading</h4>
+    <span>
+      <% if user.no_uploading %>
+        <%= link_to "Disabled", toggle_uploads_user_path(user), class: "text-red text-bold" %>
+      <% else %>
+        <%= link_to "Enabled", toggle_uploads_user_path(user) %>
+      <% end %>
+    </span>
   </div>
 </div>
