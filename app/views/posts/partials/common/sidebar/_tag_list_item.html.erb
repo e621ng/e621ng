@@ -35,7 +35,7 @@
     </span>
 
     <span
-      data-count='#{count}'
+      data-count="<%= tag.post_count %>"
       class="tag-list-count<%= is_underused_tag ? " low-post-count" : "" %>"
       <% if is_underused_tag %>
         title="New general tag detected. Check the spelling or populate it now."
