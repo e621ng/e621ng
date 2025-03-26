@@ -1,4 +1,14 @@
 <%= form_search(path: mod_actions_path) do |f| %>
   <%= f.user :creator %>
-  <%= f.input :action, label: "Action", collection: ModAction::KnownActionKeys.reject { |k| !CurrentUser.is_staff? && ModAction::ProtectedActionKeys.include?(k.to_s) }.map { |k| [k.to_s.capitalize.tr("_", " "), k.to_s] }, include_blank: true %>
+  <%= f.input :action,
+      collection: (
+        ModAction.available_action_keys.map do |key|
+          [
+            key.to_s.capitalize.tr("_", " "),
+            key.to_s,
+            { data: { fields: ModAction::KnownActions[key].keys.join(",") } }
+          ]
+        end
+      ),
+      include_blank: true %>
 <% end %>
