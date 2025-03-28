@@ -34,6 +34,10 @@
       <% end %>
       
     <% end %>
+
+    <div>
+      <%= f.input :note, as: :dtext, label: "Notes", limit: Danbooru.config.comment_max_size %>
+    </div>
     
     <div>
       <%= f.submit "Submit" %>

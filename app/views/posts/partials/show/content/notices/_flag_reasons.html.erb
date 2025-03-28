@@ -17,6 +17,12 @@
       <% if flag.is_resolved? %>
         <span class="resolved">RESOLVED</span>
       <% end %>
+      
+      <% if flag.note && CurrentUser.is_staff? %>
+        <div class="dtext-container">
+          <%= format_text flag.note %>
+        </div>
+      <% end %>
     </li>
     <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
       <% break %>
