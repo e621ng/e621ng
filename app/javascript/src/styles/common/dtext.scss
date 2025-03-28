@@ -6,16 +6,31 @@
 
 .styled-dtext {
   font-size: 1rem;
+  line-height: 1.25rem;
 
   @include window-larger-than(800px) {
     font-size: 0.9rem;
+  }
+
+  p {
+    line-height: inherit;
+  }
+
+  .inline-code {
+    font-family: monospace;
+    white-space: pre-wrap;
+    background-color: rgba(256, 256, 256, 0.15);
+
+    padding: 0rem 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    @include st-radius;
   }
 
   div.spoiler, details, pre, blockquote, ul {
     margin-bottom: 0.75em;
   }
 
-  pre, blockquote, .inline-code {
+  pre, blockquote {
     padding: $padding-025;
   }
 
@@ -71,12 +86,6 @@
   pre {
     font-family: monospace;
     white-space: pre-wrap;
-  }
-
-  .inline-code {
-    font-family: monospace;
-    white-space: pre-wrap;
-    background-color: $dtext-code-background;
   }
 
   details {
