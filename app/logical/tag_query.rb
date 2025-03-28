@@ -2,27 +2,66 @@
 
 class TagQuery
   class CountExceededError < StandardError
-    def initialize(msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time")
+    attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash
+
+    def initialize(
+      msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
+      query_obj: nil,
+      resolve_aliases: nil,
+      tag_count: nil,
+      free_tags_count: nil
+    )
+      @query_obj = query_obj
+      @resolve_aliases = resolve_aliases
+      @tag_count = tag_count
+      @free_tags_count = free_tags_count
+      @kwargs = {
+        query_obj: query_obj,
+        resolve_aliases: resolve_aliases,
+        tag_count: tag_count,
+        free_tags_count: free_tags_count,
+      }.freeze
       super(msg)
     end
   end
 
   class DepthExceededError < StandardError
-    def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time")
+    attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash, :depth
+
+    def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", **kwargs)
+      @query_obj = kwargs[:query_obj]
+      @resolve_aliases = kwargs[:resolve_aliases]
+      @tag_count = kwargs[:tag_count]
+      @free_tags_count = kwargs[:free_tags_count]
+      @depth = kwargs[:depth]
+      @kwargs_hash = kwargs.freeze
       super(msg)
     end
   end
 
   class InvalidTagError < StandardError
-    def initialize(msg = "Invalid tag in query")
+    attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash
+
+    def initialize(msg = "Invalid tag in query", **kwargs)
+      msg = "#{kwargs[:tag]}: #{msg}".freeze if kwargs[:tag]
+      msg = "#{kwargs[:prefix]}#{msg}" if kwargs[:prefix]
+      msg = "#{msg} (Can't have a \"*\" in a tag prefixed with \"~\")" if kwargs[:prefix] == "~" && kwargs[:has_wildcard]
+      @tag = kwargs[:tag]
+      @prefix = kwargs[:prefix]
+      @has_wildcard = kwargs[:has_wildcard]
+      @invalid_characters = kwargs[:invalid_characters] || kwargs[:tag]&.scan(kwargs[:prefix] == "~" ? REGEX_VALID_TAG_CHECK : REGEX_VALID_TAG_CHECK_2)
+      @query_obj = kwargs[:query_obj]
+      @resolve_aliases = kwargs[:resolve_aliases]
+      @tag_count = kwargs[:tag_count]
+      @free_tags_count = kwargs[:free_tags_count]
+      @kwargs_hash = kwargs.freeze
       super(msg)
     end
   end
 
-  COUNT_METATAGS = %w[
-    comment_count
-  ].freeze
+  COUNT_METATAGS = %w[comment_count].freeze
 
+  # Tags with parsed values of `true` or `false`. See `TagQuery#parse_boolean` for details.
   BOOLEAN_METATAGS = %w[
     hassource hasdescription isparent ischild inpool pending_replacements artverified
   ].freeze
@@ -107,11 +146,6 @@ class TagQuery
   # error out if the invalid tag would cause this level of results to return nothing (i.e. if the
   # invalid tag isn't prefixed by `-` or `~`) and won't let that error propagate; essentially eagerly
   # halts execution of this level of searching.
-  # * `ALLOW_EMPTY_QUOTED_METATAGS` [`false`]: What is says on the tin.
-  # * `ALLOW_EMPTY_NON_QUOTED_METATAGS` [`false`]: What is says on the tin.
-  #   * `true`: always true; WILL CAUSE PROBLEMS IN MULTIPLE PLACES
-  #   * `false`: always false
-  #   * anything else: only allow for malformed quoted metatags after quote removal (e.g. `... malformed:"` will be allowed, but not `... correct_but_blank:`).
   # `NO_NON_METATAG_UNLIMITED_TAGS`: Can there be an unlimited tag that isn't a metatag? Used to save some checks in `TagQuery.parse_query`.
   SETTINGS = {
     COUNT_TAGS_WITH_SCAN_RECURSIVE: false,
@@ -121,11 +155,8 @@ class TagQuery
     CHECK_TAG_VALIDITY: true,
     ERROR_ON_INVALID_TAG: true,
     CATCH_INVALID_TAG: true,
-    ALLOW_EMPTY_QUOTED_METATAGS: false,
-    ALLOW_EMPTY_NON_QUOTED_METATAGS: false,
     NO_NON_METATAG_UNLIMITED_TAGS: true,
   }.freeze
-  QUOTE_BODY = (SETTINGS[:ALLOW_EMPTY_QUOTED_METATAGS] ? '[^"]*' : '[^"]+').freeze
 
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
@@ -161,6 +192,7 @@ class TagQuery
           },
           show_deleted: false,
         }
+        @tag_count = 0
       end
     else
       parse_query(query, **)
@@ -292,12 +324,8 @@ class TagQuery
     flatten ? tags.join(" ") : tags
   end
 
-  R_FRAG_TK = case SETTINGS[:ALLOW_EMPTY_NON_QUOTED_METATAGS]
-              when true then '\S*'
-              when false then '\S+'
-              else
-                '"\S*|\S+'
-              end.freeze
+  R_FRAG_TK = '(?>"{0,2})(?!(?<=")(?=\s|\z))\S+'
+
   # Properly tokenizes search strings, handling groups & quoted metatags properly.
   # ### [Live Demo](https://regex101.com/r/KfFYz4)
   # ## Groups:
@@ -323,7 +351,7 @@ class TagQuery
   REGEX_TOKENIZE = /\G(?>\s*)(?<token> # Match any leading whitespace to help with \G
   (?<prefix>[-~])?
   (?<body>
-    (?<metatag>(?>\w+:(?>"#{QUOTE_BODY}"(?=\s|\z)|#{R_FRAG_TK})))| # Match a metatag (quoted or not)
+    (?<metatag>(?>\w+:(?>"[^\"]+"(?=\s|\z)|#{R_FRAG_TK})))| # Match a metatag (quoted or not)
     (?<group>(?> #                Match a single group atomically by:
       (?>\(\s+) #                  1. atomically matching a `(` & at least 1 whitespace character
       (?<subquery>(?> #           Greedily find one of the following 2 options
@@ -344,7 +372,7 @@ class TagQuery
     (?<tag>\S+) #                 Match non-whitespace characters (tags)
   ))(?>\s*)/x #                   Match any trailing whitespace to help with \G
 
-  R_FRAG_HG = "(?>[-~]?\\w+:(?>\"#{QUOTE_BODY}\"(?=\\s|\\z)|#{R_FRAG_TK}))".freeze
+  R_FRAG_HG = "(?>[-~]?\\w+:(?>\"[^\"]+\"(?=\\s|\\z)|#{R_FRAG_TK}))".freeze
   # A group existence checker
   REGEX_HAS_GROUP = /\A(?>\s*)(?<main>(?<group>(?>[-~]?\(\s+(?>#{R_FRAG_HG}|[^\s)]+|(?<!\s)\)+|\)(?!\s|\z)|\s+)*(?<=\s)\)(?=\s|\z)))|(?>(?>\s*(?>#{R_FRAG_HG}|[^\s\(]+|\(+(?!\s))\s*)+)\g<main>)/
 
@@ -365,9 +393,9 @@ class TagQuery
   # * Optional Prefix
   # * Followed by end of string or whitespace
   # * Starts w/ `\w+:"`
-  # * Allows empty
+  # * Not empty
   # * Ends w/ `"`
-  REGEX_ANY_QUOTED_METATAG = /(?<=\s|\A)(?>[-~]?\w+:"#{QUOTE_BODY}")(?=\s|\z)/
+  REGEX_ANY_QUOTED_METATAG = /(?<=\s|\A)(?>[-~]?\w+:"[^"]+")(?=\s|\z)/
 
   # Threshold used for optimizing `TagQuery.has_groups`.
   LONG_QUERY_LENGTH = 200
@@ -389,16 +417,17 @@ class TagQuery
   # * `tag_str`
   # * `recurse` [`false`]
   # * `stop_at_group` [`false`]
-  # * `compact` [`true`]
+  # * `compact` [`true`]: Remove `nil` values output by the block (if given) from the return value.
   # * `error_on_depth_exceeded` [`nil`]
   # * `depth` [`0`]
   # #### Block
   # * the associated `MatchData`
   #
   # Return the value to add to the collection.
-  #
   # ### Returns
   # An array of results
+  # ### Raises
+  # * `TagQuery::DepthExceededError`
   def self.match_tokens(tag_str, recurse: false, stop_at_group: false, **kwargs, &)
     depth = kwargs.fetch(:depth, 0)
     if depth >= DEPTH_LIMIT
@@ -423,7 +452,8 @@ class TagQuery
       end
     else
       tag_str.scan(REGEX_TOKENIZE) do |_|
-        unless (!stop_at_group && Regexp.last_match[:group]) || (!(t = block_given? ? yield(Regexp.last_match) : Regexp.last_match) && compact)
+        unless (!stop_at_group && Regexp.last_match[:group]) ||
+               (!(t = block_given? ? yield(Regexp.last_match) : Regexp.last_match) && compact)
           results << t
         end
       end
@@ -434,8 +464,8 @@ class TagQuery
   # Used in `TagQuery.scan_search` to unnest from an all-encompassing unmodified top level group in
   # stripped queries.
   REGEX_PLAIN_TOP_LEVEL_GROUP = /\A(?>\(\s+)((?>[^\s)]+|(?<!\s)\)+|\)+(?!\s|\z)|(?>\s+)(?!\)))+)\s+\)\z/
+
   # Scan variant that properly handles groups.
-  #
   # ### Parameters
   # * `query`
   # * `hoisted_metatags` [`TagQuery::GLOBAL_METATAGS`]: the metatags to lift out of groups to the
@@ -448,6 +478,8 @@ class TagQuery
   # * `force_delim_metatags` [`nil`]
   # #### Recursive Parameters
   # * `depth` [`0`]: must be `>= 0`
+  # ### Raises
+  # * `TagQuery::DepthExceededError`
   #
   # TODO: * `max_tokens_to_process` [`Danbooru.config.tag_query_limit * 2`]
   #
@@ -536,8 +568,9 @@ class TagQuery
     end
   end
 
-  REGEX_SIMPLE_SCAN_DELIM = /\G(?>\s*)([-~]?)((?>\w+:(?>"#{QUOTE_BODY}"(?=\s|\z)|\S+))|\S+)(?>\s*)/
-  REGEX_SIMPLE_SCAN_NON_DELIM = /\G(?>\s*)([-~]?)((?>\w+:(?>"#{QUOTE_BODY}"|\S+))|\S+)(?>\s*)/
+  REGEX_SIMPLE_SCAN_DELIM = /\G(?>\s*)([-~]?)((?>\w+:(?>"[^"]+"(?=\s|\z)|\S+))|\S+)(?>\s*)/
+  REGEX_SIMPLE_SCAN_NON_DELIM = /\G(?>\s*)([-~]?)((?>\w+:(?>"[^"]+"|\S+))|\S+)(?>\s*)/
+
   # Doesn't account for grouping, but DOES preserve quoted metatag ordering.
   #
   # * `query`
@@ -553,8 +586,9 @@ class TagQuery
       &.scan(kwargs.fetch(:ensure_delimiting_whitespace, true) ? REGEX_SIMPLE_SCAN_DELIM : REGEX_SIMPLE_SCAN_NON_DELIM) { |_| out << "#{$1}#{$2}" }
     out.uniq
   end
-  REGEX_SCAN_LIGHT_DELIM = /(?<=\s|\A)[-~]?\w+:(?>"#{QUOTE_BODY}"(?=\s|\z)|\S+)/
-  REGEX_SCAN_LIGHT_NON_DELIM = /[-~]?\w+:(?>"#{QUOTE_BODY}"|\S+)/
+
+  REGEX_SCAN_LIGHT_DELIM = /(?<=\s|\A)[-~]?\w+:(?>"[^"]+"(?=\s|\z)|\S+)/
+  REGEX_SCAN_LIGHT_NON_DELIM = /[-~]?\w+:(?>"[^"]+"|\S+)/
 
   # A token that is impossible to input normally that signals to `TagQuery#parse_query` that the
   # leading run of metatags is over to allow it to skip extra processing.
@@ -590,6 +624,7 @@ class TagQuery
   end
 
   REGEX_SCAN_LEGACY_QUOTED_METATAGS = /[-~]?\w*?:".*?"/
+
   # Legacy scan variant which doesn't:
   # * account for grouping
   # * preserve quoted metatag ordering
@@ -642,9 +677,10 @@ class TagQuery
   # * `normalize_at_level` [`false`]: Call `TagQuery.normalize_single_tag` on each tag token?
   # * `error_on_depth_exceeded` [`false`]
   # * `discard_group_prefix` [`nil`]
-  #
   # #### Recursive Parameters (SHOULDN'T BE USED BY OUTSIDE METHODS)
   # * `depth` [0]: Tracks recursive depth to prevent exceeding `TagQuery::DEPTH_LIMIT`
+  # ### Raises
+  # * `TagQuery::DepthExceededError`
   def self.scan_recursive(
     query,
     flatten: true,
@@ -740,12 +776,6 @@ class TagQuery
     distribution.include?("-") ? "-" : distribution[-1]
   end
 
-  R_FRAG_SM = case SETTINGS[:ALLOW_EMPTY_NON_QUOTED_METATAGS]
-              when true then "*"
-              when false then "+"
-              else
-                '+|(?<=")'
-              end.freeze
   # Searches through the given `query` & finds instances of the given `metatags` in the order they
   # appear in the search.
   #
@@ -796,9 +826,9 @@ class TagQuery
     on_success = ->(curr_match) do
       if block_given?
         kwargs_hash = if prepend_prefix
-                        { prefix: curr_match[1], tag: curr_match[2], value: curr_match[3] }
+                        { prefix: curr_match[1], tag: curr_match[2], value: curr_match[3] || "" }
                       else
-                        { tag: curr_match[1], value: curr_match[2] }
+                        { tag: curr_match[1], value: curr_match[2] || "" }
                       end
         initial_value = yield(
           preceding_unmatched_range: last_index...(last_index + curr_match.begin(0)),
@@ -820,16 +850,19 @@ class TagQuery
     #
     # If there's no (more) quoted metatags, then just search each metatag between the last index and the end.
     while (quoted_m = query[last_index...query.length].presence&.match(REGEX_ANY_QUOTED_METATAG)) || (!plus_one && (plus_one = true)) # rubocop:disable Lint/LiteralAssignmentInCondition
+      # If there are non-quoted matches before current quoted & current quoted doesn't match, manual
+      # update of last index requires the offset quoted_m was found with.
+      prior_last_index = last_index
       # IDEA: Prevent bad input (e.g. `metatags = ['"precededByDoubleQuote']`) from matching bad tags?
-      while (m = query[last_index...(quoted_m&.begin(0) || query.length)].presence&.match(/(?<=\s|\A)#{prefix}(#{mts}):"?(\S#{R_FRAG_SM})/i))
+      while (m = query[last_index...(quoted_m&.begin(0)&.send(:+, prior_last_index) || query.length)].presence&.match(/(?<=\s|\A)#{prefix}(#{mts}):(?!""(?>\s|\z))((?>\S+))(?<!")/i))
         on_success.call(m)
       end
       if quoted_m
         # Check if the quoted metatag matches the searched queries (& fix match offsets for `on_success`).
-        if (m = query[last_index...quoted_m.end(0)].match(/(?<=\s|\A)#{prefix}(#{mts}):"(#{QUOTE_BODY})"/i))
+        if (m = query[last_index...(prior_last_index + quoted_m.end(0))].match(/(?<=\s|\A)#{prefix}(#{mts}):"([^"]+)"/i))
           on_success.call(m)
         else # Manually update `last_index` since `on_success` didn't do it.
-          last_index = quoted_m.end(0)
+          last_index = prior_last_index + quoted_m.end(0)
         end
       else
         break
@@ -985,19 +1018,23 @@ class TagQuery
     end.uniq
   end
 
+  # Takes an array of tokens (groups are also tokenized) and finds which of
+  # `Danbooru.config.ads_keyword_tags` are included.
+  # ### Returns
+  # The relevant tags in a ` `-separated string.
   def self.ad_tag_string(tag_array)
-    if (i = tag_array.index { |v| v == "(" }) && i < (tag_array.index { |v| v == ")" } || -1)
-      tag_array = TagQuery.scan_recursive(
-        tag_array.join(" "),
-        strip_duplicates_at_level: false,
-        delimit_groups: false,
-        flatten: true,
-        strip_prefixes: false,
-        sort_at_level: false,
-        # NOTE: It would seem to be wise to normalize these tags
-        normalize_at_level: false,
-      )
-    end
+    # if (i = tag_array.index("(")) && i < (tag_array.index(")") || -1)
+    #   tag_array = TagQuery.scan_recursive(
+    #     tag_array.join(" "),
+    #     strip_duplicates_at_level: false,
+    #     delimit_groups: false,
+    #     flatten: true,
+    #     sort_at_level: false,
+    #     # NOTE: It would seem to be wise to normalize and/or prefix-strip these tags
+    #     strip_prefixes: false,
+    #     normalize_at_level: false,
+    #   )
+    # end
     TagQuery.fetch_tags(tag_array, *Danbooru.config.ads_keyword_tags).join(" ")
   end
 
@@ -1020,12 +1057,12 @@ class TagQuery
     SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] == true || (SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false && depth <= 0)
   end
 
-  def pq_count_tags(group, depth)
+  def pq_count_tags(group, depth, error_on_depth_exceeded: true)
     if SETTINGS[:COUNT_TAGS_WITH_SCAN_RECURSIVE]
       TagQuery.scan_recursive(
         group,
         flatten: true, delimit_groups: false, strip_prefixes: true, depth: depth + 1,
-        strip_duplicates_at_level: false, error_on_depth_exceeded: true
+        strip_duplicates_at_level: false, error_on_depth_exceeded: error_on_depth_exceeded
       ).count { |token| !Danbooru.config.is_unlimited_tag?(token) }
     else
       delta = 0
@@ -1036,7 +1073,7 @@ class TagQuery
         error_on_depth_exceeded: true,
         depth: depth + 1,
       ) do |token|
-        next if Danbooru.config.is_unlimited_tag?(token[:token])
+        next if (!SETTINGS[:NO_NON_METATAG_UNLIMITED_TAGS] || token[:metatag]) && Danbooru.config.is_unlimited_tag?(token[:token])
         if SETTINGS[:STOP_ON_TAG_COUNT_EXCEEDED] && delta + 1 + @tag_count > tag_query_limit
           raise CountExceededError
         else
@@ -1081,15 +1118,26 @@ class TagQuery
         if can_have_groups && (match = /\A([-~]?)\(\s+(.+)(?<!\s)\s+\)\z/.match(token))
           group = match[2]
           increment_tag_count(if kwargs[:process_groups]
-                                (group = TagQuery.new(
-                                  group,
-                                  **kwargs,
-                                  free_tags_count: @tag_count + @free_tags_count,
-                                  resolve_aliases: @resolve_aliases, return_with_count_exceeded: true,
-                                  hoisted_metatags: nil, depth: depth + 1
-                                )).tag_count
+                                (begin
+                                  group = TagQuery.new(
+                                    group,
+                                    **kwargs,
+                                    free_tags_count: @tag_count + @free_tags_count,
+                                    resolve_aliases: @resolve_aliases,
+                                    hoisted_metatags: nil, depth: depth + 1
+                                  )
+                                # rubocop:disable Metrics/BlockNesting
+                                rescue CountExceededError
+                                  raise CountExceededError.new(query_obj: self)
+                                rescue DepthExceededError
+                                  raise DepthExceededError.new(query_obj: self)
+                                rescue InvalidTagError
+                                  raise InvalidTagError.new(query_obj: self)
+                                end
+                                  # rubocop:enable Metrics/BlockNesting
+                                ).tag_count
                               elsif pq_check_group_tags?(depth)
-                                pq_count_tags(group, depth)
+                                pq_count_tags(group, depth, error_on_depth_exceeded: kwargs.fetch(:error_on_depth_exceeded, true))
                               else
                                 0
                               end)
@@ -1110,17 +1158,26 @@ class TagQuery
       elsif (out_of_metatags = (token == TagQuery::END_OF_METATAGS_TOKEN))
         next
       end
-      # IDEA: Place after quote removal to have `status:deleted` & `status:"deleted"` both be unlimited
+      # IDEA: Place after quote removal to have `status:deleted` & `status:"deleted"` both be unlimited (with default `is_unlimited_tag?` impl.)
       increment_tag_count 1 unless Danbooru.config.is_unlimited_tag?(token)
 
-      # If it got here, it must be a potentially valid metatag w/o an empty body (before quote removal), so don't check.
+      # If it got here, it must be a potentially valid metatag w/o an empty body, so don't check.
       metatag_name, g2 = token.split(":", 2)
 
       # Remove quotes from description:"abc def"
       g2 = g2.delete_prefix('"').delete_suffix('"')
 
       type = METATAG_SEARCH_TYPE[metatag_name[0]]
-      # IDEA: Use a jump table instead
+      # IDEA: Use jump table(s) instead
+      # * Can use different table depending on value of `type` to reduce comparisons
+      # * A hash has faster lookup than sequentially checking cases, and this already maps to a jump table pretty well.
+      #   * Almost all of these values already map directly to 1-6 `String` value(s) anyway (and the
+      # remainder easily could), so there's little benefit in delegating to `clause.===(metatag_name.downcase)`
+      #   * These cases all have the same 2 lightweight dependencies (`type` & `g2`), and by adding
+      # `self` as a dependency (and using `Kernel#send` to call helper methods like `TagQuery#add_to_query`
+      # if the table is in a different class) we can separate each case from their context easily
+      # * It would allow for more precise testing using [Mock#expects](https://www.rubydoc.info/gems/mocha/Mocha/Mock#expects-instance_method)
+      # * We could have this block be under the 25 line limit of Metrics/BlockLength
       case metatag_name.downcase
       when "user", "-user", "~user" then add_to_query(type, :uploader_ids, user_id_or_invalid(g2))
 
@@ -1273,53 +1330,57 @@ class TagQuery
     normalize_tags if resolve_aliases
   end
 
-  # Checks if a standard tag is:
-  # * Optionally preceded by a `-`/`~`
-  # * Contains none of the following invalid characters:
-  #   * `-`
-  #   * `~`
-  #   * `\\`
-  #   * `,`
-  #   * `#`
-  #   * `$`
-  #   * `%`
-  #   * (Eventually) Non-printable characters [:graph:]
-  # * Is at least 1 character long
+  # Checks if a standard tag contains any of the following invalid characters:
+  # * `-`
+  # * `~`
+  # * `\\`
+  # * `,`
+  # * `#`
+  # * `$`
+  # * `%`
+  # * TODO: Non-printable characters [:graph:]
   #
   # Allows `*` for wildcard matching.
   #
-  # Doesn't restrict length to 100 as in `../models/tag.rb` to prevent conflict w/ wildcards.
-  #
   # Follows rules in `../logical/tag_name_validator.rb`.
-  REGEX_VALID_TAG_CHECK = /\A(?>[-~]?)(?>[^\-\\~\,\#\$\%]+)\z/
+  REGEX_VALID_TAG_CHECK = /[\-~\,\#\$\%\\]/
 
+  # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
+  REGEX_VALID_TAG_CHECK_2 = /[\-~\*\,\#\$\%\\]/
+
+  # Adds the tag to the query object based on its prefix and if it contains a wildcard.
+  # ### Notes:
+  # * Exits if it's not a facially valid tag. Stops prior behavior of searching for tags comprised
+  # entirely of invalid characters (which would always be false but, if preceded by `~` or `-`,
+  # wouldn't end the search).
   def add_tag(tag)
-    # If it's not a facially valid tag, exit. Stops prior behavior of searching for tags comprised
-    # entirely of invalid characters (which would always be false but, if preceded by `~` or `-`,
-    # wouldn't end the search).
-    if SETTINGS[:CHECK_TAG_VALIDITY] && !REGEX_VALID_TAG_CHECK.match?(tag)
-      return if !SETTINGS[:ERROR_ON_INVALID_TAG] || (SETTINGS[:CATCH_INVALID_TAG] && tag.start_with?("-", "~"))
-      raise InvalidTagError, "\"#{tag}\": Invalid tag in query".freeze
-    end
-    tag = tag.downcase
-    case tag[0]
-    when "-"
-      if tag.include?("*")
-        q[:tags][:must_not] += pull_wildcard_tags(tag.delete_prefix("-"))
-      else
-        q[:tags][:must_not] << tag.delete_prefix("-")
-      end
-    when "~"
-      if SETTINGS[:CHECK_TAG_VALIDITY] && tag.include?("*")
+    if tag.start_with?("-")
+      tag = tag[1..]
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError, "\"#{tag}\": Invalid tag in query".freeze
+        raise InvalidTagError.new(tag: tag, prefix: "-", query_obj: self)
       end
-      q[:tags][:should] << tag.delete_prefix("~")
+      if tag.include?("*")
+        q[:tags][:must_not] += pull_wildcard_tags(tag.downcase)
+      else
+        q[:tags][:must_not] << tag.downcase
+      end
+    elsif tag.start_with?("~")
+      tag = tag[1..]
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag)
+        return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
+        raise InvalidTagError.new(tag: tag, prefix: "~", has_wildcard: tag.include?("*"), query_obj: self)
+      end
+      q[:tags][:should] << tag.downcase
     else
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+        return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
+        raise InvalidTagError.new(tag: tag, query_obj: self)
+      end
       if tag.include?("*")
         q[:tags][:should] += pull_wildcard_tags(tag)
       else
-        q[:tags][:must] << tag
+        q[:tags][:must] << tag.downcase
       end
     end
   end
@@ -1377,7 +1438,14 @@ class TagQuery
     q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
   end
 
-  # OPTIMIZE: Benchmark `value&.casecmp("true") == 0`, `value&.downcase == "true"`, & `value&.casecmp("true").zero`
+  # Parses the string value of `TagQuery::BOOLEAN_METATAGS`, `ratinglocked`, `notelocked`, &
+  # `statuslocked` to boolean `true` or `false`.
+  # ### Parameters
+  # * `value`
+  # ### Returns
+  # `true` if the (case-insensitive) value of `value` is `"true"`, `false` otherwise.
+  #
+  # OPTIMIZE: Benchmark `value&.casecmp("true") == 0`, `value&.downcase == "true"`, & `value&.casecmp("true").zero?`
   def parse_boolean(value)
     value&.downcase == "true"
   end

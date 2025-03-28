@@ -12,7 +12,7 @@ module PostSets
     def initialize(tags, page = 1, limit: nil, random: nil)
       super()
       tags ||= ""
-      @public_tag_array = TagQuery.scan_search(tags)
+      @public_tag_array = TagQuery.scan_search(tags, error_on_depth_exceeded: true)
       @tag_array = @public_tag_array.dup
       @tag_array << "rating:s" if CurrentUser.safe_mode?
       @tag_array << "-status:deleted" if TagQuery.should_hide_deleted_posts?(tags, at_any_level: true)

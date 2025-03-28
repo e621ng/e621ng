@@ -3,6 +3,120 @@
 require "test_helper"
 
 class TagQueryTest < ActiveSupport::TestCase
+  def add_line(start = 1, length = nil, offset: 0)
+    cl = Kernel.caller_locations(start + 1, length).freeze
+    cl.inject(nil) { |p, v| "#{p}\n#{v.path}:#{v.lineno + (p.nil? ? offset : 0)}: in `#{v.label}`" }
+  end
+  context "Matching:" do
+    context "Metatags:" do
+      should "Properly match quoted metatags" do
+        check_query = ->(query, token, metatag, contents, value, label: nil) {
+          tokens = TagQuery.match_tokens(query.freeze).freeze
+          mts = TagQuery.scan_metatags(query, :any, prepend_prefix: true, initial_value: []) { |current_value:, **kwargs| current_value << kwargs }.freeze
+          assert_equal(token.freeze, tokens.pluck(:token).freeze, "#{label} (#{query}): #{tokens}#{add_line(1, 1, offset: 1 + 1)}".freeze)
+          assert_equal(metatag.freeze, tokens.pluck(:metatag).freeze, "#{label} (#{query}): #{tokens}#{add_line(1, 1, offset: 2 + 1)}".freeze)
+          assert_equal(contents.freeze, mts.pluck(:contents).freeze, "#{label} (#{query}): #{mts}#{add_line(1, 1, offset: 3 + 1)}".freeze)
+          assert_equal(value.freeze, mts.pluck(:value).freeze, "#{label} (#{query}): #{mts}#{add_line(1, 1, offset: 4 + 1)}".freeze)
+        }
+        p1 = ""
+        m1 = "this"
+        v1 = "is"
+        s1 = "#{p1}#{m1}:#{v1}".freeze
+        x1 = "#{m1}:#{v1}".freeze
+        p2 = ""
+        m2 = "user"
+        v2 = "hash"
+        s2 = "#{p2}#{m2}:#{v2}".freeze
+        x2 = "#{m2}:#{v2}".freeze
+        p3 = "~"
+        m3 = "description"
+        v3 = " a description w/ some stuff"
+        s3 = "#{p3}#{m3}:\"#{v3}\"".freeze
+        x3 = "#{m3}:\"#{v3}\"".freeze
+        p4 = ""
+        m4 = "important"
+        v4 = "padding"
+        s4 = "#{p4}#{m4}:#{v4}".freeze
+        x4 = "#{m4}:#{v4}".freeze
+        p5 = "-"
+        m5 = "delreason"
+        v5 = "a good one"
+        s5 = "#{p5}#{m5}:\"#{v5}\"".freeze
+        x5 = "#{m5}:\"#{v5}\"".freeze
+
+        # Only valid Metatags
+        check_query.call(
+          "#{s1} #{s2} #{s3} #{s4} #{s5}",
+          [s1, s2, s3, s4, s5],
+          [x1, x2, x3, x4, x5],
+          [s1, s2, s3, s4, s5],
+          [v1, v2, v3, v4, v5],
+          label: "Only valid Metatags",
+        )
+
+        # Empty quoted
+        # metatag_expected = []
+        # contents_expected = []
+        # value_expected = []
+        # if TagQuery::SETTINGS[:ALLOW_EMPTY_QUOTED_METATAGS] # || TagQuery::SETTINGS[:ALLOW_EMPTY_NON_QUOTED_METATAGS]
+        #   metatag_expected = [s1, s2, "#{m3}:\"\"", s4, x5]
+        #   contents_expected = [s1, s2, "#{p3}#{m3}:\"\"", s4, s5]
+        #   value_expected = [v1, v2, "", v4, v5]
+        # else
+        metatag_expected = [x1, x2, nil, x4, x5]
+        contents_expected = [s1, s2, s4, s5]
+        value_expected = [v1, v2, v4, v5]
+        # end
+        check_query.call(
+          "#{s1} #{s2} #{p3}#{m3}:\"\" #{s4} #{s5}",
+          [s1, s2, "#{p3}#{m3}:\"\"", s4, s5],
+          metatag_expected,
+          contents_expected,
+          value_expected,
+          label: "Empty quoted Metatags",
+        )
+
+        # Empty unquoted
+        # if TagQuery::SETTINGS[:ALLOW_EMPTY_NON_QUOTED_METATAGS] == true
+        #   metatag_expected = [s1, "#{m2}:", x3, s4, x5]
+        #   contents_expected = [s1, "#{p2}#{m2}:", s3, s4, s5]
+        #   value_expected = [v1, "", v3, v4, v5]
+        # else
+        metatag_expected = [x1, nil, x3, x4, x5]
+        contents_expected = [s1, s3, s4, s5]
+        value_expected = [v1, v3, v4, v5]
+        # end
+        check_query.call(
+          "#{s1} #{p2}#{m2}: #{s3} #{s4} #{s5}",
+          [s1, "#{p2}#{m2}:", s3, s4, s5],
+          metatag_expected,
+          contents_expected,
+          value_expected,
+          label: "Empty unquoted Metatags",
+        )
+
+        # Empty malformed
+        # if TagQuery::SETTINGS[:ALLOW_EMPTY_NON_QUOTED_METATAGS]
+        #   metatag_expected = [x1, x2, x3, x4, "#{m5}:\""]
+        #   contents_expected = [s1, s2, s3, s4, "#{p5}#{m5}:\""]
+        #   value_expected = [v1, v2, v3, v4, ""]
+        # else
+        metatag_expected = [x1, x2, x3, x4, nil]
+        contents_expected = [s1, s2, s3, s4]
+        value_expected = [v1, v2, v3, v4]
+        # end
+        check_query.call(
+          "#{s1} #{s2} #{s3} #{s4} #{p5}#{m5}:\"",
+          [s1, s2, s3, s4, "#{p5}#{m5}:\""],
+          metatag_expected,
+          contents_expected,
+          value_expected,
+          label: "Empty malformed Metatags",
+        )
+      end
+    end
+  end
+
   context "While using simple scanning" do
     should "scan a query" do
       assert_equal(%w[aaa bbb], TagQuery.scan("aaa bbb"))
@@ -478,47 +592,7 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
   end
-  # when "user", "-user", "~user" then add_to_query(type, :uploader_ids) { user_id_or_invalid(g2) }
-  # when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids) { g2.to_i }
-  # when "approver", "-approver", "~approver"
-  # when "commenter", "-commenter", "~commenter", "comm", "-comm", "~comm"
-  # when "noter", "-noter", "~noter"
-  # when "noteupdater", "-noteupdater", "~noteupdater"
-  # when "pool", "-pool", "~pool"
-  # when "set", "-set", "~set"
-  # when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
-  # when "md5" then q[:md5] = g2.downcase.split(",")[0..99]
-  # when "rating", "-rating", "~rating" then add_to_query(type, :rating) { g2[0]&.downcase || "miss" }
-  # when "locked", "-locked", "~locked"
-  # when "ratinglocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :rating }
-  # when "notelocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :note }
-  # when "statuslocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked) { :status }
-  # when "id", "-id", "~id" then add_to_query(type, :post_id) { ParseValue.range(g2) }
-  # when "width", "-width", "~width" then add_to_query(type, :width) { ParseValue.range(g2) }
-  # when "height", "-height", "~height" then add_to_query(type, :height) { ParseValue.range(g2) }
-  # when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels) { ParseValue.range_fudged(g2, :float) }
-  # when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio) { ParseValue.range(g2, :ratio) }
-  # when "duration", "-duration", "~duration" then add_to_query(type, :duration) { ParseValue.range(g2, :float) }
-  # when "score", "-score", "~score" then add_to_query(type, :score) { ParseValue.range(g2) }
-  # when "favcount", "-favcount", "~favcount" then add_to_query(type, :fav_count) { ParseValue.range(g2) }
-  # when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize) { ParseValue.range_fudged(g2, :filesize) }
-  # when "change", "-change", "~change" then add_to_query(type, :change_seq) { ParseValue.range(g2) }
-  # when "source", "-source", "~source"
-  # when "date", "-date", "~date" then add_to_query(type, :date) { ParseValue.date_range(g2) }
-  # when "age", "-age", "~age" then add_to_query(type, :age) { ParseValue.invert_range(ParseValue.range(g2, :age)) }
-  # when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count) { ParseValue.range(g2) }
-  # when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
-  # when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, any_none_key: :parent, value: g2) { g2.to_i }
-  # when "child" then q[:child] = g2.downcase
-  # when "randseed" then q[:random_seed] = g2.to_i
-  # when "order" then q[:order] = g2.downcase
-  # when "limit"
-  # when "status"
-  # when "-status"
-  # when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype) { g2.downcase }
-  # when "description", "-description", "~description" then add_to_query(type, :description) { g2 }
-  # when "note", "-note", "~note" then add_to_query(type, :note) { g2 }
-  # when "delreason", "-delreason", "~delreason"
+
   MAPPING = {
     user: :uploader_ids,
     user_id: :uploader_ids,
@@ -569,6 +643,7 @@ class TagQueryTest < ActiveSupport::TestCase
     voted: :voted,
 
   }.freeze
+
   ANY_KEY_MAPPING = {
     approver: :approver,
     commenter: :commenter,
@@ -578,7 +653,9 @@ class TagQueryTest < ActiveSupport::TestCase
     source: :source,
     parent: :parent,
   }.freeze
+
   FAV_SET_FAIL_VAL = -1
+
   # TODO: Add more test cases for group parsing
   # TODO: Add more test cases for metatag parsing
   context "Parsing a query:" do
@@ -591,7 +668,7 @@ class TagQueryTest < ActiveSupport::TestCase
         },
         show_deleted: false,
       }
-      query = [*"a"..."u"].concat([*"a"..."u"].map { |e| "#{e}#{e}" }).each_with_index.map do |e, i|
+      query = [*"a"..."u"].concat([*"a"..."u"].map { |e| e * 2 }).each_with_index.map do |e, i|
         case i % 3
         when 0
           expected_result[:tags][:must] << e
@@ -603,43 +680,85 @@ class TagQueryTest < ActiveSupport::TestCase
           expected_result[:tags][:should] << e
           " ~#{e}"
         end
-      end.join(" ")
+      end.join(" ").freeze
       assert_equal(expected_result.freeze, TagQuery.new(query).q)
     end
 
-    # TODO: Test invalid tag filtering when `TagQuery::SETTINGS[CHECK_TAG_VALIDITY]`, `TagQuery::SETTINGS[ERROR_ON_INVALID_TAG]`, & `TagQuery::SETTINGS[CATCH_INVALID_TAG]`align.
-    # rubocop:disable Style/MultilineIfModifier
-    should_eventually "not accept invalid standard tags" do
-      # rubocop:enable Style/MultilineIfModifier
-      # expected_result = {
-      #   must: [],
-      #   must_not: [],
-      #   should: [],
-      #   show_deleted: false,
-      # }
-      # query = ""
-      # [*"a"..."u"].concat([*"a"..."u"].map { |e| "#{e}#{e}" }).each_with_index do |e, i|
-      #   case i % 3
-      #   when 0
-      #     expected_result[:must] << e
-      #     query += e
-      #   when 1
-      #     expected_result[:must_not] << e
-      #     query += "-#{e}"
-      #   when 2
-      #     expected_result[:should] << e
-      #     query += "~#{e}"
-      #   end
-      # end
-      # assert_equal(expected_result, TagQuery.new(query).q)
+    should "fail for more than 40 tags" do
+      assert_raise(TagQuery::CountExceededError) do
+        TagQuery.new("rating:s width:10 height:10 user:bob #{[*'aa'..'zz'].join(' ')}".freeze)
+      end
+    end
+
+    should "not accept invalid standard tags" do # rubocop:disable Style/MultilineIfModifier
+      expected_result = {
+        tags: {
+          must: [],
+          must_not: [],
+          should: [],
+        },
+        show_deleted: false,
+      }
+      first_failure = nil
+      query = [*"a"..."u"].concat([*"a"..."u"].map { |e| e * 2 }).each_with_index.map do |e, i|
+        case i % 3
+        when 0
+          if i % 6 == 3
+            first_failure ||= "##{e}"
+          else
+            expected_result[:tags][:must] << e
+            e
+          end
+        when 1
+          if i % 6 == 4
+            "-#{e}-d"
+          else
+            expected_result[:tags][:must_not] << e
+            "-#{e}"
+          end
+        when 2
+          if i % 6 == 5
+            " ~*#{e}*"
+          else
+            expected_result[:tags][:should] << e
+            " ~#{e}"
+          end
+        end
+      end.join(" ").freeze
+      if !TagQuery::SETTINGS[:ERROR_ON_INVALID_TAG] || TagQuery::SETTINGS[:CATCH_INVALID_TAG]
+        assert_equal(expected_result, TagQuery.new(query).q)
+      else
+        assert_raise(TagQuery::InvalidTagError) do
+          TagQuery.new(query)
+        rescue TagQuery::InvalidTagError => e
+          assert_equal(first_failure, e.kwargs_hash[:tag])
+          raise
+        end
+      end
     end if TagQuery::SETTINGS[:CHECK_TAG_VALIDITY]
 
     should "correctly handle wildcards" do
       create(:tag, name: "acb") # So `TagQuery.pull_wildcard_tags` works
-      assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
-      assert_equal(["acb"], TagQuery.new("-a*b")[:tags][:must_not])
+      create(:tag, name: "azb")
+      assert_equal(%w[acb azb], TagQuery.new("a*b")[:tags][:should])
+      assert_equal(%w[acb azb], TagQuery.new("-a*b")[:tags][:must_not])
+      if TagQuery::SETTINGS[:CHECK_TAG_VALIDITY]
+        if !TagQuery::SETTINGS[:ERROR_ON_INVALID_TAG] || TagQuery::SETTINGS[:CATCH_INVALID_TAG]
+          assert_equal(TagQuery.new("").q, TagQuery.new("~a*b").q)
+        else
+          assert_raise(TagQuery::InvalidTagError) do
+            TagQuery.new("~a*b")
+          rescue TagQuery::InvalidTagError => e
+            assert_equal("a*b", e.kwargs_hash[:tag])
+            assert_equal("~", e.kwargs_hash[:prefix])
+            raise
+          end
+        end
+      else
+        assert_equal(%w[a*b], TagQuery.new("~a*b")[:tags][:should])
+      end
       # Single top level group
-      assert_equal(["acb"], TagQuery.new("( a*b )")[:tags][:should])
+      assert_equal(%w[acb azb], TagQuery.new("( a*b )")[:tags][:should])
     end
 
     context "W/ metatags:" do
@@ -647,16 +766,26 @@ class TagQueryTest < ActiveSupport::TestCase
         %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
       end
 
-      # true -> true, everything else -> false
       should "parse boolean metatags correctly" do
         TagQuery::BOOLEAN_METATAGS.each do |e|
-          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:1")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:0")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:y")[e.downcase.to_sym])
-          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym])
+          label = "Failed on #{e}".freeze
+          # Doesn't accept prefixes
+          bad_parse = TagQuery.new("-#{e}:true".freeze)
+          assert_nil(bad_parse[e.downcase.to_sym], label)
+          assert_nil(bad_parse[:"#{e.downcase.to_sym}_must_not"], label)
+          assert_equal("#{e}:true", bad_parse[:tags][:must_not][0], label)
+          bad_parse = TagQuery.new("~#{e}:false".freeze)
+          assert_nil(bad_parse[e.downcase.to_sym], label)
+          assert_nil(bad_parse[:"#{e.downcase.to_sym}_should"], label)
+          assert_equal("#{e}:false", bad_parse[:tags][:should][0], label)
+
+          # true & false give true & false
+          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym], label)
+          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym], label)
+
+          # Doesn't behave like `Danbooru::Extensions::String#truthy?`
+          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym], label)
+          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym], label)
         end
       end
 
@@ -669,9 +798,10 @@ class TagQueryTest < ActiveSupport::TestCase
 
       should "correctly handle valid any/none values" do
         ANY_KEY_MAPPING.each_key do |e|
-          assert_equal("any", TagQuery.new("#{e}:any")[ANY_KEY_MAPPING[e]])
-          assert_equal("none", TagQuery.new("#{e}:none")[ANY_KEY_MAPPING[e]])
-          assert_not_equal("diff", TagQuery.new("#{e}:diff")[ANY_KEY_MAPPING[e]])
+          label = "Failed on #{e}".freeze
+          assert_equal("any", TagQuery.new("#{e}:any")[ANY_KEY_MAPPING[e]], label)
+          assert_equal("none", TagQuery.new("#{e}:none")[ANY_KEY_MAPPING[e]], label)
+          assert_not_equal("diff", TagQuery.new("#{e}:diff")[ANY_KEY_MAPPING[e]], label)
         end
       end
 
@@ -721,23 +851,25 @@ class TagQueryTest < ActiveSupport::TestCase
           hash_u = { val: @val_u, id: @u_id, u_name: @u_name }.freeze
           hash_a = { val: @val_a, id: @a_id, u_name: @a_name }.freeze
           check_tags_on_users = ->(tags, users, bad_id = 404, bad_name = "nonexistent", label: "") do
+            line = add_line(1, 1)
             tags.each do |e|
-              s = e.is_a?(Symbol) ? e : e.to_sym
+              s = MAPPING[e.is_a?(Symbol) ? e : e.to_sym]
               users.each do |u|
+                label = "#{label}: #{e}: #{u[:u_name]}#{line}".freeze
                 # Doesn't validate id if using `!`
-                # assert_equal(u.fetch(:id_failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
-                assert_equal(u.fetch(:failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
-                assert_equal(u.fetch(:failure_val, [-1]), TagQuery.new("#{e}:#{bad_name}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+                # assert_equal(u.fetch(:id_failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[s], label)
+                assert_equal(u.fetch(:failure_val, [bad_id].freeze), TagQuery.new("#{e}:!#{bad_id}")[s], label)
+                assert_equal(u.fetch(:failure_val, [-1]), TagQuery.new("#{e}:#{bad_name}")[s], label)
 
-                assert_equal(u[:val], TagQuery.new("#{e}:#{u[:u_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
-                assert_equal(u[:val], TagQuery.new("#{e}:!#{u[:id]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}")
+                assert_equal(u[:val], TagQuery.new("#{e}:#{u[:u_name]}")[s], label)
+                assert_equal(u[:val], TagQuery.new("#{e}:!#{u[:id]}")[s], label)
 
                 # If leading w/ - but not entirely - a valid integral, will check user names
-                assert_equal(u.fetch(:bang_val, [-1]), TagQuery.new("#{e}:!#{u[:u_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") unless u[:no_bang]
+                assert_equal(u.fetch(:bang_val, [-1]), TagQuery.new("#{e}:!#{u[:u_name]}")[s], label) unless u[:no_bang]
 
                 # Can see other's values for this field?
-                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:#{u[:o_name]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") if u[:o_name]
-                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:!#{u[:o_id]}")[MAPPING[s]], "#{label}: #{e}: #{u[:u_name]}") if u[:o_id]
+                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:#{u[:o_name]}")[s], label) if u[:o_name]
+                assert_equal(u.fetch(:o_val, [-1]), TagQuery.new("#{e}:!#{u[:o_id]}")[s], label) if u[:o_id]
               end
             end
           end
@@ -888,12 +1020,6 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal([[:eq, 3], [:eq, 6]], query[:post_id_should])
   end
 
-  should "fail for more than 40 tags" do
-    assert_raise(TagQuery::CountExceededError) do
-      TagQuery.new("rating:s width:10 height:10 user:bob #{[*'aa'..'zz'].join(' ')}")
-    end
-  end
-
   # TODO: Figure out tests for sorting tags in scan_recursive
   # TODO: Figure out tests for distributing prefixes in scan_recursive
 
@@ -947,7 +1073,6 @@ class TagQueryTest < ActiveSupport::TestCase
   end
 
   RESPECT_ALL_QUOTED_METATAGS = false
-  # TODO: Add tests for block variables
   # TODO: Add tests for prepend_prefix
   # TODO: Add tests for non-spaced group when RESPECT_ALL_QUOTED_METATAGS is true
   context "While recursively searching metatags" do
