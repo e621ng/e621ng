@@ -75,6 +75,20 @@ export default class User {
         admin: data.userIsAdmin === "true",
       },
     };
+
+    // Load anonymous blacklist
+    if (this._userData.is.anonymous) {
+      try {
+        this._userData.blacklist.tags = JSON.parse(LStorage.Blacklist.AnonymousBlacklist);
+      } catch { this._userData.blacklist.tags = []; }
+
+      $("<meta>")
+        .attr({
+          name: "blacklisted-tags",
+          content: JSON.stringify(this._userData.blacklist.tags),
+        })
+        .appendTo("head");
+    }
   }
 
   static _get () {
