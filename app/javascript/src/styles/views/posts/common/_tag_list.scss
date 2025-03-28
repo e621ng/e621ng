@@ -10,26 +10,17 @@ h5.tag-list-header {
 ul.tag-list {
   display: flex;
   flex-flow: column;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.25rem;
-  margin: 0.25rem 0;
-
-  font-size: 1.1rem;
+  gap: 0.5rem 0;
+  margin: 0.5rem 0;
 
   li {
     display: flex;
     width: fit-content;
+
+    background: themed("color-section");
     border: 0.125rem solid themed("color-section-lighten-5");
     border-left-width: 0.25rem;
     @include st-radius;
-
-    a {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      padding: 0.125rem 0.5rem 0.125rem 0.5rem;
-    }
 
     @each $tag-category, $tag-category-name in $tag-categories {
       &.tag-#{$tag-category-name} {
@@ -40,58 +31,62 @@ ul.tag-list {
         a:hover, a:active { color: themed("color-tag-#{$tag-category-name}-alt"); }
       }
     }
-  }
 
-  // 1 wiki: desktop
-  .tag-list-wiki {
-    display: flex;
-    align-self: flex-start;
-    padding-right: 0.5rem;
-  }
-
-  // 1.5 inc: desktop
-  .tag-list-inc {
-    display: flex;
-    align-self: flex-start;
-    padding-right: 0.25rem;
-  }
-
-  // 2 tag: both
-  .tag-list-search {
-    
-    svg {
-      color: palette("color-tag-artist");
-      .check { color: themed("color-text"); }
+    a {
+      font-size: 1rem;
+      line-height: 1.25rem;
     }
   }
 
-  // 3 count: both
+  // Section 1: Controls
+  .tag-list-wiki,
+  .tag-list-inc,
+  .tag-list-exl,
   .tag-list-count {
-    font-size: 0.75em;
-    border-left: 1px solid themed("color-section");
-    padding-left: 0.5rem;
+    @include st-padding-yx(025, 050);
+    user-select: none;
   }
 
-  // 4 actions: desktop
+  // Section 2: Tag Data
+  .tag-list-search {
+    display: flex;
+
+    .tag-list-name {
+      border: 1px solid themed("color-section-lighten-5");
+      border-width: 0 1px 0 1px;
+      @include st-padding;
+
+      .hisc { color: transparent; }
+    }
+
+    .tag-list-count {
+      color: themed("color-text-muted");
+      font-size: 85%;
+      &.low-post-count { color: palette("text-red"); }
+    }
+  }
+
+  // Section 3: Actions
   .tag-list-actions {
     display: none; // flex
-    align-self: flex-start;
-
+    align-items: baseline;
     margin-left: auto;
-    padding-left: 0.5rem;
 
     button {
-      display: none; // flex
-      background: unset;
-      padding: 0;
-
-      vertical-align: middle;
+      display: flex;
+      align-items: center;
       color: themed("color-link");
-      &:hover, &:active { color: themed("color-link-hover"); }
 
+      // default button styles
+      padding: 0;
+      border-radius: 0;
+      background: none;
+
+      &:hover { color: themed("color-link-hover"); }
+      
       svg {
-        height: 1rem;
         width: 1rem;
+        height: 1rem;
       }
     }
   }
