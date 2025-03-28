@@ -7,7 +7,6 @@ import LStorage from "./utility/storage";
 
 let Blacklist = {};
 
-Blacklist.isAnonymous = false;
 Blacklist.isPostsShow = false;
 Blacklist.filters = {};
 
@@ -15,23 +14,6 @@ Blacklist.hiddenPosts = new Set();
 Blacklist.matchedPosts = new Set();
 
 Blacklist.ui = [];
-
-/** Import the anonymous blacklist from the LocalStorage */
-Blacklist.init_anonymous_blacklist = function () {
-  let metaTag = $("meta[name=blacklisted-tags]");
-  if (metaTag.length == 0)
-    metaTag = $("<meta>")
-      .attr({
-        name: "blacklisted-tags",
-        content: "[]",
-      })
-      .appendTo("head");
-
-  if (User.is.anonymous) {
-    Blacklist.isAnonymous = true;
-    metaTag.attr("content", LStorage.Blacklist.AnonymousBlacklist);
-  }
-};
 
 /** Set up the modal dialogue with the blacklist editor */
 Blacklist.init_blacklist_editor = function () {
@@ -63,8 +45,7 @@ Blacklist.init_blacklist_editor = function () {
 
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
-    let entries = JSON.parse(Utility.meta("blacklisted-tags") || "[]");
-    $("#blacklist-edit").val(entries.join("\n"));
+    $("#blacklist-edit").val(User.blacklist.tags.join("\n"));
     $("#blacklist-edit-dialog").dialog("open");
   });
 };
@@ -246,7 +227,6 @@ Blacklist.update_styles = function () {
 $(() => {
   Blacklist.isPostsShow = $("#image-container").length > 0;
 
-  Blacklist.init_anonymous_blacklist();
   Blacklist.init_blacklist_editor();
   Blacklist.init_reveal_on_click();
 
