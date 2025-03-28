@@ -82,7 +82,7 @@ $(() => {
     PostSearch.initialize_input($(element));
   });
 
-  if (!Page.matches("posts", "index") && !Page.matches("favorites"))
+  if (!Page.matches("posts") && !Page.matches("favorites"))
     return;
 
   $(".wiki-excerpt").each((index, element) => {
