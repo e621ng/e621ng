@@ -23,7 +23,7 @@
         <%= format_text(parse_embedded_tag_request_text(forum_post.body), allow_color: forum_post.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: forum_post %>
-      <%= render "application/warned_notice", record: forum_post %>
+      <%= render "application/warned_notice", record: forum_post if forum_post.was_warned? %>
       <div class="content-menu">
         <menu>
           <% if CurrentUser.is_member? && @forum_topic && params[:controller] != "forum_posts" %>
@@ -74,7 +74,7 @@
             </li>
           <% end %>
         </menu>
-        <% if @votable_posts.present? %>
+        <% if @votable_posts %>
           <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post if @votable_posts.include? forum_post.id %>
         <% elsif forum_post.votable? %>
           <%= render "forum_post_votes/list", votes: forum_post.votes, forum_post: forum_post %>

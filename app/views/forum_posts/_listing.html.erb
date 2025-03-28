@@ -2,7 +2,5 @@
 <%- # original_forum_post_id %>
 
 <div class="list-of-forum-posts">
-  <% forum_posts.each do |forum_post| %>
-    <%= render "forum_posts/forum_post", :forum_post => forum_post, :original_forum_post_id => original_forum_post_id %>
-  <% end %>
+  <%= render partial: "forum_posts/forum_post", collection: forum_posts, cached: true, locals: { original_forum_post_id: original_forum_post_id } %>
 </div>
