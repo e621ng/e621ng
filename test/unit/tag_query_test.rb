@@ -3,10 +3,13 @@
 require "test_helper"
 
 class TagQueryTest < ActiveSupport::TestCase
-  def add_line(start = 1, length = nil, offset: 0)
-    cl = Kernel.caller_locations(start + 1, length).freeze
-    cl.inject(nil) { |p, v| "#{p}\n#{v.path}:#{v.lineno + (p.nil? ? offset : 0)}: in `#{v.label}`" }
+  def add_line(start = 1, length = nil, offset: 0, skip: nil, skip_dup: true)
+    cl = Kernel.caller_locations(start + 1, length)
+    cl.reverse.each_with_index { |e, i| cl.delete_at(i - 1) if i > 0 && e.lineno == cl[i - 1].lineno } if skip_dup
+    skip&.reverse&.each { |e| cl.delete_at(e) }
+    cl.freeze.inject(nil) { |p, v| "#{p}\n#{v.path}:#{v.lineno + (p.nil? ? offset : 0)}: in `#{v.label}`" }
   end
+
   context "Matching:" do
     context "Metatags:" do
       should "Properly match quoted metatags" do
@@ -1086,45 +1089,104 @@ class TagQueryTest < ActiveSupport::TestCase
       end
 
       # TODO: Add these
-      # when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio, ParseValue.range(g2, :ratio))
-      # when "duration", "-duration", "~duration" then add_to_query(type, :duration, ParseValue.range(g2, :float))
       # when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
       # when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
-      # when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels, ParseValue.range_fudged(g2, :float))
-      # when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize, ParseValue.range_fudged(g2, :filesize))
-      context "using exact integer range" do
-        # id, width, height, score, favcount, change, tagcount, TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" })
-        should "parse them correctly" do
+      # when "source", "-source", "~source" add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { "#{g2}*" }
+      # when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
+      # when "child" then q[:child] = g2.downcase
+      # when "randseed" then q[:random_seed] = g2.to_i
+      # when "order" then q[:order] = g2.downcase
+      # when "limit" # Do nothing. The controller takes care of it.
+      # when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
+      # when "description", "-description", "~description" then add_to_query(type, :description, g2)
+      # when "note", "-note", "~note" then add_to_query(type, :note, g2)
+      context "using range" do
+        should "parse exact integer ranges correctly" do
           prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
-          %w[id width height score favcount change tagcount].freeze.each do |e|
+          in_r = [*1..100].freeze
+          in_i = in_r.join(",").freeze
+          in_f = "#{in_i},101".freeze
+          in_r = [[:in, in_r].freeze].freeze
+          %w[id width height score favcount change tagcount].concat(TagCategory::SHORT_NAME_LIST.map { |e| "#{e}tags" }).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
             prefixes.each do |prefix|
-              p, s1 = prefix
-              label = "Failed on #{p}#{e}"
-              s = :"#{s_root}#{s1}"
-              assert_equal([[:between, 1, 2]], TagQuery.new("#{p}#{e}:1..2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:1..2").q} #{s}")
-              assert_equal([[:gt, 2]], TagQuery.new("#{p}#{e}:>2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>2").q} #{s}")
-              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:>=2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>=2").q} #{s}")
-              assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<3").q} #{s}")
-              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<=3").q} #{s}")
+              p, s = prefix
+              label = "Failed on #{p}#{e}".freeze
+              s = :"#{s_root}#{s}"
+              assert_equal([[:eq, 10]], TagQuery.new("#{p}#{e}:10")[s], label)
+              assert_equal([[:between, 1, 2]], TagQuery.new("#{p}#{e}:1..2")[s], label)
+              assert_equal([[:gt, 2]], TagQuery.new("#{p}#{e}:>2")[s], label)
+              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:>=2")[s], label)
+              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:2..")[s], label)
+              assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], label)
+              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], label)
+              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:..3")[s], label)
+              # Accept up to 100 options
+              assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_i}")[s], label)
+              # Truncate past 100 options
+              assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_f}")[s], label)
             end
           end
-          # TagCategory::SHORT_NAME_MAPPING.each_pair { |k, v| my_h["#{k}tags"] = "#{v}_tag_count" }
-          # TagCategory::SHORT_NAME_MAPPING.transform_keys { |k| "#{k}tags" }.transform_values { |v| "#{v}_tag_count" }.freeze.each_pair do |e, s_root|
-          TagCategory::SHORT_NAME_LIST.each do |e|
-            e = "#{e}tags"
-            s_root = MAPPING[e.to_sym]
-            prefixes.each do |prefix|
-              p, s1 = prefix
-              label = "Failed on #{p}#{e}"
-              s = :"#{s_root}#{s1}"
-              assert_equal([[:between, 1, 2]], TagQuery.new("#{p}#{e}:1..2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:1..2").q} #{s}")
-              assert_equal([[:gt, 2]], TagQuery.new("#{p}#{e}:>2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>2").q} #{s}")
-              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:>=2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>=2").q} #{s}")
-              assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<3").q} #{s}")
-              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<=3").q} #{s}")
+        end
+
+        should "parse float/ratio/filesize ranges correctly" do
+          prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
+          # rubocop:disable Metrics/BlockLength
+          run_assertions = ->(h) do
+            h.each_pair do |e, v|
+              s_root = MAPPING[e.to_sym]
+              in_i = ""
+              in_r = []
+              v.inject(nil) do |prior, o|
+                k = o.keys.first
+                r = o[k]
+
+                if prior
+                  in_i += ","
+                  k_p = prior.last.keys.first
+                  r_p = prior.last[k_p]
+                  prior << o
+                else
+                  prior = [o]
+                end
+                in_i += o.keys.first
+                in_r << o[o.keys.first]
+                prefixes.each do |prefix|
+                  p, s = prefix
+                  s = :"#{s_root}#{s}"
+                  t = "#{p}#{e}".freeze
+                  label = "Failed on #{t} (prior: #{prior}; #{k} -> #{r}): ".freeze
+                  assert_equal([[:gt, r]], TagQuery.new("#{t}:>#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:gte, r]], TagQuery.new("#{t}:>=#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:gte, r]], TagQuery.new("#{t}:#{k}..")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:lt, r]], TagQuery.new("#{t}:<#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:lte, r]], TagQuery.new("#{t}:<=#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:lte, r]], TagQuery.new("#{t}:..#{k}")[s], "#{label}#{add_line(0, 5)}")
+
+                  assert_equal([o[:eq] || [:eq, r]], TagQuery.new("#{t}:#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  next unless prior.length > 1
+                  assert_equal([[:between, r_p, r]], TagQuery.new("#{t}:#{k_p}..#{k}")[s], "#{label}#{add_line(0, 5)}")
+                  assert_equal([[:in, in_r]], TagQuery.new("#{t}:#{in_i}")[s], "#{label}#{add_line(0, 5)}")
+                end
+                next prior
+              end
             end
           end
+          # rubocop:enable Metrics/BlockLength
+          run_assertions.call({
+            # Supports both `width:height` & decimal/integer input rounded to 2 decimal places
+            "ratio" => [{ "1:2" => 0.5 }, { "1.2345" => 1.23 }, { "2" => 2 }],
+            # Supports decimal/integer input
+            # Unrounded
+            "duration" => [{ "10" => 10 }, { "15.1515" => 15.1515 }, { "60" => 60 }],
+            # Supports decimal/integer input; fudged
+            # Unrounded unless fudged
+            # NOTE: `ParseValue.range_fudged` currently truncates to integer if fudging; if that changes, alter the values below accordingly
+            # NOTE: `ParseValue.range_fudged` currently allows negative integers; if that changes, alter the values below accordingly
+            "mpixels" => [{ "-1.5" => -1.5, eq: [:between, -1, -1] }, { "0.9524" => 0.9524, eq: [:between, 0, 1] }, { "123.456" => 123.456, eq: [:between, 117, 129] }, { "250.9999" => 250.9999, eq: [:between, 238, 263] }],
+            # Supports decimal/integer input (& optional `MB`/`KB` case-insensitive modifiers) rounded to an integer (after multiplier); fudged
+            "filesize" => [{ "512.9999" => 512, eq: [:between, 486, 537] }, { "1Kb" => 1024, eq: [:between, 972, 1075] }, { ".1234mB" => 129_394, eq: [:between, 122_924, 135_863] }],
+          })
         end
       end
     end

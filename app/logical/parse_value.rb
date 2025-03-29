@@ -24,6 +24,10 @@ module ParseValue
 
   # Same as `ParseValue#range`, except when `range` uses no comparisons, it is converted to a range of the value +/- 5%.
   # Used for `filesize` & `mpixels`.
+  #
+  # IDEA: Only cast to integer if `type` is `filesize`, so both fudged & non-fudged `mpixels` are floating point.
+  #
+  # IDEA: enforce only positive integers
   def range_fudged(range, type)
     result = range(range, type)
     if result[0] == :eq
