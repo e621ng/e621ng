@@ -206,7 +206,9 @@ class WikiPage < ApplicationRecord
 
     def update_tag
       updates = tag_update_map
-      self.tag = Tag.find_or_create_by_name(title)
+      # We must pull the tag before the title is updated, otherwise we get a unique constraint violation
+      # as the relation will update the tag after this call.
+      self.tag = Tag.find_or_create_by_name(title_was || title)
 
       return if updates.empty?
       unless category_editable_by?
