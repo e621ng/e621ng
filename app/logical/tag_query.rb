@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+# https://e621.net/forum_topics/15530
 class TagQuery
   class CountExceededError < StandardError; end
 
