@@ -34,8 +34,15 @@ export default class Page {
     if (!this._controller) this._init();
 
     if (action)
-      return this._controller == controller && this._action == action;
+      return this._controller == controller && this._matchAction(controller, action);
     return this._controller == controller;
+  }
+
+  static _matchAction (controller, action) {
+    switch (controller) {
+      case "posts": return ["show", "show-seq"].includes(this._action);
+      default: return this._action == action;
+    }
   }
 
 }

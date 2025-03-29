@@ -11,6 +11,10 @@ body.c-posts.a-show {
     flex-flow: column;
     flex: 1;
   }
+}
 
+// Due to the show-seq page having a different action,
+// using the body classes is not possible here
+#c-posts, #a-show {
   @import "partials/post_information";
 }
