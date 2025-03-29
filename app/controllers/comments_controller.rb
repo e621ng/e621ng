@@ -104,14 +104,17 @@ class CommentsController < ApplicationController
     tags = params[:tags] || ""
     @posts = Post.includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
 
-    @comments = @posts.to_h { |post| [post.id, post.comments.includes(:creator, :updater).recent.reverse] }
+    @comments = @posts.to_h { |post| [post.id, post.comments.visible(CurrentUser.user).includes(:creator, :updater).recent.reverse] }
     @comment_votes = CommentVote.for_comments_and_user(CurrentUser.id ? @comments.values.flatten.map(&:id) : [], CurrentUser.id)
     respond_with(@posts)
   end
 
   def index_by_comment
-    @comments = Comment.visible(CurrentUser.user)
-    @comments = @comments.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
+    @comments = Comment
+                .visible(CurrentUser.user)
+                .includes(:creator, :updater)
+                .search(search_params)
+                .paginate(params[:page], limit: params[:limit], search_count: params[:search])
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
 
     if CurrentUser.is_staff?
