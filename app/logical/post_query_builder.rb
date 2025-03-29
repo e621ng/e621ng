@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+# Used to build and launch SQL searches.
+#
+# Exclusively used directly by `Post.tag_match_sql`.
+# Used for comment, note, and post approval, disapproval, flag, & upload searches; NOT the main post
+# search, which uses `ElasticPostQueryBuilder`.
 class PostQueryBuilder
-  attr_accessor :query_string
-
-  def initialize(query_string)
-    @query_string = query_string
+  def initialize(query_string, **kwargs)
+    @query = query_string
+    @depth = kwargs.fetch(:depth, 0)
   end
 
   def add_tag_string_search_relation(tags, relation)
@@ -21,6 +25,34 @@ class PostQueryBuilder
     relation
   end
 
+  # TODO: Make through unit test
+  def add_group_search_relation(groups, relation)
+    return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
+    if groups[:must].present?
+      groups[:must].each { |x| relation = relation.and(PostQueryBuilder.new(x, depth: @depth + 1).search) }
+    end
+    if groups[:must_not].present?
+      groups[:must_not].each do |x|
+        temp = PostQueryBuilder.new(x, depth: @depth + 1).search.invert_where
+        temp = relation.and(temp)
+        relation = temp
+      end
+    end
+    if groups[:should].present?
+      valid = nil
+      groups[:should].each do |x|
+        if valid
+          valid = valid.or(PostQueryBuilder.new(x, depth: @depth + 1).search)
+        else
+          valid = PostQueryBuilder.new(x, depth: @depth + 1).search
+        end
+      end
+      relation = relation.and(valid)
+    end
+
+    relation
+  end
+
   def add_array_range_relation(relation, values, field)
     values&.each do |value|
       relation = relation.add_range_relation(value, field)
@@ -28,8 +60,14 @@ class PostQueryBuilder
     relation
   end
 
+  CAN_HAVE_GROUPS = true
+
   def search
-    q = TagQuery.new(query_string)
+    if @query.is_a?(TagQuery)
+      q = @query
+    else
+      q = TagQuery.new(@query, can_have_groups: CAN_HAVE_GROUPS)
+    end
     relation = Post.all
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
@@ -88,9 +126,9 @@ class PostQueryBuilder
       relation = relation.where.not("posts.file_ext": filetype)
     end
 
-    if q[:pool] == "none"
+    if q[:pool] == "none" || q[:inpool_must_not] || (q[:inpool] == false)
       relation = relation.where("posts.pool_string = ''")
-    elsif q[:pool] == "any"
+    elsif q[:pool] == "any" || q[:inpool] || (q[:inpool_must_not] == false)
       relation = relation.where("posts.pool_string != ''")
     end
 
@@ -156,6 +194,9 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", rating)
     end
 
-    add_tag_string_search_relation(q[:tags], relation)
+    relation = add_tag_string_search_relation(q[:tags], relation)
+    relation = add_group_search_relation(q[:groups], relation) if CAN_HAVE_GROUPS
+
+    relation
   end
 end

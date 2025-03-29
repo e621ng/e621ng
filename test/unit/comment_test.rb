@@ -162,7 +162,7 @@ class CommentTest < ActiveSupport::TestCase
         end
       end
 
-      should "be searchable" do
+      should "be searchable by body" do
         c1 = create(:comment, body: "aaa bbb ccc")
         c2 = create(:comment, body: "aaa ddd")
         c3 = create(:comment, body: "eee")
@@ -172,6 +172,36 @@ class CommentTest < ActiveSupport::TestCase
         assert_equal(c2.id, matches.all[0].id)
         assert_equal(c1.id, matches.all[1].id)
       end
+
+      should "be searchable by post tags" do
+        p1 = create(:post, tag_string: "aaa bbb ccc")
+        p2 = create(:post, tag_string: "aaa ddd")
+        p3 = create(:post, tag_string: "eee")
+        c1 = create(:comment, post_id: p1.id, body: "comment body text")
+        c2 = create(:comment, post_id: p2.id, body: "comment body text")
+        c3 = create(:comment, post_id: p3.id, body: "comment body text") # rubocop:disable Lint/UselessAssignment, Lint/RedundantCopDisableDirective
+
+        matches = Comment.search(post_tags_match: "aaa")
+        assert_equal(2, matches.count)
+        assert_equal(c2.id, matches.all[0].id)
+        assert_equal(c1.id, matches.all[1].id)
+        assert(matches.is_a?(ActiveRecord::Relation), "Return value isn't a ActiveRecord::Relation. #{matches}")
+      end
+
+      should "be searchable by grouped post tags" do # rubocop:disable Style/MultilineIfModifier
+        p1 = create(:post, tag_string: "aaa bbb ccc")
+        p2 = create(:post, tag_string: "aaa ddd")
+        p3 = create(:post, tag_string: "eee")
+        c1 = create(:comment, post_id: p1.id, body: "comment body text")
+        c2 = create(:comment, post_id: p2.id, body: "comment body text")
+        c3 = create(:comment, post_id: p3.id, body: "comment body text") # rubocop:disable Lint/UselessAssignment, Lint/RedundantCopDisableDirective
+
+        matches = Comment.search(post_tags_match: "~( aaa bbb ) ~( ddd -( ~ccc ~eee ) )")
+        assert(matches.is_a?(ActiveRecord::Relation), "Return value isn't a ActiveRecord::Relation. #{matches}")
+        assert_equal(2, matches.count)
+        assert_equal(c2.id, matches.all[0].id)
+        assert_equal(c1.id, matches.all[1].id)
+      end if PostQueryBuilder::CAN_HAVE_GROUPS
 
       should "default to id_desc order when searched with no options specified" do
         comms = create_list(:comment, 3)
