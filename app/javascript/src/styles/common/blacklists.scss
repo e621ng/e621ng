@@ -211,6 +211,10 @@
     }
   }
 
+  // Without this, the video player intercepts clicks but
+  // does no tpass them on to the container element
+  video { pointer-events: none; }
+
   #note-container {
     display: none;
   }
