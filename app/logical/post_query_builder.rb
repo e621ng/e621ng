@@ -26,6 +26,7 @@ class PostQueryBuilder
   end
 
   # TODO: Make through unit test
+  # FIXME: Fails with certain complex searches (e.g. `~( ( id:>10 ) ( id:<30 ) ) ~( tag1 ) -( ~tag2 ~tag3 )` works, but `~( ( id:>10 ) ( id:<30 ) ) ~( tag1 ) -( ~tag2 ~tag3 ) ~tag4` removes posts w/o `tag4` from results); has to do with poor grouping of complex queries merged w/ `AND`
   def add_group_search_relation(groups, relation)
     return relation if @depth >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
     if groups[:must].present?
@@ -60,7 +61,7 @@ class PostQueryBuilder
     relation
   end
 
-  CAN_HAVE_GROUPS = true
+  CAN_HAVE_GROUPS = false
 
   def search
     if @query.is_a?(TagQuery)
