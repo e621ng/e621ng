@@ -3,70 +3,66 @@ h5.tag-list-header {
 }
 
 ul.tag-list {
-  font-size: 0.85rem;
-  line-height: 1rem;
-
-  flex-flow: column;
-  margin: 0 -0.5rem 0.25rem 0;
   gap: 0;
+  margin: 0 -0.5rem 0.25rem;
 
   li {
-    gap: 0;
-    padding-right: 1rem;
+    border: 0;
+    border-radius: 0;
+    width: 100%;
+    background: none;
 
     a {
-      display: block;
-      padding: 0;
+      font-size: 0.85rem;
       line-height: 1rem;
     }
+  }
 
-    @each $tag-category, $tag-category-name in $tag-categories {
-      &.tag-#{$tag-category-name} {
-        a, a:link, a:visited {
-          background: unset;
-          color: themed("color-tag-#{$tag-category-name}");
-        }
-        a:hover {
-          background: unset;
-          color: themed("color-tag-#{$tag-category-name}-alt");
-        }
-      }
+  // Section 1: Controls
+  .tag-list-wiki,
+  .tag-list-inc,
+  .tag-list-exl {
+    @include st-padding-lr;
+  }
+
+  // Section 2: Tag Data
+  .tag-list-search {
+    display: block;
+    @include st-padding-lr;
+
+    .tag-list-name {
+      border: 0;
+      padding: 0;
     }
 
-    .tag-list-wiki { display: flex; }
-
-    .tag-list-inc {
-      display: flex;
-    }
-  
-    .tag-list-search {
-      border-radius: 0;
-  
-      svg {
-        color: themed("color-tag-artist");
-        .check { color: themed("color-text"); }
-      }
-    }
-  
     .tag-list-count {
-      padding: unset;
-      margin: unset;
-      color: themed("color-text-muted");
-      font-size: 0.85em;
+      display: inline-block;
+      @include st-padding-lr;
     }
+  }
 
-    .tag-list-actions { display: flex; }
+  // Section 3: Actions
+  .tag-list-actions {
+    display: flex;
 
-    &:hover, &.blacklisted {
-      padding-right: 0;
-      .tag-list-quick-blacklist { display: flex; }
-    }
-    &.blacklisted {
-      .tag-list-quick-blacklist svg {
-        color: themed("color-text-muted");
-        &:hover { color: themed("color-link-hover"); }
-        .line { color: transparent; }
+    button {
+      padding: 0 0.075rem;
+      svg {
+        width: 0.85rem;
+        height: 0.85rem;
       }
+    }
+  }
+
+  .tag-list-quick-blacklist { visibility: hidden; }
+  li:hover, li.blacklisted {
+    .tag-list-quick-blacklist { visibility: visible; }
+  }
+  li.blacklisted {
+    .tag-list-quick-blacklist svg {
+      color: themed("color-text-muted");
+      &:hover { color: themed("color-link-hover"); }
+      .line { color: transparent; }
     }
   }
 }

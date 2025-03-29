@@ -9,6 +9,15 @@ class CommentVotesController < ApplicationController
   before_action :ensure_lockdown_disabled
   skip_before_action :api_check
 
+  def index
+    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+
+    if CurrentUser.is_staff?
+      ids = @comment_votes&.map(&:id)
+      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+    end
+  end
+
   def create
     @comment = Comment.find(params[:comment_id])
     @comment_vote = VoteManager.comment_vote!(comment: @comment, user: CurrentUser.user, score: params[:score])
@@ -16,20 +25,16 @@ class CommentVotesController < ApplicationController
       VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
     end
     @comment.reload
-    render json: {score: @comment.score, our_score: @comment_vote != :need_unvote ? @comment_vote.score : 0}
-  rescue UserVote::Error, ActiveRecord::RecordInvalid => x
-    render_expected_error(422, x)
+    render json: { score: @comment.score, our_score: @comment_vote == :need_unvote ? 0 : @comment_vote.score }
+  rescue UserVote::Error, ActiveRecord::RecordInvalid => e
+    render_expected_error(422, e)
   end
 
   def destroy
     @comment = Comment.find(params[:comment_id])
     VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
-  rescue UserVote::Error => x
-    render_expected_error(422, x)
-  end
-
-  def index
-    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+  rescue UserVote::Error => e
+    render_expected_error(422, e)
   end
 
   def lock

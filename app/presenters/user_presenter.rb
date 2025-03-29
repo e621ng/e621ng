@@ -17,7 +17,14 @@ class UserPresenter
 
   def ban_reason
     if user.is_banned?
-      "#{user.recent_ban.reason}\n\n Expires #{user.recent_ban.expires_at || 'never'} (#{user.bans.count} bans total)"
+      text = "#{user.recent_ban.reason}\n\n"
+      if user.recent_ban.expires_at.nil?
+        text << "Expires never (#{user.bans.count} bans total)"
+        text << "\nCreated on #{user.recent_ban.created_at&.strftime('%Y-%m-%d %H:%M')}" if user.recent_ban.expires_at.nil?
+      else
+        text << "Expires on #{user.recent_ban.expires_at&.strftime('%Y-%m-%d %H:%M')} (#{user.bans.count} bans total)"
+      end
+      text
     end
   end
 

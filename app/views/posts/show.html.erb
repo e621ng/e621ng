@@ -3,6 +3,7 @@
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
+      <%= render "posts/partials/index/controls" %>
     </div>
 
     <div class="sidebar">
@@ -118,7 +119,7 @@
 
       <% unless CurrentUser.hide_comments? %>
         <section id="comments">
-          <%= render "comments/partials/index/list", :comments => @post.comments.visible(CurrentUser.user), :post => @post, :show_header => false %>
+          <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
         </section>
       <% end %>
 

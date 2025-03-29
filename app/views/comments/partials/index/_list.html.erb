@@ -14,7 +14,7 @@
     </div>
   <% else %>
     <div class="row notices">
-      <% if post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > Comment::RECENT_COUNT) %>
+      <% if post.comment_count > 0 && (post.comments.hidden(CurrentUser.user).count > 0 || (params[:controller] == "comments" && post.comments.count > Comment::RECENT_COUNT)) %>
       <span id="threshold-comments-notice-for-<%= post.id %>">
         <%= link_to "Show all comments", comments_path(:post_id => post.id), 'data-pid': post.id, class: 'show-all-comments-for-post-link' %>
       </span>

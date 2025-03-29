@@ -3,11 +3,11 @@
     <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
   </div>
   <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-    <%= button_tag id: "add-fav-button", class: "button btn-success", data: { pid: @post.id } do %>
+    <%= button_tag id: "add-fav-button", class: "button btn-success", data: { pid: @post.id, shortcut: "f" } do %>
       <%= tag.i(class: "fa-regular fa-star") %>
       <span>Favorite</span>
     <% end %>
-    <%= button_tag id: "remove-fav-button", class: "button btn-danger", data: { pid: @post.id } do %>
+    <%= button_tag id: "remove-fav-button", class: "button btn-danger", data: { pid: @post.id, shortcut: "shift+f" } do %>
       <%= tag.i(class: "fa-solid fa-star") %>
       <span>Unfavorite</span>
     <% end %>

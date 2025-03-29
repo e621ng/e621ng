@@ -24,7 +24,7 @@
         <%= format_text(blip.body, allow_color: blip.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: blip %>
-      <%= render "application/warned_notice", record: blip %>
+      <%= render "application/warned_notice", record: blip if blip.was_warned?%>
       <div class="content-menu">
         <menu>
           <% if CurrentUser.is_member? %>

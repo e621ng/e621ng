@@ -6,6 +6,8 @@ Disallow: /artists
 Disallow: /artist_commentaries
 Disallow: /artist_commentary_versions
 Disallow: /artist_versions
+Disallow: /avoid_postings
+Disallow: /avoid_posting_versions
 Disallow: /bans
 Disallow: /comment_votes
 Disallow: /comment/

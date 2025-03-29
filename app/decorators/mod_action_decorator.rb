@@ -45,7 +45,21 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Ticket ###
     when "ticket_update"
-      "Modified ticket ##{vals['ticket_id']}"
+      text = "Modified ticket ##{vals['ticket_id']}"
+
+      if vals["status"].present? && vals["status"] != vals["status_was"]
+        text += "\nChanged status from #{vals['status_was']} to #{vals['status']}"
+      end
+
+      if vals["response"].present? && vals["response"] != vals["response_was"]
+        if vals["response_was"].present?
+          text += "\nChanged response: [section=Old]#{vals['response_was']}[/section] [section=New]#{vals['response']}[/section]"
+        else
+          text += "\nWith response: #{vals['response']}"
+        end
+      end
+
+      text
     when "ticket_claim"
       "Claimed ticket ##{vals['ticket_id']}"
     when "ticket_unclaim"
@@ -130,6 +144,8 @@ class ModActionDecorator < ApplicationDecorator
       "Changed profile text of #{user}"
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
+    when "user_uploads_toggle"
+      "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
       "Changed name of #{user}"
 

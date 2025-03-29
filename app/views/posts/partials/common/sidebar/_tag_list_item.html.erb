@@ -12,7 +12,7 @@
 
   <% if query.present? %>
     <a rel="nofollow" href="/posts?tags=<%=u query %>+<%=u tag.name %>" class="tag-list-inc">+</a>
-    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%=u tag.name %>" class="tag-list-inc">–</a>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%=u tag.name %>" class="tag-list-exl">–</a>
   <% end %>
 
   <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
@@ -27,7 +27,7 @@
     <%= "itemprop=author" if tag.category == Tag.categories.artist %>
     href="<%= posts_path(tags: tag.name) %>"
   >
-    <span>
+    <span class="tag-list-name">
       <%= tag.name.tr("_", " ") %>
       <% if post.present? && post.uploader_linked_artists.include?(tag.name) %>
         <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
@@ -35,7 +35,7 @@
     </span>
 
     <span
-      data-count='#{count}'
+      data-count="<%= tag.post_count %>"
       class="tag-list-count<%= is_underused_tag ? " low-post-count" : "" %>"
       <% if is_underused_tag %>
         title="New general tag detected. Check the spelling or populate it now."

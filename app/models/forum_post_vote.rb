@@ -11,13 +11,6 @@ class ForumPostVote < ApplicationRecord
   scope :by, ->(user_id) {where(creator_id: user_id)}
   scope :excluding_user, ->(user_id) {where("creator_id <> ?", user_id)}
 
-  def creator_name
-    if association(:creator).loaded?
-      return creator&.name || "Anonymous"
-    end
-    User.id_to_name(creator_id)
-  end
-
   def method_attributes
     super + [:creator_name]
   end

@@ -133,7 +133,7 @@ class Ban < ApplicationRecord
   end
 
   def create_feedback
-    user.feedback.create(category: "negative", body: "Banned for #{humanized_duration}: #{reason}")
+    user.feedback.create(category: "negative", body: "Banned #{expires_at.nil? ? 'permanently' : "for #{humanized_duration}"}.\n#{reason}")
   end
 
   def create_ban_mod_action

@@ -25,6 +25,7 @@ class User < ApplicationRecord
 
   # unintended consequences
   # * _has_mail -> forum_notification_dot
+  # * _no_feedback -> no_uploading
   BOOLEAN_ATTRIBUTES = %w[
     _show_avatars
     _blacklist_avatars
@@ -49,7 +50,7 @@ class User < ApplicationRecord
     disable_responsive_mode
     _disable_post_tooltips
     no_flagging
-    _no_feedback
+    no_uploading
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
@@ -572,6 +573,8 @@ class User < ApplicationRecord
     end
 
     def upload_limit
+      return 0 if no_uploading
+
       pieces = upload_limit_pieces
       base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
     end
@@ -632,13 +635,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      if is_former_staff?
-        9_000
-      elsif is_privileged?
-        6_000
-      else
-        3_000
-      end
+      3_000
     end
   end
 

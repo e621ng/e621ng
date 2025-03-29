@@ -13,9 +13,7 @@ class ForumPostsController < ApplicationController
   def index
     @query = ForumPost.visible(CurrentUser.user).search(search_params)
     @forum_posts = @query
-                   .includes(:topic)
-                   .includes(:creator)
-                   .includes(:updater)
+                   .includes(:topic, :creator, :updater)
                    .paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@forum_posts)
   end
@@ -78,7 +76,7 @@ class ForumPostsController < ApplicationController
   end
 
   def warning
-    if params[:record_type] == 'unmark'
+    if params[:record_type] == "unmark"
       @forum_post.remove_user_warning!
     else
       @forum_post.user_warned!(params[:record_type], CurrentUser.user)
