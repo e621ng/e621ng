@@ -46,7 +46,7 @@
         <% @dnp.each do |dnp_entry| %>
           <% next if dnp_entry.pretty_details.empty? %>
 
-          <a class="button delreason-button" data-text="<%= deletion_reason.gsub(/%DNP_ID%/, "%ID%") %>">
+          <a class="button delreason-button" data-text="<%= deletion_reason.gsub("%DNP_ID%", "%ID%") %>">
             <%= deletion_reason
                   .gsub("%DNP_ID%", "<input type=\"text\" value='#{dnp_entry.pretty_details}' />")
                   .html_safe
