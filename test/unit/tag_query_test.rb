@@ -641,8 +641,7 @@ class TagQueryTest < ActiveSupport::TestCase
     downvote: :downvote,
     voteddown: :downvote,
     voted: :voted,
-
-  }.freeze
+  }.merge(TagCategory::SHORT_NAME_MAPPING.transform_keys { |k| :"#{k}tags" }.transform_values { |v| "#{v}_tag_count" }).freeze
 
   ANY_KEY_MAPPING = {
     approver: :approver,
@@ -787,6 +786,28 @@ class TagQueryTest < ActiveSupport::TestCase
           assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym], label)
           assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym], label)
         end
+
+        # ratinglocked, statuslocked, & notelocked
+        %w[ratinglocked statuslocked notelocked].each do |e|
+          label = "Failed on #{e}".freeze
+          # Doesn't accept prefixes
+          bad_parse = TagQuery.new("-#{e}:true".freeze)
+          assert_nil(bad_parse[:locked], label)
+          assert_nil(bad_parse[:locked_must_not], label)
+          assert_equal("#{e}:true", bad_parse[:tags][:must_not][0], label)
+          bad_parse = TagQuery.new("~#{e}:false".freeze)
+          assert_nil(bad_parse[:locked], label)
+          assert_nil(bad_parse[:locked_should], label)
+          assert_equal("#{e}:false", bad_parse[:tags][:should][0], label)
+
+          # true & false give must & must not
+          assert_equal([e.downcase.delete_suffix("locked").to_sym], TagQuery.new("#{e}:true")[:locked], label)
+          assert_equal([e.downcase.delete_suffix("locked").to_sym], TagQuery.new("#{e}:false")[:locked_must_not], label)
+
+          # Doesn't behave like `Danbooru::Extensions::String#truthy?`
+          assert_equal([e.downcase.delete_suffix("locked").to_sym], TagQuery.new("#{e}:literally_anything_else")[:locked_must_not], label)
+          assert_equal([e.downcase.delete_suffix("locked").to_sym], TagQuery.new("#{e}:t")[:locked_must_not], label)
+        end
       end
 
       # * Limited to 100 comma-separated entries
@@ -794,6 +815,78 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
         arr = [*"aa".."zz"].freeze
         assert_equal(arr[0..99], TagQuery.new("md5:#{arr.join(',')}")[:md5])
+      end
+
+      # * Should be first character downcased if it's `s`, `q`, or `e`, otherwise unset
+      # * Should accept `-` & `~` prefixes
+      should "parse rating tags correctly" do
+        assert_equal(["s"], TagQuery.new("rating:S")[:rating])
+        assert_equal(["s"], TagQuery.new("-rating:safe")[:rating_must_not])
+        assert_equal(["s"], TagQuery.new("~rating:Supercalifragilisticexpialidocious")[:rating_should])
+        assert_equal(["q"], TagQuery.new("-rating:q")[:rating_must_not])
+        assert_equal(["q"], TagQuery.new("~rating:Questionable")[:rating_should])
+        assert_equal(["q"], TagQuery.new("rating:quota")[:rating])
+        assert_equal(["e"], TagQuery.new("~rating:E")[:rating_should])
+        assert_equal(["e"], TagQuery.new("rating:explicit")[:rating])
+        assert_equal(["e"], TagQuery.new("-rating:Excruciating")[:rating_must_not])
+        assert_nil(TagQuery.new("-rating:nonsense")[:rating_must_not])
+        assert_nil(TagQuery.new("~rating:Poppycock")[:rating_should])
+        assert_nil(TagQuery.new("rating:inconceivable")[:rating])
+        assert_equal(["rating:"], TagQuery.new("-rating:")[:tags][:must_not])
+        assert_equal(["rating:"], TagQuery.new("~rating:")[:tags][:should])
+        assert_equal(["rating:"], TagQuery.new("rating:")[:tags][:must])
+      end
+
+      # * Should be `:rating` for `rating`, `:status` for `status`, or `:note` for `note`/`notes`, otherwise unset
+      # * Should accept `-` & `~` prefixes
+      should "parse locked tags correctly" do
+        assert_equal([:note], TagQuery.new("locked:note")[:locked])
+        assert_equal([:note], TagQuery.new("locked:notes")[:locked])
+        assert_nil(TagQuery.new("locked:note_blah")[:locked])
+        assert_equal([:note], TagQuery.new("-locked:note")[:locked_must_not])
+        assert_equal([:note], TagQuery.new("-locked:notes")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:note_blah")[:locked_must_not])
+        assert_equal([:note], TagQuery.new("~locked:note")[:locked_should])
+        assert_equal([:note], TagQuery.new("~locked:notes")[:locked_should])
+        assert_nil(TagQuery.new("~locked:note_blah")[:locked_should])
+        assert_equal([:status], TagQuery.new("locked:status")[:locked])
+        assert_nil(TagQuery.new("locked:status_blah")[:locked])
+        assert_equal([:status], TagQuery.new("-locked:status")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:status_blah")[:locked_must_not])
+        assert_equal([:status], TagQuery.new("~locked:status")[:locked_should])
+        assert_nil(TagQuery.new("~locked:status_blah")[:locked_should])
+        assert_equal([:rating], TagQuery.new("locked:rating")[:locked])
+        assert_nil(TagQuery.new("locked:rating_blah")[:locked])
+        assert_equal([:rating], TagQuery.new("-locked:rating")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:rating_blah")[:locked_must_not])
+        assert_equal([:rating], TagQuery.new("~locked:rating")[:locked_should])
+        assert_nil(TagQuery.new("~locked:rating_blah")[:locked_should])
+      end
+
+      # * Should be `true` for `true`, otherwise false
+      # * Should accept `-` & `~` prefixes
+      should "parse ratinglocked, statuslocked, & notelocked tags correctly" do
+        assert_equal([:note], TagQuery.new("locked:note")[:locked])
+        assert_equal([:note], TagQuery.new("locked:notes")[:locked])
+        assert_nil(TagQuery.new("locked:note_blah")[:locked])
+        assert_equal([:note], TagQuery.new("-locked:note")[:locked_must_not])
+        assert_equal([:note], TagQuery.new("-locked:notes")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:note_blah")[:locked_must_not])
+        assert_equal([:note], TagQuery.new("~locked:note")[:locked_should])
+        assert_equal([:note], TagQuery.new("~locked:notes")[:locked_should])
+        assert_nil(TagQuery.new("~locked:note_blah")[:locked_should])
+        assert_equal([:status], TagQuery.new("locked:status")[:locked])
+        assert_nil(TagQuery.new("locked:status_blah")[:locked])
+        assert_equal([:status], TagQuery.new("-locked:status")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:status_blah")[:locked_must_not])
+        assert_equal([:status], TagQuery.new("~locked:status")[:locked_should])
+        assert_nil(TagQuery.new("~locked:status_blah")[:locked_should])
+        assert_equal([:rating], TagQuery.new("locked:rating")[:locked])
+        assert_nil(TagQuery.new("locked:rating_blah")[:locked])
+        assert_equal([:rating], TagQuery.new("-locked:rating")[:locked_must_not])
+        assert_nil(TagQuery.new("-locked:rating_blah")[:locked_must_not])
+        assert_equal([:rating], TagQuery.new("~locked:rating")[:locked_should])
+        assert_nil(TagQuery.new("~locked:rating_blah")[:locked_should])
       end
 
       should "correctly handle valid any/none values" do
@@ -992,14 +1085,46 @@ class TagQueryTest < ActiveSupport::TestCase
         end
       end
 
-      context "using range" do
+      # TODO: Add these
+      # when "ratio", "-ratio", "~ratio" then add_to_query(type, :ratio, ParseValue.range(g2, :ratio))
+      # when "duration", "-duration", "~duration" then add_to_query(type, :duration, ParseValue.range(g2, :float))
+      # when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
+      # when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
+      # when "mpixels", "-mpixels", "~mpixels" then add_to_query(type, :mpixels, ParseValue.range_fudged(g2, :float))
+      # when "filesize", "-filesize", "~filesize" then add_to_query(type, :filesize, ParseValue.range_fudged(g2, :filesize))
+      context "using exact integer range" do
+        # id, width, height, score, favcount, change, tagcount, TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" })
         should "parse them correctly" do
-          # TODO: Add COUNT_METATAGS & others
-          assert_equal([[:between, 1, 2]], TagQuery.new("id:1..2")[:post_id])
-          assert_equal([[:gt, 2]], TagQuery.new("id:>2")[:post_id])
-          assert_equal([[:gte, 2]], TagQuery.new("id:>=2")[:post_id])
-          assert_equal([[:lt, 3]], TagQuery.new("id:<3")[:post_id])
-          assert_equal([[:lte, 3]], TagQuery.new("id:<=3")[:post_id])
+          prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
+          %w[id width height score favcount change tagcount].freeze.each do |e|
+            s_root = MAPPING[e.to_sym]
+            prefixes.each do |prefix|
+              p, s1 = prefix
+              label = "Failed on #{p}#{e}"
+              s = :"#{s_root}#{s1}"
+              assert_equal([[:between, 1, 2]], TagQuery.new("#{p}#{e}:1..2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:1..2").q} #{s}")
+              assert_equal([[:gt, 2]], TagQuery.new("#{p}#{e}:>2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>2").q} #{s}")
+              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:>=2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>=2").q} #{s}")
+              assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<3").q} #{s}")
+              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<=3").q} #{s}")
+            end
+          end
+          # TagCategory::SHORT_NAME_MAPPING.each_pair { |k, v| my_h["#{k}tags"] = "#{v}_tag_count" }
+          # TagCategory::SHORT_NAME_MAPPING.transform_keys { |k| "#{k}tags" }.transform_values { |v| "#{v}_tag_count" }.freeze.each_pair do |e, s_root|
+          TagCategory::SHORT_NAME_LIST.each do |e|
+            e = "#{e}tags"
+            s_root = MAPPING[e.to_sym]
+            prefixes.each do |prefix|
+              p, s1 = prefix
+              label = "Failed on #{p}#{e}"
+              s = :"#{s_root}#{s1}"
+              assert_equal([[:between, 1, 2]], TagQuery.new("#{p}#{e}:1..2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:1..2").q} #{s}")
+              assert_equal([[:gt, 2]], TagQuery.new("#{p}#{e}:>2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>2").q} #{s}")
+              assert_equal([[:gte, 2]], TagQuery.new("#{p}#{e}:>=2")[s], "#{label}: #{TagQuery.new("#{p}#{e}:>=2").q} #{s}")
+              assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<3").q} #{s}")
+              assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], "#{label}: #{TagQuery.new("#{p}#{e}:<=3").q} #{s}")
+            end
+          end
         end
       end
     end

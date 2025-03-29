@@ -22,6 +22,8 @@ module ParseValue
     end
   end
 
+  # Same as `ParseValue#range`, except when `range` uses no comparisons, it is converted to a range of the value +/- 5%.
+  # Used for `filesize` & `mpixels`.
   def range_fudged(range, type)
     result = range(range, type)
     if result[0] == :eq
@@ -33,6 +35,19 @@ module ParseValue
     end
   end
 
+  # ### Parameters
+  # * `range`
+  # * `type` [`:integer`]
+  # ### Returns
+  # An array where the 1st element is the comparison operator and the remaining elements are the
+  # data to compare to. The operators are:
+  # * `:lte`
+  # * `:lt`
+  # * `:gte`
+  # * `:gt`
+  # * `:between`
+  # * `:in`
+  # * `:eq`
   def range(range, type = :integer)
     if range.start_with?("<=")
       [:lte, cast(range.delete_prefix("<="), type)]
@@ -154,7 +169,8 @@ module ParseValue
 
   # If no unit can be found, will default to `DEFAULT_TIME_UNIT`.
   # If this behavior is changed, update the corresponding test in `test/unit/post_test.rb`
-  # (context "Searching:", should "return posts for the age:<n> metatag").
+  # (context "Searching:", should "return posts for the age:<n> metatag", 1st assertion gives no
+  # time unit).
   #
   # If no size can be found, returns nil.
   def time_string(target)

@@ -107,7 +107,7 @@ class TagQuery
   ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
-  # Therefore, these should be pulled out of groups and placed on the top level of searches.
+  # Therefore, these are pulled out of groups and placed on the top level of searches.
   GLOBAL_METATAGS = %w[order limit randseed].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
@@ -897,28 +897,24 @@ class TagQuery
 
     if tags.is_a?(String)
       if at_any_level
-        scan_metatags(tags, *metatags, prepend_prefix: prepend_prefix) { |**kwargs| return kwargs[:value] if kwargs[:value].present? }
-        return
+        scan_metatags(tags, *metatags, prepend_prefix: prepend_prefix) { |**kwargs| return kwargs[:value] }
       else
-        tags = scan(tags).find do |tag|
-          metatag_name, value = tag.split(":", 2)
-          if metatags.include?(metatag_name)
-            value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String) # rubocop:disable Metrics/BlockNesting
-            return value if value.present? # rubocop:disable Metrics/BlockNesting
-          end
+        match_tokens(tags, recurse: false, stop_at_group: false) do |tag|
+          next unless tag[:metatag]
+          metatag_name, value = tag[:metatag].split(":", 2)
+          return value.delete_prefix('"').delete_suffix('"') if metatags.include?(metatag_name)
         end
       end
     elsif at_any_level
-      # OPTIMIZE: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
-      scan_metatags(tags.join(" "), *metatags, prepend_prefix: prepend_prefix) { |**kwargs| return kwargs[:value] if kwargs[:value].present? }
-      return
-    end
-    return nil unless tags
-    tags.find do |tag|
-      metatag_name, value = tag.split(":", 2)
-      if metatags.include?(metatag_name)
-        value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String)
-        return value if value.present?
+      # IDEA: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
+      scan_metatags(tags.join(" "), *metatags, prepend_prefix: prepend_prefix) { |**kwargs| return kwargs[:value] }
+    else
+      tags.find do |tag|
+        metatag_name, value = tag.split(":", 2)
+        if metatags.include?(metatag_name)
+          value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String)
+          return value if value.present?
+        end
       end
     end
   end
@@ -958,37 +954,37 @@ class TagQuery
     ret_val = {}
     if tags.is_a?(String)
       if at_any_level
-        return scan_metatags(tags, *metatags, prepend_prefix: prepend_prefix) do |**kwargs|
-          metatag_name = kwargs[:tag]
-          value = kwargs[:value]
-          next if value.blank?
-          ret_val[metatag_name] ||= []
-          ret_val[metatag_name] << (block_given? ? yield(metatag_name, value) : value)
+        scan_metatags(tags, *metatags, prepend_prefix: prepend_prefix) do |tag:, value:, **|
+          ret_val[tag] ||= []
+          ret_val[tag] << (block_given? ? yield(tag, value) : value)
         end
       else
-        tags = scan(tags)
+        match_tokens(tags, recurse: false, stop_at_group: false) do |token|
+          next unless token[:metatag]
+          tag, value = token[:metatag].split(":", 2)
+          ret_val[tag] ||= []
+          ret_val[tag] << (block_given? ? yield(tag, value) : value)
+          nil
+        end
+        ret_val
       end
     elsif at_any_level
-      # OPTIMIZE: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
-      return scan_metatags(tags.join(" "), *metatags, prepend_prefix: prepend_prefix) do |**kwargs|
-        metatag_name = kwargs[:tag]
-        value = kwargs[:value]
-        next if value.blank?
-        ret_val[metatag_name] ||= []
-        ret_val[metatag_name] << (block_given? ? yield(metatag_name, value) : value)
+      # IDEA: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
+      scan_metatags(tags.join(" "), *metatags, prepend_prefix: prepend_prefix) do |tag:, value:, **|
+        ret_val[tag] ||= []
+        ret_val[tag] << (block_given? ? yield(tag, value) : value)
       end
+    else
+      tags.each do |token|
+        tag, value = token.split(":", 2)
+        next unless metatags.include?(tag)
+        value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String)
+        next if value.blank?
+        ret_val[tag] ||= []
+        ret_val[tag] << (block_given? ? yield(tag, value) : value)
+      end
+      ret_val
     end
-    return {} unless tags.presence
-    ret_val = {}
-    tags.each do |tag|
-      metatag_name, value = tag.split(":", 2)
-      next unless metatags.include?(metatag_name)
-      value = value.delete_prefix('"').delete_suffix('"') if value.is_a?(String)
-      next if value.blank?
-      ret_val[metatag_name] ||= []
-      ret_val[metatag_name] << (block_given? ? yield(metatag_name, value) : value)
-    end
-    ret_val
   end
 
   def self.has_tag?(source_array, *, recurse: true, error_on_depth_exceeded: false)
@@ -999,7 +995,7 @@ class TagQuery
     if recurse
       source_array.flat_map do |e|
         temp = (e.respond_to?(:join) ? e.join(" ") : e.to_s).strip
-        if temp.match(/\A[-~]?\(\s.*\s\)\z/)
+        if temp.match(/\A[-~]?\(\s.+\s\)\z/)
           TagQuery.scan_recursive(
             temp,
             strip_duplicates_at_level: true,
@@ -1023,18 +1019,6 @@ class TagQuery
   # ### Returns
   # The relevant tags in a ` `-separated string.
   def self.ad_tag_string(tag_array)
-    # if (i = tag_array.index("(")) && i < (tag_array.index(")") || -1)
-    #   tag_array = TagQuery.scan_recursive(
-    #     tag_array.join(" "),
-    #     strip_duplicates_at_level: false,
-    #     delimit_groups: false,
-    #     flatten: true,
-    #     sort_at_level: false,
-    #     # NOTE: It would seem to be wise to normalize and/or prefix-strip these tags
-    #     strip_prefixes: false,
-    #     normalize_at_level: false,
-    #   )
-    # end
     TagQuery.fetch_tags(tag_array, *Danbooru.config.ads_keyword_tags).join(" ")
   end
 
@@ -1226,16 +1210,14 @@ class TagQuery
 
       when "md5" then q[:md5] = g2.downcase.split(",")[0..99]
 
-      when "rating", "-rating", "~rating" then add_to_query(type, :rating) { g2[0]&.downcase || "miss" }
+      when "rating", "-rating", "~rating" then add_to_query(type, :rating, g2) if %w[s q e].include?(g2 = g2[0]&.downcase)
 
       when "locked", "-locked", "~locked"
-        add_to_query(type, :locked) do
-          case g2.downcase
-          when "rating" then :rating
-          when "note", "notes" then :note
-          when "status" then :status
-          end
-        end
+        add_to_query(type, :locked, g2) if (g2 = case g2.downcase
+                                                 when "rating" then :rating
+                                                 when "note", "notes" then :note
+                                                 when "status" then :status
+                                                 end)
 
       when "ratinglocked" then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked, :rating)
       when "notelocked"   then add_to_query(parse_boolean(g2) ? :must : :must_not, :locked, :note)
