@@ -185,7 +185,16 @@ class WikiPage < ApplicationRecord
       updates = tag_update_map
       return if updates.empty?
 
+      unless category_editable_by?
+        tag_error("Cannot be picked")
+      end
+
       self.tag = Tag.create({ name: title }.merge(updates))
+      unless tag.persisted?
+        tag_error(tag.errors.full_messages.join(", "))
+      end
+
+      reload_tag_attributes
     end
 
     def update_tag
@@ -195,18 +204,22 @@ class WikiPage < ApplicationRecord
       return if updates.empty?
 
       unless category_editable_by?
-        errors.add(:category_id, "Cannot be changed")
-        reload_tag_attributes
-        throw(:abort)
+        tag_error("Cannot be changed")
       end
 
       unless tag.update(updates)
-        errors.add(:category_id, tag.errors.full_messages.join(", "))
-        reload_tag_attributes
-        throw(:abort)
+        tag_error(tag.errors.full_messages.join(", "))
       end
 
       reload_tag_attributes
+    end
+
+    private
+
+    def tag_error(message)
+      errors.add(:category_id, message)
+      reload_tag_attributes
+      throw(:abort)
     end
 
     def reload_tag_attributes
