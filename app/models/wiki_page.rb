@@ -7,7 +7,8 @@ class WikiPage < ApplicationRecord
   before_validation :normalize_other_names
   before_validation :normalize_parent
   before_save :log_changes
-  before_save :update_tag, if: :tag_changed?
+  before_save :update_tag
+  before_create :create_tag
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   after_save :create_version
@@ -152,65 +153,47 @@ class WikiPage < ApplicationRecord
     end
 
     def category_id
-      return @category_id if instance_variable_defined?(:@category_id)
-      @category_id = tag&.category
+      @category_id ||= tag&.category
     end
 
     def category_id=(value)
-      return if value.blank? || value.to_i == category_id
-      category_id_will_change!
-      @category_id = value.to_i
+      @category_id = value.to_i if value.present?
     end
 
     def category_is_locked
-      return @category_is_locked if instance_variable_defined?(:@category_is_locked)
-      @category_is_locked = tag&.is_locked || false
+      @category_is_locked ||= tag&.is_locked || false
     end
 
     def category_is_locked=(value)
-      return if value == category_is_locked
-      category_is_locked_will_change!
       @category_is_locked = value
     end
 
-    def category_id_changed?
-      attribute_changed?("category_id")
-    end
-
-    def category_id_will_change!
-      attribute_will_change!("category_id")
-    end
-
-    def category_is_locked_changed?
-      attribute_changed?("category_is_locked")
-    end
-
-    def category_is_locked_will_change!
-      attribute_will_change!("category_is_locked")
-    end
-
     def tag_update_map
-      {}.tap do |updates|
-        updates[:category] = @category_id if category_id_changed?
-        updates[:is_locked] = @category_is_locked if category_is_locked_changed?
-      end
-    end
-
-    def tag_changed?
-      tag_update_map.present?
+      updates = {}
+      updates[:category] = @category_id if defined?(@category_id)
+      updates[:is_locked] = @category_is_locked if defined?(@category_is_locked)
+      updates
     end
 
     def category_editable_by?(user = CurrentUser.user)
-      tag.blank? || tag.category_editable_by?(user)
+      tag.nil? || tag.category_editable_by?(user)
+    end
+
+    def create_tag
+      return if tag
+
+      updates = tag_update_map
+      return if updates.empty?
+
+      self.tag = Tag.create({ name: title }.merge(updates))
     end
 
     def update_tag
-      updates = tag_update_map
-      # We must pull the tag before the title is updated, otherwise we get a unique constraint violation
-      # as the relation will update the tag after this call.
-      self.tag = Tag.find_or_create_by_name(title_was || title)
+      return unless tag
 
+      updates = tag_update_map
       return if updates.empty?
+
       unless category_editable_by?
         errors.add(:category_id, "Cannot be changed")
         reload_tag_attributes
@@ -227,9 +210,9 @@ class WikiPage < ApplicationRecord
     end
 
     def reload_tag_attributes
-      remove_instance_variable(:@category_id) if instance_variable_defined?(:@category_id)
-      remove_instance_variable(:@category_is_locked) if instance_variable_defined?(:@category_is_locked)
-      remove_instance_variable(:@tag) if instance_variable_defined?(:@tag)
+      remove_instance_variable(:@category_id) if defined?(@category_id)
+      remove_instance_variable(:@category_is_locked) if defined?(@category_is_locked)
+      remove_instance_variable(:@tag) if defined?(@tag)
     end
   end
 
