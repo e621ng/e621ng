@@ -46,6 +46,9 @@
         width: 400px;
         max-width: 100%;
 
+        touch-action: none;
+        overscroll-behavior: none;
+
         canvas {
           border: 1px solid #ccc;
           background: #fff;
