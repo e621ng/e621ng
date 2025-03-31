@@ -12,6 +12,7 @@ const FursonaCheck = {
     const $drawingArea = $("#drawing-area");
     const $submissionInfo = $("#submission-info");
     const $submissionDone = $("#submission-done");
+    const $downloadFursona = $("#download-fursona");
     const $closeDialog = $("#close-dialog");
     const $undoBtn = $("#undo");
 
@@ -183,11 +184,6 @@ const FursonaCheck = {
     });
 
     $submitBtn.on("click", function () {
-      const link = document.createElement("a");
-      link.download = Danbooru.User.name + "-fursona-verification.png";
-      link.href = canvas.toDataURL();
-      link.click();
-
       Cookie.put("fursona-check", "confirmed");
 
       $drawingArea.hide();
@@ -195,7 +191,15 @@ const FursonaCheck = {
       $submitBtn.hide();
 
       $submissionDone.show();
+      $downloadFursona.show();
       $closeDialog.show();
+    });
+
+    $downloadFursona.on("click", function () {
+      const link = document.createElement("a");
+      link.download = Danbooru.User.name + "-fursona-verification.png";
+      link.href = canvas.toDataURL();
+      link.click();
     });
 
     $closeDialog.on("click", function () {
