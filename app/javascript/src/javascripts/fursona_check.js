@@ -116,9 +116,14 @@ const FursonaCheck = {
     let lastX = 0;
     let lastY = 0;
 
+    function _unscroll (e) {
+      e.preventDefault();
+    }
+
     function stopDrawing () {
       drawing = false;
       ctx.beginPath();
+      window.removeEventListener("touchmove", _unscroll);
     }
 
     function drawLine (x, y) {
@@ -147,6 +152,8 @@ const FursonaCheck = {
     canvas.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       saveState();
+
+      window.addEventListener("touchmove", _unscroll, { passive: false });
 
       drawing = true;
       const { x, y } = getCanvasPos(event);
