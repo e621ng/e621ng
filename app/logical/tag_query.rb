@@ -23,23 +23,46 @@ class TagQuery
   ] + NEGATABLE_METATAGS + COUNT_METATAGS + BOOLEAN_METATAGS
 
   ORDER_METATAGS = %w[
-    id id_desc
+    id id_asc id_desc
     score score_asc
     favcount favcount_asc
     created_at created_at_asc
-    updated updated_desc updated_asc
-    comment comment_asc
+    updated updated_asc
+    comment comm comment_asc comm_asc
     comment_bumped comment_bumped_asc
     note note_asc
     mpixels mpixels_asc
     portrait landscape
     filesize filesize_asc
     tagcount tagcount_asc
-    change change_desc change_asc
-    duration duration_desc duration_asc
+    change change_asc
+    duration duration_asc
     rank
     random
-  ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }
+  ].concat(COUNT_METATAGS.flat_map { |str| [str, "#{str}_asc"] }, TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
+
+  ORDER_VALUE_INVERSIONS = {
+    id: "id_desc", id_asc: "id_desc", id_desc: "id",
+    score: "score_asc", score_asc: "score",
+    favcount: "favcount_asc", favcount_asc: "favcount",
+    created_at: "created_at_asc", created_at_asc: "created_at",
+    updated: "updated_asc", updated_asc: "updated",
+    comment: "comment_asc", comm: "comment_asc", comment_asc: "comment", comm_asc: "comment",
+    comment_bumped: "comment_bumped_asc", comment_bumped_asc: "comment_bumped",
+    note: "note_asc", note_asc: "note",
+    mpixels: "mpixels_asc", mpixels_asc: "mpixels",
+    portrait: "landscape", landscape: "portrait",
+    filesize: "filesize_asc", filesize_asc: "filesize",
+    tagcount: "tagcount_asc", tagcount_asc: "tagcount",
+    change: "change_asc", change_asc: "change",
+    duration: "duration_asc", duration_asc: "duration",
+    rank: "rank",
+    random: "random",
+  }.merge(
+    COUNT_METATAGS.flat_map { |str| [str, "#{str}_asc"] }.push(
+      *TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] },
+    ).index_with { |e| e.end_with?("_asc") ? e.delete_suffix("_asc") : "#{e}_asc" },
+  ).freeze
 
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases
@@ -275,8 +298,10 @@ class TagQuery
       when "randseed"
         q[:random_seed] = g2.to_i
 
-      when "order"
+      when "order", "-order"
         q[:order] = g2.downcase
+        q[:order].delete_suffix("_desc") unless q[:order] == "id_desc"
+        q[:order] = ORDER_VALUE_INVERSIONS[q[:order]] if type == :must_not
 
       when "limit"
         # Do nothing. The controller takes care of it.

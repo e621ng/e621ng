@@ -182,7 +182,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "id_desc"
       order.push({id: :desc})
 
-    when "change", "change_desc"
+    when "change"
       order.push({change_seq: :desc})
 
     when "change_asc"
@@ -194,13 +194,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "md5_asc"
       order.push({md5: :asc})
 
-    when "score", "score_desc"
+    when "score"
       order.concat([{score: :desc}, {id: :desc}])
 
     when "score_asc"
       order.concat([{score: :asc}, {id: :asc}])
 
-    when "duration", "duration_desc"
+    when "duration"
       order.concat([{duration: :desc}, {id: :desc}])
 
     when "duration_asc"
@@ -212,13 +212,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "favcount_asc"
       order.concat([{fav_count: :asc}, {id: :asc}])
 
-    when "created_at", "created_at_desc"
+    when "created_at"
       order.push({created_at: :desc})
 
     when "created_at_asc"
       order.push({created_at: :asc})
 
-    when "updated", "updated_desc"
+    when "updated"
       order.concat([{updated_at: :desc}, {id: :desc}])
 
     when "updated_asc"
@@ -248,7 +248,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "note_asc"
       order.push({noted_at: {order: :asc, missing: :_first}})
 
-    when "mpixels", "mpixels_desc"
+    when "mpixels"
       order.push({mpixels: :desc})
 
     when "mpixels_asc"
@@ -260,24 +260,24 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "landscape"
       order.push({aspect_ratio: :desc})
 
-    when "filesize", "filesize_desc"
+    when "filesize"
       order.push({file_size: :desc})
 
     when "filesize_asc"
       order.push({file_size: :asc})
 
-    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc|desc))?\z/i
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
       order.concat([{column => direction}, {id: direction}])
 
-    when "tagcount", "tagcount_desc"
+    when "tagcount"
       order.push({tag_count: :desc})
 
     when "tagcount_asc"
       order.push({tag_count: :asc})
 
-    when /(#{TagCategory::SHORT_NAME_REGEX})tags(?:\Z|_desc)/
+    when /(#{TagCategory::SHORT_NAME_REGEX})tags/
       order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc})
 
     when /(#{TagCategory::SHORT_NAME_REGEX})tags_asc/

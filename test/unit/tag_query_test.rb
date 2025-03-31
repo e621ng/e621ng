@@ -24,6 +24,14 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal(["acb"], TagQuery.new("a*b")[:tags][:should])
   end
 
+  should "invert & normalize order values" do
+    assert_equal(["id"], TagQuery.new("order:id")[:order])
+    assert_equal(["id_desc"], TagQuery.new("-order:id")[:order])
+    assert_equal(["duration"], TagQuery.new("order:duration_desc")[:order])
+    assert_equal(["duration_asc"], TagQuery.new("-order:duration_desc")[:order])
+    assert_equal(["duration_asc"], TagQuery.new("-order:duration")[:order])
+  end
+
   should "allow multiple types for a metatag in a single query" do
     query = TagQuery.new("id:1 -id:2 ~id:3 id:4 -id:5 ~id:6")
     assert_equal([[:eq, 1], [:eq, 4]], query[:post_id])
