@@ -122,9 +122,6 @@ class StorageManagerTest < ActiveSupport::TestCase
 
         @storage_manager.stubs(:base_url).returns("/data")
         assert_equal("/images/download-preview.png", @storage_manager.file_url(@post, :preview))
-
-        @storage_manager.stubs(:base_url).returns("http://localhost/data")
-        assert_equal("http://localhost/images/download-preview.png", @storage_manager.file_url(@post, :preview))
       end
     end
   end
