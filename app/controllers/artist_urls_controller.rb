@@ -7,7 +7,7 @@ class ArtistUrlsController < ApplicationController
   def index
     @artist_urls = ArtistUrl.includes(:artist).search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@artist_urls) do |format|
-      format.json { render json: @artist_urls.to_json(include: :artist) }
+      format.json { render json: @artist_urls.to_json(include: { artist: { except: :notes } }) }
     end
   end
 end
