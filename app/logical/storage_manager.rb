@@ -108,7 +108,7 @@ class StorageManager
     file = file_name(post.md5, ext, type, scale_factor: scale)
     base = post.protect_file? ? "#{base_path}/#{protected_prefix}" : base_path
 
-    return "#{root_url}/images/download-preview.png" if type == :preview && !post.has_preview?
+    return "/images/download-preview.png" if type == :preview && !post.has_preview?
     path = if type == :preview
              "#{base}/preview/#{subdir}#{file}"
            elsif type == :crop
