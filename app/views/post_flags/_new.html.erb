@@ -35,8 +35,8 @@
       
     <% end %>
 
-    <div>
-      <%= f.input :note, as: :dtext, label: "Notes", limit: Danbooru.config.comment_max_size %>
+    <div class="flag-notes">
+      <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size %>
     </div>
     
     <div>
