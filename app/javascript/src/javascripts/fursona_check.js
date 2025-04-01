@@ -1,7 +1,10 @@
 import Cookie from "./cookie";
+import LStorage from "./utility/storage";
 
 const FursonaCheck = {
   init () {
+    if (!LStorage.Site.Events) return;
+
     const $container = $(".fursona-check");
     const $startBtn = $("#start-drawing");
     const $submitBtn = $("#submit-fursona");
