@@ -1,6 +1,6 @@
 <%# locals: (post:) -%>
 <ul>
-  <% post.flags.order(id: :desc).each do |flag| %>
+  <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
     <li>
       <%= flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
       <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
