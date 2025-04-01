@@ -16,6 +16,19 @@ div#c-post-flags {
   border: 1px solid themed("color-section-lighten-5");
   border-left: 0.25rem solid themed("color-dtext-quote");
   border-radius: 0.25rem;
+
+  max-height: 1.5rem;
+  cursor: pointer;
+
+  &.expanded {
+    max-height: unset;
+  }
+}
+
+  // Overrides notices style overrides
+div#c-posts div.notice .dtext-container.post-flag-note p {
+  margin-bottom: 1em;
+  &:last-child { margin-bottom: 0; }
 }
 
 body.c-post-flags.a-new {
