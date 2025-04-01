@@ -1371,7 +1371,8 @@ CREATE TABLE public.post_flags (
     is_resolved boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
-    is_deletion boolean DEFAULT false NOT NULL
+    is_deletion boolean DEFAULT false NOT NULL,
+    note character varying
 );
 
 
@@ -4694,6 +4695,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250328035855'),
 ('20241114055212'),
 ('20240905160626'),
 ('20240726170041'),

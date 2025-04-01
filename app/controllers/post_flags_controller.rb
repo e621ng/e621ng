@@ -58,6 +58,6 @@ class PostFlagsController < ApplicationController
   end
 
   def post_flag_params
-    params.fetch(:post_flag, {}).permit(%i[post_id reason_name parent_id])
+    params.fetch(:post_flag, {}).permit(%i[post_id reason_name parent_id note])
   end
 end

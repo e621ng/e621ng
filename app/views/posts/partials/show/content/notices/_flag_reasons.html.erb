@@ -1,9 +1,9 @@
 <%# locals: (post:) -%>
 <ul>
-  <% post.flags.order(id: :desc).each do |flag| %>
+  <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
     <li>
       <%= flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
-      <%= format_text(flag.reason, inline: true) %>
+      <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
 
       <% if CurrentUser.can_view_flagger_on_post?(flag) %>
         - <%= link_to_user(flag.creator) %>
@@ -16,6 +16,12 @@
 
       <% if flag.is_resolved? %>
         <span class="resolved">RESOLVED</span>
+      <% end %>
+      
+      <% if flag.note.present? && CurrentUser.is_staff? %>
+        <div class="dtext-container post-flag-note">
+          <%= format_text flag.note %>
+        </div>
       <% end %>
     </li>
     <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>

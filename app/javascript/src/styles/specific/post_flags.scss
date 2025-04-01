@@ -7,3 +7,82 @@ div#c-post-flags {
     white-space: pre-wrap;
   }
 }
+
+.dtext-container.post-flag-note {
+  background: themed("color-section");
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem 0.5rem;
+
+  border: 1px solid themed("color-section-lighten-5");
+  border-left: 0.25rem solid themed("color-dtext-quote");
+  border-radius: 0.25rem;
+
+  max-height: 1.5rem;
+  cursor: pointer;
+
+  &.expanded {
+    max-height: unset;
+  }
+}
+
+  // Overrides notices style overrides
+div#c-posts div.notice .dtext-container.post-flag-note p {
+  margin-bottom: 1em;
+  &:last-child { margin-bottom: 0; }
+}
+
+body.c-post-flags.a-new {
+  .flag-dialog-body {
+
+    // Option label
+    label {
+      font-weight: normal;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  
+    // Option explanation
+    div.styled-dtext {
+      margin: 0.125rem 1.25rem;
+      filter: brightness(85%);
+    }
+  
+    // Align label with the explanation
+    input[type="radio"] {
+      width: 1rem;
+    }
+  
+    // Post ID input
+    .post_flag_parent_id {
+      display: flex;
+      margin: -0.5rem 0 0 1.25rem;
+    }
+
+    form.simple_form div.input {
+      label {
+        font-weight: normal;
+        margin-right: 1rem;
+        cursor: default;
+      }
+      span.error { margin-left: 1rem; }
+    }
+  
+    hr { margin: 0.75rem 1.25rem; }
+    h3 {
+      margin: 0.5rem 1.25rem;
+      font-weight: normal;
+    }
+
+    .flag-notes {
+      margin: 1rem 0;
+    }
+
+    input[type="submit"] {
+      background: themed("color-tag-artist");
+      font-size: 1.25rem;
+      padding: 0.5rem 2rem;
+      margin: 0.5rem;
+      @include st-radius;
+    }
+  }
+}
