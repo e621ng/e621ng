@@ -15,20 +15,20 @@
 
 div#c-posts {
   .source-link {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    max-width:190px;
-  }
-  .source-link:hover {
-    a {
-      background: themed("color-background");
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 95vw;
+
+    @include window-larger-than(50rem) {
+      &:hover {
+        a { background: themed("color-background"); }
+        z-index: 2;
+        overflow: visible;
+        position: relative;
+        max-width: unset;
+      }
     }
-    overflow:visible;
-    height:auto;
-    z-index:2;
-    position: relative;
-    max-width:none;
   }
 
 
