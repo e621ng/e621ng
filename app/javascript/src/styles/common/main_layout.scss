@@ -51,6 +51,20 @@ div#page {
     }
   }
 
+  div.ban-notice {
+    background-color: themed("color-section");
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+
+    .id {
+      color: #ffffff03;
+      font-family: monospace;
+      font-size: 1.5rem;
+      line-height: 0;
+      user-select: none;
+    }
+  }
+
   aside#sidebar {
     width: 15em;
     float: left;
