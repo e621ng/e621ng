@@ -73,7 +73,7 @@ class ModAction < ApplicationRecord
     user_upload_limit_change: { user_id: :integer, old_upload_limit: :integer, new_upload_limit: :integer },
     user_uploads_toggle: { user_id: :integer, disabled: :boolean },
     user_flags_change: { user_id: :integer, added: :string, removed: :string },
-    user_level_change: { user_id: :integer, level: :integer, level_was: :integer },
+    user_level_change: { user_id: :integer, level: :string, level_was: :string },
     user_name_change: { user_id: :integer },
     user_delete: { user_id: :integer },
     user_ban: { user_id: :integer, duration: :integer, reason: :string },
