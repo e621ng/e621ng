@@ -1325,10 +1325,10 @@ class TagQuery
   # Allows `*` for wildcard matching.
   #
   # Follows rules in `../logical/tag_name_validator.rb`.
-  REGEX_VALID_TAG_CHECK = /[\-~\,\#\$\%\\]/
+  REGEX_VALID_TAG_CHECK = /[\,\#\$\%\\]/
 
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
-  REGEX_VALID_TAG_CHECK_2 = /[\-~\*\,\#\$\%\\]/
+  REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
   # Adds the tag to the query object based on its prefix and if it contains a wildcard.
   # ### Notes:
