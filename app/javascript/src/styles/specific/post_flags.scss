@@ -31,7 +31,7 @@ div#c-posts div.notice .dtext-container.post-flag-note p {
   &:last-child { margin-bottom: 0; }
 }
 
-body.c-post-flags.a-new {
+body.c-post-flags {
   .flag-dialog-body {
 
     // Option label
@@ -55,7 +55,7 @@ body.c-post-flags.a-new {
     // Post ID input
     .post_flag_parent_id {
       display: flex;
-      margin: -0.5rem 0 0 1.25rem;
+      margin: 0 0 0 1.25rem;
     }
 
     form.simple_form div.input {
