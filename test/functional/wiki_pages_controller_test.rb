@@ -194,6 +194,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         should "work" do
           put_auth wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_id: Tag.categories.character } }
           @wiki_page.reload
+          @wiki_page.tag.reload
           assert_equal(Tag.categories.character, @wiki_page.category_id)
         end
 

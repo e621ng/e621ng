@@ -15,6 +15,7 @@ class PostFlag < ApplicationRecord
   validate :validate_reason
   validate :update_reason, on: :create
   validates :reason, presence: true
+  validates :note, length: { maximum: Danbooru.config.comment_max_size }
   before_save :update_post
   after_create :create_post_event
   after_commit :index_post

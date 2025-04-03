@@ -41,6 +41,18 @@
     <% Danbooru.config.deletion_reasons.each do |deletion_reason| %>
       <% if deletion_reason.nil? || deletion_reason.empty? %>
         <br />
+      <% elsif deletion_reason.include? "%DNP_ID%" %>
+        <% next unless @dnp.any? %>
+        <% @dnp.each do |dnp_entry| %>
+          <% next if dnp_entry.pretty_details.empty? %>
+
+          <a class="button delreason-button" data-text="<%= deletion_reason.gsub("%DNP_ID%", "%ID%") %>">
+            <%= deletion_reason
+                  .gsub("%DNP_ID%", "<input type=\"text\" value='#{dnp_entry.pretty_details}' />")
+                  .html_safe
+            %>
+          </a>
+        <% end %>
       <% else %>
         <a class="button delreason-button" data-text="<%= deletion_reason.gsub(/%(PARENT|OTHER)_ID%/, "%ID%") %>">
           <%= deletion_reason

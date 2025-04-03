@@ -529,6 +529,7 @@ module Danbooru
         "Takedown #%OTHER_ID%",
         "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
+        "[[conditional_dnp|Conditional DNP]] (%DNP_ID%)",
         "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
       ]
     end
