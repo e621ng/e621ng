@@ -134,11 +134,13 @@ class TagQueryTest < ActiveSupport::TestCase
   end
 
   should "invert & normalize order values" do
-    assert_equal(["id"], TagQuery.new("order:id")[:order])
-    assert_equal(["id_desc"], TagQuery.new("-order:id")[:order])
-    assert_equal(["duration"], TagQuery.new("order:duration_desc")[:order])
-    assert_equal(["duration_asc"], TagQuery.new("-order:duration_desc")[:order])
-    assert_equal(["duration_asc"], TagQuery.new("-order:duration")[:order])
+    assert_equal("id", TagQuery.new("order:id")[:order])
+    assert_equal("id_asc", TagQuery.new("order:id_asc")[:order])
+    assert_equal("id_desc", TagQuery.new("-order:id")[:order])
+    assert_equal("id_desc", TagQuery.new("-order:id_asc")[:order])
+    assert_equal("duration", TagQuery.new("order:duration_desc")[:order])
+    assert_equal("duration_asc", TagQuery.new("-order:duration_desc")[:order])
+    assert_equal("duration_asc", TagQuery.new("-order:duration")[:order])
   end
 
   context "While using light scanning" do

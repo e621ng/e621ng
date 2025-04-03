@@ -1286,8 +1286,8 @@ class TagQuery
 
       when "order", "-order"
         q[:order] = g2.downcase
-        q[:order].delete_suffix("_desc") unless q[:order] == "id_desc"
-        q[:order] = ORDER_VALUE_INVERSIONS[q[:order]] if type == :must_not
+        q[:order] = q[:order].delete_suffix("_desc") unless q[:order] == "id_desc"
+        q[:order] = ORDER_VALUE_INVERSIONS[q[:order].to_sym] || q[:order] if type == :must_not
 
       when "limit"
         # Do nothing. The controller takes care of it.
