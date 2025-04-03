@@ -363,6 +363,7 @@ module Danbooru
         "png" => 100.megabytes,
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
+        "mp4" => 100.megabytes,
       }
     end
 
