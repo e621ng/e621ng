@@ -14,6 +14,8 @@ module Moderator
         @post = ::Post.find(params[:id])
         @reason = @post.pending_flag&.reason || ""
         @reason = "" if @reason =~ /uploading_guidelines/
+
+        @dnp = @post.avoid_posting_artists
       end
 
       def delete

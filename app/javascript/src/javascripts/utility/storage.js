@@ -40,6 +40,9 @@ LStorage.Site = {
 
   /** @returns {number} Last news update ID, or 0 if none is selected */
   NewsID: ["hide_news_notice", 0],
+
+  /** @returns {boolean} True to enable events, false to opt out */
+  Events: ["e6.events", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 

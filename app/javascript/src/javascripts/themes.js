@@ -6,6 +6,7 @@ const Theme = {};
 Theme.Values = {
   "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures"],
   "Posts": ["WikiExcerpt", "StickySearch"],
+  "Site": ["Events"],
 };
 
 for (const [label, settings] of Object.entries(Theme.Values)) {

@@ -15,20 +15,20 @@
 
 div#c-posts {
   .source-link {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    max-width:190px;
-  }
-  .source-link:hover {
-    a {
-      background: themed("color-background");
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 95vw;
+
+    @include window-larger-than(50rem) {
+      &:hover {
+        a { background: themed("color-background"); }
+        z-index: 2;
+        overflow: visible;
+        position: relative;
+        max-width: unset;
+      }
     }
-    overflow:visible;
-    height:auto;
-    z-index:2;
-    position: relative;
-    max-width:none;
   }
 
 
@@ -401,44 +401,4 @@ body[data-user-can-approve-posts="true"] .notice {
     h3 { padding: 0; }
   }
   p { margin-bottom: 0.25em; }
-}
-
-.flag-dialog-body {
-
-  // Option label
-  label {
-    font-weight: normal;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-
-  // Option explanation
-  div.styled-dtext {
-    margin: 0.125rem 1.25rem;
-    filter: brightness(85%);
-  }
-
-  // Align label with the explanation
-  input[type="radio"] {
-    width: 1rem;
-  }
-
-  // Post ID input
-  form.simple_form div.input {
-    margin: -0.5rem 0 0 1.25rem;
-    label {
-      font-weight: normal;
-      margin-right: 1rem;
-      cursor: default;
-    }
-    &.post_flag_parent_id { display: flex }
-    span.error { margin-left: 1rem; }
-  }
-
-  hr { margin: 0.75rem 1.25rem; }
-  h3 {
-    margin: 0.5rem 1.25rem;
-    font-weight: normal;
-  }
-  input[type="submit"] { margin: 0.75rem 1rem 0.5rem; }
 }

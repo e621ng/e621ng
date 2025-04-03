@@ -169,6 +169,36 @@ services:
     profiles:
       - tests
 
+  rails:
+    image: e621
+    environment:
+      <<: *common-env
+      RAILS_ENV: test
+    volumes:
+      - .:/app
+      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - node_modules:/app/node_modules
+    depends_on:
+      <<: *common-depends-on
+    entrypoint: bundle exec rails
+    profiles:
+      - rails
+
+  rails_dev:
+    image: e621
+    environment:
+      <<: *common-env
+      RAILS_ENV: development
+    volumes:
+      - .:/app
+      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - node_modules:/app/node_modules
+    depends_on:
+      <<: *common-depends-on
+    entrypoint: bundle exec rails
+    profiles:
+      - rails_dev
+
   rubocop:
     image: e621
     volumes:
