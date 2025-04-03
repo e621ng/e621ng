@@ -152,7 +152,7 @@ class TagQuery
     STOP_ON_TAG_COUNT_EXCEEDED: true,
     EARLY_SCAN_SEARCH_CHECK: true,
     CHECK_GROUP_TAGS_AND_DEPTH: "root",
-    CHECK_TAG_VALIDITY: true,
+    CHECK_TAG_VALIDITY: false,
     ERROR_ON_INVALID_TAG: true,
     CATCH_INVALID_TAG: true,
     NO_NON_METATAG_UNLIMITED_TAGS: true,
@@ -1325,10 +1325,10 @@ class TagQuery
   # Allows `*` for wildcard matching.
   #
   # Follows rules in `../logical/tag_name_validator.rb`.
-  REGEX_VALID_TAG_CHECK = /[\-~\,\#\$\%\\]/
+  REGEX_VALID_TAG_CHECK = /[\,\#\$\%\\]/
 
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
-  REGEX_VALID_TAG_CHECK_2 = /[\-~\*\,\#\$\%\\]/
+  REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
   # Adds the tag to the query object based on its prefix and if it contains a wildcard.
   # ### Notes:
