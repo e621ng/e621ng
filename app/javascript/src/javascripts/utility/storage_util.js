@@ -38,7 +38,7 @@ StorageUtils.getProxy = function (key, type, fallback) {
 };
 
 StorageUtils.setProxy = function (key, value, type, fallback) {
-  if (type == "boolean") value = value === "true";
+  if (type == "boolean" && typeof value != "boolean") value = value === "true";
   if (value == fallback) {
     localStorage.removeItem(key);
     return;
