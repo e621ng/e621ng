@@ -14,6 +14,7 @@ presets = {
   forums: ENV.fetch("FORUMS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
   pools: ENV.fetch("POOLS", 0).to_i,
+  furids: ENV.fetch("FURIDS", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -25,6 +26,7 @@ if presets.values.sum == 0
     forums: 100,
     postvotes: 100,
     pools: 100,
+    furids: 0,
   }
 end
 
@@ -35,6 +37,7 @@ FAVORITES = presets[:favorites]
 FORUMS    = presets[:forums]
 POSTVOTES = presets[:postvotes]
 POOLS     = presets[:pools]
+FURIDS    = presets[:furids]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -93,7 +96,7 @@ def generate_username
   @username
 end
 
-def populate_posts(number, users: [], batch_size: 320)
+def populate_posts(number, search: "rating:s+order:random+score:>250+-grandfathered_content", users: [], batch_size: 320)
   return [] unless number > 0
   puts "* Creating #{number} posts"
 
@@ -103,7 +106,7 @@ def populate_posts(number, users: [], batch_size: 320)
 
   # Generate posts in batches of 200 (by default)
   number.times.each_slice(batch_size).map(&:size).each do |count|
-    posts = api_request("/posts.json?tags=rating:s+order:random+score:>250+-grandfathered_content&limit=#{count}")["posts"]
+    posts = api_request("/posts.json?tags=#{search}&limit=#{count}")["posts"]
 
     posts.each do |post|
       post["tags"].each do |category, tags|
@@ -307,6 +310,8 @@ CurrentUser.ip_addr = "127.0.0.1"
 users = populate_users(USERS)
 posts = populate_posts(POSTS, users: users)
 fill_avatars(users, posts)
+
+populate_posts(FURIDS, search: "furid_(e621)") if FURIDS
 
 populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
