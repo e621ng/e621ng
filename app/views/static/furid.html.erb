@@ -19,8 +19,8 @@
     </p>
   </div>
 
-  <% @posts.each do |url, creator| %>
-    <img src="<%= url %>" loading="lazy" data-creator="<%= creator %>" />
+  <% @posts.each do |id, url, creator| %>
+    <img src="<%= url %>" loading="lazy" data-id="<%= id %>" data-creator="<%= creator %>" />
   <% end %>
 
 </div></div>
