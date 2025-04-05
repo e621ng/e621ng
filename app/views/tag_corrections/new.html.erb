@@ -19,6 +19,14 @@
   </div>
 </div>
 
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Posts (#{@correction.tag.post_count})", posts_path(tags: @correction.tag.name) %>
+  <%= subnav_link_to "Wiki Page", show_or_new_wiki_pages_path(title: @correction.tag.name) %>
+  <% if CurrentUser.is_bd_staff? %>
+    <%= subnav_link_to "Destroy", tag_path(@correction.tag), method: :delete, data: { confirm: "Are you sure you want to PERMANENTLY delete this tag? This cannot be undone." } %>
+  <% end %>
+<% end %>
+
 <% content_for(:page_title) do %>
   Tag Correction
 <% end %>
