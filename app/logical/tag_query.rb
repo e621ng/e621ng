@@ -5,7 +5,7 @@ class TagQuery
     attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash
 
     def initialize(
-      msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
+      msg = -"You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
       query_obj: nil,
       resolve_aliases: nil,
       tag_count: nil,
@@ -28,7 +28,7 @@ class TagQuery
   class DepthExceededError < StandardError
     attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash, :depth
 
-    def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", **kwargs)
+    def initialize(msg = -"You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", **kwargs)
       @query_obj = kwargs[:query_obj]
       @resolve_aliases = kwargs[:resolve_aliases]
       @tag_count = kwargs[:tag_count]
@@ -66,68 +66,66 @@ class TagQuery
     hassource hasdescription isparent ischild inpool pending_replacements artverified
   ].freeze
 
-  NEGATABLE_METATAGS = (%w[
+  CATEGORY_METATAG_MAP = TagCategory::SHORT_NAME_MAPPING.to_h { |k, v| [-"#{k}tags", -"tag_count_#{v}"] }.freeze
+
+  NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
     source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
     width height mpixels ratio filesize duration score favcount date age change tagcount
     commenter comm noter noteupdater
-  ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" }).freeze
+  ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
-  # OPTIMIZE: Check what's best
-  # Should avoid additional array allocations
   METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
-  # Should guarantee at most 1 resize
-  # METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].push(
-  #   *NEGATABLE_METATAGS, *COUNT_METATAGS, *BOOLEAN_METATAGS
-  # ).freeze
-  # Original
-  # METATAGS = (%w[
-  #   md5 order limit child randseed ratinglocked notelocked statuslocked
-  # ] + NEGATABLE_METATAGS + COUNT_METATAGS + BOOLEAN_METATAGS).freeze
 
+  # All possible valid values for `order` metatags; used for autocomplete & inversions.
+  # With the exception of `rank` & `random`, all values have an option to invert the order.
+  # With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
+  # With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
+  #
+  # IDEA: Add `rank_asc` option
   ORDER_METATAGS = %w[
     id id_asc id_desc
-    score score_asc
-    favcount favcount_asc
-    created_at created_at_asc
-    updated updated_asc
-    comment comm comment_asc comm_asc
-    comment_bumped comment_bumped_asc
-    note note_asc
-    mpixels mpixels_asc
-    portrait landscape
-    filesize filesize_asc
-    tagcount tagcount_asc
-    change change_asc
-    duration duration_asc
+    score score_desc score_asc
+    md5 md5_desc md5_asc
+    favcount favcount_desc favcount_asc
+    created created_desc created_asc created_at created_at_desc created_at_asc
+    updated updated_desc updated_asc updated_at updated_at_desc updated_at_asc
+    comment comment_desc comment_asc comm comm_desc comm_asc
+    comment_bumped comment_bumped_desc comment_bumped_asc
+    comm_bumped comm_bumped_desc comm_bumped_asc
+    note note_desc note_asc
+    mpixels mpixels_desc mpixels_asc
+    aspect_ratio aspect_ratio_desc aspect_ratio_asc ratio ratio_desc ratio_asc portrait landscape
+    filesize filesize_desc filesize_asc
+    tagcount tagcount_desc tagcount_asc
+    change change_desc change_asc
+    duration duration_desc duration_asc
     rank
     random
-  ].concat(COUNT_METATAGS.flat_map { |str| [str, "#{str}_asc"] }, TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
-
-  ORDER_VALUE_INVERSIONS = {
-    id: "id_desc", id_asc: "id_desc", id_desc: "id",
-    score: "score_asc", score_asc: "score",
-    favcount: "favcount_asc", favcount_asc: "favcount",
-    created_at: "created_at_asc", created_at_asc: "created_at",
-    updated: "updated_asc", updated_asc: "updated",
-    comment: "comment_asc", comm: "comment_asc", comment_asc: "comment", comm_asc: "comment",
-    comment_bumped: "comment_bumped_asc", comment_bumped_asc: "comment_bumped",
-    note: "note_asc", note_asc: "note",
-    mpixels: "mpixels_asc", mpixels_asc: "mpixels",
-    portrait: "landscape", landscape: "portrait",
-    filesize: "filesize_asc", filesize_asc: "filesize",
-    tagcount: "tagcount_asc", tagcount_asc: "tagcount",
-    change: "change_asc", change_asc: "change",
-    duration: "duration_asc", duration_asc: "duration",
-    rank: "rank",
-    random: "random",
-  }.merge(
-    COUNT_METATAGS.flat_map { |str| [str, "#{str}_asc"] }.push(
-      *TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] },
-    ).index_with { |e| e.end_with?("_asc") ? e.delete_suffix("_asc") : "#{e}_asc" },
+  ].concat(
+    (COUNT_METATAGS + CATEGORY_METATAG_MAP.keys).flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
   ).freeze
+
+  # The initial value of a negated `order` metatag mapped to the resultant value.
+  # In the general case, tags have a `_asc` suffix appended/removed.
+  ORDER_VALUE_INVERSIONS = ORDER_METATAGS.index_with do |e|
+  #
+  # NOTE: With the exception of `id_desc`, values ending in `_desc` are equivalent to the same string
+  # with that suffix removed; as such, these keys are not included in this hash.
+  # ORDER_VALUE_INVERSIONS = ORDER_METATAGS.reject { |e| e.end_with?("_desc") && e != "id_desc" }.index_with do |e| # rubocop:disable Layout/CommentIndentation
+    case e
+    when "id", "id_asc" then "id_desc"
+    when "id_desc" then "id"
+    when "rank", "random" then e
+    when "portrait" then "landscape"
+    when "landscape" then "portrait"
+    else
+      e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e.delete_suffix('_desc')}_asc"
+      # e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
+    end
+  end.freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
   # Therefore, these are pulled out of groups and placed on the top level of searches.
@@ -1287,7 +1285,8 @@ class TagQuery
       when "order", "-order"
         q[:order] = g2.downcase
         q[:order] = q[:order].delete_suffix("_desc") unless q[:order] == "id_desc"
-        q[:order] = ORDER_VALUE_INVERSIONS[q[:order].to_sym] || q[:order] if type == :must_not
+        # q[:order] = q[:order].delete_suffix(%w[id_asc id_desc].include?(q[:order]) ? "_asc" : "_desc")
+        q[:order] = (ORDER_VALUE_INVERSIONS[q[:order]] || q[:order]) if type == :must_not
 
       when "limit"
         # Do nothing. The controller takes care of it.

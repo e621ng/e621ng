@@ -3,10 +3,88 @@
 require "test_helper"
 
 class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
+  ORDER_MAP = Hash.new([{ id: :desc }]).merge(
+    {
+      "id" => [{ id: :asc }],
+      "id_asc" => [{ id: :asc }],
+      "id_desc" => [{ id: :desc }],
+      "change" => [{ change_seq: :desc }],
+      "change_desc" => [{ change_seq: :desc }],
+      "change_asc" => [{ change_seq: :asc }],
+      "md5" => [{ md5: :desc }],
+      "md5_desc" => [{ md5: :desc }],
+      "md5_asc" => [{ md5: :asc }],
+      "score" => [{ score: :desc }, { id: :desc }],
+      "score_desc" => [{ score: :desc }, { id: :desc }],
+      "score_asc" => [{ score: :asc }, { id: :asc }],
+      "duration" => [{ duration: :desc }, { id: :desc }],
+      "duration_desc" => [{ duration: :desc }, { id: :desc }],
+      "duration_asc" => [{ duration: :asc }, { id: :asc }],
+      "favcount" => [{ fav_count: :desc }, { id: :desc }],
+      "favcount_desc" => [{ fav_count: :desc }, { id: :desc }],
+      "favcount_asc" => [{ fav_count: :asc }, { id: :asc }],
+      "created_at" => [{ created_at: :desc }],
+      "created_at_desc" => [{ created_at: :desc }],
+      "created_at_asc" => [{ created_at: :asc }],
+      "created" => [{ created_at: :desc }],
+      "created_desc" => [{ created_at: :desc }],
+      "created_asc" => [{ created_at: :asc }],
+      "updated_at" => [{ updated_at: :desc }, { id: :desc }],
+      "updated_at_desc" => [{ updated_at: :desc }, { id: :desc }],
+      "updated_at_asc" => [{ updated_at: :asc }, { id: :asc }],
+      "updated" => [{ updated_at: :desc }, { id: :desc }],
+      "updated_desc" => [{ updated_at: :desc }, { id: :desc }],
+      "updated_asc" => [{ updated_at: :asc }, { id: :asc }],
+      "comment" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comment_desc" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comm" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comm_desc" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
+      "comm_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
+      # must.push({ exists: { field: 'comment_bumped_at' } })
+      "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comment_bumped_desc" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
+      "comm_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comm_bumped_desc" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comm_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
+      # must.push({ exists: { field: 'comment_bumped_at' } })
+      "note" => [{ noted_at: { order: :desc, missing: :_last } }],
+      "note_desc" => [{ noted_at: { order: :desc, missing: :_last } }],
+      "note_asc" => [{ noted_at: { order: :asc, missing: :_first } }],
+      "mpixels" => [{ mpixels: :desc }],
+      "mpixels_desc" => [{ mpixels: :desc }],
+      "mpixels_asc" => [{ mpixels: :asc }],
+      "portrait" => [{ aspect_ratio: :asc }],
+      "ratio_asc" => [{ aspect_ratio: :asc }],
+      "landscape" => [{ aspect_ratio: :desc }],
+      "ratio" => [{ aspect_ratio: :desc }],
+      "ratio_desc" => [{ aspect_ratio: :desc }],
+      "filesize" => [{ file_size: :desc }],
+      "filesize_desc" => [{ file_size: :desc }],
+      "filesize_asc" => [{ file_size: :asc }],
+      "tagcount" => [{ tag_count: :desc }],
+      "tagcount_desc" => [{ tag_count: :desc }],
+      "tagcount_asc" => [{ tag_count: :asc }],
+      "rank" => [{ _score: :desc }],
+      "random" => [{ _score: :desc }],
+    },
+    # /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
+    # column = Regexp.last_match[:column]
+    # direction = Regexp.last_match[:direction] || "desc"
+    # [{ column => direction }, { id: direction }]
+    TagQuery::COUNT_METATAGS.flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] }.index_with { |e| [{ e.delete_suffix("_asc").delete_suffix("_desc") => e.end_with?("_asc") ? "asc" : "desc" }, { id: e.end_with?("_asc") ? "asc" : "desc" }] },
+    # /(#{TagCategory::SHORT_NAME_REGEX})tags/
+    # {"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc},
+    # /(#{TagCategory::SHORT_NAME_REGEX})tags_asc/
+    # {"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc},
+    *TagQuery::CATEGORY_METATAG_MAP.each_pair.map { |k, v| { k => [{ v => :desc }], -"#{k}_desc" => [{ v => :desc }], -"#{k}_asc" => [{ v => :asc }] } },
+  ).freeze
+  DEFAULT_PARAM = { resolve_aliases: true, free_tags_count: 0, enable_safe_mode: false, always_show_deleted: false }.freeze
   # TODO: Add tests for proper construction
   context "While building a post query" do
     should "properly determine whether or not to hide deleted posts" do
-      p = { resolve_aliases: true, free_tags_count: 0, enable_safe_mode: false, always_show_deleted: false }
+      p = DEFAULT_PARAM
       assert(ElasticPostQueryBuilder.new("aaa bbb", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa bbb status:deleted", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa bbb deletedby:someone", **p).hide_deleted_posts?)
@@ -18,6 +96,37 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_not(ElasticPostQueryBuilder.new("aaa ( bbb ( aaa status:any ) )", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa ( bbb ( aaa deletedby:someone ) )", **p).hide_deleted_posts?)
       assert_not(ElasticPostQueryBuilder.new("aaa ( bbb ( aaa delreason:something ) status:pending )", **p).hide_deleted_posts?)
+    end
+
+    should "properly parse order metatags" do
+      # puts ORDER_MAP
+      # puts TagQuery::METATAGS
+      ORDER_MAP.each_pair do |k, v|
+        r = ElasticPostQueryBuilder.new("order:#{k}", **DEFAULT_PARAM)
+        msg = -"val: #{k}, TQ.q:#{TagQuery.new("order:#{k}").q}"
+        assert_equal(v, r.order, msg)
+        case k
+        when /\Acomm(?>ent)?_bumped(?>_(?>a|de)sc)?\z/
+          assert_includes(r.must, { exists: { field: "comment_bumped_at" } }, msg)
+        when "rank"
+          assert_includes(r.must, { range: { score: { gt: 0 } } })
+        # TODO: The next line's off by milliseconds. Fix.
+        #   assert_includes(r.must, { range: { created_at: { gte: 2.days.ago } } }, msg)
+        #   assert_equals({
+        #     script_score: {
+        #       script: {
+        #         params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+        #         source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
+        #       },
+        #     },
+        #   }, @function_score)
+        # when "random"
+        #   assert_equals({
+        #     random_score: r.q[:random_seed].present? ? { seed: r.q[:random_seed], field: "id" } : {},
+        #     boost_mode: :replace,
+        #   }, r.@function_score) # rubocop:disable Layout/CommentIndentation
+        end
+      end
     end
   end
 end

@@ -141,6 +141,13 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal("duration", TagQuery.new("order:duration_desc")[:order])
     assert_equal("duration_asc", TagQuery.new("-order:duration_desc")[:order])
     assert_equal("duration_asc", TagQuery.new("-order:duration")[:order])
+    assert_equal("ratio", TagQuery.new("order:ratio_desc")[:order])
+    assert_equal("ratio_asc", TagQuery.new("-order:ratio_desc")[:order])
+    assert_equal("ratio_asc", TagQuery.new("-order:ratio")[:order])
+    assert_equal("portrait", TagQuery.new("order:portrait")[:order])
+    assert_equal("landscape", TagQuery.new("-order:portrait")[:order])
+    assert_equal("landscape", TagQuery.new("order:landscape")[:order])
+    assert_equal("portrait", TagQuery.new("-order:landscape")[:order])
   end
 
   context "While using light scanning" do
@@ -1117,7 +1124,7 @@ class TagQueryTest < ActiveSupport::TestCase
           in_i = in_r.join(",").freeze
           in_f = "#{in_i},101".freeze
           in_r = [[:in, in_r].freeze].freeze
-          %w[id width height score favcount change tagcount].concat(TagCategory::SHORT_NAME_LIST.map { |e| "#{e}tags" }).freeze.each do |e|
+          %w[id width height score favcount change tagcount].concat(TagQuery::CATEGORY_METATAG_MAP.keys).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
             prefixes.each do |prefix|
               p, s = prefix

@@ -146,9 +146,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     elsif q[:status] == "deleted"
       must.push({term: {deleted: true}})
     elsif q[:status] == "active"
-      must.concat([{term: {pending: false}},
-                   {term: {deleted: false}},
-                   {term: {flagged: false}}])
+      must.push(
+        { term: { pending: false } },
+        { term: { deleted: false } },
+        { term: { flagged: false } },
+      )
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_must_not] == "pending"
@@ -250,7 +252,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_group_search_relation(q[:groups])
 
     # The groups updated our value; now optionally hide deleted
-    # must.push({ term: { deleted: false } }) unless @always_show_deleted
     must.push({ term: { deleted: false } }) if hide_deleted_posts?
 
     case q[:order]
@@ -273,52 +274,48 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({md5: :asc})
 
     when "score"
-      order.concat([{score: :desc}, {id: :desc}])
+      order.push({score: :desc}, {id: :desc})
 
     when "score_asc"
-      order.concat([{score: :asc}, {id: :asc}])
+      order.push({score: :asc}, {id: :asc})
 
     when "duration"
-      order.concat([{duration: :desc}, {id: :desc}])
+      order.push({duration: :desc}, {id: :desc})
 
     when "duration_asc"
-      order.concat([{duration: :asc}, {id: :asc}])
+      order.push({duration: :asc}, {id: :asc})
 
     when "favcount"
-      order.concat([{fav_count: :desc}, {id: :desc}])
+      order.push({fav_count: :desc}, {id: :desc})
 
     when "favcount_asc"
-      order.concat([{fav_count: :asc}, {id: :asc}])
+      order.push({fav_count: :asc}, {id: :asc})
 
-    when "created_at"
+    when "created", "created_at"
       order.push({created_at: :desc})
 
-    when "created_at_asc"
+    when "created_asc", "created_at_asc"
       order.push({created_at: :asc})
 
-    when "updated"
-      order.concat([{updated_at: :desc}, {id: :desc}])
+    when "updated", "updated_at"
+      order.push({updated_at: :desc}, {id: :desc})
 
-    when "updated_asc"
-      order.concat([{updated_at: :asc}, {id: :asc}])
+    when "updated_asc", "updated_at_asc"
+      order.push({updated_at: :asc}, {id: :asc})
 
     when "comment", "comm"
-      order.push({commented_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
+      order.push({commented_at: {order: :desc, missing: :_last}}, {id: :desc})
 
-    when "comment_bumped"
+    when "comment_bumped", "comm_bumped"
       must.push({exists: {field: 'comment_bumped_at'}})
-      order.push({comment_bumped_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
+      order.push({comment_bumped_at: {order: :desc, missing: :_last}}, {id: :desc})
 
-    when "comment_bumped_asc"
+    when "comment_bumped_asc", "comm_bumped_asc"
       must.push({exists: {field: 'comment_bumped_at'}})
-      order.push({comment_bumped_at: {order: :asc, missing: :_last}})
-      order.push({id: :desc})
+      order.push({comment_bumped_at: {order: :asc, missing: :_last}}, {id: :desc})
 
     when "comment_asc", "comm_asc"
-      order.push({commented_at: {order: :asc, missing: :_last}})
-      order.push({id: :asc})
+      order.push({commented_at: {order: :asc, missing: :_last}}, {id: :asc})
 
     when "note"
       order.push({noted_at: {order: :desc, missing: :_last}})
@@ -332,10 +329,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "mpixels_asc"
       order.push({mpixels: :asc})
 
-    when "portrait"
+    when "portrait", "ratio_asc", "aspect_ratio_asc"
       order.push({aspect_ratio: :asc})
 
-    when "landscape"
+    when "landscape", "ratio", "aspect_ratio"
       order.push({aspect_ratio: :desc})
 
     when "filesize"
@@ -347,7 +344,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
       column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
-      order.concat([{column => direction}, {id: direction}])
+      order.push({column => direction}, {id: direction})
 
     when "tagcount"
       order.push({tag_count: :desc})
@@ -355,12 +352,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when "tagcount_asc"
       order.push({tag_count: :asc})
 
-    when /(#{TagCategory::SHORT_NAME_REGEX})tags/
-      order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc})
+    when /\A(#{TagCategory::SHORT_NAME_REGEX})tags\Z/
+      order.push({-"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc})
 
-    when /(#{TagCategory::SHORT_NAME_REGEX})tags_asc/
-      order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc})
+    when /\A(#{TagCategory::SHORT_NAME_REGEX})tags_asc\Z/
+      order.push({-"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc})
 
+    # Put simply, scales the post's score by how long the post has existed
     when "rank"
       @function_score = {
         script_score: {
@@ -375,17 +373,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ _score: :desc })
 
     when "random"
-      if q[:random_seed].present?
-        @function_score = {
-          random_score: { seed: q[:random_seed], field: "id" },
-          boost_mode: :replace,
-        }
-      else
-        @function_score = {
-          random_score: {},
-          boost_mode: :replace,
-        }
-      end
+      @function_score = {
+        random_score: q[:random_seed].present? ? { seed: q[:random_seed], field: "id" } : {},
+        boost_mode: :replace,
+      }
 
       order.push({_score: :desc})
 
