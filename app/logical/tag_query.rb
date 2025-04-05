@@ -129,7 +129,7 @@ class TagQuery
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
   # Therefore, these are pulled out of groups and placed on the top level of searches.
-  GLOBAL_METATAGS = %w[order limit randseed].freeze
+  GLOBAL_METATAGS = %w[order -order limit randseed].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
   # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
