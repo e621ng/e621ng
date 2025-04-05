@@ -183,9 +183,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_array_range_relation(:post_tag_count, :tag_count)
 
     TagQuery::COUNT_METATAGS.map(&:to_sym).each do |column|
-      if q[column]
-        relation = range_relation(q[column], column)
-        must.push(relation) if relation
+      if q[column] && (relation = range_relation(q[column], column))
+        must.push(relation)
       end
     end
 
@@ -312,9 +311,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     case q[:order] # rubocop:disable Style/MultilineIfModifier
     when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
-      column = Regexp.last_match[:column]
       direction = Regexp.last_match[:direction] || "desc"
-      order.push({ column => direction }, { id: direction })
+      order.push({ Regexp.last_match[:column] => direction }, { id: direction })
 
     when /\A(#{TagCategory::SHORT_NAME_REGEX})tags(_asc)?\Z/
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
@@ -363,12 +361,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         should.push({ term: { uploader: CurrentUser.user.id } })
       end
 
-      must.push({
-        bool: {
-          should: should,
-          minimum_should_match: 1,
-        },
-      })
+      must.push(match_any(*should))
     end
   end
 end

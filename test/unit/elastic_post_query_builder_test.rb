@@ -99,7 +99,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
     end
 
     should "only have an order at the root" do
-      
+      assert_equal(ElasticPostQueryBuilder::ORDER_TABLE["score"], ElasticPostQueryBuilder.new("order:favcount ( order:score )", **DEFAULT_PARAM).order)
     end
 
     should "properly parse order metatags" do
@@ -116,6 +116,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
           assert_includes(r.must, { range: { score: { gt: 0 } } })
         # TODO: The next line's off by milliseconds. Fix.
         #   assert_includes(r.must, { range: { created_at: { gte: 2.days.ago } } }, msg)
+        # FIXME: Find a way to test the function score and assert these commented out lines
         #   assert_equals({
         #     script_score: {
         #       script: {
