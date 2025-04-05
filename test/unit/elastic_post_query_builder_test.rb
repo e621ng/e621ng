@@ -98,6 +98,10 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_not(ElasticPostQueryBuilder.new("aaa ( bbb ( aaa delreason:something ) status:pending )", **p).hide_deleted_posts?)
     end
 
+    should "only have an order at the root" do
+      
+    end
+
     should "properly parse order metatags" do
       # puts ORDER_MAP
       # puts TagQuery::METATAGS

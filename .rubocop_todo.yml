@@ -459,7 +459,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/helpers/application_helper.rb'
     - 'app/helpers/dmails_helper.rb'
     - 'app/helpers/posts_helper.rb'
-    - 'app/logical/elastic_post_query_builder.rb'
     - 'app/logical/moderator/ip_addr_search.rb'
     - 'app/logical/post_thumbnailer.rb'
     - 'app/logical/session_loader.rb'
