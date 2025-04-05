@@ -58,6 +58,7 @@ class ModAction < ApplicationRecord
     set_update: { set_id: :integer, user_id: :integer },
     set_delete: { set_id: :integer, user_id: :integer },
     set_change_visibility: { set_id: :integer, user_id: :integer, is_public: :boolean },
+    tag_destroy: { name: :string },
     tag_alias_create: { alias_id: :integer, alias_desc: :string },
     tag_alias_update: { alias_id: :integer, alias_desc: :string, change_desc: :string },
     tag_implication_create: { implication_id: :integer, implication_desc: :string },

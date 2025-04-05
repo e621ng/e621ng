@@ -253,6 +253,11 @@ class ModActionDecorator < ApplicationDecorator
     when "blip_unhide"
       "Unhid blip ##{vals['blip_id']} by #{user}"
 
+      ### Tag ###
+
+    when "tag_destroy"
+      "Destroyed tag `#{vals['name']}`"
+
       ### Alias ###
 
     when "tag_alias_create"
