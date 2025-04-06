@@ -133,23 +133,6 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
-  should "invert & normalize order values" do
-    assert_equal("id", TagQuery.new("order:id")[:order])
-    assert_equal("id_asc", TagQuery.new("order:id_asc")[:order])
-    assert_equal("id_desc", TagQuery.new("-order:id")[:order])
-    assert_equal("id_desc", TagQuery.new("-order:id_asc")[:order])
-    assert_equal("duration", TagQuery.new("order:duration_desc")[:order])
-    assert_equal("duration_asc", TagQuery.new("-order:duration_desc")[:order])
-    assert_equal("duration_asc", TagQuery.new("-order:duration")[:order])
-    assert_equal("ratio", TagQuery.new("order:ratio_desc")[:order])
-    assert_equal("ratio_asc", TagQuery.new("-order:ratio_desc")[:order])
-    assert_equal("ratio_asc", TagQuery.new("-order:ratio")[:order])
-    assert_equal("portrait", TagQuery.new("order:portrait")[:order])
-    assert_equal("landscape", TagQuery.new("-order:portrait")[:order])
-    assert_equal("landscape", TagQuery.new("order:landscape")[:order])
-    assert_equal("portrait", TagQuery.new("-order:landscape")[:order])
-  end
-
   context "While using light scanning" do
     should "scan a query" do
       assert_equal(%w[aaa bbb], TagQuery.scan_light("aaa bbb"))
@@ -677,7 +660,7 @@ class TagQueryTest < ActiveSupport::TestCase
 
   # TODO: Add more test cases for group parsing
   # TODO: Add more test cases for metatag parsing
-  context "Parsing a query:" do
+  context "Parsing:" do
     should "correctly handle up to 40 standard tags" do
       expected_result = {
         tags: {
@@ -780,7 +763,7 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(%w[acb azb], TagQuery.new("( a*b )")[:tags][:should])
     end
 
-    context "W/ metatags:" do
+    context "Metatags:" do
       should "match w/ case insensitivity" do
         %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
       end
@@ -1112,7 +1095,6 @@ class TagQueryTest < ActiveSupport::TestCase
       # when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
       # when "child" then q[:child] = g2.downcase
       # when "randseed" then q[:random_seed] = g2.to_i
-      # when "order" then q[:order] = g2.downcase
       # when "limit" # Do nothing. The controller takes care of it.
       # when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
       # when "description", "-description", "~description" then add_to_query(type, :description, g2)
@@ -1205,6 +1187,61 @@ class TagQueryTest < ActiveSupport::TestCase
             "filesize" => [{ "512.9999" => 512, eq: [:between, 486, 537] }, { "1Kb" => 1024, eq: [:between, 972, 1075] }, { ".1234mB" => 129_394, eq: [:between, 122_924, 135_863] }],
           })
         end
+      end
+
+      # when "order" then q[:order] = TagQuery.normalize_order_value(g2.downcase.strip, invert: type == :must_not)
+      should "invert & normalize order values" do
+        # Non-aliased and non-invertible values should remain the same
+        assert_equal("rank",             TagQuery.new("order:rank")[:order])
+        assert_equal("random",           TagQuery.new("order:random")[:order])
+        assert_equal("rank",             TagQuery.new("-order:rank")[:order])
+        assert_equal("random",           TagQuery.new("-order:random")[:order])
+
+        # Non-aliased invertible tags should work correctly
+        # Normalize
+        assert_equal("duration",         TagQuery.new("order:duration")[:order])
+        assert_equal("duration",         TagQuery.new("order:duration_desc")[:order])
+        assert_equal("duration_asc",     TagQuery.new("order:duration_asc")[:order])
+
+        # Invert
+        assert_equal("duration_asc",     TagQuery.new("-order:duration")[:order])
+        assert_equal("duration",         TagQuery.new("-order:duration_asc")[:order])
+        assert_equal("duration_asc",     TagQuery.new("-order:duration_desc")[:order])
+
+        # Aliased values should be handled correctly
+        # Don't resolve
+        assert_equal("updated",          TagQuery.new("order:updated")[:order])
+        assert_equal("updated_asc",      TagQuery.new("order:updated_asc")[:order])
+
+        # Aliased values should be correctly resolved
+        assert_equal("updated",          TagQuery.new("order:updated_at")[:order])
+        assert_equal("updated",          TagQuery.new("order:updated_at_desc")[:order])
+        assert_equal("updated_asc",      TagQuery.new("order:updated_at_asc")[:order])
+
+        # Correctly resolved & inverted
+        assert_equal("updated",          TagQuery.new("-order:updated_at_asc")[:order])
+        assert_equal("updated_asc",      TagQuery.new("-order:updated_at_desc")[:order])
+        assert_equal("updated_asc",      TagQuery.new("-order:updated_at")[:order])
+
+        # Non-suffixed aliases should be handled correctly
+        # Don't resolve
+        assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
+        assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
+
+        # Non-suffixed aliases should be correctly resolved
+        assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
+        assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
+
+        # Correctly resolved & inverted
+        assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
+        assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+
+        # `id` special case
+        assert_equal("id",               TagQuery.new("order:id")[:order])
+        assert_equal("id_desc",          TagQuery.new("order:id_desc")[:order])
+        assert_equal("id",               TagQuery.new("order:id_asc")[:order])
+        assert_equal("id_desc",          TagQuery.new("-order:id")[:order])
+        assert_equal("id_desc",          TagQuery.new("-order:id_asc")[:order])
       end
     end
 

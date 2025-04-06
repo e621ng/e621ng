@@ -79,51 +79,78 @@ class TagQuery
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
 
+  ORDER_ALIAS_ROOTS = %w[created updated comment comment_bumped aspect_ratio].freeze
+
+  ORDER_INVERTIBLE_ALIASES = ORDER_ALIAS_ROOTS.to_h do |e|
+    case e
+    when "updated", "created" then [-"#{e}_at", e]
+    when "comment", "comment_bumped" then [-"comm#{e.delete_prefix('comment')}", e]
+    when "aspect_ratio" then [-"ratio", e]
+    else
+      raise ArgumentError, -"Unknown Metatag Value #{e}"
+    end
+  end.freeze
+
+  # All `order` metatag value aliases that can't be inverted w/ a `_desc`/`_asc` suffix.
+  ORDER_NON_SUFFIXED_ALIASES = {
+    "portrait" => "aspect_ratio_asc",
+    "landscape" => "aspect_ratio",
+  }.freeze
+
+  ORDER_INVERTIBLE_ROOTS = %w[
+    id score md5 favcount created updated comment comment_bumped
+    note mpixels aspect_ratio filesize tagcount change duration
+  ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys, ORDER_ALIAS_ROOTS).freeze
+
   # All possible valid values for `order` metatags; used for autocomplete & inversions.
   # With the exception of `rank` & `random`, all values have an option to invert the order.
   # With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
   # With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
   #
   # IDEA: Add `rank_asc` option
-  ORDER_METATAGS = %w[
-    id id_asc id_desc
-    score score_desc score_asc
-    md5 md5_desc md5_asc
-    favcount favcount_desc favcount_asc
-    created created_desc created_asc created_at created_at_desc created_at_asc
-    updated updated_desc updated_asc updated_at updated_at_desc updated_at_asc
-    comment comment_desc comment_asc comm comm_desc comm_asc
-    comment_bumped comment_bumped_desc comment_bumped_asc
-    comm_bumped comm_bumped_desc comm_bumped_asc
-    note note_desc note_asc
-    mpixels mpixels_desc mpixels_asc
-    aspect_ratio aspect_ratio_desc aspect_ratio_asc ratio ratio_desc ratio_asc portrait landscape
-    filesize filesize_desc filesize_asc
-    tagcount tagcount_desc tagcount_asc
-    change change_desc change_asc
-    duration duration_desc duration_asc
-    rank
-    random
-  ].concat(
-    (COUNT_METATAGS + CATEGORY_METATAG_MAP.keys).flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
+  ORDER_METATAGS = %w[rank random].concat(
+    ORDER_INVERTIBLE_ROOTS.flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
+    ORDER_NON_SUFFIXED_ALIASES.keys,
   ).freeze
+  # ORDER_METATAGS = %w[
+  #   id id_asc id_desc
+  #   score score_desc score_asc
+  #   md5 md5_desc md5_asc
+  #   favcount favcount_desc favcount_asc
+  #   created created_desc created_asc created_at created_at_desc created_at_asc
+  #   updated updated_desc updated_asc updated_at updated_at_desc updated_at_asc
+  #   comment comment_desc comment_asc comm comm_desc comm_asc
+  #   comment_bumped comment_bumped_desc comment_bumped_asc
+  #   comm_bumped comm_bumped_desc comm_bumped_asc
+  #   note note_desc note_asc
+  #   mpixels mpixels_desc mpixels_asc
+  #   aspect_ratio aspect_ratio_desc aspect_ratio_asc ratio ratio_desc ratio_asc portrait landscape
+  #   filesize filesize_desc filesize_asc
+  #   tagcount tagcount_desc tagcount_asc
+  #   change change_desc change_asc
+  #   duration duration_desc duration_asc
+  #   rank
+  #   random
+  # ].concat(
+  #   (COUNT_METATAGS + CATEGORY_METATAG_MAP.keys).flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
+  # ).freeze
 
   # The initial value of a negated `order` metatag mapped to the resultant value.
   # In the general case, tags have a `_asc` suffix appended/removed.
-  ORDER_VALUE_INVERSIONS = ORDER_METATAGS.index_with do |e|
   #
   # NOTE: With the exception of `id_desc`, values ending in `_desc` are equivalent to the same string
-  # with that suffix removed; as such, these keys are not included in this hash.
-  # ORDER_VALUE_INVERSIONS = ORDER_METATAGS.reject { |e| e.end_with?("_desc") && e != "id_desc" }.index_with do |e| # rubocop:disable Layout/CommentIndentation
+  # with that suffix removed; as such, these keys, along with `id_asc`, `rank`, & `random`, are not
+  # included in this hash.
+  ORDER_VALUE_INVERSIONS = ORDER_INVERTIBLE_ROOTS[1..].flat_map { |str| [str, -"#{str}_asc"] }.push(*ORDER_NON_SUFFIXED_ALIASES.keys, "id", "id_desc").index_with do |e|
+    # ORDER_VALUE_INVERSIONS = ORDER_METATAGS.index_with do |e|
     case e
-    when "id", "id_asc" then "id_desc"
+    when "id" then "id_desc"
     when "id_desc" then "id"
-    when "rank", "random" then e
-    when "portrait" then "landscape"
-    when "landscape" then "portrait"
+    when "portrait" then ORDER_NON_SUFFIXED_ALIASES["landscape"]
+    when "landscape" then ORDER_NON_SUFFIXED_ALIASES["portrait"]
     else
-      e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e.delete_suffix('_desc')}_asc"
-      # e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
+      e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
+      # e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e.delete_suffix('_desc')}_asc"
     end
   end.freeze
 
@@ -299,6 +326,35 @@ class TagQuery
       return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
     end
     true
+  end
+
+  # Convert an order metatag into it's simplest consistent representation.
+  # * Resolves aliases & inversions
+  # * Handles quoted values
+  # * Doesn't strip whitespace
+  # ### Parameters:
+  # * `value`
+  # * `invert` [`false`]
+  # * `processed` [`true`]: is `value` downcased, stripped, & shed of the `order:`/`-order:` prefix?
+  def self.normalize_order_value(value, invert: true, processed: true)
+    value.downcase! unless processed
+    unless processed || !(/\A(-)?order:(.+)\z/ =~ value)
+      invert = $1
+      value = $2.delete_prefix('"').delete_suffix('"')
+    end
+    # Remove suffix when superfluous
+    # value = value.delete_suffix("_desc") unless value == "id_desc"
+    value = value.delete_suffix(%w[id_asc id_desc].include?(value) ? "_asc" : "_desc")
+    # Resolve all aliases to their root
+    # Wouldn't handle `id_desc`, but irrelevant as `id` isn't aliased.
+    value = if value.delete_suffix!("_asc")
+              -"#{ORDER_NON_SUFFIXED_ALIASES[value] || ORDER_INVERTIBLE_ALIASES[value] || value}_asc"
+            else
+              ORDER_NON_SUFFIXED_ALIASES[value] || ORDER_INVERTIBLE_ALIASES[value] || value
+            end
+    # If inverted, resolve inversion
+    value = ORDER_VALUE_INVERSIONS[value] || value if invert
+    value
   end
 
   # Convert query into a consistent representation.
@@ -1282,11 +1338,7 @@ class TagQuery
 
       when "randseed" then q[:random_seed] = g2.to_i
 
-      when "order", "-order"
-        q[:order] = g2.downcase
-        q[:order] = q[:order].delete_suffix("_desc") unless q[:order] == "id_desc"
-        # q[:order] = q[:order].delete_suffix(%w[id_asc id_desc].include?(q[:order]) ? "_asc" : "_desc")
-        q[:order] = (ORDER_VALUE_INVERSIONS[q[:order]] || q[:order]) if type == :must_not
+      when "order", "-order" then q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
 
       when "limit"
         # Do nothing. The controller takes care of it.

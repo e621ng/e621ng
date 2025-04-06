@@ -41,14 +41,12 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "comm_desc" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
       "comm_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
-      # must.push({ exists: { field: 'comment_bumped_at' } })
       "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comment_bumped_desc" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
       "comm_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comm_bumped_desc" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comm_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
-      # must.push({ exists: { field: 'comment_bumped_at' } })
       "note" => [{ noted_at: { order: :desc, missing: :_last } }],
       "note_desc" => [{ noted_at: { order: :desc, missing: :_last } }],
       "note_asc" => [{ noted_at: { order: :asc, missing: :_first } }],
@@ -105,31 +103,68 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
     should "properly parse order metatags" do
       # puts ORDER_MAP
       # puts TagQuery::METATAGS
-      ORDER_MAP.each_pair do |k, v|
-        r = ElasticPostQueryBuilder.new("order:#{k}", **DEFAULT_PARAM)
-        msg = -"val: #{k}, TQ.q:#{TagQuery.new("order:#{k}").q}"
-        assert_equal(v, r.order, msg)
-        case k
-        when /\Acomm(?>ent)?_bumped(?>_(?>a|de)sc)?\z/
-          assert_includes(r.must, { exists: { field: "comment_bumped_at" } }, msg)
-        when "rank"
-          assert_includes(r.must, { range: { score: { gt: 0 } } })
-        # TODO: The next line's off by milliseconds. Fix.
-        #   assert_includes(r.must, { range: { created_at: { gte: 2.days.ago } } }, msg)
-        # FIXME: Find a way to test the function score and assert these commented out lines
-        #   assert_equals({
-        #     script_score: {
-        #       script: {
-        #         params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
-        #         source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
-        #       },
-        #     },
-        #   }, @function_score)
-        # when "random"
-        #   assert_equals({
-        #     random_score: r.q[:random_seed].present? ? { seed: r.q[:random_seed], field: "id" } : {},
-        #     boost_mode: :replace,
-        #   }, r.@function_score) # rubocop:disable Layout/CommentIndentation
+      t_map = {
+        asc: :desc,
+        desc: :asc,
+        "asc" => "desc",
+        "desc" => "asc",
+      }.freeze
+      invert = ->(ov) do
+        if ov.is_a?(Hash)
+          ov.transform_values(&invert)
+        else
+          t_map[ov] || ov
+        end
+      end.freeze
+      ORDER_MAP.each_pair do |k, v| # rubocop:disable Metrics/BlockLength
+        if TagQuery.normalize_order_value("order:#{k}") == TagQuery.normalize_order_value("-order:#{k}") # rubocop:disable Metrics/BlockLength
+          [""]
+        else
+          ["", "-"]
+        end.each do |p|
+          q = -"#{p}order:#{k}"
+          r = ElasticPostQueryBuilder.new(q, **DEFAULT_PARAM)
+          msg = -"val: #{k}, TQ(#{q}).q:#{TagQuery.new(q).q}"
+          expected_result = if p == "-"
+                              if %w[comment_bumped_desc comm_bumped_desc comment_bumped comm_bumped].include?(k)
+                                ORDER_MAP["comment_bumped_asc"]
+                              elsif %w[comment_bumped_asc comm_bumped_asc].include?(k)
+                                ORDER_MAP["comment_bumped_desc"]
+                              elsif %w[note_desc note].include?(k)
+                                ORDER_MAP["note_asc"]
+                              elsif k == "note_asc"
+                                ORDER_MAP["note"]
+                              elsif %w[rank random].include?(k)
+                                v
+                              else
+                                v.map { |e| e.transform_values(&invert) }
+                              end
+                            else
+                              v
+                            end
+          assert_equal(expected_result, r.order, msg)
+          case k
+          when /\Acomm(?>ent)?_bumped(?>_(?>a|de)sc)?\z/
+            assert_includes(r.must, { exists: { field: "comment_bumped_at" } }, msg)
+          when "rank"
+            assert_includes(r.must, { range: { score: { gt: 0 } } }, msg)
+          # TODO: The next line's off by milliseconds. Fix.
+          #   assert_includes(r.must, { range: { created_at: { gte: 2.days.ago } } }, msg)
+          # FIXME: Find a way to test the function score and assert these commented out lines
+          #   assert_equals({
+          #     script_score: {
+          #       script: {
+          #         params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+          #         source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
+          #       },
+          #     },
+          #   }, @function_score)
+          # when "random"
+          #   assert_equals({
+          #     random_score: r.q[:random_seed].present? ? { seed: r.q[:random_seed], field: "id" } : {},
+          #     boost_mode: :replace,
+          #   }, r.@function_score) # rubocop:disable Layout/CommentIndentation
+          end
         end
       end
     end
