@@ -54,7 +54,7 @@
           <% else %>
             <% if CurrentUser.is_moderator? %>
               <tr>
-                <td><span class="title">Claimed By</span></td>
+                <td><span class="title">Claimed by</span></td>
                 <% if @ticket.claimant.nil? %>
                   <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
                 <% else %>
