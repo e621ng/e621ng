@@ -37,9 +37,9 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "updated_asc" => [{ updated_at: :asc }, { id: :asc }],
       "comment" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comment_desc" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+      "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
       "comm" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comm_desc" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
-      "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
       "comm_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
       "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
       "comment_bumped_desc" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
@@ -54,10 +54,13 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "mpixels_desc" => [{ mpixels: :desc }],
       "mpixels_asc" => [{ mpixels: :asc }],
       "portrait" => [{ aspect_ratio: :asc }],
-      "ratio_asc" => [{ aspect_ratio: :asc }],
       "landscape" => [{ aspect_ratio: :desc }],
+      "ratio_asc" => [{ aspect_ratio: :asc }],
       "ratio" => [{ aspect_ratio: :desc }],
       "ratio_desc" => [{ aspect_ratio: :desc }],
+      "aspect_ratio_asc" => [{ aspect_ratio: :asc }],
+      "aspect_ratio" => [{ aspect_ratio: :desc }],
+      "aspect_ratio_desc" => [{ aspect_ratio: :desc }],
       "filesize" => [{ file_size: :desc }],
       "filesize_desc" => [{ file_size: :desc }],
       "filesize_asc" => [{ file_size: :asc }],
@@ -78,6 +81,10 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
     # {"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc},
     *TagQuery::CATEGORY_METATAG_MAP.each_pair.map { |k, v| { k => [{ v => :desc }], -"#{k}_desc" => [{ v => :desc }], -"#{k}_asc" => [{ v => :asc }] } },
   ).freeze
+  # For `ActiveSupport::TimeWithZone` comparisons using `assert_in_delta`, the maximal difference
+  # between expected & actual in seconds. Set to 5 seconds. Needed b/c the actual and expected
+  # `ActiveSupport::TimeWithZone`s can't be constructed at the same time.
+  TIME_DELTA = 5.0
   DEFAULT_PARAM = { resolve_aliases: true, free_tags_count: 0, enable_safe_mode: false, always_show_deleted: false }.freeze
   # TODO: Add tests for proper construction
   context "While building a post query" do
@@ -100,9 +107,31 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_equal(ElasticPostQueryBuilder::ORDER_TABLE["score"], ElasticPostQueryBuilder.new("order:favcount ( order:score )", **DEFAULT_PARAM).order)
     end
 
+    should "properly handle locked metatags" do
+      assert_includes(ElasticPostQueryBuilder.new("locked:rating", **DEFAULT_PARAM).must, { term: { rating_locked: true } }, "locked:rating")
+      assert_includes(ElasticPostQueryBuilder.new("locked:note", **DEFAULT_PARAM).must, { term: { note_locked: true } }, "locked:note")
+      assert_includes(ElasticPostQueryBuilder.new("locked:status", **DEFAULT_PARAM).must, { term: { status_locked: true } }, "locked:status")
+      # assert_includes(ElasticPostQueryBuilder.new("locked:whatever", **DEFAULT_PARAM).must, { term: { "missing" => true } }, "locked:whatever")
+
+      assert_includes(ElasticPostQueryBuilder.new("-locked:rating", **DEFAULT_PARAM).must, { term: { rating_locked: false } }, "-locked:rating")
+      assert_includes(ElasticPostQueryBuilder.new("-locked:note", **DEFAULT_PARAM).must, { term: { note_locked: false } }, "-locked:note")
+      assert_includes(ElasticPostQueryBuilder.new("-locked:status", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "-locked:status")
+      # assert_includes(ElasticPostQueryBuilder.new("-locked:whatever", **DEFAULT_PARAM).must, { term: { "missing" => false } }, "-locked:whatever")
+
+      assert_includes(ElasticPostQueryBuilder.new("~locked:rating", **DEFAULT_PARAM).should, { term: { rating_locked: true } }, "~locked:rating")
+      assert_includes(ElasticPostQueryBuilder.new("~locked:note", **DEFAULT_PARAM).should, { term: { note_locked: true } }, "~locked:note")
+      assert_includes(ElasticPostQueryBuilder.new("~locked:status", **DEFAULT_PARAM).should, { term: { status_locked: true } }, "~locked:status")
+      # assert_includes(ElasticPostQueryBuilder.new("~locked:whatever", **DEFAULT_PARAM).should, { term: { "missing" => true } }, "~locked:whatever")
+
+      assert_includes(ElasticPostQueryBuilder.new("ratinglocked:true", **DEFAULT_PARAM).must, { term: { rating_locked: true } }, "ratinglocked:true")
+      assert_includes(ElasticPostQueryBuilder.new("ratinglocked:false", **DEFAULT_PARAM).must, { term: { rating_locked: false } }, "ratinglocked:false")
+      assert_includes(ElasticPostQueryBuilder.new("notelocked:true", **DEFAULT_PARAM).must, { term: { note_locked: true } }, "notelocked:true")
+      assert_includes(ElasticPostQueryBuilder.new("notelocked:false", **DEFAULT_PARAM).must, { term: { note_locked: false } }, "notelocked:false")
+      assert_includes(ElasticPostQueryBuilder.new("statuslocked:true", **DEFAULT_PARAM).must, { term: { status_locked: true } }, "statuslocked:true")
+      assert_includes(ElasticPostQueryBuilder.new("statuslocked:false", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "statuslocked:false")
+    end
+
     should "properly parse order metatags" do
-      # puts ORDER_MAP
-      # puts TagQuery::METATAGS
       t_map = {
         asc: :desc,
         desc: :asc,
@@ -124,6 +153,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
         end.each do |p|
           q = -"#{p}order:#{k}"
           r = ElasticPostQueryBuilder.new(q, **DEFAULT_PARAM)
+          comparison = 2.days.ago if k == "rank"
           msg = -"val: #{k}, TQ(#{q}).q:#{TagQuery.new(q).q}"
           expected_result = if p == "-"
                               if %w[comment_bumped_desc comm_bumped_desc comment_bumped comm_bumped].include?(k)
@@ -148,8 +178,9 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
             assert_includes(r.must, { exists: { field: "comment_bumped_at" } }, msg)
           when "rank"
             assert_includes(r.must, { range: { score: { gt: 0 } } }, msg)
-          # TODO: The next line's off by milliseconds. Fix.
-          #   assert_includes(r.must, { range: { created_at: { gte: 2.days.ago } } }, msg)
+            datetime_ago = nil
+            assert(r.must.any? { |x| datetime_ago ||= x[:range]&.fetch(:created_at, nil)&.fetch(:gte, nil) }, msg)
+            assert_in_delta(comparison, datetime_ago, TIME_DELTA, msg)
           # FIXME: Find a way to test the function score and assert these commented out lines
           #   assert_equals({
           #     script_score: {

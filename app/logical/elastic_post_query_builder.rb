@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class ElasticPostQueryBuilder < ElasticQueryBuilder
-  LOCK_TYPE_TO_INDEX_FIELD = {
+  LOCK_TYPE_TO_INDEX_FIELD = Hash.new("missing").merge ({
     rating: :rating_locked,
     note: :note_locked,
     status: :status_locked,
-  }.freeze
+  }).freeze
 
   # Used to determine if a grouped search that wouldn't automatically filter out deleted searches
   # will force other grouped searches to not automatically filter out deleted searches. (i.e. if the
@@ -102,61 +102,43 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     !(q[:show_deleted] || !q.hide_deleted_posts?(at_any_level: at_any_level))
   end
 
+  # Used to resolve handle the values in `q[:order]`. Each value should be unique; if you want a
+  # a new `order` metatag value to match one of these preexisting values, add it in `TagQuery`;
+  # otherwise, it won't be in the autocomplete (among other thing).
   ORDER_TABLE = Hash.new({ id: :desc }).merge({
-    "id" => { id: :asc },
-    # "id_asc" => { id: :asc },
-    "id_desc" => { id: :desc },
-    "change" => { change_seq: :desc },
-    "change_asc" => { change_seq: :asc },
-    "md5" => { md5: :desc },
-    "md5_asc" => { md5: :asc },
+    "id" => [{ id: :asc }],
+    "id_desc" => [{ id: :desc }],
+    "change" => [{ change_seq: :desc }],
+    "change_asc" => [{ change_seq: :asc }],
+    "md5" => [{ md5: :desc }],
+    "md5_asc" => [{ md5: :asc }],
     "score" => [{ score: :desc }, { id: :desc }],
     "score_asc" => [{ score: :asc }, { id: :asc }],
     "duration" => [{ duration: :desc }, { id: :desc }],
     "duration_asc" => [{ duration: :asc }, { id: :asc }],
     "favcount" => [{ fav_count: :desc }, { id: :desc }],
     "favcount_asc" => [{ fav_count: :asc }, { id: :asc }],
-    "created" => { created_at: :desc },
-    # "created_at" => { created_at: :desc },
-    "created_asc" => { created_at: :asc },
-    # "created_at_asc" => { created_at: :asc },
+    "created" => [{ created_at: :desc }],
+    "created_asc" => [{ created_at: :asc }],
     "updated" => [{ updated_at: :desc }, { id: :desc }],
-    # "updated_at" => [{ updated_at: :desc }, { id: :desc }],
     "updated_asc" => [{ updated_at: :asc }, { id: :asc }],
-    # "updated_at_asc" => [{ updated_at: :asc }, { id: :asc }],
     "comment" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
-    # "comm" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
-    # "comm_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
-    "note" => { noted_at: { order: :desc, missing: :_last } },
-    "note_asc" => { noted_at: { order: :asc, missing: :_first } },
-    "mpixels" => { mpixels: :desc },
-    "mpixels_asc" => { mpixels: :asc },
-    # "portrait" => { aspect_ratio: :asc },
-    # "ratio_asc" => { aspect_ratio: :asc },
-    "aspect_ratio_asc" => { aspect_ratio: :asc },
-    # "landscape" => { aspect_ratio: :desc },
-    # "ratio" => { aspect_ratio: :desc },
-    "aspect_ratio" => { aspect_ratio: :desc },
-    "filesize" => { file_size: :desc },
-    "filesize_asc" => { file_size: :asc },
-    "tagcount" => { tag_count: :desc },
-    "tagcount_asc" => { tag_count: :asc },
+    "note" => [{ noted_at: { order: :desc, missing: :_last } }],
+    "note_asc" => [{ noted_at: { order: :asc, missing: :_first } }],
+    "mpixels" => [{ mpixels: :desc }],
+    "mpixels_asc" => [{ mpixels: :asc }],
+    "aspect_ratio_asc" => [{ aspect_ratio: :asc }],
+    "aspect_ratio" => [{ aspect_ratio: :desc }],
+    "filesize" => [{ file_size: :desc }],
+    "filesize_asc" => [{ file_size: :asc }],
+    "tagcount" => [{ tag_count: :desc }],
+    "tagcount_asc" => [{ tag_count: :asc }],
     "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
-    # "comm_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
-    # "comm_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
-    # "rank" => { _score: :desc },
-    # "random" => { _score: :desc },
+    # "rank" => [{ _score: :desc }],
+    # "random" => [{ _score: :desc }],
   }).freeze.each_value(&:freeze)
-
-  ORDER_MUST_TABLE = {
-    "comment_bumped" => { exists: { field: "comment_bumped_at" } },
-    # "comm_bumped" => { exists: { field: "comment_bumped_at" } },
-    "comment_bumped_asc" => { exists: { field: "comment_bumped_at" } },
-    # "comm_bumped_asc" => { exists: { field: "comment_bumped_at" } },
-    # "rank" => { range: { score: { gt: 0 } } }, # Has an additional non-constant value to add
-  }.freeze.each_value(&:freeze)
 
   def build
     if @enable_safe_mode
@@ -217,7 +199,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     elsif q[:status_must_not] == "deleted"
       must_not.push({ term: { deleted: true } })
     elsif q[:status_must_not] == "active"
-      must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
+      must.push(match_any(
+                  { term: { pending: true } },
+                  { term: { deleted: true } },
+                  { term: { flagged: true } },
+                ))
     end
 
     add_array_relation(:uploader_ids, :uploader)
@@ -258,18 +244,20 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({ term: { has_children: true } })
     end
 
+    # Handle locks
     q[:locked]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
     end
 
     q[:locked_must_not]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => false } })
     end
 
     q[:locked_should]&.each do |lock_type|
-      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
+      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
     end
 
+    # Handle `TagQuery::BOOLEAN_METATAGS`
     if q.include?(:hassource)
       (q[:hassource] ? must : must_not).push({ exists: { field: :source } })
     end
@@ -309,7 +297,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     # The groups updated our value; now optionally hide deleted
     must.push({ term: { deleted: false } }) if hide_deleted_posts?
 
-    case q[:order] # rubocop:disable Style/MultilineIfModifier
+    case q[:order] # rubocop:disable Style/MultilineIfModifier,Lint/RedundantCopDisableDirective -- Skipping this is the exception, not the rule.
     when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
       direction = Regexp.last_match[:direction] || "desc"
       order.push({ Regexp.last_match[:column] => direction }, { id: direction })
@@ -323,7 +311,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push({ range: { score: { gt: 0 } } }, { range: { created_at: { gte: 2.days.ago } } })
       @function_score = {
         script_score: {
-          script: {
+          script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
             params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
             source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
           },
@@ -337,11 +325,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         boost_mode: :replace,
       }
 
+    when "comment_bumped", "comment_bumped_asc"
+      self.order = ORDER_TABLE[q[:order]]
+      must.push({ exists: { field: "comment_bumped_at" } })
+
     else
-      order.push(ORDER_TABLE[q[:order]]).flatten!
-      unless (v = ORDER_MUST_TABLE[q[:order]]).nil?
-        must.push(v)
-      end
+      self.order = ORDER_TABLE[q[:order]]
+      # Don't add order if nested in a group; it should have been pulled out prior.
     end unless @depth > 0
 
     if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0

@@ -79,61 +79,46 @@ class TagQuery
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
 
-  ORDER_ALIAS_ROOTS = %w[created updated comment comment_bumped aspect_ratio].freeze
+  # rubocop:disable Layout/HashAlignment -- Better readability for a constant
 
-  ORDER_INVERTIBLE_ALIASES = ORDER_ALIAS_ROOTS.to_h do |e|
-    case e
-    when "updated", "created" then [-"#{e}_at", e]
-    when "comment", "comment_bumped" then [-"comm#{e.delete_prefix('comment')}", e]
-    when "aspect_ratio" then [-"ratio", e]
-    else
-      raise ArgumentError, -"Unknown Metatag Value #{e}"
-    end
-  end.freeze
-
-  # All `order` metatag value aliases that can't be inverted w/ a `_desc`/`_asc` suffix.
-  ORDER_NON_SUFFIXED_ALIASES = {
-    "portrait" => "aspect_ratio_asc",
-    "landscape" => "aspect_ratio",
+  # All `order` metatag value aliases that can be inverted w/ a `_desc`/`_asc` suffix.
+  # All keys must map to a value in `TagQuery::ORDER_INVERTIBLE_ROOTS` (e.g. `order:comm` is an alias for `order:comment`).
+  ORDER_INVERTIBLE_ALIASES = {
+    "created_at"  => "created",
+    "updated_at"  => "updated",
+    "comm"        => "comment",
+    "comm_bumped" => "comment_bumped",
+    "ratio"       => "aspect_ratio",
   }.freeze
 
-  ORDER_INVERTIBLE_ROOTS = %w[
-    id score md5 favcount created updated comment comment_bumped
-    note mpixels aspect_ratio filesize tagcount change duration
-  ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys, ORDER_ALIAS_ROOTS).freeze
+  # All `order` metatag value aliases that can't be inverted w/ a `_desc`/`_asc` suffix.
+  # All keys must map to a normalized value in `TagQuery::ORDER_METATAGS` (e.g. `order:landscape` is an alias for `order:aspect_ratio`, but `landscape` is mapped to `aspect_ratio` & not `aspect_ratio_desc`).
+  ORDER_NON_SUFFIXED_ALIASES = {
+    "portrait"    => "aspect_ratio_asc",
+    "landscape"   => "aspect_ratio",
+  }.freeze
 
-  # All possible valid values for `order` metatags; used for autocomplete & inversions.
-  # With the exception of `rank` & `random`, all values have an option to invert the order.
-  # With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
-  # With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
+  # rubocop:enable Layout/HashAlignment
+
+  ORDER_INVERTIBLE_ROOTS = %w[
+    id score md5 favcount note mpixels filesize tagcount change duration
+    created updated comment comment_bumped aspect_ratio
+  ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
+
+  # All possible valid values for `order` metatags; used for autocomplete.
+  # * With the exception of `rank` & `random`, all values have an option to invert the order.
+  # * With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
+  # * With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
+  #
+  # Add non-reversible entries to the array literal here.
   #
   # IDEA: Add `rank_asc` option
-  ORDER_METATAGS = %w[rank random].concat(
-    ORDER_INVERTIBLE_ROOTS.flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
-    ORDER_NON_SUFFIXED_ALIASES.keys,
-  ).freeze
-  # ORDER_METATAGS = %w[
-  #   id id_asc id_desc
-  #   score score_desc score_asc
-  #   md5 md5_desc md5_asc
-  #   favcount favcount_desc favcount_asc
-  #   created created_desc created_asc created_at created_at_desc created_at_asc
-  #   updated updated_desc updated_asc updated_at updated_at_desc updated_at_asc
-  #   comment comment_desc comment_asc comm comm_desc comm_asc
-  #   comment_bumped comment_bumped_desc comment_bumped_asc
-  #   comm_bumped comm_bumped_desc comm_bumped_asc
-  #   note note_desc note_asc
-  #   mpixels mpixels_desc mpixels_asc
-  #   aspect_ratio aspect_ratio_desc aspect_ratio_asc ratio ratio_desc ratio_asc portrait landscape
-  #   filesize filesize_desc filesize_asc
-  #   tagcount tagcount_desc tagcount_asc
-  #   change change_desc change_asc
-  #   duration duration_desc duration_asc
-  #   rank
-  #   random
-  # ].concat(
-  #   (COUNT_METATAGS + CATEGORY_METATAG_MAP.keys).flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
-  # ).freeze
+  ORDER_METATAGS = ORDER_INVERTIBLE_ALIASES
+                   .keys.concat(ORDER_INVERTIBLE_ROOTS)
+                   .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] }.concat(
+                     ORDER_NON_SUFFIXED_ALIASES.keys,
+                     %w[rank random],
+                   ).freeze
 
   # The initial value of a negated `order` metatag mapped to the resultant value.
   # In the general case, tags have a `_asc` suffix appended/removed.
@@ -142,15 +127,14 @@ class TagQuery
   # with that suffix removed; as such, these keys, along with `id_asc`, `rank`, & `random`, are not
   # included in this hash.
   ORDER_VALUE_INVERSIONS = ORDER_INVERTIBLE_ROOTS[1..].flat_map { |str| [str, -"#{str}_asc"] }.push(*ORDER_NON_SUFFIXED_ALIASES.keys, "id", "id_desc").index_with do |e|
-    # ORDER_VALUE_INVERSIONS = ORDER_METATAGS.index_with do |e|
     case e
-    when "id" then "id_desc"
-    when "id_desc" then "id"
-    when "portrait" then ORDER_NON_SUFFIXED_ALIASES["landscape"]
+    when "id"        then "id_desc"
+    when "id_desc"   then "id"
+    when "portrait"  then ORDER_NON_SUFFIXED_ALIASES["landscape"]
     when "landscape" then ORDER_NON_SUFFIXED_ALIASES["portrait"]
     else
+      raise ArgumentError, -"Unhandled non-invertible alias: #{e}" if ORDER_NON_SUFFIXED_ALIASES.key?(e)
       e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
-      # e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e.delete_suffix('_desc')}_asc"
     end
   end.freeze
 

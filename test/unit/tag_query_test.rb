@@ -191,6 +191,8 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_equal(["order:random", "limit:50", "randseed:123", "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true, delim_metatags: false))
         assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true))
         assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
+        # Ensure tag hoisting works on negated order tags
+        assert_equal("random", TagQuery.new("( -order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
         assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
       end
     end
@@ -594,6 +596,12 @@ class TagQueryTest < ActiveSupport::TestCase
         )
       end
     end
+  end
+
+  should "have correctly constructed order constants" do
+    # TagQuery::ORDER_METATAGS.each { |x| puts "order:#{x} -> #{TagQuery.normalize_order_value(x, invert: false)}"; puts "-order:#{x} -> #{TagQuery.normalize_order_value(x, invert: true)}" }
+    assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates")
+    assert_equal([], TagQuery::ORDER_INVERTIBLE_ALIASES.values - TagQuery::ORDER_INVERTIBLE_ROOTS, "Not all resolved alias values are in roots.")
   end
 
   MAPPING = {
@@ -1190,58 +1198,67 @@ class TagQueryTest < ActiveSupport::TestCase
       end
 
       # when "order" then q[:order] = TagQuery.normalize_order_value(g2.downcase.strip, invert: type == :must_not)
-      should "invert & normalize order values" do
-        # Non-aliased and non-invertible values should remain the same
-        assert_equal("rank",             TagQuery.new("order:rank")[:order])
-        assert_equal("random",           TagQuery.new("order:random")[:order])
-        assert_equal("rank",             TagQuery.new("-order:rank")[:order])
-        assert_equal("random",           TagQuery.new("-order:random")[:order])
+      context "Order:" do
+        context "Inversion & Normalization" do
+          should "remain the same for Non-aliased and non-invertible values" do
+            assert_equal("rank",             TagQuery.new("order:rank")[:order])
+            assert_equal("random",           TagQuery.new("order:random")[:order])
+            assert_equal("rank",             TagQuery.new("-order:rank")[:order])
+            assert_equal("random",           TagQuery.new("-order:random")[:order])
+          end
 
-        # Non-aliased invertible tags should work correctly
-        # Normalize
-        assert_equal("duration",         TagQuery.new("order:duration")[:order])
-        assert_equal("duration",         TagQuery.new("order:duration_desc")[:order])
-        assert_equal("duration_asc",     TagQuery.new("order:duration_asc")[:order])
+          should "invert & normalize order values" do
+            # Non-aliased invertible tags should work correctly
+            # Normalize
+            assert_equal("duration",         TagQuery.new("order:duration")[:order])
+            assert_equal("duration",         TagQuery.new("order:duration_desc")[:order])
+            assert_equal("duration_asc",     TagQuery.new("order:duration_asc")[:order])
 
-        # Invert
-        assert_equal("duration_asc",     TagQuery.new("-order:duration")[:order])
-        assert_equal("duration",         TagQuery.new("-order:duration_asc")[:order])
-        assert_equal("duration_asc",     TagQuery.new("-order:duration_desc")[:order])
+            # Invert
+            assert_equal("duration_asc",     TagQuery.new("-order:duration")[:order])
+            assert_equal("duration",         TagQuery.new("-order:duration_asc")[:order])
+            assert_equal("duration_asc",     TagQuery.new("-order:duration_desc")[:order])
+          end
 
-        # Aliased values should be handled correctly
-        # Don't resolve
-        assert_equal("updated",          TagQuery.new("order:updated")[:order])
-        assert_equal("updated_asc",      TagQuery.new("order:updated_asc")[:order])
+          should "properly handle aliased values" do
+            # Don't resolve
+            assert_equal("updated",          TagQuery.new("order:updated")[:order])
+            assert_equal("updated_asc",      TagQuery.new("order:updated_asc")[:order])
 
-        # Aliased values should be correctly resolved
-        assert_equal("updated",          TagQuery.new("order:updated_at")[:order])
-        assert_equal("updated",          TagQuery.new("order:updated_at_desc")[:order])
-        assert_equal("updated_asc",      TagQuery.new("order:updated_at_asc")[:order])
+            # Aliased values should be correctly resolved
+            assert_equal("updated",          TagQuery.new("order:updated_at")[:order])
+            assert_equal("updated",          TagQuery.new("order:updated_at_desc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("order:updated_at_asc")[:order])
 
-        # Correctly resolved & inverted
-        assert_equal("updated",          TagQuery.new("-order:updated_at_asc")[:order])
-        assert_equal("updated_asc",      TagQuery.new("-order:updated_at_desc")[:order])
-        assert_equal("updated_asc",      TagQuery.new("-order:updated_at")[:order])
+            # Correctly resolved & inverted
+            assert_equal("updated",          TagQuery.new("-order:updated_at_asc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("-order:updated_at_desc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("-order:updated_at")[:order])
+          end
 
-        # Non-suffixed aliases should be handled correctly
-        # Don't resolve
-        assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
-        assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
+          should "properly handle aliases that don't allow suffixes" do
+            # Don't resolve
+            assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
+            assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
 
-        # Non-suffixed aliases should be correctly resolved
-        assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
-        assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
+            # Non-suffixed aliases should be correctly resolved
+            assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
+            assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
 
-        # Correctly resolved & inverted
-        assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
-        assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+            # Correctly resolved & inverted
+            assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
+            assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+          end
 
-        # `id` special case
-        assert_equal("id",               TagQuery.new("order:id")[:order])
-        assert_equal("id_desc",          TagQuery.new("order:id_desc")[:order])
-        assert_equal("id",               TagQuery.new("order:id_asc")[:order])
-        assert_equal("id_desc",          TagQuery.new("-order:id")[:order])
-        assert_equal("id_desc",          TagQuery.new("-order:id_asc")[:order])
+          should "correctly handle the id special case" do
+            assert_equal("id",               TagQuery.new("order:id")[:order])
+            assert_equal("id_desc",          TagQuery.new("order:id_desc")[:order])
+            assert_equal("id",               TagQuery.new("order:id_asc")[:order])
+            assert_equal("id_desc",          TagQuery.new("-order:id")[:order])
+            assert_equal("id",               TagQuery.new("-order:id_desc")[:order])
+            assert_equal("id_desc",          TagQuery.new("-order:id_asc")[:order])
+          end
+        end
       end
     end
 
@@ -1251,6 +1268,30 @@ class TagQueryTest < ActiveSupport::TestCase
     #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
     #   assert_equal()
     # end
+
+    context "Hoisting" do
+      should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        assert_raise(TagQuery::DepthExceededError) do
+          TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
+        end
+      end
+
+      should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
+      end
+    end
+
+    context "While unnesting a single unprefixed group" do
+      should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        assert_raise(TagQuery::DepthExceededError) do
+          TagQuery.new((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        end
+      end
+
+      should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
+    end
   end
 
   # TODO: expand to all valid candidates
@@ -1287,29 +1328,6 @@ class TagQueryTest < ActiveSupport::TestCase
       TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
       # mixed level query
       TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-  end
-
-  context "While hoisting through the constructor" do
-    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
-      end
-    end
-    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
-    end
-  end
-
-  context "While unpacking a search of a single group through the constructor" do
-    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-      end
-    end
-
-    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
     end
   end
 
