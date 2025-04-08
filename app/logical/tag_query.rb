@@ -1129,7 +1129,7 @@ class TagQuery
                                 0
                               end)
           next if group.blank?
-          q[:children_show_deleted] ||= group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
+          q[:children_show_deleted] ||= !group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
           q[:groups] ||= {}
           search_type = METATAG_SEARCH_TYPE[match[1]]
           q[:groups][search_type] ||= []
