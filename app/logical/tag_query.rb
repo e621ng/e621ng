@@ -881,7 +881,7 @@ class TagQuery
   # Pulls the value from the first of the specified metatags found.
   #
   # ### Parameters
-  # * `tags`: The content to search through. Accepts strings and arrays.
+  # * `tags` {`String` | `String[]`}: The content to search through.
   # * `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   # * `at_any_level` [`true`]: Search through groups?
@@ -930,7 +930,7 @@ class TagQuery
   # Pulls the values from the specified metatags.
   #
   # ### Parameters
-  # * `tags`: The content to search through. Accepts strings and arrays.
+  # * `tags` {`String` | `String[]`}: The content to search through.
   # * `metatags`: The metatags to search. Must exactly match. Modifiers aren't accounted for (i.e.
   # `status` won't match `-status` & vice versa).
   # * `at_any_level` [true]: Search through groups?
