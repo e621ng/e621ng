@@ -227,26 +227,29 @@ class TagQuery
   # `ElasticPostQueryBuilder.always_show_deleted`.
   # * `at_any_level` [`false`]: Should groups be accounted for, or just this level?
   #
-  # Returns true unless
+  # ### Returns
+  # `true` unless
   # * `always_show_deleted`,
   # * `q[:status]`/`q[:status_must_not]` contains a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`,
   # * One of the following is non-nil:
   #   * `q[:deleter]`/`q[:deleter_must_not]`/`q[:deleter_should]`
   #   * `q[:delreason]`/`q[:delreason_must_not]`/`q[:delreason_should]`, or
   # * If `at_any_level`,
-  #   * `q[:children_show_deleted]` is `true` or
-  #   * any of the subsearches in `q[:groups]` return false from
-  # `TagQuery.should_hide_deleted_posts?`
+  #   * `q[:children_show_deleted]` is `true`, or
+  #   * any of the subsearches in `q[:groups]` return `false` from `TagQuery.should_hide_deleted_posts?`
   #     * This is overridden to return `true` if the subsearches in `q[:groups]` are type `TagQuery`,
-  # as preprocessed queries should have had their resultant value elevated to this level during
-  # `process_groups`.
+  # as preprocessed queries should have had their resultant value elevated to this instance's
+  # `q[:children_show_deleted]` during group processing.
+  # ### Raises
+  # * `RuntimeError`: when `q[:children_show_deleted]` is `nil` & any element in `q[:groups]` is a
+  # `TagQuery`, as `q[:children_show_deleted]` shouldn't be `nil` if subsearches were processed.
   def hide_deleted_posts?(always_show_deleted: false, at_any_level: false)
     if always_show_deleted || q[:show_deleted]
       false
     elsif at_any_level
       if q[:children_show_deleted].nil? &&
          q[:groups].present? &&
-         [*(q[:groups][:must] || []), *(q[:groups][:must_not] || []), *(q[:groups][:should] || [])].any? { |e| e.is_a?(TagQuery) ? (raise "q[:children_show_deleted] shouldn't be nil.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
+         [*(q[:groups][:must] || []), *(q[:groups][:must_not] || []), *(q[:groups][:should] || [])].any? { |e| e.is_a?(TagQuery) ? (raise "Invalid State: q[:children_show_deleted] shouldn't be nil if subsearches were processed.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
         false
       else
         !q[:children_show_deleted]
