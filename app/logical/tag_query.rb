@@ -275,7 +275,7 @@ class TagQuery
     return false if always_show_deleted
     return query.hide_deleted_posts?(at_any_level: at_any_level) if query.is_a?(TagQuery)
     TagQuery.fetch_metatags(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level) do |tag, val|
-      return false unless tag.end_with?("status") && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
+      return false unless tag.delete_prefix("-") == "status" && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
     end
     true
   end
