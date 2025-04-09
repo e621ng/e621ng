@@ -81,8 +81,16 @@ class TagQuery
 
   # rubocop:disable Layout/HashAlignment -- Better readability for a constant
 
-  # All `order` metatag value aliases that can be inverted w/ a `_desc`/`_asc` suffix.
+  # A hashmap of all `order` metatag value aliases that can be inverted by being suffixed by
+  # `_desc`/`_asc`, to the effective value they represent.
+  #
   # All keys must map to a value in `TagQuery::ORDER_INVERTIBLE_ROOTS` (e.g. `order:comm` is an alias for `order:comment`).
+  #
+  # For example, `order:comm` is equivalent to `order:comment`, so `comm` is an alias for `comment`.
+  #
+  # Aliases are used to:
+  # 1. Resolve equivalent inputs to a unified output for `ElasticPostQueryBuilder` (e.g. `comm` & `comm_desc` will automatically be converted to `comment`, `comm_asc` will automatically be converted to `comment_asc`)
+  # 2. Automatically generate all valid related values for autocomplete (e.g. `comm` will have `comm`, `comm_desc`, & `comm_asc` added to autocomplete)
   ORDER_INVERTIBLE_ALIASES = {
     "created_at"  => "created",
     "updated_at"  => "updated",
@@ -91,7 +99,9 @@ class TagQuery
     "ratio"       => "aspect_ratio",
   }.freeze
 
-  # All `order` metatag value aliases that can't be inverted w/ a `_desc`/`_asc` suffix.
+  # A hashmap of all  `order` metatag value aliases that can't be inverted by being suffixed by
+  # `_desc`/`_asc`, to the effective value they represent.
+  #
   # All keys must map to a normalized value in `TagQuery::ORDER_METATAGS` (e.g. `order:landscape` is an alias for `order:aspect_ratio`, but `landscape` is mapped to `aspect_ratio` & not `aspect_ratio_desc`).
   ORDER_NON_SUFFIXED_ALIASES = {
     "portrait"    => "aspect_ratio_asc",
