@@ -11,9 +11,9 @@ Rails.application.configure do
     policy.default_src :self
     policy.script_src  :self, "ads.dragonfru.it", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/"
     policy.style_src   :self, :unsafe_inline
-    policy.connect_src :self, "ads.dragonfru.it", "plausible.dragonfru.it"
-    policy.object_src  :self, 'static1.e621.net', 'static1.e926.net'
-    policy.media_src   :self, 'static1.e621.net', 'static1.e926.net'
+    policy.connect_src :self, "ads.dragonfru.it", "plausible.dragonfru.it", "static1.e621.net", "static1.e926.net"
+    policy.object_src  :self, "static1.e621.net", "static1.e926.net"
+    policy.media_src   :self, "static1.e621.net", "static1.e926.net"
     policy.frame_ancestors :none
     policy.frame_src   'https://www.google.com/recaptcha/', 'https://www.recaptcha.net/'
     policy.font_src    :self
