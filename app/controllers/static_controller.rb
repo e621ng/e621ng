@@ -26,10 +26,6 @@ class StaticController < ApplicationController
   end
 
   def furid
-    @posts = Cache.fetch("furid_gallery", expires_in: 1.day) do
-      lookup = PostSets::Post.new("furid_(e621) status:any order:score", 1, limit: 4000).posts
-      lookup.map { |post| [post.id, post.preview_file_url, post.uploader_name] }
-    end
   end
 
   def not_found
