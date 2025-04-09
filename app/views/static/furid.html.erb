@@ -18,12 +18,13 @@
       Learn more: <a href="https://www.freespeechcoalition.com/age-verification">Free Speech Coalition</a> | <a href="https://www.defendonlineprivacy.com/">Defend Online Privacy</a>
     </p>
   </div>
-
-  <%= javascript_tag nonce: true do -%>
-    window.furidURL = "<%= Danbooru.config.storage_manager.furids_url %>";
-    Danbooru.FurID.initialize();
-  <% end -%>
 </div></div>
+
+<%= javascript_tag nonce: true do -%>
+  window.furidURL = "<%= Danbooru.config.storage_manager.furids_url %>";
+  if (<%= !Danbooru.config.safe_mode? %>)
+    Danbooru.FurID.initialize();
+<% end -%>
 
 <div id="furid_end_of_content"></div>
 
