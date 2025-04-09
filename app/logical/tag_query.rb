@@ -97,7 +97,15 @@ class TagQuery
     "comm"        => "comment",
     "comm_bumped" => "comment_bumped",
     "ratio"       => "aspect_ratio",
-  }.freeze
+  }.merge(
+    CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}tags"
+    end,
+    CATEGORY_METATAG_MAP.keys.index_by { |e| "#{e.delete_suffix('tags')}_tags" },
+    CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
+    end,
+  ).freeze
 
   # A hashmap of all  `order` metatag value aliases that can't be inverted by being suffixed by
   # `_desc`/`_asc`, to the effective value they represent.

@@ -599,8 +599,12 @@ class TagQueryTest < ActiveSupport::TestCase
   end
 
   should "have correctly constructed order constants" do
-    # TagQuery::ORDER_METATAGS.each { |x| puts "order:#{x} -> #{TagQuery.normalize_order_value(x, invert: false)}"; puts "-order:#{x} -> #{TagQuery.normalize_order_value(x, invert: true)}" }
-    assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates")
+    puts TagQuery::ORDER_INVERTIBLE_ALIASES
+    TagQuery::ORDER_METATAGS.each do |x|
+      puts "order:#{x} -> #{TagQuery.normalize_order_value(x, invert: false)}"
+      puts "-order:#{x} -> #{TagQuery.normalize_order_value(x, invert: true)}"
+    end
+    assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
     assert_equal([], TagQuery::ORDER_INVERTIBLE_ALIASES.values - TagQuery::ORDER_INVERTIBLE_ROOTS, "Not all resolved alias values are in roots.")
   end
 
