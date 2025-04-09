@@ -55,8 +55,24 @@ class TagsController < ApplicationController
     @tag = Tag.find(params[:id])
     raise User::PrivilegeError unless @tag.deletable_by?(CurrentUser.user)
 
+    errors = []
+
+    # 1. Posts
     count = Post.tag_match("#{@tag.name} status:any", resolve_aliases: false).count_only
-    raise "Cannot delete tags that are present on posts" if count > 0
+    errors.push("Cannot delete tags that are present on posts") if count > 0
+
+    # 2. Aliases
+    aliases = TagAlias.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+    errors.push("Cannot delete tags with active aliases") if aliases > 0
+
+    # 2. Implications
+    implications = TagImplication.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+    errors.push("Cannot delete tags with active implications") if implications > 0
+
+    if errors.any?
+      redirect_back(fallback_location: tags_path(search: { name_matches: @tag.name }), notice: errors.join("; "))
+      return
+    end
 
     @tag.destroy
 
