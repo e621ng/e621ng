@@ -124,6 +124,8 @@ class TagQuery
     deletedby -deletedby ~deletedby
   ].freeze
 
+  STATUS_VALUES = %w[all any pending modqueue deleted flagged active].freeze
+
   # Used for quickly profiling optimizations, tweaking desired behavior, etc. Should be removed
   # after reviews are completed.
   # * `COUNT_TAGS_WITH_SCAN_RECURSIVE` [`false`]: Use `TagQuery.scan_recursive` to increment

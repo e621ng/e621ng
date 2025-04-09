@@ -660,7 +660,7 @@ class TagQueryTest < ActiveSupport::TestCase
 
   # TODO: Add more test cases for group parsing
   # TODO: Add more test cases for metatag parsing
-  context "Parsing a query:" do
+  context "Parsing:" do
     should "correctly handle up to 40 standard tags" do
       expected_result = {
         tags: {
@@ -763,7 +763,7 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_equal(%w[acb azb], TagQuery.new("( a*b )")[:tags][:should])
     end
 
-    context "W/ metatags:" do
+    context "Metatags:" do
       should "match w/ case insensitivity" do
         %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
       end
@@ -925,6 +925,50 @@ class TagQueryTest < ActiveSupport::TestCase
               assert_not(result.hide_deleted_posts?)
             end
           end
+        end
+      end
+
+      should "correctly handle status" do
+        TagQuery::STATUS_VALUES.each do |x| # rubocop:disable Metrics/BlockLength
+          result = TagQuery.new(-"status:#{x}")
+          assert_equal(x, result[:status])
+          assert_nil(result[:status_must_not])
+          result = TagQuery.new(-"status:active status:#{x}")
+          assert_equal(true, result[:show_deleted])
+          assert_equal(x, result[:status])
+          assert_nil(result[:status_must_not])
+          assert_not(result.hide_deleted_posts?)
+          result = TagQuery.new(-"status:#{x} status:active")
+          assert_equal(true, result[:show_deleted])
+          assert_equal("active", result[:status])
+          assert_nil(result[:status_must_not])
+          assert_not(result.hide_deleted_posts?)
+          result = TagQuery.new(-"-status:modqueue status:#{x}")
+          assert_equal(x, result[:status])
+          result = TagQuery.new("status:#{x} -status:modqueue")
+          assert_equal("modqueue", result[:status_must_not])
+          assert_nil(result[:status])
+
+          result = TagQuery.new(-"-status:#{x}")
+          assert_equal(x, result[:status_must_not])
+          assert_nil(result[:status])
+          result = TagQuery.new(-"-status:active -status:#{x}")
+          assert_equal(true, result[:show_deleted])
+          assert_equal(x, result[:status_must_not])
+          assert_nil(result[:status])
+          assert_not(result.hide_deleted_posts?)
+          result = TagQuery.new(-"-status:#{x} -status:active")
+          assert_equal(true, result[:show_deleted])
+          assert_equal("active", result[:status_must_not])
+          assert_nil(result[:status])
+          assert_not(result.hide_deleted_posts?)
+          result = TagQuery.new(-"-status:modqueue -status:#{x}")
+          assert_nil(result[:status])
+          result = TagQuery.new("-status:#{x} -status:modqueue")
+          assert_equal("modqueue", result[:status_must_not])
+          assert_nil(result[:status])
+
+          # assert_includes(ElasticPostQueryBuilder.new("status:pending", resolve_aliases: true, free_tags_count: 0, enable_safe_mode: false, always_show_deleted: false).create_query_obj, { term: { pending: true } })
         end
       end
 
