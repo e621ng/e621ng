@@ -19,11 +19,13 @@
     </p>
   </div>
 
-  <% @posts.each do |id, url, creator| %>
-    <img src="<%= url %>" loading="lazy" data-id="<%= id %>" data-creator="<%= creator %>" />
-  <% end %>
-
+  <%= javascript_tag nonce: true do -%>
+    window.furidURL = "<%= Danbooru.config.storage_manager.furids_url %>";
+    Danbooru.FurID.initialize();
+  <% end -%>
 </div></div>
+
+<div id="furid_end_of_content"></div>
 
 <% content_for(:page_title) do %>
   FurID
