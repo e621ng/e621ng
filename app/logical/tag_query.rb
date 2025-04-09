@@ -124,6 +124,8 @@ class TagQuery
     deletedby -deletedby ~deletedby
   ].freeze
 
+  STATUS_VALUES = %w[all any pending modqueue deleted flagged active].freeze
+
   # Used for quickly profiling optimizations, tweaking desired behavior, etc. Should be removed
   # after reviews are completed.
   # * `COUNT_TAGS_WITH_SCAN_RECURSIVE` [`false`]: Use `TagQuery.scan_recursive` to increment
@@ -1272,12 +1274,12 @@ class TagQuery
       when "status"
         q[:status] = g2.downcase
         q[:status_must_not] = nil
-        q[:show_deleted] ||= q[:status].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
+        q[:show_deleted] ||= q[:status].in?(STATUS_VALUES)
 
       when "-status"
         q[:status_must_not] = g2.downcase
         q[:status] = nil
-        q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
+        q[:show_deleted] ||= q[:status_must_not].in?(STATUS_VALUES)
 
       when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
 
