@@ -9,6 +9,8 @@ FurID.initialize = async function () {
   FurID.baseURL = window.furidURL;
   FurID.wrapper = $("#a-furid");
 
+  // Manifest file lists all furID files, ordered by score.
+  // See the "misc" repo to generate one automatically.
   const manifestRequest = await fetch(FurID.baseURL + "manifest.json");
   const fullManifest = await manifestRequest.json();
   FurID.manifest = [];
