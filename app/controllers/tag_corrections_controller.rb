@@ -7,6 +7,17 @@ class TagCorrectionsController < ApplicationController
   def new
     @from_wiki = request.referer.try(:include?, "wiki_pages") || false
     @correction = TagCorrection.new(params[:tag_id])
+
+    if CurrentUser.is_bd_staff?
+      @tag = Tag.find(params[:tag_id])
+
+      @true_count = Post.tag_match("#{@tag.name} status:any", resolve_aliases: false).count_only
+      @aliases = TagAlias.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+      @implications = TagImplication.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+
+      @destroyable = @true_count == 0 && @aliases == 0 && @implications == 0
+    end
+
     respond_with(@correction)
   end
 
