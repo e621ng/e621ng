@@ -967,6 +967,8 @@ class TagQueryTest < ActiveSupport::TestCase
           result = TagQuery.new("-status:#{x} -status:modqueue")
           assert_equal("modqueue", result[:status_must_not])
           assert_nil(result[:status])
+
+          # assert_includes(ElasticPostQueryBuilder.new("status:pending", resolve_aliases: true, free_tags_count: 0, enable_safe_mode: false, always_show_deleted: false).create_query_obj, { term: { pending: true } })
         end
       end
 
