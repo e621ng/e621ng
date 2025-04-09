@@ -39,5 +39,12 @@
         <%= link_to "Enabled", toggle_uploads_user_path(user) %>
       <% end %>
     </span>
+
+    <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
+      <h4>Tag Changes</h4>
+      <span>
+        <%= link_to "Revert All", new_user_revert_path(user_id: user.id) %>
+      </span>
+    <% end %>
   </div>
 </div>
