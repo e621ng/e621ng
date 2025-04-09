@@ -42,6 +42,7 @@ export { default as Blacklist } from "../src/javascripts/blacklists.js";
 export { default as Blip } from "../src/javascripts/blips.js";
 export { default as Comment } from "../src/javascripts/comments.js";
 export { default as DText } from "../src/javascripts/dtext.js";
+export { default as FurID } from "../src/javascripts/furid.js";
 export { default as ModAction } from "../src/javascripts/mod_actions.js";
 export { default as Note } from "../src/javascripts/notes.js";
 export { default as Post } from "../src/javascripts/posts.js";

@@ -1,0 +1,32 @@
+<div id="c-static"><div id="a-furid">
+
+  <div class="furid-text">
+    <h2>April Fools!</h2>
+    <p>
+      Thank you to everyone who submitted their FurID!<br />
+       We never expected such a huge response, and you honestly made our day. We are looking into ways
+       of reintroducing the drawing tool to the website, just in a less obtrusive way.
+    </p>
+    <p>
+      Although FurID is intended as a joke, the topic that it satirizes is no laughing matter.<br />
+      Legislators in multiple US states are attempting to force websites like e621 into implementing
+      mandatory age verification for all users. That includes Arizona, where this site is currently
+      hosted. Not only is this a massive violation of privacy, but it also introduces serious risks,
+      including identity theft.
+    </p>
+    <p>
+      Learn more: <a href="https://www.freespeechcoalition.com/age-verification">Free Speech Coalition</a> | <a href="https://www.defendonlineprivacy.com/">Defend Online Privacy</a>
+    </p>
+  </div>
+
+  <%= javascript_tag nonce: true do -%>
+    window.furidURL = "<%= Danbooru.config.storage_manager.furids_url %>";
+    Danbooru.FurID.initialize();
+  <% end -%>
+</div></div>
+
+<div id="furid_end_of_content"></div>
+
+<% content_for(:page_title) do %>
+  FurID
+<% end %>

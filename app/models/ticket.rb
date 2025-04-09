@@ -322,7 +322,11 @@ class Ticket < ApplicationRecord
   end
 
   def open_duplicates
-    Ticket.where("qtype = ? and disp_id = ? and status = ?", qtype, disp_id, "pending")
+    Ticket.where(
+      qtype: qtype,
+      disp_id: disp_id,
+      status: "pending",
+    ).where.not(id: id)
   end
 
   def warnable?

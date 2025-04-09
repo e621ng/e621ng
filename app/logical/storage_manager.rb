@@ -205,6 +205,10 @@ class StorageManager
     delete(mascot_path(md5, file_ext))
   end
 
+  def furids_url
+    "#{base_url}#{base_path}/furid/"
+  end
+
   def subdir_for(md5)
     hierarchical ? "#{md5[0..1]}/#{md5[2..3]}/" : ""
   end
