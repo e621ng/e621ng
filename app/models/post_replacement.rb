@@ -21,6 +21,7 @@ class PostReplacement < ApplicationRecord
   validate :write_storage_file, on: :create
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
+  before_create :create_original_backup
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
@@ -235,6 +236,34 @@ class PostReplacement < ApplicationRecord
       update_attribute(:status, 'rejected')
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    def create_original_backup
+      return if is_backup || post.replacements.where(status: "original").exists?
+
+      backup = post.replacements.new(
+        creator_id: post.uploader_id,
+        creator_ip_addr: post.uploader_ip_addr,
+        status: "original",
+        image_width: post.image_width,
+        image_height: post.image_height,
+        file_ext: post.file_ext,
+        file_size: post.file_size,
+        md5: post.md5,
+        file_name: "#{post.md5}.#{post.file_ext}",
+        source: post.source,
+        reason: "Backup of original file",
+        is_backup: true,
+      )
+
+      backup.replacement_file = Danbooru.config.storage_manager.open(
+        Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
+      )
+
+      unless backup.save
+        errors.add(:base, "Failed to create backup: #{backup.errors.full_messages.to_sentence}")
+        throw :abort
+      end
     end
   end
 
