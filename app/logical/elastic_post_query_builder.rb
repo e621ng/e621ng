@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class ElasticPostQueryBuilder < ElasticQueryBuilder
-  LOCK_TYPE_TO_INDEX_FIELD = {
+  LOCK_TYPE_TO_INDEX_FIELD = Hash.new("missing").merge ({
     rating: :rating_locked,
     note: :note_locked,
     status: :status_locked,
-  }.freeze
+  }).freeze
 
   # Used to determine if a grouped search that wouldn't automatically filter out deleted searches
   # will force other grouped searches to not automatically filter out deleted searches. (i.e. if the
@@ -102,9 +102,47 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     !(q[:show_deleted] || !q.hide_deleted_posts?(at_any_level: at_any_level))
   end
 
+  # Used to resolve handle the values in `q[:order]`. Each value should be unique; if you want a
+  # a new `order` metatag value to match one of these preexisting values, add it in `TagQuery`;
+  # otherwise, it won't be in the autocomplete (among other thing).
+  ORDER_TABLE = Hash.new({ id: :desc }).merge({
+    "id" => [{ id: :asc }],
+    "id_desc" => [{ id: :desc }],
+    "change" => [{ change_seq: :desc }],
+    "change_asc" => [{ change_seq: :asc }],
+    "md5" => [{ md5: :desc }],
+    "md5_asc" => [{ md5: :asc }],
+    "score" => [{ score: :desc }, { id: :desc }],
+    "score_asc" => [{ score: :asc }, { id: :asc }],
+    "duration" => [{ duration: :desc }, { id: :desc }],
+    "duration_asc" => [{ duration: :asc }, { id: :asc }],
+    "favcount" => [{ fav_count: :desc }, { id: :desc }],
+    "favcount_asc" => [{ fav_count: :asc }, { id: :asc }],
+    "created" => [{ created_at: :desc }],
+    "created_asc" => [{ created_at: :asc }],
+    "updated" => [{ updated_at: :desc }, { id: :desc }],
+    "updated_asc" => [{ updated_at: :asc }, { id: :asc }],
+    "comment" => [{ commented_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "comment_asc" => [{ commented_at: { order: :asc, missing: :_last } }, { id: :asc }],
+    "note" => [{ noted_at: { order: :desc, missing: :_last } }],
+    "note_asc" => [{ noted_at: { order: :asc, missing: :_first } }],
+    "mpixels" => [{ mpixels: :desc }],
+    "mpixels_asc" => [{ mpixels: :asc }],
+    "aspect_ratio_asc" => [{ aspect_ratio: :asc }],
+    "aspect_ratio" => [{ aspect_ratio: :desc }],
+    "filesize" => [{ file_size: :desc }],
+    "filesize_asc" => [{ file_size: :asc }],
+    "tagcount" => [{ tag_count: :desc }],
+    "tagcount_asc" => [{ tag_count: :asc }],
+    "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
+    # "rank" => [{ _score: :desc }],
+    # "random" => [{ _score: :desc }],
+  }).freeze.each_value(&:freeze)
+
   def build
     if @enable_safe_mode
-      must.push({term: {rating: "s"}})
+      must.push({ term: { rating: "s" } })
     end
 
     add_array_range_relation(:post_id, :id)
@@ -127,9 +165,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_array_range_relation(:post_tag_count, :tag_count)
 
     TagQuery::COUNT_METATAGS.map(&:to_sym).each do |column|
-      if q[column]
-        relation = range_relation(q[column], column)
-        must.push(relation) if relation
+      if q[column] && (relation = range_relation(q[column], column))
+        must.push(relation)
       end
     end
 
@@ -138,29 +175,35 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if q[:status] == "pending"
-      must.push({term: {pending: true}})
+      must.push({ term: { pending: true } })
     elsif q[:status] == "flagged"
-      must.push({term: {flagged: true}})
+      must.push({ term: { flagged: true } })
     elsif q[:status] == "modqueue"
       must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status] == "deleted"
-      must.push({term: {deleted: true}})
+      must.push({ term: { deleted: true } })
     elsif q[:status] == "active"
-      must.concat([{term: {pending: false}},
-                   {term: {deleted: false}},
-                   {term: {flagged: false}}])
+      must.push(
+        { term: { pending: false } },
+        { term: { deleted: false } },
+        { term: { flagged: false } },
+      )
     elsif q[:status] == "all" || q[:status] == "any"
       # do nothing
     elsif q[:status_must_not] == "pending"
-      must_not.push({term: {pending: true}})
+      must_not.push({ term: { pending: true } })
     elsif q[:status_must_not] == "flagged"
-      must_not.push({term: {flagged: true}})
+      must_not.push({ term: { flagged: true } })
     elsif q[:status_must_not] == "modqueue"
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }))
     elsif q[:status_must_not] == "deleted"
-      must_not.push({term: {deleted: true}})
+      must_not.push({ term: { deleted: true } })
     elsif q[:status_must_not] == "active"
-      must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
+      must.push(match_any(
+                  { term: { pending: true } },
+                  { term: { deleted: true } },
+                  { term: { flagged: true } },
+                ))
     end
 
     add_array_relation(:uploader_ids, :uploader)
@@ -196,45 +239,47 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if q[:child] == "none"
-      must.push({term: {has_children: false}})
+      must.push({ term: { has_children: false } })
     elsif q[:child] == "any"
-      must.push({term: {has_children: true}})
+      must.push({ term: { has_children: true } })
     end
 
+    # Handle locks
     q[:locked]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
     end
 
     q[:locked_must_not]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => false } })
+      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => false } })
     end
 
     q[:locked_should]&.each do |lock_type|
-      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD.fetch(lock_type, "missing") => true } })
+      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
     end
 
+    # Handle `TagQuery::BOOLEAN_METATAGS`
     if q.include?(:hassource)
-      (q[:hassource] ? must : must_not).push({exists: {field: :source}})
+      (q[:hassource] ? must : must_not).push({ exists: { field: :source } })
     end
 
     if q.include?(:hasdescription)
-      (q[:hasdescription] ? must : must_not).push({exists: {field: :description}})
+      (q[:hasdescription] ? must : must_not).push({ exists: { field: :description } })
     end
 
     if q.include?(:ischild)
-      (q[:ischild] ? must : must_not).push({exists: {field: :parent}})
+      (q[:ischild] ? must : must_not).push({ exists: { field: :parent } })
     end
 
     if q.include?(:isparent)
-      must.push({term: {has_children: q[:isparent]}})
+      must.push({ term: { has_children: q[:isparent] } })
     end
 
     if q.include?(:inpool)
-      (q[:inpool] ? must : must_not).push({exists: {field: :pools}})
+      (q[:inpool] ? must : must_not).push({ exists: { field: :pools } })
     end
 
     if q.include?(:pending_replacements)
-      must.push({term: {has_pending_replacements: q[:pending_replacements]}})
+      must.push({ term: { has_pending_replacements: q[:pending_replacements] } })
     end
 
     if q.include?(:artverified)
@@ -250,150 +295,47 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_group_search_relation(q[:groups])
 
     # The groups updated our value; now optionally hide deleted
-    # must.push({ term: { deleted: false } }) unless @always_show_deleted
     must.push({ term: { deleted: false } }) if hide_deleted_posts?
 
-    case q[:order]
-    when "id", "id_asc"
-      order.push({id: :asc})
-
-    when "id_desc"
-      order.push({id: :desc})
-
-    when "change", "change_desc"
-      order.push({change_seq: :desc})
-
-    when "change_asc"
-      order.push({change_seq: :asc})
-
-    when "md5"
-      order.push({md5: :desc})
-
-    when "md5_asc"
-      order.push({md5: :asc})
-
-    when "score", "score_desc"
-      order.concat([{score: :desc}, {id: :desc}])
-
-    when "score_asc"
-      order.concat([{score: :asc}, {id: :asc}])
-
-    when "duration", "duration_desc"
-      order.concat([{duration: :desc}, {id: :desc}])
-
-    when "duration_asc"
-      order.concat([{duration: :asc}, {id: :asc}])
-
-    when "favcount"
-      order.concat([{fav_count: :desc}, {id: :desc}])
-
-    when "favcount_asc"
-      order.concat([{fav_count: :asc}, {id: :asc}])
-
-    when "created_at", "created_at_desc"
-      order.push({created_at: :desc})
-
-    when "created_at_asc"
-      order.push({created_at: :asc})
-
-    when "updated", "updated_desc"
-      order.concat([{updated_at: :desc}, {id: :desc}])
-
-    when "updated_asc"
-      order.concat([{updated_at: :asc}, {id: :asc}])
-
-    when "comment", "comm"
-      order.push({commented_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
-
-    when "comment_bumped"
-      must.push({exists: {field: 'comment_bumped_at'}})
-      order.push({comment_bumped_at: {order: :desc, missing: :_last}})
-      order.push({id: :desc})
-
-    when "comment_bumped_asc"
-      must.push({exists: {field: 'comment_bumped_at'}})
-      order.push({comment_bumped_at: {order: :asc, missing: :_last}})
-      order.push({id: :desc})
-
-    when "comment_asc", "comm_asc"
-      order.push({commented_at: {order: :asc, missing: :_last}})
-      order.push({id: :asc})
-
-    when "note"
-      order.push({noted_at: {order: :desc, missing: :_last}})
-
-    when "note_asc"
-      order.push({noted_at: {order: :asc, missing: :_first}})
-
-    when "mpixels", "mpixels_desc"
-      order.push({mpixels: :desc})
-
-    when "mpixels_asc"
-      order.push({mpixels: :asc})
-
-    when "portrait"
-      order.push({aspect_ratio: :asc})
-
-    when "landscape"
-      order.push({aspect_ratio: :desc})
-
-    when "filesize", "filesize_desc"
-      order.push({file_size: :desc})
-
-    when "filesize_asc"
-      order.push({file_size: :asc})
-
-    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc|desc))?\z/i
-      column = Regexp.last_match[:column]
+    case q[:order] # rubocop:disable Style/MultilineIfModifier,Lint/RedundantCopDisableDirective -- Skipping this is the exception, not the rule.
+    when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
       direction = Regexp.last_match[:direction] || "desc"
-      order.concat([{column => direction}, {id: direction}])
+      order.push({ Regexp.last_match[:column] => direction }, { id: direction })
 
-    when "tagcount", "tagcount_desc"
-      order.push({tag_count: :desc})
+    when /\A(#{TagCategory::SHORT_NAME_REGEX})tags(_asc)?\Z/
+      order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
 
-    when "tagcount_asc"
-      order.push({tag_count: :asc})
-
-    when /(#{TagCategory::SHORT_NAME_REGEX})tags(?:\Z|_desc)/
-      order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :desc})
-
-    when /(#{TagCategory::SHORT_NAME_REGEX})tags_asc/
-      order.push({"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => :asc})
-
+    # Put simply, scales the post's score by how long the post has existed
     when "rank"
+      order.push({ _score: :desc })
+      must.push({ range: { score: { gt: 0 } } }, { range: { created_at: { gte: 2.days.ago } } })
       @function_score = {
         script_score: {
-          script: {
+          script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
             params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
             source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
           },
         },
       }
-      must.push({ range: { score: { gt: 0 } } })
-      must.push({ range: { created_at: { gte: 2.days.ago } } })
-      order.push({ _score: :desc })
 
     when "random"
-      if q[:random_seed].present?
-        @function_score = {
-          random_score: { seed: q[:random_seed], field: "id" },
-          boost_mode: :replace,
-        }
-      else
-        @function_score = {
-          random_score: {},
-          boost_mode: :replace,
-        }
-      end
+      order.push({ _score: :desc })
+      @function_score = {
+        random_score: q[:random_seed].present? ? { seed: q[:random_seed], field: "id" } : {},
+        boost_mode: :replace,
+      }
 
-      order.push({_score: :desc})
+    when "comment_bumped", "comment_bumped_asc"
+      self.order = ORDER_TABLE[q[:order]]
+      must.push({ exists: { field: "comment_bumped_at" } })
 
     else
-      order.push({id: :desc})
-    end
+      self.order = ORDER_TABLE[q[:order]]
+      # Don't add order if nested in a group; it should have been pulled out prior.
+    end unless @depth > 0
 
     if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0
+      # NOTE: As written, it's ambiguous if this is intended to overwrite `ElasticQueryBuilder.should`.
       should = [
         {
           range: {
@@ -402,27 +344,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
             },
           },
         },
-        {
-          term: {
-            pending: false,
-          },
-        }
+        { term: { pending: false } },
       ]
 
       unless CurrentUser.user.id.nil?
-        should.push({
-          term: {
-            uploader: CurrentUser.user.id,
-          },
-        })
+        should.push({ term: { uploader: CurrentUser.user.id } })
       end
 
-      must.push({
-        bool: {
-          should: should,
-          minimum_should_match: 1,
-        },
-      })
+      must.push(match_any(*should))
     end
   end
 end
