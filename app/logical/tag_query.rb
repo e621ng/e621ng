@@ -97,6 +97,7 @@ class TagQuery
     "comm"        => "comment",
     "comm_bumped" => "comment_bumped",
     "ratio"       => "aspect_ratio",
+  # }.freeze # rubocop:disable Layout/CommentIndentation
   }.merge(
     CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
       "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}tags"
