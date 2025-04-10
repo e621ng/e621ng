@@ -301,25 +301,26 @@ class PostReplacement < ApplicationRecord
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
 
-        q.order(Arel.sql("CASE status
-          WHEN 'pending'  THEN 0
-          WHEN 'approved' THEN 1
-          WHEN 'original' THEN 2
-          WHEN 'rejected' THEN 3
-          ELSE 4
-          END ASC, id DESC"))
+        direction = params[:order] == "id_asc" ? "ASC" : "DESC"
+
+        q.order(Arel.sql("
+          CASE status
+            WHEN 'original' THEN 0
+            ELSE #{table_name}.id
+          END #{direction}
+        "))
       end
 
       def pending
-        where(status: 'pending')
+        where(status: "pending")
       end
 
       def rejected
-        where(status: 'rejected')
+        where(status: "rejected")
       end
 
       def approved
-        where(status: 'approved')
+        where(status: "approved")
       end
 
       def for_user(id)
