@@ -1112,7 +1112,7 @@ class Post < ApplicationRecord
   module VoteMethods
     def own_vote(user = CurrentUser.user)
       return nil unless user
-      votes.where('user_id = ?', user.id).first
+      votes.where("user_id = ?", user.id).first
     end
   end
 
@@ -1120,8 +1120,9 @@ class Post < ApplicationRecord
     def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
       tags += " rating:s" if enable_safe_mode
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      tags = TagQuery.normalize(tags)
+      # tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      tags += " -status:deleted" if TagQuery.can_append_deleted_filter?(tags, at_any_level: true)
+      tags = TagQuery.normalize(tags) # IDEA: Shouldn't this be before adding 2 metatags that shouldn't be processed?
 
       cache_key = "pfc:#{tags}"
       count = Cache.fetch(cache_key)
