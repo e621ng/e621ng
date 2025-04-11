@@ -1,4 +1,4 @@
-<tr id="replacement-<%= post_replacement.id %>" class="<%= 'replacement-pending-row' if post_replacement.status == 'pending' %>">
+<tr id="replacement-<%= post_replacement.id %>" class="<%= "replacement-pending-row" if post_replacement.status == "pending" %>">
   <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
@@ -6,7 +6,7 @@
     <dd><%= post_replacement.post_id %>:<%= post_replacement.sequence_number %></dd>
     <dt>Status</dt>
     <dd>
-      <% if post_replacement.status == 'approved' %>
+      <% if post_replacement.status == "approved" %>
         <% if post_replacement.md5 == post_replacement.post.md5 %>
           approved, current
         <% else %>
@@ -14,7 +14,7 @@
         <% end %>
         <dt>Approver</dt>
         <dd><%= link_to_user post_replacement.approver %></dd>
-      <% elsif post_replacement.status == 'original' %>
+      <% elsif post_replacement.status == "original" %>
         original
       <% else %>
         <%= post_replacement.status %>
@@ -25,7 +25,7 @@
     <dt>Version Uploader</dt>
     <dd><%= link_to_user post_replacement.creator %></dd>
 
-    <% unless post_replacement.status == 'original' || post_replacement.status == 'pending' %>
+    <% unless post_replacement.status == "original" || post_replacement.status == "pending" %>
       <dt>Previous Uploader</dt>
       <dd>
         <%= link_to_user post_replacement.uploader_on_approve %>
@@ -75,7 +75,7 @@
     <dt>Updated at</dt>
     <%= compact_time post_replacement.updated_at %>
     <dt>Reason</dt>
-    <dd class="replacement-reason"><%= post_replacement.reason.present? ? post_replacement.reason : "None provided" %></dd>
+    <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
   </td>
   <td>
     <% if CurrentUser.can_approve_posts? %>
