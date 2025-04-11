@@ -266,9 +266,13 @@ class PostReplacement < ApplicationRecord
         is_backup: true,
       )
 
-      backup.replacement_file = Danbooru.config.storage_manager.open(
-        Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
-      )
+      begin
+        backup.replacement_file = Danbooru.config.storage_manager.open(
+          Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
+        )
+      rescue StandardError => e
+        raise ProcessingError, "Failed to create backup: #{e.message}"
+      end
 
       unless backup.save
         errors.add(:base, "Failed to create backup: #{backup.errors.full_messages.to_sentence}")
