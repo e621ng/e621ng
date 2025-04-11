@@ -16,6 +16,7 @@ class ApplicationController < ActionController::Base
 
   include TitleHelper
   include DeferredPosts
+  include RenderPartialSafely
   helper_method :deferred_post_ids, :deferred_posts
 
   rescue_from Exception, :with => :rescue_exception
