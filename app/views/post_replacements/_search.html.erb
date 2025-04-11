@@ -5,4 +5,5 @@
   <%= f.user :approver %>
   <%= f.user %i[uploader_name_on_approve uploader_id_on_approve], label: "Original Uploader" %>
   <%= f.input :status, collection: ["pending", "rejected", "approved", "promoted"], include_blank: true %>
+  <%= f.input :order, include_blank: false, collection: [%w[Priority priority], %w[ID id_desc]] %>
 <% end %>
