@@ -313,12 +313,26 @@ class PostReplacement < ApplicationRecord
 
         direction = params[:order] == "id_asc" ? "ASC" : "DESC"
 
-        q.order(Arel.sql("
-          CASE status
-            WHEN 'original' THEN 0
-            ELSE #{table_name}.id
-          END #{direction}
-        "))
+        case params[:order]
+        when "id", "id_asc", "id_desc"
+          q.order(Arel.sql("
+            CASE status
+              WHEN 'original' THEN 0
+              ELSE #{table_name}.id
+            END #{direction}
+          "))
+        else
+          q.order(Arel.sql("
+            CASE status
+              WHEN 'pending'  THEN 0
+              WHEN 'approved' THEN 1
+              WHEN 'original' THEN 2
+              WHEN 'rejected' THEN 3
+              ELSE 4
+            END ASC,
+            #{table_name}.id DESC
+          "))
+        end
       end
 
       def pending
