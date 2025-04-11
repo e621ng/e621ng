@@ -1421,6 +1421,45 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
+  # TODO: Test w/ at_any_level: false
+  context "When determining whether or not to append '-status:deleted'" do
+    should "work with a string" do
+      assert(TagQuery.can_append_deleted_filter?("aaa bbb"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb status:deleted"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb deletedby:someone"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb delreason:something"), at_any_level: true)
+      # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb delreason:something status:pending"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb -status:active"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa bbb status:modqueue"), at_any_level: true)
+      assert(TagQuery.can_append_deleted_filter?("( aaa bbb )"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb status:any )"), at_any_level: true)
+      assert(TagQuery.can_append_deleted_filter?("( aaa ( bbb ) )"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb ( aaa status:any ) )"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb ( aaa deletedby:someone ) )"), at_any_level: true)
+      # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb ( aaa delreason:something ) status:pending )"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb ( aaa ) status:pending )"), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?("aaa ( bbb status:modqueue )"), at_any_level: true)
+    end
+
+    should "work with an array" do
+      assert(TagQuery.can_append_deleted_filter?(%w[aaa bbb]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(%w[aaa bbb status:deleted]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(%w[aaa bbb deletedby:someone]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(%w[aaa bbb delreason:something]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(%w[aaa bbb -status:active]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(%w[aaa bbb status:modqueue]), at_any_level: true)
+      assert(TagQuery.can_append_deleted_filter?(["( aaa bbb )"]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(["aaa", "( bbb status:any )"]), at_any_level: true)
+      assert(TagQuery.can_append_deleted_filter?(["( aaa ( bbb ) )"]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(["aaa", "( bbb ( aaa status:any ) )"]), at_any_level: true)
+      assert_not(TagQuery.can_append_deleted_filter?(["aaa", "( bbb ( aaa deletedby:someone ) )"]), at_any_level: true)
+      # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
+      assert_not(TagQuery.can_append_deleted_filter?(["aaa", "( bbb ( aaa delreason:something ) status:pending )"]), at_any_level: true)
+    end
+  end
+
   # TODO: Figure out all potential edge cases
   # should_eventually "quickly & correctly identify if query contains groups" do
   #   # Just a group
