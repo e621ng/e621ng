@@ -285,6 +285,7 @@ class TagQuery
     true
   end
 
+  # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
   def self.can_append_deleted_filter?(query, at_any_level: true)
     !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
   end
