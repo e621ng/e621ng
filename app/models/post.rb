@@ -1119,8 +1119,9 @@ class Post < ApplicationRecord
   module CountMethods
     def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
+      # TODO: Determine if the following lines are redundant & remove if so.
       tags += " rating:s" if enable_safe_mode
-      # tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
+      # tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status") # Doesn't account for `deletedby` & `delreason`
       tags += " -status:deleted" if TagQuery.can_append_deleted_filter?(tags, at_any_level: true)
       tags = TagQuery.normalize(tags) # IDEA: Shouldn't this be before adding 2 metatags that shouldn't be processed?
 
@@ -1576,6 +1577,14 @@ class Post < ApplicationRecord
       tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
     end
 
+    # Uses OpenSearch to find and return matching `Post`s.
+    # ### Parameters
+    # * `query` {`String`}
+    # * `resolve_aliases` [`true`]
+    # * `free_tags_count` [`0`]: How many tags of the maximum allowed per query are outside of `query`?
+    # * `enable_safe_mode` [`CurrentUser.safe_mode?`]: Override any preexisting `rating`'s and
+    # restrict results to safe posts?
+    # * `always_show_deleted` [`false`]
     def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
       ElasticPostQueryBuilder.new(
         query,

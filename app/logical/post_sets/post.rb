@@ -12,13 +12,11 @@ module PostSets
     def initialize(tags, page = 1, limit: nil, random: nil)
       super()
       tags ||= ""
-      # Rails.logger.debug { "P<PS::B tags before: #{tags}" }
       @public_tag_array = TagQuery.scan_search(tags, error_on_depth_exceeded: true)
       @tag_array = @public_tag_array.dup
+      # TODO: Determine if the following 2 lines are redundant & remove them & `public_tag_*` members if so.
       @tag_array << "rating:s" if CurrentUser.safe_mode?
-      # @tag_array << "-status:deleted" if TagQuery.should_hide_deleted_posts?(tags, at_any_level: true)
       @tag_array << "-status:deleted" if TagQuery.can_append_deleted_filter?(tags, at_any_level: true)
-      # Rails.logger.debug { "P<PS::B tag_string after: #{tag_string}" }
       @page = page
       # limit should have been hoisted by scan_search
       @limit = limit || TagQuery.fetch_metatag(tag_array, "limit", at_any_level: false)

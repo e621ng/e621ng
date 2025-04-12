@@ -26,7 +26,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     # If it got this far, failing silently didn't work; force error
     raise TagQuery::DepthExceededError if @depth >= TagQuery::DEPTH_LIMIT
     unless query.is_a?(TagQuery)
-      # Rails.logger.debug { -"Query: #{query}" }
       query = TagQuery.new(
         query,
         resolve_aliases: resolve_aliases,
@@ -35,16 +34,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         can_have_groups: true,
       )
     end
-    # Rails.logger.debug { -"TQ.q: #{query.q}" }
-    # Rails.logger.debug { -"TQ#hide_deleted_posts?: #{query.hide_deleted_posts?(at_any_level: true)}" }
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
-    # Rails.logger.debug { -"asd: #{always_show_deleted}" }
     @always_show_deleted = always_show_deleted
-    # Rails.logger.debug { -"Check?: #{GLOBAL_DELETED_FILTER && @depth <= 0}" }
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
-    # Rails.logger.debug { -"@always_show_deleted: #{@always_show_deleted}" }
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
     super(query)
   end
@@ -369,7 +363,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       @function_score = {
         script_score: {
           script: {
-            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 }, # rubocop:disable Naming/VariableNumber
             source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
           },
         },
@@ -420,9 +414,5 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         },
       })
     end
-    # result = { bool: { must: must.presence || [{ match_all: {} }] } }
-    # result[:bool][:must_not] = must_not if must_not.present?
-    # result[:bool][:should] = self.should if self.should.present?
-    # Rails.logger.debug { "EPQB#B: #{result}" }
   end
 end
