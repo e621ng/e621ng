@@ -1,0 +1,30 @@
+<div id="c-tag-<%= singular %>-requests">
+  <div id="a-new">
+    <h1>Tag <%= singular.capitalize %> Request</h1>
+
+    <%= error_messages_for :"tag_#{singular}_request" %>
+
+    <p>
+      You can request a new tag <%= singular %> be created.
+      This will create a corresponding forum topic for community
+      review.
+    </p>
+
+    <%= custom_form_for(:"tag_#{singular}_request", url: request_path) do |f| %>
+      <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
+      <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
+      <%= f.input :reason, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
+      <% if CurrentUser.is_admin? %>
+        <%= f.input :skip_forum, as: :boolean, label: "Skip forum topic creation" %>
+      <% end %>
+      <%= f.button :submit, "Submit" %>
+    <% end %>
+  </div>
+</div>
+
+<%# <%= render "tag_relationships/secondary_links", rel_type: rel_type %>
+<%= render "secondary_links", rel_type: rel_type %>
+
+<% content_for(:page_title) do %>
+  Tag <%= singular.capitalize %> Request
+<% end %>
