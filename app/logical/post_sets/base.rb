@@ -6,10 +6,6 @@ module PostSets
       ""
     end
 
-    def public_tag_string
-      ""
-    end
-
     def ad_tag_string
       ""
     end
@@ -28,10 +24,8 @@ module PostSets
     def fill_children(posts)
       posts = posts.filter(&:has_children?)
       ids = posts.map(&:id)
-      children = ::Post.select([:id, :parent_id]).where(parent_id: ids).to_a.group_by {|p| p.parent_id}
-      posts.each do |p|
-        p.inject_children(children[p.id] || [])
-      end
+      children = ::Post.select(%i[id parent_id]).where(parent_id: ids).to_a.group_by(&:parent_id)
+      posts.each { |p| p.inject_children(children[p.id] || []) }
     end
 
     def presenter

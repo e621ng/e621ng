@@ -16,10 +16,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
   def initialize( # rubocop:disable Metrics/ParameterLists
     query,
-    resolve_aliases:,
-    free_tags_count:,
-    enable_safe_mode:,
-    always_show_deleted:,
+    resolve_aliases: true,
+    free_tags_count: 0,
+    enable_safe_mode: CurrentUser.safe_mode?,
+    always_show_deleted: false,
     **kwargs
   )
     @depth = kwargs.fetch(:depth, 0)
@@ -30,8 +30,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         query,
         resolve_aliases: resolve_aliases,
         free_tags_count: free_tags_count,
-        **kwargs,
         can_have_groups: true,
+        **kwargs,
       )
     end
     @resolve_aliases = resolve_aliases
