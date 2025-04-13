@@ -6,8 +6,8 @@
 
     <%= custom_form_for(tag_relation) do |f| %>
       <% if rel_type == :alias %>
-        <%= f.input :antecedent_name, label: "From", as: :string, disabled: @tag_alias.is_active? %>
-        <%= f.input :consequent_name, label: "To", disabled: @tag_alias.is_active? %>
+        <%= f.input :antecedent_name, label: "From", as: :string, disabled: tag_relation.is_active? %>
+        <%= f.input :consequent_name, label: "To", disabled: tag_relation.is_active? %>
       <% else %>
         <%= f.input :antecedent_name, label: "From" %>
         <%= f.input :consequent_name, label: "To" %>
@@ -18,8 +18,7 @@
   </div>
 </div>
 
-<%# <%= render "tag_relationships/secondary_links", rel_type: :implication %>
-<%= render "secondary_links", rel_type: rel_type %>
+<%= render "tag_relationships/secondary_links", rel_type: rel_type %>
 
 <% content_for(:page_title) do %>
   Edit Tag <%= singular.capitalize %>

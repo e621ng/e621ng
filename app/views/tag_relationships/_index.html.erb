@@ -1,6 +1,5 @@
 <div id="c-tag-<%= plural %>">
   <div id="a-index">
-    <%# <%= render "tag_relationships/search", url: rel_type == :implication ? tag_implications_path : rel_type == :alias ? tag_aliases_path : "static/404" %>
     <%= render "tag_relationships/search", url: type_path %>
     <%= render "tag_relationships/listing", tag_relations: tag_relations %>
     <% if CurrentUser.is_admin? %>
