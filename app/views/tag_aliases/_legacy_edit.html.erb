@@ -1,0 +1,21 @@
+<div id="c-tag-aliases">
+  <div id="a-new">
+    <h1>Edit Tag Alias</h1>
+
+    <%= error_messages_for :tag_alias %>
+
+    <%= custom_form_for(@tag_alias) do |f| %>
+      <%= f.input :antecedent_name, :as => :string, :label => "From", disabled: @tag_alias.is_active? %>
+      <%= f.input :consequent_name, :label => "To", disabled: @tag_alias.is_active? %>
+      <%= f.input :forum_topic_id, :label => "Forum" %>
+      <%= f.button :submit, :data => { :disable_with => "Updating..." } %>
+    <% end %>
+  </div>
+</div>
+
+<%# <%= render "secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: :alias %>
+
+<% content_for(:page_title) do %>
+  Edit Tag Alias
+<% end %>
