@@ -19,7 +19,8 @@
   </div>
 </div>
 
-<%= render "tag_aliases/secondary_links" %>
+<%# <%= render "tag_aliases/secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: :alias %>
 
 <% content_for(:page_title) do %>
   Tag Alias Request

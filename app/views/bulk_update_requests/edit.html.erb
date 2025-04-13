@@ -5,7 +5,8 @@
   </div>
 </div>
 
-<%= render "secondary_links" %>
+<%# <%= render "secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: :bur %>
 
 <% content_for(:page_title) do %>
   Edit Bulk Update Request

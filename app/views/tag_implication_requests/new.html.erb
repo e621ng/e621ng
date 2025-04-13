@@ -19,7 +19,8 @@
   </div>
 </div>
 
-<%= render "tag_implications/secondary_links" %>
+<%# <%= render "tag_implications/secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: :implication %>
 
 <% content_for(:page_title) do %>
   Tag Implication Request
