@@ -1411,7 +1411,7 @@ Style/HashLikeCase:
     - 'app/models/post.rb'
     - 'config/initializers/core_extensions.rb'
 
-# Offense count: 812
+# Offense count: 800
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, EnforcedShorthandSyntax, UseHashRocketsWithSymbolValues, PreferHashRocketsForNonAlnumEndingSymbols.
 # SupportedStyles: ruby19, hash_rockets, no_mixed_keys, ruby19_no_mixed_keys
@@ -1478,7 +1478,6 @@ Style/HashSyntax:
     - 'app/views/bulk_update_requests/_bur_edit_links.html.erb'
     - 'app/views/bulk_update_requests/_form.html.erb'
     - 'app/views/bulk_update_requests/_listing.html.erb'
-    - 'app/views/bulk_update_requests/index.html.erb'
     - 'app/views/comments/_form.html.erb'
     - 'app/views/comments/_index_by_post.html.erb'
     - 'app/views/comments/_quick_search.html.erb'
@@ -1545,8 +1544,6 @@ Style/HashSyntax:
     - 'app/views/related_tags/show.html.erb'
     - 'app/views/static/_footer.html.erb'
     - 'app/views/static/access_denied.html.erb'
-    - 'app/views/tag_aliases/edit.html.erb'
-    - 'app/views/tag_implications/edit.html.erb'
     - 'app/views/tags/_quick_search.html.erb'
     - 'app/views/tags/edit.html.erb'
     - 'app/views/tags/index.html.erb'
