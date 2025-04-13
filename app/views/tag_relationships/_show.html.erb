@@ -1,0 +1,43 @@
+<div id="c-tag-<%= plural %>">
+  <div id="a-show">
+    <h1>Tag <%= singular.capitalize %>: <%= tag_relation.antecedent_name %> -&gt; <%= tag_relation.consequent_name %></h1>
+
+    <ul>
+      <li><strong>From</strong> <%= link_to_wiki_or_new tag_relation.antecedent_name %></li>
+      <li><strong>To</strong> <%= link_to_wiki_or_new tag_relation.consequent_name %></li>
+      <%= render "tag_change_requests/reference", tag_change_request: tag_relation %>
+      <li><strong>Creator</strong> <%= link_to_user tag_relation.creator %></li>
+      <li><strong>Date</strong> <%= tag_relation.created_at %></li>
+      <% if tag_relation.respond_to?(:reason) && tag_relation.reason.present? %>
+        <li><strong>Reason</strong> <%= format_text tag_relation.reason %></li>
+      <% end %>
+      <li><strong>Status</strong>: <%= tag_relation.status %></li>
+
+      <% if tag_relation.respond_to?(:has_transitives) && tag_relation.has_transitives %>
+        <br>
+        <li><strong>Transitives</strong>:
+        <ul>
+          <% tag_relation.list_transitives.each do |transitive| %>
+          <li><%= format_transitive_item(transitive) %></li>
+          <% end %>
+        </ul>
+        </li>
+        <br>
+      <% end %>
+
+      <li>
+        <strong>Commands</strong>
+        <%= render "tag_relationships/command_buttons", tag_relation: tag_relation, with_show_link: false %>
+      </li>
+    </ul>
+
+    <%= render "tag_change_requests/votes", tag_change_request: tag_relation %>
+  </div>
+</div>
+
+<%# <%= render "secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: rel_type %>
+
+<% content_for(:page_title) do %>
+  Tag <%= singular.capitalize %>
+<% end %>
