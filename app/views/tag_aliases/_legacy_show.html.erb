@@ -1,0 +1,43 @@
+<div id="c-tag-aliases">
+  <div id="a-show">
+    <h1>Tag Alias: <%= @tag_alias.antecedent_name %> -&gt; <%= @tag_alias.consequent_name %></h1>
+
+    <ul>
+      <li><strong>From</strong> <%= link_to_wiki_or_new @tag_alias.antecedent_name %></li>
+      <li><strong>To</strong> <%= link_to_wiki_or_new @tag_alias.consequent_name %></li>
+      <%= render "tag_change_requests/reference", tag_change_request: @tag_alias %>
+      <li><strong>Creator</strong> <%= link_to_user @tag_alias.creator %></li>
+      <li><strong>Date</strong> <%= @tag_alias.created_at %></li>
+      <% if @tag_alias.respond_to?(:reason) && @tag_alias.reason.present? %>
+        <li><strong>Reason</strong> <%= format_text @tag_alias.reason %></li>
+      <% end %>
+      <li><strong>Status</strong>: <%= @tag_alias.status %></li>
+
+      <% if @tag_alias.has_transitives %>
+        <br>
+        <li><strong>Transitives</strong>:
+        <ul>
+          <% @tag_alias.list_transitives.each do |transitive| %>
+          <li><%= format_transitive_item(transitive) %></li>
+          <% end %>
+        </ul>
+        </li>
+        <br>
+      <% end %>
+
+      <li>
+        <strong>Commands</strong>
+        <%= render "tag_relationships/command_buttons", tag_relation: @tag_alias, with_show_link: false %>
+      </li>
+    </ul>
+
+    <%= render "tag_change_requests/votes", tag_change_request: @tag_alias %>
+  </div>
+</div>
+
+<%# <%= render "secondary_links" %>
+<%= render "tag_relationships/secondary_links", rel_type: :alias %>
+
+<% content_for(:page_title) do %>
+  Tag Alias
+<% end %>
