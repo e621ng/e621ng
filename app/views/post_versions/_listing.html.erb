@@ -21,13 +21,24 @@
       <div class="pv-tags-locked-label pv-label">
         Locked Tags
       </div>
-      <div class="pv-spacer pv-label"></div>
+      <div class="pv-spacer pv-label">
+        <% if CurrentUser.is_admin? %>
+          <% if post_version.is_hidden? %>
+            <%= link_to "Unhide", unhide_post_version_path(post_version), method: :put %>
+          <% else %>
+            <%= link_to "Hide", hide_post_version_path(post_version), method: :put %>
+          <% end %>
+        <% end %>
+      </div>
+
       <div class="pv-post pv-content">
         <%= link_to("#{post_version.post_id}:#{post_version.version}", post_path(post_version.post_id)) %>
       </div>
       <div class="pv-date pv-content">
-        <% if post_version.updater %>
+        <% if post_version.updater && post_version.details_visible? %>
           <%= link_to_user(post_version.updater) %>
+        <% else %>
+          Anonymous
         <% end %>
         <% if CurrentUser.is_admin? %>
           (<%= link_to_ip(post_version.updater_ip_addr) %>)
@@ -35,46 +46,59 @@
         <%= time_ago_in_words_tagged(post_version.updated_at, compact: true) %>
       </div>
       <div class="pv-reason pv-content">
-        <%= post_version.reason %>
-      </div>
-      <div class="pv-description pv-content">
-        <% if post_version.description.present? %>
-          <div class="desc-show">
-            <%= post_version.description_changed ? "Show Description" : "No change" %></div>
-          <div id='desc-<%= post_version.id %>' class='desc-popup box-section'>
-            <h2>Description</h2>
-            <div class="closebutton">X</div>
-            <div class='desc-popup-inner'>
-              <p class="dtext-container"><%= format_text(post_version.description) %></p>
-            </div>
-          </div>
-        <% elsif post_version.description_changed && post_version.version != 1%>
-          <em>Cleared</em>
+        <% if post_version.details_visible? %>
+          <%= post_version.reason %>
+        <% else %>
+          <em>Hidden by staff</em>
         <% end %>
       </div>
-      <div class="pv-tags-locked pv-content">
-        <%= post_version_locked_diff(post_version) %>
+
+      <div class="pv-description pv-content">
+        <% if post_version.details_visible? %>
+          <% if post_version.description.present? %>
+            <div class="desc-show">
+              <%= post_version.description_changed ? "Show Description" : "No change" %></div>
+            <div id='desc-<%= post_version.id %>' class='desc-popup box-section'>
+              <h2>Description</h2>
+              <div class="closebutton">X</div>
+              <div class='desc-popup-inner'>
+                <p class="dtext-container"><%= format_text(post_version.description) %></p>
+              </div>
+            </div>
+          <% elsif post_version.description_changed && post_version.version != 1%>
+            <em>Cleared</em>
+          <% end %>
+        <% end %>
       </div>
+
+      <div class="pv-tags-locked pv-content">
+        <%= post_version_locked_diff(post_version) if post_version.details_visible? %>
+      </div>
+
       <div class="pv-actions pv-content">
-        <% if CurrentUser.can_undo_post_versions? && post_version.undoable? %>
+        <% if CurrentUser.can_undo_post_versions? && post_version.undoable? && post_version.details_visible? %>
           <%= link_to "Undo", undo_post_version_path(post_version), method: :put %>
         <% end %>
         <% if params.dig(:search, :post_id).present? && CurrentUser.can_revert_post_versions? %>
           | <%= link_to "Revert to", revert_post_path(post_version.post_id, version_id: post_version.id, format: :json), class: "revert-item-link", data: { noun: "post" } %>
         <% end %>
       </div>
-      <div class="pv-tags-label pv-label">
-        Tags
-      </div>
-      <div class="pv-sources-label pv-label">
-        Sources
-      </div>
-      <div class="pv-tags pv-content">
-        <%= post_version_diff(post_version) %>
-      </div>
-      <div class="pv-sources pv-content">
-        <%= post_source_diff(post_version) %>
-      </div>
+
+      <% if post_version.details_visible? %>
+        <div class="pv-tags-label pv-label">
+          Tags
+        </div>
+        <div class="pv-sources-label pv-label">
+          Sources
+        </div>
+        <div class="pv-tags pv-content">
+          <%= post_version_diff(post_version) %>
+        </div>
+        <div class="pv-sources pv-content">
+          <%= post_source_diff(post_version) %>
+        </div>
+      <% end %>
+
     </div>
   <% end %>
 </div>

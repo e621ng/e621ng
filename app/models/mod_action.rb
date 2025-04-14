@@ -92,9 +92,11 @@ class ModAction < ApplicationRecord
     nuke_tag: { tag_name: :string },
     takedown_delete: { takedown_id: :integer },
     takedown_process: { takedown_id: :integer },
+    post_version_hide: { version: :integer, post_id: :integer },
+    post_version_unhide: { version: :integer, post_id: :integer },
   }.freeze
 
-  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete].freeze
+  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete post_version_hide post_version_unhide].freeze
 
   KnownActionKeys = KnownActions.keys.freeze
 
