@@ -13,6 +13,14 @@
             </td>
           </tr>
         <% end %>
+
+        <% if CurrentUser.is_admin? %>
+          <tr>
+            <td><span class='title'>IP</span></td>
+            <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
+          </tr>
+        <% end %>
+
         <% if @ticket.accused.present? && CurrentUser.is_moderator? %>
           <tr>
             <td><span class="title">Accused</span></td>
@@ -24,6 +32,7 @@
             </td>
           </tr>
         <% end %>
+
         <tr>
           <td><span class="title">Created</span></td>
           <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.created_at) %></td>
@@ -32,42 +41,53 @@
           <td><span class="title">Updated</span></td>
           <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.updated_at) %></td>
         </tr>
-        <% if CurrentUser.is_moderator? %>
+
+        <% if @ticket.response.present? %>
           <tr>
-            <td><span class="title">Claimed By</span></td>
-            <% if @ticket.claimant.nil? %>
-              <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
+            <td><span class='title'>Handled by</span></td>
+            <% if @ticket.handler.present? %>
+              <td><%= link_to_user @ticket.handler %></td>
             <% else %>
-              <td id="claimed_by">
-                <%= link_to_user @ticket.claimant %>
-                <% if @ticket.claimant.id == CurrentUser.id %>
-                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
-                <% end %>
-              </td>
+              <td>Unknown</td>
             <% end %>
           </tr>
+          <% else %>
+            <% if CurrentUser.is_moderator? %>
+              <tr>
+                <td><span class="title">Claimed by</span></td>
+                <% if @ticket.claimant.nil? %>
+                  <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
+                <% else %>
+                  <td id="claimed_by">
+                    <%= link_to_user @ticket.claimant %>
+                    <% if @ticket.claimant.id == CurrentUser.id %>
+                      | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
+                    <% end %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
         <% end %>
+
         <tr>
           <td><span class='title'>Status</span></td>
           <td class="<%= @ticket.status %>-ticket"><%= pretty_ticket_status(@ticket) %></td>
         </tr>
 
-        <% if CurrentUser.is_admin? %>
-          <tr>
-            <td><span class='title'>IP</span></td>
-            <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
-          </tr>
-        <% end %>
-
         <% if CurrentUser.is_moderator? %>
-          <tr>
-            <td><span class="title">Open Duplicates</span></td>
-            <td><ul>
-              <% @ticket.open_duplicates.where('id != ?', @ticket.id).find_each do |dup| %>
-              <li><%= link_to("Ticket #{dup.id} - #{dup.subject}", ticket_path(dup.id)) %></li>
-              <% end %>
-            </ul></td>
-          </tr>
+          <% open_duplicates = @ticket.open_duplicates.to_a %>
+          <% if open_duplicates.any? %>
+            <tr>
+              <td><span class="title">Open Duplicates</span></td>
+              <td>
+                <ul>
+                  <% open_duplicates.each do |dup| %>
+                    <li><%= link_to("Ticket #{dup.id} - #{dup.subject}", ticket_path(dup.id)) %></li>
+                  <% end %>
+                </ul>
+              </td>
+            </tr>
+          <% end %>
         <% end %>
 
         <%= render partial: "tickets/types/#{@ticket.qtype}" %>
@@ -83,15 +103,6 @@
         </tr>
 
         <% if @ticket.response.present? %>
-          <tr>
-            <td><span class='title'>Handled by</span></td>
-            <% if @ticket.handler.present? %>
-              <td><%= link_to_user @ticket.handler %></td>
-            <% else %>
-              <td>Unknown</td>
-            <% end %>
-          </tr>
-
           <tr>
             <td><span class='title'>Response</span></td>
             <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
