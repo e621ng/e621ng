@@ -15,7 +15,7 @@
     <% end %>
 
     <% if CurrentUser.can_replace? %>
-      <li><%= link_to "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
+      <li><%= link_to post.is_video? ? "Replace video" : "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
     <% end %>
     <% if post.is_status_locked? %>
       <li><span id="status-locked-notice">Status locked</span></li>
