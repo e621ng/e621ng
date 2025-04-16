@@ -388,6 +388,12 @@ class ModActionDecorator < ApplicationDecorator
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
 
+      ### Post Versions
+    when "post_version_hide"
+      "Hidden post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
+    when "post_version_unhide"
+      "Restored post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
+
       ### Legacy Post Events ###
     when "post_move_favorites"
       "Moves favorites from post ##{vals['post_id']} to post ##{vals['parent_id']}"

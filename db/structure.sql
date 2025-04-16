@@ -1574,7 +1574,8 @@ CREATE TABLE public.post_versions (
     description text,
     description_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
-    reason character varying
+    reason character varying,
+    is_hidden boolean DEFAULT false NOT NULL
 );
 
 
@@ -4695,6 +4696,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250414000142'),
 ('20250328035855'),
 ('20241114055212'),
 ('20240905160626'),
