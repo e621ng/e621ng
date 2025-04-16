@@ -16,10 +16,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
   def initialize( # rubocop:disable Metrics/ParameterLists
     query,
-    resolve_aliases:,
-    free_tags_count:,
-    enable_safe_mode:,
-    always_show_deleted:,
+    resolve_aliases: true,
+    free_tags_count: 0,
+    enable_safe_mode: CurrentUser.safe_mode?,
+    always_show_deleted: false,
     **kwargs
   )
     @depth = kwargs.fetch(:depth, 0)
@@ -30,8 +30,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         query,
         resolve_aliases: resolve_aliases,
         free_tags_count: free_tags_count,
-        **kwargs,
         can_have_groups: true,
+        **kwargs,
       )
     end
     @resolve_aliases = resolve_aliases
@@ -312,7 +312,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       @function_score = {
         script_score: {
           script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
-            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 },
+            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 }, # rubocop:disable Naming/VariableNumber
             source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
           },
         },

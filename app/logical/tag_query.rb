@@ -318,7 +318,7 @@ class TagQuery
   # overridden elsewhere), this will return false.
   #
   # ### Parameters
-  # * `query` {String|String[]}:
+  # * `query` {String|String[]|TagQuery}:
   # * `always_show_deleted` [`false`]: The override value. Corresponds to
   # `ElasticPostQueryBuilder.always_show_deleted`.
   # * `at_any_level` [`true`]: Should values inside groups be accounted for?
@@ -363,6 +363,11 @@ class TagQuery
     # If inverted, resolve inversion
     value = ORDER_VALUE_INVERSIONS[value] || value if invert
     value
+  end
+
+  # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
+  def self.can_append_deleted_filter?(query, at_any_level: true)
+    !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
   end
 
   # Convert query into a consistent representation.
@@ -1006,7 +1011,7 @@ class TagQuery
 
   def self.has_metatags?(tags, *metatags, at_any_level: true, prepend_prefix: false, has_all: true)
     r = fetch_metatags(tags, *metatags, prepend_prefix: prepend_prefix, at_any_level: at_any_level)
-    r.present && metatags.send(has_all ? :all? : :any?) { |mt| r.key?(mt) }
+    r.present? && metatags.send(has_all ? :all? : :any?, &->(mt) { r.key?(mt) })
   end
 
   # Pulls the values from the specified metatags.
@@ -1051,7 +1056,6 @@ class TagQuery
           ret_val[tag] << (block_given? ? yield(tag, value) : value)
           nil
         end
-        ret_val
       end
     elsif at_any_level
       # IDEA: See if checking and only sifting through grouped tags is substantively faster than sifting through all of them
@@ -1068,8 +1072,8 @@ class TagQuery
         ret_val[tag] ||= []
         ret_val[tag] << (block_given? ? yield(tag, value) : value)
       end
-      ret_val
     end
+    ret_val
   end
 
   def self.has_tag?(source_array, *, recurse: true, error_on_depth_exceeded: false)

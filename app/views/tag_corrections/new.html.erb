@@ -11,6 +11,17 @@
       </ul>
     </div>
 
+    <% if CurrentUser.user.is_bd_staff? %>
+      <div style="margin-bottom: 1em;">
+        <ul>
+          <li><strong>Real count:</strong> <%= link_to(@true_count, posts_path(tags: "#{@tag.name} status:any")) %>
+          <li><strong>Aliases:</strong> <%= link_to(@aliases, tag_aliases_path(search: { name_matches: @tag.name })) %>
+          <li><strong>Implications:</strong> <%=link_to(@implications, tag_implications_path(search: { name_matches: @tag.name }))  %>
+          <li><strong>Can destroy:</strong> <%= @destroyable %>
+        </ul>
+      </div>
+    <% end %>
+
     <%= form_tag(tag_correction_path(tag_id: @correction.tag.id)) do %>
       <%= hidden_field_tag "from_wiki", @from_wiki %>
       <%= submit_tag "Fix" %>
@@ -18,6 +29,14 @@
     <% end %>
   </div>
 </div>
+
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Posts (#{@correction.tag.post_count})", posts_path(tags: @correction.tag.name) %>
+  <%= subnav_link_to "Wiki Page", show_or_new_wiki_pages_path(title: @correction.tag.name) %>
+  <% if CurrentUser.is_bd_staff? && @destroyable %>
+    <%= subnav_link_to "Destroy", tag_path(@correction.tag), method: :delete, data: { confirm: "Are you sure you want to PERMANENTLY delete this tag? This cannot be undone." } %>
+  <% end %>
+<% end %>
 
 <% content_for(:page_title) do %>
   Tag Correction

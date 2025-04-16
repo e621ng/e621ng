@@ -21,4 +21,26 @@ class PostVersionsController < ApplicationController
     @post_version = PostVersion.find(params[:id])
     @post_version.undo!
   end
+
+  def hide
+    raise User::PrivilegeError unless CurrentUser.is_admin?
+
+    @post_version = PostVersion.find(params[:id])
+    @post_version.is_hidden = true
+    @post_version.save!
+    ModAction.log(:post_version_hide, { version: @post_version.version, post_id: @post_version.post_id })
+
+    redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
+  end
+
+  def unhide
+    raise User::PrivilegeError unless CurrentUser.is_admin?
+
+    @post_version = PostVersion.find(params[:id])
+    @post_version.is_hidden = false
+    @post_version.save!
+    ModAction.log(:post_version_unhide, { version: @post_version.version, post_id: @post_version.post_id })
+
+    redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
+  end
 end

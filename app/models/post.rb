@@ -1112,21 +1112,31 @@ class Post < ApplicationRecord
   module VoteMethods
     def own_vote(user = CurrentUser.user)
       return nil unless user
-      votes.where('user_id = ?', user.id).first
+      votes.where("user_id = ?", user.id).first
     end
   end
 
   module CountMethods
+    # NOTE: Currently does not properly handle grouped searches.
     def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
+      # This is technically not redundant, as pre-adding ` rating:s` to the query is necessary to
+      # ensure the correct value exists in the cache. Adding ` -status:deleted` is redundant, as that
+      # is an inherent property of the search itself, and is already properly resolved by
+      # `ElasticPostQueryBuilder` - and by extension, `Post.tag_match`.
       tags += " rating:s" if enable_safe_mode
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      tags = TagQuery.normalize(tags)
+
+      # tags = TagQuery.normalize_search(tags, normalize_tags: true, flatten: true) # This removes any duplicates of `rating:s` on the same search level. # Uncomment to enable searches
+      tags = TagQuery.normalize(tags) # This removes any duplicates of `rating:s`.
 
       cache_key = "pfc:#{tags}"
       count = Cache.fetch(cache_key)
       if count.nil?
-        count = Post.tag_match(tags).count_only
+        # Safe mode is manually disabled as the effect of it is already done by adding ` rating:s` &
+        # this reduces a redundant call to `CurrentUser.safe_mode?` & a redundant search term in the
+        # request sent to OpenSearch.
+        # count = Post.tag_match(tags, enable_safe_mode: false).count_only # Uncomment to enable searches
+        count = Post.tag_match(tags, enable_safe_mode: false, can_have_groups: false).count_only
         expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
         Cache.write(cache_key, count, expires_in: expiry)
       end
@@ -1575,13 +1585,30 @@ class Post < ApplicationRecord
       tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
     end
 
-    def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
+    # Uses OpenSearch to find and return matching `Post`s.
+    # ### Parameters
+    # * `query` {`String`}
+    # * `resolve_aliases` [`true`]
+    # * `free_tags_count` [`0`]: How many tags of the maximum allowed per query are outside of `query`?
+    # * `enable_safe_mode` [`CurrentUser.safe_mode?`]: Override any preexisting `rating`'s and
+    # restrict results to safe posts?
+    # * `always_show_deleted` [`false`]
+    # * `can_have_groups` [`true`]
+    def tag_match( # rubocop:disable Metrics/ParameterLists
+      query,
+      resolve_aliases: true,
+      free_tags_count: 0,
+      enable_safe_mode: CurrentUser.safe_mode?,
+      always_show_deleted: false,
+      can_have_groups: true
+    )
       ElasticPostQueryBuilder.new(
         query,
         resolve_aliases: resolve_aliases,
         free_tags_count: free_tags_count,
         enable_safe_mode: enable_safe_mode,
         always_show_deleted: always_show_deleted,
+        can_have_groups: can_have_groups,
       ).search
     end
 

@@ -38,8 +38,8 @@ class PostsDecorator < ApplicationDecorator
   end
 
   def score_class(score)
-    return 'score-neutral' if score == 0
-    score > 0 ? 'score-positive' : 'score-negative'
+    return "score-neutral" if score == 0
+    score > 0 ? "score-positive" : "score-negative"
   end
 
   def stats_section(template)
@@ -59,23 +59,18 @@ class PostsDecorator < ApplicationDecorator
     template.tag.div score + favs + comments + rating, class: "desc"
   end
 
-  def preview_html(t, options = {})
+  def preview_html(template, options = {})
     post = object
-    if post.nil?
-      return ""
-    end
 
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
-      return ""
-    end
-
-    if post.loginblocked? || post.safeblocked?
+    if post.nil? ||
+       (!options[:show_deleted] && post.is_deleted? && TagQuery.should_hide_deleted_posts?(options[:tags], at_any_level: true)) ||
+       post.loginblocked? || post.safeblocked?
       return ""
     end
 
     article_attrs = {
-        "id" => "post_#{post.id}",
-        "class" => preview_class(options).join(" ")
+      "id" => "post_#{post.id}",
+      "class" => preview_class(options).join(" "),
     }.merge(data_attributes)
 
     link_target = options[:link_target] || post
@@ -102,32 +97,34 @@ class PostsDecorator < ApplicationDecorator
     end
     tooltip += "\n\n#{post.tag_string}"
 
-    cropped_url = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                             post.crop_file_url
-                           else
-                             post.preview_file_url
-                           end
+    cropped_url = if Danbooru.config.enable_image_cropping? &&
+                     options[:show_cropped] && post.has_cropped? &&
+                     !CurrentUser.user.disable_cropped_thumbnails?
+                    post.crop_file_url
+                  else
+                    post.preview_file_url
+                  end
 
     cropped_url = Danbooru.config.deleted_preview_url if post.deleteblocked?
     preview_url = if post.deleteblocked?
-                             Danbooru.config.deleted_preview_url
-                           else
-                             post.preview_file_url
-                           end
+                    Danbooru.config.deleted_preview_url
+                  else
+                    post.preview_file_url
+                  end
 
     alt_text = "post ##{post.id}"
 
     has_cropped = post.has_cropped?
 
-    img_contents = t.link_to t.polymorphic_path(link_target, link_params) do
-      t.tag.picture do
-        t.concat t.tag.source media: "(max-width: 800px)", srcset: cropped_url
-        t.concat t.tag.source media: "(min-width: 800px)", srcset: preview_url
-        t.concat t.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
+    img_contents = template.link_to template.polymorphic_path(link_target, link_params) do
+      template.tag.picture do
+        template.concat template.tag.source media: "(max-width: 800px)", srcset: cropped_url
+        template.concat template.tag.source media: "(min-width: 800px)", srcset: preview_url
+        template.concat template.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
       end
     end
-    desc_contents = options[:stats] ? stats_section(t) : "".html_safe
-    t.tag.article(**article_attrs) do
+    desc_contents = options[:stats] ? stats_section(template) : "".html_safe
+    template.tag.article(**article_attrs) do
       img_contents + desc_contents
     end
   end
