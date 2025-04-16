@@ -15,6 +15,7 @@ class Tag < ApplicationRecord
   validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
+  after_destroy :log_destroy
 
   attr_accessor :from_wiki
 
@@ -31,6 +32,12 @@ class Tag < ApplicationRecord
 
     def value_for(string)
       TagCategory::MAPPING[string.to_s.downcase] || 0
+    end
+  end
+
+  module LogMethods
+    def log_destroy
+      ModAction.log(:tag_destroy, { name: name })
     end
   end
 
@@ -404,6 +411,11 @@ class Tag < ApplicationRecord
     true
   end
 
+  def deletable_by?(user)
+    user.is_bd_staff?
+  end
+
+  include LogMethods
   include CountMethods
   include CategoryMethods
   extend NameMethods
