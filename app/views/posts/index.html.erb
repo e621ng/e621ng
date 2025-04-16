@@ -35,7 +35,7 @@
 <%= render "posts/partials/common/secondary_links" %>
 
 <% content_for(:page_title) do %>
-  <% if @post_set.public_tag_string.present? %>
+  <% if @post_set.tag_string.present? %>
     <%= @post_set.humanized_tag_string %>
   <% else %>
     Posts

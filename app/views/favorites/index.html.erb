@@ -21,7 +21,7 @@
       <section id="related-box">
         <h3>Related</h3>
         <ul id="related-list">
-          <li><%= link_to "Random post", random_posts_path(:tags => @post_set.public_tag_string), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
+          <li><%= link_to "Random post", random_posts_path(:tags => @post_set.tag_string), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
         </ul>
       </section>
     </div>

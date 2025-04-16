@@ -12,7 +12,7 @@ module PostSetPresenters
       end
 
       previews = posts.map do |post|
-        PostPresenter.preview(post, options.merge(tags: @post_set.public_tag_string))
+        PostPresenter.preview(post, options.merge(tags: @post_set.tag_string))
       end
       template.safe_join(previews)
     end
