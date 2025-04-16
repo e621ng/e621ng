@@ -2,7 +2,7 @@
   <%= simple_form_for(:session, url: session_path, html: { class: "session_form" }) do |f| %>
     <h1>Sign in</h1>
     <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
-    <%= f.input(:name, label: "Username") %>
+    <%= f.input(:name, label: "Username", autofocus: true) %>
     <%= f.input(:password) %>
     <%= f.input(:remember, as: :boolean, input_html: { checked: "checked" }) %>
     <%= f.submit("Continue") %>
