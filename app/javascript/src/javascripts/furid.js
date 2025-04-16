@@ -45,18 +45,26 @@ FurID.initialize = async function () {
   });
 
   io.observe(document.getElementById("furid_end_of_content"));
+
+  // Load more content to fill up the entire screen if necessary
+  if (FurID.manifest[FurID.page] != undefined && FurID.wrapper.innerHeight() < window.innerHeight) {
+    FurID.loadMore();
+  }
 };
 
 FurID.loadMore = function () {
   if (!FurID.manifest[FurID.page]) return;
 
   for (const one of FurID.manifest[FurID.page]) {
-    $("<img />")
+    const image = $("<img />")
       .attr({
         src: FurID.baseURL + one,
         loading: "lazy",
       })
-      .appendTo(FurID.wrapper);
+      .appendTo(FurID.wrapper)
+      .one("error", () => {
+        image.remove();
+      });
   }
 
   FurID.page++;
