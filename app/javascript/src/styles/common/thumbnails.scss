@@ -75,6 +75,7 @@ article.thumbnail {
 
     .rating { font-weight: 700; }
     & > a { text-align: center; } // Pool names
+    .favorites, .comments { color: palette("text-white") }
   }
 
   // Color the rating letters
