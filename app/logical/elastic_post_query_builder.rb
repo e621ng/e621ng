@@ -1,15 +1,6 @@
 # frozen_string_literal: true
 
 class ElasticPostQueryBuilder < ElasticQueryBuilder
-  # TODO: This could be eliminated, as `TagQuery` only parses the locked class of metatags when they
-  # correspond to rating, note, & status; simply passing the resultant values directly with no
-  # further processing should be sufficient.
-  LOCK_TYPE_TO_INDEX_FIELD = Hash.new("missing").merge ({
-    rating: :rating_locked,
-    note: :note_locked,
-    status: :status_locked,
-  }).freeze
-
   # Used to determine if a grouped search that wouldn't automatically filter out deleted searches
   # will force other grouped searches to not automatically filter out deleted searches. (i.e. if the
   # `-status:deleted` filter is toggled off globally or only on descendants & ancestors).
@@ -248,20 +239,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     # Handle locks
-    # TODO: This could be streamlined, as `TagQuery` only parses the locked class of metatags when they
-    # correspond to rating, note, & status; simply passing the resultant values directly with no
-    # further processing should be sufficient.
-    q[:locked]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
-    end
-
-    q[:locked_must_not]&.each do |lock_type|
-      must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => false } })
-    end
-
-    q[:locked_should]&.each do |lock_type|
-      should.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
-    end
+    q[:locked]&.each { |lock_type| must.push({ term: { "#{lock_type}_locked": true } }) }
+    q[:locked_must_not]&.each { |lock_type| must.push({ term: { "#{lock_type}_locked": false } }) }
+    q[:locked_should]&.each { |lock_type| should.push({ term: { "#{lock_type}_locked": true } }) }
 
     # Handle `TagQuery::BOOLEAN_METATAGS`
     if q.include?(:hassource)

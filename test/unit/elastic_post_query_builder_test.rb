@@ -197,23 +197,31 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_includes(ElasticPostQueryBuilder.new("locked:note", **DEFAULT_PARAM).must, { term: { note_locked: true } }, "locked:note")
       assert_includes(ElasticPostQueryBuilder.new("locked:status", **DEFAULT_PARAM).must, { term: { status_locked: true } }, "locked:status")
       # assert_includes(ElasticPostQueryBuilder.new("locked:whatever", **DEFAULT_PARAM).must, { term: { "missing" => true } }, "locked:whatever")
+      assert((v = ElasticPostQueryBuilder.new("locked:whatever", **DEFAULT_PARAM, always_show_deleted: true).must).empty?, "locked:whatever: #{v}")
 
       assert_includes(ElasticPostQueryBuilder.new("-locked:rating", **DEFAULT_PARAM).must, { term: { rating_locked: false } }, "-locked:rating")
       assert_includes(ElasticPostQueryBuilder.new("-locked:note", **DEFAULT_PARAM).must, { term: { note_locked: false } }, "-locked:note")
       assert_includes(ElasticPostQueryBuilder.new("-locked:status", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "-locked:status")
       # assert_includes(ElasticPostQueryBuilder.new("-locked:whatever", **DEFAULT_PARAM).must, { term: { "missing" => false } }, "-locked:whatever")
+      assert((v = ElasticPostQueryBuilder.new("-locked:whatever", **DEFAULT_PARAM, always_show_deleted: true).must).empty?, "-locked:whatever: #{v}")
 
       assert_includes(ElasticPostQueryBuilder.new("~locked:rating", **DEFAULT_PARAM).should, { term: { rating_locked: true } }, "~locked:rating")
       assert_includes(ElasticPostQueryBuilder.new("~locked:note", **DEFAULT_PARAM).should, { term: { note_locked: true } }, "~locked:note")
       assert_includes(ElasticPostQueryBuilder.new("~locked:status", **DEFAULT_PARAM).should, { term: { status_locked: true } }, "~locked:status")
       # assert_includes(ElasticPostQueryBuilder.new("~locked:whatever", **DEFAULT_PARAM).should, { term: { "missing" => true } }, "~locked:whatever")
+      assert((v = ElasticPostQueryBuilder.new("~locked:whatever", **DEFAULT_PARAM, always_show_deleted: true).must).empty?, "~locked:whatever: #{v}")
 
       assert_includes(ElasticPostQueryBuilder.new("ratinglocked:true", **DEFAULT_PARAM).must, { term: { rating_locked: true } }, "ratinglocked:true")
       assert_includes(ElasticPostQueryBuilder.new("ratinglocked:false", **DEFAULT_PARAM).must, { term: { rating_locked: false } }, "ratinglocked:false")
+      assert_includes(ElasticPostQueryBuilder.new("ratinglocked:anything", **DEFAULT_PARAM).must, { term: { rating_locked: false } }, "ratinglocked:anything")
       assert_includes(ElasticPostQueryBuilder.new("notelocked:true", **DEFAULT_PARAM).must, { term: { note_locked: true } }, "notelocked:true")
       assert_includes(ElasticPostQueryBuilder.new("notelocked:false", **DEFAULT_PARAM).must, { term: { note_locked: false } }, "notelocked:false")
+      assert_includes(ElasticPostQueryBuilder.new("notelocked:anything", **DEFAULT_PARAM).must, { term: { note_locked: false } }, "notelocked:anything")
       assert_includes(ElasticPostQueryBuilder.new("statuslocked:true", **DEFAULT_PARAM).must, { term: { status_locked: true } }, "statuslocked:true")
       assert_includes(ElasticPostQueryBuilder.new("statuslocked:false", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "statuslocked:false")
+      assert_includes(ElasticPostQueryBuilder.new("statuslocked:anything", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "statuslocked:anything")
+
+      # TODO: Add tests for `~` & `-` prefixed `___locked` tags being processed as tags & not metatags
     end
 
     # TODO: Test `ElasticPostQueryBuilder::GLOBAL_DELETED_FILTER`
