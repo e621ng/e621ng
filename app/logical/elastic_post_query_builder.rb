@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class ElasticPostQueryBuilder < ElasticQueryBuilder
+  # TODO: This could be eliminated, as `TagQuery` only parses the locked class of metatags when they
+  # correspond to rating, note, & status; simply passing the resultant values directly with no
+  # further processing should be sufficient.
   LOCK_TYPE_TO_INDEX_FIELD = Hash.new("missing").merge ({
     rating: :rating_locked,
     note: :note_locked,
@@ -245,6 +248,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     # Handle locks
+    # TODO: This could be streamlined, as `TagQuery` only parses the locked class of metatags when they
+    # correspond to rating, note, & status; simply passing the resultant values directly with no
+    # further processing should be sufficient.
     q[:locked]&.each do |lock_type|
       must.push({ term: { LOCK_TYPE_TO_INDEX_FIELD[lock_type] => true } })
     end
@@ -298,14 +304,15 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     must.push({ term: { deleted: false } }) if hide_deleted_posts?
 
     case q[:order] # rubocop:disable Style/MultilineIfModifier,Lint/RedundantCopDisableDirective -- Skipping this is the exception, not the rule.
+    # TODO: Add this to the `ElasticPostQueryBuilder::ORDER_TABLE` hash
     when /\A(?<column>#{TagQuery::COUNT_METATAGS.join('|')})(_(?<direction>asc))?\z/i
       direction = Regexp.last_match[:direction] || "desc"
       order.push({ Regexp.last_match[:column] => direction }, { id: direction })
 
+    # TODO: Add this to the `ElasticPostQueryBuilder::ORDER_TABLE` hash
     when /\A(#{TagCategory::SHORT_NAME_REGEX})tags(_asc)?\Z/
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
 
-    # Put simply, scales the post's score by how long the post has existed
     when "rank"
       order.push({ _score: :desc })
       must.push({ range: { score: { gt: 0 } } }, { range: { created_at: { gte: 2.days.ago } } })
@@ -331,7 +338,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     else
       self.order = ORDER_TABLE[q[:order]]
-      # Don't add order if nested in a group; it should have been pulled out prior.
+      # Don't add order if nested in a group, as it should have been pulled out prior by `TagQuery#scan_search`.
     end unless @depth > 0
 
     if !CurrentUser.user.nil? && !CurrentUser.user.is_staff? && Security::Lockdown.hide_pending_posts_for > 0

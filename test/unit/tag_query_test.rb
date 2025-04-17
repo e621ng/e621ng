@@ -599,13 +599,30 @@ class TagQueryTest < ActiveSupport::TestCase
   end
 
   should "have correctly constructed order constants" do
-    # puts TagQuery::ORDER_INVERTIBLE_ALIASES
+    # # Uncomment to print out all valid inputs & their outputs.
+    # # Ruby Hash
+    # puts "{"
     # TagQuery::ORDER_METATAGS.each do |x|
-    #   puts "order:#{x} -> #{TagQuery.normalize_order_value(x, invert: false)}"
-    #   puts "-order:#{x} -> #{TagQuery.normalize_order_value(x, invert: true)}"
+    #   puts "\torder:#{x} -> \"#{TagQuery.normalize_order_value(x, invert: false)}\","
+    #   puts "\t-order:#{x} -> \"#{TagQuery.normalize_order_value(x, invert: true)}\","
+    # end
+    # puts "}"
+    # # Markdown
+    # mapping = {}
+    # TagQuery::ORDER_METATAGS.each do |x|
+    #   normalized = TagQuery.normalize_order_value(x, invert: false)
+    #   mapping[normalized] ||= []
+    #   mapping[normalized] << -"`order:#{x}`"
+    #   normalized = TagQuery.normalize_order_value(x, invert: true)
+    #   mapping[normalized] ||= []
+    #   mapping[normalized] << -"`-order:#{x}`"
+    # end
+    # mapping.each_pair do |normal, resolvers|
+    #   puts " * #{resolvers.join(', ')} -> `#{normal}`"
     # end
     assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
     assert_equal([], TagQuery::ORDER_INVERTIBLE_ALIASES.values - TagQuery::ORDER_INVERTIBLE_ROOTS, "Not all resolved alias values are in roots.")
+    assert(TagQuery::ORDER_NON_SUFFIXED_ALIASES.values.uniq.all? { |x| TagQuery.order_valid_non_suffixed_alias_values.include?(x) }, "Invalid non-suffixed aliases values: #{TagQuery::ORDER_NON_SUFFIXED_ALIASES.each_pair.map { |x, y| "#{x}: #{y}" unless TagQuery.order_valid_non_suffixed_alias_values.include?(x) }.join(', ')}")
   end
 
   MAPPING = {

@@ -82,11 +82,9 @@ class TagQuery
   # rubocop:disable Layout/HashAlignment -- Better readability for a constant
 
   # A hashmap of all `order` metatag value aliases that can be inverted by being suffixed by
-  # `_desc`/`_asc`, to the effective value they represent.
+  # `_desc`/`_asc`, to the input value they represent (`comm` -> `comment`).
   #
   # All keys must map to a value in `TagQuery::ORDER_INVERTIBLE_ROOTS` (e.g. `order:comm` is an alias for `order:comment`).
-  #
-  # For example, `order:comm` is equivalent to `order:comment`, so `comm` is an alias for `comment`.
   #
   # Aliases are used to:
   # 1. Resolve equivalent inputs to a unified output for `ElasticPostQueryBuilder` (e.g. `comm` & `comm_desc` will automatically be converted to `comment`, `comm_asc` will automatically be converted to `comment_asc`)
@@ -97,21 +95,30 @@ class TagQuery
     "comm"        => "comment",
     "comm_bumped" => "comment_bumped",
     "ratio"       => "aspect_ratio",
-  # }.freeze # rubocop:disable Layout/CommentIndentation
   }.merge(
-    CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
-      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}tags"
-    end,
-    CATEGORY_METATAG_MAP.keys.index_by { |e| "#{e.delete_suffix('tags')}_tags" },
-    CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
+    # # Adds `artisttags` -> `arttags`
+    # # Removes duplicate `metatags` -> `metatags`
+    # CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
+    #   "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}tags"
+    # end,
+
+    # If both of the following are added, one must start w/
+    # `CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }` to remove duplicate cause by the
+    # short & long name for `meta` being the same.
+
+    # # Adds `art_tags` -> `arttags`
+    # CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by { |e| "#{e.delete_suffix('tags')}_tags" },
+
+    # Adds `artist_tags` -> `arttags`
+    CATEGORY_METATAG_MAP.keys.index_by do |e|
       "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
     end,
   ).freeze
 
-  # A hashmap of all  `order` metatag value aliases that can't be inverted by being suffixed by
-  # `_desc`/`_asc`, to the effective value they represent.
+  # A hashmap of all `order` metatag value aliases that can't be inverted by being suffixed by
+  # `_desc`/`_asc`, to the input value they represent (e.g. `landscape` -> `aspect_ratio`).
   #
-  # All keys must map to a normalized value in `TagQuery::ORDER_METATAGS` (e.g. `order:landscape` is an alias for `order:aspect_ratio`, but `landscape` is mapped to `aspect_ratio` & not `aspect_ratio_desc`).
+  # All keys must map to a normalized value in `TagQuery::ORDER_METATAGS` (e.g. `order:landscape` is an alias for `order:aspect_ratio`, & `order:aspect_ratio` is equivalent to `order:aspect_ratio_desc`, but `landscape` is mapped solely to `aspect_ratio` & not `aspect_ratio_desc`).
   ORDER_NON_SUFFIXED_ALIASES = {
     "portrait"    => "aspect_ratio_asc",
     "landscape"   => "aspect_ratio",
@@ -132,12 +139,31 @@ class TagQuery
   # Add non-reversible entries to the array literal here.
   #
   # IDEA: Add `rank_asc` option
-  ORDER_METATAGS = ORDER_INVERTIBLE_ALIASES
-                   .keys.concat(ORDER_INVERTIBLE_ROOTS)
-                   .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] }.concat(
-                     ORDER_NON_SUFFIXED_ALIASES.keys,
-                     %w[rank random],
-                   ).freeze
+  ORDER_METATAGS = %w[
+    rank random
+  ].concat(
+    ORDER_INVERTIBLE_ALIASES
+      .keys.concat(ORDER_INVERTIBLE_ROOTS)
+      .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
+    ORDER_NON_SUFFIXED_ALIASES.keys,
+  ).freeze
+
+  # Should currently just be `rank` & `random`; not a constant due to only current use being tests.
+  def self.order_non_invertible_roots
+    (ORDER_METATAGS - ORDER_INVERTIBLE_ALIASES
+    .keys.concat(ORDER_INVERTIBLE_ROOTS)
+    .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] }
+    .concat(ORDER_NON_SUFFIXED_ALIASES.keys)).freeze
+  end
+
+  # All values of `TagQuery::ORDER_NON_SUFFIXED_ALIASES` should be in this array.
+  # Not a constant due to only current use being tests.
+  def self.order_valid_non_suffixed_alias_values
+    (order_non_invertible_roots + ORDER_INVERTIBLE_ROOTS[1..]
+    .flat_map { |str| [str, -"#{str}_asc"] })
+      .push("id", "id_desc")
+      .freeze
+  end
 
   # The initial value of a negated `order` metatag mapped to the resultant value.
   # In the general case, tags have a `_asc` suffix appended/removed.
@@ -159,6 +185,8 @@ class TagQuery
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
   # Therefore, these are pulled out of groups and placed on the top level of searches.
+  #
+  # Note that this includes all valid prefixes.
   GLOBAL_METATAGS = %w[order -order limit randseed].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
@@ -169,6 +197,8 @@ class TagQuery
   # The metatags that can override the automatic hiding of deleted posts from search results. Note
   # that the `status` metatag alone ***does not*** override filtering; it must also have a value
   # present in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`.
+  #
+  # Note that this includes all valid prefixes.
   OVERRIDE_DELETED_FILTER_METATAGS = %w[
     status -status
     delreason -delreason ~delreason
@@ -336,6 +366,11 @@ class TagQuery
     true
   end
 
+  # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
+  def self.can_append_deleted_filter?(query, at_any_level: true)
+    !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
+  end
+
   # Convert an order metatag into it's simplest consistent representation.
   # * Resolves aliases & inversions
   # * Handles quoted values
@@ -351,7 +386,6 @@ class TagQuery
       value = $2.delete_prefix('"').delete_suffix('"')
     end
     # Remove suffix when superfluous
-    # value = value.delete_suffix("_desc") unless value == "id_desc"
     value = value.delete_suffix(%w[id_asc id_desc].include?(value) ? "_asc" : "_desc")
     # Resolve all aliases to their root
     # Wouldn't handle `id_desc`, but irrelevant as `id` isn't aliased.
@@ -363,11 +397,6 @@ class TagQuery
     # If inverted, resolve inversion
     value = ORDER_VALUE_INVERSIONS[value] || value if invert
     value
-  end
-
-  # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
-  def self.can_append_deleted_filter?(query, at_any_level: true)
-    !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
   end
 
   # Convert query into a consistent representation.
