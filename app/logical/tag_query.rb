@@ -135,7 +135,7 @@ class TagQuery
   ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
 
   # All possible valid values for `order` metatags; used for autocomplete.
-  # * With the exception of `rank` & `random`, all values have an option to invert the order.
+  # * With the exception of `rank`, `random`, & `hot`, all values have an option to invert the order.
   # * With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
   # * With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
   #
@@ -143,7 +143,7 @@ class TagQuery
   #
   # IDEA: Add `rank_asc` option
   ORDER_METATAGS = %w[
-    rank random
+    rank random hot
   ].concat(
     ORDER_INVERTIBLE_ALIASES
       .keys.concat(ORDER_INVERTIBLE_ROOTS)
@@ -159,18 +159,18 @@ class TagQuery
   ORDER_METATAGS_AUTOCOMPLETE = (ORDER_METATAGS - %w[
     id_asc
   ].concat(
-    ORDER_INVERTIBLE_ROOTS[1..].map { |e| -"#{e}_desc" },
-    CATEGORY_METATAG_MAP.keys.map { |e| -"#{e}_desc" },
-    (ORDER_INVERTIBLE_ALIASES.keys - CATEGORY_METATAG_MAP.keys.map do |e|
-      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
+    ORDER_INVERTIBLE_ROOTS[1..].map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix from all but `id_desc`
+    CATEGORY_METATAG_MAP.keys.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
+    (ORDER_INVERTIBLE_ALIASES.keys - CATEGORY_METATAG_MAP.keys.map do |e| # Remove all aliased forms...
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" # ...for all but the full tag category names
     end).flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] },
-    CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" },
-    ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape],
-    %w[aspect_ratio aspect_ratio_asc],
-    CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] },
+    CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
+    ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape], # Remove all non-suffixed aliases except `portrait` & `landscape`
+    %w[aspect_ratio aspect_ratio_asc], # Remove the forms `portrait` & `landscape` resolve to
+    CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] }, # Remove the resolved forms of the full tag category forms
   )).freeze
 
-  # Should currently just be `rank` & `random`; not a constant due to only current use being tests.
+  # Should currently just be `rank`, `random`, & `hot`; not a constant due to only current use being tests.
   def self.order_non_invertible_roots
     (ORDER_METATAGS - ORDER_INVERTIBLE_ALIASES
     .keys.concat(ORDER_INVERTIBLE_ROOTS)
@@ -191,8 +191,8 @@ class TagQuery
   # In the general case, tags have a `_asc` suffix appended/removed.
   #
   # NOTE: With the exception of `id_desc`, values ending in `_desc` are equivalent to the same string
-  # with that suffix removed; as such, these keys, along with `id_asc`, `rank`, & `random`, are not
-  # included in this hash.
+  # with that suffix removed; as such, these keys, along with `id_asc`, `rank`, `random`, & `hot`,
+  # are not included in this hash.
   ORDER_VALUE_INVERSIONS = ORDER_INVERTIBLE_ROOTS[1..].flat_map { |str| [str, -"#{str}_asc"] }.push(*ORDER_NON_SUFFIXED_ALIASES.keys, "id", "id_desc").index_with do |e|
     case e
     when "id"        then "id_desc"

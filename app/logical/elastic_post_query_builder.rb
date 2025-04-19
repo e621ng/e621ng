@@ -8,6 +8,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
   ERROR_ON_DEPTH_EXCEEDED = true
 
+  # Must be >= 0; 0 removes all impact of date on rank.
+  # The smaller the value, the more shallow the initial curve.
+  RANK_EXPONENT = 0.4
+
   def initialize( # rubocop:disable Metrics/ParameterLists
     query,
     resolve_aliases: true,
@@ -293,9 +297,29 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     when /\A(#{TagCategory::SHORT_NAME_REGEX})tags(_asc)?\Z/
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
 
-    when "rank"
+    when "hot"
+      two_days_ago = 2.days.ago
+      @function_score = {
+        script_score: {
+          script: {
+            params: { milliseconds_in_two_days: 172_800_000, two_days_ago: two_days_ago.to_i * 1000 },
+            # https://www.desmos.com/calculator/1hffttlyxp
+            # a = (doc['created_at'].value.millis - params.two_days_ago)
+            # b = (a / params.milliseconds_in_two_days)
+            # c = Math.abs(1.0 - b)
+            # d = Math.pow(c, #{RANK_EXPONENT})
+            # e = (d + 1.0)
+            # f = (e / 2.0)
+            # score = doc['score'].value * f
+            source: "doc['score'].value * ((Math.pow(Math.abs(1.0 - ((doc['created_at'].value.millis - params.two_days_ago) / params.milliseconds_in_two_days)), #{RANK_EXPONENT}) + 1.0) / 2.0)",
+          },
+        },
+      }
+      must.push({ range: { score: { gt: 0 } } })
+      must.push({ range: { created_at: { gte: two_days_ago } } })
       order.push({ _score: :desc })
-      must.push({ range: { score: { gt: 0 } } }, { range: { created_at: { gte: 2.days.ago } } })
+
+    when "rank"
       @function_score = {
         script_score: {
           script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
@@ -304,6 +328,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
           },
         },
       }
+      must.push({ range: { score: { gt: 0 } } })
+      # must.push({ range: { created_at: { gte: 2.days.ago } } })
+      order.push({ _score: :desc })
 
     when "random"
       order.push({ _score: :desc })
