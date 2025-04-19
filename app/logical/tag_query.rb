@@ -104,6 +104,7 @@ class TagQuery
     duration duration_desc duration_asc
     rank
     random
+    hot
   ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
