@@ -22,7 +22,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "fail on too many per post total" do
       Danbooru.config.stubs(:post_replacement_per_post_limit).returns(-1)
       @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
-      assert_equal ["Creator has already suggested too many total replacements for this post"], @replacement.errors.full_messages
+      assert_equal ["Creator already has too many pending replacements for this post"], @replacement.errors.full_messages
     end
 
     should "fail if user has no remaining upload limit" do
