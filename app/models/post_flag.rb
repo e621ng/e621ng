@@ -193,4 +193,9 @@ class PostFlag < ApplicationRecord
     # Deletions also create flags, but they create a deletion event instead
     PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason }) unless is_deletion
   end
+
+  def can_see_note?(user = CurrentUser.user)
+    return true if user.is_staff?
+    creator_id == user.id
+  end
 end
