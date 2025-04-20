@@ -14,9 +14,7 @@
 
   <!-- Formula -->
   <div class="profile-container">
-    <% if @user.can_upload_free? %>
-      <p><%= is_current_user ? "You" : link_to_user(@user) %> can upload an <strong>unlimited</strong> number of posts.</p>
-    <% elsif @user.no_uploading %>
+    <% if @user.no_uploading %>
       <p><%= is_current_user ? "You" : link_to_user(@user) %> cannot upload posts.</p>
 
       <% if is_current_user %>
@@ -25,6 +23,8 @@
           If you believe that this was done in error, <%= link_to "contact an admin", show_or_new_wiki_pages_path(title: "e621:staff") %> to have this situation resolved.
         </p>
       <% end %>
+    <% elsif @user.can_upload_free? %>
+      <p><%= is_current_user ? "You" : link_to_user(@user) %> can upload an <strong>unlimited</strong> number of posts.</p>
     <% else %>
       <p><%= is_current_user ? "You" : link_to_user(@user) %> can currently upload <strong><%= @user.upload_limit %></strong> posts.<br />This limit is based on the following formula:</p>
 
