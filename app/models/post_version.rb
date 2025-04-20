@@ -289,7 +289,7 @@ class PostVersion < ApplicationRecord
           source source_changed
           description description_changed
           reason
-          updater_id updater_name
+          creator_id creator_name
         ]
       end
 

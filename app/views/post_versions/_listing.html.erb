@@ -48,8 +48,9 @@
       <div class="pv-reason pv-content">
         <% if post_version.details_visible? %>
           <%= post_version.reason %>
-        <% else %>
-          <em>Details hidden by <%= link_to_user(post_version.updater) %>.</em>
+        <% end %>
+        <% if post_version.is_hidden %>
+          <div><em>Details hidden by <%= link_to_user(post_version.updater) %>.</em></div>
         <% end %>
       </div>
 
