@@ -61,6 +61,10 @@ class PostFlag < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
+      if params[:note].present?
+        q = q.attribute_matches(:note, params[:note])
+      end
+
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
