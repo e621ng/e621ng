@@ -1,7 +1,7 @@
 body.c-static.a-home {
   background: #012e57 no-repeat center 0;
-  background-color: var(--bg-color);
-  background-image: var(--bg-image);
+  background-color: themed("bg-color", #012e57);
+  background-image: themed("bg-image");
 
   background-position-y: 3.75rem;
 
