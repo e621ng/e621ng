@@ -96,7 +96,7 @@ def generate_username
   @username
 end
 
-def populate_posts(number, search: "order:random+score:>250+-grandfathered_content", users: [], batch_size: 320)
+def populate_posts(number, search: "order:random+score:>150+-grandfathered_content", users: [], batch_size: 320)
   return [] unless number > 0
   puts "* Creating #{number} posts"
 
@@ -104,13 +104,27 @@ def populate_posts(number, search: "order:random+score:>250+-grandfathered_conte
   users = User.where("users.created_at < ?", 7.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   output = []
 
-  seed = Faker::Alphanumeric.alphanumeric(number: 6)
+  seed = Faker::Number.within(range: 100_000..100_000_000)
+  puts "  Seed #{seed}"
 
-  # Generate posts in batches of 200 (by default)
-  number.times.each_slice(batch_size).map(&:size).each_with_index do |count, page|
-    posts = api_request("/posts.json?tags=#{search}+randseed:#{seed}&limit=#{count}&page=#{page + 1}")["posts"]
+  total = 0
+  skipped = 0
+  page = 1
 
-    posts.each do |post|
+  while total < number
+    posts = api_request("/posts.json?tags=#{search}+-young+-type:swf+randseed:#{seed}&limit=#{batch_size}&page=#{page + 1}")["posts"]
+    if posts&.length != batch_size
+      puts "  End of Content"
+      break
+    end
+
+    imported = posts.reject do |post|
+      Post.where(md5: post["file"]["md5"]).exists?
+    end
+
+    puts "  Page #{page}, skipped #{skipped}"
+
+    imported.each do |post|
       post["tags"].each do |category, tags|
         Tag.find_or_create_by_name_list(tags.map { |tag| "#{category}:#{tag}" })
       end
@@ -125,16 +139,24 @@ def populate_posts(number, search: "order:random+score:>250+-grandfathered_conte
       end
 
       if @upload.invalid? || @upload.post.nil?
-        puts "    #{@upload.errors.full_messages.join('; ')}"
+        puts "    invalid: #{@upload.errors.full_messages.join('; ')}"
       else
         puts "    post: ##{@upload.post.id}"
         CurrentUser.scoped(admin) do
           @upload.post.approve!
         end
+
+        total += 1
         output << @upload.post
       end
+
+      break if total >= number
     end
+
+    page += 1
   end
+
+  puts "  Created #{total}, skipped #{skipped} posts from #{page - 1} pages"
 
   output
 end
