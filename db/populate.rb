@@ -96,7 +96,7 @@ def generate_username
   @username
 end
 
-def populate_posts(number, search: "rating:s+order:random+score:>250+-grandfathered_content", users: [], batch_size: 320)
+def populate_posts(number, search: "order:random+score:>250+-grandfathered_content", users: [], batch_size: 320)
   return [] unless number > 0
   puts "* Creating #{number} posts"
 
@@ -104,9 +104,11 @@ def populate_posts(number, search: "rating:s+order:random+score:>250+-grandfathe
   users = User.where("users.created_at < ?", 7.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   output = []
 
+  seed = Faker::Alphanumeric.alphanumeric(number: 6)
+
   # Generate posts in batches of 200 (by default)
-  number.times.each_slice(batch_size).map(&:size).each do |count|
-    posts = api_request("/posts.json?tags=#{search}&limit=#{count}")["posts"]
+  number.times.each_slice(batch_size).map(&:size).each_with_index do |count, page|
+    posts = api_request("/posts.json?tags=#{search}+randseed:#{seed}&limit=#{count}&page=#{page + 1}")["posts"]
 
     posts.each do |post|
       post["tags"].each do |category, tags|
