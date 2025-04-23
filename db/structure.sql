@@ -3732,6 +3732,13 @@ CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON publ
 
 
 --
+-- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_created_at ON public.favorites USING btree (created_at);
+
+
+--
 -- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4699,6 +4706,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250423141854'),
 ('20250420204037'),
 ('20250414000142'),
 ('20250328035855'),
