@@ -7,13 +7,13 @@ class PostVersionCreatorColumn < ActiveRecord::Migration[7.1]
       rename_column :post_versions, :updater_ip_addr, :creator_ip_addr
       rename_column :post_versions, :updated_at, :created_at
 
-      change_column :post_versions, :creator_id, :integer, null: false, default: 0
-      change_column :post_versions, :creator_ip_addr, :inet, null: false, default: "127.0.0.1"
-      change_column :post_versions, :created_at, :datetime, null: false, default: -> { "now()" }
+      change_column :post_versions, :creator_id, :integer, default: 0
+      change_column :post_versions, :creator_ip_addr, :inet, default: "127.0.0.1"
+      change_column :post_versions, :created_at, :datetime, default: -> { "now()" }
 
-      add_column :post_versions, :updater_id, :integer, null: false, default: 0
-      add_column :post_versions, :updater_ip_addr, :inet, null: false, default: "127.0.0.1"
-      add_column :post_versions, :updated_at, :datetime, null: false, default: -> { "now()" }
+      add_column :post_versions, :updater_id, :integer, default: 0
+      add_column :post_versions, :updater_ip_addr, :inet, default: "127.0.0.1"
+      add_column :post_versions, :updated_at, :datetime, default: -> { "now()" }
     end
   end
 
