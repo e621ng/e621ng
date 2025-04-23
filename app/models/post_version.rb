@@ -3,7 +3,6 @@
 class PostVersion < ApplicationRecord
   class UndoError < StandardError; end
   belongs_to :post
-  belongs_to_creator
   belongs_to_updater
   user_status_counter :post_update_count, foreign_key: :updater_id
 
@@ -13,7 +12,7 @@ class PostVersion < ApplicationRecord
   module SearchMethods
     def for_user(user_id)
       if user_id
-        where("creator_id = ?", user_id)
+        where("updater_id = ?", user_id)
       else
         none
       end
@@ -29,18 +28,18 @@ class PostVersion < ApplicationRecord
   include PostVersionIndex
 
   def self.queue(post)
-    create({
-      post_id: post.id,
-      rating: post.rating,
-      parent_id: post.parent_id,
-      source: post.source,
-      creator_id: CurrentUser.id,
-      creator_ip_addr: CurrentUser.ip_addr,
-      tags: post.tag_string,
-      locked_tags: post.locked_tags,
-      description: post.description,
-      reason: post.edit_reason,
-    })
+    self.create({
+                    post_id: post.id,
+                    rating: post.rating,
+                    parent_id: post.parent_id,
+                    source: post.source,
+                    updater_id: CurrentUser.id,
+                    updater_ip_addr: CurrentUser.ip_addr,
+                    tags: post.tag_string,
+                    locked_tags: post.locked_tags,
+                    description: post.description,
+                    reason: post.edit_reason
+                })
   end
 
   def self.calculate_version(post_id)
@@ -105,13 +104,9 @@ class PostVersion < ApplicationRecord
     post && post.visible?
   end
 
-  def details_visible?(user = CurrentUser.user)
-    return true if user.is_staff?
+  def details_visible?
+    return true if CurrentUser.is_staff?
     !is_hidden
-  end
-
-  def can_hide_details?(user = CurrentUser.user)
-    user.is_bd_staff?
   end
 
   def diff_sources(version = nil)
@@ -289,7 +284,7 @@ class PostVersion < ApplicationRecord
           source source_changed
           description description_changed
           reason
-          creator_id creator_name
+          updater_id updater_name
         ]
       end
 

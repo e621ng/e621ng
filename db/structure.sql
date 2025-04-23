@@ -1562,9 +1562,9 @@ CREATE TABLE public.post_versions (
     locked_tags text,
     added_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
     removed_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
-    creator_id integer DEFAULT 0 NOT NULL,
-    creator_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
-    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updater_id integer DEFAULT 0 NOT NULL,
+    updater_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL,
     rating character varying(1),
     rating_changed boolean DEFAULT false NOT NULL,
     parent_id integer,
@@ -1575,10 +1575,7 @@ CREATE TABLE public.post_versions (
     description_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
     reason character varying,
-    is_hidden boolean DEFAULT false NOT NULL,
-    updater_id integer DEFAULT 0 NOT NULL,
-    updater_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
-    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
+    is_hidden boolean DEFAULT false NOT NULL
 );
 
 
@@ -4117,31 +4114,31 @@ CREATE INDEX index_post_sets_on_post_ids ON public.post_sets USING gin (post_ids
 
 
 --
--- Name: index_post_versions_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_versions_on_created_at ON public.post_versions USING btree (created_at);
-
-
---
--- Name: index_post_versions_on_creator_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_versions_on_creator_id ON public.post_versions USING btree (creator_id);
-
-
---
--- Name: index_post_versions_on_creator_ip_addr; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_versions_on_creator_ip_addr ON public.post_versions USING btree (creator_ip_addr);
-
-
---
 -- Name: index_post_versions_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_post_versions_on_post_id ON public.post_versions USING btree (post_id);
+
+
+--
+-- Name: index_post_versions_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updated_at ON public.post_versions USING btree (updated_at);
+
+
+--
+-- Name: index_post_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updater_id ON public.post_versions USING btree (updater_id);
+
+
+--
+-- Name: index_post_versions_on_updater_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_versions_on_updater_ip_addr ON public.post_versions USING btree (updater_ip_addr);
 
 
 --
@@ -4707,7 +4704,6 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250423141854'),
-('20250420204037'),
 ('20250414000142'),
 ('20250328035855'),
 ('20241114055212'),
