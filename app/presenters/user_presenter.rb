@@ -61,6 +61,7 @@ class UserPresenter
   end
 
   def upload_limit_short
+    return "0 / 0" if user.no_uploading?
     return "none" if user.can_upload_free?
     "#{user.upload_limit} / #{user.upload_limit_max}"
   end
