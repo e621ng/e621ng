@@ -22,7 +22,7 @@
         Locked Tags
       </div>
       <div class="pv-spacer pv-label">
-        <% if CurrentUser.is_admin? %>
+        <% if post_version.can_hide_details? %>
           <% if post_version.is_hidden? %>
             <%= link_to "Unhide", unhide_post_version_path(post_version), method: :put %>
           <% else %>
@@ -35,21 +35,22 @@
         <%= link_to("#{post_version.post_id}:#{post_version.version}", post_path(post_version.post_id)) %>
       </div>
       <div class="pv-date pv-content">
-        <% if post_version.updater && post_version.details_visible? %>
-          <%= link_to_user(post_version.updater) %>
+        <% if post_version.creator && post_version.details_visible? %>
+          <%= link_to_user(post_version.creator) %>
         <% else %>
           Anonymous
         <% end %>
         <% if CurrentUser.is_admin? %>
-          (<%= link_to_ip(post_version.updater_ip_addr) %>)
+          (<%= link_to_ip(post_version.creator_ip_addr) %>)
         <% end %>
-        <%= time_ago_in_words_tagged(post_version.updated_at, compact: true) %>
+        <%= time_ago_in_words_tagged(post_version.created_at, compact: true) %>
       </div>
       <div class="pv-reason pv-content">
         <% if post_version.details_visible? %>
           <%= post_version.reason %>
-        <% else %>
-          <em>Hidden by staff</em>
+        <% end %>
+        <% if post_version.is_hidden %>
+          <div><em>Details hidden by <%= link_to_user(post_version.updater) %>.</em></div>
         <% end %>
       </div>
 
