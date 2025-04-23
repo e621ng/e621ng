@@ -96,8 +96,8 @@ class PostReplacement < ApplicationRecord
       errors.add(:creator, "has already suggested too many replacements for this post today")
       throw :abort
     end
-    if post.replacements.where(creator_id: creator.id).count >= Danbooru.config.post_replacement_per_post_limit
-      errors.add(:creator, "has already suggested too many total replacements for this post")
+    if post.replacements.where(creator_id: creator.id, status: "pending").count >= Danbooru.config.post_replacement_per_post_limit
+      errors.add(:creator, "already has too many pending replacements for this post")
       throw :abort
     end
     true

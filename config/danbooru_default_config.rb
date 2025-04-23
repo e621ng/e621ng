@@ -267,7 +267,7 @@ module Danbooru
     end
 
     def post_replacement_per_post_limit
-      5
+      3
     end
 
     def remember_key
