@@ -9,25 +9,10 @@ class UploadService
       @replacement = replacement
     end
 
-    def create_backup_replacement
-      begin
-        repl = post.replacements.new(creator_id: post.uploader_id, creator_ip_addr: post.uploader_ip_addr, status: 'original',
-                                     image_width: post.image_width, image_height: post.image_height, file_ext: post.file_ext,
-                                     file_size: post.file_size, md5: post.md5, file_name: "#{post.md5}.#{post.file_ext}",
-                                     source: post.source, reason: 'Backup of original file', is_backup: true)
-        repl.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.file_path(post, post.file_ext, :original))
-        repl.save
-      rescue Exception => e
-        raise ProcessingError, "Failed to create post file backup: #{e.message}"
-      end
-      raise ProcessingError, "Could not create post file backup?" if !repl.valid?
-    end
-
     def process!(penalize_current_uploader:)
       # Prevent trying to replace deleted posts
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
 
-      create_backup_replacement
       PostReplacement.transaction do
         replacement.replacement_file = Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(replacement, replacement.file_ext, :original))
 
@@ -54,7 +39,7 @@ class UploadService
           Utils.process_file(upload, upload.file, original_post_id: post.id)
 
           upload.save!
-        rescue Exception => e
+        rescue StandardError => e
           upload.update(status: "error: #{e.class} - #{e.message}", backtrace: e.backtrace.join("\n"))
           raise ProcessingError, "#{e.class} - #{e.message}"
         end
@@ -82,10 +67,10 @@ class UploadService
         rescale_notes(post)
 
         replacement.update({
-          status: 'approved',
+          status: "approved",
           approver_id: CurrentUser.id,
           uploader_id_on_approve: previous_uploader,
-          penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?
+          penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?,
         })
 
         UserStatus.for_user(previous_uploader).update_all("own_post_replaced_count = own_post_replaced_count + 1")
