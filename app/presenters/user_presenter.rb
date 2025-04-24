@@ -61,6 +61,7 @@ class UserPresenter
   end
 
   def upload_limit_short
+    return "0 / 0" if user.no_uploading?
     return "none" if user.can_upload_free?
     "#{user.upload_limit} / #{user.upload_limit_max}"
   end
@@ -196,6 +197,10 @@ class UserPresenter
   end
 
   def recent_tags_with_types
+    []
+  end
+
+  def recent_tags_with_types_old
     versions = PostVersion.where(updater_id: user.id).where("updated_at > ?", 1.hour.ago).order(id: :desc).limit(150)
     tags = versions.flat_map(&:added_tags)
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)

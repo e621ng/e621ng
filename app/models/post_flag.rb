@@ -61,6 +61,10 @@ class PostFlag < ApplicationRecord
         q = q.post_tags_match(params[:post_tags_match])
       end
 
+      if params[:note].present?
+        q = q.attribute_matches(:note, params[:note])
+      end
+
       if params[:ip_addr].present?
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
@@ -188,5 +192,10 @@ class PostFlag < ApplicationRecord
   def create_post_event
     # Deletions also create flags, but they create a deletion event instead
     PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason }) unless is_deletion
+  end
+
+  def can_see_note?(user = CurrentUser.user)
+    return true if user.is_staff?
+    creator_id == user.id
   end
 end

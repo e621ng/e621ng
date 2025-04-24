@@ -31,13 +31,14 @@
       | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name }) %>
     </span>
 
-    <h4>Uploading</h4>
+    <h4>Uploads</h4>
     <span>
       <% if user.no_uploading %>
         <%= link_to "Disabled", toggle_uploads_user_path(user), class: "text-red text-bold" %>
       <% else %>
         <%= link_to "Enabled", toggle_uploads_user_path(user) %>
       <% end %>
+      | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
     </span>
 
     <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>

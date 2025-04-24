@@ -8,6 +8,7 @@
   ], include_blank: true %>
   <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% if CurrentUser.is_janitor? %>
+    <%= f.input :note %>
     <%= f.user :creator %>
   <% end %>
   <% if CurrentUser.is_admin? %>

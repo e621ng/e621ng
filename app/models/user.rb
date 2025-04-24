@@ -429,10 +429,11 @@ class User < ApplicationRecord
 
     def upload_reason_string(reason)
       reasons = {
-          REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
-          REJ_UPLOAD_EDIT: "have no remaining tag edits available",
-          REJ_UPLOAD_LIMIT: "have reached your upload limit",
-          REJ_UPLOAD_NEWBIE: "cannot upload during your first week"
+        REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
+        REJ_UPLOAD_EDIT: "have no remaining tag edits available",
+        REJ_UPLOAD_LIMIT: "have reached your upload limit",
+        REJ_UPLOAD_NEWBIE: "cannot upload during your first week",
+        REJ_UPLOAD_DISABLED: "are not allowed to upload posts",
       }
       reasons.fetch(reason, "unknown upload rejection reason")
     end
@@ -549,10 +550,12 @@ class User < ApplicationRecord
     end
 
     def can_upload_with_reason
-      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
+      if no_uploading?
+        :REJ_UPLOAD_DISABLED
+      elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
       elsif can_upload_free? || is_admin?
-          true
+        true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
