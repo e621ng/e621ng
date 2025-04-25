@@ -22,7 +22,7 @@
         Locked Tags
       </div>
       <div class="pv-spacer pv-label">
-        <% if CurrentUser.is_admin? %>
+        <% if CurrentUser.is_bd_staff? %>
           <% if post_version.is_hidden? %>
             <%= link_to "Unhide", unhide_post_version_path(post_version), method: :put %>
           <% else %>

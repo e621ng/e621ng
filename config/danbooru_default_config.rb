@@ -267,7 +267,7 @@ module Danbooru
     end
 
     def post_replacement_per_post_limit
-      5
+      3
     end
 
     def remember_key
@@ -363,6 +363,7 @@ module Danbooru
         "png" => 100.megabytes,
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
+        "mp4" => 100.megabytes,
       }
     end
 

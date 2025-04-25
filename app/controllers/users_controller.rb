@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit upload_limit update]
   before_action :member_only, only: %i[custom_style]
-  before_action :janitor_only, only: %i[toggle_uploads]
+  before_action :janitor_only, only: %i[toggle_uploads fix_counts]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -54,6 +54,15 @@ class UsersController < ApplicationController
     @user.no_uploading = !@user.no_uploading
     ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
+
+    redirect_to user_path(@user)
+  end
+
+  def fix_counts
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+
+    @user.refresh_counts!
+    flash[:notice] = "Counts have been refreshed"
 
     redirect_to user_path(@user)
   end

@@ -18,9 +18,12 @@
         <span class="resolved">RESOLVED</span>
       <% end %>
       
-      <% if flag.note.present? && CurrentUser.is_staff? %>
-        <div class="dtext-container post-flag-note">
-          <%= format_text flag.note %>
+      <% if flag.note.present? && flag.can_see_note? %>
+        <div class="post-flag-note">
+          <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
+          <div class="dtext-container post-flag-note-body">
+            <%= format_text flag.note %>
+          </div>
         </div>
       <% end %>
     </li>

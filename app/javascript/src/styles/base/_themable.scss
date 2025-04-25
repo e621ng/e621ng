@@ -16,8 +16,12 @@
 @import "../themes/extra_space";
 @import "../themes/extra_stars";
 
-@function themed($key) {
-  @return var(--#{$key});
+@function themed($key, $default: "") {
+  @if $default != "" {
+    @return var(--#{$key}, $default);
+  } @else {
+    @return var(--#{$key});
+  }
 }
 
 @mixin with-theme($key, $value) {

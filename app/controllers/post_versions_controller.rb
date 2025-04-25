@@ -23,7 +23,7 @@ class PostVersionsController < ApplicationController
   end
 
   def hide
-    raise User::PrivilegeError unless CurrentUser.is_admin?
+    raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
     @post_version.is_hidden = true
@@ -34,7 +34,7 @@ class PostVersionsController < ApplicationController
   end
 
   def unhide
-    raise User::PrivilegeError unless CurrentUser.is_admin?
+    raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
     @post_version.is_hidden = false
