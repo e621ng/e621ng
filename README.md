@@ -52,6 +52,12 @@
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
+#### Truenas/local server installation help
+
+If you decide to deploy this docker image to an external/local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the ip of your server, or you won't be able to access it/will have broken images. 
+
+Specifically for Truenas/NAS boxes users: You need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
+
 ### Development environment
 
 This repo provides a Dev Container configuration. You can use something like the [Dev Container extension for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to make use of it. Simply install it, open the folder in VSCode, and click the button in the bottom right to open the folder in the Dev Container.
