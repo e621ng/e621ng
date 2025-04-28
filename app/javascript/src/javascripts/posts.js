@@ -494,7 +494,7 @@ Post.resize_video = function (post, target_size) {
   function original_sources () {
     if (!post || !post.file) return;
 
-    // This feels exceptionally stupid, but it should work
+    // I feel like there is a better way of doing this
     let codecs = [ "video/webm; codecs=\"vp9\"", "video/mp4" ];
     let alternate = 1;
     if (post.file.ext == "mp4") {
