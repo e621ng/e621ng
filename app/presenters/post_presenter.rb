@@ -127,7 +127,7 @@ class PostPresenter < Presenter
           type: 'video',
           height: post.image_height,
           width: post.image_width,
-          urls: post.visible? ? [nil, post.file_url_ext('mp4')] : [nil, nil]
+          urls: post.visible? ? [post.file_url_ext("webm"), post.file_url_ext("mp4")] : [nil, nil],
       }
     end
     Danbooru.config.image_rescales.each do |k,v|
