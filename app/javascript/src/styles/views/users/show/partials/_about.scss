@@ -18,6 +18,7 @@ tabs-menu, tabs-content {
   .content {
     position: relative;
     max-height: 25rem;
+    overflow-y: auto;
     &.expanded { max-height: unset; }
     @include window-larger-than(50rem) { max-height: unset; }
 
