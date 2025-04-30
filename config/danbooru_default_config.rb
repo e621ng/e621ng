@@ -36,7 +36,7 @@ module Danbooru
     end
 
     def takedown_email
-      "management@#{domain}"
+      "takedowns@#{domain}"
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -117,7 +117,7 @@ module Danbooru
     end
 
     def large_image_prefix
-      "sample-"
+      ""
     end
 
     def protected_path_prefix
