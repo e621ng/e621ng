@@ -76,7 +76,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..7]
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
     posts = Post.where(id: ids).sort_by { |post| ids.index(post.id) }
     PostsDecorator.decorate_collection(posts)
   end
