@@ -75,7 +75,7 @@ class TagQuery
 
   # OPTIMIZE: Check what's best
   # Should avoid additional array allocations
-  METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
+  METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
   # Should guarantee at most 1 resize
@@ -104,11 +104,12 @@ class TagQuery
     duration duration_desc duration_asc
     rank
     random
+    hot
   ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
   # Therefore, these are pulled out of groups and placed on the top level of searches.
-  GLOBAL_METATAGS = %w[order limit randseed].freeze
+  GLOBAL_METATAGS = %w[order limit randseed hot_from].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
   # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
@@ -1258,6 +1259,8 @@ class TagQuery
       when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
 
       when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
+
+      when "hot_from" then q[:hot_from] = ParseValue.date_from(g2)
 
       when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count, ParseValue.range(g2))
 
