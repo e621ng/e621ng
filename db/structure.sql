@@ -1562,9 +1562,9 @@ CREATE TABLE public.post_versions (
     locked_tags text,
     added_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
     removed_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
-    updater_id integer,
-    updater_ip_addr inet NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    updater_id integer DEFAULT 0 NOT NULL,
+    updater_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL,
     rating character varying(1),
     rating_changed boolean DEFAULT false NOT NULL,
     parent_id integer,
@@ -3743,6 +3743,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
+-- Name: index_favorites_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING btree (user_id, created_at);
+
+
+--
 -- Name: index_favorites_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4696,6 +4703,8 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250429022022'),
+('20250423141854'),
 ('20250414000142'),
 ('20250328035855'),
 ('20241114055212'),

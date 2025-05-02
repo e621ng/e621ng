@@ -492,9 +492,21 @@ Post.resize_video = function (post, target_size) {
   let desired_classes = [];
 
   function original_sources () {
-    target_sources.push({type: "video/webm; codecs=\"vp9\"", url: post?.file?.url});
-    if (typeof post?.sample?.alternates?.original !== "undefined")
-      target_sources.push({type: "video/mp4", url: post?.sample?.alternates?.original?.urls[1]});
+    if (!post || !post.file) return;
+
+    // Samples are checked for viability in order, so we should
+    // place mp4 samples first if the original is mp4.
+    // There may be a better way of handling this.
+    let codecs = [ "video/webm; codecs=\"vp9\"", "video/mp4" ];
+    let alternate = 1;
+    if (post.file.ext == "mp4") {
+      codecs = codecs.reverse();
+      alternate = 0;
+    }
+
+    target_sources.push({type: codecs[0], url: post.file.url});
+    if (typeof post.sample?.alternates?.original !== "undefined")
+      target_sources.push({type: codecs[1], url: post.sample?.alternates?.original?.urls[alternate]});
   }
 
   switch (target_size) {
@@ -512,8 +524,17 @@ Post.resize_video = function (post, target_size) {
     default: {
       $notice.show();
       const alternate = post?.sample?.alternates[target_size];
-      target_sources.push({type: "video/webm; codecs=\"vp9\"", url: alternate.urls[0]});
-      target_sources.push({type: "video/mp4", url: alternate.urls[1]});
+
+      // This ensures that mp4 samples are preferred over
+      // webm if the original version is also mp4
+      const alternateSamples = [
+        {type: "video/webm; codecs=\"vp9\"", url: alternate.urls[0]},
+        {type: "video/mp4", url: alternate.urls[1]},
+      ];
+      if (post.file.ext === "mp4") alternateSamples.reverse();
+
+      target_sources.push(...alternateSamples);
+
       desired_classes.push("fit-window");
       update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
       break;
