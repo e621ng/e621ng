@@ -55,7 +55,7 @@ class PostSerializer < ActiveModel::Serializer
           type: 'video',
           height: fixed_dims[1],
           width: fixed_dims[0],
-          urls: object.visible? ? [nil, object.file_url_ext('mp4')] : [nil, nil]
+          urls: object.visible? ? [object.file_url_ext("webm"), object.file_url_ext("mp4")] : [nil, nil],
       }
     end
     Danbooru.config.image_rescales.each do |k,v|

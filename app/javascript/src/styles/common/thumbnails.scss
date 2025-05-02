@@ -47,6 +47,7 @@ article.thumbnail {
   // Badges
   &[data-tags~=animated] > a:before { @include preview-type-badge("ANIM"); }
   &[data-file-ext=webm] > a:before { @include preview-type-badge("WEBM"); }
+  &[data-file-ext=mp4] > a:before { @include preview-type-badge("MP4"); }
 
   a { text-align: center; } // Fixes an issue with blacklisted pool thumbnails
 

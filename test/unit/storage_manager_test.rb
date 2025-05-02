@@ -87,7 +87,7 @@ class StorageManagerTest < ActiveSupport::TestCase
         @storage_manager.store_file(StringIO.new("data"), @post, :original)
 
         @file_path = "#{BASE_DIR}/preview/#{@post.md5}.jpg"
-        @large_file_path = "#{BASE_DIR}/sample/sample-#{@post.md5}.jpg"
+        @large_file_path = "#{BASE_DIR}/sample/#{@post.md5}.jpg"
         @preview_file_path = "#{BASE_DIR}/#{@post.md5}.#{@post.file_ext}"
       end
 
@@ -113,7 +113,7 @@ class StorageManagerTest < ActiveSupport::TestCase
         @post = create(:post, file_ext: "png")
 
         assert_equal("/data/#{@post.md5}.png", @storage_manager.file_url(@post, :original))
-        assert_equal("/data/sample/sample-#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
+        assert_equal("/data/sample/#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
         assert_equal("/data/preview/#{@post.md5}.jpg", @storage_manager.file_url(@post, :preview))
       end
 
