@@ -26,14 +26,19 @@
 <% if !@post.force_original_size? %>
   <div>
     <select id="image-resize-selector" class="button btn-neutral">
-      <option value="original">Original</option>
+      <% if @post.is_video? && @post.video_sample_list.any? && @post.video_sample_list[:variants].any? %>
+        <option value="source">Original</option>
+        <option value="original">Automatic</option>
+      <% else %>
+        <option value="original">Original</option>
+      <% end %>
       <option value="fit">Fit (Horizontal)</option>
       <option value="fitv">Fit (Vertical)</option>
       <% if !@post.is_video? %>
         <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
       <% end %>
-      <% Danbooru.config.video_rescales.keys.each do |size| %>
-        <% next unless @post.has_sample_size?(size) %>
+      <% Danbooru.config.video_samples.keys.each do |size| %>
+        <% next unless @post.has_sample_size?(size.to_s) %>
         <option value="<%= size %>">Sample (<%= size %>)</option>
       <% end %>
   </select>
