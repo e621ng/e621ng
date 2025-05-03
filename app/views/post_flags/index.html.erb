@@ -24,9 +24,12 @@
               <div class="dtext-container">
                 <%= format_text post_flag.reason %>
               </div>
-              <% if post_flag.note.present? && CurrentUser.is_staff? %>
-                <div class="dtext-container post-flag-note">
-                  <%= format_text post_flag.note %>
+              <% if post_flag.note.present? && post_flag.can_see_note? %>
+                <div class="post-flag-note">
+                  <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
+                  <div class="dtext-container post-flag-note-body">
+                    <%= format_text post_flag.note %>
+                  </div>
                 </div>
               <% end %>
             </td>

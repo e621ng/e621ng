@@ -237,6 +237,12 @@ class Takedown < ApplicationRecord
         q = q.where('status = ?', params[:status])
       end
 
+      if params[:creator_logged_in].to_s.truthy?
+        q = q.where.not(creator: nil)
+      elsif params[:creator_logged_in].to_s.falsy?
+        q = q.where(creator: nil)
+      end
+
       case params[:order]
       when 'status'
         q = q.order('status ASC')

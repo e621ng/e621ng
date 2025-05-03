@@ -15,6 +15,7 @@ class FileValidator
     if record.is_video?
       video = record.video(file_path)
       validate_container_format(video)
+      validate_audio_codec(video)
       validate_duration(video)
       validate_colorspace(video)
       validate_sar(video)
@@ -71,10 +72,20 @@ class FileValidator
       record.errors.add(:base, "video isn't valid")
       return
     end
-    valid_video_codec = %w[vp8 vp9 av1].include?(video.video_codec)
-    valid_container = video.container == "matroska,webm"
-    unless valid_video_codec && valid_container
-      record.errors.add(:base, "video container/codec isn't valid for webm")
+    valid_webm = video.container == "matroska,webm" && %w[vp8 vp9].include?(video.video_codec)
+    # In the future, we want to allow "h264".
+    valid_mp4  = video.container == "mov,mp4,m4a,3gp,3g2,mj2" && %w[av1].include?(video.video_codec)
+    unless valid_webm || valid_mp4
+      record.errors.add(:base, "video must be WebM with VP8/VP9 or MP4 with AV1, but found #{video.container} with #{video.video_codec}")
+    end
+  end
+
+  def validate_audio_codec(video)
+    return unless video.video_codec == "av1"
+
+    allowed_audio_codecs = %w[opus aac mp3]
+    if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
+      record.errors.add(:base, "video uses AV1 and must use Opus, AAC, or MP3 audio codec, but found #{video.audio_codec}")
     end
   end
 
@@ -83,6 +94,8 @@ class FileValidator
   end
 
   def validate_sar(video)
-    record.errors.add(:base, "video is anamorphic (#{video.sar})") unless video.sar == "1:1"
+    if video.sar.present? && video.sar != "1:1"
+      record.errors.add(:base, "video is anamorphic (SAR is #{video.sar})")
+    end
   end
 end

@@ -1,0 +1,97 @@
+<tr id="replacement-<%= post_replacement.id %>" class="<%= "replacement-pending-row" if post_replacement.status == "pending" %>">
+  <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
+  <td><%= replacement_thumbnail(post_replacement) %></td>
+  <td>
+    <dt>Version</dt>
+    <dd><%= post_replacement.post_id %>:<%= post_replacement.sequence_number %></dd>
+    <dt>Status</dt>
+    <dd>
+      <% if post_replacement.status == "approved" %>
+        <% if post_replacement.md5 == post_replacement.post.md5 %>
+          approved, current
+        <% else %>
+          approved
+        <% end %>
+        <dt>Approver</dt>
+        <dd><%= link_to_user post_replacement.approver %></dd>
+      <% elsif post_replacement.status == "original" %>
+        original
+      <% else %>
+        <%= post_replacement.status %>
+      <% end %>
+    </dd>
+  </td>
+  <td>
+    <dt>Version Uploader</dt>
+    <dd><%= link_to_user post_replacement.creator %></dd>
+
+    <% unless post_replacement.status == "original" || post_replacement.status == "pending" %>
+      <dt>Previous Uploader</dt>
+      <dd>
+        <%= link_to_user post_replacement.uploader_on_approve %>
+        <% if CurrentUser.can_approve_posts? %>
+          | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
+          <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %><br>
+        <% end %>
+      </dd>
+    <% end %>
+
+    <dt>Sources</dt>
+    <dd>
+      <% if post_replacement.source.present? %>
+        <ul>
+          <% post_replacement.source_list.each do |source| %>
+            <li><%= external_link_to source, truncate: 46 %></li>
+          <% end %>
+        </ul>
+      <% else %>
+        <em>None provided</em>
+      <% end %>
+    </dd>
+  </td>
+  <td>
+    <dt>Image Info</dt>
+    <dd>
+      Replacement:
+      <%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %>
+      (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.is_video? %>, 
+      <%= post_replacement.post.duration %>s<% end -%>) 
+      <p>
+      Current:
+      <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
+      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
+      <%= post_replacement.post.duration %>s<% end -%>)
+    </dd>
+    <dt>File Info</dt>
+    <dd><%= truncate post_replacement.file_name, length: 64 %></dd>
+    <% if post_replacement.md5.present? %>
+      <dt>Replacement MD5</dt>
+      <dd><%= post_replacement.md5 %></dd>
+    <% end %>
+  </td>
+  <td>
+    <dt>Created at</dt>
+    <%= compact_time post_replacement.created_at %>
+    <dt>Updated at</dt>
+    <%= compact_time post_replacement.updated_at %>
+    <dt>Reason</dt>
+    <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
+  </td>
+  <td>
+    <% if CurrentUser.can_approve_posts? %>
+      <div class="pending-links">
+        <% if post_replacement.status == "pending" %>
+          <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br><br>
+          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
+          <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %><br>
+        <% end %>
+      </div>
+      <% if post_replacement.status == "original" %>
+        <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %><br>
+      <% end %>
+    <% end %>
+    <% if CurrentUser.is_admin? %>
+      <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %>
+    <% end %>
+  </td>
+</tr>

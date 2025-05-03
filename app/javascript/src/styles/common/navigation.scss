@@ -52,6 +52,7 @@ nav.navigation {
     & > a {
       display: flex;
       padding: 0.625rem 0.5rem;
+      cursor: pointer;
 
       & > span {
         display: flex;

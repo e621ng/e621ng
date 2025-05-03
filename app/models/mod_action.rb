@@ -58,6 +58,7 @@ class ModAction < ApplicationRecord
     set_update: { set_id: :integer, user_id: :integer },
     set_delete: { set_id: :integer, user_id: :integer },
     set_change_visibility: { set_id: :integer, user_id: :integer, is_public: :boolean },
+    tag_destroy: { name: :string },
     tag_alias_create: { alias_id: :integer, alias_desc: :string },
     tag_alias_update: { alias_id: :integer, alias_desc: :string, change_desc: :string },
     tag_implication_create: { implication_id: :integer, implication_desc: :string },
@@ -92,9 +93,11 @@ class ModAction < ApplicationRecord
     nuke_tag: { tag_name: :string },
     takedown_delete: { takedown_id: :integer },
     takedown_process: { takedown_id: :integer },
+    post_version_hide: { version: :integer, post_id: :integer },
+    post_version_unhide: { version: :integer, post_id: :integer },
   }.freeze
 
-  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete].freeze
+  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete post_version_hide post_version_unhide].freeze
 
   KnownActionKeys = KnownActions.keys.freeze
 

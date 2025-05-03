@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PostReplacement < ApplicationRecord
-  self.table_name = 'post_replacements2'
+  self.table_name = "post_replacements2"
   belongs_to :post
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
@@ -21,16 +21,21 @@ class PostReplacement < ApplicationRecord
   validate :write_storage_file, on: :create
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
+  before_create :create_original_backup
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
 
-  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"]
-  HIGHLIGHTED_TAGS = ["better_version_at_source", "avoid_posting", "conditional_dnp"]
+  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"].freeze
+  HIGHLIGHTED_TAGS = %w[better_version_at_source avoid_posting conditional_dnp].freeze
 
   def replacement_url_parsed
-    return nil unless replacement_url =~ %r!\Ahttps?://!i
-    Addressable::URI.heuristic_parse(replacement_url) rescue nil
+    return nil unless replacement_url =~ %r{\Ahttps?://}i
+    begin
+      Addressable::URI.heuristic_parse(replacement_url)
+    rescue StandardError
+      nil
+    end
   end
 
   def notify_reupload
@@ -43,8 +48,8 @@ class PostReplacement < ApplicationRecord
   module PostMethods
     def post_is_valid
       if post.is_deleted?
-        self.errors.add(:post, "is deleted")
-        return false
+        errors.add(:post, "is deleted")
+        false
       end
     end
   end
@@ -60,40 +65,46 @@ class PostReplacement < ApplicationRecord
 
     post = Post.where(md5: md5).first
     if post
-      self.errors.add(:md5, "duplicate of existing post ##{post.id}")
+      errors.add(:md5, "duplicate of existing post ##{post.id}")
       return false
     end
-    replacements = PostReplacement.where(status: 'pending', md5: md5)
+    replacements = PostReplacement.where(status: "pending", md5: md5)
     replacements.each do |replacement|
-      self.errors.add(:md5, "duplicate of pending replacement on post ##{replacement.post_id}")
+      errors.add(:md5, "duplicate of pending replacement on post ##{replacement.post_id}")
     end
-    replacements.size == 0
+    replacements.empty?
+  end
+
+  def sequence_number
+    return 0 if status == "original"
+    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids.reverse
+    1 + siblings.index(id)
   end
 
   def user_is_not_limited
-    return true if status == 'original'
+    return true if status == "original"
     uploadable = creator.can_upload_with_reason
     if uploadable != true
-      self.errors.add(:creator, User.upload_reason_string(uploadable))
+      errors.add(:creator, User.upload_reason_string(uploadable))
       throw :abort
     end
 
     # Janitor bypass replacement limits
     return true if creator.is_janitor?
 
-    if post.replacements.where(creator_id: creator.id).where('created_at > ?', 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
-      self.errors.add(:creator, 'has already suggested too many replacements for this post today')
+    if post.replacements.where(creator_id: creator.id).where("created_at > ?", 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
+      errors.add(:creator, "has already suggested too many replacements for this post today")
       throw :abort
     end
-    if post.replacements.where(creator_id: creator.id).count >= Danbooru.config.post_replacement_per_post_limit
-      self.errors.add(:creator, 'has already suggested too many total replacements for this post')
+    if post.replacements.where(creator_id: creator.id, status: "pending").count >= Danbooru.config.post_replacement_per_post_limit
+      errors.add(:creator, "already has too many pending replacements for this post")
       throw :abort
     end
     true
   end
 
   def source_list
-    source.split("\n").uniq.reject(&:blank?)
+    source.split("\n").uniq.compact_blank
   end
 
   module StorageMethods
@@ -106,8 +117,8 @@ class PostReplacement < ApplicationRecord
       return if replacement_file.present?
 
       valid, reason = UploadWhitelist.is_whitelisted?(replacement_url_parsed)
-      if !valid
-        self.errors.add(:replacement_url, "is not whitelisted: #{reason}")
+      unless valid
+        errors.add(:replacement_url, "is not whitelisted: #{reason}")
         throw :abort
       end
 
@@ -115,9 +126,9 @@ class PostReplacement < ApplicationRecord
       file = download.download!
 
       self.replacement_file = file
-      self.source = "#{self.source}\n" + replacement_url
+      self.source = "#{source}\n" + replacement_url
     rescue Downloads::File::Error
-      self.errors.add(:replacement_url, "failed to fetch file")
+      errors.add(:replacement_url, "failed to fetch file")
       throw :abort
     end
 
@@ -128,6 +139,7 @@ class PostReplacement < ApplicationRecord
       width, height = calculate_dimensions(replacement_file.path)
       self.image_width = width
       self.image_height = height
+      # self.duration = video_duration(replacement_file.path)
     end
 
     def set_file_name
@@ -135,11 +147,11 @@ class PostReplacement < ApplicationRecord
         self.file_name = replacement_file.try(:original_filename) || File.basename(replacement_file.path)
       else
         if replacement_url_parsed.blank? && replacement_url.present?
-          self.errors.add(:replacement_url, "is invalid")
+          errors.add(:replacement_url, "is invalid")
           throw :abort
         end
         if replacement_url_parsed.blank?
-          self.errors.add(:base, "No file or replacement URL provided")
+          errors.add(:base, "No file or replacement URL provided")
           throw :abort
         end
         self.file_name = replacement_url_parsed.basename
@@ -180,7 +192,7 @@ class PostReplacement < ApplicationRecord
 
   module ProcessingMethods
     def approve!(penalize_current_uploader:)
-      unless ["pending", "original"].include? status
+      unless %w[pending original].include? status
         errors.add(:status, "must be pending or original to approve")
         return
       end
@@ -231,25 +243,57 @@ class PostReplacement < ApplicationRecord
       end
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_rejected, { replacement_id: id })
-      update_attribute(:status, 'rejected')
+      update_attribute(:status, "rejected")
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    def create_original_backup
+      return if is_backup || post.replacements.where(status: "original").exists?
+
+      backup = post.replacements.new(
+        creator_id: post.uploader_id,
+        creator_ip_addr: post.uploader_ip_addr,
+        status: "original",
+        image_width: post.image_width,
+        image_height: post.image_height,
+        file_ext: post.file_ext,
+        file_size: post.file_size,
+        md5: post.md5,
+        file_name: "#{post.md5}.#{post.file_ext}",
+        source: post.source,
+        reason: "Backup of original file",
+        is_backup: true,
+      )
+
+      begin
+        backup.replacement_file = Danbooru.config.storage_manager.open(
+          Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
+        )
+      rescue StandardError => e
+        raise ProcessingError, "Failed to create backup: #{e.message}"
+      end
+
+      unless backup.save
+        errors.add(:base, "Failed to create backup: #{backup.errors.full_messages.to_sentence}")
+        throw :abort
+      end
     end
   end
 
   module PromotionMethods
     def new_upload_params
       {
-          uploader_id: creator_id,
-          uploader_ip_addr: creator_ip_addr,
-          file: Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(self, file_ext, :original)),
-          tag_string: post.tag_string,
-          rating: post.rating,
-          source: "#{self.source}\n" + post.source,
-          parent_id: post.id,
-          description: post.description,
-          locked_tags: post.locked_tags,
-          replacement_id: self.id
+        uploader_id: creator_id,
+        uploader_ip_addr: creator_ip_addr,
+        file: Danbooru.config.storage_manager.open(Danbooru.config.storage_manager.replacement_path(self, file_ext, :original)),
+        tag_string: post.tag_string,
+        rating: post.rating,
+        source: "#{source}\n" + post.source,
+        parent_id: post.id,
+        description: post.description,
+        locked_tags: post.locked_tags,
+        replacement_id: id,
       }
     end
   end
@@ -271,19 +315,26 @@ class PostReplacement < ApplicationRecord
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
 
-        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 ELSE 1 END ASC, id DESC"))
+        direction = params[:order] == "id_asc" ? "ASC" : "DESC"
+
+        q.order(Arel.sql("
+          CASE status
+            WHEN 'original' THEN 0
+            ELSE #{table_name}.id
+          END #{direction}
+        "))
       end
 
       def pending
-        where(status: 'pending')
+        where(status: "pending")
       end
 
       def rejected
-        where(status: 'rejected')
+        where(status: "rejected")
       end
 
       def approved
-        where(status: 'approved')
+        where(status: "approved")
       end
 
       def for_user(id)
@@ -303,9 +354,9 @@ class PostReplacement < ApplicationRecord
       end
 
       def visible(user)
-        return where('status != ?', 'rejected') if user.is_anonymous?
+        return where.not(status: "rejected") if user.is_anonymous?
         return all if user.is_janitor?
-        where('creator_id = ? or status != ?', user.id, 'rejected')
+        where("creator_id = ? or status != ?", user.id, "rejected")
       end
     end
   end

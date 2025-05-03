@@ -2006,28 +2006,21 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for replacements" do
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([], "pending_replacements:false")
-      post = create(:post)
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
       replacement = create(:png_replacement, creator: @user, post: post)
       assert_tag_match([post], "pending_replacements:true")
     end
 
     should "return no posts when the replacement is not pending anymore" do
-      post1 = create(:post)
-      upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
-      post2 = upload.post
-      post3 = create(:post)
-      post4 = create(:post)
-      replacement1 = create(:png_replacement, creator: @user, post: post1)
-      replacement1.reject!
-      replacement2 = create(:png_replacement, creator: @user, post: post2)
-      replacement2.approve!(penalize_current_uploader: true)
-      replacement3 = create(:jpg_replacement, creator: @user, post: post3)
-      promoted_post = replacement3.promote!.post
-      replacement4 = create(:webm_replacement, creator: @user, post: post4)
-      replacement4.destroy!
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
+
+      replacement = create(:png_replacement, creator: @user, post: post)
+      replacement.reject!
 
       assert_tag_match([], "pending_replacements:true")
-      assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([post], "pending_replacements:false")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do

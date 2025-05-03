@@ -17,7 +17,7 @@
       <%= render "posts/blank" %>
     <% else %>
       <% @posts.each do |post| %>
-        <%= post.preview_html(self, {tags: @post_set.public_tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
+        <%= post.preview_html(self, {tags: @post_set.tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
       <% end %>
     <% end %>
   </section>

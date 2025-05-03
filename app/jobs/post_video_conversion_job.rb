@@ -37,18 +37,30 @@ class PostVideoConversionJob < ApplicationJob
       sm.store(named_samples[1], mp4_path)
       named_samples[1].close!
     end
-    sm.store(samples[:original][1], sm.file_path(md5, "mp4", :original, post.is_deleted?))
+
+    if post.file_ext == "webm"
+      sm.store(samples[:original][1], sm.file_path(md5, "mp4", :original, post.is_deleted?))
+    else
+      sm.store(samples[:original][0], sm.file_path(md5, "webm", :original, post.is_deleted?))
+    end
     samples[:original].each(&:close!)
   end
 
   def generate_video_samples(post)
     outputs = {}
+
     Danbooru.config.video_rescales.each do |size, dims|
       next if post.image_width <= dims[0] && post.image_height <= dims[1]
       scaled_dims = post.scaled_sample_dimensions(dims)
       outputs[size] = generate_scaled_video(post.file_path, scaled_dims)
     end
-    outputs[:original] = generate_scaled_video(post.file_path, post.scaled_sample_dimensions([post.image_width, post.image_height]), format: :mp4)
+
+    outputs[:original] = generate_scaled_video(
+      post.file_path,
+      post.scaled_sample_dimensions([post.image_width, post.image_height]),
+      format: post.file_ext == "webm" ? :mp4 : :webm,
+    )
+
     outputs
   end
 

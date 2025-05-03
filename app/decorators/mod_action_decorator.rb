@@ -253,6 +253,11 @@ class ModActionDecorator < ApplicationDecorator
     when "blip_unhide"
       "Unhid blip ##{vals['blip_id']} by #{user}"
 
+      ### Tag ###
+
+    when "tag_destroy"
+      "Destroyed tag `#{vals['name']}`"
+
       ### Alias ###
 
     when "tag_alias_create"
@@ -387,6 +392,12 @@ class ModActionDecorator < ApplicationDecorator
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
+
+      ### Post Versions
+    when "post_version_hide"
+      "Hidden post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
+    when "post_version_unhide"
+      "Restored post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
 
       ### Legacy Post Events ###
     when "post_move_favorites"

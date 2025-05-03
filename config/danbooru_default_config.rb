@@ -36,7 +36,7 @@ module Danbooru
     end
 
     def takedown_email
-      "management@#{domain}"
+      "takedowns@#{domain}"
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -117,7 +117,7 @@ module Danbooru
     end
 
     def large_image_prefix
-      "sample-"
+      ""
     end
 
     def protected_path_prefix
@@ -267,7 +267,7 @@ module Danbooru
     end
 
     def post_replacement_per_post_limit
-      5
+      3
     end
 
     def remember_key
@@ -363,6 +363,7 @@ module Danbooru
         "png" => 100.megabytes,
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
+        "mp4" => 100.megabytes,
       }
     end
 
