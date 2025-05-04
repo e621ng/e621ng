@@ -7,6 +7,10 @@ div#c-post-replacements {
     background-color: themed("color-warning-darken-5");
   }
 
+  .replacement-current-row {
+    background-color: themed("background-green");
+  }
+  
   .replacement-reason {
     white-space: pre-wrap;
   }
