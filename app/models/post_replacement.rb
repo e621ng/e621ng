@@ -77,7 +77,7 @@ class PostReplacement < ApplicationRecord
 
   def sequence_number
     return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids.reverse
+    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
     1 + siblings.index(id)
   end
 
@@ -367,6 +367,14 @@ class PostReplacement < ApplicationRecord
 
   def upload_as_pending?
     as_pending.to_s.truthy?
+  end
+
+  def is_active?
+    return md5 == post.md5
+  end
+
+  def is_pending?
+    return status == "pending"
   end
 
   include ApiMethods
