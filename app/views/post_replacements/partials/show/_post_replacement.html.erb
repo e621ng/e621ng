@@ -17,6 +17,17 @@
       <% elsif post_replacement.status == "original" %>
         original
       <% else %>
+          <% if post_replacement.status == "pending" %>
+          <% highlighted_tags = post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS %>
+          <% icon_names = {
+            "avoid_posting" => "octagon_x",
+            "conditional_dnp" => "octagon_alert",
+            "better_version_at_source" => "diamond_plus"
+          } %>
+          <% highlighted_tags.each do |tag| %>
+            <%= svg_icon(icon_names[tag].to_sym, title: tag, height: 15, width: 15) if icon_names[tag].present? %>
+          <% end %>
+        <% end %>
         <%= post_replacement.status %>
       <% end %>
     </dd>
