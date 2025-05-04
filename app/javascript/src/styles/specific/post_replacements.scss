@@ -11,6 +11,14 @@ div#c-post-replacements {
     white-space: pre-wrap;
   }
 
+  .replacement-compact-row {
+    margin-bottom: 0.1rem;
+  }
+
+  .replacement-spaced-row{
+    margin-top: 1rem;
+  }
+
   .disabled-link {
     pointer-events: none;
     cursor: default;
