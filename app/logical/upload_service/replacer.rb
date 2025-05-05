@@ -66,8 +66,9 @@ class UploadService
         # rescaling notes reloads the post, be careful when accessing previous values
         rescale_notes(post)
 
+        replacement.update(status: "approved") unless replacement.status == "original"
+
         replacement.update({
-          status: "approved",
           approver_id: CurrentUser.id,
           uploader_id_on_approve: previous_uploader,
           penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?,
