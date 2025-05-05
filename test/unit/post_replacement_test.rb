@@ -97,6 +97,11 @@ class PostReplacementTest < ActiveSupport::TestCase
         @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
+
+    should "populate previous version uploader" do
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
+      assert_equal(@post.uploader_id, @replacement.uploader_on_approve.id)
+    end
   end
 
   context "Reject:" do
@@ -138,6 +143,11 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal [], @replacement.errors.full_messages
       @replacement.reject!
       assert_equal ["Status must be pending to reject"], @replacement.errors.full_messages
+    end
+
+    should "retain record of previous uploader" do
+      @replacement.reject!
+      assert_equal(@post.uploader_id, @replacement.uploader_on_approve.id)
     end
   end
 
@@ -256,6 +266,12 @@ class PostReplacementTest < ActiveSupport::TestCase
         assert @post.duration
       end
     end
+
+    should "retain record of previous uploader" do
+      id_before = @replacement.post.uploader_id
+      @replacement.approve! penalize_current_uploader: false
+      assert_equal(id_before, @replacement.uploader_on_approve.id)
+    end
   end
 
   context "Toggle:" do
@@ -310,12 +326,17 @@ class PostReplacementTest < ActiveSupport::TestCase
           assert_equal [], post.post.errors.full_messages
         end
       end
-    end
+    end 
 
     should "only work on pending replacements" do
       @replacement.approve! penalize_current_uploader: false
       @replacement.promote!
       assert_equal(["Status must be pending to promote"], @replacement.errors.full_messages)
+    end
+
+    should "retain record of previous uploader" do
+      @replacement.promote!
+      assert_equal(@post.uploader_id, @replacement.uploader_on_approve.id)
     end
   end
 end

@@ -22,6 +22,7 @@ class PostReplacement < ApplicationRecord
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
   before_create :create_original_backup
+  before_create :set_previous_uploader
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
@@ -374,6 +375,15 @@ class PostReplacement < ApplicationRecord
         where("creator_id = ? or status != ?", user.id, "rejected")
       end
     end
+  end
+
+  def set_previous_uploader
+    return if uploader_id_on_approve.present?
+    uploader = self.post.uploader_id
+    if uploader == creator_id
+      self.penalize_uploader_on_approve = false
+    end
+    self.uploader_on_approve = User.find_by(id: uploader)
   end
 
   def original_file_visible_to?(user)
