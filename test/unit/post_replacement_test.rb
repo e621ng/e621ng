@@ -326,7 +326,7 @@ class PostReplacementTest < ActiveSupport::TestCase
           assert_equal [], post.post.errors.full_messages
         end
       end
-    end 
+    end
 
     should "only work on pending replacements" do
       @replacement.approve! penalize_current_uploader: false
