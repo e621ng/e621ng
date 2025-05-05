@@ -5,7 +5,8 @@
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
     <dt>Version</dt>
-    <dd><%= post_replacement.post_id %>:<%= post_replacement.sequence_number %></dd>
+    <dd>
+      <%= link_to("#{post_replacement.post_id}", post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd>
     <dt>Status</dt>
     <dd class="replacement-compact-row">
       <% if post_replacement.status == "pending" %>
@@ -81,14 +82,14 @@
     <% end %>
   </td>
   <td>
-    <% if post_replacement.is_backup? %> <dt>Backup created at</dt> <% else %> <dt>Created at</dt> <% end %>
+    <dt><%= post_replacement.is_backup? ? "Backup created at" : "Created at" %></dt>
       <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
-      <% if post_replacement.updated_at != post_replacement.created_at %>
-      <dt>Updated at</dt>
-      <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
-    <% end %>
     <dt class="replacement-spaced-row">Reason</dt>
     <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
+    <% if post_replacement.updated_at != post_replacement.created_at %>
+      <dt>Status changed at</dt>
+      <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
+    <% end %>
   </td>
   <td>
     <% if CurrentUser.can_approve_posts? %>
@@ -104,7 +105,7 @@
       <% end %>
     <% end %>
     <% if CurrentUser.is_admin? %>
-      <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %>
+      <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
     <% end %>
   </td>
 </tr>
