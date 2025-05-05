@@ -315,6 +315,21 @@ class PostReplacement < ApplicationRecord
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
         end
 
+        if params[:reason].present?
+          q = q.attribute_matches(:reason, params[:reason])
+        end
+
+        if params[:source].present?
+          url_query = params[:source].strip
+          url_query = "*#{url_query}*" if params[:source].exclude?("*") 
+          # prefer 'ilike %#{url_query}%', but it doesn't work with `where_ilike`? 
+          q = q.where_ilike(:source, url_query)
+        end
+
+        if params[:file_name].present?
+          q = q.attribute_matches(:file_name, params[:file_name])
+        end
+
         direction = params[:order] == "id_asc" ? "ASC" : "DESC"
 
         q.order(Arel.sql("
@@ -369,12 +384,16 @@ class PostReplacement < ApplicationRecord
     as_pending.to_s.truthy?
   end
 
-  def is_active?
+  def is_current?
     return md5 == post.md5
   end
 
   def is_pending?
     return status == "pending"
+  end
+
+  def is_backup?
+    return status == "original"
   end
 
   include ApiMethods
