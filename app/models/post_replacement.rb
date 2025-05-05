@@ -13,6 +13,17 @@ class PostReplacement < ApplicationRecord
   validate :set_file_name, on: :create
   validate :fetch_source_file, on: :create
   validate :update_file_attributes, on: :create
+  validate :reason, on: :create do
+    next if status == "original"
+
+    # ensure reason is not blank or disallowed
+    if reason.to_s.strip.squeeze(" ").casecmp("Backup of original file").zero?
+      errors.add(:base, "You cannot use 'Backup of original file' as a reason.")
+    end
+    if reason.to_s.strip.blank?
+      errors.add(:base, "You must provide a reason.")
+    end
+  end
   validate on: :create do |replacement|
     FileValidator.new(replacement, replacement_file.path).validate
     throw :abort if errors.any?
@@ -193,8 +204,8 @@ class PostReplacement < ApplicationRecord
 
   module ProcessingMethods
     def approve!(penalize_current_uploader:)
-      unless %w[pending original].include? status
-        errors.add(:status, "must be pending or original to approve")
+      if is_current? || status == "promoted"
+        errors.add(:status, "version is already active")
         return
       end
 
@@ -219,7 +230,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def promote!
-      if status != "pending"
+      unless %w[rejected pending].include?(status) || (is_approved? && !is_current?)
         errors.add(:status, "must be pending to promote")
         return
       end
@@ -229,6 +240,7 @@ class PostReplacement < ApplicationRecord
         new_upload = processor.start!
         if new_upload.valid? && new_upload.post&.valid?
           update_attribute(:status, "promoted")
+          update_attribute(:approver_id, CurrentUser.user.id)
           PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { source_post_id: post.id })
         end
         new_upload
@@ -245,6 +257,7 @@ class PostReplacement < ApplicationRecord
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_rejected, { replacement_id: id })
       update_attribute(:status, "rejected")
+      update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
     end
@@ -265,6 +278,7 @@ class PostReplacement < ApplicationRecord
         source: post.source,
         reason: "Backup of original file",
         is_backup: true,
+        approver_id: post.approver_id,
       )
 
       begin
@@ -404,6 +418,26 @@ class PostReplacement < ApplicationRecord
 
   def is_backup?
     return status == "original"
+  end
+
+  def is_approved?
+    return status == "approved"
+  end
+
+  def is_rejected?
+    return status == "rejected"
+  end
+
+  def is_promoted?
+    return status == "promoted"
+  end
+
+  def is_original?
+    return status == "original"
+  end
+
+  def is_retired?
+    return status == "approved" && !is_current?
   end
 
   include ApiMethods
