@@ -1,12 +1,12 @@
 <% status_class = "" %>
-<% if post_replacement.is_pending? then status_class += "replacement-pending-row" end %>
-<% if post_replacement.md5 == post_replacement.post.md5 then status_class += " replacement-current-row" end %>
+<% if post_replacement.is_pending? %> <% status_class += "replacement-pending-row" %> <% end %>
+<% if post_replacement.md5 == post_replacement.post.md5 %> <% status_class += " replacement-current-row" %> <% end %>
 <tr id="replacement-<%= post_replacement.id %>" class="<%= status_class %>">  <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
     <dt>Version</dt>
     <dd>
-      <%= link_to("#{post_replacement.post_id}", post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd>
+      <%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd>
     <dt>Status</dt>
     <dd class="replacement-compact-row">
       <% if post_replacement.status == "pending" %>

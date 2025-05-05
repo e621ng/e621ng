@@ -321,8 +321,8 @@ class PostReplacement < ApplicationRecord
 
         if params[:source].present?
           url_query = params[:source].strip
-          url_query = "*#{url_query}*" if params[:source].exclude?("*") 
-          # prefer 'ilike %#{url_query}%', but it doesn't work with `where_ilike`? 
+          url_query = "*#{url_query}*" if params[:source].exclude?("*")
+          # prefer 'ilike %#{url_query}%', but it doesn't work with `where_ilike`?
           q = q.where_ilike(:source, url_query)
         end
 
