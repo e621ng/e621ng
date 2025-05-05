@@ -44,10 +44,11 @@
 @import "common/voting.scss";
 
 @import "views/application/application";
+@import "views/artists/artists";
 @import "views/maintenance/maintenance";
 @import "views/posts/posts";
-@import "views/users/users";
 @import "views/static/static";
+@import "views/users/users";
 
 @import "specific/admin_dashboards.scss";
 @import "specific/api_keys.scss";
