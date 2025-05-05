@@ -17,7 +17,7 @@ class PostReplacement < ApplicationRecord
     next if status == "original"
 
     # ensure reason is not blank or disallowed
-    if reason.to_s.strip.squeeze(" ").casecmp("Backup of original file").zero?
+    if reason.to_s.strip.squeeze(" ").casecmp("Backup of original file") == 0
       errors.add(:base, "You cannot use 'Backup of original file' as a reason.")
     end
     if reason.to_s.strip.blank?
