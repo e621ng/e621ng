@@ -16,13 +16,13 @@
           "better_version_at_source" => "diamond_plus"
         } %>
         <% highlighted_tags.each do |tag| %>
-          <%= svg_icon(icon_names[tag].to_sym, title: tag, height: 15, width: 15) if icon_names[tag].present? %>
+          <%= svg_icon(icon_names[tag].to_sym, title: tag, height: 13.5, width: 13.5, class: "inline-icons") if icon_names[tag].present? %>
         <% end %>
       <% end %>
       <%= post_replacement.status %>
     </dd>
     <dd>
-      <% if post_replacement.is_active? %> (current) <% end %>
+      <% if post_replacement.is_current? %> (current) <% end %>
     </dd>
     <% if post_replacement.status == "approved" %>
       <dt class="replacement-spaced-row">Approver</dt>
@@ -60,16 +60,18 @@
   <td>
     <dt>Image Info</dt>
     <dd class="replacement-compact-row">
-      <%= svg_icon(:circle_check_small, title: "This is the current version", height: 15, width: 15) if post_replacement.is_active? %>
-      Replacement:
+      <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if post_replacement.is_current? %>
+      <% if post_replacement.is_pending? %> Replacement: <% end %>
       <%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %>
       (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.is_video? %>, 
-      <%= post_replacement.post.duration %>s<% end -%>) </dd>
+      <%= post_replacement.post.duration %>s<% end -%>) </dd> 
     <dd class="replacement-compact-row">
+      <% if post_replacement.is_pending? %>
       Current:
-      <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
-      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
-      <%= post_replacement.post.duration %>s<% end -%>)
+        <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
+        (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
+        <%= post_replacement.post.duration %>s<% end -%>) 
+      <% end %>
     </dd>
     <dt class="replacement-spaced-row">File Info</dt>
     <dd class="replacement-compact-row">File Name: <%= truncate post_replacement.file_name, length: 64 %></dd>
@@ -79,10 +81,12 @@
     <% end %>
   </td>
   <td>
-    <dt>Created at</dt>
-    <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
-    <dt>Updated at</dt>
-    <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
+    <% if post_replacement.is_backup? %> <dt>Backup created at</dt> <% else %> <dt>Created at</dt> <% end %>
+      <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
+      <% if post_replacement.updated_at != post_replacement.created_at %>
+      <dt>Updated at</dt>
+      <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
+    <% end %>
     <dt class="replacement-spaced-row">Reason</dt>
     <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
   </td>
