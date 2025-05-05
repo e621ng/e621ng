@@ -39,7 +39,7 @@ class TagNameValidator < ActiveModel::EachValidator
     when /\A(#{Tag.categories.regexp}):(.+)\z/i
       record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
     when /[^ -~]/
-      record.errors.add(attribute, "'#{value}' cannot contain non-prinable characters")
+      record.errors.add(attribute, "'#{value}' cannot contain non-printable characters")
     end
 
     if normalized =~ /[^[:ascii:]]/ && !options[:disable_ascii_check] == true
