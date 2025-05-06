@@ -216,7 +216,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def toggle_penalize!
-      if is_backup? || is_pending?
+      if status != "approved"
         errors.add(:status, "must be approved to penalize")
         return
       end
