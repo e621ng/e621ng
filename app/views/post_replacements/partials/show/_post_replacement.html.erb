@@ -24,7 +24,10 @@
       <%= post_replacement.status %>
     </dd>
     <dd>
-      <% if post_replacement.is_current? %> (current) <% elsif post_replacement.is_approved? %> (retired) <% end %>
+      <% if post_replacement.is_current? %> (current)
+      <% elsif post_replacement.is_approved? %> (retired)
+      <% elsif post_replacement.is_promoted? %> (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
+      <% end %>
     </dd>
     <% if !post_replacement.approver.nil? %>
       <dt class="replacement-spaced-row">Handler</dt>
@@ -39,7 +42,7 @@
       <dt class="replacement-spaced-row">Previous Uploader</dt>
       <dd>
         <%= link_to_user post_replacement.uploader_on_approve %>
-        <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? && %>
+        <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
           | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
           <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %><br>
         <% end %>
