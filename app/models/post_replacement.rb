@@ -204,7 +204,7 @@ class PostReplacement < ApplicationRecord
 
   module ProcessingMethods
     def approve!(penalize_current_uploader:)
-      if is_current? || status == "promoted"
+      if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
       end
@@ -216,7 +216,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def toggle_penalize!
-      if status != "approved"
+      if is_backup? || is_pending?
         errors.add(:status, "must be approved to penalize")
         return
       end
@@ -430,10 +430,6 @@ class PostReplacement < ApplicationRecord
 
   def is_promoted?
     return status == "promoted"
-  end
-
-  def is_original?
-    return status == "original"
   end
 
   def is_retired?
