@@ -221,6 +221,9 @@ class PostReplacement < ApplicationRecord
         return
       end
 
+      # Record the change in a PostEvent
+      PostEvent.add(post.id, CurrentUser.user, :replacement_penalty_changed, { replacement_id: id, penalize: !penalize_uploader_on_approve })
+
       if penalize_uploader_on_approve
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count - 1")
       else
