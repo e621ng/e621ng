@@ -35,11 +35,11 @@
     <dt>Version Uploader</dt>
     <dd><%= link_to_user post_replacement.creator %></dd>
 
-    <% unless post_replacement.status == "original" || post_replacement.status == "pending" || post_replacement.uploader_on_approve.nil? %>
+    <% unless post_replacement.is_backup? || post_replacement.is_pending? || post_replacement.uploader_on_approve.nil? %>
       <dt class="replacement-spaced-row">Previous Uploader</dt>
       <dd>
         <%= link_to_user post_replacement.uploader_on_approve %>
-        <% if CurrentUser.can_approve_posts? %>
+        <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? && %>
           | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
           <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %><br>
         <% end %>
