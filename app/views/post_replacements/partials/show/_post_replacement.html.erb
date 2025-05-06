@@ -2,7 +2,6 @@
 <% if post_replacement.is_pending? %> <% status_class += " replacement-pending-row" %> <% end %>
 <% if post_replacement.is_current? %> <% status_class += " replacement-current-row" %> <% end %>
 <tr id="replacement-<%= post_replacement.id %>" class="<%= status_class %>">
-  <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
     <dt>Version</dt>
@@ -52,11 +51,13 @@
     <dt class="replacement-spaced-row">Sources</dt>
     <dd>
       <% if post_replacement.source.present? %>
-        <ul>
-          <% post_replacement.source_list.each do |source| %>
-            <li><%= external_link_to source, truncate: 46 %></li>
-          <% end %>
-        </ul>
+        <div class="replacement-sources">
+          <ul>
+            <% post_replacement.source_list.each do |source| %>
+              <li class=replacement-sources-link><%= external_link_to source, truncate: 46 %></li>
+            <% end %>
+          </ul>
+        </iv>
       <% else %>
         <em>None provided</em>
       <% end %>
