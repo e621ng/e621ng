@@ -445,6 +445,15 @@ class PostReplacement < ApplicationRecord
     return status == "approved" && !is_current?
   end
 
+  def promoted_id
+    return nil unless is_promoted?
+    if post.has_children?
+      id = post.children.where(md5: md5)&.first&.id
+    end
+    return id unless id.nil?
+    Post.find_by(md5: md5)&.id
+  end
+
   include ApiMethods
   include StorageMethods
   include FileMethods
