@@ -9,4 +9,5 @@
   <%= f.input :reason, label: "Reason" %>
   <%= f.input :file_name, label: "File Name" %>
   <%= f.input :source, label: "Source" %>
+  <%= f.input :penalized, label: "Penalized?", collection: [["Yes", true], ["No", false]], include_blank: true %>
 <% end %>

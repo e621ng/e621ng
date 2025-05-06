@@ -337,6 +337,12 @@ class PostReplacement < ApplicationRecord
           q = q.attribute_matches(:reason, params[:reason])
         end
 
+        if params[:penalized].to_s.truthy?
+          q = q.where("penalize_uploader_on_approve IS true")
+        elsif params[:penalized].to_s.falsy?
+          q = q.where("penalize_uploader_on_approve IS false")
+        end
+
         if params[:source].present?
           url_query = params[:source].strip
           url_query = "*#{url_query}*" if params[:source].exclude?("*")
