@@ -467,6 +467,10 @@ class Post < ApplicationRecord
     def approve!(approver = CurrentUser.user)
       return if self.approver != nil
 
+      # Not ideal, but does the job
+      orig = self.replacements.find_by(status: "original")
+      orig&.update(approver: approver) if orig.nil?
+
       if uploader == approver
         update(is_pending: false)
       else
