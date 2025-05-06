@@ -1,6 +1,6 @@
 <% status_class = "" %>
-<% if post_replacement.is_pending? %> <% status_class += "replacement-pending-row" %> <% end %>
-<% if post_replacement.md5 == post_replacement.post.md5 %> <% status_class += " replacement-current-row" %> <% end %>
+<% if post_replacement.is_pending? %> <% status_class += " replacement-pending-row" %> <% end %>
+<% if post_replacement.is_current? %> <% status_class += " replacement-current-row" %> <% end %>
 <tr id="replacement-<%= post_replacement.id %>" class="<%= status_class %>">
   <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
   <td><%= replacement_thumbnail(post_replacement) %></td>
