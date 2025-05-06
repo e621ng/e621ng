@@ -282,6 +282,19 @@ class PostReplacementTest < ActiveSupport::TestCase
       @replacement.approve! penalize_current_uploader: false
       assert_equal(id_before, @replacement.uploader_on_approve.id)
     end
+
+    context "After rejection" do
+      setup do
+        @replacement.reject!
+      end
+
+      should "decrement the users rejected replacements count" do
+        assert_difference(-> { @user.post_replacements.rejected.count }, -1) do
+          @replacement.approve! penalize_current_uploader: false
+          @user.reload
+        end
+      end
+    end
   end
 
   context "Toggle:" do

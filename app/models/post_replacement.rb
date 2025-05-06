@@ -209,6 +209,10 @@ class PostReplacement < ApplicationRecord
         return
       end
 
+      if is_rejected? # We need to undo the rejection count
+        UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
+      end
+
       processor = UploadService::Replacer.new(post: post, replacement: self)
       processor.process!(penalize_current_uploader: penalize_current_uploader)
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
