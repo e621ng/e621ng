@@ -1,6 +1,7 @@
 <%= tag.video(id: "image", class: post.display_class_for(CurrentUser.user), loop: "true", controls: "controls", poster: post.large_file_url) do %>
-  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "webm"), type: "video/webm") %>
-  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "mp4"), type: "video/mp4") %>
+  <% post.initial_video_urls(CurrentUser.user).each do |video| %>
+    <%= tag.source(src: video[:url], type: video[:codec]) %>
+  <% end %>
 <% end %>
 
 <%= javascript_tag nonce: true do -%>
