@@ -681,6 +681,10 @@ module Danbooru
       false
     end
 
+    def fsc_modal_enabled?
+      false
+    end
+
     def janitor_reports_discord_webhook_url
       nil
     end
