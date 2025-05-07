@@ -4156,6 +4156,13 @@ CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_
 
 
 --
+-- Name: index_post_votes_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id_and_created_at ON public.post_votes USING btree (user_id, created_at);
+
+
+--
 -- Name: index_post_votes_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4703,6 +4710,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250430193448'),
 ('20250429022022'),
 ('20250423141854'),
 ('20250414000142'),
