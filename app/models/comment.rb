@@ -53,7 +53,7 @@ class Comment < ApplicationRecord
 
     def visible(user)
       q = where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
-      unless user.is_moderator?
+      unless user.is_staff?
         q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
         if user.is_janitor?
           q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
