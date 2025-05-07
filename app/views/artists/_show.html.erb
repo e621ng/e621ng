@@ -8,8 +8,8 @@
     </h1>
 
     <% if @artist.is_dnp? %>
-      <div id="avoid-posting">
-        <h2>This artist is on the <%= link_to "Avoid Posting", avoid_posting_static_path %> list.</h2>
+      <div id="avoid-posting-label">
+        <h3><%= link_to "Avoid Posting", avoid_posting_path(@artist.avoid_posting) %></h3>
         <% if @artist.avoid_posting.pretty_details.present? %>
           <div class="dtext-container">
             <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
@@ -20,7 +20,6 @@
             <b>Note:</b> <%= format_text(@artist.avoid_posting.staff_notes, inline: true) %>
           </div>
         <% end %>
-        <p><%= link_to "Open Avoid Posting entry", avoid_posting_path(@artist.avoid_posting) %></p>
       </div>
     <% end %>
 
