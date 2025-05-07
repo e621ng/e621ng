@@ -15,6 +15,10 @@
     <%= yield :layout %>
   </div>
 
+  <% if Danbooru.config.fsc_modal_enabled? %>
+    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>
+  <% end %>
+
   <%= render "static/deferred_posts" %>
 <% end %>
 </html>
