@@ -56,8 +56,8 @@ class PostsController < ApplicationController
       @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
-      @comments = {}
-      @comment_votes = {}
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
     end
 
     respond_with(@post)
@@ -76,8 +76,8 @@ class PostsController < ApplicationController
       @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
-      @comments = {}
-      @comment_votes = {}
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
     end
 
     @fixup_post_url = true
