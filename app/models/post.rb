@@ -314,6 +314,9 @@ class Post < ApplicationRecord
           sample_data[:manifest] = 2
 
           sample_data[:original] = video_samples["original"]
+          sample_data[:original][:size] = file_size
+          sample_data[:original][:width] = image_width
+          sample_data[:original][:height] = image_height
           sample_data[:original][:url] = (visible? ? file_url : nil)
           sample_data[:original].symbolize_keys!
 
