@@ -36,6 +36,13 @@ class StorageManager::Local < StorageManager
     end
     return unless post.is_video?
 
+    # Delete wrongly formatted video files
+    # TODO: VCJ2 remove this once all files are converted
+    unless post.generated_samples.nil?
+      delete_old_video_files(post.md5, post.file_ext)
+      post.update_column(:generated_samples, nil)
+    end
+
     # Move variants
     post.video_sample_list[:variants].each_key do |ext|
       path = file_path(post, ext, :scaled, false, scale_factor: "alt")

@@ -21,10 +21,6 @@ module Moderator
       def delete
         @post = ::Post.find(params[:id])
 
-        if @post.is_video? && (@post.video_sample_list.empty? || @post.video_sample_list[:manifest] != 2)
-          raise ::User::PrivilegeError, "Video samples are in the wrong format. Please regenerate them before deleting."
-        end
-
         if params[:commit] == "Delete"
           @post.delete!(params[:reason], move_favorites: params[:move_favorites].present?)
           @post.copy_sources_to_parent if params[:copy_sources].present?
