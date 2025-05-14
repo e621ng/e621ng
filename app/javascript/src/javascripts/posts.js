@@ -477,10 +477,11 @@ Post.resize_notes = function () {
 };
 
 Post.resize_video = function (post, target_size) {
+  if (!post || !post.file) return;
+
   const $video = $("video#image");
   if (!$video.length) return; // Caused by the video being deleted
   const videoTag = $video[0];
-  videoTag.pause(); // Otherwise size changes won't take effect.
   const $notice = $("#image-resize-notice");
   const update_resize_percentage = function (width, orig_width) {
     const $percentage = $("#image-resize-size");
@@ -491,76 +492,106 @@ Post.resize_video = function (post, target_size) {
   let target_sources = [];
   let desired_classes = [];
 
-  function original_sources () {
-    if (!post || !post.file) return;
-
-    // Samples are checked for viability in order, so we should
-    // place mp4 samples first if the original is mp4.
-    // There may be a better way of handling this.
-    let codecs = [ "video/webm; codecs=\"vp9\"", "video/mp4" ];
-    let alternate = 1;
-    if (post.file.ext == "mp4") {
-      codecs = codecs.reverse();
-      alternate = 0;
-    }
-
-    target_sources.push({type: codecs[0], url: post.file.url});
-    if (typeof post.sample?.alternates?.original !== "undefined")
-      target_sources.push({type: codecs[1], url: post.sample?.alternates?.original?.urls[alternate]});
-  }
-
   switch (target_size) {
+    case "source":
+      target_sources = calculate_original_sources(post, true);
+      break;
     case "original":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       break;
     case "fit":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       desired_classes.push("fit-window");
       break;
     case "fitv":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       desired_classes.push("fit-window-vertical");
       break;
     default: {
       $notice.show();
-      const alternate = post?.sample?.alternates[target_size];
 
-      // This ensures that mp4 samples are preferred over
-      // webm if the original version is also mp4
-      const alternateSamples = [
-        {type: "video/webm; codecs=\"vp9\"", url: alternate.urls[0]},
-        {type: "video/mp4", url: alternate.urls[1]},
-      ];
-      if (post.file.ext === "mp4") alternateSamples.reverse();
+      const targetVideo = post.sample.alternates?.samples[target_size];
+      if (!targetVideo) {
+        console.error(`No video found for target size: ${target_size}`);
+        return;
+      }
 
-      target_sources.push(...alternateSamples);
+      target_sources.push({
+        type: "video/mp4; codecs=\"avc1.4D401E\"",
+        url: targetVideo?.url,
+      });
 
       desired_classes.push("fit-window");
-      update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
+      update_resize_percentage(targetVideo.width, post.file.width);
       break;
     }
   }
-  $video.removeClass();
+
   $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
+
   for (const source of target_sources) {
-    // This works around some annoying choices where W3C said that changing source attributes for video tags doesn't work
-    // and that automatic media type selection can't be performed again, so you have to do it by hand. To add bonus points
-    // to this asshattery, the responses from the API are at best, vague and there are three of them. Seems that the best
-    // any browser can give me is a "maybe".
-    const canPlay = videoTag.canPlayType(source.type);
-    if (canPlay === "probably" || canPlay === "maybe") {
-      // This comparison fixes reloading the media on changing between fit modes.
-      if (source.url !== $video.attr("src")) {
-        $video.attr("src", source.url);
-        videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
-      }
-      break;
-    }
+    // canPlayType can return "probably", "maybe" or "".
+    // * "maybe" means that the browser cannot determine whether it can play the file until playback is attempted.
+    // * "probably" indicates that the browser thinks it can play the file, and seems to be returned only if the codec is provided.
+    // * "" means that the browser cannot play the file. It will also throw an error in the console.
+    if (!videoTag.canPlayType(source.type)) continue;
+
+    // No need to reload the video if we are just changing the scale
+    if (source.url === $video.attr("src")) break;
+
+    const wasPaused = videoTag.paused;
+    if (!wasPaused) videoTag.pause(); // Otherwise size changes won't take effect.
+    const time = videoTag.currentTime;
+
+    $video.attr("src", source.url);
+    videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
+
+    // Resume playback at the original time
+    videoTag.currentTime = time;
+    if (!wasPaused) videoTag.play();
+
+    break;
   }
+
+  // TODO Fallback if no source was selected
+
+  // Adjust the classes last, to prevent video from
+  // getting resized before the source is set.
+  $video.removeClass();
   for (const class_name of desired_classes) {
     $video.addClass(class_name);
   }
 };
+
+/** Collates the non-downscaled video sources */
+function calculate_original_sources (post, skipVariants = LStorage.Posts.SkipVariants) {
+  if (!post || !post.file || !post.sample?.alternates) return [];
+
+  const result = [];
+
+  // Add variants first
+  // New ones will always present the mp4 version first, then the webm
+  // Old ones will only present the version that does not match the original file
+  if (post.sample.alternates.variants && !skipVariants)
+
+    for (const [filetype, data] of Object.entries(post.sample.alternates.variants)) {
+      if (!data.url) continue;
+      result.push({
+        type: `video/${filetype}; codecs="${data.codec}"`,
+        url: data.url,
+      });
+    }
+
+  // Add the original file as a fallback
+  // Older posts will not have the codec on file, which makes feature detection harder
+  let originalCodec = post.sample.alternates?.original?.codec;
+  result.push({
+    type: originalCodec ? `video/${post.file.ext}; codecs="${originalCodec}"` : `video/${post.file.ext}`,
+    url: post.file.url,
+  });
+
+  return result;
+}
 
 Post.resize_image = function (post, target_size) {
   const $image = $("img#image");
@@ -650,17 +681,23 @@ function update_size_selector (choice) {
   return "fit";
 }
 
-function most_relevant_sample_size (post) {
-  let samples = Object.entries(Post.currentPost().sample.alternates);
-  samples = samples.filter((x) => x[0] !== "original");
-  if (samples.length === 0) {
-    return "fit";
+function most_relevant_sample_size () {
+  const sampleList = Post.currentPost().sample?.alternates?.samples;
+  if (!sampleList) return "fitv";
+
+  const samples = Object.entries(sampleList);
+  if (samples.length === 0) return "fitv";
+
+  const fitWidth = $("#image-container").width(),
+    fitHeight = window.outerHeight;
+
+  let latest = "fitv";
+  for (const [name, data] of samples.reverse()) {
+    latest = name;
+    if ((fitHeight - data.height) < 0 || (fitWidth - data.width) < 0) continue;
+    return name;
   }
-  if (post?.file?.width <= 1280 && post?.file?.height <= 720) {
-    return "fit"; // Don't force people onto 480p samples for <720 videos.
-  }
-  const differences = samples.map((x) => [x[0], Math.abs(window.outerHeight - x[1].height) * Math.abs(window.outerWidth - x[1].width)]).sort((a, b) => (a[1] < b[1] ? -1 : 1));
-  return differences[0][0];
+  return latest;
 }
 
 Post.initialize_resize = function () {
@@ -685,7 +722,7 @@ Post.initialize_resize = function () {
   }
   let image_size = Utility.meta("image-override-size") || Utility.meta("default-image-size");
   if (is_post_video && image_size === "large") {
-    image_size = most_relevant_sample_size(post);
+    image_size = most_relevant_sample_size();
   }
   Post.resize_to(image_size);
   const $selector = $("#image-resize-selector");
@@ -795,14 +832,22 @@ Post.update = function (post_id, params) {
 
 Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
   Post.notice_update("inc");
+  let error = false;
   SendQueue.add(function () {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, move_favorites: true},
     }).fail(function (data) {
+      if (data.responseJSON && data.responseJSON.reason) {
+        $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
+        error = true;
+        return;
+      }
+
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
+      error = true;
     }).done(function () {
       $(window).trigger("danbooru:notice", "Deleted post.");
       if (reload_after_delete) {
@@ -811,7 +856,8 @@ Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
         $(`article#post_${post_id}`).attr("data-flags", "deleted");
       }
     }).always(function () {
-      Post.notice_update("dec");
+      if (!error)
+        Post.notice_update("dec");
     });
   });
 };

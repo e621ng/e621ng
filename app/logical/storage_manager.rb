@@ -68,14 +68,40 @@ class StorageManager
       delete(file_path(md5, file_ext, type, false))
       delete(file_path(md5, file_ext, type, true))
     end
+
+    delete_video_samples(md5)
+  end
+
+  def delete_video_samples(post_or_md5)
+    md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
+
+    # Delete variants
+    delete file_path(md5, "mp4", :scaled, true, scale_factor: "alt")
+    delete file_path(md5, "mp4", :scaled, false, scale_factor: "alt")
+
+    # Delete sampled videos
+    Danbooru.config.video_samples.each_key do |scale|
+      delete file_path(md5, "mp4", :scaled, true, scale_factor: scale)
+      delete file_path(md5, "mp4", :scaled, false, scale_factor: scale)
+    end
+  end
+
+  # TODO: VCJ2 remove this once all files are converted
+  def delete_old_video_files(md5, file_ext)
     Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
+      %w[mp4 webm].each do |ext|
         delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
         delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))
       end
     end
-    delete(file_path(md5, 'mp4', :original, false))
-    delete(file_path(md5, 'mp4', :original, true))
+
+    if file_ext == "mp4"
+      delete(file_path(md5, "webm", :original, false))
+      delete(file_path(md5, "webm", :original, true))
+    else
+      delete(file_path(md5, "mp4", :original, false))
+      delete(file_path(md5, "mp4", :original, true))
+    end
   end
 
   def delete_replacement(replacement)
@@ -156,9 +182,7 @@ class StorageManager
       "#{base}/preview/#{subdir}#{file}"
     when :crop
       "#{base}/crop/#{subdir}#{file}"
-    when :large
-      "#{base}/sample/#{subdir}#{file}"
-    when :scaled
+    when :large, :scaled
       "#{base}/sample/#{subdir}#{file}"
     when :original
       "#{base}/#{subdir}#{file}"
@@ -167,9 +191,7 @@ class StorageManager
 
   def file_name(md5, file_ext, type, scale_factor: nil)
     case type
-    when :preview
-      "#{md5}.jpg"
-    when :crop
+    when :preview, :crop
       "#{md5}.jpg"
     when :large
       "#{large_image_prefix}#{md5}.jpg"

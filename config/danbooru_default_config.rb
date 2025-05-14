@@ -673,6 +673,29 @@ module Danbooru
       { "720p" => [1280, 720], "480p" => [640, 480] }
     end
 
+    # Threshold at which an alternate version of the original video will be generated
+    # The new video will have this value as its smallest dimension.
+    def video_variant
+      1080
+    end
+
+    # Additional video samples will be generated in these dimensions if it makes sense to do so.
+    # They will be available as additional scale options on applicable posts in the order they appear here.
+    def video_samples
+      {
+        "720p": {
+          clamp: 720,
+          maxrate: 1,
+          bufsize: 2,
+        },
+        "480p": {
+          clamp: 480,
+          maxrate: 1,
+          bufsize: 2,
+        },
+      }
+    end
+
     def image_rescales
       []
     end
