@@ -216,7 +216,7 @@ GEM
       net-protocol
     netrc (0.11.0)
     nio4r (2.7.1)
-    nokogiri (1.18.4)
+    nokogiri (1.18.8)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     opensearch-ruby (3.2.0)
@@ -237,7 +237,7 @@ GEM
     puma (6.4.3)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.0.14)
+    rack (3.1.14)
     rack-proxy (0.7.7)
       rack
     rack-session (2.0.0)
