@@ -25,6 +25,10 @@ module Danbooru
       false
     end
 
+    def safe_guest_mode?
+      false
+    end
+
     # The canonical hostname of the site.
     def hostname
       Socket.gethostname

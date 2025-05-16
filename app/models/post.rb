@@ -1951,7 +1951,7 @@ class Post < ApplicationRecord
   end
 
   def loginblocked?
-    CurrentUser.is_anonymous? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
+    CurrentUser.is_anonymous? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self) || (Danbooru.config.safe_guest_mode? && rating != "s"))
   end
 
   def visible?

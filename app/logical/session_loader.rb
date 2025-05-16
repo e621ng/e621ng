@@ -122,7 +122,11 @@ class SessionLoader
   end
 
   def set_safe_mode
-    safe_mode = Danbooru.config.safe_mode? || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
+    if CurrentUser.is_anonymous? && Danbooru.config.safe_guest_mode?
+      safe_mode = true
+    else
+      safe_mode = Danbooru.config.safe_mode? || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
+    end
     CurrentUser.safe_mode = safe_mode
   end
 end
