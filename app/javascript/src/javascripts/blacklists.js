@@ -141,9 +141,11 @@ Blacklist.init_quick_blacklist = function () {
     if (!tag) return;
 
     if (User.blacklist.tags.includes(tag)) {
+      if (!confirm(`Are you sure you want to remove "${tag}" from your blacklist?`)) return;
       User.removeBlacklistedTag(tag);
       target.parents(".tag-list-item").removeClass("blacklisted");
     } else {
+      if (!confirm(`Are you sure you want to add "${tag}" to your blacklist?`)) return;
       User.addBlacklistedTag(tag);
       target.parents(".tag-list-item").addClass("blacklisted");
     }
