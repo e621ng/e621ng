@@ -285,7 +285,7 @@ Rails.application.routes.draw do
   resources :tags, constraints: id_name_constraint do
     resource :correction, :only => [:new, :create, :show], :controller => "tag_corrections"
     collection do
-      post :preview
+      get :preview
     end
   end
   resources :tag_type_versions

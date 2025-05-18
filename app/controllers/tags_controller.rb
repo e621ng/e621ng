@@ -13,18 +13,15 @@ class TagsController < ApplicationController
   end
 
   def index
-    @tags = Tag.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @tags = Tag.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
 
     respond_with(@tags)
   end
 
   def preview
-    @preview = TagsPreview.new(tags: params[:tags])
-    respond_to do |format|
-      format.json do
-        render json: @preview.serializable_hash
-      end
-    end
+    tag_names = params[:name].to_s.split(",").map(&:strip).compact_blank.join(" ")
+    @preview = TagsPreview.new(tags: tag_names)
+    render plain: @preview.serializable_hash.to_json, content_type: "application/json"
   end
 
   def show
