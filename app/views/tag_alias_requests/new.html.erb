@@ -7,6 +7,11 @@
     <p>You can request a new tag alias be created. This will create a corresponding forum topic for community
       review.</p>
 
+    <%= format_text("
+    An alias changes the input tag to the output tag on post change. For instance, `anthros` will be changed to `anthro`. 
+    If you are looking to automatically add an additional tag, create a \"Tag Implication Request\":/tag_implication_request/new instead.
+    ") %>
+
     <%= custom_form_for(:tag_alias_request, url: tag_alias_request_path) do |f| %>
       <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
       <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
