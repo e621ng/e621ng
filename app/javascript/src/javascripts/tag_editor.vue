@@ -1,12 +1,8 @@
 <template>
     <div>
-        <div v-show="!preview.show">
-            <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
-                      ref="otherTags" name="post[tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
-        </div>
-        <div v-show="preview.show">
-            <tag-preview :tags="preview.tags" :loading="preview.loading" @close="previewFinalTags"></tag-preview>
-        </div>
+        <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
+                  ref="otherTags" name="post[tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
+        <tag-preview :tags="preview.tags" :loading="preview.loading"></tag-preview>
         <div class="related-tag-functions">
             Related:
             <a href="#" @click.prevent="findRelated()">Tags</a> |
@@ -15,8 +11,7 @@
             <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
             <a href="#" @click.prevent="findRelated(4)">Characters</a> |
             <a href="#" @click.prevent="findRelated(5)">Species</a> |
-            <a href="#" @click.prevent="findRelated(7)">Metatags</a> |
-            <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
+            <a href="#" @click.prevent="findRelated(7)">Metatags</a>
         </div>
         <div>
             <h3>Related Tags <a href="#" @click.prevent="toggleRelated">{{ relatedText }}</a></h3>
@@ -77,6 +72,17 @@
         return this.expandRelated ? "<<" : ">>";
       }
     },
+    watch: {
+      tags: {
+        immediate: true,
+        handler() {
+          clearTimeout(this._tagPreviewDebounce);
+          this._tagPreviewDebounce = setTimeout(() => {
+            this.fetchTagPreview();
+          }, 1000);
+        }
+      }
+    },
     methods: {
       updateTagCount() {
         Post.update_tag_count({target: $("#post_tag_string")});
@@ -117,33 +123,25 @@
           Post.update_tag_count({target: $("#post_tag_string")});
         })
       },
-      previewFinalTags() {
-        if (this.preview.loading)
-          return;
-        if (this.preview.show) {
-          this.preview.show = false;
-          return;
-        }
+      fetchTagPreview() {
+        if (this.preview.loading) return;
+      
         this.preview.loading = true;
-        this.preview.show = true;
-        this.preview.tags = [];
-        const self = this;
-        const data = {tags: this.tags};
-        $.ajax("/tags/preview.json", {
-          method: 'POST',
-          type: 'POST',
-          data: data,
-          success: function (result) {
-            self.preview.loading = false;
-            self.preview.tags = result;
+      
+        const tagList = this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).join(',');
+      
+        $.ajax(`/tags/preview.json?name=${encodeURIComponent(tagList)}`, {
+          method: "GET",
+          success: (result) => {
+            this.preview.loading = false;
+            this.preview.tags = result;
           },
-          error: function (result) {
-            self.preview.loading = false;
-            self.preview.tags = [];
-            self.preview.show = false;
-            Danbooru.error('Error loading tag preview ' + result);
-          }
-        })
+          error: (result) => {
+            this.preview.loading = false;
+            this.preview.tags = [];
+            Danbooru.error("Error loading tag preview " + JSON.stringify(result));
+          },
+        });
       },
       findRelated(categoryId) {
         const self = this;
