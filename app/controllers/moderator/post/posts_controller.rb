@@ -20,6 +20,7 @@ module Moderator
 
       def delete
         @post = ::Post.find(params[:id])
+
         if params[:commit] == "Delete"
           @post.delete!(params[:reason], move_favorites: params[:move_favorites].present?)
           @post.copy_sources_to_parent if params[:copy_sources].present?

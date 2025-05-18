@@ -35,16 +35,27 @@ class StorageManager::Local < StorageManager
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
-        path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
-        new_path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
-        move_file(path, new_path)
-      end
+
+    # Delete wrongly formatted video files
+    # TODO: VCJ2 remove this once all files are converted
+    unless post.generated_samples.nil?
+      delete_old_video_files(post.md5, post.file_ext)
+      post.update_column(:generated_samples, nil)
     end
-    path = file_path(post, 'mp4', :original, false)
-    new_path = file_path(post, 'mp4', :original, true)
-    move_file(path, new_path)
+
+    # Move variants
+    post.video_sample_list[:variants].each_key do |ext|
+      path = file_path(post, ext, :scaled, false, scale_factor: "alt")
+      new_path = file_path(post, ext, :scaled, true, scale_factor: "alt")
+      move_file(path, new_path)
+    end
+
+    # Move sampled videos
+    Danbooru.config.video_samples.each_key do |scale|
+      path = file_path(post, "mp4", :scaled, false, scale_factor: scale)
+      new_path = file_path(post, "mp4", :scaled, true, scale_factor: scale)
+      move_file(path, new_path)
+    end
   end
 
   def move_file_undelete(post)
@@ -54,16 +65,20 @@ class StorageManager::Local < StorageManager
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
-        path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
-        new_path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
-        move_file(path, new_path)
-      end
+
+    # Move variants
+    post.video_sample_list[:variants].each_key do |ext|
+      path = file_path(post, ext, :scaled, true, scale_factor: "alt")
+      new_path = file_path(post, ext, :scaled, false, scale_factor: "alt")
+      move_file(path, new_path)
     end
-    path = file_path(post, 'mp4', :original, true)
-    new_path = file_path(post, 'mp4', :original, false)
-    move_file(path, new_path)
+
+    # Move sampled videos
+    Danbooru.config.video_samples.each_key do |scale|
+      path = file_path(post, "mp4", :scaled, true, scale_factor: scale)
+      new_path = file_path(post, "mp4", :scaled, false, scale_factor: scale)
+      move_file(path, new_path)
+    end
   end
 
   private

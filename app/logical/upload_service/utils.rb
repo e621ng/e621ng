@@ -71,16 +71,16 @@ class UploadService
       return "" unless Danbooru.config.enable_dimension_autotagging?
 
       tags = []
-      tags += ["animated_gif", "animated"] if upload.is_animated_gif?(file.path)
-      tags += ["animated_png", "animated"] if upload.is_animated_png?(file.path)
-      tags += ["animated"] if upload.is_webm?
+      tags += %w[animated_gif animated] if upload.is_animated_gif?(file.path)
+      tags += %w[animated_png animated] if upload.is_animated_png?(file.path)
+      tags += ["animated"] if upload.is_webm? || upload.is_mp4?
       tags += ["ai_generated"] if upload.is_ai_generated?(file.path)
       tags.join(" ")
     end
 
     def get_file_for_upload(upload, file: nil)
       return file if file.present?
-      raise RuntimeError, "No file or source URL provided" if upload.direct_url_parsed.blank?
+      raise "No file or source URL provided" if upload.direct_url_parsed.blank?
 
       download = Downloads::File.new(upload.direct_url_parsed)
       download.download!

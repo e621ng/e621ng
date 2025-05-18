@@ -10,7 +10,7 @@ class PostVotesController < ApplicationController
   skip_before_action :api_check
 
   def index
-    @post_votes = PostVote.includes(:user).search(search_params).paginate(params[:page], limit: 100)
+    @post_votes = PostVote.includes(:user).includes(post: [:uploader]).search(search_params).paginate(params[:page], limit: 100)
 
     if CurrentUser.is_staff?
       ids = @post_votes&.map(&:id)

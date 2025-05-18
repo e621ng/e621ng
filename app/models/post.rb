@@ -68,12 +68,15 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def delete_files(post_id, md5, file_ext, force: false)
+      def delete_files(_post_id, md5, file_ext, force: false)
         if Post.where(md5: md5).exists? && !force
-          raise DeletionError.new("Files still in use; skipping deletion.")
+          raise DeletionError, "Files still in use; skipping deletion."
         end
 
         Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
+
+        # TODO: VCJ2 remove this once all files are converted
+        Danbooru.config.storage_manager.delete_old_video_files(md5, file_ext)
       end
     end
 
@@ -144,10 +147,14 @@ class Post < ApplicationRecord
     end
 
     def open_graph_video_url
-      if image_height > 720 && has_sample_size?('720p')
-        return scaled_url_ext('720p', 'mp4')
+      return file_url if video_sample_list.blank?
+
+      if video_sample_list[:samples].blank?
+        return file_url if video_sample_list[:variants].blank?
+        video_sample_list[:variants].values.last[:url]
+      else
+        video_sample_list[:samples].values.last[:url]
       end
-      file_url_ext('mp4')
     end
 
     def open_graph_image_url
@@ -170,15 +177,46 @@ class Post < ApplicationRecord
       end
     end
 
-    def file_url_ext_for(user, ext)
-      if user.default_image_size == "large" && is_video? && has_sample_size?('720p')
-        scaled_url_ext('720p', ext)
+    # Initial video URLs for the post
+    # Should only be relevant if the user has javascript disabled
+    # Otherwise, the sources provided here will be overwritten
+    def initial_video_urls(user = CurrentUser.user)
+      return [] unless is_video? || !visible?
+
+      if video_sample_list.blank?
+        # likely to happen while new samples are being generated
+        [{
+          codec: "video/#{file_ext}",
+          url: file_url,
+        }]
+      elsif user.default_image_size == "large" && video_sample_list[:samples].any?
+        # sample videos
+        sample = video_sample_list[:samples].values.last
+        [{
+          codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+          url: sample[:url],
+        }]
       else
-        file_url_ext(ext)
+        # original / fit videos
+        output = []
+        video_sample_list[:variants].each do |ext, data|
+          output.push({
+            codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+            url: data[:url],
+          })
+        end
+
+        original = video_sample_list[:original]
+        output.push({
+          codec: "video/#{file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+          url: original[:url],
+        })
+
+        output
       end
     end
 
-    def display_class_for(user)
+    def display_class_for(user = CurrentUser.user)
       if user.default_image_size == "original"
         ""
       else
@@ -207,13 +245,107 @@ class Post < ApplicationRecord
     end
 
     def has_sample_size?(scale)
-      (generated_samples || []).include?(scale)
+      if video_sample_list.blank?
+        # Check the old system if the new one is empty
+        # TODO: VCJ2 remove this once all files are converted
+        return false if generated_samples.nil?
+        generated_samples.include?(scale)
+      else
+        return false if video_sample_list[:samples].blank?
+        video_sample_list[:samples].include?(scale)
+      end
+    end
+
+    def video_sample_list
+      return {} unless is_video?
+
+      @video_sample_list ||= begin
+        sample_data = {}
+
+        if video_samples.empty?
+          # Old format, simple list
+          # TODO: VCJ2 remove this once all files are converted
+          sample_data[:manifest] = 1
+
+          sample_data[:original] = {
+            codec: nil,
+            fps: 0,
+            url: visible? ? file_url : nil,
+          }
+
+          sample_data[:variants] = {}
+          if generated_samples&.include?("original")
+            if file_ext == "webm"
+              sample_data[:variants][:mp4] = {
+                fps: 0,
+                size: 0,
+                codec: nil,
+                width: image_width,
+                height: image_height,
+                url: visible? ? file_url_ext("mp4") : nil, # rubocop:disable Metrics/BlockNesting
+              }
+            elsif file_ext == "mp4"
+              sample_data[:variants][:webm] = {
+                fps: 0,
+                size: 0,
+                codec: nil,
+                width: image_width,
+                height: image_height,
+                url: visible? ? file_url_ext("webm") : nil, # rubocop:disable Metrics/BlockNesting
+              }
+            end
+          end
+
+          sample_data[:samples] = {}
+          Danbooru.config.video_rescales.each do |name, dims|
+            next unless generated_samples&.include?(name.to_s)
+            calc_dims = scaled_sample_dimensions(dims)
+            sample_data[:samples][name] = {
+              fps: 0,
+              size: 0,
+              codec: nil,
+              width: calc_dims[0],
+              height: calc_dims[1],
+              url: visible? ? scaled_url_ext(name, "mp4") : nil,
+            }
+          end
+        else
+          # New manifest format
+          sample_data[:manifest] = 2
+
+          sample_data[:original] = video_samples["original"]
+          sample_data[:original][:size] = file_size
+          sample_data[:original][:width] = image_width
+          sample_data[:original][:height] = image_height
+          sample_data[:original][:url] = (visible? ? file_url : nil)
+          sample_data[:original].symbolize_keys!
+
+          sample_data[:variants] = {}
+          video_samples["variants"].each do |name, video|
+            sample_data[:variants][name] = video
+            sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
+            sample_data[:variants][name][:url] = visible? ? scaled_url_ext("alt", name) : nil
+
+            sample_data[:variants][name].symbolize_keys!
+          end
+
+          sample_data[:samples] = {}
+          video_samples["samples"].each do |name, video|
+            sample_data[:samples][name] = video
+            sample_data[:samples][name][:url] = visible? ? scaled_url_ext(name, "mp4") : nil
+
+            sample_data[:samples][name].symbolize_keys!
+          end
+        end
+
+        sample_data
+      end
     end
 
     def scaled_sample_dimensions(box)
       ratio = [box[0] / image_width.to_f, box[1] / image_height.to_f].min
-      width = [([image_width * ratio, 2].max.ceil), box[0]].min & ~1
-      height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
+      width = [[image_width * ratio, 2].max.ceil, box[0]].min & ~1
+      height = [[image_height * ratio, 2].max.ceil, box[1]].min & ~1
       [width, height]
     end
 
@@ -226,18 +358,39 @@ class Post < ApplicationRecord
     end
 
     def regenerate_video_samples!
-      # force code to assume no samples exist
-      update_column(:generated_samples, nil)
       generate_video_samples(later: true)
     end
 
+    # Delete all video samples and fill in some sample metadata
+    # This is typically done while waiting for new samples to be generated
+    def delete_video_samples!
+      return unless is_video?
+
+      storage_manager.delete_video_samples(md5)
+      update_column(:video_samples, {
+        original: {
+          codec: nil,
+          fps: 0,
+        },
+        variants: {},
+        samples: {},
+      })
+
+      # Delete the samples from the old conversion system
+      # TODO: VCJ2 remove this once all files are converted
+      unless generated_samples.nil?
+        storage_manager.delete_old_video_files(md5, file_ext)
+        update_column(:generated_samples, nil)
+      end
+    end
+
     def regenerate_image_samples!
-      file = self.file()
+      file = self.file
       preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
       storage_manager.store_file(sample_file, self, :large) if sample_file.present?
       storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
       storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
-      update({has_cropped: crop_file.present?})
+      update({ has_cropped: crop_file.present? })
     ensure
       file.close
     end
