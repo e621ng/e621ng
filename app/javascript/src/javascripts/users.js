@@ -10,13 +10,14 @@ Users.init_section = function ($wrapper) {
   if (!name || !$header.length || !$body.length) return;
 
   let state = LStorage.Users[name];
-  if (state) $wrapper.removeClass("hidden");
+  if (state) $wrapper.removeClass("hidden").attr("aria-expanded", "true");
 
   // Prevent flicker effects on page load
   setTimeout(() => $wrapper.removeClass("pending"), 100);
 
   $header.on("click", () => {
-    $wrapper.toggleClass("hidden", state);
+    $wrapper.toggleClass("hidden", state)
+      .attr("aria-expanded", state ? "false" : "true");
 
     state = !state;
     LStorage.Users[name] = state;
