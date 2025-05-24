@@ -704,10 +704,6 @@ module Danbooru
       false
     end
 
-    def umami_website_id
-      nil
-    end
-
     def fsc_modal_enabled?
       false
     end
