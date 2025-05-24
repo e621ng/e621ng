@@ -325,8 +325,10 @@ class TagAlias < TagRelationship
     if consequent_tag.artist.blank?
       antecedent_tag.artist.update!(name: consequent_name)
     elsif antecedent_tag&.artist&.linked_user_id.present? && consequent_tag&.artist&.linked_user_id.blank?
-      consequent_tag.artist.update(linked_user_id: antecedent_tag.artist.linked_user_id)
-      antecedent_tag.artist.update(linked_user_id: nil)
+      ActiveRecord::Base.transaction do
+        consequent_tag.artist.update!(linked_user_id: antecedent_tag.artist.linked_user_id)
+        antecedent_tag.artist.update!(linked_user_id: nil)
+      end
     end
   end
 
