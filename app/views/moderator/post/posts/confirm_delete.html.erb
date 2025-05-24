@@ -6,6 +6,7 @@
   </div>
 
   <%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
+    <%= hidden_field_tag :q, params[:q] %>
     <div class="input">
       <label for="reason">Reason</label>
       <%= text_field_tag "reason", @reason %>

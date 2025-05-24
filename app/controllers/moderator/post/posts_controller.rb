@@ -27,7 +27,12 @@ module Moderator
           @post.copy_tags_to_parent if params[:copy_tags].present?
           @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present?
         end
-        redirect_to(post_path(@post))
+
+        if params[:q].present?
+          redirect_to(post_path(@post, q: params[:q]))
+        else
+          redirect_to(post_path(@post))
+        end
       end
 
       def undelete
