@@ -46,8 +46,7 @@
                   <ul>
                   <% upload.source.split("\n") do |source| %>
                     <li>
-                      <%= link_to_if (source =~ %r!\Ahttps?://!i), (source.presence.try(:truncate, 50) || tag.em("none")), source %>
-                      <%= link_to "»", uploads_path(search: params[:search].merge(source_matches: source)) %>
+                      <div class="source-link"><%= post_source_tag(source) %></div>
                     </li>
                   <% end %>
                   </ul>
