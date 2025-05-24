@@ -11,7 +11,7 @@
     <% end %>
 
     <% if disapprovals.map(&:message).any?(&:present?) %>
-      Messages: <%= disapprovals.map(&:message).select(&:present?).map { |msg| format_text(msg, inline: true) }.to_sentence.html_safe %>.
+      Messages: <%= disapprovals.map(&:message).select(&:present?).map { |msg| format_text(msg, inline: true) }.to_sentence.html_safe %>
     <% end %>
 
     <% @our_disapproval = disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
