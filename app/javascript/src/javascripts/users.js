@@ -12,6 +12,9 @@ Users.init_section = function ($wrapper) {
   let state = LStorage.Users[name];
   if (state) $wrapper.removeClass("hidden");
 
+  // Prevent flicker effects on page load
+  setTimeout(() => $wrapper.removeClass("pending"), 100);
+
   $header.on("click", () => {
     $wrapper.toggleClass("hidden", state);
 

@@ -1,5 +1,8 @@
-<div class="profile-section hidden" name="StaffStats">
-  <div class="profile-section-header">Staff Info</div>
+<div class="profile-section hidden pending" name="StaffStats">
+  <div class="profile-section-header">
+    <%= svg_icon(:chevron_down) %>
+    <span>Staff Info</span>
+  </div>
   <div class="profile-section-body profile-staff-info">
     <% if presenter.previous_names(self).present? %>
       <h4 class="block">Previous Names</h4>
