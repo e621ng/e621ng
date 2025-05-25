@@ -175,7 +175,6 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
     msg = -"Diff: #{(TagQuery::ORDER_METATAGS - ORDER_MAP.keys) + (ORDER_MAP.keys - TagQuery::ORDER_METATAGS)}\nTagQuery::ORDER_METATAGS: #{TagQuery::ORDER_METATAGS};\nORDER_MAP.keys: #{ORDER_MAP.keys}"
     assert_equal(TagQuery::ORDER_METATAGS.length, ORDER_MAP.keys.length, msg)
     assert_equal(TagQuery::ORDER_METATAGS, TagQuery::ORDER_METATAGS.intersection(ORDER_MAP.keys), msg)
-    puts TagQuery::ORDER_METATAGS_AUTOCOMPLETE
   end
 
   # TODO: Add tests for proper construction
