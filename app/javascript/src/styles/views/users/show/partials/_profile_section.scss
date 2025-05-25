@@ -13,16 +13,10 @@
     svg {
       width: 1rem;
       height: 1rem;
-      transition: transform ease-in-out 100ms;
     }
-  }
 
-  // Prevent flicker effects on page load
-  &.pending {
-    .profile-section-header svg {
-      color: themed("color-section-lighten-5");
-      transition: none;
-    }
+    // This prevents the icon from animating on initial page load
+    &:hover svg { transition: transform ease-in-out 100ms; }
   }
 
   .profile-section-body {
