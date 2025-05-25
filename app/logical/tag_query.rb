@@ -94,6 +94,8 @@ class TagQuery
     "updated_at"  => "updated",
     "comm"        => "comment",
     "comm_bumped" => "comment_bumped",
+    "comm_count"  => "comment_count",
+    "size"        => "filesize",
     "ratio"       => "aspect_ratio",
   }.merge(
     # # Adds `artisttags` -> `arttags`
@@ -126,6 +128,7 @@ class TagQuery
 
   # rubocop:enable Layout/HashAlignment
 
+  # NOTE: The first element (`id`) is the only one whose value is equivalent to the `_asc`-suffixed variant.
   ORDER_INVERTIBLE_ROOTS = %w[
     id score md5 favcount note mpixels filesize tagcount change duration
     created updated comment comment_bumped aspect_ratio
@@ -147,6 +150,27 @@ class TagQuery
       .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
     ORDER_NON_SUFFIXED_ALIASES.keys,
   ).freeze
+
+  # All `order` metatag values to be included in the autocomplete.
+  #
+  # This is used to cut down on bloat in the autocomplete. All supported values are included in the
+  # autocomplete by default, and must be specifically excluded here; this keeps the autocomplete
+  # from missing values due to an oversight.
+  ORDER_METATAGS_AUTOCOMPLETE = (ORDER_METATAGS - %w[
+    id_asc
+  ].concat(
+    ORDER_INVERTIBLE_ROOTS[1..].map { |e| -"#{e}_desc" },
+    CATEGORY_METATAG_MAP.keys.map { |e| -"#{e}_desc" },
+    (ORDER_INVERTIBLE_ALIASES.keys - CATEGORY_METATAG_MAP.keys.map do |e|
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
+    end).flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] },
+    CATEGORY_METATAG_MAP.keys.map do |e|
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
+    end.map { |e| -"#{e}_desc" },
+    ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape],
+    %w[aspect_ratio aspect_ratio_asc],
+    CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] },
+  )).freeze
 
   # Should currently just be `rank` & `random`; not a constant due to only current use being tests.
   def self.order_non_invertible_roots

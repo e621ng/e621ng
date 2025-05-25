@@ -64,6 +64,9 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "filesize" => [[{ file_size: :desc }], [{ file_size: :asc }]],
       "filesize_desc" => [[{ file_size: :desc }], [{ file_size: :asc }]],
       "filesize_asc" => [[{ file_size: :asc }], [{ file_size: :desc }]],
+      "size" => [[{ file_size: :desc }], [{ file_size: :asc }]],
+      "size_desc" => [[{ file_size: :desc }], [{ file_size: :asc }]],
+      "size_asc" => [[{ file_size: :asc }], [{ file_size: :desc }]],
       "tagcount" => [[{ tag_count: :desc }], [{ tag_count: :asc }]],
       "tagcount_desc" => [[{ tag_count: :desc }], [{ tag_count: :asc }]],
       "tagcount_asc" => [[{ tag_count: :asc }], [{ tag_count: :desc }]],
@@ -73,9 +76,10 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "landscape" => [[{ aspect_ratio: :desc }], [{ aspect_ratio: :asc }]],
     },
     TagQuery::COUNT_METATAGS
-      .flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] }
+      .flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] + (e.include?("comment") ? [e.gsub("comment", "comm").freeze, -"#{e.gsub('comment', 'comm')}_desc", -"#{e.gsub('comment', 'comm')}_asc"] : []) }
       .index_with do |e|
       k = e.delete_suffix("_asc").delete_suffix("_desc")
+      k = k.gsub("comm", "comment").freeze if /comm(?!ent)/.match?(k)
       v = e.end_with?("_asc") ? "asc" : "desc"
       v_reversed = e.end_with?("_asc") ? "desc" : "asc"
       [[{ k => v }, { id: v }], [{ k => v_reversed }, { id: v_reversed }]]
@@ -168,8 +172,10 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
 
   should "be testing all valid order values" do
     # assert((d = (TagQuery::ORDER_METATAGS - ORDER_MAP.keys) + ))
-    assert_equal(TagQuery::ORDER_METATAGS.length, ORDER_MAP.keys.length, "TagQuery::ORDER_METATAGS: #{TagQuery::ORDER_METATAGS}; ORDER_MAP.keys: #{ORDER_MAP.keys}")
-    assert_equal(TagQuery::ORDER_METATAGS, TagQuery::ORDER_METATAGS.intersection(ORDER_MAP.keys), "TagQuery::ORDER_METATAGS: #{TagQuery::ORDER_METATAGS}; ORDER_MAP.keys: #{ORDER_MAP.keys}")
+    msg = -"Diff: #{(TagQuery::ORDER_METATAGS - ORDER_MAP.keys) + (ORDER_MAP.keys - TagQuery::ORDER_METATAGS)}\nTagQuery::ORDER_METATAGS: #{TagQuery::ORDER_METATAGS};\nORDER_MAP.keys: #{ORDER_MAP.keys}"
+    assert_equal(TagQuery::ORDER_METATAGS.length, ORDER_MAP.keys.length, msg)
+    assert_equal(TagQuery::ORDER_METATAGS, TagQuery::ORDER_METATAGS.intersection(ORDER_MAP.keys), msg)
+    puts TagQuery::ORDER_METATAGS_AUTOCOMPLETE
   end
 
   # TODO: Add tests for proper construction

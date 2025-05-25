@@ -623,6 +623,19 @@ class TagQueryTest < ActiveSupport::TestCase
     assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
     assert_equal([], TagQuery::ORDER_INVERTIBLE_ALIASES.values - TagQuery::ORDER_INVERTIBLE_ROOTS, "Not all resolved alias values are in roots.")
     assert(TagQuery::ORDER_NON_SUFFIXED_ALIASES.values.uniq.all? { |x| TagQuery.order_valid_non_suffixed_alias_values.include?(x) }, "Invalid non-suffixed aliases values: #{TagQuery::ORDER_NON_SUFFIXED_ALIASES.each_pair.map { |x, y| "#{x}: #{y}" unless TagQuery.order_valid_non_suffixed_alias_values.include?(x) }.join(', ')}")
+    # All potential values should be accessible via the filtered autocomplete entries
+    cb = ->(arr) do
+      arr.flat_map do |e|
+        [
+          TagQuery.normalize_order_value(e, invert: false, processed: true),
+          TagQuery.normalize_order_value(e, invert: true, processed: true),
+        ]
+      end.uniq
+    end
+    full_values = cb.call(TagQuery::ORDER_METATAGS)
+    filtered_values = cb.call(TagQuery::ORDER_METATAGS_AUTOCOMPLETE)
+    values_difference = (full_values - filtered_values)
+    assert(values_difference.empty?, "Not all values are accessible (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
   end
 
   MAPPING = {
