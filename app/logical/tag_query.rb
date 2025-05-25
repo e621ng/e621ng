@@ -164,9 +164,7 @@ class TagQuery
     (ORDER_INVERTIBLE_ALIASES.keys - CATEGORY_METATAG_MAP.keys.map do |e|
       "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
     end).flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] },
-    CATEGORY_METATAG_MAP.keys.map do |e|
-      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
-    end.map { |e| -"#{e}_desc" },
+    CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" },
     ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape],
     %w[aspect_ratio aspect_ratio_asc],
     CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] },
