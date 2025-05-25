@@ -469,7 +469,7 @@ class Post < ApplicationRecord
 
       # Not ideal, but does the job
       orig = self.replacements.find_by(status: "original")
-      orig&.update(approver: approver) if orig.nil?
+      orig&.update(approver: approver)
 
       if uploader == approver
         update(is_pending: false)
