@@ -5,23 +5,11 @@ class DmailsController < ApplicationController
   respond_to :json, except: %i[new create]
   before_action :member_only
 
-  def new
-    if params[:respond_to_id]
-      parent = Dmail.find(params[:respond_to_id])
-      check_privilege(parent)
-      @dmail = parent.build_response(forward: params[:forward])
-    else
-      @dmail = Dmail.new(create_params)
-    end
-
-    respond_with(@dmail)
-  end
-
   def index
     if params[:folder] && params[:set_default_folder]
       cookies.permanent[:dmail_folder] = params[:folder]
     end
-    @query = Dmail.active.visible.search(search_params)
+    @query = Dmail.active.visible.search(search_params).includes(:to, :from)
     @dmails = @query.paginate(params[:page], limit: params[:limit])
     respond_with(@dmails)
   end
@@ -32,6 +20,18 @@ class DmailsController < ApplicationController
     respond_with(@dmail) do |format|
       format.html { @dmail.mark_as_read! }
     end
+  end
+
+  def new
+    if params[:respond_to_id]
+      parent = Dmail.find(params[:respond_to_id])
+      check_privilege(parent)
+      @dmail = parent.build_response(forward: params[:forward])
+    else
+      @dmail = Dmail.new(create_params)
+    end
+
+    respond_with(@dmail)
   end
 
   def create
