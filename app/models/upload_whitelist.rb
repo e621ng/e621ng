@@ -73,7 +73,7 @@ class UploadWhitelist < ApplicationRecord
         return [x.allowed, x.reason]
       end
     end
-    [false, "#{url.host.presence || url} not in whitelist"]
+    [false, "#{url.host.presence || url.to_s} not in whitelist"]
   end
 
   extend SearchMethods
