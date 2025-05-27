@@ -51,7 +51,7 @@
     <% if CurrentUser.is_admin? %>
       <h4>Favorites</h4>
       <span>
-        <%= link_to "Remove all", flush_favorites_user_path(user), method: :post, :data => { :confirm => "Are you certain that you want to clear this user's favorites?\nTHIS IS IRREVERSIBLE." } %>
+        <%= link_to "Remove all", flush_favorites_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's favorites?\nTHIS IS IRREVERSIBLE." } %>
       </span>
     <% end %>
   </div>
