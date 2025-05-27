@@ -187,18 +187,23 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_read!
-    update_column(:is_read, true)
-    count = owner.unread_dmail_count - 1
-    if count < 0
-      owner.recalculate_unread_dmail_count!
-    else
-      owner.update_columns(unread_dmail_count: count)
+    return if is_read?
+    Dmail.transaction do
+      update_column(:is_read, true)
+      count = owner.unread_dmail_count - 1
+      if count < 0
+        owner.recalculate_unread_dmail_count!
+      else
+        owner.update_columns(unread_dmail_count: count)
+      end
     end
   end
 
   def mark_as_unread!
-    update_column(:is_read, false)
-    owner.update_columns(unread_dmail_count: owner.unread_dmail_count + 1)
+    Dmail.transaction do
+      update_column(:is_read, false)
+      owner.update_columns(unread_dmail_count: owner.unread_dmail_count + 1)
+    end
   end
 
   def is_automated?
