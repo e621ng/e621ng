@@ -1,4 +1,4 @@
-<% has_mail = CurrentUser.has_mail? && CurrentUser.dmails.unread.first.present? %>
+<% has_mail = CurrentUser.has_mail? %>
 <a
   href="<%= user_path(user) %>"
   class="simple-avatar placeholder <%= klass.nil? ? "" : klass %>"

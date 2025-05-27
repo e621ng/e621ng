@@ -683,7 +683,7 @@ class User < ApplicationRecord
           :custom_style, :favorite_count,
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
           :statement_timeout, :favorite_limit,
-          :tag_query_limit, :has_mail?
+          :tag_query_limit, :has_mail?, :unread_dmail_count,
         ]
       end
 
@@ -944,6 +944,11 @@ class User < ApplicationRecord
 
   def has_mail?
     unread_dmail_count > 0
+  end
+
+  def recalculate_unread_dmail_count!
+    update_columns(unread_dmail_count: dmails.unread.count)
+    reload
   end
 
   def hide_favorites?

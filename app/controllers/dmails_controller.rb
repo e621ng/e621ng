@@ -18,7 +18,9 @@ class DmailsController < ApplicationController
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail)
     respond_with(@dmail) do |format|
-      format.html { @dmail.mark_as_read! }
+      format.html do
+        @dmail.mark_as_read! unless @dmail.is_read
+      end
     end
   end
 
@@ -70,7 +72,8 @@ class DmailsController < ApplicationController
     Dmail.visible.unread.each do |x|
       x.update_column(:is_read, true)
     end
-    CurrentUser.user.update(unread_dmail_count: 0)
+    CurrentUser.user.update_columns(unread_dmail_count: 0)
+
     respond_to do |format|
       format.html { redirect_to dmails_path, notice: "All messages marked as read" }
       format.json
@@ -80,9 +83,7 @@ class DmailsController < ApplicationController
   private
 
   def check_privilege(dmail)
-    if !dmail.visible_to?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise User::PrivilegeError unless dmail.visible_to?(CurrentUser.user)
   end
 
   def create_params
