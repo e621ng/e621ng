@@ -18,7 +18,7 @@
   <a href="<%= user_path(user) %>">
     <%= svg_icon(:user) %> Profile
   </a>
-  <a href="<%= dmails_path %>" class="simple-avatar-dmails">
+  <a href="<%= has_mail ? dmails_path(:search => {:to_id => CurrentUser.id}, :folder => "received") : dmails_path %>" class="simple-avatar-dmails">
     <%= svg_icon(:message_square) %> Messages
   </a>
   <hr />

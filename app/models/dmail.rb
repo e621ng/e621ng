@@ -102,7 +102,7 @@ class Dmail < ApplicationRecord
     end
 
     def unread
-      where("is_read = false and is_deleted = false")
+      where("is_read = false AND is_deleted = false")
     end
 
     def visible
@@ -124,7 +124,7 @@ class Dmail < ApplicationRecord
       q = q.read if params[:read].to_s.truthy?
       q = q.unread if params[:read].to_s.falsy?
 
-      q.order(created_at: :desc)
+      q.order(id: :desc)
     end
   end
 
