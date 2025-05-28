@@ -13,7 +13,7 @@
   }
 }
 
-div#c-posts {
+div#c-posts, div#c-uploads {
   .source-link {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -30,8 +30,9 @@ div#c-posts {
       }
     }
   }
+}
 
-
+div#c-posts {
   .fav-buttons {
     font-size: 14pt;
 
