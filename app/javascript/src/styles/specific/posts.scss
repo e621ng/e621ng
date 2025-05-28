@@ -29,6 +29,8 @@ div#c-posts, div#c-uploads {
         max-width: unset;
       }
     }
+
+    .source-invalid { color: palette("text-red"); }
   }
 }
 
