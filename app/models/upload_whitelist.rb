@@ -57,12 +57,15 @@ class UploadWhitelist < ApplicationRecord
   end
 
   def self.is_whitelisted?(url)
+    url = Addressable::URI.heuristic_parse(url) rescue nil # rubocop:disable Style/RescueModifier
+    return [false, "invalid url"] if url.blank?
+
     entries = Cache.fetch("upload_whitelist", expires_in: 6.hours) do
       all
     end
 
     if Danbooru.config.bypass_upload_whitelist?(CurrentUser)
-      return [true, 'bypassed']
+      return [true, "bypassed"]
     end
 
     entries.each do |x|
@@ -70,7 +73,7 @@ class UploadWhitelist < ApplicationRecord
         return [x.allowed, x.reason]
       end
     end
-    [false, "#{url.host} not in whitelist"]
+    [false, "#{url.host.presence || url.to_s} not in whitelist"]
   end
 
   extend SearchMethods
