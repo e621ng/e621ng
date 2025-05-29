@@ -191,6 +191,8 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_equal(["order:random", "limit:50", "randseed:123", "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true, delim_metatags: false))
         assert_equal(["order:random", "limit:50", "randseed:123", TagQuery::END_OF_METATAGS_TOKEN, "( aaa )", "-( bbb )"], TagQuery.scan_search("( order:random aaa limit:50 ) -( bbb randseed:123 )", segregate_metatags: true))
         assert_equal("random", TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
+        # Ensure tag hoisting works on negated order tags
+        assert_equal("random", TagQuery.new("( -order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
         assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
       end
     end
@@ -596,6 +598,46 @@ class TagQueryTest < ActiveSupport::TestCase
     end
   end
 
+  should "have correctly constructed order constants" do
+    # # Uncomment to print out all valid inputs & their outputs.
+    # # Ruby Hash
+    # puts "{"
+    # TagQuery::ORDER_METATAGS.each do |x|
+    #   puts "\torder:#{x} -> \"#{TagQuery.normalize_order_value(x, invert: false)}\","
+    #   puts "\t-order:#{x} -> \"#{TagQuery.normalize_order_value(x, invert: true)}\","
+    # end
+    # puts "}"
+    # # Markdown
+    # mapping = {}
+    # TagQuery::ORDER_METATAGS.each do |x|
+    #   normalized = TagQuery.normalize_order_value(x, invert: false)
+    #   mapping[normalized] ||= []
+    #   mapping[normalized] << -"`order:#{x}`"
+    #   normalized = TagQuery.normalize_order_value(x, invert: true)
+    #   mapping[normalized] ||= []
+    #   mapping[normalized] << -"`-order:#{x}`"
+    # end
+    # mapping.each_pair do |normal, resolvers|
+    #   puts " * #{resolvers.join(', ')} -> `#{normal}`"
+    # end
+    assert_equal(TagQuery::ORDER_METATAGS.uniq, TagQuery::ORDER_METATAGS, "Contains duplicates (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
+    assert_equal([], TagQuery::ORDER_INVERTIBLE_ALIASES.values - TagQuery::ORDER_INVERTIBLE_ROOTS, "Not all resolved alias values are in roots.")
+    assert(TagQuery::ORDER_NON_SUFFIXED_ALIASES.values.uniq.all? { |x| TagQuery.order_valid_non_suffixed_alias_values.include?(x) }, "Invalid non-suffixed aliases values: #{TagQuery::ORDER_NON_SUFFIXED_ALIASES.each_pair.map { |x, y| "#{x}: #{y}" unless TagQuery.order_valid_non_suffixed_alias_values.include?(x) }.join(', ')}")
+    # All potential values should be accessible via the filtered autocomplete entries
+    cb = ->(arr) do
+      arr.flat_map do |e|
+        [
+          TagQuery.normalize_order_value(e, invert: false, processed: true),
+          TagQuery.normalize_order_value(e, invert: true, processed: true),
+        ]
+      end.uniq
+    end
+    full_values = cb.call(TagQuery::ORDER_METATAGS)
+    filtered_values = cb.call(TagQuery::ORDER_METATAGS_AUTOCOMPLETE)
+    values_difference = (full_values - filtered_values)
+    assert(values_difference.empty?, "Not all values are accessible (#{TagQuery::ORDER_METATAGS - TagQuery::ORDER_METATAGS.uniq})")
+  end
+
   MAPPING = {
     user: :uploader_ids,
     user_id: :uploader_ids,
@@ -764,6 +806,18 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     context "Metatags:" do
+      context "Hoisting" do
+        should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+          assert_raise(TagQuery::DepthExceededError) do
+            TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+          end
+        end
+
+        should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+          TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+        end
+      end
+
       should "match w/ case insensitivity" do
         %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
       end
@@ -910,6 +964,8 @@ class TagQueryTest < ActiveSupport::TestCase
             assert_equal("any", result[:status])
             assert_nil(result[:status_must_not])
             assert_not(result.hide_deleted_posts?)
+
+            # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
             ["status:active #{y}", "#{y} status:active"].each do |z|
               result = TagQuery.new(z)
               assert_equal(true, result[:show_deleted])
@@ -1158,7 +1214,6 @@ class TagQueryTest < ActiveSupport::TestCase
       # when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
       # when "child" then q[:child] = g2.downcase
       # when "randseed" then q[:random_seed] = g2.to_i
-      # when "order" then q[:order] = g2.downcase
       # when "limit" # Do nothing. The controller takes care of it.
       # when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
       # when "description", "-description", "~description" then add_to_query(type, :description, g2)
@@ -1170,7 +1225,7 @@ class TagQueryTest < ActiveSupport::TestCase
           in_i = in_r.join(",").freeze
           in_f = "#{in_i},101".freeze
           in_r = [[:in, in_r].freeze].freeze
-          %w[id width height score favcount change tagcount].concat(TagCategory::SHORT_NAME_LIST.map { |e| "#{e}tags" }).freeze.each do |e|
+          %w[id width height score favcount change tagcount].concat(TagQuery::CATEGORY_METATAG_MAP.keys).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
             prefixes.each do |prefix|
               p, s = prefix
@@ -1252,6 +1307,70 @@ class TagQueryTest < ActiveSupport::TestCase
           })
         end
       end
+
+      # when "order" then q[:order] = TagQuery.normalize_order_value(g2.downcase.strip, invert: type == :must_not)
+      context "Order:" do
+        context "Inversion & Normalization" do
+          should "remain the same for Non-aliased and non-invertible values" do
+            assert_equal("rank",             TagQuery.new("order:rank")[:order])
+            assert_equal("random",           TagQuery.new("order:random")[:order])
+            assert_equal("rank",             TagQuery.new("-order:rank")[:order])
+            assert_equal("random",           TagQuery.new("-order:random")[:order])
+          end
+
+          should "invert & normalize order values" do
+            # Non-aliased invertible tags should work correctly
+            # Normalize
+            assert_equal("duration",         TagQuery.new("order:duration")[:order])
+            assert_equal("duration",         TagQuery.new("order:duration_desc")[:order])
+            assert_equal("duration_asc",     TagQuery.new("order:duration_asc")[:order])
+
+            # Invert
+            assert_equal("duration_asc",     TagQuery.new("-order:duration")[:order])
+            assert_equal("duration",         TagQuery.new("-order:duration_asc")[:order])
+            assert_equal("duration_asc",     TagQuery.new("-order:duration_desc")[:order])
+          end
+
+          should "properly handle aliased values" do
+            # Don't resolve
+            assert_equal("updated",          TagQuery.new("order:updated")[:order])
+            assert_equal("updated_asc",      TagQuery.new("order:updated_asc")[:order])
+
+            # Aliased values should be correctly resolved
+            assert_equal("updated",          TagQuery.new("order:updated_at")[:order])
+            assert_equal("updated",          TagQuery.new("order:updated_at_desc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("order:updated_at_asc")[:order])
+
+            # Correctly resolved & inverted
+            assert_equal("updated",          TagQuery.new("-order:updated_at_asc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("-order:updated_at_desc")[:order])
+            assert_equal("updated_asc",      TagQuery.new("-order:updated_at")[:order])
+          end
+
+          should "properly handle aliases that don't allow suffixes" do
+            # Don't resolve
+            assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
+            assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
+
+            # Non-suffixed aliases should be correctly resolved
+            assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
+            assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
+
+            # Correctly resolved & inverted
+            assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
+            assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+          end
+
+          should "correctly handle the id special case" do
+            assert_equal("id",               TagQuery.new("order:id")[:order])
+            assert_equal("id_desc",          TagQuery.new("order:id_desc")[:order])
+            assert_equal("id",               TagQuery.new("order:id_asc")[:order])
+            assert_equal("id_desc",          TagQuery.new("-order:id")[:order])
+            assert_equal("id",               TagQuery.new("-order:id_desc")[:order])
+            assert_equal("id_desc",          TagQuery.new("-order:id_asc")[:order])
+          end
+        end
+      end
     end
 
     # should "correctly handle valid quoted metatags" do
@@ -1260,6 +1379,18 @@ class TagQueryTest < ActiveSupport::TestCase
     #   query = TagQuery.new('user:hash description:" a description w/ some stuff" delreason:"a good one"')
     #   assert_equal()
     # end
+
+    context "While unnesting a single unprefixed group" do
+      should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        assert_raise(TagQuery::DepthExceededError) do
+          TagQuery.new((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        end
+      end
+
+      should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
+        TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
+    end
   end
 
   # TODO: expand to all valid candidates
@@ -1296,29 +1427,6 @@ class TagQueryTest < ActiveSupport::TestCase
       TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
       # mixed level query
       TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
-    end
-  end
-
-  context "While hoisting through the constructor" do
-    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new("aaa #{(0..(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
-      end
-    end
-    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |accumulator, _| "( #{accumulator} )" }}", error_on_depth_exceeded: true)
-    end
-  end
-
-  context "While unpacking a search of a single group through the constructor" do
-    should "fail for more than #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      assert_raise(TagQuery::DepthExceededError) do
-        TagQuery.new((0..(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-      end
-    end
-
-    should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
     end
   end
 
