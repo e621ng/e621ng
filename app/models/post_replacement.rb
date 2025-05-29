@@ -406,7 +406,7 @@ class PostReplacement < ApplicationRecord
 
   def set_previous_uploader
     return if uploader_id_on_approve.present?
-    uploader = self.post.uploader_id
+    uploader = post.uploader_id
     if uploader == creator_id
       self.penalize_uploader_on_approve = false
     end
@@ -422,31 +422,31 @@ class PostReplacement < ApplicationRecord
   end
 
   def is_current?
-    return md5 == post.md5
+    md5 == post.md5
   end
 
   def is_pending?
-    return status == "pending"
+    status == "pending"
   end
 
   def is_backup?
-    return status == "original"
+    status == "original"
   end
 
   def is_approved?
-    return status == "approved"
+    status == "approved"
   end
 
   def is_rejected?
-    return status == "rejected"
+    status == "rejected"
   end
 
   def is_promoted?
-    return status == "promoted"
+    status == "promoted"
   end
 
   def is_retired?
-    return status == "approved" && !is_current?
+    status == "approved" && !is_current?
   end
 
   def promoted_id
