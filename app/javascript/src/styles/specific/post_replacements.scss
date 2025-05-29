@@ -7,8 +7,24 @@ div#c-post-replacements {
     background-color: themed("color-warning-darken-5");
   }
 
+  .replacement-current-row {
+    background-color: themed("color-section-darken-5");
+  }
+  
   .replacement-reason {
     white-space: pre-wrap;
+  }
+
+  .replacement-compact-row {
+    margin-bottom: 0.1rem;
+  }
+
+  .replacement-spaced-row{
+    margin-top: 1rem;
+  }
+
+  .inline-icons{
+    vertical-align: text-bottom;
   }
 
   .disabled-link {
