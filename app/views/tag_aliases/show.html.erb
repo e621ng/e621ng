@@ -37,6 +37,21 @@
           Please check the <%= link_to "artist page", artist_path(@tag_alias.consequent_tag&.artist || @tag_alias.antecedent_tag&.artist) %> for more information.
         </li>
       <% end %>
+
+      <% if @tag_alias.antecedent_tag&.artist&.linked_user_id.present? %>
+        <li>
+          <br />
+          <strong>Linked User</strong>: <%= link_to_user @tag_alias.antecedent_tag.artist.linked_user %>
+          <br />
+          <% if @tag_alias.consequent_tag&.artist.blank? %>
+            <strong>Note:</strong> Antecedent artist page will be renamed to match the consequent tag upon approval.
+          <% elsif @tag_alias.consequent_tag&.artist&.linked_user_id.present? %>
+            <strong>Note:</strong> Consequent artist tag also has a linked user: <%= link_to_user @tag_alias.consequent_tag.artist.linked_user %>
+          <% else %>
+            <strong>Note:</strong> Linked user will be transferred to the consequent tag upon approval.
+          <% end %>
+        </li>
+      <% end %>
     </ul>
 
     <%= render "tag_change_requests/votes", tag_change_request: @tag_alias %>

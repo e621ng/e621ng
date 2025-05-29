@@ -36,7 +36,7 @@
   <% end %>
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? %>
-    <%= javascript_include_tag "https://umami.dragonfru.it/script.js", nonce: true, async: true, data: { "website-id": Danbooru.config.umami_website_id } %>
+    <%= javascript_include_tag "https://plausible.dragonfru.it/js/script.js", nonce: true, async: true, data: { domain: Danbooru.config.domain } %>
   <% end %>
   <% if Danbooru.config.fsc_modal_enabled? %>
     <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>

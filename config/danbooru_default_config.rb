@@ -525,8 +525,8 @@ module Danbooru
         "Young [[human]]-[[humanoid|like]] character in an explicit situation",
         "",
         "Paysite/commercial content",
-        "Traced artwork",
-        "Traced artwork (post #%PARENT_ID%)",
+        "Trace of another artist's work",
+        "Trace of another artist's work (post #%PARENT_ID%)",
         "Takedown #%OTHER_ID%",
         "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
@@ -702,10 +702,6 @@ module Danbooru
 
     def enable_visitor_metrics?
       false
-    end
-
-    def umami_website_id
-      nil
     end
 
     def fsc_modal_enabled?

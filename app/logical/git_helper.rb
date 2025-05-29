@@ -4,9 +4,9 @@ module GitHelper
   def self.init
     if Rails.root.join("REVISION").exist?
       @hash = @tag = Rails.root.join("REVISION").read.strip
-    elsif system("type git > /dev/null && git rev-parse --show-toplevel > /dev/null")
-      @hash = `git rev-parse HEAD`.strip
-      @tag = `git describe --abbrev=0`
+    elsif Open3.capture3("git rev-parse --show-toplevel")[2].success?
+      @hash = Open3.capture3("git rev-parse HEAD")[0].strip
+      @tag = Open3.capture3("git describe --abbrev=0")[0].strip
     else
       @hash = @tag = ""
     end

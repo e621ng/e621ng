@@ -1,16 +1,16 @@
 <ul>
   <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
   <% if IqdbProxy.enabled? && @post.has_preview? %>
-    <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
+    <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow noreferrer" %></li>
   <% end %>
   <% if @post.visible? && @post.is_image? %>
     <li class="list-break"></li>
-    <li><a rel="nofollow" href="https://lens.google.com/uploadbyurl?url=<%= @post.reverse_image_url %>&client=e621">Google</a></li>
-    <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">SauceNAO</a></li>
-    <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Derpibooru</a></li>
-    <li><a rel="nofollow" href="https://yandex.com/images/search?url=<%= @post.reverse_image_url %>&rpt=imageview">Yandex</a></li>
-    <li><a rel="nofollow" href="https://www.fuzzysearch.net/#url=<%= @post.reverse_image_url %>">FuzzySearch</a></li>
+    <li><a rel="nofollow noreferrer" target="_blank" href="https://lens.google.com/uploadbyurl?url=<%= @post.reverse_image_url %>&client=e621">Google</a></li>
+    <li><a rel="nofollow noreferrer" target="_blank" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">SauceNAO</a></li>
+    <li><a rel="nofollow noreferrer" target="_blank" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Derpibooru</a></li>
+    <li><a rel="nofollow noreferrer" target="_blank" href="https://yandex.com/images/search?url=<%= @post.reverse_image_url %>&rpt=imageview">Yandex</a></li>
+    <li><a rel="nofollow noreferrer" target="_blank" href="https://www.fuzzysearch.net/#url=<%= @post.reverse_image_url %>">FuzzySearch</a></li>
   <% end %>
   <li class="list-break"></li>
-  <li><a rel="nofollow" href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny</a></li>
+  <li><a rel="nofollow noreferrer" target="_blank" href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny</a></li>
 </ul>

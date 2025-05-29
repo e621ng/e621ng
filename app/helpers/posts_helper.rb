@@ -32,7 +32,7 @@ module PostsHelper
     elsif source.start_with?("-")
       tag.s(source[1..])
     else
-      source
+      tag.span(source, class: "source-invalid")
     end
   end
 

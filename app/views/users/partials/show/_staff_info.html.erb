@@ -1,5 +1,8 @@
-<div class="profile-section hidden" name="StaffStats">
-  <div class="profile-section-header">Staff Info</div>
+<div class="profile-section hidden pending" name="StaffStats" role="button" aria-expanded="false">
+  <div class="profile-section-header">
+    <%= svg_icon(:chevron_down) %>
+    <span>Staff Info</span>
+  </div>
   <div class="profile-section-body profile-staff-info">
     <% if presenter.previous_names(self).present? %>
       <h4 class="block">Previous Names</h4>
@@ -45,6 +48,13 @@
       <h4>Tag Changes</h4>
       <span>
         <%= link_to "Revert All", new_user_revert_path(user_id: user.id) %>
+      </span>
+    <% end %>
+
+    <% if CurrentUser.is_admin? %>
+      <h4>Favorites</h4>
+      <span>
+        <%= link_to "Remove all", flush_favorites_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's favorites?\nTHIS IS IRREVERSIBLE." } %>
       </span>
     <% end %>
   </div>

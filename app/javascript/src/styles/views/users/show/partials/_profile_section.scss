@@ -7,12 +7,16 @@
     padding: 0.25rem 0.5rem;
     cursor: pointer;
 
-    &::before {
-      content: "⮟";
-      display: inline-flex;
-      transition: transform 200ms;
-      margin-right: 0.25rem;
+    display: flex;
+    gap: 0.25rem;
+
+    svg {
+      width: 1rem;
+      height: 1rem;
     }
+
+    // This prevents the icon from animating on initial page load
+    &:hover svg { transition: transform ease-in-out 100ms; }
   }
 
   .profile-section-body {
@@ -23,7 +27,7 @@
 
   // Collapsed
   &.hidden {
-    .profile-section-header::before {
+    .profile-section-header svg {
       transform: rotate(-90deg);
     }
 

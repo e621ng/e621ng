@@ -40,11 +40,18 @@
               <% end %>
               <br>
 
-              <span class="post-info">
-                <strong>Source</strong>
-                <%= link_to_if (upload.source =~ %r!\Ahttps?://!i), (upload.source.presence.try(:truncate, 50) || tag.em("none")), upload.source %>
-                <%= link_to "»", uploads_path(search: params[:search].merge(source_matches: upload.source)) %>
-              </span>
+              <% if upload.source.present? %>
+                <span class="post-info">
+                  <strong>Sources</strong>
+                  <ul>
+                  <% upload.source.split("\n").each do |source| %>
+                    <li>
+                      <div class="source-link"><%= post_source_tag(source) %></div>
+                    </li>
+                  <% end %>
+                  </ul>
+                </span>
+              <% end %>
               <br>
 
               <span class="post-info">
