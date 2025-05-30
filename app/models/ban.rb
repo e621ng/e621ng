@@ -172,7 +172,7 @@ class Ban < ApplicationRecord
           user_id: user_id,
           banner_id: banner.id,
           expires_at: expires_at,
-          reason: reason
+          reason: reason,
         },
       }
     end
