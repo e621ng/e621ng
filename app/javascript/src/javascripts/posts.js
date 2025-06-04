@@ -562,11 +562,17 @@ function calculate_original_sources (post, skipVariants = LStorage.Posts.SkipVar
 
   const result = [];
 
-  // Add variants first
-  // New ones will always present the mp4 version first, then the webm
-  // Old ones will only present the version that does not match the original file
-  if (post.sample.alternates.variants && !skipVariants)
+  // Add the original file first.
+  // Unprocessed posts will not have a codec string on file, which makes feature detection harder
+  let originalCodec = post.sample.alternates?.original?.codec;
+  result.push({
+    type: originalCodec ? `video/${post.file.ext}; codecs="${originalCodec}"` : `video/${post.file.ext}`,
+    url: post.file.url,
+  });
 
+  // Add fallback variants if they exist.
+  // The "Source" view does not display these.
+  if (post.sample.alternates.variants && !skipVariants)
     for (const [filetype, data] of Object.entries(post.sample.alternates.variants)) {
       if (!data.url) continue;
       result.push({
@@ -574,14 +580,6 @@ function calculate_original_sources (post, skipVariants = LStorage.Posts.SkipVar
         url: data.url,
       });
     }
-
-  // Add the original file as a fallback
-  // Older posts will not have the codec on file, which makes feature detection harder
-  let originalCodec = post.sample.alternates?.original?.codec;
-  result.push({
-    type: originalCodec ? `video/${post.file.ext}; codecs="${originalCodec}"` : `video/${post.file.ext}`,
-    url: post.file.url,
-  });
 
   return result;
 }
