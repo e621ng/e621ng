@@ -5,9 +5,12 @@ class Ban < ApplicationRecord
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
+  after_create :push_pubsub_ban
   after_update :create_ban_update_mod_action
+  after_update :push_pubsub_update
   after_destroy :update_user_on_destroy
   after_destroy :create_unban_mod_action
+  after_destroy :push_pubsub_unban
   belongs_to :user
   belongs_to :banner, :class_name => "User"
   validate :user_is_inferior
@@ -147,4 +150,37 @@ class Ban < ApplicationRecord
   def create_unban_mod_action
     ModAction.log(:user_unban, {user_id: user_id})
   end
+
+  def push_pubsub_ban
+    push_pubsub("create")
+  end
+
+  def push_pubsub_update
+    push_pubsub("update")
+  end
+
+  def push_pubsub_unban
+    push_pubsub("delete")
+  end
+
+  module PubSubMethods
+    def pubsub_hash(action)
+      {
+        action: action,
+        ban: {
+          id: id,
+          user_id: user_id,
+          banner_id: banner.id,
+          expires_at: expires_at,
+          reason: reason,
+        },
+      }
+    end
+
+    def push_pubsub(action)
+      Cache.redis.publish("ban_updates", pubsub_hash(action).to_json)
+    end
+  end
+
+  include PubSubMethods
 end
