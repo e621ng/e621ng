@@ -529,31 +529,24 @@ Post.resize_video = function (post, target_size) {
 
   $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
 
+  let foundPlayable = false;
   for (const source of target_sources) {
     // canPlayType can return "probably", "maybe" or "".
     // * "maybe" means that the browser cannot determine whether it can play the file until playback is attempted.
     // * "probably" indicates that the browser thinks it can play the file, and seems to be returned only if the codec is provided.
     // * "" means that the browser cannot play the file. It will also throw an error in the console.
     if (!videoTag.canPlayType(source.type)) continue;
+    foundPlayable = true;
 
     // No need to reload the video if we are just changing the scale
     if (source.url === $video.attr("src")) break;
 
-    const wasPaused = videoTag.paused;
-    if (!wasPaused) videoTag.pause(); // Otherwise size changes won't take effect.
-    const time = videoTag.currentTime;
-
-    $video.attr("src", source.url);
-    videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
-
-    // Resume playback at the original time
-    videoTag.currentTime = time;
-    if (!wasPaused) videoTag.play();
-
+    play_video_file(videoTag, source.url);
     break;
   }
 
-  // TODO Fallback if no source was selected
+  // Fallback if no playable source was found.
+  if (!foundPlayable) play_video_file(videoTag, post.file.url);
 
   // Adjust the classes last, to prevent video from
   // getting resized before the source is set.
@@ -591,6 +584,24 @@ function calculate_original_sources (post, skipVariants = LStorage.Posts.SkipVar
   });
 
   return result;
+}
+
+/**
+ * Plays a video file in the specified video tag.
+ * @param {HTMLVideoElement} videoTag HTML tag of the video player
+ * @param {string} sourceURL New video source URL
+ */
+function play_video_file (videoTag, sourceURL) {
+  const wasPaused = videoTag.paused;
+  if (!wasPaused) videoTag.pause(); // Otherwise size changes won't take effect.
+  const time = videoTag.currentTime;
+
+  videoTag.setAttribute("src", sourceURL);
+  videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
+
+  // Resume playback at the original time
+  videoTag.currentTime = time;
+  if (!wasPaused) videoTag.play();
 }
 
 Post.resize_image = function (post, target_size) {

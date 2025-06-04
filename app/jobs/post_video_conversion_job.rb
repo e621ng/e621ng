@@ -32,7 +32,7 @@ class PostVideoConversionJob < ApplicationJob
 
       sample_data = {
         original: {
-          codec: original.video_codec,
+          codec: format_codec_name(original.video_codec),
           fps: (original.frame_rate || 0).round(2).to_f,
         },
         variants: {},
@@ -195,7 +195,7 @@ class PostVideoConversionJob < ApplicationJob
       {
         width: video.width,
         height: video.height,
-        codec: video.video_codec == "h264" ? "avc1.4D401E" : video.video_codec,
+        codec: format_codec_name(video.video_codec),
         fps: (video.frame_rate || 0).round(2).to_f,
         size: video.size,
       }
@@ -205,5 +205,22 @@ class PostVideoConversionJob < ApplicationJob
     ensure
       file&.close!
     end
+  end
+
+  # Converts codec names to a format understandable by the browsers.
+  # The actual resulting values may not actually be true, but attempting to extract
+  # the actual codec name from the video file is driving me up the wall.
+  def format_codec_name(name)
+    case name
+    when "h264"
+      "avc1.4D401E"
+    when "av1"
+      "av01.0.00M.08"
+    else
+      name
+    end
+  rescue StandardError => e
+    logger.error "Error parsing codec name: #{name} - #{e.message}"
+    name
   end
 end
