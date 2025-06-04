@@ -2,7 +2,7 @@
 
 # Fix for a timezone bug in Rails that causes specific timezones to not be recognized.
 # This is not an issue in development (alpine3.20), nor on the old production servers (ubuntu20).
-# However, it causes errors in the newly upgraded app4 server (unbuntu24).
+# However, it causes errors in the newly upgraded app4 server (ubuntu24).
 #
 # Relevant issues:
 # https://github.com/rails/rails/issues/54999
