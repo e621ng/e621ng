@@ -26,12 +26,7 @@
 <% if !@post.force_original_size? %>
   <div>
     <select id="image-resize-selector" class="button btn-neutral">
-      <% if @post.is_video? && @post.video_sample_list.any? && @post.video_sample_list[:variants].any? %>
-        <option value="source">Original</option>
-        <option value="original">Automatic</option>
-      <% else %>
-        <option value="original">Original</option>
-      <% end %>
+      <option value="original">Original</option>
       <option value="fit">Fit (Horizontal)</option>
       <option value="fitv">Fit (Vertical)</option>
       <% if !@post.is_video? %>
