@@ -1,7 +1,5 @@
 FROM ruby:3.3.1-alpine3.20 AS ruby-builder
 
-RUN apk update
-
 RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat
 
 COPY Gemfile Gemfile.lock ./
