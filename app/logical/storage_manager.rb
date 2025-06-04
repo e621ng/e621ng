@@ -86,24 +86,6 @@ class StorageManager
     end
   end
 
-  # TODO: VCJ2 remove this once all files are converted
-  def delete_old_video_files(md5, file_ext)
-    Danbooru.config.video_rescales.each_key do |k|
-      %w[mp4 webm].each do |ext|
-        delete(file_path(md5, ext, :scaled, false, scale_factor: k.to_s))
-        delete(file_path(md5, ext, :scaled, true, scale_factor: k.to_s))
-      end
-    end
-
-    if file_ext == "mp4"
-      delete(file_path(md5, "webm", :original, false))
-      delete(file_path(md5, "webm", :original, true))
-    else
-      delete(file_path(md5, "mp4", :original, false))
-      delete(file_path(md5, "mp4", :original, true))
-    end
-  end
-
   def delete_replacement(replacement)
     delete(replacement_path(replacement.storage_id, replacement.file_ext, :original))
     delete(replacement_path(replacement.storage_id, replacement.file_ext, :preview))

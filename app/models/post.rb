@@ -74,9 +74,6 @@ class Post < ApplicationRecord
         end
 
         Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
-
-        # TODO: VCJ2 remove this once all files are converted
-        Danbooru.config.storage_manager.delete_old_video_files(md5, file_ext)
       end
     end
 
@@ -245,80 +242,27 @@ class Post < ApplicationRecord
     end
 
     def has_sample_size?(scale)
-      if video_sample_list.blank?
-        # Check the old system if the new one is empty
-        # TODO: VCJ2 remove this once all files are converted
-        return false if generated_samples.nil?
-        generated_samples.include?(scale)
-      else
-        return false if video_sample_list[:samples].blank?
-        video_sample_list[:samples].include?(scale)
-      end
+      return false if video_sample_list.blank?
+      return false if video_sample_list[:samples].blank?
+      video_sample_list[:samples].include?(scale)
     end
 
     def video_sample_list
       return {} unless is_video?
 
       @video_sample_list ||= begin
-        sample_data = {}
-
-        if video_samples.empty?
-          # Old format, simple list
-          # TODO: VCJ2 remove this once all files are converted
-          sample_data[:manifest] = 1
-
-          sample_data[:original] = {
+        sample_data = {
+          original: {
             codec: nil,
             fps: 0,
-            url: visible? ? file_url : nil,
-          }
+          },
+          variants: {},
+          samples: {},
+        }
 
-          sample_data[:variants] = {}
-          if generated_samples&.include?("original")
-            if file_ext == "webm"
-              sample_data[:variants][:mp4] = {
-                fps: 0,
-                size: 0,
-                codec: nil,
-                width: image_width,
-                height: image_height,
-                url: visible? ? file_url_ext("mp4") : nil, # rubocop:disable Metrics/BlockNesting
-              }
-            elsif file_ext == "mp4"
-              sample_data[:variants][:webm] = {
-                fps: 0,
-                size: 0,
-                codec: nil,
-                width: image_width,
-                height: image_height,
-                url: visible? ? file_url_ext("webm") : nil, # rubocop:disable Metrics/BlockNesting
-              }
-            end
-          end
-
-          sample_data[:samples] = {}
-          Danbooru.config.video_rescales.each do |name, dims|
-            next unless generated_samples&.include?(name.to_s)
-            calc_dims = scaled_sample_dimensions(dims)
-            sample_data[:samples][name] = {
-              fps: 0,
-              size: 0,
-              codec: nil,
-              width: calc_dims[0],
-              height: calc_dims[1],
-              url: visible? ? scaled_url_ext(name, "mp4") : nil,
-            }
-          end
-        else
-          # New manifest format
-          sample_data[:manifest] = 2
-
+        # Data stored by the video conversion job
+        unless video_samples.empty?
           sample_data[:original] = video_samples["original"]
-          sample_data[:original][:size] = file_size
-          sample_data[:original][:width] = image_width
-          sample_data[:original][:height] = image_height
-          sample_data[:original][:url] = (visible? ? file_url : nil)
-          sample_data[:original].symbolize_keys!
 
           sample_data[:variants] = {}
           video_samples["variants"].each do |name, video|
@@ -337,6 +281,13 @@ class Post < ApplicationRecord
             sample_data[:samples][name].symbolize_keys!
           end
         end
+
+        # Backfill with the original file data
+        sample_data[:original][:size] = file_size
+        sample_data[:original][:width] = image_width
+        sample_data[:original][:height] = image_height
+        sample_data[:original][:url] = (visible? ? file_url : nil)
+        sample_data[:original].symbolize_keys!
 
         sample_data
       end
@@ -375,13 +326,6 @@ class Post < ApplicationRecord
         variants: {},
         samples: {},
       })
-
-      # Delete the samples from the old conversion system
-      # TODO: VCJ2 remove this once all files are converted
-      unless generated_samples.nil?
-        storage_manager.delete_old_video_files(md5, file_ext)
-        update_column(:generated_samples, nil)
-      end
     end
 
     def regenerate_image_samples!
