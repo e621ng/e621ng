@@ -52,6 +52,8 @@ class PostsController < ApplicationController
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
+    @has_samples = @post.is_image? || @post.video_sample_list[:has]
+
     if request.format.html? && @post.comment_count > 0
       @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
