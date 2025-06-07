@@ -1,8 +1,11 @@
 // Picker
 body {
   a.nav-logo-link { background-image: url("logo/default.svg"); }
-  @each $name in ("pride", "ace", "aro", "bi", "french", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "trans") {
-    &[data-th-logo="#{$name}"] a.nav-logo-link { background-image: url("logo/#{$name}.svg"); }
+  @each $name in ("pride", "ace", "aro", "bi", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "trans") {
+    &[data-th-logo="p_#{$name}"] a.nav-logo-link { background-image: url("logo/p_#{$name}.svg"); }
+  }
+  @each $name in ("france", "poland") {
+    &[data-th-logo="c_#{$name}"] a.nav-logo-link { background-image: url("logo/c_#{$name}.svg"); }
   }
 
   &[data-th-logo="default"] {

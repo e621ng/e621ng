@@ -73,7 +73,7 @@ LStorage.Theme = {
   StickyHeader: ["theme-sheader", false],
 
   /** @returns {string} Currently selected logo */
-  Logo: ["theme-logo", "pride"],
+  Logo: ["theme-logo", "p_pride"],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 
