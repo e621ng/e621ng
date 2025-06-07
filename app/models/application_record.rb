@@ -133,6 +133,18 @@ class ApplicationRecord < ActiveRecord::Base
         q
       end
 
+      # Searches for a user both by id and name to exclude from the query.
+      # Accepts a block to modify the query when one of the params is present and yields the ids.
+      # This is useful for excluding the current user from a query.
+      def where_not_user(db_field, query_field, params)
+        q = all
+        with_resolved_user_ids(query_field, params) do |user_ids|
+          q = yield(q, user_ids) if block_given?
+          q = q.where.not(to_where_hash(db_field, user_ids))
+        end
+        q
+      end
+
       def apply_basic_order(params)
         case params[:order]
         when "id_asc"
