@@ -52,6 +52,244 @@ div#c-post-replacements {
   #avoid-posting-notice ul {
     margin-left: 1em;
   }
+
+  // TESTING MOBILE REPLACEMENTS
+  /* Add to your CSS file */
+  .replacement-section-separator {
+    border-top: 1px solid #e0e0e0;
+    margin: 8px 0;
+  }
+
+.replacement-section-top {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+}
+
+.replacement-thumbnail {
+  flex: 0 0 auto;
+  margin-right: 0.75rem;
+}
+
+.replacement-main-content {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.replacement-top-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 0.25rem;
+}
+
+.overview-values, .overview-labels {
+  display: contents;
+}
+
+.overview-value, .overview-label {
+  text-align: left;
+  display: block;
+}
+
+.overview-value {
+  font-weight: bold;
+}
+
+.overview-label {
+  font-size: 0.9em;
+  color: #888;
+}
+
+.toggle-expanded {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-left: 0.75rem;
+  position: static; // Remove absolute so it stays in flex row
+}
+.replacement-reason, .replacement-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  margin-bottom: 0.25em;
+}
+
+.reason-label, .note-label,
+.reason-creator, .note-handler {
+  white-space: nowrap;
+}
+
+.reason-value, .note-value {
+  display: block;
+  margin-left: 0.5em; // Optional: indent for clarity
+}
+.replacement-section-bottom {
+  padding: 0.75rem 0 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  //background: #fafbfc;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+// Top row: sources left, actions right
+.bottom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.bottom-sources {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.sources-label {
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+.sources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.25em 0 0 0;
+}
+
+.source-url {
+  font-size: 0.95em;
+  color: #345;
+  word-break: break-all;
+  margin-bottom: 0.15em;
+}
+
+.bottom-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 120px;
+}
+
+.actions-label {
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+.bottom-actions button,
+.bottom-actions a {
+  margin-bottom: 0.25em;
+  width: 100%;
+  text-align: right;
+}
+
+.action-spacer {
+  height: 0.5em;
+}
+
+// Info row: two info blocks side by side
+.bottom-info-row {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.bottom-image-info {
+  flex: 1 1 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 0.15em;
+  column-gap: 1em;
+}
+
+.info-value {
+  font-weight: bold;
+  text-align: left;
+}
+
+.info-label {
+  font-size: 0.9em;
+  color: #888;
+  text-align: left;
+}
+
+// Details row: details table left, uploader info right
+.bottom-details-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.bottom-details-table {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.details-row {
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.details-label {
+  font-weight: bold;
+  min-width: 70px;
+  color: #666;
+}
+
+.details-value {
+  word-break: break-all;
+}
+
+.bottom-uploader-info {
+  flex: 0 0 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25em;
+  //background: #f3f6fa;
+  border-radius: 0.25em;
+  padding: 0.5em 0.75em;
+}
+
+.uploader-label {
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+.uploader-username {
+  font-size: 1em;
+  color: #234;
+}
+
+.uploader-penalized {
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.toggle-penalized {
+  font-size: 0.95em;
+  padding: 0.1em 0.5em;
+  border-radius: 0.2em;
+  border: 1px solid #bbb;
+  //background: #fff;
+  cursor: pointer;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.15em 1em;
+}
+
 }
 
 // Lost both thumbs in an industrial accident.

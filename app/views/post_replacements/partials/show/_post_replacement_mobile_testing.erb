@@ -1,0 +1,112 @@
+<tr id="replacement-<%= post_replacement.id %>" class="mobile-replacement-row">
+  <td colspan="100%">
+    <div class="replacement-section-top">
+      <div class="replacement-thumbnail">
+        <%= replacement_thumbnail(post_replacement) %>
+      </div>
+      <div class="replacement-main-content">
+        <div class="replacement-top-overview">
+          <div class="overview-labels">
+            <span class="overview-label">Version</span>
+            <span class="overview-label">Status</span>
+          </div>
+          <div class="overview-values">
+            <span class="overview-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd></span>
+            <span class="overview-value"><%= post_replacement.status %></span>
+          </div>
+        </div>
+        <div class="replacement-reason">
+          <span><span class="reason-label">Reason: </span><span class="reason-creator">(Submitter: <%= link_to_user post_replacement.creator %>)</span></span>
+          <div class="reason-value"><%= truncate(post_replacement.reason, length: 40) %></div>
+        </div>
+        <div class="replacement-note">
+          <span><span class="note-label">Note: </span><span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</span></span>
+          <div class="note-value"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
+        </div>
+      </div>
+      <button class="toggle-expanded" data-replacement-id="<%= post_replacement.id %>">
+        &#9660;
+      </button>
+    </div>
+    <div class="replacement-section-separator"></div>
+    <div class="replacement-section-bottom" id="replacement-bottom-<%= post_replacement.id %>">
+      <div class="bottom-header">
+        <div class="bottom-sources">
+          <div class="sources-label">Sources</div>
+          <ul class="sources-list">
+            <% post_replacement.source_list.each do |url| %>
+              <li class="source-url"><%= truncate(url, length: 32) %></li>
+            <% end %>
+          </ul>
+        </div>
+        <div class="bottom-actions">
+            <% if CurrentUser.can_approve_posts? %>
+              <div class="pending-links">
+                <% if post_replacement.status == "pending" %>
+                  <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br><br>
+                  <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
+                <% end %>
+              </div>
+              <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
+                <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %><br> <% end %>
+                <% if !post_replacement.is_pending? %> <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %><br> <% end %>
+              <% end %>
+            <% end %>
+            <% if CurrentUser.is_admin? %>
+              <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
+            <% end %>
+        </div>
+      </div>
+      <div class="bottom-info-row">
+        <div class="bottom-image-info">
+          <div class="info-label">Image Info</div>
+          <div class="info-grid">
+            <div class="info-value"><%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %></div>
+            <div class="info-value">(<%= number_to_human_size(post_replacement.file_size) %>)</div>
+          </div>
+        </div>
+        <div class="bottom-image-info">
+          <div class="info-label">Current (<% link_to("view", post_path(post_replacement.post_id)) %>)</div> 
+          <div class="info-grid">
+            <div class="info-value"><%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %></div>
+            <div class="info-value">(<%= number_to_human_size(post_replacement.file_size) %>)</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-details-row">
+        <div class="bottom-details-table">
+          <div class="details-row">
+            <span class="details-label">Name:</span>
+            <span class="details-value"><%= post_replacement.file_name %></span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">MD5:</span>
+            <span class="details-value"><%= post_replacement.md5 %></span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">ID:</span>
+            <span class="details-value"><%= post_replacement.id %></span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">CREATED:</span>
+            <span class="details-value"><%= post_replacement.created_at.strftime("%Y-%m-%d %H:%M") %></span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">UPDATED:</span>
+            <span class="details-value"><%= post_replacement.updated_at.strftime("%Y-%m-%d %H:%M") %></span>
+          </div>
+        </div>
+        <div class="bottom-uploader-info">
+          <div class="uploader-label">Previous uploader</div>
+          <div class="uploader-username"><%= link_to_user post_replacement.uploader_on_approve %></div>
+          <div class="uploader-penalized">
+            <%# if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
+              penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
+              <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %>
+            <%# end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>
