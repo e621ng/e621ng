@@ -10,4 +10,5 @@
   <%= f.input :file_name, label: "File Name" %>
   <%= f.input :source, label: "Source" %>
   <%= f.input :penalized, label: "Penalized?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+  <%= f.input :order, label: "Order", collection: [["Created At", "created_at"], ["Updated At", "updated_at"]], include_blank: true %>
 <% end %>
