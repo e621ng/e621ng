@@ -8,14 +8,7 @@
     <table class="striped autofit" style="max-width:100%">
       <thead>
         <tr>
-          <th>Replacement</th>
-          <th>Post</th>
-          <th>Creator </th>
-          <th></th>
-          <th></th>
-          <% if CurrentUser.is_admin? || CurrentUser.can_approve_posts? %>
-            <th>Actions</th>
-          <%end%>
+
         </tr>
       </thead>
       <%#<tbody><%= render partial: "post_replacements/partials/show/post_replacement", collection: @post_replacements, as: :post_replacement %></tbody>

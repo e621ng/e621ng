@@ -91,7 +91,9 @@ div#c-post-replacements {
 
 .overview-value, .overview-label {
   text-align: left;
-  display: block;
+  display: inline;
+  width: auto;
+  max-width: 100%;
 }
 
 .overview-value {
@@ -170,7 +172,7 @@ div#c-post-replacements {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  min-width: 120px;
+  //min-width: 120px;
 }
 
 .actions-label {
