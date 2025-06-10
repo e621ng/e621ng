@@ -190,11 +190,11 @@ class Dmail < ApplicationRecord
     return if is_read?
     Dmail.transaction do
       update_column(:is_read, true)
-      count = owner.unread_dmail_count - 1
-      if count < 0
+      count = owner.unread_dmail_count
+      if count <= 0
         owner.recalculate_unread_dmail_count!
       else
-        owner.update_columns(unread_dmail_count: count)
+        owner.update_columns(unread_dmail_count: count - 1)
       end
     end
   end
