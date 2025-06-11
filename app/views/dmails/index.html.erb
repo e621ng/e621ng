@@ -36,11 +36,11 @@
               <% if dmail.filtered? %>
                 <%= link_to "[filtered]", dmail_path(dmail) %>
               <% else %>
-                <%= link_to dmail.title, dmail_path(dmail) %>
+                <%= link_to dmail.title, dmail_path(dmail), class: "dmail-entry" %>
               <% end %>
             </td>
             <td>
-              <%= link_to "delete", dmail_path(dmail), :method => :delete, :data => {:confirm => "Are you sure you want to delete this Dmail?"} %>
+              <%= link_to "delete", dmail_path(dmail), method: :delete, data: { confirm: "Are you sure you want to delete this Dmail?" } %>
             </td>
           </tr>
         <% end %>

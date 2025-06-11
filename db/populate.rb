@@ -16,6 +16,7 @@ presets = {
   commentvotes: ENV.fetch("COMVOTES", 0).to_i,
   pools: ENV.fetch("POOLS", 0).to_i,
   furids: ENV.fetch("FURIDS", 0).to_i,
+  dmails: ENV.fetch("DM", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -29,6 +30,7 @@ if presets.values.sum == 0
     commentvotes: 100,
     pools: 100,
     furids: 0,
+    dmails: 0,
   }
 end
 
@@ -41,6 +43,7 @@ POSTVOTES = presets[:postvotes]
 COMVOTES  = presets[:commentvotes]
 POOLS     = presets[:pools]
 FURIDS    = presets[:furids]
+DMAILS    = presets[:dmails]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -368,6 +371,34 @@ def populate_pools(number, posts: [])
   end
 end
 
+def populate_dmails(number)
+  return unless number > 0
+  puts "* Generating DMs"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(100).order("random()")
+
+  number.times do
+    sender = users.sample
+    recipient = users.sample
+
+    next if sender == recipient
+
+    dm_obj = Dmail.create_split(
+      from_id: sender.id,
+      to_id: recipient.id,
+      title: Faker::Hipster.sentence(word_count: rand(3..10)),
+      body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
+      bypass_limits: true,
+    )
+
+    puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
+
+    unless dm_obj.valid?
+      puts "    #{dm_obj.errors.full_messages.join('; ')}"
+    end
+  end
+end
+
 puts "Populating the Database"
 CurrentUser.user = User.find(1)
 CurrentUser.ip_addr = "127.0.0.1"
@@ -384,3 +415,4 @@ populate_forums(FORUMS, users: users)
 populate_post_votes(POSTVOTES, users: users, posts: posts)
 populate_comment_votes(COMVOTES, users: users, comments: comments)
 populate_pools(POOLS, posts: posts)
+populate_dmails(DMAILS)

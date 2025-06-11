@@ -3680,6 +3680,13 @@ CREATE UNIQUE INDEX index_dmail_filters_on_user_id ON public.dmail_filters USING
 
 
 --
+-- Name: index_dmails_for_inbox; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_for_inbox ON public.dmails USING btree (id, owner_id, to_id, is_deleted);
+
+
+--
 -- Name: index_dmails_on_creator_ip_addr; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4724,6 +4731,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250611041221'),
 ('20250604020028'),
 ('20250512221037'),
 ('20250501203333'),
