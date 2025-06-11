@@ -16,6 +16,9 @@
       "st-ssearch": localStorage.getItem("e6.posts.ssearch") || false,
     };
 
+    if (values["th-extra"] === "spring" && Math.random() < 0.1)
+      values["th-extra"] = "fennec";
+
     var b = document.body;
     for (const [name, value] of Object.entries(values)) {
       b.setAttribute("data-" + name, value);
