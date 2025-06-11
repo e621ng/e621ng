@@ -127,9 +127,15 @@ class SessionLoader
     CurrentUser.safe_mode = safe_mode
   end
 
+  # This is here purely for the purpose of testing.
+  def skip_cookies?
+    false
+  end
+
   # Resets the unread dmail cookie if it does not match the current user's dmail status.
   # This should normally happen when the user reads their last unread dmail.
   def refresh_unread_dmails
+    return if skip_cookies?
     return if CurrentUser.is_anonymous?
     return if cookies[:hide_dmail_notice].blank?
 
