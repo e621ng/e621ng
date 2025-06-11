@@ -37,6 +37,15 @@
   </div>
 <% end %>
 
+<% if @post.is_video? && !@post.video_sample_list[:has] %>
+  <div class="notice notice-flagged">
+    <div class="notice-pending-status">
+      The video in this post is still being processed. It may take a few minutes to complete.<br />
+      Playback on some devices may be affected.
+    </div>
+  </div>
+<% end %>
+
 <% if post.is_pending? %>
   <div class="notice notice-pending" id="pending-approval-notice">
     <div class="notice-pending-status">
