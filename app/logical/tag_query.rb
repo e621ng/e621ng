@@ -1416,7 +1416,7 @@ class TagQuery
         q[:status] = nil
         q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
-      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
+      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2.downcase)
 
       when "description", "-description", "~description" then add_to_query(type, :description, g2)
 
