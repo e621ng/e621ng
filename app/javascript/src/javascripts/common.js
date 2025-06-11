@@ -39,7 +39,7 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    Cookie.put("hide_dmail_notice", true);
+    Cookie.put("hide_dmail_notice", "true");
   });
 
   $("#close-notice-link").on("click.danbooru", function (e) {
