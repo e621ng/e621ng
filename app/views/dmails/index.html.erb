@@ -36,7 +36,7 @@
               <% if dmail.filtered? %>
                 <%= link_to "[filtered]", dmail_path(dmail) %>
               <% else %>
-                <%= link_to dmail.title, dmail_path(dmail), class: "dmail-entry", target: "_blank" %>
+                <%= link_to dmail.title, dmail_path(dmail), class: "dmail-entry" %>
               <% end %>
             </td>
             <td>
