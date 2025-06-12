@@ -52,4 +52,24 @@ div#c-post-replacements {
   #avoid-posting-notice ul {
     margin-left: 1em;
   }
+  .replacement-sources {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
+
+  .replacement-sources ul {
+    padding-left: 1.2em;
+    margin: 0;
+    list-style: disc;
+  }
+
+
+  .replacement-sources-link {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    max-width: 100%;
+    display: block;
+  }
 }

@@ -5,8 +5,12 @@
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
     <dt>Version</dt>
+    <dd class="replacement-compact-row">
+      <%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %>
+    </dd>
     <dd>
-      <%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd>
+      <% unless post_replacement.is_current?%> (<%= link_to("Post file", post_replacement.post.file_url) %>) <% end %>
+    </dd>
     <dt>Status</dt>
     <dd class="replacement-compact-row">
       <% if post_replacement.status == "pending" %>
