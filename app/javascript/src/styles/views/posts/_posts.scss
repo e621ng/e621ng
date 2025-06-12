@@ -18,7 +18,7 @@
   @include with-setting("fullscreen", "true") {
     @import "index/partials/fullscreen";
   }
-  @include with-setting("ssearch", "true") {
+  @include with-setting("stickysearch", "true") {
     @import "index/partials/sticky";
   }
 }
