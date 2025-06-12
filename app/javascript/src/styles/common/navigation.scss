@@ -230,7 +230,7 @@ nav.navigation {
 
 
 // Sticky header
-body[data-th-sheader="true"] nav.navigation {
+body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
 }
