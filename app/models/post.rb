@@ -39,6 +39,7 @@ class Post < ApplicationRecord
   after_commit :delete_files, :on => :destroy
   after_commit :remove_iqdb_async, :on => :destroy
   after_commit :update_iqdb_async, :on => :create
+  after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
@@ -119,7 +120,7 @@ class Post < ApplicationRecord
     end
 
     def preview_file_url
-      storage_manager.file_url(self, :preview)
+      storage_manager.file_url_ext(self, :preview, "jpg")
     end
 
     def reverse_image_url
@@ -140,7 +141,7 @@ class Post < ApplicationRecord
     end
 
     def crop_file_url
-      storage_manager.file_url(self, :crop)
+      storage_manager.file_url_ext(self, :crop, "jpg")
     end
 
     def open_graph_video_url
@@ -230,15 +231,14 @@ class Post < ApplicationRecord
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      return [max_px, max_px] unless has_dimensions?
-      height = width = max_px
-      dimension_ratio = image_width.to_f / image_height
-      if dimension_ratio > 1
-        height = (width / dimension_ratio).to_i
-      else
-        width = (height * dimension_ratio).to_i
+      @preview_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+        if has_dimensions?
+          scale = image_width < image_height ? (max_px / image_width.to_f) : (max_px / image_height.to_f)
+          [(image_width * scale).to_i, (image_height * scale).to_i]
+        else
+          [max_px, max_px]
+        end
       end
-      [height, width]
     end
 
     def has_sample_size?(scale)
@@ -331,15 +331,20 @@ class Post < ApplicationRecord
       reload
     end
 
+    def generate_image_samples(later: false)
+      if later
+        PostThumbnailerJob.set(wait: 1.minute).perform_later(id)
+      else
+        PostThumbnailerJob.perform_later(id)
+      end
+    end
+
     def regenerate_image_samples!
-      file = self.file
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
-      storage_manager.store_file(sample_file, self, :large) if sample_file.present?
-      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
-      storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
-      update({ has_cropped: crop_file.present? })
-    ensure
-      file.close
+      if file_size < 10.megabytes
+        ImageSampler.create_samples_for_post(self)
+      else
+        generate_image_samples(later: true)
+      end
     end
   end
 
@@ -1609,8 +1614,8 @@ class Post < ApplicationRecord
         attributes[:preview_url] = preview_file_url
         attributes[:large_url] = large_file_url
         attributes[:file_url] = file_url
-        attributes[:preview_width] = preview_dimensions[1]
-        attributes[:preview_height] = preview_dimensions[0]
+        attributes[:preview_width] = preview_dimensions[0]
+        attributes[:preview_height] = preview_dimensions[1]
       end
 
       attributes

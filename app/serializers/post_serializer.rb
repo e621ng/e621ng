@@ -27,9 +27,9 @@ class PostSerializer < ActiveModel::Serializer
   def preview
     dims = object.preview_dimensions
     preview_attributes = {
-        width: dims[1],
-        height: dims[0],
-        url: nil
+      width: dims[0],
+      height: dims[1],
+      url: nil,
     }
     if object.visible?
       preview_attributes[:url] = object.preview_file_url
