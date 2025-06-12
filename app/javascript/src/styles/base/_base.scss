@@ -3,7 +3,7 @@ body {
   color: themed("color-text");
   background-color: $hexagon-color-background;
   background-color: themed("color-background");
-  // background-image: themed("image-background");
+  background-image: themed("image-background");
   font-family: $base_font_family;
   font-size: $font-size;
   line-height: 1.25em;
