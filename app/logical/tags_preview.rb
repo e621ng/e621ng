@@ -56,7 +56,7 @@ class TagsPreview
         post_count: tag&.post_count,
         alias: (@aliases[name] if @aliases.key?(name) && @aliases[name] != name),
         implies: (@implications[name].map(&:to_s) if @implications.key?(name)),
-        from: @name_from[name]
+        from: @name_from[name],
       }.compact
     end
   end
