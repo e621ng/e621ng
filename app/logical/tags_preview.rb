@@ -3,9 +3,27 @@
 class TagsPreview
   def initialize(tags: nil)
     @tag_names = TagQuery.scan(tags).map(&:downcase).compact_blank.uniq
+    resolve_categories
     resolve_aliases
     resolve_implications
     load_tags
+  end
+
+  # Tags with a prefix should be either found in the DB or assigned that category in the output.
+  def resolve_categories
+    @name_categories = {}
+    @name_from = {}
+
+    @tag_names = @tag_names.flat_map do |tag|
+      if tag =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
+        stripped = Tag.normalize_name($2).downcase
+        @name_categories[stripped] = Tag.categories.value_for($1)
+        @name_from[stripped] = tag
+        stripped
+      else
+        tag
+      end
+    end.uniq
   end
 
   def resolve_aliases
@@ -14,32 +32,31 @@ class TagsPreview
   end
 
   def resolve_implications
-    @reverse_implications = Hash.new { |h, k| h[k] = [] }
-    @implications = TagImplication.descendants_with_originals(@aliased_names).transform_values(&:to_a).tap do |imp|
-      imp.each { |a, d| d.each { |b| @reverse_implications[b] << a } }
-    end
+    @implications = TagImplication.descendants_with_originals(@aliased_names)
   end
 
   def load_tags
-    all_names = (@aliased_names + @implications.values.flatten).uniq
+    all_names = (@tag_names + @aliases.values + @implications.values.flatten).uniq
     @tags = Tag.where(name: all_names).index_by(&:name)
   end
 
   def serializable_hash(*)
-    all_tag_names = (@aliased_names + @implications.values.flatten).uniq
+    seen = Set.new
 
-    all_tag_names.map do |name|
+    (@tag_names + @aliases.values + @implications.values.flatten).uniq.filter_map do |name|
+      next if seen.include?(name)
+      seen << name
+
       tag = @tags[name]
 
       {
         id: tag&.id,
         name: name,
-        alias: (@aliases.key(name) if @aliases.key(name) != name),
-        category: tag&.category,
-        post_count: tag&.post_count || 0,
-        implied: @aliased_names.exclude?(name),
-        implied_by: Array(@reverse_implications[name]).map(&:to_s),
-        implies: Array(@implications[name]).map(&:to_s),
+        category: tag&.category || @name_categories[name],
+        post_count: tag&.post_count,
+        alias: (@aliases[name] if @aliases.key?(name) && @aliases[name] != name),
+        implies: (@implications[name].map(&:to_s) if @implications.key?(name)),
+        from: @name_from[name]
       }.compact
     end
   end

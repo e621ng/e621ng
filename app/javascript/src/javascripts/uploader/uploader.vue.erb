@@ -150,8 +150,7 @@
                     </div>
                     <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
                               ref="otherTags" data-autocomplete="tag-edit"></textarea>
-                    <tag-preview :tags="tagPreview.tags" :loading="tagPreview.loading"
-                                @close="previewFinalTags"></tag-preview>
+                    <tag-preview :tags="tags" />
                     <div class="related-tag-functions">
                         Related:
                         <a href="#" @click.prevent="findRelated()">Tags</a> |
@@ -347,12 +346,6 @@
           other: "",      // other: '',
         },
 
-        tagPreview: {
-          loading: false,
-          show: false,
-          tags: []
-        },
-
         allowLockedTags: window.uploaderSettings.allowLockedTags,
         lockedTags: '',
         allowRatingLock: window.uploaderSettings.allowRatingLock,
@@ -499,7 +492,6 @@
         });
       },
       pushTag(tag, add) {
-        this.tagPreview.show = false;
         const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
         // In advanced mode we need to push these into the tags area because there are no checkboxes or other
         // tag fields so we can't see them otherwise.
@@ -526,7 +518,6 @@
        * @param {string} input Which of the tagEntries the tags should be added to
        */
       importTags(tags, input) {
-        this.tagPreview.show = false;
         const tagsA = (tags + "").trim().split(" ").filter(n => n);
 
         // Dedupe
@@ -542,30 +533,6 @@
         // Without a space at the end, vue panics
         this.tagEntries[this.normalMode ? input : "other"] = tagsB.join(" ") + " ";
       },
-
-      fetchTagPreview() {
-        if (this.tagPreview.loading) return;
-
-        this.tagPreview.loading = true;
-
-        const tagList = this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).join(',');
-
-        $.ajax(`/tags/preview.json?name=${encodeURIComponent(tagList)}`, {
-          method: "GET",
-          success: (result) => {
-            this.tagPreview.loading = false;
-            this.tagPreview.tags = result;
-            this.tagPreview.show = true;
-          },
-          error: (result) => {
-            this.tagPreview.loading = false;
-            this.tagPreview.tags = [];
-            this.tagPreview.show = true;
-            Danbooru.error("Error loading tag preview " + JSON.stringify(result));
-          },
-        });
-      },
-
       findRelated(categoryId) {
         const self = this;
         if (self.loadingRelated)
@@ -640,17 +607,6 @@
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;
-      }
-    },
-    watch: {
-      tags: {
-        immediate: true,
-        handler() {
-          clearTimeout(this._tagPreviewDebounce);
-          this._tagPreviewDebounce = setTimeout(() => {
-            this.fetchTagPreview();
-          }, 1000);
-        }
       }
     },
   }

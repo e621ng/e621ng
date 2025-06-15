@@ -1,12 +1,8 @@
 <template>
   <div>
-    <div v-show="loading">Fetching tags...</div>
+    <div v-if="loading && tagRecords.length === 0">Fetching tags...</div>
     <div class="tag-preview">
-      <tag-preview-tag
-        v-for="(tag, i) in tags"
-        :key="i"
-        :tag="tag"
-      ></tag-preview-tag>
+      <tag-preview-tag v-for="(tag, i) in tagRecords" :key="i" :tag="tag"></tag-preview-tag>
     </div>
   </div>
 </template>
@@ -15,25 +11,59 @@
 import tagPreviewTag from './tag_preview_tag.vue';
 
 export default {
-  props: ['tags', 'loading'],
+  props: ['tags'],
   components: {
     'tag-preview-tag': tagPreviewTag,
   },
+  data() {
+    return {
+      loading: false,
+      tagCache: {},
+      _tagPreviewDebounce: null,
+    };
+  },
   computed: {
-    splitTags() {
-      const sorted = [...this.tags].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
+    tagsArray() {
+      return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
+    },
+    tagRecords() {
+      return this.tagsArray.map(t => this.tagCache[t]).filter(Boolean);
+    },
+  },
+  watch: {
+    tags: {
+      immediate: true,
+      handler() {
+        clearTimeout(this._tagPreviewDebounce);
+        this._tagPreviewDebounce = setTimeout(() => {
+          this.fetchTagPreview();
+        }, 1000);
+      }
+    }
+  },
+  methods: {
+    fetchTagPreview() {
+      const missing = this.tagsArray.filter(t => !this.tagCache[t]);
+      if (missing.length === 0) return;
 
-      const chunkArray = (arr, size) => {
-        const chunks = [];
-        for (let i = 0; i < arr.length; i += size) {
-          chunks.push(arr.slice(i, i + size));
-        }
-        return chunks;
-      };
+      this.loading = true;
+      $.ajax('/tags/preview.json', {
+        method: 'POST',
+        data: { tags: missing.join(' ') },
+        success: (result) => {
+          for (const tag of result) {
+            if (tag.alias && tag.name !== tag.alias) continue;
 
-      return chunkArray(sorted, 15);
+            const input = tag.from || tag.name;
+            this.tagCache[input] = tag;
+          }
+          this.loading = false;
+        },
+        error: (result) => {
+          this.loading = false;
+          Danbooru.error("Error loading tag preview " + JSON.stringify(result));
+        },
+      });
     },
   },
 };

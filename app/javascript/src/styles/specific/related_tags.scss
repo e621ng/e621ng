@@ -50,6 +50,7 @@ div.related-tags {
   }
 }
 
+
 div.tag-preview {
   box-sizing: border-box;
 
@@ -59,6 +60,8 @@ div.tag-preview {
   overflow: hidden;
 
   width: 100%;
+  max-height: 50vh;
+  overflow-y: auto;
   margin-top: 0.5em;
   margin-bottom: 1em;
   padding: 2px;

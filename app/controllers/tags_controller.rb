@@ -19,8 +19,8 @@ class TagsController < ApplicationController
   end
 
   def preview
-    tag_names = params[:name].to_s.split(",").map(&:strip).compact_blank.join(" ")
-    @preview = TagsPreview.new(tags: tag_names)
+    # This endpoint needs to be a POST request, because long tag strings will exceed the browser URL length limit.
+    @preview = TagsPreview.new(tags: params[:tags])
     render plain: @preview.serializable_hash.to_json, content_type: "application/json"
   end
 
