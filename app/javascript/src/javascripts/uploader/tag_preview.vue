@@ -53,9 +53,7 @@ export default {
         success: (result) => {
           for (const tag of result) {
             if (tag.alias && tag.name !== tag.alias) continue;
-
-            const input = tag.from || tag.name;
-            this.tagCache[input] = tag;
+            this.tagCache[tag.name] = tag;
           }
           this.loading = false;
         },

@@ -2,7 +2,7 @@
 
 class TagsPreview
   def initialize(tags: nil)
-    @tag_names = TagQuery.scan(tags).map(&:downcase).compact_blank.uniq
+    @raw_names = TagQuery.scan(tags).map(&:downcase).compact_blank.uniq
     resolve_categories
     resolve_aliases
     resolve_implications
@@ -11,17 +11,19 @@ class TagsPreview
 
   # Tags with a prefix should be either found in the DB or assigned that category in the output.
   def resolve_categories
+    @resolved_names = {}
     @name_categories = {}
-    @name_from = {}
 
-    @tag_names = @tag_names.flat_map do |tag|
-      if tag =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
-        stripped = Tag.normalize_name($2).downcase
-        @name_categories[stripped] = Tag.categories.value_for($1)
-        @name_from[stripped] = tag
-        stripped
+    @tag_names = @raw_names.map do |name|
+      if name =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
+        resolved = Tag.normalize_name($2).downcase
+        category = Tag.categories.value_for($1)
+        @resolved_names[name] = resolved
+        @name_categories[resolved] = category
+        resolved
       else
-        tag
+        @resolved_names[name] = name
+        name
       end
     end.uniq
   end
@@ -43,20 +45,23 @@ class TagsPreview
   def serializable_hash(*)
     seen = Set.new
 
-    (@tag_names + @aliases.values + @implications.values.flatten).uniq.filter_map do |name|
-      next if seen.include?(name)
-      seen << name
+    (@raw_names + @aliases.values + @implications.values.flatten).uniq.filter_map do |raw_name|
+      resolved = @resolved_names[raw_name]
 
-      tag = @tags[name]
+      next if seen.include?(resolved)
+      seen << resolved
+
+      canonical = @aliases[resolved]
+      tag = @tags[canonical]
 
       {
         id: tag&.id,
-        name: name,
-        category: tag&.category || @name_categories[name],
+        name: raw_name,
+        resolved: (resolved if resolved != raw_name),
+        category: tag&.category || @name_categories[resolved],
         post_count: tag&.post_count,
-        alias: (@aliases[name] if @aliases.key?(name) && @aliases[name] != name),
-        implies: (@implications[name].map(&:to_s) if @implications.key?(name)),
-        from: @name_from[name],
+        alias: (canonical if canonical != resolved),
+        implies: (@implications[canonical].map(&:to_s) if @implications.key?(canonical)),
       }.compact
     end
   end

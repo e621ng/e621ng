@@ -1,7 +1,7 @@
 <template>
   <div class="tag-preview-tag">
     <div class="main-tag">
-      <tag-link :name="tag.name" :tagType="tag.category"></tag-link>
+      <tag-link :name="tag.resolved || tag.name" :tagType="tag.category"></tag-link>
       <span v-if="!tag.id" class="invalid">invalid</span>
       <span v-else-if="tag.implied" class="implied">implied</span>
       <span v-else-if="tag.post_count === 0" class="empty">empty</span>
