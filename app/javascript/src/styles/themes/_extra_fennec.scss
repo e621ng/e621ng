@@ -1,0 +1,9 @@
+body[data-th-extra="fennec"] {
+  --image-foreground: url("themes/extras/spring_bottom.png"),
+                      url("themes/extras/spring_bottom_fennec.png"),
+                      url("themes/extras/spring_top.png"),
+                      url("themes/extras/spring_top_sky.png");
+  --image-foreground-position: left bottom, right bottom ,right top ,left top;
+  --image-foreground-repeat: repeat-x, no-repeat, no-repeat, repeat-x;
+  --content-padding-bottom: 3rem;
+}
