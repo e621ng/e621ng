@@ -333,18 +333,14 @@ class Post < ApplicationRecord
 
     def generate_image_samples(later: false)
       if later
-        PostThumbnailerJob.set(wait: 1.minute).perform_later(id)
+        PostImageSamplerJob.set(wait: 1.minute).perform_later(id)
       else
-        PostThumbnailerJob.perform_later(id)
+        ImageSampler.create_samples_for_post(self)
       end
     end
 
     def regenerate_image_samples!
-      if file_size < 10.megabytes
-        ImageSampler.create_samples_for_post(self)
-      else
-        generate_image_samples(later: true)
-      end
+      generate_image_samples(later: true)
     end
   end
 

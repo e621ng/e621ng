@@ -7,7 +7,7 @@ Post.without_timeout do
   Post.order("id DESC").find_in_batches.with_index do |group, index|
     puts "Scheduled batch #{index} with #{group.size} posts"
     group.each do |post|
-      PostVideoConversionJob.perform_later(post.id)
+      PostSamplerJob.perform_later(post.id)
     end
   end
 end
