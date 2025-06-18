@@ -11,7 +11,6 @@ class TagAlias < TagRelationship
     def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
-        create_undo_information
         TagAliasJob.perform_later(id, update_topic)
       end
     end
@@ -215,6 +214,7 @@ class TagAlias < TagRelationship
     begin
       CurrentUser.scoped(approver) do
         update!(status: "processing")
+        create_undo_information
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
