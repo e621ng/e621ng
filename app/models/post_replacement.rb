@@ -329,9 +329,9 @@ class PostReplacement < ApplicationRecord
         q = q.attribute_exact_matches(:md5, params[:md5])
         q = q.attribute_exact_matches(:status, params[:status])
 
-        q = q.where_user(:creator_id, :creator, params)
-        q = q.where_user(:approver_id, :approver, params)
-        q = q.where_user(:uploader_id_on_approve, %i[uploader_name_on_approve uploader_id_on_approve], params)
+        %i[creator approver uploader_on_approve].each do |role|
+          q = apply_user_filter(q, params, role)
+        end
 
         if params[:post_id].present?
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
@@ -358,14 +358,53 @@ class PostReplacement < ApplicationRecord
           q = q.attribute_matches(:file_name, params[:file_name])
         end
 
-        direction = params[:order] == "id_asc" ? "ASC" : "DESC"
+        dir = params[:direction].blank? || params[:direction].to_s.truthy?
+        case params[:order]
+        when "created_at"
+          q = q.order("created_at #{dir ? 'ASC' : 'DESC'}, id #{dir ? 'ASC' : 'DESC'}")
+        when "updated_at"
+          q = q.order("updated_at #{dir ? 'ASC' : 'DESC'}, id #{dir ? 'ASC' : 'DESC'}")
+        when "status"
+          q = q.order(Arel.sql("
+            CASE status
+              WHEN 'original' THEN 0
+              ELSE #{table_name}.id
+            END #{dir ? 'DESC' : 'ASC'}
+          "))
+        else
+          q = q.apply_basic_order(params)
+        end
+        q
+      end
 
-        q.order(Arel.sql("
-          CASE status
-            WHEN 'original' THEN 0
-            ELSE #{table_name}.id
-          END #{direction}
-        "))
+      def apply_user_filter(query, params, role)
+        name_key = :"#{role}_name"
+        id_key = :"#{role}_id"
+        param_keys = [name_key, id_key]
+        # Handle uploader_on_approve as a special case
+        db_key = (role == :uploader_on_approve ? :uploader_id_on_approve : :"#{role}_id")
+        # Only apply the filter if we are looking for a specific user
+        if params[name_key].present? || params[id_key].present?
+          name_val = params[name_key].to_s
+          if name_val == "!"
+            # Look for cases with no user attached
+            query = query.where(db_key => nil)
+          elsif name_val.start_with?("!") && name_val[1..].present?
+            # If "!username" or "!userid", negate the search
+            negated_val = name_val[1..]
+            if negated_val.match?(/\A\d+\z/)
+              query = query.where.not(db_key => negated_val.to_i)
+            else
+              query = query.where_not_user(db_key, param_keys, params.merge(name_key => negated_val))
+            end
+          elsif name_val.present? && name_val.match?(/\A\d+\z/)
+            # If username is all digits, treat as id
+            query = query.where(db_key => name_val.to_i)
+          else
+            query = query.where_user(db_key, param_keys, params)
+          end
+        end
+        query
       end
 
       def pending
