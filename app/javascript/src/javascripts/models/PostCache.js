@@ -7,6 +7,67 @@ export default class PostCache {
 
   static _elements = {};
 
+  // IDEA: Use the generic builder below instead of 2 separate instances of the same function.
+  /* static fromGeneric (data, id = undefined) {
+    // Likely won't happen, but won't hurt to check
+    if (!id) {
+      id = parseInt(data.id);
+      if (!id) return null;
+    }
+
+    if (this._cache[id]) return this._cache[id];
+
+    // As of right now, the code below will take up three
+    // times as long to execute compared to simply fetching
+    // the data from cache. While understandable, it should
+    // still be optimized wherever possible.
+
+    const data = $element[0].dataset; // Faster than $element.data()
+
+    // For some reason, this takes 10x as long on the first post.
+    // But it's still only ~1ms (rather than 0.1ms), so it's fine
+    const tag_string = data.tags || "",
+      tags = tag_string.split(" ");
+
+    // OPTIMIZE: Is removing `[]` & spliting on `,` faster? Is it *always* comma-separated?
+    // const pools = data.pools[0] === "[" ? JSON.parse(data.pools) : [];
+    const pools = [];
+    if (data.pools[0] === "[") {
+      pools.push(...JSON.parse(data.pools));
+    } else {
+      for (let value of (data.pools + "").split(" ")) {
+        value = parseInt(value);
+        if (value) pools.push(value);
+      }
+    }
+
+    const value = {
+      tag_string: tag_string,
+      tags: tags,
+      tagcount: tags.length,
+
+      id: id,
+      flags: data.flags?.split(" ") || "",
+      rating: data.rating || "",
+      file_ext: data.fileExt || data.file_ext || "",
+
+      width: parseInt(data.width) || -1,
+      height: parseInt(data.height) || -1,
+      size: parseInt(data.size) || -1,
+
+      score: parseInt(data.score) || 0,
+      fav_count: parseInt(data.favCount || data.fav_count) || 0,
+      is_favorited: (data.isFavorited || data.is_favorited) === "true",
+
+      uploader: data.uploader?.toLowerCase() || "",
+      uploader_id: parseInt(data.uploaderId || data.uploader_id) || -1,
+
+      pools: pools,
+    };
+
+    this._cache[id] = value;
+    return value;
+  } */
 
   /**
    * Add to cache based on the data-attributes of the specific thumbnail element
@@ -29,10 +90,16 @@ export default class PostCache {
     const tag_string = data.tags || "",
       tags = tag_string.split(" ");
 
+    // OPTIMIZE: Is removing `[]` & spliting on `,` faster? Is it *always* comma-separated?
+    // const pools = data.pools[0] === "[" ? JSON.parse(data.pools) : [];
     const pools = [];
-    for (let value of (data.pools + "").split(" ")) {
-      value = parseInt(value);
-      if (value) pools.push(value);
+    if (data.pools[0] === "[") {
+      pools.push(...JSON.parse(data.pools));
+    } else {
+      for (let value of (data.pools + "").split(" ")) {
+        value = parseInt(value);
+        if (value) pools.push(value);
+      }
     }
 
     const value = {
@@ -100,6 +167,7 @@ export default class PostCache {
       uploader: (data.uploader || "").toLowerCase(),
       uploader_id: parseInt(data.uploader_id) || -1,
 
+      // NOTE: This won't correctly parse the pools string; is this a valid & acceptable trade-off for speed? Will this interfere with the blacklist `pool` filter?
       pools: data.pools,
     };
 
