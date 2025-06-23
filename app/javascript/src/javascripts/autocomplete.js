@@ -13,8 +13,8 @@ const Autocomplete = {
       locked: ["rating", "note", "status"],
       child: ["any", "none"],
       parent: ["any", "none"],
-      filetype: ["jpg", "png", "gif", "swf", "webm", "mp4"],
-      type: ["jpg", "png", "gif", "swf", "webm", "mp4"],
+      filetype: ["jpg", "png", "webp", "gif", "swf", "webm", "mp4"],
+      type: ["jpg", "png", "webp", "gif", "swf", "webm", "mp4"],
     };
   },
 

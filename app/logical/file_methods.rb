@@ -29,6 +29,19 @@ module FileMethods
     file_ext == "mp4"
   end
 
+  def is_webp?
+    file_ext == "webp"
+  end
+
+  def is_avif?
+    file_ext == "avif"
+  end
+
+  def is_jxl?
+    # file_ext == "jxl"
+    false # Unsupported in browsers
+  end
+
   def is_video?
     is_webm? || is_mp4?
   end
@@ -65,6 +78,12 @@ module FileMethods
         "webm"
       when "video/mp4"
         "mp4"
+      when "image/webp"
+        "webp"
+      when "image/avif"
+        "avif"
+      when "image/jxl"
+        "jxl"
       else
         mime_type
       end
