@@ -1000,11 +1000,14 @@ class PostTest < ActiveSupport::TestCase
       end
 
       context "tagged with animated_gif or animated_png" do
-        should "remove the tag if not a gif or png" do
+        should "remove the tag if not a gif, png, or webp" do
           @post.update(tag_string: "tagme animated_gif")
           assert_equal("tagme", @post.tag_string)
 
           @post.update(tag_string: "tagme animated_png")
+          assert_equal("tagme", @post.tag_string)
+
+          @post.update(tag_string: "tagme animated_webp")
           assert_equal("tagme", @post.tag_string)
         end
       end

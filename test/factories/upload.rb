@@ -30,6 +30,9 @@ FactoryBot.define do
     factory(:gif_upload) do
       file { fixture_file_upload("test.gif") }
     end
-    
+
+    factory(:webp_upload) do
+      file { fixture_file_upload("test.webp") }
+    end
   end
 end
