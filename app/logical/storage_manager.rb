@@ -4,7 +4,7 @@ class StorageManager
   class Error < StandardError; end
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
-  IMAGE_TYPES = %i[preview large crop original]
+  IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
@@ -70,6 +70,11 @@ class StorageManager
     end
 
     delete_video_samples(md5)
+  end
+
+  def delete_crop_file(md5)
+    delete(file_path(md5, "jpg", :crop, protect: false))
+    delete(file_path(md5, "jpg", :crop, protect: true))
   end
 
   def delete_video_samples(post_or_md5)
@@ -205,6 +210,8 @@ class StorageManager
       path = "#{base}/sample/#{subdir}#{md5}.webp"
     elsif type == :scaled && scale.present?
       path = "#{base}/sample/#{subdir}#{md5}_#{scale}.mp4"
+    elsif type == :crop
+      path = "#{base}/crop/#{subdir}#{md5}.jpg" # compatibility
     else
       raise Error, "Unknown file type '#{type}' for #{md5}.#{file_ext}"
     end
