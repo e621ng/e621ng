@@ -4,10 +4,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment"))
 
 Post.without_timeout do
-  Post.order("id DESC").find_in_batches.with_index do |group, index|
-    puts "Scheduled batch #{index} with #{group.size} posts"
+  Post.in_batches(load: true, order: :desc).each_with_index do |group, index|
+    puts "batch #{index}"
     group.each do |post|
-      PostSamplerJob.perform_later(post.id)
+      PostImageSamplerJob.perform_later(post.id)
     end
   end
 end
