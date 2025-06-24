@@ -108,7 +108,7 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
-      150
+      256
     end
 
     # Large resize image width. Set to nil to disable.
