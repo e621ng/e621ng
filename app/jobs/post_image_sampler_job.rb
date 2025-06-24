@@ -10,6 +10,6 @@ class PostImageSamplerJob < ApplicationJob
 
   def perform(id)
     post = Post.find(id)
-    ImageSampler.create_samples_for_post(post)
+    ImageSampler.generate_post_images(post)
   end
 end

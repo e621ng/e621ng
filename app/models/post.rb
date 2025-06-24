@@ -99,28 +99,35 @@ class Post < ApplicationRecord
     end
 
     def tagged_large_file_url
-      storage_manager.file_url(self, :large)
+      storage_manager.post_file_url(self, :sample)
     end
 
     def file_url
-      storage_manager.file_url(self, :original)
+      storage_manager.post_file_url(self)
     end
 
+    # TODO: Deprecate this method
     def file_url_ext(ext)
-      storage_manager.file_url_ext(self, :original, ext)
+      storage_manager.post_file_url(self, ext: ext)
     end
 
+    # TODO: Deprecate this method
     def scaled_url_ext(scale, ext)
-      storage_manager.file_url_ext(self, :scaled, ext, scale: scale)
+      storage_manager.post_file_url(self, :scaled, ext: ext, scale: scale)
     end
 
     def large_file_url
       return file_url if !has_large?
-      storage_manager.file_url(self, :large)
+      storage_manager.post_file_url(self, :large)
     end
 
-    def preview_file_url
-      storage_manager.file_url_ext(self, :preview, "jpg")
+    def preview_file_url(type = :preview_jpg)
+      storage_manager.post_file_url(self, type)
+    end
+
+    def preview_file_url_pair
+      return [Danbooru.config.deleted_preview_url, Danbooru.config.deleted_preview_url] if is_deleted?
+      [preview_file_url(:preview_webp), preview_file_url(:preview_jpg)]
     end
 
     def reverse_image_url
@@ -129,19 +136,15 @@ class Post < ApplicationRecord
     end
 
     def file_path
-      storage_manager.file_path(self, file_ext, :original, is_deleted?)
+      @file_path ||= storage_manager.post_file_path(self)
     end
 
     def large_file_path
-      storage_manager.file_path(self, file_ext, :large, is_deleted?)
+      storage_manager.post_file_path(self, :large)
     end
 
-    def preview_file_path
-      storage_manager.file_path(self, file_ext, :preview, is_deleted?)
-    end
-
-    def crop_file_url
-      storage_manager.file_url_ext(self, :crop, "jpg")
+    def preview_file_path(type = :preview_jpg)
+      storage_manager.post_file_path(self, type)
     end
 
     def open_graph_video_url
@@ -231,7 +234,7 @@ class Post < ApplicationRecord
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      @preview_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+      @preview_dimensions ||= begin
         if has_dimensions?
           scale = image_width < image_height ? (max_px / image_width.to_f) : (max_px / image_height.to_f)
           [(image_width * scale).to_i, (image_height * scale).to_i]
@@ -335,7 +338,7 @@ class Post < ApplicationRecord
       if later
         PostImageSamplerJob.set(wait: 1.minute).perform_later(id)
       else
-        ImageSampler.create_samples_for_post(self)
+        ImageSampler.generate_post_images(self)
       end
     end
 
