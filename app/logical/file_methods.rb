@@ -96,7 +96,7 @@ module FileMethods
       [image.width, image.height]
 
     else
-      [1, 1]
+      [0, 0]
     end
   end
 
