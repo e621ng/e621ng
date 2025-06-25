@@ -1,25 +1,21 @@
-<div class="replacement-section-top">
+<div class="replacement-section-top" id="replacement-top-<%= post_replacement.id %>">
   <div class="replacement-thumbnail">
     <%= replacement_thumbnail(post_replacement) %>
   </div>
-  <div class="replacement-main-content">
-    <div class="replacement-top-overview">
-      <div class="overview-labels">
-        <span class="overview-label">Version</span>
-        <span class="overview-label">Status</span>
-      </div>
-      <div class="overview-values">
-        <span class="overview-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd></span>
-        <span class="overview-value"><%= post_replacement.status %></span>
-      </div>
-    </div>
-    <div class="replacement-reason">
-      <span><span class="reason-label">Reason: </span><span class="reason-creator">(Submitter: <%= link_to_user post_replacement.creator %>)</span></span>
-      <div class="reason-value"><%= truncate(post_replacement.reason, length: 40) %></div>
-    </div>
-    <div class="replacement-note">
-      <span><span class="note-label">Note: </span><span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</span></span>
-      <div class="note-value"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
-    </div>
+  <div class="replacement-version">
+    <div class="replacement-version-label">Version</div>
+    <div class="replacement-version-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd></div>
+  </div>
+  <div class="replacement-status">
+    <div class="replacement-status-label">Status</div>
+    <div class="replacement-status-value"><%= post_replacement.status %></div>
+  </div>
+  <div class="replacement-reason">
+    <div class="replacement-reason-label">Reason: </span><span class="reason-creator">(Submitter: <%= link_to_user post_replacement.creator %>)</div>
+    <div class="replacement-reason-value"><%= truncate(post_replacement.reason, length: 40) %></div>
+  </div>
+  <div class="replacement-note">
+    <div class="replacement-note-label">Note: </span><span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</div>
+    <div class="replacement-note-value"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
   </div>
 </div>
