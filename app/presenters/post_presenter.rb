@@ -52,8 +52,6 @@ class PostPresenter < Presenter
 
     locals[:alt_text] = "post ##{post.id}"
 
-    locals[:has_cropped] = post.has_cropped?
-
     if options[:pool]
       locals[:pool] = options[:pool]
     else

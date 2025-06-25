@@ -1888,12 +1888,12 @@ class Post < ApplicationRecord
   include DocumentStore::Model
   include PostIndex
 
-  BOOLEAN_ATTRIBUTES = %w(
+  BOOLEAN_ATTRIBUTES = %w[
     _has_embedded_notes
-    has_cropped
+    _has_cropped
     hide_from_anonymous
     hide_from_search_engines
-  )
+  ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
   def safeblocked?

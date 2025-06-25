@@ -157,7 +157,7 @@ module ImageSampler
     webp_image = Tempfile.new(["image-thumb", ".webp"], binmode: true)
 
     result.jpegsave(jpg_image.path, Q: 90, background: calc_background_color(background), strip: true, interlace: true, optimize_coding: true)
-    result.webpsave(webp_image.path, Q: 90)
+    result.webpsave(webp_image.path, Q: 90, min_size: true)
 
     {
       jpg: jpg_image,
