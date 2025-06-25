@@ -97,7 +97,7 @@ class PostsDecorator < ApplicationDecorator
 
     img_contents = template.link_to template.polymorphic_path(link_target, link_params) do
       template.tag.picture do
-        # template.concat template.tag.source type: "image/webp", srcset: preview_url[0] if Danbooru.config.webp_previews_enabled?
+        template.concat template.tag.source type: "image/webp", srcset: preview_url[0] if Danbooru.config.webp_previews_enabled?
         template.concat template.tag.source type: "image/jpeg", srcset: preview_url[1]
         template.concat template.tag.img src: preview_url[0], title: tooltip, alt: alt_text
       end

@@ -30,8 +30,10 @@ article.thumbnail {
   position: relative;   // Position badges correctly
   overflow: hidden;
 
-  width: var(--thumb-image-size, 150px);
-  height: calc(var(--thumb-image-size, 150px) + 1rem);
+  // Used in conjunction with setting the link element width and height
+  // in order to ensure that the thumbnail always has the same size.
+  min-width: var(--thumb-image-size, 150px);
+  min-height: calc(var(--thumb-image-size, 150px) + 1rem);
 
   // Badges
   &[data-tags~=animated] > a:before { @include preview-type-badge("ANIM"); }
@@ -44,6 +46,7 @@ article.thumbnail {
     height: 100%;
     background: #00000030;
 
+    // See min-width and min-height above
     max-width: var(--thumb-image-size, 150px);
     max-height: var(--thumb-image-size, 150px);
   }
