@@ -126,7 +126,7 @@ class Post < ApplicationRecord
     end
 
     def preview_file_url_pair
-      return [Danbooru.config.deleted_preview_url, Danbooru.config.deleted_preview_url] if is_deleted?
+      return [Danbooru.config.deleted_preview_url, Danbooru.config.deleted_preview_url] if is_deleted? && !CurrentUser.is_staff? && !CurrentUser.is_approver?
       [preview_file_url(:preview_webp), preview_file_url(:preview_jpg)]
     end
 

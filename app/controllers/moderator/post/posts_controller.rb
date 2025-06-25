@@ -57,7 +57,6 @@ module Moderator
 
       def regenerate_thumbnails
         @post = ::Post.find(params[:id])
-        raise ::User::PrivilegeError, "Cannot regenerate thumbnails on deleted images" if @post.is_deleted?
         @post.regenerate_image_samples!
         respond_with(@post)
       end
