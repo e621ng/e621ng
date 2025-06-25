@@ -172,18 +172,19 @@ class StorageManager
     "#{base_dir}#{file_path_base(md5, file_ext, type, protect: protect, scale: scale)}"
   end
 
-  def post_file_path(post, type = :original, ext: nil, scale: nil)
-    ext ||= post.file_ext
+  def post_file_path(post, type = :original, ext: nil, protect: nil, scale: nil)
+    ext = post.file_ext if ext.nil?
+    protect = post.protect_file? if protect.nil?
     if %i[preview preview_jpg preview_webp].include?(type) && !post.has_preview?
       return "/images/download-preview.png"
     end
-    file_path(post.md5, ext, type, protect: post.protect_file?, scale: scale)
+    file_path(post.md5, ext, type, protect: protect, scale: scale)
   end
 
   def file_url(md5, file_ext, type = :original, protect: false, scale: nil)
     path = file_path_base(md5, file_ext, type, protect: protect, scale: scale)
     if protect
-      "#{base_url}#{base_path}#{path}#{protected_params(path)}"
+      "#{base_url}#{base_path}#{path}#{protected_params(base_path + path)}"
     else
       "#{base_url}#{base_path}#{path}"
     end
@@ -229,9 +230,8 @@ class StorageManager
 
   def protected_params(url, secret: Danbooru.config.protected_file_secret)
     user_id = CurrentUser.id
-    time = (Time.now + 15.minute).to_i
-    secret = secret
-    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')
+    time = (Time.now + 15.minutes).to_i
+    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/", "-_").gsub("==", "")
     "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 end

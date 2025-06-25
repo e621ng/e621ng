@@ -164,5 +164,4 @@ module ImageSampler
       webp: webp_image,
     }
   end
-
 end
