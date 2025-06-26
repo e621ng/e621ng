@@ -173,10 +173,7 @@ class PostReplacement < ApplicationRecord
     def write_storage_file
       self.storage_id = SecureRandom.hex(16)
       Danbooru.config.storage_manager.store_replacement(replacement_file, self, :original)
-      thumbnail_file = PostThumbnailer.generate_thumbnail(replacement_file, is_video? ? :video : :image)
-      Danbooru.config.storage_manager.store_replacement(thumbnail_file, self, :preview)
-    ensure
-      thumbnail_file.try(:close!)
+      ImageSampler.generate_replacement_images(self)
     end
 
     def replacement_file_path
@@ -290,7 +287,7 @@ class PostReplacement < ApplicationRecord
 
       begin
         backup.replacement_file = Danbooru.config.storage_manager.open(
-          Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
+          Danbooru.config.storage_manager.post_file_path(post),
         )
       rescue StandardError => e
         raise ProcessingError, "Failed to create backup: #{e.message}"

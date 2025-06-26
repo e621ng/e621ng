@@ -108,7 +108,11 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
-      150
+      256
+    end
+
+    def webp_previews_enabled?
+      false
     end
 
     # Large resize image width. Set to nil to disable.
@@ -138,6 +142,10 @@ module Danbooru
 
     def deleted_preview_url
       "/images/deleted-preview.png"
+    end
+
+    def blank_preview_url
+      "/images/blank.png"
     end
 
     # When calculating statistics based on the posts table, gather this many posts to sample from.

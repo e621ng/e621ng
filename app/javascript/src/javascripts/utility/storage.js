@@ -103,6 +103,12 @@ LStorage.Posts = {
 
   /** @returns {boolean} True to stop limiting videos to 1080p in Original mode */
   SkipVariants: ["e6.posts.scvideos", false],
+
+  /** @returns {boolean} True to stop cropping thumbnails to 256px */
+  Contain: ["e6.posts.contain", false],
+
+  /** @returns {boolean} True to restore the 150px thumbnail size */
+  Size: ["e6.posts.size", false],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

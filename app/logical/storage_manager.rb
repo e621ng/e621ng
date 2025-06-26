@@ -4,7 +4,7 @@ class StorageManager
   class Error < StandardError; end
 
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
-  IMAGE_TYPES = %i[preview large crop original]
+  IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
@@ -58,31 +58,36 @@ class StorageManager
   end
 
   def delete_file(post_id, md5, file_ext, type, scale_factor: nil)
-    delete(file_path(md5, file_ext, type, scale_factor: scale_factor))
-    delete(file_path(md5, file_ext, type, true, scale_factor: scale_factor))
+    delete(file_path(md5, file_ext, type, scale: scale_factor))
+    delete(file_path(md5, file_ext, type, scale: scale_factor, protect: true))
   end
 
   def delete_post_files(post_or_md5, file_ext)
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
     IMAGE_TYPES.each do |type|
-      delete(file_path(md5, file_ext, type, false))
-      delete(file_path(md5, file_ext, type, true))
+      delete(file_path(md5, file_ext, type, protect: false))
+      delete(file_path(md5, file_ext, type, protect: true))
     end
 
     delete_video_samples(md5)
+  end
+
+  def delete_crop_file(md5)
+    delete(file_path(md5, "jpg", :crop, protect: false))
+    delete(file_path(md5, "jpg", :crop, protect: true))
   end
 
   def delete_video_samples(post_or_md5)
     md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
 
     # Delete variants
-    delete file_path(md5, "mp4", :scaled, true, scale_factor: "alt")
-    delete file_path(md5, "mp4", :scaled, false, scale_factor: "alt")
+    delete file_path(md5, "mp4", :scaled, scale: "alt", protect: true)
+    delete file_path(md5, "mp4", :scaled, scale: "alt", protect: false)
 
     # Delete sampled videos
     Danbooru.config.video_samples.each_key do |scale|
-      delete file_path(md5, "mp4", :scaled, true, scale_factor: scale)
-      delete file_path(md5, "mp4", :scaled, false, scale_factor: scale)
+      delete file_path(md5, "mp4", :scaled, scale: scale, protect: true)
+      delete file_path(md5, "mp4", :scaled, scale: scale, protect: false)
     end
   end
 
@@ -103,48 +108,12 @@ class StorageManager
     raise NotImplementedError, "move_file_undelete not implemented"
   end
 
-  def protected_params(url, post, secret: Danbooru.config.protected_file_secret)
-    user_id = CurrentUser.id
-    time = (Time.now + 15.minute).to_i
-    secret = secret
-    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/","-_").gsub("==",'')
-    "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
-  end
-
-  def file_url_ext(post, type, ext, scale: nil)
-    subdir = subdir_for(post.md5)
-    file = file_name(post.md5, ext, type, scale_factor: scale)
-    base = post.protect_file? ? "#{base_path}/#{protected_prefix}" : base_path
-
-    return "/images/download-preview.png" if type == :preview && !post.has_preview?
-    path = if type == :preview
-             "#{base}/preview/#{subdir}#{file}"
-           elsif type == :crop
-             "#{base}/crop/#{subdir}#{file}"
-           elsif type == :scaled
-             "#{base}/sample/#{subdir}#{file}"
-           elsif type == :large && post.has_large?
-             "#{base}/sample/#{subdir}#{file}"
-           else
-             "#{base}/#{subdir}#{file}"
-           end
-    if post.protect_file?
-      "#{base_url}#{path}#{protected_params(path, post)}"
-    else
-      "#{base_url}#{path}"
-    end
-  end
-
-  def file_url(post, type)
-    file_url_ext(post, type, post.file_ext)
-  end
-
   def replacement_url(replacement, image_size = :original)
     subdir = subdir_for(replacement.storage_id)
     file = "#{replacement.storage_id}#{'_thumb' if image_size == :preview}.#{replacement.file_ext}"
     base = "#{base_path}/#{replacement_prefix}"
     path = "#{base}/#{subdir}#{file}"
-    "#{base_url}#{path}#{protected_params(path, nil, secret: Danbooru.config.replacement_file_secret)}"
+    "#{base_url}#{path}#{protected_params(path, secret: Danbooru.config.replacement_file_secret)}"
   end
 
   def root_url
@@ -153,28 +122,10 @@ class StorageManager
     origin
   end
 
-  def file_path(post_or_md5, file_ext, type, protected=false, scale_factor: nil)
-    md5 = post_or_md5.is_a?(String) ? post_or_md5 : post_or_md5.md5
-    subdir = subdir_for(md5)
-    file = file_name(md5, file_ext, type, scale_factor: scale_factor)
-    base = protected ? "#{base_dir}/#{protected_prefix}" : base_dir
-
-    case type
-    when :preview
-      "#{base}/preview/#{subdir}#{file}"
-    when :crop
-      "#{base}/crop/#{subdir}#{file}"
-    when :large, :scaled
-      "#{base}/sample/#{subdir}#{file}"
-    when :original
-      "#{base}/#{subdir}#{file}"
-    end
-  end
-
   def file_name(md5, file_ext, type, scale_factor: nil)
     case type
     when :preview, :crop
-      "#{md5}.jpg"
+      "#{md5}.#{file_ext || 'jpg'}"
     when :large
       "#{large_image_prefix}#{md5}.jpg"
     when :original
@@ -213,7 +164,74 @@ class StorageManager
     "#{base_url}#{base_path}/furid/"
   end
 
+  #########################
+  ### File Path Methods ###
+  #########################
+
+  def file_path(md5, file_ext, type = :original, protect: false, scale: nil)
+    "#{base_dir}#{file_path_base(md5, file_ext, type, protect: protect, scale: scale)}"
+  end
+
+  def post_file_path(post, type = :original, ext: nil, protect: nil, scale: nil)
+    ext = post.file_ext if ext.nil?
+    protect = post.protect_file? if protect.nil?
+    if %i[preview preview_jpg preview_webp].include?(type) && !post.has_preview?
+      return "/images/download-preview.png"
+    end
+    file_path(post.md5, ext, type, protect: protect, scale: scale)
+  end
+
+  def file_url(md5, file_ext, type = :original, protect: false, scale: nil)
+    path = file_path_base(md5, file_ext, type, protect: protect, scale: scale)
+    if protect
+      "#{base_url}#{base_path}#{path}#{protected_params(base_path + path)}"
+    else
+      "#{base_url}#{base_path}#{path}"
+    end
+  end
+
+  def post_file_url(post, type = :original, ext: nil, scale: nil)
+    ext ||= post.file_ext
+    file_url(post.md5, ext, type, protect: post.protect_file?, scale: scale)
+  end
+
+  def file_path_base(md5, file_ext, type = :original, protect: false, scale: nil)
+    subdir = subdir_for(md5)
+    base = protect ? "/#{protected_prefix}" : ""
+
+    if type == :original
+      path = "#{base}/#{subdir}#{md5}.#{file_ext}"
+    elsif %i[preview_jpg preview].include?(type) # compatibility
+      path = "#{base}/preview/#{subdir}#{md5}.jpg"
+    elsif type == :preview_webp
+      path = "#{base}/preview/#{subdir}#{md5}.webp"
+    elsif %i[sample_jpg sample large].include?(type) # compatibility
+      path = "#{base}/sample/#{subdir}#{md5}.jpg"
+    elsif type == :sample_webp
+      path = "#{base}/sample/#{subdir}#{md5}.webp"
+    elsif type == :scaled && scale.present?
+      path = "#{base}/sample/#{subdir}#{md5}_#{scale}.mp4"
+    elsif type == :crop
+      path = "#{base}/crop/#{subdir}#{md5}.jpg" # compatibility
+    else
+      raise Error, "Unknown file type '#{type}' for #{md5}.#{file_ext}"
+    end
+
+    path
+  end
+
+  #########################
+  ### File Path Helpers ###
+  #########################
+
   def subdir_for(md5)
     hierarchical ? "#{md5[0..1]}/#{md5[2..3]}/" : ""
+  end
+
+  def protected_params(url, secret: Danbooru.config.protected_file_secret)
+    user_id = CurrentUser.id
+    time = (Time.now + 15.minutes).to_i
+    hmac = Digest::MD5.base64digest("#{time} #{url} #{user_id} #{secret}").tr("+/", "-_").gsub("==", "")
+    "?auth=#{hmac}&expires=#{time}&uid=#{user_id}"
   end
 end

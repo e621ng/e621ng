@@ -1,24 +1,19 @@
-// Thumbnail dimensions
-$thumb-image-size: 150px;
-$thumb-border-width: 2px;
-$thumb-mobile-cols: 3;
-$thumb-gap: 8px;
-
-
-// Switch to desktop view at this width
-// Last value is the #page padding
-$thumb-desktop-breakpoint: ($thumb-image-size * $thumb-mobile-cols) + (2 * $thumb-gap) + 8px;
-
-
 // Posts container
 // May or may not exist on some pages
 section.posts-container {
   display: grid;
-  grid-template-columns: repeat($thumb-mobile-cols, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
 
-  @include window-larger-than($thumb-desktop-breakpoint) {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  // Defaults to 150px elsewhere
+  --thumb-image-size: 256px;
+
+  @include window-larger-than(528px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include window-larger-than(800px) {
+    grid-template-columns: repeat(auto-fill, minmax(var(--thumb-image-size), 1fr));
   }
 
   h2.posts-container-header {
@@ -35,13 +30,15 @@ section.posts-container {
 article.thumbnail {
   display: inline-flex;
   flex-flow: column;
-  max-width: $thumb-image-size;
   justify-self: center; // Center the thumbnail in the grid cell
   position: relative;   // Position badges correctly
   overflow: hidden;
 
-  @include window-larger-than($thumb-desktop-breakpoint) {
-    width: min-content; // Force .desc to be the same width as the image
+  // Used in conjunction with setting the link element width and height
+  // in order to ensure that the thumbnail always has the same size.
+  @include window-larger-than(800px) {
+    min-width: var(--thumb-image-size, 150px);
+    min-height: calc(var(--thumb-image-size, 150px) + 1rem);
   }
 
   // Badges
@@ -49,27 +46,32 @@ article.thumbnail {
   &[data-file-ext=webm] > a:before { @include preview-type-badge("WEBM"); }
   &[data-file-ext=mp4] > a:before { @include preview-type-badge("MP4"); }
 
-  a { text-align: center; } // Fixes an issue with blacklisted pool thumbnails
+  a {
+    text-align: center; // Fixes an issue with blacklisted pool thumbnails
+    width: 100%;
+    height: 100%;
+    background: #00000030;
+
+    // See min-width and min-height above
+    max-width: var(--thumb-image-size, 150px);
+    max-height: var(--thumb-image-size, 150px);
+  }
 
   img {
     box-sizing: border-box; // Prevent the border from resizing the entire element
-    max-width: $thumb-image-size;
-    max-height: $thumb-image-size;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
 
     border-radius: $border-radius-half $border-radius-half 0 0;
     pointer-events: none;   // Should probably just fix the click events, huh
-
-    // Mobile view
-    width: 100%;
-    @include window-larger-than($thumb-desktop-breakpoint) {
-      width: unset;
-    }
   }
 
   .desc {
     display: flex;
     gap: 0.25em;
     justify-content: center;
+    height: 1rem;
 
     background-color: themed("color-section-lighten-5");
     border-radius: 0 0 $border-radius-half $border-radius-half;
@@ -91,20 +93,23 @@ article.thumbnail {
 }
 
 
-// Fix for when posts have no cropped versions
-// Should be made irrelevant later, but this will do for now
-@include window-smaller-than(800px) {
-  body[data-disable-cropped-thumbnails="false"] article.thumbnail {
-    width: 100%;
-    a { height: 100%; }
-    img {
-      height: 100%;
-      object-fit: cover;
-      @include window-larger-than($thumb-desktop-breakpoint) {
-        &.has-cropped-false { width: 150px; }
-      }
-    }
-  }
+article.thumbnail.deleted::before {
+  content: "deleted";
+
+  position: absolute;
+  top: 0;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: "Roboto", Verdana, Geneva, sans-serif;;
+  font-size: calc(var(--thumb-image-size, 150px) / 5);
+  text-shadow: 0 0 1rem black;
+  pointer-events: none;
 }
 
 
@@ -131,27 +136,6 @@ article.thumbnail {
   &.has-children.has-parent img {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-has-parent-color $preview-has-parent-color $preview-has-children-color;
-  }
-
-
-  &.deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-deleted-color;
-  }
-
-  &.has-children.deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-children-color;
-  }
-
-  &.has-parent.deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-parent-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
-  }
-
-  &.has-children.has-parent.deleted img {
-    border: 2px solid transparent;
-    border-color: $preview-has-children-color $preview-deleted-color $preview-deleted-color $preview-has-parent-color;
   }
 
 
@@ -201,4 +185,12 @@ body[data-user-can-approve-posts="true"] article.thumbnail {
     border: 2px solid transparent;
     border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
   }
+}
+
+body[data-st-contain="true"] article.thumbnail img {
+  object-fit: contain;
+}
+
+body[data-st-size="true"] section.posts-container {
+  --thumb-image-size: 150px;
 }

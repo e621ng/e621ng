@@ -39,6 +39,7 @@
     padding: math.div(st-value(100), 4);       // 0.25rem
 
     border-radius: radius(025);
+    pointer-events: none; // Simplifies event targetting
   }
   & > span {
     text-align: left;
@@ -65,6 +66,11 @@
 
   &.icon {
     padding: math.div(st-value(100), 2) 0;
+  }
+
+  &.active {
+    background-color: themed("color-link-active");
+    color: palette("plain-black");
   }
 }
 
@@ -129,5 +135,60 @@ input[type="checkbox"].st-toggle:checked + label.st-toggle {
     content: "";
     left: 1.5rem;
     background: themed("color-link-active");
+  }
+}
+
+
+
+// Toggle with text
+label.sto-toggle {
+
+  display: flex;
+  width: 100%;
+  height: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  cursor: pointer;
+  @include st-radius;
+  background-color: themed("color-section-darken-5");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  align-items: center;
+  text-align: center;
+  font-weight: normal;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+  &::after {
+    content: "";
+    width: 50%;
+    height: 1.5rem;
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+
+    background: themed("color-link-active");
+    @include st-radius;
+    transition: left 100ms;
+  }
+
+  .sto-on, .sto-off {
+    width: 50%;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .sto-off { color: palette("plain-black"); }
+  .sto-on { color: themed("color-text");}
+}
+input[type="checkbox"].sto-toggle { display: none; }
+input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
+  .sto-off { color: themed("color-text");}
+  .sto-on { color: palette("plain-black"); }
+  &::after {
+    content: "";
+    left: 50%;
   }
 }
