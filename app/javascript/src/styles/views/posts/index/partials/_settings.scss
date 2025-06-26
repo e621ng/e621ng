@@ -1,18 +1,18 @@
 .search-settings-container {
   display: none;
   &.active { display: flex; }
-
   flex-flow: column;
   gap: 0.5rem;
 
   position: absolute;
   top: 0.5rem;
   left: 16.5rem;
+  z-index: 11; // above posts and labels
+
   background: themed("color-section");
   padding: 0.5rem;
   line-height: 1rem;
   @include st-radius;
-  z-index: 1;
 
   min-width: 16rem;
   box-shadow: 1px 1px 4px 0px #0006;
