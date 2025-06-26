@@ -357,7 +357,7 @@ class Post < ApplicationRecord
       @preview_dimensions ||= begin # rubocop:disable Style/RedundantBegin
         if has_dimensions?
           scale = ImageSampler.calc_dimensions_for_preview(image_width, image_height)
-          scale[1].presence || [(image_width * scale).round, (image_height * scale).round]
+          scale[1].presence || [(image_width * scale[0]).round, (image_height * scale[0]).round]
         else
           [max_px, max_px]
         end
