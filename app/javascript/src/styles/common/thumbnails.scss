@@ -87,6 +87,26 @@ article.thumbnail {
 }
 
 
+article.thumbnail.deleted::before {
+  content: "deleted";
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: "Roboto", Verdana, Geneva, sans-serif;;
+  font-size: calc(var(--thumb-image-size, 150px) / 5);
+  text-shadow: 0 0 1rem black;
+  pointer-events: none;
+}
+
+
 // I have absolutely no idea what this
 // does or when it might be triggered.
 article.thumbnail.current-post {

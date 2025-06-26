@@ -41,9 +41,6 @@ class PostPresenter < Presenter
 
     locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
-    locals[:cropped_url] = post.preview_file_url
-
-    locals[:cropped_url] = Danbooru.config.deleted_preview_url if post.deleteblocked?
     locals[:preview_url] = if post.deleteblocked?
                              Danbooru.config.deleted_preview_url
                            else

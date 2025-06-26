@@ -26,11 +26,6 @@ class PostsDecorator < ApplicationDecorator
     { data: object.thumbnail_attributes }
   end
 
-  def cropped_url
-    return Danbooru.config.deleted_preview_url if object.deleteblocked?
-    object.preview_file_url
-  end
-
   def score_class(score)
     return "score-neutral" if score == 0
     score > 0 ? "score-positive" : "score-negative"
