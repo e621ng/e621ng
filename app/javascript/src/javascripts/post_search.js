@@ -61,6 +61,7 @@ PostSearch.initialize_wiki_preview = function ($preview) {
 };
 
 PostSearch.initialize_controls = function () {
+  // Regular buttons
   let fullscreen = LStorage.Posts.Fullscreen;
   $("#search-fullscreen").on("click", () => {
     fullscreen = !fullscreen;
@@ -68,12 +69,50 @@ PostSearch.initialize_controls = function () {
     LStorage.Posts.Fullscreen = fullscreen;
   });
 
-  let stickySearch = LStorage.Posts.StickySearch;
-  $("#search-sticky").on("click", () => {
-    stickySearch = !stickySearch;
-    $("body").attr("data-st-stickysearch", stickySearch);
-    LStorage.Posts.StickySearch = stickySearch;
+  // Menu toggle
+  let settingsVisible = false;
+  const menu = $(".search-settings-container"),
+    menuButton = $("#search-settings");
+  menuButton.on("click", () => {
+    settingsVisible = !settingsVisible;
+    menu.toggleClass("active", settingsVisible);
+    menuButton.toggleClass("active", settingsVisible);
   });
+
+  // click outside the menu
+  $(window).on("mouseup", (event) => {
+    if (!settingsVisible) return;
+
+    const target = $(event.target);
+    if (target.closest(".search-settings-container").length > 0 || target.is("#search-settings"))
+      return;
+
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+    settingsVisible = false;
+  });
+
+  // Menu toggles
+  $("#ssc-image-contain")
+    .prop("checked", LStorage.Posts.Contain)
+    .on("change", (event) => {
+      LStorage.Posts.Contain = event.target.checked;
+      $("body").attr("data-st-contain", event.target.checked);
+    });
+
+  $("#ssc-image-size")
+    .prop("checked", LStorage.Posts.Size)
+    .on("change", (event) => {
+      LStorage.Posts.Size = event.target.checked;
+      $("body").attr("data-st-size", event.target.checked);
+    });
+
+  $("#ssc-sticky-searchbar")
+    .prop("checked", LStorage.Posts.StickySearch)
+    .on("change", (event) => {
+      LStorage.Posts.StickySearch = event.target.checked;
+      $("body").attr("data-st-stickysearch", event.target.checked);
+    });
 };
 
 $(() => {

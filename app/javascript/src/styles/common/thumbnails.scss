@@ -160,3 +160,11 @@ body[data-user-can-approve-posts="true"] article.thumbnail {
     border-color: $preview-has-children-color $preview-flagged-color $preview-flagged-color $preview-has-parent-color;
   }
 }
+
+body[data-st-contain="true"] article.thumbnail img {
+  object-fit: contain;
+}
+
+body[data-st-size="true"] section.posts-container {
+  --thumb-image-size: 150px;
+}
