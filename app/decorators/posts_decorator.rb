@@ -94,7 +94,7 @@ class PostsDecorator < ApplicationDecorator
       template.tag.picture do
         template.concat template.tag.source type: "image/webp", srcset: preview_url[0] if Danbooru.config.webp_previews_enabled?
         template.concat template.tag.source type: "image/jpeg", srcset: preview_url[1]
-        template.concat template.tag.img src: preview_url[0], title: tooltip, alt: alt_text
+        template.concat template.tag.img src: preview_url[1], title: tooltip, alt: alt_text
       end
     end
     desc_contents = options[:stats] ? stats_section(template) : "".html_safe
