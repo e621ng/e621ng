@@ -3,6 +3,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment"))
 
+puts "Regenerating post thumbnails"
 Post.without_timeout do
   sm = Danbooru.config.storage_manager
   Post.in_batches(load: true, order: :desc).each_with_index do |group, index|

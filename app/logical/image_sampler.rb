@@ -32,8 +32,8 @@ module ImageSampler
   end
 
   def generate_replacement_images(replacement)
-    return unless File.exist?(replacement.replacement_file.path)
-    image = image_from_path(replacement.replacement_file.path, is_video: replacement.is_video?)
+    return unless File.exist?(replacement.replacement_file_path)
+    image = image_from_path(replacement.replacement_file_path, is_video: replacement.is_video?)
     dimensions = [replacement.image_width, replacement.image_height]
 
     # Generate thumbnails
