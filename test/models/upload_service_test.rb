@@ -71,19 +71,19 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "automatic tagging" do
       should "tag animated png files" do
-        service = @build_service.call(file: fixture_file_upload("apng/normal_apng.png"))
+        service = @build_service.call(file: fixture_file_upload("bread-animated.png"))
         upload = service.start!
         assert_match(/animated_png/, upload.tag_string)
       end
 
       should "tag animated gif files" do
-        service = @build_service.call(file: fixture_file_upload("test-animated-86x52.gif"))
+        service = @build_service.call(file: fixture_file_upload("bread-animated.gif"))
         upload = service.start!
         assert_match(/animated_gif/, upload.tag_string)
       end
 
       should "not tag static gif files" do
-        service = @build_service.call(file: fixture_file_upload("test-static-32x32.gif"))
+        service = @build_service.call(file: fixture_file_upload("bread-static.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
@@ -98,6 +98,18 @@ class UploadServiceTest < ActiveSupport::TestCase
         service = @build_service.call(file: fixture_file_upload("test-large.jpg"))
         upload = service.start!
         assert_match(/image resolution is too large/, upload.status)
+      end
+    end
+
+    context "that is too small" do
+      setup do
+        Danbooru.config.stubs(:max_image_resolution).returns(31 * 31)
+      end
+
+      should "should fail validation" do
+        service = @build_service.call(file: fixture_file_upload("bread-small.png"))
+        upload = service.start!
+        assert_match(/Image width is too small/, upload.status)
       end
     end
 
