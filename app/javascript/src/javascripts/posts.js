@@ -981,7 +981,11 @@ Post.regenerate_image_samples = function (post_id) {
   ).fail(data => {
     Utility.error("Error: " + data.responseJSON.reason);
   }).done(() => {
-    Utility.notice("Image samples regenerated.");
+    if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
+      Utility.notice("Large file: Image samples will be regenerated soon.");
+    } else {
+      Utility.notice("Image samples regenerated successfully.");
+    }
   });
 };
 

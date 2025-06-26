@@ -328,10 +328,11 @@ class Post < ApplicationRecord
     end
 
     def regenerate_image_samples!
-      # It may be necessary to postpone sample generation (e.g. if the image is very large)
-      # But that does not seem to be necessary at the moment.
-      # generate_image_samples(later: true)
-      generate_image_samples
+      if file_size > 10.megabytes
+        generate_image_samples(later: true)
+      else
+        generate_image_samples
+      end
     end
   end
 
