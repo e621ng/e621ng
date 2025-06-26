@@ -82,6 +82,7 @@ class UploadService
         # Everything went through correctly, the old files can now be removed
         if md5_changed
           Post.delete_files(post.id, previous_md5, previous_file_ext, force: true)
+          post.generate_image_samples
           post.delete_video_samples!
         end
       end
