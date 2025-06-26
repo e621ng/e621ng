@@ -8,8 +8,12 @@ section.posts-container {
   // Defaults to 150px elsewhere
   --thumb-image-size: 256px;
 
-  @include window-larger-than(528px) {
+  @include window-larger-than(420px) {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include window-larger-than(640px) {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   @include window-larger-than(800px) {
