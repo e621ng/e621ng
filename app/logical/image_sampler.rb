@@ -19,7 +19,10 @@ module ImageSampler
     end
 
     # Generate samples
-    return unless post.is_video? || post.file_ext == "gif" || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
+    # Animated GIFs and APNGs are not needed, Flash files are not supported.
+    # All video files need samples to be used as a poster in the player.
+    return if post.is_gif? || post.is_animated_png? || post.is_flash?
+    return unless post.is_video? || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
     sample(image, dimensions, background: post.bg_color).each do |ext, file|
       path = sm.post_file_path(post, :"sample_#{ext}")
       sm.store(file, path)
