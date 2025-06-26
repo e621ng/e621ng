@@ -25,10 +25,9 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   def preview
-    dims = object.preview_dimensions
     preview_attributes = {
-      width: dims[0],
-      height: dims[1],
+      width: object.preview_width,
+      height: object.preview_height,
       url: nil,
     }
     if object.visible?
@@ -39,14 +38,14 @@ class PostSerializer < ActiveModel::Serializer
 
   def sample
     sample_attributes = {
-      has: object.has_large?,
-      height: object.large_image_height,
-      width: object.large_image_width,
+      has: object.has_sample?,
+      width: object.sample_width,
+      height: object.sample_height,
       url: nil,
       alternates: object.video_sample_list,
     }
     if object.visible?
-      sample_attributes[:url] = object.large_file_url
+      sample_attributes[:url] = object.sample_url
     end
     sample_attributes
   end

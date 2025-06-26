@@ -19,7 +19,7 @@ module ImageSampler
     end
 
     # Generate samples
-    return unless post.is_video? || post.file_ext == "gif" || dimensions.min > Danbooru.config.large_image_width
+    return unless post.is_video? || post.file_ext == "gif" || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
     sample(image, dimensions, background: post.bg_color).each do |ext, file|
       path = sm.post_file_path(post, :"sample_#{ext}")
       sm.store(file, path)
@@ -104,18 +104,42 @@ module ImageSampler
   #   - crop: whether to crop the final image to fit the limit
   # Returns an array containing the new scale and the crop area (if applicable).
   def calc_dimensions(width, height, limit, crop: false)
+    return calc_dimensions_for_preview(width, height, limit) if crop
+    calc_dimensions_for_sample(width, height, limit)
+  end
+
+  def calc_dimensions_for_preview(width, height, limit = Danbooru.config.small_image_width)
     limit = limit.to_f
     if width < height # vertical
       new_scale = limit / width
-      crop_area = [limit, limit * 2] if crop && height * new_scale > limit * 2
+      crop_area = [limit.to_i, (limit * 2).to_i] if height * new_scale > limit * 2
     elsif width > height # horizontal
       new_scale = limit / height
-      crop_area = [limit * 2, limit] if crop && width * new_scale > limit * 2
+      crop_area = [(limit * 2).to_i, limit.to_i] if width * new_scale > limit * 2
     else # square
       new_scale = limit / width
     end
 
     [new_scale, crop_area]
+  end
+
+  def calc_dimensions_for_sample(width, height, limit = Danbooru.config.large_image_width)
+    limit = limit.to_f
+    if width < height # vertical
+      new_scale = limit / width
+      if height * new_scale > limit * 2
+        new_scale = (limit * 2) / height
+      end
+    elsif width > height # horizontal
+      new_scale = limit / height
+      if width * new_scale > limit * 2
+        new_scale = (limit * 2) / width
+      end
+    else # square
+      new_scale = limit / width
+    end
+
+    [new_scale, nil]
   end
 
   # Converts a hex color string to an array of RGB values.

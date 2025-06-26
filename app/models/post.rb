@@ -117,8 +117,12 @@ class Post < ApplicationRecord
     end
 
     def large_file_url
-      return file_url if !has_large?
-      storage_manager.post_file_url(self, :large)
+      sample_url
+    end
+
+    def sample_url
+      return file_url unless has_sample?
+      storage_manager.post_file_url(self, :sample)
     end
 
     def preview_file_url(type = :preview_jpg)
@@ -131,7 +135,7 @@ class Post < ApplicationRecord
     end
 
     def reverse_image_url
-      return large_file_url if has_large?
+      return sample_url if has_sample?
       preview_file_url
     end
 
@@ -160,8 +164,8 @@ class Post < ApplicationRecord
 
     def open_graph_image_url
       if is_image?
-        if has_large?
-          large_file_url
+        if has_sample?
+          sample_url
         else
           file_url
         end
@@ -172,7 +176,7 @@ class Post < ApplicationRecord
 
     def file_url_for(user)
       if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        large_file_url
+        sample_url
       else
         file_url
       end
@@ -222,25 +226,6 @@ class Post < ApplicationRecord
         ""
       else
         "fit-window"
-      end
-    end
-
-    def has_preview?
-      is_image? || is_video?
-    end
-
-    def has_dimensions?
-      image_width.present? && image_height.present?
-    end
-
-    def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      @preview_dimensions ||= begin
-        if has_dimensions?
-          scale = image_width < image_height ? (max_px / image_width.to_f) : (max_px / image_height.to_f)
-          [(image_width * scale).to_i, (image_height * scale).to_i]
-        else
-          [max_px, max_px]
-        end
       end
     end
 
@@ -343,7 +328,10 @@ class Post < ApplicationRecord
     end
 
     def regenerate_image_samples!
-      generate_image_samples(later: true)
+      # It may be necessary to postpone sample generation (e.g. if the image is very large)
+      # But that does not seem to be necessary at the moment.
+      # generate_image_samples(later: true)
+      generate_image_samples
     end
   end
 
@@ -352,37 +340,78 @@ class Post < ApplicationRecord
       image_width.to_i >= 280 && image_height.to_i >= 150
     end
 
-    def has_large?
-      return true if is_video?
-      return false if is_gif?
-      return false if is_flash?
-      return false if has_tag?("animated_gif", "animated_png")
-      is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
-    end
-
-    def has_large
-      !!has_large?
-    end
-
-    def large_image_width
-      if has_large?
-        [Danbooru.config.large_image_width, image_width].min
-      else
-        image_width
-      end
-    end
-
-    def large_image_height
-      ratio = Danbooru.config.large_image_width.to_f / image_width.to_f
-      if has_large? && ratio < 1
-        (image_height * ratio).to_i
-      else
-        image_height
-      end
-    end
-
     def resize_percentage
-      100 * large_image_width.to_f / image_width.to_f
+      100 * sample_width.to_f / image_width.to_f
+    end
+
+    def has_dimensions?
+      @has_dimensions ||= image_width.present? && image_height.present?
+    end
+
+    ### Preview ###
+    def has_preview?
+      is_image? || is_video?
+    end
+
+    def preview_dimensions(max_px = Danbooru.config.small_image_width)
+      @preview_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+        if has_dimensions?
+          scale = ImageSampler.calc_dimensions_for_preview(image_width, image_height)
+          scale[1].presence || [(image_width * scale).round, (image_height * scale).round]
+        else
+          [max_px, max_px]
+        end
+      end
+    end
+
+    def preview_width
+      preview_dimensions[0]
+    end
+
+    def preview_height
+      preview_dimensions[1]
+    end
+
+    ### Sample ###
+    def has_sample?
+      @has_sample ||= begin # rubocop:disable Style/RedundantBegin
+        if is_video?
+          true
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png")
+          false
+        elsif is_image? && image_width.present?
+          dims = [image_width, image_height].compact
+          dims.min > Danbooru.config.large_image_width || dims.max > Danbooru.config.large_image_width * 2
+        else # rubocop:disable Lint/DuplicateBranch
+          false
+        end
+      end
+    end
+
+    # This is required for something, but I have absolutely no idea what.
+    def has_sample
+      !!has_sample?
+    end
+
+    def sample_dimensions
+      @sample_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+        if has_sample?
+          scale = ImageSampler.calc_dimensions_for_sample(image_width, image_height)[0]
+          [(image_width * scale).round, (image_height * scale).round]
+        else
+          [image_width, image_height]
+        end
+      end
+    end
+
+    def sample_width
+      return image_width unless has_sample?
+      sample_dimensions[0]
+    end
+
+    def sample_height
+      return image_height unless has_sample?
+      sample_dimensions[1]
     end
   end
 
@@ -1578,9 +1607,9 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
       if visible?
-        list += [:file_url, :large_file_url, :preview_file_url]
+        list += %i[file_url sample_url preview_file_url]
       end
       list
     end
@@ -1611,7 +1640,7 @@ class Post < ApplicationRecord
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
-        attributes[:large_url] = large_file_url
+        attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
         attributes[:preview_width] = preview_dimensions[0]
         attributes[:preview_height] = preview_dimensions[1]
@@ -1936,7 +1965,13 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
+
+    @has_dimensions = nil
+    @preview_dimensions = nil
+    @has_sample = nil
+    @sample_dimensions = nil
     @video_sample_list = nil
+
     self
   end
 
