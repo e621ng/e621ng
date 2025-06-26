@@ -181,7 +181,7 @@ class PostVideoConversionJob < ApplicationJob
       sm.store(video, path)
     end
 
-    videos[:samples].each_value do |video|
+    videos[:samples].each do |name, video|
       path = sm.file_path(md5, "mp4", :scaled, protect: post.is_deleted?, scale: name.to_s)
       sm.store(video, path)
     end
