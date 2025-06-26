@@ -9,6 +9,10 @@ section.posts-container {
   --thumb-image-size: 256px;
 
   @include window-larger-than(528px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include window-larger-than(800px) {
     grid-template-columns: repeat(auto-fill, minmax(var(--thumb-image-size), 1fr));
   }
 
@@ -32,8 +36,10 @@ article.thumbnail {
 
   // Used in conjunction with setting the link element width and height
   // in order to ensure that the thumbnail always has the same size.
-  min-width: var(--thumb-image-size, 150px);
-  min-height: calc(var(--thumb-image-size, 150px) + 1rem);
+  @include window-larger-than(800px) {
+    min-width: var(--thumb-image-size, 150px);
+    min-height: calc(var(--thumb-image-size, 150px) + 1rem);
+  }
 
   // Badges
   &[data-tags~=animated] > a:before { @include preview-type-badge("ANIM"); }
