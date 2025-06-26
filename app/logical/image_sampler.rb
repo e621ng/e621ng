@@ -86,13 +86,13 @@ module ImageSampler
   #   - file_path: the path to the video file
   # Returns the path to the generated snapshot file.
   def gen_video_snapshot(file_path)
-    output_file = Tempfile.new(["video-preview", ".webp"], binmode: true)
+    output_file = Tempfile.new(["video-preview", ".jpg"], binmode: true)
     stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", "-i", file_path, "-vf", "thumbnail", "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
       Rails.logger.warn("[FFMPEG PREVIEW STDERR] #{stderr.chomp!}")
-      raise CorruptFileError, "could not generate video snapshot"
+      raise "Could not generate video snapshot"
     end
 
     output_file.close
