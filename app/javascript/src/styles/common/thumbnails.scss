@@ -50,7 +50,7 @@ article.thumbnail {
     text-align: center; // Fixes an issue with blacklisted pool thumbnails
     width: 100%;
     height: 100%;
-    background: #00000030;
+    background: #0003;
 
     // See min-width and min-height above
     max-width: var(--thumb-image-size, 150px);
