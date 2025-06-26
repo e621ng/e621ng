@@ -355,7 +355,7 @@ class Post < ApplicationRecord
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      @preview_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+      @preview_dimensions ||= begin
         if has_dimensions?
           scale = ImageSampler.calc_dimensions_for_preview(image_width, image_height)
           scale[1].presence || [(image_width * scale[0]).round, (image_height * scale[0]).round]
@@ -375,7 +375,7 @@ class Post < ApplicationRecord
 
     ### Sample ###
     def has_sample?
-      @has_sample ||= begin # rubocop:disable Style/RedundantBegin
+      @has_sample ||= begin
         if is_video?
           true
         elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png")
@@ -383,7 +383,7 @@ class Post < ApplicationRecord
         elsif is_image? && image_width.present?
           dims = [image_width, image_height].compact
           dims.min > Danbooru.config.large_image_width || dims.max > Danbooru.config.large_image_width * 2
-        else # rubocop:disable Lint/DuplicateBranch
+        else
           false
         end
       end
@@ -395,7 +395,7 @@ class Post < ApplicationRecord
     end
 
     def sample_dimensions
-      @sample_dimensions ||= begin # rubocop:disable Style/RedundantBegin
+      @sample_dimensions ||= begin
         if has_sample?
           scale = ImageSampler.calc_dimensions_for_sample(image_width, image_height)[0]
           [(image_width * scale).round, (image_height * scale).round]
