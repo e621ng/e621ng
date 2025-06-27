@@ -15,6 +15,7 @@ class Tag < ApplicationRecord
   validate :user_can_change_category?, if: :category_changed?
 
   before_save :update_category, if: :category_changed?
+  after_destroy :log_destroy
 
   attr_accessor :from_wiki
 
@@ -31,6 +32,12 @@ class Tag < ApplicationRecord
 
     def value_for(string)
       TagCategory::MAPPING[string.to_s.downcase] || 0
+    end
+  end
+
+  module LogMethods
+    def log_destroy
+      ModAction.log(:tag_destroy, { name: name })
     end
   end
 
@@ -80,8 +87,12 @@ class Tag < ApplicationRecord
 
       def category_for(tag_name)
         Cache.fetch("tc:#{tag_name}") do
-          Tag.where(name: tag_name).pick(:category).to_i
+          category_for!(tag_name).to_i
         end
+      end
+
+      def category_for!(tag_name)
+        Tag.where(name: tag_name).pick(:category)
       end
 
       def categories_for(tag_names, disable_cache: false)
@@ -115,7 +126,7 @@ class Tag < ApplicationRecord
     end
 
     def category_name
-      TagCategory::REVERSE_MAPPING[category].capitalize
+      @category_name ||= TagCategory::REVERSE_MAPPING[category]
     end
 
     def update_category_post_counts!
@@ -400,6 +411,11 @@ class Tag < ApplicationRecord
     true
   end
 
+  def deletable_by?(user)
+    user.is_bd_staff?
+  end
+
+  include LogMethods
   include CountMethods
   include CategoryMethods
   extend NameMethods

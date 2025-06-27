@@ -2,6 +2,7 @@
 
 class TagsController < ApplicationController
   before_action :member_only, only: %i[edit update preview]
+  before_action :is_bd_staff_only, only: %i[destroy]
   respond_to :html, :json
 
   def edit
@@ -46,6 +47,38 @@ class TagsController < ApplicationController
         else
           redirect_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
         end
+      end
+    end
+  end
+
+  def destroy
+    @tag = Tag.find(params[:id])
+    raise User::PrivilegeError unless @tag.deletable_by?(CurrentUser.user)
+
+    errors = []
+
+    # 1. Posts
+    count = Post.tag_match("#{@tag.name} status:any", resolve_aliases: false).count_only
+    errors.push("Cannot delete tags that are present on posts") if count > 0
+
+    # 2. Aliases
+    aliases = TagAlias.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+    errors.push("Cannot delete tags with active aliases") if aliases > 0
+
+    # 2. Implications
+    implications = TagImplication.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
+    errors.push("Cannot delete tags with active implications") if implications > 0
+
+    if errors.any?
+      redirect_back(fallback_location: tags_path(search: { name_matches: @tag.name }), notice: errors.join("; "))
+      return
+    end
+
+    @tag.destroy
+
+    respond_with(@tag) do |format|
+      format.html do
+        redirect_to(tags_path, notice: @tag.valid? ? "Tag destroyed" : @tag.errors.full_messages.join("; "))
       end
     end
   end

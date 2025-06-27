@@ -31,6 +31,8 @@ class IqdbQueriesController < ApplicationController
         render json: @matches, root: "posts"
       end
     end
+  rescue Downloads::File::Error
+    render_expected_error(404, "File not found or too large")
   rescue IqdbProxy::Error => e
     render_expected_error(500, e.message)
   end

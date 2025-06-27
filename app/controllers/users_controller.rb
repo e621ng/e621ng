@@ -3,8 +3,10 @@
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
-  before_action :logged_in_only, only: [:edit, :upload_limit, :update]
-  before_action :member_only, only: [:custom_style, :upload_limit]
+  before_action :logged_in_only, only: %i[edit upload_limit update]
+  before_action :member_only, only: %i[custom_style]
+  before_action :janitor_only, only: %i[toggle_uploads fix_counts]
+  before_action :admin_only, only: %i[flush_favorites]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -41,12 +43,37 @@ class UsersController < ApplicationController
   end
 
   def upload_limit
-    @presenter = UserPresenter.new(CurrentUser.user)
-    pieces = CurrentUser.upload_limit_pieces
-    @approved_count = pieces[:approved]
-    @deleted_count = pieces[:deleted]
-    @pending_count = pieces[:pending]
-    respond_with(CurrentUser.user)
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @presenter = UserPresenter.new(@user)
+
+    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"e621:upload_limit\" not found.")
+    respond_with(@user, methods: @user.full_attributes)
+  end
+
+  def toggle_uploads
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.no_uploading = !@user.no_uploading
+    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+    @user.save
+
+    redirect_to user_path(@user)
+  end
+
+  def flush_favorites
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    FlushFavoritesJob.perform_later(@user.id)
+    ModAction.log(:user_flush_favorites, { user_id: @user.id })
+
+    redirect_to user_path(@user)
+  end
+
+  def fix_counts
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+
+    @user.refresh_counts!
+    flash[:notice] = "Counts have been refreshed"
+
+    redirect_to user_path(@user)
   end
 
   def show
@@ -95,8 +122,6 @@ class UsersController < ApplicationController
     @user.update(user_params(:update))
     if @user.errors.any?
       flash[:notice] = @user.errors.full_messages.join("; ")
-    else
-      flash[:notice] = "Settings updated"
     end
     respond_with(@user) do |format|
       format.html { redirect_back fallback_location: edit_user_path(@user) }
@@ -127,6 +152,7 @@ class UsersController < ApplicationController
       enable_auto_complete
       disable_cropped_thumbnails
       enable_safe_mode disable_responsive_mode
+      forum_notification_dot
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]

@@ -10,4 +10,4 @@
 <%= decorated_nav_link_to("Tags", :tags, tags_path) %>
 <%= decorated_nav_link_to("Blips", :megaphone, blips_path) %>
 <%= decorated_nav_link_to("Comments", :message_square, comments_path(group_by: "post")) %>
-<%= decorated_nav_link_to("Forum", :lectern, forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "forum-updated" : nil)) %>
+<%= decorated_nav_link_to("Forum", :lectern, forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "notification" : nil)) %>

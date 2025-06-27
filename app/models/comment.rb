@@ -183,13 +183,13 @@ class Comment < ApplicationRecord
 
   def can_reply?(user)
     return false if is_sticky?
-    return false if (post.is_comment_locked? || post.is_comment_disabled?) && !user.is_moderator?
+    return false if (post&.is_comment_locked? || post&.is_comment_disabled?) && !user.is_moderator?
     true
   end
 
   def editable_by?(user)
     return true if user.is_admin?
-    return false if (post.is_comment_locked? || post.is_comment_disabled?) && !user.is_moderator?
+    return false if (post&.is_comment_locked? || post&.is_comment_disabled?) && !user.is_moderator?
     return false if was_warned?
     creator_id == user.id
   end
@@ -201,9 +201,8 @@ class Comment < ApplicationRecord
   end
 
   def visible_to?(user)
-    return true if user.is_moderator?
+    return true if user.is_staff?
     return false if !is_sticky? && (post&.is_comment_disabled? && creator_id != user.id)
-    return true if user.is_janitor? && is_sticky?
     return true if is_hidden? == false
     creator_id == user.id # Can always see your own comments, even if hidden.
   end

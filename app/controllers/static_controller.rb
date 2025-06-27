@@ -25,6 +25,9 @@ class StaticController < ApplicationController
     @page = format_wiki_page("e621:subscribestar")
   end
 
+  def furid
+  end
+
   def not_found
     render "static/404", formats: [:html], status: 404
   end

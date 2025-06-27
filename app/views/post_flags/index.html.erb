@@ -20,8 +20,18 @@
         <% @post_flags.each do |post_flag| %>
           <tr class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>">
             <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
-            <td class="dtext-container">
-              <%= format_text post_flag.reason %>
+            <td>
+              <div class="dtext-container">
+                <%= format_text post_flag.reason %>
+              </div>
+              <% if post_flag.note.present? && post_flag.can_see_note? %>
+                <div class="post-flag-note">
+                  <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
+                  <div class="dtext-container post-flag-note-body">
+                    <%= format_text post_flag.note %>
+                  </div>
+                </div>
+              <% end %>
             </td>
             <td>
               <%= link_to post_flag.post.flags.size, post_flags_path(search: { post_id: post_flag.post_id }) %>

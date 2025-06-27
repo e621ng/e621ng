@@ -9,7 +9,7 @@ Thumbnails.initialize = function () {
   const replacedPosts = [];
 
   // Avatar special case
-  for (const post of $(".simple-avatar.placeholder")) {
+  for (const post of $(".simple-avatar.placeholder, .profile-avatar.placeholder")) {
     const $post = $(post);
     $post.removeClass("placeholder");
 
@@ -21,7 +21,11 @@ Thumbnails.initialize = function () {
 
     $("<img>")
       .attr("src", postData["preview_url"])
-      .appendTo($post.find("span.simple-avatar-image"));
+      .appendTo($post.find("span.avatar-image"));
+
+    if ($post.hasClass("profile-avatar"))
+      $post.attr("href", "/posts/" + postID);
+
     continue;
   }
 
@@ -65,8 +69,8 @@ Thumbnails.initialize = function () {
     $("<img>")
       .attr({
         src: postData["preview_url"] || "/images/deleted-preview.png",
-        height: postData["preview_url"] ? postData["preview_height"] : 150,
-        width: postData["preview_url"] ? postData["preview_width"] : 150,
+        // height: postData["preview_url"] ? postData["preview_height"] : 150,
+        // width: postData["preview_url"] ? postData["preview_width"] : 150,
         title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.flags}\r\nDate: ${postData["created_at"]}\r\n\r\n${postData.tags}`,
         alt: postData.tags,
         class: "post-thumbnail-img",

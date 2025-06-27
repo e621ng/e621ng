@@ -1,60 +1,45 @@
-<div id="c-posts">
-  <div id="a-show">
-    <aside id="sidebar">
-      <%= render "posts/partials/common/search", title: "Posts", :tags => params[:q] %>
+<div id="c-posts"><div id="a-show">
+  <div class="post-index">
 
+    <div class="search">
+      <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
+      <%= render "posts/partials/index/controls" %>
+    </div>
+
+    <div class="sidebar">
       <%= render "posts/partials/index/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
-        <%= @post.presenter.post_show_sidebar_tag_list_html(current_query: params[:q], highlighted_tags: @post.uploader_linked_artists.map(&:name)) %>
+        <%= render partial: "/posts/partials/show/sidebar/tag_list", locals: { post: @post, query: params[:q] } %>
       </section>
 
       <section id="post-information">
-        <h1>Information</h1>
-        <%= render "posts/partials/show/information", :post => @post %>
+        <h3>Information</h3>
+        <%= render "posts/partials/show/sidebar/information", :post => @post %>
       </section>
 
       <section id="post-options">
-        <h1>Options</h1>
-        <%= render "posts/partials/show/options", :post => @post %>
+        <h3>Options</h3>
+        <%= render "posts/partials/show/sidebar/options", :post => @post %>
       </section>
 
       <% if CurrentUser.is_member? %>
         <section id="post-history">
-          <h1>History</h1>
-          <ul>
-            <li><%= link_to "Tags/Desc", post_versions_path(search: { post_id: @post.id }) %></li>
-            <li><%= link_to "Notes", note_versions_path(search: { post_id: @post.id }) %></li>
-            <li><%= link_to "Events", post_events_path(search: { post_id: @post.id }) %></li>
-            <li><%= link_to "Replacements", post_replacements_path(search: { post_id: @post.id }) %></li>
-          </ul>
+          <h3>History</h3>
+          <%= render "posts/partials/show/sidebar/history", :post => @post %>
         </section>
-
       <% end %>
 
       <section id="post-related-images">
-        <h1>Related</h1>
-        <ul>
-          <li><%= link_to "Sets with this post", post_sets_path(post_id: @post.id), rel: "nofollow" %></li>
-          <% if IqdbProxy.enabled? && @post.has_preview? %>
-            <li><%= link_to "Visually similar on E6", iqdb_queries_path(search: { post_id: @post.id }), rel: "nofollow" %></li>
-          <% end %>
-          <% if @post.visible? && @post.is_image? %>
-            <li><a rel="nofollow" href="https://lens.google.com/uploadbyurl?url=<%= @post.reverse_image_url %>&client=e621">Reverse Google Search</a></li>
-            <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url %>">Reverse SauceNAO Search</a></li>
-            <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url %>">Reverse Derpibooru Search</a></li>
-            <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url %>">Reverse Kheina Search</a></li>
-          <% end %>
-          <li><a rel="nofollow" href="https://inkbunny.net/search_process.php?text=<%= @post.md5 %>&md5=yes">Inkbunny MD5 Search</a></li>
-        </ul>
+        <h3>Related</h3>
+        <%= render "posts/partials/show/sidebar/related", :post => @post %>
       </section>
+    </div>
 
-    </aside>
-
-    <section id="content">
+    <div class="content">
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
-          <%= render "posts/partials/show/nav_links", :post => @post %>
+          <%= render "posts/partials/show/content/nav_links/nav_links", :post => @post %>
           <div id="nav-links-top" class="ui-corner-all nav-notice">
             <%= content_for :nav_links_section %>
           </div>
@@ -66,7 +51,7 @@
             <br>Keyboard shortcuts are disabled on this page because it contains flash.
           </div>
           <% if CurrentUser.is_janitor? %>
-            <%= render "posts/partials/show/notices", post: @post %>
+            <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
 
@@ -75,10 +60,10 @@
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container"></div>
           <div id="note-preview"></div>
-          <%= render "posts/partials/show/embedded", post: @post %>
+          <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
         <% end -%>
 
-        <% if @post.visible? && @post.has_large? %>
+        <% if @post.visible? && @post.has_sample? %>
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
             <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, precision: 0 %></span> of original (<%= link_to "view original", @post.file_url, id: "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>
@@ -93,100 +78,26 @@
       </div>
 
       <section id="image-extra-controls">
-
-        <% if CurrentUser.is_member? %>
-          <div class="image-vote-buttons">
-            <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
-          </div>
-          <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-            <%= button_tag id: "add-fav-button", class: "button btn-success", "data-pid": @post.id do %>
-              <%= tag.i(class: "fa-regular fa-star") %>
-              <span>Favorite</span>
-            <% end %>
-            <%= button_tag id: "remove-fav-button", class: "button btn-danger", "data-pid": @post.id do %>
-              <%= tag.i(class: "fa-solid fa-star") %>
-              <span>Unfavorite</span>
-            <% end %>
-          <% end %>
-        <% end %>
-        <% if @post.visible? %>
-          <div id="image-download-link">
-            <%= link_to @post.file_url, class: "button btn-warn" do %>
-              <%= tag.i(class: "fa-solid fa-right-to-bracket fa-rotate-90") %>
-              <span>Download</span>
-            <% end %>
-          </div>
-        <% end %>
-        <% if !@post.force_original_size? %>
-          <div>
-            <select id="image-resize-selector" class="button btn-neutral">
-              <option value="original">Original</option>
-              <option value="fit">Fit (Horizontal)</option>
-              <option value="fitv">Fit (Vertical)</option>
-              <% if !@post.is_video? %>
-                <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
-              <% end %>
-              <% Danbooru.config.video_rescales.keys.each do |size| %>
-                <% next unless @post.has_sample_size?(size) %>
-                <option value="<%= size %>">Sample (<%= size %>)</option>
-              <% end %>
-          </select>
-          </div>
-        <% end %>
+          <%= render "posts/partials/show/content/toolbar", post: @post %>
       </section>
 
       <div class="bottom-notices">
         <div class="parent-children">
-          <% if @post.parent_id && @post.parent_exists? %>
-            <div class="notice notice-child">
-              <%= has_parent_message(@post, @parent_post_set) %>
-              <div id="has-parent-relationship-preview" style="display: none;"><%= @parent_post_set.presenter.post_previews_html(self) %></div>
-            </div>
-          <% end %>
-
-          <% if @post.has_visible_children? %>
-            <div class="notice notice-parent">
-              <%= has_children_message(@post, @children_post_set) %>
-              <div id="has-children-relationship-preview" style="display: none;"><%= @children_post_set.presenter.post_previews_html(self) %></div>
-            </div>
-          <% end %>
+          <%= render "posts/partials/show/content/children", post: @post %>
         </div>
+
         <% if !CurrentUser.is_janitor? %>
-          <%= render "posts/partials/show/notices", post: @post %>
+          <%= render "posts/partials/show/content/notices/notices", post: @post %>
         <% end %>
       </div>
 
       <section id="mark-as-translated-section" style="display: none;">
-        <%= form_tag(mark_as_translated_post_path(@post), :class => "simple_form", :method => :put) do |f| %>
-          <%= hidden_field_tag :tags_query, params[:q] %>
-          <%= hidden_field_tag :pool_id, params[:pool_id] %>
-
-          <fieldset>
-            <label for="post_translation_check">
-              <%= check_box "post", "translation_check", :checked => @post.has_tag?("translation_check") %>
-              Check translation
-            </label>
-
-            <label for="post_partially_translated">
-              <%= check_box "post", "partially_translated", :checked => @post.has_tag?("partially_translated") %>
-              Partially translated
-            </label>
-          </fieldset>
-
-          <div class="input">
-            <%= submit_tag "Mark as translated" %>
-          </div>
-        <% end %>
+        <%= render "posts/partials/show/content/translated", post: @post %>
       </section>
 
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-          <details id="description" <%= 'open' unless CurrentUser.description_collapsed_initially? %>>
-            <summary>Description</summary>
-            <div>
-              <%= format_text(@post.description, max_thumbs: 0) %>
-            </div>
-          </details>
+        <%= render "posts/partials/show/content/description", post: @post %>
         </div>
       <% end %>
 
@@ -208,7 +119,7 @@
 
       <% unless CurrentUser.hide_comments? %>
         <section id="comments">
-          <%= render "comments/partials/index/list", :comments => @post.comments.visible(CurrentUser.user), :post => @post, :show_header => false %>
+          <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
         </section>
       <% end %>
 
@@ -229,10 +140,10 @@
 
       <% if CurrentUser.is_member? %>
         <section id="edit" style="display: none;">
-          <%= render "posts/partials/show/edit", :post => @post %>
+          <%= render "posts/partials/show/content/edit", :post => @post %>
         </section>
       <% end %>
-    </section>
+    </div>
   </div>
 
   <% if CurrentUser.is_member? %>
@@ -244,7 +155,7 @@
     </div>
     <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
-        postTags: <%= (@post.presenter.split_tag_list_text + " ").to_json.html_safe %>,
+        postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>,
         uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
         recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>
       };
@@ -256,7 +167,7 @@
       history.replaceState({}, "", <%= post_path(@post, q: params[:q]).to_json.html_safe %>);
     <% end -%>
   <% end %>
-</div>
+</div></div>
 
 <% content_for(:page_title) do %>
   #<%= @post.id %>
@@ -274,7 +185,7 @@
   <%= tag.meta property: "og:url", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>
 
   <% if @post.visible? %>
-    <% if @post.is_video? && @post.has_sample_size?('original') %>
+    <% if @post.is_video? %>
       <meta property="og:type" content="video.other">
       <%= tag.meta property: "og:video", content: @post.open_graph_video_url %>
       <%= tag.meta property: "og:image", content: @post.open_graph_image_url %>

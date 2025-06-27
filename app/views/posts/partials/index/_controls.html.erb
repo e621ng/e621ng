@@ -2,7 +2,47 @@
   <button id="search-fullscreen" class="st-button" title="Fullscreen mode">
     <%= svg_icon(:fullscreen) %>
   </button>
-  <button id="search-sticky" class="st-button" title="Sticky searchbar">
-    <%= svg_icon(:anchor) %>
+  <button id="search-settings" class="st-button" title="Search settings">
+    <%= svg_icon(:settings) %>
   </button>
+</div>
+
+<div class="search-settings-container">
+  <h3>Search Settings</h3>
+
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-image-contain">Image Crop</label>
+    </div>
+    <div class="ssc-body">
+      <input class="boolean optional sto-toggle" type="checkbox" id="ssc-image-contain" data-toggle="Contain">
+      <label class="sto-toggle" for="ssc-image-contain">
+        <span class="sto-off">Crop</span>
+        <span class="sto-on">Full</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-image-size">Card Size</label>
+    </div>
+    <div class="ssc-body">
+      <input class="boolean optional sto-toggle" type="checkbox" id="ssc-image-size" data-toggle="Size">
+      <label class="sto-toggle" for="ssc-image-size">
+        <span class="sto-off">Large</span>
+        <span class="sto-on">Small</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-sticky-searchbar">Sticky Searchbar</label>
+    </div>
+    <div class="ssc-body">
+      <input class="boolean optional st-toggle" type="checkbox" id="ssc-sticky-searchbar">
+      <label class="st-toggle" for="ssc-sticky-searchbar">!</label>
+    </div>
+  </div>
 </div>

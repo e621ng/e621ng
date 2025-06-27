@@ -17,7 +17,14 @@ class UserPresenter
 
   def ban_reason
     if user.is_banned?
-      "#{user.recent_ban.reason}\n\n Expires #{user.recent_ban.expires_at || 'never'} (#{user.bans.count} bans total)"
+      text = "#{user.recent_ban.reason}\n\n"
+      if user.recent_ban.expires_at.nil?
+        text << "Expires never (#{user.bans.count} bans total)"
+        text << "\nCreated on #{user.recent_ban.created_at&.strftime('%Y-%m-%d %H:%M')}" if user.recent_ban.expires_at.nil?
+      else
+        text << "Expires on #{user.recent_ban.expires_at&.strftime('%Y-%m-%d %H:%M')} (#{user.bans.count} bans total)"
+      end
+      text
     end
   end
 
@@ -53,6 +60,12 @@ class UserPresenter
     = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
+  def upload_limit_short
+    return "0 / 0" if user.no_uploading?
+    return "none" if user.can_upload_free?
+    "#{user.upload_limit} / #{user.upload_limit_max}"
+  end
+
   def uploads
     posts = Post.tag_match("user:#{user.name}").limit(8)
     PostsDecorator.decorate_collection(posts)
@@ -63,7 +76,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..7]
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
     posts = Post.where(id: ids).sort_by { |post| ids.index(post.id) }
     PostsDecorator.decorate_collection(posts)
   end
@@ -184,6 +197,10 @@ class UserPresenter
   end
 
   def recent_tags_with_types
+    []
+  end
+
+  def recent_tags_with_types_old
     versions = PostVersion.where(updater_id: user.id).where("updated_at > ?", 1.hour.ago).order(id: :desc).limit(150)
     tags = versions.flat_map(&:added_tags)
     tags = tags.group_by(&:itself).transform_values(&:size).sort_by { |tag, count| [-count, tag] }.map(&:first)

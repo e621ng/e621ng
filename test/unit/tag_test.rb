@@ -75,7 +75,7 @@ class TagTest < ActiveSupport::TestCase
   context "A tag" do
     should "know its category name" do
       @tag = create(:artist_tag)
-      assert_equal("Artist", @tag.category_name)
+      assert_equal("artist", @tag.category_name)
     end
 
     should "reset its category after updating" do

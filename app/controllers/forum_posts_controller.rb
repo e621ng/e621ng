@@ -10,6 +10,22 @@ class ForumPostsController < ApplicationController
   before_action :ensure_lockdown_disabled, except: %i[index show search]
   skip_before_action :api_check
 
+  def index
+    @query = ForumPost.visible(CurrentUser.user).search(search_params)
+    @forum_posts = @query
+                   .includes(:topic, :creator, :updater)
+                   .paginate(params[:page], limit: params[:limit], search_count: params[:search])
+    respond_with(@forum_posts)
+  end
+
+  def show
+    if request.format == "text/html" && @forum_post.id == @forum_post.topic.original_post.id
+      redirect_to(forum_topic_path(@forum_post.topic, page: params[:page]))
+    else
+      respond_with(@forum_post)
+    end
+  end
+
   def new
     @forum_post = ForumPost.new(forum_post_params(:create))
     respond_with(@forum_post)
@@ -20,21 +36,7 @@ class ForumPostsController < ApplicationController
     respond_with(@forum_post)
   end
 
-  def index
-    @query = ForumPost.visible(CurrentUser.user).search(search_params)
-    @forum_posts = @query.includes(:topic).paginate(params[:page], limit: params[:limit], search_count: params[:search])
-    respond_with(@forum_posts)
-  end
-
   def search
-  end
-
-  def show
-    if request.format == "text/html" && @forum_post.id == @forum_post.topic.original_post.id
-      redirect_to(forum_topic_path(@forum_post.topic, :page => params[:page]))
-    else
-      respond_with(@forum_post)
-    end
   end
 
   def create
@@ -74,7 +76,7 @@ class ForumPostsController < ApplicationController
   end
 
   def warning
-    if params[:record_type] == 'unmark'
+    if params[:record_type] == "unmark"
       @forum_post.remove_user_warning!
     else
       @forum_post.user_warned!(params[:record_type], CurrentUser.user)

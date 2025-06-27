@@ -1756,7 +1756,12 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # TODO: These don't quite make sense, what should hide deleted posts and what shouldn't?
+      # Perceived inconsistency is due to automatic injection of "-status:deleted" in
+      # ElasticPostQueryBuilder; adding `status:any` disables this.
+      assert_tag_match(all - [flagged, pending], "status:any -status:modqueue")
+      assert_tag_match(all - [pending], "status:any -status:pending")
+      assert_tag_match(all - [flagged], "status:any -status:flagged")
+
       assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
       assert_tag_match(all - [deleted, pending], "-status:pending")
       assert_tag_match(all - [deleted, flagged], "-status:flagged")
@@ -1959,9 +1964,11 @@ class PostTest < ActiveSupport::TestCase
     should "not count free tags against the user's search limit" do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 
-      Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").once.returns(true)
-      Danbooru.config.expects(:is_unlimited_tag?).with(anything).twice.returns(false)
-      assert_tag_match([post1], "aaa bbb rating:s")
+      Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").twice.returns(true)
+      Danbooru.config.expects(:is_unlimited_tag?).with(anything).never.returns(false)
+      query = "aaa bbb rating:s #{(1..38).to_a.map { |x| "-#{x}" }.join(' ')}"
+      assert_tag_match([post1], query)
+      assert_raise(TagQuery::CountExceededError) { Post.tag_match("#{query} one_too_many") }
     end
 
     should "succeed for exclusive tag searches with no other tag" do
@@ -1999,32 +2006,90 @@ class PostTest < ActiveSupport::TestCase
     should "return posts for replacements" do
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([], "pending_replacements:false")
-      post = create(:post)
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
       replacement = create(:png_replacement, creator: @user, post: post)
       assert_tag_match([post], "pending_replacements:true")
     end
 
     should "return no posts when the replacement is not pending anymore" do
-      post1 = create(:post)
-      upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
-      post2 = upload.post
-      post3 = create(:post)
-      post4 = create(:post)
-      replacement1 = create(:png_replacement, creator: @user, post: post1)
-      replacement1.reject!
-      replacement2 = create(:png_replacement, creator: @user, post: post2)
-      replacement2.approve!(penalize_current_uploader: true)
-      replacement3 = create(:jpg_replacement, creator: @user, post: post3)
-      promoted_post = replacement3.promote!.post
-      replacement4 = create(:webm_replacement, creator: @user, post: post4)
-      replacement4.destroy!
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
+
+      replacement = create(:png_replacement, creator: @user, post: post)
+      replacement.reject!
 
       assert_tag_match([], "pending_replacements:true")
-      assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([post], "pending_replacements:false")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do
       assert_tag_match([], "id:1234567890987654321")
+    end
+
+    context "With Groups: " do
+      setup do
+        @post1_a = create(:post, tag_string: "a_a aaa")
+        @post2_a = create(:post, tag_string: "aaa bbb")
+        @post3_a = create(:post, tag_string: "bbb ccc")
+        @post4_a = create(:post, tag_string: "ccc ddd")
+        @post5_a = create(:post, tag_string: "aaa ddd")
+        @post1_d = create(:post, tag_string: "a_a aaa", is_deleted: true)
+        @post2_d = create(:post, tag_string: "aaa bbb", is_deleted: true)
+        @post3_d = create(:post, tag_string: "bbb ccc", is_deleted: true)
+        @post4_d = create(:post, tag_string: "ccc ddd", is_deleted: true)
+        @post5_d = create(:post, tag_string: "aaa ddd", is_deleted: true)
+        @post1_f = create(:post, tag_string: "a_a aaa", is_flagged: true, is_deleted: true)
+        @post2_f = create(:post, tag_string: "aaa bbb", is_flagged: true)
+        @post3_f = create(:post, tag_string: "bbb ccc", is_flagged: true)
+        @post4_f = create(:post, tag_string: "ccc ddd", is_flagged: true)
+        @post5_f = create(:post, tag_string: "aaa ddd", is_flagged: true)
+        @post1_p = create(:post, tag_string: "a_a aaa", is_pending: true, is_deleted: true)
+        @post2_p = create(:post, tag_string: "aaa bbb", is_pending: true)
+        @post3_p = create(:post, tag_string: "bbb ccc", is_pending: true)
+        @post4_p = create(:post, tag_string: "ccc ddd", is_pending: true)
+        @post5_p = create(:post, tag_string: "aaa ddd", is_pending: true)
+      end
+      should "return posts" do
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) -status:deleted")
+      end
+      should "return posts with proper status:deleted handling" do
+        # Added - no interference
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd )")
+        # Added - flagged
+        assert_tag_match([@post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:flagged")
+        # Added - pending
+        assert_tag_match([@post3_p], "~( aaa -bbb ) ~ccc -( ddd ) status:pending")
+        # Added - modqueue
+        assert_tag_match([@post3_p, @post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:modqueue")
+        # Removed - active
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) -status:active")
+        # Removed - deleted
+        assert_tag_match([@post1_p, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) status:deleted")
+        # Removed - any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) status:any")
+        # NESTED
+        # Added - flagged
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:flagged ) ~ccc -( ddd )")
+        # Added - pending
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:pending ) ~ccc -( ddd )")
+        # Added - modqueue
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:modqueue ) ~ccc -( ddd )")
+        # Removed - active
+        # if ElasticPostQueryBuilder::GLOBAL_DELETED_FILTER
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # else
+        #   assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # end
+        # Removed - deleted
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb status:deleted ) ~ccc -( ddd )")
+        # Removed - any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb status:any ) ~ccc -( ddd )")
+      end
+      should "return posts for a grouped tag search with proper global metatag hoisting" do
+        assert_tag_match([@post1_a, @post3_a, @post3_f, @post3_p], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
+      end
     end
   end
 
@@ -2258,7 +2323,7 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.sample_url)
       assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end

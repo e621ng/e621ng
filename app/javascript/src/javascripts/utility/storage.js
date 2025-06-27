@@ -40,6 +40,9 @@ LStorage.Site = {
 
   /** @returns {number} Last news update ID, or 0 if none is selected */
   NewsID: ["hide_news_notice", 0],
+
+  /** @returns {boolean} True to enable events, false to opt out */
+  Events: ["e6.events", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 
@@ -69,8 +72,8 @@ LStorage.Theme = {
   /** @returns {boolean} True if the sticky header is enabled */
   StickyHeader: ["theme-sheader", false],
 
-  /** @returns {boolean} True if the forum notification dot is enabled */
-  ForumNotif: ["theme-forumnotif", false],
+  /** @returns {string} Currently selected logo */
+  Logo: ["theme-logo", "pride"],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 
@@ -97,6 +100,15 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if the search should be displayed in fullscreen */
   StickySearch: ["e6.posts.ssearch", false],
+
+  /** @returns {boolean} True to stop limiting videos to 1080p in Original mode */
+  SkipVariants: ["e6.posts.scvideos", false],
+
+  /** @returns {boolean} True to stop cropping thumbnails to 256px */
+  Contain: ["e6.posts.contain", false],
+
+  /** @returns {boolean} True to restore the 150px thumbnail size */
+  Size: ["e6.posts.size", false],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 
@@ -188,6 +200,17 @@ LStorage.Blacklist = {
   _filterCache: undefined,
 };
 StorageUtils.bootstrapSome(LStorage.Blacklist, ["Collapsed"]);
+
+
+// Users page config
+LStorage.Users = {
+  /** @returns {boolean} True to show staff stats, false to hide them */
+  StaffStats: ["e6.users.staffstats", false],
+
+  /** @returns {boolean} True to show user stats, false to hide them */
+  StaffNotes: ["e6.users.staffnotes", false],
+};
+StorageUtils.bootstrapMany(LStorage.Users);
 
 
 /**

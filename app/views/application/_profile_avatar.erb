@@ -1,0 +1,11 @@
+<a
+  href="<%= user_path(user) %>"
+  class="profile-avatar placeholder<%= klass.nil? ? "" : klass%>"
+  data-id="<%= post_id %>"
+  data-name="<%= user.name %>"
+>
+  <span
+    class="avatar-image"
+    data-initial="<%= user.name[0].capitalize%>"
+  ></span>
+</a>

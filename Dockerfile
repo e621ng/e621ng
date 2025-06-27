@@ -1,4 +1,4 @@
-FROM ruby:3.3.1-alpine3.19 as ruby-builder
+FROM ruby:3.3.1-alpine3.20 AS ruby-builder
 
 RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat
 
@@ -8,13 +8,13 @@ RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
-FROM node:20-alpine3.19 as node-builder
+FROM node:20-alpine3.20 AS node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN corepack enable && corepack prepare --activate && yarn install
 
-FROM ruby:3.3.1-alpine3.19
+FROM ruby:3.3.1-alpine3.20
 
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \

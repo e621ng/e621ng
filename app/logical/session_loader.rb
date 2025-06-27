@@ -34,12 +34,12 @@ class SessionLoader
       end
       raise AuthenticationFailure.new(ban_message)
     end
-    set_statement_timeout
     update_last_logged_in_at
     update_last_ip_addr
     set_time_zone
     set_safe_mode
     refresh_old_remember_token
+    refresh_unread_dmails
     DanbooruLogger.initialize(CurrentUser.user)
   end
 
@@ -51,12 +51,7 @@ class SessionLoader
     cookies.encrypted[:remember].present?
   end
 
-private
-
-  def set_statement_timeout
-    timeout = CurrentUser.user.statement_timeout
-    ActiveRecord::Base.connection.execute("set statement_timeout = #{timeout}")
-  end
+  private
 
   def load_remember_token
     begin
@@ -123,11 +118,27 @@ private
   end
 
   def set_time_zone
-    Time.zone = CurrentUser.user.time_zone
+    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] || CurrentUser.user.time_zone
+    Time.zone = time_zone
   end
 
   def set_safe_mode
     safe_mode = Danbooru.config.safe_mode? || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
     CurrentUser.safe_mode = safe_mode
+  end
+
+  # This is here purely for the purpose of testing.
+  def skip_cookies?
+    false
+  end
+
+  # Resets the unread dmail cookie if it does not match the current user's dmail status.
+  # This should normally happen when the user reads their last unread dmail.
+  def refresh_unread_dmails
+    return if skip_cookies?
+    return if CurrentUser.is_anonymous?
+    return if cookies[:hide_dmail_notice].blank?
+
+    cookies.delete(:hide_dmail_notice) if cookies[:hide_dmail_notice] != CurrentUser.user.has_mail?.to_s
   end
 end

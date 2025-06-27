@@ -45,7 +45,21 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Ticket ###
     when "ticket_update"
-      "Modified ticket ##{vals['ticket_id']}"
+      text = "Modified ticket ##{vals['ticket_id']}"
+
+      if vals["status"].present? && vals["status"] != vals["status_was"]
+        text += "\nChanged status from #{vals['status_was']} to #{vals['status']}"
+      end
+
+      if vals["response"].present? && vals["response"] != vals["response_was"]
+        if vals["response_was"].present?
+          text += "\nChanged response: [section=Old]#{vals['response_was']}[/section] [section=New]#{vals['response']}[/section]"
+        else
+          text += "\nWith response: #{vals['response']}"
+        end
+      end
+
+      text
     when "ticket_claim"
       "Claimed ticket ##{vals['ticket_id']}"
     when "ticket_unclaim"
@@ -130,8 +144,12 @@ class ModActionDecorator < ApplicationDecorator
       "Changed profile text of #{user}"
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
+    when "user_uploads_toggle"
+      "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
       "Changed name of #{user}"
+    when "user_flush_favorites"
+      "Cleared favorites of #{user}"
 
       ### User Record ###
 
@@ -236,6 +254,11 @@ class ModActionDecorator < ApplicationDecorator
       end
     when "blip_unhide"
       "Unhid blip ##{vals['blip_id']} by #{user}"
+
+      ### Tag ###
+
+    when "tag_destroy"
+      "Destroyed tag `#{vals['name']}`"
 
       ### Alias ###
 
@@ -371,6 +394,12 @@ class ModActionDecorator < ApplicationDecorator
 
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
+
+      ### Post Versions
+    when "post_version_hide"
+      "Hidden post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
+    when "post_version_unhide"
+      "Restored post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
 
       ### Legacy Post Events ###
     when "post_move_favorites"

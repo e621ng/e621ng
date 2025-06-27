@@ -1372,7 +1372,8 @@ CREATE TABLE public.post_flags (
     is_resolved boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
-    is_deletion boolean DEFAULT false NOT NULL
+    is_deletion boolean DEFAULT false NOT NULL,
+    note character varying
 );
 
 
@@ -1562,9 +1563,9 @@ CREATE TABLE public.post_versions (
     locked_tags text,
     added_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
     removed_locked_tags text[] DEFAULT '{}'::text[] NOT NULL,
-    updater_id integer,
-    updater_ip_addr inet NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    updater_id integer DEFAULT 0 NOT NULL,
+    updater_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL,
     rating character varying(1),
     rating_changed boolean DEFAULT false NOT NULL,
     parent_id integer,
@@ -1574,7 +1575,8 @@ CREATE TABLE public.post_versions (
     description text,
     description_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
-    reason character varying
+    reason character varying,
+    is_hidden boolean DEFAULT false NOT NULL
 );
 
 
@@ -1684,11 +1686,11 @@ CREATE TABLE public.posts (
     change_seq bigint NOT NULL,
     tag_count_lore integer DEFAULT 0 NOT NULL,
     bg_color character varying,
-    generated_samples character varying[],
     duration numeric,
     is_comment_disabled boolean DEFAULT false NOT NULL,
     is_comment_locked boolean DEFAULT false NOT NULL,
-    tag_count_contributor integer DEFAULT 0 NOT NULL
+    tag_count_contributor integer DEFAULT 0 NOT NULL,
+    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -3623,6 +3625,13 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 
 
 --
+-- Name: index_comment_votes_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING btree (user_id, id);
+
+
+--
 -- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3669,6 +3678,13 @@ CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING
 --
 
 CREATE UNIQUE INDEX index_dmail_filters_on_user_id ON public.dmail_filters USING btree (user_id);
+
+
+--
+-- Name: index_dmails_for_inbox; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_for_inbox ON public.dmails USING btree (id, owner_id, to_id, is_deleted);
 
 
 --
@@ -3739,6 +3755,13 @@ CREATE INDEX index_favorites_on_post_id ON public.favorites USING btree (post_id
 --
 
 CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+
+
+--
+-- Name: index_favorites_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING btree (user_id, created_at);
 
 
 --
@@ -4145,6 +4168,20 @@ CREATE INDEX index_post_votes_on_post_id ON public.post_votes USING btree (post_
 --
 
 CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_id);
+
+
+--
+-- Name: index_post_votes_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id_and_created_at ON public.post_votes USING btree (user_id, created_at);
+
+
+--
+-- Name: index_post_votes_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id_and_id ON public.post_votes USING btree (user_id, id);
 
 
 --
@@ -4696,6 +4733,15 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250220212831'),
+('20250611041221'),
+('20250604020028'),
+('20250512221037'),
+('20250501203333'),
+('20250430193448'),
+('20250429022022'),
+('20250423141854'),
+('20250414000142'),
+('20250328035855'),
 ('20241114055212'),
 ('20240905160626'),
 ('20240726170041'),

@@ -203,7 +203,9 @@
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
-    background: url("blacklisted-preview.png") !important;
+    background-image: url("blacklisted-preview.png") !important;
+    background-color: #0003;
+    background-size: contain;
 
     @media screen and (max-width: 800px) {
       background-size: 100px !important;
@@ -211,16 +213,19 @@
     }
   }
 
+  // Without this, the video player intercepts clicks but
+  // does no tpass them on to the container element
+  video { pointer-events: none; }
+
   #note-container {
     display: none;
   }
 }
 
 article.thumbnail.blacklisted {
-  width: 100%;
   & > a {
-    width: 150px;
-    height: 150px;
+    width: var(--thumb-image-size, 150px);
+    height: var(--thumb-image-size, 150px);
     background-image: url("blacklisted-preview.png");
     background-size: cover;
     background-position: center;

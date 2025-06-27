@@ -1,5 +1,5 @@
-<div class="ui-corner-all site-notice" id="ban-notice">
-  <h1>Your account has been banned</h1>
-  <div class="dtext-container">Reason: <%= format_text CurrentUser.user.recent_ban.reason %></div>
+<div class="ui-corner-all ban-notice" id="ban-notice">
+  <h2><%= CurrentUser.user.pretty_name %>: Your account had been banned.<span class="id"><%= CurrentUser.user.id %></span></h2>
+  <div class="dtext-container"><%= format_text CurrentUser.user.recent_ban.reason %></div>
   <p>Ban expires: <%= CurrentUser.user.recent_ban.expire_days %></p>
 </div>

@@ -36,7 +36,7 @@ module Danbooru
     end
 
     def takedown_email
-      "management@#{domain}"
+      "takedowns@#{domain}"
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -63,14 +63,14 @@ module Danbooru
 
     def levels
       {
-          "Anonymous" => 0,
-          "Blocked" => 10,
-          "Member" => 20,
-          "Privileged" => 30,
-          "Former Staff" => 34,
-          "Janitor" => 35,
-          "Moderator" => 40,
-          "Admin" => 50
+        "Anonymous" => 0,
+        "Blocked" => 10,
+        "Member" => 20,
+        "Privileged" => 30,
+        "Former Staff" => 34,
+        "Janitor" => 35,
+        "Moderator" => 40,
+        "Admin" => 50,
       }
     end
 
@@ -108,7 +108,11 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
-      150
+      256
+    end
+
+    def webp_previews_enabled?
+      false
     end
 
     # Large resize image width. Set to nil to disable.
@@ -117,7 +121,7 @@ module Danbooru
     end
 
     def large_image_prefix
-      "sample-"
+      ""
     end
 
     def protected_path_prefix
@@ -140,6 +144,10 @@ module Danbooru
       "/images/deleted-preview.png"
     end
 
+    def blank_preview_url
+      "/images/blank.png"
+    end
+
     # When calculating statistics based on the posts table, gather this many posts to sample from.
     def post_sample_size
       300
@@ -147,7 +155,7 @@ module Danbooru
 
     # List of memcached servers
     def memcached_servers
-      %w(127.0.0.1:11211)
+      %w[127.0.0.1:11211]
     end
 
     def alias_implication_forum_category
@@ -226,7 +234,7 @@ module Danbooru
 
     # Pools created in the last hour
     def pool_limit
-      2
+      5
     end
 
     # Pools created or edited in the last hour
@@ -267,7 +275,7 @@ module Danbooru
     end
 
     def post_replacement_per_post_limit
-      5
+      3
     end
 
     def remember_key
@@ -359,10 +367,11 @@ module Danbooru
 
     def max_file_sizes
       {
-        'jpg' => 100.megabytes,
-        'png' => 100.megabytes,
-        'gif' => 20.megabytes,
-        'webm' => 100.megabytes
+        "jpg" => 100.megabytes,
+        "png" => 100.megabytes,
+        "gif" => 20.megabytes,
+        "webm" => 100.megabytes,
+        "mp4" => 100.megabytes,
       }
     end
 
@@ -377,17 +386,17 @@ module Danbooru
 
     # Maximum resolution (width * height) of an upload. Default: 441 megapixels (21000x21000 pixels).
     def max_image_resolution
-      15000 * 15000
+      15_000 * 15_000
     end
 
     # Maximum width of an upload.
     def max_image_width
-      15000
+      15_000
     end
 
     # Maximum height of an upload.
     def max_image_height
-      15000
+      15_000
     end
 
     def max_tags_per_post
@@ -416,7 +425,7 @@ module Danbooru
       # base_url - where to serve files from (default: http://#{hostname}/data)
       # hierarchical: false - store files in a single directory
       # hierarchical: true - store files in a hierarchical directory structure, based on the MD5 hash
-      StorageManager::Local.new(base_dir: "#{Rails.root}/public/data", hierarchical: true)
+      StorageManager::Local.new(base_dir: Rails.public_path.join("data").to_s, hierarchical: true)
 
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|
@@ -524,11 +533,12 @@ module Danbooru
         "Young [[human]]-[[humanoid|like]] character in an explicit situation",
         "",
         "Paysite/commercial content",
-        "Traced artwork",
-        "Traced artwork (post #%PARENT_ID%)",
+        "Trace of another artist's work",
+        "Trace of another artist's work (post #%PARENT_ID%)",
         "Takedown #%OTHER_ID%",
         "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
+        "[[conditional_dnp|Conditional DNP]] (%DNP_ID%)",
         "[[conditional_dnp|Conditional DNP]] (%OTHER_ID%)",
       ]
     end
@@ -552,7 +562,7 @@ module Danbooru
       75
     end
 
-    def is_post_restricted?(post)
+    def is_post_restricted?(_post)
       false
     end
 
@@ -563,19 +573,15 @@ module Danbooru
 
     def can_user_see_post?(user, post)
       return false if post.is_deleted? && !user.is_janitor?
-      if is_user_restricted?(user) && is_post_restricted?(post)
-        false
-      else
-        true
-      end
+      !(is_user_restricted?(user) && is_post_restricted?(post))
     end
 
-    def user_needs_login_for_post?(post)
+    def user_needs_login_for_post?(_post)
       false
     end
 
     def select_posts_visible_to_user(user, posts)
-      posts.select {|x| can_user_see_post?(user, x)}
+      posts.select { |x| can_user_see_post?(user, x) }
     end
 
     def enable_dimension_autotagging?
@@ -607,15 +613,15 @@ module Danbooru
     end
 
     def mailgun_api_key
-      ''
+      ""
     end
 
     def mailgun_domain
-      ''
+      ""
     end
 
     def mail_from_addr
-      'noreply@localhost'
+      "noreply@localhost"
     end
 
     # disable this for tests
@@ -662,17 +668,40 @@ module Danbooru
     end
 
     def ads_zone_desktop
-      {zone: nil, revive_id: nil, checksum: nil}
+      { zone: nil, revive_id: nil, checksum: nil }
     end
 
     def ads_zone_mobile
-      {zone: nil, revive_id: nil, checksum: nil}
+      { zone: nil, revive_id: nil, checksum: nil }
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
-      {'720p' => [1280, 720], '480p' => [640, 480]}
+      { "720p" => [1280, 720], "480p" => [640, 480] }
+    end
+
+    # Threshold at which an alternate version of the original video will be generated
+    # The new video will have this value as its smallest dimension.
+    def video_variant
+      1080
+    end
+
+    # Additional video samples will be generated in these dimensions if it makes sense to do so.
+    # They will be available as additional scale options on applicable posts in the order they appear here.
+    def video_samples
+      {
+        "720p": {
+          clamp: 720,
+          maxrate: 1,
+          bufsize: 2,
+        },
+        "480p": {
+          clamp: 480,
+          maxrate: 1,
+          bufsize: 2,
+        },
+      }
     end
 
     def image_rescales
@@ -680,6 +709,10 @@ module Danbooru
     end
 
     def enable_visitor_metrics?
+      false
+    end
+
+    def fsc_modal_enabled?
       false
     end
 
@@ -708,8 +741,8 @@ module Danbooru
       var
     end
 
-    def method_missing(method, *)
-      var = ENV["DANBOORU_#{method.to_s.upcase.chomp("?")}"]
+    def method_missing(method, *) # rubocop:disable Style/MissingRespondToMissing
+      var = ENV.fetch("DANBOORU_#{method.to_s.upcase.chomp('?')}", nil)
 
       if var.present?
         env_to_boolean(method, var)
@@ -720,7 +753,7 @@ module Danbooru
   end
 
   def config
-    @configuration ||= EnvironmentConfiguration.new
+    @config ||= EnvironmentConfiguration.new
   end
 
   module_function :config

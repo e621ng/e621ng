@@ -14,8 +14,16 @@ $st-values: (
   @return map-get($map: $st-values, $key: $name);
 }
 
-@function padding($value) { @return st-value(($value)); }
-@mixin st-padding($value) { padding: padding(($value)); }
+@function padding($value) { @return st-value($value); }
+@mixin st-padding($value: 025) { padding: padding($value); }
+@mixin st-padding-lr($value: 025) { padding: 0 padding($value); }
+@mixin st-padding-tb($value: 025) { padding: padding($value) 0; }
+@mixin st-padding-yx($tb: 025, $lr: 025) { padding: padding($tb) padding($lr); }
 
-@function radius($value) { @return st-value($value); }
-@mixin st-radius($value) { border-radius: radius($value); }
+@function radius($value: 025) { @return st-value($value); }
+@mixin st-radius($value: 025) { border-radius: radius($value); }
+
+@mixin st-radius-top($value: 025) { border-radius: radius($value) radius($value) 0 0; }
+@mixin st-radius-bottom($value: 025) { border-radius: 0 0 radius($value) radius($value); }
+@mixin st-radius-left($value: 025) { border-radius: radius($value) 0 0 radius($value); }
+@mixin st-radius-right($value: 025) { border-radius: 0 radius($value) radius($value) 0; }

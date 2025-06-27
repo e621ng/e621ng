@@ -1,0 +1,44 @@
+.search-settings-container {
+  display: none;
+  &.active { display: flex; }
+  flex-flow: column;
+  gap: 0.5rem;
+
+  position: absolute;
+  top: 0.5rem;
+  left: 16.5rem;
+  z-index: 11; // above posts and labels
+
+  background: themed("color-section");
+  padding: 0.5rem;
+  line-height: 1rem;
+  @include st-radius;
+
+  min-width: 16rem;
+  box-shadow: 1px 1px 4px 0px #0006;
+  border: 1px solid themed("color-section-darken-5");
+
+  h3 { margin-bottom: 0.25rem;}
+
+  .ssc-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 0.5rem;
+    align-items: center;
+  }
+  .ssc-label label {
+    font-weight: normal;
+  }
+  .ssc-body {
+    display: flex;
+    justify-content: end;
+  }
+}
+
+@include with-setting("fullscreen", "true") {
+  .search-settings-container {
+    left: unset;
+    right: 0;
+    top: 6rem;
+  }
+}

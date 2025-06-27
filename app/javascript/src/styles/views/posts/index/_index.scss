@@ -2,7 +2,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   #page {
     // Override the theme to instead
     // project it upon the content area
-    background: var(--color-foreground);
+    background: themed("color-foreground");
     padding: 0;
   }
 
@@ -32,7 +32,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   flex: 1; // See Exhibit A
 
   // 1. Searchbox
-  .search {
+  & > .search {
     grid-area: search;
 
     padding: 0.5rem 0.25rem;
@@ -46,7 +46,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   }
 
   // 2. Content
-  .content {
+  & > .content {
     display: flex; // See Exhibit A
     flex-flow: column;
 
@@ -82,7 +82,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   }
 
   // 3. Sidebar
-  .sidebar {
+  & > .sidebar {
     grid-area: sidebar;
 
     display: flex;
@@ -91,9 +91,6 @@ body.c-posts.a-index, body.c-favorites.a-index {
 
     padding: 0.5rem 0.25rem;
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
-
-    // By popular demand
-    font-size: 150%;
 
     // Mode selection
     #mode-box-mode, #mode-box #set-id {

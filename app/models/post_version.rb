@@ -104,6 +104,11 @@ class PostVersion < ApplicationRecord
     post && post.visible?
   end
 
+  def details_visible?
+    return true if CurrentUser.is_staff?
+    !is_hidden
+  end
+
   def diff_sources(version = nil)
     new_sources = source&.split("\n") || []
     old_sources = version&.source&.split("\n") || []
@@ -119,7 +124,8 @@ class PostVersion < ApplicationRecord
   end
 
   def diff(version = nil)
-    latest_tags = post.tag_array + parent_rating_tags(post)
+    # There is precisely one orphaned post version, but better safe than sorry.
+    latest_tags = post.nil? ? tag_array : post.tag_array + parent_rating_tags(post)
 
     new_tags = tag_array + parent_rating_tags(self)
 
@@ -162,6 +168,9 @@ class PostVersion < ApplicationRecord
       obsolete_added_tags: [],
       unchanged_tags: [],
     }
+
+    # There is precisely one orphaned post version, but better safe than sorry.
+    return delta if post.nil?
 
     latest_tags = post.tag_array
     latest_tags << "rating:#{post.rating}" if post.rating.present?
@@ -259,8 +268,31 @@ class PostVersion < ApplicationRecord
   end
 
   concerning :ApiMethods do
+    # Easier and safer to whitelist some methods than to blacklist
+    # almost everything when the post version is hidden
+    def hidden_attributes
+      super + attributes.keys.map(&:to_sym)
+    end
+
     def method_attributes
-      super + %i[obsolete_added_tags obsolete_removed_tags unchanged_tags updater_name]
+      list = super + %i[
+        id post_id version updated_at is_hidden
+      ]
+
+      if !is_hidden || CurrentUser.is_staff?
+        list += %i[
+          tags added_tags removed_tags
+          locked_tags added_locked_tags removed_locked_tags
+          rating rating_changed
+          parent_id parent_changed
+          source source_changed
+          description description_changed
+          reason
+          updater_id updater_name
+        ]
+      end
+
+      list
     end
 
     def obsolete_added_tags

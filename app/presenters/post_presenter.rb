@@ -2,7 +2,7 @@
 
 class PostPresenter < Presenter
   attr_reader :pool
-  delegate :post_show_sidebar_tag_list_html, :split_tag_list_text, :inline_tag_list_html, to: :tag_set_presenter
+  delegate :inline_tag_list_html, to: :tag_set_presenter
 
   def self.preview(post, options = {})
     if post.nil?
@@ -41,13 +41,6 @@ class PostPresenter < Presenter
 
     locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
-    locals[:cropped_url] = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                             post.crop_file_url
-                           else
-                             post.preview_file_url
-                           end
-
-    locals[:cropped_url] = Danbooru.config.deleted_preview_url if post.deleteblocked?
     locals[:preview_url] = if post.deleteblocked?
                              Danbooru.config.deleted_preview_url
                            else
@@ -55,8 +48,6 @@ class PostPresenter < Presenter
                            end
 
     locals[:alt_text] = "post ##{post.id}"
-
-    locals[:has_cropped] = post.has_cropped?
 
     if options[:pool]
       locals[:pool] = options[:pool]
@@ -111,86 +102,56 @@ class PostPresenter < Presenter
   end
 
   def self.post_attribute_attribute(post)
-    alternate_samples = {}
-    Danbooru.config.video_rescales.each do |k,v|
-      next unless post.has_sample_size?(k)
-      dims = post.scaled_sample_dimensions(v)
-      alternate_samples[k] = {
-          type: 'video',
-          height: dims[1],
-          width: dims[0],
-          urls: post.visible? ? [post.scaled_url_ext(k, 'webm'), post.scaled_url_ext(k, 'mp4')] : [nil, nil]
-      }
-    end
-    if post.has_sample_size?('original')
-      alternate_samples['original'] = {
-          type: 'video',
-          height: post.image_height,
-          width: post.image_width,
-          urls: post.visible? ? [nil, post.file_url_ext('mp4')] : [nil, nil]
-      }
-    end
-    Danbooru.config.image_rescales.each do |k,v|
-      next unless post.has_sample_size?(k)
-      dims = post.scaled_sample_dimensions(v)
-      alternate_samples[k] = {
-          type: 'image',
-          height: dims[1],
-          width: dims[0],
-          url: post.visible? ? post.scaled_url_ext(k, 'jpg') : nil
-      }
-    end
     {
-        id: post.id,
-        created_at: post.created_at,
-        updated_at: post.updated_at,
-        fav_count: post.fav_count,
-        comment_count: post.visible_comment_count(CurrentUser),
-        change_seq: post.change_seq,
-        uploader_id: post.uploader_id,
-        description: post.description,
-        flags: {
-            pending: post.is_pending,
-            flagged: post.is_flagged,
-            note_locked: post.is_note_locked,
-            status_locked: post.is_status_locked,
-            rating_locked: post.is_rating_locked,
-            deleted: post.is_deleted,
-            has_notes: post.has_notes?
-        },
-        score: {
-            up: post.up_score,
-            down: post.down_score,
-            total: post.score
-        },
-        relationships: {
-            parent_id: post.parent_id,
-            has_children: post.has_children,
-            has_active_children: post.has_active_children,
-            children: []
-        },
-        pools: post.pool_ids,
-        file: {
-            width: post.image_width,
-            height: post.image_height,
-            ext: post.file_ext,
-            size: post.file_size,
-            md5: post.md5,
-            url: post.visible? ? post.file_url : nil
-        },
-        sample: {
-            has: post.has_large?,
-            height: post.large_image_height,
-            width: post.large_image_width,
-            url: post.visible? ? post.large_file_url : nil,
-            alternates: alternate_samples
-        },
-        sources: post.source&.split('\n'),
-        tags: post.tag_string.split(' '),
-        locked_tags: post.locked_tags&.split(' ') || [],
-        is_favorited: post.is_favorited?
+      id: post.id,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+      fav_count: post.fav_count,
+      comment_count: post.visible_comment_count(CurrentUser),
+      change_seq: post.change_seq,
+      uploader_id: post.uploader_id,
+      description: post.description,
+      flags: {
+        pending: post.is_pending,
+        flagged: post.is_flagged,
+        note_locked: post.is_note_locked,
+        status_locked: post.is_status_locked,
+        rating_locked: post.is_rating_locked,
+        deleted: post.is_deleted,
+        has_notes: post.has_notes?,
+      },
+      score: {
+        up: post.up_score,
+        down: post.down_score,
+        total: post.score,
+      },
+      relationships: {
+        parent_id: post.parent_id,
+        has_children: post.has_children,
+        has_active_children: post.has_active_children,
+        children: [],
+      },
+      pools: post.pool_ids,
+      file: {
+        width: post.image_width,
+        height: post.image_height,
+        ext: post.file_ext,
+        size: post.file_size,
+        md5: post.md5,
+        url: post.visible? ? post.file_url : nil,
+      },
+      sample: {
+        has: post.has_sample?,
+        height: post.sample_height,
+        width: post.sample_width,
+        url: post.visible? ? post.sample_url : nil,
+        alternates: post.video_sample_list,
+      },
+      sources: post.source&.split('\n'),
+      tags: post.tag_string.split,
+      locked_tags: post.locked_tags&.split || [],
+      is_favorited: post.is_favorited?,
     }
-
   end
 
   def image_attributes
@@ -225,7 +186,33 @@ class PostPresenter < Presenter
   end
 
   def humanized_essential_tag_string
-    @humanized_essential_tag_string ||= tag_set_presenter.humanized_essential_tag_string(default: "##{@post.id}")
+    strings = TagCategory::HUMANIZED_LIST.map do |category|
+      mapping = TagCategory::HUMANIZED_MAPPING[category]
+      max_tags = mapping["slice"]
+      regexmap = mapping["regexmap"]
+      formatstr = mapping["formatstr"]
+      excluded_tags = mapping["exclusion"]
+
+      type_tags = @post.tags_for_category(category).map(&:name) - excluded_tags
+      next if type_tags.empty?
+
+      if max_tags > 0 && type_tags.length > max_tags
+        type_tags = type_tags.sort_by { |x| -x.size }.take(max_tags) + ["etc"]
+      end
+
+      if regexmap != //
+        type_tags = type_tags.map { |tag| tag.match(regexmap)[1] }
+      end
+
+      if category == "copyright" && @post.tags_for_category("character").blank?
+        type_tags.to_sentence
+      else
+        formatstr % type_tags.to_sentence
+      end
+    end
+
+    strings = strings.compact.join(" ").tr("_", " ")
+    @humanized_essential_tag_string ||= strings.presence || "##{@post.id}"
   end
 
   def filename_for_download
@@ -246,5 +233,11 @@ class PostPresenter < Presenter
     return "original" if @post.force_original_size?
     return "fit" if user.default_image_size == "large" && !@post.allow_sample_resize?
     user.default_image_size
+  end
+
+  def categorized_tag_list_text
+    TagCategory::CATEGORIZED_LIST.map do |category|
+      @post.tags_for_category(category).map(&:name).join(" ")
+    end.compact_blank.join(" \n")
   end
 end

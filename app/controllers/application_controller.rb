@@ -16,6 +16,7 @@ class ApplicationController < ActionController::Base
 
   include TitleHelper
   include DeferredPosts
+  include RenderPartialSafely
   helper_method :deferred_post_ids, :deferred_posts
 
   rescue_from Exception, :with => :rescue_exception
@@ -28,7 +29,8 @@ class ApplicationController < ActionController::Base
 
   def enable_cors
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
+    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
   end
 
   def check_valid_username
@@ -84,7 +86,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when TagQuery::CountExceededError
+    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError
       render_expected_error(422, exception.message)
     when FeatureUnavailable
       render_expected_error(400, "This feature isn't available")

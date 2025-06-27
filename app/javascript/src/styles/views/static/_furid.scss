@@ -1,0 +1,41 @@
+#c-static #a-furid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: repeat(auto-fill, 113px);
+  gap: 0.25rem;
+  justify-content: center;
+
+  @include window-larger-than(30rem) {
+    grid-template-columns: repeat(auto-fill, 150px);
+  }
+
+  .furid-text {
+    grid-column: 1 / -1;
+    grid-row-end: span 3;
+    padding: 0.5rem;
+
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+
+    @include window-larger-than(51rem) {
+      grid-column-start: 2;
+      grid-row-start: 3;
+
+      grid-column-end: span 3;
+    }
+
+    @include window-larger-than(70rem) { grid-column-start: 3; }
+    @include window-larger-than(90rem) { grid-column-start: 4; }
+    @include window-larger-than(100rem) { grid-column-start: 5; }
+    @include window-larger-than(119rem) { grid-column-start: 6; }
+
+    h2 { margin-bottom: 1rem; }
+  }
+
+  img {
+    object-fit: cover;
+    width: 100%;
+    max-height: 113px;
+    max-width: 150px;
+  }
+}

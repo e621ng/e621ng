@@ -19,9 +19,10 @@
 
       <% if CurrentUser.is_member? %>
         <%= subnav_link_to "Edit Tag Type", edit_tag_path(@wiki_page.tag) %>
-        <% if CurrentUser.is_janitor? %>
-          <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
-        <% end %>
+      <% end %>
+
+      <% if CurrentUser.is_janitor?%>
+        <%= subnav_link_to "Fix Tag Count", new_tag_correction_path(tag_id: @wiki_page.tag.id) %>
       <% end %>
     <% end %>
 
@@ -39,7 +40,11 @@
       <% if CurrentUser.is_member? %>
         <%= subnav_link_to "Report", new_ticket_path(disp_id: @wiki_page.id, qtype: "wiki") %>
       <% end %>
+    <% else %>
+      <%= subnav_link_to "Edit", new_wiki_page_path(wiki_page: { title: params[:title] }) %>
     <% end %>
+
+
   <% elsif @wiki_page_version %>
     <li class="divider"></li>
 

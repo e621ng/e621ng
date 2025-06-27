@@ -4,10 +4,10 @@
   grid-template-areas:
     "search  content" 
     "sidebar content";
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 16rem 1fr;
   grid-template-rows: min-content 1fr;
 
-  .search {
+  & > .search {
     box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
     padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 
@@ -18,6 +18,7 @@
       display: flex;
       flex-flow: row;
       justify-content: right;
+      z-index: 1;
 
       position: absolute;
       bottom: -1.633rem;
@@ -43,14 +44,12 @@
     }
   }
 
-  .sidebar {
+  & > .sidebar {
     box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
     padding: 0.5rem 0.75rem 0.5rem 0.5rem;
-
-    font-size: 100%;
   }
 
-  .content {
+  & > .content {
     border-radius: 0 0.25rem 0.25rem 0;
     padding: 0.5rem 0.75rem themed("content-padding-bottom");
   }

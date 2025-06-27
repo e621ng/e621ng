@@ -25,11 +25,10 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   def preview
-    dims = object.preview_dimensions
     preview_attributes = {
-        width: dims[1],
-        height: dims[0],
-        url: nil
+      width: object.preview_width,
+      height: object.preview_height,
+      url: nil,
     }
     if object.visible?
       preview_attributes[:url] = object.preview_file_url
@@ -38,45 +37,15 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   def sample
-    alternates = {}
-    Danbooru.config.video_rescales.each do |k,v|
-      next unless object.has_sample_size?(k)
-      dims = object.scaled_sample_dimensions(v)
-      alternates[k] = {
-          type: 'video',
-          height: dims[1],
-          width: dims[0],
-          urls: object.visible? ? [object.scaled_url_ext(k, 'webm'), object.scaled_url_ext(k, 'mp4')] : [nil, nil]
-      }
-    end
-    if object.has_sample_size?('original')
-      fixed_dims = object.scaled_sample_dimensions([object.image_width, object.image_height])
-      alternates['original'] = {
-          type: 'video',
-          height: fixed_dims[1],
-          width: fixed_dims[0],
-          urls: object.visible? ? [nil, object.file_url_ext('mp4')] : [nil, nil]
-      }
-    end
-    Danbooru.config.image_rescales.each do |k,v|
-      next unless object.has_sample_size?(k)
-      dims = object.scaled_sample_dimensions(v)
-      alternates[k] = {
-          type: 'image',
-          height: dims[1],
-          width: dims[0],
-          url: object.visible? ? object.scaled_url_ext(k, 'jpg') : nil
-      }
-    end
     sample_attributes = {
-        has: object.has_large?,
-        height: object.large_image_height,
-        width: object.large_image_width,
-        url: nil,
-        alternates: alternates
+      has: object.has_sample?,
+      width: object.sample_width,
+      height: object.sample_height,
+      url: nil,
+      alternates: object.video_sample_list,
     }
     if object.visible?
-      sample_attributes[:url] = object.large_file_url
+      sample_attributes[:url] = object.sample_url
     end
     sample_attributes
   end

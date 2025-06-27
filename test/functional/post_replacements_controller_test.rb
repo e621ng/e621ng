@@ -16,7 +16,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "accept new non duplicate replacement" do
-        file = fixture_file_upload("alpha.png")
+        file = fixture_file_upload("bread-static.png")
         params = {
           format: :json,
           post_id: @post.id,
@@ -37,7 +37,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
       context "with as_pending false" do
         should "immediately approve a replacement" do
-          file = fixture_file_upload("alpha.png")
+          file = fixture_file_upload("bread-static.png")
           params = {
             format: :json,
             post_id: @post.id,
@@ -51,8 +51,8 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           post_auth post_replacements_path, @user, params: params
           @post.reload
 
-          # 200be2be97a465ecd2054a51522f65b5 is the md5 of alpha.png
-          assert_equal "200be2be97a465ecd2054a51522f65b5", @post.md5
+          # f1abde88aedda37ee41b00f735c92afa is the md5 of bread-static.png
+          assert_equal "f1abde88aedda37ee41b00f735c92afa", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
         end
 
@@ -109,7 +109,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
     context "reject action" do
       should "reject replacement" do
         put_auth reject_post_replacement_path(@replacement), @user
-        assert_redirected_to post_path(@post)
+        assert_response :success
         @replacement.reload
         @post.reload
         assert_equal @replacement.status, "rejected"
@@ -120,7 +120,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
     context "approve action" do
       should "replace post" do
         put_auth approve_post_replacement_path(@replacement), @user
-        assert_redirected_to post_path(@post)
+        assert_response :success
         @replacement.reload
         @post.reload
         assert_equal @replacement.md5, @post.md5
@@ -132,7 +132,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       should "create post" do
         post_auth promote_post_replacement_path(@replacement), @user
         last_post = Post.last
-        assert_redirected_to post_path(last_post)
+        assert_response :success
         @replacement.reload
         @post.reload
         assert_equal @replacement.md5, last_post.md5
@@ -146,7 +146,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         @replacement.reload
         assert @replacement.penalize_uploader_on_approve
         put_auth toggle_penalize_post_replacement_path(@replacement), @user
-        assert_redirected_to post_replacement_path(@replacement)
+        assert_response :success
         @replacement.reload
         assert_not @replacement.penalize_uploader_on_approve
       end

@@ -4,8 +4,9 @@ import LStorage from "./utility/storage";
 const Theme = {};
 
 Theme.Values = {
-  "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "ForumNotif"],
+  "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "Logo"],
   "Posts": ["WikiExcerpt", "StickySearch"],
+  "Site": ["Events"],
 };
 
 for (const [label, settings] of Object.entries(Theme.Values)) {
@@ -36,7 +37,6 @@ Theme.initialize_selector = function () {
         .val(LStorage[label][one] + "")
         .on("change", (event) => {
           const data = event.target.value;
-          console.log("change", one, data);
           Theme[one] = data;
         });
   }

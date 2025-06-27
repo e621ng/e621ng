@@ -106,8 +106,9 @@ tabs-content {
   }
 
   tab-entry {
-    display: none;
-    &.active { display: grid; }
+    display: none !important;
+    &.active { display: grid !important; }
+    &.flex.active { display: flex !important; }
     grid-template-areas: "head" "body" "hint";
     grid-template-columns: 1fr;
 
@@ -153,7 +154,15 @@ tabs-content {
       grid-template-areas: "head" "body" "hint";
     }
 
-    &.buttony tab-body {
+    &.with-button tab-body {
+      display: grid;
+      grid-template-columns: 1fr;
+      a.st-button {
+        justify-content: center;
+      }
+    }
+
+    &.with-buttons tab-body {
       display: grid;
       grid-template-columns: 1fr 4rem;
 

@@ -93,6 +93,9 @@ class ForumPost < ApplicationRecord
     bulk_update_request || tag_alias || tag_implication
   end
 
+  # AIBURs must be bulk loaded whenever more than one
+  # forum post is displayed. Otherwise, this results
+  # in N+3 database queries for every forum post.
   def votable?
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
@@ -228,5 +231,9 @@ class ForumPost < ApplicationRecord
 
   def update_vote_score
     update_column(:vote_score, vote_score)
+  end
+
+  def method_attributes
+    super + %i[creator_name updater_name]
   end
 end

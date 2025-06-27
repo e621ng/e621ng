@@ -1,3 +1,5 @@
+@use "sass:math";
+
 // Standard button
 // Could be applied to either a button or a link
 // Semi-expected to have an icon
@@ -11,7 +13,7 @@
   $button-stealth-color-hover: themed("color-link-hover");
 
   display: flex;
-  gap: st-value(100) / 4;
+  gap: math.div(st-value(100), 4);
   border-radius: radius(025);
 
   // Button final size
@@ -19,7 +21,7 @@
   // Padding  2 * 0.5rem
   font-size: st-value(100);
   line-height: st-value(100);
-  padding: st-value(100) / 2;
+  padding: math.div(st-value(100), 2);
   height: st-value(100) * 2;
   box-sizing: border-box;
 
@@ -33,10 +35,11 @@
     // with padding to fill the entire button height
     height: st-value(100) * 1.5;      // 1.5rem
     width: st-value(100) * 1.5;       // 1.5rem
-    margin: -#{st-value(100) / 2} 0;  // 0.5rem
-    padding: st-value(100) / 4;       // 0.25rem
+    margin: -#{math.div(st-value(100), 2)} 0;  // 0.5rem
+    padding: math.div(st-value(100), 4);       // 0.25rem
 
     border-radius: radius(025);
+    pointer-events: none; // Simplifies event targetting
   }
   & > span {
     text-align: left;
@@ -51,7 +54,7 @@
 
   &.stealth {
     background: none;
-    padding: (st-value(100) / 2) 0;
+    padding: math.div(st-value(100), 2) 0;
 
     svg { background: $button-background; }
     span { color: $button-stealth-color; }
@@ -62,7 +65,12 @@
   }
 
   &.icon {
-    padding: (st-value(100) / 2) 0;
+    padding: math.div(st-value(100), 2) 0;
+  }
+
+  &.active {
+    background-color: themed("color-link-active");
+    color: palette("plain-black");
   }
 }
 
@@ -85,13 +93,24 @@ label.st-toggle {
   box-sizing: border-box;
   position: relative;
 
-  background-color: themed("color-foreground");
-  transition: background-color 500ms;
-  border-radius: 0.25rem;
   cursor: pointer;
   font-size: 0;
 
-  box-shadow: inset 0 0 0.25rem themed("color-background");
+
+  &::before {
+    content: "";
+    width: 2.5rem;
+    height: 0.75rem;
+    box-sizing: border-box;
+
+    position: absolute;
+    left: 0;
+    top: 0.375rem;
+
+    background-color: themed("color-foreground");
+    border-radius: 0.25rem;
+    box-shadow: inset 0 0 0.25rem #00000060;
+  }
 
   &::after {
     content: "";
@@ -99,19 +118,77 @@ label.st-toggle {
     height: 1rem;
     position: absolute;
     top: 0.25rem;
-    left: 0.25rem;
+    left: 0rem;
 
-    background: themed("color-text-muted");
+    background: themed("color-link");
     border-radius: 0.25rem;
-    transition: left 100ms;
+    transition: left 100ms, background-color 200ms;
   }
 }
 input[type="checkbox"][disabled].st-toggle + label.st-toggle {
-  background: palette("background-grey");
   cursor: not-allowed;
+  &::before { background: palette("background-grey"); }
 }
 input[type="checkbox"].st-toggle { display: none; }
 input[type="checkbox"].st-toggle:checked + label.st-toggle {
-  background-color: palette("background-green-d5");
-  &::after { left: 1.25rem; }
+  &::after {
+    content: "";
+    left: 1.5rem;
+    background: themed("color-link-active");
+  }
+}
+
+
+
+// Toggle with text
+label.sto-toggle {
+
+  display: flex;
+  width: 100%;
+  height: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  cursor: pointer;
+  @include st-radius;
+  background-color: themed("color-section-darken-5");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  align-items: center;
+  text-align: center;
+  font-weight: normal;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+  &::after {
+    content: "";
+    width: 50%;
+    height: 1.5rem;
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+
+    background: themed("color-link-active");
+    @include st-radius;
+    transition: left 100ms;
+  }
+
+  .sto-on, .sto-off {
+    width: 50%;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .sto-off { color: palette("plain-black"); }
+  .sto-on { color: themed("color-text");}
+}
+input[type="checkbox"].sto-toggle { display: none; }
+input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
+  .sto-off { color: themed("color-text");}
+  .sto-on { color: palette("plain-black"); }
+  &::after {
+    content: "";
+    left: 50%;
+  }
 }

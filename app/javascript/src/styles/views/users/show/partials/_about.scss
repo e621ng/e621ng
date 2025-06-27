@@ -1,0 +1,76 @@
+tabs-menu, tabs-content {
+  max-width: 100rem;
+}
+
+#profile-tabs[data-has-about="false"][data-has-artinfo="false"] {
+  display: none;
+}
+
+.profile-readmore {
+  flex-flow: column;
+  align-items: start;
+
+  tab-head {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .content {
+    position: relative;
+    max-height: 25rem;
+    &.expanded { max-height: unset; }
+    @include window-larger-than(50rem) { max-height: unset; }
+
+    .content-readmore {
+      display: none;
+      justify-content: center;
+      box-sizing: border-box;
+
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      line-height: 1rem;
+
+      background: themed("color-section-lighten-10");
+      color: themed("color-text");
+
+      &:hover {
+        background: themed("color-section-lighten-5");
+      }
+    }
+
+    &.expandable {
+      padding-bottom: 2rem;
+      .content-readmore { display: flex; }
+    }
+  }
+}
+
+@include window-larger-than(50rem) {
+  tabs-menu { display: none; }
+  tabs-content {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    grid-template-rows: min-content min-content;
+    gap: 1rem;
+  }
+
+  .profile-user-info {
+    display: grid !important;
+    grid-template-areas: unset;
+    grid-row: 1 / 4;
+    height: min-content;
+  }
+
+  .profile-about-section {
+    display: flex !important;
+    grid-column: 2 / -1;
+  }
+
+  .profile-artinfo-section {
+    display: flex !important;
+    grid-column: 2 / -1;
+  }
+}

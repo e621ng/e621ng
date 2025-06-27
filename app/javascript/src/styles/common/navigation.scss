@@ -27,7 +27,6 @@ nav.navigation {
       width: 4rem;
       margin: 0.125rem;
   
-      background-image: url("main-logo.svg");
       background-repeat: no-repeat;
       background-size: contain;
       background-position-y: center;
@@ -52,6 +51,7 @@ nav.navigation {
     & > a {
       display: flex;
       padding: 0.625rem 0.5rem;
+      cursor: pointer;
 
       & > span {
         display: flex;
@@ -75,56 +75,7 @@ nav.navigation {
       &:focus { outline: none; }
     }
 
-    a.simple-avatar {
-      .simple-avatar-button {
-        padding: 0;
-        gap: 0;
-
-        .simple-avatar-name {
-          padding: 0.5rem;
-
-          @include window-smaller-than(32rem) {
-            display: none;
-          }
-        }
-
-        .simple-avatar-image {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-
-          width: 2.5rem;
-          height: 2.5rem;
-    
-          box-sizing: border-box;
-          border-radius: 0.25rem;
-          background: themed("color-section");
-
-          img {
-            width: 2.5rem;
-            height: 2.5rem;
-
-            border-radius: 0.25rem;
-            object-fit: cover;
-
-            z-index: 1; // above the letter
-          }
-
-          &::before {
-            content: attr(data-name);
-            position: absolute;
-            font-size: 1.5rem;
-          }
-        }
-
-        @include window-smaller-than(32rem) {
-          &.sign-in .simple-avatar-image {
-            background: themed("color-foreground");
-          }
-        }
-      }
-    }
+    #nav-toggle .on { display: none; }
   }
 
   /* Offset elements on the left and bottom */
@@ -279,14 +230,17 @@ nav.navigation {
 
 
 // Sticky header
-body[data-th-sheader="true"] nav.navigation {
+body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
+
+  background-color: themed("color-background");
+  background-image: themed("image-background");
 }
 
 
 // Forum notification
-body[data-th-forumnotif="true"] nav.navigation .nav-primary li.forum-updated {
+nav.navigation .nav-primary li.notification {
   position: relative;
 
   &::after {
@@ -342,6 +296,11 @@ html.nav-toggled {
       box-shadow: -3px 3px 5px -1px themed("color-background");
     }
   }
+
+  .nav-controls #nav-toggle {
+    .on { display: block; }
+    .off { display: none; }
+  }
 }
 
 
@@ -351,15 +310,14 @@ nav.navigation, html.nav-toggled nav.navigation {
     grid-template-areas:
       "logo primary   help      help  controls" 
       "logo secondary secondary tools controls";
-    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 4.25rem;
     grid-template-rows: 1.5rem 1.75rem;
 
     padding: 0 1rem 0.5rem;
     box-sizing: border-box;
     height: unset;
 
-    background: themed("color-background");
-    overflow-y: hidden; // overrides mobile hack allowing the menu scrolling
+    overflow-y: unset; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo a.nav-logo-link {
       height: 3.25rem;
@@ -385,6 +343,10 @@ nav.navigation, html.nav-toggled nav.navigation {
         padding: 0 0.625rem;
         white-space: nowrap;
       }
+    }
+
+    .nav-logo {
+      background: unset;
     }
 
     .nav-primary {
@@ -487,37 +449,11 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       height: 3.25rem;
       box-sizing: border-box;
-      padding: 0.25rem 0 0;
+      padding: 0;
+      background: unset;
 
       #nav-toggle { display: none; }
-
-      a.simple-avatar {
-        padding: 0;
-        height: 100%;
-
-        .simple-avatar-button {
-          background: none;
-          color: inherit;
-          align-items: start;
-          font-size: 0.875rem;
-          line-height: 0.875rem;
-
-          .simple-avatar-name {
-            padding: 0 0.5rem;
-          }
-  
-          .simple-avatar-image {
-            height: 3rem;
-            width: 3rem;
-            background: themed("color-foreground");
-
-            img {
-              width: 2.75rem;
-              height: 2.75rem;
-            }
-          }
-        }
-      }
+      a { padding: 0; }
     }
 
     // Icon collapse
@@ -528,23 +464,34 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
     
     // Stage 2: account label
-    .collapse-2 .simple-avatar-name { display: none; }
+    .collapse-2 .avatar-name { display: none; }
     @include window-larger-than(65rem) {
-      .collapse-2 .simple-avatar-name { display: unset; }
+      .collapse-2 .avatar-name { display: unset; }
     }
+  }
+}
+
+// Anonymous desktop tweak
+body[data-user-is-anonymous="true"] nav.navigation {
+  @include window-larger-than(50rem) {
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
   }
 }
 
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
   @include window-larger-than(50rem) {
-
     nav.navigation {
 
       // Center and align the navbar
       grid-template-areas: "logo primary help controls";
       grid-template-columns: repeat(4, min-content);
       justify-content: center;
+
+      // Center AGAIN to get the dropdown
+      // to be where it's supposed to be
+      width: min-content;
+      margin: 0 auto;
 
       // Remove padding to prevent a scrollbar
       // at low desktop resolutions
@@ -564,11 +511,8 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
-      .simple-avatar-button {
-        height: unset;
-        align-items: center;
-        .simple-avatar-image { display: none; }
-      }
+      .avatar-image, .login-image, .avatar-more { display: none; }
+      .simple-avatar-menu { top: 2rem; }
     }
   }
 

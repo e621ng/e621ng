@@ -1,0 +1,13 @@
+// Picker
+body {
+  a.nav-logo-link { background-image: url("logo/default.svg"); }
+  @each $name in ("pride", "ace", "aro", "bi", "french", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "trans") {
+    &[data-th-logo="#{$name}"] a.nav-logo-link { background-image: url("logo/#{$name}.svg"); }
+  }
+
+  &[data-th-logo="default"] {
+    a.nav-logo-link { background-image: url("logo/default.svg"); }
+    &[data-th-main="bloodlust"] a.nav-logo-link { background-image: url("logo/default_bloodlust.svg"); }
+    &[data-th-main="pony"] a.nav-logo-link { background-image: url("logo/default_pony.svg"); }
+  }
+}

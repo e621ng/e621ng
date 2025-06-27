@@ -5,16 +5,21 @@
       // Theme
       "th-main": localStorage.getItem("theme") || "hexagon",
       "th-extra": localStorage.getItem("theme-extra") || "hexagon",
-      "th-sheader": localStorage.getItem("theme-sheader") || false,
-      "th-forumnotif": localStorage.getItem("theme-forumnotif") || false,
+      "th-stickyheader": localStorage.getItem("theme-sheader") || false,
       "th-palette": localStorage.getItem("theme-palette") || "default",
       "th-font": localStorage.getItem("theme-font") || "Verdana",
       "th-nav": localStorage.getItem("theme-nav") || "top",
+      "th-logo": localStorage.getItem("theme-logo") || "pride",
 
       // Settings
       "st-fullscreen": localStorage.getItem("e6.posts.fusk") || false,
-      "st-ssearch": localStorage.getItem("e6.posts.ssearch") || false,
+      "st-stickysearch": localStorage.getItem("e6.posts.ssearch") || false,
+      "st-contain": localStorage.getItem("e6.posts.contain") || false,
+      "st-size": localStorage.getItem("e6.posts.size") || false,
     };
+
+    if (values["th-extra"] === "spring" && Math.random() < 0.1)
+      values["th-extra"] = "fennec";
 
     var b = document.body;
     for (const [name, value] of Object.entries(values)) {

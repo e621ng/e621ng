@@ -1,0 +1,9 @@
+.profile-ban {
+  background: var(--palette-background-red);
+  padding: 0.5rem;
+  @include st-radius;
+
+  .styled-dtext p:last-child {
+    margin-bottom: 0;
+  }
+}

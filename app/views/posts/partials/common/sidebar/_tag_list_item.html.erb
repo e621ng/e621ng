@@ -1,0 +1,53 @@
+<li
+  class="tag-list-item tag-<%= tag.category_name %>"
+  data-name="<%=u tag.name %>"
+  data-category="<%= tag.category_name %>"
+  data-count="<%= tag.post_count %>"
+>
+  <a
+    class="tag-list-wiki"
+    rel="nofollow"
+    href="<%= tag.category == Tag.categories.artist ? show_or_new_artists_path(name: tag.name) : show_or_new_wiki_pages_path(title: tag.name) %>"
+  >?</a>
+
+  <% if query.present? %>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+<%=u tag.name %>" class="tag-list-inc">+</a>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%=u tag.name %>" class="tag-list-exl">–</a>
+  <% end %>
+
+  <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
+  <% post_count = tag.post_count %>
+  <% if post_count > 1_000 %>
+    <% post_count = tag.post_count > 10_000 ? "#{post_count / 1_000}k" : format("%.1fk", (tag.post_count / 1_000.0)) %>
+  <% end %>
+
+  <a
+    rel="nofollow"
+    class="tag-list-search"
+    <%= "itemprop=author" if tag.category == Tag.categories.artist %>
+    href="<%= posts_path(tags: tag.name) %>"
+  >
+    <span class="tag-list-name">
+      <%= tag.name.tr("_", " ") %>
+      <% if post.present? && post.uploader_linked_artists.include?(tag.name) %>
+        <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
+      <% end %>
+    </span>
+
+    <span
+      data-count="<%= tag.post_count %>"
+      class="tag-list-count<%= is_underused_tag ? " low-post-count" : "" %>"
+      <% if is_underused_tag %>
+        title="New general tag detected. Check the spelling or populate it now."
+      <% end %>
+    ><%= post_count %></span>
+  </a>
+
+  <span class="tag-list-actions">
+    <button
+      class="tag-list-quick-blacklist"
+      title="Add <%== tag.name %> to your blacklist"
+      data-tag="<%= tag.name %>"
+    ><%= svg_icon(:eye_off) %></button>
+  </span>
+</li>

@@ -11,7 +11,7 @@ module PostSets
       @limit = limit
     end
 
-    def public_tag_string
+    def tag_string
       "fav:#{@user.name}"
     end
 

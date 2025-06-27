@@ -7,6 +7,7 @@
   <% end %>
   <%= subnav_link_to "Recent changes", artist_versions_path %>
   <%= subnav_link_to "URLs", artist_urls_path %>
+  <%= subnav_link_to "Help", help_page_path(id: "artists") %>
   <% if @artist && !@artist.new_record? %>
     <li class="divider"></li>
     <%= subnav_link_to "Posts (#{@artist.tag.try(:post_count).to_i})", posts_path(tags: @artist.name) %>

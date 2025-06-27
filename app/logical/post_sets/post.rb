@@ -1,35 +1,42 @@
 # frozen_string_literal: true
 
 module PostSets
+  # `initialize(tags, page = 1, limit: nil, random: nil)`:
+  # * `tags`
+  # * `page` [`1`]
+  # * `limit` [`nil`]
+  # * `random` [`nil`]
   class Post < PostSets::Base
-    attr_reader :tag_array, :public_tag_array, :page, :limit, :random, :post_count
+    attr_reader :tag_array, :page, :limit, :random, :post_count
 
     def initialize(tags, page = 1, limit: nil, random: nil)
       super()
       tags ||= ""
-      @public_tag_array = TagQuery.scan(tags)
-      tags += " rating:s" if CurrentUser.safe_mode?
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      @tag_array = TagQuery.scan(tags)
+      @tag_array = TagQuery.scan_search(tags, error_on_depth_exceeded: true)
       @page = page
-      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit")
+      # limit should have been hoisted by scan_search
+      @limit = limit || TagQuery.fetch_metatag(tag_array, "limit", at_any_level: false)
       @random = random.present?
     end
 
     def tag_string
-      @tag_string ||= tag_array.uniq.join(" ")
-    end
-
-    def public_tag_string
-      @public_tag_string ||= public_tag_array.uniq.join(" ")
+      @tag_string ||= TagQuery.scan_recursive(
+        tag_array.uniq.join(" "),
+        strip_duplicates_at_level: true,
+        delimit_groups: true,
+        flatten: true,
+        strip_prefixes: false,
+        sort_at_level: false,
+        normalize_at_level: false,
+      ).join(" ")
     end
 
     def ad_tag_string
-      TagQuery.ad_tag_string(public_tag_array)
+      TagQuery.ad_tag_string(tag_array)
     end
 
     def humanized_tag_string
-      public_tag_array.slice(0, 25).join(" ").tr("_", " ")
+      tag_array.slice(0, 25).join(" ").tr("_", " ")
     end
 
     def has_explicit?
@@ -37,11 +44,11 @@ module PostSets
     end
 
     def hidden_posts
-      @hidden_posts ||= posts.select { |p| !p.visible? }
+      @hidden_posts ||= posts.reject(&:visible?)
     end
 
     def login_blocked_posts
-      @login_blocked ||= posts.select { |p| p.loginblocked? }
+      @login_blocked_posts ||= posts.select(&:loginblocked?)
     end
 
     def safe_posts
@@ -49,7 +56,9 @@ module PostSets
     end
 
     def is_random?
-      random || (TagQuery.fetch_metatag(tag_array, "order") == "random" && !TagQuery.has_metatag?(tag_array, "randseed"))
+      return true if random
+      mts = TagQuery.fetch_metatags(tag_array, "order", "randseed")
+      !!(mts["order"]&.include?("random") && !mts.key?("randseed"))
     end
 
     def posts
@@ -62,10 +71,10 @@ module PostSets
     end
 
     def api_posts
-      _posts = posts
-      fill_children(_posts)
-      fill_tag_types(_posts)
-      _posts
+      posts_dup = posts
+      fill_children(posts_dup)
+      fill_tag_types(posts_dup)
+      posts_dup
     end
 
     def current_page
@@ -74,6 +83,17 @@ module PostSets
 
     def presenter
       @presenter ||= ::PostSetPresenters::Post.new(self)
+    end
+
+    def related_tags
+      @related_tags ||= begin
+        tag_array = RelatedTagCalculator.calculate_from_posts_to_array(posts).map(&:first)
+        tag_data = Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+
+        tag_array.map do |name|
+          tag_data[name] || Tag.new(name: name).freeze
+        end
+      end
     end
   end
 end
