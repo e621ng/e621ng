@@ -798,7 +798,8 @@ CREATE TABLE public.forum_posts (
     updated_at timestamp without time zone NOT NULL,
     creator_ip_addr inet,
     warning_type integer,
-    warning_user_id integer
+    warning_user_id integer,
+    vote_score numeric
 );
 
 
@@ -4731,6 +4732,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250220212831'),
 ('20250611041221'),
 ('20250604020028'),
 ('20250512221037'),
