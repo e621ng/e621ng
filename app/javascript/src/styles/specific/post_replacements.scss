@@ -142,18 +142,18 @@ div#c-post-replacements {
 //   margin-bottom: 0.25em;
 // }
 
-// .sources-list {
-//   list-style: none;
-//   padding: 0;
-//   margin: 0.25em 0 0 0;
-// }
+.sources-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
 
-// .source-url {
-//   font-size: 0.95em;
-//   color: #345;
-//   word-break: break-all;
-//   margin-bottom: 0.15em;
-// }
+.source-url {
+  font-size: 0.95em;
+  // color: #345;
+  word-break: break-all;
+  margin-bottom: 0.15em;
+}
 
 // .bottom-actions {
 //   flex: 0 0 auto;
@@ -221,11 +221,11 @@ div#c-post-replacements {
 //   gap: 0.15em;
 // }
 
-// .details-row {
-//   display: flex;
-//   gap: 0.5em;
-//   align-items: baseline;
-// }
+.details-row {
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
 
 // .details-label {
 //   font-weight: bold;
@@ -315,7 +315,8 @@ div#c-post-replacements {
 
 .replacement-thumbnail { 
   grid-area: replacement-thumbnail; 
-  margin: 0.5rem; 
+  margin-bottom: 0.25rem; 
+  margin-right: 0.25rem;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -331,6 +332,7 @@ div#c-post-replacements {
     "replacement-version-label"
     "replacement-version-value"; 
   grid-area: replacement-version; 
+  margin-right: 1rem;
 }
 .replacement-version-label { grid-area: replacement-version-label; @extend .replacement-label; }
 .replacement-version-value { grid-area: replacement-version-value; @extend .replacement-short-text; }
@@ -379,16 +381,16 @@ div#c-post-replacements {
 
 .replacement-section-bottom {  
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
+  // grid-template-columns: 1fr 1fr 1fr 0fr;
+  // grid-template-rows: 1fr 1fr 1fr 1fr;
   grid-auto-columns: 1fr;
   gap: 0px 0px;
   grid-auto-flow: row;
   grid-template-areas:
-    "replacement-sources replacement-sources replacement-sources replacement-actions"
-    "replacement-image-info replacement-current-info . replacement-actions"
-    "replacement-datetimes replacement-datetimes replacement-previous-user replacement-actions"
-    "replacement-file-details replacement-file-details replacement-file-details ."
+    "replacement-sources replacement-sources replacement-actions"
+    "replacement-datetimes replacement-datetimes replacement-actions"
+    "replacement-image-info replacement-current-info replacement-previous-user"
+    "replacement-file-details replacement-file-details replacement-file-details"
     ;
 }
 
@@ -396,21 +398,32 @@ div#c-post-replacements {
   @extend .replacement-label; 
 }
 
-.replacement-actions { grid-area: replacement-actions; }
+.replacement-toggle-penalize-action { display: flex; }
+
+.replacement-actions { 
+  grid-area: replacement-actions; 
+  justify-content: flex-end;
+  padding-left: 0;
+}
 
 .replacement-datetimes { grid-area: replacement-datetimes; }
 
-.replacement-image-info { grid-area: replacement-image-info; }
+.replacement-image-info { grid-area: replacement-image-info; padding-right: 0.5rem; }
+
+.replacement-current-info { grid-area: replacement-current-info; padding-right: 0.5rem;}
+
 
 .replacement-image-info-label { 
   @extend .replacement-label; 
 }
 .replacement-current-info-label { 
   @extend .replacement-label; 
+  white-space: break-spaces;
 }
 
 .replacement-previous-user-label { 
   @extend .replacement-label; 
+  white-space: break-spaces;
 }
 .replacement-sources-label { 
   @extend .replacement-label; 
@@ -419,13 +432,11 @@ div#c-post-replacements {
   @extend .replacement-label; 
 }
 
-.replacement-current-info { grid-area: replacement-current-info; }
-
 .replacement-file-details { grid-area: replacement-file-details; margin-top: 1rem; margin-bottom: 1rem;}
 
 .replacement-previous-user { grid-area: replacement-previous-user; }
 
-.replacement-sources { grid-area: replacement-sources; }
+.replacement-sources { grid-area: replacement-sources; padding-right: 0.5rem;}
 
 }
 

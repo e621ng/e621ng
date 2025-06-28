@@ -37,7 +37,7 @@
     </div>
   </div>
   <div class="replacement-current-info">
-    <div class="replacement-current-info-label">Current (<% link_to( "view", post_path(post_replacement.post.file_url) ) %>)</div> 
+    <div class="replacement-current-info-label">Current (<%= link_to "view", post_replacement.post.file_url %>)</div> 
     <div class="info-grid">
       <div class="info-value"><%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %></div>
       <div class="info-value">(<%= number_to_human_size(post_replacement.file_size) %>)</div>
