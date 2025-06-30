@@ -159,4 +159,72 @@ class VoteManager
     end
     Post.where(id: post.id).update_all(vote_cols)
   end
+
+  module VoteAbuseMethods
+    # methods related to vote abuse detection and prevention
+
+    # Section: Vote Abuse Detection
+    # - Dectect users who vote on many posts in a short time period.
+
+    # Section: Vote Patterns
+    # look for patterns in votes: 
+    # - make an KV pair using posts the user has recently voted on. 
+    #   - Key: Each unique tag on the posts
+    #   - Value: Running total of the number of votes for that tag. Each vote is weighted:
+    #     - Weight by how much the vote 'agrees' with the post's score ratio. This can be ignored if the post has few votes.
+    #     - Weight by how many total tags the post has.
+    # - Weight each tag by the total usage of the tag (tag count). Tag.post_count is available on the tag model. 
+    # - Sort the KV pair by the absolute value of the value, and return the top N tags. Only return tags that have a value above a certain threshold.
+    # **Large values indicate the user is voting up on posts with that tag, and small values indicate the user is voting down on posts with that tag.**
+    def self.vote_abuse_patterns(user, limit: 10, threshold: 0.0001)
+      # return [] unless user.is_member?
+      # return [] unless user.post_votes.exists?
+
+      # Create a KV pair of tags and their weighted vote counts
+      tag_votes = Hash.new(0)
+      user.post_votes.order(updated_at: :desc).limit(limit).each do |vote|
+        post = vote.post
+        next unless post
+
+        post.tags.each do |tag|
+          weight = calculate_vote_weight(vote, post)
+          #puts "Tag: #{tag.name}, Weight: #{'%02.05f'%(weight*1000)}"  # for debugging purposes, remove this line in production
+          tag_votes[tag] += weight
+        end
+        # return
+        # tag_votes = tag_votes.sort_by { |_, count| -count.abs }.to_h
+        # tag_votes.each do |tag, count| puts "Tag: #{tag.name}, Count: #{'%2.010f'%count}" end
+        # return # for debugging purposes, remove this line in production
+      end
+      # weight tags by their total usage over the whole site
+      tag_votes.each do |tag, count|
+        # puts "Tag: #{tag.name}, Count: #{'%2.02f'%count}, Total Posts: #{tag.post_count}"
+        tag_votes[tag] /= tag.post_count.to_f # if tag.post_count && tag.post_count != 0
+      end
+      # Sort the tags by their absolute vote counts and return the top N
+      result = tag_votes.select { |_, count| count.abs > threshold }
+            .sort_by { |_, count| -count.abs }
+            .to_h
+
+      result.each do |tag, freq| puts "#{tag.name}  \t#{'%02.05f'% freq}" end
+    end
+
+    def self.calculate_vote_weight(vote, post)
+      # Calculate the weight of the vote based on the post's score ratio and total tags
+      # Weight magnitude is based on the post's score ratio and the number of tags on the post (and how the user votes according to the ratio)
+      # negative value means the user is voting down on posts with that tag, positive value means the user is voting up on posts with that tag
+      tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright 
+                + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid 
+      return 0 unless tag_count && tag_count > 0
+      # Calculate the score ratio of the post
+      up_score = post.up_score.to_f
+      down_score = post.down_score.to_f || 0.0
+      total_score = up_score + down_score
+      score_ratio = total_score != 0 ? (up_score-down_score) / total_score : 1.0
+      # Calculate the weight based on the user's vote and the post's score ratio
+      weight = vote.score * (score_ratio / tag_count.to_f)
+      weight 
+    end
+  end
+include VoteAbuseMethods
 end
