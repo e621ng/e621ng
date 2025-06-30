@@ -55,6 +55,7 @@ div#c-post-replacements {
   list-style: none;
   padding: 0;
   margin-bottom: 1rem;
+  overflow: auto;
 }
 
 .source-url {
@@ -236,7 +237,7 @@ div#c-post-replacements {
 
   .replacement-previous-user { grid-area: replacement-previous-user; }
 
-  .replacement-sources { grid-area: replacement-sources; padding-right: 0.5rem; overflow: auto; }
+  .replacement-sources { grid-area: replacement-sources; padding-right: 0.5rem;  }
 
   // Lost both thumbs in an industrial accident.
   // Made replacements out of highest quality wood.
