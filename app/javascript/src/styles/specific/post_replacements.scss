@@ -10,7 +10,11 @@ div#c-post-replacements {
   .replacement-current-row {
     background-color: themed("color-section-darken-5");
   }
-
+  .replacement-section-separator {
+    border-top: 1px solid themed("color-table-border");
+    margin: 0.5rem 1rem;
+    width: auto;
+  }
   .inline-icons{
     vertical-align: text-bottom;
   }
@@ -18,11 +22,6 @@ div#c-post-replacements {
   .replacement-status-current .inline-icons {
     display: inline;
     margin-right: 0.25rem;
-  }
-
-  .replacement-status-icons .inline-icons {
-    display: inline;
-    margin-left: 0.5rem;
   }
 
   .disabled-link {
@@ -98,6 +97,7 @@ div#c-post-replacements {
   }
   .replacement-section-top { 
     display: grid; 
+    gap: 0.25rem;
     
     grid-template-columns: auto auto auto auto; 
     // grid-template-rows: auto auto auto auto auto auto; 
@@ -113,8 +113,6 @@ div#c-post-replacements {
 
   .replacement-thumbnail { 
     grid-area: replacement-thumbnail; 
-    margin-bottom: 0.25rem; 
-    margin-right: 0.25rem;
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -128,24 +126,22 @@ div#c-post-replacements {
     grid-area: replacement-version;
     margin-right: 1rem;
     @extend .info-grid;
+    width: max-content;
 
   }
   .replacement-version-label { grid-area: replacement-version-label; @extend .replacement-label; }
-  .replacement-version-value { grid-area: replacement-version-value; @extend .replacement-short-text; }
+  .replacement-version-value { grid-area: replacement-version-value; @extend .replacement-short-text; display: flex; overflow: auto;}
 
   .replacement-status {
-    // display: grid; 
-    // grid-auto-columns: auto; 
-    // grid-template-rows: auto auto; 
-    // gap: 0px 0px; 
     grid-template-areas: 
       "replacement-status-label"
       "replacement-status-value";
     grid-area: replacement-status; 
     @extend .info-grid;
+    width: max-content;
   }
   .replacement-status-label  { grid-area: 1 / 1 / 2 / 2; @extend .replacement-label; }
-  .replacement-status-value { grid-area: 2 / 1 / 3 / 2; @extend .replacement-short-text; display: flex; }
+  .replacement-status-value { grid-area: 2 / 1 / 3 / 2; @extend .replacement-short-text; display: flex; overflow: auto;}
 
   .replacement-reason {
     @extend .info-grid;
@@ -176,6 +172,8 @@ div#c-post-replacements {
   .replacement-note-value { grid-area: replacement-note-value; @extend .replacement-long-text; }
   .replacement-note-labels { grid-area: replacement-note-labels; @extend .replacement-label; }
 
+
+  .replacement-status-icons .inline-icons { display: inline; padding-left: 0.05rem; padding-right: 0.05rem; }
 
 
   .replacement-section-bottom {  
@@ -231,56 +229,89 @@ div#c-post-replacements {
     @extend .replacement-label; 
   }
 
-  .replacement-file-details { grid-area: replacement-file-details; margin-top: 1rem; margin-bottom: 1rem;}
+  .replacement-file-details { 
+    grid-area: replacement-file-details; margin-top: 1rem; margin-bottom: 1rem;
+    overflow: auto;
+  }
 
   .replacement-previous-user { grid-area: replacement-previous-user; }
 
-  .replacement-sources { grid-area: replacement-sources; padding-right: 0.5rem;}
+  .replacement-sources { grid-area: replacement-sources; padding-right: 0.5rem; overflow: auto; }
 
-}
+  // Lost both thumbs in an industrial accident.
+  // Made replacements out of highest quality wood.
+  .replacement-thumb{
+    max-width: 512px;
+    max-height: 512px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  img.replacement-thumb {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
 
-// Lost both thumbs in an industrial accident.
-// Made replacements out of highest quality wood.
-img.replacement-thumb {
-  max-width: 256px;
-  max-height: 256px;
-  width: auto;
-}
+  .replacement-status-value-box {
+    display: inline-block;
+    padding: 0.2em 0.75em;
+    border-radius: 1em;
+    color: themed("color-text");
+    font-weight: bold;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 
-.replacement-status-value-box {
-  display: inline-block;
-  padding: 0.2em 0.75em;
-  border-radius: 1em;
-  color: themed("color-text");
-  font-weight: bold;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    // Define base colors for statuses
+    &[data-status="original"],
+    &[data-status="approved"] {
+      --status-base-color: #{themed("color-success")};
+    }
+    &[data-status="pending"] {
+      --status-base-color: #{themed("color-section-lighten-5")};
+    }
+    &[data-status="rejected"] {
+      --status-base-color: #{themed("color-danger")};
+    }
+    &[data-status="promoted"] {
+      --status-base-color: #{themed("color-warning")};
+    }
+    &[data-status="default"] {
+      --status-base-color: #{themed("color-section")};
+    }
+    &[data-status="processing"] {
+      --status-base-color: #{themed("color-warning")};
+    }
+    background-color: var(--status-base-color);
+  }
 
-  // Define base colors for statuses
-  &[data-status="original"],
-  &[data-status="approved"] {
-    --status-base-color: #{themed("color-success")};
+  .replacement-status-icons {
+    display: inline-block;
+    padding: 0.2em 0.25em;
+    border-radius: 1em;
+    color: themed("color-text");
+    background-color: themed("color-danger-darken-5");
+    font-weight: bold;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    margin-left: 0.1rem;
+    
   }
-  &[data-status="pending"] {
-    --status-base-color: #{themed("color-section-lighten-5")};
-  }
-  &[data-status="rejected"] {
-    --status-base-color: #{themed("color-danger")};
-  }
-  &[data-status="promoted"] {
-    --status-base-color: #{themed("color-warning")};
-  }
-  &[data-status="default"] {
-    --status-base-color: #{themed("color-section")};
-  }
-  &[data-status="processing"] {
-    --status-base-color: #{themed("color-warning")};
-  }
-  background-color: var(--status-base-color);
-}
 
-.toggle-expanded-button {
-  color: #{themed("color-link-active")};
-  background-color: transparent;
-  border: none;
-  stroke-width: 4;
+  .toggle-expanded-button {
+    color: #{themed("color-link-active")};
+    background-color: transparent;
+    border: none;
+    stroke-width: 4;
+  }
+  .replacement-toggle-chevron {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+  }
+  .replacement-toggle-icon {
+    position: relative; display: inline-block; width: 1.5em; height: 1.5em;
+  }
 }

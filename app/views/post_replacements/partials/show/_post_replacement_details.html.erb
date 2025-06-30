@@ -1,4 +1,4 @@
-<div class="replacement-section-bottom" id="replacement-bottom-<%= post_replacement.id %>">
+<div class="replacement-section-bottom replacement-collapsible" id="replacement-bottom-<%= post_replacement.id %>">
   <div class="replacement-actions">
     <% if CurrentUser.can_approve_posts? || CurrentUser.is_admin? %><div class="replacements-actions-label">Actions</div><% end %>
     <% if CurrentUser.can_approve_posts? %>
@@ -71,7 +71,7 @@
     <div class="replacement-sources-label">Sources</div>
     <ul class="sources-list">
         <% post_replacement.source_list.each do |url| %>
-          <li class="source-url"><%= truncate(url, length: 32) %></li>
+          <li class="source-url"><%= url %></li>
         <% end %>
     </ul>
   </div>
