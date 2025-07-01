@@ -2,19 +2,11 @@
 // May or may not exist on some pages
 section.posts-container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 
   // Defaults to 150px elsewhere
-  --thumb-image-size: 256px;
-
-  @include window-larger-than(420px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @include window-larger-than(640px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  --thumb-image-size: 200px;
 
   @include window-larger-than(800px) {
     grid-template-columns: repeat(auto-fill, minmax(var(--thumb-image-size), 1fr));
@@ -40,7 +32,7 @@ article.thumbnail {
 
   // Used in conjunction with setting the link element width and height
   // in order to ensure that the thumbnail always has the same size.
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     min-width: var(--thumb-image-size, 150px);
     min-height: calc(var(--thumb-image-size, 150px) + 1rem);
   }
@@ -57,8 +49,13 @@ article.thumbnail {
     background: #0003;
 
     // See min-width and min-height above
-    max-width: var(--thumb-image-size, 150px);
-    max-height: var(--thumb-image-size, 150px);
+    max-width: min(33vw, var(--thumb-image-size, 150px));
+    max-height: min(33vw, var(--thumb-image-size, 150px));
+
+    @include window-larger-than(50rem) {
+      max-width: var(--thumb-image-size, 150px);
+      max-height: calc(var(--thumb-image-size, 150px) + 1rem);
+    }
   }
 
   img {
@@ -195,6 +192,28 @@ body[data-st-contain="true"] article.thumbnail img {
   object-fit: contain;
 }
 
-body[data-st-size="true"] section.posts-container {
+
+// Thumbnail size and spacing
+body[data-st-size="s"] section.posts-container {
   --thumb-image-size: 150px;
+
+  @include window-smaller-than(50rem) {
+    grid-template-columns: repeat(4, 1fr);
+    article.thumbnail a {
+      max-width: min(25vw, var(--thumb-image-size, 150px));
+      max-height: min(25vw, var(--thumb-image-size, 150px));
+    }
+  }
+}
+
+body[data-st-size="l"] section.posts-container {
+  --thumb-image-size: 256px;
+
+  @include window-smaller-than(50rem) {
+    grid-template-columns: repeat(2, 1fr);
+    article.thumbnail a {
+      max-width: min(50vw, var(--thumb-image-size, 150px));
+      max-height: min(50vw, var(--thumb-image-size, 150px));
+    }
+  }
 }

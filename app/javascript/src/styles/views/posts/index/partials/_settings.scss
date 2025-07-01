@@ -5,8 +5,8 @@
   gap: 0.5rem;
 
   position: absolute;
-  top: 0.5rem;
-  left: 16.5rem;
+  top: 4rem;
+  right: 0.25rem;
   z-index: 11; // above posts and labels
 
   background: themed("color-section");
@@ -18,21 +18,34 @@
   box-shadow: 1px 1px 4px 0px #0006;
   border: 1px solid themed("color-section-darken-5");
 
-  h3 { margin-bottom: 0.25rem;}
+  h3 {
+    margin-bottom: 0.25rem;
+    position: relative;
+
+    button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 0.25rem;
+      height: 1.5rem;
+    }
+  }
 
   .ssc-entry {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 0.5rem;
-    align-items: center;
   }
   .ssc-label label {
     font-weight: normal;
+    padding: 0.25rem 0;
   }
   .ssc-body {
     display: flex;
     justify-content: end;
   }
+
+  .ssc-desktop-only { display: none;}
 }
 
 @include with-setting("fullscreen", "true") {
@@ -40,5 +53,16 @@
     left: unset;
     right: 0;
     top: 6rem;
+  }
+}
+
+
+// Desktop Only
+@include window-larger-than(50rem) {
+  .search-settings-container {
+    top: 0.5rem;
+    left: 16.5rem;
+
+    .ssc-desktop-only { display: grid; }
   }
 }

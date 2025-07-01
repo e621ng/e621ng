@@ -192,3 +192,41 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
     left: 50%;
   }
 }
+
+
+
+// Radio toggle
+.stm-toggle {
+  display: grid;
+  grid-template-columns: auto;
+
+  input[type="radio"] { display: none; }
+  label {
+    display: flex;
+    gap: 0.25rem;
+
+    background: themed("color-section-darken-5");
+    padding: 0.25rem 0.5rem;
+
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-weight: normal;
+    line-height: 1rem;
+    font-size: 1rem;
+
+    user-select: none;
+    cursor: pointer;
+
+    &:first-of-type { @include st-radius-top;}
+    &:last-of-type { @include st-radius-bottom;}
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  input[type="radio"]:checked + label {
+    background: themed("color-link-active");
+    color: palette("plain-black");
+    @include st-radius;
+  }
+}

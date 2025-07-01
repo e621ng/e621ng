@@ -42,7 +42,39 @@ body.c-posts.a-index, body.c-favorites.a-index {
       font-size: $h3-size;
     }
 
-    .search-controls { display: none; }
+    // Align the controls properly
+    position: relative;
+
+    .search-controls {
+      display: flex;
+      flex-flow: row;
+      justify-content: right;
+      z-index: 1;
+
+      position: absolute;
+      bottom: -1.633rem;
+      right: 0.5rem;
+
+      padding: 0.25rem;
+      gap: 0.5rem;
+
+      background: themed("color-foreground");
+      border-radius: 0 0 0.25rem 0.25rem;
+
+      #search-fullscreen { display: none; }
+
+      button {
+        height: 1.5rem;
+        padding: 0;
+
+        svg {
+          height: 1.25rem;
+          width: 1.25rem;
+          padding: 0.25rem;
+          margin: -0.125rem 0;
+        }
+      }
+    }
   }
 
   // 2. Content

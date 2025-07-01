@@ -104,13 +104,15 @@ LStorage.Posts = {
   /** @returns {boolean} True to stop limiting videos to 1080p in Original mode */
   SkipVariants: ["e6.posts.scvideos", false],
 
-  /** @returns {boolean} True to stop cropping thumbnails to 256px */
+  /** @returns {boolean} True to stop cropping thumbnails to square */
   Contain: ["e6.posts.contain", false],
 
-  /** @returns {boolean} True to restore the 150px thumbnail size */
-  Size: ["e6.posts.size", false],
+  /** @returns {string} Preferred thumbnail size */
+  Size: ["e6.posts.size", "m"],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
+
+if (LStorage.Posts.Size == "true") LStorage.Posts.Size = "s";
 
 LStorage.Posts.TagScript = {
   /** @returns {number} Current tag script ID */

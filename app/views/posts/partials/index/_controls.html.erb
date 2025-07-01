@@ -8,7 +8,12 @@
 </div>
 
 <div class="search-settings-container">
-  <h3>Search Settings</h3>
+  <h3>
+    Layout Settings
+    <button id="search-settings-close" class="st-button" title="Close settings">
+      <%= svg_icon(:times) %>
+    </button>
+  </h3>
 
   <div class="ssc-entry">
     <div class="ssc-label">
@@ -25,18 +30,30 @@
 
   <div class="ssc-entry">
     <div class="ssc-label">
-      <label for="ssc-image-size">Card Size</label>
+      <label for="ssc-card-medium">Card Size</label>
     </div>
-    <div class="ssc-body">
-      <input class="boolean optional sto-toggle" type="checkbox" id="ssc-image-size" data-toggle="Size">
-      <label class="sto-toggle" for="ssc-image-size">
-        <span class="sto-off">Large</span>
-        <span class="sto-on">Small</span>
+    <div class="ssc-body-g stm-toggle">
+      <input type="radio" id="ssc-card-small" name="ssc-card-size" value="s">
+      <label for="ssc-card-small">
+        <%= svg_icon(:square_nine, stroke_width: 1) %>
+        Small
+      </label>
+
+      <input type="radio" id="ssc-card-medium" name="ssc-card-size" value="m">
+      <label for="ssc-card-medium">
+        <%= svg_icon(:square_four, stroke_width: 1) %>
+        Medium
+      </label>
+
+      <input type="radio" id="ssc-card-large" name="ssc-card-size" value="l">
+      <label for="ssc-card-large">
+        <%= svg_icon(:square, stroke_width: 1) %>
+        Large
       </label>
     </div>
   </div>
 
-  <div class="ssc-entry">
+  <div class="ssc-entry ssc-desktop-only">
     <div class="ssc-label">
       <label for="ssc-sticky-searchbar">Sticky Searchbar</label>
     </div>

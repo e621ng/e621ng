@@ -79,6 +79,13 @@ PostSearch.initialize_controls = function () {
     menuButton.toggleClass("active", settingsVisible);
   });
 
+  $("#search-settings-close").on("click", (event) => {
+    event.preventDefault();
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+    settingsVisible = false;
+  });
+
   // click outside the menu
   $(window).on("mouseup", (event) => {
     if (!settingsVisible) return;
@@ -100,12 +107,13 @@ PostSearch.initialize_controls = function () {
       $("body").attr("data-st-contain", event.target.checked);
     });
 
-  $("#ssc-image-size")
-    .prop("checked", LStorage.Posts.Size)
+  $("input[type='radio'][name='ssc-card-size']")
     .on("change", (event) => {
-      LStorage.Posts.Size = event.target.checked;
-      $("body").attr("data-st-size", event.target.checked);
+      LStorage.Posts.Size = event.target.value;
+      $("body").attr("data-st-size", event.target.value);
     });
+  $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
+    .prop("checked", true);
 
   $("#ssc-sticky-searchbar")
     .prop("checked", LStorage.Posts.StickySearch)
