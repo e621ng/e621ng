@@ -5,8 +5,8 @@
   gap: 0.5rem;
 
   position: absolute;
-  top: 0.5rem;
-  left: 16.5rem;
+  top: 4rem;
+  right: 0.25rem;
   z-index: 11; // above posts and labels
 
   background: themed("color-section");
@@ -44,6 +44,8 @@
     display: flex;
     justify-content: end;
   }
+
+  .ssc-desktop-only { display: none;}
 }
 
 @include with-setting("fullscreen", "true") {
@@ -51,5 +53,16 @@
     left: unset;
     right: 0;
     top: 6rem;
+  }
+}
+
+
+// Desktop Only
+@include window-larger-than(50rem) {
+  .search-settings-container {
+    top: 0.5rem;
+    left: 16.5rem;
+
+    .ssc-desktop-only { display: grid; }
   }
 }
