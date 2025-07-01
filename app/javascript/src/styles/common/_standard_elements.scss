@@ -217,7 +217,7 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
     cursor: pointer;
 
     &:first-of-type { @include st-radius-top;}
-    &:last-of-type { @include st-radius-top;}
+    &:last-of-type { @include st-radius-bottom;}
 
     svg {
       width: 1rem;
