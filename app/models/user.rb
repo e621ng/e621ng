@@ -951,6 +951,10 @@ class User < ApplicationRecord
     reload
   end
 
+  def has_custom_style?
+    custom_style.present? && !custom_style.strip.empty?
+  end
+
   def hide_favorites?
     return false if CurrentUser.is_moderator?
     return true if is_blocked?
