@@ -24,10 +24,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 0.5rem;
-    align-items: center;
   }
   .ssc-label label {
     font-weight: normal;
+    padding: 0.25rem 0;
   }
   .ssc-body {
     display: flex;
