@@ -18,7 +18,18 @@
   box-shadow: 1px 1px 4px 0px #0006;
   border: 1px solid themed("color-section-darken-5");
 
-  h3 { margin-bottom: 0.25rem;}
+  h3 {
+    margin-bottom: 0.25rem;
+    position: relative;
+
+    button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 0.25rem;
+      height: 1.5rem;
+    }
+  }
 
   .ssc-entry {
     display: grid;

@@ -79,6 +79,13 @@ PostSearch.initialize_controls = function () {
     menuButton.toggleClass("active", settingsVisible);
   });
 
+  $("#search-settings-close").on("click", (event) => {
+    event.preventDefault();
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+    settingsVisible = false;
+  });
+
   // click outside the menu
   $(window).on("mouseup", (event) => {
     if (!settingsVisible) return;

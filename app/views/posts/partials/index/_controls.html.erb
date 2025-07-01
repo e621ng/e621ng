@@ -8,7 +8,12 @@
 </div>
 
 <div class="search-settings-container">
-  <h3>Search Settings</h3>
+  <h3>
+    Search Settings
+    <button id="search-settings-close" class="st-button" title="Close settings">
+      <%= svg_icon(:times) %>
+    </button>
+  </h3>
 
   <div class="ssc-entry">
     <div class="ssc-label">
@@ -25,7 +30,7 @@
 
   <div class="ssc-entry">
     <div class="ssc-label">
-      <label for="ssc-image-size">Card Size</label>
+      <label for="ssc-card-size">Card Size</label>
     </div>
     <div class="ssc-body-g stm-toggle">
       <input type="radio" id="ssc-card-small" name="ssc-card-size" value="s">

@@ -195,6 +195,8 @@ body[data-st-contain="true"] article.thumbnail img {
   object-fit: contain;
 }
 
+
+// Thumbnail size and spacing
 body[data-st-size="s"] section.posts-container {
   --thumb-image-size: 150px;
 }
