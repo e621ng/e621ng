@@ -48,6 +48,13 @@ module IconHelper
     octagon_alert: %(<path d="M12 16h.01"/><path d="M12 8v4"/><path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/>),
     diamond_plus: %(<path d="M12 8v8"/><path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"/><path d="M8 12h8"/>),
     circle_check_small: %(<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>),
+    square: %(<rect width="16" height="16" x="4" y="4" rx="2"/>),
+    square_four: %(<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/>),
+    square_nine: %(
+      <rect width="4" height="4" x="3" y="3"/><rect width="4" height="4" x="10" y="3"/><rect width="4" height="4" x="17" y="3"/>
+      <rect width="4" height="4" x="3" y="10"/><rect width="4" height="4" x="10" y="10"/><rect width="4" height="4" x="17" y="10"/>
+      <rect width="4" height="4" x="3" y="17"/><rect width="4" height="4" x="10" y="17"/><rect width="4" height="4" x="17" y="17"/>
+    ),
 
     # Pagination
     chevron_left: %(<path d="m15 18-6-6 6-6"/>),
@@ -73,6 +80,7 @@ module IconHelper
     height = options[:height] || 24
     klass = options[:class]
     title = options[:title]
+    stroke_width = options[:stroke_width] || 2
 
     tag.svg(
       "xmlns": "http://www.w3.org/2000/svg",
@@ -81,7 +89,7 @@ module IconHelper
       "viewbox": "0 0 24 24",
       "fill": "none",
       "stroke": "currentColor",
-      "stroke-width": 2,
+      "stroke-width": stroke_width,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
       "class": klass,

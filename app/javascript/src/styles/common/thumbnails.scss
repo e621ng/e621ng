@@ -6,7 +6,7 @@ section.posts-container {
   gap: 0.5rem;
 
   // Defaults to 150px elsewhere
-  --thumb-image-size: 256px;
+  --thumb-image-size: 200px;
 
   @include window-larger-than(420px) {
     grid-template-columns: repeat(3, 1fr);
@@ -195,6 +195,10 @@ body[data-st-contain="true"] article.thumbnail img {
   object-fit: contain;
 }
 
-body[data-st-size="true"] section.posts-container {
+body[data-st-size="s"] section.posts-container {
   --thumb-image-size: 150px;
+}
+
+body[data-st-size="l"] section.posts-container {
+  --thumb-image-size: 256px;
 }
