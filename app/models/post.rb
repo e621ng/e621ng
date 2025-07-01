@@ -36,9 +36,10 @@ class Post < ApplicationRecord
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
-  after_commit :delete_files, :on => :destroy
-  after_commit :remove_iqdb_async, :on => :destroy
-  after_commit :update_iqdb_async, :on => :create
+  after_commit :delete_files, on: :destroy
+  after_commit :remove_iqdb_async, on: :destroy
+  # after_commit :update_iqdb_async, :on => :create
+  after_commit :handle_thumbnails_on_create, on: :create
   after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
 
@@ -333,6 +334,11 @@ class Post < ApplicationRecord
       else
         generate_image_samples
       end
+    end
+
+    def handle_thumbnails_on_create
+      ImageSampler.generate_post_images(self)
+      update_iqdb_async if has_preview?
     end
   end
 
