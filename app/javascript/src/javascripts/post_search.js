@@ -80,7 +80,6 @@ PostSearch.initialize_controls = function () {
   });
 
   // click outside the menu
-  /*
   $(window).on("mouseup", (event) => {
     if (!settingsVisible) return;
 
@@ -92,7 +91,6 @@ PostSearch.initialize_controls = function () {
     menuButton.removeClass("active");
     settingsVisible = false;
   });
-  */
 
   // Menu toggles
   $("#ssc-image-contain")
