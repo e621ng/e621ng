@@ -176,13 +176,15 @@ class VoteManager
     # - Weight each tag by the total usage of the tag (tag count). Tag.post_count is available on the tag model. 
     # - Sort the KV pair by the absolute value of the value, and return the top N tags. Only return tags that have a value above a certain threshold.
     # **Large values indicate the user is voting up on posts with that tag, and small values indicate the user is voting down on posts with that tag.**
-    def self.vote_abuse_patterns(user, limit: 10, threshold: 0.0001)
-      # return [] unless user.is_member?
-      # return [] unless user.post_votes.exists?
+    def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil)
+
+      Rails.logger.debug "Vote Abuse Patterns for User: #{user.id}, Limit: #{limit}, Threshold: #{threshold}, Duration: #{duration}" if Rails.env.development?
 
       # Create a KV pair of tags and their weighted vote counts
       tag_votes = Hash.new(0)
-      user.post_votes.order(updated_at: :desc).limit(limit).each do |vote|
+      scope = user.post_votes.order(updated_at: :desc)
+      scope = scope.where("updated_at >= ?", duration.ago) if duration
+      scope.limit(limit).each do |vote|
         post = vote.post
         next unless post
 
