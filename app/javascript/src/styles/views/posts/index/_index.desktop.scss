@@ -12,7 +12,16 @@
     padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 
     .search-controls {
+      top: unset;
+      bottom: -1.633rem;
+      right: 0.5rem;
+
       #search-fullscreen { display: flex; }
+      #search-settings {
+        height: inherit;
+        width: inherit;
+        svg { height: inherit;}
+      }
     }
   }
 
