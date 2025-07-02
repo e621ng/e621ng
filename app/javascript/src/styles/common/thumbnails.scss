@@ -7,6 +7,7 @@ section.posts-container {
 
   // Defaults to 150px elsewhere
   --thumb-image-size: 200px;
+  --thumb-mobile-size: 33vw;
 
   @include window-larger-than(800px) {
     grid-template-columns: repeat(auto-fill, minmax(var(--thumb-image-size), 1fr));
@@ -30,11 +31,17 @@ article.thumbnail {
   position: relative;   // Position badges correctly
   overflow: hidden;
 
+  // Chrome bug that prevents the thumbnail card from spanning the full width
+  width: 100%;
+  max-width: min(var(--thumb-mobile-size, 33vw), var(--thumb-image-size, 150px));
+
   // Used in conjunction with setting the link element width and height
   // in order to ensure that the thumbnail always has the same size.
   @include window-larger-than(50rem) {
     min-width: var(--thumb-image-size, 150px);
     min-height: calc(var(--thumb-image-size, 150px) + 1rem);
+
+    width: unset;
   }
 
   // Badges
@@ -49,8 +56,8 @@ article.thumbnail {
     background: #0003;
 
     // See min-width and min-height above
-    max-width: min(33vw, var(--thumb-image-size, 150px));
-    max-height: min(33vw, var(--thumb-image-size, 150px));
+    max-width: min(var(--thumb-mobile-size, 33vw), var(--thumb-image-size, 150px));
+    max-height: min(var(--thumb-mobile-size, 33vw), var(--thumb-image-size, 150px));
 
     @include window-larger-than(50rem) {
       max-width: var(--thumb-image-size, 150px);
@@ -196,24 +203,18 @@ body[data-st-contain="true"] article.thumbnail img {
 // Thumbnail size and spacing
 body[data-st-size="s"] section.posts-container {
   --thumb-image-size: 150px;
+  --thumb-mobile-size: 25vw;
 
   @include window-smaller-than(50rem) {
     grid-template-columns: repeat(4, 1fr);
-    article.thumbnail a {
-      max-width: min(25vw, var(--thumb-image-size, 150px));
-      max-height: min(25vw, var(--thumb-image-size, 150px));
-    }
   }
 }
 
 body[data-st-size="l"] section.posts-container {
   --thumb-image-size: 256px;
+  --thumb-mobile-size: 50vw;
 
   @include window-smaller-than(50rem) {
     grid-template-columns: repeat(2, 1fr);
-    article.thumbnail a {
-      max-width: min(50vw, var(--thumb-image-size, 150px));
-      max-height: min(50vw, var(--thumb-image-size, 150px));
-    }
   }
 }
