@@ -34,8 +34,8 @@ class FavoritesController < ApplicationController
     flash.now[:notice] = "You have favorited this post"
 
     respond_with(@post)
-  rescue Favorite::Error, ActiveRecord::RecordInvalid => x
-    render_expected_error(422, x.message)
+  rescue Favorite::Error, ActiveRecord::RecordInvalid => e
+    render_expected_error(422, e.message)
   end
 
   def destroy
@@ -44,11 +44,11 @@ class FavoritesController < ApplicationController
 
     flash.now[:notice] = "You have unfavorited this post"
     respond_with(@post)
-  rescue Favorite::Error => x
-    render_expected_error(422, x.message)
+  rescue Favorite::Error => e
+    render_expected_error(422, e.message)
   end
 
   def ensure_lockdown_disabled
-    access_denied if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
+    render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
   end
 end
