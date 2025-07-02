@@ -22,46 +22,7 @@ export default class PostCache {
     // still be optimized wherever possible.
 
     const data = $element[0].dataset; // Faster than $element.data()
-
-    // For some reason, this takes 10x as long on the first post.
-    // But it's still only ~1ms (rather than 0.1ms), so it's fine
-    const tag_string = data.tags || "",
-      tags = tag_string.split(" ");
-
-    // OPTIMIZE: Is removing `[]` & spliting on `,` faster? Is it *always* comma-separated?
-    // const pools = data.pools[0] === "[" ? JSON.parse(data.pools) : [];
-    const pools = [];
-    for (let value of (data.pools + "").split(" ")) {
-      value = parseInt(value);
-      if (value) pools.push(value);
-    }
-
-    const value = {
-      tag_string: tag_string,
-      tags: tags,
-      tagcount: tags.length,
-
-      id: parseInt(data.id),
-      flags: (data.flags || "").split(" "),
-      rating: data.rating || "",
-      file_ext: data.fileExt || "",
-
-      width: parseInt(data.width) || -1,
-      height: parseInt(data.height) || -1,
-      size: parseInt(data.size) || -1,
-
-      score: parseInt(data.score) || 0,
-      fav_count: parseInt(data.favCount) || 0,
-      is_favorited: data.isFavorited === "true",
-
-      uploader: (data.uploader || "").toLowerCase(),
-      uploader_id: parseInt(data.uploaderId) || -1,
-
-      pools: pools,
-    };
-
-    this._cache[id] = value;
-    return value;
+    return this.fromDeferredPosts(id, data);
   }
 
 
@@ -77,8 +38,16 @@ export default class PostCache {
     if (!id) return null;
     if (this._cache[id]) return this._cache[id];
 
+    // For some reason, this takes 10x as long on the first post.
+    // But it's still only ~1ms (rather than 0.1ms), so it's fine
     const tag_string = data.tags || "",
       tags = tag_string.split(" ");
+
+    const pools = [];
+    for (let one of (data.pools + "").split(" ")) {
+      one = parseInt(one);
+      if (one) pools.push(one);
+    }
 
     const value = {
       tag_string: tag_string,
@@ -101,7 +70,7 @@ export default class PostCache {
       uploader: (data.uploader || "").toLowerCase(),
       uploader_id: parseInt(data.uploader_id) || -1,
 
-      pools: data.pools,
+      pools: pools,
     };
 
     this._cache[id] = value;
