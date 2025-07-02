@@ -4,9 +4,9 @@
  */
 export default class PostCache {
   static _cache = {};
+  static _index = new Set();
 
   static _elements = {};
-
 
   /**
    * Add to cache based on the data-attributes of the specific thumbnail element
@@ -15,54 +15,15 @@ export default class PostCache {
    */
   static fromThumbnail ($element) {
     const id = $element.data("id");
-    if (this._cache[id]) return this._cache[id];
+    if (!id) return null;
+    if (this._index.has(id)) return this._cache[id];
 
-    // As of right now, the code below will take up three
-    // times as long to execute compared to simply fetching
-    // the data from cache. While understandable, it should
-    // still be optimized wherever possible.
+    // As of right now, fetching post data from the attributes takes up to three times as long
+    // compared to getting it from the cache. As such, it should be avoided whenever possible.
 
     const data = $element[0].dataset; // Faster than $element.data()
-
-    // For some reason, this takes 10x as long on the first post.
-    // But it's still only ~1ms (rather than 0.1ms), so it's fine
-    const tag_string = data.tags || "",
-      tags = tag_string.split(" ");
-
-    const pools = [];
-    for (let value of (data.pools + "").split(" ")) {
-      value = parseInt(value);
-      if (value) pools.push(value);
-    }
-
-    const value = {
-      tag_string: tag_string,
-      tags: tags,
-      tagcount: tags.length,
-
-      id: parseInt(data.id),
-      flags: (data.flags || "").split(" "),
-      rating: data.rating || "",
-      file_ext: data.fileExt || "",
-
-      width: parseInt(data.width) || -1,
-      height: parseInt(data.height) || -1,
-      size: parseInt(data.size) || -1,
-
-      score: parseInt(data.score) || 0,
-      fav_count: parseInt(data.favCount) || 0,
-      is_favorited: data.isFavorited === "true",
-
-      uploader: (data.uploader || "").toLowerCase(),
-      uploader_id: parseInt(data.uploaderId) || -1,
-
-      pools: pools,
-    };
-
-    this._cache[id] = value;
-    return value;
+    return this._fromData(id, data);
   }
-
 
   /**
    * Add to the cache based on the deferred post data
@@ -71,13 +32,23 @@ export default class PostCache {
    * @returns Processed data
    */
   static fromDeferredPosts (id, data) {
-
-    // Likely won't happen, but won't hurt to check
     if (!id) return null;
-    if (this._cache[id]) return this._cache[id];
+    if (this._index.has(id)) return this._cache[id];
 
+    return this._fromData(id, data);
+  }
+
+  static _fromData (id, data) {
+    // For some reason, this takes 10x as long on the first post.
+    // But it's still only ~1ms (rather than 0.1ms), so it's fine
     const tag_string = data.tags || "",
       tags = tag_string.split(" ");
+
+    const pools = [];
+    for (let one of (data.pools + "").split(" ")) {
+      one = parseInt(one);
+      if (one) pools.push(one);
+    }
 
     const value = {
       tag_string: tag_string,
@@ -100,10 +71,11 @@ export default class PostCache {
       uploader: (data.uploader || "").toLowerCase(),
       uploader_id: parseInt(data.uploader_id) || -1,
 
-      pools: data.pools,
+      pools: pools,
     };
 
     this._cache[id] = value;
+    this._index.add(id);
     return value;
   }
 
