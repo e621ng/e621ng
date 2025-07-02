@@ -173,11 +173,11 @@ class StorageManager
   end
 
   def post_file_path(post, type = :original, ext: nil, protect: nil, scale: nil)
-    ext = post.file_ext if ext.nil?
-    protect = post.protect_file? if protect.nil?
     if %i[preview preview_jpg preview_webp].include?(type) && !post.has_preview?
       return "/images/download-preview.png"
     end
+    ext = post.file_ext if ext.nil?
+    protect = post.protect_file? if protect.nil?
     file_path(post.md5, ext, type, protect: protect, scale: scale)
   end
 
@@ -191,6 +191,9 @@ class StorageManager
   end
 
   def post_file_url(post, type = :original, ext: nil, scale: nil)
+    if %i[preview preview_jpg preview_webp].include?(type) && !post.has_preview?
+      return "/images/download-preview.png"
+    end
     ext ||= post.file_ext
     file_url(post.md5, ext, type, protect: post.protect_file?, scale: scale)
   end
