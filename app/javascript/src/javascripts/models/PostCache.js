@@ -4,6 +4,7 @@
  */
 export default class PostCache {
   static _cache = {};
+  static _index = new Set();
 
   static _elements = {};
 
@@ -14,17 +15,15 @@ export default class PostCache {
    */
   static fromThumbnail ($element) {
     const id = $element.data("id");
-    if (this._cache[id]) return this._cache[id];
+    if (!id) return null;
+    if (this._index.has(id)) return this._cache[id];
 
-    // As of right now, the code below will take up three
-    // times as long to execute compared to simply fetching
-    // the data from cache. While understandable, it should
-    // still be optimized wherever possible.
+    // As of right now, fetching post data from the attributes takes up to three times as long
+    // compared to getting it from the cache. As such, it should be avoided whenever possible.
 
     const data = $element[0].dataset; // Faster than $element.data()
-    return this.fromDeferredPosts(id, data);
+    return this._fromData(id, data);
   }
-
 
   /**
    * Add to the cache based on the deferred post data
@@ -33,11 +32,13 @@ export default class PostCache {
    * @returns Processed data
    */
   static fromDeferredPosts (id, data) {
-
-    // Likely won't happen, but won't hurt to check
     if (!id) return null;
-    if (this._cache[id]) return this._cache[id];
+    if (this._index.has(id)) return this._cache[id];
 
+    return this._fromData(id, data);
+  }
+
+  static _fromData (id, data) {
     // For some reason, this takes 10x as long on the first post.
     // But it's still only ~1ms (rather than 0.1ms), so it's fine
     const tag_string = data.tags || "",
@@ -74,6 +75,7 @@ export default class PostCache {
     };
 
     this._cache[id] = value;
+    this._index.add(id);
     return value;
   }
 
