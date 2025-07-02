@@ -59,6 +59,8 @@ Thumbnails.initialize = function () {
     if (Danbooru.Blacklist.hiddenPosts.has(postID))
       thumbnail.addClass("blacklisted");
 
+    // Side effect: arrays will be converted to space-separated strings.
+    // Most prominient example is the pools array, which affects the blacklist.
     for (const key in postData)
       thumbnail.attr("data-" + key.replace(/_/g, "-"), postData[key]);
 

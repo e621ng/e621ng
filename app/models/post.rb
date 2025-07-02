@@ -1171,7 +1171,7 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool\:(\d+)/).map {|pool| pool[0].to_i}
+      pool_string.scan(/pool:(\d+)/).map { |pool| pool[0].to_i }
     end
 
     def pools
@@ -1601,7 +1601,7 @@ class Post < ApplicationRecord
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
 
-        pools: pool_ids,
+        pools: pool_ids.join(" "),
       }
 
       if visible?
