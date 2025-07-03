@@ -11,16 +11,18 @@ module Admin
       puts "USER:: #{params[:user].to_i}"
       params.require(:user)
 
-      @vote_trends = VoteManager::VoteAbuseMethods.vote_abuse_patterns(
-        user: User.find(params[:user].to_i), 
-        limit: params[:limit].to_i.presence, 
-        threshold: params[:threshold].to_f.presence, 
-        duration: params[:duration].presence,
+      vote_abuse_args = {
+        user: User.find(params[:user].to_i),
         vote_normality: params[:vote_normality].present? ? params[:vote_normality].to_s == "true" : true
-      )
-      respond_with(@vote_trends) do |format|
-        format.json { render json: @vote_trends.to_json }
-      end
+      }
+      vote_abuse_args[:limit] = params[:limit].to_i if params[:limit].present?
+      vote_abuse_args[:threshold] = params[:threshold].to_f if params[:threshold].present?
+      vote_abuse_args[:duration] = params[:duration] if params[:duration].present?
+
+      @vote_trends = VoteManager::VoteAbuseMethods.vote_abuse_patterns(**vote_abuse_args)
+      Rails.logger.debug "VOTE TRENDS: #{@vote_trends.inspect}"
+      respond_with(@vote_trends) 
+      Rails.logger.debug "RESPONSE: #{@vote_trends.to_json}"
     end
   end
 end
