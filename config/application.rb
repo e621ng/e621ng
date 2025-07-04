@@ -59,6 +59,7 @@ module Danbooru
     end
 
     config.i18n.enforce_available_locales = false
+    config.active_model.i18n_customize_full_message = true
 
     # Configuration for the application, engines, and railties goes here.
     #

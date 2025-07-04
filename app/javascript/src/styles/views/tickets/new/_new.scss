@@ -3,6 +3,49 @@
     margin-bottom: 1rem;;
   }
 
+
+  // Generic
+  .section {
+    max-width: 80em;
+  }
+  
+  form.simple_form {
+    background-color: transparent;
+  }
+
+  .ticket-warning {
+    display: block;
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  
+    ul {
+      list-style: disc;
+      margin: 0.5em 1.2em;
+    }
+  }
+
+  
+  // Error messages
+  .report-errors {
+    display: flex;
+    flex-flow: column;
+    gap: 0.125rem;
+    margin-bottom: 1rem;
+
+    span {
+      background-color: palette("background-red");
+      color: palette("text-white");
+      padding: 0.25rem;
+
+      &:first-child { @include st-radius-top; }
+      &:last-child { @include st-radius-bottom; }
+    }
+  }
+
+
+  // Post reports
   .report-card {
     display: flex;
     flex-flow: column;
