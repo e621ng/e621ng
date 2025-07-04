@@ -1,14 +1,38 @@
-<% @post = @ticket.content %>
-You are reporting <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+<h2>Post Report</h2>
 
-<p class="nomargin">Reason:
-  <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>
-  <span id="post_reason_description">You must select a reason.</span>
-</p>
-<%= javascript_tag nonce: true do -%>
-  var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json.html_safe %>;
-  $('#ticket_report_reason').on('change', function(e) {
-      var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
-      $('#post_reason_description').text(description);
-  });
-<% end -%>
+<div class="report-card">
+  <div class="report-card-left">
+    <% @post = @ticket.content %>
+    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+  </div>
+  <div class="report-card-right">
+    <p>
+      You are about to report a post. Please select a reason for reporting it.<br />
+      If you have any additional information, please include it in the description below.
+    </p>
+
+    <p>
+      Please, keep in mind that reports are for content that violates the rules of the site.<br />
+      If you believe that a post goes against the Uploading Guidelines, <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">please make a flag instead</a>.
+    </p>
+  </div>
+</div>
+
+<div class="report-reason">
+  <% PostReportReason.for_radio.each do |entry| %>
+    <label class="radio-label" for="post_report_reason_<%= entry.id %>">
+      <input type="radio" name="ticket[report_reason]" value="<%= entry.id %>" class="report-reason-radio" id="post_report_reason_<%= entry.id %>" />
+      <span class="report-reason-description">
+        <b><%= entry.reason %></b>
+        <span><%= entry.description %></span>
+      </span>
+    </label>
+  <% end %>
+  <label class="radio-label" for="post_report_reason_blank">
+    <input type="radio" name="ticket[report_reason]" value="" class="report-reason-radio" id="post_report_reason_blank" checked="checked" />
+    <span class="report-reason-description">
+      <b>Other</b>
+      <span>Please, provide more information in the description.</span>
+    </span>
+  </label>
+</div>
