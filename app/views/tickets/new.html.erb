@@ -29,7 +29,15 @@
         <%= f.hidden_field :disp_id %>
         <%= f.hidden_field :qtype %>
 
-        <div class="section">
+        <% if @ticket.errors.any? %>
+          <div class="section report-errors">
+            <% @ticket.errors.full_messages.each do |error| %>
+              <span><%= error %></span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="section" id="report-reason-input">
           <span class="ticket-warning">
             <strong>Note:</strong> Abuse of this system will lead to disciplinary action
           </span>
@@ -37,7 +45,7 @@
           <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
 
         </div>
-        <%= submit_tag "Submit Ticket" %>
+        <%= submit_tag "Submit Ticket", class: "st-button submit", id: "ticket_submit" %>
       <% end %>
     <% end %>
   </div>

@@ -24,6 +24,7 @@
   padding: math.div(st-value(100), 2);
   height: st-value(100) * 2;
   box-sizing: border-box;
+  justify-content: center;
 
   // TODO What if button is on a light background
   background: $button-background;
@@ -80,6 +81,13 @@
   background: palette("background-red");
   &:hover, &:active {
     background: palette("background-red-d5")
+  }
+}
+.st-button.submit {
+  background: themed("color-tag-artist");
+  color: palette("plain-black");
+  &:hover, &:active {
+    background: themed("color-tag-artist-alt");
   }
 }
 
