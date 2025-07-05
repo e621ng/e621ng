@@ -74,9 +74,8 @@
 
       &:first-child { @include st-radius-top; }
       &:last-child { @include st-radius-bottom; }
-      &:hover {
-        background-color: themed("color-section-lighten-5");
-      }
+      &:hover { background-color: themed("color-section-lighten-10"); }
+      &.selected { background-color: themed("color-section-lighten-5"); }
     }
 
     input[type="radio"] {

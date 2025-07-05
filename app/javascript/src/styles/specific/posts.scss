@@ -390,18 +390,3 @@ body[data-user-can-approve-posts="true"] .notice {
     }
   }
 }
-
-/* Flag page */
-.flag-dialog-preview {
-  @media only screen and (min-width: 550px) {
-    display: flex;
-  }
-
-  // Overwrite some DText styles to make the header look better
-  blockquote {
-    border: 0;
-    text-align: center;
-    h3 { padding: 0; }
-  }
-  p { margin-bottom: 0.25em; }
-}

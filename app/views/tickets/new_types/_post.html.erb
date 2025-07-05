@@ -20,7 +20,7 @@
 
 <div class="report-reason">
   <% PostReportReason.for_radio.each do |entry| %>
-    <label class="radio-label" for="post_report_reason_<%= entry.id %>">
+    <label class="report-reason-label" for="post_report_reason_<%= entry.id %>">
       <input type="radio" name="ticket[report_reason]" value="<%= entry.id %>" class="report-reason-radio" id="post_report_reason_<%= entry.id %>" />
       <span class="report-reason-description">
         <b><%= entry.reason %></b>
@@ -29,7 +29,7 @@
     </label>
   <% end %>
 
-  <label class="radio-label" for="post_report_reason_flag">
+  <label class="report-reason-label" for="post_report_reason_flag">
     <input type="radio" name="ticket[report_reason]" value="flag" class="report-reason-radio" id="post_report_reason_flag" />
     <span class="report-reason-description">
       <b>Uploading Guidelines</b>
@@ -37,7 +37,7 @@
     </span>
   </label>
 
-  <label class="radio-label" for="post_report_reason_takedown">
+  <label class="report-reason-label" for="post_report_reason_takedown">
     <input type="radio" name="ticket[report_reason]" value="takedown" class="report-reason-radio" id="post_report_reason_takedown" />
     <span class="report-reason-description">
       <b>Deletion Request</b>
@@ -77,7 +77,11 @@ $(() => {
   const unusualReasons = new Set(["flag", "takedown"]);
 
   $(".report-reason-radio").on("change", function() {
-    const reason = $(this).val();
+    const element = $(this);
+    $(".report-reason-label").removeClass("selected");
+    element.closest(".report-reason-label").addClass("selected");
+
+    const reason = element.val();
     if (unusualReasons.has(reason)) {
       $(".report-unusual").hide();
       $("#report-reason-" + reason).show();
