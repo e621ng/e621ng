@@ -35,7 +35,7 @@
         
         <% if flag_reason[:parent] %>
           <span class="flag-reason-parent">
-            <%= f.input :parent_id, as: :string, label: "Inferior of Post #" %>
+            <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
           </span>
         <% end %>
         
