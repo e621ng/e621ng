@@ -88,4 +88,20 @@
       flex-flow: column;
     }
   }
+
+  // Redirects to other pages
+  .report-unusual {
+    background: themed("color-section");
+    @include st-radius;
+    padding: 1rem;
+
+    .report-unusual-buttons {
+      display: flex;
+      gap: 0.5rem;
+
+      a {
+        min-width: 6rem;
+      }
+    }
+  }
 }

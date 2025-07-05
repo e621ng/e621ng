@@ -28,4 +28,68 @@
       </span>
     </label>
   <% end %>
+
+  <label class="radio-label" for="post_report_reason_flag">
+    <input type="radio" name="ticket[report_reason]" value="flag" class="report-reason-radio" id="post_report_reason_flag" />
+    <span class="report-reason-description">
+      <b>Uploading Guidelines</b>
+      <span>This post violates the Uploading Guidelines in some way.</span>
+    </span>
+  </label>
+
+  <label class="radio-label" for="post_report_reason_takedown">
+    <input type="radio" name="ticket[report_reason]" value="takedown" class="report-reason-radio" id="post_report_reason_takedown" />
+    <span class="report-reason-description">
+      <b>Deletion Request</b>
+      <span>You are the artist of this post, and would like to request its removal.</span>
+    </span>
+  </label>
 </div>
+
+<div class="report-reason report-unusual" id="report-reason-flag" style="display: none;">
+  <p>
+    If you believe that this post violates the <a href="<%= help_page_path(id: "uploading_guidelines") %>">Uploading Guidelines</a>, please submit a flag.<br />
+    If you would like to replace this post with a better version, please upload the new version separately, and <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">flag this one as inferior</a>.
+  </p>
+
+  <span class="report-unusual-buttons">
+    <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>" class="st-button">Flag</a>
+  </span>
+</div>
+
+<div class="report-reason report-unusual" id="report-reason-takedown" style="display: none;">
+  <p>
+    Artists and character owners may request the permanent removal of their artwork by submitting a takedown request.<br />
+    If you would like to replace this post with a better version, please upload the new version separately, and <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">flag this one as inferior</a>.
+  </p>
+
+  <span class="report-unusual-buttons">
+    <a href="<%= new_takedown_path(post_id: @post.id) %>" class="st-button danger">Takedown</a>
+    <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>" class="st-button">Flag</a>
+  </span>
+</div>
+
+
+<%= javascript_tag nonce: true do -%>
+$(() => {
+  const input = $("#report-reason-input"),
+    submit = $("#ticket_submit");
+  const unusualReasons = new Set(["flag", "takedown"]);
+
+  $(".report-reason-radio").on("change", function() {
+    const reason = $(this).val();
+    if (unusualReasons.has(reason)) {
+      $(".report-unusual").hide();
+      $("#report-reason-" + reason).show();
+      input.hide();
+      submit.hide();
+    } else {
+      $(".report-unusual").hide();
+      input.show();
+      submit.show();
+    }
+  });
+
+  $(".report-reason-radio:checked").trigger("change");
+});
+<% end %>
