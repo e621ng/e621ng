@@ -2,4 +2,7 @@
   <% if @latest.present? %>
     <%= subnav_link_to "Latest", @latest %>
   <% end %>
+  <% if CurrentUser.is_admin? %>
+    <%= subnav_link_to "User Vote Trends", admin_vote_trends_path %>
+  <% end %>
 <% end %>

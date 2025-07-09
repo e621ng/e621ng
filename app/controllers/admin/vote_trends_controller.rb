@@ -5,7 +5,7 @@ module Admin
     respond_to :html, :json
     
     
-    def show
+    def index
       params.permit(:user, :limit, :threshold, :duration, :vote_normality, :id, :page, search: {})
       Rails.logger.debug "PARAMS: #{params.inspect}"
       puts "USER:: #{params[:user].to_i}"
@@ -20,7 +20,7 @@ module Admin
 
       vote_abuse_args = {
         user: User.find(params[:user].to_i),
-        vote_normality: params[:vote_normality].present? ? params[:vote_normality].to_s == "true" : true
+        vote_normality: params[:vote_normality].to_i != 1
       }
       vote_abuse_args[:limit] = params[:limit].to_i if params[:limit].present?
       vote_abuse_args[:threshold] = params[:threshold].to_f if params[:threshold].present?

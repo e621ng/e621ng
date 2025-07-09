@@ -14,15 +14,15 @@
            class="form-control" value="<%= params[:limit] %>" min="1"
            title="Limit to last n posts" />
     <input type="number" name="threshold" id="threshold" placeholder="Threshold"
-           class="form-control" value="<%= params[:threshold] %>" min="0"
+           class="form-control" value="<%= params[:threshold] %>" min="0" step="any"
            title="Threshold for vote count" />
     <input type="number" name="duration" id="duration" placeholder="Limit to last n days"
-           class="form-control" value="<%= params[:duration] %>" min="1"
-           title="Limit to last n days" />
+         class="form-control" value="<%= params[:duration] %>" min="0" step="any"
+         title="Limit to last n days" />
     <input type="checkbox" name="vote_normality" id="vote_normality" value="1"
-           <%= 'checked' if params[:vote_normality] == '1' %>
-           title="Vote normality on/off" />
-    <label for="vote_normality">Vote Normality</label>
+      title="Vote normality on/off"
+      <%= 'checked' if params[:vote_normality].present? && params[:vote_normality].to_s != "0" %> />
+    <label for="vote_normality" title="Don't account for the post's score">Vote Abuse Mode</label>
     <button type="submit" class="btn btn-primary">Filter</button>
   </form>
 </div>

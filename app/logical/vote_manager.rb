@@ -228,7 +228,15 @@ class VoteManager
       # Create a KV pair of tags and their weighted vote counts
       tag_votes = Hash.new(0)
       scope = user.post_votes.order(updated_at: :desc)
-      scope = scope.where("updated_at >= ?", duration.ago) if duration
+      if duration
+        time_ago =
+          if duration.is_a?(String)
+        duration.to_f.days.ago
+          else
+        duration.ago
+          end
+        scope = scope.where("updated_at >= ?", time_ago)
+      end
       scope.limit(limit).each do |vote|
         post = vote.post
         next unless post
@@ -252,6 +260,7 @@ class VoteManager
       result = tag_votes.select { |_, count| count.abs > threshold }
             .sort_by { |_, count| -count.abs }
             .to_h
+            .sort_by { |_, count| count } # sort by the value itself now that we cut out the small values
 
       result.each do |tag, freq| puts "#{tag.name}  \t#{'%02.05f'% freq}" end
     end
