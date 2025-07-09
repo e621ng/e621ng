@@ -2,10 +2,6 @@ div#c-post-flags {
   tr.flag-resolved-true {
     background: $negative-record-background !important;
   }
-
-  .flag-reason-title, .flag-reason-text {
-    white-space: pre-wrap;
-  }
 }
 
 .post-flag-note {
@@ -54,60 +50,4 @@ div#c-post-flags {
 div#c-posts div.notice .dtext-container.post-flag-note p {
   margin-bottom: 1em;
   &:last-child { margin-bottom: 0; }
-}
-
-body.c-post-flags {
-  .flag-dialog-body {
-
-    // Option label
-    label {
-      font-weight: normal;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-  
-    // Option explanation
-    div.styled-dtext {
-      margin: 0.125rem 1.25rem;
-      filter: brightness(85%);
-    }
-  
-    // Align label with the explanation
-    input[type="radio"] {
-      width: 1rem;
-    }
-  
-    // Post ID input
-    .post_flag_parent_id {
-      display: flex;
-      margin: 0 0 0 1.25rem;
-    }
-
-    form.simple_form div.input {
-      label {
-        font-weight: normal;
-        margin-right: 1rem;
-        cursor: default;
-      }
-      span.error { margin-left: 1rem; }
-    }
-  
-    hr { margin: 0.75rem 1.25rem; }
-    h3 {
-      margin: 0.5rem 1.25rem;
-      font-weight: normal;
-    }
-
-    .flag-notes {
-      margin: 1rem 0;
-    }
-
-    input[type="submit"] {
-      background: themed("color-tag-artist");
-      font-size: 1.25rem;
-      padding: 0.5rem 2rem;
-      margin: 0.5rem;
-      @include st-radius;
-    }
-  }
 }

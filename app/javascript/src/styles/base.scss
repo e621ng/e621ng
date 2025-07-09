@@ -47,8 +47,10 @@
 @import "views/application/application";
 @import "views/artists/artists";
 @import "views/maintenance/maintenance";
+@import "views/post_flags/post_flags";
 @import "views/posts/posts";
 @import "views/static/static";
+@import "views/tickets/tickets";
 @import "views/users/users";
 
 @import "specific/admin_dashboards.scss";
@@ -88,7 +90,6 @@
 @import "specific/takedowns.scss";
 @import "specific/terms_of_service.scss";
 @import "specific/themes.scss";
-@import "specific/tickets.scss";
 @import "specific/uploads.scss";
 @import "specific/uploads_file.scss";
 @import "specific/user_deletions.scss";
