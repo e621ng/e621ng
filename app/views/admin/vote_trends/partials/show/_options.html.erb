@@ -21,7 +21,7 @@
          title="Limit to last n days" />
     <input type="checkbox" name="vote_normality" id="vote_normality" value="1"
       title="Vote normality on/off"
-      <%= 'checked' if params[:vote_normality].present? && params[:vote_normality].to_s != "0" %> />
+      <%= "checked" if params[:vote_normality].present? && params[:vote_normality].to_s != "0" %> />
     <label for="vote_normality" title="Don't account for the post's score">Vote Abuse Mode</label>
     <button type="submit" class="btn btn-primary">Filter</button>
   </form>

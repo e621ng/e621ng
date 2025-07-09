@@ -3,25 +3,6 @@
 class VoteManager
   ISOLATION = Rails.env.test? ? {} : { isolation: :repeatable_read }
 
-  # documentation testing. Does this tooltip work?
-  # this is a new line! next, i'll show some parameters and return values. First, an empty line.
-  # 
-  # **params**
-  # @parmam user [User] The user who is voting
-  #
-  # @param post [Post] The post being voted on
-  #
-  # @param score [Integer] The score of the vote, either 1 (up) or -1 (down)
-  # 
-  # @return [PostVote] The created or updated PostVote object, or :need_unvote if the user needs to unvote first
-  # 
-  # @raise [UserVote::Error] If the vote is invalid, the user does not have permission to vote, or the vote is locked
-  #
-  # @raise [ActiveRecord::SerializationFailure] If the transaction fails due to serialization
-  #
-  # @raise [ActiveRecord::RecordNotUnique] If the user has already voted for the post
-  #
-  # @raise [UserVote::Error] If the vote fails for any other reason
   def self.vote!(user:, post:, score:)
     @vote = nil
     retries = 5
@@ -180,60 +161,16 @@ class VoteManager
   end
 
   module VoteAbuseMethods
-    # methods related to vote abuse detection and prevention
-
-    # Section: Vote Abuse Detection
-    # - Dectect users who vote on many posts in a short time period.
-
-    # Section: Vote Patterns
-    # look for patterns in votes: 
-    # - make an KV pair using posts the user has recently voted on. 
-    #   - Key: Each unique tag on the posts
-    #   - Value: Running total of the number of votes for that tag. Each vote is weighted:
-    #     - Weight by how much the vote 'agrees' with the post's score ratio. This can be ignored if the post has few votes.
-    #     - Weight by how many total tags the post has.
-    # - Weight each tag by the total usage of the tag (tag count). Tag.post_count is available on the tag model. 
-    # - Sort the KV pair by the absolute value of the value, and return the top N tags. Only return tags that have a value above a certain threshold.
-    # **Large values indicate the user is voting up on posts with that tag, and small values indicate the user is voting down on posts with that tag.**
-
-
-    # Analyzes user voting patterns for potential abuse based on tag voting behavior.
-    #
-    # - @param user [User] The user to check for vote abuse patterns.
-    # - @param limit [Integer] The maximum number of votes to check for patterns.
-    # - @param threshold [Float] The minimum value for a tag's score to be returned.
-    # - @param duration [ActiveSupport::Duration, nil] The time period to check for votes (defaults to nil = all time).
-    # - @param vote_normality [Boolean] Whether to weight the votes by the post's score ratio and total tags (defaults to true).
-    # - @return [Hash] A hash of tags and their weighted vote counts, sorted by absolute value.
-    #
-    # @example
-    #   VoteManager.vote_abuse_patterns(
-    #     user: User.first,
-    #     limit: 10,
-    #     threshold: 0.0001,
-    #     duration: 1.week,
-    #     vote_normality: true
-    #   )
-    #   # => { "tag1" => 0.37, "tag2" => -0.26, ... }
-    #
-    # Tags with large values indicate upvote bias; small values indicate downvote bias.
-    # 
-    
-
-
     def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
-
-      Rails.logger.debug "Vote Abuse Patterns for User: #{user.id}, Limit: #{limit}, Threshold: #{threshold}, Duration: #{duration}" if Rails.env.development?
-
       # Create a KV pair of tags and their weighted vote counts
       tag_votes = Hash.new(0)
       scope = user.post_votes.order(updated_at: :desc)
       if duration
         time_ago =
           if duration.is_a?(String)
-        duration.to_f.days.ago
+            duration.to_f.days.ago
           else
-        duration.ago
+            duration.ago
           end
         scope = scope.where("updated_at >= ?", time_ago)
       end
@@ -243,48 +180,39 @@ class VoteManager
 
         post.tags.each do |tag|
           weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
-          #puts "Tag: #{tag.name}, Weight: #{'%02.05f'%(weight*1000)}"  # for debugging purposes, remove this line in production
           tag_votes[tag] += weight
         end
-        # return
-        # tag_votes = tag_votes.sort_by { |_, count| -count.abs }.to_h
-        # tag_votes.each do |tag, count| puts "Tag: #{tag.name}, Count: #{'%2.010f'%count}" end
-        # return # for debugging purposes, remove this line in production
       end
       # weight tags by their total usage over the whole site
-      tag_votes.each do |tag, count|
-        # puts "Tag: #{tag.name}, Count: #{'%2.02f'%count}, Total Posts: #{tag.post_count}"
+      tag_votes.each_key do |tag|
         tag_votes[tag] /= tag.post_count.to_f # if tag.post_count && tag.post_count != 0
       end
       # Sort the tags by their absolute vote counts and return the top N
-      result = tag_votes.select { |_, count| count.abs > threshold }
-            .sort_by { |_, count| -count.abs }
-            .to_h
-            .sort_by { |_, count| count } # sort by the value itself now that we cut out the small values
-
-      result.each do |tag, freq| puts "#{tag.name}  \t#{'%02.05f'% freq}" end
+      result = tag_votes.select { |_, count| count.abs > threshold } # rubocop:disable Style/RedundantAssignment
+                        .sort_by { |_, count| -count.abs }
+                        .to_h
+                        .sort_by { |_, count| count }
+      result
     end
 
     def self.calculate_vote_weight(vote, post, vote_normality: true)
       # Calculate the weight of the vote based on the post's score ratio and total tags
       # Weight magnitude is based on the post's score ratio and the number of tags on the post (and how the user votes according to the ratio)
       # negative value means the user is voting down on posts with that tag, positive value means the user is voting up on posts with that tag
-      tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright 
-                + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid 
+      tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid
       return 0 unless tag_count && tag_count > 0
       # Calculate the score ratio of the posts
       up_score = post.up_score.to_f
       down_score = post.down_score.to_f || 0.0
       total_score = up_score + down_score
-      if vote_normality 
-        score_ratio = total_score != 0 ? (up_score-down_score) / total_score : 1.0 
-      else 
+      if vote_normality
+        score_ratio = total_score == 0 ? 1.0 : (up_score - down_score) / total_score
+      else
         score_ratio = 1.0
       end
       # Calculate the weight based on the user's vote and the post's score ratio
-      weight = vote.score * (score_ratio / tag_count.to_f)
-      weight 
+      vote.score * (score_ratio / tag_count.to_f)
     end
   end
-include VoteAbuseMethods
+  include VoteAbuseMethods
 end
