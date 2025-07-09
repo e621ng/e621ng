@@ -3,12 +3,13 @@
   <p>
     This page shows the voting trends for a specific user. You can filter the results by various parameters.
   </p>
-
+  <%= render "admin/vote_trends/partials/show/options" %>
+  <br>
   <table>
     <thead>
       <tr>
         <th>Score</th>
-        <th>Tag Name</th>
+        <th style="text-align:left">Tag Name</th>
       </tr>
     </thead>
     <tbody>

@@ -9,7 +9,14 @@ module Admin
       params.permit(:user, :limit, :threshold, :duration, :vote_normality, :id, :page, search: {})
       Rails.logger.debug "PARAMS: #{params.inspect}"
       puts "USER:: #{params[:user].to_i}"
-      params.require(:user)
+      # params.require(:user)
+      if params[:user].blank? || !User.exists?(params[:user].to_i)
+        # show the page without any data
+        @vote_trends = []
+        Rails.logger.debug "No user specified or user does not exist. Returning empty trends."
+        respond_with(@vote_trends)
+        return
+      end
 
       vote_abuse_args = {
         user: User.find(params[:user].to_i),

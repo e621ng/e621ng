@@ -1,0 +1,28 @@
+<!--
+1. User name/id entry (`user`)
+2. limit to last n posts (`limit`)
+3. threshold (`threshold`)
+4. limit to last n days (`duration`)
+5. vote_normality on/off (`vote_normality`)
+-->
+<div class="form-query">
+  <form method="get" action="">
+    <input type="text" name="user" id="user" placeholder="User ID" 
+           class="form-control" value="<%= params[:user] %>"
+           title="User name or ID" />
+    <input type="number" name="limit" id="limit" placeholder="Limit to last n posts"
+           class="form-control" value="<%= params[:limit] %>" min="1"
+           title="Limit to last n posts" />
+    <input type="number" name="threshold" id="threshold" placeholder="Threshold"
+           class="form-control" value="<%= params[:threshold] %>" min="0"
+           title="Threshold for vote count" />
+    <input type="number" name="duration" id="duration" placeholder="Limit to last n days"
+           class="form-control" value="<%= params[:duration] %>" min="1"
+           title="Limit to last n days" />
+    <input type="checkbox" name="vote_normality" id="vote_normality" value="1"
+           <%= 'checked' if params[:vote_normality] == '1' %>
+           title="Vote normality on/off" />
+    <label for="vote_normality">Vote Normality</label>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+</div>
