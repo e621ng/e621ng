@@ -1,21 +1,8 @@
-<div class="form-query">
-  <form method="get" action="">
-    <input type="text" name="user" id="user" placeholder="User ID" 
-           class="form-control" value="<%= params[:user] %>"
-           title="User name or ID" />
-    <input type="number" name="limit" id="limit" placeholder="Limit to last n posts"
-           class="form-control" value="<%= params[:limit] %>" min="1"
-           title="Limit to last n posts" />
-    <input type="number" name="threshold" id="threshold" placeholder="Threshold"
-           class="form-control" value="<%= params[:threshold] %>" min="0" step="any"
-           title="Threshold for vote count" />
-    <input type="number" name="duration" id="duration" placeholder="Limit to last n days"
-         class="form-control" value="<%= params[:duration] %>" min="0" step="any"
-         title="Limit to last n days" />
-    <input type="checkbox" name="vote_normality" id="vote_normality" value="1"
-      title="Vote normality on/off"
-      <%= "checked" if params[:vote_normality].present? && params[:vote_normality].to_s != "0" %> />
-    <label for="vote_normality" title="Don't account for the post's score">Vote Abuse Mode</label>
-    <button type="submit" class="btn btn-primary">Filter</button>
-  </form>
-</div>
+<%= form_search(path: admin_vote_trends_path, always_display: true, hideable: false) do %>
+  <%= text_field_tag "user", params[:user], placeholder: "User name or ID", data: { autocomplete: "user" } %>
+  <%= text_field_tag "limit", params[:limit], placeholder: "Last n votes", class: "form-control", min: 1, title: "Limit to last n post votes" %>
+  <%= text_field_tag "threshold", params[:threshold], placeholder: "Threshold", class: "form-control", min: 0, step: "any", title: "Threshold for vote count" %>
+  <%= text_field_tag "duration", params[:duration], placeholder: "Limit to last n days", class: "form-control", min: 0, step: "any", title: "Limit to last n days" %>
+  <%= check_box_tag "vote_normality", "1", params[:vote_normality].present? && params[:vote_normality].to_s != "0", title: "Vote normality on/off" %>
+  <label for="vote_normality" title="Don't account for the post's score">Vote Abuse Mode</label>
+<% end %>
