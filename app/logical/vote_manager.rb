@@ -196,9 +196,6 @@ class VoteManager
     end
 
     def self.calculate_vote_weight(vote, post, vote_normality: true)
-      # Calculate the weight of the vote based on the post's score ratio and total tags
-      # Weight magnitude is based on the post's score ratio and the number of tags on the post (and how the user votes according to the ratio)
-      # negative value means the user is voting down on posts with that tag, positive value means the user is voting up on posts with that tag
       tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid
       return 0 unless tag_count && tag_count > 0
       # Calculate the score ratio of the posts

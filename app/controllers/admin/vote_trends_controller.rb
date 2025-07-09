@@ -6,12 +6,9 @@ module Admin
     respond_to :html, :json
     def index
       params.permit(:user, :limit, :threshold, :duration, :vote_normality, :id, :page, search: {})
-      # params.require(:user)
       if params[:user].blank? || !User.exists?(params[:user].to_i)
-        # show the page without any data
         @vote_trends = []
-        Rails.logger.debug "No user specified or user does not exist. Returning empty trends."
-        respond_with(@vote_trends)
+        respond_with(@vote_trends) # show the page without any data
         return
       end
 

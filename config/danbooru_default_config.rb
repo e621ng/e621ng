@@ -112,7 +112,7 @@ module Danbooru
     end
 
     def webp_previews_enabled?
-      true
+      false
     end
 
     # Large resize image width. Set to nil to disable.
