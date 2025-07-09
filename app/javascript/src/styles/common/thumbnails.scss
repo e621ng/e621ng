@@ -55,6 +55,9 @@ article.thumbnail {
     height: 100%;
     background: #0003;
 
+    // Fill the entire thumbnail
+    flex: 1;
+
     // See min-width and min-height above
     max-width: min(var(--thumb-mobile-size, 33vw), var(--thumb-image-size, 150px));
     max-height: min(var(--thumb-mobile-size, 33vw), var(--thumb-image-size, 150px));
