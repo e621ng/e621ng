@@ -29,10 +29,10 @@
 </div>
 
 <%= javascript_tag nonce: true do -%>
-  $(".closebutton").on('click', function(e) {
-    $(e.target.parentNode).hide();
+  $(".closebutton").on("click", function(e) {
+    $(e.target).parents(".desc-popup").hide();
   });
-  $(".desc-show").on('click', function(e) {
+  $(".desc-show").on("click", function(e) {
     $(e.target).next().toggle();
   });
 <% end -%>
