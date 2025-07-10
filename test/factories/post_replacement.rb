@@ -38,5 +38,9 @@ FactoryBot.define do
     factory(:apng_replacement) do
       replacement_file { fixture_file_upload("apng/normal_apng.png") }
     end
+
+    factory(:webp_replacement) do
+      replacement_file { fixture_file_upload("test.webp") }
+    end
   end
 end
