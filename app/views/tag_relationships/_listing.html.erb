@@ -1,6 +1,7 @@
 <table class="striped">
   <thead>
     <tr>
+      <th>Votes</th>
       <th>From</th>
       <th>To</th>
       <th>Forum</th>
@@ -13,6 +14,11 @@
   <tbody>
     <% tag_relations.each do |tag_relation| %>
       <tr id="<%= tag_relation.model_name.singular_route_key.dasherize %>-<%= tag_relation.id %>">
+        <td>
+          <% if tag_relation.forum_post_id %>
+            <%= render "forum_post_votes/overview", votes: tag_relation.forum_post.votes, forum_post: tag_relation.forum_post %>
+          <% end %>
+        </td>
         <td class="category-<%= tag_relation.antecedent_tag.try(:category) %>">
           <%= link_to_wiki_or_new tag_relation.antecedent_name %>
           <span class="count"><%= tag_relation.antecedent_tag.post_count rescue 0 %></span>
