@@ -123,7 +123,7 @@
           <% end %>
           <table>
             <tr>
-              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
+              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %></td>
             </tr>
           </table>
           <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
