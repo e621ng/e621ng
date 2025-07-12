@@ -26,7 +26,6 @@ class ForumPost < ApplicationRecord
   validate :validate_creator_is_not_limited, on: :create
   before_destroy :validate_topic_is_unlocked
   after_save :delete_topic_if_original_post
-  # after_save :update_vote_score
   after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
     ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
