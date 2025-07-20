@@ -230,9 +230,12 @@ nav.navigation {
 
 
 // Sticky header
-body[data-th-sheader="true"] nav.navigation {
+body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
+
+  background-color: themed("color-background");
+  background-image: themed("image-background");
 }
 
 
@@ -314,7 +317,6 @@ nav.navigation, html.nav-toggled nav.navigation {
     box-sizing: border-box;
     height: unset;
 
-    background: themed("color-background");
     overflow-y: unset; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo a.nav-logo-link {
@@ -341,6 +343,10 @@ nav.navigation, html.nav-toggled nav.navigation {
         padding: 0 0.625rem;
         white-space: nowrap;
       }
+    }
+
+    .nav-logo {
+      background: unset;
     }
 
     .nav-primary {
@@ -444,6 +450,7 @@ nav.navigation, html.nav-toggled nav.navigation {
       height: 3.25rem;
       box-sizing: border-box;
       padding: 0;
+      background: unset;
 
       #nav-toggle { display: none; }
       a { padding: 0; }

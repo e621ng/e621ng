@@ -176,13 +176,13 @@ class PostVideoConversionJob < ApplicationJob
     md5 = post.md5
     sm = Danbooru.config.storage_manager
 
-    videos[:variants].each do |name, video|
-      path = sm.file_path(md5, name, :scaled, post.is_deleted?, scale_factor: "alt")
+    videos[:variants].each_value do |video|
+      path = sm.file_path(md5, "mp4", :scaled, protect: post.is_deleted?, scale: "alt")
       sm.store(video, path)
     end
 
     videos[:samples].each do |name, video|
-      path = sm.file_path(md5, "mp4", :scaled, post.is_deleted?, scale_factor: name.to_s)
+      path = sm.file_path(md5, "mp4", :scaled, protect: post.is_deleted?, scale: name.to_s)
       sm.store(video, path)
     end
   end

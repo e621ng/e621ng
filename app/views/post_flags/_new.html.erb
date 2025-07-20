@@ -4,7 +4,6 @@
     <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
   </div>
   
-  
   <div class="dtext-container">
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page)&.body) %>
   </div>
@@ -18,29 +17,48 @@
   <%= custom_form_for(post_flag) do |f| %>
     <%= f.hidden_field :post_id %>
 
-    <% Danbooru.config.flag_reasons.each do |flag_reason| %>
-      <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
-        <% next %>
-      <% end %>
+    <div class="flag-reason">
+      <% Danbooru.config.flag_reasons.each do |flag_reason| %>
+        <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
+          <% next %>
+        <% end %>
 
-      <label>
-        <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
-        <span class="flag-reason-title"><%= format_text(flag_reason[:reason], inline: true) %></span>
-        <div class="dtext-container flag-reason-text"><%= format_text(flag_reason[:text]) %></div>
-      </label>
-      
-      <% if flag_reason[:parent] %>
-        <%= f.input :parent_id, as: :string, label: "Inferior of Post #" %>
+        <label class="flag-reason-label">
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
+          <span class="flag-reason-description">
+            <b><%= format_text(flag_reason[:reason], inline: true) %></b>
+            <span class="dtext-container">
+              <%= format_text(flag_reason[:text]) %>
+            </span>
+          </span>
+        </label>
+        
+        <% if flag_reason[:parent] %>
+          <span class="flag-reason-parent">
+            <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
+          </span>
+        <% end %>
+        
       <% end %>
-      
-    <% end %>
+    </div>
 
     <div class="flag-notes">
       <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size %>
     </div>
     
     <div>
-      <%= f.submit "Submit" %>
+      <%= f.submit "Submit", class: "st-button submit" %>
     </div>
   <% end %>
 </div>
+
+
+<%= javascript_tag nonce: true do -%>
+  const flagReasonLabels = document.querySelectorAll(".flag-reason-label");
+  flagReasonLabels.forEach(label => {
+    label.addEventListener("click", () => {
+      flagReasonLabels.forEach(l => l.classList.remove("selected"));
+      label.classList.add("selected");
+    });
+  });
+<% end %>

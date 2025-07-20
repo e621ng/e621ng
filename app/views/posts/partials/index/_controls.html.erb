@@ -2,7 +2,64 @@
   <button id="search-fullscreen" class="st-button" title="Fullscreen mode">
     <%= svg_icon(:fullscreen) %>
   </button>
-  <button id="search-sticky" class="st-button" title="Sticky searchbar">
-    <%= svg_icon(:anchor) %>
+  <button id="search-settings" class="st-button" title="Search settings">
+    <%= svg_icon(:settings) %>
   </button>
+</div>
+
+<div class="search-settings-container">
+  <h3>
+    Layout Settings
+    <button id="search-settings-close" class="st-button" title="Close settings">
+      <%= svg_icon(:times) %>
+    </button>
+  </h3>
+
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-image-contain">Image Crop</label>
+    </div>
+    <div class="ssc-body">
+      <input class="boolean optional sto-toggle" type="checkbox" id="ssc-image-contain" data-toggle="Contain">
+      <label class="sto-toggle" for="ssc-image-contain">
+        <span class="sto-off">Crop</span>
+        <span class="sto-on">Full</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-card-medium">Card Size</label>
+    </div>
+    <div class="ssc-body-g stm-toggle">
+      <input type="radio" id="ssc-card-small" name="ssc-card-size" value="s">
+      <label for="ssc-card-small">
+        <%= svg_icon(:square_nine, stroke_width: 1) %>
+        Small
+      </label>
+
+      <input type="radio" id="ssc-card-medium" name="ssc-card-size" value="m">
+      <label for="ssc-card-medium">
+        <%= svg_icon(:square_four, stroke_width: 1) %>
+        Medium
+      </label>
+
+      <input type="radio" id="ssc-card-large" name="ssc-card-size" value="l">
+      <label for="ssc-card-large">
+        <%= svg_icon(:square, stroke_width: 1) %>
+        Large
+      </label>
+    </div>
+  </div>
+
+  <div class="ssc-entry ssc-desktop-only">
+    <div class="ssc-label">
+      <label for="ssc-sticky-searchbar">Sticky Searchbar</label>
+    </div>
+    <div class="ssc-body">
+      <input class="boolean optional st-toggle" type="checkbox" id="ssc-sticky-searchbar">
+      <label class="st-toggle" for="ssc-sticky-searchbar">!</label>
+    </div>
+  </div>
 </div>

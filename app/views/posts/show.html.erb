@@ -63,7 +63,7 @@
           <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
         <% end -%>
 
-        <% if @post.visible? && @post.has_large? %>
+        <% if @post.visible? && @post.has_sample? %>
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
             <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, precision: 0 %></span> of original (<%= link_to "view original", @post.file_url, id: "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>

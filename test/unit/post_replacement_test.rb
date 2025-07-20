@@ -203,7 +203,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_not File.exist?(sm.file_path(old_md5, old_ext, :original))
       assert_not File.exist?(sm.file_path(old_md5, old_ext, :preview))
       assert_not File.exist?(sm.file_path(old_md5, old_ext, :large))
-      assert_not File.exist?(sm.file_path(old_md5, old_ext, :original, true))
+      assert_not File.exist?(sm.file_path(old_md5, old_ext, :original, protect: true))
     end
 
     should "not be able to approve on deleted post" do

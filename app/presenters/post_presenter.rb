@@ -41,13 +41,6 @@ class PostPresenter < Presenter
 
     locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
-    locals[:cropped_url] = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                             post.crop_file_url
-                           else
-                             post.preview_file_url
-                           end
-
-    locals[:cropped_url] = Danbooru.config.deleted_preview_url if post.deleteblocked?
     locals[:preview_url] = if post.deleteblocked?
                              Danbooru.config.deleted_preview_url
                            else
@@ -55,8 +48,6 @@ class PostPresenter < Presenter
                            end
 
     locals[:alt_text] = "post ##{post.id}"
-
-    locals[:has_cropped] = post.has_cropped?
 
     if options[:pool]
       locals[:pool] = options[:pool]
@@ -150,10 +141,10 @@ class PostPresenter < Presenter
         url: post.visible? ? post.file_url : nil,
       },
       sample: {
-        has: post.has_large?,
-        height: post.large_image_height,
-        width: post.large_image_width,
-        url: post.visible? ? post.large_file_url : nil,
+        has: post.has_sample?,
+        height: post.sample_height,
+        width: post.sample_width,
+        url: post.visible? ? post.sample_url : nil,
         alternates: post.video_sample_list,
       },
       sources: post.source&.split('\n'),

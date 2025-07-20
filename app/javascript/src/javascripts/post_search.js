@@ -14,7 +14,7 @@ PostSearch.initialize_input = function ($form) {
     .on("keypress", function (event) {
       if (event.which !== 13 || event.shiftKey) return;
       event.preventDefault();
-      $textarea.closest("form").submit();
+      $textarea.closest("form").trigger("submit");
     });
 
   $(window).on("resize", recalculateInputHeight);
@@ -61,6 +61,7 @@ PostSearch.initialize_wiki_preview = function ($preview) {
 };
 
 PostSearch.initialize_controls = function () {
+  // Regular buttons
   let fullscreen = LStorage.Posts.Fullscreen;
   $("#search-fullscreen").on("click", () => {
     fullscreen = !fullscreen;
@@ -68,12 +69,58 @@ PostSearch.initialize_controls = function () {
     LStorage.Posts.Fullscreen = fullscreen;
   });
 
-  let stickySearch = LStorage.Posts.StickySearch;
-  $("#search-sticky").on("click", () => {
-    stickySearch = !stickySearch;
-    $("body").attr("data-st-ssearch", stickySearch);
-    LStorage.Posts.StickySearch = stickySearch;
+  // Menu toggle
+  let settingsVisible = false;
+  const menu = $(".search-settings-container"),
+    menuButton = $("#search-settings");
+  menuButton.on("click", () => {
+    settingsVisible = !settingsVisible;
+    menu.toggleClass("active", settingsVisible);
+    menuButton.toggleClass("active", settingsVisible);
   });
+
+  $("#search-settings-close").on("click", (event) => {
+    event.preventDefault();
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+    settingsVisible = false;
+  });
+
+  // click outside the menu
+  $(window).on("mouseup", (event) => {
+    if (!settingsVisible) return;
+
+    const target = $(event.target);
+    if (target.closest(".search-settings-container").length > 0 || target.is("#search-settings"))
+      return;
+
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+    settingsVisible = false;
+  });
+
+  // Menu toggles
+  $("#ssc-image-contain")
+    .prop("checked", LStorage.Posts.Contain)
+    .on("change", (event) => {
+      LStorage.Posts.Contain = event.target.checked;
+      $("body").attr("data-st-contain", event.target.checked);
+    });
+
+  $("input[type='radio'][name='ssc-card-size']")
+    .on("change", (event) => {
+      LStorage.Posts.Size = event.target.value;
+      $("body").attr("data-st-size", event.target.value);
+    });
+  $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
+    .prop("checked", true);
+
+  $("#ssc-sticky-searchbar")
+    .prop("checked", LStorage.Posts.StickySearch)
+    .on("change", (event) => {
+      LStorage.Posts.StickySearch = event.target.checked;
+      $("body").attr("data-st-stickysearch", event.target.checked);
+    });
 };
 
 $(() => {

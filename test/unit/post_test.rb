@@ -2323,7 +2323,7 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.sample_url)
       assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end
