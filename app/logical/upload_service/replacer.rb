@@ -66,8 +66,9 @@ class UploadService
         # rescaling notes reloads the post, be careful when accessing previous values
         rescale_notes(post)
 
+        replacement.update(status: "approved") unless replacement.status == "original"
+
         replacement.update({
-          status: "approved",
           approver_id: CurrentUser.id,
           uploader_id_on_approve: previous_uploader,
           penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?,
@@ -81,7 +82,8 @@ class UploadService
         # Everything went through correctly, the old files can now be removed
         if md5_changed
           Post.delete_files(post.id, previous_md5, previous_file_ext, force: true)
-          post.generated_samples = nil
+          post.generate_image_samples
+          post.delete_video_samples!
         end
       end
       if post.is_video?

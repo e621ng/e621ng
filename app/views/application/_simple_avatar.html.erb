@@ -1,4 +1,4 @@
-<% has_mail = CurrentUser.has_mail? && CurrentUser.dmails.unread.first.present? %>
+<% has_mail = CurrentUser.has_mail? %>
 <a
   href="<%= user_path(user) %>"
   class="simple-avatar placeholder <%= klass.nil? ? "" : klass %>"
@@ -16,10 +16,10 @@
   data-has-mail="<%= has_mail %>"
 >
   <a href="<%= user_path(user) %>">
-    <%= svg_icon(:user) %> Profile
+    <%= svg_icon(:user_square) %> Profile
   </a>
-  <a href="<%= dmails_path %>" class="simple-avatar-dmails">
-    <%= svg_icon(:message_square) %> Messages
+  <a href="<%= has_mail ? dmails_path(search: { to_id: CurrentUser.id }, folder: "received") : dmails_path %>" class="simple-avatar-dmails">
+    <%= svg_icon(:mail) %> Messages
   </a>
   <hr />
 

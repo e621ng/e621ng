@@ -78,6 +78,12 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
+#### Truenas / Local Server Installation
+
+If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
+
+Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
+
 ## Production Setup
 
 Installation follows the same steps as the docker compose file. Ubuntu 20.04 is the current installation target.

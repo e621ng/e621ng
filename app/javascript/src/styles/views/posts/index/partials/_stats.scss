@@ -1,6 +1,6 @@
 .posts-index-stats {
   display: flex;
-  justify-content: end;
+  justify-content: start;
 
   margin: -0.5rem 0rem 0.25rem;
 
@@ -10,4 +10,8 @@
   font-family: monospace;
 
   & > span { cursor: help; }
+
+  @include window-larger-than(50rem) {
+    justify-content: end;
+  }
 }

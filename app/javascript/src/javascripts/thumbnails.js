@@ -59,6 +59,8 @@ Thumbnails.initialize = function () {
     if (Danbooru.Blacklist.hiddenPosts.has(postID))
       thumbnail.addClass("blacklisted");
 
+    // Side effect: arrays will be converted to space-separated strings.
+    // Most prominient example is the pools array, which affects the blacklist.
     for (const key in postData)
       thumbnail.attr("data-" + key.replace(/_/g, "-"), postData[key]);
 
@@ -69,8 +71,8 @@ Thumbnails.initialize = function () {
     $("<img>")
       .attr({
         src: postData["preview_url"] || "/images/deleted-preview.png",
-        height: postData["preview_url"] ? postData["preview_height"] : 150,
-        width: postData["preview_url"] ? postData["preview_width"] : 150,
+        // height: postData["preview_url"] ? postData["preview_height"] : 150,
+        // width: postData["preview_url"] ? postData["preview_width"] : 150,
         title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.flags}\r\nDate: ${postData["created_at"]}\r\n\r\n${postData.tags}`,
         alt: postData.tags,
         class: "post-thumbnail-img",

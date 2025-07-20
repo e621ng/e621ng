@@ -1,14 +1,99 @@
-<% @post = @ticket.content %>
-You are reporting <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+<h2>Post Report</h2>
 
-<p class="nomargin">Reason:
-  <%= select :ticket, :report_reason, options_for_select(PostReportReason.for_select) %>
-  <span id="post_reason_description">You must select a reason.</span>
-</p>
+<div class="report-card">
+  <div class="report-card-left">
+    <% @post = @ticket.content %>
+    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+  </div>
+  <div class="report-card-right">
+    <p>
+      You are about to report a post. Please select a reason for reporting it.<br />
+      If you have any additional information, you may include it in the description below.
+    </p>
+
+    <p>
+      Keep in mind that reports are for content that violates <a href="<%= help_page_path(id: "rules") %>">the rules of the site.</a><br />
+      If you believe that a post goes against the Uploading Guidelines, <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">please make a flag instead</a>.
+    </p>
+  </div>
+</div>
+
+<div class="report-reason">
+  <% PostReportReason.for_radio.each do |entry| %>
+    <label class="report-reason-label" for="post_report_reason_<%= entry.id %>">
+      <input type="radio" name="ticket[report_reason]" value="<%= entry.id %>" class="report-reason-radio" id="post_report_reason_<%= entry.id %>" />
+      <span class="report-reason-description">
+        <b><%= entry.reason %></b>
+        <span><%= entry.description %></span>
+      </span>
+    </label>
+  <% end %>
+
+  <label class="report-reason-label" for="post_report_reason_flag">
+    <input type="radio" name="ticket[report_reason]" value="flag" class="report-reason-radio" id="post_report_reason_flag" />
+    <span class="report-reason-description">
+      <b>Uploading Guidelines</b>
+      <span>This post violates the Uploading Guidelines in some way.</span>
+    </span>
+  </label>
+
+  <label class="report-reason-label" for="post_report_reason_takedown">
+    <input type="radio" name="ticket[report_reason]" value="takedown" class="report-reason-radio" id="post_report_reason_takedown" />
+    <span class="report-reason-description">
+      <b>Deletion Request</b>
+      <span>You are the artist of this post, and would like to request its removal.</span>
+    </span>
+  </label>
+</div>
+
+<div class="report-reason report-unusual" id="report-reason-flag" style="display: none;">
+  <p>
+    If you believe that this post violates the <a href="<%= help_page_path(id: "uploading_guidelines") %>">Uploading Guidelines</a>, please submit a flag.<br />
+    If you would like to replace this post with a better version, please upload the new version separately, and <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">flag this one as inferior</a>.
+  </p>
+
+  <span class="report-unusual-buttons">
+    <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>" class="st-button">Flag</a>
+  </span>
+</div>
+
+<div class="report-reason report-unusual" id="report-reason-takedown" style="display: none;">
+  <p>
+    Artists and character owners may request the permanent removal of their artwork by submitting a takedown request.<br />
+    If you would like to replace this post with a better version, please upload the new version separately, and <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">flag this one as inferior</a>.
+  </p>
+
+  <span class="report-unusual-buttons">
+    <a href="<%= new_takedown_path(post_id: @post.id) %>" class="st-button danger">Takedown</a>
+    <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>" class="st-button">Flag</a>
+  </span>
+</div>
+
+
 <%= javascript_tag nonce: true do -%>
-  var post_report_reasons = <%= PostReportReason.for_select_descriptions.to_json.html_safe %>;
-  $('#ticket_report_reason').on('change', function(e) {
-      var description = post_report_reasons[this.options[this.selectedIndex].value] || "You must select a reason.";
-      $('#post_reason_description').text(description);
+$(() => {
+  const input = $("#report-reason-input"),
+    submit = $("#ticket_submit");
+  const unusualReasons = new Set(["flag", "takedown"]);
+
+  $(".report-reason-radio").on("change", function() {
+    const element = $(this);
+    $(".report-reason-label").removeClass("selected");
+    element.closest(".report-reason-label").addClass("selected");
+
+    const reason = element.val();
+    if (unusualReasons.has(reason)) {
+      $(".report-unusual").hide();
+      $("#report-reason-" + reason).show();
+      input.hide();
+      submit.hide();
+    } else {
+      $(".report-unusual").hide();
+      input.show();
+      submit.show();
+    }
   });
-<% end -%>
+
+  $(".report-reason-radio:checked").trigger("change");
+});
+<% end %>
