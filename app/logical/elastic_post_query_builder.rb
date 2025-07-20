@@ -324,6 +324,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ _score: :desc })
 
     when "rank"
+      order.push({ _score: :desc })
+      must.push({ range: { score: { gt: 0 } } })
+      # must.push({ range: { created_at: { gte: 2.days.ago } } })
       @function_score = {
         script_score: {
           script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
@@ -332,9 +335,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
           },
         },
       }
-      must.push({ range: { score: { gt: 0 } } })
-      # must.push({ range: { created_at: { gte: 2.days.ago } } })
-      order.push({ _score: :desc })
 
     when "random"
       order.push({ _score: :desc })

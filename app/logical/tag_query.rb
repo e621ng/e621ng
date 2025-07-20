@@ -75,8 +75,6 @@ class TagQuery
     commenter comm noter noteupdater
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
-  # OPTIMIZE: Check what's best
-  # Should avoid additional array allocations
   METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
